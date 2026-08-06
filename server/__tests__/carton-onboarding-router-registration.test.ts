@@ -2,12 +2,14 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
-const routesSource = () => readFileSync(join(process.cwd(), "server/routes.ts"), "utf8");
+const read = (path: string) => readFileSync(join(process.cwd(), path), "utf8");
 
 describe("carton onboarding router registration", () => {
   it("mounts the exported Express router instance without invoking it during app startup", () => {
-    const routes = routesSource();
+    const routes = read("server/routes.ts");
+    const cartonOnboarding = read("server/routes/carton-onboarding.ts");
 
+    expect(cartonOnboarding).toContain("export default router;");
     expect(routes).toContain(
       'import cartonOnboardingRouter from "./routes/carton-onboarding.js"',
     );
