@@ -2,6 +2,12 @@
 -- 0066 is a reassertion of the owner-approved 0065 function after ordering drift.
 -- Rolling it back restores the canonical 0065 definition; it must never restore
 -- the broader 0062 behavior that conflates warranty returns with COD refusal.
+--
+-- Two independent preconditions guard that, and BOTH must hold:
+--   1. 0065 itself must still be active — otherwise there is no canonical
+--      definition to restore and the rollback would reinstate 0062 behaviour.
+--   2. every migration layered on top (0067..0070) must already be rolled back —
+--      otherwise later objects would be left standing on a reverted base.
 BEGIN;
 
 DO $$
@@ -13,8 +19,22 @@ BEGIN
   ) THEN
     RAISE EXCEPTION '0066_ROLLBACK_BLOCKED: migration 0065 must remain active';
   END IF;
-END
-$$;
+
+  IF EXISTS (
+    SELECT 1
+    FROM public.schema_migrations
+    WHERE version IN (
+      '0067_orders_client_ip_schema_drift',
+      '0068_accounting_delivery_readiness_guard',
+      '0069_accounting_return_integrity',
+      '0070_accounting_ledger_backed_views',
+      '0071_accounting_return_line_identity_and_refund_guard'
+    )
+      AND rolled_back_at IS NULL
+  ) THEN
+    RAISE EXCEPTION '0066_ROLLBACK_BLOCKED: roll back migrations 0071 through 0067 first';
+  END IF;
+END $$;
 
 CREATE OR REPLACE FUNCTION public.reverse_order_inventory_on_terminal_status()
 RETURNS trigger

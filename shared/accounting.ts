@@ -643,6 +643,8 @@ export type OrderReturnEventStatusUpdate = z.infer<typeof orderReturnEventStatus
 
 const affectedItemSchema = z.object({
   productId: z.string().min(1),
+  orderItemId: z.string().min(1).optional(),
+  variantId: z.string().min(1).nullable().optional(),
   qty: z.number().int().positive(),
   priceAtPurchase: z.number().min(0),
   cogsAtTime: z.number().min(0),

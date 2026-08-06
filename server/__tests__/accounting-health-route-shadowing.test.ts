@@ -45,46 +45,50 @@ describe("GET /api/admin/accounting/v2/health route ownership", () => {
     mockExecute.mockReset();
   });
 
-  it("fails closed instead of returning ready when migrations 0063 through 0066 are not represented by the 0066 gate", async () => {
-    mockExecute.mockResolvedValue({
-      rows: [{
-        facts: true,
-        journal: true,
-        readiness: true,
-        companies: true,
-        positions: true,
-        live_balances: true,
-        auto_close: true,
-        migration_0066: false,
-      }],
-    });
+// Every column the single surviving gate selects. The route is only allowed to
+// answer "ready" when ALL of them are true, so flipping any one of them to
+// false must fail closed — that is the whole point of collapsing the duplicate
+// routers into one owner.
+const HEALTHY_ROW = {
+  facts: true,
+  journal: true,
+  readiness: true,
+  companies: true,
+  positions: true,
+  live_balances: true,
+  auto_close: true,
+  migration_0071: true,
+  delivery_readiness_function: true,
+  ledger_balance_function: true,
+  return_verifier_function: true,
+  delivery_readiness_guard: true,
+  return_verification_lock_guard: true,
+  return_verification_guard: true,
+  return_line_identity_guard: true,
+  return_refund_snapshot_guard: true,
+} as const;
 
-    const response = await request(buildApp()).get("/api/admin/accounting/v2/health");
+  it.each(Object.keys(HEALTHY_ROW))(
+    "fails closed instead of returning ready when the P0 chain check %s is not satisfied",
+    async (missing) => {
+      mockExecute.mockResolvedValue({ rows: [{ ...HEALTHY_ROW, [missing]: false }] });
 
-    expect(response.status).toBe(503);
-    expect(response.body).toEqual({ message: "ACCOUNTING_V2_MIGRATIONS_0051_TO_0066_REQUIRED" });
-    expect(response.body.ready).not.toBe(true);
-    expect(mockExecute).toHaveBeenCalledTimes(1);
-  });
+      const response = await request(buildApp()).get("/api/admin/accounting/v2/health");
 
-  it("reports migration 0066 only after every fail-closed health check passes", async () => {
-    mockExecute.mockResolvedValue({
-      rows: [{
-        facts: true,
-        journal: true,
-        readiness: true,
-        companies: true,
-        positions: true,
-        live_balances: true,
-        auto_close: true,
-        migration_0066: true,
-      }],
-    });
+      expect(response.status).toBe(503);
+      expect(response.body.message).toContain("ACCOUNTING_V2_MIGRATIONS_0051_TO_0071_REQUIRED");
+      expect(response.body.ready).not.toBe(true);
+      expect(mockExecute).toHaveBeenCalledTimes(1);
+    },
+  );
+
+  it("reports migrations through 0071 only after every fail-closed health check passes", async () => {
+    mockExecute.mockResolvedValue({ rows: [{ ...HEALTHY_ROW }] });
 
     const response = await request(buildApp()).get("/api/admin/accounting/v2/health");
 
     expect(response.status).toBe(200);
-    expect(response.body).toMatchObject({ ready: true, migrationsThrough: "0066" });
+    expect(response.body).toMatchObject({ ready: true, migrationsThrough: "0071" });
     expect(mockExecute).toHaveBeenCalledTimes(1);
   });
 });

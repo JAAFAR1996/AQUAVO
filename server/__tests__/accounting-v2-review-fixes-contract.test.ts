@@ -66,7 +66,13 @@ describe("Accounting V2 reviewed fixes", () => {
     expect(codRollback).toContain("trg_guard_accounting_period_tax_finalization");
   });
 
-  it("registers one fail-closed V2 health router through migration 0066", () => {
+  // There is exactly ONE /v2/health owner: createAccountingV2Router. The separate
+  // accounting-health-v2.ts router was a second registration on the same mount
+  // whose gate had drifted behind the migration chain, so a stale copy could
+  // answer "ready" for migrations it never checked. It is deleted, and this
+  // contract asserts both halves: nothing re-registers it, AND the surviving
+  // gate fails closed across the complete P0 chain through 0071.
+  it("mounts one effective fail-closed health gate through the complete P0 chain", () => {
     const routes = read("server/routes.ts");
     expect(routes).not.toContain("accounting-health-v2.js");
     expect(routes).not.toContain("createAccountingHealthV2Router");
@@ -74,10 +80,22 @@ describe("Accounting V2 reviewed fixes", () => {
     expect(existsSync(join(root, "server/routes/accounting-health-v2.ts"))).toBe(false);
 
     const reports = read("server/routes/accounting-v2.ts");
-    expect(reports).toContain('router.get("/v2/health"');
-    expect(reports).toContain("migration_0066");
-    expect(reports).toContain("ACCOUNTING_V2_MIGRATIONS_0051_TO_0066_REQUIRED");
-    expect(reports).toContain('migrationsThrough: "0066"');
+    expect((reports.match(/router\.get\("\/v2\/health"/g) ?? [])).toHaveLength(1);
+    expect(reports).toContain("migration_0071");
+    expect(reports).toContain("delivery_readiness_function");
+    expect(reports).toContain("delivery_readiness_guard");
+    expect(reports).toContain("ledger_balance_function");
+    expect(reports).toContain("return_verifier_function");
+    expect(reports).toContain("order_returns_00_lock_verification");
+    expect(reports).toContain("order_returns_prepare_verification");
+    expect(reports).toContain("RETURN_ORDER_ITEM_ID_REQUIRED");
+    expect(reports).toContain("return_refund_snapshot_guard");
+    expect(reports).toContain("ACCOUNTING_V2_MIGRATIONS_0051_TO_0071_REQUIRED");
+    expect(reports).toContain('migrationsThrough: "0071"');
+
+    const migration70 = read("migrations/0070_accounting_ledger_backed_views.sql");
+    expect(migration70).toContain("order_returns_00_lock_verification");
+    expect(migration70).toContain("pg_advisory_xact_lock");
   });
 
   it("keeps the default carrier active during status-only updates", () => {
@@ -87,19 +105,35 @@ describe("Accounting V2 reviewed fixes", () => {
     expect(migration).toContain("BEFORE INSERT OR UPDATE OF carrier,status ON public.orders");
   });
 
-  it("runs exact migration files before production deploy and skips previews", () => {
+  it("separates production migrations from Vercel builds", () => {
     const runner = read("script/apply-accounting-v2-migrations.ts");
-    expect(runner).toContain('CONFIRM_ACCOUNTING_PRODUCTION !== "APPLY_0051_TO_0066"');
+    expect(runner).toContain('CONFIRM_ACCOUNTING_PRODUCTION !== "APPLY_0051_TO_0071"');
     expect(runner).toContain("pg_advisory_lock");
     expect(runner).toContain("await client.query(body)");
     expect(runner).toContain("createHash(\"sha256\")");
     expect(runner).toContain("runner-verified file sha256");
     expect(runner).toContain('"0062_accounting_automation_opening_balances.sql"');
     expect(runner).toContain('"0066_accounting_reassert_refusal_inventory_after_0062.sql"');
+    expect(runner).toContain('"0071_accounting_return_line_identity_and_refund_guard.sql"');
 
-    const vercel = read("vercel.json");
-    expect(vercel).toContain('if [ \\"$VERCEL_ENV\\" = \\"production\\" ]');
-    expect(vercel).toContain("CONFIRM_ACCOUNTING_PRODUCTION=APPLY_0051_TO_0066");
-    expect(vercel).toContain("script/apply-accounting-v2-migrations.ts");
+    // The Vercel build must NOT carry the production migration any more: a
+    // deploy is not an approval to mutate the production ledger. The build
+    // command is now a plain build, and applying migrations is a deliberate,
+    // manually dispatched, production-environment-gated workflow.
+    const vercel = JSON.parse(read("vercel.json")) as { buildCommand?: string };
+    expect(vercel.buildCommand).toBe("pnpm run build");
+    expect(read("vercel.json")).not.toContain("CONFIRM_ACCOUNTING_PRODUCTION");
+    expect(read("vercel.json")).not.toContain("apply-accounting-v2-migrations");
+
+    const productionWorkflow = read(".github/workflows/accounting-v2-production-migrate.yml");
+    expect(productionWorkflow).toContain("workflow_dispatch:");
+    expect(productionWorkflow).toContain("environment: production");
+    expect(productionWorkflow).toContain("cancel-in-progress: false");
+    expect(productionWorkflow).toContain("APPLY_0051_TO_0071");
+    expect(productionWorkflow).toContain("pnpm build");
+    expect(productionWorkflow.indexOf("pnpm build"))
+      .toBeLessThan(productionWorkflow.indexOf("script/apply-accounting-v2-migrations.ts"));
+    // Nothing may apply production migrations on push/PR — dispatch only.
+    expect(productionWorkflow).not.toMatch(/^\s{2}(push|pull_request):/m);
   });
 });

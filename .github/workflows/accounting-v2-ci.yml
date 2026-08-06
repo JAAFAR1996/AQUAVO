@@ -7,7 +7,6 @@ on:
       - agent/accounting-cod-august-fix-20260802
     paths:
       - "server/middleware/accounting-auth-v2.ts"
-      - "server/routes/accounting-health-v2.ts"
       - "server/routes/accounting-v2.ts"
       - "server/routes/accounting-automatic-returns-v2.ts"
       - "server/routes/accounting-monthly-position-v2.ts"
@@ -24,12 +23,15 @@ on:
       - "server/services/order-return-automation-v2.ts"
       - "server/utils/cloudinary.ts"
       - "server/__tests__/accounting-*.test.ts"
+      - "server/__tests__/return-variant-id-contract.test.ts"
       - "server/__tests__/cod-refusal-policy.test.ts"
+      - "shared/accounting.ts"
       - "shared/accounting-schema-v2.ts"
       - "shared/cod-accounting.ts"
       - "shared/cod-refusal-policy.ts"
       - "shared/order-financials.ts"
       - "client/src/lib/accountant-pdf-v2.ts"
+      - "client/src/components/admin/order-return-adjustment-modal.tsx"
       - "client/src/components/admin/finance-accounting-*.tsx"
       - "client/src/components/admin/finance-smart-carrier-center-v2.tsx"
       - "client/src/components/admin/finance-automatic-returns-v2.tsx"
@@ -37,13 +39,16 @@ on:
       - "client/src/pages/admin/finance.tsx"
       - "migrations/005*.sql"
       - "migrations/006*.sql"
+      - "migrations/007*.sql"
       - "script/apply-accounting-v2-migrations.ts"
+      - "script/test-accounting-return-concurrency.sh"
       - "tsconfig.accounting.json"
       - ".github/workflows/accounting-v2-ci.yml"
+      - ".github/workflows/accounting-v2-production-migrate.yml"
+      - ".github/workflows/one-off-return-variant-patch.yml"
   pull_request:
     paths:
       - "server/middleware/accounting-auth-v2.ts"
-      - "server/routes/accounting-health-v2.ts"
       - "server/routes/accounting-v2.ts"
       - "server/routes/accounting-automatic-returns-v2.ts"
       - "server/routes/accounting-monthly-position-v2.ts"
@@ -60,12 +65,15 @@ on:
       - "server/services/order-return-automation-v2.ts"
       - "server/utils/cloudinary.ts"
       - "server/__tests__/accounting-*.test.ts"
+      - "server/__tests__/return-variant-id-contract.test.ts"
       - "server/__tests__/cod-refusal-policy.test.ts"
+      - "shared/accounting.ts"
       - "shared/accounting-schema-v2.ts"
       - "shared/cod-accounting.ts"
       - "shared/cod-refusal-policy.ts"
       - "shared/order-financials.ts"
       - "client/src/lib/accountant-pdf-v2.ts"
+      - "client/src/components/admin/order-return-adjustment-modal.tsx"
       - "client/src/components/admin/finance-accounting-*.tsx"
       - "client/src/components/admin/finance-smart-carrier-center-v2.tsx"
       - "client/src/components/admin/finance-automatic-returns-v2.tsx"
@@ -73,9 +81,13 @@ on:
       - "client/src/pages/admin/finance.tsx"
       - "migrations/005*.sql"
       - "migrations/006*.sql"
+      - "migrations/007*.sql"
       - "script/apply-accounting-v2-migrations.ts"
+      - "script/test-accounting-return-concurrency.sh"
       - "tsconfig.accounting.json"
       - ".github/workflows/accounting-v2-ci.yml"
+      - ".github/workflows/accounting-v2-production-migrate.yml"
+      - ".github/workflows/one-off-return-variant-patch.yml"
 
 permissions:
   contents: read
@@ -87,7 +99,17 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 35
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -123,10 +145,16 @@ jobs:
           server/__tests__/accounting-smart-carrier-v2-contract.test.ts
           server/__tests__/accounting-v2-automation-contract.test.ts
           server/__tests__/accounting-v2-migration-0062-execution.test.ts
+          server/__tests__/accounting-v2-migration-0071-execution.test.ts
+          server/__tests__/accounting-v2-p0-migration-contract.test.ts
+          server/__tests__/return-variant-id-contract.test.ts
           server/__tests__/accounting-cod-refusal-migration-contract.test.ts
           server/__tests__/accounting-customer-credit-posting-links.test.ts
           server/__tests__/accounting-warranty-refusal-separation.test.ts
           server/__tests__/cod-refusal-policy.test.ts
+
+      - name: Real PostgreSQL concurrent return verification
+        run: bash script/test-accounting-return-concurrency.sh
 
       - name: Migration ledger governance
         run: pnpm check:migrations

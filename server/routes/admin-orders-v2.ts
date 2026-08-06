@@ -38,6 +38,15 @@ type LockedOrder = {
   carrier_fee: string | null;
 };
 type DeliveryCompany = { id: string; name: string; default_fee: string };
+type ReturnOrderLineRow = {
+  order_item_id: string;
+  product_id: string;
+  product_name: string | null;
+  quantity: number | string;
+  price: number | string;
+  variant_id: string | null;
+  variant_label: string | null;
+};
 
 type LoyaltyStorageRuntime = {
   approveOrderPoints(userId: string, orderId: string, amount: number): Promise<unknown>;
@@ -103,6 +112,54 @@ async function recordRejectedIp(clientIp: string | null): Promise<void> {
 export function createAdminOrdersV2Router() {
   const router = Router();
   router.use(requireAccountingAdmin);
+
+  router.get("/orders/:id/return-lines", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const db = getDb();
+    if (!db) { res.status(503).json({ message: "قاعدة البيانات غير مهيأة" }); return; }
+
+    try {
+      const result = await db.execute(sql`
+        SELECT
+          oi.id AS order_item_id,
+          oi.product_id,
+          COALESCE(p.name,oi.product_id) AS product_name,
+          oi.quantity,
+          COALESCE(oi.final_unit_sale_price_snapshot,oi.price_at_purchase) AS price,
+          NULLIF(COALESCE(oi.metadata->>'variantId',oi.metadata->>'variant_id'),'') AS variant_id,
+          NULLIF(COALESCE(oi.metadata->>'variantLabel',oi.metadata->>'variant_label'),'') AS variant_label
+        FROM public.order_items_relational oi
+        LEFT JOIN public.products p ON p.id=oi.product_id
+        WHERE oi.order_id=${req.params.id}
+        ORDER BY oi.id
+      `);
+
+      const lines = rowsOf<ReturnOrderLineRow>(result).map((row) => ({
+        id: row.order_item_id,
+        orderItemId: row.order_item_id,
+        productId: row.product_id,
+        productName: row.product_name ?? row.product_id,
+        quantity: Number(row.quantity),
+        price: Number(row.price),
+        variantId: row.variant_id ?? undefined,
+        variantLabel: row.variant_label ?? undefined,
+      }));
+
+      if (lines.length === 0) {
+        res.status(409).json({
+          message: "لا توجد سطور بيع مالية مرتبطة بهذا الطلب؛ لا يمكن إنشاء راجع محاسبي آمن",
+        });
+        return;
+      }
+
+      if (lines.some((line) => !Number.isInteger(line.quantity) || line.quantity <= 0 || !Number.isFinite(line.price) || line.price < 0)) {
+        throw new Error("RETURN_ORDER_LINES_INVALID: بيانات سطور البيع غير صالحة");
+      }
+
+      res.json({ data: lines });
+    } catch (error) {
+      next(error);
+    }
+  });
 
   router.put("/orders/:id", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     if (req.body?.status == null) { next(); return; }
