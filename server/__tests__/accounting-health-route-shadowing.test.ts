@@ -2,7 +2,9 @@ import express, { type NextFunction, type Request, type Response } from "express
 import request from "supertest";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
-const mockExecute = vi.fn();
+const { mockExecute } = vi.hoisted(() => ({
+  mockExecute: vi.fn(),
+}));
 
 vi.mock("../db.js", () => ({
   getDb: () => ({
