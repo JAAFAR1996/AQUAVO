@@ -45,6 +45,9 @@ describe("return variant and disposition contract", () => {
     expect(route).toContain('router.get("/orders/:id/return-lines"');
     expect(route).toContain("FROM public.order_items_relational oi");
     expect(route).toContain("oi.id AS order_item_id");
+    expect(route).toContain(
+      "COALESCE(oi.final_unit_sale_price_snapshot,oi.price_at_purchase) AS price",
+    );
   });
 
   it("keeps refund and COGS advisory-only and rejects mixed disposition", () => {
