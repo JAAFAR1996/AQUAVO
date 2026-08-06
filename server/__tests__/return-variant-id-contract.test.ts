@@ -4,14 +4,9 @@ import { describe, expect, it } from "vitest";
 import { orderReturnEventInputSchema } from "../../shared/accounting";
 
 const root = process.cwd();
-const modalSource = () => readFileSync(
-  join(root, "client/src/components/admin/order-return-adjustment-modal.tsx"),
-  "utf8",
-);
-const adminOrdersSource = () => readFileSync(
-  join(root, "server/routes/admin-orders-v2.ts"),
-  "utf8",
-);
+const read = (path: string) => readFileSync(join(root, path), "utf8");
+const modalSource = () => read("client/src/components/admin/order-return-adjustment-modal.tsx");
+const adminOrdersSource = () => read("server/routes/admin-orders-v2.ts");
 
 describe("return variant and disposition contract", () => {
   it("preserves order line and variant identity through Zod", () => {
@@ -36,6 +31,7 @@ describe("return variant and disposition contract", () => {
   it("loads canonical relational lines instead of trusting orders.items JSONB", () => {
     const modal = modalSource();
     const route = adminOrdersSource();
+    const routes = read("server/routes.ts");
 
     expect(modal).toContain("/api/admin/orders/${order.id}/return-lines");
     expect(modal).toContain("orderItemId: line.orderItemId");
@@ -48,6 +44,11 @@ describe("return variant and disposition contract", () => {
     expect(route).toContain(
       "COALESCE(oi.final_unit_sale_price_snapshot,oi.price_at_purchase) AS price",
     );
+
+    const v2Mount = routes.indexOf('app.use("/api/admin", createAdminOrdersV2Router())');
+    const legacyMount = routes.indexOf('app.use("/api/admin", createAdminRouter())');
+    expect(v2Mount).toBeGreaterThan(-1);
+    expect(v2Mount).toBeLessThan(legacyMount);
   });
 
   it("keeps refund and COGS advisory-only and rejects mixed disposition", () => {
