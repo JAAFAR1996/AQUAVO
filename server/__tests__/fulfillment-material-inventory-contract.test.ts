@@ -36,9 +36,14 @@ describe("fulfillment material inventory source contract", () => {
     expect(service).toContain("idempotencyKey: `use:${eventId}:${lineId}`");
   });
 
-  it("prevents fulfillment reversal from restocking shipped/delivered/returned orders", () => {
+  it("allows inventory reversal only for explicit pre-shipment order statuses", () => {
     const service = read("server/services/fulfillment-service.ts");
-    expect(service).toContain('["shipped", "delivered", "returned"]');
+    expect(service).toContain("REVERSIBLE_PRE_SHIPMENT_ORDER_STATUSES");
+    expect(service).toContain('"pending"');
+    expect(service).toContain('"confirmed"');
+    expect(service).toContain('"processing"');
+    expect(service).toContain('"cancelled"');
+    expect(service).toContain("!REVERSIBLE_PRE_SHIPMENT_ORDER_STATUSES.has(orderStatus)");
     expect(service).toContain("REVERSAL_INVALID_AFTER_SHIPMENT");
   });
 
