@@ -39,6 +39,7 @@ import {
 import { addCsrfHeader } from "@/lib/csrf";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { OrderReturnAdjustmentModal } from "@/components/admin/order-return-adjustment-modal";
+import { OrderShipCarrierDialog } from "@/components/admin/order-ship-carrier-dialog";
 import { OrderFulfillmentPanel } from "@/components/admin/fulfillment";
 
 interface OrderItem {
@@ -461,9 +462,7 @@ export function OrdersManagement() {
                         )}
 
                         {order.status === 'processing' && (
-                          <Button size="sm" className="bg-orange-500 hover:bg-orange-600 text-white" onClick={() => handleStatusChange(order.id, 'shipped')}>
-                            تسليم للنقل 🚚
-                          </Button>
+                          <OrderShipCarrierDialog orderId={order.id} onShipped={fetchOrders} />
                         )}
 
                         {order.status === 'shipped' && (
