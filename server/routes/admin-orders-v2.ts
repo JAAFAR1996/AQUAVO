@@ -38,6 +38,7 @@ type LockedOrder = {
   carrier_fee: string | null;
 };
 type DeliveryCompany = { id: string; name: string; default_fee: string };
+type ActiveDeliveryCompany = DeliveryCompany & { active: boolean };
 type ReturnOrderLineRow = {
   order_item_id: string;
   product_id: string;
@@ -112,6 +113,28 @@ async function recordRejectedIp(clientIp: string | null): Promise<void> {
 export function createAdminOrdersV2Router() {
   const router = Router();
   router.use(requireAccountingAdmin);
+
+  router.get("/orders/delivery-companies", async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const db = getDb();
+    if (!db) { res.status(503).json({ message: "قاعدة البيانات غير مهيأة" }); return; }
+
+    try {
+      const result = await db.execute(sql`
+        SELECT id,name,default_fee,active
+        FROM public.delivery_companies
+        WHERE active=true
+        ORDER BY name
+      `);
+      res.json({
+        items: rowsOf<ActiveDeliveryCompany>(result).map((company) => ({
+          ...company,
+          default_fee: Number(company.default_fee),
+        })),
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
 
   router.get("/orders/:id/return-lines", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const db = getDb();
