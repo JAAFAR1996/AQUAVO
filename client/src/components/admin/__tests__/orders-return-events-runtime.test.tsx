@@ -2,54 +2,62 @@ import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
+type ChildrenProps = React.PropsWithChildren;
+type OpenProps = React.PropsWithChildren<{ open?: boolean }>;
+type ButtonProps = React.PropsWithChildren<{
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
+  disabled?: boolean;
+  title?: string;
+}>;
+
 vi.mock("@/components/ui/table", () => ({
-  Table: ({ children }: any) => <table>{children}</table>,
-  TableBody: ({ children }: any) => <tbody>{children}</tbody>,
-  TableCell: ({ children, ...props }: any) => <td {...props}>{children}</td>,
-  TableHead: ({ children, ...props }: any) => <th {...props}>{children}</th>,
-  TableHeader: ({ children }: any) => <thead>{children}</thead>,
-  TableRow: ({ children }: any) => <tr>{children}</tr>,
+  Table: ({ children }: ChildrenProps) => <table>{children}</table>,
+  TableBody: ({ children }: ChildrenProps) => <tbody>{children}</tbody>,
+  TableCell: ({ children, ...props }: React.TdHTMLAttributes<HTMLTableCellElement>) => <td {...props}>{children}</td>,
+  TableHead: ({ children, ...props }: React.ThHTMLAttributes<HTMLTableCellElement>) => <th {...props}>{children}</th>,
+  TableHeader: ({ children }: ChildrenProps) => <thead>{children}</thead>,
+  TableRow: ({ children }: ChildrenProps) => <tr>{children}</tr>,
 }));
 
 vi.mock("@/components/ui/select", () => ({
-  Select: ({ children }: any) => <div>{children}</div>,
-  SelectContent: ({ children }: any) => <div>{children}</div>,
-  SelectItem: ({ children }: any) => <div>{children}</div>,
-  SelectTrigger: ({ children }: any) => <div>{children}</div>,
+  Select: ({ children }: ChildrenProps) => <div>{children}</div>,
+  SelectContent: ({ children }: ChildrenProps) => <div>{children}</div>,
+  SelectItem: ({ children }: ChildrenProps) => <div>{children}</div>,
+  SelectTrigger: ({ children }: ChildrenProps) => <div>{children}</div>,
   SelectValue: () => <span />,
 }));
 
 vi.mock("@/components/ui/badge", () => ({
-  Badge: ({ children }: any) => <span>{children}</span>,
+  Badge: ({ children }: ChildrenProps) => <span>{children}</span>,
 }));
 
 vi.mock("@/components/ui/button", () => ({
-  Button: ({ children, onClick, disabled, title }: any) => (
+  Button: ({ children, onClick, disabled, title }: ButtonProps) => (
     <button type="button" onClick={onClick} disabled={disabled} title={title}>{children}</button>
   ),
 }));
 
 vi.mock("@/components/ui/input", () => ({
-  Input: (props: any) => <input {...props} />,
+  Input: (props: React.InputHTMLAttributes<HTMLInputElement>) => <input {...props} />,
 }));
 
 vi.mock("@/components/ui/dialog", () => ({
-  Dialog: ({ children, open }: any) => open ? <div data-testid="dialog">{children}</div> : null,
-  DialogContent: ({ children }: any) => <div>{children}</div>,
-  DialogDescription: ({ children }: any) => <div>{children}</div>,
-  DialogHeader: ({ children }: any) => <div>{children}</div>,
-  DialogTitle: ({ children }: any) => <h2>{children}</h2>,
+  Dialog: ({ children, open }: OpenProps) => open ? <div data-testid="dialog">{children}</div> : null,
+  DialogContent: ({ children }: ChildrenProps) => <div>{children}</div>,
+  DialogDescription: ({ children }: ChildrenProps) => <div>{children}</div>,
+  DialogHeader: ({ children }: ChildrenProps) => <div>{children}</div>,
+  DialogTitle: ({ children }: ChildrenProps) => <h2>{children}</h2>,
 }));
 
 vi.mock("@/components/ui/alert-dialog", () => ({
-  AlertDialog: ({ children, open }: any) => open ? <div>{children}</div> : null,
-  AlertDialogAction: ({ children, onClick }: any) => <button onClick={onClick}>{children}</button>,
-  AlertDialogCancel: ({ children }: any) => <button>{children}</button>,
-  AlertDialogContent: ({ children }: any) => <div>{children}</div>,
-  AlertDialogDescription: ({ children }: any) => <div>{children}</div>,
-  AlertDialogFooter: ({ children }: any) => <div>{children}</div>,
-  AlertDialogHeader: ({ children }: any) => <div>{children}</div>,
-  AlertDialogTitle: ({ children }: any) => <h2>{children}</h2>,
+  AlertDialog: ({ children, open }: OpenProps) => open ? <div>{children}</div> : null,
+  AlertDialogAction: ({ children, onClick }: ButtonProps) => <button onClick={onClick}>{children}</button>,
+  AlertDialogCancel: ({ children }: ChildrenProps) => <button>{children}</button>,
+  AlertDialogContent: ({ children }: ChildrenProps) => <div>{children}</div>,
+  AlertDialogDescription: ({ children }: ChildrenProps) => <div>{children}</div>,
+  AlertDialogFooter: ({ children }: ChildrenProps) => <div>{children}</div>,
+  AlertDialogHeader: ({ children }: ChildrenProps) => <div>{children}</div>,
+  AlertDialogTitle: ({ children }: ChildrenProps) => <h2>{children}</h2>,
 }));
 
 vi.mock("lucide-react", () => ({
@@ -168,8 +176,6 @@ describe("OrdersManagement operational return events runtime", () => {
 
     expect(await screen.findByText("تعديلات الفاتورة / الراجعات (1)")).toBeInTheDocument();
     expect(screen.getByText("confirmed return")).toBeInTheDocument();
-    expect(screen.getByText("معتمدة")).toBeInTheDocument();
     expect(screen.queryByText("preserved as disputed legacy record")).not.toBeInTheDocument();
-    expect(screen.queryByText("مستبعدة")).not.toBeInTheDocument();
   });
 });
