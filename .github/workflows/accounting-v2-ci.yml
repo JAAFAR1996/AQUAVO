@@ -19,10 +19,15 @@ on:
       - "server/routes/invoice-v2.ts"
       - "server/routes/cron.ts"
       - "server/routes/upload.ts"
+      - "server/routes/preparation-inventory.ts"
       - "server/services/accounting-auto-close-v2.ts"
       - "server/services/order-return-automation-v2.ts"
+      - "server/services/fulfillment-service.ts"
+      - "server/services/fulfillment-draft-service.ts"
+      - "server/services/preparation-inventory-service.ts"
       - "server/utils/cloudinary.ts"
       - "server/__tests__/accounting-*.test.ts"
+      - "server/__tests__/fulfillment-material-inventory*.test.ts"
       - "server/__tests__/return-variant-id-contract.test.ts"
       - "server/__tests__/cod-refusal-policy.test.ts"
       - "shared/accounting.ts"
@@ -61,10 +66,15 @@ on:
       - "server/routes/invoice-v2.ts"
       - "server/routes/cron.ts"
       - "server/routes/upload.ts"
+      - "server/routes/preparation-inventory.ts"
       - "server/services/accounting-auto-close-v2.ts"
       - "server/services/order-return-automation-v2.ts"
+      - "server/services/fulfillment-service.ts"
+      - "server/services/fulfillment-draft-service.ts"
+      - "server/services/preparation-inventory-service.ts"
       - "server/utils/cloudinary.ts"
       - "server/__tests__/accounting-*.test.ts"
+      - "server/__tests__/fulfillment-material-inventory*.test.ts"
       - "server/__tests__/return-variant-id-contract.test.ts"
       - "server/__tests__/cod-refusal-policy.test.ts"
       - "shared/accounting.ts"
@@ -147,6 +157,8 @@ jobs:
           server/__tests__/accounting-v2-migration-0062-execution.test.ts
           server/__tests__/accounting-v2-migration-0071-execution.test.ts
           server/__tests__/accounting-v2-p0-migration-contract.test.ts
+          server/__tests__/fulfillment-material-inventory.test.ts
+          server/__tests__/fulfillment-material-inventory-contract.test.ts
           server/__tests__/return-variant-id-contract.test.ts
           server/__tests__/accounting-cod-refusal-migration-contract.test.ts
           server/__tests__/accounting-customer-credit-posting-links.test.ts

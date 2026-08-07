@@ -55,8 +55,11 @@ beforeAll(async () => {
   db = drizzle(client, { schema }) as unknown as FulfillmentDb;
 
   // ── Build a realistic, entirely service-authored dataset ──────────────────
-  await client.exec(`INSERT INTO fulfillment_materials (id,name,category,unit)
-    VALUES ('v-box','صندوق','box','piece'),('v-tape','تيب','tape','meter')`);
+  // These two materials are intentionally stock-tracked: this verifier suite
+  // exercises movement/reversal integrity. Untracked-material behaviour is
+  // covered separately by fulfillment-material-inventory.test.ts.
+  await client.exec(`INSERT INTO fulfillment_materials (id,name,category,unit,stock_tracked)
+    VALUES ('v-box','صندوق','box','piece',true),('v-tape','تيب','tape','meter',true)`);
   await client.exec(`INSERT INTO packaging_inventory_movements (id,material_id,movement_type,quantity,idempotency_key)
     VALUES ('v-rc1','v-box','purchase_receipt','200','v:rc1'),('v-rc2','v-tape','purchase_receipt','200','v:rc2')`);
 
@@ -231,7 +234,7 @@ describe("independent fulfillment verification", () => {
     expect(await findingsFor("draft_converted_at_most_once")).toEqual([]);
   });
 
-  it("a confirmed material line with no stock movement is CAUGHT", async () => {
+  it("a confirmed tracked material line with no stock movement is CAUGHT", async () => {
     expect(await findingsFor("every_material_line_has_a_movement")).toEqual([]);
     await withoutTrigger("pim_immutable", "packaging_inventory_movements", async () => {
       await client.exec(`DELETE FROM packaging_inventory_movements

@@ -314,11 +314,13 @@ function buildChecks(): Check[] {
     {
       name: "every_material_line_has_a_movement",
       severity: "critical",
-      message: "A confirmed line references a catalog material but posted no stock movement.",
+      message: "A confirmed line references a stock-tracked catalog material but posted no stock movement.",
       query: sql`
         SELECT l.id FROM order_fulfillment_lines l
           JOIN order_fulfillment_events e ON e.id = l.event_id
+          JOIN fulfillment_materials fm ON fm.id = l.material_id
          WHERE l.material_id IS NOT NULL
+           AND fm.stock_tracked = true
            AND e.workflow_state IN ('confirmed','adjusted')
            AND NOT EXISTS (
              SELECT 1 FROM packaging_inventory_movements m

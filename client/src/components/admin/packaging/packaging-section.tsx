@@ -4,9 +4,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CartonWorkspace } from "./carton-onboarding";
 import {
   CartonCatalogPanel,
-  PreparationCostsPanel,
   StockAlertsPanel,
 } from "./packaging-panels";
+import { PreparationInventoryPanel } from "./preparation-inventory-panel";
 import { PackingImportPanel } from "./packing-import-panel";
 
 export function PackagingSection() {
@@ -50,7 +50,7 @@ export function PackagingSection() {
               <TabsTrigger value="stock" data-testid="tab-stock">تنبيهات المخزون</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="preparation" className="mt-4"><PreparationCostsPanel /></TabsContent>
+            <TabsContent value="preparation" className="mt-4"><PreparationInventoryPanel /></TabsContent>
             <TabsContent value="cartons" className="mt-4"><CartonCatalogPanel /></TabsContent>
             <TabsContent value="packing" className="mt-4"><PackingImportPanel /></TabsContent>
             <TabsContent value="stock" className="mt-4"><StockAlertsPanel /></TabsContent>

@@ -17,7 +17,7 @@ import { eq, and, inArray, sql } from "drizzle-orm";
 import { getDb } from "../db.js";
 import {
   orderFulfillmentEvents, orderFulfillmentLines, packagingInventoryMovements,
-  fulfillmentAdjustments, fulfillmentMaterials,
+  fulfillmentAdjustments, fulfillmentMaterials, orders,
 } from "../../shared/schema.js";
 import { cartonReservations } from "../../shared/packing-schema.js";
 import { toMoneyOrNull } from "../../shared/order-financials.js";
@@ -33,6 +33,13 @@ export type FulfillmentEventType =
 
 export const FULFILLMENT_EVENT_TYPES: readonly FulfillmentEventType[] =
   ["original", "reshipment", "return_handling", "replacement", "adjustment"] as const;
+
+const REVERSIBLE_PRE_SHIPMENT_ORDER_STATUSES = new Set([
+  "pending",
+  "confirmed",
+  "processing",
+  "cancelled",
+]);
 
 // ── Typed raw-SQL row access (drivers return {rows} or an array) ─────────────
 interface DriverRows<T> { rows: T[] }
@@ -226,26 +233,18 @@ export async function confirmFulfillment(
         const sequenceNumber = await allocateSequenceNumber(tx, input.orderId);
         const eventId = randomUUID();
 
-        // Stock guard. Unconditional by design: there is no override.
-        //
-        // This used to be skippable via an `allowNegativeStock` flag surfaced in
-        // the admin UI as «تأكيد رغم نقص المخزون». Negative packaging stock is not
-        // a state the business can be in -- it means a carton was consumed that
-        // does not exist, which silently corrupts both inventory and the cost
-        // snapshots derived from it. An order that cannot be packed must fail
-        // loudly here so someone restocks, not be waved through.
+        // Stock guard. Unconditional for tracked materials: there is no override.
+        // Untracked materials remain real fulfillment-cost lines, but inventory is
+        // deliberately out of scope until the owner enables tracking with a physical count.
         //
         // WHY THE ORDER LOCK ABOVE IS NOT ENOUGH.
         // `lockOrder` serialises one order against itself. Two DIFFERENT orders
         // take two different locks, so before this both could read the same last
-        // carton, both pass, and both post a -1 -- driving the ledger negative
-        // with no constraint to stop it. Availability is also DERIVED from two
-        // aggregates (movements minus active reservations), so there is no single
-        // row a SELECT ... FOR UPDATE could pin. The material-scoped advisory lock
-        // below is the same primitive, and the same key convention, that
-        // carton-reservation-service already uses -- so a confirmation and a
-        // reservation contending for one carton now serialise against each other
-        // instead of racing.
+        // carton, both pass, and both post a -1 -- driving the ledger negative.
+        // The material-scoped advisory lock below uses the same key convention as
+        // carton-reservation-service and the material stocktake API. We acquire it
+        // for every catalog material BEFORE reading stock_tracked so a concurrent
+        // tracking toggle cannot race a confirmation and create an unaccounted use.
         const needByMaterial = new Map<string, number>();
         for (const l of frozen) {
           if (!l.materialId) continue;
@@ -258,50 +257,37 @@ export async function confirmFulfillment(
           );
         }
 
-        // Only STOCK-TRACKED materials have a balance worth checking.
-        //
-        // A price label or a thank-you card is an accounting cost, not inventory:
-        // stock_tracked = false, no movements, and never any. Summing those yields
-        // 0, so guarding them rejected every order that carried one the moment the
-        // default profile started attaching them. They are excluded from the locks
-        // as well as the balance check -- but still cost the order exactly once,
-        // because the cost lines below are written for every line regardless.
-        //
-        // stock_tracked is the ONLY sound discriminator here. "Has movements"
-        // looks tempting but is wrong: a real carton that has never been received
-        // also has none, and must still fail rather than be waved through at zero
-        // stock.
-        //
-        // Migration 0040 added the column with DEFAULT false and did not backfill,
-        // which would have left every pre-0040 material unguarded. 0050 backfills
-        // them to true, so this flag can be trusted.
-        const trackedIds: string[] = [];
-        if (needByMaterial.size > 0) {
-          const materials = await tx
-            .select({ id: fulfillmentMaterials.id, stockTracked: fulfillmentMaterials.stockTracked })
-            .from(fulfillmentMaterials)
-            .where(inArray(fulfillmentMaterials.id, [...needByMaterial.keys()]));
-          for (const m of materials) if (m.stockTracked) trackedIds.push(m.id);
-        }
-        // Sorted, so two orders needing the same two cartons can never deadlock by
-        // grabbing them in opposite orders. Same rule as reserveCartons.
-        trackedIds.sort();
-
-        for (const materialId of trackedIds) {
+        const materialIds = [...needByMaterial.keys()].sort();
+        for (const materialId of materialIds) {
           await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${`carton:${materialId}`}))`);
         }
 
-        // Re-read both aggregates INSIDE the locks and validate.
+        // Only STOCK-TRACKED materials have a balance worth checking or consuming.
+        // Cost snapshots below are still written for every line, tracked or not.
+        const trackedIds: string[] = [];
+        const materialNames = new Map<string, string>();
+        if (materialIds.length > 0) {
+          const materials = await tx
+            .select({
+              id: fulfillmentMaterials.id,
+              name: fulfillmentMaterials.name,
+              stockTracked: fulfillmentMaterials.stockTracked,
+            })
+            .from(fulfillmentMaterials)
+            .where(inArray(fulfillmentMaterials.id, materialIds));
+          for (const m of materials) {
+            materialNames.set(m.id, m.name);
+            if (m.stockTracked) trackedIds.push(m.id);
+          }
+        }
+        const trackedIdSet = new Set(trackedIds);
+
+        // Re-read both aggregates INSIDE the locks and validate tracked stock only.
         for (const materialId of trackedIds) {
           const need = needByMaterial.get(materialId) ?? 0;
 
           // available(this order) = on_hand - active reservations held by OTHER orders.
-          //
-          // Deliberately NOT `on_hand - all active reservations`: this order's own
-          // reservation is its claim on that carton, so subtracting it would make
-          // reserving a carton the thing that prevents shipping it. Other orders'
-          // claims DO reduce what is free, which is what stops this order eating a
-          // carton someone else already holds.
+          // This order's own reservation is its claim and is therefore not subtracted.
           const stockRows = await tx.execute(sql`
             SELECT
               COALESCE((SELECT SUM(quantity) FROM packaging_inventory_movements
@@ -317,8 +303,9 @@ export async function confirmFulfillment(
           const available = onHand - reservedByOthers;
 
           if (available - need < 0) {
+            const name = materialNames.get(materialId) ?? materialId;
             throw new Error(
-              `INSUFFICIENT_STOCK: material ${materialId} (on hand ${onHand}, reserved by other orders ${reservedByOthers}, available ${available}, need ${need})`,
+              `INSUFFICIENT_STOCK: ${name} — المطلوب ${need}، المتوفر ${available}`,
             );
           }
         }
@@ -339,10 +326,9 @@ export async function confirmFulfillment(
         });
 
         for (const l of frozen) {
-          // F-4: the line's own id is the per-line component of the movement's
-          // idempotency key. Without it two lines of ONE event carrying the same
-          // material minted the same key and the second INSERT died on
-          // pim_idempotency_uidx (23505), aborting the whole confirmation.
+          // The immutable fulfillment line is the accounting snapshot. It exists
+          // for tracked and untracked materials alike, so inventory tracking never
+          // changes or duplicates fulfillment cost.
           const lineId = randomUUID();
           await tx.insert(orderFulfillmentLines).values({
             id: lineId, eventId, orderId: input.orderId,
@@ -356,34 +342,21 @@ export async function confirmFulfillment(
             unit: l.unit ?? null, note: l.note ?? null,
           });
 
-          // one immutable stock movement per material line; unique idem key => no double deduct
-          if (l.materialId) {
+          // Inventory is a separate quantity ledger. Only tracked catalog materials
+          // get a negative usage movement. Event idempotency short-circuits retries,
+          // and pim_line_uidx is the database backstop against a second deduction.
+          if (l.materialId && trackedIdSet.has(l.materialId)) {
             await tx.insert(packagingInventoryMovements).values({
               id: randomUUID(), materialId: l.materialId, movementType: "fulfillment_usage",
               quantity: String(-Math.abs(Number(l.quantity))), orderId: input.orderId, eventId,
               lineId,
-              // per-LINE key. Duplicate protection is unchanged: a replayed request
-              // never reaches here (it short-circuits on the event's own
-              // idempotency key), and pim_line_uidx additionally guarantees at
-              // most one movement per line.
               idempotencyKey: `use:${eventId}:${lineId}`, recordedBy: input.recordedBy ?? null,
             });
           }
         }
 
         // Close this order's own carton claims in the SAME transaction that just
-        // deducted the stock.
-        //
-        // The negative movement above IS the deduction; this only retires the
-        // claim, so it can never become a second one. Doing it here rather than on
-        // a later status transition removes the window where the stock was already
-        // gone but the reservation still read `active` -- during which the carton
-        // was subtracted twice from what other orders saw as available.
-        //
-        // Restricted to the materials THIS event actually deducted, so an
-        // adjustment covering a label cannot silently retire a carton claim.
-        // `consumeOrderReservations` on the shipping transition stays correct and
-        // becomes a no-op: it reports 0 and treats that as idempotent, not an error.
+        // deducted the tracked stock. This is not a second deduction.
         if (trackedIds.length > 0) {
           await tx
             .update(cartonReservations)
@@ -419,14 +392,14 @@ export interface ReverseResult {
 }
 
 /**
- * Reverse a confirmed event with an EXACT counter-entry: a new reversal event plus one
- * reversal movement per original movement, each carrying precisely the negated quantity,
- * the same material and the same order. Original rows are never edited.
+ * Reverse a confirmed PRE-SHIPMENT fulfillment event with an EXACT counter-entry:
+ * a new reversal event plus one reversal movement per original inventory movement.
+ * Original rows are never edited. This is for cancellation of preparation before
+ * physical use/shipping — customer returns after shipment use their own return flow.
  *
  * Enforced here AND in the database (triggers + partial unique indexes):
  *   * an event cannot reverse itself, and reversal links cannot form a cycle;
- *   * only ONE active reversal may exist per target event (a reversal that has itself
- *     been reversed frees the slot for an explicit new event);
+ *   * only ONE active reversal may exist per target event;
  *   * a reversal movement's quantity must equal the exact negative of its referent;
  *   * unrelated orders/materials cannot be linked;
  *   * the operation is idempotent — repeating it returns the existing reversal.
@@ -459,6 +432,15 @@ export async function reverseFulfillmentEvent(
         const raced = await findByIdempotencyKey(tx, idem);
         if (raced) return { reversalEventId: raced.id, reused: true, reversedMovements: 0 };
 
+        const [order] = await tx.select({ status: orders.status }).from(orders)
+          .where(eq(orders.id, orig.orderId)).limit(1);
+        const orderStatus = String(order?.status ?? "").toLowerCase();
+        if (!REVERSIBLE_PRE_SHIPMENT_ORDER_STATUSES.has(orderStatus)) {
+          throw new Error(
+            "REVERSAL_INVALID_AFTER_SHIPMENT: لا يمكن إعادة مواد التجهيز للمخزون بعد الشحن؛ استخدم مسار المرتجع بدون إعادة مواد التغليف تلقائياً",
+          );
+        }
+
         if (orig.id === eventId && orig.reversalOfEventId === eventId) {
           throw new Error("SELF_REVERSAL: an event cannot reverse itself");
         }
@@ -487,7 +469,7 @@ export async function reverseFulfillmentEvent(
           adjustmentReason: reason,
         });
 
-        // EXACT counter-movements for every movement the original event posted.
+        // EXACT counter-movements for every tracked usage movement the original event posted.
         const originalMovements: MovementRow[] = await tx.select().from(packagingInventoryMovements)
           .where(and(
             eq(packagingInventoryMovements.eventId, eventId),
@@ -501,7 +483,7 @@ export async function reverseFulfillmentEvent(
           await tx.insert(packagingInventoryMovements).values({
             id: randomUUID(), materialId: m.materialId, movementType: "reversal",
             quantity: String(negated),
-            orderId: m.orderId,               // same order as the referent — never cross-linked
+            orderId: m.orderId,
             eventId: reversalEventId,
             idempotencyKey: `reverse:${m.id}`, reversalOfMovementId: m.id,
             recordedBy: recordedBy ?? null,
