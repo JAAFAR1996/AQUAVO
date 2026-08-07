@@ -162,7 +162,10 @@ async function buildView(db: FulfillmentDb, draft: DraftRow): Promise<DraftView>
 }
 
 /**
- * Project the ledger balance of every catalog material this draft would consume.
+ * Project the ledger balance of every STOCK-TRACKED catalog material this draft
+ * would consume. Untracked materials still remain in the draft and in its cost
+ * calculation, but their ledger balance is intentionally irrelevant.
+ *
  * Read-only and advisory: confirmation re-checks inside its own transaction, which
  * is where the real guard lives. Manual lines carry no material and never affect stock.
  * Several lines may cite the SAME material — their quantities are summed, so a
@@ -180,8 +183,16 @@ async function projectStock(db: FulfillmentDb, lines: DraftLineView[]): Promise<
   }
   if (required.size === 0) return { wouldGoNegative: false, shortages: [] };
 
+  const materialIds = [...required.keys()];
+  const materialRows = await db
+    .select({ id: fulfillmentMaterials.id, stockTracked: fulfillmentMaterials.stockTracked })
+    .from(fulfillmentMaterials)
+    .where(inArray(fulfillmentMaterials.id, materialIds));
+  const trackedIds = new Set(materialRows.filter((m) => m.stockTracked).map((m) => m.id));
+
   const shortages: DraftView["stock"]["shortages"] = [];
   for (const [materialId, { name, qty }] of required) {
+    if (!trackedIds.has(materialId)) continue;
     const [row] = await db
       .select({ bal: sql<string>`COALESCE(SUM(${packagingInventoryMovements.quantity}), 0)` })
       .from(packagingInventoryMovements)
