@@ -8,7 +8,6 @@ import { actorFromRequest } from "../services/accountingAuditTrail.js";
 import {
   getPreparationInventoryHistory,
   listPreparationInventory,
-  receivePreparationMaterialStock,
   setPreparationMaterialTracking,
   stocktakePreparationMaterial,
 } from "../services/preparation-inventory-service.js";
@@ -94,29 +93,6 @@ router.post(
     const result = await stocktakePreparationMaterial(db(), {
       materialId,
       targetQuantity: input.quantity,
-      reason: input.reason,
-      idempotencyKey: input.idempotencyKey,
-      actor: actorFromRequest(req),
-    });
-    res.status(result.reused ? 200 : 201).json(result);
-  }),
-);
-
-const receiveSchema = z.object({
-  quantity: z.number().finite().positive().max(10_000_000),
-  reason: reasonSchema,
-  idempotencyKey: idempotencySchema,
-});
-
-router.post(
-  "/preparation-inventory/:id/receive",
-  writeLimiter,
-  wrap(async (req, res) => {
-    const materialId = idSchema.parse(req.params.id);
-    const input = receiveSchema.parse(req.body ?? {});
-    const result = await receivePreparationMaterialStock(db(), {
-      materialId,
-      quantity: input.quantity,
       reason: input.reason,
       idempotencyKey: input.idempotencyKey,
       actor: actorFromRequest(req),
