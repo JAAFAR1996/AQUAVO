@@ -9,15 +9,6 @@ import { toMoneyOrNull } from "../../shared/order-financials.js";
 import type { FulfillmentDb, FulfillmentExecutor } from "./fulfillment-db.js";
 import { recordFinancialChange } from "./accountingAuditTrail.js";
 
-interface DriverRows<T> { rows: T[] }
-function rowsOf<T>(result: unknown): T[] {
-  if (Array.isArray(result)) return result as T[];
-  if (result && typeof result === "object" && Array.isArray((result as DriverRows<T>).rows)) {
-    return (result as DriverRows<T>).rows;
-  }
-  return [];
-}
-
 function requireDb(dbArg?: FulfillmentDb): FulfillmentDb {
   const db = dbArg ?? (getDb() as FulfillmentDb | null);
   if (!db) throw new Error("Database not available");
@@ -30,12 +21,11 @@ async function lockMaterial(tx: FulfillmentExecutor, materialId: string): Promis
 }
 
 async function ledgerBalance(db: FulfillmentExecutor, materialId: string): Promise<number> {
-  const result = await db.execute(sql`
-    SELECT COALESCE(SUM(quantity), 0) AS balance
-      FROM packaging_inventory_movements
-     WHERE material_id = ${materialId}
-  `);
-  return Number(rowsOf<{ balance: string | number }>(result)[0]?.balance ?? 0);
+  const [row] = await db
+    .select({ balance: sql<string>`COALESCE(SUM(${packagingInventoryMovements.quantity}), 0)` })
+    .from(packagingInventoryMovements)
+    .where(eq(packagingInventoryMovements.materialId, materialId));
+  return Number(row?.balance ?? 0);
 }
 
 async function findMovementByIdempotency(db: FulfillmentExecutor, key: string) {
@@ -44,12 +34,17 @@ async function findMovementByIdempotency(db: FulfillmentExecutor, key: string) {
   return row;
 }
 
-async function requirePreparationMaterial(db: FulfillmentExecutor, materialId: string) {
+async function findPreparationMaterial(db: FulfillmentExecutor, materialId: string) {
   const [material] = await db.select().from(fulfillmentMaterials).where(and(
     eq(fulfillmentMaterials.id, materialId),
     eq(fulfillmentMaterials.materialKind, "consumable"),
   )).limit(1);
   if (!material) throw new Error("MATERIAL_NOT_FOUND: مادة التجهيز غير موجودة");
+  return material;
+}
+
+async function requirePreparationMaterial(db: FulfillmentExecutor, materialId: string) {
+  const material = await findPreparationMaterial(db, materialId);
   if (material.archivedAt) throw new Error("MATERIAL_INACTIVE: المادة مؤرشفة ولا يمكن تعديل مخزونها");
   return material;
 }
@@ -116,7 +111,7 @@ export async function getPreparationInventoryHistory(
   limit = 200,
 ): Promise<{ balance: number; movements: PreparationInventoryMovementView[] }> {
   const db = requireDb(dbArg);
-  await requirePreparationMaterial(db, materialId);
+  await findPreparationMaterial(db, materialId);
   const movements = await db.select().from(packagingInventoryMovements)
     .where(eq(packagingInventoryMovements.materialId, materialId))
     .orderBy(desc(packagingInventoryMovements.createdAt))
@@ -234,16 +229,62 @@ export async function setPreparationMaterialTracking(
   if (input.lowStockThreshold != null && (!Number.isFinite(input.lowStockThreshold) || input.lowStockThreshold < 0)) {
     throw new Error("THRESHOLD_INVALID: حد التنبيه يجب أن يكون صفر أو أكثر");
   }
-  if (input.enabled && (input.currentQuantity === undefined || !Number.isFinite(input.currentQuantity) || input.currentQuantity < 0)) {
-    throw new Error("CURRENT_QUANTITY_REQUIRED: عند تفعيل التتبع يجب إدخال الكمية الفعلية الحالية");
-  }
 
   return db.transaction(async (tx) => {
     await lockMaterial(tx, input.materialId);
     const material = await requirePreparationMaterial(tx, input.materialId);
     const beforeBalance = await ledgerBalance(tx, input.materialId);
+    const trackingKey = input.enabled
+      ? `tracking-open:${input.materialId}:${input.idempotencyKey}`
+      : null;
+
+    if (trackingKey) {
+      const replay = await findMovementByIdempotency(tx, trackingKey);
+      if (replay) {
+        return {
+          stockTracked: true,
+          balance: await ledgerBalance(tx, input.materialId),
+          adjustment: Number(replay.quantity),
+          movementId: replay.id,
+          reused: true,
+        };
+      }
+    }
+
+    if (!material.stockTracked && input.enabled &&
+      (input.currentQuantity === undefined || !Number.isFinite(input.currentQuantity) || input.currentQuantity < 0)) {
+      throw new Error("CURRENT_QUANTITY_REQUIRED: عند تفعيل التتبع يجب إدخال الكمية الفعلية الحالية");
+    }
+
+    const nextThreshold = input.lowStockThreshold === undefined
+      ? material.lowStockThreshold
+      : input.lowStockThreshold === null ? null : String(input.lowStockThreshold);
 
     if (material.stockTracked === input.enabled) {
+      if (nextThreshold !== material.lowStockThreshold) {
+        await tx.update(fulfillmentMaterials).set({
+          lowStockThreshold: nextThreshold,
+          updatedAt: new Date(),
+        }).where(eq(fulfillmentMaterials.id, input.materialId));
+        await recordFinancialChange(tx, {
+          entityType: "fulfillment_material",
+          entityId: input.materialId,
+          action: "update",
+          fieldName: "low_stock_threshold",
+          oldValue: toMoneyOrNull(material.lowStockThreshold),
+          newValue: toMoneyOrNull(nextThreshold),
+          reason: input.reason,
+          performedBy: input.actor?.id ?? null,
+          performedByName: input.actor?.name ?? null,
+        });
+        return {
+          stockTracked: material.stockTracked,
+          balance: beforeBalance,
+          adjustment: 0,
+          movementId: null,
+          reused: false,
+        };
+      }
       return {
         stockTracked: material.stockTracked,
         balance: beforeBalance,
@@ -258,17 +299,6 @@ export async function setPreparationMaterialTracking(
     let resultingBalance = beforeBalance;
 
     if (input.enabled) {
-      const key = `tracking-open:${input.materialId}:${input.idempotencyKey}`;
-      const raced = await findMovementByIdempotency(tx, key);
-      if (raced) {
-        return {
-          stockTracked: true,
-          balance: await ledgerBalance(tx, input.materialId),
-          adjustment: Number(raced.quantity),
-          movementId: raced.id,
-          reused: true,
-        };
-      }
       const target = input.currentQuantity as number;
       adjustment = target - beforeBalance;
       resultingBalance = target;
@@ -278,7 +308,7 @@ export async function setPreparationMaterialTracking(
         materialId: input.materialId,
         movementType: "correction",
         quantity: String(adjustment),
-        idempotencyKey: key,
+        idempotencyKey: trackingKey as string,
         sourceDocument: `جرد افتتاحي عند تفعيل التتبع: ${input.reason.trim()}`,
         recordedBy: input.actor?.id ?? null,
       });
@@ -286,9 +316,7 @@ export async function setPreparationMaterialTracking(
 
     await tx.update(fulfillmentMaterials).set({
       stockTracked: input.enabled,
-      lowStockThreshold: input.lowStockThreshold === undefined
-        ? material.lowStockThreshold
-        : input.lowStockThreshold === null ? null : String(input.lowStockThreshold),
+      lowStockThreshold: nextThreshold,
       updatedAt: new Date(),
     }).where(eq(fulfillmentMaterials.id, input.materialId));
 
@@ -297,8 +325,16 @@ export async function setPreparationMaterialTracking(
       entityId: input.materialId,
       action: "update",
       fieldName: "stock_tracking",
-      oldValue: { enabled: material.stockTracked, balance: beforeBalance },
-      newValue: { enabled: input.enabled, balance: resultingBalance, lowStockThreshold: input.lowStockThreshold },
+      oldValue: {
+        enabled: material.stockTracked,
+        balance: beforeBalance,
+        lowStockThreshold: toMoneyOrNull(material.lowStockThreshold),
+      },
+      newValue: {
+        enabled: input.enabled,
+        balance: resultingBalance,
+        lowStockThreshold: toMoneyOrNull(nextThreshold),
+      },
       reason: input.reason,
       performedBy: input.actor?.id ?? null,
       performedByName: input.actor?.name ?? null,
