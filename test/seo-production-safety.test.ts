@@ -12,8 +12,8 @@ import {
 
 const read = (path: string) => readFileSync(resolve(process.cwd(), path), "utf8");
 const runtimeSource = () => {
-  const generated = resolve(process.cwd(), "generated/ssr-preview-runtime.ts");
-  return existsSync(generated) ? readFileSync(generated, "utf8") : read("api/ssr-preview.ts");
+  const generated = resolve(process.cwd(), "generated/ssr-preview-runtime.js");
+  return existsSync(generated) ? readFileSync(generated, "utf8") : read("api/_ssr-preview-source.ts");
 };
 
 describe("SEO production safety invariants", () => {
@@ -55,7 +55,7 @@ describe("SEO production safety invariants", () => {
       contract,
       read("api/_seo-preview-shell.tsx"),
       structuredData,
-      read("api/ssr-preview.ts"),
+      read("api/_ssr-preview-source.ts"),
       clientSchemas,
       read("client/src/pages/home.tsx"),
       read("client/src/pages/about.tsx"),
@@ -80,17 +80,30 @@ describe("SEO production safety invariants", () => {
     expect(clientSchemas).toContain("hoursAvailable");
   });
 
-  it("consolidates production aliases and advertises stale-result recovery", () => {
+  it("keeps semantic runtime generation ordered and the tracked entry immutable", () => {
     const build = read("script/build.ts");
+    const entry = read("api/ssr-preview.ts");
+    const gitignore = read(".gitignore");
+
+    expect(build).toContain('entryPoints: ["api/_ssr-preview-source.ts"]');
+    expect(build).toContain('const generatedRuntimePath = "generated/ssr-preview-runtime.js"');
+    expect(build).toContain('const bundledRuntime = await readFile(generatedRuntimePath, "utf-8")');
+    expect(build).not.toContain('writeFile(\n    "api/ssr-preview.ts"');
+    expect(entry).toContain('import semanticRuntime from "../generated/ssr-preview-runtime.js"');
+    expect(gitignore).toContain("generated/ssr-preview-runtime.js");
+  });
+
+  it("consolidates production aliases and advertises stale-result recovery", () => {
+    const entry = read("api/ssr-preview.ts");
     const productSitemap = read("api/sitemap-products.ts");
     const sitemapIndex = read("api/sitemap-index.ts");
     const recoverySitemap = read("client/public/sitemap-recovery.xml");
     const structuredData = read("api/_seo-structured-data.ts");
 
-    expect(build).toContain('host !== "www.aquavoiq.com"');
-    expect(build).toContain('res.status(308).end()');
-    expect(build).toContain('"X-Robots-Tag", "noindex, follow"');
-    expect(build).toContain('"Last-Modified", SEO_RELEASE_LAST_MODIFIED');
+    expect(entry).toContain('host !== "www.aquavoiq.com"');
+    expect(entry).toContain('res.status(308).end()');
+    expect(entry).toContain('"X-Robots-Tag", "noindex, follow"');
+    expect(entry).toContain('"Last-Modified", SEO_RELEASE_LAST_MODIFIED');
 
     expect(productSitemap).toContain("effectiveLastmod");
     expect(productSitemap).toContain("AQUAVO_SEO_RELEASE_LASTMOD");
