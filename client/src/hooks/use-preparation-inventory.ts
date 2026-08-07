@@ -56,9 +56,15 @@ export function usePreparationInventoryHistory(materialId: string | null, enable
   });
 }
 
+function invalidateInventory(qc: ReturnType<typeof useQueryClient>, materialId: string): void {
+  void qc.invalidateQueries({ queryKey: [BASE] });
+  void qc.invalidateQueries({ queryKey: [`${BASE}/${materialId}/movements`] });
+  void qc.invalidateQueries({ queryKey: [FULFILLMENT_BASE] });
+}
+
 function useInventoryMutation(
   materialId: string,
-  suffix: "stocktake" | "receive" | "tracking",
+  suffix: "stocktake" | "tracking",
 ) {
   const qc = useQueryClient();
   return useMutation({
@@ -66,13 +72,7 @@ function useInventoryMutation(
       const res = await apiRequest("POST", `${BASE}/${materialId}/${suffix}`, body);
       return res.json();
     },
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: [BASE] });
-      void qc.invalidateQueries({ queryKey: [`${BASE}/${materialId}/movements`] });
-      // Draft projections and material lists are server-owned; a tracking/stock
-      // change must invalidate them so the confirm UI immediately reflects truth.
-      void qc.invalidateQueries({ queryKey: [FULFILLMENT_BASE] });
-    },
+    onSuccess: () => invalidateInventory(qc, materialId),
   });
 }
 
@@ -88,15 +88,31 @@ export function useStocktakePreparationMaterial(materialId: string) {
   };
 }
 
+/**
+ * Reuse the existing canonical Purchase → Receipt flow. The server atomically
+ * writes packaging_purchases + packaging_inventory_movements(purchase_receipt).
+ * Total cost remains unknown until the real supplier cost is known; it is never
+ * invented as zero merely to receive quantity.
+ */
 export function useReceivePreparationMaterial(materialId: string) {
-  const mutation = useInventoryMutation(materialId, "receive");
+  const qc = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: async (input: { quantity: number; reason: string }) => {
+      const res = await apiRequest("POST", `${FULFILLMENT_BASE}/purchases`, {
+        materialId,
+        quantity: input.quantity,
+        totalCost: null,
+        notes: input.reason,
+        idempotencyKey: newIdempotencyKey("prep-receipt"),
+      });
+      return res.json();
+    },
+    onSuccess: () => invalidateInventory(qc, materialId),
+  });
   return {
     ...mutation,
     mutateReceive: (input: { quantity: number; reason: string }, options?: Parameters<typeof mutation.mutate>[1]) =>
-      mutation.mutate({
-        ...input,
-        idempotencyKey: newIdempotencyKey("receive"),
-      }, options),
+      mutation.mutate(input, options),
   };
 }
 
