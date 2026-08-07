@@ -136,6 +136,8 @@ async function main(): Promise<void> {
         EXISTS(
           SELECT 1 FROM pg_trigger t
           WHERE t.tgname='orders_apply_default_delivery_company' AND NOT t.tgisinternal
+            AND t.tgrelid='public.orders'::regclass
+            AND t.tgfoid='public.apply_default_delivery_company_to_order()'::regprocedure
             AND pg_get_triggerdef(t.oid,true) ILIKE '%UPDATE OF carrier, status%'
         ) AS carrier_status_guard,
         pg_get_functiondef('public.apply_default_delivery_company_to_order()'::regprocedure)
