@@ -28,6 +28,7 @@ const MIGRATIONS = [
   "0069_accounting_return_integrity.sql",
   "0070_accounting_ledger_backed_views.sql",
   "0071_accounting_return_line_identity_and_refund_guard.sql",
+  "0072_accounting_require_explicit_shipped_carrier.sql",
 ] as const;
 
 function versionOf(file: string): string { return file.replace(/\.sql$/, ""); }
@@ -37,8 +38,8 @@ function sha256(body: string): string { return createHash("sha256").update(body)
 async function main(): Promise<void> {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) throw new Error("DATABASE_URL is required");
-  if (process.env.CONFIRM_ACCOUNTING_PRODUCTION !== "APPLY_0051_TO_0071") {
-    throw new Error("CONFIRM_ACCOUNTING_PRODUCTION=APPLY_0051_TO_0071 is required");
+  if (process.env.CONFIRM_ACCOUNTING_PRODUCTION !== "APPLY_0051_TO_0072") {
+    throw new Error("CONFIRM_ACCOUNTING_PRODUCTION=APPLY_0051_TO_0072 is required");
   }
 
   const pool = new Pool({ connectionString, max: 1 });
@@ -113,6 +114,7 @@ async function main(): Promise<void> {
         EXISTS(SELECT 1 FROM public.schema_migrations WHERE version='0069_accounting_return_integrity' AND rolled_back_at IS NULL) AS migration_0069,
         EXISTS(SELECT 1 FROM public.schema_migrations WHERE version='0070_accounting_ledger_backed_views' AND rolled_back_at IS NULL) AS migration_0070,
         EXISTS(SELECT 1 FROM public.schema_migrations WHERE version='0071_accounting_return_line_identity_and_refund_guard' AND rolled_back_at IS NULL) AS migration_0071,
+        EXISTS(SELECT 1 FROM public.schema_migrations WHERE version='0072_accounting_require_explicit_shipped_carrier' AND rolled_back_at IS NULL) AS migration_0072,
         to_regprocedure('public.assert_order_ready_for_accounting_delivery(text)') IS NOT NULL AS delivery_readiness_function,
         to_regprocedure('public.accounting_period_account_balance(text,text)') IS NOT NULL AS ledger_balance_function,
         EXISTS(SELECT 1 FROM pg_trigger WHERE tgname='orders_accounting_delivery_readiness_guard' AND NOT tgisinternal) AS delivery_readiness_guard,
@@ -135,7 +137,9 @@ async function main(): Promise<void> {
           SELECT 1 FROM pg_trigger t
           WHERE t.tgname='orders_apply_default_delivery_company' AND NOT t.tgisinternal
             AND pg_get_triggerdef(t.oid,true) ILIKE '%UPDATE OF carrier, status%'
-        ) AS carrier_status_guard
+        ) AS carrier_status_guard,
+        pg_get_functiondef('public.apply_default_delivery_company_to_order()'::regprocedure)
+          ILIKE '%DELIVERY_COMPANY_REQUIRED_FOR_SHIPPED%' AS explicit_shipped_carrier_guard
     `);
     const checks = health.rows[0] as Record<string, boolean> | undefined;
     if (!checks || Object.values(checks).some((value) => value !== true)) {
