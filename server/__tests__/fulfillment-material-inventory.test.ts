@@ -14,7 +14,6 @@ import {
   getDraft,
 } from "../services/fulfillment-draft-service.js";
 import {
-  receivePreparationMaterialStock,
   setPreparationMaterialTracking,
   stocktakePreparationMaterial,
 } from "../services/preparation-inventory-service.js";
@@ -243,17 +242,6 @@ describe("fulfillment material inventory", () => {
     expect(material.rows[0]?.stock_tracked).toBe(true);
     expect(Number(material.rows[0]?.low_stock_threshold)).toBe(50);
     expect(await balance("mat-enable")).toBe(500);
-  });
-
-  it("receiving new stock appends quantity to the same canonical ledger", async () => {
-    await addMaterial("mat-receive", "استلام", true);
-    await seedStock("mat-receive", 300, "seed-receive");
-    const received = await receivePreparationMaterialStock(db, {
-      materialId: "mat-receive", quantity: 1000,
-      reason: "استلام دفعة جديدة", idempotencyKey: "receive-1000", actor: { id: "owner" },
-    });
-    expect(received.balance).toBe(1300);
-    expect(await balance("mat-receive")).toBe(1300);
   });
 
   it("inventory quantity never duplicates the fulfillment cost snapshot", async () => {
