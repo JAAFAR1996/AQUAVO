@@ -109,7 +109,8 @@ describe("Accounting V2 reviewed fixes", () => {
     const migration72 = read("migrations/0072_accounting_require_explicit_shipped_carrier.sql");
     expect(migration72).toContain("DELIVERY_COMPANY_REQUIRED_FOR_SHIPPED");
     expect(migration72).toContain("DELIVERY_COMPANY_INACTIVE_OR_UNKNOWN");
-    expect(migration72).toContain("WHERE active=true AND lower(name)=lower(btrim(NEW.carrier))");
+    expect(migration72).toContain("WHERE active=true AND name=btrim(NEW.carrier)");
+    expect(migration72).not.toContain("lower(name)=lower(btrim(NEW.carrier))");
     expect(migration72).toContain("NEW.carrier_fee:=v_fee");
   });
 
