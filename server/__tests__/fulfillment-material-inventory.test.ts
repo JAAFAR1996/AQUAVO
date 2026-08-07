@@ -14,6 +14,7 @@ import {
   getDraft,
 } from "../services/fulfillment-draft-service.js";
 import {
+  getPreparationInventoryHistory,
   setPreparationMaterialTracking,
   stocktakePreparationMaterial,
 } from "../services/preparation-inventory-service.js";
@@ -227,21 +228,43 @@ describe("fulfillment material inventory", () => {
     expect(await balance("mat-stocktake-up")).toBe(120);
   });
 
-  it("enabling tracking requires and records the physical opening quantity", async () => {
+  it("enabling tracking records the physical opening quantity and replays consistently", async () => {
     await addMaterial("mat-enable", "تفعيل جرد", false);
-    const enabled = await setPreparationMaterialTracking(db, {
+    const input = {
       materialId: "mat-enable", enabled: true, currentQuantity: 500,
       lowStockThreshold: 50, reason: "جرد افتتاحي", idempotencyKey: "enable-500",
       actor: { id: "owner", name: "المالك" },
-    });
+    };
+    const enabled = await setPreparationMaterialTracking(db, input);
+    const replay = await setPreparationMaterialTracking(db, input);
     expect(enabled.stockTracked).toBe(true);
     expect(enabled.adjustment).toBe(500);
     expect(enabled.balance).toBe(500);
+    expect(replay.reused).toBe(true);
+    expect(replay.movementId).toBe(enabled.movementId);
+    expect(replay.adjustment).toBe(500);
+
+    const thresholdUpdate = await setPreparationMaterialTracking(db, {
+      materialId: "mat-enable", enabled: true, lowStockThreshold: 25,
+      reason: "تعديل حد التنبيه", idempotencyKey: "threshold-25",
+      actor: { id: "owner", name: "المالك" },
+    });
+    expect(thresholdUpdate.reused).toBe(false);
+
     const material = await client.query<{ stock_tracked: boolean; low_stock_threshold: string }>(
       `SELECT stock_tracked,low_stock_threshold::text FROM fulfillment_materials WHERE id='mat-enable'`);
     expect(material.rows[0]?.stock_tracked).toBe(true);
-    expect(Number(material.rows[0]?.low_stock_threshold)).toBe(50);
+    expect(Number(material.rows[0]?.low_stock_threshold)).toBe(25);
     expect(await balance("mat-enable")).toBe(500);
+  });
+
+  it("the UI reuses the canonical Purchase to Receipt flow", () => {
+    const hookSource = readFileSync(join(ROOT, "client/src/hooks/use-preparation-inventory.ts"), "utf8");
+    const routeSource = readFileSync(join(ROOT, "server/routes/fulfillment-admin.ts"), "utf8");
+    expect(hookSource).toContain("`${FULFILLMENT_BASE}/purchases`");
+    expect(hookSource).not.toContain("/receive");
+    expect(routeSource).toContain("tx.insert(packagingPurchases)");
+    expect(routeSource).toContain('movementType: "purchase_receipt"');
   });
 
   it("inventory quantity never duplicates the fulfillment cost snapshot", async () => {
@@ -262,7 +285,16 @@ describe("fulfillment material inventory", () => {
     expect(Number(usage.rows[0]?.quantity)).toBe(-2);
   });
 
-  it("pre-shipment reversal restores tracked stock, but shipped orders cannot be restocked by fulfillment reversal", async () => {
+  it("archived materials keep their immutable movement history readable", async () => {
+    await addMaterial("mat-archived", "مادة مؤرشفة", true);
+    await seedStock("mat-archived", 7, "seed-archived");
+    await client.exec(`UPDATE fulfillment_materials SET archived_at=now() WHERE id='mat-archived'`);
+    const history = await getPreparationInventoryHistory(db, "mat-archived");
+    expect(history.balance).toBe(7);
+    expect(history.movements).toHaveLength(1);
+  });
+
+  it("pre-shipment reversal restores stock, while every post-shipment status is blocked", async () => {
     await addMaterial("mat-reverse", "عكس", true);
     await seedStock("mat-reverse", 4, "seed-reverse");
     await addOrder("ord-reverse-pre");
@@ -275,15 +307,28 @@ describe("fulfillment material inventory", () => {
     expect(reversed.reversedMovements).toBe(1);
     expect(await balance("mat-reverse")).toBe(4);
 
-    await addOrder("ord-reverse-shipped");
-    const shipped = await confirmFulfillment(db, {
-      orderId: "ord-reverse-shipped", requestId: "will-ship", eventType: "original",
+    await addOrder("ord-reverse-post");
+    const post = await confirmFulfillment(db, {
+      orderId: "ord-reverse-post", requestId: "will-ship", eventType: "original",
       lines: [{ materialId: "mat-reverse", materialName: "عكس", quantity: 1, unitCost: 100 }],
     });
     expect(await balance("mat-reverse")).toBe(3);
-    await client.exec(`UPDATE orders SET status='shipped' WHERE id='ord-reverse-shipped'`);
-    await expect(reverseFulfillmentEvent(db, shipped.eventId, "مرتجع بعد الشحن", "owner"))
-      .rejects.toThrow(/REVERSAL_INVALID_AFTER_SHIPMENT/);
-    expect(await balance("mat-reverse")).toBe(3);
+
+    for (const status of ["shipped", "delivered", "returned", "rejected", "rejected_returned", "rejected_carrier"]) {
+      await client.query(`UPDATE orders SET status=$1 WHERE id='ord-reverse-post'`, [status]);
+      await expect(reverseFulfillmentEvent(db, post.eventId, `محاولة عكس ${status}`, "owner"))
+        .rejects.toThrow(/REVERSAL_INVALID_AFTER_SHIPMENT/);
+      expect(await balance("mat-reverse")).toBe(3);
+    }
+  });
+
+  it("blank physical quantity inputs cannot be coerced to zero in the client", () => {
+    const panelSource = readFileSync(
+      join(ROOT, "client/src/components/admin/packaging/preparation-inventory-panel.tsx"),
+      "utf8",
+    );
+    expect(panelSource).toContain("requiredNonNegativeQuantitySchema.safeParse(quantity)");
+    expect(panelSource).toContain("requiredNonNegativeQuantitySchema.safeParse(stocktakeQty)");
+    expect(panelSource).not.toContain("const q = Number(quantity)");
   });
 });
