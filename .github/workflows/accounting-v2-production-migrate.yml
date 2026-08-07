@@ -73,6 +73,7 @@ jobs:
           server/__tests__/accounting-v2-migration-0062-execution.test.ts
           server/__tests__/accounting-v2-migration-0071-execution.test.ts
           server/__tests__/accounting-v2-migration-0072-execution.test.ts
+          server/__tests__/accounting-v2-review-fixes-contract.test.ts
           server/__tests__/accounting-v2-p0-migration-contract.test.ts
           server/__tests__/return-variant-id-contract.test.ts
 
