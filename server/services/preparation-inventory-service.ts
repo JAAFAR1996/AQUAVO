@@ -210,61 +210,6 @@ export async function stocktakePreparationMaterial(
   });
 }
 
-export interface ReceiveStockInput {
-  materialId: string;
-  quantity: number;
-  reason: string;
-  idempotencyKey: string;
-  actor?: Actor;
-}
-
-export async function receivePreparationMaterialStock(
-  dbArg: FulfillmentDb | undefined,
-  input: ReceiveStockInput,
-): Promise<{ balance: number; movementId: string; reused: boolean }> {
-  const db = requireDb(dbArg);
-  if (!Number.isFinite(input.quantity) || input.quantity <= 0) {
-    throw new Error("QUANTITY_INVALID: كمية الاستلام يجب أن تكون أكبر من صفر");
-  }
-  const key = `material-receipt:${input.materialId}:${input.idempotencyKey}`;
-  const existing = await findMovementByIdempotency(db, key);
-  if (existing) return { balance: await ledgerBalance(db, input.materialId), movementId: existing.id, reused: true };
-
-  return db.transaction(async (tx) => {
-    await lockMaterial(tx, input.materialId);
-    const raced = await findMovementByIdempotency(tx, key);
-    if (raced) return { balance: await ledgerBalance(tx, input.materialId), movementId: raced.id, reused: true };
-    const material = await requirePreparationMaterial(tx, input.materialId);
-    if (!material.stockTracked) {
-      throw new Error("STOCK_TRACKING_REQUIRED: فعّل تتبع مخزون المادة قبل إضافة رصيد");
-    }
-    const before = await ledgerBalance(tx, input.materialId);
-    const movementId = randomUUID();
-    await tx.insert(packagingInventoryMovements).values({
-      id: movementId,
-      materialId: input.materialId,
-      movementType: "purchase_receipt",
-      quantity: String(input.quantity),
-      idempotencyKey: key,
-      sourceDocument: `استلام مخزون: ${input.reason.trim()}`,
-      recordedBy: input.actor?.id ?? null,
-    });
-    const after = before + input.quantity;
-    await recordFinancialChange(tx, {
-      entityType: "fulfillment_material",
-      entityId: input.materialId,
-      action: "update",
-      fieldName: "stock_receipt",
-      oldValue: before,
-      newValue: after,
-      reason: input.reason,
-      performedBy: input.actor?.id ?? null,
-      performedByName: input.actor?.name ?? null,
-    });
-    return { balance: after, movementId, reused: false };
-  });
-}
-
 export interface SetTrackingInput {
   materialId: string;
   enabled: boolean;
