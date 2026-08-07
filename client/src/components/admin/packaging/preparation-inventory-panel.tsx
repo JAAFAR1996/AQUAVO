@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { z } from "zod";
 import { AlertTriangle, PackageOpen } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,15 @@ import {
   type PreparationInventoryMovement,
 } from "@/hooks/use-preparation-inventory";
 import { AddPreparationCostForm, PreparationCostEditor } from "./packaging-forms";
+
+const requiredNonNegativeQuantitySchema = z.string().trim().min(1)
+  .pipe(z.coerce.number().finite().min(0));
+const requiredPositiveQuantitySchema = z.string().trim().min(1)
+  .pipe(z.coerce.number().finite().positive());
+const optionalNonNegativeQuantitySchema = z.union([
+  z.literal(""),
+  z.string().trim().min(1).pipe(z.coerce.number().finite().min(0)),
+]).transform((value) => value === "" ? null : value);
 
 function errorText(value: unknown): string {
   return value instanceof Error ? value.message : String(value ?? "خطأ غير معروف");
@@ -82,11 +92,11 @@ function EnableTracking({ material, onDone }: { material: PreparationInventoryIt
   const [threshold, setThreshold] = useState("");
   const [reason, setReason] = useState("جرد افتتاحي عند تفعيل تتبع المخزون");
   const tracking = useSetPreparationTracking(material.id);
-  const q = Number(quantity);
-  const thresholdValue = threshold.trim() === "" ? null : Number(threshold);
-  const valid = Number.isFinite(q) && q >= 0 &&
-    (thresholdValue === null || (Number.isFinite(thresholdValue) && thresholdValue >= 0)) &&
-    reason.trim().length >= 3;
+  const quantityResult = requiredNonNegativeQuantitySchema.safeParse(quantity);
+  const thresholdResult = optionalNonNegativeQuantitySchema.safeParse(threshold);
+  const q = quantityResult.success ? quantityResult.data : null;
+  const thresholdValue = thresholdResult.success ? thresholdResult.data : null;
+  const valid = q !== null && thresholdResult.success && reason.trim().length >= 3;
 
   return (
     <div className="rounded-md border border-dashed p-3 space-y-2" data-testid={`enable-tracking-${material.id}`}>
@@ -120,12 +130,15 @@ function EnableTracking({ material, onDone }: { material: PreparationInventoryIt
       <Button
         size="sm"
         disabled={!valid || tracking.isPending}
-        onClick={() => tracking.mutateTracking({
-          enabled: true,
-          currentQuantity: q,
-          lowStockThreshold: thresholdValue,
-          reason: reason.trim(),
-        }, { onSuccess: onDone })}
+        onClick={() => {
+          if (q === null || !thresholdResult.success) return;
+          tracking.mutateTracking({
+            enabled: true,
+            currentQuantity: q,
+            lowStockThreshold: thresholdValue,
+            reason: reason.trim(),
+          }, { onSuccess: onDone });
+        }}
         data-testid={`button-enable-tracking-${material.id}`}
       >
         {tracking.isPending ? "جاري الحفظ…" : "تفعيل التتبع وحفظ الكمية"}
@@ -145,10 +158,12 @@ function TrackedStockControls({ material }: { material: PreparationInventoryItem
   const receive = useReceivePreparationMaterial(material.id);
   const tracking = useSetPreparationTracking(material.id);
 
-  const target = Number(stocktakeQty);
-  const incoming = Number(receiveQty);
-  const canStocktake = Number.isFinite(target) && target >= 0 && stocktakeReason.trim().length >= 3;
-  const canReceive = Number.isFinite(incoming) && incoming > 0 && receiveReason.trim().length >= 3;
+  const stocktakeResult = requiredNonNegativeQuantitySchema.safeParse(stocktakeQty);
+  const receiveResult = requiredPositiveQuantitySchema.safeParse(receiveQty);
+  const target = stocktakeResult.success ? stocktakeResult.data : null;
+  const incoming = receiveResult.success ? receiveResult.data : null;
+  const canStocktake = target !== null && stocktakeReason.trim().length >= 3;
+  const canReceive = incoming !== null && receiveReason.trim().length >= 3;
 
   return (
     <div className="space-y-3" data-testid={`tracked-controls-${material.id}`}>
@@ -170,7 +185,10 @@ function TrackedStockControls({ material }: { material: PreparationInventoryItem
           <Button
             size="sm" variant="outline"
             disabled={!canStocktake || stocktake.isPending}
-            onClick={() => stocktake.mutateStocktake({ quantity: target, reason: stocktakeReason.trim() })}
+            onClick={() => {
+              if (target === null) return;
+              stocktake.mutateStocktake({ quantity: target, reason: stocktakeReason.trim() });
+            }}
             data-testid={`button-stocktake-${material.id}`}
           >
             {stocktake.isPending ? "جاري الجرد…" : "تثبيت الجرد"}
@@ -195,10 +213,13 @@ function TrackedStockControls({ material }: { material: PreparationInventoryItem
           <Button
             size="sm"
             disabled={!canReceive || receive.isPending}
-            onClick={() => receive.mutateReceive(
-              { quantity: incoming, reason: receiveReason.trim() },
-              { onSuccess: () => setReceiveQty("") },
-            )}
+            onClick={() => {
+              if (incoming === null) return;
+              receive.mutateReceive(
+                { quantity: incoming, reason: receiveReason.trim() },
+                { onSuccess: () => setReceiveQty("") },
+              );
+            }}
             data-testid={`button-receive-prep-${material.id}`}
           >
             {receive.isPending ? "جاري الإضافة…" : "إضافة مخزون"}
