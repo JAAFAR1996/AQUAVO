@@ -45,7 +45,7 @@ async function addMaterial(id: string, name: string, tracked: boolean): Promise<
   await client.query(
     `INSERT INTO fulfillment_materials
       (id,name,category,unit,current_unit_cost,currency,active,stock_tracked,material_kind,calculation_basis)
-     VALUES ($1,$2,'packaging','piece','100','IQD',true,$3,'consumable','per_order')`,
+     VALUES ($1,$2,'packaging','piece',NULL,'IQD',true,$3,'consumable','per_order')`,
     [id, name, tracked],
   );
 }
