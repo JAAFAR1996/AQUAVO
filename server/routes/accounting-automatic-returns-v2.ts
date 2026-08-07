@@ -9,6 +9,8 @@ const periodSchema = z.union([
   z.string().regex(/^20\d{2}-(0[1-9]|1[0-2])$/),
 ]).default("all");
 
+const returnEventStatusSchema = z.enum(["recorded", "verified", "disputed"]);
+
 type Row = Record<string, unknown>;
 function rowsOf(result: unknown): Row[] {
   if (Array.isArray(result)) return result as Row[];
@@ -32,6 +34,12 @@ export function createAccountingAutomaticReturnsV2Router() {
   router.get("/return-events", async (req: Request, res: Response, next: NextFunction) => {
     try {
       const period = periodSchema.parse(req.query.period ?? "all");
+      const status = req.query.status == null
+        ? null
+        : returnEventStatusSchema.parse(req.query.status);
+      const orderId = typeof req.query.orderId === "string" && req.query.orderId.trim().length > 0
+        ? req.query.orderId.trim()
+        : null;
       const db = getDb();
       if (!db) {
         res.status(503).json({ message: "قاعدة البيانات غير مهيأة" });
@@ -61,6 +69,8 @@ export function createAccountingAutomaticReturnsV2Router() {
           OR (${period} ~ '^20[0-9]{2}-(0[1-9]|1[0-2])$'
               AND to_char(r.updated_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Baghdad','YYYY-MM')=${period})
         )
+          AND (${status}::text IS NULL OR r.status=${status})
+          AND (${orderId}::text IS NULL OR r.order_id=${orderId})
         GROUP BY r.id,o.order_number,o.status
         ORDER BY r.updated_at DESC,r.created_at DESC,r.id DESC
       `);
