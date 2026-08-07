@@ -44,7 +44,7 @@ export function OrderShipCarrierDialog({ orderId, onShipped }: OrderShipCarrierD
     setLoadError(null);
     setSelectedCompanyId("");
     try {
-      const response = await fetch("/api/admin/accounting/v2/delivery-companies?active=true", {
+      const response = await fetch("/api/admin/orders/delivery-companies", {
         credentials: "include",
       });
       if (!response.ok) {
