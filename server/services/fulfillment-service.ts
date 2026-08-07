@@ -34,6 +34,13 @@ export type FulfillmentEventType =
 export const FULFILLMENT_EVENT_TYPES: readonly FulfillmentEventType[] =
   ["original", "reshipment", "return_handling", "replacement", "adjustment"] as const;
 
+const REVERSIBLE_PRE_SHIPMENT_ORDER_STATUSES = new Set([
+  "pending",
+  "confirmed",
+  "processing",
+  "cancelled",
+]);
+
 // ── Typed raw-SQL row access (drivers return {rows} or an array) ─────────────
 interface DriverRows<T> { rows: T[] }
 function rowsOf<T>(result: unknown): T[] {
@@ -428,7 +435,7 @@ export async function reverseFulfillmentEvent(
         const [order] = await tx.select({ status: orders.status }).from(orders)
           .where(eq(orders.id, orig.orderId)).limit(1);
         const orderStatus = String(order?.status ?? "").toLowerCase();
-        if (["shipped", "delivered", "returned"].includes(orderStatus)) {
+        if (!REVERSIBLE_PRE_SHIPMENT_ORDER_STATUSES.has(orderStatus)) {
           throw new Error(
             "REVERSAL_INVALID_AFTER_SHIPMENT: لا يمكن إعادة مواد التجهيز للمخزون بعد الشحن؛ استخدم مسار المرتجع بدون إعادة مواد التغليف تلقائياً",
           );
