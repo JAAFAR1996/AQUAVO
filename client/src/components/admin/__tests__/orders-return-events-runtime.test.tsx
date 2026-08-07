@@ -167,8 +167,9 @@ describe("OrdersManagement operational return events runtime", () => {
     });
 
     expect(await screen.findByText("تعديلات الفاتورة / الراجعات (1)")).toBeInTheDocument();
-    expect(screen.getByText(/13,000/)).toBeInTheDocument();
-    expect(screen.queryByText(/18,000/)).not.toBeInTheDocument();
+    expect(screen.getByText("confirmed return")).toBeInTheDocument();
+    expect(screen.getByText("معتمدة")).toBeInTheDocument();
     expect(screen.queryByText("preserved as disputed legacy record")).not.toBeInTheDocument();
+    expect(screen.queryByText("مستبعدة")).not.toBeInTheDocument();
   });
 });
