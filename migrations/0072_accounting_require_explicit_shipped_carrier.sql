@@ -25,7 +25,7 @@ BEGIN
 
     SELECT name,default_fee INTO v_name,v_fee
     FROM public.delivery_companies
-    WHERE active=true AND lower(name)=lower(btrim(NEW.carrier))
+    WHERE active=true AND name=btrim(NEW.carrier)
     LIMIT 1;
 
     IF v_name IS NULL THEN
@@ -50,7 +50,7 @@ BEGIN
   ELSE
     SELECT default_fee INTO v_fee
     FROM public.delivery_companies
-    WHERE active=true AND lower(name)=lower(btrim(NEW.carrier))
+    WHERE active=true AND name=btrim(NEW.carrier)
     LIMIT 1;
     IF FOUND AND (NEW.carrier_fee IS NULL OR (TG_OP='UPDATE' AND NEW.carrier IS DISTINCT FROM OLD.carrier)) THEN
       NEW.carrier_fee:=v_fee;
