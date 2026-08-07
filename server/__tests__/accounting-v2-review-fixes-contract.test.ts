@@ -126,6 +126,8 @@ describe("Accounting V2 reviewed fixes", () => {
     expect(runner).toContain('"0071_accounting_return_line_identity_and_refund_guard.sql"');
     expect(runner).toContain('"0072_accounting_require_explicit_shipped_carrier.sql"');
     expect(runner).toContain("explicit_shipped_carrier_guard");
+    expect(runner).toContain("t.tgrelid='public.orders'::regclass");
+    expect(runner).toContain("t.tgfoid='public.apply_default_delivery_company_to_order()'::regprocedure");
 
     // The Vercel build must NOT carry the production migration any more: a
     // deploy is not an approval to mutate the production ledger. The build
