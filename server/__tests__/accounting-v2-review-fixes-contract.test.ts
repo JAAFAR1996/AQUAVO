@@ -98,16 +98,25 @@ describe("Accounting V2 reviewed fixes", () => {
     expect(migration70).toContain("pg_advisory_xact_lock");
   });
 
-  it("keeps the default carrier active during status-only updates", () => {
+  it("keeps legacy defaults outside shipped but requires an explicit active shipped carrier", () => {
     expect(existsSync(join(root, "migrations/0061_accounting_default_carrier_status_guard.sql"))).toBe(true);
     expect(existsSync(join(root, "migrations/0061_accounting_default_carrier_status_guard_rollback.sql"))).toBe(true);
-    const migration = read("migrations/0061_accounting_default_carrier_status_guard.sql");
-    expect(migration).toContain("BEFORE INSERT OR UPDATE OF carrier,status ON public.orders");
+    const migration61 = read("migrations/0061_accounting_default_carrier_status_guard.sql");
+    expect(migration61).toContain("BEFORE INSERT OR UPDATE OF carrier,status ON public.orders");
+
+    expect(existsSync(join(root, "migrations/0072_accounting_require_explicit_shipped_carrier.sql"))).toBe(true);
+    expect(existsSync(join(root, "migrations/0072_accounting_require_explicit_shipped_carrier_rollback.sql"))).toBe(true);
+    const migration72 = read("migrations/0072_accounting_require_explicit_shipped_carrier.sql");
+    expect(migration72).toContain("DELIVERY_COMPANY_REQUIRED_FOR_SHIPPED");
+    expect(migration72).toContain("DELIVERY_COMPANY_INACTIVE_OR_UNKNOWN");
+    expect(migration72).toContain("WHERE active=true AND name=btrim(NEW.carrier)");
+    expect(migration72).not.toContain("lower(name)=lower(btrim(NEW.carrier))");
+    expect(migration72).toContain("NEW.carrier_fee:=v_fee");
   });
 
   it("separates production migrations from Vercel builds", () => {
     const runner = read("script/apply-accounting-v2-migrations.ts");
-    expect(runner).toContain('CONFIRM_ACCOUNTING_PRODUCTION !== "APPLY_0051_TO_0071"');
+    expect(runner).toContain('CONFIRM_ACCOUNTING_PRODUCTION !== "APPLY_0051_TO_0072"');
     expect(runner).toContain("pg_advisory_lock");
     expect(runner).toContain("await client.query(body)");
     expect(runner).toContain("createHash(\"sha256\")");
@@ -115,6 +124,10 @@ describe("Accounting V2 reviewed fixes", () => {
     expect(runner).toContain('"0062_accounting_automation_opening_balances.sql"');
     expect(runner).toContain('"0066_accounting_reassert_refusal_inventory_after_0062.sql"');
     expect(runner).toContain('"0071_accounting_return_line_identity_and_refund_guard.sql"');
+    expect(runner).toContain('"0072_accounting_require_explicit_shipped_carrier.sql"');
+    expect(runner).toContain("explicit_shipped_carrier_guard");
+    expect(runner).toContain("t.tgrelid='public.orders'::regclass");
+    expect(runner).toContain("t.tgfoid='public.apply_default_delivery_company_to_order()'::regprocedure");
 
     // The Vercel build must NOT carry the production migration any more: a
     // deploy is not an approval to mutate the production ledger. The build
@@ -129,7 +142,8 @@ describe("Accounting V2 reviewed fixes", () => {
     expect(productionWorkflow).toContain("workflow_dispatch:");
     expect(productionWorkflow).toContain("environment: production");
     expect(productionWorkflow).toContain("cancel-in-progress: false");
-    expect(productionWorkflow).toContain("APPLY_0051_TO_0071");
+    expect(productionWorkflow).toContain("APPLY_0051_TO_0072");
+    expect(productionWorkflow).toContain("accounting-v2-migration-0072-execution.test.ts");
     expect(productionWorkflow).toContain("pnpm build");
     expect(productionWorkflow.indexOf("pnpm build"))
       .toBeLessThan(productionWorkflow.indexOf("script/apply-accounting-v2-migrations.ts"));

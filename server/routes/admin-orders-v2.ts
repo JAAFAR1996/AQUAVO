@@ -38,6 +38,7 @@ type LockedOrder = {
   carrier_fee: string | null;
 };
 type DeliveryCompany = { id: string; name: string; default_fee: string };
+type ActiveDeliveryCompany = DeliveryCompany & { active: boolean };
 type ReturnOrderLineRow = {
   order_item_id: string;
   product_id: string;
@@ -113,6 +114,28 @@ export function createAdminOrdersV2Router() {
   const router = Router();
   router.use(requireAccountingAdmin);
 
+  router.get("/orders/delivery-companies", async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const db = getDb();
+    if (!db) { res.status(503).json({ message: "قاعدة البيانات غير مهيأة" }); return; }
+
+    try {
+      const result = await db.execute(sql`
+        SELECT id,name,default_fee,active
+        FROM public.delivery_companies
+        WHERE active=true
+        ORDER BY name
+      `);
+      res.json({
+        items: rowsOf<ActiveDeliveryCompany>(result).map((company) => ({
+          ...company,
+          default_fee: Number(company.default_fee),
+        })),
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+
   router.get("/orders/:id/return-lines", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const db = getDb();
     if (!db) { res.status(503).json({ message: "قاعدة البيانات غير مهيأة" }); return; }
@@ -183,6 +206,11 @@ export function createAdminOrdersV2Router() {
 
         const oldStatus = locked.status;
         const input = parsed.data;
+        const enteringShipped = input.status === "shipped" && oldStatus !== "shipped";
+        if (enteringShipped && !input.deliveryCompanyId) {
+          throw Object.assign(new Error("اختر شركة التوصيل قبل تسليم الطلب للنقل"), { statusCode: 400 });
+        }
+
         let carrierName = input.carrier === undefined ? locked.carrier : input.carrier;
         let carrierFee = input.carrierFee ?? (locked.carrier_fee == null ? undefined : Number(locked.carrier_fee));
         const needsCarrier = ["shipped", "delivered", "rejected", "rejected_carrier"].includes(input.status);
@@ -195,7 +223,7 @@ export function createAdminOrdersV2Router() {
           `);
           company = rowsOf<DeliveryCompany>(companyResult)[0];
           if (!company) throw Object.assign(new Error("شركة التوصيل غير موجودة أو غير فعالة"), { statusCode: 409 });
-        } else if (needsCarrier && !carrierName) {
+        } else if (!enteringShipped && needsCarrier && !carrierName) {
           const companyResult = await tx.execute(sql`
             SELECT id,name,default_fee FROM public.delivery_companies
             WHERE active=true AND is_default=true LIMIT 1 FOR SHARE
