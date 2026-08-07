@@ -10,6 +10,10 @@ const periodSchema = z.union([
 ]).default("all");
 
 const returnEventStatusSchema = z.enum(["recorded", "verified", "disputed"]);
+const returnEventOrderIdSchema = z.preprocess(
+  (value) => typeof value === "string" && value.trim().length === 0 ? null : value,
+  z.string().trim().min(1).nullable(),
+);
 
 type Row = Record<string, unknown>;
 function rowsOf(result: unknown): Row[] {
@@ -37,9 +41,7 @@ export function createAccountingAutomaticReturnsV2Router() {
       const status = req.query.status == null
         ? null
         : returnEventStatusSchema.parse(req.query.status);
-      const orderId = typeof req.query.orderId === "string" && req.query.orderId.trim().length > 0
-        ? req.query.orderId.trim()
-        : null;
+      const orderId = returnEventOrderIdSchema.parse(req.query.orderId ?? null);
       const db = getDb();
       if (!db) {
         res.status(503).json({ message: "قاعدة البيانات غير مهيأة" });
