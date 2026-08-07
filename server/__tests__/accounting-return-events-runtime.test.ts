@@ -106,6 +106,13 @@ describe("runtime return-events route", () => {
     expect(new Set(res.body.data.map((row: { orderId: string }) => row.orderId))).toEqual(new Set(["order-a"]));
   });
 
+  it("rejects array-valued orderId instead of dropping the filter", async () => {
+    const res = await api().get(`${BASE}?period=year&orderId=order-a&orderId=order-b`);
+
+    expect(res.status).toBe(400);
+    expect(res.body.data).toBeUndefined();
+  });
+
   it("returns only verified events for the operational Order Details request", async () => {
     const res = await api().get(`${BASE}?period=year&orderId=order-a&status=verified`);
 
