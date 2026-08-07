@@ -8,6 +8,7 @@ on:
       - "api/_guides-content.ts"
       - "api/_seo-preview-shell.tsx"
       - "api/_seo-structured-data.ts"
+      - "api/_ssr-preview-source.ts"
       - "api/index.ts"
       - "api/robots.ts"
       - "api/sitemap-index.ts"
@@ -16,6 +17,8 @@ on:
       - "api/sitemap-guides.ts"
       - "api/ssr-preview.ts"
       - "api/ssr-preview-advanced.ts"
+      - "generated/ssr-preview-runtime.d.ts"
+      - "script/build.ts"
       - "client/public/robots.txt"
       - "client/public/sitemap-recovery.xml"
       - "client/public/67d3eed08e869c3cd18bdf563d183fcc.txt"
@@ -74,6 +77,12 @@ jobs:
 
       - name: Build generated SSR template and server bundle
         run: pnpm run build
+
+      - name: Verify SSR runtime generation is clean and ordered
+        run: |
+          test -f generated/ssr-preview-runtime.js
+          git diff --exit-code -- api/ssr-preview.ts
+          git diff --exit-code -- api/_ssr-preview-source.ts
 
       - name: Execute generated semantic runtime
         run: pnpm exec tsx scripts/verify-generated-ssr-runtime.ts

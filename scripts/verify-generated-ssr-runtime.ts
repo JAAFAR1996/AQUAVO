@@ -63,7 +63,7 @@ function assert(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message);
 }
 
-const runtimePath = resolve(process.cwd(), "generated/ssr-preview-runtime.ts");
+const runtimePath = resolve(process.cwd(), "generated/ssr-preview-runtime.js");
 assert(existsSync(runtimePath), "Generated semantic runtime does not exist; run pnpm build first");
 
 const runtimeUrl = `${pathToFileURL(runtimePath).href}?smoke=${Date.now()}`;
@@ -90,10 +90,10 @@ assert(legacyGuide.statusCode === 308, `Legacy guide returned ${legacyGuide.stat
 assert(legacyGuide.headers.location === "/guides/filter-choice", "Legacy guide redirect target is incorrect");
 
 const productionEntryPath = resolve(process.cwd(), "api/ssr-preview.ts");
-assert(existsSync(productionEntryPath), "Generated production SSR entry does not exist");
+assert(existsSync(productionEntryPath), "Production SSR entry does not exist");
 const entryUrl = `${pathToFileURL(productionEntryPath).href}?entry-smoke=${Date.now()}`;
 const productionEntry = await import(entryUrl);
-assert(typeof productionEntry.default === "function", "Generated production entry has no default handler");
+assert(typeof productionEntry.default === "function", "Production entry has no default handler");
 
 const previousVercelEnv = process.env.VERCEL_ENV;
 process.env.VERCEL_ENV = "production";
