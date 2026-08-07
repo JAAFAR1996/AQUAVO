@@ -185,7 +185,9 @@ export function OrdersManagement() {
   const qc = useQueryClient();
 
   const refreshDetailEvents = (orderId: string) => {
-    fetch(`/api/admin/accounting/return-events?orderId=${orderId}&period=year`, { credentials: "include" })
+    // Operational order details show only officially confirmed return events.
+    // The accounting/audit view keeps using the same endpoint without this filter.
+    fetch(`/api/admin/accounting/return-events?orderId=${orderId}&period=year&status=verified`, { credentials: "include" })
       .then((r) => r.ok ? r.json() : { data: [] })
       .then((d: { data: ReturnEventSummary[] }) => setDetailReturnEvents(d.data ?? []))
       .catch(() => {});
