@@ -9,7 +9,7 @@ on:
         default: "main"
         type: string
       confirm:
-        description: "Type APPLY_0051_TO_0073 exactly"
+        description: "Type APPLY_0051_TO_0074 exactly"
         required: true
         type: string
 
@@ -22,7 +22,7 @@ concurrency:
 
 jobs:
   migrate:
-    if: ${{ inputs.confirm == 'APPLY_0051_TO_0073' }}
+    if: ${{ inputs.confirm == 'APPLY_0051_TO_0074' }}
     runs-on: ubuntu-latest
     timeout-minutes: 35
     environment: production
@@ -74,6 +74,7 @@ jobs:
           server/__tests__/accounting-v2-migration-0071-execution.test.ts
           server/__tests__/accounting-v2-migration-0072-execution.test.ts
           server/__tests__/accounting-v2-migration-0073-execution.test.ts
+          server/__tests__/accounting-v2-migration-0074-execution.test.ts
           server/__tests__/accounting-v2-review-fixes-contract.test.ts
           server/__tests__/accounting-v2-p0-migration-contract.test.ts
           server/__tests__/return-variant-id-contract.test.ts
@@ -90,7 +91,7 @@ jobs:
       - name: Apply Accounting V2 migrations
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          CONFIRM_ACCOUNTING_PRODUCTION: APPLY_0051_TO_0073
+          CONFIRM_ACCOUNTING_PRODUCTION: APPLY_0051_TO_0074
         run: |
           set -euo pipefail
           test -n "$DATABASE_URL"

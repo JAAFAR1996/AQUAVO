@@ -115,9 +115,24 @@ describe("Accounting V2 reviewed fixes", () => {
     expect(migration72).toContain("NEW.carrier_fee:=v_fee");
   });
 
+  it("hardens received_quantity without weakening canonical goods-receipt flows", () => {
+    expect(existsSync(join(root, "migrations/0074_purchase_received_quantity_immutability.sql"))).toBe(true);
+    expect(existsSync(join(root, "migrations/0074_purchase_received_quantity_immutability_rollback.sql"))).toBe(true);
+    const migration74 = read("migrations/0074_purchase_received_quantity_immutability.sql");
+    expect(migration74).toContain("ACCOUNTED_PURCHASE_ORDER_ITEM_RECEIVED_QUANTITY_IMMUTABLE");
+    expect(migration74).toContain("aquavo.purchase_received_quantity_mode");
+    expect(migration74).toContain("post_goods_receipt");
+    expect(migration74).toContain("reverse_posted_goods_receipt");
+    expect(migration74).toContain("inventory_movements_received_quantity_context");
+    expect(migration74).toContain("purchase_order_items_received_quantity_context_clear");
+    expect(migration74).not.toContain("SECURITY DEFINER");
+    const rollback74 = read("migrations/0074_purchase_received_quantity_immutability_rollback.sql");
+    expect(rollback74).toContain("0074_ROLLBACK_BLOCKED");
+  });
+
   it("separates production migrations from Vercel builds", () => {
     const runner = read("script/apply-accounting-v2-migrations.ts");
-    expect(runner).toContain('CONFIRM_ACCOUNTING_PRODUCTION !== "APPLY_0051_TO_0073"');
+    expect(runner).toContain('CONFIRM_ACCOUNTING_PRODUCTION !== "APPLY_0051_TO_0074"');
     expect(runner).toContain("pg_advisory_lock");
     expect(runner).toContain("await client.query(body)");
     expect(runner).toContain("createHash(\"sha256\")");
@@ -127,7 +142,11 @@ describe("Accounting V2 reviewed fixes", () => {
     expect(runner).toContain('"0071_accounting_return_line_identity_and_refund_guard.sql"');
     expect(runner).toContain('"0072_accounting_require_explicit_shipped_carrier.sql"');
     expect(runner).toContain('"0073_accounting_final_hardening.sql"');
-    expect(runner).toContain("migration_0073");
+    expect(runner).toContain('"0074_purchase_received_quantity_immutability.sql"');
+    expect(runner).toContain("migration_0074");
+    expect(runner).toContain("purchase_received_quantity_guard_trigger");
+    expect(runner).toContain("purchase_received_quantity_context_trigger");
+    expect(runner).toContain("purchase_received_quantity_context_clear_trigger");
     expect(runner).toContain("explicit_shipped_carrier_guard");
     expect(runner).toContain("t.tgrelid='public.orders'::regclass");
     expect(runner).toContain("t.tgfoid='public.apply_default_delivery_company_to_order()'::regprocedure");
@@ -145,9 +164,10 @@ describe("Accounting V2 reviewed fixes", () => {
     expect(productionWorkflow).toContain("workflow_dispatch:");
     expect(productionWorkflow).toContain("environment: production");
     expect(productionWorkflow).toContain("cancel-in-progress: false");
-    expect(productionWorkflow).toContain("APPLY_0051_TO_0073");
+    expect(productionWorkflow).toContain("APPLY_0051_TO_0074");
     expect(productionWorkflow).toContain("accounting-v2-migration-0072-execution.test.ts");
     expect(productionWorkflow).toContain("accounting-v2-migration-0073-execution.test.ts");
+    expect(productionWorkflow).toContain("accounting-v2-migration-0074-execution.test.ts");
     expect(productionWorkflow).toContain("pnpm build");
     expect(productionWorkflow.indexOf("pnpm build"))
       .toBeLessThan(productionWorkflow.indexOf("script/apply-accounting-v2-migrations.ts"));
@@ -155,10 +175,12 @@ describe("Accounting V2 reviewed fixes", () => {
     expect(productionWorkflow).not.toMatch(/^\s{2}(push|pull_request):/m);
   });
 
-  it("computes the canonical SHA-256 for migration 0073 using the runner algorithm", () => {
-    const body = read("migrations/0073_accounting_final_hardening.sql");
-    const checksum = createHash("sha256").update(body).digest("hex");
-    expect(checksum).toMatch(/^[0-9a-f]{64}$/);
-    console.log(`[accounting-0073-sha256] ${checksum}`);
+  it("computes canonical SHA-256 checksums using the runner algorithm", () => {
+    for (const version of ["0073_accounting_final_hardening", "0074_purchase_received_quantity_immutability"]) {
+      const body = read(`migrations/${version}.sql`);
+      const checksum = createHash("sha256").update(body).digest("hex");
+      expect(checksum).toMatch(/^[0-9a-f]{64}$/);
+      console.log(`[accounting-${version}-sha256] ${checksum}`);
+    }
   });
 });
