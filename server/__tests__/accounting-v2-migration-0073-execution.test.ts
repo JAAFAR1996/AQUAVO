@@ -334,8 +334,10 @@ describe("0073 procurement, FX and moving weighted average", () => {
       SELECT (SELECT e->>'costPrice' FROM products p CROSS JOIN LATERAL jsonb_array_elements(p.variants) e WHERE p.id='p-variant' AND e->>'id'='v1') cost,
              (SELECT unit_cost_after::text FROM inventory_cost_events WHERE product_id='p-variant' AND variant_id='v1' ORDER BY created_at DESC LIMIT 1) event_cost
     `);
-    expect(Number(result.rows[0].cost)).toBeCloseTo(58.333333, 5);
-    expect(Number(result.rows[0].event_cost)).toBeCloseTo(58.333333, 5);
+    expect(result.rows).toHaveLength(1);
+    const row = result.rows[0]!;
+    expect(Number(row.cost)).toBeCloseTo(58.333333, 5);
+    expect(Number(row.event_cost)).toBeCloseTo(58.333333, 5);
   });
 
   it("closes original-currency AP and records FX loss when payment FX changes", async () => {
@@ -358,13 +360,16 @@ describe("0073 procurement, FX and moving weighted average", () => {
         (SELECT COALESCE(SUM(l.debit-l.credit),0)::text FROM journal_entries j JOIN journal_lines l ON l.entry_id=j.id WHERE j.source_type='supplier_payment' AND j.source_id='1' AND l.account_code='5400') fx_gl
       FROM supplier_payment_applications a WHERE payment_id=1
     `);
-    expect(Number(result.rows[0].applied)).toBe(2);
-    expect(Number(result.rows[0].carrying)).toBe(2600);
-    expect(Number(result.rows[0].cash)).toBe(2800);
-    expect(Number(result.rows[0].fx)).toBe(200);
-    expect(Number(result.rows[0].fx_gl)).toBe(200);
+    expect(result.rows).toHaveLength(1);
+    const row = result.rows[0]!;
+    expect(Number(row.applied)).toBe(2);
+    expect(Number(row.carrying)).toBe(2600);
+    expect(Number(row.cash)).toBe(2800);
+    expect(Number(row.fx)).toBe(200);
+    expect(Number(row.fx_gl)).toBe(200);
     const outstanding = await db.query<{ amount: string }>(`SELECT (f.payable_original-a.applied_amount_original)::text amount FROM purchase_accounting_facts f JOIN supplier_payment_applications a ON a.purchase_accounting_fact_id=f.id WHERE f.purchase_order_id='po-fx'`);
-    expect(Number(outstanding.rows[0].amount)).toBe(0);
+    expect(outstanding.rows).toHaveLength(1);
+    expect(Number(outstanding.rows[0]!.amount)).toBe(0);
   });
 
   it("keeps a matched supplier payment application immutable", async () => {
@@ -380,7 +385,8 @@ describe("0073 period readiness", () => {
   it("detects a variant inventory mismatch", async () => {
     const db = await readinessDb(2);
     const result = await db.query<{ inventory_mismatches: string }>(`SELECT inventory_mismatches::text FROM v_accounting_period_readiness WHERE period_key='2000-01'`);
-    expect(Number(result.rows[0].inventory_mismatches)).toBe(1);
+    expect(result.rows).toHaveLength(1);
+    expect(Number(result.rows[0]!.inventory_mismatches)).toBe(1);
   });
 
   it("turns AP/GL mismatch into a procurement failure and blocks period close", async () => {
@@ -393,8 +399,10 @@ describe("0073 period readiness", () => {
       SELECT p.ap_difference_iqd::text, r.procurement_integrity_failures::text failures
       FROM v_procurement_accounting_readiness p CROSS JOIN v_accounting_period_readiness r WHERE r.period_key='2000-01'
     `);
-    expect(Number(readiness.rows[0].ap_difference_iqd)).not.toBe(0);
-    expect(Number(readiness.rows[0].failures)).toBe(1);
+    expect(readiness.rows).toHaveLength(1);
+    const row = readiness.rows[0]!;
+    expect(Number(row.ap_difference_iqd)).not.toBe(0);
+    expect(Number(row.failures)).toBe(1);
     await expect(db.exec(`UPDATE accounting_period_closes SET status='closed' WHERE id='period-test'`)).rejects.toThrow(/ADMIN_CLOSE_BLOCKED: readiness failed/);
   });
 });
