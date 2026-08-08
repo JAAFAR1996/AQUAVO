@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -152,5 +153,12 @@ describe("Accounting V2 reviewed fixes", () => {
       .toBeLessThan(productionWorkflow.indexOf("script/apply-accounting-v2-migrations.ts"));
     // Nothing may apply production migrations on push/PR — dispatch only.
     expect(productionWorkflow).not.toMatch(/^\s{2}(push|pull_request):/m);
+  });
+
+  it("computes the canonical SHA-256 for migration 0073 using the runner algorithm", () => {
+    const body = read("migrations/0073_accounting_final_hardening.sql");
+    const checksum = createHash("sha256").update(body).digest("hex");
+    expect(checksum).toMatch(/^[0-9a-f]{64}$/);
+    console.log(`[accounting-0073-sha256] ${checksum}`);
   });
 });
