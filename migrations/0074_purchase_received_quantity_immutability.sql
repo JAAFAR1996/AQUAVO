@@ -1,7 +1,7 @@
 -- 0074_purchase_received_quantity_immutability
 -- Prevent direct mutation of purchase_order_items.received_quantity after receipt/accounting starts.
 -- Legitimate post/reversal flows are authorized by a short-lived transaction-local context armed
--- only by the canonical inventory movement they create immediately before updating the PO item.
+-- only by a canonical inventory movement created from the trusted post/reversal PL/pgSQL call stack.
 -- No historical financial data is changed by this migration.
 
 BEGIN;
@@ -15,10 +15,14 @@ DECLARE
   v_receipt_status text;
   v_fact_exists boolean;
   v_reversal_exists boolean;
+  v_context text;
 BEGIN
+  GET DIAGNOSTICS v_context = PG_CONTEXT;
+
   IF NEW.source_type='goods_receipt_item'
      AND NEW.movement_type='purchase_receipt'
-     AND NEW.quantity_delta>0 THEN
+     AND NEW.quantity_delta>0
+     AND position('PL/pgSQL function post_goods_receipt(text,text)' in v_context)>0 THEN
     SELECT gri.purchase_order_item_id,
            gr.status,
            EXISTS(
@@ -45,7 +49,8 @@ BEGIN
   ELSIF NEW.source_type='goods_receipt_reversal'
         AND NEW.movement_type='manual_adjustment'
         AND NEW.quantity_delta<0
-        AND NEW.reversed_movement_id IS NOT NULL THEN
+        AND NEW.reversed_movement_id IS NOT NULL
+        AND position('PL/pgSQL function reverse_posted_goods_receipt(text,text,text)' in v_context)>0 THEN
     SELECT gri.purchase_order_item_id,
            gr.status,
            EXISTS(
