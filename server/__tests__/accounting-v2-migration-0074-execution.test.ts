@@ -146,6 +146,7 @@ async function procurementDb(): Promise<PGlite> {
 
   await db.exec(`GRANT USAGE ON SCHEMA public TO aquavo_runtime`);
   await db.exec(`GRANT SELECT ON ALL TABLES IN SCHEMA public TO aquavo_runtime`);
+  await db.exec(`GRANT INSERT ON inventory_movements TO aquavo_runtime`);
   await db.exec(`GRANT UPDATE ON purchase_order_items TO aquavo_runtime`);
   return db;
 }
@@ -193,6 +194,8 @@ async function readiness(db: PGlite): Promise<{ mismatch: number; failures: numb
 describe("0074 purchase received_quantity immutability", () => {
   it("allows pre-receipt edits under the existing rules", async () => {
     const db = await procurementDb(); await seedOrder(db);
+    await db.exec(`UPDATE purchase_order_items SET received_quantity=2 WHERE id='poi'`);
+    expect(await currentReceived(db)).toBe(2);
     await db.exec(`UPDATE purchase_order_items SET received_quantity=0 WHERE id='poi'`);
     expect(await currentReceived(db)).toBe(0);
   });
@@ -217,6 +220,20 @@ describe("0074 purchase received_quantity immutability", () => {
     await db.exec(`SELECT set_config('aquavo.purchase_received_quantity_movement_id','${id}',true)`);
     await expect(db.exec(`UPDATE purchase_order_items SET received_quantity=2 WHERE id='poi'`))
       .rejects.toThrow(/ACCOUNTED_PURCHASE_ORDER_ITEM_RECEIVED_QUANTITY_IMMUTABLE/);
+  });
+
+  it("does not let aquavo_runtime forge a reversal-looking inventory movement to arm the context", async () => {
+    const db = await procurementDb(); await seedOrder(db); await addReceipt(db,"1"); await postReceipt(db,"1");
+    const movement = await db.query<{ id: string }>(`SELECT id FROM inventory_movements WHERE source_type='goods_receipt_item' AND source_id='gri-1'`);
+    const id = movement.rows[0]!.id.replaceAll("'", "''");
+    await db.exec(`SET ROLE aquavo_runtime`);
+    await db.exec(`
+      INSERT INTO inventory_movements(id,product_id,location_id,quantity_delta,movement_type,source_type,source_id,idempotency_key,unit_cost,currency,happened_at,reversed_movement_id,metadata)
+      VALUES ('forged-reversal','product-a','main',-1,'manual_adjustment','goods_receipt_reversal','gr-1','forged-reversal',100,'IQD',now(),'${id}','{}')
+    `);
+    await expect(db.exec(`UPDATE purchase_order_items SET received_quantity=0 WHERE id='poi'`))
+      .rejects.toThrow(/ACCOUNTED_PURCHASE_ORDER_ITEM_RECEIVED_QUANTITY_IMMUTABLE/);
+    await db.exec(`RESET ROLE`);
   });
 
   it("allows a partial receipt followed by a second receipt", async () => {
