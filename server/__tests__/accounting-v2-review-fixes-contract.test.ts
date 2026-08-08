@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -116,7 +117,7 @@ describe("Accounting V2 reviewed fixes", () => {
 
   it("separates production migrations from Vercel builds", () => {
     const runner = read("script/apply-accounting-v2-migrations.ts");
-    expect(runner).toContain('CONFIRM_ACCOUNTING_PRODUCTION !== "APPLY_0051_TO_0072"');
+    expect(runner).toContain('CONFIRM_ACCOUNTING_PRODUCTION !== "APPLY_0051_TO_0073"');
     expect(runner).toContain("pg_advisory_lock");
     expect(runner).toContain("await client.query(body)");
     expect(runner).toContain("createHash(\"sha256\")");
@@ -125,6 +126,8 @@ describe("Accounting V2 reviewed fixes", () => {
     expect(runner).toContain('"0066_accounting_reassert_refusal_inventory_after_0062.sql"');
     expect(runner).toContain('"0071_accounting_return_line_identity_and_refund_guard.sql"');
     expect(runner).toContain('"0072_accounting_require_explicit_shipped_carrier.sql"');
+    expect(runner).toContain('"0073_accounting_final_hardening.sql"');
+    expect(runner).toContain("migration_0073");
     expect(runner).toContain("explicit_shipped_carrier_guard");
     expect(runner).toContain("t.tgrelid='public.orders'::regclass");
     expect(runner).toContain("t.tgfoid='public.apply_default_delivery_company_to_order()'::regprocedure");
@@ -142,12 +145,20 @@ describe("Accounting V2 reviewed fixes", () => {
     expect(productionWorkflow).toContain("workflow_dispatch:");
     expect(productionWorkflow).toContain("environment: production");
     expect(productionWorkflow).toContain("cancel-in-progress: false");
-    expect(productionWorkflow).toContain("APPLY_0051_TO_0072");
+    expect(productionWorkflow).toContain("APPLY_0051_TO_0073");
     expect(productionWorkflow).toContain("accounting-v2-migration-0072-execution.test.ts");
+    expect(productionWorkflow).toContain("accounting-v2-migration-0073-execution.test.ts");
     expect(productionWorkflow).toContain("pnpm build");
     expect(productionWorkflow.indexOf("pnpm build"))
       .toBeLessThan(productionWorkflow.indexOf("script/apply-accounting-v2-migrations.ts"));
     // Nothing may apply production migrations on push/PR — dispatch only.
     expect(productionWorkflow).not.toMatch(/^\s{2}(push|pull_request):/m);
+  });
+
+  it("computes the canonical SHA-256 for migration 0073 using the runner algorithm", () => {
+    const body = read("migrations/0073_accounting_final_hardening.sql");
+    const checksum = createHash("sha256").update(body).digest("hex");
+    expect(checksum).toMatch(/^[0-9a-f]{64}$/);
+    console.log(`[accounting-0073-sha256] ${checksum}`);
   });
 });

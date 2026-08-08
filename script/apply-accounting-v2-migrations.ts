@@ -29,6 +29,7 @@ const MIGRATIONS = [
   "0070_accounting_ledger_backed_views.sql",
   "0071_accounting_return_line_identity_and_refund_guard.sql",
   "0072_accounting_require_explicit_shipped_carrier.sql",
+  "0073_accounting_final_hardening.sql",
 ] as const;
 
 function versionOf(file: string): string { return file.replace(/\.sql$/, ""); }
@@ -38,8 +39,8 @@ function sha256(body: string): string { return createHash("sha256").update(body)
 async function main(): Promise<void> {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) throw new Error("DATABASE_URL is required");
-  if (process.env.CONFIRM_ACCOUNTING_PRODUCTION !== "APPLY_0051_TO_0072") {
-    throw new Error("CONFIRM_ACCOUNTING_PRODUCTION=APPLY_0051_TO_0072 is required");
+  if (process.env.CONFIRM_ACCOUNTING_PRODUCTION !== "APPLY_0051_TO_0073") {
+    throw new Error("CONFIRM_ACCOUNTING_PRODUCTION=APPLY_0051_TO_0073 is required");
   }
 
   const pool = new Pool({ connectionString, max: 1 });
@@ -115,6 +116,20 @@ async function main(): Promise<void> {
         EXISTS(SELECT 1 FROM public.schema_migrations WHERE version='0070_accounting_ledger_backed_views' AND rolled_back_at IS NULL) AS migration_0070,
         EXISTS(SELECT 1 FROM public.schema_migrations WHERE version='0071_accounting_return_line_identity_and_refund_guard' AND rolled_back_at IS NULL) AS migration_0071,
         EXISTS(SELECT 1 FROM public.schema_migrations WHERE version='0072_accounting_require_explicit_shipped_carrier' AND rolled_back_at IS NULL) AS migration_0072,
+        EXISTS(SELECT 1 FROM public.schema_migrations WHERE version='0073_accounting_final_hardening' AND rolled_back_at IS NULL) AS migration_0073,
+        to_regclass('public.purchase_accounting_facts') IS NOT NULL AS purchase_facts,
+        to_regclass('public.supplier_payment_applications') IS NOT NULL AS supplier_payment_applications,
+        to_regclass('public.inventory_cost_events') IS NOT NULL AS inventory_cost_events,
+        to_regclass('public.inventory_valuation_baselines') IS NOT NULL AS inventory_valuation_baselines,
+        to_regclass('public.order_accounting_carrier_snapshots') IS NOT NULL AS carrier_snapshots,
+        to_regclass('public.opening_carrier_receivable_lots') IS NOT NULL AS opening_carrier_lots,
+        to_regclass('public.v_procurement_accounting_readiness') IS NOT NULL AS procurement_readiness,
+        to_regprocedure('public.post_goods_receipt(text,text)') IS NOT NULL AS post_goods_receipt,
+        to_regprocedure('public.reverse_posted_goods_receipt(text,text,text)') IS NOT NULL AS reverse_goods_receipt,
+        to_regprocedure('public.post_supplier_payment(integer,text)') IS NOT NULL AS post_supplier_payment,
+        to_regprocedure('public.reverse_supplier_payment(integer,text,text)') IS NOT NULL AS reverse_supplier_payment,
+        NOT has_function_privilege('public','public.post_goods_receipt(text,text)','EXECUTE') AS post_goods_receipt_not_public,
+        NOT has_function_privilege('public','public.post_supplier_payment(integer,text)','EXECUTE') AS post_supplier_payment_not_public,
         to_regprocedure('public.assert_order_ready_for_accounting_delivery(text)') IS NOT NULL AS delivery_readiness_function,
         to_regprocedure('public.accounting_period_account_balance(text,text)') IS NOT NULL AS ledger_balance_function,
         EXISTS(SELECT 1 FROM pg_trigger WHERE tgname='orders_accounting_delivery_readiness_guard' AND NOT tgisinternal) AS delivery_readiness_guard,
