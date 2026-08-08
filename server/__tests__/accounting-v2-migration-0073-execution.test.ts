@@ -236,7 +236,7 @@ async function readinessDb(variantStock = 1): Promise<PGlite> {
     CREATE TABLE supplier_payments(status text, accounting_posted_at timestamptz);
     CREATE TABLE journal_entries(id text PRIMARY KEY DEFAULT gen_random_uuid()::text, period_key text, source_type text, source_id text, event_kind text, total_debit numeric, total_credit numeric);
     CREATE TABLE journal_lines(entry_id text, account_code text, debit numeric NOT NULL DEFAULT 0, credit numeric NOT NULL DEFAULT 0);
-    CREATE TABLE order_accounting_facts(order_id text, period_key text, cost_status text, cogs_amount numeric, payment_event_id text, gross_collected numeric, cash_custody text, delivery_surplus numeric, merchant_net numeric, delivery_subsidy numeric);
+    CREATE TABLE order_accounting_facts(id text PRIMARY KEY, order_id text, period_key text, cost_status text, cogs_amount numeric, payment_event_id text, gross_collected numeric, cash_custody text, delivery_surplus numeric, merchant_net numeric, delivery_subsidy numeric);
     CREATE TABLE orders(id text PRIMARY KEY, box_cost numeric);
     CREATE TABLE order_fulfillment_events(order_id text, event_type text, workflow_state text, cost_status text, actual_cost numeric);
     CREATE TABLE payment_events(id text PRIMARY KEY, status text, amount numeric);
@@ -345,7 +345,7 @@ describe("0073 procurement, FX and moving weighted average", () => {
     await db.exec(`
       INSERT INTO purchase_orders(id,supplier_id,status,currency,subtotal,total,exchange_rate_to_iqd,exchange_rate_source,exchange_rate_effective_at)
       VALUES ('po-fx','supplier-a','ordered','USD',2,2,1300,'bank',now());
-      INSERT INTO purchase_order_items VALUES ('poi-fx','po-fx',NULL,'p-variant','v2',2,1,2);
+      INSERT INTO purchase_order_items VALUES ('poi-fx','po-fx',NULL,'p-variant','v2',2,0,1,2);
       INSERT INTO goods_receipts VALUES ('gr-fx','po-fx','main','verified',now(),NULL,NULL,NULL,now());
       INSERT INTO goods_receipt_items VALUES ('gri-fx','gr-fx','poi-fx','p-variant','v2',2,1,NULL);
     `);
