@@ -156,6 +156,7 @@ jobs:
           server/__tests__/accounting-v2-automation-contract.test.ts
           server/__tests__/accounting-v2-migration-0062-execution.test.ts
           server/__tests__/accounting-v2-migration-0071-execution.test.ts
+          server/__tests__/accounting-v2-migration-0074-execution.test.ts
           server/__tests__/accounting-v2-p0-migration-contract.test.ts
           server/__tests__/fulfillment-material-inventory.test.ts
           server/__tests__/fulfillment-material-inventory-contract.test.ts
