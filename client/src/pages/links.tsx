@@ -1,398 +1,135 @@
-/**
- * AQUAVO Links Page — صفحة الروابط الشاملة
- * 
- * 2026 Premium Design: Glassmorphism 2.0 + Liquid Interaction
- * Standalone page designed specifically for the QR Code landing experience.
- */
-
-import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence, useMotionValue, useSpring } from 'framer-motion';
-import {
-  ShoppingBag,
-  Instagram,
-  Facebook,
-  Globe,
-  Heart,
-  ChevronLeft,
-  ExternalLink,
-  Music2,
-  MapPin
-} from 'lucide-react';
+import { useEffect, type ReactNode } from 'react';
+import { Images, MessageCircle, ShoppingBag } from 'lucide-react';
 import { trackBioLinkClick } from '@/lib/analytics';
 import { WHATSAPP_URL } from '@/lib/constants/shipping';
 
-// ═══════════════════════════════════════════════
-// CONFIGURATION
-// ═══════════════════════════════════════════════
-const LINKS_CONFIG = {
-  brand: {
-    name: 'AQUAVO',
-    tagline: 'متجر أحواض السمك المتخصص بالعراق',
-    logoUrl: '/assets/brand/AQUAVO-logo-full-color.svg',
-  },
-  links: [
-    {
-      id: 'shop',
-      label: 'تصفح المتجر',
-      sublabel: 'منتجات أحواض مائية فاخرة',
-      url: '/products',
-      icon: 'shop',
-      color: 'from-cyan-400 to-teal-500',
-      glow: 'shadow-cyan-500/40',
-      featured: true,
-    },
-    {
-      id: 'whatsapp',
-      label: 'تواصل واتساب',
-      sublabel: 'رد فوري — اسألنا أي شي!',
-      url: `${WHATSAPP_URL}?text=${encodeURIComponent('مرحبا! جيت من QR Code الكتيب 🐟')}`,
-      icon: 'whatsapp',
-      color: 'from-emerald-400 to-emerald-600',
-      glow: 'shadow-emerald-500/20',
-      external: true,
-    },
-    {
-      id: 'instagram',
-      label: 'انستغرام',
-      sublabel: '@aquavo_iq — صور وفيديوهات',
-      url: 'https://instagram.com/aquavo_iq',
-      icon: 'instagram',
-      color: 'from-pink-500 to-purple-600',
-      glow: 'shadow-purple-500/20',
-      external: true,
-    },
-    {
-      id: 'tiktok',
-      label: 'تيك توك',
-      sublabel: '@aquavo.iq — محتوى فيرال 🔥',
-      url: 'https://tiktok.com/@aquavo.iq',
-      icon: 'tiktok',
-      color: 'from-slate-700 to-slate-900',
-      glow: 'shadow-slate-600/20',
-      external: true,
-    },
-    {
-      id: 'facebook',
-      label: 'فيسبوك',
-      sublabel: 'مجتمع هواة الأحواض',
-      url: 'https://www.facebook.com/profile.php?id=61587249730248',
-      icon: 'facebook',
-      color: 'from-blue-500 to-blue-700',
-      glow: 'shadow-blue-500/20',
-      external: true,
-    },
-    {
-      id: 'website',
-      label: 'الموقع الرسمي',
-      sublabel: 'aquavoiq.com',
-      url: '/',
-      icon: 'globe',
-      color: 'from-amber-400 to-orange-500',
-      glow: 'shadow-amber-500/20',
-    },
-  ],
-};
+const WORKS_URL = 'https://instagram.com/aquavo_iq';
+const CONTACT_URL = `${WHATSAPP_URL}?text=${encodeURIComponent('مرحبا، جيت من كارت AQUAVO وأريد أعرف أكثر عن المنتجات أو الخدمات.')}`;
 
-// ═══════════════════════════════════════════════
-// ICON COMPONENT
-// ═══════════════════════════════════════════════
-function LinkIcon({ icon, className }: { icon: string; className?: string }) {
-  const props = { className: className || 'w-5 h-5' };
-  switch (icon) {
-    case 'shop': return <ShoppingBag {...props} />;
-    case 'whatsapp': return (
-      <svg {...props} fill="currentColor" viewBox="0 0 24 24">
-        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-      </svg>
-    );
-    case 'instagram': return <Instagram {...props} />;
-    case 'facebook': return <Facebook {...props} />;
-    case 'tiktok': return <Music2 {...props} />;
-    case 'globe': return <Globe {...props} />;
-    case 'location': return <MapPin {...props} />;
-    default: return <ExternalLink {...props} />;
-  }
-}
-
-// ═══════════════════════════════════════════════
-// AMBIENT GLOW TEXTURE (2026 Trend)
-// ═══════════════════════════════════════════════
-function InteractiveBackground() {
-  const cursorX = useMotionValue(-100);
-  const cursorY = useMotionValue(-100);
-  const springX = useSpring(cursorX, { stiffness: 50, damping: 20 });
-  const springY = useSpring(cursorY, { stiffness: 50, damping: 20 });
-
-  useEffect(() => {
-    const moveCursor = (e: MouseEvent | TouchEvent) => {
-      if ('touches' in e && e.touches.length > 0) {
-        cursorX.set(e.touches[0].clientX);
-        cursorY.set(e.touches[0].clientY);
-      } else if ('clientX' in e) {
-        cursorX.set(e.clientX);
-        cursorY.set(e.clientY);
-      }
-    };
-    window.addEventListener('mousemove', moveCursor);
-    window.addEventListener('touchmove', moveCursor);
-    return () => {
-      window.removeEventListener('mousemove', moveCursor);
-      window.removeEventListener('touchmove', moveCursor);
-    };
-  }, [cursorX, cursorY]);
-
+function PlanToWaterVisual() {
   return (
-    <div className="fixed inset-0 overflow-hidden pointer-events-none z-0 bg-[#071324]">
-      {/* Dark luxury base gradients */}
-      <div className="absolute top-0 left-0 w-full h-[50vh] bg-gradient-to-b from-[#0a1b35] to-transparent opacity-80" />
-      <div className="absolute bottom-0 left-0 w-full h-[50vh] bg-gradient-to-t from-[#06101c] to-transparent opacity-90" />
+    <div className="aq-qr-visual" aria-hidden="true">
+      <div className="aq-qr-blueprint" />
+      <div className="aq-qr-tank-outline">
+        <span className="aq-qr-plan-label">AQUAVO / PLAN</span>
+        <span className="aq-qr-system-label">SYSTEM</span>
+      </div>
+      <div className="aq-qr-water" />
+      <div className="aq-qr-caustics" />
+      <div className="aq-qr-waterline" />
 
-      {/* Floating static orbs for depth */}
-      <div className="absolute top-10 -right-20 w-[400px] h-[400px] bg-cyan-600/10 rounded-full blur-[100px] mix-blend-screen" />
-      <div className="absolute -bottom-20 -left-20 w-[600px] h-[600px] bg-teal-600/10 rounded-full blur-[120px] mix-blend-screen" />
+      <span className="aq-qr-plant aq-qr-plant-1" />
+      <span className="aq-qr-plant aq-qr-plant-2" />
+      <span className="aq-qr-plant aq-qr-plant-3" />
 
-      {/* Interactive cursor glow (Glassmorphism 2.0 reactive lighting) */}
-      <motion.div
-        className="absolute rounded-full pointer-events-none mix-blend-screen"
-        style={{
-          width: 600,
-          height: 600,
-          x: springX,
-          y: springY,
-          translateX: '-50%',
-          translateY: '-50%',
-          background: 'radial-gradient(circle, rgba(6,182,212,0.12) 0%, rgba(20,184,166,0.05) 40%, transparent 70%)',
-          filter: 'blur(40px)',
-        }}
-      />
-      
-      {/* Subtle floating particles/bubbles */}
-      {Array.from({ length: 15 }).map((_, i) => {
-        const size = 3 + Math.random() * 5;
-        const left = Math.random() * 100;
-        const duration = 15 + Math.random() * 15;
-        const delay = Math.random() * 5;
-        return (
-          <div
-            key={`orb-${i}`}
-            className="absolute rounded-full bg-cyan-300/20"
-            style={{
-              width: size,
-              height: size,
-              left: `${left}%`,
-              bottom: -20,
-              filter: `blur(${Math.random() > 0.5 ? 1 : 0}px)`,
-              animation: `floatUp ${duration}s linear infinite`,
-              animationDelay: `${delay}s`,
-            }}
-          />
-        );
-      })}
+      <span className="aq-qr-rock aq-qr-rock-1" />
+      <span className="aq-qr-rock aq-qr-rock-2" />
+      <span className="aq-qr-rock aq-qr-rock-3" />
 
-      <style>{`
-        @keyframes floatUp {
-          0% { transform: translateY(0) translateX(0) scale(1); opacity: 0; }
-          10% { opacity: 0.8; }
-          90% { opacity: 0.5; }
-          100% { transform: translateY(-110vh) translateX(${Math.random() * 50 - 25}px) scale(0.5); opacity: 0; }
-        }
-      `}</style>
+      <span className="aq-qr-fish aq-qr-fish-1" />
+      <span className="aq-qr-fish aq-qr-fish-2" />
+
+      <span className="aq-qr-visual-caption">PLAN → WATER</span>
     </div>
   );
 }
 
-// ═══════════════════════════════════════════════
-// LINK CARD COMPONENT (Glassmorphism 2.0)
-// ═══════════════════════════════════════════════
-function LinkCard({
-  link,
-  index,
+function ActionCard({
+  id,
+  href,
+  title,
+  subtitle,
+  icon,
+  primary = false,
+  external = false,
 }: {
-  link: typeof LINKS_CONFIG.links[0];
-  index: number;
+  id: string;
+  href: string;
+  title: string;
+  subtitle: string;
+  icon: ReactNode;
+  primary?: boolean;
+  external?: boolean;
 }) {
-  const isExternal = link.external || link.url.startsWith('http');
-
-  const handleClick = () => {
-    trackBioLinkClick(link.id);
-  };
-
   return (
-    <motion.a
-      href={link.url}
-      onClick={handleClick}
-      target={isExternal ? '_blank' : '_self'}
-      rel={isExternal ? 'noopener noreferrer' : undefined}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.1 + index * 0.05, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-      whileHover={{ scale: 1.02, y: -2 }}
-      whileTap={{ scale: 0.98 }}
-      className={`
-        group relative block w-full rounded-[20px] overflow-hidden
-        transition-all duration-500 cursor-pointer
-        ${link.featured
-          ? 'bg-gradient-to-r ' + link.color + ' shadow-[0_8px_32px_rgba(0,0,0,0.2)] ' + link.glow
-          : 'bg-card/[0.03] hover:bg-white/[0.08] backdrop-blur-[24px] border border-white/[0.08] hover:border-white/[0.2] shadow-[0_4px_24px_rgba(0,0,0,0.1)]'
-        }
-      `}
+    <a
+      href={href}
+      className={`aq-qr-action${primary ? ' aq-qr-action-primary' : ''}`}
+      target={external ? '_blank' : undefined}
+      rel={external ? 'noopener noreferrer' : undefined}
+      onClick={() => trackBioLinkClick(id)}
+      aria-label={`${title} — ${subtitle}`}
     >
-      {/* Dynamic shimmer sweep */}
-      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.08] to-transparent -translate-x-[150%] skew-x-[30deg] group-hover:animate-shimmer" />
-
-      <div className="relative flex items-center p-4 px-5">
-        {/* Animated Icon Container */}
-        <div className={`
-          flex-shrink-0 w-12 h-12 rounded-[14px] flex items-center justify-center
-          transition-all duration-500 group-hover:scale-110 group-hover:rotate-3
-          ${link.featured
-            ? 'bg-card/20'
-            : 'bg-gradient-to-br ' + link.color + ' shadow-inner'
-          }
-        `}>
-          <LinkIcon icon={link.icon} className="w-5 h-5 text-white" />
-        </div>
-
-        {/* Typography refined for 2026 */}
-        <div className="flex-1 text-right min-w-0 pr-4">
-          <span className={`
-            block font-bold text-base tracking-wide
-            ${link.featured ? 'text-white drop-shadow-sm' : 'text-slate-100'}
-          `}>
-            {link.label}
-          </span>
-          {link.sublabel && (
-            <span className={`
-              block text-[13px] mt-0.5 tracking-wide truncate
-              ${link.featured ? 'text-white/80' : 'text-slate-400 font-medium'}
-            `}>
-              {link.sublabel}
-            </span>
-          )}
-        </div>
-
-        {/* Minimalist Arrow */}
-        <div className={`
-          flex items-center justify-center w-8 h-8 rounded-full transition-all duration-300
-          ${link.featured ? 'bg-card/10 text-white' : 'bg-card/5 text-slate-400 group-hover:bg-white/10 group-hover:text-white group-hover:-translate-x-1'}
-        `}>
-          <ChevronLeft className="w-4 h-4 ml-0.5" />
-        </div>
-      </div>
-
-      <style>{`
-        @keyframes shimmer {
-          100% { transform: translateX(150%) skewX(30deg); }
-        }
-        .animate-shimmer {
-          animation: shimmer 1.5s ease-in-out forwards;
-        }
-      `}</style>
-    </motion.a>
+      <span className="aq-qr-action-copy">
+        <strong>{title}</strong>
+        <small>{subtitle}</small>
+      </span>
+      <span className="aq-qr-action-icon">{icon}</span>
+    </a>
   );
 }
 
-// ═══════════════════════════════════════════════
-// MAIN PAGE COMPONENT
-// ═══════════════════════════════════════════════
 export default function LinksPage() {
-  // Setup headers
   useEffect(() => {
-    document.title = 'AQUAVO | الروابط الشاملة';
+    document.title = 'AQUAVO | من القطعة إلى الحوض الكامل';
     const metaTheme = document.querySelector('meta[name="theme-color"]');
-    if (metaTheme) metaTheme.setAttribute('content', '#071324');
+    if (metaTheme) metaTheme.setAttribute('content', '#07161f');
   }, []);
 
   return (
-    <div className="min-h-screen relative font-sans text-slate-200" dir="rtl">
-      
-      {/* 2026 Interactive "Alive" Background */}
-      <InteractiveBackground />
+    <main className="aq-qr-page" dir="rtl">
+      <div className="aq-qr-noise" aria-hidden="true" />
 
-      {/* Main Content Container */}
-      <div className="relative z-10 min-h-screen flex flex-col items-center px-4 py-12 max-w-md mx-auto w-full">
+      <div className="aq-qr-shell">
+        <header className="aq-qr-brand" aria-label="AQUAVO">
+          <img
+            src="/assets/brand/AQUAVO-logo-full-color.svg"
+            alt="AQUAVO"
+            className="aq-qr-logo"
+          />
+        </header>
 
-        {/* ── Brand Header ──────────────────── */}
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="flex flex-col items-center mb-10"
-        >
-          {/* Glowing Avatar */}
-          <div className="relative group">
-            <div className="absolute inset-0 bg-cyan-400/30 blur-2xl rounded-full scale-110 transition-transform duration-700 group-hover:scale-150 group-hover:bg-cyan-400/40" />
-            <div className="relative w-28 h-28 rounded-full bg-[#0a1b35]/80 backdrop-blur-xl border border-white/10 shadow-2xl flex items-center justify-center overflow-hidden p-4">
-              <img
-                src={LINKS_CONFIG.brand.logoUrl}
-                alt="AQUAVO"
-                className="w-full h-full object-contain drop-shadow-[0_0_15px_rgba(6,182,212,0.5)]"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = 'none';
-                  const parent = (e.target as HTMLImageElement).parentElement;
-                  if (parent && !parent.querySelector('span')) {
-                    const fallback = document.createElement('span');
-                    fallback.textContent = '🐟';
-                    fallback.style.fontSize = '3rem';
-                    parent.appendChild(fallback);
-                  }
-                }}
-              />
-            </div>
-          </div>
-          
-          <motion.h1
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.6 }}
-            className="mt-6 text-3xl font-extrabold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-teal-200 drop-shadow-sm"
-          >
-            {LINKS_CONFIG.brand.name}
-          </motion.h1>
+        <section className="aq-qr-intro" aria-labelledby="aq-qr-title">
+          <p className="aq-qr-kicker">معدات • تصميم • تنفيذ • صيانة</p>
+          <h1 id="aq-qr-title">من القطعة إلى الحوض الكامل.</h1>
+          <p className="aq-qr-subtitle">حلول أحواض مائية للأفراد والأعمال في العراق</p>
+        </section>
 
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="mt-2 text-slate-400 text-[15px] font-medium tracking-wide text-center"
-          >
-            {LINKS_CONFIG.brand.tagline}
-          </motion.p>
+        <PlanToWaterVisual />
 
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
-            className="mt-1 text-slate-500 text-[13px] font-medium tracking-wide text-center"
-          >
-            توصيل لكل العراق — الدفع عند الاستلام
-          </motion.p>
-        </motion.div>
+        <nav className="aq-qr-actions" aria-label="روابط AQUAVO الرئيسية">
+          <ActionCard
+            id="whatsapp"
+            href={CONTACT_URL}
+            title="تواصل معنا"
+            subtitle="مشروع • صيانة • طلبات جملة"
+            icon={<MessageCircle size={19} strokeWidth={1.8} />}
+            primary
+            external
+          />
 
-        {/* ── Links Grid ────────────────────── */}
-        <div className="w-full flex flex-col gap-3">
-          {LINKS_CONFIG.links.map((link, i) => (
-            <LinkCard key={link.id} link={link} index={i} />
-          ))}
-        </div>
+          <ActionCard
+            id="works"
+            href={WORKS_URL}
+            title="شاهد أعمالنا"
+            subtitle="تصاميم وتنفيذ"
+            icon={<Images size={18} strokeWidth={1.7} />}
+            external
+          />
 
-        {/* ── Signature Footer ──────────────── */}
-        <motion.footer
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1 }}
-          className="mt-14 mb-6 text-center"
-        >
-          <div className="flex items-center justify-center gap-2 text-slate-500 text-[13px] font-medium tracking-wide">
-            <span>صُنع بحب في العراق</span>
-            <Heart className="w-4 h-4 text-rose-500/70" fill="currentColor" />
-          </div>
-          <p className="text-slate-600/50 text-[11px] mt-2 font-mono tracking-widest">
-            © {new Date().getFullYear()} AQUAVO
-          </p>
-        </motion.footer>
-        
+          <ActionCard
+            id="shop"
+            href="/products"
+            title="المتجر"
+            subtitle="معدات ومنتجات"
+            icon={<ShoppingBag size={18} strokeWidth={1.7} />}
+          />
+        </nav>
+
+        <p className="aq-qr-signature">AQUAVO · IRAQ</p>
       </div>
-    </div>
+
+      <style>{` .aq-qr-page{--aq-bg:#07161f;--aq-panel:#0a1c25;--aq-cyan:#20a7b8;--aq-cyan-soft:#68d5dc;--aq-text:#f1f8fa;--aq-muted:#91a7af;min-height:100svh;width:100%;overflow:hidden;position:relative;background:radial-gradient(110% 58% at 50% -8%,rgba(32,167,184,0.17),transparent 54%),linear-gradient(180deg,#081a23 0%,var(--aq-bg) 56%,#050e13 100%);color:var(--aq-text)}.aq-qr-noise{position:fixed;inset:0;pointer-events:none;opacity:0.025;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.7'/%3E%3C/svg%3E");z-index:0}.aq-qr-shell{position:relative;z-index:1;width:min(100%,430px);min-height:100svh;margin:0 auto;padding:28px 20px 24px;display:flex;flex-direction:column}.aq-qr-brand{min-height:36px;display:flex;align-items:center;justify-content:flex-start;direction:ltr}.aq-qr-logo{display:block;width:auto;height:34px;max-width:154px;object-fit:contain}.aq-qr-intro{margin-top:34px}.aq-qr-kicker{margin:0;color:var(--aq-cyan-soft);font-size:12px;line-height:1.7;font-weight:700;letter-spacing:0.01em}.aq-qr-intro h1{margin:8px 0 0;max-width:360px;color:var(--aq-text);font-size:clamp(38px,10.5vw,50px);line-height:1.12;font-weight:800;letter-spacing:-0.045em;text-wrap:balance}.aq-qr-subtitle{margin:10px 0 0;color:#adc0c7;font-size:14px;line-height:1.75;font-weight:500}.aq-qr-visual{position:relative;height:286px;margin-top:22px;overflow:hidden;isolation:isolate;border:1px solid rgba(255,255,255,0.11);border-radius:30px;background:var(--aq-panel);box-shadow:0 28px 72px rgba(0,0,0,0.32),inset 0 1px 0 rgba(255,255,255,0.06)}.aq-qr-visual::after{content:'';position:absolute;inset:0;z-index:9;pointer-events:none;border-radius:inherit;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.025),inset 0 -72px 94px rgba(0,0,0,0.28)}.aq-qr-blueprint{position:absolute;inset:0 0 42% 0;z-index:0;background:linear-gradient(rgba(104,213,220,0.055) 1px,transparent 1px),linear-gradient(90deg,rgba(104,213,220,0.055) 1px,transparent 1px),linear-gradient(180deg,#0b222c,#0a1d26);background-size:22px 22px,22px 22px,auto}.aq-qr-tank-outline{position:absolute;z-index:2;top:43px;right:39px;left:39px;height:126px;border:1px solid rgba(104,213,220,0.48);border-radius:5px}.aq-qr-tank-outline::before,.aq-qr-tank-outline::after{content:'';position:absolute;top:-12px;width:36px;border-top:1px solid rgba(104,213,220,0.38)}.aq-qr-tank-outline::before{left:0}.aq-qr-tank-outline::after{right:0}.aq-qr-plan-label,.aq-qr-system-label,.aq-qr-visual-caption{position:absolute;direction:ltr;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;text-transform:uppercase;letter-spacing:0.12em;white-space:nowrap}.aq-qr-plan-label{top:-31px;left:7px;color:rgba(104,213,220,0.78);font-size:9px}.aq-qr-system-label{top:42px;right:-30px;color:rgba(104,213,220,0.6);font-size:8px;transform:rotate(-90deg);transform-origin:right top}.aq-qr-water{position:absolute;z-index:1;right:0;bottom:0;left:0;height:59%;background:radial-gradient(100% 72% at 78% 7%,rgba(94,218,224,0.18),transparent 60%),radial-gradient(90% 74% at 18% 92%,rgba(15,128,146,0.22),transparent 65%),linear-gradient(180deg,#0c4b5a 0%,#0a313d 44%,#071c26 100%)}.aq-qr-waterline{position:absolute;z-index:4;top:40.6%;right:-4%;left:-4%;height:12px;border-top:1px solid rgba(108,229,234,0.9);border-radius:50%;filter:drop-shadow(0 0 8px rgba(32,167,184,0.55));transform:rotate(-1.4deg)}.aq-qr-caustics{position:absolute;z-index:2;inset:42% 0 0;opacity:0.25;background:radial-gradient(ellipse at 20% 20%,transparent 0 20%,rgba(183,255,255,0.15) 21% 24%,transparent 25% 100%),radial-gradient(ellipse at 70% 10%,transparent 0 17%,rgba(183,255,255,0.14) 18% 21%,transparent 22% 100%);background-size:120px 70px,160px 85px}.aq-qr-rock{position:absolute;z-index:5;bottom:-7px;display:block;background:#08171d;border:1px solid rgba(255,255,255,0.035);filter:drop-shadow(0 -12px 18px rgba(0,0,0,0.14))}.aq-qr-rock-1{left:18px;width:92px;height:46px;border-radius:48% 42% 16% 20%;transform:rotate(8deg)}.aq-qr-rock-2{left:90px;bottom:-17px;width:138px;height:55px;border-radius:48% 42% 16% 20%;transform:rotate(-4deg)}.aq-qr-rock-3{right:-6px;bottom:-11px;width:94px;height:49px;border-radius:48% 42% 16% 20%;transform:rotate(6deg)}.aq-qr-plant{position:absolute;z-index:4;bottom:17px;width:2px;display:block;background:#1d5960;border-radius:20px;transform-origin:bottom}.aq-qr-plant-1{left:56px;height:60px;transform:rotate(-17deg)}.aq-qr-plant-2{left:72px;height:72px;transform:rotate(11deg)}.aq-qr-plant-3{right:70px;height:48px;transform:rotate(19deg)}.aq-qr-fish{position:absolute;z-index:6;display:block;width:34px;height:14px;border-radius:60% 45% 45% 60%;background:linear-gradient(90deg,rgba(184,237,237,0.8),rgba(61,159,171,0.75));box-shadow:0 0 14px rgba(98,214,220,0.12)}.aq-qr-fish::after{content:'';position:absolute;top:2px;right:-9px;border-left:10px solid rgba(80,173,184,0.7);border-top:5px solid transparent;border-bottom:5px solid transparent}.aq-qr-fish-1{right:58px;top:190px;transform:scale(0.9)}.aq-qr-fish-2{left:104px;top:227px;opacity:0.62;transform:scale(0.6) rotate(2deg)}.aq-qr-visual-caption{z-index:7;left:18px;bottom:16px;color:rgba(207,241,243,0.62);font-size:8px}.aq-qr-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}.aq-qr-action{min-height:66px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;color:var(--aq-text);text-decoration:none;border:1px solid rgba(255,255,255,0.105);border-radius:18px;background:rgba(255,255,255,0.035);-webkit-tap-highlight-color:transparent;transition:border-color 160ms ease,background-color 160ms ease,transform 160ms ease}.aq-qr-action:active{transform:scale(0.985)}.aq-qr-action:focus-visible{outline:2px solid var(--aq-cyan-soft);outline-offset:3px}@media (hover:hover){.aq-qr-action:hover{border-color:rgba(104,213,220,0.3);background:rgba(255,255,255,0.055)}}.aq-qr-action-primary{grid-column:1 / -1;min-height:72px;color:#07161f;border-color:#edfafa;background:#edfafa;box-shadow:0 16px 40px rgba(0,0,0,0.2)}@media (hover:hover){.aq-qr-action-primary:hover{border-color:#ffffff;background:#ffffff}}.aq-qr-action-copy{min-width:0;display:block;text-align:right}.aq-qr-action-copy strong{display:block;font-size:15px;line-height:1.45;font-weight:800}.aq-qr-action-copy small{display:block;margin-top:3px;color:#78929b;font-size:10px;line-height:1.45;font-weight:500;white-space:nowrap}.aq-qr-action-primary .aq-qr-action-copy small{color:#74878e}.aq-qr-action-icon{width:34px;height:34px;flex:0 0 34px;display:grid;place-items:center;color:var(--aq-cyan-soft);border:1px solid rgba(255,255,255,0.1);border-radius:999px}.aq-qr-action-primary .aq-qr-action-icon{color:#07161f;border-color:rgba(7,22,31,0.12)}.aq-qr-signature{margin:18px 0 0;color:#5d7680;text-align:center;direction:ltr;font-size:10px;line-height:1;letter-spacing:0.08em}@media (max-width:360px){.aq-qr-shell{padding-inline:16px}.aq-qr-intro h1{font-size:37px}.aq-qr-action{padding-inline:13px}.aq-qr-action-copy small{font-size:9px}}@media (max-height:760px){.aq-qr-shell{padding-top:20px}.aq-qr-intro{margin-top:22px}.aq-qr-visual{height:248px;margin-top:17px}.aq-qr-actions{margin-top:14px}.aq-qr-fish-1{top:164px}.aq-qr-fish-2{top:198px}.aq-qr-tank-outline{top:35px;height:111px}}@media (prefers-reduced-motion:reduce){.aq-qr-action{transition:none}}`}</style>
+    </main>
   );
 }
