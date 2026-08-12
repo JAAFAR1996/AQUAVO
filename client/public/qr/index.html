@@ -55,7 +55,7 @@
     .hero__title em{font-style:normal;color:var(--aqv-primary-dark-shade)}
     .hero__sub{margin:16px 0 0;max-width:32ch;color:var(--aqv-text-muted);font-size:var(--aqv-type-body)}
     .hero__figure{position:relative;margin:24px 0 0;overflow:hidden;background:var(--aqv-bg-light)}
-    .hero__figure img{width:100%;height:min(50svh,416px);object-fit:cover;object-position:center center}
+    .hero__figure img{display:block;width:100%;height:auto;object-fit:contain;object-position:center;image-rendering:auto}
     .figcap{position:absolute;right:0;bottom:0;left:0;padding:8px 24px;background:rgba(11,30,40,.84);color:var(--aqv-text-on-dark);font-size:var(--aqv-type-caption);font-weight:500;line-height:1.5}
 
     .index{border-bottom:1px solid var(--aqv-border)}
@@ -265,11 +265,30 @@
         <p class="hero__sub motion-item" data-motion="text">معدات، تصميم، تنفيذ وصيانة — للبيت، للمشروع، وللمحل.</p>
       </div>
       <div class="aqv-waterline hero-waterline motion-item" data-motion="line" aria-hidden="true"></div>
-    <figure class="hero__figure motion-item" data-motion="image">
+    <figure class="hero__figure">
         <picture>
-          <source type="image/avif" srcset="assets/hero-restaurant-480.avif 480w, assets/hero-restaurant-740.avif 740w, assets/hero-restaurant-1086.avif 1086w" sizes="(min-width:720px) 760px, 100vw">
-          <source type="image/webp" srcset="assets/hero-restaurant-480.webp 480w, assets/hero-restaurant-740.webp 740w, assets/hero-restaurant-1086.webp 1086w" sizes="(min-width:720px) 760px, 100vw">
-          <img src="assets/hero-restaurant-1086.webp" width="1086" height="1448" loading="eager" fetchpriority="high" decoding="sync" alt="تصور لحوض مزروع مدمج داخل مطعم.">
+          <source
+            media="(min-width:720px)"
+            type="image/webp"
+            srcset="assets/hero-restaurant-desktop-760.webp 1x,
+                    assets/hero-restaurant-desktop-1520.webp 2x,
+                    assets/hero-restaurant-desktop-2280.webp 3x">
+          <source
+            media="(max-width:719px)"
+            type="image/webp"
+            srcset="assets/hero-restaurant-mobile-480.webp 480w,
+                    assets/hero-restaurant-mobile-780.webp 780w,
+                    assets/hero-restaurant-mobile-1170.webp 1170w,
+                    assets/hero-restaurant-mobile-1560.webp 1560w"
+            sizes="100vw">
+          <img
+            src="assets/hero-restaurant-mobile-1086.png"
+            width="1086"
+            height="1158"
+            loading="eager"
+            fetchpriority="high"
+            decoding="sync"
+            alt="تصور لحوض مزروع مدمج داخل مطعم.">
         </picture>
         <figcaption class="figcap">تصور للمكان · مطعم</figcaption>
       </figure>
