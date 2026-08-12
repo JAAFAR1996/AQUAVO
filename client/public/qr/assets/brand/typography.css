@@ -1,0 +1,147 @@
+/*
+  AQUAVO Master Typography Tokens v2
+  ============================================================
+  THIS IS THE ONE OFFICIAL TYPE SYSTEM.
+
+  Conflict resolution:
+  - Previously locked system (Phase 2 approval): Cairo (Arabic titles),
+    Tajawal (Arabic body), Poppins (English category), Inter (English specs).
+  - This v2 revises that system per explicit new direction: Poppins is
+    dropped (it was flagged in this project's own audit as one of the most
+    common, least-distinctive free fonts available -- actively working
+    against brand memory). Tajawal is folded into Cairo's role to reduce
+    the font count. Inter is promoted to the single English/interface font.
+    Changa is added, CAPPED to large campaign/display headings only, per
+    explicit instruction -- it is not a replacement for Cairo's role as the
+    primary Arabic reading/interface font.
+  - The unapproved parallel system's Changa-as-primary-display approach
+    (see 15_Archive/unapproved_parallel_system_2026-07-07) is NOT adopted --
+    Changa here is capped/occasional, not primary.
+
+  IMPORTANT, STATED HONESTLY: switching the declared font-family in CSS
+  does not, by itself, fix the underlying flaw identified in every audit
+  in this project -- the AQUAVO wordmark in the logo itself is a traced
+  raster image, not built from any of these typefaces. That rebuild still
+  requires a licensed font and a human kerning pass; it is out of scope
+  for a token-file update.
+  ============================================================
+*/
+
+:root {
+  --aqv-font-ar-display: "Changa", "Cairo", "Tahoma", sans-serif;   /* CAPPED USE -- see rules below */
+  --aqv-font-ar-primary: "Cairo", "Tahoma", sans-serif;             /* Primary Arabic reading/interface font */
+  --aqv-font-en: "Inter", "Segoe UI", Arial, sans-serif;            /* Primary English/interface/spec font */
+
+  /* Type scale */
+  --aqv-type-caption: 11px;
+  --aqv-type-label: 13px;
+  --aqv-type-body: 16px;
+  --aqv-type-subhead: 20px;
+  --aqv-type-heading: 28px;
+  --aqv-type-display: 40px;
+  --aqv-type-campaign: 56px;
+
+  /* Weights */
+  --aqv-weight-regular: 400;
+  --aqv-weight-medium: 500;
+  --aqv-weight-bold: 700;
+
+  /* Line heights */
+  --aqv-lh-tight: 1.2;    /* headings/display */
+  --aqv-lh-body-ar: 1.8;  /* Arabic body -- generous, cursive script needs more vertical room */
+  --aqv-lh-body-en: 1.5;  /* English body */
+
+  /* Letter spacing */
+  --aqv-ls-ar: 0;         /* never adjust Arabic letter-spacing -- breaks letter connections, see rules below */
+  --aqv-ls-en-caption: 0.4px;
+  --aqv-ls-en-button: 0.6px;
+
+  /* ============================================================
+     COMPATIBILITY ALIASES -- do not remove. See the color token file
+     for the full rationale. Old templates reference these names;
+     new assets should use the --aqv-font-* names above directly.
+     NOTE: --font-arabic-body previously pointed to Tajawal, and
+     --font-english-category previously pointed to Poppins -- both are
+     now aliased to the v2 replacements (Cairo and Inter respectively).
+     This means existing templates using Tajawal/Poppins will render in
+     Cairo/Inter once they load this v2 file -- an intentional visual
+     change, not a bug. See AQUAVO_Final_Validation_Report_v2.md for
+     which files were actually re-tested after this switch.
+     ============================================================ */
+  --font-arabic-title: var(--aqv-font-ar-display);
+  --font-arabic-body: var(--aqv-font-ar-primary);
+  --font-english-category: var(--aqv-font-en);
+  --font-english-specs: var(--aqv-font-en);
+}
+
+/* ============================================================
+   TYPOGRAPHY RULES
+   ============================================================
+
+   ARABIC RULES
+   - Cairo (--aqv-font-ar-primary) is the default for every Arabic heading,
+     body, label, and interface string. This is unchanged from the
+     original locked system.
+   - Changa (--aqv-font-ar-display) is allowed ONLY for large campaign or
+     display headings at --aqv-type-display (40px) or --aqv-type-campaign
+     (56px) and above -- e.g. a hero headline on a seasonal campaign
+     landing page, or a presentation title slide. It must never be used
+     for body copy, labels, invoices, or any text below 40px. Overuse
+     dilutes Cairo's role as the brand's primary recognizable voice --
+     if more than one Changa headline appears in the same asset, that is
+     already overuse.
+   - NEVER justify-stretch or letter-space Arabic text. Arabic is cursive
+     and contextual (letterforms change shape depending on position in a
+     word); artificial stretching or spacing visibly breaks letter
+     connections. Always left-ragged in RTL contexts (ragged on the
+     visually-left edge).
+   - Arabic is always larger and visually primary versus any adjacent
+     English text on consumer-facing assets, per the Legal Brand Usage
+     Guide -- this is a content/legal rule, not just a type rule, and it
+     is unchanged here.
+
+   ENGLISH RULES
+   - Inter (--aqv-font-en) covers every English use case: category labels,
+     specs, captions, interface, buttons. Do not introduce a second English
+     typeface without updating this file first.
+   - English may be justified or centered freely -- Latin type does not
+     carry Arabic's contextual-letterform risk.
+
+   HEADING SYSTEM
+   - --aqv-type-campaign (56px): campaign/hero headlines only, Changa
+     permitted here.
+   - --aqv-type-display (40px): section headings, presentation title
+     slides. Changa permitted here only if the asset is display/campaign
+     in nature (not a routine internal document).
+   - --aqv-type-heading (28px): standard headings (page titles, card
+     titles). Cairo only.
+   - --aqv-type-subhead (20px): subheadings, product names on labels.
+     Cairo only.
+
+   BODY / CAPTION / LABEL SYSTEM
+   - --aqv-type-body (16px): body copy, default reading size.
+   - --aqv-type-label (13px): form labels, spec pills, secondary UI text.
+   - --aqv-type-caption (11px): smallest permitted size anywhere in the
+     system -- captions, legal footers, batch/date stamps. Never go
+     smaller; this was the size validated against the smallest real label
+     (the check-valve label) during the original identity lock.
+
+   BUTTON TEXT
+   - English buttons: Inter, --aqv-weight-medium, --aqv-ls-en-button
+     (0.6px), all-caps optional but not required.
+   - Arabic buttons: Cairo, --aqv-weight-bold, no letter-spacing
+     adjustment (see Arabic rules above).
+
+   PRINT USAGE
+   - All body/label/caption sizes above are screen-px values. For print,
+     convert using the file's actual point/mm target size per the
+     Print Production Checklist (12_Print_Production) -- do not assume a
+     1:1 px-to-pt mapping without checking the specific print piece's
+     actual output resolution.
+
+   DIGITAL USAGE
+   - Web font-loading fallback order is exactly as declared in each
+     `--aqv-font-*` variable above -- do not silently reorder fallbacks
+     per-project; if a fallback needs to change, update it here first so
+     every asset stays in sync.
+   ============================================================ */

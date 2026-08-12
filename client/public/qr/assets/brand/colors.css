@@ -1,0 +1,114 @@
+/*
+  AQUAVO Master Color Tokens v2
+  ============================================================
+  THIS IS THE ONE OFFICIAL COLOR SYSTEM. Do not introduce a new
+  color anywhere in the AQUAVO system without adding it here first.
+
+  Conflict resolution (do not re-litigate without a new, explicit reason):
+  - #0B93A6 (primary teal)  -> KEPT. This is the real, owner-approved primary
+    brand color, locked during the original identity approval process.
+  - #0B64A6 (FlowLine blue) -> KEPT. Hue-shifted +18 degrees from the primary,
+    added later to give the FlowLine product family (air tubes, air stones,
+    check valves) its own real sub-brand color, since it previously
+    duplicated the primary exactly. Verified WCAG AA pass at 5.64:1 on the
+    light background.
+  - #199BB8 (cyan) and the accompanying coral/amber palette -> ARCHIVED, NOT
+    ADOPTED. These came from a separate, unapproved exploratory system
+    (see 15_Archive/unapproved_parallel_system_2026-07-07). They were never
+    checked against the owner-approved brief, introduce colors (coral,
+    amber) with no documented rationale anywhere in this project, and
+    conflict with the real locked primary. Kept in the archive for
+    reference only -- do not merge into production.
+  ============================================================
+*/
+
+:root {
+  /* ---- Primary brand ---- */
+  --aqv-primary: #0B93A6;          /* Primary Aquatic -- brand mark, large headlines/logo only, never small body text */
+  --aqv-primary-dark-shade: #075F6B;
+
+  /* ---- Backgrounds ---- */
+  --aqv-bg-dark: #0B1E28;          /* Deep Aquatic Dark -- social/brand-voice/educational content ONLY. Never packaging, invoices, or legal documents. */
+  --aqv-bg-light: #F6F4EF;         /* Clean Light -- dominant background for packaging, documents, product pages */
+  --aqv-white: #FFFFFF;
+
+  /* ---- Text ---- */
+  --aqv-text-dark: #232323;        /* Primary text on light backgrounds. Contrast on --aqv-bg-light: 14.30:1 */
+  --aqv-text-muted: #6B6B6B;       /* Secondary text on light backgrounds. Contrast on --aqv-bg-light: 4.85:1 */
+  --aqv-text-on-dark: #FFFFFF;     /* Contrast on --aqv-bg-dark: 17.07:1 */
+
+  /* ---- Category / sub-brand accents ---- */
+  --aqv-substrate: #C9AE8C;        /* Substrate family (stones, sand) -- icon/accent only, NEVER text (1.93:1, fails WCAG) */
+  --aqv-substrate-dark: #A98F6E;
+  --aqv-flowline: #0B64A6;         /* FlowLine family (air tubes, air stones, check valves) -- passes as text at 5.64:1 on light bg */
+  --aqv-flowline-dark: #07426D;
+
+  /* ---- Status ---- */
+  --aqv-warning: #C97A2E;          /* Real warnings on labels only. Never decorative. Large text/icon only (3.03:1 on light bg -- fails as small body text). */
+  /* --aqv-success: NOT YET DEFINED. No "order confirmed / in stock" color exists anywhere in the
+     previously-approved system. A candidate (#3E8E5A, verified 4.6:1+ on light bg) is proposed here
+     as a placeholder recommendation ONLY -- it is not an approved token. Do not use it in production
+     until the owner explicitly signs off, per the same approval process used for every other color
+     in this file. This is flagged rather than silently invented. */
+
+  /* ---- Borders / structure ---- */
+  --aqv-border: #DDD8CE;
+
+  /* ============================================================
+     COMPATIBILITY ALIASES -- do not remove.
+     Every template migrated into this v2 system (labels, invoice,
+     shipping sticker, stationery, social) was written against the
+     original v1 variable names below. Rather than hand-editing every
+     internal CSS rule in every file (real risk of introducing a typo
+     that silently breaks one template), the old names are aliased to
+     the new v2 values here. New assets should use the --aqv-* names
+     above directly; old assets keep working unchanged through these
+     aliases, and both always resolve to the same single source of truth.
+     ============================================================ */
+  --aquavo-primary-aquatic: var(--aqv-primary);
+  --aquavo-deep-aquatic-bg: var(--aqv-bg-dark);
+  --aquavo-clean-light-bg: var(--aqv-bg-light);
+  --aquavo-text-dark: var(--aqv-text-dark);
+  --aquavo-text-muted: var(--aqv-text-muted);
+  --aquavo-substrate-accent: var(--aqv-substrate);
+  --aquavo-substrate-accent-dark: var(--aqv-substrate-dark);
+  --aquavo-flowline-accent: var(--aqv-flowline);
+  --aquavo-flowline-accent-dark: var(--aqv-flowline-dark);
+  --aquavo-warning-accent: var(--aqv-warning);
+  --aquavo-border: var(--aqv-border);
+  --aquavo-white: var(--aqv-white);
+}
+
+/* ============================================================
+   COLOR USAGE RULES -- read before using any token above
+   ============================================================
+
+   1. --aqv-primary as TEXT: large headline/logo only (18pt+, or 14pt+ bold).
+      3.33:1 on --aqv-bg-light -- fails WCAG AA for normal body text.
+      Passes comfortably (4.66:1) on --aqv-bg-dark at any size.
+
+   2. --aqv-substrate / --aqv-substrate-dark as TEXT: never, on any
+      background. 1.93:1 on light bg -- hard fail. Icon/accent/partial
+      background fill only.
+
+   3. --aqv-flowline / --aqv-flowline-dark as TEXT: safe at any size on
+      --aqv-bg-light (5.64:1 / 9.51:1). Do not use as text on --aqv-bg-dark
+      (2.75:1 -- fails); accent/icon only there.
+
+   4. --aqv-bg-dark is reserved for social media, brand-voice content, and
+      educational posts. It must never appear on packaging, invoices,
+      shipping stickers, or any legally-weighted document.
+
+   5. --aqv-warning is for actual warning statements on labels only
+      (e.g. "keep out of reach of children"). Never used as a decorative
+      or promotional accent. Use at 18pt+/bold only for text use (3.03:1).
+
+   6. Every new digital surface (e-commerce, dashboards) must re-verify
+      contrast before assuming a token pair is safe -- the pairs above are
+      only checked for the combinations explicitly listed.
+
+   PRINT NOTE: these are screen (sRGB) values. See
+   12_Print_Production/AQUAVO_Print_Production_Checklist_v2.md for the
+   formulaic CMYK reference table -- treat it as a printer-conversation
+   starting point, not a substitute for an actual proofed print test.
+   ============================================================ */
