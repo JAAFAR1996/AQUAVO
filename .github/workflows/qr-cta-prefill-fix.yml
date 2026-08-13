@@ -1,0 +1,37 @@
+name: QR CTA prefill fix
+on:
+  push:
+    branches: [feat/qr-service-architecture-20260813]
+permissions:
+  contents: write
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/qr-service-architecture-20260813
+      - name: Replace narrow WhatsApp prefill
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from urllib.parse import quote
+          path = Path('client/public/qr/index.html')
+          s = path.read_text(encoding='utf-8')
+          old = quote('هلا AQUAVO، جاي من كارت AQUAVO وعندي حوض أو مكان وأريد أعرف شنو الأنسب إلي.')
+          new = quote('هلا AQUAVO، جاي من كارت AQUAVO وأريد أعرف شنو الأنسب إلي — شراء، خدمة، مشروع أو جملة.')
+          if old not in s:
+              raise SystemExit('Expected CTA WhatsApp prefill was not found')
+          s = s.replace(old, new, 1)
+          path.write_text(s, encoding='utf-8')
+          PY
+      - name: Verify
+        run: grep -q 'شراء%2C%20خدمة%2C%20مشروع%20أو%20جملة' client/public/qr/index.html || grep -q '%D8%B4%D8%B1%D8%A7%D8%A1' client/public/qr/index.html
+      - name: Commit
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          rm -f .github/workflows/qr-cta-prefill-fix.yml .github/workflows/qr-service-architecture-update.yml
+          git add -A
+          git commit -m 'Align QR WhatsApp prefill with service scope'
+          git push origin HEAD:feat/qr-service-architecture-20260813
