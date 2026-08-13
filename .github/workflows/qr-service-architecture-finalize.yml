@@ -1,0 +1,30 @@
+name: QR service architecture finalize
+on:
+  push:
+    branches: [feat/qr-service-architecture-20260813]
+permissions:
+  contents: write
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/qr-service-architecture-20260813
+      - name: Apply update
+        run: python scripts/qr_service_architecture_update.py
+      - name: Verify
+        run: |
+          grep -q 'المتجر والمعدات' client/public/qr/index.html
+          grep -q 'تركيب وتأسيس الأحواض' client/public/qr/index.html
+          grep -q 'شنو تشمل خدمات Care؟' client/public/qr/index.html
+          grep -q 'instagram.com/aquavo_iq' client/public/qr/index.html
+          grep -q 'شراء، خدمة أو استفسار' client/public/qr/index.html
+      - name: Commit final diff
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          rm -f .github/workflows/qr-service-architecture-update.yml .github/workflows/qr-service-architecture-finalize.yml scripts/qr_service_architecture_update.py
+          git add -A
+          git commit -m 'Refine QR service architecture and add Instagram'
+          git push origin HEAD:feat/qr-service-architecture-20260813
