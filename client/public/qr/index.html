@@ -9,7 +9,7 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="AQUAVO — من أول فكرة إلى حوض متكامل">
   <link rel="canonical" href="https://www.aquavoiq.com/qr">
-  <meta property="og:description" content="معدات، تصميم، تنفيذ وصيانة — للبيت، للمشروع، وللمحل.">
+  <meta property="og:description" content="معدات، تصميم وتنفيذ، تركيب وصيانة، مشاريع وجملة — للبيت، للمشروع، وللمحل.">
   <link rel="icon" type="image/png" href="/qr/assets/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -132,6 +132,14 @@
     .svc__extra{padding:32px var(--page-pad) 56px}
     .svc__extraTitle{margin:0 0 8px;color:var(--aqv-primary);font-size:var(--aqv-type-label);font-weight:700}
     .svc__extraList{margin:0;color:rgba(255,255,255,.72);font-size:var(--aqv-type-label);line-height:2}
+    .svc__inlineLink{display:inline-flex;align-items:center;margin-inline-start:6px;color:var(--aqv-primary);font-size:var(--aqv-type-label);font-weight:700;text-decoration:underline;text-underline-offset:3px}
+    .svc__details{grid-column:2;margin-top:14px;border-top:1px solid rgba(255,255,255,.12)}
+    .svc__details summary{min-height:44px;display:flex;align-items:center;justify-content:space-between;gap:12px;color:var(--aqv-primary);font-size:var(--aqv-type-label);font-weight:700;cursor:pointer;list-style:none}
+    .svc__details summary::-webkit-details-marker{display:none}
+    .svc__details summary::after{content:"+";font-family:var(--aqv-font-en);font-size:18px;font-weight:400;line-height:1}
+    .svc__details[open] summary::after{content:"−"}
+    .svc__detailsBody{padding:0 0 8px;color:rgba(255,255,255,.72);font-size:var(--aqv-type-label);line-height:2}
+
 
     .cta{padding:72px var(--page-pad) 56px}
     .cta__h{margin:0;max-width:18ch;font-size:var(--aqv-type-heading);font-weight:700;line-height:var(--aqv-lh-tight)}
@@ -263,7 +271,7 @@
     <section class="hero" aria-labelledby="hero-title">
       <div class="wrap">
         <h1 class="hero__title motion-item" data-motion="text" id="hero-title">من أول فكرة…<br>إلى <em>حوض متكامل.</em></h1>
-        <p class="hero__sub motion-item" data-motion="text">معدات، تصميم، تنفيذ وصيانة — للبيت، للمشروع، وللمحل.</p>
+        <p class="hero__sub motion-item" data-motion="text">معدات، تصميم وتنفيذ، تركيب وصيانة، مشاريع وجملة — للبيت، للمشروع، وللمحل.</p>
       </div>
       <div class="aqv-waterline hero-waterline motion-item" data-motion="line" aria-hidden="true"></div>
     <figure class="hero__figure">
@@ -301,11 +309,11 @@
       <a class="index__row motion-item" data-motion="text" href="#services">
         <span>
           <span class="index__title">خدماتنا</span>
-          <span class="index__sub">تصميم · تنفيذ · صيانة · مشاريع · جملة</span>
+          <span class="index__sub">تصميم · تنفيذ · تركيب · صيانة · مشاريع · جملة</span>
         </span>
         <svg class="index__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
       </a>
-      <a class="index__row motion-item" data-motion="text" href="https://wa.me/9647747880673?text=%D9%87%D9%84%D8%A7%20AQUAVO%D8%8C%20%D8%AC%D8%A7%D9%8A%20%D9%85%D9%86%20%D9%83%D8%A7%D8%B1%D8%AA%20AQUAVO%20%D9%88%D8%B9%D9%86%D8%AF%D9%8A%20%D8%A7%D8%B3%D8%AA%D9%81%D8%B3%D8%A7%D8%B1." target="_blank" rel="noopener noreferrer"><span><span class="index__title">تواصل ويانه</span><span class="index__sub">تصميم، صيانة أو استفسار</span></span><svg class="index__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></a>
+      <a class="index__row motion-item" data-motion="text" href="https://wa.me/9647747880673?text=%D9%87%D9%84%D8%A7%20AQUAVO%D8%8C%20%D8%AC%D8%A7%D9%8A%20%D9%85%D9%86%20%D9%83%D8%A7%D8%B1%D8%AA%20AQUAVO%20%D9%88%D8%B9%D9%86%D8%AF%D9%8A%20%D8%A7%D8%B3%D8%AA%D9%81%D8%B3%D8%A7%D8%B1." target="_blank" rel="noopener noreferrer"><span><span class="index__title">تواصل ويانه</span><span class="index__sub">شراء، خدمة أو استفسار</span></span><svg class="index__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></a>
     </nav>
 
     <section class="designs" id="designs" aria-labelledby="designs-title">
@@ -338,7 +346,7 @@
       <div class="sys__head">
         <p class="eyebrow motion-item" data-motion="text">الخدمات</p>
         <h2 class="h2 motion-item" data-motion="text" id="services-title">وراه نظام كامل يشتغل.</h2>
-        <p class="sys__lead motion-item" data-motion="text">من التصميم والتركيب، للتشغيل والصيانة.</p>
+        <p class="sys__lead motion-item" data-motion="text">من شراء المعدات، للتصميم والتركيب والصيانة، إلى المشاريع وتجهيز المحلات.</p>
         <div class="scope-proof motion-item" data-motion="text" role="note" aria-label="نطاق الخدمة الميدانية الحالي">
           <span class="scope-proof__label">الخدمة الميدانية حالياً</span>
           <strong>بغداد · أحواض المياه العذبة</strong>
@@ -346,27 +354,27 @@
       </div>
 
       <div class="svc"><ol class="svc__list">
-        <li class="svc__item motion-item" data-motion="text"><span class="svc__no en" aria-hidden="true">01</span><h3 class="svc__name">تصميم وتنفيذ الأحواض</h3><p class="svc__body">نصمم الحوض على قياس المكان واستخدامه، ونحسب من البداية الشكل، المعدات وطريقة الصيانة.</p></li>
-        <li class="svc__item motion-item" data-motion="text"><span class="svc__no en" aria-hidden="true">02</span><h3 class="svc__name">تركيب وتشغيل الأحواض</h3><p class="svc__body">نركب الحوض ومعداته، ونضبط الفلترة والإضاءة والتهوية حتى يبدأ بشكل مضبوط من البداية.</p></li>
-        <li class="svc__item motion-item" data-motion="text"><span class="svc__no en" aria-hidden="true">03</span><h3 class="svc__name">صيانة واستقرار الحوض</h3><div class="svc__meta"><span class="svc__sub en">AQUAVO Care</span></div><p class="svc__body">صيانة مدروسة مع فحص، متابعة وتقرير واضح بعد الخدمة.</p></li>
-        <li class="svc__item motion-item" data-motion="text"><span class="svc__no en" aria-hidden="true">04</span><h3 class="svc__name">خدمة المشاريع</h3><div class="svc__meta"><span class="svc__sub en">AQUAVO Business</span><span class="svc__tag">للمشاريع</span></div><p class="svc__body">متابعة دورية للمطاعم والعيادات والفنادق والشركات، مع سجل صيانة وتقارير وأولوية وقت الحاجة.</p></li>
-        <li class="svc__item motion-item" data-motion="text"><span class="svc__no en" aria-hidden="true">05</span><h3 class="svc__name">تجهيز المحلات بالجملة</h3><div class="svc__meta"><span class="svc__tag">للمحلات</span></div><p class="svc__body">نجهز المحلات والتجار بمعدات ومستلزمات الأحواض بكميات جملة، والتجهيز يصير مباشرة ويانه على واتساب.</p></li>
+        <li class="svc__item motion-item" data-motion="text"><span class="svc__no en" aria-hidden="true">01</span><h3 class="svc__name">المتجر والمعدات</h3><p class="svc__body">معدات ومستلزمات للأحواض للشراء المباشر، من الفلترة والتهوية إلى الاختبارات ومواد العناية. <a class="svc__inlineLink" href="https://www.aquavoiq.com/products?utm_source=business_card&utm_medium=qr&utm_campaign=aquavo_qr&utm_content=services">افتح المتجر</a></p></li>
+        <li class="svc__item motion-item" data-motion="text"><span class="svc__no en" aria-hidden="true">02</span><h3 class="svc__name">تصميم وتنفيذ الأحواض</h3><p class="svc__body">نصمم الحوض على قياس المكان واستخدامه، ونرتب من البداية الشكل والمعدات وطريقة الصيانة.</p></li>
+        <li class="svc__item motion-item" data-motion="text"><span class="svc__no en" aria-hidden="true">03</span><h3 class="svc__name">تركيب وتأسيس الأحواض</h3><p class="svc__body">نركب الحوض ومعداته، ونضبط الفلترة والإضاءة والتهوية، مع تأسيس ومتابعة أولية حسب الحالة.</p></li>
+        <li class="svc__item motion-item" data-motion="text"><span class="svc__no en" aria-hidden="true">04</span><h3 class="svc__name">صيانة واستقرار الحوض</h3><div class="svc__meta"><span class="svc__sub en">AQUAVO Care</span></div><p class="svc__body">فحص وصيانة مدروسة مع متابعة وتقرير واضح، مو مجرد تنظيف.</p><details class="svc__details"><summary>شنو تشمل خدمات Care؟</summary><div class="svc__detailsBody">تقييم أولي بالصور والفيديو · معاينة · صيانة أساسية وPlus · تنظيف عميق · إنقاذ وإعادة استقرار · نقل وإعادة تركيب · رعاية أثناء السفر</div></details></li>
+        <li class="svc__item motion-item" data-motion="text"><span class="svc__no en" aria-hidden="true">05</span><h3 class="svc__name">خدمة المشاريع</h3><div class="svc__meta"><span class="svc__sub en">AQUAVO Business</span><span class="svc__tag">للمشاريع</span></div><p class="svc__body">للمطاعم والعيادات والفنادق والشركات: تنفيذ ومتابعة دورية، سجل صيانة وتقارير وأولوية وقت الحاجة.</p></li>
+        <li class="svc__item motion-item" data-motion="text"><span class="svc__no en" aria-hidden="true">06</span><h3 class="svc__name">تجهيز المحلات بالجملة</h3><div class="svc__meta"><span class="svc__tag">للمحلات</span></div><p class="svc__body">نجهز المحلات والتجار بمعدات ومستلزمات الأحواض بكميات جملة، والتجهيز يصير مباشرة ويانه على واتساب.</p></li>
       </ol></div>
-      <div class="svc__extra motion-item" data-motion="text"><p class="svc__extraTitle">وأكو خدمات حسب الحالة</p><p class="svc__extraList">تنظيف عميق · إنقاذ وإعادة استقرار الحوض · نقل وإعادة تركيب · رعاية أثناء السفر</p></div>
     </section>
 
     <section class="cta" aria-labelledby="cta-title">
-      <h2 class="cta__h motion-item" data-motion="text" id="cta-title">مو متأكد شنو يحتاج حوضك أو مكانك؟</h2>
-      <p class="cta__p motion-item" data-motion="text">دز إلنا صورة أو فيديو، واحچيلنا شنو ببالك، ونرتب وياك الخطوة الجاية.</p>
-      <a class="btn motion-item" data-motion="text" href="https://wa.me/9647747880673?text=%D9%87%D9%84%D8%A7%20AQUAVO%D8%8C%20%D8%AC%D8%A7%D9%8A%20%D9%85%D9%86%20%D9%83%D8%A7%D8%B1%D8%AA%20AQUAVO%20%D9%88%D8%B9%D9%86%D8%AF%D9%8A%20%D8%AD%D9%88%D8%B6%20%D8%A3%D9%88%20%D9%85%D9%83%D8%A7%D9%86%20%D9%88%D8%A3%D8%B1%D9%8A%D8%AF%20%D8%A3%D8%B9%D8%B1%D9%81%20%D8%B4%D9%86%D9%88%20%D8%A7%D9%84%D8%A3%D9%86%D8%B3%D8%A8%20%D8%A5%D9%84%D9%8A." target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 20.5l1.7-5.4A8.4 8.4 0 1 1 21 11.5Z"/></svg>تواصل ويانه على واتساب</a>
+      <h2 class="cta__h motion-item" data-motion="text" id="cta-title">مو متأكد شنو تحتاج؟</h2>
+      <p class="cta__p motion-item" data-motion="text">سواء تريد قطعة، صيانة، مشروع أو تجهيز جملة — احچيلنا شنو تحتاج، ونوجهك للمسار المناسب.</p>
+      <a class="btn motion-item" data-motion="text" href="https://wa.me/9647747880673?text=%D9%87%D9%84%D8%A7%20AQUAVO%D8%8C%20%D8%AC%D8%A7%D9%8A%20%D9%85%D9%86%20%D9%83%D8%A7%D8%B1%D8%AA%20AQUAVO%20%D9%88%D8%A3%D8%B1%D9%8A%D8%AF%20%D8%A3%D8%B9%D8%B1%D9%81%20%D8%B4%D9%86%D9%88%20%D8%A7%D9%84%D8%A3%D9%86%D8%B3%D8%A8%20%D8%A5%D9%84%D9%8A%20%E2%80%94%20%D8%B4%D8%B1%D8%A7%D8%A1%D8%8C%20%D8%AE%D8%AF%D9%85%D8%A9%D8%8C%20%D9%85%D8%B4%D8%B1%D9%88%D8%B9%20%D8%A3%D9%88%20%D8%AC%D9%85%D9%84%D8%A9." target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 20.5l1.7-5.4A8.4 8.4 0 1 1 21 11.5Z"/></svg>تواصل ويانه على واتساب</a>
       <a class="cta__alt motion-item" data-motion="text" href="https://www.aquavoiq.com/products?utm_source=business_card&utm_medium=qr&utm_campaign=aquavo_qr&utm_content=cta"><span>افتح المتجر</span><small>معدات ومستلزمات</small></a>
     </section>
 
     <footer class="foot">
       <div class="foot__rule" aria-hidden="true"></div>
       <p class="foot__slogan motion-item" data-motion="text">كل تفصيلة بالحوض محسوبة.</p>
-      <div class="foot__links motion-item" data-motion="text"><a href="https://www.aquavoiq.com/products?utm_source=business_card&utm_medium=qr&utm_campaign=aquavo_qr&utm_content=footer" class="en">aquavoiq.com</a><a href="mailto:info@aquavoiq.com" class="en">info@aquavoiq.com</a><a href="https://wa.me/9647747880673?text=%D9%87%D9%84%D8%A7%20AQUAVO%D8%8C%20%D8%AC%D8%A7%D9%8A%20%D9%85%D9%86%20%D9%83%D8%A7%D8%B1%D8%AA%20AQUAVO%20%D9%88%D8%B9%D9%86%D8%AF%D9%8A%20%D8%A7%D8%B3%D8%AA%D9%81%D8%B3%D8%A7%D8%B1." target="_blank" rel="noopener noreferrer">واتساب</a></div>
-      <p class="foot__legal motion-item" data-motion="text">AQUAVO — بغداد، العراق<br>نوفر معدات ومستلزمات الأحواض، ويا التصميم والتنفيذ والصيانة. الأسماك والكائنات الحية مو ضمن البيع.</p>
+      <div class="foot__links motion-item" data-motion="text"><a href="https://www.aquavoiq.com/products?utm_source=business_card&utm_medium=qr&utm_campaign=aquavo_qr&utm_content=footer">المتجر</a><a href="https://wa.me/9647747880673?text=%D9%87%D9%84%D8%A7%20AQUAVO%D8%8C%20%D8%AC%D8%A7%D9%8A%20%D9%85%D9%86%20%D9%83%D8%A7%D8%B1%D8%AA%20AQUAVO%20%D9%88%D8%B9%D9%86%D8%AF%D9%8A%20%D8%A7%D8%B3%D8%AA%D9%81%D8%B3%D8%A7%D8%B1." target="_blank" rel="noopener noreferrer">واتساب</a><a href="https://www.instagram.com/aquavo_iq/" target="_blank" rel="noopener noreferrer" aria-label="AQUAVO على إنستغرام">إنستغرام <span class="en">@aquavo_iq</span></a><a href="mailto:info@aquavoiq.com" class="en">info@aquavoiq.com</a></div>
+      <p class="foot__legal motion-item" data-motion="text">AQUAVO — بغداد، العراق<br>نوفر معدات ومستلزمات الأحواض، التصميم والتنفيذ، التركيب والصيانة، خدمات المشاريع وتجهيز المحلات بالجملة. الأسماك والكائنات الحية مو ضمن البيع.</p>
     </footer>
   </main>
 
