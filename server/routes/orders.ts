@@ -233,15 +233,33 @@ export function createOrderRouter(): RouterType {
                 "converted"
             ).catch(() => { });
 
-            // Track purchase interactions for each item (fire-and-forget)
-            for (const item of items) {
+            // Track purchase interactions for each item (fire-and-forget).
+            //
+            // The lines come from the ORDER, not from the request body. The old code looped over the
+            // client-supplied `items` and, because it could not trust a client price, passed a literal
+            // `price: 0`. It was right not to trust the request and wrong about the remedy: the trusted
+            // price was already sitting in the order it had just created. createOrderSecure recomputes
+            // every line from the product row it locked and persists the result as order.items, so
+            // priceAtPurchase is the amount the customer was actually charged.
+            //
+            // The cost of the literal was total: every purchase row ever written carries price 0, so
+            // this table — the only purchase record that survived the 55-day PostHog outage — could be
+            // counted and never valued. Quantity now comes from the same authoritative line as the
+            // price, so the two can never describe different orders.
+            // Guarded rather than trusted: this runs AFTER the order is committed, so a throw here
+            // would 500 a customer whose order actually succeeded.
+            const orderLines = Array.isArray(order.items) ? order.items : [];
+            for (const line of orderLines) {
+                const unitPrice = Number(line.priceAtPurchase);
                 analyticsTracker.trackPurchase({
                     userId: userId || undefined,
                     sessionId: (req as any).sessionID || "unknown",
-                    productId: item.productId,
+                    productId: line.productId,
                     orderId: order.id,
-                    quantity: item.quantity,
-                    price: 0, // Price is calculated server-side in createOrderSecure
+                    quantity: Number(line.quantity) || 0,
+                    // A non-finite price would be a defect upstream; record 0 rather than NaN, which
+                    // would poison every aggregate that touches this column.
+                    price: Number.isFinite(unitPrice) ? unitPrice : 0,
                 }).catch(() => { });
             }
 
