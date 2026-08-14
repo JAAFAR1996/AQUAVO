@@ -5,6 +5,7 @@ import ws from "ws";
 import { HTML_TEMPLATE } from "./_html-template.js";
 import { GUIDE_CONTENT_PAGES, renderGuideHtml, renderGuideMarkdown, renderGuidesIndexHtml, renderGuidesIndexMarkdown } from "./_guides-content.js";
 import { getSeoMetaOverride } from "./_seo-content.js";
+import { toPublicVariant } from "../shared/public-product.js";
 import { isKnownSitePath } from "../shared/site-routes.js";
 
 // ─── DB Setup (lightweight, no Drizzle overhead) ────────────────────────────
@@ -551,7 +552,13 @@ async function getProductMeta(slug: string): Promise<(PageMeta & { productImage?
     );
     if (rows.length === 0) return null;
     const p = rows[0];
-    const variants = Array.isArray(p.variants) ? p.variants : [];
+    // The `variants` jsonb carries costPrice/costStatus/costBasis/costEvidence, written by
+    // migrations/0073_accounting_final_hardening.sql and absent from the ProductVariant type. Nothing
+    // below renders them today — but this function feeds HTML that is served to crawlers, and a single
+    // future JSON.stringify of the blob (a JSON-LD "offers" array, a debug dump) would publish the cost
+    // basis of the whole catalogue. Sanitize at the source instead of relying on every downstream
+    // renderer to keep being careful.
+    const variants = Array.isArray(p.variants) ? p.variants.map(toPublicVariant) : [];
     const defaultVariant = variants.find((variant) => variant?.isDefault) || variants[0];
     const stock = Number(p.stock ?? 0);
     const variantStock = defaultVariant ? Number(defaultVariant.stock ?? 0) : stock;

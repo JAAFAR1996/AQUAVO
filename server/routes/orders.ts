@@ -14,6 +14,7 @@ import { isStockError } from "../storage/order-storage.js";
 import { ReferralStorage } from "../storage/referral-storage.js";
 import { loyaltyNotifications } from "../services/loyalty-notifications.js";
 import { sendOrderNotification } from "../services/order-notifications.js";
+import { toPublicOrderItem } from "../../shared/public-product.js";
 
 const referralStorage = new ReferralStorage();
 
@@ -415,12 +416,17 @@ export function createOrderRouter(): RouterType {
                 || product?.images?.[0]
                 || product?.image
                 || "";
-            return {
+            // `...item` used to spread the whole OrderLineItem, which carries the immutable per-unit
+            // cost SNAPSHOT taken at sale time — costPrice, packagingCost, insertCost, costStatus,
+            // costSource (shared/schema.ts:32-39). These routes are authenticated and ownership-checked,
+            // so only the customer who placed the order ever saw them; that is still every customer being
+            // shown what their purchase cost AQUAVO to buy. Rebuilt from an explicit allowlist instead.
+            return toPublicOrderItem({
                 ...item,
                 productName: item.productName || product?.name || item.productId,
                 priceAtPurchase: item.priceAtPurchase || (product?.price ? String(product.price) : "0"),
                 image,
-            };
+            });
         });
         // Build loyalty object from stored DB columns
         const loyalty = {

@@ -7,6 +7,7 @@ import { predictiveAnalytics } from "../services/predictive-analytics.js";
 import { embeddingGenerator } from "../services/embedding-generator.js";
 import { analyticsTracker } from "../services/analytics-tracker.js";
 import * as Sentry from "@sentry/node";
+import { toPublicProduct, toPublicProducts } from "../../shared/public-product.js";
 
 // ─── Server-side in-memory cache ──────────────────────────────
 // Prevents repeated DB round-trips for the same product query.
@@ -65,7 +66,10 @@ export function createProductRouter(): RouterType {
             }
 
             const products = await storage.getProducts(filters);
-            const responseData = { products };
+            // Sanitize BEFORE caching. If the cache held raw rows, a single un-sanitized write would be
+            // re-served for 60s (and by any CDN edge honouring the max-age below) long after the code
+            // path that produced it was fixed.
+            const responseData = { products: toPublicProducts(products) };
 
             if (bypassCache) {
                 res.set('Cache-Control', 'no-store');
@@ -95,7 +99,7 @@ export function createProductRouter(): RouterType {
         try {
             const result = await storage.getTopSellingProducts();
             res.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=1800');
-            res.json(result);
+            res.json(toPublicProducts(result));
         } catch (err) {
             next(err);
         }
@@ -106,7 +110,7 @@ export function createProductRouter(): RouterType {
         try {
             const products = await storage.getTrendingProducts();
             res.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=1800');
-            res.json(products);
+            res.json(toPublicProducts(products));
         } catch (err) {
             next(err);
         }
@@ -134,18 +138,18 @@ export function createProductRouter(): RouterType {
                 if (productIds.length > 0) {
                     const validProducts = await storage.getProductsByIds(productIds);
                     if (validProducts.length > 0) {
-                        res.json({ products: validProducts, personalized: true, method });
+                        res.json({ products: toPublicProducts(validProducts), personalized: true, method });
                         return;
                     }
                 }
 
                 // Fallback to trending/newest
                 const fallback = await getFallbackProducts();
-                res.json({ products: fallback, personalized: false, method: "trending_fallback" });
+                res.json({ products: toPublicProducts(fallback), personalized: false, method: "trending_fallback" });
             } else {
                 // Guest: trending/newest products
                 const fallback = await getFallbackProducts();
-                res.json({ products: fallback, personalized: false, method: "trending" });
+                res.json({ products: toPublicProducts(fallback), personalized: false, method: "trending" });
             }
         } catch (err) {
             next(err);
@@ -187,7 +191,7 @@ export function createProductRouter(): RouterType {
                         const product = productMap.get(pred.productId);
                         if (!product) return null;
                         return {
-                            product,
+                            product: toPublicProduct(product),
                             probability: pred.probability,
                             reason: pred.reason,
                             predictedDate: pred.predictedDate?.toISOString() ?? null,
@@ -209,7 +213,7 @@ export function createProductRouter(): RouterType {
                     const product = productMap.get(pred.productId);
                     if (!product) return null;
                     return {
-                        product,
+                        product: toPublicProduct(product),
                         probability: Number(pred.probability),
                         reason: pred.reason ?? "بناءً على نمط الشراء",
                         predictedDate: pred.predictedDate?.toISOString() ?? null,
@@ -265,7 +269,7 @@ export function createProductRouter(): RouterType {
                     parseFloat(String(p.price ?? "0")) > 0 && (p.stock ?? 0) > 0
                 );
                 if (validSuggestions.length > 0) {
-                    res.json({ suggestions: validSuggestions, reason: "أكمل حوضك - منتجات تُشترى عادةً معاً" });
+                    res.json({ suggestions: toPublicProducts(validSuggestions), reason: "أكمل حوضك - منتجات تُشترى عادةً معاً" });
                     return;
                 }
             }
@@ -277,7 +281,7 @@ export function createProductRouter(): RouterType {
                 .slice(0, 4);
 
             res.json({
-                suggestions: fallback,
+                suggestions: toPublicProducts(fallback),
                 reason: fallback.length > 0 ? "منتجات قد تعجبك" : "",
             });
         } catch (err) {
@@ -316,7 +320,7 @@ export function createProductRouter(): RouterType {
 
                 if (validProducts.length > 0) {
                     trackSearchPromise(validProducts.length);
-                    res.json({ products: validProducts, semantic: true });
+                    res.json({ products: toPublicProducts(validProducts), semantic: true });
                     return;
                 }
             }
@@ -324,13 +328,13 @@ export function createProductRouter(): RouterType {
             // Fallback: regular text search
             const textResults = await storage.getProducts({ search: query, limit: 20 });
             trackSearchPromise(Array.isArray(textResults) ? textResults.length : 0);
-            res.json({ products: textResults, semantic: false });
+            res.json({ products: toPublicProducts(textResults), semantic: false });
         } catch (err) {
             // On any embedding error, fallback to text search
             try {
                 const query = req.query.q as string;
                 const textResults = await storage.getProducts({ search: query, limit: 20 });
-                res.json({ products: textResults, semantic: false });
+                res.json({ products: toPublicProducts(textResults), semantic: false });
             } catch {
                 next(err);
             }
@@ -398,7 +402,7 @@ export function createProductRouter(): RouterType {
                 from: (req.query.from as string) || "direct",
             }).catch(() => {});
 
-            res.json(product);
+            res.json(toPublicProduct(product));
         } catch (err) {
             next(err);
         }
@@ -455,7 +459,7 @@ export function createProductRouter(): RouterType {
                     p.category === product.category;
             });
 
-            res.json({ variants });
+            res.json({ variants: toPublicProducts(variants) });
         } catch (err) {
             next(err);
         }
@@ -478,7 +482,7 @@ export function createProductRouter(): RouterType {
         try {
             const { id } = req.params as { id: string };
             const products = await storage.getSimilarProducts(id);
-            res.json(products);
+            res.json(toPublicProducts(products));
         } catch (err) {
             next(err);
         }
@@ -488,7 +492,7 @@ export function createProductRouter(): RouterType {
         try {
             const { id } = req.params as { id: string };
             const products = await storage.getFrequentlyBoughtTogether(id);
-            res.json(products);
+            res.json(toPublicProducts(products));
         } catch (err) {
             next(err);
         }

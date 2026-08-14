@@ -32,6 +32,7 @@ import {
   isNoindexPath,
 } from "../shared/seo-contract.js";
 import { isKnownSitePath } from "../shared/site-routes.js";
+import { toPublicVariant } from "../shared/public-product.js";
 
 neonConfig.webSocketConstructor = ws;
 
@@ -211,7 +212,15 @@ async function loadProducts(category?: string): Promise<SeoPreviewProduct[]> {
       LIMIT 250`,
     values,
   );
-  return rows as SeoPreviewProduct[];
+  // Same reasoning as ssr-meta: strip the internal keys hidden in the variants jsonb before this data
+  // reaches any renderer. These rows are turned into HTML and markdown for crawlers and LLM fetchers.
+  return rows.map(sanitizeSeoProductVariants) as SeoPreviewProduct[];
+}
+
+/** Rebuild a row's `variants` from the public allowlist, dropping the internal cost keys. */
+function sanitizeSeoProductVariants<T extends { variants?: unknown }>(row: T): T {
+  if (!Array.isArray(row?.variants)) return row;
+  return { ...row, variants: row.variants.map(toPublicVariant) } as T;
 }
 
 async function loadProduct(slug: string): Promise<SeoPreviewProduct | null> {
@@ -226,7 +235,7 @@ async function loadProduct(slug: string): Promise<SeoPreviewProduct | null> {
       LIMIT 1`,
     [slug],
   );
-  return (rows[0] as SeoPreviewProduct | undefined) || null;
+  return (rows[0] ? (sanitizeSeoProductVariants(rows[0]) as SeoPreviewProduct) : null);
 }
 
 function breadcrumbSchema(name: string, path: string): object {

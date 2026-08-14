@@ -209,7 +209,7 @@ export function FinanceCostChanges() {
     queryFn: async () => {
       const params = new URLSearchParams({ limit: "30" });
       if (search.trim()) params.set("search", search.trim());
-      const res = await fetch(`/api/products?${params}`, { credentials: "include" });
+      const res = await fetch(`/api/admin/products?${params}`, { credentials: "include" });
       const json = await res.json().catch(() => null);
       if (!res.ok) throw new Error(json?.message ?? `خطأ ${res.status}`);
       return json;

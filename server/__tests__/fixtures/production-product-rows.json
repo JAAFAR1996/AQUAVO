@@ -1,0 +1,298 @@
+[
+ {
+  "id": "aquavo-driftwood-small-collection",
+  "slug": "aquavo-driftwood-collection",
+  "name": "قطع خشب ديكور — اختر قطعتك",
+  "brand": "AQUAVO",
+  "category": "تربة وديكور",
+  "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+  "subcategory": "أخشاب طبيعية",
+  "description": "مجموعة من قطع الخشب الطبيعي المخصصة لتنسيق أحواض الأسماك والأكواسكيب.\n\nكل قطعة تختلف في الشكل والحجم والتفرعات، لذلك يُختار الرمز المناسب بناءً على مساحة الحوض واتجاه التصميم. الصور أو المعاينة ثلاثية الأبعاد تمثل القطعة المحددة نفسها عند توفرها.\n\nيُغسل الخشب ويُنقع قبل الاستخدام، وقد يحتاج إلى تثبيت مؤقت حتى يتشبع بالماء. كما قد يطلق تانيناً يمنح الماء لوناً عسلياً خفيفاً.",
+  "price": "8000",
+  "originalPrice": null,
+  "currency": "IQD",
+  "images": [
+   "/images/products/driftwood/dw-14.webp",
+   "/images/products/driftwood/dw-12.webp",
+   "/images/products/driftwood/dw-13.webp",
+   "/images/products/driftwood/dw-15.webp",
+   "/images/products/driftwood/dw-16.webp"
+  ],
+  "thumbnail": "/images/products/driftwood/dw-14.webp",
+  "rating": "0",
+  "reviewCount": 0,
+  "stock": 5,
+  "lowStockThreshold": 1,
+  "isNew": true,
+  "isBestSeller": false,
+  "isProductOfWeek": false,
+  "specifications": {
+   "benefits": [
+    "5 قطع مختلفة للاختيار من بينها.",
+    "تضيف طابع طبيعي لأي تصميم.",
+    "سعر مناسب للتجربة والتنويع."
+   ],
+   "الحجم": "مناسب للأحواض الصغيرة والمتوسطة",
+   "النوع": "خشب ديكور طبيعي",
+   "ملاحظة": "كل قطعة فريدة — اختار رقمها من القائمة",
+   "safetyWarnings": [
+    "تختلف كل قطعة في الشكل والحجم والوزن",
+    "افحص القطعة للتأكد من عدم وجود حواف حادة",
+    "اغسل الخشب وانقعه قبل الاستخدام",
+    "ثبّت القطع التي لا تغرق حتى تتشبع بالماء",
+    "قد يظهر تانين أو غشاء أبيض مؤقت في بداية الاستخدام"
+   ],
+   "usageInstructions": [
+    "اختار الرقم المناسب لتصميم حوضك.",
+    "نظفها قبل الإدخال للحوض.",
+    "ثبتها بشكل لا يعيق حركة الماء."
+   ],
+   "الاستخدام": "أحواض السمك والأكواسكيب"
+  },
+  "variants": [
+   {
+    "id": "dw-12",
+    "image": "/images/products/driftwood/dw-12.webp",
+    "label": "قطعة DW-12",
+    "price": 8000,
+    "stock": 1,
+    "costBasis": "same_unit_cost_as_product",
+    "costPrice": 999114,
+    "isDefault": true,
+    "costStatus": "verified_derived",
+    "specifications": {
+     "رمز القطعة": "DW-12"
+    }
+   },
+   {
+    "id": "dw-13",
+    "image": "/images/products/driftwood/dw-13.webp",
+    "label": "قطعة DW-13",
+    "price": 8000,
+    "stock": 1,
+    "costBasis": "same_unit_cost_as_product",
+    "costPrice": 999114,
+    "isDefault": false,
+    "costStatus": "verified_derived",
+    "specifications": {
+     "رمز القطعة": "DW-13"
+    }
+   },
+   {
+    "id": "dw-14",
+    "image": "/images/products/driftwood/dw-14.webp",
+    "label": "قطعة DW-14",
+    "price": 8000,
+    "stock": 1,
+    "costBasis": "same_unit_cost_as_product",
+    "costPrice": 999114,
+    "isDefault": false,
+    "costStatus": "verified_derived",
+    "specifications": {
+     "رمز القطعة": "DW-14"
+    }
+   },
+   {
+    "id": "dw-15",
+    "image": "/images/products/driftwood/dw-15.webp",
+    "label": "قطعة DW-15",
+    "price": 8000,
+    "stock": 1,
+    "costBasis": "same_unit_cost_as_product",
+    "costPrice": 999114,
+    "isDefault": false,
+    "costStatus": "verified_derived",
+    "specifications": {
+     "رمز القطعة": "DW-15"
+    }
+   },
+   {
+    "id": "dw-16",
+    "image": "/images/products/driftwood/dw-16.webp",
+    "label": "قطعة DW-16",
+    "price": 8000,
+    "stock": 1,
+    "costBasis": "same_unit_cost_as_product",
+    "costPrice": 999114,
+    "isDefault": false,
+    "costStatus": "verified_derived",
+    "specifications": {
+     "رمز القطعة": "DW-16"
+    }
+   }
+  ],
+  "hasVariants": true,
+  "costPrice": "999111",
+  "packagingCost": "999112",
+  "insertCost": "999113",
+  "costPriceResolution": "known",
+  "packagingCostResolution": "verified_zero",
+  "insertCostResolution": "verified_zero",
+  "costResolutionNote": "SYNTHETIC fixture note — real note redacted, this repo is public",
+  "costResolutionBy": "owner_confirmation:SYNTHETIC:2026-01-01",
+  "costResolutionAt": "2026-08-03T11:04:18.689Z",
+  "createdAt": "2026-06-12T17:45:14.848Z",
+  "updatedAt": "2026-08-03T11:04:18.689Z",
+  "deletedAt": null
+ },
+ {
+  "id": "general-sponge-filter-xy180",
+  "slug": "general-sponge-filter-xy180",
+  "name": "فلتر إسفنجي هوائي XY-180 — ترشيح مزدوج",
+  "brand": "General",
+  "category": "الفلترة والتنقية",
+  "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+  "subcategory": "فلاتر إسفنجية",
+  "description": "فلتر إسفنجي مناسب لأحواض التفريخ والروبيان، ويوفر ترشيحاً ميكانيكياً وبيولوجياً بتيار لطيف.\n\nفلتر إسفنجي هوائي طراز XY-180 يعمل بمضخة الهواء عبر نظام الرفع الهوائي (Airlift). الإسفنج الأسود كثيف المسام يوفّر ترشيحاً ميكانيكياً لاحتجاز المخلفات، ومساحة سطحية ضخمة لاستعمار البكتيريا النافعة.\n\nالميزة الأهم: لا يسحب الأسماك الصغيرة أو صغار الروبيان — على عكس الفلاتر الكهربائية التي تشكّل خطراً حقيقياً على الكائنات الصغيرة. هذا ما يجعله الخيار الأول لأحواض التفريخ والعزل.\n\nيحتاج مضخة هواء منفصلة (غير مرفقة). اغسل الإسفنج بماء الحوض القديم فقط — وليس ماء الصنبور — كل أسبوعين للحفاظ على البكتيريا النافعة.",
+  "price": "4500",
+  "originalPrice": "4025",
+  "currency": "IQD",
+  "images": [
+   "https://res.cloudinary.com/dyczh8ogv/image/upload/v1780947896/aquavo/products/general/general-sponge-filter-xy180/general-sponge-filter-xy180-1-v2.webp",
+   "https://res.cloudinary.com/dyczh8ogv/image/upload/v1780947898/aquavo/products/general/general-sponge-filter-xy180/general-sponge-filter-xy180-2.webp"
+  ],
+  "thumbnail": "https://res.cloudinary.com/dyczh8ogv/image/upload/v1780947896/aquavo/products/general/general-sponge-filter-xy180/general-sponge-filter-xy180-1-v2.webp",
+  "rating": "0",
+  "reviewCount": 0,
+  "stock": 7,
+  "lowStockThreshold": 10,
+  "isNew": true,
+  "isBestSeller": false,
+  "isProductOfWeek": false,
+  "specifications": {
+   "benefits": [
+    "تيار لطيف مناسب للأحواض التي تحتوي على صغار الأسماك أو الروبيان",
+    "يجمع الترشيح الميكانيكي والبيولوجي في وحدة واحدة",
+    "الإسفنج قابل للغسل وإعادة الاستخدام",
+    "يعمل بواسطة مضخة هواء منفصلة",
+    "صيانته بسيطة عند الغسل بماء الحوض القديم"
+   ],
+   "النوع": "فلتر إسفنجي هوائي",
+   "يحتاج": "مضخة هواء (غير مرفقة)",
+   "الطراز": "XY-180",
+   "safetyWarnings": [
+    "لا تغسل الإسفنج بماء الصنبور — الكلور يقتل البكتيريا",
+    "لا تعصر الإسفنج بقوة — اضغط برفق فقط",
+    "تأكد من ثبات القاعدة لمنع سقوطه وإزعاج الأسماك"
+   ],
+   "مناسب لـ": "أحواض التفريخ، أحواض الروبيان، أحواض العزل",
+   "usageInstructions": [
+    "وصّل خرطوم الهواء من المضخة إلى أنبوب الرفع",
+    "اغمر الفلتر بالكامل في القاع",
+    "شغّل المضخة وتأكد من ظهور الفقاعات",
+    "اغسل الإسفنج بماء الحوض القديم كل أسبوعين",
+    "استبدل الإسفنج كل 6-12 شهراً عندما يفقد مرونته"
+   ],
+   "نوع الترشيح": "بيولوجي + ميكانيكي"
+  },
+  "variants": [
+   {
+    "id": "xy-180",
+    "label": "XY-180 — صغير",
+    "price": 3000,
+    "stock": 6,
+    "costBasis": "same_unit_cost_as_product",
+    "costPrice": 999114,
+    "isDefault": true,
+    "costStatus": "verified_derived",
+    "costEvidence": "SYNTHETIC evidence",
+    "specifications": {
+     "الحجم": "صغير",
+     "الموديل": "XY-180"
+    }
+   },
+   {
+    "id": "xy-2835",
+    "label": "XY-2835 — كبير",
+    "price": 3500,
+    "stock": 1,
+    "costBasis": "same_unit_cost_as_product",
+    "costPrice": 999114,
+    "isDefault": false,
+    "costStatus": "verified_derived",
+    "costEvidence": "SYNTHETIC evidence",
+    "specifications": {
+     "الحجم": "كبير",
+     "الموديل": "XY-2835"
+    }
+   }
+  ],
+  "hasVariants": true,
+  "costPrice": "999111",
+  "packagingCost": "999112",
+  "insertCost": "999113",
+  "costPriceResolution": "known",
+  "packagingCostResolution": "verified_zero",
+  "insertCostResolution": "verified_zero",
+  "costResolutionNote": "SYNTHETIC fixture note — real note redacted, this repo is public",
+  "costResolutionBy": "owner_confirmation:SYNTHETIC:2026-01-01",
+  "costResolutionAt": "2026-08-03T11:04:18.689Z",
+  "createdAt": "2026-03-30T12:39:23.386Z",
+  "updatedAt": "2026-08-07T06:31:59.239Z",
+  "deletedAt": null
+ },
+ {
+  "id": "aquavo-driftwood-dw-11",
+  "slug": "aquavo-driftwood-dw-11",
+  "name": "خشب ديكور للأحواض — قطعة DW-11",
+  "brand": "AQUAVO",
+  "category": "تربة وديكور",
+  "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+  "subcategory": "أخشاب طبيعية",
+  "description": "قطعة خشب طبيعية مميزة بالرمز DW-11؛ القطعة المعروضة هي الشكل المحدد للبيع وليست صورة عامة لمنتج مشابه.\n\nيمكن معاينتها من زوايا مختلفة قبل الشراء لتقييم التفرعات والفراغات ومدى ملاءمتها للتصميم. تصلح كعنصر رئيسي أو مكمل ضمن ترتيب الصخور والنباتات.\n\nتُغسل وتُنقع قبل الاستخدام، وقد تحتاج إلى تثبيت مؤقت حتى تتشبع بالماء.",
+  "price": "28000",
+  "originalPrice": null,
+  "currency": "IQD",
+  "images": [
+   "https://res.cloudinary.com/dyczh8ogv/image/upload/v1781098807/aquavo/products/aquavo/aquavo-driftwood-dw-11/hhtc4f2xdidislxk90nc.jpg"
+  ],
+  "thumbnail": "https://res.cloudinary.com/dyczh8ogv/image/upload/v1781098807/aquavo/products/aquavo/aquavo-driftwood-dw-11/hhtc4f2xdidislxk90nc.jpg",
+  "rating": "0",
+  "reviewCount": 0,
+  "stock": 1,
+  "lowStockThreshold": 1,
+  "isNew": true,
+  "isBestSeller": false,
+  "isProductOfWeek": false,
+  "specifications": {
+   "benefits": [
+    "تعاين نفس القطعة قبل الشراء، مو صورة عامة.",
+    "تعطي ترتيب الحوض عمق وشخصية طبيعية أقوى.",
+    "كل قطعة فريدة وتختلف عن الثانية."
+   ],
+   "__model3d": {
+    "src": "/models/driftwood/dw-11/model.glb",
+    "label": "DW-11",
+    "poster": "/images/products/driftwood/dw-11.webp",
+    "pieceCode": "DW-11"
+   },
+   "ملاحظة": "الشكل المعروض هو نفس القطعة التي تستلمها",
+   "safetyWarnings": [
+    "تأكد أن مكان القطعة لا يضغط على الزجاج أو يعيق حركة الماء.",
+    "إذا حوضك صغير أو مزدحم، اختار القطعة بعد ما تقارن حجمها بصرياً مع ترتيب الحوض."
+   ],
+   "usageInstructions": [
+    "عاين الصورة والـ 3D قبل اختيار القطعة.",
+    "نظف أي ديكور قبل إدخاله للحوض حسب طريقة العناية المناسبة لحوضك.",
+    "ثبتها داخل الترتيب بدون ضغط على الزجاج أو المعدات."
+   ],
+   "رمز القطعة": "DW-11",
+   "نمط الاستخدام": "ديكور وأكواسكايب",
+   "طريقة المعاينة": "صورة وموديل 3D لنفس القطعة"
+  },
+  "variants": null,
+  "hasVariants": false,
+  "costPrice": "999111",
+  "packagingCost": "999112",
+  "insertCost": "999113",
+  "costPriceResolution": "known",
+  "packagingCostResolution": "verified_zero",
+  "insertCostResolution": "verified_zero",
+  "costResolutionNote": "SYNTHETIC fixture note — real note redacted, this repo is public",
+  "costResolutionBy": "owner_confirmation:SYNTHETIC:2026-01-01",
+  "costResolutionAt": "2026-08-03T11:04:18.685Z",
+  "createdAt": "2026-06-10T09:16:00.759Z",
+  "updatedAt": "2026-08-03T11:04:18.685Z",
+  "deletedAt": null
+ }
+]

@@ -126,6 +126,40 @@ export function createAdminRouter(): RouterType {
     // Apply admin check to all routes in this router
     router.use(requireAdmin);
 
+    /**
+     * Products WITH internal cost fields — the authorized counterpart to the public `/api/products`.
+     *
+     * This route exists because the public product endpoint stopped returning cost data on 2026-08-14,
+     * and two finance panels (`finance-cost-changes`, `finance-scenario-calculator`) had been reading
+     * costs from it. The honest fix is not an `?includeCosts=1` flag on the public route: a public
+     * endpoint with a privileged mode is one missing session check away from being public again, and its
+     * response shape then depends on who is asking — which is precisely the property that let the
+     * original leak go unnoticed for so long. Two endpoints, two audiences, two fixed shapes, one
+     * `requireAdmin` between them.
+     *
+     * Returns raw rows deliberately: everything behind `router.use(requireAdmin)` is the trusted internal
+     * path the doctrine names.
+     */
+    router.get("/products", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const query = req.query as Record<string, string | undefined>;
+            const products = await storage.getProducts({
+                search: query.search,
+                category: query.category,
+                brand: query.brand,
+                limit: query.limit ? Number(query.limit) : 500,
+                offset: query.offset ? Number(query.offset) : undefined,
+                sortBy: query.sortBy as any,
+                sortOrder: query.sortOrder as "asc" | "desc" | undefined,
+            });
+            // Never cached at the edge: this carries cost data and is per-admin-session.
+            res.set("Cache-Control", "no-store, private");
+            res.json({ products });
+        } catch (err) {
+            next(err);
+        }
+    });
+
     // Dashboard Stats (Example) - logic might need to be added to storage
     // router.get("/stats", ...);
 

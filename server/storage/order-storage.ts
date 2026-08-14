@@ -2,6 +2,7 @@ import { randomBytes } from "node:crypto";
 import { type Order, type Coupon, type AuditLog, type CartItem, type Favorite, type GallerySubmission, type GalleryPrize, type Payment, type ProductVariant, type OrderLineItem, orders, coupons, auditLogs, cartItems, favorites, gallerySubmissions, galleryVotes, galleryPrizes, payments, products, settings, orderItems, returnRequests, referrals, loyaltyTransactions, loyaltyCoupons, autoOrders } from "../../shared/schema.js";
 import { eq, desc, and, sql, or, isNull } from "drizzle-orm";
 import { getDb } from "../db.js";
+import { toPublicProduct } from "../../shared/public-product.js";
 import { loyaltyStorage, type TransactionalOrderLoyaltyResult } from "./loyalty-storage.js";
 import {
     buildProductCostSnapshot,
@@ -576,10 +577,13 @@ export class OrderStorage {
             .innerJoin(products, eq(cartItems.productId, products.id))
             .where(eq(cartItems.userId, userId));
 
+        // Sanitized for the same reason as getFavorites: GET /api/cart serves this to the customer, and
+        // the join pulled every cost column along with it. The variant price/name overrides below are
+        // applied on top of the PUBLIC product, so the storefront behaviour is unchanged.
         return items.map(({ cartItem, product }) => ({
             ...cartItem,
             product: {
-                ...product,
+                ...toPublicProduct(product),
                 // Use variant price if stored, otherwise fallback to product DB price
                 price: (cartItem as any).variantPrice ?? product.price,
                 name: (cartItem as any).variantLabel
@@ -713,7 +717,10 @@ export class OrderStorage {
             .innerJoin(products, eq(favorites.productId, products.id))
             .where(eq(favorites.userId, userId));
 
-        return items.map(({ favorite, product }) => ({ ...favorite, product }));
+        // `product: products` selects the whole row, cost columns included, and this list is served
+        // straight to a logged-in customer by GET /api/favorites. Authenticated, but every customer with
+        // a favourite could read AQUAVO's cost basis. Same defect class as the public product list.
+        return items.map(({ favorite, product }) => ({ ...favorite, product: toPublicProduct(product) })) as any;
     }
 
     async addFavorite(userId: string, productId: string): Promise<Favorite> {

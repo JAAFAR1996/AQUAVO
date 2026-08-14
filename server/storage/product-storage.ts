@@ -3,6 +3,7 @@ import { eq, desc, and, gte, lte, sql, isNull, notInArray, gt, inArray, or } fro
 import { getDb } from "../db.js";
 import { randomUUID } from "crypto";
 import { normalizeProductCostWrite } from "../services/product-cost-snapshot.js";
+import { preserveInternalVariantFields } from "../../shared/public-product.js";
 
 export interface ProductFilters {
     category?: string | string[];
@@ -313,10 +314,26 @@ export class ProductStorage {
 
     async updateProductVariants(id: string, hasVariants: boolean, variants: any[] | null): Promise<boolean> {
         const db = this.ensureDb();
+
+        // This is a full REPLACE of the `variants` jsonb column, and the admin dialog that calls it reads
+        // its products from the now-sanitized public endpoint — so the array arriving here has no cost
+        // keys on it. Replacing blindly would erase the per-variant costPrice/costStatus/costBasis/
+        // costEvidence that migration 0073 writes, on the very first variant edit, with no error and no
+        // visible symptom until the accounting numbers drifted. Read the current row and carry those
+        // fields across by variant id.
+        //
+        // Note this also makes the endpoint safe against a caller that never had the data at all, which
+        // is the property that actually matters: it does not depend on any client behaving well.
+        const [current] = await db.select({ variants: products.variants })
+            .from(products)
+            .where(eq(products.id, id))
+            .limit(1);
+        const merged = preserveInternalVariantFields(variants, current?.variants ?? null);
+
         const result = await db.update(products)
             .set({
                 hasVariants,
-                variants: variants as any,
+                variants: merged as any,
                 updatedAt: new Date()
             } as any)
             .where(eq(products.id, id))
