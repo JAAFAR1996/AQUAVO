@@ -3,6 +3,7 @@ import { ArrowRight, Check, MessageCircle, Truck } from "lucide-react";
 import { SurfaceBreak } from "@/components/motion/displacement";
 import { Button } from "@/components/ui/button";
 import { WHATSAPP_URL } from "@/lib/constants/shipping";
+import { WhatsAppLink } from "@/components/whatsapp-link";
 
 interface CheckoutSuccessFallbackProps {
   orderNumber: string;
@@ -17,7 +18,7 @@ export function CheckoutSuccessFallback({
   onTrack,
   headingRef,
 }: CheckoutSuccessFallbackProps) {
-  const assistanceUrl = `${WHATSAPP_URL}?text=${encodeURIComponent(`مرحباً، أحتاج مساعدة بخصوص طلبي رقم ${orderNumber}`)}`;
+  const assistanceMessage = `مرحباً، أحتاج مساعدة بخصوص طلبي رقم ${orderNumber}`;
 
   return (
     <div className="min-h-screen bg-background px-4 py-10" dir="rtl" data-aqv-motion="order-success">
@@ -64,15 +65,15 @@ export function CheckoutSuccessFallback({
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 العودة للرئيسية
               </Button>
-              <a
-                href={assistanceUrl}
-                target="_blank"
-                rel="noopener noreferrer"
+              <WhatsAppLink
+                source="checkout_success_fallback"
+                message={assistanceMessage}
+                orderNumber={orderNumber}
                 className="flex min-h-11 items-center justify-center gap-2 rounded-md border border-border text-sm font-semibold text-muted-foreground transition-colors hover:border-primary/45 hover:bg-primary/5 hover:text-foreground"
               >
                 <MessageCircle className="h-4 w-4" aria-hidden="true" />
                 تحتاج مساعدة؟ تواصل ويانا
-              </a>
+              </WhatsAppLink>
             </div>
           </section>
         </SurfaceBreak>

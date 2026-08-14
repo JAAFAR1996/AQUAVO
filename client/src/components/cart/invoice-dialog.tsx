@@ -8,6 +8,7 @@ import { useRef, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { clientEnv } from "@/lib/config/env";
 import { DELIVERY_FEE, WHATSAPP_URL } from "@/lib/constants/shipping";
+import { WhatsAppLink } from "@/components/whatsapp-link";
 // Local item type — simpler than CartItem, works for order history too
 interface InvoiceItem {
   id: string;
@@ -503,15 +504,15 @@ ${clientEnv.siteUrl ? `الرابط: ${clientEnv.siteUrl}` : ""}`.trim();
             </div>
 
             {/* WhatsApp support — optional assistance, never order confirmation */}
-            <a
-              href={`${WHATSAPP_URL}?text=${encodeURIComponent(`مرحباً، أحتاج مساعدة بخصوص طلبي رقم ${shortOrderNumber}`)}`}
-              target="_blank"
-              rel="noopener noreferrer"
+            <WhatsAppLink
+              source="invoice"
+              orderNumber={shortOrderNumber}
+              message={`مرحباً، أحتاج مساعدة بخصوص طلبي رقم ${shortOrderNumber}`}
               className="flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-background px-6 py-3 text-base font-semibold text-foreground transition-colors hover:bg-muted no-print print:hidden"
             >
               <MessageCircle className="h-5 w-5" />
               تحتاج مساعدة؟ احچي ويانه
-            </a>
+            </WhatsAppLink>
 
             {/* Action Buttons - hidden in print */}
             <div className="flex gap-3 no-print print:hidden">

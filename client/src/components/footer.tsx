@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { addCsrfHeader } from "@/lib/csrf";
 import { WHATSAPP_NUMBER, WHATSAPP_URL } from "@/lib/constants/shipping";
+import { WhatsAppLink } from "@/components/whatsapp-link";
 
 const shopLinks = [
   { href: "/products", label: "كل المنتجات" },
@@ -124,9 +125,9 @@ export default function Footer() {
               <a href="https://www.tiktok.com/@aquavo.iq" target="_blank" rel="noopener noreferrer" aria-label="AQUAVO على تيك توك" className="grid h-10 w-10 place-items-center rounded-lg border border-border text-foreground/70 hover:border-primary/45 hover:text-foreground">
                 <span className="font-interface text-sm font-bold" aria-hidden="true">Tk</span>
               </a>
-              <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" aria-label="تواصل مع AQUAVO على واتساب" className="grid h-10 w-10 place-items-center rounded-lg border border-border text-foreground/70 hover:border-primary/45 hover:text-foreground">
+              <WhatsAppLink source="footer" aria-label="تواصل مع AQUAVO على واتساب" className="grid h-10 w-10 place-items-center rounded-lg border border-border text-foreground/70 hover:border-primary/45 hover:text-foreground">
                 <MessageCircle className="h-4 w-4" aria-hidden="true" />
-              </a>
+              </WhatsAppLink>
             </div>
           </section>
 

@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/hooks/use-toast";
 import { addCsrfHeader } from "@/lib/csrf";
 import { ttqInitiateCheckout, ttqAddPaymentInfo, ttqPlaceAnOrder } from "@/lib/tiktok-pixel";
+import { phTrackInitiateCheckout, phTrackPurchase } from "@/lib/posthog";
 import { metaTrackInitiateCheckout, metaTrackPurchase } from "@/lib/meta-pixel";
 import { trackAddShippingInfo, trackBeginCheckout, trackPurchase } from "@/lib/analytics";
 import { BAGHDAD_SHIPPING, OTHER_GOVERNORATES_SHIPPING, WHATSAPP_URL, DELIVERY_DAYS } from "@/lib/constants/shipping";
@@ -23,6 +24,7 @@ import { OrderSummary } from "@/components/cart/checkout/order-summary";
 import { ConfirmationView } from "@/components/cart/checkout/confirmation-view";
 import { CheckoutLoyaltySection } from "@/components/cart/checkout/loyalty-section";
 import { CheckoutSuccessFallback } from "@/components/cart/checkout/checkout-success-fallback";
+import { WhatsAppLink } from "@/components/whatsapp-link";
 
 export default function CheckoutPage() {
   const [, setLocation] = useLocation();
@@ -86,6 +88,15 @@ export default function CheckoutPage() {
         totalIQD: cartTotal + deliveryFee,
         numItems: cartItems.reduce((sum, i) => sum + i.quantity, 0),
         productIds: cartItems.map((i) => i.productId),
+      });
+      // PostHog, on the LIVE /checkout route. It has been missing here since the call sites moved into
+      // checkout-dialog.tsx — a component nothing renders — which is why InitiateCheckout stopped on
+      // 2026-06-20 after 30 events. The helper dedups internally, so this cannot double count.
+      phTrackInitiateCheckout({
+        numItems: cartItems.reduce((sum, i) => sum + i.quantity, 0),
+        totalValue: cartTotal + deliveryFee,
+        productIds: cartItems.map((i) => i.productId),
+        sourcePage: "checkout",
       });
       trackBeginCheckout(
         cartItems.map((item) => ({
@@ -231,6 +242,16 @@ export default function CheckoutPage() {
         productIds: cartItems.map((i) => i.productId),
         numItems: cartItems.reduce((sum, i) => sum + i.quantity, 0),
         phone: customerInfo.phone,
+      });
+      // Reached only after `response.ok` and a parsed order body, so a failed submission cannot emit it.
+      // Note this deliberately does NOT forward customerInfo.phone the way the Meta call above does:
+      // Meta hashes it for CAPI matching, PostHog would simply store it.
+      phTrackPurchase({
+        orderId: orderData.orderNumber ?? orderData.id,
+        totalValue: confirmedTotal,
+        numItems: cartItems.reduce((sum, i) => sum + i.quantity, 0),
+        productIds: cartItems.map((i) => i.productId),
+        sourcePage: "checkout",
       });
       trackPurchase({
         orderId: orderData.id || "unknown",
@@ -478,15 +499,13 @@ export default function CheckoutPage() {
           <span>التوصيل 5,000 د.ع لكل العراق</span>
         </div>
         <div className="flex items-center justify-center gap-4">
-          <a
-            href={WHATSAPP_URL}
-            target="_blank"
-            rel="noopener noreferrer"
+          <WhatsAppLink
+            source="checkout"
             className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-green-500 transition-colors"
           >
             <MessageCircle className="w-3.5 h-3.5" />
             واتساب
-          </a>
+          </WhatsAppLink>
           <a
             href="https://www.instagram.com/aquavo_iq"
             target="_blank"

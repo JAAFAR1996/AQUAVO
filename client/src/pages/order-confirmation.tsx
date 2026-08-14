@@ -10,8 +10,10 @@ import { InvoiceDialog } from "@/components/cart/invoice-dialog";
 import { formatIQD } from "@/lib/utils";
 import { readStashedOrder } from "@/lib/order-stash";
 import { ttqPurchase } from "@/lib/tiktok-pixel";
+import { phTrackPurchase } from "@/lib/posthog";
 import { metaTrackPurchase } from "@/lib/meta-pixel";
 import { DELIVERY_DAYS, WHATSAPP_URL } from "@/lib/constants/shipping";
+import { WhatsAppLink } from "@/components/whatsapp-link";
 
 interface OrderItem {
     productId: string;
@@ -66,6 +68,16 @@ export default function OrderConfirmation() {
     useEffect(() => {
         const full = order as OrderData | undefined;
         if (full && full.items && full.items.length > 0) {
+            // Second Purchase call site, on purpose: a customer can land here directly from a stashed
+            // order or reload the page, and the checkout-path event would then never have fired. The
+            // helper dedups on order id, so the pair is a safety net rather than a double count.
+            phTrackPurchase({
+                orderId: full.orderNumber || full.id,
+                totalValue: Number(full.total ?? 0),
+                numItems: full.items.reduce((sum, i) => sum + (i.quantity ?? 0), 0),
+                productIds: full.items.map((i) => i.productId),
+                sourcePage: "order_confirmation",
+            });
             ttqPurchase({
                 orderId: full.orderNumber || full.id,
                 items: full.items.map(item => ({
@@ -234,7 +246,7 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
         `مرحباً، أحتاج مساعدة بخصوص طلبي رقم ${displayNumber}\n` +
         (itemsText ? `\n${itemsText}\n` : "") +
         (total > 0 ? `\nالمبلغ الكلي: ${formatIQD(total)} (الدفع عند الاستلام)` : "");
-    const whatsappHref = `${WHATSAPP_URL}?text=${encodeURIComponent(whatsappText)}`;
+    // Message text is passed to WhatsAppLink, which builds the href and records the handoff.
 
     const cardRef = useRef<HTMLDivElement>(null);
     const markRef = useRef<HTMLImageElement>(null);
@@ -422,15 +434,15 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
                                     <Printer className="ml-2 h-4 w-4" />
                                     طباعة الفاتورة
                                 </Button>
-                                <a
-                                    href={whatsappHref}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
+                                <WhatsAppLink
+                                    source="order_confirmation"
+                                    orderNumber={orderData?.orderNumber ?? orderId}
+                                    message={whatsappText}
                                     className="flex h-11 w-full items-center justify-center gap-2 rounded-md border border-border bg-transparent font-semibold text-foreground transition-colors hover:border-primary/45 hover:bg-primary/5"
                                 >
                                     <MessageCircle className="h-4 w-4 text-primary" />
                                     تحتاج مساعدة؟ احچي ويانه
-                                </a>
+                                </WhatsAppLink>
                                 <Link href="/">
                                     <Button className="h-11 w-full text-muted-foreground hover:bg-muted hover:text-foreground" variant="ghost">
                                         <Home className="ml-2 h-4 w-4" />

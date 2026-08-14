@@ -30,6 +30,7 @@ import {
 
 import { cn } from "@/lib/utils";
 import { WHATSAPP_URL } from "@/lib/constants/shipping";
+import { openWhatsApp } from "@/lib/whatsapp";
 
 interface Product {
     id: string;
@@ -490,7 +491,7 @@ export function AIChatBot() {
     // Handle contact support
     const handleContactSupport = useCallback(() => {
         // Open WhatsApp or Instagram
-        window.open(`${WHATSAPP_URL}?text=${encodeURIComponent("مرحباً، أحتاج مساعدة من فريق AQUAVO")}`, "_blank");
+        openWhatsApp({ source: "chatbot", message: "مرحباً، أحتاج مساعدة من فريق AQUAVO" });
     }, []);
 
     // Quick questions

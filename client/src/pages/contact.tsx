@@ -3,6 +3,7 @@ import { Link } from "wouter";
 
 import { MetaTags } from "@/components/seo/meta-tags";
 import { WHATSAPP_URL } from "@/lib/constants/shipping";
+import { WhatsAppLink } from "@/components/whatsapp-link";
 
 const actionClass = "mt-auto inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-primary/35 px-5 text-sm font-bold text-primary transition-colors hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary";
 
@@ -21,7 +22,7 @@ export default function Contact() {
             <MessageCircle className="h-7 w-7 text-primary" aria-hidden="true" />
             <h2 className="mt-5 text-xl font-bold">واتساب</h2>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">مناسب للاستشارة، صور الحالة، ومتابعة الطلب.</p>
-            <a href={WHATSAPP_URL} target="_blank" rel="noreferrer" className={actionClass}>افتح واتساب <ArrowLeft className="h-4 w-4" aria-hidden="true" /></a>
+            <WhatsAppLink source="contact" className={actionClass}>افتح واتساب <ArrowLeft className="h-4 w-4" aria-hidden="true" /></WhatsAppLink>
           </section>
           <section className="flex min-h-64 flex-col rounded-2xl border border-border bg-card/55 p-6">
             <Phone className="h-7 w-7 text-primary" aria-hidden="true" />

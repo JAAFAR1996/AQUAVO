@@ -2,6 +2,7 @@ import { BarChart3, Database, Mail, MessageCircle, PackageCheck, ShieldCheck } f
 
 import { MetaTags } from "@/components/seo/meta-tags";
 import { WHATSAPP_URL } from "@/lib/constants/shipping";
+import { WhatsAppLink } from "@/components/whatsapp-link";
 
 const sections = [
   {
@@ -56,9 +57,9 @@ export default function PrivacyPolicy() {
             نستخدم البيانات لتنفيذ الطلب، التوصيل، الدعم، أمان الموقع، قياس الأداء، وتحسين التجربة والتسويق. إذا تريد تسأل عن بياناتك أو تطلب تصحيحها أو حذف ما نكدر نحذفه بدون مخالفة التزامات تشغيلية أو قانونية، تواصل ويانه واذكر رقم الهاتف المرتبط بالطلب حتى نتحقق من الهوية.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <a href={WHATSAPP_URL} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center gap-2 rounded-full bg-primary px-5 font-bold text-primary-foreground">
+            <WhatsAppLink source="other" className="inline-flex min-h-11 items-center gap-2 rounded-full bg-primary px-5 font-bold text-primary-foreground">
               <MessageCircle className="h-4 w-4" aria-hidden="true" /> واتساب
-            </a>
+            </WhatsAppLink>
             <a href="mailto:info@aquavoiq.com" className="inline-flex min-h-11 items-center gap-2 rounded-full border border-primary/35 px-5 font-bold text-primary">
               <Mail className="h-4 w-4" aria-hidden="true" /> info@aquavoiq.com
             </a>

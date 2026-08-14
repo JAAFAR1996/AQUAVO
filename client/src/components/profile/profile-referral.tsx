@@ -17,6 +17,7 @@ import {
     Star
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { openWhatsApp } from "@/lib/whatsapp";
 
 interface ReferralStats {
     referralCode: string | null;
@@ -86,7 +87,7 @@ export function ProfileReferral() {
         const message = encodeURIComponent(
             `🎁 سجّل في AQUAVO واحصل على خصم 5%!\n\nاستخدم رابط الدعوة:\n${stats.referralLink}\n\nأو الكود: ${stats.referralCode}`
         );
-        window.open(`https://wa.me/?text=${message}`, "_blank");
+        openWhatsApp({ source: "referral" }, "https://wa.me/");
     };
 
     const shareNative = async () => {

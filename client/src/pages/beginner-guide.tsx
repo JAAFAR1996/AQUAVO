@@ -48,6 +48,7 @@ import { Link } from "wouter";
 import confetti from "canvas-confetti";
 import { WHATSAPP_URL } from "@/lib/constants/shipping";
 import { MetaTags } from "@/components/seo/meta-tags";
+import { openWhatsApp } from "@/lib/whatsapp";
 
 // ─────────────────────────────────────────────────
 // DATA
@@ -632,7 +633,7 @@ function FinalScene() {
 
         {/* WhatsApp */}
         <motion.div {...fadeUp(4)}>
-          <button onClick={() => { vib(20); playBubble(); window.open(WHATSAPP_URL,"_blank"); }}
+          <button onClick={() => { vib(20); playBubble(); openWhatsApp({ source: "beginner_guide" }); }}
             className="w-full font-bold py-5 rounded-2xl flex items-center justify-center gap-2.5 transition-all active:scale-[0.97] text-[15px] text-foreground dark:text-white"
             style={{
               background:"rgba(255,255,255,0.05)", backdropFilter:"blur(20px)",

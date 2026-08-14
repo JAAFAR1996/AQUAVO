@@ -10,9 +10,16 @@ import "./styles/experience-safety.css";
 import { FirstDiveIntro } from "./components/effects/first-dive-intro";
 import { DisplacementRuntime } from "./components/motion/displacement-runtime";
 import { initializeClientEnvSideEffects } from "./lib/config/env";
+import { captureAttributionFromUrl } from "./lib/attribution";
 
 // Production entry includes the merged immersive Journey and loading experience.
 initializeClientEnvSideEffects();
+
+// Capture campaign parameters SYNCHRONOUSLY, before React mounts and before the router has any chance
+// to replace the URL. PostHog itself is initialised lazily (requestIdleCallback, 3s fallback in
+// App.tsx) — waiting for that would mean reading ?fbclid=... from a URL the SPA may already have
+// rewritten. This only writes to localStorage; it sends nothing and loads nothing.
+captureAttributionFromUrl();
 
 // Arm the semantic-to-client handoff before React starts. The previous cleanup
 // depended only on a React effect, so a delayed/suspended first commit could leave

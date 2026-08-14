@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { trackBioLinkClick } from '@/lib/analytics';
 import { WHATSAPP_URL } from '@/lib/constants/shipping';
+import { trackWhatsAppHandoff } from "@/lib/whatsapp";
 
 // ═══════════════════════════════════════════════
 // CONFIGURATION
@@ -212,6 +213,10 @@ function LinkCard({
   index: number;
 }) {
   const isExternal = link.external || link.url.startsWith('http');
+  // The WhatsApp card is one entry in a generic link list, so it cannot use WhatsAppLink
+  // without special-casing the renderer. Recording the handoff explicitly keeps this
+  // surface measured and keeps the coverage test satisfied.
+  const isWhatsApp = link.id === 'whatsapp';
 
   const handleClick = () => {
     trackBioLinkClick(link.id);
@@ -220,7 +225,7 @@ function LinkCard({
   return (
     <motion.a
       href={link.url}
-      onClick={handleClick}
+      onClick={() => { if (isWhatsApp) trackWhatsAppHandoff({ source: 'links' }); handleClick(); }}
       target={isExternal ? '_blank' : '_self'}
       rel={isExternal ? 'noopener noreferrer' : undefined}
       initial={{ opacity: 0, y: 20 }}

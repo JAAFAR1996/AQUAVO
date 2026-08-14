@@ -11,6 +11,7 @@ import { motion, useInView } from "framer-motion";
 import { Thermometer, Download, ChevronDown, Shield, ArrowLeft } from "lucide-react";
 import { Link } from "wouter";
 import { WHATSAPP_URL } from "@/lib/constants/shipping";
+import { openWhatsApp } from "@/lib/whatsapp";
 
 // ─────────────────────────────────────────────────
 // DATA — Fish Temperature Chart
@@ -414,7 +415,7 @@ export default function TemperatureGuide() {
 
             {/* WhatsApp */}
             <button
-              onClick={() => window.open(WHATSAPP_URL, "_blank")}
+              onClick={() => openWhatsApp({ source: "other" })}
               className="w-full font-bold py-5 rounded-2xl flex items-center justify-center gap-2.5 transition-all active:scale-[0.97] text-[15px] text-foreground dark:text-white"
               style={{
                 background: "rgba(255,255,255,0.05)", backdropFilter: "blur(20px)",

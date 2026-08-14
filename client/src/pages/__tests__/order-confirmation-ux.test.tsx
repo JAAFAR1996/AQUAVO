@@ -58,7 +58,13 @@ describe('Order confirmation — inherits the global theme (no hard-coded dark)'
     // the CTA from a hard-coded green block to a theme-token secondary link, so
     // the confirmation itself stays the definitive outcome. A raw green surface
     // here would also contradict the theme-token contract asserted above.
-    expect(src).toContain('whatsappHref');
+    // Was `expect(src).toContain('whatsappHref')`. That local variable disappeared when the WhatsApp
+    // handoff moved behind the shared <WhatsAppLink>, which builds the href and records the click so
+    // no surface can be added without measurement. The INTENT of this assertion is unchanged — the CTA
+    // is still present and still a themed secondary action — so it now names the component instead of
+    // a variable that happened to hold the URL.
+    expect(src).toContain('WhatsAppLink');
+    expect(src).toContain('source="order_confirmation"');
     expect(src).not.toMatch(/bg-green-\d{3}/);
   });
 });
