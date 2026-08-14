@@ -1,5 +1,6 @@
 import { type Product } from "@/types";
 import { apiRequest } from "./queryClient";
+import { sanitizeProductForCustomer } from "./customer-product-presentation";
 
 // Type for raw server response
 interface ServerProduct {
@@ -26,7 +27,7 @@ interface ServerProduct {
 }
 
 function mapToClientProduct(p: ServerProduct): Product {
-    return {
+    const product = {
         ...p,
         price: Number(p.price),
         originalPrice: p.originalPrice ? Number(p.originalPrice) : undefined,
@@ -36,7 +37,9 @@ function mapToClientProduct(p: ServerProduct): Product {
         lowStockThreshold: Number(p.lowStockThreshold || 0),
         specs: p.specifications ? JSON.stringify(p.specifications) : p.description || "", // Fallback
         specifications: p.specifications as unknown as import("@/types").ProductSpecification
-    };
+    } as Product;
+
+    return sanitizeProductForCustomer(product);
 }
 
 export async function fetchTrendingProducts(): Promise<Product[]> {

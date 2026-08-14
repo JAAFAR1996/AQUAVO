@@ -1,6 +1,7 @@
 import type { Product, ProductQueryParams, GallerySubmission } from "@/types";
 import { buildApiUrl } from "./config/env";
 import { addCsrfHeader } from "./csrf";
+import { sanitizeProductForCustomer } from "./customer-product-presentation";
 
 // Default timeout for API requests (30 seconds)
 const DEFAULT_TIMEOUT_MS = 30000;
@@ -67,15 +68,18 @@ export async function fetchProductsCore(params?: ProductQueryParams): Promise<{ 
     });
   }
   const queryString = query.toString() ? `?${query.toString()}` : "";
-  return await getJson<{ products: Product[] }>(`/api/products${queryString}`);
+  const response = await getJson<{ products: Product[] }>(`/api/products${queryString}`);
+  return { products: response.products.map(sanitizeProductForCustomer) };
 }
 
 export async function fetchProductCore(id: string): Promise<Product> {
-  return await getJson<Product>(`/api/products/${id}`);
+  const product = await getJson<Product>(`/api/products/${id}`);
+  return sanitizeProductForCustomer(product);
 }
 
 export async function fetchProductBySlugCore(slug: string): Promise<Product> {
-  return await getJson<Product>(`/api/products/${slug}`);
+  const product = await getJson<Product>(`/api/products/${slug}`);
+  return sanitizeProductForCustomer(product);
 }
 
 // Production functions - NO fallback to mock data (real database only)
@@ -109,7 +113,7 @@ export async function fetchProductBySlug(slug: string): Promise<Product> {
 export async function fetchProductVariants(slug: string): Promise<Product[]> {
   try {
     const response = await getJson<{ variants: Product[] }>(`/api/products/${slug}/variants`);
-    return response.variants || [];
+    return (response.variants || []).map(sanitizeProductForCustomer);
   } catch (err) {
     console.warn("Failed to fetch product variants:", err);
     return [];
@@ -123,11 +127,19 @@ export async function fetchTopSellingProducts(): Promise<{
   hasRealSales: boolean;
 }> {
   try {
-    return await getJson<{
+    const response = await getJson<{
       productOfWeek: Product | null;
       bestSellers: Product[];
       hasRealSales: boolean;
     }>("/api/products/top-selling");
+
+    return {
+      productOfWeek: response.productOfWeek
+        ? sanitizeProductForCustomer(response.productOfWeek)
+        : null,
+      bestSellers: response.bestSellers.map(sanitizeProductForCustomer),
+      hasRealSales: response.hasRealSales,
+    };
   } catch (err) {
     console.error("Failed to fetch top selling products:", err);
     return { productOfWeek: null, bestSellers: [], hasRealSales: false };
@@ -137,7 +149,7 @@ export async function fetchTopSellingProducts(): Promise<{
 export async function searchProducts(query: string): Promise<Product[]> {
   try {
     const res = await getJson<{ products: Product[] }>(`/api/products?search=${encodeURIComponent(query)}&limit=100`);
-    return res.products;
+    return res.products.map(sanitizeProductForCustomer);
   } catch (err) {
     console.error("Search API failed:", err);
     return [];
@@ -146,7 +158,11 @@ export async function searchProducts(query: string): Promise<Product[]> {
 
 export async function fetchPersonalizedProducts(): Promise<{ products: Product[]; personalized: boolean; method: string }> {
   try {
-    return await getJson<{ products: Product[]; personalized: boolean; method: string }>("/api/products/personalized");
+    const response = await getJson<{ products: Product[]; personalized: boolean; method: string }>("/api/products/personalized");
+    return {
+      ...response,
+      products: response.products.map(sanitizeProductForCustomer),
+    };
   } catch (err) {
     console.warn("Failed to fetch personalized products:", err);
     return { products: [], personalized: false, method: "error" };
@@ -157,9 +173,16 @@ export async function fetchPredictedNeeds(): Promise<{
   predictions: Array<{ product: Product; probability: number; reason: string; predictedDate: string | null }>;
 }> {
   try {
-    return await getJson<{
+    const response = await getJson<{
       predictions: Array<{ product: Product; probability: number; reason: string; predictedDate: string | null }>;
     }>("/api/products/predicted-needs");
+
+    return {
+      predictions: response.predictions.map((prediction) => ({
+        ...prediction,
+        product: sanitizeProductForCustomer(prediction.product),
+      })),
+    };
   } catch {
     return { predictions: [] };
   }
@@ -168,9 +191,13 @@ export async function fetchPredictedNeeds(): Promise<{
 export async function fetchSmartSearch(query: string): Promise<{ products: Product[]; semantic: boolean }> {
   if (!query || query.trim().length < 2) return { products: [], semantic: false };
   try {
-    return await getJson<{ products: Product[]; semantic: boolean }>(
+    const response = await getJson<{ products: Product[]; semantic: boolean }>(
       `/api/products/smart-search?q=${encodeURIComponent(query)}`
     );
+    return {
+      ...response,
+      products: response.products.map(sanitizeProductForCustomer),
+    };
   } catch {
     return { products: [], semantic: false };
   }
@@ -187,9 +214,13 @@ export async function fetchPersonalizedOrder(): Promise<{ boostIds: string[] }> 
 export async function fetchCartSuggestions(productIds: string[]): Promise<{ suggestions: Product[]; reason: string }> {
   if (productIds.length === 0) return { suggestions: [], reason: "" };
   try {
-    return await getJson<{ suggestions: Product[]; reason: string }>(
+    const response = await getJson<{ suggestions: Product[]; reason: string }>(
       `/api/products/cart-suggestions?productIds=${productIds.join(",")}`
     );
+    return {
+      ...response,
+      suggestions: response.suggestions.map(sanitizeProductForCustomer),
+    };
   } catch (err) {
     console.warn("Failed to fetch cart suggestions:", err);
     return { suggestions: [], reason: "" };

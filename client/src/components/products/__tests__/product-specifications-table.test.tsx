@@ -41,4 +41,38 @@ describe("ProductSpecificationsTable", () => {
         const { container } = render(<ProductSpecificationsTable specifications={{}} />);
         expect(container).toBeEmptyDOMElement();
     });
+
+    it("removes Arabic and English model fields from object specifications", () => {
+        render(
+            <ProductSpecificationsTable
+                specifications={{
+                    "الحجم": "كبير",
+                    "الموديل": "XY-2835",
+                    "Model No.": "C4-1123",
+                }}
+            />
+        );
+
+        expect(screen.getByText("الحجم")).toBeInTheDocument();
+        expect(screen.getByText("كبير")).toBeInTheDocument();
+        expect(screen.queryByText(/الموديل|model/i)).not.toBeInTheDocument();
+        expect(screen.queryByText(/XY-2835|C4-1123/i)).not.toBeInTheDocument();
+    });
+
+    it("removes model fields from array specifications", () => {
+        render(
+            <ProductSpecificationsTable
+                specifications={[
+                    { label: "الحجم", value: "صغير" },
+                    { label: "موديل", value: "XY-180" },
+                    { label: "model number", value: "C4-1123" },
+                ]}
+            />
+        );
+
+        expect(screen.getByText("الحجم")).toBeInTheDocument();
+        expect(screen.getByText("صغير")).toBeInTheDocument();
+        expect(screen.queryByText(/موديل|model/i)).not.toBeInTheDocument();
+        expect(screen.queryByText(/XY-180|C4-1123/i)).not.toBeInTheDocument();
+    });
 });
