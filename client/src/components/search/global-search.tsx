@@ -147,7 +147,34 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
     saveRecentSearches([]);
   };
 
-  const navigateToResult = (result: SiteSearchResult) => {
+  /**
+   * Report which result was chosen, then navigate.
+   *
+   * This is the ONLY place a search result is opened — both the mouse click and the Enter key funnel
+   * through here — so one call covers every path. Until this existed the server could see that a search
+   * happened and never which product it led to.
+   */
+  const reportSearchClick = (result: SiteSearchResult, index: number) => {
+    if (result.type !== "product") return;
+    const q = query.trim();
+    if (q.length < 2) return;
+    try {
+      const body = JSON.stringify({ query: q, productId: result.id, position: index });
+      // keepalive so the request survives the navigation that happens on the next line.
+      void fetch("/api/products/search-click", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        keepalive: true,
+        body,
+      }).catch(() => {});
+    } catch {
+      // Telemetry must never break navigation.
+    }
+  };
+
+  const navigateToResult = (result: SiteSearchResult, index = results.findIndex((r) => r.id === result.id && r.url === result.url)) => {
+    reportSearchClick(result, index < 0 ? 0 : index);
     addRecentSearch(query || result.title);
     onOpenChange(false);
     setLocation(result.url);
@@ -165,7 +192,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
         setSelectedIndex((current) => Math.max(0, current - 1));
       } else if (event.key === "Enter" && results[selectedIndex]) {
         event.preventDefault();
-        navigateToResult(results[selectedIndex]);
+        navigateToResult(results[selectedIndex], selectedIndex);
       } else if (event.key === "Escape") {
         onOpenChange(false);
       }
@@ -235,7 +262,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
                         role="option"
                         aria-selected={isSelected}
                         onMouseEnter={() => setSelectedIndex(index)}
-                        onClick={() => navigateToResult(result)}
+                        onClick={() => navigateToResult(result, index)}
                         className={`flex min-h-16 w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-right transition-colors ${
                           isSelected
                             ? "border-primary/40 bg-primary/10"
