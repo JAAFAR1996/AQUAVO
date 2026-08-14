@@ -341,6 +341,46 @@ export function createProductRouter(): RouterType {
         }
     });
 
+    /**
+     * Record which search result a shopper actually clicked.
+     *
+     * analyticsTracker.trackSearchClick() has existed since the search feature shipped and had NO caller
+     * anywhere in the repository — no route exposed it and no client invoked it. The consequence was that
+     * all 560 rows in search_queries carried a NULL clicked_product_id, so search relevance and
+     * search-to-product conversion were unmeasurable by construction rather than by chance. Site search
+     * touches roughly a third of sessions, and searchers convert well above the site-wide rate, so this
+     * was the largest unmeasured behaviour on the site.
+     *
+     * Fire-and-forget by design: telemetry must never delay or fail a shopper's navigation, so this
+     * always answers 202 and never surfaces a tracking error to the client.
+     */
+    router.post("/search-click", async (req: Request, res: Response): Promise<void> => {
+        // Answer first. The shopper is already navigating; nothing here may block that.
+        res.status(202).json({ accepted: true });
+        try {
+            const { query, productId, position } = (req.body ?? {}) as {
+                query?: unknown; productId?: unknown; position?: unknown;
+            };
+            if (typeof query !== "string" || typeof productId !== "string") return;
+            const q = query.trim();
+            if (q.length < 2 || q.length > 200) return;
+            if (productId.length < 1 || productId.length > 128) return;
+            const pos = Number(position);
+            if (!Number.isInteger(pos) || pos < 0 || pos > 200) return;
+
+            const clickSession = getSession(req);
+            await analyticsTracker.trackSearchClick({
+                userId: clickSession?.userId,
+                sessionId: (req as any).sessionID || "unknown",
+                query: q,
+                productId,
+                position: pos,
+            });
+        } catch {
+            // Swallowed on purpose — see above.
+        }
+    });
+
     // Personalized product sort order (boosts recommended products to top)
     router.get("/personalized-order", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
