@@ -1096,12 +1096,32 @@ function AppShell() {
   );
 }
 
-// Generate or reuse a client-side session ID (persists across page loads in same tab)
+// Generate or reuse a VIEW-session ID (per tab; dies when the tab closes). This is the id that reaches
+// `page_views.session_id` in Neon.
+//
+// The key is deliberately NOT `aq_sid`. It used to be, and that was a genuine defect: `aq_sid` is also
+// the name lib/attribution.ts gives its DURABLE acquisition id — a crypto.randomUUID kept in
+// localStorage and sent to PostHog. Two different values lived under one name in two different storage
+// backends at the same time (verified in production 2026-08-14: localStorage held
+// `f576b9b5-c6dc-…` while sessionStorage held `cs_1786716488976_…`).
+//
+// Why that mattered more than it looks: every one of the ~10,700 page_views rows AQUAVO has ever
+// recorded carries the `cs_` shape and none carries the uuid shape, so an order stamped with the
+// durable `aq_sid` could never join the only session data production has. The join would return zero
+// rows forever — and an empty join is exactly the condition that tempts someone to "fix" it with
+// timestamp proximity, which is not attribution.
+//
+// These are two legitimately different ids with different lifetimes. They just must not share a name.
 function getClientSessionId(): string {
-  let sid = sessionStorage.getItem("aq_sid");
+  let sid = sessionStorage.getItem("aq_view_sid");
   if (!sid) {
-    sid = `cs_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
-    sessionStorage.setItem("aq_sid", sid);
+    // One-time migration off the colliding key, so an open tab keeps its view session.
+    const legacy = sessionStorage.getItem("aq_sid");
+    sid = legacy && legacy.startsWith("cs_")
+      ? legacy
+      : `cs_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+    sessionStorage.setItem("aq_view_sid", sid);
+    try { sessionStorage.removeItem("aq_sid"); } catch (_) { /* non-fatal */ }
   }
   return sid;
 }

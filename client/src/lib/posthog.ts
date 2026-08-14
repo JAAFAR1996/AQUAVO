@@ -47,17 +47,46 @@ export function initPostHog(): void {
 
 function capture(name: string, props: Record<string, unknown>): void {
   if (DEV) console.info("[PostHog] event:", name);
+  // Acquisition identity travels with EVERY event, not just the three that used to spread it by hand.
+  //
+  // Verified in production 2026-08-14: `aq_sid` and the `aq_*` campaign ids reached PostHog on
+  // InitiateCheckout, Purchase and WhatsAppClick only. $pageview, ViewContent, AddToCart, CategoryClick,
+  // Search and NotificationClicked carried none of it — which are precisely the highest-volume events
+  // (768 ViewContent and 217 AddToCart in 30 days against 1 WhatsAppClick). A funnel keyed on aq_sid
+  // could therefore see the conversion steps but not the steps leading to them, which is the wrong half.
+  //
+  // Merged here, at the single chokepoint, rather than registered as posthog super-properties: super
+  // properties are captured once and go stale, and last-touch attribution legitimately changes mid-visit
+  // when a campaign-bearing URL is opened in an SPA without a reload. Reading it per event is a
+  // localStorage read — cheap, and always current.
+  //
+  // Call-site props win on conflict, so the three events that already carried these values are
+  // byte-identical to before. Note this covers AQUAVO's own events; posthog-js internals ($web_vitals,
+  // $snapshot) do not route through here and remain without attribution.
+  let merged: Record<string, unknown> = props;
+  try {
+    merged = { ...attributionProperties(), ...props };
+  } catch (_) { /* attribution must never cost us the event */ }
+
   if (!initialized || !phInstance) {
-    queue.push({ name, props });
+    queue.push({ name, props: merged });
     return;
   }
   try {
-    phInstance.capture(name, props);
+    phInstance.capture(name, merged);
   } catch (_) { /* never block UX */ }
 }
 
 export function phTrackPageView(path: string): void {
-  capture("$pageview", { $current_url: path });
+  // Absolute, not a bare path. Verified in production 2026-08-14: $pageview stored `$current_url` as
+  // "/products" while ViewContent and WhatsAppClick on the SAME page stored the full URL, so any filter
+  // or join spanning pageviews and custom events silently mismatched, and PostHog web-analytics path
+  // matching saw a different value than product analytics did.
+  let absolute = path;
+  try {
+    if (typeof window !== "undefined") absolute = new URL(path, window.location.origin).href;
+  } catch (_) { /* a malformed path is still worth a pageview */ }
+  capture("$pageview", { $current_url: absolute });
 }
 
 export function phTrackViewContent(product: {
