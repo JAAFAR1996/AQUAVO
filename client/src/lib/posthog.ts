@@ -4,8 +4,46 @@
 import { attributionProperties } from "./attribution";
 
 const KEY = import.meta.env.VITE_POSTHOG_KEY as string | undefined;
-const HOST = import.meta.env.VITE_POSTHOG_HOST as string | undefined;
 const DEV = import.meta.env.DEV as boolean | undefined;
+
+const DEFAULT_HOST = "https://us.i.posthog.com";
+
+/**
+ * The configured ingest host, but only if it is actually a host.
+ *
+ * Production is currently running with `VITE_POSTHOG_HOST` set to the literal string
+ * `VITE_POSTHOG_HOST=https://us.i.posthog.com` — the variable NAME was pasted into the value field when
+ * the Vercel env var was created. Verified in the deployed bundle, not inferred.
+ *
+ * Every event still arrives, but only by accident: posthog-js resolves its region with an UNANCHORED
+ * regex, which substring-matches the real URL sitting inside the malformed string, resolves the region
+ * to `us`, and then discards api_host entirely to build its own endpoints. So the value is wrong, the
+ * outcome is right, and the two are held together by an undocumented implementation detail of a third
+ * party. If that regex is ever anchored, ingestion stops silently — no error, no failed request, the
+ * funnel simply goes quiet.
+ *
+ * Validating here rather than waiting for the env var to be corrected has one decisive advantage:
+ * `VITE_*` is inlined by Vite at BUILD time, so a corrected env var only takes effect on the next
+ * production build anyway. This makes the app correct by construction regardless of what the variable
+ * holds, and it still surfaces the misconfiguration instead of hiding it.
+ */
+function resolveHost(raw: string | undefined): string {
+  if (!raw) return DEFAULT_HOST;
+  const trimmed = raw.trim();
+  try {
+    const url = new URL(trimmed);
+    if (url.protocol === "http:" || url.protocol === "https:") return trimmed;
+  } catch {
+    // Not a URL at all — fall through to the warning below.
+  }
+  // Deliberately warns in production too. A silently corrected value is how this survived unnoticed.
+  console.warn(
+    `[PostHog] VITE_POSTHOG_HOST is not a valid URL (${JSON.stringify(trimmed)}); falling back to ${DEFAULT_HOST}. Fix the environment variable.`,
+  );
+  return DEFAULT_HOST;
+}
+
+const HOST = resolveHost(import.meta.env.VITE_POSTHOG_HOST as string | undefined);
 
 interface MinimalPostHog {
   init(key: string, options: Record<string, unknown>): void;
@@ -26,14 +64,14 @@ export function initPostHog(): void {
   void import("posthog-js").then(({ default: posthog }) => {
     phInstance = posthog as unknown as MinimalPostHog;
     posthog.init(KEY, {
-      api_host: HOST ?? "https://us.i.posthog.com",
+      api_host: HOST,
       person_profiles: "identified_only",
       autocapture: false,
       capture_pageview: false,
       capture_pageleave: false,
     });
     initialized = true;
-    if (DEV) console.info("[PostHog] initialized — host:", HOST ?? "https://us.i.posthog.com");
+    if (DEV) console.info("[PostHog] initialized — host:", HOST);
     // Flush events that fired before init resolved
     for (const { name, props } of queue) {
       try {
