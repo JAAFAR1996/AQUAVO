@@ -372,9 +372,9 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
                                 <div className="grid grid-cols-2 gap-2 text-sm">
                                     <Fact icon={<Wallet className="h-4 w-4" />} label="الدفع" value="نقداً عند الاستلام" />
                                     <Fact icon={<Truck className="h-4 w-4" />} label="التوصيل المتوقع" value={getDeliveryEstimate()} />
-                                    {customerName && <Fact icon={<Package className="h-4 w-4" />} label="المستلم" value={customerName} />}
-                                    {customerPhone && <Fact icon={<Phone className="h-4 w-4" />} label="الهاتف" value={customerPhone} ltr />}
-                                    {address && <Fact icon={<MapPin className="h-4 w-4" />} label="العنوان" value={address} full />}
+                                    {customerName && <Fact icon={<Package className="h-4 w-4" />} label="المستلم" value={customerName} sensitive />}
+                                    {customerPhone && <Fact icon={<Phone className="h-4 w-4" />} label="الهاتف" value={customerPhone} ltr sensitive />}
+                                    {address && <Fact icon={<MapPin className="h-4 w-4" />} label="العنوان" value={address} full sensitive />}
                                 </div>
                             </div>
 
@@ -464,13 +464,38 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
     );
 }
 
-function Fact({ icon, label, value, ltr, full }: { icon: React.ReactNode; label: string; value: string; ltr?: boolean; full?: boolean }) {
+/**
+ * `sensitive` keeps a value out of BOTH session recorders that run on this page.
+ *
+ * Two independent replay systems record this route, and each one masks typed INPUTS by default while
+ * leaving rendered TEXT alone — which is exactly what this page is. Verified from what each vendor
+ * actually serves this project, not from their marketing pages:
+ *
+ *   PostHog  remote config: "masking": null, "urlBlocklist": [] — no project masking rule, and no URL
+ *            is excluded from recording, so /order-confirmation is recorded like any other page.
+ *   Clarity  tag config:    "content": true — text content capture is on.
+ *
+ * The neighbouring checkout confirmation step (components/cart/checkout/confirmation-view.tsx) already
+ * masks these same three values. This page is a SECOND live surface that shows them and was missed —
+ * the same shape of bug as the tracking that lived in an unmounted component: the protection existed,
+ * just not on every rendered path.
+ *
+ * `ph-no-capture` is PostHog's documented opt-out and also excludes the element from replays;
+ * `data-clarity-mask` is Clarity's, and matches the attribute already used elsewhere in this codebase.
+ */
+function Fact({ icon, label, value, ltr, full, sensitive }: { icon: React.ReactNode; label: string; value: string; ltr?: boolean; full?: boolean; sensitive?: boolean }) {
     return (
         <div className={`flex items-center gap-2 rounded-lg border border-border bg-muted/40 p-2.5 ${full ? "col-span-2" : ""}`}>
             <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-primary/10 text-primary">{icon}</span>
             <div className="min-w-0">
                 <div className="text-[11px] text-muted-foreground">{label}</div>
-                <div className="truncate text-xs font-medium text-foreground" dir={ltr ? "ltr" : undefined}>{value}</div>
+                <div
+                    className={`truncate text-xs font-medium text-foreground${sensitive ? " ph-no-capture" : ""}`}
+                    dir={ltr ? "ltr" : undefined}
+                    {...(sensitive ? { "data-clarity-mask": "True" } : {})}
+                >
+                    {value}
+                </div>
             </div>
         </div>
     );
