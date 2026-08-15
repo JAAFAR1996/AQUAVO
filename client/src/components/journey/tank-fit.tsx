@@ -41,30 +41,30 @@ const fmtPrice = (p: number | null) => (typeof p === "number" && p > 0 ? `${p.to
 
 function ProductLine({ c, tone }: { c: Candidate; tone: "fit" | "unknown" }) {
   const href = c.slug ? `/products/${c.slug}` : `/products/${c.productId}`;
+  // wouter v3 renders the anchor itself — nesting an <a> here would emit invalid <a><a>.
   return (
-    <Link href={href}>
-      <a className="flex items-start justify-between gap-3 rounded-lg border border-border bg-background/60 p-3 transition-colors hover:border-primary/50">
-        <div className="min-w-0 text-right">
-          <div className="text-sm font-bold text-foreground">
-            {c.name}
-            {c.variantLabel ? <span className="text-primary"> — {c.variantLabel}</span> : null}
-          </div>
-          {/* The exact catalogue sentence the match came from. A shopper can check our work. */}
-          {c.evidence ? (
-            <div className="mt-0.5 text-xs text-muted-foreground">{c.evidence}</div>
-          ) : (
-            <div className="mt-0.5 text-xs text-muted-foreground">المواصفات ما تذكر حجم حوض مناسب</div>
-          )}
-        </div>
-        <div className="shrink-0 text-left">
-          {fmtPrice(c.price) ? <div className="text-xs font-bold text-foreground">{fmtPrice(c.price)}</div> : null}
-          {tone === "fit" ? (
-            <Badge className="mt-1 bg-primary/15 text-primary hover:bg-primary/15">مناسب</Badge>
-          ) : (
-            <Badge variant="outline" className="mt-1">غير محدد</Badge>
-          )}
-        </div>
-      </a>
+    <Link
+      href={href}
+      className="flex items-start justify-between gap-3 rounded-lg border border-border bg-background/60 p-3 transition-colors hover:border-primary/50"
+    >
+      <span className="min-w-0 text-right">
+        <span className="block text-sm font-bold text-foreground">
+          {c.name}
+          {c.variantLabel ? <span className="text-primary"> — {c.variantLabel}</span> : null}
+        </span>
+        {/* The exact catalogue sentence the match came from. A shopper can check our work. */}
+        <span className="mt-0.5 block text-xs text-muted-foreground">
+          {c.evidence ?? "المواصفات ما تذكر حجم حوض مناسب"}
+        </span>
+      </span>
+      <span className="shrink-0 text-left">
+        {fmtPrice(c.price) ? <span className="block text-xs font-bold text-foreground">{fmtPrice(c.price)}</span> : null}
+        {tone === "fit" ? (
+          <Badge className="mt-1 bg-primary/15 text-primary hover:bg-primary/15">مناسب</Badge>
+        ) : (
+          <Badge variant="outline" className="mt-1">غير محدد</Badge>
+        )}
+      </span>
     </Link>
   );
 }
