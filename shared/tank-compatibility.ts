@@ -70,8 +70,11 @@ function extractRanges(raw: string): TankRange[] {
   const ranges: TankRange[] = [];
 
   // "N - M لتر" / "N–M لتر", optionally with a trailing "+" on the upper bound.
+  // exec-loop rather than matchAll: this file is compiled under a target that does not permit
+  // iterating a RegExpStringIterator.
   const pairRe = /(\d{1,4})\s*[-–—]\s*(\d{1,4})\s*(\+)?\s*لتر/g;
-  for (const m of s.matchAll(pairRe)) {
+  let m: RegExpExecArray | null;
+  while ((m = pairRe.exec(s)) !== null) {
     ranges.push({ minL: Number(m[1]), maxL: m[3] ? null : Number(m[2]) });
   }
 
@@ -254,5 +257,7 @@ export function fitCatalogue(products: CandidateInput[], litres: number): Catego
     }
   }
 
-  return [...byCategory.values()];
+  const out: CategoryFit[] = [];
+  byCategory.forEach((v) => out.push(v));
+  return out;
 }
