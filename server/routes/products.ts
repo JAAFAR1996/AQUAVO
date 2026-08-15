@@ -8,6 +8,7 @@ import { embeddingGenerator } from "../services/embedding-generator.js";
 import { analyticsTracker } from "../services/analytics-tracker.js";
 import * as Sentry from "@sentry/node";
 import { toPublicProduct, toPublicProducts } from "../../shared/public-product.js";
+import { fitCatalogue } from "../../shared/tank-compatibility.js";
 
 // ─── Server-side in-memory cache ──────────────────────────────
 // Prevents repeated DB round-trips for the same product query.
@@ -26,6 +27,14 @@ setInterval(() => {
         if (now > val.expires) productsCache.delete(key);
     }
 }, 5 * 60 * 1000); // sweep every 5 minutes
+
+/**
+ * Categories where tank volume actually changes which product is correct.
+ *
+ * Deliberately not every category: substrate, food and decor do not have a litre-dependent right answer,
+ * and pretending they do would add noise to the one question this endpoint exists to answer.
+ */
+const SIZE_RELEVANT_CATEGORIES = ["التحكم بالحرارة", "الفلترة والتنقية", "التهوية والأكسجين"];
 
 /**
  * The session key search analytics is recorded under.
@@ -118,6 +127,49 @@ export function createProductRouter(): RouterType {
         try {
             const attrs = await storage.getProductAttributes();
             res.json({ categories: attrs.categories });
+        } catch (err) {
+            next(err);
+        }
+    });
+
+    /**
+     * What AQUAVO can honestly recommend for a tank of N litres.
+     *
+     * "شنو الفلتر/الهيتر المناسب لحوضي؟" is the most common question customers ask — 19% of chat
+     * messages, phrased in litres. The journey wizard already collects the litres and then answered with
+     * a generic rule ("1 واط لكل لتر") that names no product AQUAVO sells and can contradict the
+     * catalogue: that rule prescribes 80W for an 80 litre tank, while AQUAVO's own 100W heater is rated
+     * 50–100 litres.
+     *
+     * Every result here traces to a specification string on the product or its variant. Nothing is
+     * estimated. A SKU with no stated range is returned in its own bucket and is never presented as a
+     * match, because "we don't know" and "it fits" are different answers.
+     *
+     * Only the FitCandidate shape is serialised, so no cost field can escape through the variant rows
+     * this reads.
+     */
+    router.get("/fit", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const litres = Number(req.query.litres);
+            if (!Number.isFinite(litres) || litres < 10 || litres > 2000) {
+                res.status(400).json({ message: "litres must be between 10 and 2000" });
+                return;
+            }
+
+            const all = await storage.getProducts({ limit: 500 });
+            const relevant = (Array.isArray(all) ? all : []).filter(
+                (p: any) => SIZE_RELEVANT_CATEGORIES.includes(String(p.category ?? "")),
+            );
+            const groups = fitCatalogue(relevant as any, litres);
+
+            res.set("Cache-Control", "public, max-age=300");
+            res.json({
+                litres,
+                groups,
+                // Stated rather than implied: the caller should show this, not paper over it.
+                limitation:
+                    "التوصية مبنية على حجم الحوض المذكور في مواصفات المنتج فقط. المنتجات التي لا تذكر حجماً لا تظهر كتوصية.",
+            });
         } catch (err) {
             next(err);
         }
