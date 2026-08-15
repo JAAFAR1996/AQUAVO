@@ -13,7 +13,7 @@ const sections = [
   {
     icon: BarChart3,
     title: "بيانات الاستخدام والتحليلات",
-    text: "قد نسجل معلومات تقنية مثل عنوان IP، نوع الجهاز والمتصفح، الصفحات والأحداث داخل الموقع. نستخدم خدمات قياس وأخطاء وإعلانات مثل Google Analytics وMeta Pixel وTikTok Pixel وMicrosoft Clarity وPostHog وSentry إذا كانت مفاتيحها مفعّلة.",
+    text: "قد نسجل معلومات تقنية مثل عنوان IP، نوع الجهاز والمتصفح، الصفحات والأحداث داخل الموقع. نستخدم خدمات قياس وأخطاء وإعلانات مثل Google Analytics وMeta Pixel وTikTok Pixel وPostHog وSentry إذا كانت مفاتيحها مفعّلة.",
   },
   {
     icon: Database,
