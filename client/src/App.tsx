@@ -19,6 +19,7 @@ const SpeedInsights = lazy(() => import("@vercel/speed-insights/react").then(m =
 
 import { initGA, trackPageView } from "@/lib/analytics";
 import { initClarity } from "@/lib/clarity";
+import { getClientSessionId } from "@/lib/client-session";
 import { initPostHog, phTrackPageView } from "@/lib/posthog";
 import { useMetaPixelInit, useMetaPageView } from "@/hooks/use-meta-pixel";
 import { useDeviceDetection } from "@/hooks/use-device-detection";
@@ -1096,35 +1097,8 @@ function AppShell() {
   );
 }
 
-// Generate or reuse a VIEW-session ID (per tab; dies when the tab closes). This is the id that reaches
-// `page_views.session_id` in Neon.
-//
-// The key is deliberately NOT `aq_sid`. It used to be, and that was a genuine defect: `aq_sid` is also
-// the name lib/attribution.ts gives its DURABLE acquisition id — a crypto.randomUUID kept in
-// localStorage and sent to PostHog. Two different values lived under one name in two different storage
-// backends at the same time (verified in production 2026-08-14: localStorage held
-// `f576b9b5-c6dc-…` while sessionStorage held `cs_1786716488976_…`).
-//
-// Why that mattered more than it looks: every one of the ~10,700 page_views rows AQUAVO has ever
-// recorded carries the `cs_` shape and none carries the uuid shape, so an order stamped with the
-// durable `aq_sid` could never join the only session data production has. The join would return zero
-// rows forever — and an empty join is exactly the condition that tempts someone to "fix" it with
-// timestamp proximity, which is not attribution.
-//
-// These are two legitimately different ids with different lifetimes. They just must not share a name.
-function getClientSessionId(): string {
-  let sid = sessionStorage.getItem("aq_view_sid");
-  if (!sid) {
-    // One-time migration off the colliding key, so an open tab keeps its view session.
-    const legacy = sessionStorage.getItem("aq_sid");
-    sid = legacy && legacy.startsWith("cs_")
-      ? legacy
-      : `cs_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
-    sessionStorage.setItem("aq_view_sid", sid);
-    try { sessionStorage.removeItem("aq_sid"); } catch (_) { /* non-fatal */ }
-  }
-  return sid;
-}
+// The per-tab view-session id now lives in lib/client-session.ts so the search path can use the
+// SAME id. See that file for why the key is not `aq_sid`.
 
 // Track page views on route changes + scroll to top + dwell time
 function PageViewTracker() {

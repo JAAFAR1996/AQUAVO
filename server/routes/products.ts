@@ -27,6 +27,35 @@ setInterval(() => {
     }
 }, 5 * 60 * 1000); // sweep every 5 minutes
 
+/**
+ * The session key search analytics is recorded under.
+ *
+ * Express's own `req.sessionID` cannot do this job for a guest. Operating production on 2026-08-14
+ * showed four consecutive requests from a single browser tab arriving with four different session
+ * ids — a guest never writes to the session, so no session cookie is ever issued and every request
+ * mints a fresh id. Anything keyed on it can only ever join to itself, which is why the first
+ * search-click that reached production could not find the search it belonged to and wrote a second,
+ * fabricated search row instead.
+ *
+ * The client's per-tab view-session id (`cs_…`, from lib/client-session.ts) is the same id that
+ * page_views already carries, so recording it here makes a search joinable both to its own click and
+ * to the pages that session visited.
+ *
+ * Validated rather than trusted: the shape is fixed, the length is bounded, and anything else falls
+ * back to the express id. A client that sends nothing is no worse off than before this existed.
+ */
+const CLIENT_SESSION_ID = /^cs_[A-Za-z0-9_]{1,64}$/;
+
+function resolveClientSessionId(req: Request, candidate: unknown): string {
+    // `cs_unavailable` is what the client sends when storage is blocked. It is well-formed and
+    // absolutely must not be honoured: every such visitor would share one key and their searches and
+    // clicks would be matched to each other's.
+    if (typeof candidate === "string" && candidate !== "cs_unavailable" && CLIENT_SESSION_ID.test(candidate)) {
+        return candidate;
+    }
+    return (req as any).sessionID || "unknown";
+}
+
 export function createProductRouter(): RouterType {
     const router = Router();
 
@@ -307,7 +336,7 @@ export function createProductRouter(): RouterType {
             const trackSearchPromise = (resultsCount: number) =>
                 analyticsTracker.trackSearch({
                     userId: searchSession?.userId,
-                    sessionId: (req as any).sessionID || "unknown",
+                    sessionId: resolveClientSessionId(req, req.query.sid),
                     query,
                     resultsCount,
                 }).catch(() => {});
@@ -371,7 +400,7 @@ export function createProductRouter(): RouterType {
             const clickSession = getSession(req);
             await analyticsTracker.trackSearchClick({
                 userId: clickSession?.userId,
-                sessionId: (req as any).sessionID || "unknown",
+                sessionId: resolveClientSessionId(req, (req.body ?? {}).clientSessionId),
                 query: q,
                 productId,
                 position: pos,

@@ -1,6 +1,7 @@
 import type { Product, ProductQueryParams, GallerySubmission } from "@/types";
 import { buildApiUrl } from "./config/env";
 import { addCsrfHeader } from "./csrf";
+import { getClientSessionId } from "./client-session";
 
 // Default timeout for API requests (30 seconds)
 const DEFAULT_TIMEOUT_MS = 30000;
@@ -168,8 +169,11 @@ export async function fetchPredictedNeeds(): Promise<{
 export async function fetchSmartSearch(query: string): Promise<{ products: Product[]; semantic: boolean }> {
   if (!query || query.trim().length < 2) return { products: [], semantic: false };
   try {
+    // `sid` is the per-tab view-session id, the same one page_views carries. It is sent so the
+    // server can record the search under a key that the later click can be matched to. Express's
+    // own session id cannot do that job for a guest — see lib/client-session.ts.
     return await getJson<{ products: Product[]; semantic: boolean }>(
-      `/api/products/smart-search?q=${encodeURIComponent(query)}`
+      `/api/products/smart-search?q=${encodeURIComponent(query)}&sid=${encodeURIComponent(getClientSessionId())}`
     );
   } catch {
     return { products: [], semantic: false };
