@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Filter, Thermometer, Lightbulb } from "lucide-react";
 import { WizardData } from "@/types/journey";
+import { TankFit } from "./tank-fit";
 
 interface EquipmentSelectionProps {
     wizardData: WizardData;
@@ -121,7 +122,22 @@ export function EquipmentSelection({ wizardData, updateData }: EquipmentSelectio
                             {wizardData.tankSize === "large" && " (150-200 واط للأحواض الكبيرة)"}
                             {wizardData.tankSize === "xlarge" && " (200-300 واط للأحواض الكبيرة جداً)"}
                         </div>
+                        {/*
+                          The rule above is a rule of thumb and is now labelled as one. It is kept because it
+                          teaches the shopper the shape of the answer — but it must not be the last word, and
+                          it can contradict the shelf: it prescribes 80W for an 80 litre tank while AQUAVO's
+                          100W heater is rated by its manufacturer for 50–100 litres. The catalogue below is
+                          the authority.
+                        */}
+                        <div className="mt-2 text-xs text-muted-foreground/80 text-right">
+                            هذي قاعدة عامة للتقريب. الأدق هو حجم الحوض المذكور بمواصفات المنتج نفسه.
+                        </div>
                     </div>
+                </div>
+
+                {/* What AQUAVO actually stocks for the litres this customer entered. */}
+                <div className="space-y-4 border-t border-border pt-6">
+                    <TankFit litres={Number(wizardData.tankLiters) || 0} />
                 </div>
 
                 {/* Lighting */}
