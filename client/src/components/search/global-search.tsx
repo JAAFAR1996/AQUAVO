@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
+import { getClientSessionId } from "@/lib/client-session";
 import {
   ArrowLeft,
   Clock3,
@@ -159,7 +160,16 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
     const q = query.trim();
     if (q.length < 2) return;
     try {
-      const body = JSON.stringify({ query: q, productId: result.id, position: index });
+      // The session id travels with the click for the same reason it travels with the search: it is
+      // the only key that can tie the two together. Without it the server cannot find the search this
+      // click belongs to and records a second, fabricated search row instead — observed in production
+      // on 2026-08-14, twice, on both the mouse and the keyboard path.
+      const body = JSON.stringify({
+        query: q,
+        productId: result.id,
+        position: index,
+        clientSessionId: getClientSessionId(),
+      });
       // keepalive so the request survives the navigation that happens on the next line.
       void fetch("/api/products/search-click", {
         method: "POST",
