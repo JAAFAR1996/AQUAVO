@@ -384,30 +384,46 @@ export function createProductRouter(): RouterType {
      * always answers 202 and never surfaces a tracking error to the client.
      */
     router.post("/search-click", async (req: Request, res: Response): Promise<void> => {
-        // Answer first. The shopper is already navigating; nothing here may block that.
-        res.status(202).json({ accepted: true });
+        // Do the work, THEN answer.
+        //
+        // This route used to answer 202 first and record afterwards, on the reasoning that telemetry
+        // must never delay a shopper who is already navigating. The reasoning was right and the place
+        // was wrong: on Vercel the function can be frozen the moment the response is sent, so work
+        // scheduled after it is not guaranteed to run. Observed on production 2026-08-15 — a click on
+        // a COLD container returned 202 and never reached the database, while the identical click on a
+        // warm container recorded correctly a minute later. Silent, intermittent, and invisible in the
+        // response.
+        //
+        // Nothing is lost by moving the response: the shopper never waits on it either way, because the
+        // client sends this with keepalive and ignores the result. The work is one indexed select and
+        // one update.
         try {
             const { query, productId, position } = (req.body ?? {}) as {
                 query?: unknown; productId?: unknown; position?: unknown;
             };
-            if (typeof query !== "string" || typeof productId !== "string") return;
-            const q = query.trim();
-            if (q.length < 2 || q.length > 200) return;
-            if (productId.length < 1 || productId.length > 128) return;
+            const q = typeof query === "string" ? query.trim() : "";
             const pos = Number(position);
-            if (!Number.isInteger(pos) || pos < 0 || pos > 200) return;
+            const valid =
+                q.length >= 2 && q.length <= 200 &&
+                typeof productId === "string" && productId.length >= 1 && productId.length <= 128 &&
+                Number.isInteger(pos) && pos >= 0 && pos <= 200;
 
-            const clickSession = getSession(req);
-            await analyticsTracker.trackSearchClick({
-                userId: clickSession?.userId,
-                sessionId: resolveClientSessionId(req, (req.body ?? {}).clientSessionId),
-                query: q,
-                productId,
-                position: pos,
-            });
+            // A rejected payload is not an error the shopper should see, and it must not skip the
+            // response either — every path below falls through to the same 202.
+            if (valid) {
+                const clickSession = getSession(req);
+                await analyticsTracker.trackSearchClick({
+                    userId: clickSession?.userId,
+                    sessionId: resolveClientSessionId(req, (req.body ?? {}).clientSessionId),
+                    query: q,
+                    productId: productId as string,
+                    position: pos,
+                });
+            }
         } catch {
-            // Swallowed on purpose — see above.
+            // Swallowed on purpose — a tracking failure is never the shopper's problem.
         }
+        res.status(202).json({ accepted: true });
     });
 
     // Personalized product sort order (boosts recommended products to top)
