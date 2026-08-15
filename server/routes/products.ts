@@ -128,7 +128,15 @@ export function createProductRouter(): RouterType {
         try {
             const result = await storage.getTopSellingProducts();
             res.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=1800');
-            res.json(toPublicProducts(result));
+            // getTopSellingProducts returns an OBJECT, not an array. toPublicProducts takes `unknown`
+            // and returns [] for anything that is not an array — it fails closed, which is exactly
+            // right for a security allowlist and exactly why this was silent: passing the object
+            // through it emptied the homepage instead of throwing. Each part is mapped on its own.
+            res.json({
+                productOfWeek: result.productOfWeek ? toPublicProduct(result.productOfWeek) : null,
+                bestSellers: toPublicProducts(result.bestSellers),
+                hasRealSales: result.hasRealSales,
+            });
         } catch (err) {
             next(err);
         }
