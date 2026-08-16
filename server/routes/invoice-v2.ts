@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { Router, type NextFunction, type Request, type Response } from "express";
 import { eq, sql } from "drizzle-orm";
 import { manualInvoices, orderItems, orders } from "../../shared/schema.js";
+import { ROUNDING_STEP } from "../../shared/order-financials.js";
 import { getDb } from "../db.js";
 import {
   buildProductCostSnapshot,
@@ -93,7 +94,14 @@ export function createInvoiceV2Router() {
         const discount = money(invoice.discount ?? 0, "الخصم");
         const delivery = money(invoice.delivery ?? 0, "التوصيل");
         const total = money(invoice.total, "الإجمالي");
-        if (calculatedSubtotal !== invoiceSubtotal || total !== Math.max(0, invoiceSubtotal - discount + delivery)) {
+        const rawTotal = Math.max(0, invoiceSubtotal - discount + delivery);
+        const roundedTotal = Math.ceil(rawTotal / ROUNDING_STEP) * ROUNDING_STEP;
+
+        // ManualInvoiceCreator intentionally rounds the customer-facing amount UP
+        // to the next 250 IQD. Older/admin-created invoices can still carry the
+        // exact raw amount, so accept only those two deterministic values. The
+        // subtotal must always match the immutable invoice lines exactly.
+        if (calculatedSubtotal !== invoiceSubtotal || (total !== rawTotal && total !== roundedTotal)) {
           throw Object.assign(new Error("مبالغ الفاتورة لا تطابق سطور المنتجات"), { status: 409 });
         }
 
@@ -104,7 +112,10 @@ export function createInvoiceV2Router() {
           userId: null,
           status: "pending",
           paymentStatus: "pending",
-          total: String(total),
+          // Keep the pre-rounding total separate from the amount the customer
+          // actually agreed to pay. This matches the storefront order contract:
+          // `total` is the raw financial total, `roundedTotal` is COD collection.
+          total: String(rawTotal),
           roundedTotal: String(total),
           shippingCost: String(delivery),
           discountTotal: String(discount),
