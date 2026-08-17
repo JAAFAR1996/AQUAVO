@@ -61,11 +61,11 @@ vi.mock("@/components/ui/alert-dialog", () => ({
 }));
 
 vi.mock("lucide-react", () => ({
+  Archive: () => <span>archive</span>,
   Package: () => <span>package</span>,
   Search: () => <span>search</span>,
   Eye: () => <span>view-order</span>,
   AlertTriangle: () => <span>alert</span>,
-  Trash2: () => <span>trash</span>,
   ReceiptText: () => <span>receipt</span>,
   RotateCcw: () => <span>rotate</span>,
 }));
@@ -145,7 +145,7 @@ describe("OrdersManagement operational return events runtime", () => {
       const url = String(input);
       requestedUrls.push(url);
 
-      if (url === "/api/admin/orders") {
+      if (url.startsWith("/api/admin/orders")) {
         return new Response(JSON.stringify([order]), { status: 200, headers: { "Content-Type": "application/json" } });
       }
 
