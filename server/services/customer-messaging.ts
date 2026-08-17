@@ -149,15 +149,9 @@ async function claimDeliveryCareJob(orderId: string): Promise<ClaimedJob | null>
       FROM public.customer_message_jobs
       WHERE order_id=${orderId}
         AND job_type='delivery_care'
+        AND status='pending'
         AND attempt_count < ${MAX_SEND_ATTEMPTS}
-        AND (
-          (status='pending' AND due_at <= clock_timestamp())
-          OR (
-            status='sending'
-            AND locked_at IS NOT NULL
-            AND locked_at <= clock_timestamp() - (${STALE_SENDING_LEASE_MINUTES} * interval '1 minute')
-          )
-        )
+        AND due_at <= clock_timestamp()
       ORDER BY due_at ASC, created_at ASC
       LIMIT 1
       FOR UPDATE SKIP LOCKED
@@ -245,9 +239,13 @@ async function sendDeliveryCareTemplate(
   } catch (error) {
     const name = error instanceof Error ? error.name : "";
     const code = name === "TimeoutError" || name === "AbortError"
-      ? "WHATSAPP_TIMEOUT"
-      : "WHATSAPP_NETWORK_ERROR";
-    throw new WhatsAppSendError(code, true);
+      ? "WHATSAPP_TIMEOUT_AMBIGUOUS"
+      : "WHATSAPP_NETWORK_AMBIGUOUS";
+
+    // A transport failure can happen after Meta already accepted the request but
+    // before the response reached us. Without a wamid there is no safe automatic
+    // deduplication key, so prefer at-most-once customer messaging and escalate.
+    throw new WhatsAppSendError(code, false);
   }
 
   let body: MetaSendResponse = {};
@@ -262,7 +260,7 @@ async function sendDeliveryCareTemplate(
   if (response.ok && providerMessageId) return providerMessageId;
 
   const code = compactMetaErrorCode(response.status, body);
-  const retryable = response.status === 408 || response.status === 429 || response.status >= 500;
+  const retryable = response.status === 429 || response.status >= 500;
   throw new WhatsAppSendError(code, retryable);
 }
 
@@ -280,6 +278,7 @@ async function markAccepted(jobId: string, providerMessageId: string): Promise<v
            last_error_at=NULL,
            updated_at=clock_timestamp()
      WHERE id=${jobId}
+       AND status='sending'
   `);
 }
 
@@ -294,6 +293,7 @@ async function markPermanentFailure(jobId: string, errorCode: string): Promise<v
            locked_at=NULL,
            updated_at=clock_timestamp()
      WHERE id=${jobId}
+       AND status='sending'
   `);
 }
 
@@ -309,6 +309,7 @@ async function scheduleRetry(jobId: string, errorCode: string, dueAt: Date): Pro
            locked_at=NULL,
            updated_at=clock_timestamp()
      WHERE id=${jobId}
+       AND status='sending'
   `);
 }
 
@@ -376,23 +377,22 @@ export async function dispatchDeliveryCareForOrder(orderId: string): Promise<Cus
     if (error instanceof WhatsAppSendError) {
       return await releaseClaimAsFailed(job, error.code, error.retryable);
     }
-    return await releaseClaimAsFailed(job, "WHATSAPP_UNKNOWN_ERROR", true);
+    return await releaseClaimAsFailed(job, "WHATSAPP_UNKNOWN_AMBIGUOUS", false);
   }
 }
 
-async function failExhaustedStaleClaims(): Promise<number> {
+async function failStaleClaims(): Promise<number> {
   const db = getDb();
   if (!db) return 0;
   const result = await db.execute(sql`
     UPDATE public.customer_message_jobs
        SET status='failed',
-           last_error_code='STALE_LOCK_MAX_ATTEMPTS',
+           last_error_code='AMBIGUOUS_STALE_SEND_STATE',
            last_error_at=clock_timestamp(),
            locked_at=NULL,
            updated_at=clock_timestamp()
      WHERE job_type='delivery_care'
        AND status='sending'
-       AND attempt_count >= ${MAX_SEND_ATTEMPTS}
        AND locked_at IS NOT NULL
        AND locked_at <= clock_timestamp() - (${STALE_SENDING_LEASE_MINUTES} * interval '1 minute')
     RETURNING id
@@ -402,36 +402,31 @@ async function failExhaustedStaleClaims(): Promise<number> {
 
 /**
  * Durable recovery worker used by the external GitHub Actions scheduler on Vercel
- * Hobby. It handles both due pending jobs and abandoned "sending" claims whose
- * lease expired after a process crash/timeout.
+ * Hobby. Pending jobs are retried when the provider explicitly returned a retryable
+ * HTTP failure. Ambiguous stale in-flight sends are failed for manual inspection
+ * rather than resent, which avoids duplicate customer messages.
  */
 export async function runDueDeliveryCareJobs(limit = DEFAULT_WORKER_LIMIT): Promise<{
   processed: number;
   sent: number;
   retried: number;
   failed: number;
-  exhaustedStaleClaims: number;
+  staleFailed: number;
 }> {
   const db = getDb();
   if (!db || !readWhatsAppConfig()) {
-    return { processed: 0, sent: 0, retried: 0, failed: 0, exhaustedStaleClaims: 0 };
+    return { processed: 0, sent: 0, retried: 0, failed: 0, staleFailed: 0 };
   }
 
   const safeLimit = Math.max(1, Math.min(MAX_WORKER_LIMIT, Math.floor(limit)));
-  const exhaustedStaleClaims = await failExhaustedStaleClaims();
+  const staleFailed = await failStaleClaims();
   const due = await db.execute(sql`
     SELECT order_id
     FROM public.customer_message_jobs
     WHERE job_type='delivery_care'
+      AND status='pending'
       AND attempt_count < ${MAX_SEND_ATTEMPTS}
-      AND (
-        (status='pending' AND due_at <= clock_timestamp())
-        OR (
-          status='sending'
-          AND locked_at IS NOT NULL
-          AND locked_at <= clock_timestamp() - (${STALE_SENDING_LEASE_MINUTES} * interval '1 minute')
-        )
-      )
+      AND due_at <= clock_timestamp()
     ORDER BY due_at ASC,created_at ASC
     LIMIT ${safeLimit}
   `);
@@ -451,5 +446,5 @@ export async function runDueDeliveryCareJobs(limit = DEFAULT_WORKER_LIMIT): Prom
     if (!["already_handled", "not_due", "disabled", "db_unavailable"].includes(result.status)) processed += 1;
   }
 
-  return { processed, sent, retried, failed, exhaustedStaleClaims };
+  return { processed, sent, retried, failed, staleFailed };
 }
