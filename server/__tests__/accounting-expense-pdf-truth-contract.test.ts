@@ -38,9 +38,10 @@ describe("accounting expense and PDF truth contract", () => {
       expect(source).toContain("ACCOUNTING_NUMERIC_VALUE_INVALID");
       expect(source).not.toContain("Number.isFinite(number) ? number : 0");
     }
-    // The schema gate must name the full chain it actually verifies; it now
-    // fails closed through 0071 (delivery readiness + return integrity guards).
-    expect(registerRoute).toContain("ACCOUNTING_V2_MIGRATIONS_0051_TO_0071_REQUIRED");
+    // The schema gate must name the latest accounting migration it actually
+    // requires, including the 0078 external-handoff hardening.
+    expect(registerRoute).toContain("ACCOUNTING_V2_LATEST_MIGRATION_REQUIRED");
+    expect(registerRoute).toContain("0078_accounting_external_handoff_hardening");
   });
 
   it("requires the carrier fee explicitly instead of inventing 5,000 IQD", () => {
@@ -59,7 +60,7 @@ describe("accounting expense and PDF truth contract", () => {
     expect(source).toContain('border: "#DDD8CE"');
     expect(source).toContain('/brand/aquavo-v2-horizontal.svg');
     expect(source).toContain("validateAccountantPayload(payload)");
-    expect(source).toContain("لا تُستبدل القيم المفقودة بأصفار");
+    expect(source).toContain("القيم المفقودة لا تُستبدل بأصفار");
     expect(source).not.toContain("Number(value ?? 0)");
   });
 });
