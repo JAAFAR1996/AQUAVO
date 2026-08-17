@@ -74,8 +74,8 @@ AS $function$
 $function$;
 
 -- Keep the append-only carrier trail internally consistent even if an INSERT bypasses
--- the HTTP route. The order row lock serializes corrections for the same order, so the
--- prior-carrier check cannot race with another correction.
+-- the HTTP route. The order and fact locks serialize corrections with one another and
+-- with settlement creation, preventing a correction from racing a settlement commit.
 CREATE OR REPLACE FUNCTION public.validate_order_accounting_carrier_correction_insert()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -87,6 +87,7 @@ DECLARE
   v_fact_carrier_fee numeric;
   v_company_name text;
   v_company_active boolean;
+  v_company_default_fee numeric;
   v_prior_carrier text;
 BEGIN
   PERFORM 1
@@ -100,7 +101,8 @@ BEGIN
   SELECT f.order_id,f.carrier_fee
     INTO v_fact_order_id,v_fact_carrier_fee
   FROM public.order_accounting_facts f
-  WHERE f.id=NEW.order_fact_id;
+  WHERE f.id=NEW.order_fact_id
+  FOR UPDATE;
   IF NOT FOUND THEN
     RAISE EXCEPTION 'ORDER_ACCOUNTING_CARRIER_CORRECTION_FACT_MISSING:%',NEW.order_fact_id USING ERRCODE='23503';
   END IF;
@@ -109,8 +111,8 @@ BEGIN
     RAISE EXCEPTION 'ORDER_ACCOUNTING_CARRIER_CORRECTION_ORDER_FACT_MISMATCH:%:%',NEW.order_id,NEW.order_fact_id USING ERRCODE='23514';
   END IF;
 
-  SELECT c.name,c.active
-    INTO v_company_name,v_company_active
+  SELECT c.name,c.active,c.default_fee
+    INTO v_company_name,v_company_active,v_company_default_fee
   FROM public.delivery_companies c
   WHERE c.id=NEW.delivery_company_id;
   IF NOT FOUND OR v_company_active IS DISTINCT FROM true THEN
@@ -125,7 +127,12 @@ BEGIN
     RAISE EXCEPTION 'ORDER_ACCOUNTING_CARRIER_CORRECTION_FEE_MISMATCH:%:%',NEW.carrier_fee,v_fact_carrier_fee USING ERRCODE='23514';
   END IF;
 
-  IF btrim(NEW.reason)='' THEN
+  IF v_company_default_fee IS DISTINCT FROM v_fact_carrier_fee THEN
+    RAISE EXCEPTION 'ORDER_ACCOUNTING_CARRIER_CORRECTION_COMPANY_FEE_MISMATCH:%:%',v_company_default_fee,v_fact_carrier_fee USING ERRCODE='23514';
+  END IF;
+
+  NEW.reason:=btrim(NEW.reason);
+  IF NEW.reason='' THEN
     RAISE EXCEPTION 'ORDER_ACCOUNTING_CARRIER_CORRECTION_REASON_REQUIRED' USING ERRCODE='23514';
   END IF;
 
@@ -141,6 +148,10 @@ BEGIN
     INTO v_prior_carrier;
   IF NEW.prior_carrier IS DISTINCT FROM v_prior_carrier THEN
     RAISE EXCEPTION 'ORDER_ACCOUNTING_CARRIER_CORRECTION_PRIOR_MISMATCH:%:%',COALESCE(NEW.prior_carrier,'<missing>'),COALESCE(v_prior_carrier,'<missing>') USING ERRCODE='23514';
+  END IF;
+
+  IF NEW.carrier IS NOT DISTINCT FROM v_prior_carrier THEN
+    RAISE EXCEPTION 'ORDER_ACCOUNTING_CARRIER_CORRECTION_NOOP:%',NEW.carrier USING ERRCODE='23514';
   END IF;
 
   -- Correction time is system evidence, not caller-supplied business data.
@@ -318,7 +329,7 @@ INSERT INTO public.schema_migrations(version,checksum,notes)
 VALUES(
   '0078_accounting_external_handoff_hardening',
   '0078007800780078007800780078007800780078007800780078007800780078',
-  'Harden Accounting V3 external handoff: immutable validated carrier corrections, settlement identity, stock-reconciliation review blocker, and constraint validation'
+  'Harden Accounting V3 external handoff: immutable validated serialized carrier corrections, settlement identity, stock-reconciliation review blocker, and constraint validation'
 )
 ON CONFLICT(version) DO UPDATE
 SET checksum=EXCLUDED.checksum,
