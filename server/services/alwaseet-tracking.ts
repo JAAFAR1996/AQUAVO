@@ -4,6 +4,7 @@ import { getDb } from "../db.js";
 const PROVIDER = "alwaseet";
 const API_BASE = "https://api.alwaseet-iq.net/v1/merchant";
 const CACHE_TTL_MS = 2 * 60 * 1000;
+const MERCHANT_DISCOVERY_CACHE_MS = 60 * 1000;
 const NEGATIVE_DISCOVERY_TTL_MS = 90 * 1000;
 const DISCOVERY_BEFORE_MS = 12 * 60 * 60 * 1000;
 const DISCOVERY_AFTER_MS = 14 * 24 * 60 * 60 * 1000;
@@ -59,6 +60,8 @@ type ApiEnvelope = {
 
 let cachedToken: string | null = null;
 let loginInFlight: Promise<string> | null = null;
+let merchantOrdersCache: { fetchedAt: number; orders: AlWaseetOrder[] } | null = null;
+let merchantOrdersInFlight: Promise<AlWaseetOrder[]> | null = null;
 const negativeDiscoveryCache = new Map<string, number>();
 
 function rowsOf(result: unknown): Row[] {
@@ -95,11 +98,36 @@ export function normalizeArabicText(value: unknown): string {
     .toLocaleLowerCase("ar-IQ")
     .replace(/[ًٌٍَُِّْـ]/g, "")
     .replace(/[أإآ]/g, "ا")
-    .replace(/ى/g, "ي")
+    .replace(/[ىی]/g, "ي")
+    .replace(/ک/g, "ك")
     .replace(/ة/g, "ه")
     .replace(/[^\p{L}\p{N}]+/gu, " ")
     .trim()
     .replace(/\s+/g, " ");
+}
+
+/**
+ * The public examples use phrases such as "لا یوجد" in issue_notes when there
+ * is no problem. Treat those sentinels as empty instead of warning every buyer.
+ */
+export function hasRealIssueNote(value: unknown): boolean {
+  const normalized = normalizeArabicText(value);
+  if (!normalized) return false;
+  const noIssueSentinels = new Set([
+    "لا يوجد",
+    "لا توجد",
+    "لايوجد",
+    "ماكو",
+    "بدون",
+    "none",
+    "no issue",
+    "no issues",
+    "na",
+    "n a",
+    "null",
+    "0",
+  ]);
+  return !noIssueSentinels.has(normalized);
 }
 
 function toIqd(value: unknown): number | null {
@@ -158,6 +186,9 @@ function providerPhones(order: AlWaseetOrder): string[] {
 }
 
 function payableAmounts(order: AquavoTrackingOrder): Set<number> {
+  // AQUAVO `total` already includes shipping; `roundedTotal` is the actual COD
+  // after denomination rounding/cashback when that flow applies. Accept either
+  // exact stored payable value, never an approximate amount.
   const values = [toIqd(order.roundedTotal), toIqd(order.total)]
     .filter((value): value is number => value != null);
   return new Set(values);
@@ -296,9 +327,28 @@ async function authenticatedRequest(path: string, init?: RequestInit, retryAuth 
   return body.data;
 }
 
-async function getMerchantOrders(): Promise<AlWaseetOrder[]> {
+async function fetchMerchantOrders(): Promise<AlWaseetOrder[]> {
   const data = await authenticatedRequest("merchant-orders", { method: "GET" });
   return data.map(parseAlWaseetOrder).filter((order): order is AlWaseetOrder => Boolean(order));
+}
+
+async function getMerchantOrders(): Promise<AlWaseetOrder[]> {
+  if (merchantOrdersCache && Date.now() - merchantOrdersCache.fetchedAt < MERCHANT_DISCOVERY_CACHE_MS) {
+    return merchantOrdersCache.orders;
+  }
+  if (merchantOrdersInFlight) return merchantOrdersInFlight;
+
+  merchantOrdersInFlight = (async () => {
+    const orders = await fetchMerchantOrders();
+    merchantOrdersCache = { fetchedAt: Date.now(), orders };
+    return orders;
+  })();
+
+  try {
+    return await merchantOrdersInFlight;
+  } finally {
+    merchantOrdersInFlight = null;
+  }
 }
 
 async function getOrdersByIds(ids: string[]): Promise<AlWaseetOrder[]> {
@@ -359,7 +409,7 @@ async function updateSnapshot(orderId: string, provider: AlWaseetOrder): Promise
     SET provider_qr_id=COALESCE(${provider.qrId},provider_qr_id),
         provider_status_id=${provider.statusId},
         provider_status=${provider.status},
-        has_issue=${provider.issueNotes.trim().length > 0},
+        has_issue=${hasRealIssueNote(provider.issueNotes)},
         provider_created_at=COALESCE(${provider.createdAt},provider_created_at),
         provider_updated_at=${provider.updatedAt},
         last_synced_at=clock_timestamp(),
@@ -383,7 +433,7 @@ async function insertMatch(orderId: string, match: MatchResult): Promise<PublicC
         provider_created_at,provider_updated_at,last_synced_at,match_method
       ) VALUES (
         ${orderId},${PROVIDER},${provider.id},${provider.qrId},
-        ${provider.statusId},${provider.status},${provider.issueNotes.trim().length > 0},
+        ${provider.statusId},${provider.status},${hasRealIssueNote(provider.issueNotes)},
         ${provider.createdAt},${provider.updatedAt},clock_timestamp(),${match.method}
       )
       ON CONFLICT(order_id,provider) DO NOTHING
