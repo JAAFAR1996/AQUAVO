@@ -95,7 +95,7 @@ export function createAccountingCarrierCorrectionV2Router() {
           JOIN public.orders o ON o.id=f.order_id
           LEFT JOIN public.order_accounting_settlements s ON s.order_fact_id=f.id
           WHERE f.order_id IN (${idList}) AND s.id IS NULL
-          FOR UPDATE OF f,o
+          FOR UPDATE OF o,f
         `);
         const facts = rowsOf(factsResult);
         const foundIds = new Set(facts.map((fact) => String(fact.order_id)));
