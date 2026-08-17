@@ -39,6 +39,16 @@ describe("Accounting V3 external handoff hardening", () => {
     expect(smartCarrierRoute).toContain('public.accounting_effective_carrier(f.id) AS carrier');
   });
 
+  it("prevents malformed settlement requests from committing carrier correction side effects", () => {
+    expect(correctionRoute).toContain('receivedAt: z.string().datetime({ offset: true })');
+    expect(correctionRoute).toContain('evidence: evidenceInputSchema');
+    expect(correctionRoute).toContain('}).strict();');
+    expect(correctionRoute).toContain('orderIds.length !== parsed.data.orderIds.length');
+    expect(correctionRoute).toContain('قائمة الطلبات تحتوي تكراراً');
+    expect(correctionRoute).toContain('FOR UPDATE OF f');
+    expect(correctionRoute).not.toContain('FOR UPDATE OF o');
+  });
+
   it("enforces and serializes carrier correction integrity in PostgreSQL", () => {
     expect(migration78).toContain('validate_order_accounting_carrier_correction_insert');
     expect(migration78).toContain('ORDER_ACCOUNTING_CARRIER_CORRECTION_ORDER_FACT_MISMATCH');
