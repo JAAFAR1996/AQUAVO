@@ -4,7 +4,6 @@ type PageSpec = { title: string; subtitle: string; body: string };
 const BRAND = {
   primary: "#0B93A6",
   primaryDark: "#075F6B",
-  flow: "#0B64A6",
   light: "#F6F4EF",
   text: "#232323",
   muted: "#6B6B6B",
@@ -14,8 +13,8 @@ const BRAND = {
 };
 const REQUIRED_BALANCE_CODES = ["1000", "1010", "1100", "1200", "3100"] as const;
 const REQUIRED_SUMMARY_FIELDS = [
-  "product_revenue", "merchant_net", "cogs", "fulfillment_cost",
-  "verified_expenses", "journal_difference", "realized_orders",
+  "product_revenue", "rounding_adjustment", "merchant_net", "cogs", "fulfillment_cost",
+  "verified_expenses", "fx_net_expense", "journal_difference", "realized_orders",
 ] as const;
 
 function esc(value: unknown): string {
@@ -74,7 +73,7 @@ function pageHtml(title: string, subtitle: string, body: string, meta: { period:
     <main>${body}</main>
     <footer>
       <strong>${draft ? "غير صالح للتقديم الضريبي النهائي" : "TAX FINAL — معتمد وفق بيانات المحاسب"}</strong>
-      <span>مصدر الأرقام: دفتر الأستاذ وحقائق الطلبات المحاسبية في AQUAVO؛ لا تُستبدل القيم المفقودة بأصفار.</span>
+      <span>مصدر الأرقام: دفتر الأستاذ المزدوج وحقائق الطلبات المحاسبية؛ القيم المفقودة لا تُستبدل بأصفار.</span>
       <span>تقرير محاسبي صادر عن ${esc(meta.legalName)} — العلامة التجارية: AQUAVO</span>
       <small>aquavoiq.com · 07747880673 · info@aquavoiq.com · instagram.com/aquavo_iq</small>
     </footer>
@@ -86,22 +85,20 @@ const STYLE = `
   header{display:flex;justify-content:space-between;align-items:flex-start;gap:24px}.brand img{width:205px;height:57px;object-fit:contain;object-position:right center}.issuer{font-size:11px;color:${BRAND.muted};margin-top:7px}.issuer span{font-family:Inter,Arial,sans-serif;direction:ltr;display:inline-block}.meta{text-align:left;display:grid;gap:5px;color:${BRAND.muted};font-family:Inter,Cairo,Arial,sans-serif}.meta strong{font-size:15px;color:${BRAND.text}}.meta span{font-size:11px}.meta small{font-size:9px}
   .rule{height:3px;background:linear-gradient(90deg,${BRAND.primary} 0 28%,${BRAND.text} 28% 100%);margin:16px 0 18px}.heading h1{margin:0;font-size:21px}.heading p{margin:5px 0 18px;color:${BRAND.muted};font-size:11px;line-height:1.7}main{font-size:11px}
   .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}.card{background:${BRAND.white};border:1px solid ${BRAND.border};border-radius:7px;padding:11px;min-height:74px}.card.missing{border-color:${BRAND.warning}}.label{font-size:10px;color:${BRAND.muted}}.value{font-size:17px;font-weight:800;margin-top:5px;color:${BRAND.text}}.missing .value{color:${BRAND.warning};font-size:13px}.note{font-size:8.5px;color:${BRAND.muted};margin-top:4px;line-height:1.5}
-  h2{font-size:14px;margin:14px 0 8px;border-right:4px solid ${BRAND.primary};padding-right:8px}table{width:100%;border-collapse:collapse;background:${BRAND.white};font-size:9px}th{background:#EFECE5;text-align:right;padding:7px;border:1px solid ${BRAND.border};font-weight:700}td{padding:7px;border:1px solid ${BRAND.border};vertical-align:top}.empty{text-align:center;color:${BRAND.muted};padding:24px}
+  h2{font-size:14px;margin:14px 0 8px;border-right:4px solid ${BRAND.primary};padding-right:8px}table{width:100%;border-collapse:collapse;background:${BRAND.white};font-size:8.5px}th{background:#EFECE5;text-align:right;padding:6px;border:1px solid ${BRAND.border};font-weight:700}td{padding:6px;border:1px solid ${BRAND.border};vertical-align:top;line-height:1.45}.empty{text-align:center;color:${BRAND.muted};padding:24px}
   .notice{border:1px solid ${BRAND.border};border-radius:7px;background:${BRAND.white};padding:11px;line-height:1.8;margin-bottom:13px}.warning{border-color:${BRAND.warning};color:#7a4618}.ok{border-color:${BRAND.primary};color:${BRAND.primaryDark}}.watermark{position:absolute;left:145px;top:450px;transform:rotate(-25deg);font:900 96px Cairo,Arial,sans-serif;color:rgba(201,122,46,.08);z-index:0;pointer-events:none}.aqv-page>*{position:relative;z-index:1}
   footer{position:absolute;right:38px;left:38px;bottom:22px;border-top:1px dashed ${BRAND.border};padding-top:8px;display:grid;gap:2px;text-align:center;color:${BRAND.muted};font-size:8px}footer strong{color:${BRAND.warning};font-size:9px}footer small{font-family:Inter,Arial,sans-serif;direction:ltr}
 `;
 
 function appendChunkPages(
-  pages: PageSpec[],
-  groups: AnyRow[][],
-  title: string,
-  subtitle: (index: number) => string,
-  headers: string[],
-  rowBuilder: (row: AnyRow) => string[],
+  pages: PageSpec[], groups: AnyRow[][], title: string, subtitle: (index: number) => string,
+  headers: string[], rowBuilder: (row: AnyRow) => string[],
 ): void {
-  groups.forEach((group: AnyRow[], index: number) => {
-    pages.push({ title, subtitle: subtitle(index), body: table(headers, group.map((row: AnyRow) => rowBuilder(row))) });
-  });
+  groups.forEach((group, index) => pages.push({
+    title,
+    subtitle: subtitle(index),
+    body: table(headers, group.map(rowBuilder)),
+  }));
 }
 
 function validateAccountantPayload(payload: AnyRow): void {
@@ -115,6 +112,33 @@ function validateAccountantPayload(payload: AnyRow): void {
   const balanceCodes = new Set(payload.liveBalances.filter((row: AnyRow) => finiteNumber(row?.balance) != null).map((row: AnyRow) => String(row.code)));
   const missingBalances = REQUIRED_BALANCE_CODES.filter((code) => !balanceCodes.has(code));
   if (missingBalances.length) throw new Error(`لا يمكن إنشاء PDF: حسابات دفتر الأستاذ ناقصة (${missingBalances.join(", ")})`);
+  if (!Array.isArray(payload.journal)) throw new Error("حزمة المحاسب لا تحتوي دفتر اليومية");
+}
+
+function canonicalNetProfit(summary: AnyRow): number | null {
+  const fields = [
+    "product_revenue", "rounding_adjustment", "cogs", "fulfillment_cost", "delivery_subsidy",
+    "sales_returns", "actual_return_loss", "verified_expenses", "fx_net_expense",
+  ];
+  const values = Object.fromEntries(fields.map((field) => [field, finiteNumber(summary[field])]));
+  if (Object.values(values).some((value) => value == null)) return null;
+  return Number(values.product_revenue) + Number(values.rounding_adjustment)
+    - Number(values.cogs) - Number(values.fulfillment_cost) - Number(values.delivery_subsidy)
+    - Number(values.sales_returns) - Number(values.actual_return_loss)
+    - Number(values.verified_expenses) - Number(values.fx_net_expense);
+}
+
+function flattenJournal(entries: AnyRow[]): AnyRow[] {
+  const rows: AnyRow[] = [];
+  for (const entry of entries) {
+    const lines = Array.isArray(entry.lines) ? entry.lines : [];
+    if (!lines.length) {
+      rows.push({ ...entry, lineNumber: null, accountCode: "—", accountName: "قيد بلا سطور", debit: null, credit: null, memo: "—" });
+      continue;
+    }
+    for (const line of lines) rows.push({ ...entry, ...line });
+  }
+  return rows;
 }
 
 function buildPages(payload: AnyRow): PageSpec[] {
@@ -125,7 +149,11 @@ function buildPages(payload: AnyRow): PageSpec[] {
   const expenses: AnyRow[] = Array.isArray(payload.expenses) ? payload.expenses : [];
   const returns: AnyRow[] = Array.isArray(payload.returns) ? payload.returns : [];
   const settlements: AnyRow[] = Array.isArray(payload.settlements) ? payload.settlements : [];
+  const openingInventory: AnyRow[] = Array.isArray(payload.openingInventory) ? payload.openingInventory : [];
+  const monthlyPositions: AnyRow[] = Array.isArray(payload.monthlyPositions) ? payload.monthlyPositions : [];
+  const evidenceIndex: AnyRow[] = Array.isArray(payload.evidenceIndex) ? payload.evidenceIndex : [];
   const blockers: AnyRow[] = Array.isArray(summary.blockers) ? summary.blockers : [];
+  const profile: AnyRow = payload.profile ?? {};
   const pages: PageSpec[] = [];
   const balanceMap = new Map<string, number>();
   for (const row of balances) {
@@ -135,64 +163,124 @@ function buildPages(payload: AnyRow): PageSpec[] {
 
   pages.push({
     title: "الملف المحاسبي الشهري",
-    subtitle: `الفترة ${payload.manifest?.periodKey ?? "—"} · توليد آلي ${dateBaghdad(payload.manifest?.generatedAt)} · العملة IQD`,
+    subtitle: `الفترة ${payload.manifest?.periodKey ?? "—"} · السياسة ${payload.manifest?.policyVersion ?? "—"} · توليد ${dateBaghdad(payload.manifest?.generatedAt)} · IQD`,
     body: `${cards([
       ["مبيعات المنتجات", iqd(summary.product_revenue)],
+      ["فرق التقريب", iqd(summary.rounding_adjustment), "حساب مستقل 3050"],
       ["صافي حق AQUAVO", iqd(summary.merchant_net)],
       ["كلفة المنتجات", iqd(summary.cogs)],
       ["كلفة التجهيز", iqd(summary.fulfillment_cost)],
-      ["المصاريف المعتمدة", iqd(summary.verified_expenses)],
-      ["الطلبات المتحققة", countValue(summary.realized_orders)],
+      ["صافي الربح الإداري", iqd(canonicalNetProfit(summary)), "قبل TAX FINAL"],
     ])}
     <h2>الأرصدة الحية من دفتر الأستاذ</h2>
     ${cards([
       ["الصندوق", iqd(balanceMap.get("1000"))],
       ["البنك", iqd(balanceMap.get("1010"))],
-      ["COD عند شركات التوصيل", iqd(balanceMap.get("1100"))],
+      ["COD لدى شركات التوصيل", iqd(balanceMap.get("1100"))],
       ["مخزون المنتجات", iqd(balanceMap.get("1200"))],
+      ["مخزون مواد التجهيز", iqd(balanceMap.get("1210"))],
       ["رأس المال", iqd(balanceMap.get("3100"))],
-      ["فرق اليومية", iqd(summary.journal_difference)],
     ])}
     <div class="notice ${blockers.length ? "warning" : "ok"}">${blockers.length
-      ? `الإغلاق التلقائي متوقف لحين معالجة ${blockers.length} نوع من الموانع. النظام يعيد المحاولة يومياً.`
-      : "لا توجد موانع محاسبية حالياً. الشهر يُغلق تلقائياً بعد انتهائه حسب توقيت بغداد."}</div>
+      ? `الإغلاق متوقف لحين معالجة ${blockers.length} نوع من الموانع.`
+      : "لا توجد موانع محاسبية مسجلة لهذه الفترة."}</div>
     <h2>موانع الإغلاق</h2>
-    ${table(["المفتاح", "الوصف", "العدد"], blockers.map((row: AnyRow) => [esc(row.key), esc(row.label), esc(row.count)]))}`,
+    ${table(["المفتاح", "الوصف", "العدد"], blockers.map((row) => [esc(row.key), esc(row.label), esc(row.count)]))}`,
+  });
+
+  pages.push({
+    title: "حالة الملف والاعتماد",
+    subtitle: "بيانات المنشأة والملف الضريبي والأدلة؛ الحقول الناقصة تبقى ظاهرة ولا تُفترض تلقائياً",
+    body: `${cards([
+      ["حالة الملف الضريبي", esc(profile.status ?? "غير متوفر")],
+      ["رقم المكلف", esc(profile.taxpayer_number ?? "غير متوفر")],
+      ["الفرع الضريبي", esc(profile.tax_branch ?? "غير متوفر")],
+      ["العنوان المسجل", esc(profile.registered_address ?? "غير متوفر")],
+      ["إجازة المحاسب", esc(profile.accountant_license_number ?? "غير متوفر")],
+      ["اعتماد المحاسب", profile.accountant_approved_at ? dateBaghdad(profile.accountant_approved_at) : "غير متوفر"],
+    ])}
+    <div class="notice ${payload.manifest?.taxFinal ? "ok" : "warning"}">${payload.manifest?.taxFinal
+      ? "الفترة موسومة TAX FINAL في النظام."
+      : "هذه حزمة إدارية/مراجعة وليست إقراراً أو اعتماداً ضريبياً نهائياً."}</div>
+    <h2>فهرس الأدلة</h2>
+    ${table(["النوع", "الجهة", "رقم المستند", "التاريخ", "المبلغ", "المصدر"], evidenceIndex.slice(0, 12).map((row) => [
+      esc(row.document_type), esc(row.issuer), esc(row.document_number), esc(row.document_date), iqd(row.amount), esc(row.storage_provider),
+    ]))}`,
   });
 
   appendChunkPages(
-    pages, chunks(sales, 17), "سجل المبيعات المتحققة",
+    pages, chunks(sales, 16), "سجل المبيعات المتحققة",
     (index) => `الجزء ${index + 1} · الإيراد يتحقق عند التسليم فقط`,
-    ["الطلب", "تاريخ التحقق", "COD", "توصيل الزبون", "أجرة الشركة", "مبيعات المنتجات", "صافي AQUAVO", "التسوية"],
+    ["الطلب", "التحقق", "COD", "توصيل", "أجرة الشركة", "مبيعات المنتجات", "صافي AQUAVO", "التسوية"],
     (row) => [esc(row.order_number ?? row.order_id), dateBaghdad(row.recognized_at), iqd(row.gross_collected), iqd(row.customer_delivery_fee), iqd(row.carrier_fee), iqd(row.product_revenue), iqd(row.merchant_net), esc(row.settlement_status)],
   );
+
+  const journalLines = flattenJournal(journal);
   appendChunkPages(
-    pages, chunks(journal, 18), "دفتر اليومية",
-    (index) => `الجزء ${index + 1} · قيود مزدوجة غير قابلة للتعديل، والتصحيح بقيد عكسي`,
-    ["رقم القيد", "التاريخ", "المصدر", "البيان", "مدين", "دائن", "الحالة"],
-    (row) => [esc(row.entry_number), dateBaghdad(row.entry_date), esc(`${row.source_type}/${row.event_kind}`), esc(row.description), iqd(row.total_debit), iqd(row.total_credit), esc(row.status)],
+    pages, chunks(journalLines, 20), "دفتر اليومية التفصيلي",
+    (index) => `الجزء ${index + 1} · كل سطر يوضح الحساب المدين/الدائن وليس عنوان القيد فقط`,
+    ["القيد", "التاريخ", "المصدر", "الحساب", "البيان", "مدين", "دائن"],
+    (row) => [
+      esc(row.entry_number), dateBaghdad(row.entry_date), esc(`${row.source_type ?? "—"}/${row.event_kind ?? "—"}`),
+      esc(`${row.accountCode ?? "—"} ${row.accountName ?? ""}`), esc(row.memo ?? row.description), iqd(row.debit), iqd(row.credit),
+    ],
   );
+
   appendChunkPages(
     pages, chunks(expenses, 18), "المصاريف",
     (index) => `الجزء ${index + 1} · التصنيف الضريبي يبقى للمحاسب في مرحلة TAX FINAL`,
     ["التاريخ", "الفئة", "الجهة", "الوصف", "المبلغ", "الحالة", "المعالجة الضريبية"],
     (row) => [dateBaghdad(row.expense_occurred_at ?? row.expense_date), esc(row.category), esc(row.vendor_name), esc(row.description), iqd(row.amount), esc(row.accounting_status), esc(row.tax_treatment ?? "pending")],
   );
+
   appendChunkPages(
     pages, chunks(returns, 17), "الراجعات والخسائر",
-    (index) => `الجزء ${index + 1} · الأحداث منشأة من سير الطلب، والمعتمد فقط يدخل الحسابات`,
+    (index) => `الجزء ${index + 1} · المعتمد فقط يدخل الحسابات`,
     ["الطلب", "النوع", "الحالة", "رد المبلغ", "التغليف", "شطب المنتج", "أعيد للمخزون", "التحديث"],
     (row) => [esc(row.order_id), esc(row.type), esc(row.status), iqd(row.refund_amount), iqd(row.packaging_loss), iqd(row.product_write_off_amount), row.restocked ? "نعم" : "لا", dateBaghdad(row.updated_at)],
   );
 
   pages.push({
     title: "تسويات شركات التوصيل",
-    subtitle: "الإجمالي والأجور والصافي مشتقة من الطلبات، وليست مدخلة يدوياً",
+    subtitle: "الإجمالي والأجور والصافي مشتقة من حقائق الطلبات وتخضع لمطابقة شركة النقل والدفع",
     body: table(
       ["رقم التسوية", "الشركة", "التاريخ", "الإجمالي", "الأجور", "الصافي", "الحالة"],
-      settlements.map((row: AnyRow) => [esc(row.settlement_number ?? row.id), esc(row.carrier), dateBaghdad(row.received_at ?? row.updated_at), iqd(row.gross_amount), iqd(row.fees_amount), iqd(row.net_amount), esc(row.status)]),
+      settlements.map((row) => [esc(row.settlement_number ?? row.id), esc(row.carrier), dateBaghdad(row.received_at ?? row.updated_at), iqd(row.gross_amount), iqd(row.fees_amount), iqd(row.net_amount), esc(row.status)]),
     ),
   });
+
+  appendChunkPages(
+    pages, chunks(openingInventory, 20), "تفصيل المخزون الافتتاحي",
+    (index) => `الجزء ${index + 1} · مرجع القطع المحاسبي 1 آب 2026`,
+    ["المنتج", "المتغير", "الكمية", "كلفة الوحدة", "القيمة", "مصدر الكلفة"],
+    (row) => [
+      esc(row.product_id), esc(row.variant_id), countValue(row.quantity ?? row.stock),
+      iqd(row.unit_cost_iqd ?? row.unit_cost ?? row.cost_price), iqd(row.value_iqd ?? row.total_value ?? row.inventory_value),
+      esc(row.cost_source ?? row.source),
+    ],
+  );
+
+  pages.push({
+    title: "المراكز الشهرية المؤكدة",
+    subtitle: "تأكيدات الصندوق وذمم شركات التوصيل والمراكز الإدارية المساندة",
+    body: table(
+      ["النوع", "شركة التوصيل", "المبلغ", "الإجمالي", "الأجور", "استقطاع آخر", "الحالة"],
+      monthlyPositions.map((row) => [
+        esc(row.position_type), esc(row.delivery_company_name), iqd(row.amount), iqd(row.gross_amount),
+        iqd(row.fee_amount), iqd(row.other_deduction_amount), esc(row.status),
+      ]),
+    ),
+  });
+
+  if (evidenceIndex.length > 12) {
+    appendChunkPages(
+      pages, chunks(evidenceIndex.slice(12), 20), "فهرس الأدلة — تكملة",
+      (index) => `الجزء ${index + 1}`,
+      ["النوع", "الجهة", "رقم المستند", "التاريخ", "المبلغ", "المصدر"],
+      (row) => [esc(row.document_type), esc(row.issuer), esc(row.document_number), esc(row.document_date), iqd(row.amount), esc(row.storage_provider)],
+    );
+  }
+
   return pages;
 }
 
