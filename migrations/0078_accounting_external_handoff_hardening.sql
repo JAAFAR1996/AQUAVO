@@ -73,6 +73,90 @@ AS $function$
   WHERE f.id=p_order_fact_id
 $function$;
 
+-- Keep the append-only carrier trail internally consistent even if an INSERT bypasses
+-- the HTTP route. The order row lock serializes corrections for the same order, so the
+-- prior-carrier check cannot race with another correction.
+CREATE OR REPLACE FUNCTION public.validate_order_accounting_carrier_correction_insert()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, public
+AS $function$
+DECLARE
+  v_fact_order_id text;
+  v_fact_carrier_fee numeric;
+  v_company_name text;
+  v_company_active boolean;
+  v_prior_carrier text;
+BEGIN
+  PERFORM 1
+  FROM public.orders o
+  WHERE o.id=NEW.order_id
+  FOR UPDATE;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'ORDER_ACCOUNTING_CARRIER_CORRECTION_ORDER_MISSING:%',NEW.order_id USING ERRCODE='23503';
+  END IF;
+
+  SELECT f.order_id,f.carrier_fee
+    INTO v_fact_order_id,v_fact_carrier_fee
+  FROM public.order_accounting_facts f
+  WHERE f.id=NEW.order_fact_id;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'ORDER_ACCOUNTING_CARRIER_CORRECTION_FACT_MISSING:%',NEW.order_fact_id USING ERRCODE='23503';
+  END IF;
+
+  IF v_fact_order_id<>NEW.order_id THEN
+    RAISE EXCEPTION 'ORDER_ACCOUNTING_CARRIER_CORRECTION_ORDER_FACT_MISMATCH:%:%',NEW.order_id,NEW.order_fact_id USING ERRCODE='23514';
+  END IF;
+
+  SELECT c.name,c.active
+    INTO v_company_name,v_company_active
+  FROM public.delivery_companies c
+  WHERE c.id=NEW.delivery_company_id;
+  IF NOT FOUND OR v_company_active IS DISTINCT FROM true THEN
+    RAISE EXCEPTION 'ORDER_ACCOUNTING_CARRIER_CORRECTION_COMPANY_INVALID:%',NEW.delivery_company_id USING ERRCODE='23514';
+  END IF;
+
+  IF NEW.carrier IS DISTINCT FROM v_company_name THEN
+    RAISE EXCEPTION 'ORDER_ACCOUNTING_CARRIER_CORRECTION_COMPANY_NAME_MISMATCH:%:%',NEW.carrier,v_company_name USING ERRCODE='23514';
+  END IF;
+
+  IF NEW.carrier_fee IS DISTINCT FROM v_fact_carrier_fee THEN
+    RAISE EXCEPTION 'ORDER_ACCOUNTING_CARRIER_CORRECTION_FEE_MISMATCH:%:%',NEW.carrier_fee,v_fact_carrier_fee USING ERRCODE='23514';
+  END IF;
+
+  IF btrim(NEW.reason)='' THEN
+    RAISE EXCEPTION 'ORDER_ACCOUNTING_CARRIER_CORRECTION_REASON_REQUIRED' USING ERRCODE='23514';
+  END IF;
+
+  IF EXISTS(
+    SELECT 1
+    FROM public.order_accounting_settlements s
+    WHERE s.order_fact_id=NEW.order_fact_id
+  ) THEN
+    RAISE EXCEPTION 'ORDER_ACCOUNTING_CARRIER_CORRECTION_ALREADY_SETTLED:%',NEW.order_fact_id USING ERRCODE='55000';
+  END IF;
+
+  SELECT public.accounting_effective_carrier(NEW.order_fact_id)
+    INTO v_prior_carrier;
+  IF NEW.prior_carrier IS DISTINCT FROM v_prior_carrier THEN
+    RAISE EXCEPTION 'ORDER_ACCOUNTING_CARRIER_CORRECTION_PRIOR_MISMATCH:%:%',COALESCE(NEW.prior_carrier,'<missing>'),COALESCE(v_prior_carrier,'<missing>') USING ERRCODE='23514';
+  END IF;
+
+  -- Correction time is system evidence, not caller-supplied business data.
+  NEW.corrected_at:=clock_timestamp();
+  RETURN NEW;
+END
+$function$;
+
+DROP TRIGGER IF EXISTS order_accounting_carrier_corrections_validate_insert
+  ON public.order_accounting_carrier_corrections;
+CREATE TRIGGER order_accounting_carrier_corrections_validate_insert
+BEFORE INSERT ON public.order_accounting_carrier_corrections
+FOR EACH ROW EXECUTE FUNCTION public.validate_order_accounting_carrier_correction_insert();
+
+REVOKE ALL ON FUNCTION public.validate_order_accounting_carrier_correction_insert() FROM PUBLIC;
+
 CREATE OR REPLACE FUNCTION public.validate_cash_settlement_reconciliation()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -234,7 +318,7 @@ INSERT INTO public.schema_migrations(version,checksum,notes)
 VALUES(
   '0078_accounting_external_handoff_hardening',
   '0078007800780078007800780078007800780078007800780078007800780078',
-  'Harden Accounting V3 external handoff: immutable carrier corrections, settlement identity, stock-reconciliation review blocker, and constraint validation'
+  'Harden Accounting V3 external handoff: immutable validated carrier corrections, settlement identity, stock-reconciliation review blocker, and constraint validation'
 )
 ON CONFLICT(version) DO UPDATE
 SET checksum=EXCLUDED.checksum,
