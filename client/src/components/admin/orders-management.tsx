@@ -274,6 +274,50 @@ export function OrdersManagement() {
         throw new Error(errData.message || "Failed to update order");
       }
 
+      // The DB trigger has already persisted an idempotent delivery-care outbox
+      // job at this point. Attempt the WhatsApp send immediately from the same
+      // admin action, but never turn a messaging outage into an order-status error.
+      if (newStatus === "delivered") {
+        try {
+          const messagingResponse = await fetch(
+            `/api/admin/orders/${orderId}/customer-messaging/delivery-care`,
+            {
+              method: "POST",
+              headers: addCsrfHeader({ "Content-Type": "application/json" }),
+              credentials: "include",
+              body: JSON.stringify({}),
+            },
+          );
+          const messaging = await messagingResponse.json().catch(() => ({})) as {
+            status?: string;
+            errorCode?: string;
+          };
+
+          if (messaging.status === "sent") {
+            toast({ title: "واتساب", description: "تم إرسال رسالة ما بعد الاستلام للزبون" });
+          } else if (messaging.status === "retry_scheduled") {
+            toast({
+              title: "واتساب محفوظ للإعادة",
+              description: "تعذر الإرسال مؤقتاً؛ الرسالة محفوظة ولن تتكرر وسيعاد إرسالها تلقائياً.",
+            });
+          } else if (messaging.status === "invalid_phone" || messaging.status === "failed") {
+            toast({
+              title: "واتساب لم يُرسل",
+              description: messaging.errorCode === "INVALID_IRAQI_MOBILE"
+                ? "رقم الزبون غير صالح للإرسال عبر واتساب. حالة الطلب بقيت مكتملة."
+                : "فشل إرسال رسالة المتابعة. حالة الطلب بقيت مكتملة ويمكن إعادة المحاولة من سجل الرسائل.",
+              variant: "destructive",
+            });
+          }
+          // disabled/already_handled/not_due are intentionally silent. Disabled
+          // is the safe default until Meta credentials/templates are activated.
+        } catch (messagingError) {
+          console.error("Post-delivery WhatsApp dispatch failed:", messagingError);
+          // Deliberately no destructive order toast: delivery truth succeeded and
+          // the durable DB outbox retains the message independently of the browser.
+        }
+      }
+
       const statusLabels: Record<string, string> = {
         processing: "⚡ بدأ تجهيز الطلب",
         shipped: "🚚 تم تسليم الطلب لشركة النقل",

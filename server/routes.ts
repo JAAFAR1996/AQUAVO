@@ -9,6 +9,7 @@ import { createAdminRouter } from "./routes/admin.js";
 import { createAdminOrderPurgeRouter } from "./routes/admin-order-purge.js";
 import { createAdminOrderArchiveRouter } from "./routes/admin-order-archive.js";
 import { createAdminOrdersV2Router } from "./routes/admin-orders-v2.js";
+import { createCustomerMessagingAdminRouter } from "./routes/customer-messaging-admin.js";
 import { createAccountingAutomaticReturnsV2Router } from "./routes/accounting-automatic-returns-v2.js";
 import { createAccountingMonthlyPositionV2Router } from "./routes/accounting-monthly-position-v2.js";
 import { createAccountingSetupV2Router } from "./routes/accounting-setup-v2.js";
@@ -94,6 +95,7 @@ export async function registerRoutes(httpServer: Server, app: express.Applicatio
   app.use("/api/admin", createAdminOrderPurgeRouter());
   app.use("/api/admin", createAdminOrderArchiveRouter());
   app.use("/api/admin", createAdminOrdersV2Router());
+  app.use("/api/admin", createCustomerMessagingAdminRouter());
   app.use("/api/admin", createAdminRouter());
   app.use("/api/admin/security", createSecurityRouter());
   app.use("/api/admin/analytics", createAccurateAdminAnalyticsRouter());
