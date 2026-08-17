@@ -5,10 +5,37 @@ import { getDb } from "../db.js";
 import { requireAccountingAdmin } from "../middleware/accounting-auth-v2.js";
 import { actorFromRequest, recordFinancialChange } from "../services/accountingAuditTrail.js";
 
+const uploadedEvidenceSchema = z.object({
+  url: z.string().url(),
+  objectKey: z.string().min(1),
+  storageProvider: z.string().min(1).default("cloudinary"),
+  sha256: z.string().regex(/^[a-f0-9]{64}$/),
+  originalName: z.string().min(1),
+  mimeType: z.string().min(1),
+  size: z.coerce.number().int().positive(),
+}).strict();
+const ownerConfirmationSchema = z.object({
+  mode: z.literal("owner_confirmation"),
+  note: z.string().trim().min(5).max(1000),
+}).strict();
+const evidenceInputSchema = z.union([
+  uploadedEvidenceSchema,
+  ownerConfirmationSchema,
+]);
+
+// This preflight is intentionally as strict as the canonical settlement payload for the
+// deliveryCompanyId path. A malformed request must reach the canonical validator without
+// committing a carrier correction first.
 const correctionSchema = z.object({
+  settlementNumber: z.string().trim().min(2).max(100).optional(),
   deliveryCompanyId: z.string().min(1),
+  carrier: z.string().trim().min(2).max(150).optional(),
+  receivedAt: z.string().datetime({ offset: true }),
+  bankReference: z.string().trim().max(150).optional(),
+  notes: z.string().trim().max(500).optional(),
   orderIds: z.array(z.string().min(1)).min(1).max(200),
-}).passthrough();
+  evidence: evidenceInputSchema,
+}).strict();
 
 type Row = Record<string, unknown>;
 function rowsOf<T extends Row = Row>(result: unknown): T[] {
@@ -36,13 +63,18 @@ export function createAccountingCarrierCorrectionV2Router() {
       next();
       return;
     }
+    const orderIds = [...new Set(parsed.data.orderIds)];
+    if (orderIds.length !== parsed.data.orderIds.length) {
+      res.status(400).json({ message: "قائمة الطلبات تحتوي تكراراً" });
+      return;
+    }
+
     const db = getDb();
     if (!db) {
       res.status(503).json({ message: "قاعدة البيانات غير مهيأة" });
       return;
     }
     const actor = actorFromRequest(req);
-    const orderIds = [...new Set(parsed.data.orderIds)];
     const idList = sql.join(orderIds.map((id) => sql`${id}`), sql`, `);
 
     try {
@@ -63,10 +95,12 @@ export function createAccountingCarrierCorrectionV2Router() {
           JOIN public.orders o ON o.id=f.order_id
           LEFT JOIN public.order_accounting_settlements s ON s.order_fact_id=f.id
           WHERE f.order_id IN (${idList}) AND s.id IS NULL
-          FOR UPDATE OF o
+          FOR UPDATE OF f
         `);
         const facts = rowsOf(factsResult);
-        if (facts.length !== orderIds.length) {
+        const foundIds = new Set(facts.map((fact) => String(fact.order_id)));
+        if (facts.length !== orderIds.length || foundIds.size !== orderIds.length
+          || orderIds.some((id) => !foundIds.has(id))) {
           throw Object.assign(new Error("بعض الطلبات غير موجودة أو مسوّاة سابقاً"), { statusCode: 409 });
         }
 
