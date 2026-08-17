@@ -3,6 +3,7 @@ import { getDb } from "../db.js";
 
 const PROVIDER = "alwaseet";
 const API_BASE = "https://api.alwaseet-iq.net/v1/merchant";
+const DIAGNOSTIC_KEY = "integration.alwaseet.last_diagnostic";
 const CACHE_TTL_MS = 2 * 60 * 1000;
 const MERCHANT_DISCOVERY_CACHE_MS = 60 * 1000;
 const NEGATIVE_DISCOVERY_TTL_MS = 90 * 1000;
@@ -61,6 +62,21 @@ export interface MatchResult {
   confidence: MatchConfidence;
 }
 
+export type MatchFailureReason =
+  | "invalid_phone"
+  | "no_phone_candidate"
+  | "missing_payable_amount"
+  | "no_amount_candidate"
+  | "ambiguous_order_number_note"
+  | "ambiguous";
+
+export interface MatchAnalysis {
+  match: MatchResult | null;
+  reason: MatchFailureReason | null;
+  phoneCandidateCount: number;
+  amountCandidateCount: number;
+}
+
 type Row = Record<string, unknown>;
 type ApiEnvelope = {
   status?: boolean;
@@ -68,6 +84,24 @@ type ApiEnvelope = {
   msg?: string;
   data?: unknown;
 };
+
+type DiagnosticStatus =
+  | "disabled"
+  | "api_error"
+  | "no_match"
+  | "matched"
+  | "match_conflict"
+  | "refresh_error"
+  | "resolver_error";
+
+interface DiagnosticInput {
+  status: DiagnosticStatus;
+  code: string;
+  orderId: string;
+  providerOrderCount?: number;
+  phoneCandidateCount?: number;
+  amountCandidateCount?: number;
+}
 
 let cachedToken: string | null = null;
 let loginInFlight: Promise<string> | null = null;
@@ -153,8 +187,6 @@ function parseBaghdadDate(value: unknown): Date | null {
   const raw = String(value ?? "").trim();
   if (!raw) return null;
 
-  // Al-Waseet examples are timezone-less Iraq-local timestamps. Make that
-  // interpretation explicit instead of depending on the server's timezone.
   const simple = raw.match(/^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2}:\d{2})$/);
   const candidate = simple ? `${simple[1]}T${simple[2]}+03:00` : raw;
   const date = new Date(candidate);
@@ -197,8 +229,6 @@ function providerPhones(order: AlWaseetOrder): string[] {
 }
 
 function payableAmounts(order: AquavoTrackingOrder): Set<number> {
-  // AQUAVO total includes delivery; roundedTotal is the actual COD after Iraqi
-  // denomination rounding/cashback when that flow applies. Exact values only.
   const values = [toIqd(order.roundedTotal), toIqd(order.total)]
     .filter((value): value is number => value != null);
   return new Set(values);
@@ -215,20 +245,11 @@ function notesContainOrderNumber(notes: string, orderNumber: string | null): boo
   return normalizeArabicText(notes).includes(normalizeArabicText(orderNumber));
 }
 
-/**
- * Provider records are normally created after the AQUAVO order. A small
- * pre-order window remains allowed for clock/data quirks, but those candidates
- * receive a penalty when resolving a rare duplicate.
- */
 function temporalMatchScore(localCreatedAt: Date, providerCreatedAt: Date): number {
   const delta = providerCreatedAt.getTime() - localCreatedAt.getTime();
   return delta >= 0 ? delta : DISCOVERY_BEFORE_MS + Math.abs(delta);
 }
 
-/**
- * Resolve a rare same-phone/same-COD collision only when timing creates a clear
- * winner. Missing timestamps or a small lead are intentionally left ambiguous.
- */
 function chooseClearNearestByTime(
   localCreatedAt: Date,
   candidates: AlWaseetOrder[],
@@ -250,21 +271,15 @@ function chooseClearNearestByTime(
   return best.candidate;
 }
 
-/**
- * Match policy:
- * - explicit AQUAVO order number + exact phone is exact;
- * - one exact phone + COD candidate is exact;
- * - duplicate phone + COD candidates may be linked as high confidence using an
- *   exact normalized name or a clearly separated nearest creation time;
- * - if those signals still cannot distinguish the records, do not guess.
- */
-export function matchAlWaseetOrder(
+export function analyzeAlWaseetMatch(
   local: AquavoTrackingOrder,
   providerOrders: AlWaseetOrder[],
   claimedProviderIds: ReadonlySet<string> = new Set(),
-): MatchResult | null {
+): MatchAnalysis {
   const phone = normalizeIraqPhone(local.customerPhone);
-  if (!phone) return null;
+  if (!phone) {
+    return { match: null, reason: "invalid_phone", phoneCandidateCount: 0, amountCandidateCount: 0 };
+  }
 
   const eligible = providerOrders.filter((provider) =>
     !claimedProviderIds.has(provider.id)
@@ -272,28 +287,57 @@ export function matchAlWaseetOrder(
     && isWithinDiscoveryWindow(local.createdAt, provider.createdAt),
   );
 
-  const noteMatches = eligible.filter((provider) => notesContainOrderNumber(provider.merchantNotes, local.orderNumber));
+  if (eligible.length === 0) {
+    return { match: null, reason: "no_phone_candidate", phoneCandidateCount: 0, amountCandidateCount: 0 };
+  }
+
+  const noteMatches = eligible.filter((provider) =>
+    notesContainOrderNumber(provider.merchantNotes, local.orderNumber),
+  );
   if (noteMatches.length === 1) {
     return {
-      order: noteMatches[0],
-      method: "order_number_note_phone",
-      confidence: "exact",
+      match: { order: noteMatches[0], method: "order_number_note_phone", confidence: "exact" },
+      reason: null,
+      phoneCandidateCount: eligible.length,
+      amountCandidateCount: 0,
     };
   }
-  if (noteMatches.length > 1) return null;
+  if (noteMatches.length > 1) {
+    return {
+      match: null,
+      reason: "ambiguous_order_number_note",
+      phoneCandidateCount: eligible.length,
+      amountCandidateCount: 0,
+    };
+  }
 
   const amounts = payableAmounts(local);
-  if (amounts.size === 0) return null;
+  if (amounts.size === 0) {
+    return {
+      match: null,
+      reason: "missing_payable_amount",
+      phoneCandidateCount: eligible.length,
+      amountCandidateCount: 0,
+    };
+  }
 
   const exact = eligible.filter((provider) => provider.price != null && amounts.has(provider.price));
   if (exact.length === 1) {
     return {
-      order: exact[0],
-      method: "phone_amount",
-      confidence: "exact",
+      match: { order: exact[0], method: "phone_amount", confidence: "exact" },
+      reason: null,
+      phoneCandidateCount: eligible.length,
+      amountCandidateCount: 1,
     };
   }
-  if (exact.length === 0) return null;
+  if (exact.length === 0) {
+    return {
+      match: null,
+      reason: "no_amount_candidate",
+      phoneCandidateCount: eligible.length,
+      amountCandidateCount: 0,
+    };
+  }
 
   const localName = normalizeArabicText(local.customerName);
   const nameMatches = localName
@@ -302,29 +346,91 @@ export function matchAlWaseetOrder(
 
   if (nameMatches.length === 1) {
     return {
-      order: nameMatches[0],
-      method: "phone_amount_name",
-      confidence: "high",
+      match: { order: nameMatches[0], method: "phone_amount_name", confidence: "high" },
+      reason: null,
+      phoneCandidateCount: eligible.length,
+      amountCandidateCount: exact.length,
     };
   }
 
   const timingPool = nameMatches.length > 1 ? nameMatches : exact;
   const nearest = chooseClearNearestByTime(local.createdAt, timingPool);
-  if (!nearest) return null;
+  if (!nearest) {
+    return {
+      match: null,
+      reason: "ambiguous",
+      phoneCandidateCount: eligible.length,
+      amountCandidateCount: exact.length,
+    };
+  }
 
   return {
-    order: nearest,
-    method: nameMatches.length > 1
-      ? "phone_amount_name_nearest_time"
-      : "phone_amount_nearest_time",
-    confidence: "high",
+    match: {
+      order: nearest,
+      method: nameMatches.length > 1
+        ? "phone_amount_name_nearest_time"
+        : "phone_amount_nearest_time",
+      confidence: "high",
+    },
+    reason: null,
+    phoneCandidateCount: eligible.length,
+    amountCandidateCount: exact.length,
   };
+}
+
+export function matchAlWaseetOrder(
+  local: AquavoTrackingOrder,
+  providerOrders: AlWaseetOrder[],
+  claimedProviderIds: ReadonlySet<string> = new Set(),
+): MatchResult | null {
+  return analyzeAlWaseetMatch(local, providerOrders, claimedProviderIds).match;
 }
 
 function trackingEnabled(): boolean {
   return process.env.ALWASEET_TRACKING_ENABLED?.trim().toLowerCase() === "true"
     && Boolean(process.env.ALWASEET_USERNAME?.trim())
     && Boolean(process.env.ALWASEET_PASSWORD?.trim());
+}
+
+function safeErrorCode(error: unknown): string {
+  const message = error instanceof Error ? error.message : "";
+  const known = message.match(/^(ALWASEET_(?:LOGIN_FAILED|API_FAILED)):(\w[\w.-]{0,40})$/);
+  if (known) return `${known[1]}:${known[2]}`;
+  if (message === "ALWASEET_INVALID_JSON" || message === "ALWASEET_NOT_CONFIGURED") return message;
+  const name = error instanceof Error ? error.name : "";
+  if (name === "TimeoutError" || name === "AbortError") return "ALWASEET_TIMEOUT";
+  return "ALWASEET_NETWORK_OR_UNKNOWN";
+}
+
+async function recordDiagnostic(input: DiagnosticInput): Promise<void> {
+  const payload = {
+    provider: PROVIDER,
+    status: input.status,
+    code: input.code,
+    orderId: input.orderId,
+    providerOrderCount: input.providerOrderCount ?? null,
+    phoneCandidateCount: input.phoneCandidateCount ?? null,
+    amountCandidateCount: input.amountCandidateCount ?? null,
+    at: new Date().toISOString(),
+  };
+
+  // Safe for runtime logs: no credentials, tokens, URLs, customer PII, amounts,
+  // or raw provider messages are included.
+  console.info("[alwaseet-tracking]", JSON.stringify(payload));
+
+  const db = getDb();
+  if (!db) return;
+  try {
+    const value = JSON.stringify(payload);
+    await db.execute(sql`
+      INSERT INTO public.settings(key,value,updated_at)
+      VALUES(${DIAGNOSTIC_KEY},${value},clock_timestamp())
+      ON CONFLICT(key) DO UPDATE
+      SET value=EXCLUDED.value,updated_at=EXCLUDED.updated_at
+    `);
+  } catch {
+    // Diagnostics must never affect customer tracking.
+  }
 }
 
 async function fetchEnvelope(url: URL, init?: RequestInit): Promise<{ httpStatus: number; body: ApiEnvelope }> {
@@ -517,8 +623,6 @@ async function insertMatch(orderId: string, match: MatchResult): Promise<PublicC
     const inserted = rowsOf(result)[0];
     if (inserted) return publicSnapshot(inserted);
   } catch (error) {
-    // A unique(provider,provider_order_id) race means another AQUAVO order already
-    // claimed this carrier record. Never reassign it implicitly.
     const code = String((error as { code?: unknown } | null)?.code ?? "");
     if (code !== "23505") throw error;
   }
@@ -546,7 +650,12 @@ async function refreshLinked(orderId: string, link: Row): Promise<PublicCarrierT
     const [fresh] = await getOrdersByIds([providerOrderId]);
     if (!fresh || fresh.id !== providerOrderId) return publicSnapshot(link);
     return await updateSnapshot(orderId, fresh) ?? publicSnapshot(link);
-  } catch {
+  } catch (error) {
+    await recordDiagnostic({
+      status: "refresh_error",
+      code: safeErrorCode(error),
+      orderId,
+    });
     return publicSnapshot(link);
   }
 }
@@ -555,20 +664,47 @@ async function discover(order: AquavoTrackingOrder): Promise<PublicCarrierTracki
   const negativeUntil = negativeDiscoveryCache.get(order.id) ?? 0;
   if (negativeUntil > Date.now()) return null;
 
+  let providerOrders: AlWaseetOrder[] = [];
   try {
-    const [providerOrders, claimed] = await Promise.all([
+    const [orders, claimed] = await Promise.all([
       getMerchantOrders(),
       claimedProviderIds(order.id),
     ]);
-    const match = matchAlWaseetOrder(order, providerOrders, claimed);
-    if (!match) {
+    providerOrders = orders;
+    const analysis = analyzeAlWaseetMatch(order, providerOrders, claimed);
+
+    if (!analysis.match) {
       negativeDiscoveryCache.set(order.id, Date.now() + NEGATIVE_DISCOVERY_TTL_MS);
+      await recordDiagnostic({
+        status: "no_match",
+        code: analysis.reason ?? "unknown_no_match",
+        orderId: order.id,
+        providerOrderCount: providerOrders.length,
+        phoneCandidateCount: analysis.phoneCandidateCount,
+        amountCandidateCount: analysis.amountCandidateCount,
+      });
       return null;
     }
+
     negativeDiscoveryCache.delete(order.id);
-    return await insertMatch(order.id, match);
-  } catch {
+    const snapshot = await insertMatch(order.id, analysis.match);
+    await recordDiagnostic({
+      status: snapshot ? "matched" : "match_conflict",
+      code: snapshot ? analysis.match.method : "provider_order_already_claimed",
+      orderId: order.id,
+      providerOrderCount: providerOrders.length,
+      phoneCandidateCount: analysis.phoneCandidateCount,
+      amountCandidateCount: analysis.amountCandidateCount,
+    });
+    return snapshot;
+  } catch (error) {
     negativeDiscoveryCache.set(order.id, Date.now() + NEGATIVE_DISCOVERY_TTL_MS);
+    await recordDiagnostic({
+      status: "api_error",
+      code: safeErrorCode(error),
+      orderId: order.id,
+      providerOrderCount: providerOrders.length || undefined,
+    });
     return null;
   }
 }
@@ -579,7 +715,17 @@ async function discover(order: AquavoTrackingOrder): Promise<PublicCarrierTracki
  * own order tracking page.
  */
 export async function resolveAlWaseetTracking(order: AquavoTrackingOrder): Promise<PublicCarrierTracking | null> {
-  if (!trackingEnabled() || !getDb()) return null;
+  const db = getDb();
+  if (!db) return null;
+
+  if (!trackingEnabled()) {
+    await recordDiagnostic({
+      status: "disabled",
+      code: "ALWASEET_NOT_CONFIGURED_OR_DISABLED",
+      orderId: order.id,
+    });
+    return null;
+  }
 
   try {
     const link = await readLink(order.id);
@@ -588,7 +734,12 @@ export async function resolveAlWaseetTracking(order: AquavoTrackingOrder): Promi
       return refreshLinked(order.id, link);
     }
     return discover(order);
-  } catch {
+  } catch (error) {
+    await recordDiagnostic({
+      status: "resolver_error",
+      code: safeErrorCode(error),
+      orderId: order.id,
+    });
     return null;
   }
 }
