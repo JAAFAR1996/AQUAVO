@@ -49,8 +49,8 @@ BEGIN
     RAISE EXCEPTION 'ORDER_PURGE_NOT_FOUND' USING ERRCODE='P0002';
   END IF;
 
-  -- The one hard business rule: a customer-received/financially-realized order
-  -- can never be erased. This also protects a delivered order later marked returned.
+  -- Hard business invariant: a customer-received / financially-realized order
+  -- can never be erased, even if its current lifecycle status later says returned.
   IF v_order.status='delivered'
      OR v_order.delivered_at IS NOT NULL
      OR v_order.financially_counted
@@ -84,8 +84,8 @@ BEGIN
       USING ERRCODE='55000';
   END IF;
 
-  -- Refuse to touch purchase-cost history if a malformed/manual inventory link
-  -- somehow points an order movement into the purchase valuation subsystem.
+  -- Never rewrite purchase valuation history. An order-sale movement should not
+  -- be referenced by these tables; if it is, stop rather than guessing.
   IF EXISTS (
     WITH RECURSIVE related AS (
       SELECT im.id
@@ -107,10 +107,9 @@ BEGIN
       USING ERRCODE='55000';
   END IF;
 
-  -- Restore canonical product/variant stock BEFORE erasing order movements.
-  -- The compensation insert runs through the normal stock-projection triggers;
-  -- it is then erased together with the order movements while the projected
-  -- products.stock value remains at the exact "order never happened" balance.
+  -- Restore canonical product / variant stock before erasing the order's
+  -- immutable inventory ledger rows. The temporary compensation movement uses
+  -- the normal projection trigger, then is erased with the order movements.
   WITH RECURSIVE related AS (
     SELECT im.id,im.product_id,im.variant_id,im.location_id,im.quantity_delta
     FROM public.inventory_movements im
@@ -140,8 +139,8 @@ BEGIN
   FROM net n
   ON CONFLICT(idempotency_key) DO NOTHING;
 
-  -- Undo loyalty effects created at checkout. Approved earning transactions were
-  -- blocked above; only pending/cancelled checkout effects are reversible here.
+  -- Reverse checkout loyalty effects. Approved earn transactions were blocked
+  -- above, so only pending/cancelled pre-delivery effects can reach this point.
   IF v_order.user_id IS NOT NULL THEN
     SELECT
       COALESCE(SUM(CASE WHEN status='pending' AND points_type='loyalty' AND amount>0 THEN amount ELSE 0 END),0)::integer,
@@ -170,16 +169,16 @@ BEGIN
     WHERE id=v_order.user_id;
   END IF;
 
-  -- The regular coupon counter is incremented when the order is created.
+  -- A normal coupon use is counted when the order is created.
   IF v_order.coupon_id IS NOT NULL THEN
     UPDATE public.coupons
     SET used_count=GREATEST(COALESCE(used_count,0)-1,0)
     WHERE id=v_order.coupon_id;
   END IF;
 
-  -- The following immutable guards are intentionally bypassed only inside this
-  -- single SECURITY DEFINER transaction. ALTER TABLE changes roll back with the
-  -- transaction if any purge step fails, so triggers cannot be left disabled.
+  -- Immutable guards are bypassed only inside this one SECURITY DEFINER
+  -- transaction. If any statement fails, PostgreSQL rolls these DDL changes back
+  -- together with every data change, so a trigger cannot be left disabled.
   ALTER TABLE public.orders DISABLE TRIGGER USER;
   ALTER TABLE public.order_items_relational DISABLE TRIGGER USER;
   ALTER TABLE public.inventory_movements DISABLE TRIGGER USER;
@@ -197,9 +196,8 @@ BEGIN
   ALTER TABLE public.order_fulfillment_lines DISABLE TRIGGER USER;
   ALTER TABLE public.fulfillment_preparation_drafts DISABLE TRIGGER USER;
   ALTER TABLE public.fulfillment_preparation_draft_lines DISABLE TRIGGER USER;
+  ALTER TABLE public.financial_correction_requests DISABLE TRIGGER USER;
 
-  -- Remove stock ledger rows belonging to the order, including the temporary
-  -- compensation rows inserted above and any reversal descendants.
   WITH RECURSIVE related AS (
     SELECT im.id
     FROM public.inventory_movements im
@@ -218,7 +216,7 @@ BEGIN
   )
   SELECT COUNT(*) INTO v_deleted_inventory FROM deleted;
 
-  -- Deepest fulfillment/return children first.
+  -- Deepest fulfillment / return children first.
   DELETE FROM public.order_return_packaging_losses WHERE order_id=p_order_id;
   GET DIAGNOSTICS v_deleted_returns = ROW_COUNT;
 
@@ -230,18 +228,16 @@ BEGIN
    WHERE draft_id IN (SELECT id FROM public.fulfillment_preparation_drafts WHERE order_id=p_order_id);
   DELETE FROM public.carton_reservations WHERE order_id=p_order_id;
 
-  -- Break the nullable draft/event cycle before deleting both sides.
-  UPDATE public.fulfillment_preparation_drafts
-     SET confirmed_event_id=NULL
-   WHERE order_id=p_order_id;
+  -- Events and consumed drafts reference each other. Null the nullable event side,
+  -- delete event lines, then the draft child, then the event parent. This keeps
+  -- fpd_consumed_chk valid even while user triggers are disabled.
   UPDATE public.order_fulfillment_events
      SET draft_id=NULL
    WHERE order_id=p_order_id;
-
   DELETE FROM public.order_fulfillment_lines WHERE order_id=p_order_id;
+  DELETE FROM public.fulfillment_preparation_drafts WHERE order_id=p_order_id;
   DELETE FROM public.order_fulfillment_events WHERE order_id=p_order_id;
   GET DIAGNOSTICS v_deleted_fulfillment = ROW_COUNT;
-  DELETE FROM public.fulfillment_preparation_drafts WHERE order_id=p_order_id;
   DELETE FROM public.order_fulfillment_sequences WHERE order_id=p_order_id;
 
   DELETE FROM public.order_packing_plan_items
@@ -252,15 +248,15 @@ BEGIN
   DELETE FROM public.order_return_events WHERE order_id=p_order_id;
   DELETE FROM public.return_requests WHERE order_id=p_order_id;
 
-  -- Non-realized financial/preparation records. Real payment/accounting evidence
-  -- was blocked at the top of the function.
+  -- Pre-realization financial / preparation records. Real payment/accounting
+  -- evidence was blocked at the top of the function.
   DELETE FROM public.order_financial_adjustments WHERE order_id=p_order_id;
   DELETE FROM public.manual_invoices WHERE order_id=p_order_id;
   DELETE FROM public.customer_guides WHERE order_id=p_order_id;
   DELETE FROM public.damage_claims WHERE order_id=p_order_id;
   DELETE FROM public.financial_correction_requests WHERE order_id=p_order_id;
 
-  -- Restore reusable references rather than deleting the parent feature records.
+  -- Restore reusable feature records rather than deleting their parent entities.
   UPDATE public.referrals SET first_order_id=NULL WHERE first_order_id=p_order_id;
   UPDATE public.auto_orders SET last_order_id=NULL WHERE last_order_id=p_order_id;
   UPDATE public.loyalty_coupons SET used_order_id=NULL,used_at=NULL WHERE used_order_id=p_order_id;
@@ -269,7 +265,7 @@ BEGIN
   DELETE FROM public.order_items_relational WHERE order_id=p_order_id;
   GET DIAGNOSTICS v_deleted_lines = ROW_COUNT;
 
-  -- Purge non-FK audit/reconciliation residue for the erased order.
+  -- Purge non-FK residue for the erased pre-delivery order.
   DELETE FROM public.accounting_audit_trail WHERE entity_type='order' AND entity_id=p_order_id;
   DELETE FROM public.accounting_manual_adjustments WHERE entity_type='order' AND entity_id=p_order_id;
   DELETE FROM public.accounting_review_flags WHERE entity_type='order' AND entity_id=p_order_id;
@@ -283,7 +279,7 @@ BEGIN
     RAISE EXCEPTION 'ORDER_PURGE_DELETE_FAILED' USING ERRCODE='P0001';
   END IF;
 
-  -- Restore every guard before commit.
+  ALTER TABLE public.financial_correction_requests ENABLE TRIGGER USER;
   ALTER TABLE public.fulfillment_preparation_draft_lines ENABLE TRIGGER USER;
   ALTER TABLE public.fulfillment_preparation_drafts ENABLE TRIGGER USER;
   ALTER TABLE public.order_fulfillment_lines ENABLE TRIGGER USER;
