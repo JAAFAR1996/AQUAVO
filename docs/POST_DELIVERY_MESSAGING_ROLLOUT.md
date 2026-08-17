@@ -6,11 +6,43 @@ Status: implementation branch; outbound WhatsApp is intentionally disabled by de
 
 The existing admin action `استلم الزبون` updates the AQUAVO order to `delivered`.
 Migration 0079 attaches a PostgreSQL `AFTER UPDATE OF status` trigger. A genuine
-transition into `delivered` writes one `delivery_care` outbox row and one delayed
-`review_request` row. `UNIQUE(order_id, job_type)` makes this idempotent.
+transition into `delivered` writes exactly one `delivery_care` outbox row.
+`UNIQUE(order_id, job_type)` makes enqueue/retry paths idempotent.
 
 After the order update succeeds, the admin UI immediately calls the admin-only
 delivery-care dispatcher. Messaging failure never changes the delivered order.
+
+Phase 1 does **not** enqueue or send review requests. Review automation remains deferred
+until secure order-review tokens, verified-purchase submission and support suppression
+are deployed together.
+
+## Vercel Hobby recovery scheduler
+
+AQUAVO currently runs on Vercel Hobby. Native Vercel Cron cannot run more than once
+per day on Hobby, so it is not used for the retry worker.
+
+The default-branch GitHub Actions workflow
+`.github/workflows/customer-messaging-retry.yml` calls the protected production route
+`/api/cron/customer-messaging` every five minutes. The route is protected by the same
+`CRON_SECRET` contract already used by AQUAVO cron routes.
+
+Required deployment/repository setup:
+
+1. Keep `CRON_SECRET` in Vercel Production environment variables.
+2. Add the exact same value as the GitHub repository Actions secret `CRON_SECRET`.
+3. Never print or commit the secret.
+4. The scheduled workflow becomes active only after it exists on the default branch.
+
+The admin button remains the immediate-send path. The external worker is recovery for:
+
+- provider/network retries;
+- a browser closing after `delivered` was committed but before the immediate dispatch;
+- a serverless process dying after claiming a job.
+
+A `sending` claim older than 10 minutes is considered abandoned and may be reclaimed.
+After the fifth attempt an abandoned claim is marked failed for manual inspection.
+The worker processes at most five messages per invocation to stay safely below the
+Vercel function timeout even when provider requests approach their seven-second timeout.
 
 ## Required Meta configuration before live sends
 
@@ -43,24 +75,38 @@ Proposed copy:
 إذا احتجت أي مساعدة باستخدام المنتجات أو صار عندك أي استفسار بعد ما تجرّبها، رد علينا هنا وإحنا نتابع وياك.
 ```
 
+## Provider status semantics
+
+When Meta returns a WhatsApp message ID (`wamid`), the outbox job becomes `completed`
+and `provider_status='accepted'`. This means the provider accepted the API request; it
+does not claim that the customer's handset received or read the message.
+
+The later webhook phase will move `provider_status` through `sent`, `delivered`, `read`
+or `failed` from Meta webhook events.
+
 ## Production order
 
 1. Merge/apply the in-flight 0078 accounting migration first.
 2. Rebase this branch if needed.
 3. Pass TypeScript/build/tests and migration-ledger checks.
-4. Apply 0079 to the target database.
-5. Configure the Meta number and approved template with `WHATSAPP_CLOUD_ENABLED=false`.
-6. Verify the admin delivered transition creates one `delivery_care` job.
-7. Send to a controlled test recipient through the admin dispatcher.
-8. Only then set `WHATSAPP_CLOUD_ENABLED=true`.
+4. Apply 0079 to the target database. 0079 fails closed if active 0078 is missing.
+5. Configure Meta number/template credentials with `WHATSAPP_CLOUD_ENABLED=false`.
+6. Configure matching `CRON_SECRET` values in Vercel Production and GitHub Actions.
+7. Verify `shipped -> delivered` creates one pending `delivery_care` job.
+8. Manually run the GitHub recovery workflow while WhatsApp remains disabled; it must exit cleanly without sending.
+9. Send to a controlled test recipient through the admin dispatcher.
+10. Verify the outbox records `completed + provider_status=accepted + wamid`.
+11. Only then set `WHATSAPP_CLOUD_ENABLED=true`.
 
 ## Failure behavior
 
 - Meta/network timeout: durable retry state; order remains delivered.
 - Invalid Iraqi mobile: message marked failed; order remains delivered.
-- Duplicate admin action/retry: no duplicate lifecycle job.
-- Delivery corrected to a reject/return terminal status: pending review jobs are cancelled.
-- Review sender is intentionally absent in phase 1.
+- Duplicate admin action/retry: no duplicate outbox job.
+- Browser interruption after delivery update: external worker finds the pending job.
+- Abandoned `sending` claim: external worker reclaims it after the 10-minute lease.
+- Delivery corrected to a reject/return terminal status before send: pending care job is cancelled.
+- Review jobs are not created in phase 1.
 
 ## Next phase
 
