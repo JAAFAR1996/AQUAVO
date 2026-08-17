@@ -39,12 +39,15 @@ describe("Accounting V3 external handoff hardening", () => {
     expect(smartCarrierRoute).toContain('public.accounting_effective_carrier(f.id) AS carrier');
   });
 
-  it("enforces carrier correction integrity in PostgreSQL and rolls the guard back safely", () => {
+  it("enforces and serializes carrier correction integrity in PostgreSQL", () => {
     expect(migration78).toContain('validate_order_accounting_carrier_correction_insert');
     expect(migration78).toContain('ORDER_ACCOUNTING_CARRIER_CORRECTION_ORDER_FACT_MISMATCH');
     expect(migration78).toContain('ORDER_ACCOUNTING_CARRIER_CORRECTION_COMPANY_NAME_MISMATCH');
     expect(migration78).toContain('ORDER_ACCOUNTING_CARRIER_CORRECTION_FEE_MISMATCH');
+    expect(migration78).toContain('ORDER_ACCOUNTING_CARRIER_CORRECTION_COMPANY_FEE_MISMATCH');
     expect(migration78).toContain('ORDER_ACCOUNTING_CARRIER_CORRECTION_PRIOR_MISMATCH');
+    expect(migration78).toContain('ORDER_ACCOUNTING_CARRIER_CORRECTION_NOOP');
+    expect(migration78).toMatch(/FROM public\.order_accounting_facts f[\s\S]*?WHERE f\.id=NEW\.order_fact_id[\s\S]*?FOR UPDATE/);
     expect(migration78).toContain('order_accounting_carrier_corrections_validate_insert');
     expect(rollback78).toContain('DROP FUNCTION IF EXISTS public.validate_order_accounting_carrier_correction_insert()');
   });
