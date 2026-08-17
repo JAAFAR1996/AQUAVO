@@ -50,7 +50,8 @@ describe("post-delivery customer messaging contract", () => {
     expect(migration).toContain("provider_status");
     expect(migration).toContain("'accepted', 'sent', 'delivered', 'read', 'failed'");
     expect(service).toContain("provider_status='accepted'");
-    expect(service).toContain("does not prove handset delivery");
+    expect(service).toContain("provider_message_id=${providerMessageId}");
+    expect(service).toContain("accepted_at=clock_timestamp()");
   });
 
   it("makes the existing delivered button trigger an immediate dispatch attempt", () => {
@@ -69,7 +70,7 @@ describe("post-delivery customer messaging contract", () => {
     expect(service).toContain("STALE_SENDING_LEASE_MINUTES = 10");
     expect(service).toContain("WHATSAPP_TIMEOUT_AMBIGUOUS");
     expect(service).toContain("AMBIGUOUS_STALE_SEND_STATE");
-    expect(service).toContain("avoid duplicate customer messages");
+    expect(service).toContain("new WhatsAppSendError(code, false)");
   });
 
   it("uses a protected external five-minute worker instead of Vercel Hobby cron", () => {
