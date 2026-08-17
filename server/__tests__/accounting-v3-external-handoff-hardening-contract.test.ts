@@ -49,6 +49,13 @@ describe("Accounting V3 external handoff hardening", () => {
     expect(correctionRoute).not.toContain('FOR UPDATE OF o');
   });
 
+  it("records accounting identity and operational carrier mutations as distinct audit changes", () => {
+    expect(correctionRoute).toContain('fieldName: "accounting_carrier"');
+    expect(correctionRoute).toContain('fieldName: "carrier"');
+    expect(correctionRoute).toContain('oldValue: accountingCarrier');
+    expect(correctionRoute).toContain('oldValue: operationalCarrier');
+  });
+
   it("enforces and serializes carrier correction integrity in PostgreSQL", () => {
     expect(migration78).toContain('validate_order_accounting_carrier_correction_insert');
     expect(migration78).toContain('ORDER_ACCOUNTING_CARRIER_CORRECTION_ORDER_FACT_MISMATCH');
