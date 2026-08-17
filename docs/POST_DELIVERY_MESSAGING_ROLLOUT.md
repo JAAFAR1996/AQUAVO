@@ -35,12 +35,16 @@ Required deployment/repository setup:
 
 The admin button remains the immediate-send path. The external worker is recovery for:
 
-- provider/network retries;
+- explicit provider retryable failures such as HTTP 429/5xx;
 - a browser closing after `delivered` was committed but before the immediate dispatch;
-- a serverless process dying after claiming a job.
+- pending jobs left for any other reason before an outbound provider request starts.
 
-A `sending` claim older than 10 minutes is considered abandoned and may be reclaimed.
-After the fifth attempt an abandoned claim is marked failed for manual inspection.
+A `sending` claim older than 10 minutes is considered ambiguous. It is marked failed for
+manual inspection rather than automatically resent, because Meta may already have
+accepted the request before the process died. Transport timeout/network failures are
+handled the same way when no `wamid` is available. This deliberately favors avoiding a
+duplicate customer message over retrying an uncertain send.
+
 The worker processes at most five messages per invocation to stay safely below the
 Vercel function timeout even when provider requests approach their seven-second timeout.
 
@@ -100,11 +104,12 @@ or `failed` from Meta webhook events.
 
 ## Failure behavior
 
-- Meta/network timeout: durable retry state; order remains delivered.
+- Explicit Meta HTTP 429/5xx: durable scheduled retry; order remains delivered.
+- Transport timeout/network ambiguity: failed/manual inspection; no blind resend.
 - Invalid Iraqi mobile: message marked failed; order remains delivered.
 - Duplicate admin action/retry: no duplicate outbox job.
-- Browser interruption after delivery update: external worker finds the pending job.
-- Abandoned `sending` claim: external worker reclaims it after the 10-minute lease.
+- Browser interruption after delivery update but before provider call: external worker finds the pending job.
+- Abandoned `sending` claim: marked failed after the 10-minute ambiguity lease; no blind resend.
 - Delivery corrected to a reject/return terminal status before send: pending care job is cancelled.
 - Review jobs are not created in phase 1.
 
