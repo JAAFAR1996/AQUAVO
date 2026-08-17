@@ -2,6 +2,7 @@ import type { Server } from "http";
 import express from "express";
 import { createProductRouter } from "./routes/products.js";
 import { createOrderRouter } from "./routes/orders.js";
+import alwaseetPublicTrackingRouter from "./routes/alwaseet-public-tracking.js";
 import { createUserRouter } from "./routes/users.js";
 import { createGalleryRouter } from "./routes/gallery.js";
 import { createAdminRouter } from "./routes/admin.js";
@@ -81,6 +82,9 @@ export async function registerRoutes(httpServer: Server, app: express.Applicatio
 
   app.use("/api/fish", createFishRouter(storage));
   app.use("/api/products", createProductRouter());
+  // Carrier tracking is intentionally mounted before the legacy orders router.
+  // It owns only /track/* and never changes order/finance/fulfillment state.
+  app.use("/api/orders", alwaseetPublicTrackingRouter);
   app.use("/api/orders", createOrderRouter());
 
   // Archive/list handling is deliberately isolated from Accounting V2 and

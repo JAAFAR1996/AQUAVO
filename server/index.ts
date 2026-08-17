@@ -3,12 +3,42 @@ import "./env.js";
 
 import * as Sentry from "@sentry/node";
 
+const ALWASEET_TOKEN_PATTERN = /([?&]token=)[^&#\s]+/gi;
+function redactAlWaseetToken(value: string): string {
+  if (!value.includes("api.alwaseet-iq.net") && !/[?&]token=/i.test(value)) return value;
+  return value.replace(ALWASEET_TOKEN_PATTERN, "$1[REDACTED]");
+}
+function scrubTelemetryValue(value: unknown): unknown {
+  if (typeof value === "string") return redactAlWaseetToken(value);
+  if (Array.isArray(value)) return value.map(scrubTelemetryValue);
+  if (!value || typeof value !== "object") return value;
+  const copy: Record<string, unknown> = {};
+  for (const [key, nested] of Object.entries(value as Record<string, unknown>)) {
+    copy[key] = scrubTelemetryValue(nested);
+  }
+  return copy;
+}
+
 // Initialize Sentry before any Express setup so instrumentation is complete
 Sentry.init({
   dsn: process.env.VITE_SENTRY_DSN,
   environment: process.env.NODE_ENV ?? "development",
   // 10% of transactions sampled — enough for production insight without volume cost
   tracesSampleRate: 0.1,
+  beforeBreadcrumb(breadcrumb) {
+    if (breadcrumb.message) breadcrumb.message = redactAlWaseetToken(breadcrumb.message);
+    if (breadcrumb.data) breadcrumb.data = scrubTelemetryValue(breadcrumb.data) as typeof breadcrumb.data;
+    return breadcrumb;
+  },
+  beforeSendSpan(span) {
+    // Al-Waseet's public API requires the merchant token in the URL query string.
+    // Outgoing HTTP/fetch auto-instrumentation can otherwise copy that secret into
+    // span descriptions/attributes even though application logs never print it.
+    const mutable = span as typeof span & { description?: string; data?: Record<string, unknown> };
+    if (mutable.description) mutable.description = redactAlWaseetToken(mutable.description);
+    if (mutable.data) mutable.data = scrubTelemetryValue(mutable.data) as Record<string, unknown>;
+    return span;
+  },
   beforeSend(event, hint) {
     const err = hint?.originalException;
     const msg = err instanceof Error ? err.message : String(err ?? "");
@@ -19,6 +49,15 @@ Sentry.init({
     // Never forward raw DB connection strings or secrets in extra context
     if (event.extra) {
       delete (event.extra as Record<string, unknown>)["DATABASE_URL"];
+      event.extra = scrubTelemetryValue(event.extra) as typeof event.extra;
+    }
+    if (event.request?.url) event.request.url = redactAlWaseetToken(event.request.url);
+    if (event.breadcrumbs) {
+      event.breadcrumbs = event.breadcrumbs.map((breadcrumb) => ({
+        ...breadcrumb,
+        message: breadcrumb.message ? redactAlWaseetToken(breadcrumb.message) : breadcrumb.message,
+        data: breadcrumb.data ? scrubTelemetryValue(breadcrumb.data) as typeof breadcrumb.data : breadcrumb.data,
+      }));
     }
     return event;
   },
