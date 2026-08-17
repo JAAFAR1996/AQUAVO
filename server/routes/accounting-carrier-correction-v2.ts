@@ -104,7 +104,7 @@ export function createAccountingCarrierCorrectionV2Router() {
             await recordFinancialChange(tx as never, {
               entityType: "order",
               entityId: String(fact.order_id),
-              action: "carrier_correction",
+              action: "update",
               fieldName: "carrier",
               oldValue: oldCarrier,
               newValue: newCarrier,
