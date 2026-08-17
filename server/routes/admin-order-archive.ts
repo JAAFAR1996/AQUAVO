@@ -19,6 +19,9 @@ import {
  *
  * It is mounted before both admin-orders-v2 and the legacy admin router so the
  * unsafe legacy DELETE /orders/:id handler can no longer be reached.
+ *
+ * Auth is attached per route, rather than router-wide, so unrelated /api/admin
+ * routes retain their existing authorization semantics without an extra gate.
  */
 
 const ARCHIVABLE_ORDER_STATUSES = new Set([
@@ -70,14 +73,13 @@ async function writeArchiveAudit(
 
 export function createAdminOrderArchiveRouter() {
   const router = Router();
-  router.use(requireAdmin);
 
   /**
    * Canonical admin order list with the existing profit/cost enrichment intact.
    * By default archived rows stay out of operational callers; the Orders screen
    * explicitly requests includeArchived=1 so it can provide an Archive tab.
    */
-  router.get("/orders", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  router.get("/orders", requireAdmin, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const db = getDb();
     if (!db) {
       res.status(503).json({ message: "قاعدة البيانات غير مهيأة" });
@@ -160,7 +162,7 @@ export function createAdminOrderArchiveRouter() {
    * semantics are deliberately SAFE: terminal orders are archived, never
    * physically deleted.
    */
-  router.delete("/orders/:id", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  router.delete("/orders/:id", requireAdmin, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const db = getDb();
     if (!db) {
       res.status(503).json({ message: "قاعدة البيانات غير مهيأة" });
@@ -220,7 +222,7 @@ export function createAdminOrderArchiveRouter() {
     }
   });
 
-  router.post("/orders/:id/restore", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  router.post("/orders/:id/restore", requireAdmin, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const db = getDb();
     if (!db) {
       res.status(503).json({ message: "قاعدة البيانات غير مهيأة" });
