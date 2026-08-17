@@ -18,7 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Archive, Package, Search, Eye, AlertTriangle, ReceiptText, RotateCcw } from "lucide-react";
+import { Archive, Package, Search, Eye, AlertTriangle, ReceiptText, RotateCcw, Trash2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -148,6 +148,8 @@ export function OrdersManagement() {
   const [rejectOrderId, setRejectOrderId] = useState<string | null>(null);
   const [rejectStep, setRejectStep] = useState(0);
   const [archiveOrderId, setArchiveOrderId] = useState<string | null>(null);
+  const [purgeOrderId, setPurgeOrderId] = useState<string | null>(null);
+  const [purgingOrderId, setPurgingOrderId] = useState<string | null>(null);
 
   // Return adjustment modal state
   const [returnAdjustOrder, setReturnAdjustOrder] = useState<Order | null>(null);
@@ -335,6 +337,35 @@ export function OrdersManagement() {
     }
   };
 
+  const handlePurgeOrder = async () => {
+    if (!purgeOrderId) return;
+    const orderId = purgeOrderId;
+    setPurgingOrderId(orderId);
+    try {
+      const response = await fetch(`/api/admin/orders/${orderId}/purge`, {
+        method: "POST",
+        headers: addCsrfHeader({ "Content-Type": "application/json" }),
+        credentials: "include",
+        body: JSON.stringify({ reason: "مسح نهائي من جدول إدارة الطلبات" }),
+      });
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(body.message || "تعذر مسح الطلب نهائياً");
+
+      setOrders((prev) => prev.filter((order) => order.id !== orderId));
+      if (selectedOrder?.id === orderId) {
+        setSelectedOrder(null);
+        setIsDetailOpen(false);
+      }
+      toast({ title: "تم مسح الطلب نهائياً", description: "اختفى الطلب من النظام وتمت معالجة آثاره القابلة للعكس" });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "تعذر مسح الطلب نهائياً";
+      toast({ title: "لم يتم المسح", description: message, variant: "destructive" });
+    } finally {
+      setPurgingOrderId(null);
+      setPurgeOrderId(null);
+    }
+  };
+
   // Triple confirmation rejection
   const startReject = (orderId: string) => {
     setRejectOrderId(orderId);
@@ -493,6 +524,19 @@ export function OrdersManagement() {
                           <Eye className="h-4 w-4" />
                         </Button>
 
+                        {order.status !== 'delivered' && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
+                            title="مسح الطلب نهائياً"
+                            disabled={purgingOrderId === order.id}
+                            onClick={() => setPurgeOrderId(order.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+
                         {isArchived ? (
                           <Button
                             size="sm"
@@ -608,6 +652,28 @@ export function OrdersManagement() {
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
             <AlertDialogAction onClick={handleArchiveOrder}>
               أرشفة الطلب
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Permanent Purge AlertDialog */}
+      <AlertDialog open={!!purgeOrderId} onOpenChange={(open) => { if (!open && !purgingOrderId) setPurgeOrderId(null); }}>
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-red-600">مسح الطلب نهائياً؟</AlertDialogTitle>
+            <AlertDialogDescription className="leading-6">
+              هذا مسح نهائي وليس أرشفة. الطلب راح يختفي من النظام وتُرجع آثاره القابلة للعكس من المخزون والكوبون والنقاط. ما تگدر ترجع الطلب بعد المسح. الطلب المستلم أو اللي دخل فعلياً بالمحاسبة محمي والنظام راح يرفض مسحه.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={!!purgingOrderId}>إلغاء</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(event) => { event.preventDefault(); void handlePurgeOrder(); }}
+              disabled={!!purgingOrderId}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {purgingOrderId ? "جاري المسح..." : "مسح نهائي"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
