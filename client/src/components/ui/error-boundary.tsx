@@ -14,10 +14,57 @@ interface ErrorBoundaryState {
     errorInfo: ErrorInfo | null;
 }
 
+const CHUNK_RELOAD_GUARD_KEY = 'aquavo:chunk-reload-guard';
+const CHUNK_RELOAD_GUARD_MS = 60_000;
+
+/**
+ * Vite lazy chunks are content-hashed. A tab that stays open across a deploy can
+ * still reference the previous hash, which Vercel no longer serves. React.lazy
+ * caches that rejected import, so merely resetting an ErrorBoundary cannot
+ * recover it; the document itself must be refreshed.
+ */
+export function isRecoverableChunkLoadError(error: Error | null): boolean {
+    if (!error) return false;
+
+    const fingerprint = `${error.name} ${error.message}`.toLowerCase();
+    return [
+        'chunkloaderror',
+        'loading chunk',
+        'failed to fetch dynamically imported module',
+        'error loading dynamically imported module',
+        'importing a module script failed',
+        'failed to load module script',
+    ].some((pattern) => fingerprint.includes(pattern));
+}
+
+function tryAutomaticChunkReload(error: Error): boolean {
+    if (typeof window === 'undefined' || !isRecoverableChunkLoadError(error)) return false;
+
+    // sessionStorage is the loop guard. If storage is unavailable, fail closed
+    // and leave the user on the fallback instead of risking a reload loop.
+    try {
+        const now = Date.now();
+        const path = `${window.location.pathname}${window.location.search}`;
+        const raw = window.sessionStorage.getItem(CHUNK_RELOAD_GUARD_KEY);
+        const previous = raw ? JSON.parse(raw) as { path?: string; at?: number } : null;
+        const alreadyRetriedRecently = previous?.path === path
+            && typeof previous.at === 'number'
+            && now - previous.at < CHUNK_RELOAD_GUARD_MS;
+
+        if (alreadyRetriedRecently) return false;
+
+        window.sessionStorage.setItem(CHUNK_RELOAD_GUARD_KEY, JSON.stringify({ path, at: now }));
+        window.location.reload();
+        return true;
+    } catch {
+        return false;
+    }
+}
+
 /**
  * ErrorBoundary component for catching JavaScript errors in child components.
- * Best practice: Wrap Suspense boundaries and lazy-loaded components with ErrorBoundary.
- * 
+ * It also recovers stale content-hashed lazy chunks after a production deploy.
+ *
  * @example
  * <ErrorBoundary>
  *   <Suspense fallback={<Loading />}>
@@ -36,21 +83,29 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     }
 
     componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-        // Update state with error info
         this.setState({ errorInfo });
 
-        // Log error to console in development
+        // A stale lazy chunk is a deployment/version mismatch, not an
+        // application-state error. Refresh the document once to obtain the new
+        // entry bundle and chunk map.
+        if (tryAutomaticChunkReload(error)) return;
+
         if (import.meta.env.DEV) {
             console.error('🚨 ErrorBoundary caught an error:', error, errorInfo);
         }
 
-        // Call optional error handler
         this.props.onError?.(error, errorInfo);
-
-        // In production, could send to error tracking service (e.g., Sentry)
     }
 
     handleRetry = (): void => {
+        // React.lazy keeps a rejected import promise cached. A normal boundary
+        // reset would immediately throw the same error again, so force a full
+        // document refresh for chunk failures.
+        if (isRecoverableChunkLoadError(this.state.error)) {
+            window.location.reload();
+            return;
+        }
+
         this.setState({ hasError: false, error: null, errorInfo: null });
     };
 
@@ -60,12 +115,10 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
     render(): ReactNode {
         if (this.state.hasError) {
-            // Custom fallback UI if provided
             if (this.props.fallback) {
                 return this.props.fallback;
             }
 
-            // Default fallback UI
             return (
                 <div className="min-h-[300px] flex items-center justify-center bg-background">
                     <div className="text-center space-y-4 p-8 max-w-md">
