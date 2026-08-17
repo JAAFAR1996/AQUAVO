@@ -45,11 +45,13 @@ describe("Accounting V3 external handoff hardening", () => {
     expect(migration78).toContain('identified_gl_difference_iqd');
   });
 
-  it("exports journal lines instead of header-only accountant output", () => {
+  it("exports complete journal and opening-inventory accountant detail", () => {
     expect(accountingRoute).toContain("'accountCode',l.account_code");
     expect(accountingRoute).toContain("'accountName',a.name_ar");
     expect(accountantPdf).toContain('دفتر اليومية التفصيلي');
     expect(accountantPdf).toContain('accountCode');
     expect(accountantPdf).toContain('فهرس الأدلة');
+    expect(accountantPdf).toContain('row.total_cost');
+    expect(accountantPdf).toContain('row.cost_status');
   });
 });
