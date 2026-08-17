@@ -11,6 +11,7 @@ const money = z.coerce.number().finite();
 const blockerSchema = z.object({ key: z.string(), label: z.string(), count: z.coerce.number().finite() });
 const readinessSchema = z.object({
   product_revenue: money,
+  rounding_adjustment: money,
   merchant_net: money,
   delivery_subsidy: money,
   delivery_surplus: money,
@@ -19,8 +20,12 @@ const readinessSchema = z.object({
   sales_returns: money,
   actual_return_loss: money,
   verified_expenses: money,
+  fx_net_expense: money,
   journal_difference: money,
   realized_orders: z.coerce.number().finite(),
+  procurement_integrity_failures: z.coerce.number().finite().optional(),
+  settlement_integrity_failures: z.coerce.number().finite().optional(),
+  governance_review_flags: z.coerce.number().finite().optional(),
   blockers: z.array(blockerSchema),
   administrativeCloseReady: z.boolean(),
 }).passthrough();
@@ -73,7 +78,9 @@ async function readJson(response: Response): Promise<unknown> {
   const body = await response.json().catch(() => ({}));
   if (!response.ok) {
     const message = typeof (body as any)?.message === "string" ? (body as any).message : "فشل تحميل السجل المحاسبي";
-    throw new Error(message.includes("0051_TO_0062") ? "ترحيل الأتمتة المحاسبية 0062 غير مطبق بعد" : message);
+    throw new Error(message.includes("ACCOUNTING_V2_LATEST_MIGRATION_REQUIRED")
+      ? "قاعدة المحاسبة تحتاج آخر تحديث محاسبي قبل فتح السجل"
+      : message);
   }
   return body;
 }
@@ -96,6 +103,7 @@ function Card({ label, value, note }: { label: string; value: number | undefined
 function archiveSummary(data: z.infer<typeof archiveSummarySchema>["data"]): Summary {
   return {
     product_revenue: data.totalRevenue,
+    rounding_adjustment: 0,
     merchant_net: data.totalRevenue,
     delivery_subsidy: 0,
     delivery_surplus: 0,
@@ -104,6 +112,7 @@ function archiveSummary(data: z.infer<typeof archiveSummarySchema>["data"]): Sum
     sales_returns: Number(data.salesReturnDeduction ?? 0),
     actual_return_loss: Number(data.actualReturnLoss ?? 0),
     verified_expenses: 0,
+    fx_net_expense: 0,
     journal_difference: 0,
     realized_orders: data.deliveredCount,
     blockers: [],
@@ -152,8 +161,9 @@ export function FinanceAccountingRegisterV2() {
   const balancesComplete = missingBalanceCodes.length === 0;
   const netProfit = useMemo(() => {
     if (!summary) return undefined;
-    return summary.product_revenue - summary.cogs - summary.fulfillment_cost - summary.delivery_subsidy
-      - summary.sales_returns - summary.actual_return_loss - summary.verified_expenses;
+    return summary.product_revenue + summary.rounding_adjustment
+      - summary.cogs - summary.fulfillment_cost - summary.delivery_subsidy
+      - summary.sales_returns - summary.actual_return_loss - summary.verified_expenses - summary.fx_net_expense;
   }, [summary]);
 
   async function downloadPackagePdf() {
@@ -241,11 +251,12 @@ export function FinanceAccountingRegisterV2() {
         <>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(170px,1fr))", gap: 10 }}>
             <Card label="مبيعات المنتجات" value={summary.product_revenue} note={isArchive ? "ملخص تاريخي" : "بعد فصل توصيل الزبون"} />
+            {!isArchive ? <Card label="فرق التقريب" value={summary.rounding_adjustment} note="حساب مستقل 3050" /> : null}
             <Card label={isArchive ? "إجمالي الإيراد التاريخي" : "صافي حق AQUAVO"} value={summary.merchant_net} note={isArchive ? "ليس رصيد COD رسمي" : "COD ناقص أجرة شركة التوصيل"} />
             <Card label="دعم التوصيل" value={summary.delivery_subsidy} />
             <Card label="كلفة المنتجات" value={summary.cogs} />
             <Card label="كلفة التجهيز" value={summary.fulfillment_cost} />
-            <Card label="صافي الربح الإداري" value={netProfit} note={isArchive ? "بحسب البيانات التاريخية المتاحة" : "قبل TAX FINAL"} />
+            <Card label="صافي الربح الإداري" value={netProfit} note={isArchive ? "بحسب البيانات التاريخية المتاحة" : "يشمل التقريب ويستبعد فروقات التوصيل المعلقة؛ قبل TAX FINAL"} />
           </div>
 
           {!isArchive ? (
