@@ -68,12 +68,10 @@ describe("Accounting V2 reviewed fixes", () => {
   });
 
   // There is exactly ONE /v2/health owner: createAccountingV2Router. The separate
-  // accounting-health-v2.ts router was a second registration on the same mount
-  // whose gate had drifted behind the migration chain, so a stale copy could
-  // answer "ready" for migrations it never checked. It is deleted, and this
-  // contract asserts both halves: nothing re-registers it, AND the surviving
-  // gate fails closed across the complete P0 chain through 0071.
-  it("mounts one effective fail-closed health gate through the complete P0 chain", () => {
+  // accounting-health-v2.ts router was a second registration on the same mount.
+  // The surviving gate must fail closed against the current handoff-hardening
+  // migration, not a stale historical checkpoint.
+  it("mounts one effective fail-closed health gate through the current accounting chain", () => {
     const routes = read("server/routes.ts");
     expect(routes).not.toContain("accounting-health-v2.js");
     expect(routes).not.toContain("createAccountingHealthV2Router");
@@ -82,7 +80,10 @@ describe("Accounting V2 reviewed fixes", () => {
 
     const reports = read("server/routes/accounting-v2.ts");
     expect((reports.match(/router\.get\("\/v2\/health"/g) ?? [])).toHaveLength(1);
-    expect(reports).toContain("migration_0071");
+    expect(reports).toContain('LATEST_ACCOUNTING_MIGRATION = "0078_accounting_external_handoff_hardening"');
+    expect(reports).toContain("latest_migration");
+    expect(reports).toContain("carrier_corrections");
+    expect(reports).toContain("effective_carrier");
     expect(reports).toContain("delivery_readiness_function");
     expect(reports).toContain("delivery_readiness_guard");
     expect(reports).toContain("ledger_balance_function");
@@ -91,8 +92,8 @@ describe("Accounting V2 reviewed fixes", () => {
     expect(reports).toContain("order_returns_prepare_verification");
     expect(reports).toContain("RETURN_ORDER_ITEM_ID_REQUIRED");
     expect(reports).toContain("return_refund_snapshot_guard");
-    expect(reports).toContain("ACCOUNTING_V2_MIGRATIONS_0051_TO_0071_REQUIRED");
-    expect(reports).toContain('migrationsThrough: "0071"');
+    expect(reports).toContain("ACCOUNTING_V2_LATEST_MIGRATION_REQUIRED");
+    expect(reports).toContain('migrationsThrough: "0078"');
 
     const migration70 = read("migrations/0070_accounting_ledger_backed_views.sql");
     expect(migration70).toContain("order_returns_00_lock_verification");
@@ -151,10 +152,6 @@ describe("Accounting V2 reviewed fixes", () => {
     expect(runner).toContain("t.tgrelid='public.orders'::regclass");
     expect(runner).toContain("t.tgfoid='public.apply_default_delivery_company_to_order()'::regprocedure");
 
-    // The Vercel build must NOT carry the production migration any more: a
-    // deploy is not an approval to mutate the production ledger. The build
-    // command is now a plain build, and applying migrations is a deliberate,
-    // manually dispatched, production-environment-gated workflow.
     const vercel = JSON.parse(read("vercel.json")) as { buildCommand?: string };
     expect(vercel.buildCommand).toBe("pnpm run build");
     expect(read("vercel.json")).not.toContain("CONFIRM_ACCOUNTING_PRODUCTION");
@@ -171,7 +168,6 @@ describe("Accounting V2 reviewed fixes", () => {
     expect(productionWorkflow).toContain("pnpm build");
     expect(productionWorkflow.indexOf("pnpm build"))
       .toBeLessThan(productionWorkflow.indexOf("script/apply-accounting-v2-migrations.ts"));
-    // Nothing may apply production migrations on push/PR — dispatch only.
     expect(productionWorkflow).not.toMatch(/^\s{2}(push|pull_request):/m);
   });
 

@@ -9,6 +9,9 @@ import { runAutomaticPeriodClose } from "../services/accounting-auto-close-v2.js
 const periodKeySchema = z.string().regex(/^20\d{2}-(0[1-9]|1[0-2])$/);
 const closeBodySchema = z.object({ periodKey: periodKeySchema }).strict();
 const reopenBodySchema = z.object({ reason: z.string().trim().min(5).max(500) }).strict();
+const LATEST_ACCOUNTING_MIGRATION = "0078_accounting_external_handoff_hardening";
+const ACTIVE_ACCOUNTING_POLICY = "v3_explicit_rounding_carrier_snapshot";
+const ACCOUNTANT_PACKAGE_VERSION = "2026-08-v3.0";
 
 type DbRow = Record<string, unknown>;
 function rowsOf<T extends DbRow = DbRow>(result: unknown): T[] {
@@ -25,9 +28,9 @@ function numeric(value: unknown, field: string): number {
 function normalize(row: DbRow): DbRow {
   const moneyFields = new Set([
     "gross_collected", "customer_delivery_fee", "carrier_fee", "product_revenue",
-    "merchant_net", "delivery_subsidy", "delivery_surplus", "cogs_amount",
+    "rounding_adjustment", "merchant_net", "delivery_subsidy", "delivery_surplus", "cogs_amount",
     "contribution_profit", "journal_difference", "fulfillment_cost", "sales_returns",
-    "actual_return_loss", "verified_expenses", "revenue", "cogs", "gross_profit",
+    "actual_return_loss", "verified_expenses", "fx_net_expense", "revenue", "cogs", "gross_profit",
     "expenses_total", "sales_return_deduction", "final_net_profit",
     "delivery_subsidy_total", "delivery_surplus_total", "fulfillment_cost_total",
     "debit", "credit", "balance", "total_debit", "total_credit", "amount", "unit_cost", "total_cost",
@@ -51,12 +54,14 @@ async function assertV2Schema(db: ReturnType<typeof getDb>): Promise<void> {
       to_regclass('public.delivery_companies') IS NOT NULL AS companies,
       to_regclass('public.accounting_monthly_positions') IS NOT NULL AS positions,
       to_regclass('public.v_accounting_live_balances') IS NOT NULL AS live_balances,
+      to_regclass('public.order_accounting_carrier_corrections') IS NOT NULL AS carrier_corrections,
       to_regprocedure('public.auto_close_ended_accounting_periods(text,text)') IS NOT NULL AS auto_close,
+      to_regprocedure('public.accounting_effective_carrier(text)') IS NOT NULL AS effective_carrier,
       EXISTS(
         SELECT 1 FROM public.schema_migrations
-        WHERE version='0071_accounting_return_line_identity_and_refund_guard'
+        WHERE version=${LATEST_ACCOUNTING_MIGRATION}
           AND rolled_back_at IS NULL
-      ) AS migration_0071,
+      ) AS latest_migration,
       to_regprocedure('public.assert_order_ready_for_accounting_delivery(text)') IS NOT NULL AS delivery_readiness_function,
       to_regprocedure('public.accounting_period_account_balance(text,text)') IS NOT NULL AS ledger_balance_function,
       to_regprocedure('public.prepare_verified_return_inventory()') IS NOT NULL AS return_verifier_function,
@@ -80,7 +85,7 @@ async function assertV2Schema(db: ReturnType<typeof getDb>): Promise<void> {
   const state = rowsOf(result)[0] as Record<string, boolean> | undefined;
   if (!state || Object.values(state).some((value) => value !== true)) {
     throw Object.assign(
-      new Error(`ACCOUNTING_V2_MIGRATIONS_0051_TO_0071_REQUIRED:${JSON.stringify(state ?? {})}`),
+      new Error(`ACCOUNTING_V2_LATEST_MIGRATION_REQUIRED:${LATEST_ACCOUNTING_MIGRATION}:${JSON.stringify(state ?? {})}`),
       { statusCode: 503 },
     );
   }
@@ -96,7 +101,9 @@ const blockerLabels: Record<string, string> = {
   unverified_returns: "راجعات تنتظر كشف الناقل أو استثناء مالي",
   undocumented_expenses: "مصاريف غير موثقة",
   inventory_mismatches: "فروقات بين مخزون الموقع ودفتر الحركات",
-  open_review_flags: "إشارات مراجعة مفتوحة",
+  procurement_integrity_failures: "مشاكل تكامل بين المشتريات ودفتر الأستاذ",
+  settlement_integrity_failures: "مشاكل تكامل في تسويات شركات التوصيل",
+  open_review_flags: "إشارات مراجعة محاسبية مفتوحة",
   journal_difference: "فرق في ميزان اليومية",
 };
 function readinessPayload(row: DbRow | undefined) {
@@ -116,7 +123,15 @@ export function createAccountingV2Router() {
     try {
       const db = getDb();
       await assertV2Schema(db);
-      res.json({ ready: true, cutover: "2026-08-01", timezone: "Asia/Baghdad", currency: "IQD", migrationsThrough: "0071", automaticClose: true });
+      res.json({
+        ready: true,
+        cutover: "2026-08-01",
+        timezone: "Asia/Baghdad",
+        currency: "IQD",
+        migrationsThrough: "0078",
+        policyVersion: ACTIVE_ACCOUNTING_POLICY,
+        automaticClose: true,
+      });
     } catch (error) { next(error); }
   });
 
@@ -153,7 +168,7 @@ export function createAccountingV2Router() {
       ]);
       res.json({
         periodKey,
-        policyVersion: "v2_gross_includes_delivery_carrier_keeps_fee",
+        policyVersion: ACTIVE_ACCOUNTING_POLICY,
         timezone: "Asia/Baghdad",
         currency: "IQD",
         cutover: "2026-08-01",
@@ -203,7 +218,20 @@ export function createAccountingV2Router() {
         db!.execute(sql`SELECT * FROM public.tax_profiles WHERE id='al-manba-aquavo'`),
         db!.execute(sql`SELECT * FROM public.v_accounting_period_readiness WHERE period_key=${periodKey}`),
         db!.execute(sql`SELECT * FROM public.v_order_accounting WHERE period_key=${periodKey} ORDER BY recognized_at,order_number`),
-        db!.execute(sql`SELECT * FROM public.journal_entries WHERE period_key=${periodKey} ORDER BY entry_date,entry_number`),
+        db!.execute(sql`
+          SELECT j.id,j.entry_number,j.entry_date,j.period_key,j.source_type,j.source_id,
+                 j.event_kind,j.description,j.status,j.total_debit,j.total_credit,
+                 j.reversal_of_entry_id,j.evidence,
+                 COALESCE(jsonb_agg(jsonb_build_object(
+                   'lineNumber',l.line_number,'accountCode',l.account_code,'accountName',a.name_ar,
+                   'debit',l.debit,'credit',l.credit,'memo',l.memo,'dimensions',l.dimensions
+                 ) ORDER BY l.line_number) FILTER(WHERE l.id IS NOT NULL),'[]'::jsonb) AS lines
+          FROM public.journal_entries j
+          LEFT JOIN public.journal_lines l ON l.entry_id=j.id
+          LEFT JOIN public.chart_of_accounts a ON a.code=l.account_code
+          WHERE j.period_key=${periodKey}
+          GROUP BY j.id ORDER BY j.entry_date,j.entry_number
+        `),
         db!.execute(sql`SELECT * FROM public.expenses WHERE deleted_at IS NULL AND to_char(COALESCE(expense_occurred_at,expense_date AT TIME ZONE 'Asia/Baghdad') AT TIME ZONE 'Asia/Baghdad','YYYY-MM')=${periodKey} ORDER BY expense_occurred_at,created_at`),
         db!.execute(sql`SELECT * FROM public.order_return_events WHERE to_char(updated_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Baghdad','YYYY-MM')=${periodKey} ORDER BY updated_at,created_at`),
         db!.execute(sql`SELECT s.* FROM public.cash_settlements s WHERE to_char(COALESCE(s.received_at,s.updated_at) AT TIME ZONE 'Asia/Baghdad','YYYY-MM')=${periodKey} ORDER BY COALESCE(s.received_at,s.updated_at)`),
@@ -233,7 +261,8 @@ export function createAccountingV2Router() {
       const closeRow = rowsOf(close)[0];
       res.json({
         manifest: {
-          packageVersion: "2026-08-v2.3",
+          packageVersion: ACCOUNTANT_PACKAGE_VERSION,
+          policyVersion: ACTIVE_ACCOUNTING_POLICY,
           periodKey,
           generatedAt: new Date().toISOString(),
           legalName: "محل المنبع",
