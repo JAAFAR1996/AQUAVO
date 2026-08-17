@@ -1,0 +1,44 @@
+name: Customer Messaging Retry Worker
+
+on:
+  schedule:
+    # GitHub Actions supports a 5-minute minimum interval. Offset from :00 to
+    # reduce top-of-hour scheduler congestion.
+    - cron: "2-57/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: customer-messaging-retry-worker
+  cancel-in-progress: false
+
+jobs:
+  invoke-production-worker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Validate scheduler secret
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "CRON_SECRET repository secret is required"
+            exit 1
+          fi
+
+      - name: Run protected AQUAVO messaging worker
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          curl \
+            --silent \
+            --show-error \
+            --fail-with-body \
+            --max-time 55 \
+            --retry 1 \
+            --retry-delay 10 \
+            --retry-all-errors \
+            --header "Authorization: Bearer ${CRON_SECRET}" \
+            "https://www.aquavoiq.com/api/cron/customer-messaging"
