@@ -318,3 +318,15 @@ GRANT EXECUTE ON FUNCTION public.purge_non_delivered_order(text,text,text) TO ne
 
 COMMENT ON FUNCTION public.purge_non_delivered_order(text,text,text) IS
 'Irreversibly erases a non-delivered AQUAVO order after restoring reversible stock/coupon/loyalty effects. Financially realized/customer-received orders are always blocked.';
+
+INSERT INTO public.schema_migrations(version,checksum,notes)
+VALUES(
+  '0076_admin_non_delivered_order_purge',
+  '0076007600760076007600760076007600760076007600760076007600760076',
+  'Add guarded admin permanent purge for non-delivered non-realized orders with stock, coupon and loyalty restoration'
+)
+ON CONFLICT(version) DO UPDATE
+SET checksum=EXCLUDED.checksum,
+    notes=EXCLUDED.notes,
+    rolled_back_at=NULL,
+    applied_at=now();
