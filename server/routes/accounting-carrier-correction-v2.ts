@@ -105,7 +105,8 @@ export function createAccountingCarrierCorrectionV2Router() {
         }
 
         for (const fact of facts) {
-          const oldCarrier = fact.accounting_carrier == null ? null : String(fact.accounting_carrier);
+          const accountingCarrier = fact.accounting_carrier == null ? null : String(fact.accounting_carrier);
+          const operationalCarrier = fact.operational_carrier == null ? null : String(fact.operational_carrier);
           const newCarrier = String(company.name);
           if (Math.abs(amount(fact.carrier_fee) - amount(company.default_fee)) > 0.001) {
             throw Object.assign(new Error(
@@ -113,36 +114,44 @@ export function createAccountingCarrierCorrectionV2Router() {
             ), { statusCode: 409 });
           }
 
-          if (oldCarrier !== newCarrier) {
+          if (accountingCarrier !== newCarrier) {
             await tx.execute(sql`
               INSERT INTO public.order_accounting_carrier_corrections(
                 order_fact_id,order_id,delivery_company_id,prior_carrier,carrier,carrier_fee,
                 reason,corrected_by,corrected_by_name,evidence
               ) VALUES(
-                ${String(fact.fact_id)},${String(fact.order_id)},${String(company.id)},${oldCarrier},${newCarrier},
+                ${String(fact.fact_id)},${String(fact.order_id)},${String(company.id)},${accountingCarrier},${newCarrier},
                 ${amount(fact.carrier_fee)},'تصحيح هوية شركة التوصيل عند المطابقة؛ الأجرة المالية لم تتغير',
                 ${actor.id},${actor.name},
                 jsonb_build_object('order_number',${String(fact.order_number ?? fact.order_id)},'source','settlement_preflight')
               )
             `);
+            await recordFinancialChange(tx as never, {
+              entityType: "order",
+              entityId: String(fact.order_id),
+              action: "update",
+              fieldName: "accounting_carrier",
+              oldValue: accountingCarrier,
+              newValue: newCarrier,
+              reason: "تصحيح هوية شركة التوصيل المحاسبية عند المطابقة؛ الأجرة المالية لم تتغير",
+              performedBy: actor.id,
+              performedByName: actor.name ?? undefined,
+            });
           }
 
-          if (String(fact.operational_carrier ?? "") !== newCarrier) {
+          if (operationalCarrier !== newCarrier) {
             await tx.execute(sql`
               UPDATE public.orders SET carrier=${newCarrier},updated_at=clock_timestamp()
               WHERE id=${String(fact.order_id)}
             `);
-          }
-
-          if (oldCarrier !== newCarrier) {
             await recordFinancialChange(tx as never, {
               entityType: "order",
               entityId: String(fact.order_id),
               action: "update",
               fieldName: "carrier",
-              oldValue: oldCarrier,
+              oldValue: operationalCarrier,
               newValue: newCarrier,
-              reason: "تصحيح هوية شركة التوصيل عند المطابقة؛ الأجرة المالية لم تتغير",
+              reason: "مزامنة شركة التوصيل التشغيلية مع الهوية المحاسبية المثبتة عند المطابقة",
               performedBy: actor.id,
               performedByName: actor.name ?? undefined,
             });
