@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  analyzeAlWaseetMatch,
   hasRealIssueNote,
   matchAlWaseetOrder,
   normalizeArabicText,
@@ -82,6 +83,37 @@ describe("parseAlWaseetOrder", () => {
 
     expect(parsed?.createdAt?.toISOString()).toBe("2026-08-17T09:00:00.000Z");
     expect(parsed?.updatedAt?.toISOString()).toBe("2026-08-17T10:00:00.000Z");
+  });
+});
+
+describe("match diagnostics", () => {
+  it("distinguishes no phone candidate from an API failure", () => {
+    const analysis = analyzeAlWaseetMatch(local(), [
+      provider({ clientMobile: "+9647719999999" }),
+    ]);
+    expect(analysis.match).toBeNull();
+    expect(analysis.reason).toBe("no_phone_candidate");
+    expect(analysis.phoneCandidateCount).toBe(0);
+    expect(analysis.amountCandidateCount).toBe(0);
+  });
+
+  it("distinguishes phone match with wrong COD amount", () => {
+    const analysis = analyzeAlWaseetMatch(local(), [provider({ price: 26000 })]);
+    expect(analysis.match).toBeNull();
+    expect(analysis.reason).toBe("no_amount_candidate");
+    expect(analysis.phoneCandidateCount).toBe(1);
+    expect(analysis.amountCandidateCount).toBe(0);
+  });
+
+  it("reports ambiguous duplicates instead of silently guessing", () => {
+    const analysis = analyzeAlWaseetMatch(local({ customerName: null }), [
+      provider({ id: "waseet-1", createdAt: new Date("2026-08-17T12:00:00+03:00") }),
+      provider({ id: "waseet-2", createdAt: new Date("2026-08-17T14:00:00+03:00") }),
+    ]);
+    expect(analysis.match).toBeNull();
+    expect(analysis.reason).toBe("ambiguous");
+    expect(analysis.phoneCandidateCount).toBe(2);
+    expect(analysis.amountCandidateCount).toBe(2);
   });
 });
 
