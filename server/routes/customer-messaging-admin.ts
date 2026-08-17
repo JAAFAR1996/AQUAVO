@@ -55,7 +55,7 @@ export function createCustomerMessagingAdminRouter(): RouterType {
         }
 
         const result = await dispatchDeliveryCareForOrder(orderId);
-        res.status(200).json({ success: result.status === "sent", ...result });
+        res.status(200).json({ success: result.status === "accepted", ...result });
       } catch (error) {
         next(error);
       }
@@ -66,7 +66,7 @@ export function createCustomerMessagingAdminRouter(): RouterType {
     "/customer-messaging/retry-due-care",
     async (req: Request, res: Response, next: NextFunction): Promise<void> => {
       try {
-        const limit = Number(req.body?.limit ?? 20);
+        const limit = Number(req.body?.limit ?? 5);
         const result = await runDueDeliveryCareJobs(limit);
         res.json({ success: true, ...result });
       } catch (error) {
@@ -89,8 +89,8 @@ export function createCustomerMessagingAdminRouter(): RouterType {
         const result = orderId
           ? await db.execute(sql`
               SELECT id,order_id,job_type,status,due_at,attempt_count,
-                     provider_message_id,last_error_code,last_error_at,
-                     sent_at,cancelled_at,created_at,updated_at
+                     provider_message_id,provider_status,last_error_code,last_error_at,
+                     accepted_at,cancelled_at,created_at,updated_at
               FROM public.customer_message_jobs
               WHERE order_id=${orderId}
               ORDER BY created_at DESC
@@ -98,8 +98,8 @@ export function createCustomerMessagingAdminRouter(): RouterType {
             `)
           : await db.execute(sql`
               SELECT id,order_id,job_type,status,due_at,attempt_count,
-                     provider_message_id,last_error_code,last_error_at,
-                     sent_at,cancelled_at,created_at,updated_at
+                     provider_message_id,provider_status,last_error_code,last_error_at,
+                     accepted_at,cancelled_at,created_at,updated_at
               FROM public.customer_message_jobs
               ORDER BY created_at DESC
               LIMIT 100
