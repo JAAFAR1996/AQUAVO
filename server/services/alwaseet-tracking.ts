@@ -8,6 +8,8 @@ const MERCHANT_DISCOVERY_CACHE_MS = 60 * 1000;
 const NEGATIVE_DISCOVERY_TTL_MS = 90 * 1000;
 const DISCOVERY_BEFORE_MS = 12 * 60 * 60 * 1000;
 const DISCOVERY_AFTER_MS = 14 * 24 * 60 * 60 * 1000;
+const PROBABLE_TIME_MAX_SCORE_MS = 5 * 24 * 60 * 60 * 1000;
+const PROBABLE_TIME_MARGIN_MS = 6 * 60 * 60 * 1000;
 const REQUEST_TIMEOUT_MS = 5_000;
 
 export interface AquavoTrackingOrder {
@@ -45,9 +47,18 @@ export interface PublicCarrierTracking {
   source: "alwaseet";
 }
 
+export type MatchConfidence = "exact" | "high";
+export type MatchMethod =
+  | "order_number_note_phone"
+  | "phone_amount"
+  | "phone_amount_name"
+  | "phone_amount_nearest_time"
+  | "phone_amount_name_nearest_time";
+
 export interface MatchResult {
   order: AlWaseetOrder;
-  method: "order_number_note_phone" | "phone_amount_time" | "phone_amount_time_name";
+  method: MatchMethod;
+  confidence: MatchConfidence;
 }
 
 type Row = Record<string, unknown>;
@@ -107,8 +118,8 @@ export function normalizeArabicText(value: unknown): string {
 }
 
 /**
- * The public examples use phrases such as "لا یوجد" in issue_notes when there
- * is no problem. Treat those sentinels as empty instead of warning every buyer.
+ * Al-Waseet may return a human-language sentinel in issue_notes when no issue
+ * exists. Keep those values out of the public warning flag.
  */
 export function hasRealIssueNote(value: unknown): boolean {
   const normalized = normalizeArabicText(value);
@@ -186,9 +197,8 @@ function providerPhones(order: AlWaseetOrder): string[] {
 }
 
 function payableAmounts(order: AquavoTrackingOrder): Set<number> {
-  // AQUAVO `total` already includes shipping; `roundedTotal` is the actual COD
-  // after denomination rounding/cashback when that flow applies. Accept either
-  // exact stored payable value, never an approximate amount.
+  // AQUAVO total includes delivery; roundedTotal is the actual COD after Iraqi
+  // denomination rounding/cashback when that flow applies. Exact values only.
   const values = [toIqd(order.roundedTotal), toIqd(order.total)]
     .filter((value): value is number => value != null);
   return new Set(values);
@@ -206,9 +216,47 @@ function notesContainOrderNumber(notes: string, orderNumber: string | null): boo
 }
 
 /**
- * Deliberately conservative. A false link leaks the wrong shipment status to a
- * customer, so ambiguity is a hard stop rather than something a fuzzy score may
- * "solve". Name is only a deterministic tie-breaker after exact phone + amount.
+ * Provider records are normally created after the AQUAVO order. A small
+ * pre-order window remains allowed for clock/data quirks, but those candidates
+ * receive a penalty when resolving a rare duplicate.
+ */
+function temporalMatchScore(localCreatedAt: Date, providerCreatedAt: Date): number {
+  const delta = providerCreatedAt.getTime() - localCreatedAt.getTime();
+  return delta >= 0 ? delta : DISCOVERY_BEFORE_MS + Math.abs(delta);
+}
+
+/**
+ * Resolve a rare same-phone/same-COD collision only when timing creates a clear
+ * winner. Missing timestamps or a small lead are intentionally left ambiguous.
+ */
+function chooseClearNearestByTime(
+  localCreatedAt: Date,
+  candidates: AlWaseetOrder[],
+): AlWaseetOrder | null {
+  if (candidates.length < 2 || candidates.some((candidate) => !candidate.createdAt)) return null;
+
+  const ranked = candidates
+    .map((candidate) => ({
+      candidate,
+      score: temporalMatchScore(localCreatedAt, candidate.createdAt as Date),
+    }))
+    .sort((a, b) => a.score - b.score);
+
+  const best = ranked[0];
+  const runnerUp = ranked[1];
+  if (!best || !runnerUp) return null;
+  if (best.score > PROBABLE_TIME_MAX_SCORE_MS) return null;
+  if (runnerUp.score - best.score < PROBABLE_TIME_MARGIN_MS) return null;
+  return best.candidate;
+}
+
+/**
+ * Match policy:
+ * - explicit AQUAVO order number + exact phone is exact;
+ * - one exact phone + COD candidate is exact;
+ * - duplicate phone + COD candidates may be linked as high confidence using an
+ *   exact normalized name or a clearly separated nearest creation time;
+ * - if those signals still cannot distinguish the records, do not guess.
  */
 export function matchAlWaseetOrder(
   local: AquavoTrackingOrder,
@@ -226,7 +274,11 @@ export function matchAlWaseetOrder(
 
   const noteMatches = eligible.filter((provider) => notesContainOrderNumber(provider.merchantNotes, local.orderNumber));
   if (noteMatches.length === 1) {
-    return { order: noteMatches[0], method: "order_number_note_phone" };
+    return {
+      order: noteMatches[0],
+      method: "order_number_note_phone",
+      confidence: "exact",
+    };
   }
   if (noteMatches.length > 1) return null;
 
@@ -235,18 +287,38 @@ export function matchAlWaseetOrder(
 
   const exact = eligible.filter((provider) => provider.price != null && amounts.has(provider.price));
   if (exact.length === 1) {
-    return { order: exact[0], method: "phone_amount_time" };
+    return {
+      order: exact[0],
+      method: "phone_amount",
+      confidence: "exact",
+    };
   }
   if (exact.length === 0) return null;
 
   const localName = normalizeArabicText(local.customerName);
-  if (!localName) return null;
-  const nameMatches = exact.filter((provider) => normalizeArabicText(provider.clientName) === localName);
+  const nameMatches = localName
+    ? exact.filter((provider) => normalizeArabicText(provider.clientName) === localName)
+    : [];
+
   if (nameMatches.length === 1) {
-    return { order: nameMatches[0], method: "phone_amount_time_name" };
+    return {
+      order: nameMatches[0],
+      method: "phone_amount_name",
+      confidence: "high",
+    };
   }
 
-  return null;
+  const timingPool = nameMatches.length > 1 ? nameMatches : exact;
+  const nearest = chooseClearNearestByTime(local.createdAt, timingPool);
+  if (!nearest) return null;
+
+  return {
+    order: nearest,
+    method: nameMatches.length > 1
+      ? "phone_amount_name_nearest_time"
+      : "phone_amount_nearest_time",
+    confidence: "high",
+  };
 }
 
 function trackingEnabled(): boolean {
@@ -386,7 +458,8 @@ async function readLink(orderId: string): Promise<Row | null> {
   if (!db) return null;
   const result = await db.execute(sql`
     SELECT provider_order_id,provider_qr_id,provider_status_id,provider_status,
-           has_issue,provider_created_at,provider_updated_at,last_synced_at,match_method
+           has_issue,provider_created_at,provider_updated_at,last_synced_at,
+           match_method,match_confidence
     FROM public.order_carrier_tracking
     WHERE order_id=${orderId} AND provider=${PROVIDER}
     LIMIT 1
@@ -430,11 +503,13 @@ async function insertMatch(orderId: string, match: MatchResult): Promise<PublicC
       INSERT INTO public.order_carrier_tracking(
         order_id,provider,provider_order_id,provider_qr_id,
         provider_status_id,provider_status,has_issue,
-        provider_created_at,provider_updated_at,last_synced_at,match_method
+        provider_created_at,provider_updated_at,last_synced_at,
+        match_method,match_confidence
       ) VALUES (
         ${orderId},${PROVIDER},${provider.id},${provider.qrId},
         ${provider.statusId},${provider.status},${hasRealIssueNote(provider.issueNotes)},
-        ${provider.createdAt},${provider.updatedAt},clock_timestamp(),${match.method}
+        ${provider.createdAt},${provider.updatedAt},clock_timestamp(),
+        ${match.method},${match.confidence}
       )
       ON CONFLICT(order_id,provider) DO NOTHING
       RETURNING provider_status_id,provider_status,has_issue,provider_updated_at,last_synced_at
