@@ -3,10 +3,13 @@ import { getDb } from "../db.js";
 
 const WHATSAPP_REQUEST_TIMEOUT_MS = 7_000;
 const MAX_SEND_ATTEMPTS = 5;
+const STALE_SENDING_LEASE_MINUTES = 10;
+const DEFAULT_WORKER_LIMIT = 5;
+const MAX_WORKER_LIMIT = 10;
 const RETRY_DELAYS_MS = [60_000, 5 * 60_000, 30 * 60_000, 2 * 60 * 60_000] as const;
 
 export type CustomerMessageDispatchStatus =
-  | "sent"
+  | "accepted"
   | "disabled"
   | "not_due"
   | "already_handled"
@@ -146,8 +149,15 @@ async function claimDeliveryCareJob(orderId: string): Promise<ClaimedJob | null>
       FROM public.customer_message_jobs
       WHERE order_id=${orderId}
         AND job_type='delivery_care'
-        AND status='pending'
-        AND due_at <= clock_timestamp()
+        AND attempt_count < ${MAX_SEND_ATTEMPTS}
+        AND (
+          (status='pending' AND due_at <= clock_timestamp())
+          OR (
+            status='sending'
+            AND locked_at IS NOT NULL
+            AND locked_at <= clock_timestamp() - (${STALE_SENDING_LEASE_MINUTES} * interval '1 minute')
+          )
+        )
       ORDER BY due_at ASC, created_at ASC
       LIMIT 1
       FOR UPDATE SKIP LOCKED
@@ -256,14 +266,15 @@ async function sendDeliveryCareTemplate(
   throw new WhatsAppSendError(code, retryable);
 }
 
-async function markSent(jobId: string, providerMessageId: string): Promise<void> {
+async function markAccepted(jobId: string, providerMessageId: string): Promise<void> {
   const db = getDb();
   if (!db) return;
   await db.execute(sql`
     UPDATE public.customer_message_jobs
-       SET status='sent',
+       SET status='completed',
+           provider_status='accepted',
            provider_message_id=${providerMessageId},
-           sent_at=clock_timestamp(),
+           accepted_at=clock_timestamp(),
            locked_at=NULL,
            last_error_code=NULL,
            last_error_at=NULL,
@@ -278,6 +289,10 @@ async function markPermanentFailure(jobId: string, errorCode: string): Promise<v
   await db.execute(sql`
     UPDATE public.customer_message_jobs
        SET status='failed',
+           provider_status=CASE
+             WHEN provider_message_id IS NOT NULL THEN COALESCE(provider_status,'accepted')
+             ELSE provider_status
+           END,
            last_error_code=${errorCode},
            last_error_at=clock_timestamp(),
            locked_at=NULL,
@@ -316,6 +331,10 @@ async function releaseClaimAsFailed(job: ClaimedJob, errorCode: string, retryabl
  * Immediately attempts the care message created by the delivered-order DB trigger.
  * Order/accounting truth never depends on WhatsApp success: every error is converted
  * into a durable outbox state for later retry/inspection.
+ *
+ * "accepted" means Meta accepted the API request and returned a wamid. It does not
+ * claim handset delivery; sent/delivered/read are provider webhook states handled in
+ * the webhook rollout phase.
  */
 export async function dispatchDeliveryCareForOrder(orderId: string): Promise<CustomerMessageDispatchResult> {
   const db = getDb();
@@ -327,7 +346,7 @@ export async function dispatchDeliveryCareForOrder(orderId: string): Promise<Cus
   const job = await claimDeliveryCareJob(orderId);
   if (!job) {
     const lookup = await db.execute(sql`
-      SELECT status,due_at
+      SELECT status,due_at,locked_at,attempt_count
       FROM public.customer_message_jobs
       WHERE order_id=${orderId} AND job_type='delivery_care'
       LIMIT 1
@@ -355,8 +374,8 @@ export async function dispatchDeliveryCareForOrder(orderId: string): Promise<Cus
       phone,
       buildCustomerHonorific(recipient.customerName),
     );
-    await markSent(job.id, providerMessageId);
-    return { status: "sent", jobId: job.id, providerMessageId };
+    await markAccepted(job.id, providerMessageId);
+    return { status: "accepted", jobId: job.id, providerMessageId };
   } catch (error) {
     if (error instanceof WhatsAppSendError) {
       return await releaseClaimAsFailed(job, error.code, error.retryable);
@@ -365,32 +384,63 @@ export async function dispatchDeliveryCareForOrder(orderId: string): Promise<Cus
   }
 }
 
+async function failExhaustedStaleClaims(): Promise<number> {
+  const db = getDb();
+  if (!db) return 0;
+  const result = await db.execute(sql`
+    UPDATE public.customer_message_jobs
+       SET status='failed',
+           last_error_code='STALE_LOCK_MAX_ATTEMPTS',
+           last_error_at=clock_timestamp(),
+           locked_at=NULL,
+           updated_at=clock_timestamp()
+     WHERE job_type='delivery_care'
+       AND status='sending'
+       AND attempt_count >= ${MAX_SEND_ATTEMPTS}
+       AND locked_at IS NOT NULL
+       AND locked_at <= clock_timestamp() - (${STALE_SENDING_LEASE_MINUTES} * interval '1 minute')
+    RETURNING id
+  `);
+  return rowsOf(result).length;
+}
+
 /**
- * Retry only immediate care jobs for now. Review jobs intentionally have no sender
- * until the secure order-token review flow is deployed; this prevents accidental
- * review solicitation before that UX and suppression logic are ready.
+ * Durable recovery worker used by the external GitHub Actions scheduler on Vercel
+ * Hobby. It handles both due pending jobs and abandoned "sending" claims whose
+ * lease expired after a process crash/timeout.
  */
-export async function runDueDeliveryCareJobs(limit = 20): Promise<{
+export async function runDueDeliveryCareJobs(limit = DEFAULT_WORKER_LIMIT): Promise<{
   processed: number;
-  sent: number;
+  accepted: number;
   retried: number;
   failed: number;
+  exhaustedStaleClaims: number;
 }> {
   const db = getDb();
-  if (!db || !readWhatsAppConfig()) return { processed: 0, sent: 0, retried: 0, failed: 0 };
+  if (!db || !readWhatsAppConfig()) {
+    return { processed: 0, accepted: 0, retried: 0, failed: 0, exhaustedStaleClaims: 0 };
+  }
 
-  const safeLimit = Math.max(1, Math.min(100, Math.floor(limit)));
+  const safeLimit = Math.max(1, Math.min(MAX_WORKER_LIMIT, Math.floor(limit)));
+  const exhaustedStaleClaims = await failExhaustedStaleClaims();
   const due = await db.execute(sql`
     SELECT order_id
     FROM public.customer_message_jobs
     WHERE job_type='delivery_care'
-      AND status='pending'
-      AND due_at <= clock_timestamp()
+      AND attempt_count < ${MAX_SEND_ATTEMPTS}
+      AND (
+        (status='pending' AND due_at <= clock_timestamp())
+        OR (
+          status='sending'
+          AND locked_at IS NOT NULL
+          AND locked_at <= clock_timestamp() - (${STALE_SENDING_LEASE_MINUTES} * interval '1 minute')
+        )
+      )
     ORDER BY due_at ASC,created_at ASC
     LIMIT ${safeLimit}
   `);
 
-  let sent = 0;
+  let accepted = 0;
   let retried = 0;
   let failed = 0;
   let processed = 0;
@@ -399,11 +449,11 @@ export async function runDueDeliveryCareJobs(limit = 20): Promise<{
     const orderId = String(row.order_id ?? "");
     if (!orderId) continue;
     const result = await dispatchDeliveryCareForOrder(orderId);
-    if (result.status === "sent") sent += 1;
+    if (result.status === "accepted") accepted += 1;
     if (result.status === "retry_scheduled") retried += 1;
     if (result.status === "failed" || result.status === "invalid_phone") failed += 1;
     if (!["already_handled", "not_due", "disabled", "db_unavailable"].includes(result.status)) processed += 1;
   }
 
-  return { processed, sent, retried, failed };
+  return { processed, accepted, retried, failed, exhaustedStaleClaims };
 }
