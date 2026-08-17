@@ -9,7 +9,7 @@ const MAX_WORKER_LIMIT = 10;
 const RETRY_DELAYS_MS = [60_000, 5 * 60_000, 30 * 60_000, 2 * 60 * 60_000] as const;
 
 export type CustomerMessageDispatchStatus =
-  | "accepted"
+  | "sent"
   | "disabled"
   | "not_due"
   | "already_handled"
@@ -289,10 +289,6 @@ async function markPermanentFailure(jobId: string, errorCode: string): Promise<v
   await db.execute(sql`
     UPDATE public.customer_message_jobs
        SET status='failed',
-           provider_status=CASE
-             WHEN provider_message_id IS NOT NULL THEN COALESCE(provider_status,'accepted')
-             ELSE provider_status
-           END,
            last_error_code=${errorCode},
            last_error_at=clock_timestamp(),
            locked_at=NULL,
@@ -332,9 +328,9 @@ async function releaseClaimAsFailed(job: ClaimedJob, errorCode: string, retryabl
  * Order/accounting truth never depends on WhatsApp success: every error is converted
  * into a durable outbox state for later retry/inspection.
  *
- * "accepted" means Meta accepted the API request and returned a wamid. It does not
- * claim handset delivery; sent/delivered/read are provider webhook states handled in
- * the webhook rollout phase.
+ * The public result value "sent" is retained for admin-UI compatibility. Internally
+ * the database records provider_status='accepted' because Meta returning a wamid does
+ * not prove handset delivery; later webhook states are sent/delivered/read/failed.
  */
 export async function dispatchDeliveryCareForOrder(orderId: string): Promise<CustomerMessageDispatchResult> {
   const db = getDb();
@@ -375,7 +371,7 @@ export async function dispatchDeliveryCareForOrder(orderId: string): Promise<Cus
       buildCustomerHonorific(recipient.customerName),
     );
     await markAccepted(job.id, providerMessageId);
-    return { status: "accepted", jobId: job.id, providerMessageId };
+    return { status: "sent", jobId: job.id, providerMessageId };
   } catch (error) {
     if (error instanceof WhatsAppSendError) {
       return await releaseClaimAsFailed(job, error.code, error.retryable);
@@ -411,14 +407,14 @@ async function failExhaustedStaleClaims(): Promise<number> {
  */
 export async function runDueDeliveryCareJobs(limit = DEFAULT_WORKER_LIMIT): Promise<{
   processed: number;
-  accepted: number;
+  sent: number;
   retried: number;
   failed: number;
   exhaustedStaleClaims: number;
 }> {
   const db = getDb();
   if (!db || !readWhatsAppConfig()) {
-    return { processed: 0, accepted: 0, retried: 0, failed: 0, exhaustedStaleClaims: 0 };
+    return { processed: 0, sent: 0, retried: 0, failed: 0, exhaustedStaleClaims: 0 };
   }
 
   const safeLimit = Math.max(1, Math.min(MAX_WORKER_LIMIT, Math.floor(limit)));
@@ -440,7 +436,7 @@ export async function runDueDeliveryCareJobs(limit = DEFAULT_WORKER_LIMIT): Prom
     LIMIT ${safeLimit}
   `);
 
-  let accepted = 0;
+  let sent = 0;
   let retried = 0;
   let failed = 0;
   let processed = 0;
@@ -449,11 +445,11 @@ export async function runDueDeliveryCareJobs(limit = DEFAULT_WORKER_LIMIT): Prom
     const orderId = String(row.order_id ?? "");
     if (!orderId) continue;
     const result = await dispatchDeliveryCareForOrder(orderId);
-    if (result.status === "accepted") accepted += 1;
+    if (result.status === "sent") sent += 1;
     if (result.status === "retry_scheduled") retried += 1;
     if (result.status === "failed" || result.status === "invalid_phone") failed += 1;
     if (!["already_handled", "not_due", "disabled", "db_unavailable"].includes(result.status)) processed += 1;
   }
 
-  return { processed, accepted, retried, failed, exhaustedStaleClaims };
+  return { processed, sent, retried, failed, exhaustedStaleClaims };
 }
