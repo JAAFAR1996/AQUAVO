@@ -311,7 +311,12 @@ export default function OrderTracking() {
                     </div>
                   )}
 
-                  <Button type="submit" className="h-12 w-full text-base font-bold shadow-sm" disabled={isSearching}>
+                  <Button
+                    type="submit"
+                    className="h-12 w-full text-base font-bold shadow-sm"
+                    disabled={isSearching}
+                    data-testid="button-track-order"
+                  >
                     {isSearching ? (
                       <>
                         <span className="ml-2 h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" aria-hidden="true" />
