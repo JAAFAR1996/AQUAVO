@@ -80,7 +80,7 @@ export function createAccountingSmartCarrierV2Router() {
           ORDER BY o.created_at,o.order_number
         `),
         db.execute(sql`
-          SELECT f.order_id,o.order_number,o.carrier,f.recognized_at,
+          SELECT f.order_id,o.order_number,public.accounting_effective_carrier(f.id) AS carrier,f.recognized_at,
                  f.gross_collected,f.carrier_fee,f.merchant_net
           FROM public.order_accounting_facts f
           JOIN public.orders o ON o.id=f.order_id
