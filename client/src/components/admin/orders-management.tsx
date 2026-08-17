@@ -18,7 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Package, Search, Eye, AlertTriangle, Trash2, ReceiptText, RotateCcw } from "lucide-react";
+import { Archive, Package, Search, Eye, AlertTriangle, ReceiptText, RotateCcw } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -86,6 +86,7 @@ interface Order {
   notes?: string;
   codReceived?: boolean;
   profit?: number;
+  archivedAt?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -103,6 +104,13 @@ const ORDER_STATUSES = {
   rejected_carrier:  { label: "بقي بالشركة", color: "bg-rose-700 hover:bg-rose-800" },
 };
 
+const ARCHIVABLE_STATUSES = new Set([
+  "delivered",
+  "returned",
+  "cancelled",
+  "rejected_returned",
+]);
+
 /** Parse shippingAddress whether it's a JSON string or an object */
 const parseShippingAddress = (addr: string | ShippingAddress | undefined): string => {
   if (!addr) return "";
@@ -115,7 +123,6 @@ const parseShippingAddress = (addr: string | ShippingAddress | undefined): strin
       return addr;
     }
   }
-  // Already an object
   const parts = [addr.addressLine1, addr.city, addr.country].filter(Boolean);
   return parts.length > 0 ? parts.join(" - ") : "";
 };
@@ -132,7 +139,7 @@ export function OrdersManagement() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("active");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const { toast } = useToast();
@@ -140,7 +147,7 @@ export function OrdersManagement() {
   // Triple confirmation state for rejection
   const [rejectOrderId, setRejectOrderId] = useState<string | null>(null);
   const [rejectStep, setRejectStep] = useState(0);
-  const [deleteOrderId, setDeleteOrderId] = useState<string | null>(null);
+  const [archiveOrderId, setArchiveOrderId] = useState<string | null>(null);
 
   // Return adjustment modal state
   const [returnAdjustOrder, setReturnAdjustOrder] = useState<Order | null>(null);
@@ -185,8 +192,6 @@ export function OrdersManagement() {
   const qc = useQueryClient();
 
   const refreshDetailEvents = (orderId: string) => {
-    // Operational order details show only officially confirmed return events.
-    // The accounting/audit view keeps using the same endpoint without this filter.
     fetch(`/api/admin/accounting/return-events?orderId=${orderId}&period=year&status=verified`, { credentials: "include" })
       .then((r) => r.ok ? r.json() : { data: [] })
       .then((d: { data: ReturnEventSummary[] }) => setDetailReturnEvents(d.data ?? []))
@@ -226,7 +231,10 @@ export function OrdersManagement() {
 
   const fetchOrders = async () => {
     try {
-      const response = await fetch("/api/admin/orders", { credentials: "include" });
+      const response = await fetch("/api/admin/orders?includeArchived=1", {
+        credentials: "include",
+        cache: "no-store",
+      });
       if (!response.ok) {
         if (response.status === 401 || response.status === 403) {
           toast({ title: "غير مصرح", description: "يرجى تسجيل الدخول كمدير", variant: "destructive" });
@@ -281,21 +289,49 @@ export function OrdersManagement() {
     }
   };
 
-  const handleDeleteOrder = async () => {
-    if (!deleteOrderId) return;
+  const handleArchiveOrder = async () => {
+    if (!archiveOrderId) return;
     try {
-      const response = await fetch(`/api/admin/orders/${deleteOrderId}`, {
+      const response = await fetch(`/api/admin/orders/${archiveOrderId}`, {
         method: "DELETE",
         headers: addCsrfHeader({}),
         credentials: "include",
       });
-      if (!response.ok) throw new Error("فشل الحذف");
-      setOrders((prev) => prev.filter((o) => o.id !== deleteOrderId));
-      toast({ title: "تم الحذف", description: "تم حذف الطلب بنجاح" });
-    } catch {
-      toast({ title: "خطأ", description: "فشل حذف الطلب", variant: "destructive" });
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(body.message || "فشل أرشفة الطلب");
+
+      const archivedAt = typeof body.archivedAt === "string"
+        ? body.archivedAt
+        : new Date().toISOString();
+      setOrders((prev) => prev.map((order) =>
+        order.id === archiveOrderId ? { ...order, archivedAt } : order,
+      ));
+      toast({ title: "تمت الأرشفة", description: "انشال الطلب من قائمة التشغيل وبقي سجله محفوظ" });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "فشل أرشفة الطلب";
+      toast({ title: "تعذر الأرشفة", description: message, variant: "destructive" });
     } finally {
-      setDeleteOrderId(null);
+      setArchiveOrderId(null);
+    }
+  };
+
+  const handleRestoreOrder = async (orderId: string) => {
+    try {
+      const response = await fetch(`/api/admin/orders/${orderId}/restore`, {
+        method: "POST",
+        headers: addCsrfHeader({}),
+        credentials: "include",
+      });
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(body.message || "فشل استرجاع الطلب");
+
+      setOrders((prev) => prev.map((order) =>
+        order.id === orderId ? { ...order, archivedAt: null } : order,
+      ));
+      toast({ title: "تم الاسترجاع", description: "رجع الطلب إلى قائمة الطلبات الحالية" });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "فشل استرجاع الطلب";
+      toast({ title: "خطأ", description: message, variant: "destructive" });
     }
   };
 
@@ -321,12 +357,24 @@ export function OrdersManagement() {
   };
 
   const filteredOrders = orders.filter((order) => {
+    const search = searchTerm.toLowerCase();
     const matchesSearch =
-      order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.customerEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.orderNumber?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "all" || order.status === statusFilter;
+      order.id.toLowerCase().includes(search) ||
+      order.customerEmail?.toLowerCase().includes(search) ||
+      order.customerName?.toLowerCase().includes(search) ||
+      order.orderNumber?.toLowerCase().includes(search);
+
+    let matchesStatus = true;
+    if (statusFilter === "active") {
+      matchesStatus = !order.archivedAt;
+    } else if (statusFilter === "archived") {
+      matchesStatus = !!order.archivedAt;
+    } else if (statusFilter === "all") {
+      matchesStatus = true;
+    } else {
+      matchesStatus = !order.archivedAt && order.status === statusFilter;
+    }
+
     return matchesSearch && matchesStatus;
   });
 
@@ -359,7 +407,9 @@ export function OrdersManagement() {
             <SelectValue placeholder="حالة الطلب" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">جميع الحالات</SelectItem>
+            <SelectItem value="active">الطلبات الحالية</SelectItem>
+            <SelectItem value="archived">الأرشيف</SelectItem>
+            <SelectItem value="all">كل الطلبات</SelectItem>
             {Object.entries(ORDER_STATUSES).map(([key, { label }]) => (
               <SelectItem key={key} value={key}>{label}</SelectItem>
             ))}
@@ -367,8 +417,7 @@ export function OrdersManagement() {
         </Select>
       </div>
 
-      {/* Orders Table — scrolls horizontally inside its own box on narrow
-          screens so the wide table never stretches the page. */}
+      {/* Orders Table — scrolls horizontally inside its own box on narrow screens */}
       <div className="border rounded-lg overflow-x-auto">
         <Table>
           <TableHeader>
@@ -397,8 +446,9 @@ export function OrdersManagement() {
             ) : (
               filteredOrders.map((order) => {
                 const statusInfo = getStatusInfo(order.status);
+                const isArchived = !!order.archivedAt;
                 return (
-                  <TableRow key={order.id}>
+                  <TableRow key={order.id} className={isArchived ? "opacity-70 bg-muted/20" : undefined}>
                     <TableCell className="font-mono text-sm font-bold text-primary">
                       {order.orderNumber || order.id.slice(0, 8)}
                     </TableCell>
@@ -429,7 +479,10 @@ export function OrdersManagement() {
                       )}
                     </TableCell>
                     <TableCell>
-                      <Badge className={`${statusInfo.color} border-none`}>{statusInfo.label}</Badge>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <Badge className={`${statusInfo.color} border-none`}>{statusInfo.label}</Badge>
+                        {isArchived && <Badge variant="outline">مؤرشف</Badge>}
+                      </div>
                     </TableCell>
                     <TableCell className="text-sm text-gray-500">
                       {new Date(order.createdAt).toLocaleDateString('en-GB')}
@@ -439,57 +492,77 @@ export function OrdersManagement() {
                         <Button size="sm" variant="outline" onClick={() => { setSelectedOrder(order); setIsDetailOpen(true); }}>
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="text-orange-500 border-orange-300 hover:bg-orange-50 dark:hover:bg-orange-950/30"
-                          title="تعديل الفاتورة / راجع"
-                          onClick={() => setReturnAdjustOrder(order)}
-                        >
-                          <ReceiptText className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-red-400 hover:text-red-300 hover:bg-red-900/30"
-                          onClick={() => setDeleteOrderId(order.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
 
-                        {order.status === 'pending' && (
-                          <Button size="sm" className="bg-yellow-500 hover:bg-yellow-600 text-black" onClick={() => handleStatusChange(order.id, 'processing')}>
-                            بدء التجهيز ⚡
+                        {isArchived ? (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-primary"
+                            title="إرجاع الطلب إلى القائمة"
+                            onClick={() => handleRestoreOrder(order.id)}
+                          >
+                            <RotateCcw className="h-4 w-4 ml-1" />
+                            استرجاع
                           </Button>
-                        )}
-
-                        {order.status === 'processing' && (
-                          <OrderShipCarrierDialog orderId={order.id} onShipped={fetchOrders} />
-                        )}
-
-                        {order.status === 'shipped' && (
+                        ) : (
                           <>
-                            <Button size="sm" className="bg-green-500 hover:bg-green-600 text-white" onClick={() => handleStatusChange(order.id, 'delivered')}>
-                              استلم الزبون ✅
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-orange-500 border-orange-300 hover:bg-orange-50 dark:hover:bg-orange-950/30"
+                              title="تعديل الفاتورة / راجع"
+                              onClick={() => setReturnAdjustOrder(order)}
+                            >
+                              <ReceiptText className="h-4 w-4" />
                             </Button>
-                            <Button size="sm" variant="destructive" onClick={() => startReject(order.id)}>
-                              رفض الاستلام ❌
-                            </Button>
+
+                            {ARCHIVABLE_STATUSES.has(order.status) && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-muted-foreground hover:text-foreground"
+                                title="أرشفة الطلب"
+                                onClick={() => setArchiveOrderId(order.id)}
+                              >
+                                <Archive className="h-4 w-4" />
+                              </Button>
+                            )}
+
+                            {order.status === 'pending' && (
+                              <Button size="sm" className="bg-yellow-500 hover:bg-yellow-600 text-black" onClick={() => handleStatusChange(order.id, 'processing')}>
+                                بدء التجهيز ⚡
+                              </Button>
+                            )}
+
+                            {order.status === 'processing' && (
+                              <OrderShipCarrierDialog orderId={order.id} onShipped={fetchOrders} />
+                            )}
+
+                            {order.status === 'shipped' && (
+                              <>
+                                <Button size="sm" className="bg-green-500 hover:bg-green-600 text-white" onClick={() => handleStatusChange(order.id, 'delivered')}>
+                                  استلم الزبون ✅
+                                </Button>
+                                <Button size="sm" variant="destructive" onClick={() => startReject(order.id)}>
+                                  رفض الاستلام ❌
+                                </Button>
+                              </>
+                            )}
+
+                            {order.status === 'rejected' && (
+                              <Button size="sm" className="bg-purple-500 hover:bg-purple-600 text-white" onClick={() => handleStatusChange(order.id, 'returned')}>
+                                استلمت من الشركة 📦
+                              </Button>
+                            )}
+
+                            {order.status === 'delivered' && (
+                              <span className="text-green-600 font-bold px-3 py-1 border border-green-200 rounded-md bg-green-50">مكتمل ✅</span>
+                            )}
+
+                            {order.status === 'returned' && (
+                              <span className="text-purple-600 font-bold px-3 py-1 border border-purple-200 rounded-md bg-purple-50">تم الاسترجاع 📦</span>
+                            )}
                           </>
-                        )}
-
-                        {order.status === 'rejected' && (
-                          <Button size="sm" className="bg-purple-500 hover:bg-purple-600 text-white" onClick={() => handleStatusChange(order.id, 'returned')}>
-                            استلمت من الشركة 📦
-                          </Button>
-                        )}
-
-                        {order.status === 'delivered' && (
-                          <span className="text-green-600 font-bold px-3 py-1 border border-green-200 rounded-md bg-green-50">مكتمل ✅</span>
-                        )}
-
-                        {order.status === 'returned' && (
-                          <span className="text-purple-600 font-bold px-3 py-1 border border-purple-200 rounded-md bg-purple-50">تم الاسترجاع 📦</span>
                         )}
                       </div>
                     </TableCell>
@@ -522,22 +595,19 @@ export function OrdersManagement() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Delete Order AlertDialog */}
-      <AlertDialog open={!!deleteOrderId} onOpenChange={(open) => { if (!open) setDeleteOrderId(null); }}>
-        <AlertDialogContent className="bg-[#0d1f3c] border-[#1e3a5f]">
+      {/* Archive Order AlertDialog */}
+      <AlertDialog open={!!archiveOrderId} onOpenChange={(open) => { if (!open) setArchiveOrderId(null); }}>
+        <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">تأكيد حذف الطلب</AlertDialogTitle>
-            <AlertDialogDescription className="text-gray-400">
-              هل تريد حذف هذا الطلب نهائياً؟ هذا الإجراء لا يمكن التراجع عنه.
+            <AlertDialogTitle>أرشفة الطلب؟</AlertDialogTitle>
+            <AlertDialogDescription className="leading-6">
+              راح يختفي الطلب من قائمة التشغيل، بس تبقى الفاتورة والمحاسبة وحركة المخزون وسجل الطلب محفوظة. تكدر ترجعه بأي وقت من الأرشيف.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="border-[#1e3a5f] text-gray-300">إلغاء</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-red-600 hover:bg-red-700 text-white"
-              onClick={handleDeleteOrder}
-            >
-              حذف نهائي
+            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogAction onClick={handleArchiveOrder}>
+              أرشفة الطلب
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -561,6 +631,7 @@ export function OrdersManagement() {
                 <DialogTitle className="text-2xl">فاتورة الطلب</DialogTitle>
                 <DialogDescription className="flex items-center gap-2 flex-wrap">
                   <span>رقم الطلب: <span className="text-primary font-mono font-bold" dir="ltr">{selectedOrder?.orderNumber || selectedOrder?.id.slice(0, 8)}</span></span>
+                  {selectedOrder?.archivedAt && <Badge variant="outline">مؤرشف</Badge>}
                   {detailReturnCount > 0 && (
                     <span className="text-orange-500 font-semibold text-xs border border-orange-300 rounded px-2 py-0.5 inline-flex items-center gap-1">
                       <AlertTriangle className="h-3 w-3 inline" />
@@ -570,7 +641,7 @@ export function OrdersManagement() {
                 </DialogDescription>
               </div>
               <div className="flex gap-2 print:hidden">
-                {selectedOrder && (
+                {selectedOrder && !selectedOrder.archivedAt && (
                   <Button
                     variant="outline"
                     size="sm"
@@ -658,13 +729,11 @@ export function OrdersManagement() {
               <div className="border rounded-lg p-4 space-y-3 bg-muted/30">
                 <h3 className="font-bold text-sm flex items-center gap-2 border-b pb-2 mb-2">💰 تفاصيل الحركة المالية</h3>
 
-                {/* مجموع المنتجات (total already includes delivery - discount, so derive subtotal) */}
                 <div className="flex justify-between text-sm">
                   <span>مجموع المنتجات:</span>
                   <span className="font-semibold">{(Number(selectedOrder.total ?? 0) - Number(selectedOrder.shippingCost ?? 0) + Number(selectedOrder.discountTotal ?? 0)).toLocaleString()} د.ع</span>
                 </div>
 
-                {/* تكلفة التوصيل */}
                 <div className="flex justify-between text-sm">
                   <span>🚚 تكلفة التوصيل:</span>
                   <span className="font-semibold">
@@ -674,7 +743,6 @@ export function OrdersManagement() {
                   </span>
                 </div>
 
-                {/* خصم الكوبون */}
                 {Number(selectedOrder.discountTotal ?? 0) > 0 && (
                   <div className="flex justify-between text-sm text-green-600">
                     <span>🎟️ خصم الكوبون {selectedOrder.couponId ? `(${selectedOrder.couponId})` : ''}:</span>
@@ -682,7 +750,6 @@ export function OrdersManagement() {
                   </div>
                 )}
 
-                {/* رصيد باقي مستخدم */}
                 {Number(selectedOrder.cashbackUsed ?? 0) > 0 && (
                   <div className="flex justify-between text-sm text-blue-600">
                     <span>💳 رصيد باقي مستخدم:</span>
@@ -690,7 +757,6 @@ export function OrdersManagement() {
                   </div>
                 )}
 
-                {/* نقاط ولاء مستخدمة */}
                 {Number(selectedOrder.pointsUsed ?? 0) > 0 && (
                   <div className="flex justify-between text-sm text-purple-600">
                     <span>⭐ نقاط ولاء مستخدمة ({selectedOrder.pointsUsed} نقطة):</span>
@@ -698,7 +764,6 @@ export function OrdersManagement() {
                   </div>
                 )}
 
-                {/* التقريب */}
                 {getDisplayTotal(selectedOrder) !== Number(selectedOrder.total) && (
                   <div className="flex justify-between text-sm text-orange-600">
                     <span>🔄 التقريب لأقرب 250:</span>
@@ -711,7 +776,6 @@ export function OrdersManagement() {
                   </div>
                 )}
 
-                {/* خط فاصل */}
                 <div className="border-t pt-3 mt-2">
                   <div className="flex justify-between items-center">
                     <span className="font-bold text-lg">💵 المبلغ المدفوع نقداً:</span>
@@ -721,7 +785,6 @@ export function OrdersManagement() {
                   </div>
                 </div>
 
-                {/* نقاط مكتسبة */}
                 {Number(selectedOrder.pointsEarned ?? 0) > 0 && (
                   <div className="flex justify-between text-sm bg-green-50 dark:bg-green-950/30 p-2 rounded border border-green-200 dark:border-green-800">
                     <span className="text-green-700 dark:text-green-400">🎁 نقاط ولاء مكتسبة:</span>
@@ -729,7 +792,6 @@ export function OrdersManagement() {
                   </div>
                 )}
 
-                {/* باقي التقريب */}
                 {Number(selectedOrder.roundingCashback ?? 0) > 0 && (
                   <div className="flex justify-between text-sm bg-blue-50 dark:bg-blue-950/30 p-2 rounded border border-blue-200 dark:border-blue-800">
                     <span className="text-blue-700 dark:text-blue-400">💰 باقي تقريب (يُضاف للمحفظة):</span>
