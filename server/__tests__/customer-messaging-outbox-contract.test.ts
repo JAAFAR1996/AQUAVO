@@ -27,6 +27,11 @@ const githubWorker = readFileSync(
   "utf8",
 );
 
+const rollout = readFileSync(
+  join(process.cwd(), "docs/POST_DELIVERY_MESSAGING_ROLLOUT.md"),
+  "utf8",
+);
+
 describe("post-delivery customer messaging contract", () => {
   it("queues care exactly once on a genuine delivered transition", () => {
     expect(migration).toContain("NEW.status = 'delivered'");
@@ -44,6 +49,15 @@ describe("post-delivery customer messaging contract", () => {
   it("does not enqueue review solicitation during phase one", () => {
     expect(migration).not.toContain("clock_timestamp() + interval '14 days'");
     expect(migration).toContain("Phase 1 queues care only");
+  });
+
+  it("locks the approved immediate delivery copy and first-name-only personalization", () => {
+    expect(rollout).toContain("{{1}}، وصلتك الطلبية. إذا طلع عندك أي سؤال عن المنتج أو شلون تستخدمه، إحنا موجودين بنفس الرقم.");
+    expect(service).toContain("buildCustomerFirstName");
+    expect(service).toContain("INVALID_CUSTOMER_NAME");
+    expect(service).not.toContain("buildCustomerHonorific");
+    expect(rollout).toContain("Consumables: send the review request on **day 5**");
+    expect(rollout).toContain("Equipment/hardware: send the review request on **day 9**");
   });
 
   it("distinguishes provider API acceptance from delivery state", () => {
