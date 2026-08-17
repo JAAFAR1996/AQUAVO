@@ -55,7 +55,7 @@ export function createCustomerMessagingAdminRouter(): RouterType {
         }
 
         const result = await dispatchDeliveryCareForOrder(orderId);
-        res.status(200).json({ success: result.status === "accepted", ...result });
+        res.status(200).json({ success: result.status === "sent", ...result });
       } catch (error) {
         next(error);
       }
