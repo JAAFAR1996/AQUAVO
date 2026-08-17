@@ -65,10 +65,11 @@ describe("post-delivery customer messaging contract", () => {
     expect(service).toContain("Order/accounting truth never depends on WhatsApp success");
   });
 
-  it("recovers abandoned sending claims after a bounded lease", () => {
+  it("fails ambiguous transport/stale-send states instead of auto-resending them", () => {
     expect(service).toContain("STALE_SENDING_LEASE_MINUTES = 10");
-    expect(service).toContain("status='sending'");
-    expect(service).toContain("STALE_LOCK_MAX_ATTEMPTS");
+    expect(service).toContain("WHATSAPP_TIMEOUT_AMBIGUOUS");
+    expect(service).toContain("AMBIGUOUS_STALE_SEND_STATE");
+    expect(service).toContain("avoid duplicate customer messages");
   });
 
   it("uses a protected external five-minute worker instead of Vercel Hobby cron", () => {
