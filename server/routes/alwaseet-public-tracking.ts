@@ -7,7 +7,7 @@ import {
   normalizePhoneDigits,
   verifyOrderTrackingPhone,
 } from "./orders.js";
-import { resolveAlWaseetTracking } from "../services/alwaseet-tracking.js";
+import { resolveAlWaseetTrackingRuntime } from "../services/alwaseet-tracking-runtime.js";
 
 const router = Router();
 
@@ -42,7 +42,7 @@ router.post("/track/:orderNumber", orderTrackingLimiter, async (req: Request, re
 
     // Carrier discovery happens only AFTER the caller has proven knowledge of
     // the order phone verifier. Provider outages are swallowed by the resolver.
-    const shipping = await resolveAlWaseetTracking({
+    const shipping = await resolveAlWaseetTrackingRuntime({
       id: order.id,
       orderNumber: order.orderNumber,
       customerPhone: order.customerPhone,
