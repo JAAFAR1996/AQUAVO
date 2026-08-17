@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  buildCustomerHonorific,
+  buildCustomerFirstName,
   normalizeIraqiWhatsAppPhone,
   retryDelayMs,
 } from "../services/customer-messaging.js";
@@ -27,16 +27,17 @@ describe("customer messaging helpers", () => {
     );
   });
 
-  describe("buildCustomerHonorific", () => {
-    it("uses only a conservative first name", () => {
-      expect(buildCustomerHonorific("محمد علي")).toBe("أستاذ محمد");
-      expect(buildCustomerHonorific("Mohammed Al Safi")).toBe("أستاذ Mohammed");
+  describe("buildCustomerFirstName", () => {
+    it("uses the customer's first name only without inventing an honorific", () => {
+      expect(buildCustomerFirstName("محمد علي")).toBe("محمد");
+      expect(buildCustomerFirstName("Mohammed Al Safi")).toBe("Mohammed");
     });
 
-    it("falls back safely for malformed names", () => {
-      expect(buildCustomerHonorific("")).toBe("أستاذ");
-      expect(buildCustomerHonorific("7")).toBe("أستاذ");
-      expect(buildCustomerHonorific("07721310937")).toBe("أستاذ");
+    it("fails closed for malformed or missing names instead of changing approved copy", () => {
+      expect(buildCustomerFirstName("")).toBeNull();
+      expect(buildCustomerFirstName("7")).toBeNull();
+      expect(buildCustomerFirstName("07721310937")).toBeNull();
+      expect(buildCustomerFirstName(null)).toBeNull();
     });
   });
 
