@@ -17,6 +17,16 @@ const service = readFileSync(
   "utf8",
 );
 
+const cronRoute = readFileSync(
+  join(process.cwd(), "server/routes/cron.ts"),
+  "utf8",
+);
+
+const githubWorker = readFileSync(
+  join(process.cwd(), ".github/workflows/customer-messaging-retry.yml"),
+  "utf8",
+);
+
 describe("post-delivery customer messaging contract", () => {
   it("queues care exactly once on a genuine delivered transition", () => {
     expect(migration).toContain("NEW.status = 'delivered'");
@@ -26,10 +36,21 @@ describe("post-delivery customer messaging contract", () => {
     expect(migration).toContain("ON CONFLICT (order_id, job_type) DO NOTHING");
   });
 
-  it("keeps review solicitation separate and delayed", () => {
-    expect(migration).toContain("'review_request'");
-    expect(migration).toContain("interval '14 days'");
-    expect(service).toContain("Review jobs intentionally have no sender");
+  it("fails closed unless accounting migration 0078 is active", () => {
+    expect(migration).toContain("0078_accounting_external_handoff_hardening");
+    expect(migration).toContain("0079_DEPENDENCY_MISSING");
+  });
+
+  it("does not enqueue review solicitation during phase one", () => {
+    expect(migration).not.toContain("clock_timestamp() + interval '14 days'");
+    expect(migration).toContain("Phase 1 queues care only");
+  });
+
+  it("distinguishes provider API acceptance from delivery state", () => {
+    expect(migration).toContain("provider_status");
+    expect(migration).toContain("'accepted', 'sent', 'delivered', 'read', 'failed'");
+    expect(service).toContain("provider_status='accepted'");
+    expect(service).toContain("does not prove handset delivery");
   });
 
   it("makes the existing delivered button trigger an immediate dispatch attempt", () => {
@@ -42,5 +63,19 @@ describe("post-delivery customer messaging contract", () => {
     expect(client).toContain("Post-delivery WhatsApp dispatch failed:");
     expect(client).toContain("delivery truth succeeded");
     expect(service).toContain("Order/accounting truth never depends on WhatsApp success");
+  });
+
+  it("recovers abandoned sending claims after a bounded lease", () => {
+    expect(service).toContain("STALE_SENDING_LEASE_MINUTES = 10");
+    expect(service).toContain("status='sending'");
+    expect(service).toContain("STALE_LOCK_MAX_ATTEMPTS");
+  });
+
+  it("uses a protected external five-minute worker instead of Vercel Hobby cron", () => {
+    expect(cronRoute).toContain('router.get("/customer-messaging"');
+    expect(cronRoute).toContain("runDueDeliveryCareJobs(5)");
+    expect(githubWorker).toContain('cron: "2-57/5 * * * *"');
+    expect(githubWorker).toContain("secrets.CRON_SECRET");
+    expect(githubWorker).toContain("/api/cron/customer-messaging");
   });
 });
