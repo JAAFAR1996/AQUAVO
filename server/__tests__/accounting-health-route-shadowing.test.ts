@@ -45,50 +45,56 @@ describe("GET /api/admin/accounting/v2/health route ownership", () => {
     mockExecute.mockReset();
   });
 
-// Every column the single surviving gate selects. The route is only allowed to
-// answer "ready" when ALL of them are true, so flipping any one of them to
-// false must fail closed — that is the whole point of collapsing the duplicate
-// routers into one owner.
-const HEALTHY_ROW = {
-  facts: true,
-  journal: true,
-  readiness: true,
-  companies: true,
-  positions: true,
-  live_balances: true,
-  auto_close: true,
-  migration_0071: true,
-  delivery_readiness_function: true,
-  ledger_balance_function: true,
-  return_verifier_function: true,
-  delivery_readiness_guard: true,
-  return_verification_lock_guard: true,
-  return_verification_guard: true,
-  return_line_identity_guard: true,
-  return_refund_snapshot_guard: true,
-} as const;
+  // Every column the single surviving gate selects. The route is only allowed to
+  // answer "ready" when ALL of them are true, so flipping any one of them to
+  // false must fail closed — including the 0078 carrier-correction hardening.
+  const HEALTHY_ROW = {
+    facts: true,
+    journal: true,
+    readiness: true,
+    companies: true,
+    positions: true,
+    live_balances: true,
+    carrier_corrections: true,
+    auto_close: true,
+    effective_carrier: true,
+    latest_migration: true,
+    delivery_readiness_function: true,
+    ledger_balance_function: true,
+    return_verifier_function: true,
+    delivery_readiness_guard: true,
+    return_verification_lock_guard: true,
+    return_verification_guard: true,
+    return_line_identity_guard: true,
+    return_refund_snapshot_guard: true,
+  } as const;
 
   it.each(Object.keys(HEALTHY_ROW))(
-    "fails closed instead of returning ready when the P0 chain check %s is not satisfied",
+    "fails closed instead of returning ready when the accounting chain check %s is not satisfied",
     async (missing) => {
       mockExecute.mockResolvedValue({ rows: [{ ...HEALTHY_ROW, [missing]: false }] });
 
       const response = await request(buildApp()).get("/api/admin/accounting/v2/health");
 
       expect(response.status).toBe(503);
-      expect(response.body.message).toContain("ACCOUNTING_V2_MIGRATIONS_0051_TO_0071_REQUIRED");
+      expect(response.body.message).toContain("ACCOUNTING_V2_LATEST_MIGRATION_REQUIRED");
+      expect(response.body.message).toContain("0078_accounting_external_handoff_hardening");
       expect(response.body.ready).not.toBe(true);
       expect(mockExecute).toHaveBeenCalledTimes(1);
     },
   );
 
-  it("reports migrations through 0071 only after every fail-closed health check passes", async () => {
+  it("reports migration 0078 and the active V3 policy only after every fail-closed health check passes", async () => {
     mockExecute.mockResolvedValue({ rows: [{ ...HEALTHY_ROW }] });
 
     const response = await request(buildApp()).get("/api/admin/accounting/v2/health");
 
     expect(response.status).toBe(200);
-    expect(response.body).toMatchObject({ ready: true, migrationsThrough: "0071" });
+    expect(response.body).toMatchObject({
+      ready: true,
+      migrationsThrough: "0078",
+      policyVersion: "v3_explicit_rounding_carrier_snapshot",
+    });
     expect(mockExecute).toHaveBeenCalledTimes(1);
   });
 });
