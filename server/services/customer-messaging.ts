@@ -98,23 +98,24 @@ export function normalizeIraqiWhatsAppPhone(value: unknown): string | null {
 }
 
 /**
- * Keep personalization conservative. A malformed CRM name is worse than no name.
- * The approved template is expected to start with: "السلام عليكم {{1}}، ...".
+ * The approved delivery-care copy uses the customer's first name only. We never
+ * invent an honorific or fallback name: a malformed/missing name is held for
+ * inspection instead of changing the approved customer-facing wording.
  */
-export function buildCustomerHonorific(value: unknown): string {
+export function buildCustomerFirstName(value: unknown): string | null {
   const raw = String(value ?? "")
     .normalize("NFKC")
     .replace(/[\u0000-\u001F\u007F]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 
-  if (!raw) return "أستاذ";
+  if (!raw) return null;
 
   const first = raw.split(" ")[0]?.replace(/[^\p{L}\p{M}'’-]/gu, "") ?? "";
-  if (first.length < 2 || first.length > 30) return "أستاذ";
-  if (!/[\p{L}]/u.test(first)) return "أستاذ";
+  if (first.length < 2 || first.length > 30) return null;
+  if (!/[\p{L}]/u.test(first)) return null;
 
-  return `أستاذ ${first}`;
+  return first;
 }
 
 export function retryDelayMs(attemptCount: number): number | null {
@@ -206,7 +207,7 @@ function compactMetaErrorCode(httpStatus: number, body: MetaSendResponse): strin
 async function sendDeliveryCareTemplate(
   config: WhatsAppConfig,
   recipientPhone: string,
-  honorific: string,
+  customerFirstName: string,
 ): Promise<string> {
   const endpoint = `https://graph.facebook.com/${config.apiVersion}/${encodeURIComponent(config.phoneNumberId)}/messages`;
 
@@ -229,7 +230,7 @@ async function sendDeliveryCareTemplate(
           components: [
             {
               type: "body",
-              parameters: [{ type: "text", text: honorific }],
+              parameters: [{ type: "text", text: customerFirstName }],
             },
           ],
         },
@@ -366,10 +367,15 @@ export async function dispatchDeliveryCareForOrder(orderId: string): Promise<Cus
       return { status: "invalid_phone", jobId: job.id, errorCode: "INVALID_IRAQI_MOBILE" };
     }
 
+    const firstName = buildCustomerFirstName(recipient.customerName);
+    if (!firstName) {
+      return await releaseClaimAsFailed(job, "INVALID_CUSTOMER_NAME", false);
+    }
+
     const providerMessageId = await sendDeliveryCareTemplate(
       config,
       phone,
-      buildCustomerHonorific(recipient.customerName),
+      firstName,
     );
     await markAccepted(job.id, providerMessageId);
     return { status: "sent", jobId: job.id, providerMessageId };
