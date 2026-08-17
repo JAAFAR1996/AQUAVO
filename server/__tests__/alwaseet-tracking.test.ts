@@ -86,15 +86,17 @@ describe("parseAlWaseetOrder", () => {
 });
 
 describe("matchAlWaseetOrder", () => {
-  it("auto-links one exact phone + payable amount + time match", () => {
+  it("auto-links one exact phone + payable amount candidate", () => {
     const match = matchAlWaseetOrder(local(), [provider()]);
     expect(match?.order.id).toBe("waseet-1");
-    expect(match?.method).toBe("phone_amount_time");
+    expect(match?.method).toBe("phone_amount");
+    expect(match?.confidence).toBe("exact");
   });
 
   it("accepts the unrounded local total as an exact payable candidate", () => {
     const match = matchAlWaseetOrder(local(), [provider({ price: 24750 })]);
     expect(match?.order.id).toBe("waseet-1");
+    expect(match?.confidence).toBe("exact");
   });
 
   it("never links a mismatched phone", () => {
@@ -107,21 +109,58 @@ describe("matchAlWaseetOrder", () => {
     expect(match).toBeNull();
   });
 
-  it("fails closed when two carrier orders have the same phone and amount", () => {
-    const match = matchAlWaseetOrder(local({ customerName: null }), [
-      provider({ id: "waseet-1" }),
-      provider({ id: "waseet-2", createdAt: new Date("2026-08-18T09:00:00+03:00") }),
-    ]);
-    expect(match).toBeNull();
-  });
-
-  it("uses an exact normalized customer name only as a deterministic tie-breaker", () => {
+  it("uses a unique exact normalized name as a high-confidence tie-breaker", () => {
     const match = matchAlWaseetOrder(local(), [
       provider({ id: "waseet-1", clientName: "شخص آخر" }),
       provider({ id: "waseet-2", clientName: "احمد علي" }),
     ]);
     expect(match?.order.id).toBe("waseet-2");
-    expect(match?.method).toBe("phone_amount_time_name");
+    expect(match?.method).toBe("phone_amount_name");
+    expect(match?.confidence).toBe("high");
+  });
+
+  it("uses a clearly nearer creation time for a rare duplicate phone + amount", () => {
+    const match = matchAlWaseetOrder(local({ customerName: null }), [
+      provider({ id: "waseet-1", createdAt: new Date("2026-08-17T12:00:00+03:00") }),
+      provider({ id: "waseet-2", createdAt: new Date("2026-08-18T12:00:00+03:00") }),
+    ]);
+    expect(match?.order.id).toBe("waseet-1");
+    expect(match?.method).toBe("phone_amount_nearest_time");
+    expect(match?.confidence).toBe("high");
+  });
+
+  it("uses nearest time inside repeated exact-name candidates when the lead is clear", () => {
+    const match = matchAlWaseetOrder(local(), [
+      provider({ id: "waseet-1", clientName: "احمد علي", createdAt: new Date("2026-08-17T12:00:00+03:00") }),
+      provider({ id: "waseet-2", clientName: "أحمد علي", createdAt: new Date("2026-08-18T12:00:00+03:00") }),
+    ]);
+    expect(match?.order.id).toBe("waseet-1");
+    expect(match?.method).toBe("phone_amount_name_nearest_time");
+    expect(match?.confidence).toBe("high");
+  });
+
+  it("stays ambiguous when duplicate candidates are too close in time", () => {
+    const match = matchAlWaseetOrder(local({ customerName: null }), [
+      provider({ id: "waseet-1", createdAt: new Date("2026-08-17T12:00:00+03:00") }),
+      provider({ id: "waseet-2", createdAt: new Date("2026-08-17T14:00:00+03:00") }),
+    ]);
+    expect(match).toBeNull();
+  });
+
+  it("stays ambiguous when a duplicate candidate is missing its creation timestamp", () => {
+    const match = matchAlWaseetOrder(local({ customerName: null }), [
+      provider({ id: "waseet-1", createdAt: new Date("2026-08-17T12:00:00+03:00") }),
+      provider({ id: "waseet-2", createdAt: null }),
+    ]);
+    expect(match).toBeNull();
+  });
+
+  it("does not choose a time-only probable candidate when even the best is too far away", () => {
+    const match = matchAlWaseetOrder(local({ customerName: null }), [
+      provider({ id: "waseet-1", createdAt: new Date("2026-08-23T12:00:00+03:00") }),
+      provider({ id: "waseet-2", createdAt: new Date("2026-08-27T12:00:00+03:00") }),
+    ]);
+    expect(match).toBeNull();
   });
 
   it("prefers an exact AQUAVO order number in merchant notes when phone matches", () => {
@@ -130,6 +169,7 @@ describe("matchAlWaseetOrder", () => {
     ]);
     expect(match?.order.id).toBe("waseet-1");
     expect(match?.method).toBe("order_number_note_phone");
+    expect(match?.confidence).toBe("exact");
   });
 
   it("does not steal a provider order already claimed by another AQUAVO order", () => {
