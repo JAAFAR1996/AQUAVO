@@ -87,7 +87,10 @@ describe("accounting v2 production wiring", () => {
     expect(source).toContain("Math.abs(amount(fact.carrier_fee) - amount(company.default_fee))");
     expect(source).toContain("الأجرة المالية لم تتغير");
     expect(source).toContain("recordFinancialChange(tx as never");
-    expect(source).toContain("FOR UPDATE OF o");
+    // Keep one lock order across correction + settlement paths: immutable fact first.
+    // The correction insert trigger subsequently locks the matching order row.
+    expect(source).toContain("FOR UPDATE OF f");
+    expect(source).not.toContain("FOR UPDATE OF o");
   });
 
   it("mounts isolated evidence upload first and computes SHA-256 on original bytes", () => {
