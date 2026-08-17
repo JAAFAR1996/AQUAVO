@@ -141,6 +141,9 @@ DELETE FROM public.accounting_review_flags
 WHERE id='inventory-reconciliation-'||md5('INVENTORY-UNIFY-20260817')
   AND status='open';
 
+DROP TRIGGER IF EXISTS order_accounting_carrier_corrections_validate_insert
+  ON public.order_accounting_carrier_corrections;
+DROP FUNCTION IF EXISTS public.validate_order_accounting_carrier_correction_insert();
 DROP TRIGGER IF EXISTS order_accounting_carrier_corrections_immutable
   ON public.order_accounting_carrier_corrections;
 DROP FUNCTION IF EXISTS public.reject_order_accounting_carrier_correction_mutation();
