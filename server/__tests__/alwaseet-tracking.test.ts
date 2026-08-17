@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  hasRealIssueNote,
   matchAlWaseetOrder,
+  normalizeArabicText,
   normalizeIraqPhone,
   parseAlWaseetOrder,
   type AquavoTrackingOrder,
@@ -47,6 +49,23 @@ describe("normalizeIraqPhone", () => {
     ["٠٧٧٠١٢٣٤٥٦٧", "9647701234567"],
   ])("normalizes %s", (input, expected) => {
     expect(normalizeIraqPhone(input)).toBe(expected);
+  });
+});
+
+describe("provider text semantics", () => {
+  it("normalizes Persian Arabic glyph variants used in Waseet examples", () => {
+    expect(normalizeArabicText("لا یوجد")).toBe("لا يوجد");
+  });
+
+  it.each(["", "لا يوجد", "لا یوجد", "لا توجد", "-", "none", "N/A", "0"])(
+    "does not flag a no-issue sentinel: %s",
+    (value) => {
+      expect(hasRealIssueNote(value)).toBe(false);
+    },
+  );
+
+  it("flags an actual driver issue note", () => {
+    expect(hasRealIssueNote("الزبون لا يجيب على الهاتف")).toBe(true);
   });
 });
 
