@@ -74,8 +74,9 @@ AS $function$
 $function$;
 
 -- Keep the append-only carrier trail internally consistent even if an INSERT bypasses
--- the HTTP route. The order and fact locks serialize corrections with one another and
--- with settlement creation, preventing a correction from racing a settlement commit.
+-- the HTTP route. Fact-first locking matches settlement creation and serializes all
+-- accounting identity decisions for the same realized order before the mutable order
+-- row is locked, avoiding lock-order inversion.
 CREATE OR REPLACE FUNCTION public.validate_order_accounting_carrier_correction_insert()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -90,14 +91,6 @@ DECLARE
   v_company_default_fee numeric;
   v_prior_carrier text;
 BEGIN
-  PERFORM 1
-  FROM public.orders o
-  WHERE o.id=NEW.order_id
-  FOR UPDATE;
-  IF NOT FOUND THEN
-    RAISE EXCEPTION 'ORDER_ACCOUNTING_CARRIER_CORRECTION_ORDER_MISSING:%',NEW.order_id USING ERRCODE='23503';
-  END IF;
-
   SELECT f.order_id,f.carrier_fee
     INTO v_fact_order_id,v_fact_carrier_fee
   FROM public.order_accounting_facts f
@@ -109,6 +102,14 @@ BEGIN
 
   IF v_fact_order_id<>NEW.order_id THEN
     RAISE EXCEPTION 'ORDER_ACCOUNTING_CARRIER_CORRECTION_ORDER_FACT_MISMATCH:%:%',NEW.order_id,NEW.order_fact_id USING ERRCODE='23514';
+  END IF;
+
+  PERFORM 1
+  FROM public.orders o
+  WHERE o.id=NEW.order_id
+  FOR UPDATE;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'ORDER_ACCOUNTING_CARRIER_CORRECTION_ORDER_MISSING:%',NEW.order_id USING ERRCODE='23503';
   END IF;
 
   SELECT c.name,c.active,c.default_fee
@@ -329,7 +330,7 @@ INSERT INTO public.schema_migrations(version,checksum,notes)
 VALUES(
   '0078_accounting_external_handoff_hardening',
   '0078007800780078007800780078007800780078007800780078007800780078',
-  'Harden Accounting V3 external handoff: immutable validated serialized carrier corrections, settlement identity, stock-reconciliation review blocker, and constraint validation'
+  'Harden Accounting V3 external handoff: immutable validated fact-serialized carrier corrections, settlement identity, stock-reconciliation review blocker, and constraint validation'
 )
 ON CONFLICT(version) DO UPDATE
 SET checksum=EXCLUDED.checksum,
