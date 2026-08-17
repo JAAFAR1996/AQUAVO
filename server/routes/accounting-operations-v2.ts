@@ -7,6 +7,7 @@ import { requireAccountingAdmin } from "../middleware/accounting-auth-v2.js";
 import { actorFromRequest } from "../services/accountingAuditTrail.js";
 
 const periodKeySchema = z.string().regex(/^20\d{2}-(0[1-9]|1[0-2])$/);
+const ACTIVE_ACCOUNTING_POLICY = "v3_explicit_rounding_carrier_snapshot";
 const uploadedEvidenceSchema = z.object({
   url: z.string().url(),
   objectKey: z.string().min(1),
@@ -80,7 +81,7 @@ function amount(value: unknown): number {
   return number;
 }
 function normalize(row: Row): Row {
-  const numeric = new Set(["gross_collected", "customer_delivery_fee", "carrier_fee", "product_revenue", "merchant_net", "delivery_subsidy", "delivery_surplus", "amount", "gross_amount", "fee_amount", "net_amount", "fees_amount"]);
+  const numeric = new Set(["gross_collected", "customer_delivery_fee", "carrier_fee", "product_revenue", "rounding_adjustment", "merchant_net", "delivery_subsidy", "delivery_surplus", "amount", "gross_amount", "fee_amount", "net_amount", "fees_amount"]);
   return Object.fromEntries(Object.entries(row).map(([key, value]) => [key, numeric.has(key) ? amount(value) : value]));
 }
 function internalEvidence(input: Extract<EvidenceInput, { mode: "owner_confirmation" }>, actor: Actor, entityType: string, entityId: string) {
@@ -145,10 +146,14 @@ async function requireSchema(): Promise<NonNullable<ReturnType<typeof getDb>>> {
   if (!db) throw Object.assign(new Error("قاعدة البيانات غير مهيأة"), { statusCode: 503 });
   const check = await db.execute(sql`
     SELECT to_regclass('public.order_accounting_facts') IS NOT NULL AS facts,
-           to_regclass('public.evidence_files') IS NOT NULL AS evidence
+           to_regclass('public.evidence_files') IS NOT NULL AS evidence,
+           to_regclass('public.order_accounting_carrier_corrections') IS NOT NULL AS carrier_corrections,
+           to_regprocedure('public.accounting_effective_carrier(text)') IS NOT NULL AS effective_carrier
   `);
-  const state = rowsOf(check)[0] as { facts?: boolean; evidence?: boolean } | undefined;
-  if (!state?.facts || !state.evidence) throw Object.assign(new Error("ACCOUNTING_V2_MIGRATION_REQUIRED"), { statusCode: 503 });
+  const state = rowsOf(check)[0] as { facts?: boolean; evidence?: boolean; carrier_corrections?: boolean; effective_carrier?: boolean } | undefined;
+  if (!state?.facts || !state.evidence || !state.carrier_corrections || !state.effective_carrier) {
+    throw Object.assign(new Error("ACCOUNTING_V2_LATEST_MIGRATION_REQUIRED"), { statusCode: 503 });
+  }
   return db;
 }
 
@@ -161,8 +166,9 @@ export function createAccountingOperationsV2Router() {
       const periodKey = periodKeySchema.parse(req.query.periodKey);
       const db = await requireSchema();
       const result = await db.execute(sql`
-        SELECT f.order_id,o.order_number,o.carrier,f.recognized_at,f.gross_collected,
-               f.customer_delivery_fee,f.carrier_fee,f.product_revenue,f.merchant_net,
+        SELECT f.order_id,o.order_number,public.accounting_effective_carrier(f.id) AS carrier,
+               f.recognized_at,f.gross_collected,f.customer_delivery_fee,f.carrier_fee,
+               f.product_revenue,f.rounding_adjustment,f.merchant_net,
                f.delivery_subsidy,f.delivery_surplus,f.payment_event_id
         FROM public.order_accounting_facts f
         JOIN public.orders o ON o.id=f.order_id
@@ -200,7 +206,7 @@ export function createAccountingOperationsV2Router() {
         if (!carrierName) throw Object.assign(new Error("اختر شركة التوصيل"), { statusCode: 400 });
 
         const factsResult = await tx.execute(sql`
-          SELECT f.*,o.order_number,o.carrier,
+          SELECT f.*,o.order_number,public.accounting_effective_carrier(f.id) AS carrier,
                  EXISTS(
                    SELECT 1 FROM public.order_accounting_settlements s
                    WHERE s.order_fact_id=f.id
@@ -238,7 +244,7 @@ export function createAccountingOperationsV2Router() {
         const evidenceJson = JSON.stringify({
           ...evidence,
           evidenceFileId: savedEvidence.id,
-          policyVersion: "v2_gross_includes_delivery_carrier_keeps_fee",
+          policyVersion: ACTIVE_ACCOUNTING_POLICY,
         });
         const inserted = await tx.execute(sql`
           INSERT INTO public.cash_settlements(
@@ -265,7 +271,7 @@ export function createAccountingOperationsV2Router() {
               ${fact.payment_event_id == null ? null : String(fact.payment_event_id)},
               ${amount(fact.gross_collected)},${amount(fact.carrier_fee)},${amount(fact.merchant_net)},
               'matched',${`سطر ${line} مطابق لحقيقة البيع`},
-              ${JSON.stringify({ orderAccountingFactId: fact.id, orderNumber: fact.order_number })}::jsonb
+              ${JSON.stringify({ orderAccountingFactId: fact.id, orderNumber: fact.order_number, policyVersion: ACTIVE_ACCOUNTING_POLICY })}::jsonb
             )
           `);
         }
