@@ -5,6 +5,7 @@ import { createOrderRouter } from "./routes/orders.js";
 import { createUserRouter } from "./routes/users.js";
 import { createGalleryRouter } from "./routes/gallery.js";
 import { createAdminRouter } from "./routes/admin.js";
+import { createAdminOrderPurgeRouter } from "./routes/admin-order-purge.js";
 import { createAdminOrderArchiveRouter } from "./routes/admin-order-archive.js";
 import { createAdminOrdersV2Router } from "./routes/admin-orders-v2.js";
 import { createAccountingAutomaticReturnsV2Router } from "./routes/accounting-automatic-returns-v2.js";
@@ -83,9 +84,10 @@ export async function registerRoutes(httpServer: Server, app: express.Applicatio
   app.use("/api/products", createProductRouter());
   app.use("/api/orders", createOrderRouter());
 
-  // Archive/list handling is deliberately isolated from Accounting V2 and
-  // mounted first so the legacy hard-delete route can never receive an order
-  // deletion request.
+  // Purge and archive/list handling are deliberately isolated from Accounting V2.
+  // Purge has its own explicit /purge endpoint; archive keeps the compatibility
+  // DELETE route and remains mounted before the legacy hard-delete handler.
+  app.use("/api/admin", createAdminOrderPurgeRouter());
   app.use("/api/admin", createAdminOrderArchiveRouter());
   app.use("/api/admin", createAdminOrdersV2Router());
   app.use("/api/admin", createAdminRouter());
