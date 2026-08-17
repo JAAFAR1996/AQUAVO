@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS public.order_carrier_tracking (
   provider_updated_at timestamptz,
   last_synced_at timestamptz NOT NULL DEFAULT now(),
   match_method text NOT NULL,
+  match_confidence text NOT NULL CHECK (match_confidence IN ('exact', 'high')),
   matched_at timestamptz NOT NULL DEFAULT now(),
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
@@ -37,7 +38,7 @@ INSERT INTO public.schema_migrations(version, checksum, notes)
 VALUES(
   '0076_alwaseet_tracking_mirror',
   '0076007600760076007600760076007600760076007600760076007600760076',
-  'Add isolated read-only Al-Waseet order matching and tracking snapshot table'
+  'Add isolated read-only Al-Waseet order matching, confidence metadata, and tracking snapshot table'
 )
 ON CONFLICT(version) DO UPDATE
 SET checksum=EXCLUDED.checksum,
