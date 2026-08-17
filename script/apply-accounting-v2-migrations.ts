@@ -31,6 +31,9 @@ const MIGRATIONS = [
   "0072_accounting_require_explicit_shipped_carrier.sql",
   "0073_accounting_final_hardening.sql",
   "0074_purchase_received_quantity_immutability.sql",
+  "0077_fix_order_accounting_gross_identity_rounding.sql",
+  "0078_accounting_external_handoff_hardening.sql",
+  "0080_accounting_operational_hardening.sql",
 ] as const;
 
 function versionOf(file: string): string { return file.replace(/\.sql$/, ""); }
@@ -40,8 +43,8 @@ function sha256(body: string): string { return createHash("sha256").update(body)
 async function main(): Promise<void> {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) throw new Error("DATABASE_URL is required");
-  if (process.env.CONFIRM_ACCOUNTING_PRODUCTION !== "APPLY_0051_TO_0074") {
-    throw new Error("CONFIRM_ACCOUNTING_PRODUCTION=APPLY_0051_TO_0074 is required");
+  if (process.env.CONFIRM_ACCOUNTING_PRODUCTION !== "APPLY_ACCOUNTING_THROUGH_0080") {
+    throw new Error("CONFIRM_ACCOUNTING_PRODUCTION=APPLY_ACCOUNTING_THROUGH_0080 is required");
   }
 
   const pool = new Pool({ connectionString, max: 1 });
@@ -102,6 +105,7 @@ async function main(): Promise<void> {
         to_regclass('public.v_customer_credit_balances') IS NOT NULL AS credit_balances,
         to_regclass('public.v_cod_refusal_policy_exceptions') IS NOT NULL AS refusal_exceptions,
         to_regclass('public.v_cod_refusal_inventory_exceptions') IS NOT NULL AS refusal_inventory_exceptions,
+        to_regclass('public.v_accounting_operational_hardening') IS NOT NULL AS operational_hardening_view,
         to_regprocedure('public.auto_close_ended_accounting_periods(text,text)') IS NOT NULL AS auto_close,
         EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='orders' AND column_name='delivered_at') AS delivered_at,
         EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='accounting_monthly_positions' AND column_name='other_deduction_amount') AS other_deductions,
@@ -119,6 +123,9 @@ async function main(): Promise<void> {
         EXISTS(SELECT 1 FROM public.schema_migrations WHERE version='0072_accounting_require_explicit_shipped_carrier' AND rolled_back_at IS NULL) AS migration_0072,
         EXISTS(SELECT 1 FROM public.schema_migrations WHERE version='0073_accounting_final_hardening' AND rolled_back_at IS NULL) AS migration_0073,
         EXISTS(SELECT 1 FROM public.schema_migrations WHERE version='0074_purchase_received_quantity_immutability' AND rolled_back_at IS NULL) AS migration_0074,
+        EXISTS(SELECT 1 FROM public.schema_migrations WHERE version='0077_fix_order_accounting_gross_identity_rounding' AND rolled_back_at IS NULL) AS migration_0077,
+        EXISTS(SELECT 1 FROM public.schema_migrations WHERE version='0078_accounting_external_handoff_hardening' AND rolled_back_at IS NULL) AS migration_0078,
+        EXISTS(SELECT 1 FROM public.schema_migrations WHERE version='0080_accounting_operational_hardening' AND rolled_back_at IS NULL) AS migration_0080,
         to_regclass('public.purchase_accounting_facts') IS NOT NULL AS purchase_facts,
         to_regclass('public.supplier_payment_applications') IS NOT NULL AS supplier_payment_applications,
         to_regclass('public.inventory_cost_events') IS NOT NULL AS inventory_cost_events,
@@ -168,7 +175,11 @@ async function main(): Promise<void> {
         EXISTS(SELECT 1 FROM pg_trigger WHERE tgname='inventory_movements_received_quantity_context' AND NOT tgisinternal) AS purchase_received_quantity_context_trigger,
         EXISTS(SELECT 1 FROM pg_trigger WHERE tgname='purchase_order_items_received_quantity_context_clear' AND NOT tgisinternal) AS purchase_received_quantity_context_clear_trigger,
         pg_get_functiondef('public.guard_accounted_purchase_order_item_mutation()'::regprocedure)
-          ILIKE '%ACCOUNTED_PURCHASE_ORDER_ITEM_RECEIVED_QUANTITY_IMMUTABLE%' AS purchase_received_quantity_guard
+          ILIKE '%ACCOUNTED_PURCHASE_ORDER_ITEM_RECEIVED_QUANTITY_IMMUTABLE%' AS purchase_received_quantity_guard,
+        COALESCE((SELECT expected_constraints_present FROM public.v_accounting_operational_hardening),false) AS operational_constraints_present,
+        COALESCE((SELECT target_constraints_validated FROM public.v_accounting_operational_hardening),false) AS operational_constraints_validated,
+        COALESCE((SELECT append_only_acl_hardened FROM public.v_accounting_operational_hardening),false) AS operational_acl_hardened,
+        COALESCE((SELECT order_profit_includes_rounding FROM public.v_accounting_operational_hardening),false) AS operational_profit_rounding
     `);
     const checks = health.rows[0] as Record<string, boolean> | undefined;
     if (!checks || Object.values(checks).some((value) => value !== true)) {
