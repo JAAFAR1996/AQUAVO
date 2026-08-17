@@ -255,8 +255,9 @@ function buildPages(payload: AnyRow): PageSpec[] {
     ["المنتج", "المتغير", "الكمية", "كلفة الوحدة", "القيمة", "مصدر الكلفة"],
     (row) => [
       esc(row.product_id), esc(row.variant_id), countValue(row.quantity ?? row.stock),
-      iqd(row.unit_cost_iqd ?? row.unit_cost ?? row.cost_price), iqd(row.value_iqd ?? row.total_value ?? row.inventory_value),
-      esc(row.cost_source ?? row.source),
+      iqd(row.unit_cost_iqd ?? row.unit_cost ?? row.cost_price),
+      iqd(row.value_iqd ?? row.total_cost ?? row.total_value ?? row.inventory_value),
+      esc(row.cost_source ?? row.cost_status ?? row.source),
     ],
   );
 
