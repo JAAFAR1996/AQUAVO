@@ -2,14 +2,12 @@ import { Router, type NextFunction, type Request, type Response } from "express"
 import { sql } from "drizzle-orm";
 import { z } from "zod";
 import { orders } from "../../shared/schema.js";
-import { orderCollectedAmount } from "../../shared/order-financials.js";
 import { getDb } from "../db.js";
-import { storage } from "../storage/index.js";
 import { requireAccountingAdmin } from "../middleware/accounting-auth-v2.js";
 import { actorFromRequest, recordFinancialChange } from "../services/accountingAuditTrail.js";
-import { buildCostResolver, buildFulfillmentResolver, calcOrderProfit, collectProductIds } from "../services/accounting-engine.js";
 import { applyPackagingLifecycle, type LifecycleOutcome } from "../services/packaging-lifecycle-runner.js";
 import { syncAutomaticReturnLifecycle } from "../services/order-return-automation-v2.js";
+import { orderCollectedAmount } from "../../shared/order-financials.js";
 
 const numericInput = z.union([z.string(), z.number()])
   .transform((value) => Number(value))
@@ -50,12 +48,6 @@ type ReturnOrderLineRow = {
   variant_id: string | null;
   variant_label: string | null;
 };
-type ArchiveRow = {
-  id: string;
-  order_number: string | null;
-  status: string;
-  archived_at: Date | string | null;
-};
 
 type LoyaltyStorageRuntime = {
   approveOrderPoints(userId: string, orderId: string, amount: number): Promise<unknown>;
@@ -65,13 +57,6 @@ type LoyaltyStorageRuntime = {
 };
 type BadgeEngineRuntime = { checkAndAwardBadges(userId: string): Promise<unknown> };
 type ChallengeStorageRuntime = { updateProgress(userId: string, challenge: string, amount: number): Promise<unknown> };
-
-const ARCHIVABLE_ORDER_STATUSES = new Set([
-  "delivered",
-  "returned",
-  "cancelled",
-  "rejected_returned",
-]);
 
 function rowsOf<T>(result: unknown): T[] {
   if (Array.isArray(result)) return result as T[];
@@ -128,182 +113,6 @@ async function recordRejectedIp(clientIp: string | null): Promise<void> {
 export function createAdminOrdersV2Router() {
   const router = Router();
   router.use(requireAccountingAdmin);
-
-  // Canonical admin order list. Archived orders are hidden by default so they
-  // leave the operational queue without being deleted from accounting/history.
-  router.get("/orders", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const db = getDb();
-    if (!db) { res.status(503).json({ message: "قاعدة البيانات غير مهيأة" }); return; }
-
-    try {
-      const includeArchivedRaw = String(req.query.includeArchived ?? "").toLowerCase();
-      const includeArchived = includeArchivedRaw === "1" || includeArchivedRaw === "true";
-
-      const archiveResult = await db.execute(sql`
-        SELECT id, order_number, status, archived_at
-        FROM public.orders
-      `);
-      const archiveRows = rowsOf<ArchiveRow>(archiveResult);
-      const archivedAtById = new Map(
-        archiveRows.map((row) => [row.id, row.archived_at] as const),
-      );
-
-      const allOrders = await storage.getOrders();
-      const visibleOrders = allOrders.filter((order) =>
-        includeArchived || !archivedAtById.get(order.id),
-      );
-
-      const costs = await buildCostResolver(db, collectProductIds(visibleOrders as any));
-      const fulfil = await buildFulfillmentResolver(
-        db,
-        new Set(visibleOrders.map((order: any) => order.id)),
-      );
-
-      const enrichedOrders = visibleOrders.map((order: any) => {
-        const archivedAt = archivedAtById.get(order.id) ?? null;
-        if (order.items && Array.isArray(order.items)) {
-          const createdAt = order.createdAt ? new Date(order.createdAt) : new Date();
-          const enrichedItems = order.items.map((item: any) => {
-            const cost = item.productId ? costs.getEffective(item.productId, createdAt) : undefined;
-            const price = Number(item.priceAtPurchase ?? item.price ?? cost?.price ?? 0) || 0;
-            const costPrice = item.costPrice != null
-              ? Number(item.costPrice)
-              : (cost?.costKnown ? cost.costPrice : null);
-            return {
-              ...item,
-              productName: item.productName || cost?.name || `منتج #${String(item.productId ?? "").slice(0, 8)}`,
-              price,
-              costPrice,
-            };
-          });
-          const p = calcOrderProfit(order, costs, fulfil.get(order.id));
-          return {
-            ...order,
-            items: enrichedItems,
-            archivedAt,
-            profit: p.netProfit,
-            revenue: p.revenue,
-            cogs: p.cogs,
-            fulfillmentCost: p.fulfillmentCost,
-            fulfillmentStatus: p.fulfillmentStatus,
-            contributionProfit: p.contributionProfit,
-            contributionMargin: p.contributionMargin,
-            costStatus: p.costStatus,
-            costsComplete: p.costsComplete,
-            estimatedCostLines: p.estimatedCostLines,
-            missingCostLines: p.missingCostLines,
-          };
-        }
-        return { ...order, archivedAt };
-      });
-
-      res.set("Cache-Control", "no-store, private");
-      res.json(enrichedOrders);
-    } catch (error) {
-      next(error);
-    }
-  });
-
-  // DELETE is intentionally implemented as an operational archive, not a hard
-  // database delete. Orders are accounting/audit records and have many dependent
-  // fulfillment, inventory and payment facts that must remain intact.
-  router.delete("/orders/:id", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const db = getDb();
-    if (!db) { res.status(503).json({ message: "قاعدة البيانات غير مهيأة" }); return; }
-
-    try {
-      const result = await db.transaction(async (tx) => {
-        const lockedResult = await tx.execute(sql`
-          SELECT id, order_number, status, archived_at
-          FROM public.orders
-          WHERE id=${req.params.id}
-          FOR UPDATE
-        `);
-        const locked = rowsOf<ArchiveRow>(lockedResult)[0];
-        if (!locked) {
-          throw Object.assign(new Error("الطلب غير موجود"), { statusCode: 404 });
-        }
-        if (locked.archived_at) return locked;
-        if (!ARCHIVABLE_ORDER_STATUSES.has(locked.status)) {
-          throw Object.assign(
-            new Error("لا يمكن أرشفة طلب ما زال ضمن دورة التنفيذ. أكمل معالجة الطلب أو غيّر حالته إلى حالة نهائية أولاً."),
-            { statusCode: 409 },
-          );
-        }
-
-        const updatedResult = await tx.execute(sql`
-          UPDATE public.orders
-          SET archived_at=clock_timestamp(), updated_at=clock_timestamp()
-          WHERE id=${locked.id}
-          RETURNING id, order_number, status, archived_at
-        `);
-        const updated = rowsOf<ArchiveRow>(updatedResult)[0];
-        if (!updated) throw new Error("فشل أرشفة الطلب");
-        return updated;
-      });
-
-      try {
-        await storage.createAuditLog({
-          userId: (req as any).session?.userId || "admin",
-          action: "archive",
-          entityType: "order",
-          entityId: result.id,
-          changes: { archivedAt: result.archived_at },
-        });
-      } catch (auditError) {
-        console.error("[AdminOrdersV2] archive audit log failed", auditError);
-      }
-
-      res.set("Cache-Control", "no-store, private");
-      res.json({
-        success: true,
-        orderNumber: result.order_number,
-        archivedAt: result.archived_at,
-      });
-    } catch (error: any) {
-      if (error?.statusCode === 404 || error?.statusCode === 409) {
-        res.status(error.statusCode).json({ message: error.message });
-        return;
-      }
-      next(error);
-    }
-  });
-
-  router.post("/orders/:id/restore", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const db = getDb();
-    if (!db) { res.status(503).json({ message: "قاعدة البيانات غير مهيأة" }); return; }
-
-    try {
-      const result = await db.execute(sql`
-        UPDATE public.orders
-        SET archived_at=NULL, updated_at=clock_timestamp()
-        WHERE id=${req.params.id}
-        RETURNING id, order_number, status, archived_at
-      `);
-      const restored = rowsOf<ArchiveRow>(result)[0];
-      if (!restored) {
-        res.status(404).json({ message: "الطلب غير موجود" });
-        return;
-      }
-
-      try {
-        await storage.createAuditLog({
-          userId: (req as any).session?.userId || "admin",
-          action: "restore",
-          entityType: "order",
-          entityId: restored.id,
-          changes: { archivedAt: null },
-        });
-      } catch (auditError) {
-        console.error("[AdminOrdersV2] restore audit log failed", auditError);
-      }
-
-      res.set("Cache-Control", "no-store, private");
-      res.json({ success: true, orderNumber: restored.order_number });
-    } catch (error) {
-      next(error);
-    }
-  });
 
   router.get("/orders/delivery-companies", async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
     const db = getDb();
