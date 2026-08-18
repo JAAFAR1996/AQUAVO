@@ -89,6 +89,13 @@ function csrfOriginProtection(req: Request, res: Response, next: NextFunction) {
     return next();
   }
 
+  // Meta sends WhatsApp webhooks server-to-server without a browser Origin.
+  // This exact callback route authenticates POST bodies with X-Hub-Signature-256
+  // and META_APP_SECRET, so browser-origin CSRF validation does not apply here.
+  if (realRoute === "/api/webhooks/whatsapp" || realRoute === "/api/webhooks/whatsapp/") {
+    return next();
+  }
+
   const sourceOrigin = getSourceOrigin(req);
   const targetHost = getTargetHost(req);
 
