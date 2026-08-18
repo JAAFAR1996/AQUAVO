@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { addCsrfHeader } from "@/lib/csrf";
 import { CartonPlanViewer, ReturnCartonLossPanel } from "@/components/admin/packaging";
+import { CustomerMessagingPanel } from "./customer-messaging-panel";
 import { FulfillmentDraftPanel } from "./fulfillment-draft-panel";
 import { FulfillmentHistoryPanel } from "./fulfillment-history-panel";
 import { FulfillmentProfitabilityPanel } from "./fulfillment-profitability-panel";
@@ -85,6 +86,7 @@ export function OrderFulfillmentPanel({ orderId }: { orderId: string }) {
       {/* Damaged cartons from returns. Reclassification, never a second expense —
           the panel says so, and eventActualReturnLoss now enforces it. */}
       <ReturnCartonLossPanel orderId={orderId} />
+      <CustomerMessagingPanel orderId={orderId} />
       <FulfillmentProfitabilityPanel orderId={orderId} />
 
       {eligibility?.canPurge && (
