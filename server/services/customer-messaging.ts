@@ -142,10 +142,10 @@ export function retryDelayMs(attemptCount: number): number | null {
 }
 
 /**
- * Manual retries are allowed only when we have evidence that the provider did
- * not accept the message. Transport ambiguity is deliberately excluded because
- * Meta may have accepted the first request even if our process never received a
- * wamid, and resending could duplicate the customer message.
+ * Manual retry is safe only when we have explicit evidence the message was not
+ * delivered: a local validation failure, an explicit provider HTTP 4xx/5xx, or
+ * a signed provider webhook that marked an accepted wamid as failed. Transport
+ * ambiguity and successful HTTP responses without a wamid remain blocked.
  */
 export function canManuallyRetryDeliveryCare(errorCode: unknown): boolean {
   const code = String(errorCode ?? "").trim();
@@ -158,6 +158,8 @@ export function canManuallyRetryDeliveryCare(errorCode: unknown): boolean {
   ].includes(code)) {
     return true;
   }
+
+  if (/^WHATSAPP_PROVIDER_FAILED_[A-Za-z0-9_-]+$/.test(code)) return true;
 
   // Only an explicit provider 4xx/5xx response is retry-safe here. A 2xx
   // response without a wamid is ambiguous and must never be manually resent.
@@ -312,6 +314,7 @@ async function markAccepted(jobId: string, providerMessageId: string): Promise<v
     UPDATE public.customer_message_jobs
        SET status='completed',
            provider_status='accepted',
+           provider_status_at=NULL,
            provider_message_id=${providerMessageId},
            accepted_at=clock_timestamp(),
            locked_at=NULL,
@@ -366,10 +369,10 @@ async function releaseClaimAsFailed(job: ClaimedJob, errorCode: string, retryabl
 }
 
 /**
- * Requeues a failed delivery-care job only when its last failure is known-safe
- * to retry. Ambiguous network/timeout/stale-send failures are never requeued.
- * A successful manual reset starts a fresh bounded attempt window and records
- * the previous failure in metadata for operator auditability.
+ * Requeues delivery-care only when its last failure is known-safe to retry.
+ * Ambiguous network/timeout/stale-send failures are never requeued. If Meta
+ * accepted a wamid and later signed webhook state is `failed`, the old provider
+ * lifecycle is archived into metadata before clearing it for the new attempt.
  */
 export async function prepareFailedDeliveryCareRetry(jobId: string): Promise<ManualRetryPrepareResult> {
   const db = getDb();
@@ -385,6 +388,8 @@ export async function prepareFailedDeliveryCareRetry(jobId: string): Promise<Man
            job.status,
            job.last_error_code,
            job.provider_message_id,
+           job.provider_status,
+           job.provider_status_at,
            job.accepted_at,
            orders.status AS order_status
     FROM public.customer_message_jobs AS job
@@ -400,13 +405,25 @@ export async function prepareFailedDeliveryCareRetry(jobId: string): Promise<Man
   if (String(row.job_type) !== "delivery_care") {
     return { status: "wrong_job_type", jobId: normalizedJobId, orderId, errorCode };
   }
-  if (String(row.status) !== "failed") {
-    return { status: "not_failed", jobId: normalizedJobId, orderId, errorCode };
-  }
   if (String(row.order_status) !== "delivered") {
     return { status: "order_not_delivered", jobId: normalizedJobId, orderId, errorCode };
   }
-  if (row.provider_message_id != null || row.accepted_at != null || !canManuallyRetryDeliveryCare(errorCode)) {
+
+  const preAcceptanceFailure =
+    String(row.status) === "failed"
+    && row.provider_message_id == null
+    && row.accepted_at == null;
+  const confirmedProviderFailure =
+    String(row.status) === "completed"
+    && String(row.provider_status) === "failed"
+    && row.provider_message_id != null
+    && row.accepted_at != null
+    && errorCode.startsWith("WHATSAPP_PROVIDER_FAILED_");
+
+  if (!preAcceptanceFailure && !confirmedProviderFailure) {
+    return { status: "not_failed", jobId: normalizedJobId, orderId, errorCode };
+  }
+  if (!canManuallyRetryDeliveryCare(errorCode)) {
     return { status: "unsafe_to_retry", jobId: normalizedJobId, orderId, errorCode };
   }
 
@@ -415,6 +432,10 @@ export async function prepareFailedDeliveryCareRetry(jobId: string): Promise<Man
        SET status='pending',
            due_at=clock_timestamp(),
            attempt_count=0,
+           provider_message_id=NULL,
+           provider_status=NULL,
+           provider_status_at=NULL,
+           accepted_at=NULL,
            locked_at=NULL,
            last_error_code=NULL,
            last_error_at=NULL,
@@ -426,7 +447,11 @@ export async function prepareFailedDeliveryCareRetry(jobId: string): Promise<Man
              || jsonb_build_array(jsonb_build_object(
                'requested_at', clock_timestamp(),
                'previous_error_code', ${errorCode},
-               'previous_attempt_count', job.attempt_count
+               'previous_attempt_count', job.attempt_count,
+               'previous_provider_message_id', job.provider_message_id,
+               'previous_provider_status', job.provider_status,
+               'previous_provider_status_at', job.provider_status_at,
+               'previous_accepted_at', job.accepted_at
              )),
              true
            )
@@ -435,10 +460,22 @@ export async function prepareFailedDeliveryCareRetry(jobId: string): Promise<Man
        AND job.order_id=orders.id
        AND orders.status='delivered'
        AND job.job_type='delivery_care'
-       AND job.status='failed'
-       AND job.provider_message_id IS NULL
-       AND job.accepted_at IS NULL
        AND job.last_error_code=${errorCode}
+       AND (
+         (
+           job.status='failed'
+           AND job.provider_message_id IS NULL
+           AND job.accepted_at IS NULL
+         )
+         OR
+         (
+           job.status='completed'
+           AND job.provider_status='failed'
+           AND job.provider_message_id IS NOT NULL
+           AND job.accepted_at IS NOT NULL
+           AND job.last_error_code LIKE 'WHATSAPP_PROVIDER_FAILED_%'
+         )
+       )
     RETURNING job.order_id
   `);
 
