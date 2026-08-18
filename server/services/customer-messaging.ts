@@ -10,6 +10,7 @@ const MAX_SEND_ATTEMPTS = 5;
 const STALE_SENDING_LEASE_MINUTES = 10;
 const DEFAULT_WORKER_LIMIT = 5;
 const MAX_WORKER_LIMIT = 10;
+const ACCEPTANCE_PERSIST_ATTEMPTS = 3;
 const RETRY_DELAYS_MS = [60_000, 5 * 60_000, 30 * 60_000, 2 * 60 * 60_000] as const;
 
 export type CustomerMessageDispatchStatus =
@@ -65,6 +66,7 @@ type WhatsAppConfig = {
   accessToken: string;
   deliveryCareTemplate: string;
   languageCode: string;
+  activationAt: Date;
 };
 
 type MetaSendResponse = {
@@ -170,6 +172,11 @@ export function canManuallyRetryDeliveryCare(errorCode: unknown): boolean {
   return /^WHATSAPP_HTTP_[45]\d{2}(?:_|$)/.test(code);
 }
 
+/**
+ * Live sending requires an explicit rollout boundary. This prevents delivery-care
+ * jobs accumulated while WHATSAPP_CLOUD_ENABLED=false from being sent as a stale
+ * backlog the moment production is enabled.
+ */
 function readWhatsAppConfig(): WhatsAppConfig | null {
   if (process.env.WHATSAPP_CLOUD_ENABLED?.trim().toLowerCase() !== "true") return null;
 
@@ -178,15 +185,40 @@ function readWhatsAppConfig(): WhatsAppConfig | null {
   const accessToken = process.env.WHATSAPP_ACCESS_TOKEN?.trim() ?? "";
   const deliveryCareTemplate = process.env.WHATSAPP_DELIVERY_CARE_TEMPLATE?.trim() ?? "";
   const languageCode = process.env.WHATSAPP_TEMPLATE_LANGUAGE?.trim() || "ar";
+  const activationRaw = process.env.WHATSAPP_DELIVERY_CARE_ACTIVATION_AT?.trim() ?? "";
+  const activationAt = activationRaw ? new Date(activationRaw) : new Date(Number.NaN);
 
   if (!/^v\d+\.\d+$/.test(apiVersion)) return null;
   if (!/^\d+$/.test(phoneNumberId)) return null;
   if (!accessToken || !deliveryCareTemplate) return null;
+  if (!activationRaw || !Number.isFinite(activationAt.getTime())) return null;
+  // A future boundary keeps outbound sending disabled until that exact instant.
+  if (activationAt.getTime() > Date.now()) return null;
 
-  return { apiVersion, phoneNumberId, accessToken, deliveryCareTemplate, languageCode };
+  return { apiVersion, phoneNumberId, accessToken, deliveryCareTemplate, languageCode, activationAt };
 }
 
-async function claimDeliveryCareJob(orderId: string): Promise<ClaimedJob | null> {
+async function cancelPreActivationDeliveryCare(activationAt: Date): Promise<number> {
+  const db = getDb();
+  if (!db) return 0;
+
+  const result = await db.execute(sql`
+    UPDATE public.customer_message_jobs
+       SET status='cancelled',
+           cancelled_at=clock_timestamp(),
+           locked_at=NULL,
+           last_error_code='DELIVERY_CARE_PRE_ACTIVATION',
+           last_error_at=clock_timestamp(),
+           updated_at=clock_timestamp()
+     WHERE job_type='delivery_care'
+       AND status='pending'
+       AND created_at < ${activationAt}
+    RETURNING id
+  `);
+  return rowsOf(result).length;
+}
+
+async function claimDeliveryCareJob(orderId: string, activationAt: Date): Promise<ClaimedJob | null> {
   const db = getDb();
   if (!db) return null;
 
@@ -197,6 +229,7 @@ async function claimDeliveryCareJob(orderId: string): Promise<ClaimedJob | null>
       WHERE order_id=${orderId}
         AND job_type='delivery_care'
         AND status='pending'
+        AND created_at >= ${activationAt}
         AND attempt_count < ${MAX_SEND_ATTEMPTS}
         AND due_at <= clock_timestamp()
       ORDER BY due_at ASC, created_at ASC
@@ -311,34 +344,62 @@ async function sendDeliveryCareTemplate(
   throw new WhatsAppSendError(code, retryable);
 }
 
-async function markAccepted(jobId: string, providerMessageId: string): Promise<void> {
-  const db = getDb();
-  if (!db) return;
-  const updated = await db.execute(sql`
-    UPDATE public.customer_message_jobs
-       SET status='completed',
-           provider_status='accepted',
-           provider_status_at=NULL,
-           provider_message_id=${providerMessageId},
-           accepted_at=clock_timestamp(),
-           locked_at=NULL,
-           last_error_code=NULL,
-           last_error_at=NULL,
-           updated_at=clock_timestamp()
-     WHERE id=${jobId}
-       AND status='sending'
-    RETURNING id
-  `);
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
-  if (rowsOf(updated).length > 0) {
+/**
+ * Persist provider acceptance without ever resending the outbound message. The
+ * update is idempotent: if PostgreSQL committed but the acknowledgement was lost,
+ * a retry recognizes the same completed job/wamid and preserves any newer webhook
+ * status already reconciled in the meantime.
+ */
+async function markAccepted(jobId: string, providerMessageId: string): Promise<boolean> {
+  const db = getDb();
+  if (!db) return false;
+
+  for (let attempt = 1; attempt <= ACCEPTANCE_PERSIST_ATTEMPTS; attempt += 1) {
     try {
-      await reconcileWhatsAppProviderEvents(providerMessageId);
+      const updated = await db.execute(sql`
+        UPDATE public.customer_message_jobs
+           SET status='completed',
+               provider_message_id=COALESCE(provider_message_id, ${providerMessageId}),
+               provider_status=CASE WHEN status='sending' THEN 'accepted' ELSE provider_status END,
+               provider_status_at=CASE WHEN status='sending' THEN NULL ELSE provider_status_at END,
+               accepted_at=COALESCE(accepted_at, clock_timestamp()),
+               locked_at=NULL,
+               last_error_code=CASE WHEN status='sending' THEN NULL ELSE last_error_code END,
+               last_error_at=CASE WHEN status='sending' THEN NULL ELSE last_error_at END,
+               updated_at=clock_timestamp()
+         WHERE id=${jobId}
+           AND (
+             status='sending'
+             OR (status='completed' AND provider_message_id=${providerMessageId})
+           )
+        RETURNING id
+      `);
+
+      if (rowsOf(updated).length > 0) {
+        try {
+          await reconcileWhatsAppProviderEvents(providerMessageId);
+        } catch {
+          // Provider acceptance is already durable and must not be downgraded if
+          // status reconciliation has a transient failure. The recovery worker
+          // will reconcile the persisted provider-event inbox later.
+        }
+        return true;
+      }
+
+      // A different terminal state won the race. Never resend the customer message.
+      return false;
     } catch {
-      // Provider acceptance is already durable and must not be downgraded if
-      // status reconciliation has a transient failure. The recovery worker will
-      // reconcile the persisted provider-event inbox on its next invocation.
+      if (attempt < ACCEPTANCE_PERSIST_ATTEMPTS) {
+        await sleep(attempt * 75);
+      }
     }
   }
+
+  return false;
 }
 
 async function markPermanentFailure(jobId: string, errorCode: string): Promise<void> {
@@ -523,10 +584,12 @@ export async function dispatchDeliveryCareForOrder(orderId: string): Promise<Cus
   const config = readWhatsAppConfig();
   if (!config) return { status: "disabled" };
 
-  const job = await claimDeliveryCareJob(orderId);
+  await cancelPreActivationDeliveryCare(config.activationAt);
+
+  const job = await claimDeliveryCareJob(orderId, config.activationAt);
   if (!job) {
     const lookup = await db.execute(sql`
-      SELECT status,due_at,locked_at,attempt_count
+      SELECT status,due_at,locked_at,attempt_count,last_error_code
       FROM public.customer_message_jobs
       WHERE order_id=${orderId} AND job_type='delivery_care'
       LIMIT 1
@@ -534,7 +597,7 @@ export async function dispatchDeliveryCareForOrder(orderId: string): Promise<Cus
     const row = rowsOf(lookup)[0];
     if (!row) return { status: "already_handled" };
     if (String(row.status) === "pending") return { status: "not_due" };
-    return { status: "already_handled" };
+    return { status: "already_handled", errorCode: row.last_error_code == null ? undefined : String(row.last_error_code) };
   }
 
   try {
@@ -559,7 +622,15 @@ export async function dispatchDeliveryCareForOrder(orderId: string): Promise<Cus
       phone,
       firstName,
     );
-    await markAccepted(job.id, providerMessageId);
+    const acceptedPersisted = await markAccepted(job.id, providerMessageId);
+    if (!acceptedPersisted) {
+      return {
+        status: "failed",
+        jobId: job.id,
+        providerMessageId,
+        errorCode: "WHATSAPP_ACCEPTED_PERSISTENCE_AMBIGUOUS",
+      };
+    }
     return { status: "sent", jobId: job.id, providerMessageId };
   } catch (error) {
     if (error instanceof WhatsAppSendError) {
@@ -591,7 +662,7 @@ async function failStaleClaims(): Promise<number> {
 /**
  * Durable recovery worker used by the external GitHub Actions scheduler on Vercel
  * Hobby. It first reconciles any signed provider-status event that raced the wamid
- * write, then handles due outbound retries when Cloud API sending is enabled.
+ * write, suppresses pre-activation backlog, then handles due outbound retries.
  */
 export async function runDueDeliveryCareJobs(limit = DEFAULT_WORKER_LIMIT): Promise<{
   processed: number;
@@ -600,10 +671,19 @@ export async function runDueDeliveryCareJobs(limit = DEFAULT_WORKER_LIMIT): Prom
   failed: number;
   staleFailed: number;
   providerEventsReconciled: number;
+  preActivationCancelled: number;
 }> {
   const db = getDb();
   if (!db) {
-    return { processed: 0, sent: 0, retried: 0, failed: 0, staleFailed: 0, providerEventsReconciled: 0 };
+    return {
+      processed: 0,
+      sent: 0,
+      retried: 0,
+      failed: 0,
+      staleFailed: 0,
+      providerEventsReconciled: 0,
+      preActivationCancelled: 0,
+    };
   }
 
   let providerEventsReconciled = 0;
@@ -614,10 +694,20 @@ export async function runDueDeliveryCareJobs(limit = DEFAULT_WORKER_LIMIT): Prom
     // safely retry provider-event reconciliation because the inbox is idempotent.
   }
 
-  if (!readWhatsAppConfig()) {
-    return { processed: 0, sent: 0, retried: 0, failed: 0, staleFailed: 0, providerEventsReconciled };
+  const config = readWhatsAppConfig();
+  if (!config) {
+    return {
+      processed: 0,
+      sent: 0,
+      retried: 0,
+      failed: 0,
+      staleFailed: 0,
+      providerEventsReconciled,
+      preActivationCancelled: 0,
+    };
   }
 
+  const preActivationCancelled = await cancelPreActivationDeliveryCare(config.activationAt);
   const safeLimit = Math.max(1, Math.min(MAX_WORKER_LIMIT, Math.floor(limit)));
   const staleFailed = await failStaleClaims();
   const due = await db.execute(sql`
@@ -625,6 +715,7 @@ export async function runDueDeliveryCareJobs(limit = DEFAULT_WORKER_LIMIT): Prom
     FROM public.customer_message_jobs
     WHERE job_type='delivery_care'
       AND status='pending'
+      AND created_at >= ${config.activationAt}
       AND attempt_count < ${MAX_SEND_ATTEMPTS}
       AND due_at <= clock_timestamp()
     ORDER BY due_at ASC,created_at ASC
@@ -637,14 +728,22 @@ export async function runDueDeliveryCareJobs(limit = DEFAULT_WORKER_LIMIT): Prom
   let processed = 0;
 
   for (const row of rowsOf(due)) {
-    const orderId = String(row.order_id ?? "");
-    if (!orderId) continue;
-    const result = await dispatchDeliveryCareForOrder(orderId);
+    const dueOrderId = String(row.order_id ?? "");
+    if (!dueOrderId) continue;
+    const result = await dispatchDeliveryCareForOrder(dueOrderId);
     if (result.status === "sent") sent += 1;
     if (result.status === "retry_scheduled") retried += 1;
     if (result.status === "failed" || result.status === "invalid_phone") failed += 1;
     if (!["already_handled", "not_due", "disabled", "db_unavailable"].includes(result.status)) processed += 1;
   }
 
-  return { processed, sent, retried, failed, staleFailed, providerEventsReconciled };
+  return {
+    processed,
+    sent,
+    retried,
+    failed,
+    staleFailed,
+    providerEventsReconciled,
+    preActivationCancelled,
+  };
 }
