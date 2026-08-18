@@ -12,7 +12,8 @@
 --   2. UNIQUE(order_id, job_type) makes enqueue/retry paths idempotent.
 --   3. WhatsApp/API failures can never roll back or corrupt order/accounting data.
 --   4. Provider acceptance is distinguished from handset delivery/read status.
---   5. 0079 fails closed unless accounting migration 0078 is already active.
+--   5. Provider status timestamps prevent out-of-order webhooks regressing state.
+--   6. 0079 fails closed unless accounting migration 0078 is already active.
 
 BEGIN;
 
@@ -41,6 +42,7 @@ CREATE TABLE IF NOT EXISTS public.customer_message_jobs (
   attempt_count integer NOT NULL DEFAULT 0,
   provider_message_id text,
   provider_status text,
+  provider_status_at timestamptz,
   last_error_code text,
   last_error_at timestamptz,
   locked_at timestamptz,
@@ -72,12 +74,12 @@ CREATE INDEX IF NOT EXISTS customer_message_jobs_stale_sending_idx
   ON public.customer_message_jobs (locked_at, created_at)
   WHERE status = 'sending';
 
-CREATE INDEX IF NOT EXISTS customer_message_jobs_provider_message_idx
+CREATE UNIQUE INDEX IF NOT EXISTS customer_message_jobs_provider_message_idx
   ON public.customer_message_jobs (provider_message_id)
   WHERE provider_message_id IS NOT NULL;
 
 COMMENT ON TABLE public.customer_message_jobs IS
-  'Durable idempotent outbox for AQUAVO customer messages. Job completion means provider API acceptance; provider_status tracks later WhatsApp delivery lifecycle.';
+  'Durable idempotent outbox for AQUAVO customer messages. Job completion means provider API acceptance; provider_status/provider_status_at track later WhatsApp delivery lifecycle without regressing on out-of-order webhooks.';
 
 COMMENT ON CONSTRAINT customer_message_jobs_order_type_uq
   ON public.customer_message_jobs IS
@@ -152,7 +154,7 @@ INSERT INTO public.schema_migrations(version, checksum, notes)
 VALUES(
   '0079_customer_post_delivery_messaging',
   '0079007900790079007900790079007900790079007900790079007900790079',
-  'Transactional delivery-care outbox; provider acceptance status; review automation intentionally deferred'
+  'Transactional delivery-care outbox; ordered provider webhook status; review automation intentionally deferred'
 )
 ON CONFLICT(version) DO UPDATE
 SET checksum=EXCLUDED.checksum,
