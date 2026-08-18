@@ -64,20 +64,25 @@ describe("auto order processor stays quarantined", () => {
   });
 
   it("no reprocessing path keys off an order status transition", () => {
-    // Companion to the DB lifecycle guard. Even before that guard, stock is
-    // deducted ONLY inside createOrderSecure (order-storage.ts), never in a
-    // status-change handler — so moving an order between statuses cannot
-    // deduct stock a second time. This test fails if a future change starts
-    // deducting stock from a status handler, which would make the lifecycle
-    // guard load-bearing for stock correctness rather than merely belt-and-braces.
     const orderStorage = read("server/storage/order-storage.ts");
-    const deductions = orderStorage.match(/stock:\s*(?:currentStock|variantStock)\s*-\s*quantity/g) ?? [];
-    expect(deductions.length).toBeGreaterThan(0);
+    const createStart = orderStorage.indexOf("async createOrderSecure(");
+    const createEnd = orderStorage.indexOf("// Payment Methods", createStart);
+    expect(createStart).toBeGreaterThanOrEqual(0);
+    expect(createEnd).toBeGreaterThan(createStart);
+    const createBody = orderStorage.slice(createStart, createEnd);
 
-    // updateOrder is the status-change path. It must not touch product stock.
+    // Checkout validates and locks availability, but the sale deduction belongs to
+    // order_items_relational -> inventory_movements -> storefront projection.
+    expect(createBody).toMatch(/await tx\.insert\(orderItems\)\.values\(/);
+    expect(createBody).not.toMatch(/stock:\s*(?:currentStock|variantStock)\s*-\s*quantity/);
+    expect(createBody).not.toMatch(/variants:\s*updatedVariants/);
+
+    // A later status transition must never create another sale movement.
     const updateFn = orderStorage.slice(orderStorage.indexOf("async updateOrder"));
-    const updateBody = updateFn.slice(0, updateFn.indexOf("\n    async ") + 1 || 4000);
-    expect(updateBody).not.toMatch(/stock:\s*(?:currentStock|variantStock)\s*-\s*quantity/);
+    const nextMethod = updateFn.indexOf("\n    async ", 1);
+    const updateBody = nextMethod === -1 ? updateFn.slice(0, 4000) : updateFn.slice(0, nextMethod);
+    expect(updateBody).not.toMatch(/stock:\s*\w*\s*[-+]\s*quantity/);
+    expect(updateBody).not.toMatch(/inventoryMovements|inventory_movements|insert\(orderItems\)/i);
   });
 
   it("no status-change handler creates a shipment, deducts stock or runs fulfilment", () => {

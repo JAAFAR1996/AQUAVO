@@ -271,24 +271,6 @@ export class OrderStorage {
 
                     price = this.parsePositivePrice(selectedVariant.price, `Variant ${selectedVariant.label}`);
                     variantLabel = selectedVariant.label;
-
-                    const updatedVariants = variants.map((variant) =>
-                        variant.id === selectedVariant.id
-                            ? { ...variant, stock: variantStock - quantity }
-                            : variant
-                    );
-                    const currentBaseStock = Number(product.stock ?? 0);
-                    const nextBaseStock = currentBaseStock > 0
-                        ? Math.max(0, currentBaseStock - quantity)
-                        : currentBaseStock;
-
-                    await tx.update(products)
-                        .set({
-                            variants: updatedVariants,
-                            stock: nextBaseStock,
-                            updatedAt: new Date(),
-                        } as any)
-                        .where(eq(products.id, product.id));
                 } else {
                     const currentStock = Number(product.stock ?? 0);
                     if (currentStock < quantity) {
@@ -296,15 +278,13 @@ export class OrderStorage {
                     }
 
                     price = this.parsePositivePrice(product.price, `Product ${product.name}`);
-
-                    await tx.update(products)
-                        .set({
-                            stock: currentStock - quantity,
-                            updatedAt: new Date(),
-                        } as any)
-                        .where(eq(products.id, product.id));
                 }
 
+                // Stock is canonical-ledger owned. Do NOT mutate products.stock or
+                // variant stock here: inserting order_items_relational below fires
+                // record_order_item_inventory_sale(), which writes the immutable sale
+                // movement; the inventory projection trigger then updates storefront
+                // stock. A direct write is intentionally rejected in enforce mode.
                 const lineTotal = price * quantity;
                 subtotal += lineTotal;
 

@@ -578,7 +578,8 @@ describe('OrderStorage.createOrderSecure', () => {
                 costSource: 'product_current',
             },
         ]);
-        expect(productUpdates[0].stock).toBe(3);
+        // Checkout must not write products.stock directly; the canonical ledger projection owns deduction.
+        expect(productUpdates).toHaveLength(0);
     });
 
     it('creates a variant order using the database variant price and metadata', async () => {
@@ -621,8 +622,8 @@ describe('OrderStorage.createOrderSecure', () => {
                 costSource: 'none',
             },
         ]);
-        expect(productUpdates[0].variants[0].stock).toBe(1);
-        expect(productUpdates[0].variants[1].stock).toBe(2);
+        // Variant stock is projected from inventory_movements; checkout performs no direct product update.
+        expect(productUpdates).toHaveLength(0);
     });
 
     it('rejects an invalid variantId clearly', async () => {
@@ -755,7 +756,8 @@ describe('OrderStorage.createOrderSecure', () => {
         });
 
         expect(insertedOrders).toHaveLength(1);
-        expect(productUpdates[0].stock).toBe(4);
+        // Loyalty checkout uses the same canonical inventory path and must not mutate products.stock directly.
+        expect(productUpdates).toHaveLength(0);
         expect(userUpdates[0]).toMatchObject({
             cashbackBalance: 3800,
             pendingLoyaltyPoints: 2,
