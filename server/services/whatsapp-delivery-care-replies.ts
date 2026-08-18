@@ -8,6 +8,7 @@ import {
 } from "./whatsapp-delivery-care-contract.js";
 
 const WHATSAPP_REPLY_TIMEOUT_MS = 7_000;
+const MAX_AUTO_REPLY_ATTEMPTS = 3;
 
 type Row = Record<string, unknown>;
 
@@ -42,6 +43,7 @@ export type DeliveryCareButtonReplyResult = {
     | "sender_mismatch"
     | "duplicate"
     | "disabled"
+    | "retryable_failed"
     | "failed"
     | "ambiguous"
     | "db_unavailable";
@@ -55,12 +57,14 @@ export type DeliveryCareButtonReplyResult = {
 class AutoReplySendError extends Error {
   readonly code: string;
   readonly ambiguous: boolean;
+  readonly retryable: boolean;
 
-  constructor(code: string, ambiguous: boolean) {
+  constructor(code: string, ambiguous: boolean, retryable = false) {
     super(code);
     this.name = "AutoReplySendError";
     this.code = code;
     this.ambiguous = ambiguous;
+    this.retryable = retryable;
   }
 }
 
@@ -68,6 +72,23 @@ function rowsOf(result: unknown): Row[] {
   if (Array.isArray(result)) return result as Row[];
   const rows = (result as { rows?: Row[] } | null)?.rows;
   return Array.isArray(rows) ? rows : [];
+}
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value != null && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : null;
+}
+
+function metadataRecord(value: unknown): Record<string, unknown> {
+  const direct = asRecord(value);
+  if (direct) return direct;
+  if (typeof value !== "string") return {};
+  try {
+    return asRecord(JSON.parse(value)) ?? {};
+  } catch {
+    return {};
+  }
 }
 
 function readReplyConfig(): ReplyConfig | null {
@@ -125,7 +146,10 @@ async function sendTextAutoReply(
     const code = name === "TimeoutError" || name === "AbortError"
       ? "WHATSAPP_REPLY_TIMEOUT_AMBIGUOUS"
       : "WHATSAPP_REPLY_NETWORK_AMBIGUOUS";
-    throw new AutoReplySendError(code, true);
+
+    // A transport failure can occur after Meta accepted the message. Never retry
+    // an ambiguous send automatically because that could duplicate the reply.
+    throw new AutoReplySendError(code, true, false);
   }
 
   let body: MetaSendResponse = {};
@@ -139,10 +163,13 @@ async function sendTextAutoReply(
   if (response.ok && providerMessageId) return providerMessageId;
 
   if (response.ok) {
-    throw new AutoReplySendError("WHATSAPP_REPLY_ACCEPTANCE_AMBIGUOUS", true);
+    throw new AutoReplySendError("WHATSAPP_REPLY_ACCEPTANCE_AMBIGUOUS", true, false);
   }
 
-  throw new AutoReplySendError(compactMetaErrorCode(response.status, body), false);
+  // An explicit 429/5xx proves the request was rejected at this attempt and is
+  // safe to retry. Other explicit HTTP failures are terminal until human action.
+  const retryable = response.status === 429 || response.status >= 500;
+  throw new AutoReplySendError(compactMetaErrorCode(response.status, body), false, retryable);
 }
 
 async function mergeReplyMetadata(
@@ -168,8 +195,8 @@ async function mergeReplyMetadata(
  * Processes only replies to AQUAVO's own delivered-order template. The original
  * outbound wamid (`context.id`) is the correlation key; the sender phone must also
  * match the phone stored on that order. The inbound message id is durably claimed
- * in JSONB before any outbound auto-reply, so Meta webhook retries cannot duplicate
- * a customer-facing reply.
+ * before any outbound auto-reply. Webhook retries can only repeat a send after an
+ * explicit retryable provider rejection, never after an ambiguous transport state.
  */
 export async function handleDeliveryCareButtonReply(
   event: DeliveryCareButtonReplyEvent,
@@ -205,30 +232,81 @@ export async function handleDeliveryCareButtonReply(
     return { status: "sender_mismatch", jobId, orderId, choice };
   }
 
-  const claim = await db.execute(sql`
-    UPDATE public.customer_message_jobs
-       SET metadata=jsonb_set(
-             COALESCE(metadata, '{}'::jsonb),
-             '{delivery_care_reply}',
-             jsonb_build_object(
-               'inbound_message_id', ${event.inboundMessageId},
-               'context_provider_message_id', ${event.contextProviderMessageId},
-               'choice', ${choice},
-               'button_payload', ${event.payload},
-               'button_text', ${event.buttonText},
-               'received_at', ${event.receivedAt},
-               'auto_reply_status', 'processing',
-               'auto_reply_attempts', 1
-             ),
-             true
-           ),
-           updated_at=clock_timestamp()
-     WHERE id=${jobId}
-       AND NOT (COALESCE(metadata, '{}'::jsonb) ? 'delivery_care_reply')
-    RETURNING id
-  `);
+  const existingRoot = metadataRecord(row.metadata);
+  const existingReply = asRecord(existingRoot.delivery_care_reply);
+  const existingInboundMessageId = String(existingReply?.inbound_message_id ?? "");
+  const existingContextProviderMessageId = String(existingReply?.context_provider_message_id ?? "");
+  const existingChoice = String(existingReply?.choice ?? "");
+  const existingStatus = String(existingReply?.auto_reply_status ?? "");
+  const existingAttempts = Math.max(0, Number(existingReply?.auto_reply_attempts ?? 0) || 0);
 
-  if (rowsOf(claim).length === 0) {
+  let claimed = false;
+  let attemptCount = 1;
+
+  if (!existingReply) {
+    const claim = await db.execute(sql`
+      UPDATE public.customer_message_jobs
+         SET metadata=jsonb_set(
+               COALESCE(metadata, '{}'::jsonb),
+               '{delivery_care_reply}',
+               jsonb_build_object(
+                 'inbound_message_id', ${event.inboundMessageId},
+                 'context_provider_message_id', ${event.contextProviderMessageId},
+                 'choice', ${choice},
+                 'button_payload', ${event.payload},
+                 'button_text', ${event.buttonText},
+                 'received_at', ${event.receivedAt},
+                 'auto_reply_status', 'processing',
+                 'auto_reply_attempts', 1
+               ),
+               true
+             ),
+             updated_at=clock_timestamp()
+       WHERE id=${jobId}
+         AND NOT (COALESCE(metadata, '{}'::jsonb) ? 'delivery_care_reply')
+      RETURNING id
+    `);
+    claimed = rowsOf(claim).length > 0;
+  } else {
+    const sameCallback =
+      existingInboundMessageId === event.inboundMessageId
+      && existingContextProviderMessageId === event.contextProviderMessageId
+      && existingChoice === choice;
+
+    if (
+      sameCallback
+      && existingStatus === "retryable_failed"
+      && existingAttempts < MAX_AUTO_REPLY_ATTEMPTS
+    ) {
+      attemptCount = existingAttempts + 1;
+      const reclaim = await db.execute(sql`
+        UPDATE public.customer_message_jobs
+           SET metadata=jsonb_set(
+                 COALESCE(metadata, '{}'::jsonb),
+                 '{delivery_care_reply}',
+                 COALESCE(metadata->'delivery_care_reply', '{}'::jsonb)
+                 || jsonb_build_object(
+                      'auto_reply_status', 'processing',
+                      'auto_reply_attempts', ${attemptCount},
+                      'auto_reply_error_code', NULL,
+                      'auto_reply_retry_at', clock_timestamp()
+                    ),
+                 true
+               ),
+               updated_at=clock_timestamp()
+         WHERE id=${jobId}
+           AND metadata->'delivery_care_reply'->>'inbound_message_id'=${event.inboundMessageId}
+           AND metadata->'delivery_care_reply'->>'context_provider_message_id'=${event.contextProviderMessageId}
+           AND metadata->'delivery_care_reply'->>'choice'=${choice}
+           AND metadata->'delivery_care_reply'->>'auto_reply_status'='retryable_failed'
+           AND COALESCE((metadata->'delivery_care_reply'->>'auto_reply_attempts')::integer, 0) < ${MAX_AUTO_REPLY_ATTEMPTS}
+        RETURNING id
+      `);
+      claimed = rowsOf(reclaim).length > 0;
+    }
+  }
+
+  if (!claimed) {
     return { status: "duplicate", jobId, orderId, choice };
   }
 
@@ -258,6 +336,7 @@ export async function handleDeliveryCareButtonReply(
     await mergeReplyMetadata(jobId, {
       auto_reply_status: "sent",
       auto_reply_provider_message_id: providerMessageId,
+      auto_reply_error_code: null,
       auto_reply_finished_at: new Date().toISOString(),
     });
 
@@ -271,16 +350,27 @@ export async function handleDeliveryCareButtonReply(
   } catch (error) {
     const sendError = error instanceof AutoReplySendError
       ? error
-      : new AutoReplySendError("WHATSAPP_REPLY_UNKNOWN_AMBIGUOUS", true);
+      : new AutoReplySendError("WHATSAPP_REPLY_UNKNOWN_AMBIGUOUS", true, false);
+
+    const retryableNow = sendError.retryable && attemptCount < MAX_AUTO_REPLY_ATTEMPTS;
+    const storedStatus = sendError.ambiguous
+      ? "ambiguous"
+      : retryableNow
+        ? "retryable_failed"
+        : "failed";
 
     await mergeReplyMetadata(jobId, {
-      auto_reply_status: sendError.ambiguous ? "ambiguous" : "failed",
+      auto_reply_status: storedStatus,
       auto_reply_error_code: sendError.code,
       auto_reply_finished_at: new Date().toISOString(),
     });
 
     return {
-      status: sendError.ambiguous ? "ambiguous" : "failed",
+      status: sendError.ambiguous
+        ? "ambiguous"
+        : retryableNow
+          ? "retryable_failed"
+          : "failed",
       jobId,
       orderId,
       choice,
