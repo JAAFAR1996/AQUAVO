@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { AlertTriangle, MessageCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +14,7 @@ type CustomerMessageJob = {
   attempt_count: number;
   provider_message_id?: string | null;
   provider_status?: string | null;
+  provider_status_at?: string | null;
   last_error_code?: string | null;
   last_error_at?: string | null;
   accepted_at?: string | null;
@@ -32,7 +33,7 @@ type JobsResponse = {
 const STATUS_LABELS: Record<string, string> = {
   pending: "بانتظار الإرسال",
   sending: "جاري الإرسال",
-  completed: "مقبولة من واتساب",
+  completed: "قبلتها WhatsApp",
   failed: "فشل الإرسال",
   cancelled: "ملغاة",
 };
@@ -40,9 +41,9 @@ const STATUS_LABELS: Record<string, string> = {
 const PROVIDER_LABELS: Record<string, string> = {
   accepted: "قبلتها Meta",
   sent: "أُرسلت",
-  delivered: "وصلت للجهاز",
-  read: "تمت القراءة",
-  failed: "فشل لدى Meta",
+  delivered: "وصلت للزبون",
+  read: "قراها الزبون",
+  failed: "فشلت لدى WhatsApp",
 };
 
 function errorLabel(code: string | null | undefined): string | null {
@@ -50,6 +51,7 @@ function errorLabel(code: string | null | undefined): string | null {
   if (code === "INVALID_IRAQI_MOBILE") return "رقم الزبون غير صالح لواتساب";
   if (code === "INVALID_CUSTOMER_NAME") return "اسم الزبون غير صالح لقالب الرسالة";
   if (code === "ORDER_NOT_DELIVERED_OR_MISSING") return "الطلب غير موجود أو لم يعد بحالة مستلم";
+  if (code.startsWith("WHATSAPP_PROVIDER_FAILED_")) return `WhatsApp رفض توصيل الرسالة (${code.replace("WHATSAPP_PROVIDER_FAILED_", "")})`;
   if (code.includes("AMBIGUOUS") || code.startsWith("AMBIGUOUS_")) {
     return "حالة إرسال غير مؤكدة؛ الإعادة محظورة حتى لا تتكرر الرسالة على الزبون";
   }
@@ -70,7 +72,7 @@ export function CustomerMessagingPanel({ orderId }: { orderId: string }) {
   const [loading, setLoading] = useState(true);
   const [retryingJobId, setRetryingJobId] = useState<string | null>(null);
 
-  const loadJobs = async () => {
+  const loadJobs = useCallback(async () => {
     if (!orderId) return;
     try {
       const response = await fetch(`/api/admin/customer-messaging/jobs?orderId=${encodeURIComponent(orderId)}`, {
@@ -87,12 +89,12 @@ export function CustomerMessagingPanel({ orderId }: { orderId: string }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [orderId]);
 
   useEffect(() => {
     setLoading(true);
     void loadJobs();
-  }, [orderId]);
+  }, [loadJobs]);
 
   const retryJob = async (job: CustomerMessageJob) => {
     setRetryingJobId(job.id);
@@ -169,6 +171,7 @@ export function CustomerMessagingPanel({ orderId }: { orderId: string }) {
                       {job.provider_status && (
                         <span className="text-xs text-muted-foreground">
                           {PROVIDER_LABELS[job.provider_status] ?? job.provider_status}
+                          {job.provider_status_at ? ` · ${new Date(job.provider_status_at).toLocaleString("ar-IQ")}` : ""}
                         </span>
                       )}
                     </div>
