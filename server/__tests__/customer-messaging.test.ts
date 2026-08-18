@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   buildCustomerFirstName,
+  canManuallyRetryDeliveryCare,
   normalizeIraqiWhatsAppPhone,
   retryDelayMs,
 } from "../services/customer-messaging.js";
@@ -49,6 +50,31 @@ describe("customer messaging helpers", () => {
       expect(retryDelayMs(4)).toBe(2 * 60 * 60_000);
       expect(retryDelayMs(5)).toBeNull();
       expect(retryDelayMs(10)).toBeNull();
+    });
+  });
+
+  describe("canManuallyRetryDeliveryCare", () => {
+    it.each([
+      "INVALID_IRAQI_MOBILE",
+      "INVALID_CUSTOMER_NAME",
+      "ORDER_NOT_DELIVERED_OR_MISSING",
+      "WHATSAPP_HTTP_400_META_132000",
+      "WHATSAPP_HTTP_429_META_4",
+      "WHATSAPP_HTTP_500",
+    ])("allows known non-ambiguous failure %s", (errorCode) => {
+      expect(canManuallyRetryDeliveryCare(errorCode)).toBe(true);
+    });
+
+    it.each([
+      "WHATSAPP_TIMEOUT_AMBIGUOUS",
+      "WHATSAPP_NETWORK_AMBIGUOUS",
+      "WHATSAPP_UNKNOWN_AMBIGUOUS",
+      "AMBIGUOUS_STALE_SEND_STATE",
+      "",
+      null,
+      undefined,
+    ])("blocks ambiguous or unknown failure %s", (errorCode) => {
+      expect(canManuallyRetryDeliveryCare(errorCode)).toBe(false);
     });
   });
 });
