@@ -1,16 +1,16 @@
 name: PR92 one-shot canonical inventory test repair
 
 on:
-  push:
+  pull_request:
     branches:
-      - fix/checkout-canonical-inventory
+      - main
 
 permissions:
   contents: write
 
 jobs:
   repair:
-    if: github.actor != 'github-actions[bot]'
+    if: github.head_ref == 'fix/checkout-canonical-inventory' && github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
