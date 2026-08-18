@@ -474,10 +474,10 @@ describe("storefront creation path (createOrderSecure)", () => {
     expect(h.state.rolledBack).toBe(true);
     expect(h.state.orderInserts).toHaveLength(0);
     expect(h.state.orderItemInserts).toHaveLength(0);
-    expect(h.state.productUpdates).toHaveLength(0); // stock deduction reverted too
+    expect(h.state.productUpdates).toHaveLength(0); // no direct product-stock write escaped either
   });
 
-  it("deducts inventory exactly once per line", async () => {
+  it("routes each sale line through the canonical ledger without direct product writes", async () => {
     const h = makeHarness({
       productRows: { "p-known": KNOWN_COST_PRODUCT, "p-zero": VERIFIED_ZERO_PRODUCT },
     });
@@ -486,10 +486,17 @@ describe("storefront creation path (createOrderSecure)", () => {
       { productId: "p-zero", quantity: 3 },
     ], CUSTOMER);
 
-    const stockUpdates = h.state.productUpdates.filter((u) => "stock" in u.payload);
-    expect(stockUpdates).toHaveLength(2);
-    expect(stockUpdates[0].payload.stock).toBe(8);  // 10 - 2
-    expect(stockUpdates[1].payload.stock).toBe(7);  // 10 - 3
+    // The relational order-line insert is the sale entry point. Database triggers
+    // append inventory_movements and project the resulting balance to storefront stock.
+    expect(h.state.productUpdates).toHaveLength(0);
+    expect(h.state.orderItemInserts).toHaveLength(2);
+    expect(h.state.orderItemInserts.map((line) => ({
+      productId: line.productId,
+      quantity: line.quantity,
+    }))).toEqual([
+      { productId: "p-known", quantity: 2 },
+      { productId: "p-zero", quantity: 3 },
+    ]);
   });
 
   it("concurrent creations each take their own row lock and snapshot independently", async () => {
