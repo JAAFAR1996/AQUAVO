@@ -4,6 +4,7 @@ import { sql } from "drizzle-orm";
 import { requireAdmin } from "../middleware/auth.js";
 import { getDb } from "../db.js";
 import {
+  canManuallyRetryDeliveryCare,
   dispatchDeliveryCareForOrder,
   prepareFailedDeliveryCareRetry,
   runDueDeliveryCareJobs,
@@ -156,8 +157,17 @@ export function createCustomerMessagingAdminRouter(): RouterType {
               LIMIT 100
             `);
 
+        const jobs = rowsOf(result).map((job) => ({
+          ...job,
+          manualRetryAllowed:
+            String(job.status) === "failed"
+            && job.provider_message_id == null
+            && job.accepted_at == null
+            && canManuallyRetryDeliveryCare(job.last_error_code),
+        }));
+
         res.set("Cache-Control", "no-store, private");
-        res.json({ success: true, jobs: rowsOf(result) });
+        res.json({ success: true, jobs });
       } catch (error) {
         next(error);
       }
