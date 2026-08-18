@@ -17,6 +17,16 @@ const service = readFileSync(
   "utf8",
 );
 
+const deliveryReplyContract = readFileSync(
+  join(process.cwd(), "server/services/whatsapp-delivery-care-contract.ts"),
+  "utf8",
+);
+
+const deliveryReplyService = readFileSync(
+  join(process.cwd(), "server/services/whatsapp-delivery-care-replies.ts"),
+  "utf8",
+);
+
 const providerStatusService = readFileSync(
   join(process.cwd(), "server/services/whatsapp-provider-status.ts"),
   "utf8",
@@ -71,11 +81,20 @@ describe("post-delivery customer messaging contract", () => {
     expect(migration).toContain("Phase 1 queues care only");
   });
 
-  it("locks the approved immediate delivery copy and first-name-only personalization", () => {
-    expect(rollout).toContain("{{1}}، وصلتك الطلبية. إذا طلع عندك أي سؤال عن المنتج أو شلون تستخدمه، إحنا موجودين بنفس الرقم.");
+  it("locks the approved immediate delivery copy, first-name personalization and two-button contract", () => {
+    expect(rollout).toContain("هلا أستاذ {{1}} 🌿");
+    expect(rollout).toContain("حبينا نطمن على طلبك بعد التوصيل.");
+    expect(rollout).toContain("إذا استلمته، كل القطع وصلت كاملة وبحالة زينة؟");
+    expect(rollout).toContain("وصلتني وكلشي تمام");
+    expect(rollout).toContain("عندي ملاحظة عالطلب");
     expect(service).toContain("buildCustomerFirstName");
     expect(service).toContain("INVALID_CUSTOMER_NAME");
     expect(service).not.toContain("buildCustomerHonorific");
+    expect(service).toContain('sub_type: "quick_reply"');
+    expect(service).toContain('index: "0"');
+    expect(service).toContain('index: "1"');
+    expect(deliveryReplyContract).toContain('"aquavo_delivery_ok_v1"');
+    expect(deliveryReplyContract).toContain('"aquavo_delivery_issue_v1"');
     expect(rollout).toContain("Consumables: send the review request on **day 5**");
     expect(rollout).toContain("Equipment/hardware: send the review request on **day 9**");
   });
@@ -143,6 +162,28 @@ describe("post-delivery customer messaging contract", () => {
     expect(webhookRoute).toContain("WEBHOOK_PERSISTENCE_FAILED");
     expect(vercelEntry).toContain('realRoute === "/api/webhooks/whatsapp"');
     expect(vercelEntry).toContain("req.rawBody = buf");
+  });
+
+  it("handles only correlated Quick Replies and stores the choice before auto-replying", () => {
+    expect(webhookRoute).toContain("extractDeliveryCareButtonReplyEvents");
+    expect(webhookRoute).toContain('String(message.type ?? "") !== "button"');
+    expect(webhookRoute).toContain("contextProviderMessageId");
+    expect(deliveryReplyService).toContain("job.provider_message_id=${event.contextProviderMessageId}");
+    expect(deliveryReplyService).toContain("orderPhone !== senderPhone");
+    expect(deliveryReplyService).toContain("delivery_care_reply");
+    expect(deliveryReplyService).toContain("auto_reply_status', 'processing'");
+    expect(deliveryReplyService).toContain("getDeliveryCareAutoReplyText(choice)");
+    expect(deliveryReplyContract).toContain("تتهنى بطلبك أستاذ، وإذا احتجت أي مساعدة بأي منتج، دزلنا بأي وقت.");
+    expect(deliveryReplyContract).toContain("أكيد أستاذ، كللنا شنو الملاحظة بالطلب حتى نتابعها وياك.");
+  });
+
+  it("retries auto-replies only after explicit retryable provider rejection", () => {
+    expect(deliveryReplyService).toContain("MAX_AUTO_REPLY_ATTEMPTS = 3");
+    expect(deliveryReplyService).toContain("WHATSAPP_REPLY_TIMEOUT_AMBIGUOUS");
+    expect(deliveryReplyService).toContain("response.status === 429 || response.status >= 500");
+    expect(deliveryReplyService).toContain('existingStatus === "retryable_failed"');
+    expect(webhookRoute).toContain('result.status === "retryable_failed"');
+    expect(webhookRoute).toContain("WHATSAPP_AUTO_REPLY_RETRY_REQUESTED");
   });
 
   it("persists provider events before matching wamid and reconciles them monotonically", () => {
