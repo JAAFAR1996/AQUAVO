@@ -53,16 +53,77 @@ describe("0079 customer post-delivery messaging migration", () => {
       job_type: string;
       status: string;
       provider_status: string | null;
+      provider_status_at: Date | null;
       count: string;
     }>(`
-      SELECT job_type,status,provider_status,count(*)::text AS count
+      SELECT job_type,status,provider_status,provider_status_at,count(*)::text AS count
       FROM public.customer_message_jobs
       WHERE order_id='order-1'
-      GROUP BY job_type,status,provider_status
+      GROUP BY job_type,status,provider_status,provider_status_at
     `);
 
     expect(result.rows).toEqual([
-      { job_type: "delivery_care", status: "pending", provider_status: null, count: "1" },
+      {
+        job_type: "delivery_care",
+        status: "pending",
+        provider_status: null,
+        provider_status_at: null,
+        count: "1",
+      },
+    ]);
+  });
+
+  it("creates an idempotent durable provider-status inbox", async () => {
+    const db = await baseDb();
+    await db.exec(migration);
+
+    await db.exec(`
+      INSERT INTO public.whatsapp_provider_status_events (
+        provider_message_id,
+        provider_status,
+        provider_status_at,
+        error_code
+      ) VALUES (
+        'wamid.test-1',
+        'delivered',
+        '2026-08-18T12:00:00Z',
+        NULL
+      )
+      ON CONFLICT (provider_message_id, provider_status, provider_status_at) DO NOTHING;
+
+      INSERT INTO public.whatsapp_provider_status_events (
+        provider_message_id,
+        provider_status,
+        provider_status_at,
+        error_code
+      ) VALUES (
+        'wamid.test-1',
+        'delivered',
+        '2026-08-18T12:00:00Z',
+        NULL
+      )
+      ON CONFLICT (provider_message_id, provider_status, provider_status_at) DO NOTHING;
+    `);
+
+    const result = await db.query<{
+      provider_message_id: string;
+      provider_status: string;
+      applied_at: Date | null;
+      count: string;
+    }>(`
+      SELECT provider_message_id,provider_status,applied_at,count(*)::text AS count
+      FROM public.whatsapp_provider_status_events
+      WHERE provider_message_id='wamid.test-1'
+      GROUP BY provider_message_id,provider_status,applied_at
+    `);
+
+    expect(result.rows).toEqual([
+      {
+        provider_message_id: "wamid.test-1",
+        provider_status: "delivered",
+        applied_at: null,
+        count: "1",
+      },
     ]);
   });
 
