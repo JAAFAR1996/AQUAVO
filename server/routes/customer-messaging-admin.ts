@@ -8,12 +8,33 @@ import {
   dispatchDeliveryCareForOrder,
   prepareFailedDeliveryCareRetry,
   runDueDeliveryCareJobs,
+  type CustomerMessageDispatchResult,
 } from "../services/customer-messaging.js";
 
 function rowsOf(result: unknown): Array<Record<string, unknown>> {
   if (Array.isArray(result)) return result as Array<Record<string, unknown>>;
   const rows = (result as { rows?: Array<Record<string, unknown>> } | null)?.rows;
   return Array.isArray(rows) ? rows : [];
+}
+
+/**
+ * If Meta already returned a wamid, the provider send must never be presented as
+ * retryable merely because our DB acknowledgement stayed ambiguous. The UI can
+ * continue using its existing "sent" branch while the durable worker/webhook
+ * resolves tracking state; errorCode remains present for audit/diagnostics.
+ */
+function normalizeAdminDispatchResult(result: CustomerMessageDispatchResult) {
+  if (
+    result.errorCode === "WHATSAPP_ACCEPTED_PERSISTENCE_AMBIGUOUS"
+    && result.providerMessageId
+  ) {
+    return {
+      ...result,
+      status: "sent" as const,
+      trackingWarning: "WHATSAPP_ACCEPTANCE_NOT_DURABLY_RECORDED",
+    };
+  }
+  return result;
 }
 
 /**
@@ -56,7 +77,7 @@ export function createCustomerMessagingAdminRouter(): RouterType {
           return;
         }
 
-        const result = await dispatchDeliveryCareForOrder(orderId);
+        const result = normalizeAdminDispatchResult(await dispatchDeliveryCareForOrder(orderId));
         res.status(200).json({ success: result.status === "sent", ...result });
       } catch (error) {
         next(error);
@@ -114,7 +135,9 @@ export function createCustomerMessagingAdminRouter(): RouterType {
           return;
         }
 
-        const dispatch = await dispatchDeliveryCareForOrder(prepared.orderId);
+        const dispatch = normalizeAdminDispatchResult(
+          await dispatchDeliveryCareForOrder(prepared.orderId),
+        );
         res.status(200).json({
           success: dispatch.status === "sent" || dispatch.status === "retry_scheduled" || dispatch.status === "disabled",
           requeued: true,
