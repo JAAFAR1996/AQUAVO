@@ -159,14 +159,24 @@ export function createCustomerMessagingAdminRouter(): RouterType {
               LIMIT 100
             `);
 
-        const jobs = rowsOf(result).map((job) => ({
-          ...job,
-          manualRetryAllowed:
+        const jobs = rowsOf(result).map((job) => {
+          const errorIsRetrySafe = canManuallyRetryDeliveryCare(job.last_error_code);
+          const preAcceptanceFailure =
             String(job.status) === "failed"
             && job.provider_message_id == null
-            && job.accepted_at == null
-            && canManuallyRetryDeliveryCare(job.last_error_code),
-        }));
+            && job.accepted_at == null;
+          const confirmedProviderFailure =
+            String(job.status) === "completed"
+            && String(job.provider_status) === "failed"
+            && job.provider_message_id != null
+            && job.accepted_at != null
+            && String(job.last_error_code ?? "").startsWith("WHATSAPP_PROVIDER_FAILED_");
+
+          return {
+            ...job,
+            manualRetryAllowed: errorIsRetrySafe && (preAcceptanceFailure || confirmedProviderFailure),
+          };
+        });
 
         res.set("Cache-Control", "no-store, private");
         res.json({ success: true, jobs });
