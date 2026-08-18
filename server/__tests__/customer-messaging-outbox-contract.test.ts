@@ -99,7 +99,7 @@ describe("post-delivery customer messaging contract", () => {
     expect(adminRoute).toContain("prepareFailedDeliveryCareRetry");
     expect(adminRoute).toContain("MESSAGE_JOB_RETRY_UNSAFE");
     expect(service).toContain("canManuallyRetryDeliveryCare");
-    expect(service).toContain("WHATSAPP_HTTP_\\d{3}");
+    expect(service).toContain("WHATSAPP_HTTP_[45]\\d{2}");
     expect(service).toContain("provider_message_id IS NULL");
     expect(service).toContain("accepted_at IS NULL");
     expect(service).toContain("manual_retry_history");
