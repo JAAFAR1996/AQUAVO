@@ -47,7 +47,8 @@ describe("GET /api/admin/accounting/v2/health route ownership", () => {
 
   // Every column the single surviving gate selects. The route is only allowed to
   // answer "ready" when ALL of them are true, so flipping any one of them to
-  // false must fail closed — including the 0078 carrier-correction hardening.
+  // false must fail closed — including 0078 external-handoff invariants and the
+  // current 0080 operational-hardening invariants.
   const HEALTHY_ROW = {
     facts: true,
     journal: true,
@@ -56,6 +57,7 @@ describe("GET /api/admin/accounting/v2/health route ownership", () => {
     positions: true,
     live_balances: true,
     carrier_corrections: true,
+    operational_hardening_view: true,
     auto_close: true,
     effective_carrier: true,
     latest_migration: true,
@@ -67,6 +69,9 @@ describe("GET /api/admin/accounting/v2/health route ownership", () => {
     return_verification_guard: true,
     return_line_identity_guard: true,
     return_refund_snapshot_guard: true,
+    order_profit_includes_rounding: true,
+    operational_constraints_validated: true,
+    append_only_acl_hardened: true,
   } as const;
 
   it.each(Object.keys(HEALTHY_ROW))(
@@ -78,13 +83,13 @@ describe("GET /api/admin/accounting/v2/health route ownership", () => {
 
       expect(response.status).toBe(503);
       expect(response.body.message).toContain("ACCOUNTING_V2_LATEST_MIGRATION_REQUIRED");
-      expect(response.body.message).toContain("0078_accounting_external_handoff_hardening");
+      expect(response.body.message).toContain("0080_accounting_operational_hardening");
       expect(response.body.ready).not.toBe(true);
       expect(mockExecute).toHaveBeenCalledTimes(1);
     },
   );
 
-  it("reports migration 0078 and the active V3 policy only after every fail-closed health check passes", async () => {
+  it("reports migration 0080 and the active V3 policy only after every fail-closed health check passes", async () => {
     mockExecute.mockResolvedValue({ rows: [{ ...HEALTHY_ROW }] });
 
     const response = await request(buildApp()).get("/api/admin/accounting/v2/health");
@@ -92,7 +97,7 @@ describe("GET /api/admin/accounting/v2/health route ownership", () => {
     expect(response.status).toBe(200);
     expect(response.body).toMatchObject({
       ready: true,
-      migrationsThrough: "0078",
+      migrationsThrough: "0080",
       policyVersion: "v3_explicit_rounding_carrier_snapshot",
     });
     expect(mockExecute).toHaveBeenCalledTimes(1);
