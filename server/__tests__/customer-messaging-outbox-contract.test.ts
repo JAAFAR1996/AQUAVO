@@ -17,6 +17,11 @@ const service = readFileSync(
   "utf8",
 );
 
+const adminRoute = readFileSync(
+  join(process.cwd(), "server/routes/customer-messaging-admin.ts"),
+  "utf8",
+);
+
 const cronRoute = readFileSync(
   join(process.cwd(), "server/routes/cron.ts"),
   "utf8",
@@ -68,8 +73,10 @@ describe("post-delivery customer messaging contract", () => {
     expect(service).toContain("accepted_at=clock_timestamp()");
   });
 
-  it("makes the existing delivered button trigger an immediate dispatch attempt", () => {
-    expect(client).toContain("handleStatusChange(order.id, 'delivered')");
+  it("requires explicit admin confirmation before delivered starts the WhatsApp lifecycle", () => {
+    expect(client).toContain("setDeliverOrderId(order.id)");
+    expect(client).toContain("تأكيد استلام الزبون؟");
+    expect(client).toContain("handleStatusChange(orderId, 'delivered')");
     expect(client).toContain("/customer-messaging/delivery-care");
     expect(client).toContain("if (newStatus === \"delivered\")");
   });
@@ -85,6 +92,17 @@ describe("post-delivery customer messaging contract", () => {
     expect(service).toContain("WHATSAPP_TIMEOUT_AMBIGUOUS");
     expect(service).toContain("AMBIGUOUS_STALE_SEND_STATE");
     expect(service).toContain("new WhatsAppSendError(code, false)");
+  });
+
+  it("allows explicit admin retry only through the guarded failed-job path", () => {
+    expect(adminRoute).toContain('"/customer-messaging/jobs/:id/retry"');
+    expect(adminRoute).toContain("prepareFailedDeliveryCareRetry");
+    expect(adminRoute).toContain("MESSAGE_JOB_RETRY_UNSAFE");
+    expect(service).toContain("canManuallyRetryDeliveryCare");
+    expect(service).toContain("WHATSAPP_HTTP_\\d{3}");
+    expect(service).toContain("provider_message_id IS NULL");
+    expect(service).toContain("accepted_at IS NULL");
+    expect(service).toContain("manual_retry_history");
   });
 
   it("uses a protected external five-minute worker instead of Vercel Hobby cron", () => {
