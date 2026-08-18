@@ -141,8 +141,9 @@ export function createCustomerMessagingAdminRouter(): RouterType {
         const result = orderId
           ? await db.execute(sql`
               SELECT id,order_id,job_type,status,due_at,attempt_count,
-                     provider_message_id,provider_status,last_error_code,last_error_at,
-                     accepted_at,cancelled_at,created_at,updated_at
+                     provider_message_id,provider_status,provider_status_at,
+                     last_error_code,last_error_at,accepted_at,cancelled_at,
+                     created_at,updated_at
               FROM public.customer_message_jobs
               WHERE order_id=${orderId}
               ORDER BY created_at DESC
@@ -150,8 +151,9 @@ export function createCustomerMessagingAdminRouter(): RouterType {
             `)
           : await db.execute(sql`
               SELECT id,order_id,job_type,status,due_at,attempt_count,
-                     provider_message_id,provider_status,last_error_code,last_error_at,
-                     accepted_at,cancelled_at,created_at,updated_at
+                     provider_message_id,provider_status,provider_status_at,
+                     last_error_code,last_error_at,accepted_at,cancelled_at,
+                     created_at,updated_at
               FROM public.customer_message_jobs
               ORDER BY created_at DESC
               LIMIT 100
