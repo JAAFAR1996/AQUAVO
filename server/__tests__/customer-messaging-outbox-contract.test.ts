@@ -17,6 +17,11 @@ const service = readFileSync(
   "utf8",
 );
 
+const providerStatusService = readFileSync(
+  join(process.cwd(), "server/services/whatsapp-provider-status.ts"),
+  "utf8",
+);
+
 const adminRoute = readFileSync(
   join(process.cwd(), "server/routes/customer-messaging-admin.ts"),
   "utf8",
@@ -106,27 +111,39 @@ describe("post-delivery customer messaging contract", () => {
     expect(service).toContain("new WhatsAppSendError(code, false)");
   });
 
-  it("allows explicit admin retry only through the guarded failed-job path", () => {
+  it("allows explicit admin retry only through guarded known-failure paths", () => {
     expect(adminRoute).toContain('"/customer-messaging/jobs/:id/retry"');
     expect(adminRoute).toContain("prepareFailedDeliveryCareRetry");
     expect(adminRoute).toContain("MESSAGE_JOB_RETRY_UNSAFE");
     expect(service).toContain("canManuallyRetryDeliveryCare");
     expect(service).toContain("WHATSAPP_HTTP_[45]\\d{2}");
-    expect(service).toContain("provider_message_id IS NULL");
-    expect(service).toContain("accepted_at IS NULL");
+    expect(service).toContain("WHATSAPP_PROVIDER_FAILED_");
+    expect(service).toContain("job.provider_status='failed'");
+    expect(service).toContain("previous_provider_message_id");
     expect(service).toContain("manual_retry_history");
   });
 
-  it("authenticates Meta webhooks and orders provider state by provider timestamp", () => {
+  it("authenticates Meta webhooks before durable provider-event persistence", () => {
     expect(webhookRoute).toContain("x-hub-signature-256");
     expect(webhookRoute).toContain("META_APP_SECRET");
     expect(webhookRoute).toContain("WHATSAPP_WEBHOOK_VERIFY_TOKEN");
     expect(webhookRoute).toContain("verifyMetaWebhookSignature");
-    expect(webhookRoute).toContain("provider_status_at");
-    expect(webhookRoute).toContain("job.provider_status_at < ${event.statusAt}");
-    expect(webhookRoute).toContain("WHATSAPP_PROVIDER_FAILED_");
+    expect(webhookRoute).toContain("recordWhatsAppProviderStatusEvent");
+    expect(webhookRoute).toContain("WEBHOOK_PERSISTENCE_FAILED");
     expect(vercelEntry).toContain('realRoute === "/api/webhooks/whatsapp"');
     expect(vercelEntry).toContain("req.rawBody = buf");
+  });
+
+  it("persists provider events before matching wamid and reconciles them monotonically", () => {
+    expect(migration).toContain("CREATE TABLE IF NOT EXISTS public.whatsapp_provider_status_events");
+    expect(migration).toContain("UNIQUE (provider_message_id, provider_status, provider_status_at)");
+    expect(providerStatusService).toContain("INSERT INTO public.whatsapp_provider_status_events");
+    expect(providerStatusService).toContain("ON CONFLICT (provider_message_id, provider_status, provider_status_at) DO NOTHING");
+    expect(providerStatusService).toContain("reconcileWhatsAppProviderEvents");
+    expect(providerStatusService).toContain("job.provider_status_at < ${statusAt}");
+    expect(providerStatusService).toContain("applied_at=clock_timestamp()");
+    expect(service).toContain("reconcileWhatsAppProviderEvents(providerMessageId)");
+    expect(service).toContain("reconcilePendingWhatsAppProviderEvents(25)");
   });
 
   it("uses a protected external five-minute worker instead of Vercel Hobby cron", () => {
