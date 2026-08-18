@@ -144,7 +144,8 @@ export function OrdersManagement() {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const { toast } = useToast();
 
-  // Triple confirmation state for rejection
+  // Confirmation state for delivery and rejection
+  const [deliverOrderId, setDeliverOrderId] = useState<string | null>(null);
   const [rejectOrderId, setRejectOrderId] = useState<string | null>(null);
   const [rejectStep, setRejectStep] = useState(0);
   const [archiveOrderId, setArchiveOrderId] = useState<string | null>(null);
@@ -628,7 +629,7 @@ export function OrdersManagement() {
 
                             {order.status === 'shipped' && (
                               <>
-                                <Button size="sm" className="bg-green-500 hover:bg-green-600 text-white" onClick={() => handleStatusChange(order.id, 'delivered')}>
+                                <Button size="sm" className="bg-green-500 hover:bg-green-600 text-white" onClick={() => setDeliverOrderId(order.id)}>
                                   استلم الزبون ✅
                                 </Button>
                                 <Button size="sm" variant="destructive" onClick={() => startReject(order.id)}>
@@ -661,6 +662,31 @@ export function OrdersManagement() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Delivery Confirmation Dialog */}
+      <AlertDialog open={!!deliverOrderId} onOpenChange={(open) => { if (!open) setDeliverOrderId(null); }}>
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>تأكيد استلام الزبون؟</AlertDialogTitle>
+            <AlertDialogDescription className="leading-6">
+              بعد التأكيد راح يتحول الطلب إلى مكتمل، وإذا خدمة واتساب مفعّلة تبدأ رسالة ما بعد الاستلام. تأكد أن الزبون استلم الطلب فعلاً.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-green-600 hover:bg-green-700 text-white"
+              onClick={() => {
+                const orderId = deliverOrderId;
+                setDeliverOrderId(null);
+                if (orderId) void handleStatusChange(orderId, 'delivered');
+              }}
+            >
+              تأكيد الاستلام
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Triple Confirmation Dialog */}
       <AlertDialog open={rejectStep > 0}>
