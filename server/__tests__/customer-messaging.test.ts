@@ -61,11 +61,13 @@ describe("customer messaging helpers", () => {
       "WHATSAPP_HTTP_400_META_132000",
       "WHATSAPP_HTTP_429_META_4",
       "WHATSAPP_HTTP_500",
+      "WHATSAPP_PROVIDER_FAILED_131026",
     ])("allows known non-ambiguous failure %s", (errorCode) => {
       expect(canManuallyRetryDeliveryCare(errorCode)).toBe(true);
     });
 
     it.each([
+      "WHATSAPP_PROVIDER_FAILED_",
       "WHATSAPP_HTTP_200",
       "WHATSAPP_HTTP_204",
       "WHATSAPP_HTTP_302",
