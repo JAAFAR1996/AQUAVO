@@ -25,6 +25,23 @@ export interface CustomerMessageDispatchResult {
   errorCode?: string;
 }
 
+export type ManualRetryPrepareStatus =
+  | "ready"
+  | "db_unavailable"
+  | "not_found"
+  | "wrong_job_type"
+  | "not_failed"
+  | "order_not_delivered"
+  | "unsafe_to_retry"
+  | "conflict";
+
+export interface ManualRetryPrepareResult {
+  status: ManualRetryPrepareStatus;
+  jobId?: string;
+  orderId?: string;
+  errorCode?: string;
+}
+
 type Row = Record<string, unknown>;
 
 type ClaimedJob = {
@@ -122,6 +139,27 @@ export function retryDelayMs(attemptCount: number): number | null {
   if (!Number.isInteger(attemptCount) || attemptCount <= 0) return RETRY_DELAYS_MS[0];
   if (attemptCount >= MAX_SEND_ATTEMPTS) return null;
   return RETRY_DELAYS_MS[Math.min(attemptCount - 1, RETRY_DELAYS_MS.length - 1)];
+}
+
+/**
+ * Manual retries are allowed only when we have evidence that the provider did
+ * not accept the message. Transport ambiguity is deliberately excluded because
+ * Meta may have accepted the first request even if our process never received a
+ * wamid, and resending could duplicate the customer message.
+ */
+export function canManuallyRetryDeliveryCare(errorCode: unknown): boolean {
+  const code = String(errorCode ?? "").trim();
+  if (!code) return false;
+
+  if ([
+    "INVALID_IRAQI_MOBILE",
+    "INVALID_CUSTOMER_NAME",
+    "ORDER_NOT_DELIVERED_OR_MISSING",
+  ].includes(code)) {
+    return true;
+  }
+
+  return /^WHATSAPP_HTTP_\d{3}(?:_|$)/.test(code);
 }
 
 function readWhatsAppConfig(): WhatsAppConfig | null {
@@ -323,6 +361,96 @@ async function releaseClaimAsFailed(job: ClaimedJob, errorCode: string, retryabl
 
   await scheduleRetry(job.id, errorCode, new Date(Date.now() + delay));
   return { status: "retry_scheduled", jobId: job.id, errorCode };
+}
+
+/**
+ * Requeues a failed delivery-care job only when its last failure is known-safe
+ * to retry. Ambiguous network/timeout/stale-send failures are never requeued.
+ * A successful manual reset starts a fresh bounded attempt window and records
+ * the previous failure in metadata for operator auditability.
+ */
+export async function prepareFailedDeliveryCareRetry(jobId: string): Promise<ManualRetryPrepareResult> {
+  const db = getDb();
+  if (!db) return { status: "db_unavailable" };
+
+  const normalizedJobId = String(jobId ?? "").trim();
+  if (!normalizedJobId) return { status: "not_found" };
+
+  const lookup = await db.execute(sql`
+    SELECT job.id,
+           job.order_id,
+           job.job_type,
+           job.status,
+           job.last_error_code,
+           job.provider_message_id,
+           job.accepted_at,
+           orders.status AS order_status
+    FROM public.customer_message_jobs AS job
+    JOIN public.orders AS orders ON orders.id=job.order_id
+    WHERE job.id=${normalizedJobId}
+    LIMIT 1
+  `);
+  const row = rowsOf(lookup)[0];
+  if (!row) return { status: "not_found" };
+
+  const orderId = String(row.order_id ?? "");
+  const errorCode = String(row.last_error_code ?? "").trim();
+  if (String(row.job_type) !== "delivery_care") {
+    return { status: "wrong_job_type", jobId: normalizedJobId, orderId, errorCode };
+  }
+  if (String(row.status) !== "failed") {
+    return { status: "not_failed", jobId: normalizedJobId, orderId, errorCode };
+  }
+  if (String(row.order_status) !== "delivered") {
+    return { status: "order_not_delivered", jobId: normalizedJobId, orderId, errorCode };
+  }
+  if (row.provider_message_id != null || row.accepted_at != null || !canManuallyRetryDeliveryCare(errorCode)) {
+    return { status: "unsafe_to_retry", jobId: normalizedJobId, orderId, errorCode };
+  }
+
+  const updated = await db.execute(sql`
+    UPDATE public.customer_message_jobs AS job
+       SET status='pending',
+           due_at=clock_timestamp(),
+           attempt_count=0,
+           locked_at=NULL,
+           last_error_code=NULL,
+           last_error_at=NULL,
+           updated_at=clock_timestamp(),
+           metadata=jsonb_set(
+             COALESCE(job.metadata, '{}'::jsonb),
+             '{manual_retry_history}',
+             COALESCE(job.metadata->'manual_retry_history', '[]'::jsonb)
+             || jsonb_build_array(jsonb_build_object(
+               'requested_at', clock_timestamp(),
+               'previous_error_code', ${errorCode},
+               'previous_attempt_count', job.attempt_count
+             )),
+             true
+           )
+      FROM public.orders AS orders
+     WHERE job.id=${normalizedJobId}
+       AND job.order_id=orders.id
+       AND orders.status='delivered'
+       AND job.job_type='delivery_care'
+       AND job.status='failed'
+       AND job.provider_message_id IS NULL
+       AND job.accepted_at IS NULL
+       AND job.last_error_code=${errorCode}
+    RETURNING job.order_id
+  `);
+
+  const updatedRow = rowsOf(updated)[0];
+  if (!updatedRow) {
+    return { status: "conflict", jobId: normalizedJobId, orderId, errorCode };
+  }
+
+  return {
+    status: "ready",
+    jobId: normalizedJobId,
+    orderId: String(updatedRow.order_id ?? orderId),
+    errorCode,
+  };
 }
 
 /**
