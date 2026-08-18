@@ -74,8 +74,10 @@ without limit.
 
 Order details include a `متابعة WhatsApp` panel showing the durable job state,
 provider lifecycle state, attempt count, provider message ID and compact failure code.
+The same panel also shows the customer's delivery-care button choice and the automatic
+reply state once a Quick Reply is received.
 
-A manual retry button appears only when the failure is known-safe to retry:
+A manual retry button appears only when the initial delivery-care send is known-safe to retry:
 
 - invalid Iraqi mobile or invalid customer first name after the underlying data is corrected;
 - an explicit provider HTTP 4xx/5xx response;
@@ -120,20 +122,69 @@ review flow and support-suppression rules are deployed.
 
 ## Delivery-care template contract
 
-The approved Meta template has exactly one body parameter, `{{1}}`, populated with the
-customer's **first name only**. The server does not invent `أستاذ`, a greeting, or any
-other fallback that would change the approved wording. If the stored name is missing or
-malformed, the job is failed for inspection instead of sending altered copy.
+The approved Meta template is `aquavo_delivery_care_v1`. It has exactly one body
+parameter, `{{1}}`, populated with the customer's **first name only** from the stored
+order/invoice name. The server does not invent a fallback name. If the stored name is
+missing or malformed, the job is failed for inspection instead of sending altered copy.
 
-Approved copy — keep it exactly as written:
+Approved copy — keep it exactly as written and preserve the line breaks:
 
 ```
-{{1}}، وصلتك الطلبية. إذا طلع عندك أي سؤال عن المنتج أو شلون تستخدمه، إحنا موجودين بنفس الرقم.
+هلا أستاذ {{1}} 🌿
+حبينا نطمن على طلبك بعد التوصيل.
+إذا استلمته، كل القطع وصلت كاملة وبحالة زينة؟
 ```
 
-The immediate delivery message must contain **no** emoji, gratitude word, signature,
-review mention, order number, CTA, greeting or extra question. Its only job is to confirm
-the handoff and keep the support channel open.
+The template has exactly two Quick Reply buttons, in this order:
+
+1. `وصلتني وكلشي تمام`
+2. `عندي ملاحظة عالطلب`
+
+When AQUAVO sends the approved template, the server attaches stable developer payloads
+without changing the customer-visible button text:
+
+- index `0` → `aquavo_delivery_ok_v1`
+- index `1` → `aquavo_delivery_issue_v1`
+
+These payloads are the authoritative automation contract. Button text is accepted only
+as a compatibility fallback when Meta echoes the configured visible label.
+
+## Delivery-care Quick Reply handling
+
+A Meta Quick Reply callback arrives on the same signed `messages` webhook. AQUAVO only
+automates callbacks that are actual button messages and that include `context.id`, the
+`wamid` of the original delivery-care template message.
+
+Before sending any automatic response, the server verifies all of the following:
+
+1. The button payload/text resolves to one of the two approved delivery-care choices.
+2. `context.id` matches a completed `delivery_care` job's stored provider message ID.
+3. The sender's normalized Iraqi WhatsApp number matches the customer phone stored on that order.
+4. The inbound message ID has not already been processed for that delivery-care job.
+
+The customer choice is then claimed durably in
+`customer_message_jobs.metadata.delivery_care_reply` **before** any outbound automatic
+reply. This makes repeated Meta webhook delivery idempotent and prevents duplicate
+customer replies.
+
+Approved automatic responses:
+
+- `وصلتني وكلشي تمام` → `تتهنى بطلبك أستاذ، وإذا احتجت أي مساعدة بأي منتج، دزلنا بأي وقت.`
+- `عندي ملاحظة عالطلب` → `أكيد أستاذ، كللنا شنو الملاحظة بالطلب حتى نتابعها وياك.`
+
+The automatic response is a free-form WhatsApp text sent after the customer's button
+reply. Ordinary text the customer sends afterwards is **not** consumed by this
+automation; it remains available for human support in the WhatsApp/Business Suite inbox.
+
+Automatic reply retries follow at-most-once safety:
+
+- timeout/network or HTTP-success-without-`wamid` is ambiguous → record and do not retry;
+- explicit HTTP 429/5xx rejection is safe to retry for the same inbound callback, bounded to three attempts;
+- other explicit HTTP failures are recorded as terminal;
+- Meta webhook retries cannot create a second reply after success or an ambiguous send.
+
+No new migration is required for this phase because migration 0079 already provides the
+JSONB metadata field used for the durable button/reply record.
 
 ## Provider status semantics
 
@@ -173,17 +224,21 @@ code — not raw webhook bodies, customer messages or provider error text.
 8. Verify `shipped -> delivered` creates one pending `delivery_care` job and that the confirmation dialog prevents accidental delivery transitions.
 9. Manually run the GitHub recovery workflow while WhatsApp remains disabled; it must reconcile/clean maintenance state but send zero outbound messages.
 10. Verify Meta's GET webhook challenge succeeds and a bad/missing POST signature is rejected.
-11. Choose the controlled activation instant and set `WHATSAPP_DELIVERY_CARE_ACTIVATION_AT` to that exact UTC time. Do not reuse an old timestamp from earlier testing.
-12. Enable `WHATSAPP_CLOUD_ENABLED=true` only for the controlled test window and deliver/send to a controlled recipient created after the activation boundary.
-13. Verify all pre-activation pending delivery-care rows were cancelled rather than sent.
-14. Verify the controlled job records `completed + provider_status=accepted + wamid`, then observe signed webhook progression to `sent`/`delivered` (and `read` when available).
-15. Confirm no ambiguous job exposes a manual retry button and a simulated explicit provider failure does.
-16. After the controlled end-to-end test passes, keep the same activation timestamp and leave `WHATSAPP_CLOUD_ENABLED=true` for live traffic.
+11. Confirm `aquavo_delivery_care_v1` is approved with the exact body and the two Quick Reply buttons above.
+12. Choose the controlled activation instant and set `WHATSAPP_DELIVERY_CARE_ACTIVATION_AT` to that exact UTC time. Do not reuse an old timestamp from earlier testing.
+13. Enable `WHATSAPP_CLOUD_ENABLED=true` only for the controlled test window and deliver/send to a controlled recipient created after the activation boundary.
+14. Verify all pre-activation pending delivery-care rows were cancelled rather than sent.
+15. Verify the controlled job records `completed + provider_status=accepted + wamid`, then observe signed webhook progression to `sent`/`delivered` (and `read` when available).
+16. Tap `وصلتني وكلشي تمام`; verify exactly one button callback is correlated to the original `wamid`, the choice is stored, and exactly one approved automatic response is sent.
+17. Repeat with a separate controlled order using `عندي ملاحظة عالطلب`; verify the support prompt is sent and the admin panel flags the order as having a customer note.
+18. Confirm repeated delivery of the same Meta webhook does not duplicate the automatic response.
+19. Confirm ambiguous auto-reply transport state is never blindly retried, while an explicit 429/5xx can retry only within the bounded same-callback path.
+20. After the controlled end-to-end test passes, keep the same activation timestamp and leave `WHATSAPP_CLOUD_ENABLED=true` for live traffic.
 
 ## Failure behavior
 
-- Explicit Meta HTTP 429/5xx: durable scheduled retry; order remains delivered.
-- Transport timeout/network ambiguity: failed/manual inspection; no blind resend.
+- Explicit Meta HTTP 429/5xx on initial care send: durable scheduled retry; order remains delivered.
+- Transport timeout/network ambiguity on initial care send: failed/manual inspection; no blind resend.
 - Successful HTTP without a `wamid`: treated as ambiguous; no blind/manual resend.
 - Meta accepted a `wamid` but its DB acknowledgement is ambiguous: local DB-only persistence retries; never provider resend.
 - Signed provider status `failed`: visible in admin and eligible for guarded manual retry with prior `wamid` audit preserved.
@@ -196,7 +251,12 @@ code — not raw webhook bodies, customer messages or provider error text.
 - Delivery corrected to a reject/return terminal status before send: pending care job is cancelled.
 - Invalid webhook signature: rejected before payload processing.
 - Verified webhook persistence failure: returns 503 so the provider can retry delivery of the callback.
-- Duplicate/out-of-order provider webhook: idempotent timestamp-ordered update; no duplicate message send.
+- Duplicate/out-of-order provider status webhook: idempotent timestamp-ordered update; no duplicate message send.
+- Duplicate Quick Reply webhook: already-claimed inbound message; no duplicate auto-reply.
+- Auto-reply HTTP 429/5xx: bounded safe retry for the same signed callback.
+- Auto-reply timeout/network ambiguity: recorded and never automatically repeated.
+- Button sender does not match the order phone: ignored, no automatic response.
+- Unrelated incoming customer text: ignored by automation and left for human support.
 - Review jobs are not created in phase 1.
 
 ## Approved review phase (deferred from phase 1)
