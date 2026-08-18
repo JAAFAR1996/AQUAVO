@@ -26,8 +26,6 @@ jobs:
   setup:
     name: 📋 Environment Setup
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     outputs:
       node-version: ${{ steps.versions.outputs.node }}
       pnpm-version: ${{ steps.versions.outputs.pnpm }}
@@ -36,116 +34,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: 🔧 One-shot PR92 canonical inventory test repair
-        if: github.event_name == 'pull_request' && github.head_ref == 'fix/checkout-canonical-inventory'
-        shell: bash
-        run: |
-          git checkout fix/checkout-canonical-inventory
-          python3 - <<'PY'
-          from pathlib import Path
-          import re
-
-          orders = Path('server/__tests__/orders-api.test.ts')
-          s = orders.read_text()
-          replacements = {
-              "        expect(productUpdates[0].stock).toBe(3);": "        // Checkout must not write products.stock directly; the canonical ledger projection owns deduction.\n        expect(productUpdates).toHaveLength(0);",
-              "        expect(productUpdates[0].variants[0].stock).toBe(1);\n        expect(productUpdates[0].variants[1].stock).toBe(2);": "        // Variant stock is projected from inventory_movements; checkout performs no direct product update.\n        expect(productUpdates).toHaveLength(0);",
-              "        expect(productUpdates[0].stock).toBe(4);": "        // Loyalty checkout uses the same canonical inventory path and must not mutate products.stock directly.\n        expect(productUpdates).toHaveLength(0);",
-          }
-          for old, new in replacements.items():
-              if old in s:
-                  s = s.replace(old, new, 1)
-          orders.write_text(s)
-
-          invariant = Path('server/__tests__/order-cost-snapshot-invariant.test.ts')
-          s = invariant.read_text()
-          s = s.replace(
-              "    expect(h.state.productUpdates).toHaveLength(0); // stock deduction reverted too",
-              "    expect(h.state.productUpdates).toHaveLength(0); // no direct product-stock write escaped either",
-              1,
-          )
-          old = '''  it("deducts inventory exactly once per line", async () => {
-    const h = makeHarness({
-      productRows: { "p-known": KNOWN_COST_PRODUCT, "p-zero": VERIFIED_ZERO_PRODUCT },
-    });
-    await h.storage.createOrderSecure(null, [
-      { productId: "p-known", quantity: 2 },
-      { productId: "p-zero", quantity: 3 },
-    ], CUSTOMER);
-
-    const stockUpdates = h.state.productUpdates.filter((u) => "stock" in u.payload);
-    expect(stockUpdates).toHaveLength(2);
-    expect(stockUpdates[0].payload.stock).toBe(8);  // 10 - 2
-    expect(stockUpdates[1].payload.stock).toBe(7);  // 10 - 3
-  });'''
-          new = '''  it("routes each sale line through the canonical ledger without direct product writes", async () => {
-    const h = makeHarness({
-      productRows: { "p-known": KNOWN_COST_PRODUCT, "p-zero": VERIFIED_ZERO_PRODUCT },
-    });
-    await h.storage.createOrderSecure(null, [
-      { productId: "p-known", quantity: 2 },
-      { productId: "p-zero", quantity: 3 },
-    ], CUSTOMER);
-
-    // The relational order-line insert is the sale entry point. Database triggers
-    // append inventory_movements and project the resulting balance to storefront stock.
-    expect(h.state.productUpdates).toHaveLength(0);
-    expect(h.state.orderItemInserts).toHaveLength(2);
-    expect(h.state.orderItemInserts.map((line) => ({
-      productId: line.productId,
-      quantity: line.quantity,
-    }))).toEqual([
-      { productId: "p-known", quantity: 2 },
-      { productId: "p-zero", quantity: 3 },
-    ]);
-  });'''
-          if old in s:
-              s = s.replace(old, new, 1)
-          invariant.write_text(s)
-
-          quarantine = Path('server/__tests__/auto-order-processor-quarantine.test.ts')
-          s = quarantine.read_text()
-          pattern = re.compile(r'''  it\("no reprocessing path keys off an order status transition", \(\) => \{.*?expect\(deductions\.length\)\.toBeGreaterThan\(0\);.*?\n  \}\);\n\n(?=  it\("no status-change handler creates a shipment)''', re.S)
-          replacement = '''  it("no reprocessing path keys off an order status transition", () => {
-    const orderStorage = read("server/storage/order-storage.ts");
-    const createStart = orderStorage.indexOf("async createOrderSecure(");
-    const createEnd = orderStorage.indexOf("// Payment Methods", createStart);
-    expect(createStart).toBeGreaterThanOrEqual(0);
-    expect(createEnd).toBeGreaterThan(createStart);
-    const createBody = orderStorage.slice(createStart, createEnd);
-
-    // Checkout validates and locks availability, but the sale deduction belongs to
-    // order_items_relational -> inventory_movements -> storefront projection.
-    expect(createBody).toMatch(/await tx\\.insert\\(orderItems\\)\\.values\\(/);
-    expect(createBody).not.toMatch(/stock:\\s*(?:currentStock|variantStock)\\s*-\\s*quantity/);
-    expect(createBody).not.toMatch(/variants:\\s*updatedVariants/);
-
-    // A later status transition must never create another sale movement.
-    const updateFn = orderStorage.slice(orderStorage.indexOf("async updateOrder"));
-    const nextMethod = updateFn.indexOf("\\n    async ", 1);
-    const updateBody = nextMethod === -1 ? updateFn.slice(0, 4000) : updateFn.slice(0, nextMethod);
-    expect(updateBody).not.toMatch(/stock:\\s*\\w*\\s*[-+]\\s*quantity/);
-    expect(updateBody).not.toMatch(/inventoryMovements|inventory_movements|insert\\(orderItems\\)/i);
-  });
-
-'''
-          s = pattern.sub(replacement, s, count=1)
-          quarantine.write_text(s)
-          PY
-
-          if git diff --quiet -- server/__tests__; then
-            echo "No stale PR92 assertions remain."
-          else
-            git diff --check
-            git config user.name "AQUAVO CI Repair"
-            git config user.email "actions@users.noreply.github.com"
-            git add server/__tests__/orders-api.test.ts \
-                    server/__tests__/order-cost-snapshot-invariant.test.ts \
-                    server/__tests__/auto-order-processor-quarantine.test.ts
-            git commit -m "test(checkout): align inventory assertions with canonical ledger"
-            git push origin HEAD:fix/checkout-canonical-inventory
-          fi
 
       - name: 🔍 Get versions
         id: versions
