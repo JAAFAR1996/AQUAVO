@@ -1,6 +1,7 @@
 import { createHmac } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import {
+  extractDeliveryCareButtonReplyEvents,
   extractWhatsAppStatusEvents,
   verifyMetaWebhookSignature,
 } from "../routes/whatsapp-webhook.js";
@@ -64,7 +65,88 @@ describe("WhatsApp webhook security and payload parsing", () => {
     ]);
   });
 
-  it("ignores incoming messages, deleted/unknown statuses and malformed timestamps", () => {
+  it("extracts a Meta quick-reply button callback and keeps the original wamid", () => {
+    const events = extractDeliveryCareButtonReplyEvents({
+      object: "whatsapp_business_account",
+      entry: [
+        {
+          changes: [
+            {
+              field: "messages",
+              value: {
+                messages: [
+                  {
+                    button: {
+                      payload: "aquavo_delivery_ok_v1",
+                      text: "وصلتني وكلشي تمام",
+                    },
+                    context: {
+                      from: "9647747880673",
+                      id: "wamid.original-template",
+                    },
+                    from: "9647721310937",
+                    id: "wamid.customer-button",
+                    timestamp: "1700000100",
+                    type: "button",
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(events).toEqual([
+      {
+        inboundMessageId: "wamid.customer-button",
+        contextProviderMessageId: "wamid.original-template",
+        fromPhone: "9647721310937",
+        receivedAt: new Date(1700000100 * 1000),
+        payload: "aquavo_delivery_ok_v1",
+        buttonText: "وصلتني وكلشي تمام",
+      },
+    ]);
+  });
+
+  it("ignores ordinary incoming text and malformed button callbacks", () => {
+    const events = extractDeliveryCareButtonReplyEvents({
+      object: "whatsapp_business_account",
+      entry: [
+        {
+          changes: [
+            {
+              field: "messages",
+              value: {
+                messages: [
+                  { id: "incoming-text", type: "text", text: { body: "مرحبا" } },
+                  {
+                    id: "button-without-context",
+                    type: "button",
+                    from: "9647721310937",
+                    timestamp: "1700000100",
+                    button: { payload: "aquavo_delivery_ok_v1", text: "وصلتني وكلشي تمام" },
+                  },
+                  {
+                    id: "button-bad-time",
+                    type: "button",
+                    from: "9647721310937",
+                    timestamp: "bad",
+                    context: { id: "wamid.original" },
+                    button: { payload: "aquavo_delivery_ok_v1", text: "وصلتني وكلشي تمام" },
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(events).toEqual([]);
+  });
+
+  it("ignores deleted/unknown statuses and malformed timestamps", () => {
     const events = extractWhatsAppStatusEvents({
       object: "whatsapp_business_account",
       entry: [
