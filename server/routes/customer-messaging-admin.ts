@@ -5,6 +5,7 @@ import { requireAdmin } from "../middleware/auth.js";
 import { getDb } from "../db.js";
 import {
   dispatchDeliveryCareForOrder,
+  prepareFailedDeliveryCareRetry,
   runDueDeliveryCareJobs,
 } from "../services/customer-messaging.js";
 
@@ -69,6 +70,56 @@ export function createCustomerMessagingAdminRouter(): RouterType {
         const limit = Number(req.body?.limit ?? 5);
         const result = await runDueDeliveryCareJobs(limit);
         res.json({ success: true, ...result });
+      } catch (error) {
+        next(error);
+      }
+    },
+  );
+
+  router.post(
+    "/customer-messaging/jobs/:id/retry",
+    async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+      try {
+        const jobId = String(req.params.id ?? "").trim();
+        if (!jobId) {
+          res.status(400).json({ success: false, code: "JOB_ID_REQUIRED" });
+          return;
+        }
+
+        const prepared = await prepareFailedDeliveryCareRetry(jobId);
+        if (prepared.status === "db_unavailable") {
+          res.status(503).json({ success: false, code: "DB_UNAVAILABLE" });
+          return;
+        }
+        if (prepared.status === "not_found") {
+          res.status(404).json({ success: false, code: "MESSAGE_JOB_NOT_FOUND" });
+          return;
+        }
+        if (prepared.status !== "ready" || !prepared.orderId) {
+          const codeByStatus = {
+            wrong_job_type: "MESSAGE_JOB_NOT_DELIVERY_CARE",
+            not_failed: "MESSAGE_JOB_NOT_FAILED",
+            order_not_delivered: "ORDER_NOT_DELIVERED",
+            unsafe_to_retry: "MESSAGE_JOB_RETRY_UNSAFE",
+            conflict: "MESSAGE_JOB_RETRY_CONFLICT",
+          } as const;
+          const code = codeByStatus[prepared.status as keyof typeof codeByStatus] ?? "MESSAGE_JOB_RETRY_REJECTED";
+          res.status(409).json({
+            success: false,
+            code,
+            status: prepared.status,
+            errorCode: prepared.errorCode,
+          });
+          return;
+        }
+
+        const dispatch = await dispatchDeliveryCareForOrder(prepared.orderId);
+        res.status(200).json({
+          success: dispatch.status === "sent" || dispatch.status === "retry_scheduled" || dispatch.status === "disabled",
+          requeued: true,
+          previousErrorCode: prepared.errorCode,
+          ...dispatch,
+        });
       } catch (error) {
         next(error);
       }
