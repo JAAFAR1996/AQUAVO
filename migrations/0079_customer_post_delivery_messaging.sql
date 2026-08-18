@@ -15,7 +15,8 @@
 --   5. Provider webhook events are persisted before reconciliation so an event
 --      cannot be lost if it races the outbound wamid database write.
 --   6. Provider status timestamps prevent out-of-order webhooks regressing state.
---   7. 0079 fails closed unless accounting migration 0078 is already active.
+--   7. Provider-event storage has bounded retention via the recovery worker.
+--   8. 0079 fails closed unless accounting migration 0078 is already active.
 
 BEGIN;
 
@@ -103,7 +104,7 @@ COMMENT ON TABLE public.customer_message_jobs IS
   'Durable idempotent outbox for AQUAVO customer messages. Job completion means provider API acceptance; provider_status/provider_status_at track later WhatsApp delivery lifecycle without regressing on out-of-order webhooks.';
 
 COMMENT ON TABLE public.whatsapp_provider_status_events IS
-  'Minimal signed WhatsApp status-event inbox. Stores wamid/status/timestamp only so webhook events survive races with the outbound acceptance write and can be reconciled idempotently.';
+  'Minimal signed WhatsApp status-event inbox. Stores wamid/status/timestamp only so webhook events survive races with the outbound acceptance write and can be reconciled idempotently; the recovery worker enforces bounded retention.';
 
 COMMENT ON CONSTRAINT customer_message_jobs_order_type_uq
   ON public.customer_message_jobs IS
@@ -169,7 +170,7 @@ BEGIN
     REVOKE ALL ON public.customer_message_jobs FROM PUBLIC;
     GRANT SELECT,INSERT,UPDATE ON public.customer_message_jobs TO aquavo_runtime;
     REVOKE ALL ON public.whatsapp_provider_status_events FROM PUBLIC;
-    GRANT SELECT,INSERT,UPDATE ON public.whatsapp_provider_status_events TO aquavo_runtime;
+    GRANT SELECT,INSERT,UPDATE,DELETE ON public.whatsapp_provider_status_events TO aquavo_runtime;
     REVOKE ALL ON FUNCTION public.aquavo_enqueue_post_delivery_messages() FROM PUBLIC;
     GRANT EXECUTE ON FUNCTION public.aquavo_enqueue_post_delivery_messages() TO aquavo_runtime;
   END IF;
@@ -180,7 +181,7 @@ INSERT INTO public.schema_migrations(version, checksum, notes)
 VALUES(
   '0079_customer_post_delivery_messaging',
   '0079007900790079007900790079007900790079007900790079007900790079',
-  'Transactional delivery-care outbox; durable signed provider-status inbox; review automation intentionally deferred'
+  'Transactional delivery-care outbox; durable signed provider-status inbox with bounded retention; review automation intentionally deferred'
 )
 ON CONFLICT(version) DO UPDATE
 SET checksum=EXCLUDED.checksum,
