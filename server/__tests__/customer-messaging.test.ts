@@ -66,6 +66,9 @@ describe("customer messaging helpers", () => {
     });
 
     it.each([
+      "WHATSAPP_HTTP_200",
+      "WHATSAPP_HTTP_204",
+      "WHATSAPP_HTTP_302",
       "WHATSAPP_TIMEOUT_AMBIGUOUS",
       "WHATSAPP_NETWORK_AMBIGUOUS",
       "WHATSAPP_UNKNOWN_AMBIGUOUS",
