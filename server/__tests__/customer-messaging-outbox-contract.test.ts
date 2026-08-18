@@ -22,6 +22,16 @@ const adminRoute = readFileSync(
   "utf8",
 );
 
+const webhookRoute = readFileSync(
+  join(process.cwd(), "server/routes/whatsapp-webhook.ts"),
+  "utf8",
+);
+
+const vercelEntry = readFileSync(
+  join(process.cwd(), "api/index.ts"),
+  "utf8",
+);
+
 const cronRoute = readFileSync(
   join(process.cwd(), "server/routes/cron.ts"),
   "utf8",
@@ -67,7 +77,9 @@ describe("post-delivery customer messaging contract", () => {
 
   it("distinguishes provider API acceptance from delivery state", () => {
     expect(migration).toContain("provider_status");
+    expect(migration).toContain("provider_status_at");
     expect(migration).toContain("'accepted', 'sent', 'delivered', 'read', 'failed'");
+    expect(migration).toContain("CREATE UNIQUE INDEX IF NOT EXISTS customer_message_jobs_provider_message_idx");
     expect(service).toContain("provider_status='accepted'");
     expect(service).toContain("provider_message_id=${providerMessageId}");
     expect(service).toContain("accepted_at=clock_timestamp()");
@@ -103,6 +115,18 @@ describe("post-delivery customer messaging contract", () => {
     expect(service).toContain("provider_message_id IS NULL");
     expect(service).toContain("accepted_at IS NULL");
     expect(service).toContain("manual_retry_history");
+  });
+
+  it("authenticates Meta webhooks and orders provider state by provider timestamp", () => {
+    expect(webhookRoute).toContain("x-hub-signature-256");
+    expect(webhookRoute).toContain("META_APP_SECRET");
+    expect(webhookRoute).toContain("WHATSAPP_WEBHOOK_VERIFY_TOKEN");
+    expect(webhookRoute).toContain("verifyMetaWebhookSignature");
+    expect(webhookRoute).toContain("provider_status_at");
+    expect(webhookRoute).toContain("job.provider_status_at < ${event.statusAt}");
+    expect(webhookRoute).toContain("WHATSAPP_PROVIDER_FAILED_");
+    expect(vercelEntry).toContain('realRoute === "/api/webhooks/whatsapp"');
+    expect(vercelEntry).toContain("req.rawBody = buf");
   });
 
   it("uses a protected external five-minute worker instead of Vercel Hobby cron", () => {
