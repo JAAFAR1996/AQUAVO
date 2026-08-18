@@ -12,8 +12,10 @@
 --   2. UNIQUE(order_id, job_type) makes enqueue/retry paths idempotent.
 --   3. WhatsApp/API failures can never roll back or corrupt order/accounting data.
 --   4. Provider acceptance is distinguished from handset delivery/read status.
---   5. Provider status timestamps prevent out-of-order webhooks regressing state.
---   6. 0079 fails closed unless accounting migration 0078 is already active.
+--   5. Provider webhook events are persisted before reconciliation so an event
+--      cannot be lost if it races the outbound wamid database write.
+--   6. Provider status timestamps prevent out-of-order webhooks regressing state.
+--   7. 0079 fails closed unless accounting migration 0078 is already active.
 
 BEGIN;
 
@@ -78,8 +80,30 @@ CREATE UNIQUE INDEX IF NOT EXISTS customer_message_jobs_provider_message_idx
   ON public.customer_message_jobs (provider_message_id)
   WHERE provider_message_id IS NOT NULL;
 
+CREATE TABLE IF NOT EXISTS public.whatsapp_provider_status_events (
+  id text PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  provider_message_id text NOT NULL,
+  provider_status text NOT NULL,
+  provider_status_at timestamptz NOT NULL,
+  error_code text,
+  applied_at timestamptz,
+  created_at timestamptz NOT NULL DEFAULT now(),
+
+  CONSTRAINT whatsapp_provider_status_events_status_chk
+    CHECK (provider_status IN ('sent', 'delivered', 'read', 'failed')),
+  CONSTRAINT whatsapp_provider_status_events_uq
+    UNIQUE (provider_message_id, provider_status, provider_status_at)
+);
+
+CREATE INDEX IF NOT EXISTS whatsapp_provider_status_events_pending_idx
+  ON public.whatsapp_provider_status_events (provider_message_id, provider_status_at, created_at)
+  WHERE applied_at IS NULL;
+
 COMMENT ON TABLE public.customer_message_jobs IS
   'Durable idempotent outbox for AQUAVO customer messages. Job completion means provider API acceptance; provider_status/provider_status_at track later WhatsApp delivery lifecycle without regressing on out-of-order webhooks.';
+
+COMMENT ON TABLE public.whatsapp_provider_status_events IS
+  'Minimal signed WhatsApp status-event inbox. Stores wamid/status/timestamp only so webhook events survive races with the outbound acceptance write and can be reconciled idempotently.';
 
 COMMENT ON CONSTRAINT customer_message_jobs_order_type_uq
   ON public.customer_message_jobs IS
@@ -138,12 +162,14 @@ AFTER UPDATE OF status ON public.orders
 FOR EACH ROW
 EXECUTE FUNCTION public.aquavo_enqueue_post_delivery_messages();
 
--- Production runtime receives only the privileges needed by the outbox path.
+-- Production runtime receives only the privileges needed by the outbox/webhook paths.
 DO $do$
 BEGIN
   IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname='aquavo_runtime') THEN
     REVOKE ALL ON public.customer_message_jobs FROM PUBLIC;
     GRANT SELECT,INSERT,UPDATE ON public.customer_message_jobs TO aquavo_runtime;
+    REVOKE ALL ON public.whatsapp_provider_status_events FROM PUBLIC;
+    GRANT SELECT,INSERT,UPDATE ON public.whatsapp_provider_status_events TO aquavo_runtime;
     REVOKE ALL ON FUNCTION public.aquavo_enqueue_post_delivery_messages() FROM PUBLIC;
     GRANT EXECUTE ON FUNCTION public.aquavo_enqueue_post_delivery_messages() TO aquavo_runtime;
   END IF;
@@ -154,7 +180,7 @@ INSERT INTO public.schema_migrations(version, checksum, notes)
 VALUES(
   '0079_customer_post_delivery_messaging',
   '0079007900790079007900790079007900790079007900790079007900790079',
-  'Transactional delivery-care outbox; ordered provider webhook status; review automation intentionally deferred'
+  'Transactional delivery-care outbox; durable signed provider-status inbox; review automation intentionally deferred'
 )
 ON CONFLICT(version) DO UPDATE
 SET checksum=EXCLUDED.checksum,
