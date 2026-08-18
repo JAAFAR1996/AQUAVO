@@ -2,6 +2,10 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import type { Request, Response, Router as RouterType } from "express";
 import { Router } from "express";
 import {
+  handleDeliveryCareButtonReply,
+  type DeliveryCareButtonReplyEvent,
+} from "../services/whatsapp-delivery-care-replies.js";
+import {
   recordWhatsAppProviderStatusEvent,
   type WhatsAppProviderStatus,
   type WhatsAppProviderStatusEvent,
@@ -50,10 +54,7 @@ function compactProviderFailureCode(status: Record<string, unknown>): string {
   return `WHATSAPP_PROVIDER_FAILED_${code}`.slice(0, 120);
 }
 
-/**
- * Extract only outgoing-message lifecycle events we persist. Incoming messages,
- * contacts and unsupported/deleted statuses are deliberately ignored.
- */
+/** Extract outgoing-message lifecycle events we persist. */
 export function extractWhatsAppStatusEvents(payload: unknown): WhatsAppStatusEvent[] {
   const root = asRecord(payload);
   if (!root || root.object !== "whatsapp_business_account" || !Array.isArray(root.entry)) return [];
@@ -87,6 +88,63 @@ export function extractWhatsAppStatusEvents(payload: unknown): WhatsAppStatusEve
           status,
           statusAt,
           errorCode: status === "failed" ? compactProviderFailureCode(statusObject) : null,
+        });
+      }
+    }
+  }
+
+  return events;
+}
+
+/**
+ * Meta sends a message with type="button" when a customer taps a Quick Reply on
+ * an interactive message template. context.id points back to AQUAVO's original
+ * template wamid, which is the correlation key used by the delivery-care handler.
+ */
+export function extractDeliveryCareButtonReplyEvents(
+  payload: unknown,
+): DeliveryCareButtonReplyEvent[] {
+  const root = asRecord(payload);
+  if (!root || root.object !== "whatsapp_business_account" || !Array.isArray(root.entry)) return [];
+
+  const events: DeliveryCareButtonReplyEvent[] = [];
+  for (const rawEntry of root.entry) {
+    const entry = asRecord(rawEntry);
+    if (!entry || !Array.isArray(entry.changes)) continue;
+
+    for (const rawChange of entry.changes) {
+      const change = asRecord(rawChange);
+      if (!change || change.field !== "messages") continue;
+      const value = asRecord(change.value);
+      if (!value || !Array.isArray(value.messages)) continue;
+
+      for (const rawMessage of value.messages) {
+        const message = asRecord(rawMessage);
+        if (!message || String(message.type ?? "") !== "button") continue;
+
+        const button = asRecord(message.button);
+        const context = asRecord(message.context);
+        const inboundMessageId = String(message.id ?? "").trim();
+        const contextProviderMessageId = String(context?.id ?? "").trim();
+        const fromPhone = String(message.from ?? "").trim();
+        const payloadValue = String(button?.payload ?? "").trim();
+        const buttonText = String(button?.text ?? "").trim();
+        const timestampSeconds = Number(message.timestamp);
+
+        if (!inboundMessageId || !contextProviderMessageId || !fromPhone) continue;
+        if (!payloadValue && !buttonText) continue;
+        if (!Number.isFinite(timestampSeconds) || timestampSeconds <= 0) continue;
+
+        const receivedAt = new Date(timestampSeconds * 1000);
+        if (!Number.isFinite(receivedAt.getTime())) continue;
+
+        events.push({
+          inboundMessageId,
+          contextProviderMessageId,
+          fromPhone,
+          receivedAt,
+          payload: payloadValue,
+          buttonText,
         });
       }
     }
@@ -139,22 +197,39 @@ export function createWhatsAppWebhookRouter(): RouterType {
       return;
     }
 
-    const events = extractWhatsAppStatusEvents(payload);
+    const statusEvents = extractWhatsAppStatusEvents(payload);
+    const buttonReplyEvents = extractDeliveryCareButtonReplyEvents(payload);
+
     try {
-      // Persist each signed provider status before attempting to match it to an
-      // outbox job. If wamid acceptance is still racing, the event stays pending
-      // and markAccepted()/cron reconciliation will apply it later.
-      for (const event of events) {
+      // Persist signed provider lifecycle status first. If wamid acceptance is
+      // still racing, the existing durable inbox retains it for reconciliation.
+      for (const event of statusEvents) {
         await recordWhatsAppProviderStatusEvent(event);
       }
+
+      let buttonRepliesHandled = 0;
+      for (const event of buttonReplyEvents) {
+        const result = await handleDeliveryCareButtonReply(event);
+        if (result.status === "db_unavailable") {
+          res.status(503).json({ code: "WEBHOOK_PERSISTENCE_FAILED" });
+          return;
+        }
+        if (result.status === "replied" || result.status === "duplicate") {
+          buttonRepliesHandled += 1;
+        }
+      }
+
+      res.status(200).json({
+        received: true,
+        events: statusEvents.length,
+        buttonReplies: buttonReplyEvents.length,
+        buttonRepliesHandled,
+      });
     } catch {
       // Non-2xx deliberately asks Meta to retry a verified event when persistence
-      // failed. No provider payload/phone/error text is written to application logs.
+      // failed. No provider payload, phone, customer text or token is logged.
       res.status(503).json({ code: "WEBHOOK_PERSISTENCE_FAILED" });
-      return;
     }
-
-    res.status(200).json({ received: true, events: events.length });
   });
 
   return router;
