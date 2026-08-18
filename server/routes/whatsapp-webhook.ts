@@ -1,27 +1,15 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import type { Request, Response, Router as RouterType } from "express";
 import { Router } from "express";
-import { sql } from "drizzle-orm";
-import { getDb } from "../db.js";
+import {
+  recordWhatsAppProviderStatusEvent,
+  type WhatsAppProviderStatus,
+  type WhatsAppProviderStatusEvent,
+} from "../services/whatsapp-provider-status.js";
 
 type RawBodyRequest = Request & { rawBody?: Buffer };
 
-type WhatsAppProviderStatus = "sent" | "delivered" | "read" | "failed";
-
-export type WhatsAppStatusEvent = {
-  providerMessageId: string;
-  status: WhatsAppProviderStatus;
-  statusAt: Date;
-  errorCode: string | null;
-};
-
-const PROVIDER_STATUS_RANK: Record<"accepted" | WhatsAppProviderStatus, number> = {
-  accepted: 0,
-  sent: 1,
-  delivered: 2,
-  read: 3,
-  failed: 4,
-};
+export type WhatsAppStatusEvent = WhatsAppProviderStatusEvent;
 
 function constantTimeStringEquals(left: string, right: string): boolean {
   const leftBuffer = Buffer.from(left, "utf8");
@@ -39,7 +27,7 @@ export function verifyMetaWebhookSignature(
   if (!Buffer.isBuffer(rawBody) || !rawBody.length || !signatureHeader || !appSecret) return false;
 
   const match = /^sha256=([a-f0-9]{64})$/i.exec(signatureHeader.trim());
-  if (!match) return false;
+  if (!match?.[1]) return false;
 
   const expected = createHmac("sha256", appSecret).update(rawBody).digest();
   const supplied = Buffer.from(match[1], "hex");
@@ -107,52 +95,6 @@ export function extractWhatsAppStatusEvents(payload: unknown): WhatsAppStatusEve
   return events;
 }
 
-async function persistWhatsAppStatusEvent(event: WhatsAppStatusEvent): Promise<boolean> {
-  const db = getDb();
-  if (!db) throw new Error("DB_UNAVAILABLE");
-
-  const incomingRank = PROVIDER_STATUS_RANK[event.status];
-  const result = await db.execute(sql`
-    UPDATE public.customer_message_jobs AS job
-       SET provider_status=${event.status},
-           provider_status_at=${event.statusAt},
-           last_error_code=CASE
-             WHEN ${event.status}='failed' THEN ${event.errorCode}
-             WHEN job.last_error_code LIKE 'WHATSAPP_PROVIDER_FAILED_%' THEN NULL
-             ELSE job.last_error_code
-           END,
-           last_error_at=CASE
-             WHEN ${event.status}='failed' THEN ${event.statusAt}
-             WHEN job.last_error_code LIKE 'WHATSAPP_PROVIDER_FAILED_%' THEN NULL
-             ELSE job.last_error_at
-           END,
-           updated_at=clock_timestamp()
-     WHERE job.provider_message_id=${event.providerMessageId}
-       AND job.status='completed'
-       AND (
-         job.provider_status_at IS NULL
-         OR job.provider_status_at < ${event.statusAt}
-         OR (
-           job.provider_status_at = ${event.statusAt}
-           AND CASE job.provider_status
-             WHEN 'accepted' THEN 0
-             WHEN 'sent' THEN 1
-             WHEN 'delivered' THEN 2
-             WHEN 'read' THEN 3
-             WHEN 'failed' THEN 4
-             ELSE -1
-           END < ${incomingRank}
-         )
-       )
-    RETURNING job.id
-  `);
-
-  const rows = Array.isArray(result)
-    ? result
-    : ((result as { rows?: unknown[] } | null)?.rows ?? []);
-  return rows.length > 0;
-}
-
 export function createWhatsAppWebhookRouter(): RouterType {
   const router = Router();
 
@@ -197,29 +139,22 @@ export function createWhatsAppWebhookRouter(): RouterType {
       return;
     }
 
-    const db = getDb();
-    if (!db) {
-      res.status(503).json({ code: "DB_UNAVAILABLE" });
+    const events = extractWhatsAppStatusEvents(payload);
+    try {
+      // Persist each signed provider status before attempting to match it to an
+      // outbox job. If wamid acceptance is still racing, the event stays pending
+      // and markAccepted()/cron reconciliation will apply it later.
+      for (const event of events) {
+        await recordWhatsAppProviderStatusEvent(event);
+      }
+    } catch {
+      // Non-2xx deliberately asks Meta to retry a verified event when persistence
+      // failed. No provider payload/phone/error text is written to application logs.
+      res.status(503).json({ code: "WEBHOOK_PERSISTENCE_FAILED" });
       return;
     }
 
-    const events = extractWhatsAppStatusEvents(payload);
-    let updated = 0;
-    try {
-      for (const event of events) {
-        if (await persistWhatsAppStatusEvent(event)) updated += 1;
-      }
-    } catch (error) {
-      if (error instanceof Error && error.message === "DB_UNAVAILABLE") {
-        res.status(503).json({ code: "DB_UNAVAILABLE" });
-        return;
-      }
-      throw error;
-    }
-
-    // A verified webhook is acknowledged even if it references a message that is
-    // not ours. Meta may redeliver notifications, so persistence is idempotent.
-    res.status(200).json({ received: true, events: events.length, updated });
+    res.status(200).json({ received: true, events: events.length });
   });
 
   return router;
