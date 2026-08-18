@@ -192,7 +192,7 @@ export function CustomerMessagingPanel({ orderId }: { orderId: string }) {
                     )}
                   </div>
 
-                  {job.status === "failed" && job.manualRetryAllowed && (
+                  {job.manualRetryAllowed && (
                     <Button
                       type="button"
                       size="sm"
