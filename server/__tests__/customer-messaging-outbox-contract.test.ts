@@ -80,14 +80,17 @@ describe("post-delivery customer messaging contract", () => {
     expect(rollout).toContain("Equipment/hardware: send the review request on **day 9**");
   });
 
-  it("distinguishes provider API acceptance from delivery state", () => {
+  it("distinguishes provider API acceptance from delivery state and persists wamid idempotently", () => {
     expect(migration).toContain("provider_status");
     expect(migration).toContain("provider_status_at");
     expect(migration).toContain("'accepted', 'sent', 'delivered', 'read', 'failed'");
     expect(migration).toContain("CREATE UNIQUE INDEX IF NOT EXISTS customer_message_jobs_provider_message_idx");
-    expect(service).toContain("provider_status='accepted'");
-    expect(service).toContain("provider_message_id=${providerMessageId}");
-    expect(service).toContain("accepted_at=clock_timestamp()");
+    expect(service).toContain("ACCEPTANCE_PERSIST_ATTEMPTS = 3");
+    expect(service).toContain("provider_message_id=COALESCE(provider_message_id, ${providerMessageId})");
+    expect(service).toContain("provider_status=CASE WHEN status='sending' THEN 'accepted' ELSE provider_status END");
+    expect(service).toContain("accepted_at=COALESCE(accepted_at, clock_timestamp())");
+    expect(service).toContain("status='completed' AND provider_message_id=${providerMessageId}");
+    expect(service).toContain("WHATSAPP_ACCEPTED_PERSISTENCE_AMBIGUOUS");
   });
 
   it("requires explicit admin confirmation before delivered starts the WhatsApp lifecycle", () => {
@@ -102,6 +105,14 @@ describe("post-delivery customer messaging contract", () => {
     expect(client).toContain("Post-delivery WhatsApp dispatch failed:");
     expect(client).toContain("delivery truth succeeded");
     expect(service).toContain("Order/accounting truth never depends on WhatsApp success");
+  });
+
+  it("suppresses rollout backlog before live sending", () => {
+    expect(service).toContain("WHATSAPP_DELIVERY_CARE_ACTIVATION_AT");
+    expect(service).toContain("DELIVERY_CARE_PRE_ACTIVATION");
+    expect(service).toContain("created_at < ${activationAt}");
+    expect(service).toContain("created_at >= ${activationAt}");
+    expect(service).toContain("cancelPreActivationDeliveryCare(config.activationAt)");
   });
 
   it("fails ambiguous transport/stale-send states instead of auto-resending them", () => {
@@ -144,6 +155,15 @@ describe("post-delivery customer messaging contract", () => {
     expect(providerStatusService).toContain("applied_at=clock_timestamp()");
     expect(service).toContain("reconcileWhatsAppProviderEvents(providerMessageId)");
     expect(service).toContain("reconcilePendingWhatsAppProviderEvents(25)");
+  });
+
+  it("bounds durable provider-event retention", () => {
+    expect(providerStatusService).toContain("cleanupWhatsAppProviderStatusEvents");
+    expect(providerStatusService).toContain("interval '1 day'");
+    expect(providerStatusService).toContain("interval '7 days'");
+    expect(providerStatusService).toContain("DELETE FROM public.whatsapp_provider_status_events");
+    expect(migration).toContain("GRANT SELECT,INSERT,UPDATE,DELETE ON public.whatsapp_provider_status_events TO aquavo_runtime");
+    expect(cronRoute).toContain("cleanupWhatsAppProviderStatusEvents(500)");
   });
 
   it("uses a protected external five-minute worker instead of Vercel Hobby cron", () => {
