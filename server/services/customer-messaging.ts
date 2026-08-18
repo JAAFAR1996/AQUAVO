@@ -1,5 +1,9 @@
 import { sql } from "drizzle-orm";
 import { getDb } from "../db.js";
+import {
+  reconcilePendingWhatsAppProviderEvents,
+  reconcileWhatsAppProviderEvents,
+} from "./whatsapp-provider-status.js";
 
 const WHATSAPP_REQUEST_TIMEOUT_MS = 7_000;
 const MAX_SEND_ATTEMPTS = 5;
@@ -310,7 +314,7 @@ async function sendDeliveryCareTemplate(
 async function markAccepted(jobId: string, providerMessageId: string): Promise<void> {
   const db = getDb();
   if (!db) return;
-  await db.execute(sql`
+  const updated = await db.execute(sql`
     UPDATE public.customer_message_jobs
        SET status='completed',
            provider_status='accepted',
@@ -323,7 +327,18 @@ async function markAccepted(jobId: string, providerMessageId: string): Promise<v
            updated_at=clock_timestamp()
      WHERE id=${jobId}
        AND status='sending'
+    RETURNING id
   `);
+
+  if (rowsOf(updated).length > 0) {
+    try {
+      await reconcileWhatsAppProviderEvents(providerMessageId);
+    } catch {
+      // Provider acceptance is already durable and must not be downgraded if
+      // status reconciliation has a transient failure. The recovery worker will
+      // reconcile the persisted provider-event inbox on its next invocation.
+    }
+  }
 }
 
 async function markPermanentFailure(jobId: string, errorCode: string): Promise<void> {
@@ -575,9 +590,8 @@ async function failStaleClaims(): Promise<number> {
 
 /**
  * Durable recovery worker used by the external GitHub Actions scheduler on Vercel
- * Hobby. Pending jobs are retried when the provider explicitly returned a retryable
- * HTTP failure. Ambiguous stale in-flight sends are failed for manual inspection
- * rather than resent, which avoids duplicate customer messages.
+ * Hobby. It first reconciles any signed provider-status event that raced the wamid
+ * write, then handles due outbound retries when Cloud API sending is enabled.
  */
 export async function runDueDeliveryCareJobs(limit = DEFAULT_WORKER_LIMIT): Promise<{
   processed: number;
@@ -585,10 +599,23 @@ export async function runDueDeliveryCareJobs(limit = DEFAULT_WORKER_LIMIT): Prom
   retried: number;
   failed: number;
   staleFailed: number;
+  providerEventsReconciled: number;
 }> {
   const db = getDb();
-  if (!db || !readWhatsAppConfig()) {
-    return { processed: 0, sent: 0, retried: 0, failed: 0, staleFailed: 0 };
+  if (!db) {
+    return { processed: 0, sent: 0, retried: 0, failed: 0, staleFailed: 0, providerEventsReconciled: 0 };
+  }
+
+  let providerEventsReconciled = 0;
+  try {
+    providerEventsReconciled = await reconcilePendingWhatsAppProviderEvents(25);
+  } catch {
+    // Outbound retry processing remains independent. A later worker invocation can
+    // safely retry provider-event reconciliation because the inbox is idempotent.
+  }
+
+  if (!readWhatsAppConfig()) {
+    return { processed: 0, sent: 0, retried: 0, failed: 0, staleFailed: 0, providerEventsReconciled };
   }
 
   const safeLimit = Math.max(1, Math.min(MAX_WORKER_LIMIT, Math.floor(limit)));
@@ -619,5 +646,5 @@ export async function runDueDeliveryCareJobs(limit = DEFAULT_WORKER_LIMIT): Prom
     if (!["already_handled", "not_due", "disabled", "db_unavailable"].includes(result.status)) processed += 1;
   }
 
-  return { processed, sent, retried, failed, staleFailed };
+  return { processed, sent, retried, failed, staleFailed, providerEventsReconciled };
 }
