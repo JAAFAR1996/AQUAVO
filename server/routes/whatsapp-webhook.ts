@@ -214,6 +214,13 @@ export function createWhatsAppWebhookRouter(): RouterType {
           res.status(503).json({ code: "WEBHOOK_PERSISTENCE_FAILED" });
           return;
         }
+        if (result.status === "retryable_failed") {
+          // Meta may safely retry this exact signed webhook: the prior send got an
+          // explicit retryable rejection (429/5xx), and the durable callback claim
+          // allows only bounded retries for the same inbound message id.
+          res.status(503).json({ code: "WHATSAPP_AUTO_REPLY_RETRY_REQUESTED" });
+          return;
+        }
         if (result.status === "replied" || result.status === "duplicate") {
           buttonRepliesHandled += 1;
         }
