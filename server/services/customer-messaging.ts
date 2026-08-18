@@ -159,7 +159,9 @@ export function canManuallyRetryDeliveryCare(errorCode: unknown): boolean {
     return true;
   }
 
-  return /^WHATSAPP_HTTP_\d{3}(?:_|$)/.test(code);
+  // Only an explicit provider 4xx/5xx response is retry-safe here. A 2xx
+  // response without a wamid is ambiguous and must never be manually resent.
+  return /^WHATSAPP_HTTP_[45]\d{2}(?:_|$)/.test(code);
 }
 
 function readWhatsAppConfig(): WhatsAppConfig | null {
