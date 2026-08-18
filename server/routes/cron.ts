@@ -3,6 +3,8 @@ import { triggerJob } from "../cron/scheduled-jobs.js";
 import { aiMonitor } from "../services/ai-monitor.js";
 import { getDb } from "../db.js";
 import { runAutomaticPeriodClose } from "../services/accounting-auto-close-v2.js";
+import { runDueDeliveryCareJobs } from "../services/customer-messaging.js";
+import { cleanupWhatsAppProviderStatusEvents } from "../services/whatsapp-provider-status.js";
 
 const router = Router();
 
@@ -120,6 +122,53 @@ router.get("/finance-audit", async (_req: Request, res: Response) => {
     const message = error instanceof Error ? error.message : String(error);
     console.error(`[Cron] Finance close/audit failed: ${message}`);
     return res.status(500).json({ success: false, error: message });
+  }
+});
+
+/**
+ * Recovery worker for post-delivery WhatsApp care messages.
+ * Vercel Hobby cannot schedule sub-daily Cron Jobs, so production is invoked by
+ * a protected GitHub Actions schedule every five minutes. The existing admin
+ * delivered button remains the primary immediate-send path; this worker covers
+ * provider retries, browser interruption, stale serverless claims, provider
+ * status reconciliation and bounded provider-event retention cleanup.
+ */
+router.get("/customer-messaging", async (_req: Request, res: Response) => {
+  const startTime = Date.now();
+  try {
+    const result = await runDueDeliveryCareJobs(5);
+    let providerEventsCleaned = 0;
+    try {
+      providerEventsCleaned = await cleanupWhatsAppProviderStatusEvents(500);
+    } catch {
+      // Cleanup is maintenance only. It must not turn a successful messaging
+      // recovery invocation into a failed outbound worker response.
+    }
+
+    const duration = Date.now() - startTime;
+    aiMonitor.log({
+      event: "cron_job",
+      level: "info",
+      success: true,
+      responseTimeMs: duration,
+      details: {
+        job: "customer_messaging_delivery_care",
+        status: "completed",
+        source: "external_scheduler",
+        ...result,
+        providerEventsCleaned,
+      },
+    });
+    return res.status(200).json({ success: true, duration, ...result, providerEventsCleaned });
+  } catch (error) {
+    const duration = Date.now() - startTime;
+    const message = error instanceof Error ? error.message : String(error);
+    aiMonitor.logError(`Customer messaging retry worker failed: ${message}`, {}, {
+      event: "cron_job",
+      responseTimeMs: duration,
+      details: { job: "customer_messaging_delivery_care", status: "failed", source: "external_scheduler" },
+    } as any);
+    return res.status(500).json({ success: false, error: "CUSTOMER_MESSAGING_WORKER_FAILED", duration });
   }
 });
 

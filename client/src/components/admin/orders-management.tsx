@@ -144,7 +144,8 @@ export function OrdersManagement() {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const { toast } = useToast();
 
-  // Triple confirmation state for rejection
+  // Confirmation state for delivery and rejection
+  const [deliverOrderId, setDeliverOrderId] = useState<string | null>(null);
   const [rejectOrderId, setRejectOrderId] = useState<string | null>(null);
   const [rejectStep, setRejectStep] = useState(0);
   const [archiveOrderId, setArchiveOrderId] = useState<string | null>(null);
@@ -272,6 +273,50 @@ export function OrdersManagement() {
         }
         const errData = await response.json().catch(() => ({}));
         throw new Error(errData.message || "Failed to update order");
+      }
+
+      // The DB trigger has already persisted an idempotent delivery-care outbox
+      // job at this point. Attempt the WhatsApp send immediately from the same
+      // admin action, but never turn a messaging outage into an order-status error.
+      if (newStatus === "delivered") {
+        try {
+          const messagingResponse = await fetch(
+            `/api/admin/orders/${orderId}/customer-messaging/delivery-care`,
+            {
+              method: "POST",
+              headers: addCsrfHeader({ "Content-Type": "application/json" }),
+              credentials: "include",
+              body: JSON.stringify({}),
+            },
+          );
+          const messaging = await messagingResponse.json().catch(() => ({})) as {
+            status?: string;
+            errorCode?: string;
+          };
+
+          if (messaging.status === "sent") {
+            toast({ title: "واتساب", description: "تم إرسال رسالة ما بعد الاستلام للزبون" });
+          } else if (messaging.status === "retry_scheduled") {
+            toast({
+              title: "واتساب محفوظ للإعادة",
+              description: "تعذر الإرسال مؤقتاً؛ الرسالة محفوظة ولن تتكرر وسيعاد إرسالها تلقائياً.",
+            });
+          } else if (messaging.status === "invalid_phone" || messaging.status === "failed") {
+            toast({
+              title: "واتساب لم يُرسل",
+              description: messaging.errorCode === "INVALID_IRAQI_MOBILE"
+                ? "رقم الزبون غير صالح للإرسال عبر واتساب. حالة الطلب بقيت مكتملة."
+                : "فشل إرسال رسالة المتابعة. حالة الطلب بقيت مكتملة ويمكن إعادة المحاولة من سجل الرسائل.",
+              variant: "destructive",
+            });
+          }
+          // disabled/already_handled/not_due are intentionally silent. Disabled
+          // is the safe default until Meta credentials/templates are activated.
+        } catch (messagingError) {
+          console.error("Post-delivery WhatsApp dispatch failed:", messagingError);
+          // Deliberately no destructive order toast: delivery truth succeeded and
+          // the durable DB outbox retains the message independently of the browser.
+        }
       }
 
       const statusLabels: Record<string, string> = {
@@ -584,7 +629,7 @@ export function OrdersManagement() {
 
                             {order.status === 'shipped' && (
                               <>
-                                <Button size="sm" className="bg-green-500 hover:bg-green-600 text-white" onClick={() => handleStatusChange(order.id, 'delivered')}>
+                                <Button size="sm" className="bg-green-500 hover:bg-green-600 text-white" onClick={() => setDeliverOrderId(order.id)}>
                                   استلم الزبون ✅
                                 </Button>
                                 <Button size="sm" variant="destructive" onClick={() => startReject(order.id)}>
@@ -617,6 +662,31 @@ export function OrdersManagement() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Delivery Confirmation Dialog */}
+      <AlertDialog open={!!deliverOrderId} onOpenChange={(open) => { if (!open) setDeliverOrderId(null); }}>
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>تأكيد استلام الزبون؟</AlertDialogTitle>
+            <AlertDialogDescription className="leading-6">
+              بعد التأكيد راح يتحول الطلب إلى مكتمل، وإذا خدمة واتساب مفعّلة تبدأ رسالة ما بعد الاستلام. تأكد أن الزبون استلم الطلب فعلاً.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-green-600 hover:bg-green-700 text-white"
+              onClick={() => {
+                const orderId = deliverOrderId;
+                setDeliverOrderId(null);
+                if (orderId) void handleStatusChange(orderId, 'delivered');
+              }}
+            >
+              تأكيد الاستلام
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Triple Confirmation Dialog */}
       <AlertDialog open={rejectStep > 0}>

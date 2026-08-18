@@ -9,6 +9,8 @@ import { createAdminRouter } from "./routes/admin.js";
 import { createAdminOrderPurgeRouter } from "./routes/admin-order-purge.js";
 import { createAdminOrderArchiveRouter } from "./routes/admin-order-archive.js";
 import { createAdminOrdersV2Router } from "./routes/admin-orders-v2.js";
+import { createCustomerMessagingAdminRouter } from "./routes/customer-messaging-admin.js";
+import { createWhatsAppWebhookRouter } from "./routes/whatsapp-webhook.js";
 import { createAccountingAutomaticReturnsV2Router } from "./routes/accounting-automatic-returns-v2.js";
 import { createAccountingMonthlyPositionV2Router } from "./routes/accounting-monthly-position-v2.js";
 import { createAccountingSetupV2Router } from "./routes/accounting-setup-v2.js";
@@ -88,12 +90,17 @@ export async function registerRoutes(httpServer: Server, app: express.Applicatio
   app.use("/api/orders", alwaseetPublicTrackingRouter);
   app.use("/api/orders", createOrderRouter());
 
+  // Public Meta callback: no session/admin auth. POST authenticity is enforced
+  // inside the router with X-Hub-Signature-256 over the captured raw body.
+  app.use("/api/webhooks/whatsapp", createWhatsAppWebhookRouter());
+
   // Purge and archive/list handling are deliberately isolated from Accounting V2.
   // Purge has its own explicit /purge endpoint; archive keeps the compatibility
   // DELETE route and remains mounted before the legacy hard-delete handler.
   app.use("/api/admin", createAdminOrderPurgeRouter());
   app.use("/api/admin", createAdminOrderArchiveRouter());
   app.use("/api/admin", createAdminOrdersV2Router());
+  app.use("/api/admin", createCustomerMessagingAdminRouter());
   app.use("/api/admin", createAdminRouter());
   app.use("/api/admin/security", createSecurityRouter());
   app.use("/api/admin/analytics", createAccurateAdminAnalyticsRouter());
