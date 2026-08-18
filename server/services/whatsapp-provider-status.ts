@@ -180,3 +180,37 @@ export async function reconcilePendingWhatsAppProviderEvents(limit = 25): Promis
   }
   return applied;
 }
+
+/**
+ * Bound provider-event storage without shortening the wamid race window. Applied
+ * events are disposable after one day; unmatched events stay seven days so a
+ * delayed acceptance/reconciliation can still recover them. Work is capped per
+ * invocation to keep the five-minute worker predictable.
+ */
+export async function cleanupWhatsAppProviderStatusEvents(limit = 500): Promise<number> {
+  const db = getDb();
+  if (!db) return 0;
+
+  const safeLimit = Math.max(1, Math.min(2_000, Math.floor(limit)));
+  const result = await db.execute(sql`
+    WITH expired AS (
+      SELECT id
+      FROM public.whatsapp_provider_status_events
+      WHERE (
+        applied_at IS NOT NULL
+        AND applied_at <= clock_timestamp() - interval '1 day'
+      ) OR (
+        applied_at IS NULL
+        AND created_at <= clock_timestamp() - interval '7 days'
+      )
+      ORDER BY created_at ASC
+      LIMIT ${safeLimit}
+    )
+    DELETE FROM public.whatsapp_provider_status_events AS event
+    USING expired
+    WHERE event.id=expired.id
+    RETURNING event.id
+  `);
+
+  return rowsOf(result).length;
+}
