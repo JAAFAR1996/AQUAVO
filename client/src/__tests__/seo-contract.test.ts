@@ -12,6 +12,7 @@ describe("AQUAVO discoverability contract", () => {
     expect(sitemap).toContain("https://www.aquavoiq.com/sitemap-pages.xml");
     expect(sitemap).toContain("https://www.aquavoiq.com/sitemap-products.xml");
     expect(sitemap).toContain("https://www.aquavoiq.com/sitemap-guides.xml");
+    expect(sitemap).toContain("https://www.aquavoiq.com/sitemap-blog.xml");
   });
 
   it("does not publish retired business claims to AI crawlers", () => {
