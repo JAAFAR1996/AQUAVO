@@ -37,8 +37,11 @@ describe("published blog indexing and sitemap wiring", () => {
     expect(sitemap).toContain("is_published = TRUE");
     expect(sitemap).toContain('published_at AS "publishedAt"');
     expect(sitemap).toContain('updated_at AS "updatedAt"');
+    expect(sitemap).toContain('created_at AS "createdAt"');
     expect(sitemap).not.toContain("status = 'published'");
     expect(sitemap).not.toContain('SELECT slug, "publishedAt", "updatedAt"');
+    expect(sitemap).not.toContain("BLOG_SITEMAP_RELEASE_LASTMOD");
+    expect(sitemap).toContain("effectiveLastmod(post.publishedAt, post.updatedAt, post.createdAt)");
     expect(sitemap).toContain("/blog/${slug}");
     expect(sitemapIndex).toContain("/sitemap-blog.xml");
     expect(apiIndex).toContain('case "/sitemap-blog.xml"');
