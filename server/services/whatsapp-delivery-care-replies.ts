@@ -10,6 +10,7 @@ import {
 const WHATSAPP_REPLY_TIMEOUT_MS = 7_000;
 const MAX_AUTO_REPLY_ATTEMPTS = 3;
 const AUTO_REPLY_RETRY_DELAY_MS = 60_000;
+const AUTO_REPLY_METADATA_PERSIST_ATTEMPTS = 3;
 const STALE_AUTO_REPLY_PROCESSING_MINUTES = 10;
 const DEFAULT_AUTO_REPLY_WORKER_LIMIT = 5;
 const MAX_AUTO_REPLY_WORKER_LIMIT = 10;
@@ -102,6 +103,10 @@ function metadataRecord(value: unknown): Record<string, unknown> {
   } catch {
     return {};
   }
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function readReplyConfig(): ReplyConfig | null {
@@ -202,6 +207,28 @@ async function mergeReplyMetadata(
            updated_at=clock_timestamp()
      WHERE id=${jobId}
   `);
+}
+
+/**
+ * Provider sends are never repeated merely because PostgreSQL acknowledgement is
+ * uncertain. Metadata writes are idempotent JSON merges, so retry only the local
+ * persistence step a few times; the provider request itself happens exactly once.
+ */
+async function persistReplyMetadata(
+  jobId: string,
+  values: Record<string, unknown>,
+): Promise<boolean> {
+  for (let attempt = 1; attempt <= AUTO_REPLY_METADATA_PERSIST_ATTEMPTS; attempt += 1) {
+    try {
+      await mergeReplyMetadata(jobId, values);
+      return true;
+    } catch {
+      if (attempt < AUTO_REPLY_METADATA_PERSIST_ATTEMPTS) {
+        await sleep(attempt * 75);
+      }
+    }
+  }
+  return false;
 }
 
 function retryAtIsDue(value: unknown): boolean {
@@ -410,7 +437,7 @@ export async function handleDeliveryCareButtonReply(
 
   const config = readReplyConfig();
   if (!config) {
-    await mergeReplyMetadata(jobId, {
+    const persisted = await persistReplyMetadata(jobId, {
       auto_reply_status: "disabled",
       auto_reply_error_code: "WHATSAPP_REPLY_NOT_CONFIGURED",
       auto_reply_processing_at: null,
@@ -418,6 +445,15 @@ export async function handleDeliveryCareButtonReply(
       auto_reply_deferred_at: new Date().toISOString(),
       auto_reply_finished_at: null,
     });
+    if (!persisted) {
+      return {
+        status: "db_unavailable",
+        jobId,
+        orderId,
+        choice,
+        errorCode: "WHATSAPP_REPLY_DEFER_PERSISTENCE_FAILED",
+      };
+    }
     return {
       status: "disabled",
       jobId,
@@ -427,29 +463,13 @@ export async function handleDeliveryCareButtonReply(
     };
   }
 
+  let providerMessageId: string;
   try {
-    const providerMessageId = await sendTextAutoReply(
+    providerMessageId = await sendTextAutoReply(
       config,
       senderPhone,
       getDeliveryCareAutoReplyText(choice),
     );
-
-    await mergeReplyMetadata(jobId, {
-      auto_reply_status: "sent",
-      auto_reply_provider_message_id: providerMessageId,
-      auto_reply_error_code: null,
-      auto_reply_processing_at: null,
-      auto_reply_retry_at: null,
-      auto_reply_finished_at: new Date().toISOString(),
-    });
-
-    return {
-      status: "replied",
-      jobId,
-      orderId,
-      choice,
-      providerMessageId,
-    };
   } catch (error) {
     const sendError = error instanceof AutoReplySendError
       ? error
@@ -465,13 +485,22 @@ export async function handleDeliveryCareButtonReply(
       ? new Date(Date.now() + AUTO_REPLY_RETRY_DELAY_MS).toISOString()
       : null;
 
-    await mergeReplyMetadata(jobId, {
+    const persisted = await persistReplyMetadata(jobId, {
       auto_reply_status: storedStatus,
       auto_reply_error_code: sendError.code,
       auto_reply_processing_at: null,
       auto_reply_retry_at: retryAt,
       auto_reply_finished_at: retryableNow ? null : new Date().toISOString(),
     });
+    if (!persisted) {
+      return {
+        status: "db_unavailable",
+        jobId,
+        orderId,
+        choice,
+        errorCode: "WHATSAPP_REPLY_RESULT_PERSISTENCE_FAILED",
+      };
+    }
 
     return {
       status: sendError.ambiguous
@@ -485,6 +514,36 @@ export async function handleDeliveryCareButtonReply(
       errorCode: sendError.code,
     };
   }
+
+  const acceptedPersisted = await persistReplyMetadata(jobId, {
+    auto_reply_status: "sent",
+    auto_reply_provider_message_id: providerMessageId,
+    auto_reply_error_code: null,
+    auto_reply_processing_at: null,
+    auto_reply_retry_at: null,
+    auto_reply_finished_at: new Date().toISOString(),
+  });
+  if (!acceptedPersisted) {
+    // Meta already returned a wamid. Never send again merely because the local
+    // acknowledgement could not be persisted; the durable processing claim and
+    // stale-claim guard keep later webhook/worker attempts from duplicating it.
+    return {
+      status: "ambiguous",
+      jobId,
+      orderId,
+      choice,
+      providerMessageId,
+      errorCode: "WHATSAPP_REPLY_ACCEPTED_PERSISTENCE_AMBIGUOUS",
+    };
+  }
+
+  return {
+    status: "replied",
+    jobId,
+    orderId,
+    choice,
+    providerMessageId,
+  };
 }
 
 function recoveryEventFromRow(row: Row): DeliveryCareButtonReplyEvent | null {
@@ -585,13 +644,14 @@ export async function runPendingDeliveryCareAutoReplies(
     if (!event) {
       const jobId = String(row.id ?? "").trim();
       if (jobId) {
-        await mergeReplyMetadata(jobId, {
+        const persisted = await persistReplyMetadata(jobId, {
           auto_reply_status: "failed",
           auto_reply_error_code: "WHATSAPP_REPLY_RECOVERY_METADATA_INVALID",
           auto_reply_processing_at: null,
           auto_reply_retry_at: null,
           auto_reply_finished_at: new Date().toISOString(),
         });
+        if (!persisted) throw new Error("WHATSAPP_REPLY_RECOVERY_PERSISTENCE_FAILED");
       }
       processed += 1;
       failed += 1;
@@ -600,6 +660,9 @@ export async function runPendingDeliveryCareAutoReplies(
 
     const result = await handleDeliveryCareButtonReply(event);
     if (result.status === "duplicate") continue;
+    if (result.status === "db_unavailable") {
+      throw new Error(result.errorCode || "WHATSAPP_REPLY_RECOVERY_DB_UNAVAILABLE");
+    }
 
     processed += 1;
     if (result.status === "replied") replied += 1;
