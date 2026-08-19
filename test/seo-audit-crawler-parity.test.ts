@@ -39,13 +39,15 @@ describe("SEO audit crawler parity", () => {
     expect(userAgentRule).toBeDefined();
   });
 
-  it("publishes recovery URLs through the static sitemap index", () => {
+  it("publishes recovery and blog URLs through the static sitemap index", () => {
     const sitemap = read("client/public/sitemap.xml");
 
     expect(sitemap).toContain("https://www.aquavoiq.com/sitemap-recovery.xml");
     expect(sitemap).toContain("https://www.aquavoiq.com/sitemap-pages.xml");
     expect(sitemap).toContain("https://www.aquavoiq.com/sitemap-products.xml");
     expect(sitemap).toContain("https://www.aquavoiq.com/sitemap-guides.xml");
+    expect(sitemap).toContain("https://www.aquavoiq.com/sitemap-blog.xml");
     expect(sitemap.match(/<lastmod>2026-08-04<\/lastmod>/g)?.length).toBe(4);
+    expect(sitemap.match(/<lastmod>2026-08-19<\/lastmod>/g)?.length).toBe(1);
   });
 });
