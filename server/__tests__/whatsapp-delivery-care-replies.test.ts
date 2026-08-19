@@ -33,6 +33,7 @@ import {
 type ReplyMetadata = Record<string, unknown>;
 
 type FakeState = {
+  metadata_merge_failures_remaining: number;
   job: {
     id: string;
     order_id: string;
@@ -159,6 +160,10 @@ function createFakeDb(state: FakeState) {
         && text.includes("WHERE id=")
         && !text.includes("RETURNING id")
       ) {
+        if (state.metadata_merge_failures_remaining > 0) {
+          state.metadata_merge_failures_remaining -= 1;
+          throw new Error("SIMULATED_METADATA_PERSISTENCE_FAILURE");
+        }
         const patch = JSON.parse(String(values[0] ?? "{}")) as ReplyMetadata;
         state.job.metadata.delivery_care_reply ??= {};
         Object.assign(state.job.metadata.delivery_care_reply, patch);
@@ -172,6 +177,7 @@ function createFakeDb(state: FakeState) {
 
 function makeState(): FakeState {
   return {
+    metadata_merge_failures_remaining: 0,
     job: {
       id: "job-1",
       order_id: "order-1",
@@ -303,6 +309,26 @@ describe("delivery-care Quick Reply runtime safety", () => {
     expect(replyStatus(state)).toBe("sent");
     expect(state.job.metadata.delivery_care_reply?.auto_reply_attempts).toBe(2);
     expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("retries only the local metadata write after Meta returns a wamid", async () => {
+    const state = makeState();
+    state.metadata_merge_failures_remaining = 2;
+    (getDb as any).mockReturnValue(createFakeDb(state));
+    enableCloud();
+
+    const fetchMock = vi.fn(async () => successfulMetaResponse("wamid.accepted-once"));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await handleDeliveryCareButtonReply(makeEvent());
+
+    expect(result.status).toBe("replied");
+    expect(result.providerMessageId).toBe("wamid.accepted-once");
+    expect(replyStatus(state)).toBe("sent");
+    expect(state.job.metadata.delivery_care_reply?.auto_reply_provider_message_id)
+      .toBe("wamid.accepted-once");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(state.metadata_merge_failures_remaining).toBe(0);
   });
 
   it("never retries a transport timeout because Meta may already have accepted the reply", async () => {
