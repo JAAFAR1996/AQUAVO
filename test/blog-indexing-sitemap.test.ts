@@ -19,7 +19,8 @@ describe("published blog indexing and sitemap wiring", () => {
   it("indexes only published blog posts and returns real 404s for missing posts", () => {
     const source = read("api/blog-ssr.ts");
 
-    expect(source).toContain("status = 'published'");
+    expect(source).toContain("is_published = TRUE");
+    expect(source).not.toContain("status = 'published'");
     expect(source).toContain('res.status(404)');
     expect(source).toContain('"noindex, follow"');
     expect(source).toContain('"index, follow, max-image-preview:large"');
@@ -33,7 +34,11 @@ describe("published blog indexing and sitemap wiring", () => {
     const vercel = JSON.parse(read("vercel.json"));
 
     expect(sitemap).toContain("FROM blog_posts");
-    expect(sitemap).toContain("status = 'published'");
+    expect(sitemap).toContain("is_published = TRUE");
+    expect(sitemap).toContain('published_at AS "publishedAt"');
+    expect(sitemap).toContain('updated_at AS "updatedAt"');
+    expect(sitemap).not.toContain("status = 'published'");
+    expect(sitemap).not.toContain('SELECT slug, "publishedAt", "updatedAt"');
     expect(sitemap).toContain("/blog/${slug}");
     expect(sitemapIndex).toContain("/sitemap-blog.xml");
     expect(apiIndex).toContain('case "/sitemap-blog.xml"');
