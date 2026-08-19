@@ -4,6 +4,8 @@ import {
   AQUAVO_SEO_RELEASE_LASTMOD,
 } from "../shared/seo-contract.js";
 
+const BLOG_SITEMAP_RELEASE_LASTMOD = "2026-08-19";
+
 export default function handler(_req: VercelRequest, res: VercelResponse): void {
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -11,10 +13,11 @@ export default function handler(_req: VercelRequest, res: VercelResponse): void 
   <sitemap><loc>${AQUAVO_BASE_URL}/sitemap-pages.xml</loc><lastmod>${AQUAVO_SEO_RELEASE_LASTMOD}</lastmod></sitemap>
   <sitemap><loc>${AQUAVO_BASE_URL}/sitemap-products.xml</loc><lastmod>${AQUAVO_SEO_RELEASE_LASTMOD}</lastmod></sitemap>
   <sitemap><loc>${AQUAVO_BASE_URL}/sitemap-guides.xml</loc><lastmod>${AQUAVO_SEO_RELEASE_LASTMOD}</lastmod></sitemap>
+  <sitemap><loc>${AQUAVO_BASE_URL}/sitemap-blog.xml</loc><lastmod>${BLOG_SITEMAP_RELEASE_LASTMOD}</lastmod></sitemap>
 </sitemapindex>`;
 
   res.setHeader("Content-Type", "application/xml; charset=utf-8");
   res.setHeader("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
-  res.setHeader("Last-Modified", "Tue, 04 Aug 2026 00:00:00 GMT");
+  res.setHeader("Last-Modified", "Wed, 19 Aug 2026 00:00:00 GMT");
   res.status(200).send(xml);
 }

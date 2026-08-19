@@ -12,6 +12,7 @@ import sitemapIndexHandler from "./sitemap-index.js";
 import sitemapPagesHandler from "./sitemap-pages.js";
 import sitemapProductsHandler from "./sitemap-products.js";
 import sitemapGuidesHandler from "./sitemap-guides.js";
+import sitemapBlogHandler from "./sitemap-blog.js";
 
 type RawBodyRequest = IncomingMessage & { rawBody?: Buffer };
 
@@ -205,6 +206,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return sitemapProductsHandler(req, res);
       case "/sitemap-guides.xml":
         return sitemapGuidesHandler(req, res);
+      case "/sitemap-blog.xml":
+        return sitemapBlogHandler(req, res);
       default:
         break;
     }

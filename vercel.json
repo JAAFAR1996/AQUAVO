@@ -19,6 +19,14 @@
       "maxDuration": 15,
       "includeFiles": "{api/**,shared/**,generated/**,server/suppress.ts}"
     },
+    "api/blog-ssr.ts": {
+      "memory": 256,
+      "maxDuration": 10
+    },
+    "api/sitemap-blog.ts": {
+      "memory": 256,
+      "maxDuration": 10
+    },
     "api/pdf.ts": {
       "memory": 256,
       "maxDuration": 30
@@ -98,6 +106,8 @@
     { "source": "/sitemap-pages.xml", "destination": "/api/index" },
     { "source": "/sitemap-products.xml", "destination": "/api/index" },
     { "source": "/sitemap-guides.xml", "destination": "/api/index" },
+    { "source": "/sitemap-blog.xml", "destination": "/api/sitemap-blog" },
+    { "source": "/blog/:slug", "destination": "/api/blog-ssr" },
     { "source": "/health", "destination": "/api/index" },
     { "source": "/api/(.*)", "destination": "/api/index" },
     { "source": "/.well-known/api-catalog", "destination": "/api/index" },
