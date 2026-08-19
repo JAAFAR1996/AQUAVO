@@ -23,6 +23,10 @@
       "memory": 256,
       "maxDuration": 10
     },
+    "api/product-ssr.ts": {
+      "memory": 256,
+      "maxDuration": 10
+    },
     "api/sitemap-blog.ts": {
       "memory": 256,
       "maxDuration": 10
@@ -92,6 +96,7 @@
   "redirects": [
     { "source": "/guides/aquarium-filter-guide", "destination": "/guides/filter-choice", "permanent": true },
     { "source": "/guides/aquarium-heater-guide", "destination": "/guides/heater-choice", "permanent": true },
+    { "source": "/temperature-guide", "destination": "/guides/temperature-guide", "permanent": true },
     { "source": "/about-aquavo", "destination": "/about", "permanent": true },
     { "source": "/guides/5-mistakes/", "destination": "/guides/5-mistakes", "permanent": true },
     {
@@ -137,6 +142,7 @@
       "has": [{ "type": "header", "key": "user-agent", "value": ".*(Googlebot|bingbot|BingPreview|DuckDuckBot|YandexBot|Baiduspider|Applebot|Twitterbot|facebookexternalhit|LinkedInBot|Slackbot|Discordbot|WhatsApp|TelegramBot|GPTBot|ChatGPT-User|OAI-SearchBot|ClaudeBot|Claude-User|PerplexityBot|Amazonbot|Bytespider|PetalBot|CCBot|SiteAuditBot|SemrushBot|AhrefsBot|AhrefsSiteAudit|MJ12bot|DotBot|Screaming Frog SEO Spider).*" }],
       "destination": "/api/ssr-preview"
     },
+    { "source": "/products/:slug", "destination": "/api/product-ssr" },
     { "source": "/((?!api|_next|assets|chunks|entries|.*\\..{2,5}$).*)", "destination": "/api/ssr-meta" }
   ]
 }
