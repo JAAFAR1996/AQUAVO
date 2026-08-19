@@ -31,9 +31,8 @@ WhatsApp sending is still disabled. Jobs created before that timestamp are marke
 backlog when live sending is enabled.
 
 Set the activation timestamp once, immediately before the controlled live-send window,
-using an explicit UTC timestamp such as `2026-08-18T15:00:00Z`. After production goes
-live, treat this value as immutable. Moving it forward can intentionally suppress older
-pending delivery-care jobs.
+using an explicit UTC timestamp. After production goes live, treat this value as
+immutable. Moving it forward can intentionally suppress older pending delivery-care jobs.
 
 ## Vercel Hobby recovery scheduler
 
@@ -57,18 +56,21 @@ The admin button remains the immediate-send path. The external worker is recover
 - explicit provider retryable failures such as HTTP 429/5xx;
 - a browser closing after `delivered` was committed but before the immediate dispatch;
 - pending jobs left for any other reason before an outbound provider request starts;
+- Quick Reply callbacks received while Cloud API sending is temporarily disabled;
+- Quick Reply auto-responses that received an explicit retryable 429/5xx rejection;
 - signed provider-status events that raced the outbound `wamid` database write;
 - bounded cleanup of old provider-status inbox rows.
 
-A `sending` claim older than 10 minutes is considered ambiguous. It is marked failed for
-manual inspection rather than automatically resent, because Meta may already have
-accepted the request before the process died. Transport timeout/network failures are
-handled the same way when no `wamid` is available. This deliberately favors avoiding a
-duplicate customer message over retrying an uncertain send.
+A delivery-care `sending` claim older than 10 minutes is considered ambiguous. The same
+rule applies to an auto-reply whose durable state remains `processing` for more than 10
+minutes. In either case AQUAVO records an ambiguous terminal state instead of resending,
+because a provider request may already have left the process before it died. Transport
+timeout/network failures are handled the same way when no `wamid` is available. This
+deliberately favors avoiding a duplicate customer message over retrying an uncertain send.
 
-The worker processes at most five outbound messages per invocation. Provider-event
-reconciliation and cleanup are independently bounded so maintenance work cannot expand
-without limit.
+The worker processes at most five delivery-care messages and five due auto-replies per
+invocation. Provider-event reconciliation and cleanup are independently bounded so
+maintenance work cannot expand without limit.
 
 ## Manual recovery
 
@@ -97,13 +99,14 @@ Set these only in the deployment secret/environment store, never in Git:
 
 - `WHATSAPP_CLOUD_ENABLED=false` during setup
 - `WHATSAPP_DELIVERY_CARE_ACTIVATION_AT` (set only for the controlled/live activation window)
-- `WHATSAPP_API_VERSION`
+- `WHATSAPP_API_VERSION` (`v25.0` for the currently configured AQUAVO Meta setup)
 - `WHATSAPP_PHONE_NUMBER_ID`
 - `WHATSAPP_ACCESS_TOKEN`
-- `WHATSAPP_DELIVERY_CARE_TEMPLATE`
+- `WHATSAPP_DELIVERY_CARE_TEMPLATE=aquavo_delivery_care_v1`
 - `WHATSAPP_TEMPLATE_LANGUAGE=ar`
 - `WHATSAPP_WEBHOOK_VERIFY_TOKEN`
 - `META_APP_SECRET`
+- `CRON_SECRET` (same value in Vercel Production and GitHub Actions)
 
 Webhook callback URL:
 
@@ -116,6 +119,12 @@ Configure that URL in the Meta App Webhooks settings using the same
 webhook field, and keep `META_APP_SECRET` available only to the server. Incoming POST
 notifications are accepted only when `X-Hub-Signature-256` validates against the exact
 raw body and the Meta App Secret.
+
+Meta's Cloud API webhook model uses the `messages` field for inbound customer messages
+and message-status notifications. A response to an interactive message template Quick
+Reply arrives as a message with `type="button"`; its `context.id` identifies the sent
+message being replied to. AQUAVO uses exactly those fields rather than inferring a reply
+from arbitrary customer text.
 
 Keep `POST_DELIVERY_REVIEW_AUTOMATION_ENABLED=false` until the secure order-token
 review flow and support-suppression rules are deployed.
@@ -173,13 +182,21 @@ Approved automatic responses:
 - `عندي ملاحظة عالطلب` → `أكيد أستاذ، كللنا شنو الملاحظة بالطلب حتى نتابعها وياك.`
 
 The automatic response is a free-form WhatsApp text sent after the customer's button
-reply. Ordinary text the customer sends afterwards is **not** consumed by this
-automation; it remains available for human support in the WhatsApp/Business Suite inbox.
+reply. A customer-initiated message refreshes WhatsApp's rolling 24-hour customer
+support window, inside which free-form business messages are allowed. If a deferred
+response is recovered after that service window is no longer valid, Meta's explicit API
+rejection is recorded as a terminal failure rather than being hidden or blindly retried.
+Ordinary text the customer sends afterwards is **not** consumed by this automation; it
+remains available for human support in the WhatsApp/Business Suite inbox.
 
 Automatic reply retries follow at-most-once safety:
 
 - timeout/network or HTTP-success-without-`wamid` is ambiguous → record and do not retry;
 - explicit HTTP 429/5xx rejection is safe to retry for the same inbound callback, bounded to three attempts;
+- retryable failures receive a minimum 60-second backoff before the same callback may be claimed again;
+- the five-minute recovery worker is an independent retry path, so correctness does not depend only on Meta redelivering the webhook;
+- a callback durably received while Cloud API sending is disabled remains resumable after sending is enabled;
+- an abandoned `processing` auto-reply older than 10 minutes becomes terminal ambiguous and is never resent;
 - other explicit HTTP failures are recorded as terminal;
 - Meta webhook retries cannot create a second reply after success or an ambiguous send.
 
@@ -232,8 +249,9 @@ code — not raw webhook bodies, customer messages or provider error text.
 16. Tap `وصلتني وكلشي تمام`; verify exactly one button callback is correlated to the original `wamid`, the choice is stored, and exactly one approved automatic response is sent.
 17. Repeat with a separate controlled order using `عندي ملاحظة عالطلب`; verify the support prompt is sent and the admin panel flags the order as having a customer note.
 18. Confirm repeated delivery of the same Meta webhook does not duplicate the automatic response.
-19. Confirm ambiguous auto-reply transport state is never blindly retried, while an explicit 429/5xx can retry only within the bounded same-callback path.
-20. After the controlled end-to-end test passes, keep the same activation timestamp and leave `WHATSAPP_CLOUD_ENABLED=true` for live traffic.
+19. Simulate an explicit 429/5xx response and verify early duplicate callbacks do not bypass the retry delay, while the five-minute worker can later recover the same durable callback.
+20. Simulate a timeout and an abandoned `processing` claim; verify both become ambiguous and are never selected by the recovery worker.
+21. After the controlled end-to-end test passes, keep the same activation timestamp and leave `WHATSAPP_CLOUD_ENABLED=true` for live traffic.
 
 ## Failure behavior
 
@@ -253,8 +271,10 @@ code — not raw webhook bodies, customer messages or provider error text.
 - Verified webhook persistence failure: returns 503 so the provider can retry delivery of the callback.
 - Duplicate/out-of-order provider status webhook: idempotent timestamp-ordered update; no duplicate message send.
 - Duplicate Quick Reply webhook: already-claimed inbound message; no duplicate auto-reply.
-- Auto-reply HTTP 429/5xx: bounded safe retry for the same signed callback.
+- Auto-reply received while Cloud API is disabled: durable `disabled` state; five-minute worker can resume it after enablement.
+- Auto-reply HTTP 429/5xx: bounded safe retry for the same signed callback after backoff, with worker recovery independent of webhook redelivery.
 - Auto-reply timeout/network ambiguity: recorded and never automatically repeated.
+- Abandoned auto-reply `processing` state: converted to terminal ambiguity after 10 minutes; never blindly repeated.
 - Button sender does not match the order phone: ignored, no automatic response.
 - Unrelated incoming customer text: ignored by automation and left for human support.
 - Review jobs are not created in phase 1.
