@@ -1,6 +1,11 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import type { Request, Response, Router as RouterType } from "express";
 import { Router } from "express";
+import { z } from "zod";
+import {
+  recordPendingDeliveryCareButtonReply,
+  recordSubsequentDeliveryCareChoice,
+} from "../services/whatsapp-delivery-care-button-inbox.js";
 import {
   handleDeliveryCareButtonReply,
   type DeliveryCareButtonReplyEvent,
@@ -14,6 +19,48 @@ import {
 type RawBodyRequest = Request & { rawBody?: Buffer };
 
 export type WhatsAppStatusEvent = WhatsAppProviderStatusEvent;
+
+const unixTimestampSchema = z.string().regex(/^[1-9]\d{0,12}$/);
+const webhookEnvelopeSchema = z.object({
+  object: z.literal("whatsapp_business_account"),
+  entry: z.array(z.object({
+    changes: z.array(z.object({
+      field: z.string(),
+      value: z.unknown(),
+    }).passthrough()),
+  }).passthrough()),
+}).passthrough();
+
+const providerStatusSchema = z.object({
+  id: z.string().trim().min(1).max(500),
+  status: z.enum(["sent", "delivered", "read", "failed"]),
+  timestamp: unixTimestampSchema,
+  errors: z.array(z.object({
+    code: z.union([z.number().int(), z.string().regex(/^\d+$/)]).optional(),
+  }).passthrough()).optional(),
+}).passthrough();
+
+const quickReplyButtonSchema = z.object({
+  payload: z.string().max(2048).optional(),
+  text: z.string().max(2048).optional(),
+}).passthrough().refine(
+  (button) => Boolean(button.payload?.trim() || button.text?.trim()),
+  "quick reply must contain payload or text",
+);
+
+const quickReplyMessageSchema = z.object({
+  id: z.string().trim().min(1).max(500),
+  from: z.string().regex(/^\d{5,20}$/),
+  timestamp: unixTimestampSchema,
+  type: z.literal("button"),
+  context: z.object({
+    id: z.string().trim().min(1).max(500),
+  }).passthrough(),
+  button: quickReplyButtonSchema,
+}).passthrough();
+
+const statusesValueSchema = z.object({ statuses: z.array(z.unknown()) }).passthrough();
+const messagesValueSchema = z.object({ messages: z.array(z.unknown()) }).passthrough();
 
 function constantTimeStringEquals(left: string, right: string): boolean {
   const leftBuffer = Buffer.from(left, "utf8");
@@ -56,38 +103,31 @@ function compactProviderFailureCode(status: Record<string, unknown>): string {
 
 /** Extract outgoing-message lifecycle events we persist. */
 export function extractWhatsAppStatusEvents(payload: unknown): WhatsAppStatusEvent[] {
-  const root = asRecord(payload);
-  if (!root || root.object !== "whatsapp_business_account" || !Array.isArray(root.entry)) return [];
+  const root = webhookEnvelopeSchema.safeParse(payload);
+  if (!root.success) return [];
 
   const events: WhatsAppStatusEvent[] = [];
-  for (const rawEntry of root.entry) {
-    const entry = asRecord(rawEntry);
-    if (!entry || !Array.isArray(entry.changes)) continue;
+  for (const entry of root.data.entry) {
+    for (const change of entry.changes) {
+      if (change.field !== "messages") continue;
+      const value = statusesValueSchema.safeParse(change.value);
+      if (!value.success) continue;
 
-    for (const rawChange of entry.changes) {
-      const change = asRecord(rawChange);
-      if (!change || change.field !== "messages") continue;
-      const value = asRecord(change.value);
-      if (!value || !Array.isArray(value.statuses)) continue;
-
-      for (const rawStatus of value.statuses) {
-        const statusObject = asRecord(rawStatus);
-        if (!statusObject) continue;
-
-        const providerMessageId = String(statusObject.id ?? "").trim();
-        const status = String(statusObject.status ?? "").trim() as WhatsAppProviderStatus;
+      for (const rawStatus of value.data.statuses) {
+        const parsedStatus = providerStatusSchema.safeParse(rawStatus);
+        if (!parsedStatus.success) continue;
+        const statusObject = parsedStatus.data;
         const timestampSeconds = Number(statusObject.timestamp);
-        if (!providerMessageId || !["sent", "delivered", "read", "failed"].includes(status)) continue;
-        if (!Number.isFinite(timestampSeconds) || timestampSeconds <= 0) continue;
-
         const statusAt = new Date(timestampSeconds * 1000);
         if (!Number.isFinite(statusAt.getTime())) continue;
 
         events.push({
-          providerMessageId,
-          status,
+          providerMessageId: statusObject.id,
+          status: statusObject.status as WhatsAppProviderStatus,
           statusAt,
-          errorCode: status === "failed" ? compactProviderFailureCode(statusObject) : null,
+          errorCode: statusObject.status === "failed"
+            ? compactProviderFailureCode(statusObject as Record<string, unknown>)
+            : null,
         });
       }
     }
@@ -104,47 +144,31 @@ export function extractWhatsAppStatusEvents(payload: unknown): WhatsAppStatusEve
 export function extractDeliveryCareButtonReplyEvents(
   payload: unknown,
 ): DeliveryCareButtonReplyEvent[] {
-  const root = asRecord(payload);
-  if (!root || root.object !== "whatsapp_business_account" || !Array.isArray(root.entry)) return [];
+  const root = webhookEnvelopeSchema.safeParse(payload);
+  if (!root.success) return [];
 
   const events: DeliveryCareButtonReplyEvent[] = [];
-  for (const rawEntry of root.entry) {
-    const entry = asRecord(rawEntry);
-    if (!entry || !Array.isArray(entry.changes)) continue;
+  for (const entry of root.data.entry) {
+    for (const change of entry.changes) {
+      if (change.field !== "messages") continue;
+      const value = messagesValueSchema.safeParse(change.value);
+      if (!value.success) continue;
 
-    for (const rawChange of entry.changes) {
-      const change = asRecord(rawChange);
-      if (!change || change.field !== "messages") continue;
-      const value = asRecord(change.value);
-      if (!value || !Array.isArray(value.messages)) continue;
-
-      for (const rawMessage of value.messages) {
-        const message = asRecord(rawMessage);
-        if (!message || String(message.type ?? "") !== "button") continue;
-
-        const button = asRecord(message.button);
-        const context = asRecord(message.context);
-        const inboundMessageId = String(message.id ?? "").trim();
-        const contextProviderMessageId = String(context?.id ?? "").trim();
-        const fromPhone = String(message.from ?? "").trim();
-        const payloadValue = String(button?.payload ?? "").trim();
-        const buttonText = String(button?.text ?? "").trim();
+      for (const rawMessage of value.data.messages) {
+        const parsedMessage = quickReplyMessageSchema.safeParse(rawMessage);
+        if (!parsedMessage.success) continue;
+        const message = parsedMessage.data;
         const timestampSeconds = Number(message.timestamp);
-
-        if (!inboundMessageId || !contextProviderMessageId || !fromPhone) continue;
-        if (!payloadValue && !buttonText) continue;
-        if (!Number.isFinite(timestampSeconds) || timestampSeconds <= 0) continue;
-
         const receivedAt = new Date(timestampSeconds * 1000);
         if (!Number.isFinite(receivedAt.getTime())) continue;
 
         events.push({
-          inboundMessageId,
-          contextProviderMessageId,
-          fromPhone,
+          inboundMessageId: message.id,
+          contextProviderMessageId: message.context.id,
+          fromPhone: message.from,
           receivedAt,
-          payload: payloadValue,
-          buttonText,
+          payload: message.button.payload?.trim() ?? "",
+          buttonText: message.button.text?.trim() ?? "",
         });
       }
     }
@@ -214,14 +238,31 @@ export function createWhatsAppWebhookRouter(): RouterType {
           res.status(503).json({ code: "WEBHOOK_PERSISTENCE_FAILED" });
           return;
         }
+        if (result.status === "unmatched") {
+          // Meta can deliver the customer's reply before markAccepted() commits
+          // the originating outbound wamid. Persist the signed callback and ACK
+          // only after the inbox write succeeds; the five-minute worker will
+          // reconcile it once the delivery-care job is correlated.
+          await recordPendingDeliveryCareButtonReply(event);
+          buttonRepliesHandled += 1;
+          continue;
+        }
+        if (result.status === "duplicate") {
+          // A later, different button press is useful support state but must not
+          // cause a second automatic response. The helper is idempotent by inbound
+          // message id and ignores an exact webhook redelivery.
+          await recordSubsequentDeliveryCareChoice(event);
+          buttonRepliesHandled += 1;
+          continue;
+        }
         if (result.status === "retryable_failed") {
-          // Meta may safely retry this exact signed webhook: the prior send got an
-          // explicit retryable rejection (429/5xx), and the durable callback claim
-          // allows only bounded retries for the same inbound message id.
+          // Keep Meta redelivery as a second recovery path. The durable callback
+          // state and the external worker independently enforce the same bounded
+          // retry policy, so duplicate provider sends remain impossible.
           res.status(503).json({ code: "WHATSAPP_AUTO_REPLY_RETRY_REQUESTED" });
           return;
         }
-        if (result.status === "replied" || result.status === "duplicate") {
+        if (result.status === "replied") {
           buttonRepliesHandled += 1;
         }
       }
