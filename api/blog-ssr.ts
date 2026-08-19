@@ -76,7 +76,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       `SELECT 1
          FROM blog_posts
         WHERE slug = $1
-          AND status = 'published'
+          AND is_published = TRUE
         LIMIT 1`,
       [resolved.slug],
     );
