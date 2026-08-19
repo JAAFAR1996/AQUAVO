@@ -16,15 +16,19 @@ describe("published blog indexing and sitemap wiring", () => {
     expect(genericSsrIndex).toBeGreaterThan(blogRouteIndex);
   });
 
-  it("indexes only published blog posts and returns real 404s for missing posts", () => {
+  it("indexes only published blog posts, renders real article metadata, and returns real 404s", () => {
     const source = read("api/blog-ssr.ts");
 
     expect(source).toContain("is_published = TRUE");
     expect(source).not.toContain("status = 'published'");
+    expect(source).toContain('image_url AS "imageUrl"');
+    expect(source).toContain('published_at AS "publishedAt"');
+    expect(source).toContain('updated_at AS "updatedAt"');
+    expect(source).toContain("injectMeta(HTML_TEMPLATE, meta)");
+    expect(source).toContain('"@type": "Article"');
     expect(source).toContain('res.status(404)');
     expect(source).toContain('"noindex, follow"');
     expect(source).toContain('"index, follow, max-image-preview:large"');
-    expect(source).toContain("stableSsrHandler");
   });
 
   it("publishes a dedicated sitemap containing only published blog rows", () => {
