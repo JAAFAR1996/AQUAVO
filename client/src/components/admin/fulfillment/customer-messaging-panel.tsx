@@ -5,6 +5,15 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { addCsrfHeader } from "@/lib/csrf";
 
+type DeliveryCareReplyMetadata = {
+  choice?: "delivered_ok" | "delivery_issue" | string;
+  received_at?: string;
+  auto_reply_status?: string;
+  auto_reply_attempts?: number;
+  latest_choice?: "delivered_ok" | "delivery_issue" | string;
+  latest_choice_at?: string;
+};
+
 type CustomerMessageJob = {
   id: string;
   order_id: string;
@@ -19,6 +28,10 @@ type CustomerMessageJob = {
   last_error_at?: string | null;
   accepted_at?: string | null;
   cancelled_at?: string | null;
+  metadata?: {
+    delivery_care_reply?: DeliveryCareReplyMetadata;
+    [key: string]: unknown;
+  } | null;
   created_at: string;
   updated_at: string;
   manualRetryAllowed?: boolean;
@@ -44,6 +57,15 @@ const PROVIDER_LABELS: Record<string, string> = {
   delivered: "وصلت للزبون",
   read: "قراها الزبون",
   failed: "فشلت لدى WhatsApp",
+};
+
+const AUTO_REPLY_LABELS: Record<string, string> = {
+  processing: "جاري إرسال الرد التلقائي",
+  sent: "الرد التلقائي انرسل",
+  retryable_failed: "الرد التلقائي بانتظار إعادة آمنة",
+  failed: "فشل الرد التلقائي",
+  ambiguous: "حالة الرد التلقائي غير مؤكدة — ممنوع التكرار",
+  disabled: "الرد التلقائي غير مفعّل",
 };
 
 function errorLabel(code: string | null | undefined): string | null {
@@ -162,6 +184,18 @@ export function CustomerMessagingPanel({ orderId }: { orderId: string }) {
           {jobs.map((job) => {
             const error = errorLabel(job.last_error_code);
             const ambiguous = Boolean(job.last_error_code?.includes("AMBIGUOUS") || job.last_error_code?.startsWith("AMBIGUOUS_"));
+            const reply = job.metadata?.delivery_care_reply;
+            const effectiveChoice = reply?.latest_choice ?? reply?.choice;
+            const effectiveChoiceAt = reply?.latest_choice_at ?? reply?.received_at;
+            const replyLabel = effectiveChoice === "delivered_ok"
+              ? "الزبون: كلشي تمام"
+              : effectiveChoice === "delivery_issue"
+                ? "الزبون: عنده ملاحظة"
+                : null;
+            const autoReplyLabel = reply?.auto_reply_status
+              ? AUTO_REPLY_LABELS[reply.auto_reply_status] ?? reply.auto_reply_status
+              : null;
+
             return (
               <div key={job.id} className="rounded-md border bg-muted/20 p-3">
                 <div className="flex items-start justify-between gap-3">
@@ -175,6 +209,27 @@ export function CustomerMessagingPanel({ orderId }: { orderId: string }) {
                         </span>
                       )}
                     </div>
+
+                    {replyLabel && (
+                      <div className="flex flex-wrap items-center gap-2 pt-1">
+                        <Badge variant={effectiveChoice === "delivery_issue" ? "destructive" : "secondary"}>
+                          {replyLabel}
+                        </Badge>
+                        {effectiveChoiceAt && (
+                          <span className="text-xs text-muted-foreground">
+                            {new Date(effectiveChoiceAt).toLocaleString("ar-IQ")}
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    {autoReplyLabel && (
+                      <p className={`text-xs leading-5 ${reply?.auto_reply_status === "ambiguous" || reply?.auto_reply_status === "failed" ? "text-amber-700 dark:text-amber-400" : "text-muted-foreground"}`}>
+                        {autoReplyLabel}
+                        {Number(reply?.auto_reply_attempts ?? 0) > 1 ? ` · المحاولات ${reply?.auto_reply_attempts}` : ""}
+                      </p>
+                    )}
+
                     <p className="text-xs text-muted-foreground">
                       المحاولات: {Number(job.attempt_count ?? 0)}
                       {job.updated_at ? ` · آخر تحديث ${new Date(job.updated_at).toLocaleString("ar-IQ")}` : ""}

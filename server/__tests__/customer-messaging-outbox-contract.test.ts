@@ -7,6 +7,11 @@ const migration = readFileSync(
   "utf8",
 );
 
+const buttonInboxMigration = readFileSync(
+  join(process.cwd(), "migrations/0082_whatsapp_delivery_care_button_inbox.sql"),
+  "utf8",
+);
+
 const client = readFileSync(
   join(process.cwd(), "client/src/components/admin/orders-management.tsx"),
   "utf8",
@@ -14,6 +19,26 @@ const client = readFileSync(
 
 const service = readFileSync(
   join(process.cwd(), "server/services/customer-messaging.ts"),
+  "utf8",
+);
+
+const deliveryReplyContract = readFileSync(
+  join(process.cwd(), "server/services/whatsapp-delivery-care-contract.ts"),
+  "utf8",
+);
+
+const deliveryReplyService = readFileSync(
+  join(process.cwd(), "server/services/whatsapp-delivery-care-replies.ts"),
+  "utf8",
+);
+
+const buttonInboxService = readFileSync(
+  join(process.cwd(), "server/services/whatsapp-delivery-care-button-inbox.ts"),
+  "utf8",
+);
+
+const recoveryService = readFileSync(
+  join(process.cwd(), "server/services/whatsapp-delivery-care-recovery.ts"),
   "utf8",
 );
 
@@ -71,13 +96,22 @@ describe("post-delivery customer messaging contract", () => {
     expect(migration).toContain("Phase 1 queues care only");
   });
 
-  it("locks the approved immediate delivery copy and first-name-only personalization", () => {
-    expect(rollout).toContain("{{1}}، وصلتك الطلبية. إذا طلع عندك أي سؤال عن المنتج أو شلون تستخدمه، إحنا موجودين بنفس الرقم.");
+  it("locks the approved immediate delivery copy, first-name personalization and two-button contract", () => {
+    expect(rollout).toContain("هلا أستاذ {{1}} 🌿");
+    expect(rollout).toContain("حبينا نطمن على طلبك بعد التوصيل.");
+    expect(rollout).toContain("إذا استلمته، كل القطع وصلت كاملة وبحالة زينة؟");
+    expect(rollout).toContain("وصلتني وكلشي تمام");
+    expect(rollout).toContain("عندي ملاحظة عالطلب");
     expect(service).toContain("buildCustomerFirstName");
     expect(service).toContain("INVALID_CUSTOMER_NAME");
     expect(service).not.toContain("buildCustomerHonorific");
-    expect(rollout).toContain("Consumables: send the review request on **day 5**");
-    expect(rollout).toContain("Equipment/hardware: send the review request on **day 9**");
+    expect(service).toContain('sub_type: "quick_reply"');
+    expect(service).toContain('index: "0"');
+    expect(service).toContain('index: "1"');
+    expect(deliveryReplyContract).toContain('"aquavo_delivery_ok_v1"');
+    expect(deliveryReplyContract).toContain('"aquavo_delivery_issue_v1"');
+    expect(rollout).toContain("- consumables: target day 5 after delivery;");
+    expect(rollout).toContain("- equipment/hardware: target day 9 after delivery;");
   });
 
   it("distinguishes provider API acceptance from delivery state and persists wamid idempotently", () => {
@@ -134,15 +168,73 @@ describe("post-delivery customer messaging contract", () => {
     expect(service).toContain("manual_retry_history");
   });
 
-  it("authenticates Meta webhooks before durable provider-event persistence", () => {
+  it("authenticates and strictly validates Meta webhooks before persistence", () => {
     expect(webhookRoute).toContain("x-hub-signature-256");
     expect(webhookRoute).toContain("META_APP_SECRET");
     expect(webhookRoute).toContain("WHATSAPP_WEBHOOK_VERIFY_TOKEN");
     expect(webhookRoute).toContain("verifyMetaWebhookSignature");
+    expect(webhookRoute).toContain("quickReplyMessageSchema.safeParse");
+    expect(webhookRoute).toContain("providerStatusSchema.safeParse");
     expect(webhookRoute).toContain("recordWhatsAppProviderStatusEvent");
     expect(webhookRoute).toContain("WEBHOOK_PERSISTENCE_FAILED");
     expect(vercelEntry).toContain('realRoute === "/api/webhooks/whatsapp"');
     expect(vercelEntry).toContain("req.rawBody = buf");
+  });
+
+  it("handles only correlated Quick Replies and stores the choice before auto-replying", () => {
+    expect(webhookRoute).toContain("extractDeliveryCareButtonReplyEvents");
+    expect(webhookRoute).toContain('type: z.literal("button")');
+    expect(webhookRoute).toContain("contextProviderMessageId");
+    expect(deliveryReplyService).toContain("job.provider_message_id=${event.contextProviderMessageId}");
+    expect(deliveryReplyService).toContain("orderPhone !== senderPhone");
+    expect(deliveryReplyService).toContain("delivery_care_reply");
+    expect(deliveryReplyService).toContain("auto_reply_status', 'processing'");
+    expect(deliveryReplyService).toContain("getDeliveryCareAutoReplyText(choice)");
+    expect(deliveryReplyContract).toContain("تتهنى بطلبك أستاذ، وإذا احتجت أي مساعدة بأي منتج، دزلنا بأي وقت.");
+    expect(deliveryReplyContract).toContain("أكيد أستاذ، كللنا شنو الملاحظة بالطلب حتى نتابعها وياك.");
+  });
+
+  it("durably parks Quick Replies that race outbound wamid persistence", () => {
+    expect(buttonInboxMigration).toContain("CREATE TABLE IF NOT EXISTS public.whatsapp_delivery_care_button_events");
+    expect(buttonInboxMigration).toContain("UNIQUE (inbound_message_id)");
+    expect(buttonInboxMigration).toContain("0082_DEPENDENCY_MISSING");
+    expect(buttonInboxService).toContain("INSERT INTO public.whatsapp_delivery_care_button_events");
+    expect(buttonInboxService).toContain("ON CONFLICT (inbound_message_id) DO NOTHING");
+    expect(buttonInboxService).toContain("reconcilePendingDeliveryCareButtonReplies");
+    expect(webhookRoute).toContain('result.status === "unmatched"');
+    expect(webhookRoute).toContain("recordPendingDeliveryCareButtonReply(event)");
+  });
+
+  it("records a changed second button choice without sending a second auto-reply", () => {
+    expect(buttonInboxService).toContain("recordSubsequentDeliveryCareChoice");
+    expect(buttonInboxService).toContain("subsequent_choices");
+    expect(buttonInboxService).toContain("latest_choice");
+    expect(webhookRoute).toContain('result.status === "duplicate"');
+    expect(webhookRoute).toContain("recordSubsequentDeliveryCareChoice(event)");
+  });
+
+  it("minimizes customer-message metadata returned to the admin UI", () => {
+    expect(adminRoute).toContain("sanitizeCustomerMessageMetadata");
+    expect(adminRoute).toContain('"auto_reply_status"');
+    expect(adminRoute).toContain('"latest_choice"');
+    expect(adminRoute).not.toContain("safeReply.auto_reply_provider_message_id");
+    expect(adminRoute).not.toContain("safeReply.button_payload");
+    expect(adminRoute).not.toContain("safeReply.manual_retry_history");
+  });
+
+  it("retries auto-replies only after explicit retryable provider rejection and independently recovers them", () => {
+    expect(deliveryReplyService).toContain("MAX_AUTO_REPLY_ATTEMPTS = 3");
+    expect(deliveryReplyService).toContain("AUTO_REPLY_RETRY_DELAY_MS = 60_000");
+    expect(deliveryReplyService).toContain("WHATSAPP_REPLY_TIMEOUT_AMBIGUOUS");
+    expect(deliveryReplyService).toContain("WHATSAPP_REPLY_STALE_PROCESSING_AMBIGUOUS");
+    expect(deliveryReplyService).toContain("response.status === 429 || response.status >= 500");
+    expect(deliveryReplyService).toContain('existingStatus === "retryable_failed"');
+    expect(deliveryReplyService).toContain('existingStatus === "disabled"');
+    expect(recoveryService).toContain("runResilientDeliveryCareAutoReplyRecovery");
+    expect(recoveryService).toContain("for (const row of rowsOf(candidates))");
+    expect(recoveryService).toContain("catch {");
+    expect(webhookRoute).toContain('result.status === "retryable_failed"');
+    expect(webhookRoute).toContain("WHATSAPP_AUTO_REPLY_RETRY_REQUESTED");
   });
 
   it("persists provider events before matching wamid and reconciles them monotonically", () => {
@@ -157,18 +249,24 @@ describe("post-delivery customer messaging contract", () => {
     expect(service).toContain("reconcilePendingWhatsAppProviderEvents(25)");
   });
 
-  it("bounds durable provider-event retention", () => {
+  it("bounds both provider-status and Quick Reply inbox retention", () => {
     expect(providerStatusService).toContain("cleanupWhatsAppProviderStatusEvents");
     expect(providerStatusService).toContain("interval '1 day'");
     expect(providerStatusService).toContain("interval '7 days'");
     expect(providerStatusService).toContain("DELETE FROM public.whatsapp_provider_status_events");
     expect(migration).toContain("GRANT SELECT,INSERT,UPDATE,DELETE ON public.whatsapp_provider_status_events TO aquavo_runtime");
+    expect(buttonInboxService).toContain("cleanupDeliveryCareButtonInbox");
+    expect(buttonInboxService).toContain("DELETE FROM public.whatsapp_delivery_care_button_events");
+    expect(buttonInboxMigration).toContain("GRANT SELECT,INSERT,UPDATE,DELETE ON public.whatsapp_delivery_care_button_events TO aquavo_runtime");
     expect(cronRoute).toContain("cleanupWhatsAppProviderStatusEvents(500)");
+    expect(cronRoute).toContain("cleanupDeliveryCareButtonInbox(500)");
   });
 
-  it("uses a protected external five-minute worker instead of Vercel Hobby cron", () => {
+  it("uses a protected external five-minute worker with fault-isolated recovery", () => {
     expect(cronRoute).toContain('router.get("/customer-messaging"');
     expect(cronRoute).toContain("runDueDeliveryCareJobs(5)");
+    expect(cronRoute).toContain("runResilientDeliveryCareAutoReplyRecovery(5)");
+    expect(cronRoute).toContain("autoReplyRecoveryFailed");
     expect(githubWorker).toContain('cron: "2-57/5 * * * *"');
     expect(githubWorker).toContain("secrets.CRON_SECRET");
     expect(githubWorker).toContain("/api/cron/customer-messaging");

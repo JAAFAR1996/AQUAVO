@@ -4,6 +4,8 @@ import { aiMonitor } from "../services/ai-monitor.js";
 import { getDb } from "../db.js";
 import { runAutomaticPeriodClose } from "../services/accounting-auto-close-v2.js";
 import { runDueDeliveryCareJobs } from "../services/customer-messaging.js";
+import { cleanupDeliveryCareButtonInbox } from "../services/whatsapp-delivery-care-button-inbox.js";
+import { runResilientDeliveryCareAutoReplyRecovery } from "../services/whatsapp-delivery-care-recovery.js";
 import { cleanupWhatsAppProviderStatusEvents } from "../services/whatsapp-provider-status.js";
 
 const router = Router();
@@ -126,23 +128,37 @@ router.get("/finance-audit", async (_req: Request, res: Response) => {
 });
 
 /**
- * Recovery worker for post-delivery WhatsApp care messages.
- * Vercel Hobby cannot schedule sub-daily Cron Jobs, so production is invoked by
- * a protected GitHub Actions schedule every five minutes. The existing admin
- * delivered button remains the primary immediate-send path; this worker covers
- * provider retries, browser interruption, stale serverless claims, provider
- * status reconciliation and bounded provider-event retention cleanup.
+ * Recovery worker for post-delivery WhatsApp care messages and their Quick Reply
+ * auto-responses. Vercel Hobby cannot schedule sub-daily Cron Jobs, so production
+ * is invoked by a protected GitHub Actions schedule every five minutes. Each
+ * recovery stage is fault-isolated so one malformed reply row cannot discard a
+ * successful delivery-care batch or starve unrelated customer replies.
  */
 router.get("/customer-messaging", async (_req: Request, res: Response) => {
   const startTime = Date.now();
   try {
     const result = await runDueDeliveryCareJobs(5);
+
+    let autoReplies: Awaited<ReturnType<typeof runResilientDeliveryCareAutoReplyRecovery>> | null = null;
+    let autoReplyRecoveryFailed = false;
+    try {
+      autoReplies = await runResilientDeliveryCareAutoReplyRecovery(5);
+    } catch {
+      autoReplyRecoveryFailed = true;
+    }
+
     let providerEventsCleaned = 0;
     try {
       providerEventsCleaned = await cleanupWhatsAppProviderStatusEvents(500);
     } catch {
-      // Cleanup is maintenance only. It must not turn a successful messaging
-      // recovery invocation into a failed outbound worker response.
+      // Maintenance only; never downgrade successful outbound recovery.
+    }
+
+    let buttonInboxEventsCleaned = 0;
+    try {
+      buttonInboxEventsCleaned = await cleanupDeliveryCareButtonInbox(500);
+    } catch {
+      // Maintenance only; pending events remain durable for a later invocation.
     }
 
     const duration = Date.now() - startTime;
@@ -156,10 +172,21 @@ router.get("/customer-messaging", async (_req: Request, res: Response) => {
         status: "completed",
         source: "external_scheduler",
         ...result,
+        autoReplies,
+        autoReplyRecoveryFailed,
         providerEventsCleaned,
+        buttonInboxEventsCleaned,
       },
     });
-    return res.status(200).json({ success: true, duration, ...result, providerEventsCleaned });
+    return res.status(200).json({
+      success: true,
+      duration,
+      ...result,
+      autoReplies,
+      autoReplyRecoveryFailed,
+      providerEventsCleaned,
+      buttonInboxEventsCleaned,
+    });
   } catch (error) {
     const duration = Date.now() - startTime;
     const message = error instanceof Error ? error.message : String(error);

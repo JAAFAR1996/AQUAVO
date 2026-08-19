@@ -4,6 +4,10 @@ import {
   reconcilePendingWhatsAppProviderEvents,
   reconcileWhatsAppProviderEvents,
 } from "./whatsapp-provider-status.js";
+import {
+  DELIVERY_CARE_ISSUE_PAYLOAD,
+  DELIVERY_CARE_OK_PAYLOAD,
+} from "./whatsapp-delivery-care-contract.js";
 
 const WHATSAPP_REQUEST_TIMEOUT_MS = 7_000;
 const MAX_SEND_ATTEMPTS = 5;
@@ -310,6 +314,18 @@ async function sendDeliveryCareTemplate(
             {
               type: "body",
               parameters: [{ type: "text", text: customerFirstName }],
+            },
+            {
+              type: "button",
+              sub_type: "quick_reply",
+              index: "0",
+              parameters: [{ type: "payload", payload: DELIVERY_CARE_OK_PAYLOAD }],
+            },
+            {
+              type: "button",
+              sub_type: "quick_reply",
+              index: "1",
+              parameters: [{ type: "payload", payload: DELIVERY_CARE_ISSUE_PAYLOAD }],
             },
           ],
         },
