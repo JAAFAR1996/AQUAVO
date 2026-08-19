@@ -86,8 +86,13 @@ Webhook callback URL:
 https://www.aquavoiq.com/api/webhooks/whatsapp
 ```
 
-The Meta app/WABA must be subscribed to the WhatsApp `messages` webhook field. The
-callback GET challenge uses `WHATSAPP_WEBHOOK_VERIFY_TOKEN`; webhook POST requests are
+The Meta app must be subscribed to the target WABA's Webhooks. Verify this through
+WhatsApp Manager/Meta Developers or with a server-side GET to
+`/{WABA-ID}/subscribed_apps` using the existing System User token; never expose the token
+in client code, logs, screenshots, or support messages. The app's Webhooks configuration
+must include the WhatsApp `messages` field.
+
+The callback GET challenge uses `WHATSAPP_WEBHOOK_VERIFY_TOKEN`; webhook POST requests are
 accepted only after `X-Hub-Signature-256` validates against the exact raw body with
 `META_APP_SECRET`.
 
@@ -250,7 +255,7 @@ from manual resend.
 2. Keep PR #94 current with `main`; pass typecheck, build, security tests and migration-ledger governance.
 3. Keep `WHATSAPP_CLOUD_ENABLED=false` and `WHATSAPP_DELIVERY_CARE_ACTIVATION_AT` unset.
 4. Confirm the real Meta number/system-user token and server secrets are configured.
-5. Confirm callback verification and WABA/app subscription to the WhatsApp `messages` field.
+5. Confirm callback verification, target WABA app subscription, and the WhatsApp `messages` webhook field.
 6. Confirm matching `CRON_SECRET` in Vercel Production and GitHub Actions.
 7. Ensure migration 0079 is active on the target database.
 8. Apply migration 0082 before deploying/enabling the hardened Quick Reply code.
