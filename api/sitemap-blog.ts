@@ -6,7 +6,6 @@ import { AQUAVO_BASE_URL } from "../shared/seo-contract.js";
 
 neonConfig.webSocketConstructor = ws;
 
-const BLOG_SITEMAP_RELEASE_LASTMOD = "2026-08-19";
 const BLOG_SITEMAP_LAST_MODIFIED_HEADER = "Wed, 19 Aug 2026 00:00:00 GMT";
 
 let pool: Pool | null = null;
@@ -31,12 +30,17 @@ function validDate(value: unknown): Date | null {
   return Number.isNaN(parsed.valueOf()) ? null : parsed;
 }
 
-function effectiveLastmod(publishedAtValue: unknown, updatedAtValue: unknown): string {
-  const releaseDate = new Date(`${BLOG_SITEMAP_RELEASE_LASTMOD}T00:00:00.000Z`);
+function effectiveLastmod(
+  publishedAtValue: unknown,
+  updatedAtValue: unknown,
+  createdAtValue: unknown,
+): string | null {
   const publishedAt = validDate(publishedAtValue);
   const updatedAt = validDate(updatedAtValue);
-  const candidates = [releaseDate, publishedAt, updatedAt].filter((value): value is Date => value !== null);
-  const latest = candidates.reduce((max, value) => (value > max ? value : max), releaseDate);
+  const createdAt = validDate(createdAtValue);
+  const candidates = [publishedAt, updatedAt, createdAt].filter((value): value is Date => value !== null);
+  if (candidates.length === 0) return null;
+  const latest = candidates.reduce((max, value) => (value > max ? value : max));
   return latest.toISOString().slice(0, 10);
 }
 
@@ -45,7 +49,8 @@ export default async function handler(_req: VercelRequest, res: VercelResponse):
     const { rows } = await getPool().query(
       `SELECT slug,
               published_at AS "publishedAt",
-              updated_at AS "updatedAt"
+              updated_at AS "updatedAt",
+              created_at AS "createdAt"
          FROM blog_posts
         WHERE is_published = TRUE
           AND slug IS NOT NULL
@@ -58,8 +63,9 @@ export default async function handler(_req: VercelRequest, res: VercelResponse):
       .filter((post) => typeof post.slug === "string" && post.slug.trim().length > 0 && !post.slug.includes("/"))
       .map((post) => {
         const slug = encodeURIComponent(post.slug.trim());
-        const lastmod = effectiveLastmod(post.publishedAt, post.updatedAt);
-        return `  <url><loc>${escapeXml(`${AQUAVO_BASE_URL}/blog/${slug}`)}</loc><lastmod>${lastmod}</lastmod></url>`;
+        const lastmod = effectiveLastmod(post.publishedAt, post.updatedAt, post.createdAt);
+        const lastmodXml = lastmod ? `<lastmod>${lastmod}</lastmod>` : "";
+        return `  <url><loc>${escapeXml(`${AQUAVO_BASE_URL}/blog/${slug}`)}</loc>${lastmodXml}</url>`;
       })
       .join("\n");
 
