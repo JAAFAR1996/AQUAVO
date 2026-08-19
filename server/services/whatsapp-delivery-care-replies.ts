@@ -251,11 +251,12 @@ async function failStaleAutoReplyClaims(): Promise<number> {
 /**
  * Processes only replies to AQUAVO's own delivered-order template. The original
  * outbound wamid (`context.id`) is the correlation key; the sender phone must also
- * match the phone stored on that order. The inbound message id is durably claimed
- * before any outbound auto-reply. Webhook retries can only repeat a send after an
- * explicit retryable provider rejection, never after an ambiguous transport state.
- * A callback received while Cloud API sending is disabled is retained and can be
- * resumed by the recovery worker after configuration is enabled.
+ * match the phone stored on that order. The inbound message id and verified sender
+ * are durably claimed before any outbound auto-reply. Webhook retries can only
+ * repeat a send after an explicit retryable provider rejection, never after an
+ * ambiguous transport state. A callback received while Cloud API sending is
+ * disabled is retained and can be resumed by the recovery worker after
+ * configuration is enabled.
  */
 export async function handleDeliveryCareButtonReply(
   event: DeliveryCareButtonReplyEvent,
@@ -296,6 +297,7 @@ export async function handleDeliveryCareButtonReply(
   const existingInboundMessageId = String(existingReply?.inbound_message_id ?? "");
   const existingContextProviderMessageId = String(existingReply?.context_provider_message_id ?? "");
   const existingChoice = String(existingReply?.choice ?? "");
+  const existingSenderPhone = String(existingReply?.sender_phone ?? "");
   const existingStatus = String(existingReply?.auto_reply_status ?? "");
   const existingAttempts = Math.max(0, Number(existingReply?.auto_reply_attempts ?? 0) || 0);
 
@@ -311,6 +313,7 @@ export async function handleDeliveryCareButtonReply(
                jsonb_build_object(
                  'inbound_message_id', ${event.inboundMessageId},
                  'context_provider_message_id', ${event.contextProviderMessageId},
+                 'sender_phone', ${senderPhone},
                  'choice', ${choice},
                  'button_payload', ${event.payload},
                  'button_text', ${event.buttonText},
@@ -331,7 +334,8 @@ export async function handleDeliveryCareButtonReply(
     const sameCallback =
       existingInboundMessageId === event.inboundMessageId
       && existingContextProviderMessageId === event.contextProviderMessageId
-      && existingChoice === choice;
+      && existingChoice === choice
+      && existingSenderPhone === senderPhone;
 
     if (sameCallback && existingStatus === "disabled") {
       attemptCount = Math.max(1, existingAttempts);
@@ -354,6 +358,7 @@ export async function handleDeliveryCareButtonReply(
          WHERE id=${jobId}
            AND metadata->'delivery_care_reply'->>'inbound_message_id'=${event.inboundMessageId}
            AND metadata->'delivery_care_reply'->>'context_provider_message_id'=${event.contextProviderMessageId}
+           AND metadata->'delivery_care_reply'->>'sender_phone'=${senderPhone}
            AND metadata->'delivery_care_reply'->>'choice'=${choice}
            AND metadata->'delivery_care_reply'->>'auto_reply_status'='disabled'
         RETURNING id
@@ -385,6 +390,7 @@ export async function handleDeliveryCareButtonReply(
          WHERE id=${jobId}
            AND metadata->'delivery_care_reply'->>'inbound_message_id'=${event.inboundMessageId}
            AND metadata->'delivery_care_reply'->>'context_provider_message_id'=${event.contextProviderMessageId}
+           AND metadata->'delivery_care_reply'->>'sender_phone'=${senderPhone}
            AND metadata->'delivery_care_reply'->>'choice'=${choice}
            AND metadata->'delivery_care_reply'->>'auto_reply_status'='retryable_failed'
            AND COALESCE((metadata->'delivery_care_reply'->>'auto_reply_attempts')::integer, 0) < ${MAX_AUTO_REPLY_ATTEMPTS}
@@ -488,7 +494,7 @@ function recoveryEventFromRow(row: Row): DeliveryCareButtonReplyEvent | null {
 
   const inboundMessageId = String(reply.inbound_message_id ?? "").trim();
   const contextProviderMessageId = String(reply.context_provider_message_id ?? "").trim();
-  const fromPhone = String(row.customer_phone ?? "").trim();
+  const fromPhone = String(reply.sender_phone ?? "").trim();
   const payload = String(reply.button_payload ?? "").trim();
   const buttonText = String(reply.button_text ?? "").trim();
   const receivedAt = new Date(String(reply.received_at ?? ""));
@@ -512,7 +518,9 @@ function recoveryEventFromRow(row: Row): DeliveryCareButtonReplyEvent | null {
  * second path independent of Meta webhook redelivery: callbacks received while
  * sending is disabled are resumed after enablement, and explicit 429/5xx
  * rejections are retried only after a short delay and only up to the same bounded
- * three-attempt limit. Ambiguous transport states are never selected here.
+ * three-attempt limit. Recovery always targets the sender phone that was verified
+ * and stored at callback claim time; it never substitutes a later-edited order
+ * phone. Ambiguous transport states are never selected here.
  */
 export async function runPendingDeliveryCareAutoReplies(
   limit = DEFAULT_AUTO_REPLY_WORKER_LIMIT,
@@ -547,10 +555,8 @@ export async function runPendingDeliveryCareAutoReplies(
   const safeLimit = Math.max(1, Math.min(MAX_AUTO_REPLY_WORKER_LIMIT, Math.floor(limit)));
   const due = await db.execute(sql`
     SELECT job.id,
-           job.metadata,
-           orders.customer_phone
+           job.metadata
       FROM public.customer_message_jobs AS job
-      JOIN public.orders AS orders ON orders.id=job.order_id
      WHERE job.job_type='delivery_care'
        AND job.status='completed'
        AND metadata->'delivery_care_reply'->>'auto_reply_status' IN ('disabled', 'retryable_failed')
@@ -598,7 +604,7 @@ export async function runPendingDeliveryCareAutoReplies(
     processed += 1;
     if (result.status === "replied") replied += 1;
     if (result.status === "retryable_failed") retryable += 1;
-    if (result.status === "failed") failed += 1;
+    if (result.status === "failed" || result.status === "sender_mismatch") failed += 1;
     if (result.status === "ambiguous") ambiguous += 1;
   }
 
