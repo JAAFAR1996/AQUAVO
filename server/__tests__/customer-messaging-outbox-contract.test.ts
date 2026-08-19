@@ -110,8 +110,8 @@ describe("post-delivery customer messaging contract", () => {
     expect(service).toContain('index: "1"');
     expect(deliveryReplyContract).toContain('"aquavo_delivery_ok_v1"');
     expect(deliveryReplyContract).toContain('"aquavo_delivery_issue_v1"');
-    expect(rollout).toContain("Consumables: send the review request on **day 5**");
-    expect(rollout).toContain("Equipment/hardware: send the review request on **day 9**");
+    expect(rollout).toContain("- consumables: target day 5 after delivery;");
+    expect(rollout).toContain("- equipment/hardware: target day 9 after delivery;");
   });
 
   it("distinguishes provider API acceptance from delivery state and persists wamid idempotently", () => {
