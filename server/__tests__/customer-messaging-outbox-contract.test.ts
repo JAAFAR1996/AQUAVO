@@ -177,11 +177,15 @@ describe("post-delivery customer messaging contract", () => {
     expect(deliveryReplyContract).toContain("أكيد أستاذ، كللنا شنو الملاحظة بالطلب حتى نتابعها وياك.");
   });
 
-  it("retries auto-replies only after explicit retryable provider rejection", () => {
+  it("retries auto-replies only after explicit retryable provider rejection and independently recovers them", () => {
     expect(deliveryReplyService).toContain("MAX_AUTO_REPLY_ATTEMPTS = 3");
+    expect(deliveryReplyService).toContain("AUTO_REPLY_RETRY_DELAY_MS = 60_000");
     expect(deliveryReplyService).toContain("WHATSAPP_REPLY_TIMEOUT_AMBIGUOUS");
+    expect(deliveryReplyService).toContain("WHATSAPP_REPLY_STALE_PROCESSING_AMBIGUOUS");
     expect(deliveryReplyService).toContain("response.status === 429 || response.status >= 500");
     expect(deliveryReplyService).toContain('existingStatus === "retryable_failed"');
+    expect(deliveryReplyService).toContain('existingStatus === "disabled"');
+    expect(deliveryReplyService).toContain("runPendingDeliveryCareAutoReplies");
     expect(webhookRoute).toContain('result.status === "retryable_failed"');
     expect(webhookRoute).toContain("WHATSAPP_AUTO_REPLY_RETRY_REQUESTED");
   });
@@ -210,6 +214,7 @@ describe("post-delivery customer messaging contract", () => {
   it("uses a protected external five-minute worker instead of Vercel Hobby cron", () => {
     expect(cronRoute).toContain('router.get("/customer-messaging"');
     expect(cronRoute).toContain("runDueDeliveryCareJobs(5)");
+    expect(cronRoute).toContain("runPendingDeliveryCareAutoReplies(5)");
     expect(githubWorker).toContain('cron: "2-57/5 * * * *"');
     expect(githubWorker).toContain("secrets.CRON_SECRET");
     expect(githubWorker).toContain("/api/cron/customer-messaging");
