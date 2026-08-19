@@ -3,7 +3,6 @@ import { getDb } from "../db.js";
 import { normalizeIraqiWhatsAppPhone } from "./customer-messaging.js";
 import {
   resolveDeliveryCareReplyChoice,
-  type DeliveryCareReplyChoice,
 } from "./whatsapp-delivery-care-contract.js";
 import {
   handleDeliveryCareButtonReply,
@@ -16,6 +15,23 @@ function rowsOf(result: unknown): Row[] {
   if (Array.isArray(result)) return result as Row[];
   const rows = (result as { rows?: Row[] } | null)?.rows;
   return Array.isArray(rows) ? rows : [];
+}
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value != null && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : null;
+}
+
+function metadataRecord(value: unknown): Record<string, unknown> {
+  const direct = asRecord(value);
+  if (direct) return direct;
+  if (typeof value !== "string") return {};
+  try {
+    return asRecord(JSON.parse(value)) ?? {};
+  } catch {
+    return {};
+  }
 }
 
 function toEvent(row: Row): DeliveryCareButtonReplyEvent | null {
@@ -98,6 +114,35 @@ export async function recordSubsequentDeliveryCareChoice(
   const senderPhone = normalizeIraqiWhatsAppPhone(event.fromPhone);
   if (!choice || !senderPhone) return false;
 
+  const lookup = await db.execute(sql`
+    SELECT job.id,
+           job.metadata,
+           orders.customer_phone
+      FROM public.customer_message_jobs AS job
+      JOIN public.orders AS orders ON orders.id=job.order_id
+     WHERE job.provider_message_id=${event.contextProviderMessageId}
+       AND job.job_type='delivery_care'
+       AND job.status='completed'
+     LIMIT 1
+  `);
+  const row = rowsOf(lookup)[0];
+  if (!row) return false;
+
+  const orderPhone = normalizeIraqiWhatsAppPhone(row.customer_phone);
+  if (!orderPhone || orderPhone !== senderPhone) return false;
+
+  const root = metadataRecord(row.metadata);
+  const reply = asRecord(root.delivery_care_reply);
+  if (!reply) return false;
+
+  const primaryInboundMessageId = String(reply.inbound_message_id ?? "").trim();
+  const currentChoice = String(reply.latest_choice ?? reply.choice ?? "").trim();
+  if (!primaryInboundMessageId || primaryInboundMessageId === event.inboundMessageId) return false;
+  if (currentChoice === choice) return false;
+
+  const jobId = String(row.id ?? "").trim();
+  if (!jobId) return false;
+
   const result = await db.execute(sql`
     UPDATE public.customer_message_jobs AS job
        SET metadata=jsonb_set(
@@ -120,28 +165,19 @@ export async function recordSubsequentDeliveryCareChoice(
              true
            ),
            updated_at=clock_timestamp()
-      FROM public.orders AS orders
-     WHERE job.order_id=orders.id
-       AND job.provider_message_id=${event.contextProviderMessageId}
-       AND job.job_type='delivery_care'
-       AND job.status='completed'
-       AND normalize_whitespace(orders.customer_phone) IS NOT NULL
+     WHERE job.id=${jobId}
        AND job.metadata->'delivery_care_reply' IS NOT NULL
        AND job.metadata->'delivery_care_reply'->>'inbound_message_id' IS DISTINCT FROM ${event.inboundMessageId}
        AND COALESCE(
              job.metadata->'delivery_care_reply'->>'latest_choice',
              job.metadata->'delivery_care_reply'->>'choice'
-           ) IS DISTINCT FROM ${choice}
+           )=${currentChoice}
        AND NOT EXISTS (
          SELECT 1
          FROM jsonb_array_elements(
            COALESCE(job.metadata->'delivery_care_reply'->'subsequent_choices', '[]'::jsonb)
          ) AS item
          WHERE item->>'inbound_message_id'=${event.inboundMessageId}
-       )
-       AND regexp_replace(orders.customer_phone, '\\D', '', 'g') IN (
-         ${senderPhone},
-         regexp_replace(${senderPhone}, '^964', '0')
        )
     RETURNING job.id
   `);
