@@ -239,10 +239,10 @@ function retryAtIsDue(value: unknown): boolean {
 }
 
 /**
- * A serverless process can die after the durable claim but before the final
- * provider result is persisted. That state is ambiguous: a provider request may
- * already have left the process. Expire it to a terminal ambiguous state rather
- * than ever resending it.
+ * A serverless process can die after the durable provider-send claim but before
+ * the final provider result is persisted. That state is ambiguous: a provider
+ * request may already have left the process. Expire it to a terminal ambiguous
+ * state rather than ever resending it.
  */
 async function failStaleAutoReplyClaims(): Promise<number> {
   const db = getDb();
@@ -279,11 +279,11 @@ async function failStaleAutoReplyClaims(): Promise<number> {
  * Processes only replies to AQUAVO's own delivered-order template. The original
  * outbound wamid (`context.id`) is the correlation key; the sender phone must also
  * match the phone stored on that order. The inbound message id and verified sender
- * are durably claimed before any outbound auto-reply. Webhook retries can only
- * repeat a send after an explicit retryable provider rejection, never after an
- * ambiguous transport state. A callback received while Cloud API sending is
- * disabled is retained and can be resumed by the recovery worker after
- * configuration is enabled.
+ * are durably claimed before any outbound auto-reply. A callback received while
+ * Cloud API sending is disabled is atomically stored as `disabled` without ever
+ * entering a provider-send state, and can be resumed by the recovery worker after
+ * configuration is enabled. Webhook retries can only repeat a provider send after
+ * an explicit retryable rejection, never after an ambiguous transport state.
  */
 export async function handleDeliveryCareButtonReply(
   event: DeliveryCareButtonReplyEvent,
@@ -319,6 +319,7 @@ export async function handleDeliveryCareButtonReply(
     return { status: "sender_mismatch", jobId, orderId, choice };
   }
 
+  const config = readReplyConfig();
   const existingRoot = metadataRecord(row.metadata);
   const existingReply = asRecord(existingRoot.delivery_care_reply);
   const existingInboundMessageId = String(existingReply?.inbound_message_id ?? "");
@@ -329,9 +330,12 @@ export async function handleDeliveryCareButtonReply(
   const existingAttempts = Math.max(0, Number(existingReply?.auto_reply_attempts ?? 0) || 0);
 
   let claimed = false;
-  let attemptCount = 1;
+  let attemptCount = 0;
 
   if (!existingReply) {
+    const initialStatus = config ? "processing" : "disabled";
+    const initialAttempts = config ? 1 : 0;
+    const initialErrorCode = config ? null : "WHATSAPP_REPLY_NOT_CONFIGURED";
     const claim = await db.execute(sql`
       UPDATE public.customer_message_jobs
          SET metadata=jsonb_set(
@@ -345,9 +349,11 @@ export async function handleDeliveryCareButtonReply(
                  'button_payload', ${event.payload},
                  'button_text', ${event.buttonText},
                  'received_at', ${event.receivedAt},
-                 'auto_reply_status', 'processing',
-                 'auto_reply_attempts', 1,
-                 'auto_reply_processing_at', clock_timestamp()
+                 'auto_reply_status', ${initialStatus},
+                 'auto_reply_attempts', ${initialAttempts},
+                 'auto_reply_error_code', ${initialErrorCode},
+                 'auto_reply_processing_at', CASE WHEN ${initialStatus}='processing' THEN clock_timestamp() ELSE NULL END,
+                 'auto_reply_deferred_at', CASE WHEN ${initialStatus}='disabled' THEN clock_timestamp() ELSE NULL END
                ),
                true
              ),
@@ -357,6 +363,7 @@ export async function handleDeliveryCareButtonReply(
       RETURNING id
     `);
     claimed = rowsOf(claim).length > 0;
+    attemptCount = initialAttempts;
   } else {
     const sameCallback =
       existingInboundMessageId === event.inboundMessageId
@@ -364,7 +371,23 @@ export async function handleDeliveryCareButtonReply(
       && existingChoice === choice
       && existingSenderPhone === senderPhone;
 
-    if (sameCallback && existingStatus === "disabled") {
+    if (!sameCallback) {
+      return { status: "duplicate", jobId, orderId, choice };
+    }
+
+    // If sending is currently disabled, keep the durable state untouched. The
+    // external worker will resume disabled/retryable callbacks once config exists.
+    if (!config && (existingStatus === "disabled" || existingStatus === "retryable_failed")) {
+      return {
+        status: "disabled",
+        jobId,
+        orderId,
+        choice,
+        errorCode: "WHATSAPP_REPLY_NOT_CONFIGURED",
+      };
+    }
+
+    if (config && existingStatus === "disabled") {
       attemptCount = Math.max(1, existingAttempts);
       const reclaimDisabled = await db.execute(sql`
         UPDATE public.customer_message_jobs
@@ -392,7 +415,7 @@ export async function handleDeliveryCareButtonReply(
       `);
       claimed = rowsOf(reclaimDisabled).length > 0;
     } else if (
-      sameCallback
+      config
       && existingStatus === "retryable_failed"
       && existingAttempts < MAX_AUTO_REPLY_ATTEMPTS
       && retryAtIsDue(existingReply?.auto_reply_retry_at)
@@ -435,25 +458,7 @@ export async function handleDeliveryCareButtonReply(
     return { status: "duplicate", jobId, orderId, choice };
   }
 
-  const config = readReplyConfig();
   if (!config) {
-    const persisted = await persistReplyMetadata(jobId, {
-      auto_reply_status: "disabled",
-      auto_reply_error_code: "WHATSAPP_REPLY_NOT_CONFIGURED",
-      auto_reply_processing_at: null,
-      auto_reply_retry_at: null,
-      auto_reply_deferred_at: new Date().toISOString(),
-      auto_reply_finished_at: null,
-    });
-    if (!persisted) {
-      return {
-        status: "db_unavailable",
-        jobId,
-        orderId,
-        choice,
-        errorCode: "WHATSAPP_REPLY_DEFER_PERSISTENCE_FAILED",
-      };
-    }
     return {
       status: "disabled",
       jobId,
