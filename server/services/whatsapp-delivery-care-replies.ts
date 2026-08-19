@@ -9,6 +9,10 @@ import {
 
 const WHATSAPP_REPLY_TIMEOUT_MS = 7_000;
 const MAX_AUTO_REPLY_ATTEMPTS = 3;
+const AUTO_REPLY_RETRY_DELAY_MS = 60_000;
+const STALE_AUTO_REPLY_PROCESSING_MINUTES = 10;
+const DEFAULT_AUTO_REPLY_WORKER_LIMIT = 5;
+const MAX_AUTO_REPLY_WORKER_LIMIT = 10;
 
 type Row = Record<string, unknown>;
 
@@ -52,6 +56,15 @@ export type DeliveryCareButtonReplyResult = {
   choice?: DeliveryCareReplyChoice;
   providerMessageId?: string;
   errorCode?: string;
+};
+
+export type DeliveryCareAutoReplyRecoveryResult = {
+  processed: number;
+  replied: number;
+  retryable: number;
+  failed: number;
+  ambiguous: number;
+  staleAmbiguous: number;
 };
 
 class AutoReplySendError extends Error {
@@ -177,7 +190,7 @@ async function mergeReplyMetadata(
   values: Record<string, unknown>,
 ): Promise<void> {
   const db = getDb();
-  if (!db) return;
+  if (!db) throw new Error("DB_UNAVAILABLE");
   await db.execute(sql`
     UPDATE public.customer_message_jobs
        SET metadata=jsonb_set(
@@ -191,12 +204,58 @@ async function mergeReplyMetadata(
   `);
 }
 
+function retryAtIsDue(value: unknown): boolean {
+  const raw = String(value ?? "").trim();
+  if (!raw) return true;
+  const retryAt = new Date(raw);
+  return Number.isFinite(retryAt.getTime()) && retryAt.getTime() <= Date.now();
+}
+
+/**
+ * A serverless process can die after the durable claim but before the final
+ * provider result is persisted. That state is ambiguous: a provider request may
+ * already have left the process. Expire it to a terminal ambiguous state rather
+ * than ever resending it.
+ */
+async function failStaleAutoReplyClaims(): Promise<number> {
+  const db = getDb();
+  if (!db) return 0;
+
+  const result = await db.execute(sql`
+    UPDATE public.customer_message_jobs
+       SET metadata=jsonb_set(
+             COALESCE(metadata, '{}'::jsonb),
+             '{delivery_care_reply}',
+             COALESCE(metadata->'delivery_care_reply', '{}'::jsonb)
+             || jsonb_build_object(
+                  'auto_reply_status', 'ambiguous',
+                  'auto_reply_error_code', 'WHATSAPP_REPLY_STALE_PROCESSING_AMBIGUOUS',
+                  'auto_reply_processing_at', NULL,
+                  'auto_reply_finished_at', clock_timestamp()
+                ),
+             true
+           ),
+           updated_at=clock_timestamp()
+     WHERE job_type='delivery_care'
+       AND status='completed'
+       AND metadata->'delivery_care_reply'->>'auto_reply_status'='processing'
+       AND metadata->'delivery_care_reply'->>'auto_reply_processing_at' IS NOT NULL
+       AND (metadata->'delivery_care_reply'->>'auto_reply_processing_at')::timestamptz
+           <= clock_timestamp() - (${STALE_AUTO_REPLY_PROCESSING_MINUTES} * interval '1 minute')
+    RETURNING id
+  `);
+
+  return rowsOf(result).length;
+}
+
 /**
  * Processes only replies to AQUAVO's own delivered-order template. The original
  * outbound wamid (`context.id`) is the correlation key; the sender phone must also
  * match the phone stored on that order. The inbound message id is durably claimed
  * before any outbound auto-reply. Webhook retries can only repeat a send after an
  * explicit retryable provider rejection, never after an ambiguous transport state.
+ * A callback received while Cloud API sending is disabled is retained and can be
+ * resumed by the recovery worker after configuration is enabled.
  */
 export async function handleDeliveryCareButtonReply(
   event: DeliveryCareButtonReplyEvent,
@@ -257,7 +316,8 @@ export async function handleDeliveryCareButtonReply(
                  'button_text', ${event.buttonText},
                  'received_at', ${event.receivedAt},
                  'auto_reply_status', 'processing',
-                 'auto_reply_attempts', 1
+                 'auto_reply_attempts', 1,
+                 'auto_reply_processing_at', clock_timestamp()
                ),
                true
              ),
@@ -273,10 +333,37 @@ export async function handleDeliveryCareButtonReply(
       && existingContextProviderMessageId === event.contextProviderMessageId
       && existingChoice === choice;
 
-    if (
+    if (sameCallback && existingStatus === "disabled") {
+      attemptCount = Math.max(1, existingAttempts);
+      const reclaimDisabled = await db.execute(sql`
+        UPDATE public.customer_message_jobs
+           SET metadata=jsonb_set(
+                 COALESCE(metadata, '{}'::jsonb),
+                 '{delivery_care_reply}',
+                 COALESCE(metadata->'delivery_care_reply', '{}'::jsonb)
+                 || jsonb_build_object(
+                      'auto_reply_status', 'processing',
+                      'auto_reply_attempts', ${attemptCount},
+                      'auto_reply_error_code', NULL,
+                      'auto_reply_processing_at', clock_timestamp(),
+                      'auto_reply_retry_at', NULL
+                    ),
+                 true
+               ),
+               updated_at=clock_timestamp()
+         WHERE id=${jobId}
+           AND metadata->'delivery_care_reply'->>'inbound_message_id'=${event.inboundMessageId}
+           AND metadata->'delivery_care_reply'->>'context_provider_message_id'=${event.contextProviderMessageId}
+           AND metadata->'delivery_care_reply'->>'choice'=${choice}
+           AND metadata->'delivery_care_reply'->>'auto_reply_status'='disabled'
+        RETURNING id
+      `);
+      claimed = rowsOf(reclaimDisabled).length > 0;
+    } else if (
       sameCallback
       && existingStatus === "retryable_failed"
       && existingAttempts < MAX_AUTO_REPLY_ATTEMPTS
+      && retryAtIsDue(existingReply?.auto_reply_retry_at)
     ) {
       attemptCount = existingAttempts + 1;
       const reclaim = await db.execute(sql`
@@ -289,7 +376,8 @@ export async function handleDeliveryCareButtonReply(
                       'auto_reply_status', 'processing',
                       'auto_reply_attempts', ${attemptCount},
                       'auto_reply_error_code', NULL,
-                      'auto_reply_retry_at', clock_timestamp()
+                      'auto_reply_processing_at', clock_timestamp(),
+                      'auto_reply_retry_at', NULL
                     ),
                  true
                ),
@@ -300,6 +388,10 @@ export async function handleDeliveryCareButtonReply(
            AND metadata->'delivery_care_reply'->>'choice'=${choice}
            AND metadata->'delivery_care_reply'->>'auto_reply_status'='retryable_failed'
            AND COALESCE((metadata->'delivery_care_reply'->>'auto_reply_attempts')::integer, 0) < ${MAX_AUTO_REPLY_ATTEMPTS}
+           AND (
+             metadata->'delivery_care_reply'->>'auto_reply_retry_at' IS NULL
+             OR (metadata->'delivery_care_reply'->>'auto_reply_retry_at')::timestamptz <= clock_timestamp()
+           )
         RETURNING id
       `);
       claimed = rowsOf(reclaim).length > 0;
@@ -315,7 +407,10 @@ export async function handleDeliveryCareButtonReply(
     await mergeReplyMetadata(jobId, {
       auto_reply_status: "disabled",
       auto_reply_error_code: "WHATSAPP_REPLY_NOT_CONFIGURED",
-      auto_reply_finished_at: new Date().toISOString(),
+      auto_reply_processing_at: null,
+      auto_reply_retry_at: null,
+      auto_reply_deferred_at: new Date().toISOString(),
+      auto_reply_finished_at: null,
     });
     return {
       status: "disabled",
@@ -337,6 +432,8 @@ export async function handleDeliveryCareButtonReply(
       auto_reply_status: "sent",
       auto_reply_provider_message_id: providerMessageId,
       auto_reply_error_code: null,
+      auto_reply_processing_at: null,
+      auto_reply_retry_at: null,
       auto_reply_finished_at: new Date().toISOString(),
     });
 
@@ -358,11 +455,16 @@ export async function handleDeliveryCareButtonReply(
       : retryableNow
         ? "retryable_failed"
         : "failed";
+    const retryAt = retryableNow
+      ? new Date(Date.now() + AUTO_REPLY_RETRY_DELAY_MS).toISOString()
+      : null;
 
     await mergeReplyMetadata(jobId, {
       auto_reply_status: storedStatus,
       auto_reply_error_code: sendError.code,
-      auto_reply_finished_at: new Date().toISOString(),
+      auto_reply_processing_at: null,
+      auto_reply_retry_at: retryAt,
+      auto_reply_finished_at: retryableNow ? null : new Date().toISOString(),
     });
 
     return {
@@ -377,4 +479,135 @@ export async function handleDeliveryCareButtonReply(
       errorCode: sendError.code,
     };
   }
+}
+
+function recoveryEventFromRow(row: Row): DeliveryCareButtonReplyEvent | null {
+  const root = metadataRecord(row.metadata);
+  const reply = asRecord(root.delivery_care_reply);
+  if (!reply) return null;
+
+  const inboundMessageId = String(reply.inbound_message_id ?? "").trim();
+  const contextProviderMessageId = String(reply.context_provider_message_id ?? "").trim();
+  const fromPhone = String(row.customer_phone ?? "").trim();
+  const payload = String(reply.button_payload ?? "").trim();
+  const buttonText = String(reply.button_text ?? "").trim();
+  const receivedAt = new Date(String(reply.received_at ?? ""));
+
+  if (!inboundMessageId || !contextProviderMessageId || !fromPhone) return null;
+  if (!payload && !buttonText) return null;
+  if (!Number.isFinite(receivedAt.getTime())) return null;
+
+  return {
+    inboundMessageId,
+    contextProviderMessageId,
+    fromPhone,
+    receivedAt,
+    payload,
+    buttonText,
+  };
+}
+
+/**
+ * Five-minute external-worker recovery for Quick Reply auto-responses. It is a
+ * second path independent of Meta webhook redelivery: callbacks received while
+ * sending is disabled are resumed after enablement, and explicit 429/5xx
+ * rejections are retried only after a short delay and only up to the same bounded
+ * three-attempt limit. Ambiguous transport states are never selected here.
+ */
+export async function runPendingDeliveryCareAutoReplies(
+  limit = DEFAULT_AUTO_REPLY_WORKER_LIMIT,
+): Promise<DeliveryCareAutoReplyRecoveryResult> {
+  const db = getDb();
+  if (!db) {
+    return {
+      processed: 0,
+      replied: 0,
+      retryable: 0,
+      failed: 0,
+      ambiguous: 0,
+      staleAmbiguous: 0,
+    };
+  }
+
+  const staleAmbiguous = await failStaleAutoReplyClaims();
+
+  // Keep disabled callbacks durable but untouched until the same production
+  // configuration used by immediate replies is actually available.
+  if (!readReplyConfig()) {
+    return {
+      processed: 0,
+      replied: 0,
+      retryable: 0,
+      failed: 0,
+      ambiguous: 0,
+      staleAmbiguous,
+    };
+  }
+
+  const safeLimit = Math.max(1, Math.min(MAX_AUTO_REPLY_WORKER_LIMIT, Math.floor(limit)));
+  const due = await db.execute(sql`
+    SELECT job.id,
+           job.metadata,
+           orders.customer_phone
+      FROM public.customer_message_jobs AS job
+      JOIN public.orders AS orders ON orders.id=job.order_id
+     WHERE job.job_type='delivery_care'
+       AND job.status='completed'
+       AND metadata->'delivery_care_reply'->>'auto_reply_status' IN ('disabled', 'retryable_failed')
+       AND (
+         metadata->'delivery_care_reply'->>'auto_reply_status'='disabled'
+         OR (
+           COALESCE((metadata->'delivery_care_reply'->>'auto_reply_attempts')::integer, 0) < ${MAX_AUTO_REPLY_ATTEMPTS}
+           AND (
+             metadata->'delivery_care_reply'->>'auto_reply_retry_at' IS NULL
+             OR (metadata->'delivery_care_reply'->>'auto_reply_retry_at')::timestamptz <= clock_timestamp()
+           )
+         )
+       )
+     ORDER BY job.updated_at ASC, job.created_at ASC
+     LIMIT ${safeLimit}
+  `);
+
+  let processed = 0;
+  let replied = 0;
+  let retryable = 0;
+  let failed = 0;
+  let ambiguous = 0;
+
+  for (const row of rowsOf(due)) {
+    const event = recoveryEventFromRow(row);
+    if (!event) {
+      const jobId = String(row.id ?? "").trim();
+      if (jobId) {
+        await mergeReplyMetadata(jobId, {
+          auto_reply_status: "failed",
+          auto_reply_error_code: "WHATSAPP_REPLY_RECOVERY_METADATA_INVALID",
+          auto_reply_processing_at: null,
+          auto_reply_retry_at: null,
+          auto_reply_finished_at: new Date().toISOString(),
+        });
+      }
+      processed += 1;
+      failed += 1;
+      continue;
+    }
+
+    const result = await handleDeliveryCareButtonReply(event);
+    if (result.status === "duplicate") continue;
+
+    processed += 1;
+    if (result.status === "replied") replied += 1;
+    if (result.status === "retryable_failed") retryable += 1;
+    if (result.status === "failed") failed += 1;
+    if (result.status === "ambiguous") ambiguous += 1;
+  }
+
+  return {
+    processed,
+    replied,
+    retryable,
+    failed,
+    ambiguous,
+    staleAmbiguous,
+  };
 }
