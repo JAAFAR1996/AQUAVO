@@ -17,6 +17,55 @@ function rowsOf(result: unknown): Array<Record<string, unknown>> {
   return Array.isArray(rows) ? rows : [];
 }
 
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value != null && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : null;
+}
+
+function metadataRecord(value: unknown): Record<string, unknown> {
+  const direct = asRecord(value);
+  if (direct) return direct;
+  if (typeof value !== "string") return {};
+  try {
+    return asRecord(JSON.parse(value)) ?? {};
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * Admin support UI needs the customer's choice and auto-reply state, not raw
+ * WhatsApp message ids, payloads, manual retry history, or internal provider
+ * bookkeeping stored in JSONB. Keep the API response on a strict allowlist.
+ */
+function sanitizeCustomerMessageMetadata(value: unknown): Record<string, unknown> | null {
+  const root = metadataRecord(value);
+  const reply = asRecord(root.delivery_care_reply);
+  if (!reply) return null;
+
+  const safeReply: Record<string, unknown> = {};
+  const allowedStringFields = [
+    "choice",
+    "received_at",
+    "auto_reply_status",
+    "latest_choice",
+    "latest_choice_at",
+  ] as const;
+  for (const field of allowedStringFields) {
+    if (typeof reply[field] === "string" && String(reply[field]).trim()) {
+      safeReply[field] = reply[field];
+    }
+  }
+  if (Number.isFinite(Number(reply.auto_reply_attempts))) {
+    safeReply.auto_reply_attempts = Math.max(0, Number(reply.auto_reply_attempts));
+  }
+
+  return Object.keys(safeReply).length > 0
+    ? { delivery_care_reply: safeReply }
+    : null;
+}
+
 /**
  * If Meta already returned a wamid, the provider send must never be presented as
  * retryable merely because our DB acknowledgement stayed ambiguous. The UI can
@@ -197,6 +246,7 @@ export function createCustomerMessagingAdminRouter(): RouterType {
 
           return {
             ...job,
+            metadata: sanitizeCustomerMessageMetadata(job.metadata),
             manualRetryAllowed: errorIsRetrySafe && (preAcceptanceFailure || confirmedProviderFailure),
           };
         });
