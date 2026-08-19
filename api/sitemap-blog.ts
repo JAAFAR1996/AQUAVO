@@ -43,12 +43,14 @@ function effectiveLastmod(publishedAtValue: unknown, updatedAtValue: unknown): s
 export default async function handler(_req: VercelRequest, res: VercelResponse): Promise<void> {
   try {
     const { rows } = await getPool().query(
-      `SELECT slug, "publishedAt", "updatedAt"
+      `SELECT slug,
+              published_at AS "publishedAt",
+              updated_at AS "updatedAt"
          FROM blog_posts
-        WHERE status = 'published'
+        WHERE is_published = TRUE
           AND slug IS NOT NULL
-          AND slug <> ''
-        ORDER BY COALESCE("updatedAt", "publishedAt") DESC NULLS LAST
+          AND btrim(slug) <> ''
+        ORDER BY COALESCE(updated_at, published_at, created_at) DESC NULLS LAST
         LIMIT 50000`,
     );
 
