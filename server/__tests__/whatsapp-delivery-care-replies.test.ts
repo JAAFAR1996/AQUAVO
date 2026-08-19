@@ -76,6 +76,8 @@ function createFakeDb(state: FakeState) {
 
       if (text.includes("NOT (COALESCE(metadata, '{}'::jsonb) ? 'delivery_care_reply')")) {
         if (state.job.metadata.delivery_care_reply) return [];
+        const initialStatus = String(values[7] ?? "");
+        const initialAttempts = Number(values[8] ?? 0);
         state.job.metadata.delivery_care_reply = {
           inbound_message_id: String(values[0] ?? ""),
           context_provider_message_id: String(values[1] ?? ""),
@@ -84,9 +86,11 @@ function createFakeDb(state: FakeState) {
           button_payload: String(values[4] ?? ""),
           button_text: String(values[5] ?? ""),
           received_at: values[6] instanceof Date ? values[6].toISOString() : String(values[6] ?? ""),
-          auto_reply_status: "processing",
-          auto_reply_attempts: 1,
-          auto_reply_processing_at: new Date().toISOString(),
+          auto_reply_status: initialStatus,
+          auto_reply_attempts: initialAttempts,
+          auto_reply_error_code: values[9] == null ? null : String(values[9]),
+          auto_reply_processing_at: initialStatus === "processing" ? new Date().toISOString() : null,
+          auto_reply_deferred_at: initialStatus === "disabled" ? new Date().toISOString() : null,
         };
         return [{ id: state.job.id }];
       }
@@ -241,7 +245,7 @@ describe("delivery-care Quick Reply runtime safety", () => {
     delete process.env.WHATSAPP_ACCESS_TOKEN;
   });
 
-  it("durably defers a button reply while sending is disabled and resumes it after enablement", async () => {
+  it("atomically stores a button reply as disabled and resumes it after enablement", async () => {
     const state = makeState();
     (getDb as any).mockReturnValue(createFakeDb(state));
     const fetchMock = vi.fn(async () => successfulMetaResponse());
@@ -250,8 +254,13 @@ describe("delivery-care Quick Reply runtime safety", () => {
     const first = await handleDeliveryCareButtonReply(makeEvent());
     expect(first.status).toBe("disabled");
     expect(replyStatus(state)).toBe("disabled");
+    expect(state.job.metadata.delivery_care_reply?.auto_reply_attempts).toBe(0);
     expect(state.job.metadata.delivery_care_reply?.sender_phone).toBe("9647721310937");
     expect(fetchMock).not.toHaveBeenCalled();
+
+    const duplicateWhileDisabled = await handleDeliveryCareButtonReply(makeEvent());
+    expect(duplicateWhileDisabled.status).toBe("disabled");
+    expect(state.job.metadata.delivery_care_reply?.auto_reply_attempts).toBe(0);
 
     enableCloud();
     const recovered = await runPendingDeliveryCareAutoReplies(5);
