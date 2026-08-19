@@ -256,11 +256,6 @@ export function buildHomeStructuredData(products: SeoPreviewProduct[]): object[]
       inLanguage: "ar-IQ",
       dateModified: AQUAVO_SEO_RELEASE_LASTMOD,
       publisher: { "@id": `${AQUAVO_BASE_URL}/#organization` },
-      potentialAction: {
-        "@type": "SearchAction",
-        target: `${AQUAVO_BASE_URL}/products?search={search_term_string}`,
-        "query-input": "required name=search_term_string",
-      },
     },
     ...buildCollectionStructuredData(products.slice(0, 24), "/", "منتجات AQUAVO"),
   ];
