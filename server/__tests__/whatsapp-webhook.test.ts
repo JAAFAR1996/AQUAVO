@@ -146,6 +146,80 @@ describe("WhatsApp webhook security and payload parsing", () => {
     expect(events).toEqual([]);
   });
 
+  it("rejects coercible values that are not valid Meta webhook field types", () => {
+    const malformedButtons = extractDeliveryCareButtonReplyEvents({
+      object: "whatsapp_business_account",
+      entry: [
+        {
+          changes: [
+            {
+              field: "messages",
+              value: {
+                messages: [
+                  {
+                    id: 123,
+                    type: "button",
+                    from: "9647721310937",
+                    timestamp: "1700000100",
+                    context: { id: "wamid.original" },
+                    button: { payload: "aquavo_delivery_ok_v1" },
+                  },
+                  {
+                    id: "wamid.array-time",
+                    type: "button",
+                    from: "9647721310937",
+                    timestamp: ["1700000100"],
+                    context: { id: "wamid.original" },
+                    button: { payload: "aquavo_delivery_ok_v1" },
+                  },
+                  {
+                    id: "wamid.hex-time",
+                    type: "button",
+                    from: "9647721310937",
+                    timestamp: "0x654",
+                    context: { id: "wamid.original" },
+                    button: { payload: "aquavo_delivery_ok_v1" },
+                  },
+                  {
+                    id: "wamid.numeric-phone",
+                    type: "button",
+                    from: 9647721310937,
+                    timestamp: "1700000100",
+                    context: { id: "wamid.original" },
+                    button: { payload: "aquavo_delivery_ok_v1" },
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      ],
+    });
+
+    const malformedStatuses = extractWhatsAppStatusEvents({
+      object: "whatsapp_business_account",
+      entry: [
+        {
+          changes: [
+            {
+              field: "messages",
+              value: {
+                statuses: [
+                  { id: 123, status: "sent", timestamp: "1700000000" },
+                  { id: "wamid.array-time", status: "sent", timestamp: ["1700000000"] },
+                  { id: "wamid.hex-time", status: "sent", timestamp: "0x654" },
+                ],
+              },
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(malformedButtons).toEqual([]);
+    expect(malformedStatuses).toEqual([]);
+  });
+
   it("ignores deleted/unknown statuses and malformed timestamps", () => {
     const events = extractWhatsAppStatusEvents({
       object: "whatsapp_business_account",
