@@ -54,7 +54,8 @@ describe('Order Tracking Page', () => {
                 orderNumber: 'FW-241224-0001',
                 status: 'processing',
                 createdAt: new Date().toISOString(),
-                estimatedDelivery: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                shipping: null,
             }),
         })) as unknown as typeof fetch;
     });
@@ -63,6 +64,7 @@ describe('Order Tracking Page', () => {
     it('should render order tracking page', () => {
         render(<OrderTracking />, { wrapper: createWrapper() });
         expect(document.body).toBeTruthy();
+        expect(screen.queryByTestId('input-phone-number')).not.toBeInTheDocument();
     });
 
     it('should display order status', async () => {
@@ -70,37 +72,30 @@ describe('Order Tracking Page', () => {
         await waitFor(() => expect(screen.getByRole('main')).toBeInTheDocument());
     });
 
-
-    it('requires the last four phone digits and sends them in a POST body', async () => {
+    it('tracks with the order number only and sends no phone verifier', async () => {
         const user = userEvent.setup();
         render(<OrderTracking />, { wrapper: createWrapper() });
 
         await user.type(screen.getByTestId('input-order-number'), 'FW-241224-0001');
         await user.click(screen.getByTestId('button-track-order'));
-        expect(await screen.findByText('أدخل رقم الطلب وآخر 4 أرقام من رقم الهاتف المستخدم بالطلب')).toBeInTheDocument();
-        expect(global.fetch).not.toHaveBeenCalled();
-
-        await user.type(screen.getByTestId('input-phone-number'), '0673');
-        await user.click(screen.getByTestId('button-track-order'));
 
         await waitFor(() => expect(global.fetch).toHaveBeenCalledWith(
             '/api/orders/track/FW-241224-0001',
-            expect.objectContaining({
+            {
                 method: 'POST',
-                body: JSON.stringify({ phoneLast4: '0673' }),
-            }),
+                credentials: 'include',
+            },
         ));
     });
 
-    it('shows the same generic error for every failed verification', async () => {
+    it('shows a clear error when the order number cannot be found', async () => {
         global.fetch = vi.fn(() => Promise.resolve({ ok: false, status: 404 })) as unknown as typeof fetch;
         const user = userEvent.setup();
         render(<OrderTracking />, { wrapper: createWrapper() });
 
         await user.type(screen.getByTestId('input-order-number'), 'FW-UNKNOWN');
-        await user.type(screen.getByTestId('input-phone-number'), '1234');
         await user.click(screen.getByTestId('button-track-order'));
 
-        expect(await screen.findByText('تعذر التحقق من الطلب. تأكد من المعلومات وحاول مرة ثانية.')).toBeInTheDocument();
+        expect(await screen.findByText('تعذر العثور على الطلب. تأكد من رقم الطلب وحاول مرة ثانية.')).toBeInTheDocument();
     });
 });

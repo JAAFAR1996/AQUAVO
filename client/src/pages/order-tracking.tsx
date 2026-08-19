@@ -11,7 +11,6 @@ import {
   Home,
   Package,
   PackageCheck,
-  Phone,
   Search,
   ShoppingBag,
   Truck,
@@ -79,16 +78,6 @@ const STATUS_COPY: Record<string, { label: string; description: string }> = {
     description: "تم إلغاء الطلب",
   },
 };
-
-function normalizeLastFourInput(value: string): string {
-  const arabicIndic = "٠١٢٣٤٥٦٧٨٩";
-  const easternArabic = "۰۱۲۳۴۵۶۷۸۹";
-  return value
-    .replace(/[٠-٩]/g, (digit) => String(arabicIndic.indexOf(digit)))
-    .replace(/[۰-۹]/g, (digit) => String(easternArabic.indexOf(digit)))
-    .replace(/\D/g, "")
-    .slice(0, 4);
-}
 
 function formatOrderDate(value: string): string {
   const date = new Date(value);
@@ -180,7 +169,6 @@ function currentDisplay(details: OrderDetails) {
 
 export default function OrderTracking() {
   const [orderNumber, setOrderNumber] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [orderDetails, setOrderDetails] = useState<OrderDetails | null>(null);
   const [error, setError] = useState("");
@@ -191,9 +179,8 @@ export default function OrderTracking() {
     setOrderDetails(null);
 
     const normalizedOrderNumber = orderNumber.trim();
-    const normalizedPhoneLast4 = phoneNumber.trim();
-    if (!normalizedOrderNumber || !/^\d{4}$/.test(normalizedPhoneLast4)) {
-      setError("أدخل رقم الطلب وآخر 4 أرقام من رقم الهاتف المستخدم بالطلب");
+    if (!normalizedOrderNumber) {
+      setError("أدخل رقم الطلب");
       return;
     }
 
@@ -202,11 +189,9 @@ export default function OrderTracking() {
       const response = await fetch(`/api/orders/track/${encodeURIComponent(normalizedOrderNumber)}`, {
         method: "POST",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phoneLast4: normalizedPhoneLast4 }),
       });
       if (!response.ok) {
-        throw new Error("تعذر التحقق من الطلب. تأكد من المعلومات وحاول مرة ثانية.");
+        throw new Error("تعذر العثور على الطلب. تأكد من رقم الطلب وحاول مرة ثانية.");
       }
 
       const data = (await response.json()) as TrackingApiResponse;
@@ -248,7 +233,7 @@ export default function OrderTracking() {
             </Badge>
             <h1 className="mb-3 text-3xl font-bold tracking-tight md:text-4xl">تتبع طلبك</h1>
             <p className="max-w-xl text-base leading-7 text-muted-foreground md:text-lg">
-              أدخل رقم الطلب وآخر 4 أرقام من رقم الهاتف المستخدم بالطلب
+              أدخل رقم الطلب لمعرفة آخر تحديث على طلبك
             </p>
           </motion.div>
         </div>
@@ -276,30 +261,8 @@ export default function OrderTracking() {
                         onChange={(e) => setOrderNumber(e.target.value)}
                         className="h-12 border-border/80 pr-12 text-base shadow-none focus-visible:border-primary"
                         autoComplete="off"
-                        data-testid="input-order-number"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label htmlFor="phone-last-four" className="text-sm font-semibold text-foreground/85">
-                      آخر 4 أرقام من رقم الهاتف
-                    </label>
-                    <div className="relative">
-                      <Phone className="absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
-                      <Input
-                        id="phone-last-four"
-                        type="tel"
-                        placeholder="مثال: 0673"
-                        value={phoneNumber}
-                        onChange={(e) => setPhoneNumber(normalizeLastFourInput(e.target.value))}
-                        inputMode="numeric"
-                        autoComplete="off"
-                        maxLength={4}
                         required
-                        className="h-12 border-border/80 pr-12 shadow-none focus-visible:border-primary"
-                        dir="ltr"
-                        data-testid="input-phone-number"
+                        data-testid="input-order-number"
                       />
                     </div>
                   </div>

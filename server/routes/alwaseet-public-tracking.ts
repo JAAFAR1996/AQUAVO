@@ -2,25 +2,13 @@ import { Router, type NextFunction, type Request, type Response } from "express"
 import { z } from "zod";
 import { storage } from "../storage/index.js";
 import { orderTrackingLimiter } from "../middleware/rate-limit.js";
-import {
-  ORDER_TRACKING_FAILURE_MESSAGE,
-  normalizePhoneDigits,
-  verifyOrderTrackingPhone,
-} from "./orders.js";
+import { ORDER_TRACKING_FAILURE_MESSAGE } from "./orders.js";
 import { resolveAlWaseetTrackingRuntime } from "../services/alwaseet-tracking-runtime.js";
 
 const router = Router();
 
-const orderTrackingSchema = z.object({
-  phoneLast4: z.string().transform(normalizePhoneDigits).refine(
-    (value) => value.length === 4,
-    "The last four phone digits are required",
-  ),
-}).strict();
-
-// Keep the legacy unsafe GET method closed. This route is mounted before the
-// normal orders router so the public tracking response never falls back to the
-// old synthetic ETA implementation.
+// Keep the legacy unsafe GET method closed. Public tracking remains POST-only
+// and rate-limited so order-number probing is constrained.
 router.get("/track/:orderNumber", orderTrackingLimiter, (_req: Request, res: Response): void => {
   res.status(404).json({ message: ORDER_TRACKING_FAILURE_MESSAGE });
 });
@@ -28,20 +16,20 @@ router.get("/track/:orderNumber", orderTrackingLimiter, (_req: Request, res: Res
 router.post("/track/:orderNumber", orderTrackingLimiter, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const parsedOrderNumber = z.string().trim().min(3).max(100).safeParse(req.params.orderNumber);
-    const parsedBody = orderTrackingSchema.safeParse(req.body ?? {});
-    if (!parsedOrderNumber.success || !parsedBody.success) {
+    if (!parsedOrderNumber.success) {
       res.status(404).json({ message: ORDER_TRACKING_FAILURE_MESSAGE });
       return;
     }
 
     const order = await storage.getOrder(parsedOrderNumber.data);
-    if (!order || !verifyOrderTrackingPhone(order.customerPhone, parsedBody.data.phoneLast4)) {
+    if (!order) {
       res.status(404).json({ message: ORDER_TRACKING_FAILURE_MESSAGE });
       return;
     }
 
-    // Carrier discovery happens only AFTER the caller has proven knowledge of
-    // the order phone verifier. Provider outages are swallowed by the resolver.
+    // Public order numbers carry a cryptographically random suffix and the route
+    // is rate-limited. The response exposes tracking state only; customer PII,
+    // addresses, items, and payment data are never returned.
     const shipping = await resolveAlWaseetTrackingRuntime({
       id: order.id,
       orderNumber: order.orderNumber,
