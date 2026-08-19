@@ -7,13 +7,11 @@ import { addCsrfHeader } from "@/lib/csrf";
 
 type DeliveryCareReplyMetadata = {
   choice?: "delivered_ok" | "delivery_issue" | string;
-  button_text?: string;
   received_at?: string;
   auto_reply_status?: string;
   auto_reply_attempts?: number;
-  auto_reply_error_code?: string | null;
-  auto_reply_provider_message_id?: string | null;
-  auto_reply_finished_at?: string;
+  latest_choice?: "delivered_ok" | "delivery_issue" | string;
+  latest_choice_at?: string;
 };
 
 type CustomerMessageJob = {
@@ -187,9 +185,11 @@ export function CustomerMessagingPanel({ orderId }: { orderId: string }) {
             const error = errorLabel(job.last_error_code);
             const ambiguous = Boolean(job.last_error_code?.includes("AMBIGUOUS") || job.last_error_code?.startsWith("AMBIGUOUS_"));
             const reply = job.metadata?.delivery_care_reply;
-            const replyLabel = reply?.choice === "delivered_ok"
+            const effectiveChoice = reply?.latest_choice ?? reply?.choice;
+            const effectiveChoiceAt = reply?.latest_choice_at ?? reply?.received_at;
+            const replyLabel = effectiveChoice === "delivered_ok"
               ? "الزبون: كلشي تمام"
-              : reply?.choice === "delivery_issue"
+              : effectiveChoice === "delivery_issue"
                 ? "الزبون: عنده ملاحظة"
                 : null;
             const autoReplyLabel = reply?.auto_reply_status
@@ -212,12 +212,12 @@ export function CustomerMessagingPanel({ orderId }: { orderId: string }) {
 
                     {replyLabel && (
                       <div className="flex flex-wrap items-center gap-2 pt-1">
-                        <Badge variant={reply?.choice === "delivery_issue" ? "destructive" : "secondary"}>
+                        <Badge variant={effectiveChoice === "delivery_issue" ? "destructive" : "secondary"}>
                           {replyLabel}
                         </Badge>
-                        {reply?.received_at && (
+                        {effectiveChoiceAt && (
                           <span className="text-xs text-muted-foreground">
-                            {new Date(reply.received_at).toLocaleString("ar-IQ")}
+                            {new Date(effectiveChoiceAt).toLocaleString("ar-IQ")}
                           </span>
                         )}
                       </div>
