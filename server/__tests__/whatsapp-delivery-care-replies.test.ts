@@ -61,7 +61,6 @@ function createFakeDb(state: FakeState) {
   return {
     execute: vi.fn(async (query: unknown) => {
       const { text, values } = queryParts(query);
-      const reply = state.job.metadata.delivery_care_reply;
 
       if (text.includes("SELECT job.id") && text.includes("WHERE job.provider_message_id=")) {
         const providerMessageId = String(values[0] ?? "");
@@ -79,10 +78,11 @@ function createFakeDb(state: FakeState) {
         state.job.metadata.delivery_care_reply = {
           inbound_message_id: String(values[0] ?? ""),
           context_provider_message_id: String(values[1] ?? ""),
-          choice: String(values[2] ?? ""),
-          button_payload: String(values[3] ?? ""),
-          button_text: String(values[4] ?? ""),
-          received_at: values[5] instanceof Date ? values[5].toISOString() : String(values[5] ?? ""),
+          sender_phone: String(values[2] ?? ""),
+          choice: String(values[3] ?? ""),
+          button_payload: String(values[4] ?? ""),
+          button_text: String(values[5] ?? ""),
+          received_at: values[6] instanceof Date ? values[6].toISOString() : String(values[6] ?? ""),
           auto_reply_status: "processing",
           auto_reply_attempts: 1,
           auto_reply_processing_at: new Date().toISOString(),
@@ -151,7 +151,6 @@ function createFakeDb(state: FakeState) {
         return [{
           id: state.job.id,
           metadata: state.job.metadata,
-          customer_phone: state.job.customer_phone,
         }];
       }
 
@@ -245,6 +244,7 @@ describe("delivery-care Quick Reply runtime safety", () => {
     const first = await handleDeliveryCareButtonReply(makeEvent());
     expect(first.status).toBe("disabled");
     expect(replyStatus(state)).toBe("disabled");
+    expect(state.job.metadata.delivery_care_reply?.sender_phone).toBe("9647721310937");
     expect(fetchMock).not.toHaveBeenCalled();
 
     enableCloud();
@@ -255,6 +255,26 @@ describe("delivery-care Quick Reply runtime safety", () => {
     expect(replyStatus(state)).toBe("sent");
     expect(state.job.metadata.delivery_care_reply?.auto_reply_attempts).toBe(1);
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("never redirects a deferred reply to a phone that was edited after the verified callback", async () => {
+    const state = makeState();
+    (getDb as any).mockReturnValue(createFakeDb(state));
+    const fetchMock = vi.fn(async () => successfulMetaResponse());
+    vi.stubGlobal("fetch", fetchMock);
+
+    const first = await handleDeliveryCareButtonReply(makeEvent());
+    expect(first.status).toBe("disabled");
+    expect(state.job.metadata.delivery_care_reply?.sender_phone).toBe("9647721310937");
+
+    state.job.customer_phone = "9647700000000";
+    enableCloud();
+    const recovered = await runPendingDeliveryCareAutoReplies(5);
+
+    expect(recovered.failed).toBe(1);
+    expect(recovered.replied).toBe(0);
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(replyStatus(state)).toBe("disabled");
   });
 
   it("backs off explicit 5xx failures and lets the worker retry the same callback safely", async () => {
@@ -346,6 +366,7 @@ describe("delivery-care Quick Reply runtime safety", () => {
     state.job.metadata.delivery_care_reply = {
       inbound_message_id: "wamid.customer-button",
       context_provider_message_id: "wamid.delivery-care",
+      sender_phone: "9647721310937",
       choice: "delivered_ok",
       button_payload: "aquavo_delivery_ok_v1",
       button_text: "وصلتني وكلشي تمام",
