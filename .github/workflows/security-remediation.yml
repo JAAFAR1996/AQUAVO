@@ -28,7 +28,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.ref }}
-          fetch-depth: 0
+          fetch-depth: 1
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
@@ -44,8 +44,8 @@ jobs:
       - name: Install current lockfile
         run: pnpm install --frozen-lockfile
 
-      - name: Remove unused vulnerable crawler client
-        run: pnpm remove apify-client
+      - name: Remove unused and redundant dependencies
+        run: pnpm remove apify-client ts-node-dev @types/dompurify @types/uuid
 
       - name: Update vulnerable production dependencies
         run: >-
@@ -69,15 +69,15 @@ jobs:
 
       - name: Update vulnerable development dependencies
         run: >-
-          pnpm update --latest --save-dev
-          @types/multer
-          @vercel/node
-          @vitest/ui
-          dompurify
-          happy-dom
-          sharp
-          vite
-          vitest
+          pnpm add -D
+          @types/multer@latest
+          @vercel/node@latest
+          @vitest/ui@latest
+          dompurify@latest
+          happy-dom@latest
+          sharp@latest
+          vite@latest
+          vitest@latest
 
       - name: Apply transitive security fixes
         run: pnpm audit --fix || true
