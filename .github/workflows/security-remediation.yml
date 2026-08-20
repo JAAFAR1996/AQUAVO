@@ -86,25 +86,74 @@ jobs:
         run: pnpm install --no-frozen-lockfile
 
       - name: Type check
-        run: pnpm run check
-
-      - name: Unit tests
-        run: pnpm run test --run
-
-      - name: Build
-        run: pnpm run build
-
-      - name: Final security audit
-        id: audit
+        id: types
         shell: bash
         run: |
           set +e
-          pnpm audit --audit-level=moderate
-          code=$?
+          pnpm run check 2>&1 | tee remediation-types.log
+          code=${PIPESTATUS[0]}
           set -e
           echo "exit_code=$code" >> "$GITHUB_OUTPUT"
 
+      - name: Unit tests
+        id: tests
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          pnpm run test --run 2>&1 | tee remediation-tests.log
+          code=${PIPESTATUS[0]}
+          set -e
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+
+      - name: Print concise test failure summary
+        if: always()
+        shell: bash
+        run: |
+          echo "===== concise test summary ====="
+          if [ -f remediation-tests.log ]; then
+            grep -E "(^|[[:space:]])(FAIL|Failed|failed|AssertionError|Error:|Test Files|Tests|Snapshots|Duration|×|❯)" remediation-tests.log | tail -n 250 || true
+          else
+            echo "No test log was produced"
+          fi
+
+      - name: Build
+        id: build
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          pnpm run build 2>&1 | tee remediation-build.log
+          code=${PIPESTATUS[0]}
+          set -e
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+
+      - name: Final security audit
+        id: audit
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          pnpm audit --audit-level=moderate 2>&1 | tee remediation-audit.log
+          code=${PIPESTATUS[0]}
+          set -e
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+
+      - name: Upload remediation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-remediation-evidence-${{ github.run_number }}
+          path: |
+            remediation-types.log
+            remediation-tests.log
+            remediation-build.log
+            remediation-audit.log
+          if-no-files-found: warn
+          retention-days: 3
+
       - name: Commit verified dependency repair
+        if: steps.types.outputs.exit_code == '0' && steps.tests.outputs.exit_code == '0' && steps.build.outputs.exit_code == '0' && steps.audit.outputs.exit_code == '0'
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
@@ -118,8 +167,15 @@ jobs:
             git push origin HEAD:${{ github.event.pull_request.head.ref }}
           fi
 
-      - name: Require clean moderate-or-higher audit
-        if: steps.audit.outputs.exit_code != '0'
+      - name: Require verified remediation
+        if: always()
+        shell: bash
         run: |
-          echo "Security audit still reports moderate-or-higher vulnerabilities"
-          exit 1
+          types="${{ steps.types.outputs.exit_code }}"
+          tests="${{ steps.tests.outputs.exit_code }}"
+          build="${{ steps.build.outputs.exit_code }}"
+          audit="${{ steps.audit.outputs.exit_code }}"
+          echo "types=$types tests=$tests build=$build audit=$audit"
+          if [ "$types" != "0" ] || [ "$tests" != "0" ] || [ "$build" != "0" ] || [ "$audit" != "0" ]; then
+            exit 1
+          fi
