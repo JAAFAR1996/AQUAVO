@@ -129,12 +129,12 @@ export function extractExplicitDimensions(specifications: unknown): ParsedDimens
 }
 
 const WEIGHT_KEY_RE = /(الوزن|weight|net weight|gross weight)/i;
-const WEIGHT_RE = /(\d+(?:[.,]\d+)?)\s*(كغم|كغ|كيلوغرام|كيلو|kg|غم|جرام|غرام|g)(?=\s|$|[،,.؛;—-])/i;
+const WEIGHT_RE = /(\d+(?:[.,]\d+)?)\s*(كغم|كجم|كغ|كيلوغرام|كيلو|kg|غم|جم|جرام|غرام|g)(?=\s|$|[،,.؛;—-])/i;
 
 function weightToKg(n: number, rawUnit: string): number | null {
   const u = rawUnit.trim().toLowerCase();
-  if (["كغم", "كغ", "كيلوغرام", "كيلو", "kg"].includes(u)) return n;
-  if (["غم", "جرام", "غرام", "g"].includes(u)) return n / 1000;
+  if (["كغم", "كجم", "كغ", "كيلوغرام", "كيلو", "kg"].includes(u)) return n;
+  if (["غم", "جم", "جرام", "غرام", "g"].includes(u)) return n / 1000;
   return null;
 }
 
