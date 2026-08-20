@@ -109,6 +109,88 @@ describe("WhatsApp webhook security and payload parsing", () => {
     ]);
   });
 
+  it("extracts an interactive button_reply variant with the same correlation key", () => {
+    const events = extractDeliveryCareButtonReplyEvents({
+      object: "whatsapp_business_account",
+      entry: [
+        {
+          changes: [
+            {
+              field: "messages",
+              value: {
+                messages: [
+                  {
+                    context: { id: "wamid.original-template" },
+                    from: "9647721310937",
+                    id: "wamid.customer-interactive",
+                    timestamp: "1700000101",
+                    type: "interactive",
+                    interactive: {
+                      type: "button_reply",
+                      button_reply: {
+                        id: "aquavo_delivery_issue_v1",
+                        title: "عندي ملاحظة عالطلب",
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(events).toEqual([
+      {
+        inboundMessageId: "wamid.customer-interactive",
+        contextProviderMessageId: "wamid.original-template",
+        fromPhone: "9647721310937",
+        receivedAt: new Date(1700000101 * 1000),
+        payload: "aquavo_delivery_issue_v1",
+        buttonText: "عندي ملاحظة عالطلب",
+      },
+    ]);
+  });
+
+  it("extracts a contextual text variant for downstream exact-choice validation", () => {
+    const events = extractDeliveryCareButtonReplyEvents({
+      object: "whatsapp_business_account",
+      entry: [
+        {
+          changes: [
+            {
+              field: "messages",
+              value: {
+                messages: [
+                  {
+                    context: { id: "wamid.original-template" },
+                    from: "9647721310937",
+                    id: "wamid.customer-text-reply",
+                    timestamp: "1700000102",
+                    type: "text",
+                    text: { body: "عندي ملاحظة عالطلب" },
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(events).toEqual([
+      {
+        inboundMessageId: "wamid.customer-text-reply",
+        contextProviderMessageId: "wamid.original-template",
+        fromPhone: "9647721310937",
+        receivedAt: new Date(1700000102 * 1000),
+        payload: "",
+        buttonText: "عندي ملاحظة عالطلب",
+      },
+    ]);
+  });
+
   it("ignores ordinary incoming text and malformed button callbacks", () => {
     const events = extractDeliveryCareButtonReplyEvents({
       object: "whatsapp_business_account",
