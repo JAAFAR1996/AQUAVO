@@ -1,24 +1,16 @@
 import { useMemo } from "react";
 import { Check, X, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+    PASSWORD_MAX_LENGTH,
+    PASSWORD_MIN_LENGTH,
+    validatePasswordPolicy,
+} from "@shared/password-policy";
 
 interface PasswordStrengthProps {
     password: string;
     showRequirements?: boolean;
 }
-
-interface PasswordRequirement {
-    label: string;
-    test: (password: string) => boolean;
-}
-
-const requirements: PasswordRequirement[] = [
-    { label: "12 حرفاً على الأقل", test: (p) => p.length >= 12 },
-    { label: "حرف كبير واحد على الأقل", test: (p) => /[A-Z]/.test(p) },
-    { label: "حرف صغير واحد على الأقل", test: (p) => /[a-z]/.test(p) },
-    { label: "رقم واحد على الأقل", test: (p) => /[0-9]/.test(p) },
-    { label: "رمز خاص واحد على الأقل (!@#$%)", test: (p) => /[!@#$%^&*(),.?":{}|<>]/.test(p) },
-];
 
 export function PasswordStrength({ password, showRequirements = true }: PasswordStrengthProps) {
     const { score, label, color, bgColor } = useMemo(() => {
@@ -26,36 +18,29 @@ export function PasswordStrength({ password, showRequirements = true }: Password
             return { score: 0, label: "", color: "bg-muted", bgColor: "bg-muted" };
         }
 
-        const passedTests = requirements.filter((req) => req.test(password)).length;
-        const percentage = (passedTests / requirements.length) * 100;
-
-        if (percentage <= 20) {
-            return { score: percentage, label: "ضعيفة جداً", color: "bg-red-500", bgColor: "bg-red-100" };
-        } else if (percentage <= 40) {
-            return { score: percentage, label: "ضعيفة", color: "bg-orange-500", bgColor: "bg-orange-100" };
-        } else if (percentage <= 60) {
-            return { score: percentage, label: "متوسطة", color: "bg-yellow-500", bgColor: "bg-yellow-100" };
-        } else if (percentage <= 80) {
-            return { score: percentage, label: "جيدة", color: "bg-lime-500", bgColor: "bg-lime-100" };
-        } else {
-            return { score: percentage, label: "قوية", color: "bg-green-500", bgColor: "bg-green-100" };
-        }
+        const ratio = Math.min(1, password.length / PASSWORD_MIN_LENGTH);
+        const score = Math.round(ratio * 100);
+        if (score < 50) return { score, label: "قصيرة", color: "bg-red-500", bgColor: "bg-red-100" };
+        if (score < 100) return { score, label: "تحتاج طول أكثر", color: "bg-yellow-500", bgColor: "bg-yellow-100" };
+        return { score, label: "طول مناسب", color: "bg-green-500", bgColor: "bg-green-100" };
     }, [password]);
 
-    if (!password) {
-        return null;
-    }
+    if (!password) return null;
+
+    const policy = validatePasswordPolicy(password);
+    const longEnough = password.length >= PASSWORD_MIN_LENGTH;
+    const withinMaximum = password.length <= PASSWORD_MAX_LENGTH;
+    const notCommon = policy.reason !== "common";
 
     return (
         <div className="space-y-3">
-            {/* Strength Bar */}
             <div className="space-y-1">
                 <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">قوة كلمة المرور:</span>
                     <span className={cn(
                         "font-medium px-2 py-0.5 rounded-full text-xs",
                         bgColor,
-                        score <= 40 ? "text-red-700" : score <= 60 ? "text-yellow-700" : "text-green-700"
+                        score < 50 ? "text-red-700" : score < 100 ? "text-yellow-700" : "text-green-700"
                     )}>
                         {label}
                     </span>
@@ -68,7 +53,6 @@ export function PasswordStrength({ password, showRequirements = true }: Password
                 </div>
             </div>
 
-            {/* Requirements List */}
             {showRequirements && (
                 <div className="bg-muted/50 rounded-lg p-3 space-y-2">
                     <p className="text-xs font-medium text-muted-foreground flex items-center gap-1">
@@ -76,38 +60,33 @@ export function PasswordStrength({ password, showRequirements = true }: Password
                         متطلبات كلمة المرور:
                     </p>
                     <ul className="grid grid-cols-1 gap-1">
-                        {requirements.map((req) => {
-                            const passed = req.test(password);
-                            return (
-                                <li
-                                    key={req.label}
-                                    className={cn(
-                                        "flex items-center gap-2 text-xs transition-colors",
-                                        passed ? "text-green-600" : "text-muted-foreground"
-                                    )}
-                                >
-                                    {passed ? (
-                                        <Check className="w-3 h-3 text-green-500" />
-                                    ) : (
-                                        <X className="w-3 h-3 text-muted-foreground" />
-                                    )}
-                                    {req.label}
-                                </li>
-                            );
-                        })}
+                        <Requirement ok={longEnough} text={`${PASSWORD_MIN_LENGTH} حرف على الأقل — العبارات الطويلة أفضل`} />
+                        <Requirement ok={withinMaximum} text={`بحد أقصى ${PASSWORD_MAX_LENGTH} حرف`} />
+                        <Requirement ok={notCommon} text="مو كلمة مرور شائعة أو سهلة التخمين" />
                     </ul>
+                    <p className="text-[11px] leading-5 text-muted-foreground">
+                        تكدر تستخدم مسافات وعربي وإنكليزي ورموز. ما نفرض خلط أنواع أحرف بشكل مصطنع.
+                    </p>
                 </div>
             )}
         </div>
     );
 }
 
+function Requirement({ ok, text }: { ok: boolean; text: string }) {
+    return (
+        <li className={cn("flex items-center gap-2 text-xs", ok ? "text-green-600" : "text-muted-foreground")}>
+            {ok ? <Check className="w-3 h-3 text-green-500" /> : <X className="w-3 h-3 text-muted-foreground" />}
+            {text}
+        </li>
+    );
+}
+
 export function getPasswordStrengthScore(password: string): number {
     if (!password) return 0;
-    const passedTests = requirements.filter((req) => req.test(password)).length;
-    return (passedTests / requirements.length) * 100;
+    return Math.min(100, Math.round((password.length / PASSWORD_MIN_LENGTH) * 100));
 }
 
 export function isPasswordStrong(password: string): boolean {
-    return getPasswordStrengthScore(password) >= 60;
+    return validatePasswordPolicy(password).valid;
 }
