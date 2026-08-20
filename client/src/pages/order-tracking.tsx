@@ -77,7 +77,37 @@ const STATUS_COPY: Record<string, { label: string; description: string }> = {
     label: "ملغي",
     description: "تم إلغاء الطلب",
   },
+  rejected: {
+    label: "مرفوض",
+    description: "تعذر إكمال الطلب وتم إيقاف مسار التوصيل",
+  },
+  rejected_carrier: {
+    label: "تعذر التوصيل",
+    description: "شركة التوصيل سجلت تعذر تسليم الطلب وبدأ مسار الإرجاع",
+  },
+  rejected_returned: {
+    label: "رجع من شركة التوصيل",
+    description: "تم استلام الطلب الراجع من شركة التوصيل",
+  },
+  returned: {
+    label: "تم إرجاع الطلب",
+    description: "اكتملت معالجة إرجاع الطلب",
+  },
+  refunded: {
+    label: "تم رد المبلغ",
+    description: "اكتملت معالجة الاسترجاع المالي للطلب",
+  },
 };
+
+const TERMINAL_LOCAL_STATUSES = new Set([
+  "delivered",
+  "cancelled",
+  "rejected",
+  "rejected_carrier",
+  "rejected_returned",
+  "returned",
+  "refunded",
+]);
 
 function formatOrderDate(value: string): string {
   const date = new Date(value);
@@ -111,6 +141,7 @@ function getStatusCopy(status: string) {
 
 function buildTimeline(data: TrackingApiResponse): TimelineItem[] {
   const localCopy = getStatusCopy(data.status);
+  const terminal = TERMINAL_LOCAL_STATUSES.has(data.status);
   const receivedTime = formatEventTime(data.createdAt);
   const items: TimelineItem[] = [
     {
@@ -123,7 +154,9 @@ function buildTimeline(data: TrackingApiResponse): TimelineItem[] {
     },
   ];
 
-  if (data.shipping) {
+  // A terminal AQUAVO state is newer business truth than an older carrier mirror.
+  // Do not let a stale provider state make a returned/rejected order look active.
+  if (data.shipping && !terminal) {
     items.push({
       id: "carrier-live",
       title: data.shipping.status,
@@ -141,8 +174,8 @@ function buildTimeline(data: TrackingApiResponse): TimelineItem[] {
       title: localCopy.label,
       description: localCopy.description,
       time: formatEventTime(data.updatedAt),
-      completed: data.status === "delivered" || data.status === "cancelled",
-      current: data.status !== "delivered" && data.status !== "cancelled",
+      completed: terminal,
+      current: !terminal,
     });
   }
 
@@ -150,6 +183,11 @@ function buildTimeline(data: TrackingApiResponse): TimelineItem[] {
 }
 
 function currentDisplay(details: OrderDetails) {
+  const terminal = TERMINAL_LOCAL_STATUSES.has(details.localStatus);
+  if (terminal) {
+    const copy = getStatusCopy(details.localStatus);
+    return { label: copy.label, title: copy.label, helper: copy.description };
+  }
   if (details.shipping) {
     return {
       label: details.shipping.status,

@@ -7,6 +7,8 @@ import { runDueDeliveryCareJobs } from "../services/customer-messaging.js";
 import { cleanupDeliveryCareButtonInbox } from "../services/whatsapp-delivery-care-button-inbox.js";
 import { runResilientDeliveryCareAutoReplyRecovery } from "../services/whatsapp-delivery-care-recovery.js";
 import { cleanupWhatsAppProviderStatusEvents } from "../services/whatsapp-provider-status.js";
+import { runResilientFinanceAudit } from "../services/groq-finance-audit-resilient.js";
+import { smartNotifications } from "../services/smart-notifications.js";
 
 const router = Router();
 
@@ -53,6 +55,32 @@ router.get("/nightly", async (_req: Request, res: Response) => {
   for (const task of tasks) {
     const taskStart = Date.now();
     try {
+      if (task.jobKey === "smart_reminders") {
+        const delivery = await smartNotifications.runAINotificationEngine();
+        const success = delivery.pushFailed === 0;
+        const duration = Date.now() - taskStart;
+        const message = success
+          ? `Smart reminders completed: ${delivery.pushSent} push sent`
+          : `Smart reminders had delivery failures: ${delivery.pushSent} sent, ${delivery.pushFailed} failed`;
+        results[task.name] = { success, message, duration };
+        if (success) {
+          aiMonitor.log({
+            event: "cron_job",
+            level: "info",
+            success: true,
+            responseTimeMs: duration,
+            details: { job: task.jobKey, status: "completed", source: "vercel_cron", ...delivery },
+          });
+        } else {
+          aiMonitor.logError(message, {}, {
+            event: "cron_job",
+            responseTimeMs: duration,
+            details: { job: task.jobKey, status: "completed_with_delivery_failures", source: "vercel_cron", ...delivery },
+          } as any);
+        }
+        continue;
+      }
+
       const result = await triggerJob(task.jobKey);
       const duration = Date.now() - taskStart;
       results[task.name] = { success: result.success, message: result.message, duration };
@@ -66,7 +94,8 @@ router.get("/nightly", async (_req: Request, res: Response) => {
   }
   const totalDuration = Date.now() - startTime;
   const successCount = Object.values(results).filter((result) => result.success).length;
-  res.status(200).json({ success: true, totalDuration, completed: `${successCount}/${tasks.length}`, results });
+  const allSucceeded = successCount === tasks.length;
+  res.status(200).json({ success: allSucceeded, totalDuration, completed: `${successCount}/${tasks.length}`, results });
 });
 
 router.get("/weekly-blog", async (_req: Request, res: Response) => {
@@ -116,10 +145,35 @@ router.get("/finance-audit", async (_req: Request, res: Response) => {
       });
     }
 
-    const result = await triggerJob("finance_audit");
+    const result = await runResilientFinanceAudit("vercel_cron");
     const duration = Date.now() - startTime;
-    aiMonitor.log({ event: "cron_job", level: "info", success: result.success, responseTimeMs: duration, details: { job: "finance_audit", status: result.success ? "completed" : "failed", source: "vercel_cron", automaticClose } });
-    return res.status(200).json({ success: result.success, message: result.message, automaticClose, duration });
+    const success = !result.error;
+    if (success) {
+      aiMonitor.log({
+        event: "cron_job",
+        level: "info",
+        success: true,
+        responseTimeMs: duration,
+        details: {
+          job: "finance_audit",
+          status: result.report?.overallStatus ?? "completed",
+          source: "vercel_cron",
+          automaticClose,
+        },
+      });
+    } else {
+      aiMonitor.logError(result.error || "Finance audit failed", {}, {
+        event: "cron_job",
+        responseTimeMs: duration,
+        details: { job: "finance_audit", status: "failed", source: "vercel_cron", automaticClose },
+      } as any);
+    }
+    return res.status(200).json({
+      success,
+      message: result.error ?? `Finance audit completed: ${result.report?.overallStatus ?? "ok"}`,
+      automaticClose,
+      duration,
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error(`[Cron] Finance close/audit failed: ${message}`);
@@ -129,10 +183,7 @@ router.get("/finance-audit", async (_req: Request, res: Response) => {
 
 /**
  * Recovery worker for post-delivery WhatsApp care messages and their Quick Reply
- * auto-responses. Vercel Hobby cannot schedule sub-daily Cron Jobs, so production
- * is invoked by a protected GitHub Actions schedule every five minutes. Each
- * recovery stage is fault-isolated so one malformed reply row cannot discard a
- * successful delivery-care batch or starve unrelated customer replies.
+ * auto-responses. Production is invoked by a protected external scheduler.
  */
 router.get("/customer-messaging", async (_req: Request, res: Response) => {
   const startTime = Date.now();

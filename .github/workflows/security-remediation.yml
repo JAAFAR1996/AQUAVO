@@ -1,0 +1,181 @@
+name: Security dependency remediation
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/security-remediation.yml
+      - package.json
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
+
+permissions:
+  contents: write
+
+env:
+  NODE_VERSION: 20.19.0
+  PNPM_VERSION: 10.0.0
+  CI: true
+
+jobs:
+  remediate:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout repair branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 1
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install current lockfile
+        run: pnpm install --frozen-lockfile
+
+      - name: Remove unused and redundant dependencies
+        run: pnpm remove apify-client ts-node-dev @types/dompurify @types/uuid
+
+      - name: Update vulnerable production dependencies
+        run: >-
+          pnpm update --latest
+          @aws-sdk/client-s3
+          @modelcontextprotocol/sdk
+          @sentry/node
+          @sentry/react
+          drizzle-orm
+          express-rate-limit
+          isomorphic-dompurify
+          jspdf
+          multer
+          nanoid
+          nodemailer
+          postcss
+          posthog-js
+          resend
+          uuid
+          ws
+
+      - name: Update vulnerable development dependencies
+        run: >-
+          pnpm add -D
+          @types/multer@latest
+          @vercel/node@latest
+          @vitest/ui@latest
+          dompurify@latest
+          happy-dom@latest
+          sharp@latest
+          vite@latest
+          vitest@latest
+
+      - name: Apply transitive security fixes
+        run: pnpm audit --fix || true
+
+      - name: Refresh lockfile
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Type check
+        id: types
+        shell: bash
+        run: |
+          set +e
+          pnpm run check 2>&1 | tee remediation-types.log
+          code=${PIPESTATUS[0]}
+          set -e
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+
+      - name: Unit tests
+        id: tests
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          pnpm run test --run 2>&1 | tee remediation-tests.log
+          code=${PIPESTATUS[0]}
+          set -e
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+
+      - name: Print concise test failure summary
+        if: always()
+        shell: bash
+        run: |
+          echo "===== concise test summary ====="
+          if [ -f remediation-tests.log ]; then
+            grep -E "(^|[[:space:]])(FAIL|Failed|failed|AssertionError|Error:|Test Files|Tests|Snapshots|Duration|×|❯)" remediation-tests.log | tail -n 250 || true
+          else
+            echo "No test log was produced"
+          fi
+
+      - name: Build
+        id: build
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          pnpm run build 2>&1 | tee remediation-build.log
+          code=${PIPESTATUS[0]}
+          set -e
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+
+      - name: Final security audit
+        id: audit
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          pnpm audit --audit-level=moderate 2>&1 | tee remediation-audit.log
+          code=${PIPESTATUS[0]}
+          set -e
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+
+      - name: Upload remediation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-remediation-evidence-${{ github.run_number }}
+          path: |
+            remediation-types.log
+            remediation-tests.log
+            remediation-build.log
+            remediation-audit.log
+          if-no-files-found: warn
+          retention-days: 3
+
+      - name: Commit verified dependency repair
+        if: steps.types.outputs.exit_code == '0' && steps.tests.outputs.exit_code == '0' && steps.build.outputs.exit_code == '0' && steps.audit.outputs.exit_code == '0'
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json pnpm-lock.yaml
+          if [ -f pnpm-workspace.yaml ]; then git add pnpm-workspace.yaml; fi
+          if git diff --cached --quiet; then
+            echo "No dependency changes to commit"
+          else
+            git commit -m "fix(security): update vulnerable dependencies"
+            git push origin HEAD:${{ github.event.pull_request.head.ref }}
+          fi
+
+      - name: Require verified remediation
+        if: always()
+        shell: bash
+        run: |
+          types="${{ steps.types.outputs.exit_code }}"
+          tests="${{ steps.tests.outputs.exit_code }}"
+          build="${{ steps.build.outputs.exit_code }}"
+          audit="${{ steps.audit.outputs.exit_code }}"
+          echo "types=$types tests=$tests build=$build audit=$audit"
+          if [ "$types" != "0" ] || [ "$tests" != "0" ] || [ "$build" != "0" ] || [ "$audit" != "0" ]; then
+            exit 1
+          fi

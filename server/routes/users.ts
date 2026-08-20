@@ -2,6 +2,7 @@ import type { Router as RouterType, Request, Response, NextFunction } from "expr
 import { Router } from "express";
 import { storage } from "../storage/index.js";
 import { insertUserAddressSchema, earlyAccessLeads } from "../../shared/schema.js";
+import { passwordPolicyMessage, validatePasswordPolicy } from "../../shared/password-policy.js";
 import { requireAuth, getSession } from "../middleware/auth.js";
 import { sendPasswordResetEmail } from "../utils/email.js";
 import { authLimiter, passwordResetLimiter } from "../middleware/rate-limit.js";
@@ -11,10 +12,31 @@ import { getDb } from "../db.js";
 import { eq } from "drizzle-orm";
 import crypto from "crypto";
 
-/** Strip sensitive fields before sending user to client */
 function sanitizeUser(user: Record<string, any>) {
     const { passwordHash, verificationToken, verificationTokenExpiresAt, ...safe } = user;
     return safe;
+}
+
+function normalizeEmail(value: unknown): string | null {
+    if (typeof value !== "string") return null;
+    const email = value.trim().toLowerCase();
+    if (email.length < 3 || email.length > 254) return null;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return null;
+    return email;
+}
+
+function normalizeName(value: unknown): string | null {
+    if (typeof value !== "string") return null;
+    const name = value.replace(/\s+/g, " ").trim();
+    return name.length >= 2 && name.length <= 100 ? name : null;
+}
+
+function normalizePhone(value: unknown): string | null {
+    if (typeof value !== "string") return null;
+    const phone = value.trim();
+    if (phone.length < 7 || phone.length > 20) return null;
+    if (!/^[0-9+()\-\s]+$/.test(phone)) return null;
+    return phone;
 }
 
 const securityStorage = new SecurityStorage();
@@ -22,11 +44,31 @@ const securityStorage = new SecurityStorage();
 export function createUserRouter(): RouterType {
     const router = Router();
 
-    // Register
     router.post("/register", authLimiter, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const { email: rawEmail, password, fullName, phone, referralCode } = req.body;
-            const email = rawEmail?.toLowerCase().trim();
+            const { email: rawEmail, password, fullName: rawFullName, phone: rawPhone, referralCode } = req.body ?? {};
+            const email = normalizeEmail(rawEmail);
+            const fullName = normalizeName(rawFullName);
+            const phone = normalizePhone(rawPhone);
+            const passwordPolicy = validatePasswordPolicy(password);
+
+            if (!email) {
+                res.status(400).json({ message: "أدخل بريد إلكتروني صالح" });
+                return;
+            }
+            if (!fullName) {
+                res.status(400).json({ message: "الاسم الكامل مطلوب ويجب أن يكون بين 2 و100 حرف" });
+                return;
+            }
+            if (!phone) {
+                res.status(400).json({ message: "أدخل رقم هاتف صالح" });
+                return;
+            }
+            if (!passwordPolicy.valid) {
+                res.status(400).json({ message: passwordPolicyMessage(passwordPolicy) });
+                return;
+            }
+
             const existingUser = await storage.getUserByEmail(email);
             if (existingUser) {
                 res.status(400).json({ message: "البريد الإلكتروني مسجل بالفعل" });
@@ -38,10 +80,9 @@ export function createUserRouter(): RouterType {
                 passwordHash: hashPassword(password),
                 fullName,
                 phone,
-                role: "user"
+                role: "user",
             });
 
-            // Create Welcome Coupon (3% off)
             try {
                 const couponCode = `WELCOME3_${user.id.substring(0, 8).toUpperCase()}`;
                 await storage.createCoupon({
@@ -53,77 +94,62 @@ export function createUserRouter(): RouterType {
                     isActive: true,
                     description: "3% خصم ترحيبي للأعضاء الجدد",
                     startDate: new Date(),
-                    userId: user.id
+                    userId: user.id,
                 });
-
-                // Audit Log: Registration
                 await storage.createAuditLog({
                     userId: user.id,
                     action: "register",
                     entityType: "user",
                     entityId: user.id,
-                    changes: { email: user.email, coupon: couponCode }
+                    changes: { email: user.email, coupon: couponCode },
                 });
-
             } catch (couponErr) {
                 console.error("Failed to create welcome coupon/log:", couponErr);
             }
 
-            // Award Welcome Bonus (20 loyalty points)
             try {
                 const { loyaltyStorage } = await import("../storage/loyalty-storage.js");
                 await loyaltyStorage.awardWelcomeBonus(user.id);
-                console.log(`[Register] Welcome bonus awarded to ${user.email}`);
             } catch (bonusErr) {
                 console.error("Failed to award welcome bonus:", bonusErr);
             }
 
-            // Process referral code if provided
-            if (referralCode) {
+            if (typeof referralCode === "string" && referralCode.trim()) {
                 try {
                     const { ReferralStorage } = await import("../storage/referral-storage.js");
                     const referralStorage = new ReferralStorage();
-
-                    // Get referral code details
-                    const refCode = await referralStorage.getReferralCodeByCode(referralCode);
+                    const refCode = await referralStorage.getReferralCodeByCode(referralCode.trim());
                     if (refCode && refCode.isActive) {
-                        // Create referral record (this also awards points to referrer)
                         await referralStorage.createReferral(refCode.id, refCode.userId, user.id);
-                        console.log(`✅ Referral processed: ${user.email} referred by code ${referralCode}`);
                     }
                 } catch (refErr) {
                     console.error("Failed to process referral:", refErr);
                 }
             }
 
-            // Login immediately
             const sess = getSession(req);
             if (sess) sess.userId = user.id;
-
             res.status(201).json(sanitizeUser(user));
         } catch (err) {
             next(err);
         }
     });
 
-    // Login
     router.post("/login", authLimiter, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const { email: rawEmail, password } = req.body;
-            const email = rawEmail?.toLowerCase().trim();
-            const ipAddress = req.ip || req.headers['x-forwarded-for'] as string || 'unknown';
-            const userAgent = req.headers['user-agent'] || 'unknown';
+            const email = normalizeEmail(req.body?.email);
+            const password = typeof req.body?.password === "string" ? req.body.password : "";
+            const ipAddress = req.ip || req.headers["x-forwarded-for"] as string || "unknown";
+            const userAgent = req.headers["user-agent"] || "unknown";
+            const user = email ? await storage.getUserByEmail(email) : null;
 
-            const user = await storage.getUserByEmail(email);
-
-            // Check if IP is blocked - return countdown info if blocked
             try {
                 const blockInfo = await securityStorage.getBlockInfo(ipAddress);
                 if (blockInfo?.isBlocked) {
                     res.status(429).json({
                         message: "تم حظر عنوان IP الخاص بك مؤقتاً بسبب محاولات دخول متعددة فاشلة",
                         retryAfter: blockInfo.remainingSeconds,
-                        expiresAt: blockInfo.expiresAt?.toISOString()
+                        expiresAt: blockInfo.expiresAt?.toISOString(),
                     });
                     return;
                 }
@@ -131,12 +157,11 @@ export function createUserRouter(): RouterType {
                 console.error("Error checking blocked IP:", blockErr);
             }
 
-            if (!user || !verifyPassword(password, user.passwordHash)) {
-                // Record failed login attempt
+            if (!user || !password || !verifyPassword(password, user.passwordHash)) {
                 try {
                     await securityStorage.recordLoginAttempt({
                         userId: user?.id,
-                        email,
+                        email: email ?? "invalid-email",
                         success: false,
                         ipAddress,
                         userAgent,
@@ -145,16 +170,14 @@ export function createUserRouter(): RouterType {
                 } catch (logErr) {
                     console.error("Error recording login attempt:", logErr);
                 }
-
                 res.status(401).json({ message: "البريد الإلكتروني أو كلمة المرور غير صحيحة" });
                 return;
             }
 
-            // Record successful login attempt
             try {
                 await securityStorage.recordLoginAttempt({
                     userId: user.id,
-                    email,
+                    email: user.email,
                     success: true,
                     ipAddress,
                     userAgent,
@@ -165,30 +188,23 @@ export function createUserRouter(): RouterType {
 
             const sess = getSession(req);
             if (sess) sess.userId = user.id;
-
-            // Audit Log: Login
             await storage.createAuditLog({
                 userId: user.id,
                 action: "login",
                 entityType: "user",
                 entityId: user.id,
-                changes: { ip: req.ip }
+                changes: { ip: req.ip },
             });
-
             res.json(sanitizeUser(user));
         } catch (err) {
             next(err);
         }
     });
 
-    // Logout
     router.post("/logout", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         if ((req as any).session) {
             (req as any).session.destroy((err: any) => {
-                if (err) {
-                    next(err);
-                    return;
-                }
+                if (err) return next(err);
                 res.json({ message: "Logged out" });
             });
         } else {
@@ -196,18 +212,13 @@ export function createUserRouter(): RouterType {
         }
     });
 
-    // Get Current User
     router.get("/user", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const sess = getSession(req);
-            if (!sess?.userId) {
-                res.json(null);
-                return;
-            }
+            if (!sess?.userId) { res.json(null); return; }
             const user = await storage.getUser(sess.userId);
             if (!user) { res.json(null); return; }
 
-            // Check if user is an early access member (phone matches earlyAccessLeads)
             let isEarlyAccess = false;
             if (user.phone) {
                 try {
@@ -221,47 +232,33 @@ export function createUserRouter(): RouterType {
                     }
                 } catch { /* non-critical */ }
             }
-
             res.json(sanitizeUser({ ...user, isEarlyAccess }));
         } catch (err) {
             next(err);
         }
     });
 
-    // Update User Preferences
     router.patch("/user/preferences", requireAuth, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const sess = getSession(req);
-            if (!sess?.userId) {
-                res.sendStatus(401);
-                return;
-            }
-
+            if (!sess?.userId) { res.sendStatus(401); return; }
             const { preferences } = req.body;
-            if (!preferences) {
+            if (!preferences || typeof preferences !== "object" || Array.isArray(preferences)) {
                 res.status(400).json({ message: "Preferences object is required" });
                 return;
             }
-
             const user = await storage.getUser(sess.userId);
-            if (!user) {
-                res.status(404).json({ message: "User not found" });
-                return;
-            }
+            if (!user) { res.status(404).json({ message: "User not found" }); return; }
 
-            // Deep merge or simple merge? users schema defines preferences as jsonb.
-            // We'll treat the incoming 'preferences' as a partial update to the existing object.
             const currentPreferences = user.preferences as Record<string, any> || {};
             const updatedPreferences = {
                 ...currentPreferences,
                 ...preferences,
-                // If specific sub-objects like tourSeen need deep merge, handle it:
                 tourSeen: {
                     ...(currentPreferences.tourSeen || {}),
-                    ...(preferences.tourSeen || {})
-                }
+                    ...((preferences as Record<string, any>).tourSeen || {}),
+                },
             };
-
             const updatedUser = await storage.updateUser(sess.userId, { preferences: updatedPreferences });
             res.json(sanitizeUser(updatedUser ?? {}));
         } catch (err) {
@@ -269,57 +266,45 @@ export function createUserRouter(): RouterType {
         }
     });
 
-    // Forgot Password
     router.post("/auth/forgot-password", passwordResetLimiter, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const { email } = req.body;
-            const user = await storage.getUserByEmail(email);
-            if (user) {
-                const token = crypto.randomBytes(32).toString("hex");
-                const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
-                const expiresAt = new Date(Date.now() + 3600000); // 1 hour
-
-                await storage.createPasswordResetToken(user.id, tokenHash, expiresAt);
-                await sendPasswordResetEmail(email, token, "https://www.aquavoiq.com");
+            const email = normalizeEmail(req.body?.email);
+            if (email) {
+                const user = await storage.getUserByEmail(email);
+                if (user) {
+                    const token = crypto.randomBytes(32).toString("hex");
+                    const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+                    const expiresAt = new Date(Date.now() + 3600000);
+                    await storage.createPasswordResetToken(user.id, tokenHash, expiresAt);
+                    await sendPasswordResetEmail(email, token, "https://www.aquavoiq.com");
+                }
             }
+            // Intentionally identical response for existing and non-existing accounts.
             res.json({ message: "If account exists, email sent" });
         } catch (err) {
             next(err);
         }
     });
 
-    // Reset Password
     router.post("/auth/reset-password", passwordResetLimiter, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const { token, newPassword } = req.body;
-
-            // Input validation
-            if (!token || typeof token !== 'string') {
+            const { token, newPassword } = req.body ?? {};
+            if (!token || typeof token !== "string") {
                 res.status(400).json({ message: "Token is required" });
                 return;
             }
-
-            if (!newPassword || typeof newPassword !== 'string') {
-                res.status(400).json({ message: "New password is required" });
+            const passwordPolicy = validatePasswordPolicy(newPassword);
+            if (!passwordPolicy.valid) {
+                res.status(400).json({ message: passwordPolicyMessage(passwordPolicy) });
                 return;
             }
 
-            // Password strength validation
-            if (newPassword.length < 8) {
-                res.status(400).json({ message: "Password must be at least 8 characters" });
-                return;
-            }
-
-            const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
-
-            // Atomic reset to prevent race conditions
+            const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
             const success = await storage.processPasswordReset(tokenHash, hashPassword(newPassword));
-
             if (!success) {
                 res.status(400).json({ message: "Invalid or expired token" });
                 return;
             }
-
             res.json({ message: "Password reset successful" });
         } catch (err) {
             console.error("Password reset error:", err);
@@ -327,8 +312,6 @@ export function createUserRouter(): RouterType {
         }
     });
 
-
-    // Update User Profile (fullName, phone, birthDate)
     router.patch("/user", requireAuth, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const sess = getSession(req);
@@ -336,33 +319,51 @@ export function createUserRouter(): RouterType {
 
             const { fullName, phone, birthDate } = req.body;
             const updates: Record<string, any> = {};
-            if (fullName && typeof fullName === "string") updates.fullName = fullName.trim().slice(0, 100);
-            if (phone !== undefined && typeof phone === "string") updates.phone = phone.trim().slice(0, 20);
-            if (birthDate !== undefined) updates.birthDate = birthDate ? new Date(birthDate) : null;
+            if (fullName !== undefined) {
+                const normalized = normalizeName(fullName);
+                if (!normalized) { res.status(400).json({ message: "Invalid full name" }); return; }
+                updates.fullName = normalized;
+            }
+            if (phone !== undefined) {
+                const normalized = phone === "" ? "" : normalizePhone(phone);
+                if (normalized === null) { res.status(400).json({ message: "Invalid phone" }); return; }
+                updates.phone = normalized;
+            }
+            if (birthDate !== undefined) {
+                if (!birthDate) {
+                    updates.birthDate = null;
+                } else {
+                    const parsedBirthDate = new Date(birthDate);
+                    if (!Number.isFinite(parsedBirthDate.getTime()) || parsedBirthDate > new Date()) {
+                        res.status(400).json({ message: "Invalid birth date" });
+                        return;
+                    }
+                    updates.birthDate = parsedBirthDate;
+                }
+            }
 
             if (Object.keys(updates).length === 0) {
                 res.status(400).json({ message: "No valid fields to update" });
                 return;
             }
-
             const user = await storage.updateUser(sess.userId, updates);
             res.json(sanitizeUser(user ?? {}));
         } catch (err) { next(err); }
     });
 
-    // Change Password
     router.post("/user/change-password", requireAuth, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const sess = getSession(req);
             if (!sess?.userId) { res.sendStatus(401); return; }
 
-            const { currentPassword, newPassword } = req.body;
-            if (!currentPassword || !newPassword) {
-                res.status(400).json({ message: "Current password and new password are required" });
+            const { currentPassword, newPassword } = req.body ?? {};
+            if (typeof currentPassword !== "string" || !currentPassword) {
+                res.status(400).json({ message: "Current password is required" });
                 return;
             }
-            if (typeof newPassword !== "string" || newPassword.length < 8) {
-                res.status(400).json({ message: "كلمة المرور الجديدة يجب أن تكون 8 أحرف على الأقل" });
+            const passwordPolicy = validatePasswordPolicy(newPassword);
+            if (!passwordPolicy.valid) {
+                res.status(400).json({ message: passwordPolicyMessage(passwordPolicy) });
                 return;
             }
 
@@ -371,20 +372,20 @@ export function createUserRouter(): RouterType {
                 res.status(401).json({ message: "كلمة المرور الحالية غير صحيحة" });
                 return;
             }
+            if (verifyPassword(newPassword, user.passwordHash)) {
+                res.status(400).json({ message: "اختار كلمة مرور جديدة مختلفة عن الحالية" });
+                return;
+            }
 
             await storage.updateUser(sess.userId, { passwordHash: hashPassword(newPassword) });
             res.json({ message: "تم تغيير كلمة المرور بنجاح" });
         } catch (err) { next(err); }
     });
 
-    // Addresses
     router.get("/user/addresses", requireAuth, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const sess = getSession(req);
-            if (!sess?.userId) {
-                res.sendStatus(401);
-                return;
-            }
+            if (!sess?.userId) { res.sendStatus(401); return; }
             const addresses = await storage.getUserAddresses(sess.userId);
             res.json(addresses);
         } catch (err) {
@@ -395,10 +396,7 @@ export function createUserRouter(): RouterType {
     router.post("/user/addresses", requireAuth, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const sess = getSession(req);
-            if (!sess?.userId) {
-                res.sendStatus(401);
-                return;
-            }
+            if (!sess?.userId) { res.sendStatus(401); return; }
             const { label, address: addressText, addressLine1, city, country, isDefault } = req.body;
             const parsed = insertUserAddressSchema.parse({
                 label: label || null,
@@ -421,10 +419,11 @@ export function createUserRouter(): RouterType {
             if (!sess?.userId) { res.sendStatus(401); return; }
 
             const { id } = req.params as { id: string };
-            const { label, address, phone, isDefault } = req.body;
+            const { label, address, addressLine1, phone, isDefault } = req.body;
             const updates: Record<string, any> = {};
             if (label !== undefined) updates.label = String(label).slice(0, 50);
-            if (address !== undefined) updates.address = String(address).slice(0, 500);
+            const nextAddress = addressLine1 ?? address;
+            if (nextAddress !== undefined) updates.address = String(nextAddress).slice(0, 500);
             if (phone !== undefined) updates.phone = String(phone).slice(0, 20);
             if (isDefault !== undefined) updates.isDefault = Boolean(isDefault);
 
@@ -438,7 +437,6 @@ export function createUserRouter(): RouterType {
         try {
             const sess = getSession(req);
             if (!sess?.userId) { res.sendStatus(401); return; }
-
             const { id } = req.params as { id: string };
             const deleted = await storage.deleteUserAddress(id, sess.userId);
             if (!deleted) { res.status(404).json({ message: "Address not found" }); return; }
@@ -446,14 +444,10 @@ export function createUserRouter(): RouterType {
         } catch (err) { next(err); }
     });
 
-    // Coupons (My Coupons)
     router.get("/coupons/my-coupons", requireAuth, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const sess = getSession(req);
-            if (!sess?.userId) {
-                res.sendStatus(401);
-                return;
-            }
+            if (!sess?.userId) { res.sendStatus(401); return; }
             const coupons = await storage.getCouponsByUserId(sess.userId);
             res.json(coupons);
         } catch (err) {

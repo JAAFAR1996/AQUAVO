@@ -2,6 +2,8 @@ name: SEO Production 360 Audit
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: "15 3 * * *"
   push:
     branches: [main]
     paths:
@@ -106,7 +108,7 @@ jobs:
             ${format(report.warnings)}
             ${extraWarnings ? `\n- …and ${extraWarnings} more warnings in the artifact.` : ''}
 
-            _This issue is updated automatically by the production crawler. It does not use SEMrush estimates._
+            _This issue is refreshed automatically every day and on audit-code changes._
             `;
 
             const issues = await github.paginate(github.rest.issues.listForRepo, {

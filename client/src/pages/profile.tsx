@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { MetaTags } from "@/components/seo/meta-tags";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -31,6 +31,7 @@ import { ProfileAddresses } from "@/components/profile/profile-addresses";
 import { ProfileLoyalty, tierLabels, getTierFromPoints } from "@/components/profile/profile-loyalty";
 import { ProfileCoupons } from "@/components/profile/profile-coupons";
 import { ProfileReferral } from "@/components/profile/profile-referral";
+import { ProfileNotifications } from "@/components/profile/profile-notifications";
 import { Address, UserProfileExtra } from "@/lib/types";
 
 export default function Profile() {
@@ -276,6 +277,7 @@ export default function Profile() {
                                 onPhoneChange={handlePhoneChange}
                                 onBirthDateChange={handleBirthDateChange}
                             />
+                            <ProfileNotifications />
                         </TabsContent>
 
                         {/* Orders Tab */}
