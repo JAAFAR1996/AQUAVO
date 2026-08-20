@@ -98,7 +98,7 @@ describe("it fails closed when the prerequisites are absent", () => {
     expect(screen.queryByTestId("planner-body")).not.toBeInTheDocument();
   });
 
-  it("warns up front when products still lack packing data", async () => {
+  it("does not show the global missing-catalogue count on an individual order", async () => {
     const { OrderCartonPlanSection } = await import("../order-carton-plan-section");
     renderWithClient(
       <OrderCartonPlanSection orderId="ord-1">
@@ -112,9 +112,11 @@ describe("it fails closed when the prerequisites are absent", () => {
         ],
       ],
     );
-    expect(screen.getByTestId("plan-missing-badge")).toHaveTextContent("1");
-    expect(screen.getByTestId("plan-missing-data-note")).toHaveTextContent(/تغليف يدوي/);
-    // The planner still runs; it is the planner's job to refuse this order.
+    expect(screen.queryByTestId("plan-missing-badge")).not.toBeInTheDocument();
+    expect(screen.getByTestId("plan-smart-data-note")).toHaveTextContent(/قياسات التغليف المؤكدة/);
+    expect(screen.getByTestId("plan-smart-data-note")).toHaveTextContent(/الجرد ومواصفات المنتج/);
+    // The planner still runs; the order-specific smart route decides whether the
+    // current order is recommendable or still requires manual review.
     expect(screen.getByTestId("planner-body")).toBeInTheDocument();
   });
 });

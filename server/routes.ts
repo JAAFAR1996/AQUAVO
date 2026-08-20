@@ -60,6 +60,7 @@ import { createExpensesRouter } from "./routes/expenses.js";
 import { createInvoiceRouter } from "./routes/invoice.js";
 import { createFinanceAuditRouter } from "./routes/finance-audit.js";
 import fulfillmentAdminRouter from "./routes/fulfillment-admin.js";
+import packagingSmartPlanRouter from "./routes/packaging-smart-plan.js";
 import packagingAdminRouter from "./routes/packaging-admin.js";
 import preparationInventoryRouter from "./routes/preparation-inventory.js";
 import cartonOnboardingRouter from "./routes/carton-onboarding.js";
@@ -180,6 +181,10 @@ export async function registerRoutes(httpServer: Server, app: express.Applicatio
   app.use("/api/admin/fulfillment", fulfillmentAdminRouter);
   app.use("/api/admin/packaging", cartonOnboardingRouter);
   app.use("/api/admin/packaging", preparationInventoryRouter);
+  // Smart recommendations reuse owner-entered historic measurements when the
+  // canonical packing table is incomplete. Canonical validated plans still fall
+  // through to packagingAdminRouter and keep the original safety boundary.
+  app.use("/api/admin/packaging", packagingSmartPlanRouter);
   app.use("/api/admin/packaging", packagingAdminRouter);
 
   app.use("/api", (err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
