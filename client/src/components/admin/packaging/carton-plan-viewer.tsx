@@ -192,7 +192,7 @@ function SmartRecommendation({ result }: { result: PlanResultView }) {
     unknownWeightProducts?: number;
     estimatedProducts?: number;
   };
-  const names = [...new Set((result.cartons ?? []).map((c) => c.carton.name))].join(" + ");
+  const names = Array.from(new Set((result.cartons ?? []).map((c) => c.carton.name))).join(" + ");
 
   return (
     <div dir="rtl" className="space-y-4" data-testid="plan-smart-recommendation">
