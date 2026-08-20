@@ -48,15 +48,52 @@ const quickReplyButtonSchema = z.object({
   "quick reply must contain payload or text",
 );
 
+const messageContextSchema = z.object({
+  id: z.string().trim().min(1).max(500),
+}).passthrough();
+
 const quickReplyMessageSchema = z.object({
   id: z.string().trim().min(1).max(500),
   from: z.string().regex(/^\d{5,20}$/),
   timestamp: unixTimestampSchema,
   type: z.literal("button"),
-  context: z.object({
-    id: z.string().trim().min(1).max(500),
-  }).passthrough(),
+  context: messageContextSchema,
   button: quickReplyButtonSchema,
+}).passthrough();
+
+// Some WhatsApp client/coexistence paths surface a reply-button tap as an
+// interactive button_reply instead of the legacy template type="button" shape.
+const interactiveReplyMessageSchema = z.object({
+  id: z.string().trim().min(1).max(500),
+  from: z.string().regex(/^\d{5,20}$/),
+  timestamp: unixTimestampSchema,
+  type: z.literal("interactive"),
+  context: messageContextSchema,
+  interactive: z.object({
+    type: z.literal("button_reply"),
+    button_reply: z.object({
+      id: z.string().max(2048).optional(),
+      title: z.string().max(2048).optional(),
+    }).passthrough().refine(
+      (reply) => Boolean(reply.id?.trim() || reply.title?.trim()),
+      "button reply must contain id or title",
+    ),
+  }).passthrough(),
+}).passthrough();
+
+// In coexistence, WhatsApp can also mirror the selected quick-reply as a
+// contextual text reply. We only surface contextual text here; the downstream
+// delivery-care contract still accepts only AQUAVO's two exact choices and the
+// handler still requires context.id + sender phone to match the completed job.
+const contextualTextReplyMessageSchema = z.object({
+  id: z.string().trim().min(1).max(500),
+  from: z.string().regex(/^\d{5,20}$/),
+  timestamp: unixTimestampSchema,
+  type: z.literal("text"),
+  context: messageContextSchema,
+  text: z.object({
+    body: z.string().trim().min(1).max(2048),
+  }).passthrough(),
 }).passthrough();
 
 const statusesValueSchema = z.object({ statuses: z.array(z.unknown()) }).passthrough();
@@ -137,9 +174,10 @@ export function extractWhatsAppStatusEvents(payload: unknown): WhatsAppStatusEve
 }
 
 /**
- * Meta sends a message with type="button" when a customer taps a Quick Reply on
- * an interactive message template. context.id points back to AQUAVO's original
- * template wamid, which is the correlation key used by the delivery-care handler.
+ * Extract delivery-care replies while preserving Meta's original context wamid.
+ * Standard template quick replies arrive as type="button". We also accept the
+ * contextual interactive/text variants seen on coexistence clients; downstream
+ * matching remains strict to AQUAVO's exact choices, completed wamid and sender.
  */
 export function extractDeliveryCareButtonReplyEvents(
   payload: unknown,
@@ -155,9 +193,45 @@ export function extractDeliveryCareButtonReplyEvents(
       if (!value.success) continue;
 
       for (const rawMessage of value.data.messages) {
-        const parsedMessage = quickReplyMessageSchema.safeParse(rawMessage);
-        if (!parsedMessage.success) continue;
-        const message = parsedMessage.data;
+        const parsedButton = quickReplyMessageSchema.safeParse(rawMessage);
+        if (parsedButton.success) {
+          const message = parsedButton.data;
+          const timestampSeconds = Number(message.timestamp);
+          const receivedAt = new Date(timestampSeconds * 1000);
+          if (!Number.isFinite(receivedAt.getTime())) continue;
+
+          events.push({
+            inboundMessageId: message.id,
+            contextProviderMessageId: message.context.id,
+            fromPhone: message.from,
+            receivedAt,
+            payload: message.button.payload?.trim() ?? "",
+            buttonText: message.button.text?.trim() ?? "",
+          });
+          continue;
+        }
+
+        const parsedInteractive = interactiveReplyMessageSchema.safeParse(rawMessage);
+        if (parsedInteractive.success) {
+          const message = parsedInteractive.data;
+          const timestampSeconds = Number(message.timestamp);
+          const receivedAt = new Date(timestampSeconds * 1000);
+          if (!Number.isFinite(receivedAt.getTime())) continue;
+
+          events.push({
+            inboundMessageId: message.id,
+            contextProviderMessageId: message.context.id,
+            fromPhone: message.from,
+            receivedAt,
+            payload: message.interactive.button_reply.id?.trim() ?? "",
+            buttonText: message.interactive.button_reply.title?.trim() ?? "",
+          });
+          continue;
+        }
+
+        const parsedText = contextualTextReplyMessageSchema.safeParse(rawMessage);
+        if (!parsedText.success) continue;
+        const message = parsedText.data;
         const timestampSeconds = Number(message.timestamp);
         const receivedAt = new Date(timestampSeconds * 1000);
         if (!Number.isFinite(receivedAt.getTime())) continue;
@@ -167,8 +241,8 @@ export function extractDeliveryCareButtonReplyEvents(
           contextProviderMessageId: message.context.id,
           fromPhone: message.from,
           receivedAt,
-          payload: message.button.payload?.trim() ?? "",
-          buttonText: message.button.text?.trim() ?? "",
+          payload: "",
+          buttonText: message.text.body.trim(),
         });
       }
     }
