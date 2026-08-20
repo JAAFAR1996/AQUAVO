@@ -9,7 +9,14 @@ const router = Router();
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const PRICE_HISTORY_MIN_POINTS = 5;
-const TERMINAL_FAILURE_STATUSES = new Set(["cancelled", "rejected", "returned", "refunded"]);
+const TERMINAL_FAILURE_STATUSES = new Set([
+  "cancelled",
+  "rejected",
+  "rejected_carrier",
+  "rejected_returned",
+  "returned",
+  "refunded",
+]);
 const TERMINAL_STATUSES = new Set(["delivered", ...TERMINAL_FAILURE_STATUSES]);
 
 interface ProductVariantSnapshot {
@@ -198,7 +205,9 @@ async function loadDashboardTruth(): Promise<DashboardTruth> {
       })
       .from(schema.products)
       .where(isNull(schema.products.deletedAt)),
-    db.select({ status: schema.orders.status }).from(schema.orders),
+    db
+      .select({ status: schema.orders.status, archivedAt: schema.orders.archivedAt })
+      .from(schema.orders),
     db
       .select({
         id: schema.orders.id,
@@ -265,7 +274,9 @@ async function loadDashboardTruth(): Promise<DashboardTruth> {
     (product) => numberValue(product.stock) > 0 && numberValue(product.costPrice) <= 0,
   ).length;
 
-  const activeNow = allOrderStatuses.filter((order) => !TERMINAL_STATUSES.has(order.status)).length;
+  const activeNow = allOrderStatuses.filter(
+    (order) => !order.archivedAt && !TERMINAL_STATUSES.has(order.status),
+  ).length;
   const currentOrders = recentOrders.filter((order) => new Date(order.createdAt) >= currentStart);
   const deliveredInPeriod = currentOrders.filter((order) => order.status === "delivered");
   const failedFinalizedInPeriod = currentOrders.filter((order) => TERMINAL_FAILURE_STATUSES.has(order.status));
