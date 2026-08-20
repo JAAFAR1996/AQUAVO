@@ -1,7 +1,7 @@
 -- 0084_accounting_realized_return_integrity
 -- Real delivered orders cannot become returned without a same-transaction
--- recorded/restocked return event. Direct delivered -> returned restores product
--- inventory exactly once. First-class test orders are excluded.
+-- recorded/restocked FULL return event. Direct delivered -> returned restores
+-- product inventory exactly once. First-class test orders are excluded.
 
 BEGIN;
 
@@ -143,9 +143,20 @@ BEGIN
        WHERE e.order_id=NEW.id
          AND e.status IN ('recorded','verified')
          AND COALESCE(e.restocked,false)=true
+         AND jsonb_array_length(COALESCE(e.affected_items,'[]'::jsonb))>0
+         AND NOT EXISTS(
+           SELECT 1
+           FROM public.order_items_relational oi
+           WHERE oi.order_id=NEW.id
+             AND COALESCE((
+               SELECT SUM(COALESCE(NULLIF(item->>'qty','')::integer,0))
+               FROM jsonb_array_elements(COALESCE(e.affected_items,'[]'::jsonb)) item
+               WHERE NULLIF(COALESCE(item->>'orderItemId',item->>'order_item_id'),'')=oi.id
+             ),0)<>oi.quantity
+         )
      ) THEN
     RAISE EXCEPTION
-      'ORDER_RETURN_EVENT_REQUIRED: delivered order % cannot become % without a recorded/restocked return event in the same transaction',
+      'ORDER_RETURN_EVENT_REQUIRED: delivered order % cannot become % without a complete recorded/restocked return event covering every order line in the same transaction',
       NEW.id,NEW.status
       USING ERRCODE='23514';
   END IF;
@@ -198,7 +209,7 @@ INSERT INTO public.schema_migrations(version,checksum,notes)
 VALUES(
   '0084_accounting_realized_return_integrity',
   '0084008400840084008400840084008400840084008400840084008400840084',
-  'Protect real delivered-to-returned transitions with idempotent stock reversal plus deferred return-event integrity; first-class test orders are excluded'
+  'Protect real delivered-to-returned transitions with idempotent stock reversal plus deferred complete return-event integrity; first-class test orders are excluded'
 )
 ON CONFLICT(version) DO UPDATE
 SET checksum=EXCLUDED.checksum,notes=EXCLUDED.notes,rolled_back_at=NULL,applied_at=now();
