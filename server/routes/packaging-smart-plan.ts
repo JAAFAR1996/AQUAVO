@@ -349,8 +349,13 @@ router.post("/orders/:orderId/plan", readLimiter, async (req, res, next) => {
     const unknownWeightProducts = resolutions.filter((r) => r.resolved.weightUnknown).length;
     const cartonNames = [...new Set(planned.cartons.map((c) => c.carton.name))].join(" + ");
 
+    // Keep the existing client union (`plan | manual_review`) so this can ship
+    // without weakening the validation controls. The special code lets the UI
+    // render this as a positive smart recommendation instead of a red failure.
     res.json({
-      outcome: "recommendation",
+      outcome: "manual_review",
+      code: "SMART_CARTON_RECOMMENDATION",
+      messageAr: `اقتراح ذكي: ${cartonNames}`,
       cartons: planned.cartons,
       totalKnownCost: planned.totalKnownCost,
       costStatus: planned.costStatus,
@@ -368,6 +373,8 @@ router.post("/orders/:orderId/plan", readLimiter, async (req, res, next) => {
       unknownWeightProducts,
       recommendationNotes: notes,
       validationBlocked: true,
+      missing: [],
+      rejections: [],
     });
   } catch (error) {
     next(error);
