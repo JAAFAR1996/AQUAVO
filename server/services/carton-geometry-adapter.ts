@@ -21,6 +21,7 @@ import {
   type PlacedItem,
   type RotationOrdinal,
 } from "../../shared/packing-types.js";
+import { packSingleCartonFloorFirst } from "./carton-floor-first-packer.js";
 
 /** Which orientations this item may legally take. */
 export function allowedRotationsFor(item: PackingItemSpec): readonly RotationOrdinal[] {
@@ -135,16 +136,26 @@ export function fromPack3D(
 /**
  * One engine pass over a fixed set of offered cartons.
  *
- * Items are sorted by a canonical key before being handed over. The engine sorts
- * internally by descending volume, and `Array.prototype.sort` is stable, so
- * equal-volume items keep the order they arrive in — a deterministic input order
- * is therefore a precondition for a deterministic plan, not an optimisation.
+ * For a single carton we first try a bounded, deterministic floor-first search.
+ * That search explores alternate 90-degree orientations and side-by-side extreme
+ * points before any stacking is considered. This closes an important gap in the
+ * third-party greedy heuristic: a geometrically possible small carton should not
+ * lose only because the first 3-D layout stacked an item that AQUAVO's safety
+ * rules correctly refuse to stack.
+ *
+ * If no floor layout is found, the existing binpackingjs 3-D pass remains the
+ * fallback. Multiple-carton attempts also continue to use the proven 3-D engine.
  */
 export function runEngine(
   offeredCartons: readonly CartonSpec[],
   items: readonly PackingItemSpec[],
 ): PackedCarton[] | null {
   if (offeredCartons.length === 0 || items.length === 0) return null;
+
+  if (offeredCartons.length === 1) {
+    const floorPlan = packSingleCartonFloorFirst(offeredCartons[0]!, items);
+    if (floorPlan) return [floorPlan];
+  }
 
   const bins: Bin3D[] = [];
   const cartonsByBinName = new Map<string, CartonSpec>();
