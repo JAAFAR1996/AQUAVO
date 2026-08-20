@@ -105,7 +105,10 @@ interface ParsedDimensions {
 }
 
 const DIMENSION_KEY_RE = /(الأبعاد|الابعاد|المقاس|المقاسات|القياس|الحجم|dimension|dimensions|size)/i;
-const DIMENSION_RE = /(\d+(?:[.,]\d+)?)\s*[×xX*]\s*(\d+(?:[.,]\d+)?)(?:\s*[×xX*]\s*(\d+(?:[.,]\d+)?))?\s*(مم|ملم|mm|سم|cm|متر|meter|metre|m)\b/i;
+// Do not use \b after Arabic units: JavaScript's ASCII-style word boundary does
+// not treat Arabic letters as word characters. The lookahead works for Arabic
+// prose such as «52×26 ملم بحسب بيانات المنتج».
+const DIMENSION_RE = /(\d+(?:[.,]\d+)?)\s*[×xX*]\s*(\d+(?:[.,]\d+)?)(?:\s*[×xX*]\s*(\d+(?:[.,]\d+)?))?\s*(مم|ملم|mm|سم|cm|متر|meter|metre|m)(?=\s|$|[،,.؛;—-])/i;
 
 /** Extract only explicit 2-D / 3-D measurements that carry a real unit. */
 export function extractExplicitDimensions(specifications: unknown): ParsedDimensions | null {
@@ -126,7 +129,7 @@ export function extractExplicitDimensions(specifications: unknown): ParsedDimens
 }
 
 const WEIGHT_KEY_RE = /(الوزن|weight|net weight|gross weight)/i;
-const WEIGHT_RE = /(\d+(?:[.,]\d+)?)\s*(كغم|كغ|كيلوغرام|كيلو|kg|غم|جرام|غرام|g)\b/i;
+const WEIGHT_RE = /(\d+(?:[.,]\d+)?)\s*(كغم|كغ|كيلوغرام|كيلو|kg|غم|جرام|غرام|g)(?=\s|$|[،,.؛;—-])/i;
 
 function weightToKg(n: number, rawUnit: string): number | null {
   const u = rawUnit.trim().toLowerCase();
@@ -243,8 +246,8 @@ export function resolveSmartPacking(input: SmartPackingResolveInput): SmartPacki
     depthCm,
     weightKg,
     // One gram keeps the geometry engine numeric. The route converts the result
-    // to `recommendation`, suppresses weight claims in the UI, and validation
-    // still rebuilds from canonical data, so this sentinel can never be booked.
+    // to a non-validatable recommendation, suppresses weight claims in the UI,
+    // and validation still rebuilds from canonical data.
     plannerWeightKg: weightKg ?? 0.001,
     canonicalComplete,
     recommendationReady: unresolvedGeometryFields.length === 0,
