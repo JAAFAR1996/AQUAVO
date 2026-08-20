@@ -1,11 +1,14 @@
 name: Security dependency remediation
 
 on:
-  push:
+  pull_request:
     branches:
-      - fix/full-audit-20260820
+      - main
     paths:
       - .github/workflows/security-remediation.yml
+      - package.json
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
 
 permissions:
   contents: write
@@ -17,13 +20,14 @@ env:
 
 jobs:
   remediate:
+    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:
       - name: Checkout repair branch
         uses: actions/checkout@v4
         with:
-          ref: fix/full-audit-20260820
+          ref: ${{ github.event.pull_request.head.ref }}
           fetch-depth: 0
 
       - name: Setup pnpm
@@ -75,7 +79,7 @@ jobs:
           vite
           vitest
 
-      - name: Apply safe transitive security overrides
+      - name: Apply transitive security fixes
         run: pnpm audit --fix || true
 
       - name: Refresh lockfile
@@ -111,7 +115,7 @@ jobs:
             echo "No dependency changes to commit"
           else
             git commit -m "fix(security): update vulnerable dependencies"
-            git push origin HEAD:fix/full-audit-20260820
+            git push origin HEAD:${{ github.event.pull_request.head.ref }}
           fi
 
       - name: Require clean moderate-or-higher audit
