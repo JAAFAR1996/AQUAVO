@@ -13,6 +13,7 @@ import { initializeClientEnvSideEffects } from "./lib/config/env";
 import { captureAttributionFromUrl } from "./lib/attribution";
 
 // Production entry includes the merged immersive Journey and loading experience.
+// Redeploy marker: 2026-08-01T14:29+03:00.
 initializeClientEnvSideEffects();
 
 // Capture campaign parameters SYNCHRONOUSLY, before React mounts and before the router has any chance
