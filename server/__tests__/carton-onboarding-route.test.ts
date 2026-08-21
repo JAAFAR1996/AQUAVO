@@ -35,6 +35,7 @@ const validBody = {
   internalLengthCm: 27,
   internalWidthCm: 20,
   internalHeightCm: 14,
+  safetyPaddingCm: 2,
   maxWeightKg: 8,
   lowStockThreshold: 5,
   openingQuantity: 20,
@@ -95,11 +96,18 @@ describe("carton onboarding route", () => {
     expect(state.setup).not.toHaveBeenCalled();
   });
 
-  it("rejects zero or negative dimensions and weight", async () => {
-    for (const field of ["internalLengthCm", "internalWidthCm", "internalHeightCm", "maxWeightKg"] as const) {
+  it("rejects zero or negative dimensions, weight and safety padding", async () => {
+    for (const field of ["internalLengthCm", "internalWidthCm", "internalHeightCm", "maxWeightKg", "safetyPaddingCm"] as const) {
       const response = await post({ ...validBody, [field]: 0 });
       expect(response.status).toBe(400);
     }
+    expect(state.setup).not.toHaveBeenCalled();
+  });
+
+  it("rejects padding that consumes the usable interior", async () => {
+    const response = await post({ ...validBody, safetyPaddingCm: 7 });
+    expect(response.status).toBe(400);
+    expect(response.body.error).toBe("VALIDATION_INVALID");
     expect(state.setup).not.toHaveBeenCalled();
   });
 
@@ -125,10 +133,12 @@ describe("carton onboarding route", () => {
     const response = await post(validBody);
     expect(response.status).toBe(201);
     expect(state.setup).toHaveBeenCalledTimes(1);
+    expect(state.setup.mock.calls[0]?.[1]?.safetyPaddingCm).toBe(2);
     expect(response.body.messages).toEqual([
       "تم إنشاء الكارتونة.",
       "تم تسجيل العدد المتوفر.",
       "تم تسجيل كلفة الوحدة وتاريخ سريانها.",
+      "تم تسجيل هامش الحماية المستخدم باختيار الكارتونة.",
     ]);
   });
 });
