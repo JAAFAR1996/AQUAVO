@@ -1,9 +1,10 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const dashboard = readFileSync(join(process.cwd(), "client/src/pages/admin-dashboard.tsx"), "utf8");
 const finance = readFileSync(join(process.cwd(), "client/src/pages/admin/finance.tsx"), "utf8");
+const retiredAccountingPanel = join(process.cwd(), "client/src/components/admin/accounting-panel.tsx");
 
 describe("finance route contract", () => {
   it("redirects only the retired accounting section to the finance center", () => {
@@ -19,6 +20,7 @@ describe("finance route contract", () => {
     expect(dashboard).not.toContain("AccountingPanel");
     expect(dashboard).not.toContain('TabsContent value="accounting"');
     expect(dashboard).not.toContain('TabsTrigger value="accounting"');
+    expect(existsSync(retiredAccountingPanel)).toBe(false);
     expect((dashboard.match(/>مركز المالية</g) ?? []).length).toBe(1);
   });
 
@@ -27,6 +29,8 @@ describe("finance route contract", () => {
     expect(finance).toContain("التغليف والكراتين");
     expect(finance).toContain("الراجعات التلقائية");
     expect(finance).toContain("سجل التدقيق");
+    expect(finance).toContain("FinanceAccountingRegisterV2");
+    expect(finance).toContain("PackagingSection");
     expect(finance).toContain("FinanceAutomaticReturnsV2");
     expect(finance).not.toContain("المراجع الآلي");
     expect(finance).not.toContain("FinanceAutomatedReviewer");
