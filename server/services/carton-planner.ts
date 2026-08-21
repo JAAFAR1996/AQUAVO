@@ -65,14 +65,22 @@ function cartonVolumeMm3(c: CartonSpec): number {
 /** Cartons the planner may consider at all, in a stable smallest-first order. */
 export function eligibleCartons(cartons: readonly CartonSpec[]): CartonSpec[] {
   return cartons
-    .filter(
-      (c) =>
+    .filter((c) => {
+      const smallestInside = Math.min(c.internalLengthMm, c.internalWidthMm, c.internalHeightMm);
+      return (
         c.availableQty > 0 &&
         c.internalLengthMm > 0 &&
         c.internalWidthMm > 0 &&
         c.internalHeightMm > 0 &&
-        c.maxWeightG > 0,
-    )
+        c.maxWeightG > 0 &&
+        // A NULL padding arrives at this pure boundary as 0. Zero is not a safe
+        // default: it means the physical clearance was never documented. Such a
+        // carton may still be selected manually for a shipment, but the automatic
+        // planner is not allowed to certify that an item fits it.
+        c.safetyPaddingMm > 0 &&
+        c.safetyPaddingMm * 2 < smallestInside
+      );
+    })
     .sort((a, b) => cartonVolumeMm3(a) - cartonVolumeMm3(b) || (a.sku < b.sku ? -1 : 1));
 }
 
@@ -267,7 +275,10 @@ export function planOrder(input: PlannerInput): PlannerResult {
 
   const candidates = eligibleCartons(input.cartons);
   if (candidates.length === 0) {
-    return manualReview("NO_ACTIVE_CARTON", "ماكو كارتونة نشطة بمخزون متاح");
+    return manualReview(
+      "NO_ACTIVE_CARTON",
+      "ماكو كارتونة مؤهلة للاختيار الآلي: لازم تكون متوفرة وقياساتها ووزنها وهامش حمايتها موثقة",
+    );
   }
 
   // Items flagged `requiresSeparateCarton` never share a carton. Each gets the
