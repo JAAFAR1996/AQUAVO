@@ -34,10 +34,26 @@ describe("profitability truth regressions", () => {
       revenue: 13000,
       costStatus: "exact",
       items: [
-        { productId: "houyi-planting-ring", name: "حلقة تثبيت نباتات — سيراميك بركاني", qty: 4,
-          priceAtPurchase: 740, unitCostPrice: 81, unitPackagingCost: 0, unitInsertCost: 0, costStatus: "exact" },
-        { productId: "houyi-acrylic-pump-compartment", name: "حجرة فلتر أكريليك شفافة", qty: 1,
-          priceAtPurchase: 10000, unitCostPrice: 4842, unitPackagingCost: 0, unitInsertCost: 0, costStatus: "exact" },
+        {
+          productId: "houyi-planting-ring",
+          name: "حلقة تثبيت نباتات — سيراميك بركاني",
+          quantity: 4,
+          priceAtPurchase: 740,
+          costPrice: 81,
+          packagingCost: 0,
+          insertCost: 0,
+          costStatus: "exact",
+        },
+        {
+          productId: "houyi-acrylic-pump-compartment",
+          name: "حجرة فلتر أكريليك شفافة",
+          quantity: 1,
+          priceAtPurchase: 10000,
+          costPrice: 4842,
+          packagingCost: 0,
+          insertCost: 0,
+          costStatus: "exact",
+        },
       ],
     } as any;
 
