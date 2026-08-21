@@ -22,7 +22,9 @@ const statusTransitionSchema = z.object({
   roundedTotal: numericInput.optional(),
   deliveryCompanyId: z.string().trim().min(1).max(128).optional(),
   carrier: z.string().trim().max(100).nullable().optional(),
-  boxCost: numericInput.optional(),
+  // `orders.box_cost` is legacy audit evidence. A real carton is chosen and
+  // costed through the immutable fulfillment snapshot, never through a status
+  // transition payload.
   source: z.string().trim().min(1).max(64).optional(),
   financiallyCounted: z.boolean().nullable().optional(),
   financialReason: z.string().trim().min(3).max(500).optional(),
@@ -269,7 +271,6 @@ export function createAdminOrdersV2Router() {
           ...(input.shippingCost !== undefined ? { shippingCost: String(input.shippingCost) } : {}),
           ...(input.roundedTotal !== undefined ? { roundedTotal: String(input.roundedTotal) } : {}),
           ...(carrierName !== undefined ? { carrier: carrierName } : {}),
-          ...(input.boxCost !== undefined ? { boxCost: String(input.boxCost) } : {}),
           ...(input.source !== undefined ? { source: input.source } : {}),
           ...(input.financiallyCounted !== undefined ? { financiallyCounted: input.financiallyCounted } : {}),
           updatedAt: new Date(),
