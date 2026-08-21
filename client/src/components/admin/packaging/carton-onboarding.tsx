@@ -31,6 +31,7 @@ interface FormState {
   internalLengthCm: string;
   internalWidthCm: string;
   internalHeightCm: string;
+  safetyPaddingCm: string;
   maxWeightKg: string;
   lowStockThreshold: string;
   openingQuantity: string;
@@ -38,6 +39,8 @@ interface FormState {
   costEffectiveDate: string;
   costSource: string;
 }
+
+type SafeCartonSetupInput = CartonSetupInput & { safetyPaddingCm: number };
 
 export function businessDateInBaghdad(now: Date = new Date()): string {
   const parts = new Intl.DateTimeFormat("en-GB", {
@@ -58,6 +61,9 @@ function initialState(): FormState {
     internalLengthCm: "",
     internalWidthCm: "",
     internalHeightCm: "",
+    // Deliberately blank: existing physical cartons must be measured/decided by
+    // the owner. We never invent a universal centimetre value and call it fact.
+    safetyPaddingCm: "",
     maxWeightKg: "",
     lowStockThreshold: "0",
     openingQuantity: "0",
@@ -78,7 +84,7 @@ function createIdempotencyKey(): string {
   return Array.from(bytes, (value) => value.toString(16).padStart(2, "0")).join("");
 }
 
-function toPayload(form: FormState, idempotencyKey: string): CartonSetupInput {
+function toPayload(form: FormState, idempotencyKey: string): SafeCartonSetupInput {
   return {
     name: form.name.trim(),
     sku: form.sku.trim().toUpperCase(),
@@ -86,6 +92,7 @@ function toPayload(form: FormState, idempotencyKey: string): CartonSetupInput {
     internalLengthCm: Number(form.internalLengthCm),
     internalWidthCm: Number(form.internalWidthCm),
     internalHeightCm: Number(form.internalHeightCm),
+    safetyPaddingCm: Number(form.safetyPaddingCm),
     maxWeightKg: Number(form.maxWeightKg),
     lowStockThreshold: Number(form.lowStockThreshold),
     openingQuantity: Number(form.openingQuantity),
@@ -103,11 +110,21 @@ function validate(form: FormState): string | null {
     [form.internalLengthCm, "الطول الداخلي"],
     [form.internalWidthCm, "العرض الداخلي"],
     [form.internalHeightCm, "الارتفاع الداخلي"],
+    [form.safetyPaddingCm, "هامش الحماية"],
     [form.maxWeightKg, "أقصى وزن"],
   ] as const;
   for (const [raw, label] of positive) {
+    if (raw.trim() === "") return label + " مطلوب.";
     const value = Number(raw);
     if (!Number.isFinite(value) || value <= 0) return label + " يجب أن يكون أكبر من صفر.";
+  }
+  const minInternal = Math.min(
+    Number(form.internalLengthCm),
+    Number(form.internalWidthCm),
+    Number(form.internalHeightCm),
+  );
+  if (Number(form.safetyPaddingCm) * 2 >= minInternal) {
+    return "هامش الحماية كبير جداً ويغلق المساحة الداخلية القابلة للاستخدام.";
   }
   const integers = [
     [form.lowStockThreshold, "حد تنبيه المخزون"],
@@ -216,7 +233,7 @@ export function CartonOnboardingDialog({
           <DialogDescription>
             {step === "review"
               ? "راجع المعلومات قبل الحفظ. لن يُحفظ أي جزء إذا فشلت العملية."
-              : "سجّل النوع والقياسات والعدد والكلفة من مكان واحد."}
+              : "سجّل النوع والقياسات وهامش الحماية والعدد والكلفة من مكان واحد."}
           </DialogDescription>
         </DialogHeader>
 
@@ -245,10 +262,12 @@ export function CartonOnboardingDialog({
 
             <section className="space-y-3">
               <h3 className="font-semibold">الأمان</h3>
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-3 sm:grid-cols-3">
+                <Field id="carton-safety-padding" label="هامش الحماية من كل جهة (سم)" value={form.safetyPaddingCm} onChange={set("safetyPaddingCm")} type="number" min="0.01" step="0.01" inputMode="decimal" />
                 <Field id="carton-max-weight" label="أقصى وزن مسموح (كغم)" value={form.maxWeightKg} onChange={set("maxWeightKg")} type="number" min="0.01" step="0.01" inputMode="decimal" />
                 <Field id="carton-threshold" label="حد تنبيه المخزون" value={form.lowStockThreshold} onChange={set("lowStockThreshold")} type="number" min="0" step="1" inputMode="numeric" />
               </div>
+              <p className="text-xs text-muted-foreground">هذا الهامش يُطرح من كل جدار داخلي قبل أن يقرر النظام أن المنتج يدخل بالكارتونة. أدخل القيمة التي تعتمدها فعلياً، ولا تُترك صفراً.</p>
             </section>
 
             <section className="space-y-3">
@@ -278,6 +297,7 @@ export function CartonOnboardingDialog({
           <div className="space-y-4" data-testid="carton-onboarding-review">
             <ReviewRow label="الاسم والرمز" value={payload.name + " — " + payload.sku} />
             <ReviewRow label="القياسات الداخلية" value={payload.internalLengthCm + " × " + payload.internalWidthCm + " × " + payload.internalHeightCm + " سم"} />
+            <ReviewRow label="هامش الحماية" value={payload.safetyPaddingCm + " سم من كل جهة"} />
             <ReviewRow label="أقصى وزن" value={payload.maxWeightKg + " كغم"} />
             <ReviewRow label="العدد المتوفر" value={String(payload.openingQuantity)} />
             <ReviewRow label="حد التنبيه" value={String(payload.lowStockThreshold)} />
@@ -296,6 +316,7 @@ export function CartonOnboardingDialog({
               <p>تم إنشاء الكارتونة.</p>
               <p>تم تسجيل العدد المتوفر.</p>
               <p>تم تسجيل كلفة الوحدة وتاريخ سريانها.</p>
+              <p>تم تسجيل هامش الحماية المستخدم بالاختيار.</p>
             </AlertDescription>
           </Alert>
         )}
@@ -372,7 +393,7 @@ export function CartonWorkspace({ onOpenImport }: { onOpenImport: () => void }) 
           <CardContent className="flex flex-col items-center gap-3 py-10 text-center">
             <Box className="h-10 w-10 text-muted-foreground" />
             <h3 className="text-lg font-bold">ماكو كراتين مسجلة بعد</h3>
-            <p className="max-w-lg text-sm text-muted-foreground">أضف أول نوع كارتونة وسجّل قياسها وكلفتها والعدد المتوفر عندك.</p>
+            <p className="max-w-lg text-sm text-muted-foreground">أضف أول نوع كارتونة وسجّل قياسها وهامش حمايتها وكلفتها والعدد المتوفر عندك.</p>
             <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
               <Button onClick={() => setDialogOpen(true)}>إضافة أول كارتونة</Button>
               <Button variant="outline" onClick={onOpenImport}>استيراد بيانات من ملف</Button>
@@ -385,12 +406,16 @@ export function CartonWorkspace({ onOpenImport }: { onOpenImport: () => void }) 
         <div className="grid gap-3 lg:grid-cols-2">
           {cartons.map((carton) => {
             const status = cartonStatus(carton);
+            const safetyKnown = carton.safetyPaddingCm != null && carton.safetyPaddingCm > 0;
             return (
               <Card key={carton.id} data-testid={"carton-card-" + carton.id}>
                 <CardHeader className="pb-2">
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div><CardTitle className="text-base">{carton.name}</CardTitle><p className="mt-1 text-xs text-muted-foreground" dir="ltr">{carton.sku ?? "—"}</p></div>
-                    <Badge variant={status.variant}>{status.label}</Badge>
+                    <div className="flex gap-1">
+                      {!safetyKnown && <Badge variant="destructive">هامش الحماية ناقص</Badge>}
+                      <Badge variant={status.variant}>{status.label}</Badge>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent className="grid gap-2 text-sm sm:grid-cols-2">
@@ -402,6 +427,7 @@ export function CartonWorkspace({ onOpenImport }: { onOpenImport: () => void }) 
                         : "غير مكتمل"
                     }
                   />
+                  <Value label="هامش الحماية" value={safetyKnown ? `${carton.safetyPaddingCm} سم من كل جهة` : "غير موثق — لا تعتمد اختياراً نهائياً"} />
                   <Value label="الموجود فعلياً" value={String(carton.onHand)} />
                   <Value label="المحجوز للطلبات" value={String(carton.reserved)} />
                   <Value label="المتاح فعلياً" value={String(carton.available)} strong />
