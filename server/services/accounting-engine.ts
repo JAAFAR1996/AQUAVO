@@ -775,6 +775,22 @@ export interface RelationalLineResolver {
 const VALID_STATUSES: readonly string[] = ["exact", "verified_zero", "estimated", "incomplete", "unknown"];
 const VALID_SOURCES: readonly string[] = ["product_current", "cost_history", "manual", "none"];
 
+/**
+ * Normalize a component from an immutable relational order-line snapshot.
+ *
+ * `exact` is evidence for the whole snapshot, including genuine zero ancillary
+ * costs. Treating a 0 inside an exact row as ambiguous erased supplier packaging
+ * and insert costs and incorrectly downgraded fully-costed orders to UNKNOWN.
+ * Non-exact rows keep the conservative zero-is-unknown rule.
+ */
+export function resolveRelationalSnapshotComponent(
+  value: number | string | null | undefined,
+  status: CostSnapshotStatus | null,
+): number | null {
+  const zeroIsEvidence = status === "exact" || status === "verified_zero";
+  return resolveCostComponent(toMoneyOrNull(value), zeroIsEvidence ? "verified_zero" : null);
+}
+
 /** Batch-load the relational cost snapshots for a set of orders. */
 export async function buildRelationalLineResolver(db: Db, orderIds: Set<string>): Promise<RelationalLineResolver> {
   if (orderIds.size === 0) return { get: () => undefined };
@@ -800,9 +816,9 @@ export async function buildRelationalLineResolver(db: Db, orderIds: Set<string>)
       priceAtPurchase: toNumber(r.priceAtPurchase),
       // NULL stays NULL. A relational 0 is NOT promoted to a cost of zero
       // unless the row itself says the snapshot was verified.
-      costPrice: resolveCostComponent(toMoneyOrNull(r.unitCostPrice), status === "verified_zero" ? "verified_zero" : null),
-      packagingCost: resolveCostComponent(toMoneyOrNull(r.unitPackagingCost), status === "verified_zero" ? "verified_zero" : null),
-      insertCost: resolveCostComponent(toMoneyOrNull(r.unitInsertCost), status === "verified_zero" ? "verified_zero" : null),
+      costPrice: resolveRelationalSnapshotComponent(r.unitCostPrice, status),
+      packagingCost: resolveRelationalSnapshotComponent(r.unitPackagingCost, status),
+      insertCost: resolveRelationalSnapshotComponent(r.unitInsertCost, status),
       costStatus: status,
       costSource: source,
     };
@@ -1910,7 +1926,7 @@ export function buildOrderCostBreakdown(
     contributionProfit,
     contributionMargin,
     unallocated: {
-      legacyBoxCost: toMoneyOrNull(order.boxCost),
+      legacyBoxCost: toMoneyOrNull(order.boxCost) === 0 ? null : toMoneyOrNull(order.boxCost),
       unknownProductLines,
       unknownFulfillmentLines: fulfillment?.unknownLines ?? 0,
       reversedFulfillmentCost: fulfillment?.reversedCost ?? 0,
