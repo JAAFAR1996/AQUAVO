@@ -58,7 +58,10 @@ export function carton(
     internalLengthMm: cmToMm(lenCm),
     internalWidthMm: cmToMm(widCm),
     internalHeightMm: cmToMm(heiCm),
-    safetyPaddingMm: 0,
+    // Planner fixtures represent documented cartons. One millimetre is enough
+    // to exercise the safety-clearance contract without changing the geometry
+    // intent of unrelated tests. Tests that need a literal zero can override it.
+    safetyPaddingMm: 1,
     maxWeightG: kgToG(maxKg),
     unitCost: 1000,
     availableQty: 10,
