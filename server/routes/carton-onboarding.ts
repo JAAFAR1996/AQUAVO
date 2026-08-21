@@ -44,6 +44,9 @@ export const cartonSetupSchema = z.object({
   internalLengthCm: z.number().finite().positive(),
   internalWidthCm: z.number().finite().positive(),
   internalHeightCm: z.number().finite().positive(),
+  // Required evidence, never silently defaulted to zero. The planner removes
+  // this clearance from every inside wall before it tests a fit.
+  safetyPaddingCm: z.number().finite().positive().max(50),
   maxWeightKg: z.number().finite().positive(),
   lowStockThreshold: z.number().int().nonnegative(),
   openingQuantity: z.number().int().nonnegative(),
@@ -51,6 +54,17 @@ export const cartonSetupSchema = z.object({
   costEffectiveDate: dateSchema,
   costSource: z.string().trim().min(3).max(1000),
   idempotencyKey: z.string().trim().min(16).max(160),
+}).superRefine((value, ctx) => {
+  // Padding is applied on BOTH sides. Reject a setup that would leave no usable
+  // interior instead of creating a carton the planner can never use.
+  const minInternal = Math.min(value.internalLengthCm, value.internalWidthCm, value.internalHeightCm);
+  if (value.safetyPaddingCm * 2 >= minInternal) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["safetyPaddingCm"],
+      message: "هامش الحماية كبير جداً بالنسبة لقياسات الكارتونة",
+    });
+  }
 });
 
 function requireCsrfSignal(req: Request, res: Response, next: NextFunction) {
@@ -95,7 +109,7 @@ router.post(
     if (!parsed.success) {
       res.status(400).json({
         error: "VALIDATION_INVALID",
-        message: "راجع الحقول: الكمية وحد التنبيه أعداد صحيحة غير سالبة، والكلفة والقياسات والوزن أكبر من صفر.",
+        message: "راجع الحقول: الكمية وحد التنبيه أعداد صحيحة غير سالبة، والكلفة والقياسات والوزن وهامش الحماية قيم صحيحة وموجبة.",
         details: parsed.error.flatten(),
       });
       return;
@@ -116,6 +130,7 @@ router.post(
           "تم إنشاء الكارتونة.",
           "تم تسجيل العدد المتوفر.",
           "تم تسجيل كلفة الوحدة وتاريخ سريانها.",
+          "تم تسجيل هامش الحماية المستخدم باختيار الكارتونة.",
         ],
       });
     } catch (error) {
