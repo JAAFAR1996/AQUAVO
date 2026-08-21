@@ -1,3 +1,4 @@
+// Production regression pinned from FH-260820-2E8CCB97 so exact zero costs never regress.
 import { describe, expect, it } from "vitest";
 import {
   buildOrderCostBreakdown,
