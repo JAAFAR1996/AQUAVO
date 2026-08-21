@@ -53,7 +53,7 @@ type LoyaltyStorageRuntime = {
   approveOrderPoints(userId: string, orderId: string, amount: number): Promise<unknown>;
   generateOrderBonus(userId: string, orderId: string): Promise<unknown>;
   checkMilestones(userId: string): Promise<unknown>;
-  cancelOrderPoints(userId: string, orderId: string, amount: number): Promise<unknown>;
+  cancelOrderPoints(userId: string, orderId: string): Promise<unknown>;
 };
 type BadgeEngineRuntime = { checkAndAwardBadges(userId: string): Promise<unknown> };
 type ChallengeStorageRuntime = { updateProgress(userId: string, challenge: string, amount: number): Promise<unknown> };
@@ -85,7 +85,7 @@ async function runPostCommitCustomerEffects(order: any, oldStatus: string, newSt
       return;
     }
     if (["cancelled", "rejected", "rejected_returned", "rejected_carrier", "returned"].includes(newStatus)) {
-      await loyaltyStorage.cancelOrderPoints(order.userId, order.id, orderCollectedAmount(order));
+      await loyaltyStorage.cancelOrderPoints(order.userId, order.id);
     }
   } catch (error) {
     console.error("[AdminOrdersV2] post-commit loyalty effect failed", error);
