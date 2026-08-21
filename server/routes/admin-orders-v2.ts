@@ -53,7 +53,7 @@ type LoyaltyStorageRuntime = {
   approveOrderPoints(userId: string, orderId: string, amount: number): Promise<unknown>;
   generateOrderBonus(userId: string, orderId: string): Promise<unknown>;
   checkMilestones(userId: string): Promise<unknown>;
-  cancelOrderPoints(userId: string, orderId: string): Promise<unknown>;
+  cancelOrderPoints(userId: string, orderId: string, amount: number): Promise<unknown>;
 };
 type BadgeEngineRuntime = { checkAndAwardBadges(userId: string): Promise<unknown> };
 type ChallengeStorageRuntime = { updateProgress(userId: string, challenge: string, amount: number): Promise<unknown> };
@@ -85,7 +85,7 @@ async function runPostCommitCustomerEffects(order: any, oldStatus: string, newSt
       return;
     }
     if (["cancelled", "rejected", "rejected_returned", "rejected_carrier", "returned"].includes(newStatus)) {
-      await loyaltyStorage.cancelOrderPoints(order.userId, order.id);
+      await loyaltyStorage.cancelOrderPoints(order.userId, order.id, orderCollectedAmount(order));
     }
   } catch (error) {
     console.error("[AdminOrdersV2] post-commit loyalty effect failed", error);
@@ -243,6 +243,23 @@ export function createAdminOrdersV2Router() {
           });
         }
 
+        // Canonical carton boundary: a shipment cannot leave AQUAVO until the
+        // preparation has been confirmed and that immutable snapshot contains a
+        // real stock-tracked carton. This closes the old path where only the
+        // sticker + thank-you card were recorded while carton stock/cost stayed 0.
+        if (enteringShipped && lifecycle.detail === "no_fulfillment_event") {
+          throw Object.assign(
+            new Error("أكد تجهيز الطلب أولاً قبل تسليمه لشركة التوصيل"),
+            { statusCode: 409 },
+          );
+        }
+        if (enteringShipped && lifecycle.detail === "carton_snapshot_missing") {
+          throw Object.assign(
+            new Error("اختر الكارتونة الفعلية من مخزون الكراتين وأكدها ضمن تجهيز الطلب قبل الشحن"),
+            { statusCode: 409 },
+          );
+        }
+
         if (carrierFee !== undefined) {
           await tx.execute(sql`UPDATE orders SET carrier_fee=${String(carrierFee)}::numeric WHERE id=${locked.id}`);
         }
@@ -291,7 +308,10 @@ export function createAdminOrdersV2Router() {
       if (parsed.data.status === "rejected" && result.oldStatus !== "rejected") await recordRejectedIp(result.clientIp);
       res.json({ ...result.order, packagingLifecycle: result.lifecycle, automaticReturn: result.automaticReturn });
     } catch (error: any) {
-      if (error?.statusCode === 404) { res.status(404).json({ message: error.message }); return; }
+      if (Number.isInteger(error?.statusCode) && error.statusCode >= 400 && error.statusCode < 600) {
+        res.status(error.statusCode).json({ message: error.message });
+        return;
+      }
       next(error);
     }
   });
