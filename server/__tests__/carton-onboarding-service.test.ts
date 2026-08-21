@@ -42,6 +42,7 @@ function input(overrides: Partial<CartonOnboardingInput> = {}): CartonOnboarding
     internalLengthCm: 27,
     internalWidthCm: 20,
     internalHeightCm: 14,
+    safetyPaddingCm: 2,
     maxWeightKg: 8,
     lowStockThreshold: 5,
     openingQuantity: 20,
@@ -84,12 +85,17 @@ describe("atomic carton onboarding", () => {
     );
     expect(Number(stock.rows[0]?.balance)).toBe(20);
 
-    const material = await client.query<{ current_unit_cost: string; current_cost_record_id: string }>(
-      `SELECT current_unit_cost, current_cost_record_id FROM fulfillment_materials WHERE id=$1`,
+    const material = await client.query<{
+      current_unit_cost: string;
+      current_cost_record_id: string;
+      safety_padding_cm: string;
+    }>(
+      `SELECT current_unit_cost, current_cost_record_id, safety_padding_cm FROM fulfillment_materials WHERE id=$1`,
       [result.cartonId],
     );
     expect(Number(material.rows[0]?.current_unit_cost)).toBe(1000);
     expect(material.rows[0]?.current_cost_record_id).toBe(result.costRecordId);
+    expect(Number(material.rows[0]?.safety_padding_cm)).toBe(2);
   });
 
   it("rolls back the carton when opening stock fails", async () => {
@@ -119,9 +125,11 @@ describe("atomic carton onboarding", () => {
     expect(await count("material_cost_records")).toBe(1);
   });
 
-  it("rejects reuse of an idempotency key when notes or cost source differ", async () => {
+  it("rejects reuse of an idempotency key when notes, safety padding or cost source differ", async () => {
     await setupCartonAtomically(db, input(), actor);
     await expect(setupCartonAtomically(db, input({ notes: "ملاحظة غير" }), actor))
+      .rejects.toThrow(/IDEMPOTENCY_KEY_REUSED/);
+    await expect(setupCartonAtomically(db, input({ safetyPaddingCm: 3 }), actor))
       .rejects.toThrow(/IDEMPOTENCY_KEY_REUSED/);
     await expect(setupCartonAtomically(db, input({ costSource: "مصدر غير" }), actor))
       .rejects.toThrow(/IDEMPOTENCY_KEY_REUSED/);
