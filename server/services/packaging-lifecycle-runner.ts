@@ -16,7 +16,10 @@
 //     the claim; `confirmFulfillment` is what deducts stock. Doing both here is
 //     exactly the double-deduction the two-step design prevents;
 //   * it never swallows INSUFFICIENT_CARTON_STOCK. Reserving more cartons than
-//     exist is a hard failure, not a warning.
+//     exist is a hard failure, not a warning;
+//   * it never lets a real shipment leave without an immutable snapshot of a
+//     stock-tracked carton. Manual packing is allowed, but the chosen carton has
+//     to be selected from the carton catalogue and confirmed in fulfillment.
 import { and, desc, eq, sql } from "drizzle-orm";
 import { orderFulfillmentEvents } from "../../shared/schema.js";
 import {
@@ -39,6 +42,7 @@ export interface LifecycleOutcome {
     | "released"
     | "no_validated_plan"
     | "no_fulfillment_event"
+    | "carton_snapshot_missing"
     | "nothing_to_release"
     | "noop";
   quantity?: number;
@@ -90,6 +94,28 @@ async function plannedQuantities(
 }
 
 /**
+ * A shipment is real only when its immutable fulfillment event contains at least
+ * one catalogue carton whose stock is tracked. This is deliberately stricter
+ * than checking a free-text line named "صندوق": only a real material can deduct
+ * stock and carry the approved carton cost into accounting.
+ */
+async function confirmedEventHasTrackedCarton(db: FulfillmentDb, eventId: string): Promise<boolean> {
+  const result = await db.execute(sql`
+    SELECT COUNT(*) AS n
+    FROM public.order_fulfillment_lines l
+    JOIN public.fulfillment_materials m ON m.id = l.material_id
+    WHERE l.event_id = ${eventId}
+      AND m.material_kind = 'carton'
+      AND m.stock_tracked = TRUE
+      AND COALESCE(l.quantity, 0)::numeric > 0
+  `);
+  const rows = Array.isArray(result)
+    ? result
+    : ((result as { rows?: Array<{ n: string | number }> } | null)?.rows ?? []);
+  return Number((rows as Array<{ n: string | number }>)[0]?.n ?? 0) > 0;
+}
+
+/**
  * Apply the packaging side effects of moving `orderId` to `newStatus`.
  *
  * Idempotent by construction: the reservation request id is derived from the
@@ -116,9 +142,9 @@ export async function applyPackagingLifecycle(
   switch (decision.action) {
     case "reserve": {
       const planned = await plannedQuantities(db, input.orderId);
-      // No validated plan is a legitimate state -- missing packing data, or an
-      // order the owner packs by hand. It is not an error and must not block the
-      // status change.
+      // No validated plan remains a legitimate PRE-SHIPMENT state. The owner can
+      // pack manually, but shipment itself is blocked later until a real carton
+      // is included in the confirmed fulfillment snapshot.
       if (!planned) return { ...base, detail: "no_validated_plan" };
 
       const result = await reserveCartons(db, {
@@ -157,9 +183,20 @@ export async function applyPackagingLifecycle(
         .limit(1);
       if (!event) return { ...base, detail: "no_fulfillment_event" };
 
+      // The old system could confirm only the 50+100 preparation materials and
+      // still move the order to shipped. That produced a false "exact" cost and
+      // left carton stock untouched. A real tracked carton snapshot is now the
+      // hard shipment boundary, regardless of whether the carton came from an
+      // automatic validated plan or a manual catalogue selection.
+      if (!(await confirmedEventHasTrackedCarton(db, event.id))) {
+        return { ...base, detail: "carton_snapshot_missing" };
+      }
+
       const n = await consumeOrderReservations(db, input.orderId, event.id);
-      // Zero means the reservations were already consumed by an earlier shipment
-      // transition. Idempotent, not an error.
+      // Zero means either the reservations were already consumed by an earlier
+      // transition OR this was a legitimate manual-pack path with no reservation.
+      // Stock itself was already deducted by confirmFulfillment from the carton
+      // line, so there is no second movement here.
       return { ...base, detail: n > 0 ? "consumed" : "noop", quantity: n };
     }
 
