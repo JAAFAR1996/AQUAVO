@@ -29,24 +29,33 @@ const variantProduct = {
 };
 
 describe("production SEO/AEO/GEO contract", () => {
-  it("uses one selectable Offer instead of an invalid AggregateOffer for variants", () => {
+  it("groups real variants as ProductGroup with one Offer per selectable variant", () => {
     const schemas = buildProductStructuredData(variantProduct) as Array<Record<string, any>>;
-    const product = schemas[0];
+    const group = schemas[0];
 
-    expect(product.offers).toMatchObject({
+    expect(group["@type"]).toBe("ProductGroup");
+    expect(group.productGroupID).toBe("product-1");
+    expect(group.variesBy).toContain("https://schema.org/size");
+    expect(group.hasVariant).toHaveLength(2);
+    expect(group.hasVariant[0]).toMatchObject({
+      "@type": "Product",
+      sku: "FILTER-S",
+      inProductGroupWithID: "product-1",
+      size: "صغير",
+    });
+    expect(group.hasVariant[0].offers).toMatchObject({
       "@type": "Offer",
       price: "15000",
       priceCurrency: "IQD",
       availability: "https://schema.org/InStock",
     });
-    expect(product.offers.shippingDetails.shippingRate).toMatchObject({
+    expect(group.hasVariant[1].offers.price).toBe("25000");
+    expect(group.hasVariant[0].offers.shippingDetails.shippingRate).toMatchObject({
       value: 5000,
       currency: "IQD",
     });
-    expect(product.offers.shippingDetails.deliveryTime.transitTime.maxValue).toBe(1);
-    expect(JSON.stringify(product)).not.toContain("AggregateOffer");
-    expect(JSON.stringify(product)).not.toContain("ProductGroup");
-    expect(JSON.stringify(product.additionalProperty)).toContain("كبير");
+    expect(group.hasVariant[0].offers.shippingDetails.deliveryTime.transitTime.maxValue).toBe(1);
+    expect(JSON.stringify(group)).not.toContain("AggregateOffer");
   });
 
   it("describes an online store without fake physical geo or map data", () => {
