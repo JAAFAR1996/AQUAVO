@@ -69,7 +69,7 @@ describe("Accounting V2 reviewed fixes", () => {
 
   // There is exactly ONE /v2/health owner: createAccountingV2Router. The separate
   // accounting-health-v2.ts router was a second registration on the same mount.
-  // The surviving gate must fail closed against the current handoff-hardening
+  // The surviving gate must fail closed against the current structural hardening
   // migration, not a stale historical checkpoint.
   it("mounts one effective fail-closed health gate through the current accounting chain", () => {
     const routes = read("server/routes.ts");
@@ -80,7 +80,7 @@ describe("Accounting V2 reviewed fixes", () => {
 
     const reports = read("server/routes/accounting-v2.ts");
     expect((reports.match(/router\.get\("\/v2\/health"/g) ?? [])).toHaveLength(1);
-    expect(reports).toContain('LATEST_ACCOUNTING_MIGRATION = "0078_accounting_external_handoff_hardening"');
+    expect(reports).toContain('LATEST_ACCOUNTING_MIGRATION = "0080_accounting_operational_hardening"');
     expect(reports).toContain("latest_migration");
     expect(reports).toContain("carrier_corrections");
     expect(reports).toContain("effective_carrier");
@@ -92,8 +92,10 @@ describe("Accounting V2 reviewed fixes", () => {
     expect(reports).toContain("order_returns_prepare_verification");
     expect(reports).toContain("RETURN_ORDER_ITEM_ID_REQUIRED");
     expect(reports).toContain("return_refund_snapshot_guard");
+    expect(reports).toContain("operational_constraints_validated");
+    expect(reports).toContain("append_only_acl_hardened");
     expect(reports).toContain("ACCOUNTING_V2_LATEST_MIGRATION_REQUIRED");
-    expect(reports).toContain('migrationsThrough: "0078"');
+    expect(reports).toContain('migrationsThrough: "0080"');
 
     const migration70 = read("migrations/0070_accounting_ledger_backed_views.sql");
     expect(migration70).toContain("order_returns_00_lock_verification");
@@ -133,7 +135,7 @@ describe("Accounting V2 reviewed fixes", () => {
 
   it("separates production migrations from Vercel builds", () => {
     const runner = read("script/apply-accounting-v2-migrations.ts");
-    expect(runner).toContain('CONFIRM_ACCOUNTING_PRODUCTION !== "APPLY_0051_TO_0074"');
+    expect(runner).toContain('CONFIRM_ACCOUNTING_PRODUCTION !== "APPLY_ACCOUNTING_THROUGH_0080"');
     expect(runner).toContain("pg_advisory_lock");
     expect(runner).toContain("await client.query(body)");
     expect(runner).toContain("createHash(\"sha256\")");
@@ -144,11 +146,16 @@ describe("Accounting V2 reviewed fixes", () => {
     expect(runner).toContain('"0072_accounting_require_explicit_shipped_carrier.sql"');
     expect(runner).toContain('"0073_accounting_final_hardening.sql"');
     expect(runner).toContain('"0074_purchase_received_quantity_immutability.sql"');
+    expect(runner).toContain('"0077_fix_order_accounting_gross_identity_rounding.sql"');
+    expect(runner).toContain('"0078_accounting_external_handoff_hardening.sql"');
+    expect(runner).toContain('"0080_accounting_operational_hardening.sql"');
     expect(runner).toContain("migration_0074");
+    expect(runner).toContain("migration_0080");
     expect(runner).toContain("purchase_received_quantity_guard_trigger");
     expect(runner).toContain("purchase_received_quantity_context_trigger");
     expect(runner).toContain("purchase_received_quantity_context_clear_trigger");
     expect(runner).toContain("explicit_shipped_carrier_guard");
+    expect(runner).toContain("operational_acl_hardened");
     expect(runner).toContain("t.tgrelid='public.orders'::regclass");
     expect(runner).toContain("t.tgfoid='public.apply_default_delivery_company_to_order()'::regprocedure");
 
@@ -161,10 +168,11 @@ describe("Accounting V2 reviewed fixes", () => {
     expect(productionWorkflow).toContain("workflow_dispatch:");
     expect(productionWorkflow).toContain("environment: production");
     expect(productionWorkflow).toContain("cancel-in-progress: false");
-    expect(productionWorkflow).toContain("APPLY_0051_TO_0074");
+    expect(productionWorkflow).toContain("APPLY_ACCOUNTING_THROUGH_0080");
     expect(productionWorkflow).toContain("accounting-v2-migration-0072-execution.test.ts");
     expect(productionWorkflow).toContain("accounting-v2-migration-0073-execution.test.ts");
     expect(productionWorkflow).toContain("accounting-v2-migration-0074-execution.test.ts");
+    expect(productionWorkflow).toContain("accounting-operational-hardening-contract.test.ts");
     expect(productionWorkflow).toContain("pnpm build");
     expect(productionWorkflow.indexOf("pnpm build"))
       .toBeLessThan(productionWorkflow.indexOf("script/apply-accounting-v2-migrations.ts"));
