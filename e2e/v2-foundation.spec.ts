@@ -134,7 +134,7 @@ test("checkout shows one COD total and blocks invalid customer data without plac
   await expect(page.getByRole("heading", { level: 1, name: "إتمام الطلب" })).toBeVisible();
   await expect(page.getByText("30,000 د.ع")).toBeVisible();
   await expect(page.getByText("الدفع عند الاستلام", { exact: true }).first()).toBeVisible();
-  await page.getByRole("button", { name: "الدفع عند الاستلام — تأكيد طلبي" }).click();
+  await page.getByRole("button", { name: "مراجعة الطلب" }).click();
   await expect(page.getByText("الاسم مطلوب")).toBeVisible();
   await expect(page.getByText("رقم الهاتف مطلوب")).toBeVisible();
   await expect(page.getByText("يرجى اختيار المحافظة")).toBeVisible();
