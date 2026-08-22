@@ -167,8 +167,15 @@ export function resolveSmartPacking(input: SmartPackingResolveInput): SmartPacki
   let weightKg = positiveNumber(c?.packedWeightKg);
 
   const canonicalComplete = heightCm != null && widthCm != null && depthCm != null && weightKg != null;
+  const canonicalHasMeasuredEvidence = heightCm != null || widthCm != null || depthCm != null || weightKg != null;
   const notesAr: string[] = [];
-  const sources: string[] = canonicalComplete ? ["product_packing_data"] : [];
+  // Partial canonical rows are still measured truth. Previously their provenance
+  // disappeared until all four fields were complete, which made a real owner
+  // measurement look like an estimate in the smart recommendation audit trail.
+  const sources: string[] = canonicalHasMeasuredEvidence ? ["product_packing_data"] : [];
+  if (canonicalHasMeasuredEvidence && !canonicalComplete) {
+    notesAr.push("تم تثبيت القياسات المقاسة المتوفرة في سجل التغليف الرسمي، وما زالت الحقول الناقصة منفصلة وغير مخمّنة كحقيقة.");
+  }
   let estimated = false;
   let weightEstimated = false;
 

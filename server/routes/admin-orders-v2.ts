@@ -22,7 +22,9 @@ const statusTransitionSchema = z.object({
   roundedTotal: numericInput.optional(),
   deliveryCompanyId: z.string().trim().min(1).max(128).optional(),
   carrier: z.string().trim().max(100).nullable().optional(),
-  boxCost: numericInput.optional(),
+  // `orders.box_cost` is legacy audit evidence. A real carton is chosen and
+  // costed through the immutable fulfillment snapshot, never through a status
+  // transition payload.
   source: z.string().trim().min(1).max(64).optional(),
   financiallyCounted: z.boolean().nullable().optional(),
   financialReason: z.string().trim().min(3).max(500).optional(),
@@ -243,6 +245,23 @@ export function createAdminOrdersV2Router() {
           });
         }
 
+        // Canonical carton boundary: a shipment cannot leave AQUAVO until the
+        // preparation has been confirmed and that immutable snapshot contains a
+        // real stock-tracked carton. This closes the old path where only the
+        // sticker + thank-you card were recorded while carton stock/cost stayed 0.
+        if (enteringShipped && lifecycle.detail === "no_fulfillment_event") {
+          throw Object.assign(
+            new Error("أكد تجهيز الطلب أولاً قبل تسليمه لشركة التوصيل"),
+            { statusCode: 409 },
+          );
+        }
+        if (enteringShipped && lifecycle.detail === "carton_snapshot_missing") {
+          throw Object.assign(
+            new Error("اختر الكارتونة الفعلية من مخزون الكراتين وأكدها ضمن تجهيز الطلب قبل الشحن"),
+            { statusCode: 409 },
+          );
+        }
+
         if (carrierFee !== undefined) {
           await tx.execute(sql`UPDATE orders SET carrier_fee=${String(carrierFee)}::numeric WHERE id=${locked.id}`);
         }
@@ -252,7 +271,6 @@ export function createAdminOrdersV2Router() {
           ...(input.shippingCost !== undefined ? { shippingCost: String(input.shippingCost) } : {}),
           ...(input.roundedTotal !== undefined ? { roundedTotal: String(input.roundedTotal) } : {}),
           ...(carrierName !== undefined ? { carrier: carrierName } : {}),
-          ...(input.boxCost !== undefined ? { boxCost: String(input.boxCost) } : {}),
           ...(input.source !== undefined ? { source: input.source } : {}),
           ...(input.financiallyCounted !== undefined ? { financiallyCounted: input.financiallyCounted } : {}),
           updatedAt: new Date(),
@@ -291,7 +309,10 @@ export function createAdminOrdersV2Router() {
       if (parsed.data.status === "rejected" && result.oldStatus !== "rejected") await recordRejectedIp(result.clientIp);
       res.json({ ...result.order, packagingLifecycle: result.lifecycle, automaticReturn: result.automaticReturn });
     } catch (error: any) {
-      if (error?.statusCode === 404) { res.status(404).json({ message: error.message }); return; }
+      if (Number.isInteger(error?.statusCode) && error.statusCode >= 400 && error.statusCode < 600) {
+        res.status(error.statusCode).json({ message: error.message });
+        return;
+      }
       next(error);
     }
   });

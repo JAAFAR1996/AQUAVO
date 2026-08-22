@@ -20,6 +20,8 @@ export interface CartonOnboardingInput {
   internalLengthCm: number;
   internalWidthCm: number;
   internalHeightCm: number;
+  /** Clearance reserved from every inside wall by the geometry engine. */
+  safetyPaddingCm: number;
   maxWeightKg: number;
   lowStockThreshold: number;
   openingQuantity: number;
@@ -102,6 +104,7 @@ async function existingReplay(
     sameNumber(material.internalLengthCm, input.internalLengthCm) &&
     sameNumber(material.internalWidthCm, input.internalWidthCm) &&
     sameNumber(material.internalHeightCm, input.internalHeightCm) &&
+    sameNumber(material.safetyPaddingCm, input.safetyPaddingCm) &&
     sameNumber(material.maxWeightKg, input.maxWeightKg) &&
     sameNumber(material.lowStockThreshold, input.lowStockThreshold) &&
     material.currentCostRecordId === costRecordId &&
@@ -174,6 +177,7 @@ async function runTransaction(
       internalLengthCm: String(input.internalLengthCm),
       internalWidthCm: String(input.internalWidthCm),
       internalHeightCm: String(input.internalHeightCm),
+      safetyPaddingCm: String(input.safetyPaddingCm),
       maxWeightKg: String(input.maxWeightKg),
       lowStockThreshold: String(input.lowStockThreshold),
       notes: input.notes?.trim() || null,
@@ -236,6 +240,7 @@ async function runTransaction(
         internalLengthCm: input.internalLengthCm,
         internalWidthCm: input.internalWidthCm,
         internalHeightCm: input.internalHeightCm,
+        safetyPaddingCm: input.safetyPaddingCm,
         maxWeightKg: input.maxWeightKg,
         lowStockThreshold: input.lowStockThreshold,
       },

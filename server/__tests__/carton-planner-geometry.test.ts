@@ -103,8 +103,9 @@ describe("rotation policy", () => {
 describe("dimensional fit", () => {
   const box = carton("C1", 30, 20, 15, 10);
 
-  it("accepts an exact fit", () => {
-    expect(itemFitsCarton(item("exact", 30, 15, 20, 1, { rotationAllowed: true }), box)).toBe(true);
+  it("accepts an exact raw geometric fit when clearance is explicitly zero", () => {
+    const rawBox = carton("RAW", 30, 20, 15, 10, { safetyPaddingMm: 0 });
+    expect(itemFitsCarton(item("exact", 30, 15, 20, 1, { rotationAllowed: true }), rawBox)).toBe(true);
   });
 
   it("rejects when volume fits but a single dimension does not", () => {
@@ -134,6 +135,15 @@ describe("dimensional fit", () => {
     const res = planOrder({
       items: [item("a", 10, 5, 10, 1)],
       cartons: [carton("EMPTY", 30, 20, 15, 10, { availableQty: 0 })],
+    });
+    expect(res.outcome).toBe("manual_review");
+    if (res.outcome === "manual_review") expect(res.code).toBe("NO_ACTIVE_CARTON");
+  });
+
+  it("does not certify a carton whose safety clearance was never documented", () => {
+    const res = planOrder({
+      items: [item("a", 5, 5, 5, 1)],
+      cartons: [carton("UNSAFE-UNKNOWN", 30, 20, 15, 10, { safetyPaddingMm: 0 })],
     });
     expect(res.outcome).toBe("manual_review");
     if (res.outcome === "manual_review") expect(res.code).toBe("NO_ACTIVE_CARTON");

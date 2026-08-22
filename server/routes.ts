@@ -18,6 +18,7 @@ import { createAccountingSmartCarrierV2Router } from "./routes/accounting-smart-
 import { createAccountingCarrierCorrectionV2Router } from "./routes/accounting-carrier-correction-v2.js";
 import { createAccountingOperationsV2Router } from "./routes/accounting-operations-v2.js";
 import { createAccountingV2Router } from "./routes/accounting-v2.js";
+import { createCanonicalPackagingAccountingRouter } from "./routes/accounting-packaging-canonical.js";
 import { createInvoiceV2Router } from "./routes/invoice-v2.js";
 import { createSystemRouter } from "./routes/system.js";
 import { createFishRouter } from "./routes/fish.js";
@@ -172,6 +173,9 @@ export async function registerRoutes(httpServer: Server, app: express.Applicatio
   app.use("/api/admin/accounting", createAccountingCarrierCorrectionV2Router());
   app.use("/api/admin/accounting", createAccountingOperationsV2Router());
   app.use("/api/admin/accounting", createAccountingV2Router());
+  // Owns only the legacy dashboard endpoints whose packaging maths depended on
+  // orders.box_cost. The remaining legacy accounting routes still fall through.
+  app.use("/api/admin/accounting", createCanonicalPackagingAccountingRouter());
   app.use("/api/admin/accounting", createAccountingRouter());
   app.use("/api/admin/expenses", createExpensesRouter());
 
