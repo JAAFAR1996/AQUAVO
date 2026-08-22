@@ -60,6 +60,14 @@ export default async function handler(_req: VercelRequest, res: VercelResponse):
         LIMIT 50000`,
     );
 
+    const sitemapLastmod = rows.reduce<string>(
+      (latest, product) => {
+        const current = effectiveLastmod(product.updatedAt);
+        return current > latest ? current : latest;
+      },
+      AQUAVO_SEO_RELEASE_LASTMOD,
+    );
+
     const entries = rows
       .filter((product) => typeof product.slug === "string" && /^[a-z0-9]+(?:-[a-z0-9]+)*$/i.test(product.slug))
       .map((product) => {
@@ -84,7 +92,7 @@ ${entries}
 
     res.setHeader("Content-Type", "application/xml; charset=utf-8");
     res.setHeader("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
-    res.setHeader("Last-Modified", "Tue, 04 Aug 2026 00:00:00 GMT");
+    res.setHeader("Last-Modified", new Date(`${sitemapLastmod}T00:00:00.000Z`).toUTCString());
     res.status(200).send(xml);
   } catch (error) {
     console.error("[sitemap-products] generation failed", error);
