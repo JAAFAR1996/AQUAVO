@@ -17,11 +17,22 @@ describe("product 404 and temperature canonical routing", () => {
     expect(source).toContain('"noindex, follow"');
   });
 
-  it("keeps hidden products out of the product sitemap", () => {
-    const source = read("api/sitemap-products.ts");
+  it("keeps hidden products out of sitemap and semantic crawler rendering", () => {
+    const sitemap = read("api/sitemap-products.ts");
+    const semantic = read("api/_ssr-preview-source.ts");
 
-    expect(source).toContain("deleted_at IS NULL");
-    expect(source).toContain("COALESCE(is_storefront_visible, true) = true");
+    expect(sitemap).toContain("deleted_at IS NULL");
+    expect(sitemap).toContain("COALESCE(is_storefront_visible, true) = true");
+    expect((semantic.match(/COALESCE\(is_storefront_visible, true\) = true/g) || []).length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("keeps crawler return-policy copy aligned with the customer policy", () => {
+    const semantic = read("api/_ssr-preview-source.ts");
+
+    expect(semantic).toContain('heading: "مشاكل الاستلام والضمان المحدود"');
+    expect(semantic).toContain("لا يوجد إرجاع لمجرد تغيير الرأي");
+    expect(semantic).toContain("6 أشهر من تاريخ التسليم المؤكد");
+    expect(semantic).toContain("الضمان لا يغطي سوء الاستخدام أو الضرر الخارجي");
   });
 
   it("keeps crawler semantic rendering ahead of the human product 404 guard", () => {
