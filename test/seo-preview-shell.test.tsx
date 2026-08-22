@@ -102,6 +102,8 @@ describe("SEO preview shell", () => {
     expect(group.hasVariant).toHaveLength(2);
     expect(group.hasVariant[0]["@type"]).toBe("Product");
     expect(group.hasVariant[0].sku).toBe("LIGHT-30");
+    expect(group.hasVariant[0].inProductGroupWithID).toBe("p3");
+    expect(group.hasVariant[0].size).toBe("30 سم");
     expect(group.hasVariant[0].offers["@type"]).toBe("Offer");
     expect(group.hasVariant[0].offers.price).toBe("20000");
     expect(group.hasVariant[1].offers.price).toBe("35000");
