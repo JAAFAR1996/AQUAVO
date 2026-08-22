@@ -154,8 +154,8 @@ type Toast = Omit<ToasterToast, "id">
 function toast({ ...props }: Toast) {
   const id = genId()
   const isCartAddToast = props.title === "تمت الإضافة"
-  const action = props.action ?? (isCartAddToast
-    ? React.createElement(
+  const defaultCartAction = isCartAddToast
+    ? (React.createElement(
         ToastAction,
         {
           altText: "إكمال الطلب",
@@ -167,8 +167,9 @@ function toast({ ...props }: Toast) {
           className: "border-primary/40 bg-primary text-primary-foreground hover:bg-primary/90",
         },
         "إكمال الطلب"
-      )
-    : undefined)
+      ) as ToastActionElement)
+    : undefined
+  const action: ToastActionElement | undefined = props.action ?? defaultCartAction
 
   const update = (props: ToasterToast) =>
     dispatch({
