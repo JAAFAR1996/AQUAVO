@@ -1,8 +1,9 @@
 import * as React from "react"
 
-import type {
-  ToastActionElement,
-  ToastProps,
+import {
+  ToastAction,
+  type ToastActionElement,
+  type ToastProps,
 } from "@/components/ui/toast"
 
 const TOAST_LIMIT = 1
@@ -129,6 +130,7 @@ export const reducer = (state: State, action: Action): State => {
           toasts: [],
         }
       }
+
       return {
         ...state,
         toasts: state.toasts.filter((t) => t.id !== action.toastId),
@@ -151,6 +153,22 @@ type Toast = Omit<ToasterToast, "id">
 
 function toast({ ...props }: Toast) {
   const id = genId()
+  const isCartAddToast = props.title === "تمت الإضافة"
+  const action = props.action ?? (isCartAddToast
+    ? React.createElement(
+        ToastAction,
+        {
+          altText: "إكمال الطلب",
+          onClick: () => {
+            if (typeof window !== "undefined") {
+              window.location.assign("/checkout")
+            }
+          },
+          className: "border-primary/40 bg-primary text-primary-foreground hover:bg-primary/90",
+        },
+        "إكمال الطلب"
+      )
+    : undefined)
 
   const update = (props: ToasterToast) =>
     dispatch({
@@ -163,6 +181,7 @@ function toast({ ...props }: Toast) {
     type: "ADD_TOAST",
     toast: {
       ...props,
+      action,
       id,
       open: true,
       onOpenChange: (open) => {
