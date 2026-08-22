@@ -26,6 +26,15 @@ describe("smart carrier accounting v2", () => {
     expect(route).toContain("merchantNet: money(row.merchant_net)");
   });
 
+  it("excludes quarantined production tests from open and outstanding carrier totals", () => {
+    const route = read("server/routes/accounting-smart-carrier-v2.ts");
+    const exclusions = route.match(/COALESCE\(o\.is_test,false\)=false/g) ?? [];
+    expect(exclusions.length).toBeGreaterThanOrEqual(2);
+    expect(route).toContain("SELECT id,order_number,status,carrier,carrier_fee,financially_counted,is_test");
+    expect(route).toContain("if (order.is_test === true)");
+    expect(route).toContain("طلب الاختبار معزول ولا يدخل بحساب أو ربط شركات التوصيل");
+  });
+
   it("assigns the company before realization and records an audit change", () => {
     const route = read("server/routes/accounting-smart-carrier-v2.ts");
     expect(route).toContain('router.post("/v2/orders/:id/delivery-company"');
