@@ -82,70 +82,50 @@ export function FulfillmentProfitabilityPanel({ orderId }: { orderId: string }) 
           <ItemsDrilldown breakdown={data} />
         </DrilldownRow>
 
-        <DrilldownRow
-          label="تكلفة تجهيز AQUAVO"
-          value={data.aquavoFulfillmentCost}
-          status={data.fulfillmentCostStatus}
-          open={open === "fulfillment"}
-          onToggle={() => toggle("fulfillment")}
-        >
-          <EventsDrilldown
-            events={contributingEvents(events, ["original", "reshipment", "return_handling", "replacement", "adjustment"])}
-            loading={eventsQuery.isLoading}
-          />
-        </DrilldownRow>
+        {data.aquavoFulfillmentCost != null && (
+          <DrilldownRow
+            label="تكلفة تجهيز AQUAVO"
+            value={data.aquavoFulfillmentCost}
+            status={data.fulfillmentCostStatus}
+            open={open === "fulfillment"}
+            onToggle={() => toggle("fulfillment")}
+          >
+            <EventsDrilldown
+              events={contributingEvents(events, ["original", "reshipment", "return_handling", "replacement", "adjustment"])}
+              loading={eventsQuery.isLoading}
+            />
+          </DrilldownRow>
+        )}
 
-        <DrilldownRow
-          label="الشحنة الأصلية"
-          value={data.originalShipmentCost}
-          open={open === "original"}
-          onToggle={() => toggle("original")}
-        >
-          <EventsDrilldown events={contributingEvents(events, ["original"])} loading={eventsQuery.isLoading} />
-        </DrilldownRow>
+        {data.courierCost != null && <DrilldownRow label="كلفة التوصيل" value={data.courierCost} />}
+        {data.commissions != null && <DrilldownRow label="العمولات" value={data.commissions} />}
+        {data.paymentFees != null && <DrilldownRow label="رسوم الدفع" value={data.paymentFees} />}
+        {data.otherDirectCosts != null && <DrilldownRow label="تكاليف مباشرة أخرى" value={data.otherDirectCosts} />}
 
-        <DrilldownRow
-          label="إعادة الإرسال"
-          value={data.reshipmentCost}
-          open={open === "reshipment"}
-          onToggle={() => toggle("reshipment")}
-        >
-          <EventsDrilldown events={contributingEvents(events, ["reshipment"])} loading={eventsQuery.isLoading} />
-        </DrilldownRow>
-
-        <DrilldownRow
-          label="معالجة الإرجاع"
-          value={data.returnHandlingCost}
-          open={open === "return_handling"}
-          onToggle={() => toggle("return_handling")}
-        >
-          <EventsDrilldown events={contributingEvents(events, ["return_handling"])} loading={eventsQuery.isLoading} />
-        </DrilldownRow>
-
-        <DrilldownRow
-          label="الاستبدال"
-          value={data.replacementCost}
-          open={open === "replacement"}
-          onToggle={() => toggle("replacement")}
-        >
-          <EventsDrilldown events={contributingEvents(events, ["replacement"])} loading={eventsQuery.isLoading} />
-        </DrilldownRow>
-
-        <DrilldownRow label="كلفة التوصيل" value={data.courierCost} />
-        <DrilldownRow label="العمولات" value={data.commissions} />
-        <DrilldownRow label="رسوم الدفع" value={data.paymentFees} />
-        <DrilldownRow label="تكاليف مباشرة أخرى" value={data.otherDirectCosts} />
-
-        <DrilldownRow label="إجمالي التكلفة المباشرة المعروفة" value={data.totalKnownDirectCost} emphasis />
-        <DrilldownRow label="الربح المباشر" value={data.contributionProfit} emphasis />
+        {data.totalKnownDirectCost != null && (
+          <DrilldownRow label="إجمالي التكلفة المباشرة" value={data.totalKnownDirectCost} emphasis />
+        )}
+        {data.contributionProfit != null && (
+          <DrilldownRow label="الربح المباشر" value={data.contributionProfit} emphasis />
+        )}
       </div>
 
-      <div className="mt-2 flex items-center justify-between gap-2 px-2">
-        <span className="text-sm text-muted-foreground">هامش الربح المباشر</span>
-        <span data-testid="contribution-margin" className="text-sm font-semibold tabular-nums">
-          {formatMargin(data.contributionMargin)}
-        </span>
-      </div>
+      {data.contributionMargin != null ? (
+        <div className="mt-2 flex items-center justify-between gap-2 px-2">
+          <span className="text-sm text-muted-foreground">هامش الربح المباشر</span>
+          <span data-testid="contribution-margin" className="text-sm font-semibold tabular-nums">
+            {formatMargin(data.contributionMargin)}
+          </span>
+        </div>
+      ) : (
+        <div className="mt-3 rounded-md border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-900 dark:border-sky-900 dark:bg-sky-950/30 dark:text-sky-200">
+          {data.productCogs == null
+            ? "الربح النهائي يظهر بعد اكتمال كلفة المنتجات."
+            : data.aquavoFulfillmentCost == null
+              ? "كلفة المنتجات واضحة. الربح النهائي يظهر بعد تثبيت كلفة تجهيز الطلب."
+              : "الربح النهائي ينتظر اكتمال بقية التكاليف المباشرة."}
+        </div>
+      )}
 
       <UnallocatedNotes breakdown={data} />
     </SectionCard>
