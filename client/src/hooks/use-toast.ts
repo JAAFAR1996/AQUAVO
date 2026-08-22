@@ -1,8 +1,9 @@
 import * as React from "react"
 
-import type {
-  ToastActionElement,
-  ToastProps,
+import {
+  ToastAction,
+  type ToastActionElement,
+  type ToastProps,
 } from "@/components/ui/toast"
 
 const TOAST_LIMIT = 1
@@ -52,11 +53,11 @@ type Action =
   }
   | {
     type: ActionType["DISMISS_TOAST"]
-    toastId?: ToasterToast["id"]
+    toastId?: string
   }
   | {
     type: ActionType["REMOVE_TOAST"]
-    toastId?: ToasterToast["id"]
+    toastId?: string
   }
 
 interface State {
@@ -99,7 +100,6 @@ export const reducer = (state: State, action: Action): State => {
 
     case "DISMISS_TOAST": {
       const { toastId } = action
-
       // ! Side effects ! - This could be extracted into a dismissToast() action,
       // but I'll keep it here for simplicity
       if (toastId) {
@@ -115,9 +115,9 @@ export const reducer = (state: State, action: Action): State => {
         toasts: state.toasts.map((t) =>
           t.id === toastId || toastId === undefined
             ? {
-              ...t,
-              open: false,
-            }
+                ...t,
+                open: false,
+              }
             : t
         ),
       }
@@ -152,6 +152,28 @@ type Toast = Omit<ToasterToast, "id">
 function toast({ ...props }: Toast) {
   const id = genId()
 
+  const descriptionText = typeof props.description === "string" ? props.description : ""
+  const isAddToCartToast = descriptionText.includes("السلة")
+  const cartAction =
+    !props.action && isAddToCartToast && typeof window !== "undefined"
+      ? React.createElement(
+          ToastAction,
+          {
+            altText: "عرض السلة",
+            className: "border-primary/40 text-primary hover:bg-primary/10",
+            onClick: () => {
+              const cartTrigger = document.querySelector<HTMLElement>("[data-aqv-cart-target]")
+              if (cartTrigger) {
+                cartTrigger.click()
+                return
+              }
+              window.location.assign("/?open-cart=1")
+            },
+          },
+          "عرض السلة"
+        )
+      : props.action
+
   const update = (props: ToasterToast) =>
     dispatch({
       type: "UPDATE_TOAST",
@@ -163,6 +185,7 @@ function toast({ ...props }: Toast) {
     type: "ADD_TOAST",
     toast: {
       ...props,
+      action: cartAction,
       id,
       open: true,
       onOpenChange: (open) => {
