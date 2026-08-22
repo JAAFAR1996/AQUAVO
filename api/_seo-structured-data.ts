@@ -7,6 +7,13 @@ import {
 } from "../shared/seo-contract.js";
 
 const DEFAULT_IMAGE = AQUAVO_ENTITY.logoUrl;
+const SIZE_SCHEMA = "https://schema.org/size";
+const COLOR_SCHEMA = "https://schema.org/color";
+const MATERIAL_SCHEMA = "https://schema.org/material";
+const PATTERN_SCHEMA = "https://schema.org/pattern";
+
+const COLOR_RE = /(أبيض|اسود|أسود|أحمر|ازرق|أزرق|أخضر|رمادي|بني|ذهبي|فضي|شفاف|white|black|red|blue|green|gray|grey|brown)/i;
+const MATERIAL_RE = /(ستانلس(?: ستيل)?|فولاذ|ألمنيوم|المنيوم|اكريليك|أكريليك|زجاج|سيراميك|بلاستيك|stainless(?: steel)?|steel|aluminum|aluminium|acrylic|glass|ceramic)/i;
 
 function numberValue(value: string | number | null | undefined): number | null {
   if (value === null || value === undefined || value === "") return null;
@@ -19,14 +26,24 @@ function cleanText(value: string | null | undefined, fallback: string): string {
   return text || fallback;
 }
 
-function firstImage(product: SeoPreviewProduct, variant?: SeoPreviewVariant): string {
-  const candidate = variant?.image || product.thumbnail ||
-    (Array.isArray(product.images)
-      ? product.images.find((item): item is string => typeof item === "string" && item.length > 0)
-      : undefined);
-  if (!candidate) return DEFAULT_IMAGE;
-  if (/^https?:\/\//i.test(candidate)) return candidate;
-  return `${AQUAVO_BASE_URL}${candidate.startsWith("/") ? "" : "/"}${candidate}`;
+function absoluteImage(value: string | null | undefined): string | null {
+  if (!value) return null;
+  if (/^https?:\/\//i.test(value)) return value;
+  return `${AQUAVO_BASE_URL}${value.startsWith("/") ? "" : "/"}${value}`;
+}
+
+function productImages(product: SeoPreviewProduct, variant?: SeoPreviewVariant): string[] {
+  const candidates: Array<string | null | undefined> = [variant?.image, product.thumbnail];
+  if (Array.isArray(product.images)) {
+    for (const item of product.images) {
+      if (typeof item === "string") candidates.push(item);
+    }
+  }
+  const images = candidates
+    .map(absoluteImage)
+    .filter((item): item is string => Boolean(item));
+  const unique = [...new Set(images)];
+  return unique.length > 0 ? unique.slice(0, 10) : [DEFAULT_IMAGE];
 }
 
 function availability(stock: string | number | null | undefined): string {
@@ -102,53 +119,140 @@ function buildOffer(
   };
 }
 
+function aggregateRating(product: SeoPreviewProduct): object | undefined {
+  const rating = numberValue(product.rating) ?? 0;
+  const reviewCount = numberValue(product.reviewCount) ?? 0;
+  if (rating <= 0 || reviewCount <= 0) return undefined;
+  return {
+    "@type": "AggregateRating",
+    ratingValue: rating,
+    reviewCount,
+    bestRating: 5,
+    worstRating: 1,
+  };
+}
+
+function variantSku(product: SeoPreviewProduct, variant: SeoPreviewVariant, index: number): string {
+  if (variant.sku) return variant.sku;
+  const parent = product.id || product.slug;
+  return variant.id ? `${parent}-${variant.id}` : `${parent}-variant-${index + 1}`;
+}
+
+function variantAnchor(variant: SeoPreviewVariant, index: number): string {
+  const raw = variant.id || variant.sku || variant.label || `variant-${index + 1}`;
+  return encodeURIComponent(String(raw)).replace(/%/g, "-");
+}
+
+/**
+ * Google Search currently recognizes only a small allowlist of ProductGroup
+ * variant dimensions. Unsupported aquarium dimensions such as wattage, port
+ * count, treatment type, or pack count still remain explicit in the variant
+ * name/additionalProperty without pretending they are size or another field.
+ */
+function inferVariesBy(variants: SeoPreviewVariant[]): string[] {
+  const labels = variants.map((variant) => variant.label || "").join(" ");
+  const result = new Set<string>();
+
+  if (/(?:صغير|متوسط|كبير|\d+(?:[.,]\d+)?(?:×\d+(?:[.,]\d+)?){0,2}\s*(?:سم|ملم|مم|متر|لتر|مل|غرام|كغم)|\d+(?:[.,]\d+)?\s*(?:kg|cm|mm|ml|l)\b)/i.test(labels)) {
+    result.add(SIZE_SCHEMA);
+  }
+  if (COLOR_RE.test(labels)) result.add(COLOR_SCHEMA);
+  if (MATERIAL_RE.test(labels)) result.add(MATERIAL_SCHEMA);
+  if (/(?:نمط|pattern)/i.test(labels)) result.add(PATTERN_SCHEMA);
+
+  return [...result];
+}
+
+function variantIdentityProperties(label: string, variesBy: string[]): Record<string, string> {
+  const properties: Record<string, string> = {};
+  if (variesBy.includes(SIZE_SCHEMA)) properties.size = label;
+
+  if (variesBy.includes(COLOR_SCHEMA)) {
+    const color = label.match(COLOR_RE)?.[0];
+    if (color) properties.color = color;
+  }
+
+  if (variesBy.includes(MATERIAL_SCHEMA)) {
+    const material = label.match(MATERIAL_RE)?.[0];
+    if (material) properties.material = material;
+  }
+
+  if (variesBy.includes(PATTERN_SCHEMA)) properties.pattern = label;
+  return properties;
+}
+
 export function buildProductStructuredData(product: SeoPreviewProduct): object[] {
   const url = `${AQUAVO_BASE_URL}/products/${encodeURIComponent(product.slug)}`;
   const currency = product.currency || AQUAVO_ENTITY.currency;
   const description = cleanText(product.description, `معلومات ومواصفات ${product.name} من AQUAVO.`);
-  const selected = defaultVariant(product);
-  const productPrice = selected?.price ?? product.price;
-  const productStock = selected?.stock ?? product.stock;
-  const sku = selected?.sku || (selected?.id ? `${product.id || product.slug}-${selected.id}` : product.id || product.slug);
   const variants = activeVariants(product);
+  const rating = aggregateRating(product);
+  const category = canonicalProductCategory(product.category) || undefined;
+  const brand = product.brand ? { "@type": "Brand", name: product.brand } : undefined;
+  const productGroupID = product.id || product.slug;
 
-  const productSchema: Record<string, unknown> = {
-    "@context": "https://schema.org",
-    "@type": "Product",
-    "@id": `${url}#product`,
-    name: product.name,
-    description,
-    url,
-    image: [firstImage(product, selected)],
-    sku,
-    brand: product.brand ? { "@type": "Brand", name: product.brand } : undefined,
-    category: canonicalProductCategory(product.category) || undefined,
-    offers: buildOffer(url, productPrice, currency, productStock),
-    additionalProperty: variants.length > 0
-      ? variants.map((variant) => ({
+  let mainEntityId = `${url}#product`;
+  let mainSchema: Record<string, unknown>;
+
+  if (variants.length > 1) {
+    mainEntityId = `${url}#product-group`;
+    const variesBy = inferVariesBy(variants);
+    mainSchema = {
+      "@context": "https://schema.org",
+      "@type": "ProductGroup",
+      "@id": mainEntityId,
+      name: product.name,
+      description,
+      url,
+      image: productImages(product),
+      productGroupID,
+      brand,
+      category,
+      ...(variesBy.length > 0 ? { variesBy } : {}),
+      hasVariant: variants.map((variant, index) => ({
+        "@type": "Product",
+        "@id": `${url}#variant-${variantAnchor(variant, index)}`,
+        url,
+        name: `${product.name} — ${variant.label}`,
+        description,
+        image: productImages(product, variant),
+        sku: variantSku(product, variant, index),
+        inProductGroupWithID: productGroupID,
+        brand,
+        category,
+        ...variantIdentityProperties(variant.label || "", variesBy),
+        additionalProperty: {
           "@type": "PropertyValue",
-          name: variant.label || "خيار",
-          value: [
-            numberValue(variant.price) !== null ? `${numberValue(variant.price)} ${currency}` : null,
-            (numberValue(variant.stock) ?? 0) > 0 ? "متوفر" : "غير متوفر",
-            variant.sku ? `SKU: ${variant.sku}` : null,
-          ].filter(Boolean).join(" — "),
-        }))
-      : undefined,
-    aggregateRating:
-      (numberValue(product.rating) ?? 0) > 0 && (numberValue(product.reviewCount) ?? 0) > 0
-        ? {
-            "@type": "AggregateRating",
-            ratingValue: numberValue(product.rating),
-            reviewCount: numberValue(product.reviewCount),
-            bestRating: 5,
-            worstRating: 1,
-          }
-        : undefined,
-  };
+          name: "الخيار",
+          value: variant.label,
+        },
+        offers: buildOffer(url, variant.price, currency, variant.stock),
+      })),
+      aggregateRating: rating,
+    };
+  } else {
+    const selected = defaultVariant(product);
+    const productPrice = selected?.price ?? product.price;
+    const productStock = selected?.stock ?? product.stock;
+    const sku = selected?.sku || (selected?.id ? `${productGroupID}-${selected.id}` : productGroupID);
+    mainSchema = {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      "@id": mainEntityId,
+      name: product.name,
+      description,
+      url,
+      image: productImages(product, selected),
+      sku,
+      brand,
+      category,
+      offers: buildOffer(url, productPrice, currency, productStock),
+      aggregateRating: rating,
+    };
+  }
 
   return [
-    productSchema,
+    mainSchema,
     {
       "@context": "https://schema.org",
       "@type": "WebPage",
@@ -159,7 +263,7 @@ export function buildProductStructuredData(product: SeoPreviewProduct): object[]
       inLanguage: "ar-IQ",
       dateModified: AQUAVO_SEO_RELEASE_LASTMOD,
       isPartOf: { "@id": `${AQUAVO_BASE_URL}/#website` },
-      mainEntity: { "@id": `${url}#product` },
+      mainEntity: { "@id": mainEntityId },
     },
     {
       "@context": "https://schema.org",
