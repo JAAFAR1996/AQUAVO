@@ -466,7 +466,7 @@ export default function CheckoutPage() {
               {formErrorSummary}
             </p>
             <Button onClick={handleContinue} className="w-full h-12 text-base font-semibold" size="lg">
-              الدفع عند الاستلام — تأكيد طلبي
+              مراجعة الطلب
             </Button>
           </div>
         ) : (
