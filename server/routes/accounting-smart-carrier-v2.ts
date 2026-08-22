@@ -73,6 +73,7 @@ export function createAccountingSmartCarrierV2Router() {
                  o.carrier,o.carrier_fee,o.created_at
           FROM public.orders o
           WHERE lower(COALESCE(o.status,'')) IN ('pending','confirmed','processing','shipped')
+            AND COALESCE(o.is_test,false)=false
             AND COALESCE(o.financially_counted,false)=false
             AND NOT EXISTS(
               SELECT 1 FROM public.order_accounting_facts f WHERE f.order_id=o.id
@@ -86,6 +87,7 @@ export function createAccountingSmartCarrierV2Router() {
           JOIN public.orders o ON o.id=f.order_id
           LEFT JOIN public.order_accounting_settlements s ON s.order_fact_id=f.id
           WHERE f.period_key=${periodKey}
+            AND COALESCE(o.is_test,false)=false
             AND f.cash_custody='carrier'
             AND s.id IS NULL
           ORDER BY f.recognized_at,o.order_number
@@ -199,13 +201,16 @@ export function createAccountingSmartCarrierV2Router() {
       const actor = actorFromRequest(req);
       const result = await db.transaction(async (tx) => {
         const orderResult = await tx.execute(sql`
-          SELECT id,order_number,status,carrier,carrier_fee,financially_counted
+          SELECT id,order_number,status,carrier,carrier_fee,financially_counted,is_test
           FROM public.orders
           WHERE id=${req.params.id}
           FOR UPDATE
         `);
         const order = rowsOf(orderResult)[0];
         if (!order) throw Object.assign(new Error("الطلب غير موجود"), { statusCode: 404 });
+        if (order.is_test === true) {
+          throw Object.assign(new Error("طلب الاختبار معزول ولا يدخل بحساب أو ربط شركات التوصيل"), { statusCode: 409 });
+        }
         const factCheck = await tx.execute(sql`
           SELECT 1 FROM public.order_accounting_facts WHERE order_id=${req.params.id} LIMIT 1
         `);
