@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/toast"
 
 export function Toaster() {
-  const { toasts } = useToast()
+  const { toasts, dismiss } = useToast()
 
   return (
     <ToastProvider>
@@ -30,6 +30,7 @@ export function Toaster() {
               <ToastAction altText="إكمال الطلب" asChild>
                 <Link
                   href="/checkout"
+                  onClick={() => dismiss(id)}
                   className="border-primary/40 bg-primary text-primary-foreground hover:bg-primary/90"
                 >
                   إكمال الطلب
