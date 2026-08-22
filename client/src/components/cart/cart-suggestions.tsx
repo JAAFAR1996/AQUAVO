@@ -21,7 +21,7 @@ export function CartSuggestions() {
   if (suggestions.length === 0) return null;
 
   return (
-    <div className="py-3">
+    <div className="hidden py-3 sm:block">
       <div className="flex items-center gap-1.5 mb-2 justify-end">
         <h4 className="text-xs font-bold text-muted-foreground">أكمل حوضك</h4>
         <Sparkles className="h-3 w-3 text-primary" />
