@@ -48,7 +48,7 @@ describe("checkout page", () => {
     const user = userEvent.setup();
     render(<CheckoutPage />);
 
-    await user.click(screen.getByRole("button", { name: "الدفع عند الاستلام — تأكيد طلبي" }));
+    await user.click(screen.getByRole("button", { name: "مراجعة الطلب" }));
 
     expect(screen.getAllByRole("alert")).toHaveLength(4);
     expect(screen.getByText("الاسم مطلوب")).toBeInTheDocument();
@@ -63,7 +63,7 @@ describe("checkout page", () => {
     const user = userEvent.setup();
     render(<CheckoutPage />);
 
-    await user.click(screen.getByRole("button", { name: "الدفع عند الاستلام — تأكيد طلبي" }));
+    await user.click(screen.getByRole("button", { name: "مراجعة الطلب" }));
 
     expect(await screen.findByLabelText("الاسم الكامل")).toHaveFocus();
   });
@@ -73,7 +73,7 @@ describe("checkout page", () => {
     render(<CheckoutPage />);
 
     fireEvent.change(screen.getByLabelText("الاسم الكامل"), { target: { value: "جعفر محمد" } });
-    await user.click(screen.getByRole("button", { name: "الدفع عند الاستلام — تأكيد طلبي" }));
+    await user.click(screen.getByRole("button", { name: "مراجعة الطلب" }));
 
     expect(await screen.findByLabelText("رقم الهاتف")).toHaveFocus();
   });
@@ -82,7 +82,7 @@ describe("checkout page", () => {
     const user = userEvent.setup();
     render(<CheckoutPage />);
 
-    await user.click(screen.getByRole("button", { name: "الدفع عند الاستلام — تأكيد طلبي" }));
+    await user.click(screen.getByRole("button", { name: "مراجعة الطلب" }));
 
     const nameInput = screen.getByLabelText("الاسم الكامل");
     expect(nameInput).toHaveAttribute("aria-invalid", "true");
@@ -100,7 +100,7 @@ describe("checkout page", () => {
     await user.click(screen.getByRole("combobox", { name: "المحافظة" }));
     await user.click(screen.getByRole("option", { name: "بغداد" }));
     fireEvent.change(screen.getByLabelText("العنوان"), { target: { value: "الكرادة داخل قرب ساحة كهرمانة" } });
-    await user.click(screen.getByRole("button", { name: "الدفع عند الاستلام — تأكيد طلبي" }));
+    await user.click(screen.getByRole("button", { name: "مراجعة الطلب" }));
 
     expect(screen.getByRole("heading", { level: 1, name: "تأكيد الطلب" })).toBeInTheDocument();
     expect(screen.getByText("جعفر محمد")).toBeInTheDocument();
@@ -126,7 +126,7 @@ describe("checkout page", () => {
     await user.click(screen.getByRole("combobox", { name: "المحافظة" }));
     await user.click(screen.getByRole("option", { name: "بغداد" }));
     fireEvent.change(screen.getByLabelText("العنوان"), { target: { value: "الكرادة داخل قرب ساحة كهرمانة" } });
-    await user.click(screen.getByRole("button", { name: "الدفع عند الاستلام — تأكيد طلبي" }));
+    await user.click(screen.getByRole("button", { name: "مراجعة الطلب" }));
     await user.click(screen.getByRole("checkbox"));
     await user.click(screen.getByRole("button", { name: "تأكيد الطلب" }));
 
@@ -156,7 +156,7 @@ describe("checkout page", () => {
     await user.click(screen.getByRole("combobox", { name: "المحافظة" }));
     await user.click(screen.getByRole("option", { name: "بغداد" }));
     fireEvent.change(screen.getByLabelText("العنوان"), { target: { value: "الكرادة داخل قرب ساحة كهرمانة" } });
-    await user.click(screen.getByRole("button", { name: "الدفع عند الاستلام — تأكيد طلبي" }));
+    await user.click(screen.getByRole("button", { name: "مراجعة الطلب" }));
     await user.click(screen.getByRole("checkbox"));
 
     const confirmButton = screen.getByRole("button", { name: "تأكيد الطلب" });
@@ -236,7 +236,7 @@ describe("checkout page", () => {
     await user.click(screen.getByRole("combobox", { name: "المحافظة" }));
     await user.click(screen.getByRole("option", { name: "بغداد" }));
     fireEvent.change(screen.getByLabelText("العنوان"), { target: { value: "الكرادة داخل قرب ساحة كهرمانة" } });
-    await user.click(screen.getByRole("button", { name: "الدفع عند الاستلام — تأكيد طلبي" }));
+    await user.click(screen.getByRole("button", { name: "مراجعة الطلب" }));
     await user.click(screen.getByRole("checkbox"));
     await user.click(screen.getByRole("button", { name: "تأكيد الطلب" }));
 
