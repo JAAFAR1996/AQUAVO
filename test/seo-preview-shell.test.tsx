@@ -92,17 +92,31 @@ describe("SEO preview shell", () => {
     expect(html).toContain('href="/products/aquavo-test-heater"');
   });
 
-  it("builds merchant Product and Offer markup from the initially selected option", () => {
-    const schemas = buildProductStructuredData(products[2]) as Array<Record<string, unknown>>;
+  it("builds ProductGroup markup with explicit nested variants and offers", () => {
+    const schemas = buildProductStructuredData(products[2]) as Array<Record<string, any>>;
+    const group = schemas[0] as Record<string, any>;
+
+    expect(group["@type"]).toBe("ProductGroup");
+    expect(group.productGroupID).toBe("p3");
+    expect(group.variesBy).toContain("https://schema.org/size");
+    expect(group.hasVariant).toHaveLength(2);
+    expect(group.hasVariant[0]["@type"]).toBe("Product");
+    expect(group.hasVariant[0].sku).toBe("LIGHT-30");
+    expect(group.hasVariant[0].offers["@type"]).toBe("Offer");
+    expect(group.hasVariant[0].offers.price).toBe("20000");
+    expect(group.hasVariant[1].offers.price).toBe("35000");
+    expect(JSON.stringify(group.hasVariant)).toContain("60 سم");
+    expect((schemas[1] as Record<string, any>).mainEntity["@id"]).toContain("#product-group");
+  });
+
+  it("keeps simple products as Product markup", () => {
+    const schemas = buildProductStructuredData(products[0]) as Array<Record<string, any>>;
     const product = schemas[0] as Record<string, any>;
 
     expect(product["@type"]).toBe("Product");
     expect(product.offers["@type"]).toBe("Offer");
-    expect(product.offers.price).toBe("20000");
+    expect(product.offers.price).toBe("25000");
     expect(product.offers.priceCurrency).toBe("IQD");
-    expect(product.sku).toBe("LIGHT-30");
-    expect(JSON.stringify(product.additionalProperty)).toContain("60 سم");
-    expect(JSON.stringify(schemas)).not.toContain("ProductGroup");
   });
 
   it("builds a collection ItemList containing every product and real categories", () => {
