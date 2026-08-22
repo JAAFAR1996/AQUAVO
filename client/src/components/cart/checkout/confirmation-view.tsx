@@ -213,13 +213,13 @@ export function ConfirmationView({
             </div>
 
             {/* === الأزرار === */}
-            <div className="flex gap-3">
-                <Button variant="outline" onClick={handleBack} className="flex-1 h-12" disabled={isSubmitting} aria-disabled={isSubmitting}>
+            <div className="flex flex-col gap-3 sm:flex-row">
+                <Button variant="outline" onClick={handleBack} className="order-2 h-11 w-full sm:order-1 sm:h-12 sm:flex-1" disabled={isSubmitting} aria-disabled={isSubmitting}>
                     تعديل البيانات
                 </Button>
                 <Button
                     onClick={handleConfirmOrder}
-                    className="flex-1 h-12 text-base font-semibold"
+                    className="order-1 h-12 w-full text-base font-semibold sm:order-2 sm:flex-1"
                     size="lg"
                     disabled={!agreed || isSubmitting}
                     aria-disabled={!agreed || isSubmitting}
