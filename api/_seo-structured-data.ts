@@ -7,6 +7,13 @@ import {
 } from "../shared/seo-contract.js";
 
 const DEFAULT_IMAGE = AQUAVO_ENTITY.logoUrl;
+const SIZE_SCHEMA = "https://schema.org/size";
+const COLOR_SCHEMA = "https://schema.org/color";
+const MATERIAL_SCHEMA = "https://schema.org/material";
+const PATTERN_SCHEMA = "https://schema.org/pattern";
+
+const COLOR_RE = /(أبيض|اسود|أسود|أحمر|ازرق|أزرق|أخضر|رمادي|بني|ذهبي|فضي|شفاف|white|black|red|blue|green|gray|grey|brown)/i;
+const MATERIAL_RE = /(ستانلس(?: ستيل)?|فولاذ|ألمنيوم|المنيوم|اكريليك|أكريليك|زجاج|سيراميك|بلاستيك|stainless(?: steel)?|steel|aluminum|aluminium|acrylic|glass|ceramic)/i;
 
 function numberValue(value: string | number | null | undefined): number | null {
   if (value === null || value === undefined || value === "") return null;
@@ -37,10 +44,6 @@ function productImages(product: SeoPreviewProduct, variant?: SeoPreviewVariant):
     .filter((item): item is string => Boolean(item));
   const unique = [...new Set(images)];
   return unique.length > 0 ? unique.slice(0, 10) : [DEFAULT_IMAGE];
-}
-
-function firstImage(product: SeoPreviewProduct, variant?: SeoPreviewVariant): string {
-  return productImages(product, variant)[0] || DEFAULT_IMAGE;
 }
 
 function availability(stock: string | number | null | undefined): string {
@@ -141,29 +144,41 @@ function variantAnchor(variant: SeoPreviewVariant, index: number): string {
 }
 
 /**
- * Google currently recognizes a limited set of variant-identifying properties
- * for ProductGroup. Only emit variesBy when the visible variant labels clearly
- * describe one of those supported properties; otherwise the labels still remain
- * explicit on each nested Product via name/additionalProperty.
+ * Google Search currently recognizes only a small allowlist of ProductGroup
+ * variant dimensions. Unsupported aquarium dimensions such as wattage, port
+ * count, treatment type, or pack count still remain explicit in the variant
+ * name/additionalProperty without pretending they are size or another field.
  */
 function inferVariesBy(variants: SeoPreviewVariant[]): string[] {
   const labels = variants.map((variant) => variant.label || "").join(" ");
   const result = new Set<string>();
 
-  if (/(?:صغير|متوسط|كبير|سم|ملم|مم|متر|لتر|مل|غرام|كغم|kg|cm|mm|ml|\bL\b)/i.test(labels)) {
-    result.add("https://schema.org/size");
+  if (/(?:صغير|متوسط|كبير|\d+(?:[.,]\d+)?(?:×\d+(?:[.,]\d+)?){0,2}\s*(?:سم|ملم|مم|متر|لتر|مل|غرام|كغم)|\d+(?:[.,]\d+)?\s*(?:kg|cm|mm|ml|l)\b)/i.test(labels)) {
+    result.add(SIZE_SCHEMA);
   }
-  if (/(?:أبيض|اسود|أسود|أحمر|ازرق|أزرق|أخضر|رمادي|بني|ذهبي|فضي|شفاف|white|black|red|blue|green|gray|grey|brown)/i.test(labels)) {
-    result.add("https://schema.org/color");
-  }
-  if (/(?:ستانلس|فولاذ|ألمنيوم|المنيوم|اكريليك|أكريليك|زجاج|سيراميك|بلاستيك|stainless|steel|aluminum|aluminium|acrylic|glass|ceramic)/i.test(labels)) {
-    result.add("https://schema.org/material");
-  }
-  if (/(?:نمط|pattern)/i.test(labels)) {
-    result.add("https://schema.org/pattern");
-  }
+  if (COLOR_RE.test(labels)) result.add(COLOR_SCHEMA);
+  if (MATERIAL_RE.test(labels)) result.add(MATERIAL_SCHEMA);
+  if (/(?:نمط|pattern)/i.test(labels)) result.add(PATTERN_SCHEMA);
 
   return [...result];
+}
+
+function variantIdentityProperties(label: string, variesBy: string[]): Record<string, string> {
+  const properties: Record<string, string> = {};
+  if (variesBy.includes(SIZE_SCHEMA)) properties.size = label;
+
+  if (variesBy.includes(COLOR_SCHEMA)) {
+    const color = label.match(COLOR_RE)?.[0];
+    if (color) properties.color = color;
+  }
+
+  if (variesBy.includes(MATERIAL_SCHEMA)) {
+    const material = label.match(MATERIAL_RE)?.[0];
+    if (material) properties.material = material;
+  }
+
+  if (variesBy.includes(PATTERN_SCHEMA)) properties.pattern = label;
+  return properties;
 }
 
 export function buildProductStructuredData(product: SeoPreviewProduct): object[] {
@@ -174,6 +189,7 @@ export function buildProductStructuredData(product: SeoPreviewProduct): object[]
   const rating = aggregateRating(product);
   const category = canonicalProductCategory(product.category) || undefined;
   const brand = product.brand ? { "@type": "Brand", name: product.brand } : undefined;
+  const productGroupID = product.id || product.slug;
 
   let mainEntityId = `${url}#product`;
   let mainSchema: Record<string, unknown>;
@@ -189,19 +205,22 @@ export function buildProductStructuredData(product: SeoPreviewProduct): object[]
       description,
       url,
       image: productImages(product),
-      productGroupID: product.id || product.slug,
+      productGroupID,
       brand,
       category,
       ...(variesBy.length > 0 ? { variesBy } : {}),
       hasVariant: variants.map((variant, index) => ({
         "@type": "Product",
         "@id": `${url}#variant-${variantAnchor(variant, index)}`,
+        url,
         name: `${product.name} — ${variant.label}`,
         description,
         image: productImages(product, variant),
         sku: variantSku(product, variant, index),
+        inProductGroupWithID: productGroupID,
         brand,
         category,
+        ...variantIdentityProperties(variant.label || "", variesBy),
         additionalProperty: {
           "@type": "PropertyValue",
           name: "الخيار",
@@ -215,7 +234,7 @@ export function buildProductStructuredData(product: SeoPreviewProduct): object[]
     const selected = defaultVariant(product);
     const productPrice = selected?.price ?? product.price;
     const productStock = selected?.stock ?? product.stock;
-    const sku = selected?.sku || (selected?.id ? `${product.id || product.slug}-${selected.id}` : product.id || product.slug);
+    const sku = selected?.sku || (selected?.id ? `${productGroupID}-${selected.id}` : productGroupID);
     mainSchema = {
       "@context": "https://schema.org",
       "@type": "Product",
