@@ -62,6 +62,13 @@ export function ConfirmationView({
 
     return (
         <div className="space-y-4">
+            <div className="rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-sm">
+                <p className="font-semibold text-foreground">راجع طلبك قبل الإرسال</p>
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                    الدفع عند الاستلام. بعد الموافقة على الشروط اضغط زر تأكيد الطلب مرة واحدة.
+                </p>
+            </div>
+
             {/* === معلومات العميل === */}
             <div className="border border-border/60 rounded-lg p-4 space-y-2">
                 <h4 className="text-sm font-semibold">معلومات التوصيل</h4>
@@ -190,7 +197,7 @@ export function ConfirmationView({
             </section>
 
             {/* === الموافقة على الشروط === */}
-            <div className="flex items-start gap-3 py-2">
+            <div className="flex items-start gap-3 rounded-lg border border-border/60 bg-muted/20 p-3">
                 <Checkbox
                     id="agree"
                     checked={agreed}
@@ -213,9 +220,9 @@ export function ConfirmationView({
             </div>
 
             {/* === الأزرار === */}
-            <div className="flex gap-3">
-                <Button variant="outline" onClick={handleBack} className="flex-1 h-12" disabled={isSubmitting} aria-disabled={isSubmitting}>
-                    تعديل البيانات
+            <div className="sticky bottom-0 -mx-4 flex gap-3 border-t border-border bg-background/95 px-4 py-3 backdrop-blur-md">
+                <Button variant="outline" onClick={handleBack} className="h-12 px-4" disabled={isSubmitting} aria-disabled={isSubmitting}>
+                    تعديل
                 </Button>
                 <Button
                     onClick={handleConfirmOrder}
@@ -225,7 +232,7 @@ export function ConfirmationView({
                     aria-disabled={!agreed || isSubmitting}
                     aria-busy={isSubmitting}
                 >
-                    {isSubmitting ? "جاري المعالجة..." : "تأكيد الطلب"}
+                    {isSubmitting ? "جاري إرسال الطلب..." : "تأكيد الطلب — الدفع عند الاستلام"}
                 </Button>
             </div>
             <p className="sr-only" role="status" aria-live="polite">

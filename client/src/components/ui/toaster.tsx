@@ -1,6 +1,8 @@
+import { Link } from "wouter"
 import { useToast } from "@/hooks/use-toast"
 import {
   Toast,
+  ToastAction,
   ToastClose,
   ToastDescription,
   ToastProvider,
@@ -9,11 +11,13 @@ import {
 } from "@/components/ui/toast"
 
 export function Toaster() {
-  const { toasts } = useToast()
+  const { toasts, dismiss } = useToast()
 
   return (
     <ToastProvider>
       {toasts.map(function ({ id, title, description, action, ...props }) {
+        const isCartAddToast = title === "تمت الإضافة"
+
         return (
           <Toast key={id} {...props}>
             <div className="grid gap-1">
@@ -22,7 +26,17 @@ export function Toaster() {
                 <ToastDescription>{description}</ToastDescription>
               )}
             </div>
-            {action}
+            {action || (isCartAddToast && (
+              <ToastAction altText="إكمال الطلب" asChild>
+                <Link
+                  href="/checkout"
+                  onClick={() => dismiss(id)}
+                  className="border-primary/40 bg-primary text-primary-foreground hover:bg-primary/90"
+                >
+                  إكمال الطلب
+                </Link>
+              </ToastAction>
+            ))}
             <ToastClose />
           </Toast>
         )
