@@ -26,9 +26,9 @@ export function OrderFulfillmentPanel({ orderId }: { orderId: string }) {
   const fulfillmentEvents = useFulfillmentEvents(orderId);
 
   // An order can have only one active ORIGINAL fulfillment event. Once that event
-  // exists, never mount the editable original draft again. Mounting it used to call
-  // POST /draft, which could create a fresh editable draft after confirmation and
-  // then fail with ORIGINAL_ALREADY_EXISTS when the owner pressed confirm again.
+  // exists, never mount a second editable ORIGINAL draft. The carton selector stays
+  // available: if the old confirmed event has no carton, it records only the carton
+  // as an adjustment so the original fulfillment cost/stock can never be duplicated.
   const activeOriginal = fulfillmentEvents.data?.find(
     (event) => event.eventType === "original" && event.workflowState !== "reversed",
   );
@@ -95,22 +95,25 @@ export function OrderFulfillmentPanel({ orderId }: { orderId: string }) {
           تعذر تحميل حالة التجهيز. أغلق الطلب وافتحه مرة ثانية قبل إجراء أي تعديل.
         </div>
       ) : activeOriginal ? (
-        <div
-          className="rounded-lg border border-emerald-200 bg-emerald-50/60 p-3 dark:border-emerald-900/60 dark:bg-emerald-950/20"
-          data-testid="original-fulfillment-confirmed"
-        >
-          <div className="flex items-start gap-2">
-            <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
-            <div>
-              <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">
-                تجهيز الطلب مؤكد مسبقاً
-              </p>
-              <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                ما راح نفتح مسودة تجهيز ثانية لهذا الطلب، حتى ما تتكرر كلفة التغليف أو ينخصم المخزون مرتين.
-              </p>
+        <>
+          <div
+            className="rounded-lg border border-emerald-200 bg-emerald-50/60 p-3 dark:border-emerald-900/60 dark:bg-emerald-950/20"
+            data-testid="original-fulfillment-confirmed"
+          >
+            <div className="flex items-start gap-2">
+              <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
+              <div>
+                <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">
+                  تجهيز الطلب مؤكد مسبقاً
+                </p>
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                  التجهيز الأصلي ما راح يتكرر. إذا الكارتون بعده مو محفوظ، اختاره أدناه وينضاف وحده للكلفة والمخزون.
+                </p>
+              </div>
             </div>
           </div>
-        </div>
+          <OrderCartonPlanSection orderId={orderId} afterConfirmation />
+        </>
       ) : (
         <>
           <FulfillmentDraftPanel orderId={orderId} />
