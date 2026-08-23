@@ -1,6 +1,6 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
 import { Button } from './button';
-import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
+import { AlertTriangle, RefreshCw, Home, PackageCheck } from 'lucide-react';
 
 interface ErrorBoundaryProps {
     children: ReactNode;
@@ -16,6 +16,11 @@ interface ErrorBoundaryState {
 
 const CHUNK_RELOAD_GUARD_KEY = 'aquavo:chunk-reload-guard';
 const CHUNK_RELOAD_GUARD_MS = 60_000;
+
+function isOrderConfirmationPath(): boolean {
+    return typeof window !== 'undefined'
+        && window.location.pathname.startsWith('/order-confirmation/');
+}
 
 /**
  * Vite lazy chunks are content-hashed. A tab that stays open across a deploy can
@@ -38,7 +43,13 @@ export function isRecoverableChunkLoadError(error: Error | null): boolean {
 }
 
 function tryAutomaticChunkReload(error: Error): boolean {
-    if (typeof window === 'undefined' || !isRecoverableChunkLoadError(error)) return false;
+    if (typeof window === 'undefined') return false;
+
+    // Order confirmation is a critical post-purchase route. Even when a browser
+    // reports an unusual error fingerprint, refresh it once so a customer who
+    // completed checkout receives the latest application bundle and can render
+    // the session-stashed order instead of seeing a generic application error.
+    if (!isOrderConfirmationPath() && !isRecoverableChunkLoadError(error)) return false;
 
     // sessionStorage is the loop guard. If storage is unavailable, fail closed
     // and leave the user on the fallback instead of risking a reload loop.
@@ -87,7 +98,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
         // A stale lazy chunk is a deployment/version mismatch, not an
         // application-state error. Refresh the document once to obtain the new
-        // entry bundle and chunk map.
+        // entry bundle and chunk map. The post-checkout confirmation route gets
+        // the same one-time recovery for any client-side rendering failure.
         if (tryAutomaticChunkReload(error)) return;
 
         if (import.meta.env.DEV) {
@@ -100,8 +112,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     handleRetry = (): void => {
         // React.lazy keeps a rejected import promise cached. A normal boundary
         // reset would immediately throw the same error again, so force a full
-        // document refresh for chunk failures.
-        if (isRecoverableChunkLoadError(this.state.error)) {
+        // document refresh for chunk failures and for order confirmation.
+        if (isOrderConfirmationPath() || isRecoverableChunkLoadError(this.state.error)) {
             window.location.reload();
             return;
         }
@@ -113,10 +125,39 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         window.location.href = '/';
     };
 
+    handleTrackOrder = (): void => {
+        window.location.href = '/order-tracking';
+    };
+
     render(): ReactNode {
         if (this.state.hasError) {
             if (this.props.fallback) {
                 return this.props.fallback;
+            }
+
+            if (isOrderConfirmationPath()) {
+                return (
+                    <div className="min-h-[300px] flex items-center justify-center bg-background">
+                        <div dir="rtl" className="text-center space-y-4 p-8 max-w-md">
+                            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+                                <PackageCheck className="w-8 h-8 text-primary" />
+                            </div>
+                            <h2 className="text-xl font-bold">طلبك مسجّل بنجاح</h2>
+                            <p className="text-muted-foreground text-sm leading-6">
+                                صار خلل مؤقت بعرض تفاصيل التأكيد فقط. طلبك محفوظ عند AQUAVO، فلا تعيد إرسال الطلب مرة ثانية.
+                            </p>
+                            <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                                <Button variant="outline" onClick={this.handleTrackOrder} className="gap-2">
+                                    تتبع الطلب
+                                </Button>
+                                <Button onClick={this.handleRetry} className="gap-2">
+                                    <RefreshCw className="w-4 h-4" />
+                                    إعادة تحميل التأكيد
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                );
             }
 
             return (
