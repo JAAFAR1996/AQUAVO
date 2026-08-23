@@ -1,9 +1,8 @@
 import * as React from "react"
 
-import {
-  ToastAction,
-  type ToastActionElement,
-  type ToastProps,
+import type {
+  ToastActionElement,
+  ToastProps,
 } from "@/components/ui/toast"
 
 const TOAST_LIMIT = 1
@@ -25,6 +24,7 @@ type ToasterToast = ToastProps & {
   title?: React.ReactNode
   description?: React.ReactNode
   action?: ToastActionElement
+  cartAction?: boolean
 }
 
 const actionTypes = {
@@ -101,8 +101,6 @@ export const reducer = (state: State, action: Action): State => {
 
     case "DISMISS_TOAST": {
       const { toastId } = action
-      // ! Side effects ! - This could be extracted into a dismissToast() action,
-      // but I'll keep it here for simplicity
       if (toastId) {
         addToRemoveQueue(toastId)
       } else {
@@ -152,29 +150,8 @@ type Toast = Omit<ToasterToast, "id">
 
 function toast({ ...props }: Toast) {
   const id = genId()
-
   const descriptionText = typeof props.description === "string" ? props.description : ""
   const isSuccessfulAddToCartToast = props.title === "تمت الإضافة" && descriptionText.includes("السلة")
-  const cartAction =
-    !props.action && isSuccessfulAddToCartToast && typeof window !== "undefined"
-      ? React.createElement(
-          ToastAction,
-          {
-            altText: "عرض السلة",
-            className: "border-primary/40 text-primary hover:bg-primary/10",
-            onClick: () => {
-              dispatch({ type: "DISMISS_TOAST", toastId: id })
-              const cartTrigger = document.querySelector<HTMLElement>("[data-aqv-cart-target]")
-              if (cartTrigger) {
-                cartTrigger.click()
-                return
-              }
-              window.location.assign("/?open-cart=1")
-            },
-          },
-          "عرض السلة"
-        )
-      : props.action
 
   const update = (props: ToasterToast) =>
     dispatch({
@@ -187,7 +164,7 @@ function toast({ ...props }: Toast) {
     type: "ADD_TOAST",
     toast: {
       ...props,
-      action: cartAction,
+      cartAction: !props.action && isSuccessfulAddToCartToast,
       id,
       open: true,
       onOpenChange: (open) => {
@@ -214,7 +191,7 @@ function useToast() {
         listeners.splice(index, 1)
       }
     }
-  }, []) // Fixed: Empty dependency array - subscription runs once on mount/unmount
+  }, [])
 
   return {
     ...state,
