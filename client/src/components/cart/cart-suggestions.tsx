@@ -17,14 +17,15 @@ export function CartSuggestions() {
     enabled: productIds.length > 0,
   });
 
-  const suggestions = data?.suggestions ?? [];
+  // Keep cross-sells deliberately small so checkout stays the primary action.
+  const suggestions = (data?.suggestions ?? []).slice(0, 3);
   if (suggestions.length === 0) return null;
 
   return (
     <div className="hidden py-3 sm:block">
       <div className="flex items-center gap-1.5 mb-2 justify-end">
         <h4 className="text-xs font-bold text-muted-foreground">أكمل حوضك</h4>
-        <Sparkles className="h-3 w-3 text-primary" />
+        <Sparkles className="h-3 w-3 text-primary" aria-hidden="true" />
       </div>
       <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
         {suggestions.map((product: Product) => (
@@ -57,7 +58,7 @@ export function CartSuggestions() {
                 onClick={() => addItem(product)}
                 aria-label={`أضف ${product.name} للسلة`}
               >
-                <ShoppingCart className="h-3 w-3" />
+                <ShoppingCart className="h-3 w-3" aria-hidden="true" />
               </Button>
               <span className="text-[10px] font-bold text-primary">
                 {product.price && Number(product.price) > 0
