@@ -7,8 +7,9 @@ import {
 } from "@/components/ui/toast"
 
 const TOAST_LIMIT = 1
-const TOAST_REMOVE_DELAY_MOBILE = 1500  // 1.5 seconds for mobile
-const TOAST_REMOVE_DELAY_DESKTOP = 5000 // 5 seconds for desktop
+// Actionable add-to-cart confirmations need enough time to be read and tapped.
+const TOAST_REMOVE_DELAY_MOBILE = 4500
+const TOAST_REMOVE_DELAY_DESKTOP = 5000
 
 // Detect if mobile device
 const isMobileDevice = () => {
@@ -153,15 +154,16 @@ function toast({ ...props }: Toast) {
   const id = genId()
 
   const descriptionText = typeof props.description === "string" ? props.description : ""
-  const isAddToCartToast = descriptionText.includes("السلة")
+  const isSuccessfulAddToCartToast = props.title === "تمت الإضافة" && descriptionText.includes("السلة")
   const cartAction =
-    !props.action && isAddToCartToast && typeof window !== "undefined"
+    !props.action && isSuccessfulAddToCartToast && typeof window !== "undefined"
       ? React.createElement(
           ToastAction,
           {
             altText: "عرض السلة",
             className: "border-primary/40 text-primary hover:bg-primary/10",
             onClick: () => {
+              dispatch({ type: "DISMISS_TOAST", toastId: id })
               const cartTrigger = document.querySelector<HTMLElement>("[data-aqv-cart-target]")
               if (cartTrigger) {
                 cartTrigger.click()
