@@ -1,14 +1,14 @@
 import * as React from "react"
 
-import {
-  ToastAction,
-  type ToastActionElement,
-  type ToastProps,
+import type {
+  ToastActionElement,
+  ToastProps,
 } from "@/components/ui/toast"
 
 const TOAST_LIMIT = 1
-const TOAST_REMOVE_DELAY_MOBILE = 1500  // 1.5 seconds for mobile
-const TOAST_REMOVE_DELAY_DESKTOP = 5000 // 5 seconds for desktop
+// Actionable add-to-cart confirmations need enough time to be read and tapped.
+const TOAST_REMOVE_DELAY_MOBILE = 4500
+const TOAST_REMOVE_DELAY_DESKTOP = 5000
 
 // Detect if mobile device
 const isMobileDevice = () => {
@@ -24,6 +24,7 @@ type ToasterToast = ToastProps & {
   title?: React.ReactNode
   description?: React.ReactNode
   action?: ToastActionElement
+  cartAction?: boolean
 }
 
 const actionTypes = {
@@ -100,8 +101,6 @@ export const reducer = (state: State, action: Action): State => {
 
     case "DISMISS_TOAST": {
       const { toastId } = action
-      // ! Side effects ! - This could be extracted into a dismissToast() action,
-      // but I'll keep it here for simplicity
       if (toastId) {
         addToRemoveQueue(toastId)
       } else {
@@ -151,28 +150,8 @@ type Toast = Omit<ToasterToast, "id">
 
 function toast({ ...props }: Toast) {
   const id = genId()
-
   const descriptionText = typeof props.description === "string" ? props.description : ""
-  const isAddToCartToast = descriptionText.includes("السلة")
-  const cartAction =
-    !props.action && isAddToCartToast && typeof window !== "undefined"
-      ? React.createElement(
-          ToastAction,
-          {
-            altText: "عرض السلة",
-            className: "border-primary/40 text-primary hover:bg-primary/10",
-            onClick: () => {
-              const cartTrigger = document.querySelector<HTMLElement>("[data-aqv-cart-target]")
-              if (cartTrigger) {
-                cartTrigger.click()
-                return
-              }
-              window.location.assign("/?open-cart=1")
-            },
-          },
-          "عرض السلة"
-        )
-      : props.action
+  const isSuccessfulAddToCartToast = props.title === "تمت الإضافة" && descriptionText.includes("السلة")
 
   const update = (props: ToasterToast) =>
     dispatch({
@@ -185,7 +164,7 @@ function toast({ ...props }: Toast) {
     type: "ADD_TOAST",
     toast: {
       ...props,
-      action: cartAction,
+      cartAction: !props.action && isSuccessfulAddToCartToast,
       id,
       open: true,
       onOpenChange: (open) => {
@@ -212,7 +191,7 @@ function useToast() {
         listeners.splice(index, 1)
       }
     }
-  }, []) // Fixed: Empty dependency array - subscription runs once on mount/unmount
+  }, [])
 
   return {
     ...state,

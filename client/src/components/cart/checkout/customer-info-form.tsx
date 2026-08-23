@@ -130,8 +130,11 @@ export function CustomerInfoForm({ customerInfo, setCustomerInfo, errors, isGues
                     dir="ltr"
                     aria-invalid={!!errors.phone}
                     aria-required="true"
-                    aria-describedby={errors.phone ? "phone-error" : undefined}
+                    aria-describedby={errors.phone ? "phone-help phone-error" : "phone-help"}
                 />
+                <p id="phone-help" className="text-xs leading-5 text-muted-foreground">
+                    نحتاجه حتى نتواصل وياك بخصوص تأكيد الطلب والتوصيل.
+                </p>
                 {errors.phone && (
                     <p id="phone-error" role="alert" className="text-sm text-red-500 flex items-center gap-1">
                         <AlertCircle className="h-3 w-3" />
