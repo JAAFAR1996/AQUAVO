@@ -80,18 +80,19 @@ export function ProductImageGallery({
 
     return (
         <div
-            className={cn("space-y-4", className)}
+            className={cn("space-y-2 sm:space-y-4", className)}
             onKeyDown={handleKeyDown}
             tabIndex={0}
             role="group"
             aria-roledescription="معرض صور"
             aria-label={`معرض صور ${productName} — استخدم مفاتيح الأسهم للتنقل و Enter للتكبير`}
         >
-            {/* Main Image with Zoom */}
+            {/* Keep the image useful on mobile without letting it consume the whole
+                first viewport. From sm upward the original square gallery remains. */}
             <div className="relative group" data-protected="true">
                 <div
                     ref={imageRef}
-                    className="relative aspect-square cursor-zoom-in overflow-hidden max-w-lg mx-auto"
+                    className="relative mx-auto h-[72vw] min-h-[260px] max-h-[320px] max-w-lg cursor-zoom-in overflow-hidden sm:aspect-square sm:h-auto sm:min-h-0 sm:max-h-none"
                     onMouseMove={handleMouseMove}
                     onMouseEnter={handleMouseEnter}
                     onMouseLeave={handleMouseLeave}
@@ -103,7 +104,7 @@ export function ProductImageGallery({
                 >
                     {/* Main Image */}
                     {galleryImages.length === 0 || imageFailed ? (
-                        <div className="w-full h-full min-h-[350px] flex flex-col items-center justify-center bg-card dark:bg-[#0B1E28]/40 border border-white/5 rounded-lg p-6 text-center select-none">
+                        <div className="w-full h-full min-h-[260px] sm:min-h-[350px] flex flex-col items-center justify-center bg-card dark:bg-[#0B1E28]/40 border border-white/5 rounded-lg p-6 text-center select-none">
                             <span className="text-sm text-muted-foreground/80 font-medium font-cairo">الصورة غير متوفرة</span>
                         </div>
                     ) : (
@@ -114,7 +115,7 @@ export function ProductImageGallery({
                                 sizes="(max-width: 512px) 100vw, 512px"
                                 alt={`${productName} - صورة ${selectedIndex + 1}`}
                                 className={cn(
-                                    "w-full h-full object-contain transition-transform duration-300 p-4 select-none",
+                                    "w-full h-full object-contain transition-transform duration-300 p-3 sm:p-4 select-none",
                                     isZoomed && "scale-110"
                                 )}
                                 data-aqv-hero={selectedIndex === 0 ? heroTransitionName || undefined : undefined}
@@ -144,7 +145,7 @@ export function ProductImageGallery({
 
                             {/* Zoom Icon Indicator */}
                             <div className={cn(
-                                "absolute bottom-4 right-4 bg-black/60 text-foreground dark:text-white px-3 py-1.5 rounded-full text-xs flex items-center gap-1.5 transition-opacity",
+                                "absolute bottom-3 right-3 sm:bottom-4 sm:right-4 bg-black/60 text-foreground dark:text-white px-3 py-1.5 rounded-full text-xs flex items-center gap-1.5 transition-opacity",
                                 isZoomed ? "opacity-0" : "opacity-100"
                             )}>
                                 <ZoomIn className="w-3.5 h-3.5" aria-hidden="true" />
@@ -189,7 +190,7 @@ export function ProductImageGallery({
                     {/* Image Counter */}
                     {galleryImages.length > 1 && !imageFailed && (
                         <div
-                            className="absolute top-4 left-4 bg-black/60 text-foreground dark:text-white px-2 py-1 rounded-full text-xs"
+                            className="absolute top-3 left-3 sm:top-4 sm:left-4 bg-black/60 text-foreground dark:text-white px-2 py-1 rounded-full text-xs"
                             aria-live="polite"
                         >
                             {selectedIndex + 1} / {galleryImages.length}
@@ -201,7 +202,7 @@ export function ProductImageGallery({
             {/* Thumbnails */}
             {galleryImages.length > 1 && (
                 <div
-                    className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin"
+                    className="flex gap-2 overflow-x-auto pb-1 sm:pb-2 scrollbar-thin"
                     role="group"
                     aria-label={`صور مصغرة لـ ${productName}`}
                 >
@@ -216,7 +217,7 @@ export function ProductImageGallery({
                             aria-pressed={selectedIndex === galleryImages.indexOf(image)}
                             aria-label={`عرض الصورة ${galleryImages.indexOf(image) + 1}`}
                             className={cn(
-                                "relative flex-shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden border-2 transition-all",
+                                "relative flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-lg overflow-hidden border-2 transition-all",
                                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                                 selectedIndex === galleryImages.indexOf(image)
                                     ? "border-primary ring-2 ring-primary/30"
