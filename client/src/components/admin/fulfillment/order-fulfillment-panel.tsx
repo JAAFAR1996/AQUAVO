@@ -1,12 +1,13 @@
 // The single mount point for the per-order fulfillment costing UX.
-// Composes: تجهيز الطلب · خطة التغليف المقترحة · تاريخ التجهيز وإعادة الإرسال ·
+// Composes: تجهيز الطلب · اختيار الكارتون · تاريخ التجهيز وإعادة الإرسال ·
 // إجمالي تكلفة الطلب.
 import { useEffect, useState } from "react";
-import { Trash2 } from "lucide-react";
+import { CheckCircle2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { addCsrfHeader } from "@/lib/csrf";
-import { CartonPlanViewer, ReturnCartonLossPanel } from "@/components/admin/packaging";
+import { ReturnCartonLossPanel } from "@/components/admin/packaging";
+import { useFulfillmentEvents } from "@/hooks/use-fulfillment";
 import { CustomerMessagingPanel } from "./customer-messaging-panel";
 import { FulfillmentDraftPanel } from "./fulfillment-draft-panel";
 import { FulfillmentHistoryPanel } from "./fulfillment-history-panel";
@@ -22,6 +23,15 @@ export function OrderFulfillmentPanel({ orderId }: { orderId: string }) {
   const { toast } = useToast();
   const [eligibility, setEligibility] = useState<PurgeEligibility | null>(null);
   const [purging, setPurging] = useState(false);
+  const fulfillmentEvents = useFulfillmentEvents(orderId);
+
+  // An order can have only one active ORIGINAL fulfillment event. Once that event
+  // exists, never mount the editable original draft again. Mounting it used to call
+  // POST /draft, which could create a fresh editable draft after confirmation and
+  // then fail with ORIGINAL_ALREADY_EXISTS when the owner pressed confirm again.
+  const activeOriginal = fulfillmentEvents.data?.find(
+    (event) => event.eventType === "original" && event.workflowState !== "reversed",
+  );
 
   useEffect(() => {
     if (!orderId) return;
@@ -76,12 +86,38 @@ export function OrderFulfillmentPanel({ orderId }: { orderId: string }) {
 
   return (
     <div dir="rtl" className="space-y-3" data-testid="order-fulfillment-panel">
-      <FulfillmentDraftPanel orderId={orderId} />
-      {/* The planner was built, tested and reachable by API, but nothing ever
-          rendered it. This is the order workflow it was written for. */}
-      <OrderCartonPlanSection orderId={orderId}>
-        <CartonPlanViewer orderId={orderId} />
-      </OrderCartonPlanSection>
+      {fulfillmentEvents.isLoading ? (
+        <div className="rounded-lg border border-border bg-muted/30 p-3 text-sm text-muted-foreground">
+          جاري تحميل حالة التجهيز…
+        </div>
+      ) : fulfillmentEvents.isError ? (
+        <div className="rounded-lg border border-red-200 bg-red-50/60 p-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/20 dark:text-red-400">
+          تعذر تحميل حالة التجهيز. أغلق الطلب وافتحه مرة ثانية قبل إجراء أي تعديل.
+        </div>
+      ) : activeOriginal ? (
+        <div
+          className="rounded-lg border border-emerald-200 bg-emerald-50/60 p-3 dark:border-emerald-900/60 dark:bg-emerald-950/20"
+          data-testid="original-fulfillment-confirmed"
+        >
+          <div className="flex items-start gap-2">
+            <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
+            <div>
+              <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">
+                تجهيز الطلب مؤكد مسبقاً
+              </p>
+              <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                ما راح نفتح مسودة تجهيز ثانية لهذا الطلب، حتى ما تتكرر كلفة التغليف أو ينخصم المخزون مرتين.
+              </p>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <>
+          <FulfillmentDraftPanel orderId={orderId} />
+          <OrderCartonPlanSection orderId={orderId} />
+        </>
+      )}
+
       <FulfillmentHistoryPanel orderId={orderId} />
       {/* Damaged cartons from returns. Reclassification, never a second expense —
           the panel says so, and eventActualReturnLoss now enforces it. */}
