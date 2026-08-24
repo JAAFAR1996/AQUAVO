@@ -37,6 +37,7 @@ export interface AlqasehPaymentContext {
   created_at?: string;
   currency: string;
   custom_data?: Record<string, unknown> | null;
+  description?: string;
   merchant_email?: string;
   nonce?: string;
   order_id: string;
