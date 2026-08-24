@@ -27,11 +27,21 @@ function providerDiagnostic(error: unknown): string {
   const code = typeof details.error_code === "string" ? details.error_code : "";
   const reference = typeof details.reference_code === "string" ? details.reference_code : "";
   const providerErr = typeof details.err === "string" ? details.err : "";
+  const message = typeof details.message === "string" ? details.message : "";
+  let raw = "";
+  try {
+    raw = JSON.stringify(details).slice(0, 800);
+  } catch {
+    raw = "";
+  }
+
   return [
     providerErr ? `provider_error=${providerErr}` : "",
+    message ? `provider_message=${message}` : "",
     code ? `error_code=${code}` : "",
     reference ? `reference_code=${reference}` : "",
-  ].filter(Boolean).join("<br>");
+    raw ? `provider_details=${raw}` : "",
+  ].filter(Boolean).join("\n");
 }
 
 function publicSiteOrigin(req: Request): string {
@@ -55,19 +65,21 @@ function publicSiteOrigin(req: Request): string {
   return `${req.protocol}://${req.get("host") || "localhost:5000"}`;
 }
 
-function renderPage(res: Response, title: string, body: string, status = 200): void {
+function renderPage(res: Response, title: string, body: string, status = 200, headExtra = ""): void {
+  res.setHeader("Cache-Control", "no-store, max-age=0");
   res.status(status).type("html").send(`<!doctype html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="robots" content="noindex,nofollow" />
+  ${headExtra}
   <title>${htmlEscape(title)} | AQUAVO</title>
   <style>
     body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:#f6f8fb;color:#10212b;margin:0;padding:32px}
     main{max-width:680px;margin:40px auto;background:#fff;border:1px solid #dce5ea;border-radius:18px;padding:28px;box-shadow:0 12px 35px rgba(16,33,43,.08)}
-    h1{margin-top:0;font-size:26px}p{line-height:1.8}.meta{background:#f4f7f9;border-radius:12px;padding:14px;margin:18px 0;font-family:ui-monospace,monospace;font-size:13px;direction:ltr;text-align:left;overflow-wrap:anywhere}
-    button,a.btn{display:inline-block;border:0;border-radius:12px;padding:12px 18px;background:#0f766e;color:white;text-decoration:none;font-weight:700;cursor:pointer}a.secondary{background:#475569;margin-inline-start:8px}.ok{color:#067647;font-weight:800}.bad{color:#b42318;font-weight:800}.warn{color:#b54708;font-weight:800}
+    h1{margin-top:0;font-size:26px}p{line-height:1.8}.meta{background:#f4f7f9;border-radius:12px;padding:14px;margin:18px 0;font-family:ui-monospace,monospace;font-size:13px;direction:ltr;text-align:left;overflow-wrap:anywhere;white-space:pre-wrap}
+    button,a.btn{display:inline-block;border:0;border-radius:12px;padding:12px 18px;background:#0f766e;color:white;text-decoration:none;font-weight:700;cursor:pointer}a.secondary{background:#475569;margin-inline-start:8px}.ok{color:#067647;font-weight:800}.bad{color:#b42318;font-weight:800}.warn{color:#b54708;font-weight:800}.spinner{display:inline-block;width:18px;height:18px;border:3px solid #d7e5e3;border-top-color:#0f766e;border-radius:50%;vertical-align:middle;margin-inline-end:8px;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
   </style>
 </head>
 <body><main>${body}</main></body>
@@ -114,14 +126,33 @@ export function createAlqasehRouter() {
       "Al-Qaseh Sandbox Test",
       `<h1>اختبار Al-Qaseh مع AQUAVO</h1>
        <p>هذا اختبار آمن على بيئة Al-Qaseh التجريبية. لا ينشئ طلب حقيقي داخل AQUAVO ولا يخصم مخزون.</p>
-       <div class="meta">Environment: sandbox<br>Amount: ${SANDBOX_TEST_AMOUNT_IQD} IQD<br>API: ${htmlEscape(config.apiBaseUrl)}</div>
-       <form method="post" action="/api/payments/alqaseh/test-payment">
-         <button type="submit">بدء دفع تجريبي ${SANDBOX_TEST_AMOUNT_IQD} د.ع</button>
-       </form>`,
+       <div class="meta">Environment: sandbox\nAmount: ${SANDBOX_TEST_AMOUNT_IQD} IQD\nAPI: ${htmlEscape(config.apiBaseUrl)}</div>
+       <a class="btn" href="/api/payments/alqaseh/test-payment">بدء دفع تجريبي ${SANDBOX_TEST_AMOUNT_IQD} د.ع</a>`,
     );
   });
 
-  router.post("/test-payment", requireAdmin, async (req, res) => {
+  // Use a GET navigation for this admin-only, non-production proof so the test
+  // button cannot be swallowed by form/CSRF/browser behavior. This endpoint does
+  // not mutate AQUAVO business state; it only creates a provider sandbox context.
+  // It first paints a visible loading page, then meta-refreshes into the provider call.
+  router.get("/test-payment", requireAdmin, (_req, res) => {
+    renderPage(
+      res,
+      "Connecting to Al-Qaseh",
+      `<h1><span class="spinner"></span>جاري الاتصال بـ Al-Qaseh</h1>
+       <p>يتم الآن إنشاء عملية دفع تجريبية بقيمة ${SANDBOX_TEST_AMOUNT_IQD} د.ع. لا تغلق الصفحة.</p>
+       <p class="warn">إذا بقيت هنا أكثر من 15 ثانية، أعد المحاولة مرة واحدة.</p>`,
+      200,
+      `<meta http-equiv="refresh" content="0;url=/api/payments/alqaseh/test-payment/run" />`,
+    );
+  });
+
+  // Backward compatibility for any already-open page that still contains the old POST form.
+  router.post("/test-payment", requireAdmin, (_req, res) => {
+    res.redirect(303, "/api/payments/alqaseh/test-payment/run");
+  });
+
+  router.get("/test-payment/run", requireAdmin, async (req, res) => {
     try {
       const config = getAlqasehConfig();
       if (config.environment !== "sandbox") {
@@ -129,16 +160,10 @@ export function createAlqasehRouter() {
         return;
       }
 
-      // Al-Qaseh's working SDK examples use a UUID without dashes (exactly 32
-      // characters). The OpenAPI says <=250, but the sandbox is stricter in
-      // practice, so keep the proof request on the most compatible shape.
       const orderId = randomUUID().replaceAll("-", "");
       const origin = publicSiteOrigin(req);
       const redirectUrl = `${origin}/api/payments/alqaseh/return`;
 
-      // Keep the sandbox proof payload intentionally minimal: only the required
-      // OpenAPI fields plus ISO country. Optional custom_data/webhook/nonce/email
-      // are introduced only after the base hosted-payment flow is proven.
       const payment = await createAlqasehPayment({
         amount: SANDBOX_TEST_AMOUNT_IQD,
         currency: "IQD",
@@ -148,8 +173,6 @@ export function createAlqasehRouter() {
         country: "IQ",
       });
 
-      // 303 is intentional: after this POST, the browser follows with GET to the
-      // Al-Qaseh hosted payment page and never sends card data to AQUAVO.
       res.redirect(303, getAlqasehHostedPaymentUrl(payment.token));
     } catch (error) {
       const status = error instanceof AlqasehApiError ? error.status : 500;
@@ -158,7 +181,7 @@ export function createAlqasehRouter() {
       renderPage(
         res,
         "Al-Qaseh error",
-        `<h1>تعذر بدء الاختبار</h1><p class="bad">${htmlEscape(safeMessage)}</p>${diagnostic ? `<div class="meta">${diagnostic}</div>` : ""}<a class="btn secondary" href="/api/payments/alqaseh/test">رجوع</a>`,
+        `<h1>تعذر بدء الاختبار</h1><p class="bad">${htmlEscape(safeMessage)}</p>${diagnostic ? `<div class="meta">${htmlEscape(diagnostic)}</div>` : ""}<a class="btn secondary" href="/api/payments/alqaseh/test">رجوع</a>`,
         status >= 400 && status < 600 ? status : 500,
       );
     }
@@ -197,7 +220,7 @@ export function createAlqasehRouter() {
         "Al-Qaseh payment result",
         `<h1>نتيجة اختبار Al-Qaseh</h1>
          <p class="${resultClass}">${htmlEscape(resultText)}</p>
-         <div class="meta">verified_api_status=${htmlEscape(context.payment_status)}<br>payment_id=${htmlEscape(context.payment_id)}<br>order_id=${htmlEscape(context.order_id)}<br>amount=${htmlEscape(context.amount)} ${htmlEscape(context.currency)}<br>redirect_status_untrusted=${htmlEscape(redirectedStatus || "n/a")}</div>
+         <div class="meta">verified_api_status=${htmlEscape(context.payment_status)}\npayment_id=${htmlEscape(context.payment_id)}\norder_id=${htmlEscape(context.order_id)}\namount=${htmlEscape(context.amount)} ${htmlEscape(context.currency)}\nredirect_status_untrusted=${htmlEscape(redirectedStatus || "n/a")}</div>
          <p>ملاحظة: حالة الرابط لم نعتمد عليها؛ النتيجة أعلاه جرى التحقق منها من خادم Al-Qaseh.</p>
          <a class="btn" href="/api/payments/alqaseh/test">اختبار جديد</a>`,
       );
