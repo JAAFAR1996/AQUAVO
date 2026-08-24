@@ -10,7 +10,7 @@ import {
 } from "../services/alqaseh-client.js";
 
 const SANDBOX_TEST_AMOUNT_IQD = 1000;
-const SANDBOX_ORDER_PREFIX = "AQUAVO-SANDBOX-";
+const SANDBOX_TEST_DESCRIPTION = "AQUAVO Al-Qaseh sandbox integration test";
 
 function htmlEscape(value: unknown): string {
   return String(value ?? "")
@@ -19,6 +19,19 @@ function htmlEscape(value: unknown): string {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+function providerDiagnostic(error: unknown): string {
+  if (!(error instanceof AlqasehApiError) || !error.details || typeof error.details !== "object") return "";
+  const details = error.details as Record<string, unknown>;
+  const code = typeof details.error_code === "string" ? details.error_code : "";
+  const reference = typeof details.reference_code === "string" ? details.reference_code : "";
+  const providerErr = typeof details.err === "string" ? details.err : "";
+  return [
+    providerErr ? `provider_error=${providerErr}` : "",
+    code ? `error_code=${code}` : "",
+    reference ? `reference_code=${reference}` : "",
+  ].filter(Boolean).join("<br>");
 }
 
 function publicSiteOrigin(req: Request): string {
@@ -84,7 +97,7 @@ export function createAlqasehRouter() {
 
   // Deliberately admin-only and sandbox-only. This proves the hosted payment
   // flow without creating an AQUAVO order, consuming stock, coupons or loyalty.
-  router.get("/test", requireAdmin, (req, res) => {
+  router.get("/test", requireAdmin, (_req, res) => {
     const config = getAlqasehConfig();
     if (config.environment !== "sandbox") {
       renderPage(
@@ -116,18 +129,23 @@ export function createAlqasehRouter() {
         return;
       }
 
-      const orderId = `${SANDBOX_ORDER_PREFIX}${randomUUID()}`;
+      // Al-Qaseh's working SDK examples use a UUID without dashes (exactly 32
+      // characters). The OpenAPI says <=250, but the sandbox is stricter in
+      // practice, so keep the proof request on the most compatible shape.
+      const orderId = randomUUID().replaceAll("-", "");
       const origin = publicSiteOrigin(req);
       const redirectUrl = `${origin}/api/payments/alqaseh/return`;
 
+      // Keep the sandbox proof payload intentionally minimal: only the required
+      // OpenAPI fields plus ISO country. Optional custom_data/webhook/nonce/email
+      // are introduced only after the base hosted-payment flow is proven.
       const payment = await createAlqasehPayment({
         amount: SANDBOX_TEST_AMOUNT_IQD,
         currency: "IQD",
-        description: "AQUAVO Al-Qaseh sandbox integration test",
+        description: SANDBOX_TEST_DESCRIPTION,
         orderId,
         redirectUrl,
         country: "IQ",
-        customData: { source: "aquavo-admin-sandbox-test" },
       });
 
       // 303 is intentional: after this POST, the browser follows with GET to the
@@ -136,10 +154,11 @@ export function createAlqasehRouter() {
     } catch (error) {
       const status = error instanceof AlqasehApiError ? error.status : 500;
       const safeMessage = error instanceof Error ? error.message : "تعذر إنشاء عملية الدفع التجريبية";
+      const diagnostic = providerDiagnostic(error);
       renderPage(
         res,
         "Al-Qaseh error",
-        `<h1>تعذر بدء الاختبار</h1><p class="bad">${htmlEscape(safeMessage)}</p><a class="btn secondary" href="/api/payments/alqaseh/test">رجوع</a>`,
+        `<h1>تعذر بدء الاختبار</h1><p class="bad">${htmlEscape(safeMessage)}</p>${diagnostic ? `<div class="meta">${diagnostic}</div>` : ""}<a class="btn secondary" href="/api/payments/alqaseh/test">رجوع</a>`,
         status >= 400 && status < 600 ? status : 500,
       );
     }
@@ -159,7 +178,7 @@ export function createAlqasehRouter() {
 
     try {
       const context = await getAlqasehPayment(paymentId);
-      const isSandboxTest = context.order_id.startsWith(SANDBOX_ORDER_PREFIX);
+      const isSandboxTest = /^[0-9a-f]{32}$/i.test(context.order_id) && context.description === SANDBOX_TEST_DESCRIPTION;
       const amountMatches = Number(context.amount) === SANDBOX_TEST_AMOUNT_IQD;
       const currencyMatches = String(context.currency).toUpperCase() === "IQD";
       const orderMatches = !redirectedOrderId || context.order_id === redirectedOrderId;
