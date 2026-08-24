@@ -294,69 +294,97 @@ async function sendDeliveryCareTemplate(
 ): Promise<string> {
   const endpoint = `https://graph.facebook.com/${config.apiVersion}/${encodeURIComponent(config.phoneNumberId)}/messages`;
 
-  let response: Response;
-  try {
-    response = await fetch(endpoint, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${config.accessToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        messaging_product: "whatsapp",
-        recipient_type: "individual",
-        to: recipientPhone,
-        type: "template",
-        template: {
-          name: config.deliveryCareTemplate,
-          language: { code: config.languageCode },
-          components: [
-            {
-              type: "body",
-              parameters: [{ type: "text", text: customerFirstName }],
-            },
-            {
-              type: "button",
-              sub_type: "quick_reply",
-              index: "0",
-              parameters: [{ type: "payload", payload: DELIVERY_CARE_OK_PAYLOAD }],
-            },
-            {
-              type: "button",
-              sub_type: "quick_reply",
-              index: "1",
-              parameters: [{ type: "payload", payload: DELIVERY_CARE_ISSUE_PAYLOAD }],
-            },
-          ],
+  const requestTemplate = async (includeQuickReplyPayloads: boolean): Promise<{
+    response: Response;
+    body: MetaSendResponse;
+  }> => {
+    let response: Response;
+    try {
+      const components: Array<Record<string, unknown>> = [
+        {
+          type: "body",
+          parameters: [{ type: "text", text: customerFirstName }],
         },
-      }),
-      signal: AbortSignal.timeout(WHATSAPP_REQUEST_TIMEOUT_MS),
-    });
-  } catch (error) {
-    const name = error instanceof Error ? error.name : "";
-    const code = name === "TimeoutError" || name === "AbortError"
-      ? "WHATSAPP_TIMEOUT_AMBIGUOUS"
-      : "WHATSAPP_NETWORK_AMBIGUOUS";
+      ];
 
-    // A transport failure can happen after Meta already accepted the request but
-    // before the response reached us. Without a wamid there is no safe automatic
-    // deduplication key, so prefer at-most-once customer messaging and escalate.
-    throw new WhatsAppSendError(code, false);
+      if (includeQuickReplyPayloads) {
+        components.push(
+          {
+            type: "button",
+            sub_type: "quick_reply",
+            index: "0",
+            parameters: [{ type: "payload", payload: DELIVERY_CARE_OK_PAYLOAD }],
+          },
+          {
+            type: "button",
+            sub_type: "quick_reply",
+            index: "1",
+            parameters: [{ type: "payload", payload: DELIVERY_CARE_ISSUE_PAYLOAD }],
+          },
+        );
+      }
+
+      response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${config.accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          messaging_product: "whatsapp",
+          recipient_type: "individual",
+          to: recipientPhone,
+          type: "template",
+          template: {
+            name: config.deliveryCareTemplate,
+            language: { code: config.languageCode },
+            components,
+          },
+        }),
+        signal: AbortSignal.timeout(WHATSAPP_REQUEST_TIMEOUT_MS),
+      });
+    } catch (error) {
+      const name = error instanceof Error ? error.name : "";
+      const code = name === "TimeoutError" || name === "AbortError"
+        ? "WHATSAPP_TIMEOUT_AMBIGUOUS"
+        : "WHATSAPP_NETWORK_AMBIGUOUS";
+
+      // A transport failure can happen after Meta already accepted the request but
+      // before the response reached us. Without a wamid there is no safe automatic
+      // deduplication key, so prefer at-most-once customer messaging and escalate.
+      throw new WhatsAppSendError(code, false);
+    }
+
+    let body: MetaSendResponse = {};
+    try {
+      body = await response.json() as MetaSendResponse;
+    } catch {
+      // Keep provider response bodies out of logs; an invalid JSON body is enough
+      // to classify the failure without exposing arbitrary upstream content.
+    }
+
+    return { response, body };
+  };
+
+  let attempt = await requestTemplate(true);
+  let providerMessageId = String(attempt.body.messages?.[0]?.id ?? "").trim();
+  if (attempt.response.ok && providerMessageId) return providerMessageId;
+
+  // Meta 132018 is an explicit template-parameter validation rejection. A common
+  // cause is that the approved template's button structure changed while AQUAVO
+  // still sends developer payload parameters for Quick Replies. Because HTTP 400
+  // proves the first request was rejected before acceptance, one body-only retry
+  // is safe from duplicate delivery. Quick Reply buttons remain template-defined;
+  // AQUAVO's webhook already supports exact button-text fallback when no custom
+  // payload is attached.
+  if (attempt.response.status === 400 && Number(attempt.body.error?.code) === 132018) {
+    attempt = await requestTemplate(false);
+    providerMessageId = String(attempt.body.messages?.[0]?.id ?? "").trim();
+    if (attempt.response.ok && providerMessageId) return providerMessageId;
   }
 
-  let body: MetaSendResponse = {};
-  try {
-    body = await response.json() as MetaSendResponse;
-  } catch {
-    // Keep provider response bodies out of logs; an invalid JSON body is enough
-    // to classify the failure without exposing arbitrary upstream content.
-  }
-
-  const providerMessageId = String(body.messages?.[0]?.id ?? "").trim();
-  if (response.ok && providerMessageId) return providerMessageId;
-
-  const code = compactMetaErrorCode(response.status, body);
-  const retryable = response.status === 429 || response.status >= 500;
+  const code = compactMetaErrorCode(attempt.response.status, attempt.body);
+  const retryable = attempt.response.status === 429 || attempt.response.status >= 500;
   throw new WhatsAppSendError(code, retryable);
 }
 
