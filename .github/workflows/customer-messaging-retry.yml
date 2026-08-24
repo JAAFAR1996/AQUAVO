@@ -35,6 +35,7 @@ jobs:
         env:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
+          # one-shot trigger marker: 2026-08-24
           curl \
             --silent \
             --show-error \
