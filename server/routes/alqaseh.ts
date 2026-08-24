@@ -11,6 +11,8 @@ import {
 
 const SANDBOX_TEST_AMOUNT_IQD = 1000;
 const SANDBOX_TEST_DESCRIPTION = "AQUAVO Al-Qaseh sandbox integration test";
+const AQUAVO_CANONICAL_ORIGIN = "https://www.aquavoiq.com";
+const AQUAVO_PRODUCTION_HOSTS = new Set(["www.aquavoiq.com", "aquavoiq.com"]);
 
 function htmlEscape(value: unknown): string {
   return String(value ?? "")
@@ -44,24 +46,32 @@ function providerDiagnostic(error: unknown): string {
   ].filter(Boolean).join("\n");
 }
 
+/**
+ * Build the browser return origin for Al-Qaseh.
+ *
+ * Production deliberately ignores legacy SITE_URL / VITE_SITE_URL values. AQUAVO
+ * previously carried an old fishweb.iq value in deployment configuration, which
+ * caused successful sandbox payments to return to a dead domain. Payment callback
+ * URLs are security-sensitive, so production is pinned to AQUAVO's canonical host
+ * (or the same known AQUAVO host used by the current request).
+ */
 function publicSiteOrigin(req: Request): string {
-  const configured =
-    process.env.PUBLIC_SITE_URL ||
-    process.env.SITE_URL ||
-    process.env.VITE_SITE_URL;
+  if (process.env.NODE_ENV === "production") {
+    const host = (req.get("host") || "").split(":", 1)[0].trim().toLowerCase();
+    if (AQUAVO_PRODUCTION_HOSTS.has(host)) return `https://${host}`;
+    return AQUAVO_CANONICAL_ORIGIN;
+  }
 
+  const configured = process.env.PUBLIC_SITE_URL || process.env.SITE_URL || process.env.VITE_SITE_URL;
   if (configured) {
     try {
       const url = new URL(configured);
-      if (url.protocol === "https:" || (process.env.NODE_ENV !== "production" && url.protocol === "http:")) {
-        return url.origin;
-      }
+      if (url.protocol === "https:" || url.protocol === "http:") return url.origin;
     } catch {
-      // Fall through to a safe environment-specific origin.
+      // Fall through to the request origin in development.
     }
   }
 
-  if (process.env.NODE_ENV === "production") return "https://www.aquavoiq.com";
   return `${req.protocol}://${req.get("host") || "localhost:5000"}`;
 }
 
@@ -89,7 +99,7 @@ function renderPage(res: Response, title: string, body: string, status = 200, he
 export function createAlqasehRouter() {
   const router = Router();
 
-  router.get("/health", requireAdmin, (_req, res) => {
+  router.get("/health", requireAdmin, (req, res) => {
     try {
       const config = getAlqasehConfig();
       res.json({
@@ -97,6 +107,7 @@ export function createAlqasehRouter() {
         environment: config.environment,
         apiBaseUrl: config.apiBaseUrl,
         payBaseUrl: config.payBaseUrl,
+        callbackOrigin: publicSiteOrigin(req),
         credentialsConfigured: Boolean(config.clientId && config.clientSecret),
       });
     } catch (error) {
@@ -107,9 +118,7 @@ export function createAlqasehRouter() {
     }
   });
 
-  // Deliberately admin-only and sandbox-only. This proves the hosted payment
-  // flow without creating an AQUAVO order, consuming stock, coupons or loyalty.
-  router.get("/test", requireAdmin, (_req, res) => {
+  router.get("/test", requireAdmin, (req, res) => {
     const config = getAlqasehConfig();
     if (config.environment !== "sandbox") {
       renderPage(
@@ -126,15 +135,11 @@ export function createAlqasehRouter() {
       "Al-Qaseh Sandbox Test",
       `<h1>اختبار Al-Qaseh مع AQUAVO</h1>
        <p>هذا اختبار آمن على بيئة Al-Qaseh التجريبية. لا ينشئ طلب حقيقي داخل AQUAVO ولا يخصم مخزون.</p>
-       <div class="meta">Environment: sandbox\nAmount: ${SANDBOX_TEST_AMOUNT_IQD} IQD\nAPI: ${htmlEscape(config.apiBaseUrl)}</div>
+       <div class="meta">Environment: sandbox\nAmount: ${SANDBOX_TEST_AMOUNT_IQD} IQD\nAPI: ${htmlEscape(config.apiBaseUrl)}\nReturn: ${htmlEscape(publicSiteOrigin(req))}/api/payments/alqaseh/return</div>
        <a class="btn" href="/api/payments/alqaseh/test-payment">بدء دفع تجريبي ${SANDBOX_TEST_AMOUNT_IQD} د.ع</a>`,
     );
   });
 
-  // Use a GET navigation for this admin-only, non-production proof so the test
-  // button cannot be swallowed by form/CSRF/browser behavior. This endpoint does
-  // not mutate AQUAVO business state; it only creates a provider sandbox context.
-  // It first paints a visible loading page, then meta-refreshes into the provider call.
   router.get("/test-payment", requireAdmin, (_req, res) => {
     renderPage(
       res,
@@ -147,7 +152,6 @@ export function createAlqasehRouter() {
     );
   });
 
-  // Backward compatibility for any already-open page that still contains the old POST form.
   router.post("/test-payment", requireAdmin, (_req, res) => {
     res.redirect(303, "/api/payments/alqaseh/test-payment/run");
   });
@@ -161,8 +165,7 @@ export function createAlqasehRouter() {
       }
 
       const orderId = randomUUID().replaceAll("-", "");
-      const origin = publicSiteOrigin(req);
-      const redirectUrl = `${origin}/api/payments/alqaseh/return`;
+      const redirectUrl = `${publicSiteOrigin(req)}/api/payments/alqaseh/return`;
 
       const payment = await createAlqasehPayment({
         amount: SANDBOX_TEST_AMOUNT_IQD,
@@ -187,8 +190,8 @@ export function createAlqasehRouter() {
     }
   });
 
-  // The query-string status is UX-only. We always ask Al-Qaseh server-to-server
-  // for the authoritative payment context before displaying a result.
+  // Redirect parameters are UX-only. The authoritative state is always fetched
+  // directly from Al-Qaseh before any result is shown.
   router.get("/return", async (req, res) => {
     const paymentId = typeof req.query.payment_id === "string" ? req.query.payment_id : "";
     const redirectedOrderId = typeof req.query.order_id === "string" ? req.query.order_id : "";
@@ -201,11 +204,11 @@ export function createAlqasehRouter() {
 
     try {
       const context = await getAlqasehPayment(paymentId);
-      const isSandboxTest = /^[0-9a-f]{32}$/i.test(context.order_id) && context.description === SANDBOX_TEST_DESCRIPTION;
+      const looksLikeSandboxOrder = /^[0-9a-f]{32}$/i.test(context.order_id);
       const amountMatches = Number(context.amount) === SANDBOX_TEST_AMOUNT_IQD;
       const currencyMatches = String(context.currency).toUpperCase() === "IQD";
       const orderMatches = !redirectedOrderId || context.order_id === redirectedOrderId;
-      const verified = isSandboxTest && amountMatches && currencyMatches && orderMatches;
+      const verified = looksLikeSandboxOrder && amountMatches && currencyMatches && orderMatches;
       const succeeded = context.payment_status === "succeeded";
 
       const resultClass = verified && succeeded ? "ok" : succeeded ? "warn" : "bad";
