@@ -1,9 +1,6 @@
 name: Customer Messaging Retry Worker
 
 on:
-  push:
-    branches:
-      - main
   schedule:
     # GitHub Actions supports a 5-minute minimum interval. Offset from :00 to
     # reduce top-of-hour scheduler congestion.
@@ -35,7 +32,6 @@ jobs:
         env:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
-          # one-shot trigger marker: 2026-08-24
           curl \
             --silent \
             --show-error \
