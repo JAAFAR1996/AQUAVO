@@ -94,25 +94,37 @@ async function plannedQuantities(
 }
 
 /**
- * A shipment is real only when its immutable fulfillment event contains at least
- * one catalogue carton whose stock is tracked. This is deliberately stricter
- * than checking a free-text line named "صندوق": only a real material can deduct
- * stock and carry the approved carton cost into accounting.
+ * Find the confirmed fulfillment event that actually contains the carton used
+ * for the shipment. New orders normally carry it on the ORIGINAL event. Older
+ * orders may already have an immutable ORIGINAL from before carton selection was
+ * mandatory; in that case the admin's later manual carton choice is recorded as
+ * a confirmed ADJUSTMENT. That adjustment is a legitimate correction because it
+ * is the event that deducted the carton stock and froze its approved cost.
+ *
+ * We intentionally do NOT accept reshipment/replacement events here: a carton
+ * used for a later shipment must not accidentally satisfy the first shipment.
  */
-async function confirmedEventHasTrackedCarton(db: FulfillmentDb, eventId: string): Promise<boolean> {
+async function confirmedTrackedCartonEventId(db: FulfillmentDb, orderId: string): Promise<string | null> {
   const result = await db.execute(sql`
-    SELECT COUNT(*) AS n
-    FROM public.order_fulfillment_lines l
+    SELECT e.id
+    FROM public.order_fulfillment_events e
+    JOIN public.order_fulfillment_lines l ON l.event_id = e.id
     JOIN public.fulfillment_materials m ON m.id = l.material_id
-    WHERE l.event_id = ${eventId}
+    WHERE e.order_id = ${orderId}
+      AND e.workflow_state = 'confirmed'
+      AND e.event_type IN ('original', 'adjustment')
       AND m.material_kind = 'carton'
       AND m.stock_tracked = TRUE
       AND COALESCE(l.quantity, 0)::numeric > 0
+    ORDER BY
+      CASE WHEN e.event_type = 'original' THEN 0 ELSE 1 END,
+      e.recorded_at DESC
+    LIMIT 1
   `);
   const rows = Array.isArray(result)
     ? result
-    : ((result as { rows?: Array<{ n: string | number }> } | null)?.rows ?? []);
-  return Number((rows as Array<{ n: string | number }>)[0]?.n ?? 0) > 0;
+    : ((result as { rows?: Array<{ id: string }> } | null)?.rows ?? []);
+  return (rows as Array<{ id: string }>)[0]?.id ?? null;
 }
 
 /**
@@ -168,10 +180,10 @@ export async function applyPackagingLifecycle(
     }
 
     case "consume": {
-      // Consumption closes the claim against the fulfillment event that actually
-      // deducted the stock. Without such an event there is nothing to consume
-      // against, and inventing one would post a deduction twice.
-      const [event] = await db
+      // There still must be one confirmed ORIGINAL: the correction path below is
+      // only for attaching the carton to an already-confirmed original shipment,
+      // never for creating a shipment from an adjustment alone.
+      const [originalEvent] = await db
         .select({ id: orderFulfillmentEvents.id })
         .from(orderFulfillmentEvents)
         .where(and(
@@ -181,18 +193,19 @@ export async function applyPackagingLifecycle(
         ))
         .orderBy(desc(orderFulfillmentEvents.recordedAt))
         .limit(1);
-      if (!event) return { ...base, detail: "no_fulfillment_event" };
+      if (!originalEvent) return { ...base, detail: "no_fulfillment_event" };
 
-      // The old system could confirm only the 50+100 preparation materials and
-      // still move the order to shipped. That produced a false "exact" cost and
-      // left carton stock untouched. A real tracked carton snapshot is now the
-      // hard shipment boundary, regardless of whether the carton came from an
-      // automatic validated plan or a manual catalogue selection.
-      if (!(await confirmedEventHasTrackedCarton(db, event.id))) {
+      // The carton may be on the original snapshot (normal path) or on a later
+      // confirmed adjustment created by the manual size selector for an older
+      // order. In both cases the selected event is immutable and is exactly the
+      // event that already deducted carton stock, so consuming a reservation here
+      // only closes the claim and never posts a second stock movement.
+      const cartonEventId = await confirmedTrackedCartonEventId(db, input.orderId);
+      if (!cartonEventId) {
         return { ...base, detail: "carton_snapshot_missing" };
       }
 
-      const n = await consumeOrderReservations(db, input.orderId, event.id);
+      const n = await consumeOrderReservations(db, input.orderId, cartonEventId);
       // Zero means either the reservations were already consumed by an earlier
       // transition OR this was a legitimate manual-pack path with no reservation.
       // Stock itself was already deducted by confirmFulfillment from the carton
