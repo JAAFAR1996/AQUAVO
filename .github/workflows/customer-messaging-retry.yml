@@ -1,6 +1,9 @@
 name: Customer Messaging Retry Worker
 
 on:
+  push:
+    branches:
+      - main
   schedule:
     # GitHub Actions supports a 5-minute minimum interval. Offset from :00 to
     # reduce top-of-hour scheduler congestion.
