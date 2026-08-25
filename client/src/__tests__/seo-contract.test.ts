@@ -190,6 +190,19 @@ describe("canonical URL contract", () => {
     expect(page).toContain("canonicalUrl={listingSeo.canonicalUrl}");
   });
 
+  it("marks private routes noindex in the markup, not only in the header", () => {
+    // The bot-UA path sets X-Robots-Tag, but a crawler outside that user-agent
+    // allowlist only ever sees the meta tag, and the SPA template default says
+    // "index, follow". ssr-meta must override it for every noindex path.
+    const ssr = read("api/ssr-meta.ts");
+    expect(ssr).toContain("noIndex = isNoindexPath(cleanPath)");
+    expect(ssr).toContain('content="noindex, nofollow, noarchive"');
+    expect(ssr).toContain('res.setHeader("X-Robots-Tag", "noindex, nofollow, noarchive")');
+    for (const p of ["/cart", "/checkout", "/profile", "/wishlist", "/compare"]) {
+      expect(isNoindexPath(p)).toBe(true);
+    }
+  });
+
   it("is the only canonical rule the React meta layer applies", () => {
     // Guards the regression this test was written for: meta-tags.tsx used to
     // build the home canonical inline as `${BASE}${path === "/" ? "" : path}`,
