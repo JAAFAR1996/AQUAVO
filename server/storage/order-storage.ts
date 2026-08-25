@@ -40,8 +40,10 @@ export function isStockError(message?: string): boolean {
 export function isCanonicalInventoryBalanceError(error: unknown): boolean {
     if (!error) return false;
     const anyErr = error as { message?: unknown; cause?: unknown };
-    const direct = typeof anyErr.message === "string" &&
-        anyErr.message.includes("insufficient canonical inventory balance");
+    const direct = typeof anyErr.message === "string" && (
+        anyErr.message.includes("insufficient canonical inventory balance")
+        || anyErr.message.includes("insufficient inventory after active payment reservations")
+    );
     if (direct) return true;
     // Postgres driver errors sometimes wrap the DB message in `cause`.
     return isCanonicalInventoryBalanceError(anyErr.cause);

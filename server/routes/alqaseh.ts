@@ -195,6 +195,16 @@ async function renderSandboxReturn(req: Request, res: Response, paymentId: strin
 export function createAlqasehRouter() {
   const router = Router();
 
+  router.get("/availability", (_req, res) => {
+    res.setHeader("Cache-Control", "no-store, max-age=0");
+    try {
+      getAlqasehConfig();
+      res.json({ available: true });
+    } catch {
+      res.json({ available: false });
+    }
+  });
+
   router.get("/health", requireAdmin, (req, res) => {
     try {
       const config = getAlqasehConfig();
