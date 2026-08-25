@@ -163,6 +163,9 @@ describe("carton data entry", () => {
     await user.type(screen.getByTestId("carton-length"), "27");
     await user.type(screen.getByTestId("carton-width"), "20");
     await user.type(screen.getByTestId("carton-height"), "14");
+    // 618c1c2f made the safety margin required evidence rather than an optional
+    // extra. It must stay under half the smallest internal side (14cm here).
+    await user.type(screen.getByTestId("carton-safety-padding"), "1");
     await user.type(screen.getByTestId("carton-max-weight"), "8");
     await user.clear(screen.getByTestId("carton-threshold"));
     await user.type(screen.getByTestId("carton-threshold"), "5");
@@ -190,6 +193,9 @@ describe("carton data entry", () => {
     await user.type(screen.getByTestId("carton-length"), "27");
     await user.type(screen.getByTestId("carton-width"), "20");
     await user.type(screen.getByTestId("carton-height"), "14");
+    // Filled so validation reaches the unit-cost rule this test is about,
+    // instead of stopping earlier on the required safety margin.
+    await user.type(screen.getByTestId("carton-safety-padding"), "1");
     await user.type(screen.getByTestId("carton-max-weight"), "8");
     await user.type(screen.getByLabelText("ملاحظة أو مصدر الكلفة"), "فاتورة المورد");
     await user.click(screen.getByTestId("button-review-carton"));

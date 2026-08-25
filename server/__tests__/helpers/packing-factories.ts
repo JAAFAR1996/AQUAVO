@@ -93,7 +93,15 @@ export function placed(
   };
 }
 
-/** A carton roomy enough that bounds and weight never fire incidentally. */
+/**
+ * A carton roomy enough that bounds and weight never fire incidentally.
+ *
+ * Sized past the 1000 mm placements these fixtures use on purpose. The usable
+ * span is `internal - 2 * safetyPaddingMm`, so once 618c1c2f gave documented
+ * cartons a 1 mm safety margin a 100 cm box stopped fitting a 100 cm item and
+ * support-physics cases started failing on OUT_OF_BOUNDS instead. Growing the
+ * box keeps the margin exercised here rather than switching it off.
+ */
 export function box(items: PlacedItem[]): PackedCarton[] {
-  return [{ cartonIndex: 0, carton: carton("T", 100, 100, 100, 1000), items }];
+  return [{ cartonIndex: 0, carton: carton("T", 110, 110, 110, 1000), items }];
 }

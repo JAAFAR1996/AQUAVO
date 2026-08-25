@@ -29,24 +29,45 @@ const variantProduct = {
 };
 
 describe("production SEO/AEO/GEO contract", () => {
-  it("uses one selectable Offer instead of an invalid AggregateOffer for variants", () => {
+  it("gives each variant its own Offer under a ProductGroup, never an AggregateOffer", () => {
+    // c3933834 moved multi-option products from a single Product carrying one
+    // representative Offer to Google's ProductGroup/hasVariant shape. What the
+    // original rule protected is unchanged and still asserted below: a real,
+    // buyable price per option, never an AggregateOffer price range.
     const schemas = buildProductStructuredData(variantProduct) as Array<Record<string, any>>;
-    const product = schemas[0];
+    const group = schemas[0];
 
-    expect(product.offers).toMatchObject({
+    expect(group["@type"]).toBe("ProductGroup");
+    expect(group.productGroupID).toBe("product-1");
+    expect(group.hasVariant).toHaveLength(2);
+
+    const [small, large] = group.hasVariant;
+    expect(small.offers).toMatchObject({
       "@type": "Offer",
       price: "15000",
       priceCurrency: "IQD",
       availability: "https://schema.org/InStock",
     });
-    expect(product.offers.shippingDetails.shippingRate).toMatchObject({
+    expect(large.offers).toMatchObject({ "@type": "Offer", price: "25000" });
+    expect(small.sku).toBe("FILTER-S");
+
+    expect(small.offers.shippingDetails.shippingRate).toMatchObject({
       value: 5000,
       currency: "IQD",
     });
-    expect(product.offers.shippingDetails.deliveryTime.transitTime.maxValue).toBe(1);
-    expect(JSON.stringify(product)).not.toContain("AggregateOffer");
-    expect(JSON.stringify(product)).not.toContain("ProductGroup");
-    expect(JSON.stringify(product.additionalProperty)).toContain("كبير");
+    expect(small.offers.shippingDetails.deliveryTime.transitTime.maxValue).toBe(1);
+
+    expect(JSON.stringify(group)).not.toContain("AggregateOffer");
+    expect(JSON.stringify(group)).toContain("كبير");
+  });
+
+  it("keeps a single-option product as a plain Product", () => {
+    // The ProductGroup shape is for real multi-option products only; promoting
+    // every product to a group would claim variants that do not exist.
+    const simple = { ...variantProduct, hasVariants: false, variants: [], price: 15000 };
+    const schemas = buildProductStructuredData(simple as typeof variantProduct) as Array<Record<string, any>>;
+    expect(schemas[0]["@type"]).toBe("Product");
+    expect(JSON.stringify(schemas[0])).not.toContain("ProductGroup");
   });
 
   it("describes an online store without fake physical geo or map data", () => {
@@ -56,7 +77,10 @@ describe("production SEO/AEO/GEO contract", () => {
 
     expect(store["@type"]).toBe("OnlineStore");
     expect(store.legalName).toContain("AL NABEA SHOP");
-    expect(store.paymentAccepted).toBe("Cash on Delivery");
+    // AQUAVO took online payment live through Al-Qaseh (PR #115), so advertising
+    // cash only would now understate what checkout actually accepts. Both methods
+    // are implemented and verified server-side, so both belong here.
+    expect(store.paymentAccepted).toBe("Cash on Delivery, Online Payment");
     expect(store.contactPoint.hoursAvailable.opens).toBe("00:00");
     expect(serialized).not.toContain("GeoCoordinates");
     expect(serialized).not.toContain("hasMap");

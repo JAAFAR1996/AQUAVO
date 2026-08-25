@@ -173,11 +173,23 @@ describe("confirmation reserves, and does so only once", () => {
 });
 
 describe("shipment consumes, cancellation releases", () => {
+  /**
+   * A confirmed original fulfillment carrying canonical carton evidence.
+   *
+   * The line is not decoration. Since 618c1c2f the runner consumes a hold only
+   * when a confirmed event actually names a stock-tracked carton, so that the
+   * reservation closes against the same event that already moved the stock and
+   * never posts a second movement. An event with no line is, correctly, reported
+   * as carton_snapshot_missing.
+   */
   async function confirmedEvent(orderId: string): Promise<void> {
     await client.exec(
       `INSERT INTO order_fulfillment_events
          (id, order_id, event_type, sequence_number, idempotency_key, workflow_state, cost_status)
-       VALUES ('ev-${orderId}','${orderId}','original',1,'idem-${orderId}','confirmed','exact')`,
+       VALUES ('ev-${orderId}','${orderId}','original',1,'idem-${orderId}','confirmed','exact');
+       INSERT INTO order_fulfillment_lines
+         (id, event_id, order_id, material_id, material_name_snapshot, quantity, cost_status)
+       VALUES ('evl-${orderId}','ev-${orderId}','${orderId}','${CARTON}','كارتونة وسط',1,'exact')`,
     );
   }
 
