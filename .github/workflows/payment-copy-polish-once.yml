@@ -1,0 +1,140 @@
+name: Payment copy polish (one-time)
+
+on:
+  push:
+    branches:
+      - codex/payment-copy-audit
+
+permissions:
+  contents: write
+
+jobs:
+  polish:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fix payment-copy semantics and stale tests
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def replace_required(path, old, new, count=1):
+              p = Path(path)
+              text = p.read_text(encoding='utf-8')
+              found = text.count(old)
+              if found != count:
+                  raise SystemExit(f"{path}: expected {count} matches, found {found}: {old[:120]!r}")
+              p.write_text(text.replace(old, new), encoding='utf-8')
+
+          # SEO preview FAQ: describe both methods instead of changing only the question.
+          replace_required(
+              'api/_seo-preview-shell.tsx',
+              '["هل الدفع عند الاستلام أو إلكترونياً متوفر؟", "نعم، طريقة الدفع المعتمدة هي الدفع النقدي عند الاستلام."],',
+              '["شنو طرق الدفع المتوفرة؟", "تگدر تختار الدفع نقداً عند الاستلام أو الدفع الإلكتروني من صفحة إكمال الطلب."],',
+          )
+
+          # SEO FAQ: keep inspection-before-payment scoped to COD, and give online payment its own accurate answer.
+          replace_required(
+              'api/ssr-meta.ts',
+              '{ "@type": "Question", name: "هل الدفع عند الاستلام أو إلكترونياً متاح؟", acceptedAnswer: { "@type": "Answer", text: "نعم! الدفع عند الاستلام أو إلكترونياً متاح لجميع الطلبات. يمكنك فحص المنتج والتأكد من سلامته قبل الدفع." } },',
+              '{ "@type": "Question", name: "هل الدفع عند الاستلام متاح؟", acceptedAnswer: { "@type": "Answer", text: "نعم، الدفع عند الاستلام متاح. وإذا كان فحص الطلب متاحاً عند التسليم، يكون ذلك قبل تسديد مبلغ COD." } },\n          { "@type": "Question", name: "هل الدفع الإلكتروني متاح؟", acceptedAnswer: { "@type": "Answer", text: "نعم، تقدر تختار الدفع الإلكتروني من صفحة إكمال الطلب، ولا يُعتمد كمدفوع إلا بعد تأكيد حالة العملية من بوابة الدفع." } },',
+          )
+          replace_required(
+              'api/ssr-meta.ts',
+              '{ "@type": "Question", name: "هل توجد طرق دفع غير الدفع عند الاستلام أو إلكترونياً؟", acceptedAnswer: { "@type": "Answer", text: "حالياً الدفع عند الاستلام أو إلكترونياً. إذا فعّلنا أي طريقة دفع إضافية راح تظهر بشكل واضح بالموقع." } },',
+              '{ "@type": "Question", name: "هل توجد طرق دفع أخرى؟", acceptedAnswer: { "@type": "Answer", text: "حالياً المتاح هو الدفع عند الاستلام أو الدفع الإلكتروني. أي طريقة إضافية راح تظهر بشكل واضح بالموقع بعد تفعيلها." } },',
+          )
+
+          # Guide copy: inspection-before-payment applies only to COD, not to a card already paid online.
+          replace_required(
+              'api/_guides-content.ts',
+              '"التوصيل لكل المحافظات العراقية خلال 24 ساعة برسوم ثابتة 5,000 دينار عراقي، والدفع عند الاستلام أو إلكترونياً، وتقدر تفحص المنتج قبل الدفع.",',
+              '"التوصيل لكل المحافظات العراقية خلال 24 ساعة برسوم ثابتة 5,000 دينار عراقي، والدفع عند الاستلام أو إلكترونياً. إذا اخترت الدفع عند الاستلام وكان فحص الطلب متاحاً عند التسليم، يكون الفحص قبل تسديد مبلغ COD.",',
+          )
+          replace_required(
+              'api/_guides-content.ts',
+              'a: "الدفع عند الاستلام أو إلكترونياً، وتقدر تتأكد من المنتج قبل الدفع.",',
+              'a: "تگدر تختار الدفع عند الاستلام أو إلكترونياً. فحص الطلب قبل التسديد يخص طلبات COD فقط إذا كان متاحاً عند التسليم.",',
+          )
+
+          # Privacy regression should assert the actual new gateway/card-data disclosure.
+          replace_required(
+              'client/src/pages/__tests__/privacy-policy.test.tsx',
+              'expect(screen.getByText(/الدفع عند الاستلام أو إلكترونياً/)).toBeInTheDocument();',
+              'expect(screen.getByText(/بيانات البطاقة تُدخل مباشرة لدى بوابة الدفع/)).toBeInTheDocument();',
+          )
+
+          # E2E trust/checkout assertions were still pinned to the old COD-only storefront copy.
+          replace_required(
+              'e2e/v2-foundation.spec.ts',
+              'await expect(footer.getByText("طريقة الدفع المتوفرة هسه: الدفع النقدي عند الاستلام")).toBeVisible();',
+              'await expect(footer.getByText("طرق الدفع المتوفرة: عند الاستلام أو إلكترونياً")).toBeVisible();',
+          )
+          replace_required(
+              'e2e/v2-foundation.spec.ts',
+              'test("checkout shows one COD total and blocks invalid customer data without placing an order", async ({ page }) => {',
+              'test("checkout shows available payment methods and blocks invalid customer data without placing an order", async ({ page }) => {',
+          )
+          replace_required(
+              'e2e/v2-foundation.spec.ts',
+              'await expect(page.getByText("الدفع عند الاستلام", { exact: true }).first()).toBeVisible();',
+              'await expect(page.getByText("الدفع عند الاستلام أو إلكترونياً", { exact: true }).first()).toBeVisible();',
+          )
+
+          # Guard against the awkward/incorrect variants discovered during diff review.
+          checks = {
+              'api/_seo-preview-shell.tsx': [
+                  'هل الدفع عند الاستلام أو إلكترونياً متوفر؟',
+                  'طريقة الدفع المعتمدة هي الدفع النقدي عند الاستلام',
+              ],
+              'api/ssr-meta.ts': [
+                  'هل الدفع عند الاستلام أو إلكترونياً متاح؟',
+                  'هل توجد طرق دفع غير الدفع عند الاستلام أو إلكترونياً؟',
+              ],
+              'e2e/v2-foundation.spec.ts': [
+                  'طريقة الدفع المتوفرة هسه: الدفع النقدي عند الاستلام',
+              ],
+          }
+          failures = []
+          for path, forbidden in checks.items():
+              text = Path(path).read_text(encoding='utf-8')
+              for phrase in forbidden:
+                  if phrase in text:
+                      failures.append(f'{path}: {phrase}')
+          if failures:
+              raise SystemExit('stale or inaccurate payment copy remains:\n' + '\n'.join(failures))
+          PY
+
+      - name: TypeScript check for audit files
+        run: |
+          npx tsc --noEmit --pretty false 2>&1 | tee /tmp/tsc.log || true
+          if grep -E 'api/_seo-preview-shell|api/ssr-meta|privacy-policy|v2-foundation|order-confirmation|invoice-dialog|profile-orders|server/routes/orders' /tmp/tsc.log; then
+            echo "TypeScript errors found in payment-audit files"
+            exit 1
+          fi
+
+      - name: Relevant unit tests
+        run: |
+          npx vitest run \
+            client/src/pages/__tests__/privacy-policy.test.tsx \
+            client/src/pages/__tests__/product-details.test.tsx \
+            client/src/pages/__tests__/trust-pages.test.tsx \
+            client/src/components/__tests__/footer.test.tsx \
+            --reporter=dot
+
+      - name: Commit polished audit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add api client e2e server shared
+          if git diff --cached --quiet; then
+            echo "No changes"
+            exit 0
+          fi
+          git commit -m "fix: polish online payment messaging"
+          git push origin HEAD:codex/payment-copy-audit
