@@ -17,8 +17,19 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 10.0.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.19.0
+          cache: pnpm
+
       - name: Install project dependencies
-        run: npm ci
+        run: pnpm install --prefer-offline
 
       - name: Fix payment-copy semantics and stale tests
         shell: bash
@@ -109,7 +120,7 @@ jobs:
 
       - name: TypeScript check for modified payment files
         run: |
-          npx tsc --noEmit --pretty false 2>&1 | tee /tmp/tsc.log || true
+          pnpm run check 2>&1 | tee /tmp/tsc.log || true
           if grep -E 'api/_seo-preview-shell|api/ssr-meta|privacy-policy|v2-foundation|order-confirmation|invoice-dialog|profile-orders|server/routes/orders' /tmp/tsc.log; then
             echo "TypeScript errors found in payment-audit files"
             exit 1
@@ -117,7 +128,7 @@ jobs:
 
       - name: Relevant unit tests
         run: |
-          npx vitest run \
+          pnpm exec vitest run \
             client/src/pages/__tests__/privacy-policy.test.tsx \
             client/src/pages/__tests__/product-details.test.tsx \
             client/src/pages/__tests__/trust-pages.test.tsx \
