@@ -370,17 +370,50 @@ describe("FulfillmentHistoryPanel", () => {
 });
 
 describe("FulfillmentProfitabilityPanel", () => {
-  it("renders unknown totals as غير معروف and surfaces the data status badge", async () => {
+  it("withholds an unknown profit instead of inventing a zero, and says why", async () => {
+    // cf1acfd6 (#105, "simplify cost UI") stopped printing an unknown total as a
+    // غير معروف row and withholds the row entirely, explaining the gap in prose
+    // instead. What must never change is the rule underneath: an unknown profit
+    // is never rendered as a number, and above all never as zero.
     installFetch({});
+    renderWithQuery(<FulfillmentProfitabilityPanel orderId={ORDER_ID} />);
+
+    const rows = await screen.findByTestId("profitability-rows");
+    expect(within(rows).queryByText("الربح المباشر")).toBeNull();
+    expect(screen.queryByTestId("contribution-margin")).toBeNull();
+
+    // The fixture knows product cost and fulfillment cost but not the total, so
+    // the owner is told the profit is still waiting on other direct costs.
+    expect(screen.getByText("الربح النهائي ينتظر اكتمال بقية التكاليف المباشرة.")).toBeInTheDocument();
+
+    // Known figures still render, so the panel is withholding rather than blank.
+    expect(within(rows).getByText("المبلغ المحصل")).toBeInTheDocument();
+    expect(rows).toHaveTextContent("50,000 د.ع");
+
+    // The NULL-not-zero rule, stated as an assertion. Checked per amount element
+    // rather than over the whole panel: "50,000 د.ع" contains "0 د.ع" as a
+    // substring, so a naive text check here passes for the wrong reason.
+    const amounts = Array.from(rows.querySelectorAll("[data-unknown]"));
+    expect(amounts.length).toBeGreaterThan(0);
+    expect(amounts.map((a) => a.textContent?.trim())).not.toContain("0 د.ع");
+
+    expect(screen.getAllByTestId("cost-status-badge")[0]).toHaveTextContent("ناقص");
+  });
+
+  it("renders a known profit as a real figure once the totals are complete", async () => {
+    // The mirror of the rule above: when the numbers exist the row must appear,
+    // otherwise "withhold on unknown" would silently hide a healthy order.
+    installFetch({
+      profitability: () =>
+        breakdownFixture({ totalKnownDirectCost: 27000, contributionProfit: 18000, contributionMargin: 0.4 }),
+    });
     renderWithQuery(<FulfillmentProfitabilityPanel orderId={ORDER_ID} />);
 
     const rows = await screen.findByTestId("profitability-rows");
     const profitRow = within(rows).getByText("الربح المباشر").closest("button");
     expect(profitRow).not.toBeNull();
-    expect(profitRow!).toHaveTextContent("غير معروف");
-    expect(profitRow!).not.toHaveTextContent("0 د.ع");
-
-    expect(screen.getAllByTestId("cost-status-badge")[0]).toHaveTextContent("ناقص");
+    expect(profitRow!).toHaveTextContent("18,000 د.ع");
+    expect(screen.getByTestId("contribution-margin")).toBeInTheDocument();
   });
 
   it("drills a fulfillment total down to the events that produced it", async () => {
@@ -396,7 +429,10 @@ describe("FulfillmentProfitabilityPanel", () => {
     const user = userEvent.setup();
     renderWithQuery(<FulfillmentProfitabilityPanel orderId={ORDER_ID} />);
 
-    await user.click(await screen.findByText(/الشحنة الأصلية/));
+    // #105 renamed the row that opens this drilldown from "الشحنة الأصلية" to
+    // the cost it actually represents. The guarantee is unchanged: a total can
+    // always be opened to reveal the event lines that produced it.
+    await user.click(await screen.findByText(/تكلفة تجهيز AQUAVO/));
     const drilldown = await screen.findByTestId("events-drilldown");
     expect(within(drilldown).getByText("صندوق صغير × 1 قطعة")).toBeInTheDocument();
   });

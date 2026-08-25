@@ -90,7 +90,10 @@ describe('Home Page', () => {
 
     it('shows only verified service facts', () => {
         render(<Home />, { wrapper: createWrapper() });
-        expect(screen.getByText(/الدفع عند الاستلام/i)).toBeInTheDocument();
+        // Reworded once Al-Qaseh went live: the home page now advertises both
+        // methods rather than cash only, which is what checkout actually offers.
+        expect(screen.getByText(/طرق دفع مرنة/i)).toBeInTheDocument();
+        expect(screen.getByText(/عند الاستلام أو إلكترونياً/i)).toBeInTheDocument();
         expect(screen.getByText(/5,000 د\.ع/i)).toBeInTheDocument();
         expect(screen.getByText(/دعم 24\/7/i)).toBeInTheDocument();
         expect(screen.queryByText(/أصلي 100%/i)).not.toBeInTheDocument();

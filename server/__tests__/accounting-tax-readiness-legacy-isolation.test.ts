@@ -12,7 +12,7 @@
  *      `shipping_settlements` table — enforced by reading the route source.
  */
 import { describe, it, expect } from "vitest";
-import { readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { PGlite } from "@electric-sql/pglite";
 import {
@@ -233,32 +233,49 @@ describe("cost-basis wording", () => {
   });
 });
 
-describe("accountant UI", () => {
-  const panel = readFileSync(join(ROOT, "client/src/components/admin/accounting-panel.tsx"), "utf8");
+/** Every .ts/.tsx under client/src, so a "nowhere in the UI" claim means it. */
+function clientSourceFiles(dir = join(ROOT, "client/src")): string[] {
+  const out: string[] = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) out.push(...clientSourceFiles(full));
+    else if (/\.tsx?$/.test(entry.name)) out.push(full);
+  }
+  return out;
+}
 
-  it("no longer prints 'كلفة ناقصة' anywhere", () => {
-    expect(panel).not.toContain("كلفة ناقصة");
+describe("the retired accountant panel stays retired", () => {
+  // 618c1c2f ("make carton evidence canonical") deleted the 759-line
+  // accounting-panel.tsx along with the legacy manual box-cost flows, and the
+  // finance-*-v2 components took over. This block used to assert that panel's
+  // source strings; those assertions cannot be satisfied by any current file,
+  // so what is worth locking now is the removal itself. The carrier-balance
+  // rules the panel used to display are still enforced above, against
+  // computeCarrierBalance directly, which is the stronger place for them.
+  it("does not reappear as a source file", () => {
+    expect(existsSync(join(ROOT, "client/src/components/admin/accounting-panel.tsx"))).toBe(false);
   });
 
-  it("shows the four carrier figures from carrierBalance, not from a legacy total", () => {
-    for (const field of ["grossCustomerCollections", "carrierFees", "netCashReceived", "outstanding"]) {
-      expect(panel).toContain(`carrierBalance.${field}`);
-    }
-    expect(panel).toContain("المقبوض من الزبائن");
-    expect(panel).toContain("أجور شركة التوصيل");
-    expect(panel).toContain("الصافي المستلم");
-    expect(panel).toContain("الباقي عند الشركة");
+  it("leaves no import of it behind", () => {
+    // Matches a module specifier only. Other suites legitimately name the file
+    // as a string to assert this same removal, and those must not count.
+    const importsPanel = /(?:from|import\()\s*["'][^"']*accounting-panel["']/;
+    const importers = clientSourceFiles().filter((file) =>
+      importsPanel.test(readFileSync(file, "utf8")),
+    );
+    expect(importers).toEqual([]);
   });
 
-  it("shows returns in their own section and says they are not deducted", () => {
-    expect(panel).toContain("المرتجعات");
-    expect(panel).toContain("لا تُخصم من رصيد شركة التوصيل");
-  });
-
-  it("warns, in Arabic, that the figures are not a final tax report", () => {
-    expect(panel).toContain("TAX_NOT_READY_WARNING_AR");
-    expect(panel).toContain("taxReportReady");
-    expect(panel).toContain("DRAFT_EXPORT_MARK");
+  it("takes the legacy carrier-balance projection out of the UI with it", () => {
+    // The four figures were read straight off a client-side carrierBalance
+    // object. Reintroducing that shape in a component would re-create the
+    // projection this file exists to keep server-side and reconciled.
+    const offenders = clientSourceFiles().filter((file) =>
+      /carrierBalance\.(grossCustomerCollections|carrierFees|netCashReceived|outstanding)/.test(
+        readFileSync(file, "utf8"),
+      ),
+    );
+    expect(offenders).toEqual([]);
   });
 });
 

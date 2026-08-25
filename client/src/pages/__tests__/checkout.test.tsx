@@ -29,10 +29,38 @@ vi.mock("@/lib/analytics", () => ({
 
 import CheckoutPage from "../checkout";
 
+// The confirmation step probes Al-Qaseh availability on mount, so fetch calls
+// are no longer in a single predictable order. Responses are routed by URL and
+// the order endpoint keeps its own queue, which also keeps `mock.calls[0]` from
+// meaning "the order request".
+const queuedOrderResponses = vi.hoisted(() => [] as Array<() => unknown>);
+
+function queueOrderResponse(build: () => unknown) {
+  queuedOrderResponses.push(build);
+}
+
+/** Answers the availability probe; everything else drains the order queue. */
+function routeFetch(onlineAvailable: boolean) {
+  mockFetch.mockImplementation(async (url: unknown) => {
+    if (String(url).includes("/api/payments/alqaseh/availability")) {
+      return { ok: true, json: async () => ({ available: onlineAvailable }) };
+    }
+    const next = queuedOrderResponses.shift();
+    if (!next) throw new Error(`unqueued fetch in test: ${String(url)}`);
+    return next();
+  });
+}
+
+const orderCalls = () => mockFetch.mock.calls.filter(([url]) => url === "/api/orders");
+
 describe("checkout page", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    queuedOrderResponses.length = 0;
     vi.stubGlobal("fetch", mockFetch);
+    // Default to gateway-down so the COD assertions below stay deterministic;
+    // the Al-Qaseh cases opt in explicitly.
+    routeFetch(false);
   });
 
   it("shows COD, the fixed delivery fee and the visible total", () => {
@@ -110,15 +138,54 @@ describe("checkout page", () => {
 
     await user.click(screen.getByRole("checkbox"));
     expect(confirmButton).toBeEnabled();
-    expect(mockFetch).not.toHaveBeenCalled();
+    // The availability probe is expected here; what must not have happened is an order.
+    expect(orderCalls()).toHaveLength(0);
+  });
+
+  async function reachConfirmationStep(user: ReturnType<typeof userEvent.setup>) {
+    fireEvent.change(screen.getByLabelText("الاسم الكامل"), { target: { value: "جعفر محمد" } });
+    fireEvent.change(screen.getByLabelText("رقم الهاتف"), { target: { value: "07701234567" } });
+    await user.click(screen.getByRole("combobox", { name: "المحافظة" }));
+    await user.click(screen.getByRole("option", { name: "بغداد" }));
+    fireEvent.change(screen.getByLabelText("العنوان"), { target: { value: "الكرادة داخل قرب ساحة كهرمانة" } });
+    await user.click(screen.getByRole("button", { name: "مراجعة الطلب" }));
+  }
+
+  it("offers Al-Qaseh alongside COD when the gateway reports itself available", async () => {
+    routeFetch(true);
+    const user = userEvent.setup();
+    render(<CheckoutPage />);
+    await reachConfirmationStep(user);
+
+    const online = await screen.findByRole("radio", { name: /الدفع الإلكتروني الآمن/ });
+    expect(online).toBeEnabled();
+    expect(screen.getByRole("radio", { name: /الدفع عند الاستلام/ })).toBeEnabled();
+    // COD stays the default; choosing online is the customer's action.
+    expect(screen.queryByText(/الدفع الإلكتروني غير متاح مؤقتاً/)).toBeNull();
+  });
+
+  it("falls back to COD, without losing the order, when the gateway is unavailable", async () => {
+    routeFetch(false);
+    const user = userEvent.setup();
+    render(<CheckoutPage />);
+    await reachConfirmationStep(user);
+
+    expect(
+      await screen.findByText(/الدفع الإلكتروني غير متاح مؤقتاً، لذلك يمكنك إكمال الطلب بالدفع عند الاستلام\./),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: /الدفع الإلكتروني الآمن/ })).toBeDisabled();
+    // The COD path must remain fully usable — an outage never blocks checkout.
+    expect(screen.getByRole("radio", { name: /الدفع عند الاستلام/ })).toBeEnabled();
+    await user.click(screen.getByRole("checkbox"));
+    expect(screen.getByRole("button", { name: "تأكيد الطلب" })).toBeEnabled();
   });
 
   it("completes the closed-circuit success path with a mocked server response", async () => {
     const user = userEvent.setup();
-    mockFetch.mockResolvedValueOnce({
+    queueOrderResponse(() => ({
       ok: true,
       json: async () => ({ id: "order-test", orderNumber: "FH-TEST", roundedTotal: 30000, shippingCost: 5000, discountTotal: 0, status: "pending" }),
-    });
+    }));
     render(<CheckoutPage />);
 
     fireEvent.change(screen.getByLabelText("الاسم الكامل"), { target: { value: "جعفر محمد" } });
@@ -133,7 +200,7 @@ describe("checkout page", () => {
     // Heading moved into <CheckoutSuccessFallback /> and was reworded in 32de533c.
     expect(await screen.findByRole("heading", { level: 1, name: "طلبك مسجّل" })).toBeInTheDocument();
     expect(mockFetch).toHaveBeenCalledWith("/api/orders", expect.objectContaining({ method: "POST" }));
-    const request = mockFetch.mock.calls[0]?.[1] as RequestInit;
+    const request = orderCalls()[0]?.[1] as RequestInit;
     const body = JSON.parse(String(request.body));
     expect(body.items).toEqual([{ productId: "p1", quantity: 1 }]);
     expect(body.items[0]).not.toHaveProperty("price");
@@ -144,7 +211,7 @@ describe("checkout page", () => {
   it("disables the confirm button and blocks a second click while the order request is in flight", async () => {
     const user = userEvent.setup();
     let resolveFetch!: (value: unknown) => void;
-    mockFetch.mockReturnValueOnce(
+    queueOrderResponse(() =>
       new Promise((resolve) => {
         resolveFetch = resolve;
       })
@@ -166,7 +233,7 @@ describe("checkout page", () => {
     // repeat) cannot fire a second POST while the first is still pending.
     expect(await screen.findByRole("button", { name: "جاري المعالجة..." })).toBeDisabled();
     await user.click(screen.getByRole("button", { name: "جاري المعالجة..." }));
-    expect(mockFetch).toHaveBeenCalledTimes(1);
+    expect(orderCalls()).toHaveLength(1);
 
     resolveFetch({
       ok: true,
@@ -174,7 +241,7 @@ describe("checkout page", () => {
     });
     // Heading moved into <CheckoutSuccessFallback /> and was reworded in 32de533c.
     expect(await screen.findByRole("heading", { level: 1, name: "طلبك مسجّل" })).toBeInTheDocument();
-    expect(mockFetch).toHaveBeenCalledTimes(1);
+    expect(orderCalls()).toHaveLength(1);
   });
 
   it("applies a valid free_shipping coupon: delivery fee shows as free and the total drops by the delivery fee", async () => {
@@ -220,10 +287,10 @@ describe("checkout page", () => {
       ok: true,
       json: async () => ({ code: "SAVE20", type: "percentage", value: "20" }),
     });
-    mockFetch.mockResolvedValueOnce({
+    queueOrderResponse(() => ({
       ok: true,
       json: async () => ({ id: "order-coupon-test", orderNumber: "FH-COUPON", roundedTotal: 25000, shippingCost: 5000, discountTotal: 5000, status: "pending" }),
-    });
+    }));
     render(<CheckoutPage />);
 
     await user.click(screen.getByRole("button", { name: /عندك كود خصم؟/ }));
