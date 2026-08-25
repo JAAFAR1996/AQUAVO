@@ -7,6 +7,7 @@ import { GUIDE_CONTENT_PAGES, renderGuideHtml, renderGuideMarkdown, renderGuides
 import { getSeoMetaOverride } from "./_seo-content.js";
 import { toPublicVariant } from "../shared/public-product.js";
 import { isKnownSitePath } from "../shared/site-routes.js";
+import { canonicalUrlFor } from "../shared/seo-contract.js";
 
 // ─── DB Setup (lightweight, no Drizzle overhead) ────────────────────────────
 neonConfig.webSocketConstructor = ws;
@@ -672,7 +673,7 @@ async function resolveMetadata(pathname: string, notFound = false): Promise<Page
     return {
       title: "الصفحة غير موجودة | AQUAVO",
       description: "الرابط الذي فتحته غير موجود. تقدر ترجع للرئيسية أو تتصفح معدات ومستلزمات أحواض الزينة المتوفرة لدى AQUAVO.",
-      url: `${BASE}${cleanPath}`,
+      url: canonicalUrlFor(cleanPath),
       image: DEFAULT_IMAGE,
       notFound: true,
     };
@@ -684,7 +685,7 @@ async function resolveMetadata(pathname: string, notFound = false): Promise<Page
     return {
       ...meta,
       ...(seoOverride ?? {}),
-      url: `${BASE}${cleanPath === "/" ? "" : cleanPath}`,
+      url: canonicalUrlFor(cleanPath),
       image: DEFAULT_IMAGE,
       ogType: meta.ogType || "website",
     };
@@ -697,7 +698,7 @@ async function resolveMetadata(pathname: string, notFound = false): Promise<Page
     if (meta) {
       return {
         ...meta,
-        url: `${BASE}${cleanPath}`,
+        url: canonicalUrlFor(cleanPath),
         image: meta.productImage || DEFAULT_IMAGE,
         ogType: meta.ogType || "product",
       };
@@ -711,7 +712,7 @@ async function resolveMetadata(pathname: string, notFound = false): Promise<Page
     if (meta) {
       return {
         ...meta,
-        url: `${BASE}${cleanPath}`,
+        url: canonicalUrlFor(cleanPath),
         image: DEFAULT_IMAGE,
         ogType: meta.ogType || "article",
       };
@@ -723,7 +724,7 @@ async function resolveMetadata(pathname: string, notFound = false): Promise<Page
     title: seoOverride?.title || DEFAULT_TITLE,
     description: seoOverride?.description || DEFAULT_DESC,
     keywords: seoOverride?.keywords || DEFAULT_KEYWORDS,
-    url: `${BASE}${cleanPath}`,
+    url: canonicalUrlFor(cleanPath),
     image: DEFAULT_IMAGE,
     ogType: "website",
   };

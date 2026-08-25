@@ -122,8 +122,25 @@ export const NOINDEX_PUBLIC_PATHS = Object.freeze([
   "/fish-patients",
 ] as const);
 
+/**
+ * The single canonical form of a path, shared by the SSR handlers, the React
+ * app and the sitemap builders. Query strings and fragments never belong in a
+ * canonical, trailing slashes are stripped, and the home page keeps exactly one
+ * slash so that every producer agrees with what the sitemap publishes.
+ */
+export function canonicalPathFor(pathname: string): string {
+  const path = pathname.split(/[?#]/)[0].replace(/\/+$/, "");
+  return path === "" ? "/" : path;
+}
+
+/** Absolute canonical URL for a path. Always agrees with the sitemap entry. */
+export function canonicalUrlFor(pathname: string): string {
+  const path = canonicalPathFor(pathname);
+  return path === "/" ? `${AQUAVO_BASE_URL}/` : `${AQUAVO_BASE_URL}${path}`;
+}
+
 export function isNoindexPath(pathname: string): boolean {
-  const clean = pathname.replace(/\/+$/, "") || "/";
+  const clean = canonicalPathFor(pathname);
   return (
     (NOINDEX_PUBLIC_PATHS as readonly string[]).includes(clean) ||
     clean.startsWith("/admin") ||
