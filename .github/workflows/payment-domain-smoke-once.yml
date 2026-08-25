@@ -1,0 +1,36 @@
+name: Payment production domain smoke
+
+on:
+  push:
+    branches:
+      - ops/payment-domain-smoke-20260825
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Probe production API and hosted payment domains
+        shell: bash
+        run: |
+          set -u
+          echo '--- API create endpoint (unauthenticated; 401/400 proves route is reachable) ---'
+          api_body="$(mktemp)"
+          api_code=$(curl -sS --max-time 15 -o "$api_body" -w '%{http_code}' \
+            -X POST 'https://api.alqaseh.com/v1/egw/payments/create' \
+            -H 'Accept: application/json' \
+            -H 'Content-Type: application/json' \
+            --data '{"amount":1,"currency":"IQD","description":"probe","order_id":"00000000000000000000000000000000","redirect_url":"https://www.aquavoiq.com/","transaction_type":"Retail"}') || api_code="curl_failed"
+          echo "API_HTTP_CODE=$api_code"
+          echo -n 'API_RESPONSE='; head -c 500 "$api_body" || true; echo
+
+          echo '--- Hosted payment root ---'
+          pay_body="$(mktemp)"
+          pay_code=$(curl -sS -L --max-time 15 -o "$pay_body" -w '%{http_code}' 'https://pay.alqaseh.com/') || pay_code="curl_failed"
+          echo "PAY_HTTP_CODE=$pay_code"
+          echo -n 'PAY_RESPONSE_PREFIX='; head -c 300 "$pay_body" | tr '\n' ' ' || true; echo
+
+          if [[ "$api_code" == "curl_failed" || "$api_code" == "000" ]]; then
+            echo 'Production API domain is not reachable from GitHub runner.' >&2
+            exit 1
+          fi
