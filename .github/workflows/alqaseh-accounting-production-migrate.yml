@@ -1,6 +1,15 @@
 name: Al-Qaseh Accounting Production Migration
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - "migrations/20260825_alqaseh_online_accounting.sql"
+      - "script/apply-alqaseh-accounting-migration.ts"
+      - ".github/workflows/alqaseh-accounting-production-migrate.yml"
+      - "server/__tests__/alqaseh-accounting-contract.test.ts"
+      - "server/__tests__/alqaseh-accounting-execution.test.ts"
   workflow_dispatch:
     inputs:
       ref:
@@ -22,7 +31,7 @@ concurrency:
 
 jobs:
   migrate:
-    if: ${{ inputs.confirm == 'APPLY_ALQASEH_ACCOUNTING_20260825' }}
+    if: ${{ github.event_name == 'push' || inputs.confirm == 'APPLY_ALQASEH_ACCOUNTING_20260825' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     environment: production
@@ -30,7 +39,7 @@ jobs:
       - name: Checkout exact release ref
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.ref }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.sha }}
           fetch-depth: 1
 
       - name: Record release commit
