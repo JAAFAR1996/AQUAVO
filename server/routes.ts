@@ -3,6 +3,7 @@ import express from "express";
 import { createProductRouter } from "./routes/products.js";
 import { createOrderRouter } from "./routes/orders.js";
 import { createAlqasehRouter } from "./routes/alqaseh.js";
+import { createPaymentPageRouter } from "./routes/payment-pages.js";
 import alwaseetPublicTrackingRouter from "./routes/alwaseet-public-tracking.js";
 import { createUserRouter } from "./routes/users.js";
 import { createGalleryRouter } from "./routes/gallery.js";
@@ -93,6 +94,7 @@ export async function registerRoutes(httpServer: Server, app: express.Applicatio
   app.use("/api/orders", alwaseetPublicTrackingRouter);
   app.use("/api/orders", createOrderRouter());
   app.use("/api/payments/alqaseh", createAlqasehRouter());
+  app.use("/payment", createPaymentPageRouter());
 
   // Public Meta callback: no session/admin auth. POST authenticity is enforced
   // inside the router with X-Hub-Signature-256 over the captured raw body.
