@@ -21,22 +21,21 @@ import {
 } from "./product-cost-snapshot.js";
 import { loyaltyStorage, type TransactionalOrderLoyaltyResult } from "../storage/loyalty-storage.js";
 import { isCanonicalInventoryBalanceError, STOCK_ERROR_INSUFFICIENT } from "../storage/order-storage.js";
-import { analyticsTracker } from "./analytics-tracker.js";
-import { ReferralStorage } from "../storage/referral-storage.js";
-import { loyaltyNotifications } from "./loyalty-notifications.js";
-import { sendOrderNotification, sendTelegramMessage } from "./order-notifications.js";
+import { sendTelegramMessage } from "./order-notifications.js";
 import {
+  AlqasehApiError,
   createAlqasehPayment,
   getAlqasehHostedPaymentUrl,
   getAlqasehPayment,
+  retryAlqasehPaymentContext,
   type AlqasehPaymentContext,
   type AlqasehPaymentStatus,
 } from "./alqaseh-client.js";
+import { enqueuePaidOrderOutbox, processPaymentOutboxForOrder } from "./payment-maintenance.js";
 
 const IRAQI_DENOMINATION = 250;
 const ORDER_NUMBER_MAX_ATTEMPTS = 3;
 const PAYMENT_CURRENCY = "IQD";
-const referralStorage = new ReferralStorage();
 
 export type AquavoPaymentStatus = "pending" | "paid" | "failed" | "cancelled" | "expired";
 
@@ -109,6 +108,86 @@ function dbOrThrow() {
   const db = getDb();
   if (!db) throw new Error("Database not connected");
   return db;
+}
+
+function reservationTtlMinutes(): number {
+  const configured = Number(process.env.ALQASEH_RESERVATION_TTL_MINUTES ?? 15);
+  if (!Number.isFinite(configured)) return 15;
+  return Math.max(5, Math.min(60, Math.trunc(configured)));
+}
+
+async function activeReservedQuantity(
+  tx: any,
+  productId: string,
+  variantId: string | undefined,
+  excludingOrderId?: string,
+): Promise<number> {
+  const result = await tx.execute(sql`
+    SELECT COALESCE(SUM(quantity),0)::int AS reserved
+      FROM payment_stock_reservations
+     WHERE product_id=${productId}
+       AND variant_id IS NOT DISTINCT FROM ${variantId ?? null}
+       AND status='active'
+       AND expires_at > now()
+       ${excludingOrderId ? sql`AND order_id IS DISTINCT FROM ${excludingOrderId}` : sql``}
+  `);
+  return Number(rowsFromExecute(result)[0]?.reserved ?? 0);
+}
+
+async function upsertReservationLines(tx: any, orderId: string, lines: OrderLineItem[]): Promise<void> {
+  const ttl = reservationTtlMinutes();
+  for (const line of lines) {
+    await tx.execute(sql`
+      INSERT INTO payment_stock_reservations(order_id,product_id,variant_id,quantity,status,expires_at,created_at,updated_at)
+      VALUES (${orderId},${line.productId},${line.variantId ?? null},${Number(line.quantity)},'active',now()+(${ttl} * interval '1 minute'),now(),now())
+      ON CONFLICT DO NOTHING
+    `);
+    await tx.execute(sql`
+      UPDATE payment_stock_reservations
+         SET quantity=${Number(line.quantity)}, status='active', release_reason=NULL,
+             expires_at=now()+(${ttl} * interval '1 minute'), updated_at=now()
+       WHERE order_id=${orderId}
+         AND product_id=${line.productId}
+         AND variant_id IS NOT DISTINCT FROM ${line.variantId ?? null}
+    `);
+  }
+}
+
+async function ensureOrderReservation(orderId: string): Promise<void> {
+  const db = dbOrThrow();
+  await db.transaction(async (tx) => {
+    await tx.execute(sql`SELECT id FROM orders WHERE id=${orderId} FOR UPDATE`);
+    const [order] = await tx.select().from(orders).where(eq(orders.id, orderId)).limit(1);
+    if (!order) throw Object.assign(new Error("Order not found"), { status: 404 });
+    const lines = Array.isArray(order.items) ? order.items : [];
+    if (lines.length === 0) throw Object.assign(new Error("Order has no items"), { status: 409 });
+
+    for (const line of lines) {
+      const product = await lockProductRowForUpdate(tx, line.productId);
+      if (!product) throw Object.assign(new Error(STOCK_ERROR_INSUFFICIENT), { status: 409 });
+      const quantity = Number(line.quantity);
+      const reservedElsewhere = await activeReservedQuantity(tx, line.productId, line.variantId, orderId);
+      if (line.variantId) {
+        const variants = Array.isArray(product.variants) ? product.variants : [];
+        const variant = variants.find((candidate: any) => candidate.id === line.variantId);
+        if (!variant || Number(variant.stock ?? 0) - reservedElsewhere < quantity) {
+          throw Object.assign(new Error(STOCK_ERROR_INSUFFICIENT), { status: 409 });
+        }
+      } else if (Number(product.stock ?? 0) - reservedElsewhere < quantity) {
+        throw Object.assign(new Error(STOCK_ERROR_INSUFFICIENT), { status: 409 });
+      }
+    }
+    await upsertReservationLines(tx, order.id, lines);
+  });
+}
+
+async function releaseOrderReservation(orderId: string, reason: string): Promise<void> {
+  const db = dbOrThrow();
+  await db.execute(sql`
+    UPDATE payment_stock_reservations
+       SET status='released', release_reason=${reason}, updated_at=now()
+     WHERE order_id=${orderId} AND status='active'
+  `);
 }
 
 function rowsFromExecute(result: unknown): any[] {
@@ -283,11 +362,13 @@ export async function prepareOnlineOrder(input: OnlineCheckoutInput): Promise<Pr
             const variants = Array.isArray(product.variants) ? product.variants : [];
             const variant = variants.find((candidate: any) => candidate.id === item.variantId);
             if (!variant) throw Object.assign(new Error(`Invalid variant ${item.variantId} for ${product.name}`), { status: 400 });
-            if (Number(variant.stock ?? 0) < quantity) throw Object.assign(new Error(STOCK_ERROR_INSUFFICIENT), { status: 409 });
+            const reservedElsewhere = await activeReservedQuantity(tx, product.id, item.variantId, input.idempotencyKey);
+            if (Number(variant.stock ?? 0) - reservedElsewhere < quantity) throw Object.assign(new Error(STOCK_ERROR_INSUFFICIENT), { status: 409 });
             price = parsePositivePrice(variant.price, `Variant ${variant.label}`);
             variantLabel = variant.label;
           } else {
-            if (Number(product.stock ?? 0) < quantity) throw Object.assign(new Error(STOCK_ERROR_INSUFFICIENT), { status: 409 });
+            const reservedElsewhere = await activeReservedQuantity(tx, product.id, undefined, input.idempotencyKey);
+            if (Number(product.stock ?? 0) - reservedElsewhere < quantity) throw Object.assign(new Error(STOCK_ERROR_INSUFFICIENT), { status: 409 });
             price = parsePositivePrice(product.price, `Product ${product.name}`);
           }
 
@@ -365,7 +446,7 @@ export async function prepareOnlineOrder(input: OnlineCheckoutInput): Promise<Pr
           method: "alqaseh",
           status: "pending",
           providerResponse: {
-            flowVersion: 1,
+            flowVersion: 2,
             sessionId: input.sessionId || null,
             couponCode: normalizedCouponCode || null,
             attempts: [],
@@ -373,6 +454,7 @@ export async function prepareOnlineOrder(input: OnlineCheckoutInput): Promise<Pr
           },
         } as any).returning();
 
+        await upsertReservationLines(tx, order.id, lines);
         return { order, payment, reused: false };
       });
     } catch (error: any) {
@@ -399,71 +481,83 @@ export async function startAlqasehPaymentForOrder(
   options: { forceNew?: boolean } = {},
 ): Promise<StartedAlqasehPayment> {
   const db = dbOrThrow();
-  const { order, payment } = await getOrderAndPayment(orderId);
-  if (order.paymentStatus === "paid" || payment.status === "completed") {
-    throw Object.assign(new Error("هذا الطلب مدفوع بالفعل ولا يمكن إنشاء عملية دفع جديدة له."), { status: 409 });
-  }
+  await ensureOrderReservation(orderId);
 
-  const previous = safeProviderResponse(payment.providerResponse);
-  const currentToken = typeof previous.token === "string" ? previous.token : "";
-  if (!options.forceNew && payment.transactionId && currentToken) {
+  // Serialize hosted-session creation on the payment row. Holding the row lock
+  // through the provider call is deliberate: checkout volume is low, the provider
+  // client has a 10s timeout, and this closes the double-session race from two tabs.
+  return db.transaction(async (tx) => {
+    await tx.execute(sql`SELECT id FROM payments WHERE order_id=${orderId} FOR UPDATE`);
+    const [order] = await tx.select().from(orders).where(eq(orders.id, orderId)).limit(1);
+    const [payment] = await tx.select().from(payments).where(eq(payments.orderId, orderId)).limit(1);
+    if (!order || !payment || payment.method !== "alqaseh") {
+      throw Object.assign(new Error("Online payment not found for this order"), { status: 404 });
+    }
+    if (order.paymentStatus === "paid" || payment.status === "completed") {
+      throw Object.assign(new Error("هذا الطلب مدفوع بالفعل ولا يمكن إنشاء عملية دفع جديدة له."), { status: 409 });
+    }
+
+    const previous = safeProviderResponse(payment.providerResponse);
+    const currentToken = typeof previous.token === "string" ? previous.token : "";
+    if (!options.forceNew && payment.transactionId && currentToken) {
+      return {
+        orderId: order.id,
+        orderNumber: order.orderNumber || order.id,
+        amount: paymentAmount(payment),
+        currency: String(payment.currency || PAYMENT_CURRENCY),
+        paymentId: payment.transactionId,
+        redirectUrl: getAlqasehHostedPaymentUrl(currentToken),
+        reused: true,
+      };
+    }
+
+    const created = await createAlqasehPayment({
+      amount: paymentAmount(payment),
+      currency: String(payment.currency || PAYMENT_CURRENCY),
+      description: `AQUAVO order ${order.orderNumber || order.id}`,
+      orderId: order.id,
+      redirectUrl: urls.redirectUrl,
+      webhookUrl: urls.webhookUrl,
+      country: "IQ",
+      email: order.customerEmail || undefined,
+      nonce: randomUUID(),
+      customData: { orderNumber: order.orderNumber || order.id },
+    });
+
+    const attempts = Array.isArray(previous.attempts) ? [...previous.attempts] : [];
+    if (payment.transactionId && !attempts.some((entry: any) => entry?.paymentId === payment.transactionId)) {
+      attempts.push({ paymentId: payment.transactionId, status: previous.providerStatus || "unknown" });
+    }
+    if (!attempts.some((entry: any) => entry?.paymentId === created.payment_id)) {
+      attempts.push({ paymentId: created.payment_id, status: "prepared" });
+    }
+
+    await tx.update(payments).set({
+      transactionId: created.payment_id,
+      status: "pending",
+      providerResponse: {
+        ...previous,
+        attempts,
+        token: created.token,
+        providerStatus: "prepared",
+        paymentId: created.payment_id,
+        startedAt: new Date().toISOString(),
+      },
+      updatedAt: new Date(),
+    } as any).where(eq(payments.id, payment.id));
+    await tx.update(orders).set({ paymentStatus: "pending", status: "pending_payment", updatedAt: new Date() } as any)
+      .where(eq(orders.id, order.id));
+
     return {
       orderId: order.id,
       orderNumber: order.orderNumber || order.id,
       amount: paymentAmount(payment),
       currency: String(payment.currency || PAYMENT_CURRENCY),
-      paymentId: payment.transactionId,
-      redirectUrl: getAlqasehHostedPaymentUrl(currentToken),
-      reused: true,
-    };
-  }
-
-  const created = await createAlqasehPayment({
-    amount: paymentAmount(payment),
-    currency: String(payment.currency || PAYMENT_CURRENCY),
-    description: `AQUAVO order ${order.orderNumber || order.id}`,
-    orderId: order.id,
-    redirectUrl: urls.redirectUrl,
-    webhookUrl: urls.webhookUrl,
-    country: "IQ",
-    email: order.customerEmail || undefined,
-    nonce: randomUUID(),
-    customData: { orderNumber: order.orderNumber || order.id },
-  });
-
-  const attempts = Array.isArray(previous.attempts) ? [...previous.attempts] : [];
-  if (payment.transactionId && !attempts.some((entry: any) => entry?.paymentId === payment.transactionId)) {
-    attempts.push({ paymentId: payment.transactionId, status: previous.providerStatus || "unknown" });
-  }
-  if (!attempts.some((entry: any) => entry?.paymentId === created.payment_id)) {
-    attempts.push({ paymentId: created.payment_id, status: "prepared" });
-  }
-
-  await db.update(payments).set({
-    transactionId: created.payment_id,
-    status: "pending",
-    providerResponse: {
-      ...previous,
-      attempts,
-      token: created.token,
-      providerStatus: "prepared",
       paymentId: created.payment_id,
-      startedAt: new Date().toISOString(),
-    },
-    updatedAt: new Date(),
-  } as any).where(eq(payments.id, payment.id));
-  await db.update(orders).set({ paymentStatus: "pending", status: "pending_payment", updatedAt: new Date() } as any)
-    .where(eq(orders.id, order.id));
-
-  return {
-    orderId: order.id,
-    orderNumber: order.orderNumber || order.id,
-    amount: paymentAmount(payment),
-    currency: String(payment.currency || PAYMENT_CURRENCY),
-    paymentId: created.payment_id,
-    redirectUrl: getAlqasehHostedPaymentUrl(created.token),
-    reused: false,
-  };
+      redirectUrl: getAlqasehHostedPaymentUrl(created.token),
+      reused: false,
+    };
+  });
 }
 
 async function finalizePaidOrder(
@@ -571,11 +665,19 @@ async function finalizePaidOrder(
         updatedAt: new Date(),
       } as any).where(eq(payments.id, payment.id));
 
+      await tx.execute(sql`
+        UPDATE payment_stock_reservations
+           SET status='consumed', release_reason='payment_succeeded', updated_at=now()
+         WHERE order_id=${order.id} AND status='active'
+      `);
+      const sessionId = typeof providerMeta.sessionId === "string" ? providerMeta.sessionId : undefined;
+      await enqueuePaidOrderOutbox(tx, { orderId: updatedOrder.id, sessionId, loyaltyResult });
+
       return {
         order: updatedOrder,
         loyaltyResult,
         newlyFinalized: true,
-        sessionId: typeof providerMeta.sessionId === "string" ? providerMeta.sessionId : undefined,
+        sessionId,
       };
     });
   } catch (error) {
@@ -584,70 +686,6 @@ async function finalizePaidOrder(
     }
     throw error;
   }
-}
-
-async function runPaidOrderSideEffects(result: FinalizeResult): Promise<void> {
-  if (!result.newlyFinalized) return;
-  const order = result.order as any;
-  const lines = Array.isArray(order.items) ? order.items : [];
-
-  if (result.sessionId) {
-    analyticsTracker.trackSessionStatus(result.sessionId, "converted").catch(() => {});
-  }
-  await Promise.all(lines.map((line: any) => analyticsTracker.trackPurchase({
-    userId: order.userId || undefined,
-    sessionId: result.sessionId || `payment:${order.id}`,
-    productId: line.productId,
-    orderId: order.id,
-    quantity: Number(line.quantity) || 0,
-    price: Number.isFinite(Number(line.priceAtPurchase)) ? Number(line.priceAtPurchase) : 0,
-  }).catch(() => {})));
-
-  if (order.userId && result.loyaltyResult) {
-    await loyaltyNotifications.sendPostPurchaseNotifications(order.userId, order.id, result.loyaltyResult)
-      .catch((error) => console.error("[AQUAVO Al-Qaseh] loyalty notification failed:", error));
-    try {
-      const referralResult = await referralStorage.markFirstPurchase(order.userId, order.id);
-      if (referralResult.referral) {
-        await loyaltyStorage.awardReferralPurchaseBonus(referralResult.referral.referrerUserId, order.id);
-      }
-    } catch (error) {
-      console.error("[AQUAVO Al-Qaseh] referral post-payment effect failed:", error);
-    }
-  }
-
-  try {
-    const db = dbOrThrow();
-    await db.execute(sql`
-      INSERT INTO event_bus (source_agent, target_agent, event_type, payload, status, priority, created_at)
-      VALUES ('sales', 'logistics', 'new_order_received', ${JSON.stringify({ orderId: order.id, customerAddress: order.shippingAddress })}::jsonb, 'pending', 1, NOW())
-    `);
-  } catch (error) {
-    console.error("[AQUAVO Al-Qaseh] logistics event failed:", error);
-  }
-
-  await sendOrderNotification({
-    orderId: order.id,
-    orderNumber: order.orderNumber || order.id,
-    customerName: order.customerName || "عميل AQUAVO",
-    customerPhone: order.customerPhone || "",
-    customerAddress: typeof order.shippingAddress === "string"
-      ? order.shippingAddress
-      : JSON.stringify(order.shippingAddress ?? ""),
-    total: order.roundedTotal ?? order.total,
-    subtotal: Number(order.total) - Number(order.shippingCost ?? 0) + Number(order.discountTotal ?? 0),
-    shippingCost: order.shippingCost,
-    discountTotal: order.discountTotal,
-    paymentMethod: "الدفع الإلكتروني — Al-Qaseh ✅",
-    items: lines.map((line: any) => ({
-      productId: line.productId,
-      productName: line.productName,
-      variantLabel: line.variantLabel,
-      quantity: Number(line.quantity) || 1,
-      priceAtPurchase: line.priceAtPurchase,
-      lineTotal: line.lineTotal,
-    })),
-  });
 }
 
 async function recordPaidInventoryReview(
@@ -661,6 +699,11 @@ async function recordPaidInventoryReview(
   await db.transaction(async (tx) => {
     await tx.update(orders).set({ paymentStatus: "paid", status: "payment_review", updatedAt: new Date() } as any)
       .where(eq(orders.id, orderId));
+    await tx.execute(sql`
+      UPDATE payment_stock_reservations
+         SET status='released', release_reason='paid_inventory_review', updated_at=now()
+       WHERE order_id=${orderId} AND status='active'
+    `);
     await tx.update(payments).set({
       transactionId: providerPaymentId,
       status: "completed",
@@ -708,7 +751,9 @@ export async function verifyAndSyncAlqasehPayment(
       const finalized = await finalizePaidOrder(order.id, providerPaymentId, context);
       finalOrder = finalized.order;
       newlyFinalized = finalized.newlyFinalized;
-      await runPaidOrderSideEffects(finalized);
+      await processPaymentOutboxForOrder(order.id).catch((error) =>
+        console.error("[AQUAVO Al-Qaseh] durable outbox immediate drain failed:", error),
+      );
     } catch (error) {
       if (!(error instanceof PaidOrderInventoryConflict)) throw error;
       await recordPaidInventoryReview(order.id, providerPaymentId, context);
@@ -738,6 +783,11 @@ export async function verifyAndSyncAlqasehPayment(
           .where(eq(orders.id, order.id));
       });
       finalOrder = { ...order, paymentStatus: mappedStatus } as Order;
+      if (mappedStatus !== "pending") {
+        await releaseOrderReservation(order.id, `payment_${mappedStatus}`).catch((error) =>
+          console.error("[AQUAVO Al-Qaseh] reservation release failed:", error),
+        );
+      }
     }
   }
 
@@ -766,7 +816,67 @@ export async function retryAlqasehPayment(
 
   const verified = await verifyAndSyncAlqasehPayment(currentPaymentId, orderId);
   if (verified.paymentStatus === "paid") return verified;
-  return startAlqasehPaymentForOrder(orderId, urls, { forceNew: true });
+  if (verified.paymentStatus === "pending") {
+    throw Object.assign(new Error("عملية الدفع ما زالت قيد التحقق. انتظر قليلاً قبل إعادة المحاولة."), { status: 409 });
+  }
+
+  await ensureOrderReservation(orderId);
+  const db = dbOrThrow();
+  try {
+    return await db.transaction(async (tx) => {
+      await tx.execute(sql`SELECT id FROM payments WHERE order_id=${orderId} FOR UPDATE`);
+      const [order] = await tx.select().from(orders).where(eq(orders.id, orderId)).limit(1);
+      const [payment] = await tx.select().from(payments).where(eq(payments.orderId, orderId)).limit(1);
+      if (!order || !payment || payment.method !== "alqaseh") {
+        throw Object.assign(new Error("Online payment not found for this order"), { status: 404 });
+      }
+      if (order.paymentStatus === "paid" || payment.status === "completed") {
+        throw Object.assign(new Error("تم تأكيد الدفع بالفعل."), { status: 409 });
+      }
+
+      const retried = await retryAlqasehPaymentContext(currentPaymentId);
+      const previous = safeProviderResponse(payment.providerResponse);
+      const attempts = Array.isArray(previous.attempts) ? [...previous.attempts] : [];
+      const index = attempts.findIndex((entry: any) => entry?.paymentId === retried.payment_id);
+      const nextAttempt = { paymentId: retried.payment_id, status: retried.payment_status || "prepared", retriedAt: new Date().toISOString() };
+      if (index >= 0) attempts[index] = { ...attempts[index], ...nextAttempt };
+      else attempts.push(nextAttempt);
+
+      await tx.update(payments).set({
+        transactionId: retried.payment_id,
+        status: "pending",
+        providerResponse: {
+          ...previous,
+          attempts,
+          token: retried.token,
+          providerStatus: retried.payment_status || "prepared",
+          paymentId: retried.payment_id,
+          nativeRetryAt: new Date().toISOString(),
+        },
+        updatedAt: new Date(),
+      } as any).where(eq(payments.id, payment.id));
+      await tx.update(orders).set({ paymentStatus: "pending", status: "pending_payment", updatedAt: new Date() } as any)
+        .where(eq(orders.id, order.id));
+
+      return {
+        orderId: order.id,
+        orderNumber: order.orderNumber || order.id,
+        amount: paymentAmount(payment),
+        currency: String(payment.currency || PAYMENT_CURRENCY),
+        paymentId: retried.payment_id,
+        redirectUrl: getAlqasehHostedPaymentUrl(retried.token),
+        reused: false,
+      };
+    });
+  } catch (error) {
+    // Al-Qaseh documents retry for failed/expiring contexts. If it explicitly
+    // rejects a terminal context, create a fresh context for the SAME AQUAVO
+    // order. Never fall back on timeout/5xx because the retry may have executed.
+    if (error instanceof AlqasehApiError && (error.status === 400 || error.status === 404)) {
+      return startAlqasehPaymentForOrder(orderId, urls, { forceNew: true });
+    }
+    throw error;
+  }
 }
 
 export async function getVerifiedPaymentState(

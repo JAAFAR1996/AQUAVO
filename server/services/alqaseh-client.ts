@@ -30,6 +30,12 @@ export interface AlqasehCreatePaymentResponse {
   token: string;
 }
 
+export interface AlqasehRetryPaymentResponse {
+  payment_id: string;
+  payment_status: AlqasehPaymentStatus;
+  token: string;
+}
+
 export interface AlqasehPaymentContext {
   amount: number;
   approval_code?: string;
@@ -71,8 +77,11 @@ const SANDBOX_CLIENT_SECRET = "Lr10yWWmm1dXLoI7VgXCrQVnlq13c1G0";
 const stripTrailingSlash = (value: string) => value.replace(/\/+$/, "");
 
 export function getAlqasehConfig(): AlqasehConfig {
-  const environment: AlqasehEnvironment =
-    process.env.ALQASEH_ENV?.toLowerCase() === "production" ? "production" : "sandbox";
+  const requestedEnvironment = process.env.ALQASEH_ENV?.trim().toLowerCase();
+  if (process.env.NODE_ENV === "production" && requestedEnvironment !== "production") {
+    throw new Error("Al-Qaseh online payments are disabled in production until ALQASEH_ENV=production is explicitly configured.");
+  }
+  const environment: AlqasehEnvironment = requestedEnvironment === "production" ? "production" : "sandbox";
 
   if (environment === "sandbox") {
     return {
@@ -217,6 +226,18 @@ export async function getAlqasehPayment(paymentId: string): Promise<AlqasehPayme
     `/egw/payments/${encodeURIComponent(paymentId.trim())}`,
     { method: "GET" },
   );
+}
+
+export async function retryAlqasehPaymentContext(
+  paymentId: string,
+  details = "Customer requested a payment retry from AQUAVO",
+): Promise<AlqasehRetryPaymentResponse> {
+  const normalized = paymentId?.trim();
+  if (!normalized) throw new Error("paymentId is required");
+  return alqasehRequest<AlqasehRetryPaymentResponse>("/egw/payments/retry", {
+    method: "POST",
+    body: JSON.stringify({ payment_id: normalized, details }),
+  });
 }
 
 export function getAlqasehHostedPaymentUrl(token: string): string {

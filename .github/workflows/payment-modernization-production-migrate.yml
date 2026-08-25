@@ -1,0 +1,50 @@
+name: Payment Modernization Production Migration
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Exact commit SHA or branch to migrate from"
+        required: true
+        default: "main"
+        type: string
+      confirm:
+        description: "Type APPLY_PAYMENT_MODERNIZATION_20260825 exactly"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: payment-modernization-production-migration
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    if: ${{ inputs.confirm == 'APPLY_PAYMENT_MODERNIZATION_20260825' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 1
+      - run: corepack enable
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.0.0
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Execute migration regression test
+        run: pnpm exec vitest run server/__tests__/payment-modernization-migration.test.ts
+      - name: Apply migration
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          CONFIRM_PAYMENT_MODERNIZATION: APPLY_PAYMENT_MODERNIZATION_20260825
+        run: pnpm exec tsx script/apply-payment-modernization-migration.ts

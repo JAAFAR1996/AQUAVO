@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
@@ -8,7 +8,7 @@ import { formatIQD } from "@/lib/utils";
 import { addCsrfHeader } from "@/lib/csrf";
 import { getOrderIdempotencyKey } from "@/lib/order-idempotency";
 import { PaymentMethodCard } from "./payment-method-card";
-import { Loader2, Lock, RotateCcw, Truck } from "lucide-react";
+import { ArrowLeft, Loader2, Lock, LockKeyhole, RotateCcw, ShieldCheck, Truck } from "lucide-react";
 
 const APPLIED_COUPON_STORAGE_KEY = "aquavo_applied_coupon_v1";
 
@@ -71,7 +71,23 @@ export function ConfirmationView({
     const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cod");
     const [onlinePreparing, setOnlinePreparing] = useState(false);
     const [onlineError, setOnlineError] = useState("");
+    const [onlineAvailable, setOnlineAvailable] = useState<boolean | null>(null);
     const [preparedOrder, setPreparedOrder] = useState<Pick<OnlineStartResponse, "orderNumber" | "amount"> | null>(null);
+
+    useEffect(() => {
+        let active = true;
+        fetch("/api/payments/alqaseh/availability", { credentials: "include", cache: "no-store" })
+            .then((response) => response.json())
+            .then((data) => { if (active) setOnlineAvailable(data?.available === true); })
+            .catch(() => { if (active) setOnlineAvailable(false); });
+        return () => { active = false; };
+    }, []);
+
+    useEffect(() => {
+        if (onlineAvailable === false && paymentMethod === "online") {
+            setPaymentMethod("cod");
+        }
+    }, [onlineAvailable, paymentMethod]);
 
     const pointsDiscount = loyaltyData?.pointsDiscount ?? 0;
     const cashbackEarned = loyaltyData?.cashbackEarned ?? 0;
@@ -86,7 +102,7 @@ export function ConfirmationView({
     const busy = isSubmitting || onlinePreparing;
 
     const beginOnlinePayment = async () => {
-        if (!agreed || busy || onlineBlockedByLoyalty) return;
+        if (!agreed || busy || onlineBlockedByLoyalty || onlineAvailable === false) return;
         setOnlinePreparing(true);
         setOnlineError("");
         setPreparedOrder(null);
@@ -149,7 +165,7 @@ export function ConfirmationView({
                 }));
             } catch { /* optional storage */ }
 
-            window.setTimeout(() => window.location.assign(started.redirectUrl), 350);
+            window.setTimeout(() => window.location.assign(started.redirectUrl), 250);
         } catch (error) {
             setOnlineError(error instanceof Error ? error.message : "تعذر تجهيز الدفع الإلكتروني. حاول مرة ثانية.");
             setOnlinePreparing(false);
@@ -167,15 +183,21 @@ export function ConfirmationView({
 
     if (onlinePreparing) {
         return (
-            <div className="flex min-h-[420px] flex-col items-center justify-center rounded-2xl border border-primary/15 bg-gradient-to-b from-primary/[0.055] to-background px-6 py-12 text-center">
-                <div className="mb-5 grid h-14 w-14 place-items-center rounded-2xl bg-primary/10 text-primary">
+            <div className="flex min-h-[440px] flex-col items-center justify-center overflow-hidden rounded-3xl border border-primary/15 bg-gradient-to-b from-primary/[0.07] via-background to-background px-6 py-12 text-center shadow-sm">
+                <div className="mb-6 flex items-center gap-3" aria-hidden="true">
+                    <div className="rounded-2xl border border-border/70 bg-background px-4 py-3 text-sm font-black tracking-[0.16em] shadow-sm">AQUAVO</div>
+                    <ArrowLeft className="h-5 w-5 text-muted-foreground" />
+                    <div className="grid h-12 w-12 place-items-center rounded-2xl border border-primary/15 bg-primary/10 text-primary"><ShieldCheck className="h-6 w-6" /></div>
+                    <div className="text-right"><div className="text-sm font-bold">Al-Qaseh</div><div className="text-[11px] text-muted-foreground">بوابة الدفع الآمنة</div></div>
+                </div>
+                <div className="mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-primary/10 text-primary">
                     <Loader2 className="h-7 w-7 animate-spin" aria-hidden="true" />
                 </div>
-                <h3 className="text-xl font-bold">جارٍ تجهيز الدفع...</h3>
-                <p className="mt-2 max-w-sm text-sm leading-7 text-muted-foreground">
-                    سيتم تحويلك إلى بوابة الدفع لإكمال العملية. لا تغلق الصفحة أثناء التجهيز.
+                <h3 className="text-xl font-bold">جاري نقلك إلى بوابة الدفع الآمنة</h3>
+                <p className="mt-2 max-w-md text-sm leading-7 text-muted-foreground">
+                    لا تغلق الصفحة. ستُدخل بيانات البطاقة مباشرة لدى Al-Qaseh ثم ستعود تلقائياً إلى AQUAVO.
                 </p>
-                <div className="mt-6 w-full max-w-sm rounded-xl border border-border/70 bg-background/80 p-4 text-sm shadow-sm">
+                <div className="mt-6 w-full max-w-sm rounded-2xl border border-border/70 bg-background/90 p-4 text-sm shadow-sm">
                     <div className="flex justify-between gap-4 py-1.5">
                         <span className="text-muted-foreground">المبلغ</span>
                         <strong>{formatIQD(preparedOrder?.amount ?? finalAmount)}</strong>
@@ -187,7 +209,7 @@ export function ConfirmationView({
                         </div>
                     )}
                 </div>
-                <p className="mt-5 text-xs text-muted-foreground">AQUAVO لا يستقبل أو يخزن بيانات بطاقتك.</p>
+                <div className="mt-5 inline-flex items-center gap-1.5 text-xs text-muted-foreground"><LockKeyhole className="h-3.5 w-3.5" />AQUAVO لا يستقبل أو يخزن بيانات بطاقتك</div>
             </div>
         );
     }
@@ -257,10 +279,26 @@ export function ConfirmationView({
                     <h4 id="payment-method-heading" className="text-sm font-semibold">طريقة الدفع</h4>
                     <p className="mt-1 text-xs text-muted-foreground">اختر الطريقة التي تناسبك لإكمال الطلب.</p>
                 </div>
-                <div className="grid gap-3 sm:grid-cols-2">
+                <div className="grid gap-3 sm:grid-cols-2" role="radiogroup" aria-label="طريقة الدفع">
                     <PaymentMethodCard method="cod" selected={paymentMethod} onChange={(method) => { setPaymentMethod(method); setOnlineError(""); }} disabled={busy} />
-                    <PaymentMethodCard method="online" selected={paymentMethod} onChange={(method) => { setPaymentMethod(method); setOnlineError(""); }} disabled={busy || onlineBlockedByLoyalty} />
+                    <PaymentMethodCard method="online" selected={paymentMethod} onChange={(method) => { setPaymentMethod(method); setOnlineError(""); }} disabled={busy || onlineBlockedByLoyalty || onlineAvailable === false} />
                 </div>
+                {onlineAvailable === false && (
+                    <p className="rounded-xl border border-border/70 bg-muted/35 px-3 py-2 text-xs leading-6 text-muted-foreground">
+                        الدفع الإلكتروني غير متاح مؤقتاً، لذلك يمكنك إكمال الطلب بالدفع عند الاستلام.
+                    </p>
+                )}
+                {paymentMethod === "online" && onlineAvailable !== false && !onlineBlockedByLoyalty && (
+                    <div className="rounded-2xl border border-primary/15 bg-primary/[0.045] p-3.5">
+                        <div className="flex items-start gap-2.5">
+                            <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                            <div>
+                                <p className="text-sm font-semibold">ستنتقل إلى صفحة Al-Qaseh الآمنة</p>
+                                <p className="mt-1 text-xs leading-6 text-muted-foreground">بيانات البطاقة تُدخل لدى مزود الدفع مباشرة، وبعد إكمال العملية ستعود تلقائياً إلى AQUAVO للتحقق من النتيجة.</p>
+                            </div>
+                        </div>
+                    </div>
+                )}
                 {onlineBlockedByLoyalty && (
                     <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-6 text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-200">
                         لاستخدام الدفع الإلكتروني حالياً، ارجع وألغِ استخدام النقاط أو رصيد الباقي. لن نخصم أي رصيد ولاء قبل تأكيد الدفع.
@@ -299,7 +337,7 @@ export function ConfirmationView({
                     {isSubmitting
                         ? "جاري المعالجة..."
                         : paymentMethod === "online"
-                            ? `الدفع الآن • ${formatIQD(finalAmount)}`
+                            ? `متابعة إلى الدفع الآمن — ${formatIQD(finalAmount)}`
                             : "تأكيد الطلب"}
                 </Button>
             </div>

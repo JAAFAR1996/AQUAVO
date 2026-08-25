@@ -9,6 +9,7 @@ import { runResilientDeliveryCareAutoReplyRecovery } from "../services/whatsapp-
 import { cleanupWhatsAppProviderStatusEvents } from "../services/whatsapp-provider-status.js";
 import { runResilientFinanceAudit } from "../services/groq-finance-audit-resilient.js";
 import { smartNotifications } from "../services/smart-notifications.js";
+import { runPaymentMaintenance } from "../services/payment-maintenance.js";
 
 const router = Router();
 
@@ -45,6 +46,12 @@ router.get("/nightly", async (_req: Request, res: Response) => {
   console.log("[Cron] Starting nightly tasks...");
   const startTime = Date.now();
   const results: Record<string, { success: boolean; message: string; duration: number }> = {};
+  let paymentMaintenance: Awaited<ReturnType<typeof runPaymentMaintenance>> | null = null;
+  try {
+    paymentMaintenance = await runPaymentMaintenance();
+  } catch (error) {
+    console.error("[Cron] Payment maintenance fallback failed:", error);
+  }
   const tasks: Array<{ name: string; jobKey: Parameters<typeof triggerJob>[0] }> = [
     { name: "Embeddings", jobKey: "embeddings" },
     { name: "Predictions", jobKey: "predictions" },
@@ -95,7 +102,7 @@ router.get("/nightly", async (_req: Request, res: Response) => {
   const totalDuration = Date.now() - startTime;
   const successCount = Object.values(results).filter((result) => result.success).length;
   const allSucceeded = successCount === tasks.length;
-  res.status(200).json({ success: allSucceeded, totalDuration, completed: `${successCount}/${tasks.length}`, results });
+  res.status(200).json({ success: allSucceeded, totalDuration, completed: `${successCount}/${tasks.length}`, paymentMaintenance, results });
 });
 
 router.get("/weekly-blog", async (_req: Request, res: Response) => {
