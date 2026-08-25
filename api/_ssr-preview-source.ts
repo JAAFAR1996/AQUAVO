@@ -30,6 +30,7 @@ import {
   PUBLIC_INDEXABLE_PATHS,
   canonicalProductCategory,
   isNoindexPath,
+  productListingSeo,
 } from "../shared/seo-contract.js";
 import { isKnownSitePath } from "../shared/site-routes.js";
 import { toPublicVariant } from "../shared/public-product.js";
@@ -295,12 +296,13 @@ async function resolvePage(pathname: string, rawCategory?: string): Promise<Reso
         status: 404,
       };
     }
-    const canonicalPath = category ? `/products?category=${encodeURIComponent(category)}` : "/products";
+    const listingSeo = productListingSeo(category);
+    const { canonicalPath } = listingSeo;
     const name = category ? `منتجات ${category}` : "مستلزمات أحواض الزينة في العراق";
     return {
       page: { kind: "products", products, category },
       meta: {
-        title: `${name} | AQUAVO`,
+        title: listingSeo.title,
         description: category
           ? `تصفح منتجات ${category} المتوفرة من AQUAVO مع السعر وحالة المخزون.`
           : "تصفح مستلزمات أحواض الزينة المتوفرة من AQUAVO مع روابط مباشرة لكل منتج.",
