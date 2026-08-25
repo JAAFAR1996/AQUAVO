@@ -123,6 +123,35 @@ describe("SEO metadata contracts", () => {
     expect(itemList?.numberOfItems).toBe(itemList?.itemListElement?.length);
   });
 
+  it("rewrites the robots tag for private routes, and keeps 404s at noindex,follow", () => {
+    // Behavioural on purpose. An earlier version of this rule asserted only that
+    // the source contained the replacement string, and passed while the regex
+    // silently matched nothing, so production kept serving "index, follow" on
+    // /cart. Exercise injectMeta against a real template instead.
+    const template =
+      '<html><head><meta name="robots" content="index, follow, max-image-preview:large">' +
+      "<title>__META_TITLE__</title></head><body></body></html>";
+    const base = {
+      title: "عنوان",
+      description: "وصف.",
+      url: "https://www.aquavoiq.com/cart",
+      image: "https://www.aquavoiq.com/brand/aquavo-v2-horizontal.png",
+    };
+
+    const robotsOf = (html: string) =>
+      html.match(/<meta\b[^>]*\bname=["']robots["'][^>]*>/i)?.[0] ?? "";
+
+    expect(robotsOf(injectMeta(template, { ...base, noIndex: true }))).toContain(
+      'content="noindex, nofollow, noarchive"',
+    );
+    // A missing page is still worth following out of, so notFound wins.
+    expect(
+      robotsOf(injectMeta(template, { ...base, noIndex: true, notFound: true })),
+    ).toContain('content="noindex, follow"');
+    // Public routes are untouched.
+    expect(robotsOf(injectMeta(template, base))).toContain('content="index, follow');
+  });
+
   it("preloads only the route's relevant LCP image", () => {
     const base = {
       title: "عنوان",
