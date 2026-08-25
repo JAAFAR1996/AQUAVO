@@ -1,0 +1,74 @@
+name: Al-Qaseh Accounting Production Migration
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Exact commit SHA or branch to migrate from"
+        required: true
+        default: "main"
+        type: string
+      confirm:
+        description: "Type APPLY_ALQASEH_ACCOUNTING_20260825 exactly"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: alqaseh-accounting-production-migration
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    if: ${{ inputs.confirm == 'APPLY_ALQASEH_ACCOUNTING_20260825' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: production
+    steps:
+      - name: Checkout exact release ref
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 1
+
+      - name: Record release commit
+        run: git rev-parse HEAD
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.0.0
+          run_install: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Execute Al-Qaseh payment and accounting tests
+        run: >-
+          pnpm exec vitest run
+          server/__tests__/alqaseh-payment-flow.test.ts
+          server/__tests__/alqaseh-accounting-contract.test.ts
+          server/__tests__/alqaseh-accounting-execution.test.ts
+
+      - name: Verify production build
+        run: pnpm build
+
+      - name: Apply Al-Qaseh accounting migration
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          CONFIRM_ALQASEH_ACCOUNTING: APPLY_ALQASEH_ACCOUNTING_20260825
+        run: |
+          set -euo pipefail
+          test -n "$DATABASE_URL"
+          pnpm exec tsx script/apply-alqaseh-accounting-migration.ts
