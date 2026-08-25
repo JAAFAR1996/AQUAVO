@@ -34,7 +34,7 @@ describe("customer trust pages", () => {
     render(<FAQ />);
     expect(screen.getByRole("heading", { level: 1, name: "أسئلة واضحة، أجوبة مباشرة" })).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "شلون أدفع؟" }));
-    expect(screen.getByText(/الدفع عند الاستلام أو إلكترونياً/)).toBeInTheDocument();
+    expect(screen.getByText(/نقداً عند الاستلام، أو إلكترونياً/)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "شنو يبيع AQUAVO؟" }));
     expect(screen.getByText(/ما نبيع أسماك حية/)).toBeInTheDocument();
     expect(screen.queryByText(/جميع المعدات الإلكترونية.*ضمان/)).not.toBeInTheDocument();

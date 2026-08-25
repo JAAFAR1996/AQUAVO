@@ -39,14 +39,7 @@ export class CheckoutPage extends BasePage {
     readonly paymentSection: Locator;
     readonly paymentMethods: Locator;
     readonly cashOnDeliveryOption: Locator;
-    readonly creditCardOption: Locator;
-    readonly zainCashOption: Locator;
-
-    // Credit Card Form (if applicable)
-    readonly cardNumberInput: Locator;
-    readonly cardExpiryInput: Locator;
-    readonly cardCVVInput: Locator;
-    readonly cardNameInput: Locator;
+    readonly onlinePaymentOption: Locator;
 
     // Order Summary
     readonly orderSummary: Locator;
@@ -114,14 +107,7 @@ export class CheckoutPage extends BasePage {
         this.paymentSection = page.locator('[class*="payment"]');
         this.paymentMethods = page.locator('input[name*="payment"][type="radio"], [class*="payment-option"]');
         this.cashOnDeliveryOption = page.locator('text=/الدفع عند الاستلام|Cash on Delivery/');
-        this.creditCardOption = page.locator('text=/بطاقة ائتمان|Credit Card/');
-        this.zainCashOption = page.locator('text=/زين كاش|ZainCash/');
-
-        // Credit Card Form
-        this.cardNumberInput = page.locator('input[name*="cardNumber"], input[placeholder*="رقم البطاقة"]');
-        this.cardExpiryInput = page.locator('input[name*="expiry"], input[placeholder*="MM/YY"]');
-        this.cardCVVInput = page.locator('input[name*="cvv"], input[placeholder*="CVV"]');
-        this.cardNameInput = page.locator('input[name*="cardName"], input[placeholder*="اسم حامل"]');
+        this.onlinePaymentOption = page.locator('text=/الدفع الإلكتروني|Online Payment|Al-Qaseh/');
 
         // Order Summary
         this.orderSummary = page.locator('[class*="order-summary"], [class*="cart-summary"]');
@@ -234,30 +220,13 @@ export class CheckoutPage extends BasePage {
     /**
      * Select payment method
      */
-    async selectPaymentMethod(method: 'cash' | 'card' | 'zain') {
+    async selectPaymentMethod(method: 'cash' | 'online') {
         if (method === 'cash') {
             await this.cashOnDeliveryOption.click();
-        } else if (method === 'card') {
-            await this.creditCardOption.click();
         } else {
-            await this.zainCashOption.click();
+            await this.onlinePaymentOption.click();
         }
         await this.page.waitForTimeout(300);
-    }
-
-    /**
-     * Fill credit card details
-     */
-    async fillCardDetails(data: {
-        number: string;
-        expiry: string;
-        cvv: string;
-        name: string;
-    }) {
-        await this.cardNumberInput.fill(data.number);
-        await this.cardExpiryInput.fill(data.expiry);
-        await this.cardCVVInput.fill(data.cvv);
-        await this.cardNameInput.fill(data.name);
     }
 
     /**

@@ -1,6 +1,6 @@
 # AQUAVO — llms-full.txt
 # https://www.aquavoiq.com
-# Last updated: 2026-08-04
+# Last updated: 2026-08-25
 
 ## Identity and operator
 
@@ -18,7 +18,7 @@
 
 - Delivery within 24 hours throughout Iraq
 - Fixed delivery fee: 5,000 IQD
-- Cash on delivery is the only active payment method
+- Checkout supports cash on delivery and online payment through Al-Qaseh; online payment is accepted only after server-side gateway confirmation
 - Customer support is available 24/7
 
 ## Store scope

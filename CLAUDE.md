@@ -126,7 +126,7 @@ Camera:      Canon R5 / Hasselblad X2D, 85mm, f/2.0-2.8
 - NO live fish, NO live animals, NO water plants
 - Valid categories: filters, heaters, food, decor, tanks, lighting, water treatment
 - Any content mentioning "أسماك حية" or "نباتات مائية" is WRONG — fix immediately
-- **Payment:** Cash on Delivery ONLY (no payment gateway is currently enabled — do not imply credit cards)
+- **Payment:** Cash on Delivery + Al-Qaseh online payment. Online payment must be verified server-side; do not imply AQUAVO stores sensitive card data or supports payment methods that are not implemented.
 - **Shipping:** 5,000 IQD flat fee across Iraq
 - **Support:** 24/7 — do not contradict this with restrictive opening hours in copy or JSON-LD
 
@@ -197,4 +197,4 @@ For content, reels, stories, carousels, campaign planning, and social media stra
 - Content Engine: `.agents/memory/05_content_engine.md`
 - Psychology Framework: `.agents/memory/06_psychology_framework.md`
 
-> **Last Updated:** 2026-05-16 | Prompts: 62 | Completed: 0
+> **Last Updated:** 2026-08-25 | Prompts: 62 | Completed: 0
