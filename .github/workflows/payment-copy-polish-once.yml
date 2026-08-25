@@ -15,7 +15,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
+
+      - name: Install project dependencies
+        run: npm ci
 
       - name: Fix payment-copy semantics and stale tests
         shell: bash
@@ -31,14 +34,12 @@ jobs:
                   raise SystemExit(f"{path}: expected {count} matches, found {found}: {old[:120]!r}")
               p.write_text(text.replace(old, new), encoding='utf-8')
 
-          # SEO preview FAQ: describe both methods instead of changing only the question.
           replace_required(
               'api/_seo-preview-shell.tsx',
               '["هل الدفع عند الاستلام أو إلكترونياً متوفر؟", "نعم، طريقة الدفع المعتمدة هي الدفع النقدي عند الاستلام."],',
               '["شنو طرق الدفع المتوفرة؟", "تگدر تختار الدفع نقداً عند الاستلام أو الدفع الإلكتروني من صفحة إكمال الطلب."],',
           )
 
-          # SEO FAQ: keep inspection-before-payment scoped to COD, and give online payment its own accurate answer.
           replace_required(
               'api/ssr-meta.ts',
               '{ "@type": "Question", name: "هل الدفع عند الاستلام أو إلكترونياً متاح؟", acceptedAnswer: { "@type": "Answer", text: "نعم! الدفع عند الاستلام أو إلكترونياً متاح لجميع الطلبات. يمكنك فحص المنتج والتأكد من سلامته قبل الدفع." } },',
@@ -50,7 +51,6 @@ jobs:
               '{ "@type": "Question", name: "هل توجد طرق دفع أخرى؟", acceptedAnswer: { "@type": "Answer", text: "حالياً المتاح هو الدفع عند الاستلام أو الدفع الإلكتروني. أي طريقة إضافية راح تظهر بشكل واضح بالموقع بعد تفعيلها." } },',
           )
 
-          # Guide copy: inspection-before-payment applies only to COD, not to a card already paid online.
           replace_required(
               'api/_guides-content.ts',
               '"التوصيل لكل المحافظات العراقية خلال 24 ساعة برسوم ثابتة 5,000 دينار عراقي، والدفع عند الاستلام أو إلكترونياً، وتقدر تفحص المنتج قبل الدفع.",',
@@ -62,14 +62,12 @@ jobs:
               'a: "تگدر تختار الدفع عند الاستلام أو إلكترونياً. فحص الطلب قبل التسديد يخص طلبات COD فقط إذا كان متاحاً عند التسليم.",',
           )
 
-          # Privacy regression should assert the actual new gateway/card-data disclosure.
           replace_required(
               'client/src/pages/__tests__/privacy-policy.test.tsx',
               'expect(screen.getByText(/الدفع عند الاستلام أو إلكترونياً/)).toBeInTheDocument();',
               'expect(screen.getByText(/بيانات البطاقة تُدخل مباشرة لدى بوابة الدفع/)).toBeInTheDocument();',
           )
 
-          # E2E trust/checkout assertions were still pinned to the old COD-only storefront copy.
           replace_required(
               'e2e/v2-foundation.spec.ts',
               'await expect(footer.getByText("طريقة الدفع المتوفرة هسه: الدفع النقدي عند الاستلام")).toBeVisible();',
@@ -86,7 +84,6 @@ jobs:
               'await expect(page.getByText("الدفع عند الاستلام أو إلكترونياً", { exact: true }).first()).toBeVisible();',
           )
 
-          # Guard against the awkward/incorrect variants discovered during diff review.
           checks = {
               'api/_seo-preview-shell.tsx': [
                   'هل الدفع عند الاستلام أو إلكترونياً متوفر؟',
@@ -110,7 +107,7 @@ jobs:
               raise SystemExit('stale or inaccurate payment copy remains:\n' + '\n'.join(failures))
           PY
 
-      - name: TypeScript check for audit files
+      - name: TypeScript check for modified payment files
         run: |
           npx tsc --noEmit --pretty false 2>&1 | tee /tmp/tsc.log || true
           if grep -E 'api/_seo-preview-shell|api/ssr-meta|privacy-policy|v2-foundation|order-confirmation|invoice-dialog|profile-orders|server/routes/orders' /tmp/tsc.log; then
@@ -132,9 +129,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add api client e2e server shared
-          if git diff --cached --quiet; then
-            echo "No changes"
-            exit 0
-          fi
           git commit -m "fix: polish online payment messaging"
           git push origin HEAD:codex/payment-copy-audit
