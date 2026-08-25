@@ -8,13 +8,14 @@ import { orderLimiter, orderTrackingLimiter } from "../middleware/rate-limit.js"
 import { z } from "zod";
 import { analyticsTracker } from "../services/analytics-tracker.js";
 import { db } from "../db.js";
-import { sql } from "drizzle-orm";
+import { inArray, sql } from "drizzle-orm";
 import { loyaltyStorage } from "../storage/loyalty-storage.js";
 import { isStockError } from "../storage/order-storage.js";
 import { ReferralStorage } from "../storage/referral-storage.js";
 import { loyaltyNotifications } from "../services/loyalty-notifications.js";
 import { sendOrderNotification } from "../services/order-notifications.js";
 import { toPublicOrderItem } from "../../shared/public-product.js";
+import { payments } from "../../shared/schema.js";
 
 const referralStorage = new ReferralStorage();
 
@@ -456,14 +457,39 @@ export function createOrderRouter(): RouterType {
         return { ...order, items: enrichedItems, loyalty };
     }
 
+    async function loadPaymentInfo(orderIds: string[]) {
+        const ids = Array.from(new Set(orderIds.filter(Boolean)));
+        const result = new Map<string, { method: string; status: string }>();
+        if (!db || ids.length === 0) return result;
+
+        const rows = await db
+            .select({ orderId: payments.orderId, method: payments.method, status: payments.status })
+            .from(payments)
+            .where(inArray(payments.orderId, ids));
+
+        for (const row of rows) {
+            result.set(row.orderId, { method: row.method, status: row.status });
+        }
+        return result;
+    }
+
     // Get My Orders
     router.get("/", requireAuth, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const sess = getSession(req);
             const orders = await storage.getOrders(sess?.userId);
-            // Enrich all orders with product names
-            const enriched = await Promise.all((orders || []).map(enrichOrderItems));
-            res.json(enriched);
+            const safeOrders = orders || [];
+            const paymentInfo = await loadPaymentInfo(safeOrders.map((order: any) => order.id));
+            // Enrich all orders with product names and expose the authoritative payment method.
+            const enriched = await Promise.all(safeOrders.map(enrichOrderItems));
+            res.json(enriched.map((order: any) => {
+                const payment = paymentInfo.get(order.id);
+                return {
+                    ...order,
+                    paymentMethod: payment?.method ?? "cash_on_delivery",
+                    paymentRecordStatus: payment?.status ?? null,
+                };
+            }));
         } catch (err) {
             next(err);
         }
@@ -517,9 +543,14 @@ export function createOrderRouter(): RouterType {
                 res.status(403).json({ message: "Access denied" });
                 return;
             }
-            // Enrich with product names
+            // Enrich with product names and the authoritative payment method.
             const enriched = await enrichOrderItems(order);
-            res.json(enriched);
+            const payment = (await loadPaymentInfo([order.id])).get(order.id);
+            res.json({
+                ...enriched,
+                paymentMethod: payment?.method ?? "cash_on_delivery",
+                paymentRecordStatus: payment?.status ?? null,
+            });
         } catch (err) {
             next(err);
         }

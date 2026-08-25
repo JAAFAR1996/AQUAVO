@@ -51,7 +51,7 @@ interface MetaTagsProps {
 
 export function MetaTags({
   title,
-  description = "AQUAVO متجر إلكتروني عراقي لمعدات ومستلزمات أحواض الزينة، مع توصيل لكل العراق ودفع عند الاستلام.",
+  description = "AQUAVO متجر إلكتروني عراقي لمعدات ومستلزمات أحواض الزينة، مع توصيل لكل العراق ودفع عند الاستلام أو إلكترونياً.",
   keywords = [],
   image = LOGO_URL,
   url,

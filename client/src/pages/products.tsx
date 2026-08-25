@@ -409,7 +409,7 @@ export default function Products() {
     <div className="flex flex-1 flex-col bg-background font-sans transition-colors duration-300">
       <MetaTags
         title="متجر معدات الأحواض"
-        description="اختار معدات حوضك حسب الفئة والسعر والاستخدام. فلاتر وسخانات وإضاءة ومستلزمات عناية، مع الدفع عند الاستلام وتوصيل لكل العراق."
+        description="اختار معدات حوضك حسب الفئة والسعر والاستخدام. فلاتر وسخانات وإضاءة ومستلزمات عناية، مع الدفع عند الاستلام أو إلكترونياً وتوصيل لكل العراق."
       />
       <BreadcrumbSchema items={breadcrumbItems} />
       {itemListItems.length > 0 && (
@@ -430,7 +430,7 @@ export default function Products() {
         >
           <div className="flex min-h-11 items-center justify-center gap-2 bg-card px-3 py-2 text-center">
             <Banknote className="h-4 w-4 text-primary" aria-hidden="true" />
-            الدفع عند الاستلام
+            الدفع عند الاستلام أو إلكترونياً
           </div>
           <div className="flex min-h-11 items-center justify-center gap-2 bg-card px-3 py-2 text-center">
             <Truck className="h-4 w-4 text-primary" aria-hidden="true" />

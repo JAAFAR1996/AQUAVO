@@ -228,7 +228,7 @@ describe('Product Details Page', () => {
         render(<ProductDetails />, { wrapper: createWrapper() });
         await screen.findByRole('heading', { level: 1, name: 'سيفون تغيير ماء' });
 
-        expect(screen.getByText(/الدفع عند الاستلام فقط/)).toBeInTheDocument();
+        expect(screen.getByText(/الدفع عند الاستلام أو إلكترونياً/)).toBeInTheDocument();
         expect(screen.getByText(/5,000 د.ع/)).toBeInTheDocument();
         expect(screen.getByText(/دعم AQUAVO متوفر 24\/7/)).toBeInTheDocument();
     });

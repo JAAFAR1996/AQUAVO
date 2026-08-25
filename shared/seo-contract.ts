@@ -1,5 +1,5 @@
 export const AQUAVO_BASE_URL = "https://www.aquavoiq.com";
-export const AQUAVO_SEO_RELEASE_LASTMOD = "2026-08-04";
+export const AQUAVO_SEO_RELEASE_LASTMOD = "2026-08-25";
 
 export const AQUAVO_ENTITY = Object.freeze({
   brandName: "AQUAVO",
@@ -12,7 +12,7 @@ export const AQUAVO_ENTITY = Object.freeze({
   currency: "IQD",
   deliveryFee: 5000,
   deliveryMaxDays: 1,
-  paymentMethod: "Cash on Delivery",
+  paymentMethod: "Cash on Delivery, Online Payment",
   supportAvailability: "24/7",
   onlineOnly: true,
   logoUrl: `${AQUAVO_BASE_URL}/brand/aquavo-v2-horizontal.png`,

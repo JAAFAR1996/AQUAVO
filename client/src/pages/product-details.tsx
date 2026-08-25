@@ -506,7 +506,7 @@ export default function ProductDetails() {
                   </li>
                   <li className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Banknote className="w-4 h-4" aria-hidden="true" />
-                    <span>الدفع عند الاستلام فقط</span>
+                    <span>الدفع عند الاستلام أو إلكترونياً</span>
                   </li>
                 </ul>
 

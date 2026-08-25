@@ -183,7 +183,7 @@ export default function Navbar() {
                   <p className="px-3 text-xs leading-6 text-muted-foreground">
                     توصيل خلال 24 ساعة لكل العراق
                     <br />
-                    الدفع عند الاستلام — التوصيل 5,000 د.ع
+                    الدفع عند الاستلام أو إلكترونياً — التوصيل 5,000 د.ع
                   </p>
                 </div>
 

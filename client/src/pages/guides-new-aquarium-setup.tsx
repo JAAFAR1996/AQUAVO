@@ -153,7 +153,7 @@ export default function GuideNewAquariumSetup() {
             {/* Answer Block — AEO snippet target */}
             <div className="nas-answer-block" id="quick-answer">
               <p className="nas-answer-text">
-                لتجهيز حوض سمك جديد تحتاج: حوض، فلتر مائي، سخان (للأسماك الاستوائية)، حصى مغسول، مزيل كلور، وشرائط فحص ماء. بعد تركيب المعدات وتشغيل الفلتر، انتظر 3-7 أيام للدورة البايولوجية، افحص الماء، ثم أضف السمك تدريجياً. AQUAVO متجر عراقي يوفر كل هذه المستلزمات مع توصيل لكل العراق ودفع عند الاستلام.
+                لتجهيز حوض سمك جديد تحتاج: حوض، فلتر مائي، سخان (للأسماك الاستوائية)، حصى مغسول، مزيل كلور، وشرائط فحص ماء. بعد تركيب المعدات وتشغيل الفلتر، انتظر 3-7 أيام للدورة البايولوجية، افحص الماء، ثم أضف السمك تدريجياً. AQUAVO متجر عراقي يوفر كل هذه المستلزمات مع توصيل لكل العراق ودفع عند الاستلام أو إلكترونياً.
               </p>
             </div>
 
@@ -166,7 +166,7 @@ export default function GuideNewAquariumSetup() {
 
           {/* AQUAVO Identity */}
           <div className="nas-store-note">
-            <strong>عن AQUAVO:</strong> متجر إلكتروني عراقي متخصص في مستلزمات أحواض الزينة — فلاتر، سخانات، مزيل كلور، شرائط فحص، حصى، وإضاءة. توصيل لكل محافظات العراق بـ 5,000 دينار. الدفع عند الاستلام.
+            <strong>عن AQUAVO:</strong> متجر إلكتروني عراقي متخصص في مستلزمات أحواض الزينة — فلاتر، سخانات، مزيل كلور، شرائط فحص، حصى، وإضاءة. توصيل لكل محافظات العراق بـ 5,000 دينار. الدفع عند الاستلام أو إلكترونياً.
             <Link href="/products" className="nas-store-link"> تصفح المنتجات ←</Link>
           </div>
 
@@ -300,7 +300,7 @@ export default function GuideNewAquariumSetup() {
             <Link href="/products" className="nas-cta-btn" id="starter-pack-cta">
               تصفح مستلزمات الأحواض في AQUAVO
             </Link>
-            <p className="nas-cta-note">توصيل لكل العراق — دفع عند الاستلام</p>
+            <p className="nas-cta-note">توصيل لكل العراق — دفع عند الاستلام أو إلكترونياً</p>
           </section>
 
           {/* FAQ */}

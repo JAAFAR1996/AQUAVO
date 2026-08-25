@@ -34,7 +34,7 @@ import { SHOP_CATEGORY_LINKS } from "@/lib/product-category-links";
 
 const serviceFacts = [
   { icon: Truck, title: "توصيل لكل العراق", detail: "خلال 24 ساعة" },
-  { icon: Banknote, title: "الدفع عند الاستلام", detail: "نقداً عند وصول الطلب" },
+  { icon: Banknote, title: "طرق دفع مرنة", detail: "عند الاستلام أو إلكترونياً" },
   { icon: PackageCheck, title: "أجرة توصيل ثابتة", detail: "5,000 د.ع" },
   { icon: Headphones, title: "دعم 24/7", detail: "نساعدك تختار المناسب" },
 ];
@@ -145,7 +145,7 @@ export default function Home() {
     <div className="flex-1 overflow-x-hidden bg-background text-foreground">
       <MetaTags
         title="معدات أحواض بريميوم بالعراق"
-        description="AQUAVO براند عراقي لمعدات الأحواض البريميوم. اختار الفلاتر والسخانات والإضاءة ومستلزمات العناية حسب احتياج حوضك، مع الدفع عند الاستلام وتوصيل لكل العراق."
+        description="AQUAVO براند عراقي لمعدات الأحواض البريميوم. اختار الفلاتر والسخانات والإضاءة ومستلزمات العناية حسب احتياج حوضك، مع الدفع عند الاستلام أو إلكترونياً وتوصيل لكل العراق."
       />
 
       <main id="main-content" dir="rtl">

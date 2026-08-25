@@ -80,7 +80,7 @@ export const SITE_SEARCH_PAGES: SiteSearchPage[] = [
   {
     id: "shipping",
     title: "التوصيل والدفع",
-    description: "تفاصيل أجور التوصيل والدفع عند الاستلام لكل العراق.",
+    description: "تفاصيل أجور التوصيل والدفع عند الاستلام أو إلكترونياً لكل العراق.",
     url: "/shipping",
     keywords: ["توصيل", "شحن", "دفع", "shipping", "delivery", "cod"],
   },

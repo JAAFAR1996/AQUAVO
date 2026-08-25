@@ -42,6 +42,8 @@ interface InvoiceDialogProps {
     pointsEarned?: number;
     cashbackEarned?: number;
     status?: string;
+    paymentStatus?: string;
+    paymentMethod?: string;
     orderNumber: string;
     orderDate: Date;
   } | null;
@@ -58,6 +60,8 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
   const pointsEarned = orderData?.pointsEarned ?? 0;
   const cashbackEarned = orderData?.cashbackEarned ?? 0;
   const orderStatus = orderData?.status ?? 'pending';
+  const isOnlinePayment = orderData?.paymentMethod === 'alqaseh';
+  const paymentMethodLabel = isOnlinePayment ? 'مدفوع إلكترونياً' : 'الدفع عند الاستلام';
 
   // ⚠️ roundedTotal من الباكند = ceil((grandTotal - cashbackUsed) / 250) * 250
   // لذلك الباقي = roundedTotal - (grandTotal - cashbackUsed)
@@ -73,7 +77,7 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
   const fallbackDeliveryFee = DELIVERY_FEE;
   const deliveryFee = orderData?.deliveryFee ?? (inferredDeliveryFee > 0 ? inferredDeliveryFee : fallbackDeliveryFee);
 
-  // المبلغ اللي يدفعه نقداً = roundedTotal مباشرة (الكاش باك مخصوم قبل التقريب)
+  // المبلغ النهائي للفاتورة؛ طريقة الدفع تُعرض حسب الطلب الفعلي
   const actualPayAmount = roundedTotal;
 
   // طباعة الفاتورة فقط — صفحة واحدة نظيفة بدون خلفيات
@@ -193,10 +197,10 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
     ${totalsHTML}
     <hr style="border:none;border-top:2px solid #0ea5e9;margin:8px 0;">
     <div style="display:flex;justify-content:space-between;align-items:center;">
-      <span style="font-size:16px;font-weight:bold;">💵 تدفع نقداً:</span>
+      <span style="font-size:16px;font-weight:bold;">${isOnlinePayment ? "✅ مدفوع إلكترونياً:" : "💵 تدفع نقداً:"}</span>
       <div style="text-align:left;">
         <p style="font-size:22px;font-weight:bold;color:#0ea5e9;">${formatIQD(actualPayAmount)}</p>
-        <p style="font-size:10px;color:#64748b;">الدفع عند الاستلام</p>
+        <p style="font-size:10px;color:#64748b;">${paymentMethodLabel}</p>
       </div>
     </div>
   </div>
@@ -449,12 +453,12 @@ ${clientEnv.siteUrl ? `الرابط: ${clientEnv.siteUrl}` : ""}`.trim();
 
                 <Separator />
 
-                {/* المطلوب دفعه نقداً */}
+                {/* حالة وطريقة الدفع الفعلية */}
                 <div className="total-row grand flex justify-between items-center">
-                  <span className="text-lg font-semibold">💵 تدفع نقداً:</span>
+                  <span className="text-lg font-semibold">{isOnlinePayment ? "✅ مدفوع إلكترونياً:" : "💵 تدفع نقداً:"}</span>
                   <div className="text-left">
                     <p className="text-2xl font-bold text-primary">{formatIQD(actualPayAmount)}</p>
-                    <p className="payment-method text-xs text-muted-foreground">الدفع عند الاستلام</p>
+                    <p className="payment-method text-xs text-muted-foreground">{paymentMethodLabel}</p>
                   </div>
                 </div>
               </div>

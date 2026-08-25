@@ -41,7 +41,7 @@ const policyLinks = [
 
 const trustFacts = [
   { icon: Truck, title: "توصيل خلال 24 ساعة", detail: "لكل العراق" },
-  { icon: WalletCards, title: "الدفع عند الاستلام", detail: "نقداً عند التوصيل" },
+  { icon: WalletCards, title: "طرق دفع مرنة", detail: "عند الاستلام أو إلكترونياً" },
   { icon: PackageCheck, title: "نفحص ونعبّي الطلب", detail: "بنفس معيار العناية" },
   { icon: Clock3, title: "الدعم متوفر 24/7", detail: "للمساعدة قبل وبعد الطلب" },
 ];
@@ -223,7 +223,7 @@ export default function Footer() {
 
         <div className="flex flex-col gap-3 border-t border-border py-6 text-xs text-foreground/70 sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} AQUAVO / محل المنبع — AL NABEA SHOP</p>
-          <p>طريقة الدفع المتوفرة هسه: الدفع النقدي عند الاستلام</p>
+          <p>طرق الدفع المتوفرة: عند الاستلام أو إلكترونياً</p>
           <p>أجور التوصيل الثابتة: 5,000 د.ع</p>
         </div>
       </div>

@@ -133,7 +133,7 @@ export function OrderSummary({ cartTotal, deliveryFee, discount, grandTotal, isF
                     <Truck className="w-3.5 h-3.5" />
                     {getDeliveryEstimate()}
                 </span>
-                <span>الدفع عند الاستلام</span>
+                <span>الدفع عند الاستلام أو إلكترونياً</span>
             </div>
 
             {/* رسالة شفافية */}
