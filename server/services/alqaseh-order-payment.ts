@@ -26,7 +26,7 @@ import {
   AlqasehApiError,
   createAlqasehPayment,
   getAlqasehHostedPaymentUrl,
-  getAlqasehPayment,
+  getAlqasehPaymentInfo,
   retryAlqasehPaymentContext,
   type AlqasehPaymentContext,
   type AlqasehPaymentStatus,
@@ -213,6 +213,20 @@ function safeProviderResponse(value: unknown): Record<string, any> {
   return value && typeof value === "object" && !Array.isArray(value)
     ? { ...(value as Record<string, any>) }
     : {};
+}
+
+function paymentTokenForProviderId(
+  payment: { transactionId?: string | null; providerResponse?: unknown },
+  providerPaymentId: string,
+): string | null {
+  const meta = safeProviderResponse(payment.providerResponse);
+  const currentToken = typeof meta.token === "string" ? meta.token.trim() : "";
+  if (payment.transactionId === providerPaymentId && currentToken) return currentToken;
+
+  const attempts = Array.isArray(meta.attempts) ? meta.attempts : [];
+  const matched = attempts.find((entry: any) => entry?.paymentId === providerPaymentId);
+  const attemptToken = typeof matched?.token === "string" ? matched.token.trim() : "";
+  return attemptToken || null;
 }
 
 function paymentAmount(payment: { amount: unknown }): number {
@@ -525,12 +539,20 @@ export async function startAlqasehPaymentForOrder(
     });
 
     const attempts = Array.isArray(previous.attempts) ? [...previous.attempts] : [];
-    if (payment.transactionId && !attempts.some((entry: any) => entry?.paymentId === payment.transactionId)) {
-      attempts.push({ paymentId: payment.transactionId, status: previous.providerStatus || "unknown" });
+    if (payment.transactionId) {
+      const currentIndex = attempts.findIndex((entry: any) => entry?.paymentId === payment.transactionId);
+      const currentAttempt = {
+        paymentId: payment.transactionId,
+        status: previous.providerStatus || "unknown",
+        ...(currentToken ? { token: currentToken } : {}),
+      };
+      if (currentIndex >= 0) attempts[currentIndex] = { ...attempts[currentIndex], ...currentAttempt };
+      else attempts.push(currentAttempt);
     }
-    if (!attempts.some((entry: any) => entry?.paymentId === created.payment_id)) {
-      attempts.push({ paymentId: created.payment_id, status: "prepared" });
-    }
+    const createdIndex = attempts.findIndex((entry: any) => entry?.paymentId === created.payment_id);
+    const createdAttempt = { paymentId: created.payment_id, token: created.token, status: "prepared" };
+    if (createdIndex >= 0) attempts[createdIndex] = { ...attempts[createdIndex], ...createdAttempt };
+    else attempts.push(createdAttempt);
 
     await tx.update(payments).set({
       transactionId: created.payment_id,
@@ -734,9 +756,26 @@ export async function verifyAndSyncAlqasehPayment(
   }
 
   const { order, payment } = await getOrderAndPayment(recognizedOrderId);
-  const context = await getAlqasehPayment(providerPaymentId);
+  const providerToken = paymentTokenForProviderId(payment, providerPaymentId);
+  if (!providerToken) {
+    throw Object.assign(new Error("Stored Al-Qaseh payment token is missing for this payment attempt"), { status: 409 });
+  }
+
+  // Al-Qaseh v2 documents authoritative status retrieval by request token:
+  // GET /egw/payments/info/{token}. The order<->payment_id<->token binding
+  // comes from the create/retry response we persisted server-side; the
+  // browser redirect status is never trusted as proof.
+  const info = await getAlqasehPaymentInfo(providerToken);
   const amount = paymentAmount(payment);
   const currency = String(payment.currency || PAYMENT_CURRENCY);
+  const context: AlqasehPaymentContext = {
+    amount: Number(info.amount),
+    currency: String(info.currency),
+    description: info.description,
+    order_id: order.id,
+    payment_id: providerPaymentId,
+    payment_status: info.payment_status,
+  };
   if (!isVerifiedPaymentContext(context, { orderId: order.id, amount, currency })) {
     throw Object.assign(new Error("Payment verification mismatch"), { status: 409 });
   }
@@ -838,7 +877,12 @@ export async function retryAlqasehPayment(
       const previous = safeProviderResponse(payment.providerResponse);
       const attempts = Array.isArray(previous.attempts) ? [...previous.attempts] : [];
       const index = attempts.findIndex((entry: any) => entry?.paymentId === retried.payment_id);
-      const nextAttempt = { paymentId: retried.payment_id, status: retried.payment_status || "prepared", retriedAt: new Date().toISOString() };
+      const nextAttempt = {
+      paymentId: retried.payment_id,
+      token: retried.token,
+      status: retried.payment_status || "prepared",
+      retriedAt: new Date().toISOString(),
+    };
       if (index >= 0) attempts[index] = { ...attempts[index], ...nextAttempt };
       else attempts.push(nextAttempt);
 

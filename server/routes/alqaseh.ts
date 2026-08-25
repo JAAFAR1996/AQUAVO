@@ -10,7 +10,7 @@ import {
   createAlqasehPayment,
   getAlqasehConfig,
   getAlqasehHostedPaymentUrl,
-  getAlqasehPayment,
+  getAlqasehPaymentInfo,
 } from "../services/alqaseh-client.js";
 import {
   getVerifiedPaymentState,
@@ -167,27 +167,34 @@ async function isBannedPurchaseIp(req: Request): Promise<boolean> {
 async function renderSandboxReturn(req: Request, res: Response, paymentId: string): Promise<void> {
   const redirectedOrderId = typeof req.query.order_id === "string" ? req.query.order_id : "";
   const redirectedStatus = typeof req.query.status === "string" ? req.query.status : "";
-  const context = await getAlqasehPayment(paymentId);
-  const looksLikeSandboxOrder = /^[0-9a-f]{32}$/i.test(context.order_id);
-  const amountMatches = Number(context.amount) === SANDBOX_TEST_AMOUNT_IQD;
-  const currencyMatches = String(context.currency).toUpperCase() === "IQD";
-  const orderMatches = !redirectedOrderId || context.order_id === redirectedOrderId;
+  const state = (req as any).session?.alqasehSandboxTest as
+    | { paymentId?: string; token?: string; orderId?: string }
+    | undefined;
+  if (!state?.token || !state.orderId || state.paymentId !== paymentId) {
+    throw Object.assign(new Error("Sandbox payment token is not available in this admin session"), { status: 404 });
+  }
+
+  const info = await getAlqasehPaymentInfo(state.token);
+  const looksLikeSandboxOrder = /^[0-9a-f]{32}$/i.test(state.orderId);
+  const amountMatches = Number(info.amount) === SANDBOX_TEST_AMOUNT_IQD;
+  const currencyMatches = String(info.currency).toUpperCase() === "IQD";
+  const orderMatches = !redirectedOrderId || state.orderId === redirectedOrderId;
   const verified = looksLikeSandboxOrder && amountMatches && currencyMatches && orderMatches;
-  const succeeded = context.payment_status === "succeeded";
+  const succeeded = info.payment_status === "succeeded";
   const resultClass = verified && succeeded ? "ok" : succeeded ? "warn" : "bad";
   const resultText = verified && succeeded
     ? "نجح الدفع التجريبي وتم التحقق من العملية مباشرة من API"
     : succeeded
       ? "الدفع ظاهر ناجح لكن بيانات الاختبار لم تتطابق بالكامل"
-      : `حالة العملية: ${context.payment_status}`;
+      : `حالة العملية: ${info.payment_status}`;
 
   renderPage(
     res,
     "Al-Qaseh payment result",
     `<h1>نتيجة اختبار Al-Qaseh</h1>
      <p class="${resultClass}">${htmlEscape(resultText)}</p>
-     <div class="meta">verified_api_status=${htmlEscape(context.payment_status)}\npayment_id=${htmlEscape(context.payment_id)}\norder_id=${htmlEscape(context.order_id)}\namount=${htmlEscape(context.amount)} ${htmlEscape(context.currency)}\nredirect_status_untrusted=${htmlEscape(redirectedStatus || "n/a")}</div>
-     <p>حالة الرابط لم تُستخدم كإثبات؛ التحقق تم من Al-Qaseh API.</p>
+     <div class="meta">verified_api_status=${htmlEscape(info.payment_status)}\npayment_id=${htmlEscape(paymentId)}\norder_id=${htmlEscape(state.orderId)}\namount=${htmlEscape(info.amount)} ${htmlEscape(info.currency)}\nredirect_status_untrusted=${htmlEscape(redirectedStatus || "n/a")}</div>
+     <p>حالة الرابط لم تُستخدم كإثبات؛ التحقق تم من Al-Qaseh API عبر token محفوظ في جلسة الاختبار.</p>
      <a class="btn" href="/api/payments/alqaseh/test">اختبار جديد</a>`,
   );
 }
@@ -297,9 +304,10 @@ export function createAlqasehRouter() {
     }
   });
 
-  // Webhook is deliberately treated as a trigger, not proof. Al-Qaseh's public
-  // docs do not document a webhook signature scheme, so we always fetch the
-  // payment context from Al-Qaseh and match order_id + amount + currency first.
+  // Webhook is deliberately treated as a trigger, not proof. Al-Qaseh v2
+  // documents status retrieval by request token. We resolve the token from the
+  // server-side payment_id binding, then re-read amount/currency/status from
+  // Al-Qaseh before changing any order state.
   router.post("/webhook", async (req, res) => {
     const paymentId = typeof req.body?.payment_id === "string"
       ? req.body.payment_id
@@ -411,7 +419,21 @@ export function createAlqasehRouter() {
         redirectUrl: `${publicSiteOrigin(req)}/api/payments/alqaseh/return`,
         country: "IQ",
       });
-      res.redirect(303, getAlqasehHostedPaymentUrl(payment.token));
+      const session = (req as any).session;
+    if (session) {
+      session.alqasehSandboxTest = {
+        paymentId: payment.payment_id,
+        token: payment.token,
+        orderId,
+        createdAt: new Date().toISOString(),
+      };
+      if (typeof session.save === "function") {
+        await new Promise<void>((resolve, reject) =>
+          session.save((error: unknown) => error ? reject(error) : resolve()),
+        );
+      }
+    }
+    res.redirect(303, getAlqasehHostedPaymentUrl(payment.token));
     } catch (error) {
       const status = errorStatus(error);
       const diagnostic = providerDiagnostic(error);
@@ -425,23 +447,27 @@ export function createAlqasehRouter() {
   });
 
   router.get("/status/:paymentId", requireAdmin, async (req, res) => {
-    try {
-      const context = await getAlqasehPayment(req.params.paymentId);
-      res.json({
-        paymentId: context.payment_id,
-        orderId: context.order_id,
-        amount: context.amount,
-        currency: context.currency,
-        status: context.payment_status,
-        approvalCode: context.approval_code || null,
-        rrn: context.rrn || null,
-        updatedAt: context.updated_at || null,
-      });
-    } catch (error) {
-      const status = errorStatus(error);
-      res.status(status).json({ message: "Unable to verify payment" });
+  try {
+    const state = (req as any).session?.alqasehSandboxTest as
+      | { paymentId?: string; token?: string; orderId?: string }
+      | undefined;
+    if (!state?.token || state.paymentId !== req.params.paymentId) {
+      res.status(404).json({ message: "Sandbox payment token is not available in this admin session" });
+      return;
     }
-  });
+    const info = await getAlqasehPaymentInfo(state.token);
+    res.json({
+      paymentId: req.params.paymentId,
+      orderId: state.orderId || null,
+      amount: info.amount,
+      currency: info.currency,
+      status: info.payment_status,
+    });
+  } catch (error) {
+    const status = errorStatus(error);
+    res.status(status).json({ message: "Unable to verify payment" });
+  }
+});
 
   return router;
 }

@@ -36,6 +36,13 @@ export interface AlqasehRetryPaymentResponse {
   token: string;
 }
 
+export interface AlqasehPaymentInfo {
+  amount: number;
+  currency: string;
+  description?: string;
+  payment_status: AlqasehPaymentStatus;
+}
+
 export interface AlqasehPaymentContext {
   amount: number;
   approval_code?: string;
@@ -220,10 +227,11 @@ export async function createAlqasehPayment(
   });
 }
 
-export async function getAlqasehPayment(paymentId: string): Promise<AlqasehPaymentContext> {
-  if (!paymentId?.trim()) throw new Error("paymentId is required");
-  return alqasehRequest<AlqasehPaymentContext>(
-    `/egw/payments/${encodeURIComponent(paymentId.trim())}`,
+export async function getAlqasehPaymentInfo(token: string): Promise<AlqasehPaymentInfo> {
+  const normalized = token?.trim();
+  if (!normalized) throw new Error("payment token is required");
+  return alqasehRequest<AlqasehPaymentInfo>(
+    `/egw/payments/info/${encodeURIComponent(normalized)}`,
     { method: "GET" },
   );
 }
