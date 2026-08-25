@@ -1,5 +1,5 @@
-import { afterEach, describe, expect, it } from "vitest";
-import { getAlqasehConfig, getAlqasehHostedPaymentUrl } from "../services/alqaseh-client.js";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { getAlqasehConfig, getAlqasehHostedPaymentUrl, getAlqasehPaymentInfo } from "../services/alqaseh-client.js";
 
 const KEYS = [
   "ALQASEH_ENV",
@@ -12,6 +12,7 @@ const KEYS = [
 const original = Object.fromEntries(KEYS.map((key) => [key, process.env[key]]));
 
 afterEach(() => {
+  vi.unstubAllGlobals();
   for (const key of KEYS) {
     const value = original[key];
     if (value === undefined) delete process.env[key];
@@ -37,6 +38,26 @@ describe("Al-Qaseh configuration", () => {
     process.env.ALQASEH_ENV = "production";
 
     expect(() => getAlqasehConfig()).toThrow(/production configuration is incomplete/i);
+  });
+
+  it("uses the documented v2 token endpoint for authoritative payment status", async () => {
+    for (const key of KEYS) delete process.env[key];
+    process.env.ALQASEH_ENV = "sandbox";
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      amount: 1000,
+      currency: "IQD",
+      description: "UAT",
+      payment_status: "succeeded",
+    }), { status: 200, headers: { "Content-Type": "application/json" } }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const info = await getAlqasehPaymentInfo("token/with unsafe chars");
+
+    expect(info.payment_status).toBe("succeeded");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(String(fetchMock.mock.calls[0]?.[0])).toBe(
+      "https://api-test.alqaseh.com/v1/egw/payments/info/token%2Fwith%20unsafe%20chars",
+    );
   });
 
   it("builds the hosted payment page URL without exposing credentials", () => {

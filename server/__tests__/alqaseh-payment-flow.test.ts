@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { isVerifiedPaymentContext, mapAlqasehPaymentStatus } from "../services/alqaseh-order-payment.js";
 
@@ -12,6 +13,14 @@ describe("Al-Qaseh order payment flow", () => {
     expect(mapAlqasehPaymentStatus("duplicated")).toBe("failed");
     expect(mapAlqasehPaymentStatus("revoked")).toBe("cancelled");
     expect(mapAlqasehPaymentStatus("expired")).toBe("expired");
+  });
+
+  it("persists the request token with each provider payment id and verifies status by token", () => {
+    const source = readFileSync("server/services/alqaseh-order-payment.ts", "utf8");
+    expect(source).toContain("getAlqasehPaymentInfo(providerToken)");
+    expect(source).toContain("token: created.token");
+    expect(source).toContain("token: retried.token");
+    expect(source).not.toContain("getAlqasehPayment(providerPaymentId)");
   });
 
   it("requires order, amount and currency to match before accepting provider state", () => {
