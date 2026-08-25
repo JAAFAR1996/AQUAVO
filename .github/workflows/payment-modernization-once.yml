@@ -73,3 +73,5 @@ jobs:
           git add -A
           git commit -m 'feat: modernize AQUAVO payment experience and reliability'
           git push origin HEAD:codex/payment-modernization-20260825
+
+# rerun after checksum bootstrap correction
