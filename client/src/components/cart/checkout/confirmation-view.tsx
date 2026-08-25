@@ -79,11 +79,14 @@ export function ConfirmationView({
     const roundedUp = Math.ceil(Math.max(0, amountBeforeRounding) / 250) * 250;
     const roundingDifference = roundedUp - Math.max(0, amountBeforeRounding);
     const finalAmount = roundingDifference > 0 ? roundedUp : Math.max(0, amountBeforeRounding);
-    const onlineBlockedByCashback = Boolean(loyaltyData?.useCashback && (loyaltyData.cashbackToUse > 0 || pointsDiscount > 0));
+    const onlineBlockedByLoyalty = Boolean(
+        (loyaltyData?.useCashback && loyaltyData.cashbackToUse > 0)
+        || (loyaltyData?.usePoints && (loyaltyData.pointsToUse > 0 || pointsDiscount > 0)),
+    );
     const busy = isSubmitting || onlinePreparing;
 
     const beginOnlinePayment = async () => {
-        if (!agreed || busy || onlineBlockedByCashback) return;
+        if (!agreed || busy || onlineBlockedByLoyalty) return;
         setOnlinePreparing(true);
         setOnlineError("");
         setPreparedOrder(null);
@@ -256,11 +259,11 @@ export function ConfirmationView({
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2">
                     <PaymentMethodCard method="cod" selected={paymentMethod} onChange={(method) => { setPaymentMethod(method); setOnlineError(""); }} disabled={busy} />
-                    <PaymentMethodCard method="online" selected={paymentMethod} onChange={(method) => { setPaymentMethod(method); setOnlineError(""); }} disabled={busy || onlineBlockedByCashback} />
+                    <PaymentMethodCard method="online" selected={paymentMethod} onChange={(method) => { setPaymentMethod(method); setOnlineError(""); }} disabled={busy || onlineBlockedByLoyalty} />
                 </div>
-                {onlineBlockedByCashback && (
+                {onlineBlockedByLoyalty && (
                     <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-6 text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-200">
-                        لاستخدام الدفع الإلكتروني حالياً، ارجع وألغِ استخدام رصيد الباقي. لن نخصم الرصيد قبل تأكيد الدفع.
+                        لاستخدام الدفع الإلكتروني حالياً، ارجع وألغِ استخدام النقاط أو رصيد الباقي. لن نخصم أي رصيد ولاء قبل تأكيد الدفع.
                     </p>
                 )}
                 {onlineError && (
@@ -289,8 +292,8 @@ export function ConfirmationView({
                     onClick={submit}
                     className="order-1 h-12 w-full text-base font-semibold sm:order-2 sm:flex-1"
                     size="lg"
-                    disabled={!agreed || busy || (paymentMethod === "online" && onlineBlockedByCashback)}
-                    aria-disabled={!agreed || busy || (paymentMethod === "online" && onlineBlockedByCashback)}
+                    disabled={!agreed || busy || (paymentMethod === "online" && onlineBlockedByLoyalty)}
+                    aria-disabled={!agreed || busy || (paymentMethod === "online" && onlineBlockedByLoyalty)}
                     aria-busy={busy}
                 >
                     {isSubmitting
