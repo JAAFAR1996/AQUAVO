@@ -5,9 +5,19 @@ import {
   AQUAVO_BASE_URL,
   AQUAVO_ENTITY,
   canonicalProductCategory,
+  canonicalUrlFor,
 } from "@shared/seo-contract";
 
 const LOGO_URL = AQUAVO_ENTITY.logoUrl;
+
+/**
+ * Canonical URL of the page currently on screen. Structured data must never
+ * carry `window.location.href`: query strings (?ref=, ?utm_source=) would fork
+ * one page into many @id values and contradict the published canonical.
+ */
+function currentCanonicalUrl(): string {
+  return typeof window !== "undefined" ? canonicalUrlFor(window.location.pathname) : AQUAVO_BASE_URL;
+}
 
 function sanitizeSchemaValue(value: unknown): unknown {
   if (typeof value === "string") {
@@ -108,7 +118,7 @@ export function MetaTags({
     else removeMeta('meta[name="keywords"]');
 
     const currentPath = window.location.pathname;
-    const canonical = canonicalUrl || url || `${AQUAVO_BASE_URL}${currentPath === "/" ? "" : currentPath}`;
+    const canonical = canonicalUrl || url || canonicalUrlFor(currentPath);
     if (notFound) removeMeta('link[rel="canonical"]');
     else setLinkTag("canonical", canonical);
 
@@ -173,7 +183,7 @@ export function ProductSchema({
   category,
 }: ProductSchemaProps) {
   if (!Number.isFinite(price) || price <= 0) return null;
-  const productUrl = url || (typeof window !== "undefined" ? window.location.href : AQUAVO_BASE_URL);
+  const productUrl = url || currentCanonicalUrl();
   const schema = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -381,7 +391,7 @@ export function ArticleSchema({
         publisher: { "@id": `${AQUAVO_BASE_URL}/#organization` },
         mainEntityOfPage: {
           "@type": "WebPage",
-          "@id": typeof window !== "undefined" ? window.location.href : AQUAVO_BASE_URL,
+          "@id": currentCanonicalUrl(),
         },
         inLanguage: "ar-IQ",
       }}
@@ -450,7 +460,7 @@ export function ItemListSchema({
         "@type": "ItemList",
         name,
         description,
-        url: url || (typeof window !== "undefined" ? window.location.href : AQUAVO_BASE_URL),
+        url: url || currentCanonicalUrl(),
         numberOfItems: items.length,
         itemListElement: items.map((item, index) => ({
           "@type": "ListItem",
@@ -517,7 +527,7 @@ export function SpeakableSchema({ cssSelectors }: { cssSelectors: string[] }) {
         "@context": "https://schema.org",
         "@type": "WebPage",
         speakable: { "@type": "SpeakableSpecification", cssSelector: cssSelectors },
-        url: typeof window !== "undefined" ? window.location.href : AQUAVO_BASE_URL,
+        url: currentCanonicalUrl(),
       }}
     />
   );

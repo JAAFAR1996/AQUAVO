@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import { canonicalUrlFor, isNoindexPath } from "@shared/seo-contract";
 
 const read = (path: string) => readFileSync(resolve(process.cwd(), path), "utf8");
 
@@ -124,5 +125,49 @@ describe("AQUAVO discoverability contract", () => {
     const content = read("api/_seo-content.ts");
     expect(content).not.toMatch(/داخل HTML من السيرفر|قبل تحميل JavaScript|محركات البحث|روابط داخلية مفيدة/);
     expect(content).toContain("خلّ القرار مبني على حجم الحوض");
+  });
+});
+
+describe("canonical URL contract", () => {
+  it("keeps exactly one trailing slash on the home page, matching the sitemap", () => {
+    // The sitemap publishes "https://www.aquavoiq.com/". Every producer of a
+    // canonical — SSR, the React app, the bot shell — must agree with it.
+    expect(canonicalUrlFor("/")).toBe("https://www.aquavoiq.com/");
+    expect(canonicalUrlFor("")).toBe("https://www.aquavoiq.com/");
+    expect(canonicalUrlFor("//")).toBe("https://www.aquavoiq.com/");
+  });
+
+  it("strips trailing slashes so /products/ never self-canonicalizes", () => {
+    expect(canonicalUrlFor("/products")).toBe("https://www.aquavoiq.com/products");
+    expect(canonicalUrlFor("/products/")).toBe("https://www.aquavoiq.com/products");
+    expect(canonicalUrlFor("/products/houyi-check-valve/")).toBe(
+      "https://www.aquavoiq.com/products/houyi-check-valve",
+    );
+  });
+
+  it("drops query strings and fragments, so tracking params cannot fork a URL", () => {
+    expect(canonicalUrlFor("/products?category=filters")).toBe("https://www.aquavoiq.com/products");
+    expect(canonicalUrlFor("/products/x?ref=tiktok&utm_source=ig")).toBe(
+      "https://www.aquavoiq.com/products/x",
+    );
+    expect(canonicalUrlFor("/guides#section")).toBe("https://www.aquavoiq.com/guides");
+  });
+
+  it("agrees with isNoindexPath on trailing-slash and query variants", () => {
+    expect(isNoindexPath("/cart/")).toBe(true);
+    expect(isNoindexPath("/checkout?step=2")).toBe(true);
+    expect(isNoindexPath("/products")).toBe(false);
+  });
+
+  it("is the only canonical rule the React meta layer applies", () => {
+    // Guards the regression this test was written for: meta-tags.tsx used to
+    // build the home canonical inline as `${BASE}${path === "/" ? "" : path}`,
+    // which published a slashless home URL that contradicted the sitemap.
+    const metaTags = read("client/src/components/seo/meta-tags.tsx");
+    // Comments are allowed to name the anti-pattern; executable code is not.
+    const code = metaTags.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+    expect(code).toContain("canonicalUrlFor(currentPath)");
+    expect(code).not.toContain('currentPath === "/" ? "" : currentPath');
+    expect(code).not.toContain("window.location.href");
   });
 });
