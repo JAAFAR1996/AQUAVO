@@ -35,7 +35,9 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - name: Apply source patch
-        run: python3 script/payment-modernization-patch.py
+        run: |
+          python3 script/payment-modernization-patch.py
+          python3 script/payment-modernization-fix.py
       - name: Payment and migration tests
         run: >-
           pnpm exec vitest run
@@ -65,7 +67,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          rm -f script/payment-modernization-patch.py .github/workflows/payment-modernization-once.yml
+          rm -f script/payment-modernization-patch.py script/payment-modernization-fix.py .github/workflows/payment-modernization-once.yml
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A
