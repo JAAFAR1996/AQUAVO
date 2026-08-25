@@ -5,15 +5,34 @@ import { describe, expect, it } from "vitest";
 const read = (path: string) => readFileSync(resolve(process.cwd(), path), "utf8");
 
 describe("product 404 and temperature canonical routing", () => {
-  it("returns a real noindex 404 for missing product slugs", () => {
+  it("returns a real noindex 404 for missing or hidden product slugs", () => {
     const source = read("api/product-ssr.ts");
 
     expect(source).toContain("FROM products");
     expect(source).toContain("WHERE slug = $1");
     expect(source).toContain("deleted_at IS NULL");
+    expect(source).toContain("COALESCE(is_storefront_visible, true) = true");
     expect(source).toContain("rows.length === 0");
     expect(source).toContain("res.status(404)");
     expect(source).toContain('"noindex, follow"');
+  });
+
+  it("keeps hidden products out of sitemap and semantic crawler rendering", () => {
+    const sitemap = read("api/sitemap-products.ts");
+    const semantic = read("api/_ssr-preview-source.ts");
+
+    expect(sitemap).toContain("deleted_at IS NULL");
+    expect(sitemap).toContain("COALESCE(is_storefront_visible, true) = true");
+    expect((semantic.match(/COALESCE\(is_storefront_visible, true\) = true/g) || []).length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("keeps crawler return-policy copy aligned with the customer policy", () => {
+    const semantic = read("api/_ssr-preview-source.ts");
+
+    expect(semantic).toContain('heading: "مشاكل الاستلام والضمان المحدود"');
+    expect(semantic).toContain("لا يوجد إرجاع لمجرد تغيير الرأي");
+    expect(semantic).toContain("6 أشهر من تاريخ التسليم المؤكد");
+    expect(semantic).toContain("الضمان لا يغطي سوء الاستخدام أو الضرر الخارجي");
   });
 
   it("keeps crawler semantic rendering ahead of the human product 404 guard", () => {
