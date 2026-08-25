@@ -790,7 +790,7 @@ export function injectMeta(html: string, meta: PageMeta & { url: string; image: 
     // markup too. The bot-UA path sets X-Robots-Tag, but a crawler outside that
     // allowlist only ever sees this tag, and the template default says "index".
     result = result.replace(
-      /<meta[^>]*name=["']robots["'][^>]*>/i,
+      /<meta\b[^>]*\bname=["']robots["'][^>]*>/i,
       '<meta name="robots" content="noindex, nofollow, noarchive">'
     );
   }
