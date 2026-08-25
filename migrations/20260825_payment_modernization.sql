@@ -99,7 +99,7 @@ EXECUTE FUNCTION public.enforce_payment_stock_reservations();
 INSERT INTO public.schema_migrations(version, checksum, notes)
 VALUES (
   '20260825_payment_modernization',
-  'pending_runner_sha256',
+  '0000000000000000000000000000000000000000000000000000000000000000',
   'AQUAVO online-payment stock reservations, canonical reservation guard, and transactional outbox'
 )
 ON CONFLICT(version) DO UPDATE
