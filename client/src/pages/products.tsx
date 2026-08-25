@@ -5,6 +5,7 @@ import { useLocation } from "wouter";
 import { AlertCircle, ArrowUpDown, Banknote, Clock, Headphones, RefreshCw, Sparkles, Truck, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MetaTags, ItemListSchema, BreadcrumbSchema } from "@/components/seo/meta-tags";
+import { productListingSeo } from "@shared/seo-contract";
 import { ProductCard } from "@/components/products/product-card";
 import { CategoryScrollBar } from "@/components/products/category-scroll-bar";
 import { FilterBar } from "@/components/products/filter-bar";
@@ -35,6 +36,9 @@ export default function Products() {
   const { user } = useAuth();
   const searchParams = new URLSearchParams(window.location.search);
   const initialCategory = searchParams.get("category");
+  // Canonical identity of this listing, from the same builder SSR uses, so the
+  // category facet survives hydration instead of collapsing to bare /products.
+  const listingSeo = productListingSeo(initialCategory);
   const initialSearch = searchParams.get("search");
   const initialSort = searchParams.get("sort");
   const isRecommendedView = searchParams.get("recommended") === "1";
@@ -408,8 +412,9 @@ export default function Products() {
   return (
     <div className="flex flex-1 flex-col bg-background font-sans transition-colors duration-300">
       <MetaTags
-        title="متجر معدات الأحواض"
+        title={listingSeo.category ? listingSeo.title : "متجر معدات الأحواض"}
         description="اختار معدات حوضك حسب الفئة والسعر والاستخدام. فلاتر وسخانات وإضاءة ومستلزمات عناية، مع الدفع عند الاستلام أو إلكترونياً وتوصيل لكل العراق."
+        canonicalUrl={listingSeo.canonicalUrl}
       />
       <BreadcrumbSchema items={breadcrumbItems} />
       {itemListItems.length > 0 && (

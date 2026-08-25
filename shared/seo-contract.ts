@@ -139,6 +139,34 @@ export function canonicalUrlFor(pathname: string): string {
   return path === "/" ? `${AQUAVO_BASE_URL}/` : `${AQUAVO_BASE_URL}${path}`;
 }
 
+/**
+ * Canonical identity of the product listing.
+ *
+ * `category` is the one query parameter that identifies a distinct page, so it
+ * survives canonicalization while tracking, sort and paging parameters do not.
+ * SSR and the React app must agree here: if the client published a bare
+ * /products canonical after hydration, every category listing would collapse
+ * into the same URL and lose its own identity in the index.
+ */
+export function productListingSeo(rawCategory?: string | null): {
+  category?: string;
+  canonicalPath: string;
+  canonicalUrl: string;
+  title: string;
+} {
+  const category = canonicalProductCategory(rawCategory);
+  const canonicalPath = category
+    ? `/products?category=${encodeURIComponent(category)}`
+    : "/products";
+  const name = category ? `منتجات ${category}` : "مستلزمات أحواض الزينة في العراق";
+  return {
+    category,
+    canonicalPath,
+    canonicalUrl: `${AQUAVO_BASE_URL}${canonicalPath}`,
+    title: `${name} | AQUAVO`,
+  };
+}
+
 export function isNoindexPath(pathname: string): boolean {
   const clean = canonicalPathFor(pathname);
   return (

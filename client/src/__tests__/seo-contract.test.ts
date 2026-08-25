@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { canonicalUrlFor, isNoindexPath } from "@shared/seo-contract";
+import { canonicalUrlFor, isNoindexPath, productListingSeo } from "@shared/seo-contract";
 
 const read = (path: string) => readFileSync(resolve(process.cwd(), path), "utf8");
 
@@ -157,6 +157,37 @@ describe("canonical URL contract", () => {
     expect(isNoindexPath("/cart/")).toBe(true);
     expect(isNoindexPath("/checkout?step=2")).toBe(true);
     expect(isNoindexPath("/products")).toBe(false);
+  });
+
+  it("keeps the category facet in the product listing canonical", () => {
+    // Without this, every category listing collapses to bare /products after
+    // hydration and the eleven category pages lose their own identity.
+    const filters = productListingSeo("الفلترة والتنقية");
+    expect(filters.canonicalUrl).toBe(
+      `https://www.aquavoiq.com/products?category=${encodeURIComponent("الفلترة والتنقية")}`,
+    );
+    expect(filters.title).toBe("منتجات الفلترة والتنقية | AQUAVO");
+  });
+
+  it("normalizes English category aliases to the canonical Arabic facet", () => {
+    expect(productListingSeo("filters").canonicalUrl).toBe(
+      productListingSeo("الفلترة والتنقية").canonicalUrl,
+    );
+    expect(productListingSeo("heaters").category).toBe("التحكم بالحرارة");
+  });
+
+  it("falls back to the bare listing when no category is active", () => {
+    for (const empty of [undefined, null, "", "   "]) {
+      const seo = productListingSeo(empty);
+      expect(seo.canonicalUrl).toBe("https://www.aquavoiq.com/products");
+      expect(seo.category).toBeUndefined();
+    }
+  });
+
+  it("gives the React listing page an explicit canonical from the shared builder", () => {
+    const page = read("client/src/pages/products.tsx");
+    expect(page).toContain("productListingSeo(initialCategory)");
+    expect(page).toContain("canonicalUrl={listingSeo.canonicalUrl}");
   });
 
   it("is the only canonical rule the React meta layer applies", () => {
