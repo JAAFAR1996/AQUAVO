@@ -7,7 +7,7 @@ import { GUIDE_CONTENT_PAGES, renderGuideHtml, renderGuideMarkdown, renderGuides
 import { getSeoMetaOverride } from "./_seo-content.js";
 import { toPublicVariant } from "../shared/public-product.js";
 import { isKnownSitePath } from "../shared/site-routes.js";
-import { canonicalUrlFor } from "../shared/seo-contract.js";
+import { canonicalUrlFor, isNoindexPath } from "../shared/seo-contract.js";
 
 // ─── DB Setup (lightweight, no Drizzle overhead) ────────────────────────────
 neonConfig.webSocketConstructor = ws;
@@ -39,6 +39,7 @@ export interface PageMeta {
   ogTitle?: string;
   jsonLd?: object | object[];
   notFound?: boolean;
+  noIndex?: boolean;
 }
 
 const PRODUCT_CATEGORY_ITEMS = [
@@ -668,12 +669,14 @@ async function getBlogMeta(slug: string): Promise<PageMeta | null> {
 async function resolveMetadata(pathname: string, notFound = false): Promise<PageMeta & { url: string; image: string }> {
   const cleanPath = pathname.replace(/\/+$/, "") || "/";
   const seoOverride = getSeoMetaOverride(cleanPath);
+  const noIndex = isNoindexPath(cleanPath);
 
   if (notFound) {
     return {
       title: "الصفحة غير موجودة | AQUAVO",
       description: "الرابط الذي فتحته غير موجود. تقدر ترجع للرئيسية أو تتصفح معدات ومستلزمات أحواض الزينة المتوفرة لدى AQUAVO.",
       url: canonicalUrlFor(cleanPath),
+      noIndex,
       image: DEFAULT_IMAGE,
       notFound: true,
     };
@@ -686,6 +689,7 @@ async function resolveMetadata(pathname: string, notFound = false): Promise<Page
       ...meta,
       ...(seoOverride ?? {}),
       url: canonicalUrlFor(cleanPath),
+      noIndex,
       image: DEFAULT_IMAGE,
       ogType: meta.ogType || "website",
     };
@@ -699,6 +703,7 @@ async function resolveMetadata(pathname: string, notFound = false): Promise<Page
       return {
         ...meta,
         url: canonicalUrlFor(cleanPath),
+        noIndex,
         image: meta.productImage || DEFAULT_IMAGE,
         ogType: meta.ogType || "product",
       };
@@ -713,6 +718,7 @@ async function resolveMetadata(pathname: string, notFound = false): Promise<Page
       return {
         ...meta,
         url: canonicalUrlFor(cleanPath),
+        noIndex,
         image: DEFAULT_IMAGE,
         ogType: meta.ogType || "article",
       };
@@ -725,6 +731,7 @@ async function resolveMetadata(pathname: string, notFound = false): Promise<Page
     description: seoOverride?.description || DEFAULT_DESC,
     keywords: seoOverride?.keywords || DEFAULT_KEYWORDS,
     url: canonicalUrlFor(cleanPath),
+    noIndex,
     image: DEFAULT_IMAGE,
     ogType: "website",
   };
@@ -775,6 +782,16 @@ export function injectMeta(html: string, meta: PageMeta & { url: string; image: 
     result = result.replace(
       /(<meta name="twitter:title" content=")[^"]*(")/,
       `$1${escapedOgTitle}$2`
+    );
+  }
+
+  if (meta.noIndex && !meta.notFound) {
+    // Cart, checkout, profile and the other private routes must say so in the
+    // markup too. The bot-UA path sets X-Robots-Tag, but a crawler outside that
+    // allowlist only ever sees this tag, and the template default says "index".
+    result = result.replace(
+      /<meta[^>]*name=["']robots["'][^>]*>/i,
+      '<meta name="robots" content="noindex, nofollow, noarchive">'
     );
   }
 
@@ -966,6 +983,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     res.setHeader("Content-Type", "text/html; charset=utf-8");
     res.setHeader("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
+    if (meta.noIndex) res.setHeader("X-Robots-Tag", "noindex, nofollow, noarchive");
     return res.status(status).send(html);
   } catch (err) {
     console.error("SSR meta handler error:", err);
