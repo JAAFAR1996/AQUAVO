@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Tag, AlertCircle, CheckCircle2, ChevronDown } from "lucide-react";
+
+const APPLIED_COUPON_STORAGE_KEY = "aquavo_applied_coupon_v1";
 
 interface CouponSectionProps {
     couponCode: string;
@@ -15,11 +17,30 @@ interface CouponSectionProps {
 
 export function CouponSection({ couponCode, setCouponCode, applyCoupon, couponError, couponSuccess, isApplying = false }: CouponSectionProps) {
     const [isExpanded, setIsExpanded] = useState(false);
+    const pendingAppliedCode = useRef("");
     const messageId = couponError ? "coupon-error" : couponSuccess ? "coupon-success" : undefined;
+
+    useEffect(() => {
+        try { sessionStorage.removeItem(APPLIED_COUPON_STORAGE_KEY); } catch { /* storage is optional */ }
+    }, []);
+
+    useEffect(() => {
+        if (!couponSuccess || !pendingAppliedCode.current) return;
+        try { sessionStorage.setItem(APPLIED_COUPON_STORAGE_KEY, pendingAppliedCode.current); } catch { /* storage is optional */ }
+    }, [couponSuccess]);
+
+    useEffect(() => {
+        if (!couponError) return;
+        try { sessionStorage.removeItem(APPLIED_COUPON_STORAGE_KEY); } catch { /* storage is optional */ }
+    }, [couponError]);
+
+    const requestApplyCoupon = () => {
+        pendingAppliedCode.current = couponCode.trim().toUpperCase();
+        applyCoupon();
+    };
 
     return (
         <div className="border border-border/60 rounded-lg overflow-hidden">
-            {/* Collapsible header */}
             <button
                 type="button"
                 onClick={() => setIsExpanded(!isExpanded)}
@@ -32,12 +53,9 @@ export function CouponSection({ couponCode, setCouponCode, applyCoupon, couponEr
                 <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
             </button>
 
-            {/* Expandable content */}
             {isExpanded && (
                 <div className="px-4 pb-3 space-y-2">
-                    <Label htmlFor="coupon-code" className="sr-only">
-                        كود الخصم
-                    </Label>
+                    <Label htmlFor="coupon-code" className="sr-only">كود الخصم</Label>
                     <div className="flex gap-2">
                         <Input
                             id="coupon-code"
@@ -54,7 +72,7 @@ export function CouponSection({ couponCode, setCouponCode, applyCoupon, couponEr
                         />
                         <Button
                             type="button"
-                            onClick={applyCoupon}
+                            onClick={requestApplyCoupon}
                             variant="default"
                             size="sm"
                             className="h-9 px-4"
