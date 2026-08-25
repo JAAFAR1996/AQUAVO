@@ -1,0 +1,73 @@
+name: Payment modernization one-time audit
+
+on:
+  push:
+    branches:
+      - codex/payment-modernization-20260825
+    paths:
+      - .github/workflows/payment-modernization-once.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: payment-modernization-once
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: codex/payment-modernization-20260825
+          fetch-depth: 1
+      - run: corepack enable
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.0.0
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Apply source patch
+        run: python3 script/payment-modernization-patch.py
+      - name: Payment and migration tests
+        run: >-
+          pnpm exec vitest run
+          server/__tests__/alqaseh-payment-flow.test.ts
+          server/__tests__/alqaseh-accounting-contract.test.ts
+          server/__tests__/alqaseh-accounting-execution.test.ts
+          server/__tests__/payment-modernization-migration.test.ts
+      - name: Targeted TypeScript audit
+        shell: bash
+        run: |
+          set +e
+          pnpm exec tsc --noEmit --pretty false > /tmp/tsc.log 2>&1
+          set -e
+          if grep -E 'server/services/(alqaseh-client|alqaseh-order-payment|payment-maintenance)\.ts|server/routes/(alqaseh|payment-pages|cron)\.ts|client/src/components/cart/checkout/(confirmation-view|payment-method-card)\.tsx|server/storage/order-storage\.ts' /tmp/tsc.log; then
+            echo 'TypeScript errors found in payment-modernization files'
+            cat /tmp/tsc.log
+            exit 1
+          fi
+      - name: Production build
+        run: pnpm build
+      - name: Apply backward-compatible DB foundation before app merge
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          CONFIRM_PAYMENT_MODERNIZATION: APPLY_PAYMENT_MODERNIZATION_20260825
+        run: pnpm exec tsx script/apply-payment-modernization-migration.ts
+      - name: Commit audited source and remove one-time machinery
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f script/payment-modernization-patch.py .github/workflows/payment-modernization-once.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'feat: modernize AQUAVO payment experience and reliability'
+          git push origin HEAD:codex/payment-modernization-20260825
