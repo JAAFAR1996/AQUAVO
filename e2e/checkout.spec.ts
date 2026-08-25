@@ -189,20 +189,21 @@ test.describe('الدفع - Checkout', () => {
             }
         });
 
-        test('should have ZainCash option', async ({ page }) => {
+        test('should have online payment option', async ({ page }) => {
             checkoutPage = new CheckoutPage(page);
             await addItemAndGoToCheckout(page);
 
-            const isVisible = await checkoutPage.zainCashOption.isVisible();
+            const isVisible = await checkoutPage.onlinePaymentOption.isVisible();
             expect(isVisible || true).toBe(true);
         });
 
-        test('should have credit card option', async ({ page }) => {
+        test('should select online payment when available', async ({ page }) => {
             checkoutPage = new CheckoutPage(page);
             await addItemAndGoToCheckout(page);
 
-            const isVisible = await checkoutPage.creditCardOption.isVisible();
-            expect(isVisible || true).toBe(true);
+            if (await checkoutPage.onlinePaymentOption.isVisible()) {
+                await checkoutPage.selectPaymentMethod('online');
+            }
         });
     });
 

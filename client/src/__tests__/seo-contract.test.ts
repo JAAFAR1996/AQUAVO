@@ -19,7 +19,7 @@ describe("AQUAVO discoverability contract", () => {
     const llms = `${read("client/public/llms.txt")}\n${read("client/public/llms-full.txt")}`;
     expect(llms).not.toMatch(/Iraq's first|Founded: 2024|replacement requests are handled within 48 hours/i);
     expect(llms).toContain("do not invent a 48-hour rule");
-    expect(llms).toContain("Cash on delivery is the only active payment method");
+    expect(llms).toContain("Checkout supports cash on delivery and online payment through Al-Qaseh");
     expect(llms).toContain("AQUAVO does not sell live fish, live organisms or live aquatic plants");
   });
 

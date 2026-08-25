@@ -59,7 +59,7 @@ test("footer exposes verified trust, legal and contact facts", async ({ page }) 
   await footer.scrollIntoViewIfNeeded();
   await expect(footer).toBeVisible();
   await expect(footer.getByText(/محل المنبع — AL NABEA SHOP/).first()).toBeVisible();
-  await expect(footer.getByText("طريقة الدفع المتوفرة هسه: الدفع النقدي عند الاستلام")).toBeVisible();
+  await expect(footer.getByText("طرق الدفع المتوفرة: عند الاستلام أو إلكترونياً")).toBeVisible();
   await expect(footer.getByText("أجور التوصيل الثابتة: 5,000 د.ع")).toBeVisible();
   await expect(footer.getByRole("textbox", { name: "تحديثات المنتجات والأدلة" })).toBeVisible();
   await expect(footer.getByRole("link", { name: /وثيقة YEE/ })).toHaveAttribute("href", "/verify-certificate/yee");
@@ -112,7 +112,7 @@ test("YEE proof document supports keyboard viewing and stays separate from warra
   await expect(dialog).toBeHidden();
 });
 
-test("checkout shows one COD total and blocks invalid customer data without placing an order", async ({ page }) => {
+test("checkout shows available payment methods and blocks invalid customer data without placing an order", async ({ page }) => {
   const orderRequests: string[] = [];
   page.on("request", (request) => {
     if (request.method() === "POST" && request.url().includes("/api/orders")) orderRequests.push(request.url());
@@ -133,7 +133,7 @@ test("checkout shows one COD total and blocks invalid customer data without plac
 
   await expect(page.getByRole("heading", { level: 1, name: "إتمام الطلب" })).toBeVisible();
   await expect(page.getByText("30,000 د.ع")).toBeVisible();
-  await expect(page.getByText("الدفع عند الاستلام", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("الدفع عند الاستلام أو إلكترونياً", { exact: true }).first()).toBeVisible();
   await page.getByRole("button", { name: "مراجعة الطلب" }).click();
   await expect(page.getByText("الاسم مطلوب")).toBeVisible();
   await expect(page.getByText("رقم الهاتف مطلوب")).toBeVisible();

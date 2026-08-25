@@ -30,6 +30,9 @@ interface OrderData {
     orderNumber?: string;
     total: number;
     status?: string;
+    paymentStatus?: string;
+    paymentMethod?: string;
+    paymentRecordStatus?: string | null;
     items?: OrderItem[];
     shippingAddress?: string;
     customerName?: string;
@@ -196,6 +199,8 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
     const items = orderData?.items || [];
     const loyalty = orderData?.loyalty;
     const createdAt = orderData?.createdAt ? new Date(orderData.createdAt) : new Date();
+    const isOnlinePayment = orderData?.paymentMethod === "alqaseh";
+    const paymentLabel = isOnlinePayment ? "مدفوع إلكترونياً" : "الدفع عند الاستلام";
 
     const copyOrderNumber = () => {
         navigator.clipboard.writeText(orderData?.orderNumber || orderId);
@@ -232,6 +237,8 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
         pointsEarned: orderData?.loyalty?.pointsEarned ?? 0,
         cashbackEarned: orderData?.loyalty?.cashbackEarned ?? 0,
         status: orderData?.status,
+        paymentStatus: orderData?.paymentStatus,
+        paymentMethod: orderData?.paymentMethod,
         orderNumber: orderData?.orderNumber || orderId,
         orderDate: createdAt,
     };
@@ -245,7 +252,7 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
     const whatsappText =
         `مرحباً، أحتاج مساعدة بخصوص طلبي رقم ${displayNumber}\n` +
         (itemsText ? `\n${itemsText}\n` : "") +
-        (total > 0 ? `\nالمبلغ الكلي: ${formatIQD(total)} (الدفع عند الاستلام)` : "");
+        (total > 0 ? `\nالمبلغ الكلي: ${formatIQD(total)} (${paymentLabel})` : "");
     // Message text is passed to WhatsAppLink, which builds the href and records the handoff.
 
     const cardRef = useRef<HTMLDivElement>(null);
@@ -370,7 +377,7 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
                                     </div>
                                 )}
                                 <div className="grid grid-cols-2 gap-2 text-sm">
-                                    <Fact icon={<Wallet className="h-4 w-4" />} label="الدفع" value="نقداً عند الاستلام" />
+                                    <Fact icon={<Wallet className="h-4 w-4" />} label="الدفع" value={paymentLabel} />
                                     <Fact icon={<Truck className="h-4 w-4" />} label="التوصيل المتوقع" value={getDeliveryEstimate()} />
                                     {customerName && <Fact icon={<Package className="h-4 w-4" />} label="المستلم" value={customerName} sensitive />}
                                     {customerPhone && <Fact icon={<Phone className="h-4 w-4" />} label="الهاتف" value={customerPhone} ltr sensitive />}

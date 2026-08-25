@@ -67,7 +67,7 @@ const STATIC_COPY: Record<string, { heading: string; summary: string; paragraphs
     summary: "AQUAVO يوصّل الطلبات إلى جميع محافظات العراق خلال 24 ساعة.",
     paragraphs: [
       `أجور التوصيل الثابتة ${new Intl.NumberFormat("ar-IQ").format(AQUAVO_ENTITY.deliveryFee)} د.ع لكل العراق.`,
-      "الدفع نقداً عند الاستلام، وتظهر تفاصيل الطلب قبل التأكيد.",
+      "الدفع عند الاستلام أو إلكترونياً، وتظهر تفاصيل الطلب قبل التأكيد.",
     ],
   },
   "/return-policy": {

@@ -67,6 +67,8 @@ export function ProfileOrders({ orders, isLoading }: ProfileOrdersProps) {
             pointsEarned: loyalty?.pointsEarned ?? 0,
             cashbackEarned: loyalty?.cashbackEarned ?? 0,
             status: order.status,
+            paymentStatus: (order as any).paymentStatus,
+            paymentMethod: (order as any).paymentMethod,
             orderNumber: (order as any).orderNumber || order.id.slice(0, 8),
             orderDate: new Date(order.createdAt),
         };

@@ -45,7 +45,8 @@ describe('Footer Component', () => {
 
         expect(screen.getAllByText(/محل المنبع — AL NABEA SHOP/).length).toBeGreaterThan(0);
         expect(screen.getAllByText(/توصيل خلال 24 ساعة/).length).toBeGreaterThan(0);
-        expect(screen.getAllByText(/الدفع عند الاستلام/).length).toBeGreaterThan(0);
+        expect(screen.getAllByText(/طرق دفع مرنة/).length).toBeGreaterThan(0);
+        expect(screen.getAllByText(/عند الاستلام أو إلكترونياً/).length).toBeGreaterThan(0);
         expect(screen.getAllByText(/5,000 د.ع/).length).toBeGreaterThan(0);
         expect(screen.getByRole('link', { name: /وثيقة YEE/ })).toHaveAttribute('href', '/verify-certificate/yee');
         expect(screen.queryByText(/كي كارد|زين كاش/)).not.toBeInTheDocument();

@@ -59,7 +59,7 @@ describe('Privacy Policy Page', () => {
     describe('Content Sections', () => {
         it('describes the implemented data flows without inventing payment storage', () => {
             render(<PrivacyPolicy />);
-            expect(screen.getByText(/الدفع نقداً عند الاستلام فقط/)).toBeInTheDocument();
+            expect(screen.getByText(/بيانات البطاقة تُدخل مباشرة لدى بوابة الدفع/)).toBeInTheDocument();
             expect(screen.getByText(/Google Analytics وMeta Pixel وTikTok Pixel/)).toBeInTheDocument();
             expect(screen.getByText(/كوكيز جلسة وتخزين المتصفح/)).toBeInTheDocument();
             expect(screen.queryByText(/طرق الدفع المحفوظة|معالجات الدفع لإتمام المعاملات/)).not.toBeInTheDocument();

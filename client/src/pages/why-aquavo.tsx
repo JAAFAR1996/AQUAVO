@@ -8,14 +8,14 @@ const reasons = [
   { icon: PackageCheck, title: "اختيار على أساس واضح", text: "مواصفات وصور وحالة توفر تساعدك تقارن قبل القرار." },
   { icon: BookOpen, title: "المعلومة قبل القطعة", text: "أدلة عملية حتى تعرف شتحتاج وليش تحتاجه." },
   { icon: Truck, title: "توصيل لكل العراق", text: "خلال 24 ساعة بأجرة ثابتة 5,000 د.ع." },
-  { icon: Banknote, title: "دفع بسيط", text: "نقداً عند الاستلام فقط." },
+  { icon: Banknote, title: "دفع مرن", text: "عند الاستلام أو إلكترونياً من صفحة إكمال الطلب." },
   { icon: Headphones, title: "دعم 24/7", text: "دز حجم الحوض أو تفاصيل المشكلة ونرتبلك الجواب." },
 ];
 
 export default function WhyAquavo() {
   return (
     <div className="flex-1 bg-background text-foreground" dir="rtl">
-      <MetaTags title="ليش AQUAVO؟" description="AQUAVO براند عراقي لمعدات الأحواض البريميوم: معلومات واضحة، توصيل لكل العراق، دفع عند الاستلام، ودعم 24/7." />
+      <MetaTags title="ليش AQUAVO؟" description="AQUAVO براند عراقي لمعدات الأحواض البريميوم: معلومات واضحة، توصيل لكل العراق، دفع عند الاستلام أو إلكترونياً، ودعم 24/7." />
       <OrganizationSchema />
       <BreadcrumbSchema items={[{ name: "الرئيسية", url: "https://www.aquavoiq.com" }, { name: "ليش AQUAVO؟", url: "https://www.aquavoiq.com/why-aquavo" }]} />
       <main id="main-content" className="mx-auto max-w-6xl px-4 pb-20 pt-28 sm:px-6 sm:pt-32">

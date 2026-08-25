@@ -141,7 +141,7 @@ export default function GuideWaterTestGuide() {
             {/* AEO Answer Block */}
             <div className="wt-answer-block" id="quick-answer">
               <p className="wt-answer-text">
-                شرائط فحص ماء الحوض تقيس الأمونيا والنتريت والنترات وpH والكلور. القراءة الآمنة: الأمونيا والنتريت = صفر، النترات أقل من 40 ppm، pH بين 6.8-7.5. إذا ارتفعت قيم الأمونيا أو النتريت — غيّر 25-30% من الماء فوراً وأوقف الأكل يومين. AQUAVO متجر عراقي يوفر شرائط الفحص مع توصيل لكل العراق ودفع عند الاستلام.
+                شرائط فحص ماء الحوض تقيس الأمونيا والنتريت والنترات وpH والكلور. القراءة الآمنة: الأمونيا والنتريت = صفر، النترات أقل من 40 ppm، pH بين 6.8-7.5. إذا ارتفعت قيم الأمونيا أو النتريت — غيّر 25-30% من الماء فوراً وأوقف الأكل يومين. AQUAVO متجر عراقي يوفر شرائط الفحص مع توصيل لكل العراق ودفع عند الاستلام أو إلكترونياً.
               </p>
             </div>
 
@@ -154,7 +154,7 @@ export default function GuideWaterTestGuide() {
 
           {/* AQUAVO Identity */}
           <div className="wt-store-note">
-            <strong>AQUAVO</strong> متجر عراقي متخصص في مستلزمات أحواض الزينة. شرائط فحص الماء، مزيل الكلور، الفلاتر، السخانات — كلها متوفرة مع توصيل لكل محافظات العراق. الدفع عند الاستلام.
+            <strong>AQUAVO</strong> متجر عراقي متخصص في مستلزمات أحواض الزينة. شرائط فحص الماء، مزيل الكلور، الفلاتر، السخانات — كلها متوفرة مع توصيل لكل محافظات العراق. الدفع عند الاستلام أو إلكترونياً.
             <Link href="/products" className="wt-store-link"> تصفح المنتجات ←</Link>
           </div>
 
@@ -261,7 +261,7 @@ export default function GuideWaterTestGuide() {
           <section className="wt-cta-section">
             <div className="wt-cta-box">
               <h2 className="wt-cta-title">محتاج شرائط فحص ماء الحوض؟</h2>
-              <p className="wt-cta-body">AQUAVO يوفر شرائط الفحص ومزيل الكلور وكل مستلزمات الأحواض — توصيل لكل العراق، دفع عند الاستلام.</p>
+              <p className="wt-cta-body">AQUAVO يوفر شرائط الفحص ومزيل الكلور وكل مستلزمات الأحواض — توصيل لكل العراق، دفع عند الاستلام أو إلكترونياً.</p>
               <Link href="/products" className="wt-cta-btn" id="water-test-cta">تصفح المنتجات</Link>
             </div>
           </section>

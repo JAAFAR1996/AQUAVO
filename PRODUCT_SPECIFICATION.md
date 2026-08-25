@@ -109,8 +109,7 @@
 
 **Payment Methods**:
 - Cash on Delivery
-- Credit Card
-- ZainCash (local payment)
+- Online payment through the Al-Qaseh hosted checkout (AQUAVO does not collect or store card details)
 
 ---
 

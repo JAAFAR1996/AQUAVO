@@ -10,7 +10,7 @@ const groups = [
     icon: Truck,
     items: [
       { question: "وين يوصل AQUAVO؟", answer: "نوصل لكل العراق خلال 24 ساعة، وأجرة التوصيل ثابتة 5,000 د.ع." },
-      { question: "شلون أدفع؟", answer: "الدفع نقداً عند الاستلام فقط. ماكو دفع إلكتروني مفعّل هسه." },
+      { question: "شلون أدفع؟", answer: "تگدر تدفع نقداً عند الاستلام، أو إلكترونياً من خلال بوابة الدفع أثناء إكمال الطلب. بيانات بطاقتك تدخل ببوابة الدفع وما يخزنها AQUAVO." },
       { question: "شلون أتتبع طلبي؟", answer: "استخدم صفحة تتبع الطلب برقم الطلب ورقم الهاتف. وإذا احتجت مساعدة، الدعم متوفر 24/7." },
     ],
   },
@@ -47,7 +47,7 @@ const questions = groups.flatMap((group) => group.items.map((item) => ({ questio
 export default function FAQ() {
   return (
     <div className="flex-1 bg-background text-foreground" data-testid="faq-page" dir="rtl">
-      <MetaTags title="الأسئلة الشائعة" description="أجوبة واضحة عن منتجات AQUAVO، التوصيل خلال 24 ساعة، أجرة 5,000 د.ع، الدفع عند الاستلام، ومشاكل الاستلام." />
+      <MetaTags title="الأسئلة الشائعة" description="أجوبة واضحة عن منتجات AQUAVO، التوصيل خلال 24 ساعة، أجرة 5,000 د.ع، الدفع عند الاستلام أو إلكترونياً، ومشاكل الاستلام." />
       <FAQSchema questions={questions} />
       <BreadcrumbSchema items={[{ name: "الرئيسية", url: "https://www.aquavoiq.com" }, { name: "الأسئلة الشائعة", url: "https://www.aquavoiq.com/faq" }]} />      <main id="main-content" className="mx-auto max-w-5xl px-4 pb-20 pt-28 sm:px-6 sm:pt-32">
         <header className="max-w-3xl">

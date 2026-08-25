@@ -19,6 +19,9 @@ export interface Order {
     createdAt: string; // or Date
     total: string | number;
     status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+    paymentStatus?: string;
+    paymentMethod?: string;
+    paymentRecordStatus?: string | null;
     items: OrderItem[];
 }
 

@@ -494,7 +494,7 @@ export default function CheckoutPage() {
         <p className="text-sm font-semibold text-foreground mb-1">AQUAVO</p>
         <p className="text-xs text-muted-foreground mb-3">AQUAVO — معدات أحواض بريميوم من بغداد لكل العراق</p>
         <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground mb-3">
-          <span>الدفع عند الاستلام</span>
+          <span>الدفع عند الاستلام أو إلكترونياً</span>
           <span className="opacity-40">·</span>
           <span>التوصيل 5,000 د.ع لكل العراق</span>
         </div>

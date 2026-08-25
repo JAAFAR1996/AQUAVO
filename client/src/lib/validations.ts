@@ -110,7 +110,7 @@ export const checkoutSchema = z.object({
     .optional(),
 
   // Payment
-  paymentMethod: z.enum(['cash', 'card', 'online'], {
+  paymentMethod: z.enum(['cod', 'online'], {
     errorMap: () => ({ message: 'طريقة الدفع غير صحيحة' }),
   }),
 

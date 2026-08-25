@@ -37,10 +37,11 @@ export default function Terms() {
       icon: CreditCard,
       title: "الدفع",
       content: [
-         "الدفع نقداً عند الاستلام (COD) — تدفع فقط عند وصول الطلب",
+         "يمكنك اختيار الدفع نقداً عند الاستلام (COD) أو الدفع الإلكتروني من صفحة إكمال الطلب",
+         "في الدفع الإلكتروني لا يُعتبر الطلب مدفوعاً إلا بعد تأكيد حالة العملية من بوابة الدفع على السيرفر",
          "المبلغ يُقرّب لأقرب 250 د.ع — فرق التقريب يُحفظ كرصيد بحسابك",
          "الفاتورة الإلكترونية تُرسل تلقائياً مع تأكيد الطلب",
-         "يُرجى تحضير المبلغ المحدد لتسهيل عملية الاستلام",
+         "إذا اخترت الدفع عند الاستلام، يُرجى تحضير المبلغ المحدد لتسهيل عملية الاستلام",
          "رفض استلام الطلب بدون سبب مشروع قد يؤثر على خدمتك المستقبلية"
       ]
     },
@@ -94,7 +95,7 @@ export default function Terms() {
 
   return (
     <div className="flex-1 flex flex-col bg-background font-sans" data-testid="terms-page">
-      <MetaTags title="الشروط والأحكام" description="شروط الطلب والدفع نقداً عند الاستلام والتوصيل والضمان المحدود لدى AQUAVO / محل المنبع." />
+      <MetaTags title="الشروط والأحكام" description="شروط الطلب والدفع عند الاستلام أو إلكترونياً والتوصيل والضمان المحدود لدى AQUAVO / محل المنبع." />
 
       <section className="relative py-20 overflow-hidden bg-gradient-to-b from-primary/5 to-background">
         <div className="absolute inset-0 opacity-10">
@@ -119,7 +120,7 @@ export default function Terms() {
               يرجى قراءة هذه الشروط والأحكام بعناية قبل استخدام خدماتنا. استخدامك للموقع يعني موافقتك على هذه الشروط.
             </p>
              <p className="text-sm text-muted-foreground mt-4">
-               آخر تحديث: 24 أبريل 2026
+               آخر تحديث: 25 آب 2026
             </p>
           </motion.div>
         </div>
