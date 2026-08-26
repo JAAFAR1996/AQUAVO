@@ -99,6 +99,33 @@ export function detailImage(url: string | null | undefined): string {
   });
 }
 
+/**
+ * Blog hero image — full-bleed 1200px WebP.
+ *
+ * Blog images were the one image surface that never went through this module:
+ * an article shipped its Cloudinary original, so a 497 KB PNG hero was the LCP
+ * element on every post. `c_limit` never upscales, so a smaller original is
+ * left at its own size.
+ */
+export function blogHeroImage(url: string | null | undefined): string {
+  return optimizeCloudinaryUrl(url, {
+    width: 1200,
+    quality: "auto:good",
+    format: "auto",
+    crop: "limit",
+  });
+}
+
+/** Blog listing card image — 600px WebP, for the article grid. */
+export function blogCardImage(url: string | null | undefined): string {
+  return optimizeCloudinaryUrl(url, {
+    width: 600,
+    quality: "auto",
+    format: "auto",
+    crop: "limit",
+  });
+}
+
 /** Lightbox / full-screen image — original size, WebP format + auto quality only */
 export function lightboxImage(url: string | null | undefined): string {
   const localWebp = preferLocalWebp(url);

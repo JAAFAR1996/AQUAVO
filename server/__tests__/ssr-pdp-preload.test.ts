@@ -97,6 +97,82 @@ describe("PDP SSR preload targets the rendered Cloudinary asset", () => {
   });
 });
 
+/**
+ * A bare `href` preload is not enough for a responsive <img>.
+ *
+ * The PDP main image carries `srcSet={detailImageSrcSet(...)}` (400/600/800/
+ * 1200w) and `sizes="(max-width: 512px) 100vw, 512px"`. The preload advertised
+ * only the w_800 href, so on a 412px phone at 2.625 DPR — needing ~1082px —
+ * the img resolved to the 1200w candidate while the preload had fetched 800w.
+ * The preload went unused and the LCP image was not discovered until React
+ * rendered it: LCP 3,399 ms, 3,145 ms of it load delay.
+ *
+ * The preload's imagesrcset/imagesizes must therefore stay identical to the
+ * img's srcset/sizes, or the two silently pick different candidates again.
+ */
+describe("PDP preload matches the responsive candidates the <img> will choose", () => {
+  const RAW = "https://res.cloudinary.com/aquavo/image/upload/v123/products/yee-filter.jpg";
+
+  function preloadTag(html: string): string {
+    return html.match(/<link[^>]*rel="preload"[^>]*as="image"[^>]*>/)?.[0] ?? "";
+  }
+
+  function attr(tag: string, name: string): string {
+    return tag.match(new RegExp(`${name}="([^"]*)"`))?.[1] ?? "";
+  }
+
+  it("advertises every width the img's srcset offers", () => {
+    const tag = preloadTag(renderProduct(RAW));
+    const srcset = attr(tag, "imagesrcset");
+    expect(srcset).not.toBe("");
+    for (const width of [400, 600, 800, 1200]) {
+      expect(srcset).toContain(`w_${width},h_${width},c_limit`);
+      expect(srcset).toContain(`${width}w`);
+    }
+  });
+
+  it("uses the exact sizes attribute the PDP img uses", () => {
+    const tag = preloadTag(renderProduct(RAW));
+    expect(attr(tag, "imagesizes")).toBe("(max-width: 512px) 100vw, 512px");
+  });
+
+  it("builds each candidate with the same transform as detailImageSrcSet", () => {
+    const tag = preloadTag(renderProduct(RAW));
+    const candidates = attr(tag, "imagesrcset").split(", ");
+    expect(candidates).toHaveLength(4);
+    for (const candidate of candidates) {
+      expect(candidate).toContain("f_auto");
+      expect(candidate).toContain("q_auto:good");
+      expect(candidate).toMatch(/ \d+w$/);
+    }
+  });
+
+  it("keeps fetchpriority=high alongside the responsive attributes", () => {
+    const tag = preloadTag(renderProduct(RAW));
+    expect(tag).toContain('fetchpriority="high"');
+    expect(tag).toContain('as="image"');
+  });
+
+  it("still emits exactly one preload, href included, for the scanner to fall back on", () => {
+    const html = renderProduct(RAW);
+    expect(html.match(/<link[^>]*rel="preload"[^>]*as="image"[^>]*>/g) ?? []).toHaveLength(1);
+    expect(attr(preloadTag(html), "href")).toContain("w_800");
+  });
+
+  it("omits imagesrcset for a local image, rather than inventing Cloudinary candidates", () => {
+    const tag = preloadTag(renderProduct("https://www.aquavoiq.com/images/products/yee.webp"));
+    expect(tag).not.toContain("imagesrcset");
+    expect(tag).not.toContain("f_auto");
+  });
+
+  it("omits imagesrcset for an already-transformed URL, rather than double-transforming", () => {
+    const tag = preloadTag(
+      renderProduct("https://res.cloudinary.com/aquavo/image/upload/w_1200,f_auto/v123/p.jpg"),
+    );
+    expect(tag).not.toContain("imagesrcset");
+  });
+});
+
 describe("Home hero preload is unaffected by the PDP preload fix", () => {
   it("keeps the 48vw home hero preload and does not apply any Cloudinary transform", () => {
     const html = injectMeta(TEMPLATE, {

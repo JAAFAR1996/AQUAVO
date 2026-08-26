@@ -2,7 +2,7 @@
  * Cloudinary responsive image helpers (Phase H).
  */
 import { describe, it, expect } from 'vitest';
-import { cardImage, cardImageSrcSet, detailImage, detailImageSrcSet } from '../cloudinary';
+import { blogCardImage, blogHeroImage, cardImage, cardImageSrcSet, detailImage, detailImageSrcSet } from '../cloudinary';
 
 const CLOUDINARY_URL = 'https://res.cloudinary.com/demo/image/upload/v1/product.jpg';
 const LOCAL_URL = '/images/products/filter.jpg';
@@ -58,5 +58,53 @@ describe('detailImageSrcSet', () => {
     const srcSet = detailImageSrcSet(CLOUDINARY_URL) ?? '';
     const width800Entry = srcSet.split(', ').find((entry) => entry.endsWith(' 800w'));
     expect(width800Entry?.replace(/ 800w$/, '')).toBe(single);
+  });
+});
+
+/**
+ * Blog image helpers.
+ *
+ * Blog was the one image surface that never went through this module: articles
+ * shipped their Cloudinary original, so a 497 KB PNG hero was the LCP element
+ * on every post (measured LCP 14.4 s on a throttled phone). The same asset
+ * through `blogHeroImage` is 29 KB of WebP.
+ */
+describe('blogHeroImage', () => {
+  it('serves a Cloudinary hero as auto-format, hero-width, without upscaling', () => {
+    const url = blogHeroImage(CLOUDINARY_URL);
+    expect(url).toContain('f_auto');
+    expect(url).toContain('q_auto:good');
+    expect(url).toContain('w_1200');
+    // c_limit never enlarges an original that is already smaller than 1200px.
+    expect(url).toContain('c_limit');
+  });
+
+  it('does not constrain height, so a wide hero keeps its aspect ratio', () => {
+    expect(blogHeroImage(CLOUDINARY_URL)).not.toContain('h_');
+  });
+
+  it('leaves an already-transformed URL alone rather than double-transforming', () => {
+    const transformed = 'https://res.cloudinary.com/demo/image/upload/w_600,f_auto/v1/hero.png';
+    expect(blogHeroImage(transformed)).toBe(transformed);
+  });
+
+  it('returns an empty string for a missing image, so callers fall back', () => {
+    expect(blogHeroImage(null)).toBe('');
+    expect(blogHeroImage(undefined)).toBe('');
+    expect(blogHeroImage('')).toBe('');
+  });
+});
+
+describe('blogCardImage', () => {
+  it('requests a card-sized copy, smaller than the hero', () => {
+    const url = blogCardImage(CLOUDINARY_URL);
+    expect(url).toContain('w_600');
+    expect(url).toContain('f_auto');
+    expect(url).toContain('c_limit');
+    expect(url).not.toContain('w_1200');
+  });
+
+  it('returns an empty string for a missing image, so callers fall back', () => {
+    expect(blogCardImage(null)).toBe('');
   });
 });

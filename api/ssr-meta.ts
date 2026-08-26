@@ -837,7 +837,20 @@ export function injectMeta(html: string, meta: PageMeta & { url: string; image: 
   let imagePreload = "";
   if (isProductPage) {
     const preloadImage = escapeHtml(safeHttpUrl(toDetailPreloadImage(meta.image), DEFAULT_IMAGE));
-    imagePreload = `<link rel="preload" as="image" href="${preloadImage}" fetchpriority="high">`;
+    // The rendered <img> is responsive, so the preload has to be too. With a
+    // bare href the browser preloaded w_800 while the img's srcset picked
+    // w_1200 on any viewport needing more than 800 CSS px of image — which a
+    // 412px phone at 2.625 DPR does. The preload therefore went unused and the
+    // real LCP image was not discovered until React rendered it: measured LCP
+    // 3,399 ms, of which 3,145 ms was load delay, with the request queued at
+    // 3,257 ms and downloaded in 1 ms. imagesrcset/imagesizes mirror
+    // product-image-gallery.tsx exactly, so the preload scanner resolves to
+    // the same candidate the <img> will pick.
+    const srcSet = toDetailPreloadSrcSet(meta.image);
+    const responsive = srcSet
+      ? ` imagesrcset="${escapeHtml(srcSet)}" imagesizes="${escapeHtml(DETAIL_IMAGE_SIZES)}"`
+      : "";
+    imagePreload = `<link rel="preload" as="image" href="${preloadImage}"${responsive} fetchpriority="high">`;
   } else if (isHomePage) {
     imagePreload = `<link rel="preload" fetchpriority="high" as="image" type="image/webp" href="/images/aquascape-styles/iwagumi_aquascape_1765676307763.webp" imagesrcset="/images/aquascape-styles/iwagumi_aquascape_1765676307763-640.webp 640w, /images/aquascape-styles/iwagumi_aquascape_1765676307763.webp 1024w" imagesizes="(max-width: 1024px) 100vw, 48vw">`;
   }
@@ -891,6 +904,30 @@ function toDetailPreloadImage(url: string): string {
     return url;
   }
   return url.replace("/upload/", "/upload/f_auto,q_auto:good,w_800,h_800,c_limit/");
+}
+
+// Mirrors `detailImageSrcSet` (client/src/lib/cloudinary.ts): the same 400/600/
+// 800/1200 square candidates, built with the same transform. Kept beside
+// `toDetailPreloadImage` for the same reason — the client helper cannot be
+// imported into this runtime. `ssr-pdp-preload.test.ts` pins the two in step.
+const DETAIL_PRELOAD_WIDTHS = [400, 600, 800, 1200] as const;
+
+// Must equal the `sizes` attribute on the PDP main image in
+// client/src/components/products/product-image-gallery.tsx.
+const DETAIL_IMAGE_SIZES = "(max-width: 512px) 100vw, 512px";
+
+function toDetailPreloadSrcSet(url: string): string | null {
+  if (!url.includes("res.cloudinary.com")) return null;
+  if (url.includes("/upload/f_") || url.includes("/upload/w_") || url.includes("/upload/q_")) {
+    return null;
+  }
+  return DETAIL_PRELOAD_WIDTHS.map((width) => {
+    const candidate = url.replace(
+      "/upload/",
+      `/upload/f_auto,q_auto:good,w_${width},h_${width},c_limit/`,
+    );
+    return `${candidate} ${width}w`;
+  }).join(", ");
 }
 
 // Only allow http(s) URLs into href/src/content attributes; reject javascript:/data: etc.

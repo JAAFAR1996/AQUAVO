@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Calendar, Clock, User, Share2, ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
 import DOMPurify from 'isomorphic-dompurify';
+import { blogHeroImage } from "@/lib/cloudinary";
 
 
 export default function BlogPost() {
@@ -60,10 +61,15 @@ export default function BlogPost() {
                 {/* Hero Header */}
                 <div className="relative h-[50vh] min-h-[400px]">
                     <div className="absolute inset-0">
+                        {/* The article's LCP element: served WebP at hero width,
+                            and eager/high-priority because it is above the fold. */}
                         <img
-                            src={post.imageUrl || "/brand/aquavo-v2-horizontal.png"}
+                            src={blogHeroImage(post.imageUrl) || "/brand/aquavo-v2-horizontal.png"}
                             alt={post.title}
                             className="w-full h-full object-cover"
+                            loading="eager"
+                            decoding="async"
+                            fetchPriority="high"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
                     </div>
