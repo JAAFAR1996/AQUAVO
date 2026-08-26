@@ -536,7 +536,10 @@ export function buildProductMetaDescription(product: ProductDescriptionInput): s
 export function buildProductMetaTitle(name: string, brand?: string | null): string {
   const cleanName = name.replace(/\s*[|\-–—]\s*AQUAVO\s*$/i, "").trim();
   const cleanBrand = brand?.trim();
-  const productTitle = cleanBrand && !includesTerm(cleanName, cleanBrand)
+  // Own-brand products carry brand "AQUAVO", which the "| AQUAVO" suffix below
+  // already states. Appending it as a brand too produced "… - AQUAVO | AQUAVO".
+  const isSiteBrand = !!cleanBrand && /^aquavo$/i.test(cleanBrand);
+  const productTitle = cleanBrand && !isSiteBrand && !includesTerm(cleanName, cleanBrand)
     ? `${cleanName} - ${cleanBrand}`
     : cleanName;
   return `${productTitle} | AQUAVO`;

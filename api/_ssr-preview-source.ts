@@ -239,6 +239,45 @@ async function loadProduct(slug: string): Promise<SeoPreviewProduct | null> {
   return (rows[0] ? (sanitizeSeoProductVariants(rows[0]) as SeoPreviewProduct) : null);
 }
 
+
+const BLOG_COLUMNS = `slug, title, excerpt, content, category, author,
+            read_time AS "readTime", image_url AS "imageUrl",
+            published_at AS "publishedAt", updated_at AS "updatedAt"`;
+
+async function loadBlogPost(slug: string): Promise<SeoPreviewBlogPost | null> {
+  const { rows } = await getPool().query(
+    `SELECT ${BLOG_COLUMNS}
+       FROM blog_posts
+      WHERE slug = $1
+        AND is_published = TRUE
+      LIMIT 1`,
+    [slug],
+  );
+  return (rows[0] as SeoPreviewBlogPost | undefined) ?? null;
+}
+
+async function loadBlogPosts(limit = 60, excludeSlug?: string): Promise<SeoPreviewBlogPost[]> {
+  const { rows } = await getPool().query(
+    `SELECT ${BLOG_COLUMNS}
+       FROM blog_posts
+      WHERE is_published = TRUE
+        AND ($2::text IS NULL OR slug <> $2)
+      ORDER BY published_at DESC NULLS LAST
+      LIMIT $1`,
+    [limit, excludeSlug ?? null],
+  );
+  return rows as SeoPreviewBlogPost[];
+}
+
+function blogImage(post: SeoPreviewBlogPost): string {
+  const candidate = typeof post.imageUrl === "string" ? post.imageUrl.trim() : "";
+  if (!candidate) return AQUAVO_ENTITY.logoUrl;
+  const absolute = /^https?:///i.test(candidate)
+    ? candidate
+    : `${AQUAVO_BASE_URL}${candidate.startsWith("/") ? "" : "/"}${candidate}`;
+  return cloudinaryHeroUrl(absolute, 1200);
+}
+
 function breadcrumbSchema(name: string, path: string): object {
   return {
     "@context": "https://schema.org",
@@ -341,6 +380,86 @@ async function resolvePage(pathname: string, rawCategory?: string): Promise<Reso
         image: productImage(product),
         ogType: "product",
         jsonLd: buildProductStructuredData(product),
+      },
+      status: 200,
+    };
+  }
+
+  if (pathname === "/blog") {
+    const posts = await loadBlogPosts(60);
+    const copy = STATIC_COPY["/blog"];
+    return {
+      page: { kind: "blog-index", posts, heading: copy.heading, summary: copy.summary },
+      meta: {
+        title: `${copy.heading} | AQUAVO`,
+        description: copy.summary,
+        canonicalPath: "/blog",
+        jsonLd: webPageSchema(copy.heading, copy.summary, "/blog"),
+      },
+      status: 200,
+    };
+  }
+
+  const blogMatch = pathname.match(/^\/blog\/([^/]+)\/?$/);
+  if (blogMatch) {
+    const slug = decodeURIComponent(blogMatch[1]);
+    const post = await loadBlogPost(slug);
+    if (!post) {
+      return {
+        page: { kind: "not-found", path: pathname },
+        meta: {
+          title: "المقال غير موجود | AQUAVO",
+          description: "المقال المطلوب غير متوفر أو تم نقل رابطه.",
+          notFound: true,
+        },
+        status: 404,
+      };
+    }
+    const related = (await loadBlogPosts(6, post.slug));
+    const blogPath = `/blog/${encodeURIComponent(post.slug)}`;
+    const image = blogImage(post);
+    const description = cleanText(post.excerpt, articlePlainText(post.content)).slice(0, 160);
+    const published = post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined;
+    const modified = post.updatedAt ? new Date(post.updatedAt).toISOString() : published;
+    return {
+      page: { kind: "blog-post", post, related },
+      meta: {
+        title: `${post.title} | مدونة AQUAVO`,
+        description,
+        canonicalPath: blogPath,
+        image,
+        ogType: "article",
+        jsonLd: [
+          {
+            "@context": "https://schema.org",
+            "@type": "Article",
+            headline: post.title,
+            description,
+            image,
+            author: { "@type": "Person", name: post.author || "AQUAVO" },
+            publisher: {
+              "@type": "Organization",
+              name: AQUAVO_ENTITY.brandName,
+              logo: { "@type": "ImageObject", url: AQUAVO_ENTITY.logoUrl },
+            },
+            datePublished: published,
+            dateModified: modified,
+            wordCount: articlePlainText(post.content).split(/s+/).filter(Boolean).length || undefined,
+            articleSection: post.category || undefined,
+            inLanguage: "ar-IQ",
+            mainEntityOfPage: { "@type": "WebPage", "@id": `${AQUAVO_BASE_URL}${blogPath}` },
+            isPartOf: { "@id": `${AQUAVO_BASE_URL}/#website` },
+          },
+          {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: "الرئيسية", item: AQUAVO_BASE_URL },
+              { "@type": "ListItem", position: 2, name: "المدونة", item: `${AQUAVO_BASE_URL}/blog` },
+              { "@type": "ListItem", position: 3, name: post.title, item: `${AQUAVO_BASE_URL}${blogPath}` },
+            ],
+          },
+        ],
       },
       status: 200,
     };

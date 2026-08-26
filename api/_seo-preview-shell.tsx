@@ -5,6 +5,7 @@ import {
   categoryProductsPath,
   canonicalProductCategory,
 } from "../shared/seo-contract.js";
+import { cloudinaryHeroUrl, renderArticleBodyHtml } from "./_blog-article.js";
 
 export type SeoPreviewVariant = {
   id?: string;
@@ -35,6 +36,19 @@ export type SeoPreviewProduct = {
   reviewCount?: string | number | null;
 };
 
+export type SeoPreviewBlogPost = {
+  slug: string;
+  title: string;
+  excerpt?: string | null;
+  content?: string | null;
+  category?: string | null;
+  author?: string | null;
+  readTime?: string | null;
+  imageUrl?: string | null;
+  publishedAt?: string | Date | null;
+  updatedAt?: string | Date | null;
+};
+
 export type SeoPreviewPage =
   | { kind: "home"; products: SeoPreviewProduct[] }
   | { kind: "products"; products: SeoPreviewProduct[]; category?: string }
@@ -42,6 +56,8 @@ export type SeoPreviewPage =
   | { kind: "faq" }
   | { kind: "about" }
   | { kind: "static"; heading: string; summary: string; path: string; paragraphs?: string[] }
+  | { kind: "blog-index"; posts: SeoPreviewBlogPost[]; heading: string; summary: string }
+  | { kind: "blog-post"; post: SeoPreviewBlogPost; related: SeoPreviewBlogPost[] }
   | { kind: "not-found"; path: string };
 
 export const SEO_FAQ_ITEMS = [
@@ -303,6 +319,95 @@ function StaticPage({ heading, summary, paragraphs = [] }: { heading: string; su
   );
 }
 
+function BlogIndexPage({ posts, heading, summary }: { posts: SeoPreviewBlogPost[]; heading: string; summary: string }) {
+  return (
+    <main id="main-content">
+      <nav className="aq-ssr-breadcrumb" aria-label="مسار الصفحة">
+        <a href="/">الرئيسية</a><span>/</span><span>المدونة</span>
+      </nav>
+      <div className="aq-ssr-hero">
+        <h1>{heading}</h1>
+        <p>{summary}</p>
+      </div>
+      {posts.length > 0 && (
+        <section aria-labelledby="aq-blog-list-title">
+          <h2 id="aq-blog-list-title">كل المقالات</h2>
+          <BlogLinks posts={posts} />
+        </section>
+      )}
+    </main>
+  );
+}
+
+function BlogLinks({ posts }: { posts: SeoPreviewBlogPost[] }) {
+  return (
+    <ul className="aq-ssr-products">
+      {posts.map((post) => (
+        <li key={post.slug}>
+          <a href={`/blog/${encodeURIComponent(post.slug)}`}>
+            <strong>{post.title}</strong>
+            {post.excerpt && <span>{post.excerpt}</span>}
+          </a>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function articleDate(value: string | Date | null | undefined): string | null {
+  if (!value) return null;
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date.toISOString().slice(0, 10);
+}
+
+function BlogPostPage({ post, related }: { post: SeoPreviewBlogPost; related: SeoPreviewBlogPost[] }) {
+  // The stored article HTML is sanitized and its headings demoted, so the post
+  // title below stays the only <h1> on the page.
+  const body = renderArticleBodyHtml(post.content);
+  const published = articleDate(post.publishedAt);
+  const updated = articleDate(post.updatedAt);
+  const hero = post.imageUrl ? cloudinaryHeroUrl(post.imageUrl, 1200) : null;
+  return (
+    <main id="main-content">
+      <nav className="aq-ssr-breadcrumb" aria-label="مسار الصفحة">
+        <a href="/">الرئيسية</a><span>/</span><a href="/blog">المدونة</a><span>/</span><span>{post.title}</span>
+      </nav>
+      <article itemScope itemType="https://schema.org/Article">
+        {post.category && <p className="aq-ssr-kicker">{post.category}</p>}
+        <h1 itemProp="headline">{post.title}</h1>
+        {post.excerpt && <p itemProp="description">{post.excerpt}</p>}
+        <p className="aq-ssr-meta">
+          {post.author && <span itemProp="author">{post.author}</span>}
+          {published && <><span> · </span><time itemProp="datePublished" dateTime={published}>{published}</time></>}
+          {updated && updated !== published && (
+            <><span> · تحديث </span><time itemProp="dateModified" dateTime={updated}>{updated}</time></>
+          )}
+          {post.readTime && <span> · {post.readTime}</span>}
+        </p>
+        {hero && (
+          <img
+            className="aq-ssr-hero-image"
+            src={hero}
+            alt={post.title}
+            width={1200}
+            height={630}
+            loading="eager"
+            decoding="async"
+            itemProp="image"
+          />
+        )}
+        <div className="aq-ssr-article" itemProp="articleBody" dangerouslySetInnerHTML={{ __html: body }} />
+      </article>
+      <section aria-labelledby="aq-blog-more-title">
+        <h2 id="aq-blog-more-title">مقالات أخرى</h2>
+        {related.length > 0
+          ? <BlogLinks posts={related} />
+          : <p><a href="/blog">تصفح كل مقالات مدونة AQUAVO</a></p>}
+      </section>
+    </main>
+  );
+}
+
 function NotFoundPage() {
   return (
     <main id="main-content">
@@ -329,6 +434,8 @@ function SeoPreviewShell({ page }: { page: SeoPreviewPage }) {
         .aq-ssr-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem}.aq-ssr-facts div{display:grid;gap:.2rem}.aq-ssr-facts dt{color:#9fc5cc}.aq-ssr-facts dd{margin:0;font-weight:700}
         .aq-ssr-variants{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.75rem;list-style:none;padding:0}.aq-ssr-variants li{display:grid;gap:.25rem;border:1px solid rgba(255,255,255,.14);border-radius:.6rem;padding:.8rem;background:rgba(255,255,255,.035)}
         .aq-ssr-faq{display:grid;gap:.8rem}.aq-ssr-faq summary{cursor:pointer;font-weight:700}.aq-ssr-breadcrumb{display:flex;gap:.5rem;flex-wrap:wrap;color:#b9ccd1;margin-bottom:1.5rem}.aq-ssr-footer{border-top:1px solid rgba(255,255,255,.14);border-bottom:0;max-width:1180px;margin:0 auto}
+        .aq-ssr-meta{color:#9fc5cc;font-size:.95rem}.aq-ssr-hero-image{display:block;width:100%;height:auto;aspect-ratio:1200/630;object-fit:cover;border-radius:.6rem;margin:1.5rem 0;border:1px solid rgba(255,255,255,.14)}
+        .aq-ssr-article{max-width:820px}.aq-ssr-article img{max-width:100%;height:auto}.aq-ssr-article h2{margin-top:2.25rem}.aq-ssr-article h3{margin-top:1.75rem;font-size:1.15rem}.aq-ssr-article ul,.aq-ssr-article ol{padding-inline-start:1.4rem}
         @media(max-width:720px){.aq-ssr-header,.aq-ssr-footer{align-items:flex-start;flex-direction:column}.aq-ssr-shell{padding-inline:1.1rem}.aq-ssr-shell main{padding-top:2rem}}
       `}</style>
       <SiteHeader />
@@ -338,6 +445,8 @@ function SeoPreviewShell({ page }: { page: SeoPreviewPage }) {
       {page.kind === "faq" && <FaqPage />}
       {page.kind === "about" && <AboutPage />}
       {page.kind === "static" && <StaticPage heading={page.heading} summary={page.summary} path={page.path} paragraphs={page.paragraphs} />}
+      {page.kind === "blog-index" && <BlogIndexPage posts={page.posts} heading={page.heading} summary={page.summary} />}
+      {page.kind === "blog-post" && <BlogPostPage post={page.post} related={page.related} />}
       {page.kind === "not-found" && <NotFoundPage />}
       <SiteFooter />
     </div>
