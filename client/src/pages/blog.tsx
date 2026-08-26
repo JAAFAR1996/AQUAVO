@@ -22,6 +22,7 @@ import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import type { BlogPost, BlogCategory } from "@shared/schema";
 import { Loader2 } from "lucide-react";
+import { blogCardImage, blogHeroImage } from "@/lib/cloudinary";
 
 // Map icon strings to components
 const iconMap: Record<string, React.ReactNode> = {
@@ -142,9 +143,12 @@ export default function Blog() {
                                     >
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent z-10" />
                                         <img
-                                            src={featuredPost.imageUrl || '/brand/aquavo-v2-horizontal.png'}
+                                            src={blogHeroImage(featuredPost.imageUrl) || '/brand/aquavo-v2-horizontal.png'}
                                             alt={featuredPost.title}
                                             className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
+                                            loading="eager"
+                                            decoding="async"
+                                            fetchPriority="high"
                                         />
                                         <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12 z-20 flex flex-col items-start gap-4">
                                             <Badge className="bg-primary text-primary-foreground border-0 px-4 py-1.5 text-sm font-bold backdrop-blur-md shadow-lg shadow-primary/20">
@@ -186,10 +190,13 @@ export default function Blog() {
                                         <div className="h-full flex flex-col">
                                             <div className="relative h-48 overflow-hidden">
                                                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10 opactiy-60" />
+                                                {/* Grid cards sit below the fold: lazy, and card-sized. */}
                                                 <img
-                                                    src={post.imageUrl || '/brand/aquavo-v2-horizontal.png'}
+                                                    src={blogCardImage(post.imageUrl) || '/brand/aquavo-v2-horizontal.png'}
                                                     alt={post.title}
                                                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                                    loading="lazy"
+                                                    decoding="async"
                                                 />
                                                 <div className="absolute top-4 right-4 z-20">
                                                     <Badge variant="secondary" className="backdrop-blur-md bg-background/80 border-0">

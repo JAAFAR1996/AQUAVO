@@ -250,10 +250,27 @@ export default function ProductDetails() {
   };
 
   if (isLoading) {
+    // The skeleton must be at least a viewport tall. It used to be a bare
+    // 400px block, which laid the footer out at ~529px — above the fold — and
+    // the real product content then shoved it down the page. That single jump
+    // was the entire product-page CLS (0.42 measured on a throttled phone).
+    // Reserving a viewport keeps the footer below the fold from the first
+    // paint, so filling in the content shifts nothing the user can see.
     return (
       <div className="flex-1 flex flex-col bg-background">
-        <main className="flex-1 container mx-auto py-8">
-          <Skeleton className="h-[400px] w-full rounded-xl" />
+        <main
+          data-testid="pdp-loading-skeleton"
+          className="flex-1 container mx-auto py-8 min-h-[calc(100vh-4rem)]"
+        >
+          <div className="grid gap-8 md:grid-cols-2">
+            <Skeleton className="aspect-square w-full rounded-xl" />
+            <div className="flex flex-col gap-4">
+              <Skeleton className="h-9 w-3/4 rounded-lg" />
+              <Skeleton className="h-6 w-1/3 rounded-lg" />
+              <Skeleton className="h-24 w-full rounded-lg" />
+              <Skeleton className="h-12 w-full rounded-lg" />
+            </div>
+          </div>
         </main>
       </div>
     );
