@@ -109,7 +109,14 @@ describe("SEO production safety invariants", () => {
     expect(productSitemap).toContain("AQUAVO_SEO_RELEASE_LASTMOD");
     expect(productSitemap).toContain('res.setHeader("Last-Modified"');
 
-    expect(sitemapIndex).toContain("/sitemap-recovery.xml");
+    // The recovery sitemap is no longer advertised in the index. Its six URLs
+    // — /, /shipping, /faq, one product and two guides — were each verified to
+    // be present in sitemap-pages, sitemap-products or sitemap-guides, so
+    // listing it resubmitted the same pages under a second, staler sitemap.
+    // The file is still served so a URL Google already holds keeps resolving,
+    // which is what the assertions below protect.
+    expect(sitemapIndex).not.toContain("sitemap-recovery.xml</loc>");
+    expect(sitemapIndex).toContain("sitemap-recovery.xml is deliberately absent");
     expect(recoverySitemap).toContain("/products/houyi-stainless-shunt");
     expect(recoverySitemap).toContain("/guides/aquarium-decor-stones-guide");
     expect(recoverySitemap).not.toContain("fist-live.vercel.app");

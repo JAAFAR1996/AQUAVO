@@ -16,7 +16,12 @@ Required data:
 
 - Provider name: `AQUAVO / محل المنبع / AL NABEA SHOP`.
 - YEE certificate and AQUAVO customer warranty are separate.
-- Cash on Delivery only.
+- Payment: Cash on Delivery, and Al-Qaseh online payment. This line previously
+  read "Cash on Delivery only", which stopped being true once Al-Qaseh shipped:
+  `GET /api/payments/alqaseh/availability` returns `{"available":true}` in
+  production and the checkout offers it. The schema's
+  `paymentAccepted: "Cash on Delivery, Online Payment"` is therefore accurate
+  and must not be "corrected" back to COD-only. AQUAVO stores no card data.
 - Delivery: 5,000 IQD, within 24 hours, throughout Iraq.
 - Support: 24/7.
 - No live fish, animals or aquatic plants are sold.

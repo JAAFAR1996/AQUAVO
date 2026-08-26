@@ -401,8 +401,34 @@ export function buildEntityStructuredData(): object[] {
       inLanguage: "ar-IQ",
       dateModified: AQUAVO_SEO_RELEASE_LASTMOD,
       publisher: { "@id": `${AQUAVO_BASE_URL}/#organization` },
+      // No `potentialAction`/SearchAction here on purpose. Google retired the
+      // sitelinks searchbox, so the markup buys nothing, and
+      // test/seo-no-obsolete-searchaction.test.ts exists to stop it being
+      // reintroduced — as it nearly was here.
     },
   ];
+}
+
+/**
+ * Attach the site-level entity nodes to a page's structured data, unless they
+ * are already there.
+ *
+ * Every page emits nodes that point at `#organization` and `#website` — an
+ * Offer's `seller`, a WebPage's `isPartOf`, an Article's `publisher`. Those
+ * two nodes were defined only on the home page and (since the product-schema
+ * unification) on product pages, so on `/about`, `/faq`, `/blog`, `/blog/*`
+ * and `/products` the references resolved to nothing.
+ *
+ * Doing it here rather than in each page's builder means every route gets it,
+ * including routes added later, and the idempotence check means a builder that
+ * already includes them cannot produce a duplicate.
+ */
+export function withSiteEntities(nodes: object[]): object[] {
+  const alreadyPresent = nodes.some((node) => {
+    const type = (node as Record<string, unknown>)?.["@type"];
+    return type === "OnlineStore" || type === "Organization" || type === "WebSite";
+  });
+  return alreadyPresent ? nodes : [...nodes, ...buildEntityStructuredData()];
 }
 
 export function buildHomeStructuredData(products: SeoPreviewProduct[]): object[] {

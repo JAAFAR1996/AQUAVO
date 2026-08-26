@@ -38,13 +38,27 @@ function primaryImage(images: unknown, thumbnail: unknown): string | undefined {
   return typeof candidate === "string" ? absoluteUrl(candidate.trim()) : undefined;
 }
 
+/**
+ * A product's real last-modified date.
+ *
+ * This used to floor the value at `AQUAVO_SEO_RELEASE_LASTMOD`, returning the
+ * release date whenever a product's own `updated_at` was older. Every product
+ * in the catalogue predates the current release constant, so all 112 URLs
+ * published the identical stamp while the rows actually held three distinct
+ * real dates (2026-08-22 x105, 08-23 x6, 08-24 x1). The floor was not adding
+ * information, it was discarding it — and a `lastmod` that is uniform across
+ * an entire sitemap is one Google is entitled to start ignoring.
+ *
+ * The product's own timestamp is used whenever it exists. The release date
+ * stays as the fallback for a row with no usable `updated_at`, which is the
+ * only case where there is genuinely nothing better to say.
+ */
 function effectiveLastmod(updatedAtValue: unknown): string {
-  const releaseDate = new Date(`${AQUAVO_SEO_RELEASE_LASTMOD}T00:00:00.000Z`);
   const updatedAt = updatedAtValue ? new Date(String(updatedAtValue)) : null;
-  const effective = updatedAt && !Number.isNaN(updatedAt.valueOf()) && updatedAt > releaseDate
-    ? updatedAt
-    : releaseDate;
-  return effective.toISOString().slice(0, 10);
+  if (updatedAt && !Number.isNaN(updatedAt.valueOf())) {
+    return updatedAt.toISOString().slice(0, 10);
+  }
+  return AQUAVO_SEO_RELEASE_LASTMOD;
 }
 
 export default async function handler(_req: VercelRequest, res: VercelResponse): Promise<void> {
