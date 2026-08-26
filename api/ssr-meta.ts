@@ -623,7 +623,13 @@ async function getBlogMeta(slug: string): Promise<PageMeta | null> {
   if (!db) return null;
   try {
     const { rows } = await db.query(
-      `SELECT title, excerpt, "imageUrl", author, "publishedAt", "updatedAt", content FROM blog_posts WHERE slug = $1 AND status = 'published' LIMIT 1`,
+      // blog_posts has no "imageUrl"/"status" columns — it stores image_url and
+      // is_published. This query threw 42703 on every blog request that reached
+      // the stable handler, which is how a blog post lost its title and Article
+      // schema entirely whenever the semantic renderer fell back to here.
+      `SELECT title, excerpt, image_url AS "imageUrl", author,
+              published_at AS "publishedAt", updated_at AS "updatedAt", content
+         FROM blog_posts WHERE slug = $1 AND is_published = TRUE LIMIT 1`,
       [slug]
     );
     if (rows.length === 0) return null;

@@ -8,8 +8,10 @@ import {
   renderSeoPreviewShell,
   SEO_FAQ_ITEMS,
   type SeoPreviewPage,
+  type SeoPreviewBlogPost,
   type SeoPreviewProduct,
 } from "./_seo-preview-shell.js";
+import { articlePlainText, cloudinaryHeroUrl } from "./_blog-article.js";
 import {
   buildCollectionStructuredData,
   buildFaqStructuredData,
@@ -272,7 +274,7 @@ async function loadBlogPosts(limit = 60, excludeSlug?: string): Promise<SeoPrevi
 function blogImage(post: SeoPreviewBlogPost): string {
   const candidate = typeof post.imageUrl === "string" ? post.imageUrl.trim() : "";
   if (!candidate) return AQUAVO_ENTITY.logoUrl;
-  const absolute = /^https?:///i.test(candidate)
+  const absolute = /^https?:\/\//i.test(candidate)
     ? candidate
     : `${AQUAVO_BASE_URL}${candidate.startsWith("/") ? "" : "/"}${candidate}`;
   return cloudinaryHeroUrl(absolute, 1200);
@@ -444,7 +446,7 @@ async function resolvePage(pathname: string, rawCategory?: string): Promise<Reso
             },
             datePublished: published,
             dateModified: modified,
-            wordCount: articlePlainText(post.content).split(/s+/).filter(Boolean).length || undefined,
+            wordCount: articlePlainText(post.content).split(/\s+/).filter(Boolean).length || undefined,
             articleSection: post.category || undefined,
             inLanguage: "ar-IQ",
             mainEntityOfPage: { "@type": "WebPage", "@id": `${AQUAVO_BASE_URL}${blogPath}` },
