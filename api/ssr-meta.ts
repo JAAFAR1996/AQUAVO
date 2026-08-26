@@ -5,6 +5,7 @@ import ws from "ws";
 import { HTML_TEMPLATE } from "./_html-template.js";
 import { GUIDE_CONTENT_PAGES, renderGuideHtml, renderGuideMarkdown, renderGuidesIndexHtml, renderGuidesIndexMarkdown } from "./_guides-content.js";
 import { getSeoMetaOverride } from "./_seo-content.js";
+import { AQUAVO_FAQ_ITEMS } from "../shared/faq-content.js";
 import { toPublicProduct, toPublicVariant } from "../shared/public-product.js";
 import { buildProductStructuredData, withSiteEntities } from "./_seo-structured-data.js";
 import { isKnownSitePath } from "../shared/site-routes.js";
@@ -337,45 +338,17 @@ const STATIC_PAGES: Record<string, PageMeta> = {
         description: "إجابات شاملة على أكثر الأسئلة شيوعاً حول اسماك الزينة ومستلزمات الأحواض في العراق",
         url: `${BASE}/faq`,
         inLanguage: "ar",
-        mainEntity: [
-          // الشحن والتوصيل
-          { "@type": "Question", name: "ما هي مناطق التوصيل المتاحة؟", acceptedAnswer: { "@type": "Answer", text: "نوصل إلى بغداد وكل المحافظات العراقية خلال 24 ساعة." } },
-          { "@type": "Question", name: "كم تكلفة التوصيل؟", acceptedAnswer: { "@type": "Answer", text: "رسوم التوصيل 5,000 دينار لبغداد وكل المحافظات العراقية." } },
-          { "@type": "Question", name: "شلون أعرف حالة طلبي؟", acceptedAnswer: { "@type": "Answer", text: "تواصل ويانه برقم الطلب عبر واتساب أو الهاتف ونراجعلك حالته." } },
-          { "@type": "Question", name: "ماذا لو لم أكن متواجداً عند التوصيل؟", acceptedAnswer: { "@type": "Answer", text: "سيتواصل معك مندوب التوصيل قبل الوصول. يمكنك تحديد موعد آخر أو ترك الطلب مع شخص موثوق بعد تأكيد هويته." } },
-          { "@type": "Question", name: "شنو يبيع AQUAVO؟", acceptedAnswer: { "@type": "Answer", text: "AQUAVO متخصص بمعدات ومستلزمات الأحواض فقط: فلاتر، سخانات، غذاء، ديكور، إضاءة، ومعالجة مياه. ما نبيع كائنات حية." } },
-          // الدفع والفواتير
-          { "@type": "Question", name: "ما هي طرق الدفع المتاحة؟", acceptedAnswer: { "@type": "Answer", text: "الدفع المتاح حالياً هو الدفع عند الاستلام أو إلكترونياً." } },
-          { "@type": "Question", name: "هل الدفع عند الاستلام متاح؟", acceptedAnswer: { "@type": "Answer", text: "نعم، الدفع عند الاستلام متاح. وإذا كان فحص الطلب متاحاً عند التسليم، يكون ذلك قبل تسديد مبلغ COD." } },
-          { "@type": "Question", name: "هل الدفع الإلكتروني متاح؟", acceptedAnswer: { "@type": "Answer", text: "نعم، تقدر تختار الدفع الإلكتروني من صفحة إكمال الطلب، ولا يُعتمد كمدفوع إلا بعد تأكيد حالة العملية من بوابة الدفع." } },
-          { "@type": "Question", name: "هل يمكنني الحصول على فاتورة؟", acceptedAnswer: { "@type": "Answer", text: "نعم، نرسل فاتورة إلكترونية مع كل طلب عبر البريد الإلكتروني وواتساب. يمكنك أيضاً طلب فاتورة مطبوعة مع الطلب." } },
-          { "@type": "Question", name: "هل توجد رسوم إضافية مخفية؟", acceptedAnswer: { "@type": "Answer", text: "لا، السعر الذي تراه هو السعر النهائي للمنتجات، ورسوم التوصيل الثابتة 5,000 دينار تظهر بوضوح قبل إتمام الطلب." } },
-          { "@type": "Question", name: "هل توجد طرق دفع أخرى؟", acceptedAnswer: { "@type": "Answer", text: "المتاح في صفحة إكمال الطلب هو الدفع عند الاستلام أو الدفع الإلكتروني. أي طريقة إضافية راح تظهر بشكل واضح بالموقع بعد تفعيلها." } },
-          // الإرجاع والاستبدال
-          { "@type": "Question", name: "شنو أسوي إذا وصل المنتج متضرر أو مختلف؟", acceptedAnswer: { "@type": "Answer", text: "وثّق الحالة وقت الاستلام وتواصل ويانه بأسرع وقت مع رقم الطلب وصور واضحة حتى نراجعها حسب سياسة مشاكل الاستلام." } },
-          { "@type": "Question", name: "كيف أطلب إرجاع منتج؟", acceptedAnswer: { "@type": "Answer", text: "تواصل معنا عبر واتساب أو الهاتف مع ذكر رقم الطلب وسبب المشكلة وصور واضحة للمنتج." } },
-          { "@type": "Question", name: "متى أستلم المبلغ المسترد؟", acceptedAnswer: { "@type": "Answer", text: "بعد مراجعة حالة الطلب، يتم التعامل معه حسب سياسة الاستبدال أو الاسترداد المعتمدة." } },
-          { "@type": "Question", name: "هل يمكن استبدال المنتج؟", acceptedAnswer: { "@type": "Answer", text: "يعتمد الحل على فحص حالة المنتج ومطابقته للطلب، وقد يكون استبدالاً أو حلاً آخر حسب السياسة." } },
-          { "@type": "Question", name: "ماذا لو وصل المنتج تالفاً؟", acceptedAnswer: { "@type": "Answer", text: "وثّق الضرر قبل الاستخدام وتواصل ويانه بأسرع وقت مع رقم الطلب وصور واضحة حتى نراجع الحالة." } },
-          // العناية بالأسماك
-          { "@type": "Question", name: "كيف أختار الحوض المناسب؟", acceptedAnswer: { "@type": "Answer", text: "استخدم حاسبة الحوض في موقعنا! بشكل عام، لكل سنتيمتر من طول السمكة تحتاج 2 لتر ماء كحد أدنى. الأحواض الأكبر أسهل في الصيانة." } },
-          { "@type": "Question", name: "كم مرة يجب تغيير الماء؟", acceptedAnswer: { "@type": "Answer", text: "ننصح بتغيير 20-30% من الماء أسبوعياً. استخدم مزيل الكلور واترك الماء الجديد ليصل لنفس درجة حرارة الحوض." } },
-          { "@type": "Question", name: "ما هي درجة الحرارة المناسبة؟", acceptedAnswer: { "@type": "Answer", text: "معظم الأسماك الاستوائية تحتاج 24-28 درجة مئوية. الأسماك الذهبية تفضل 18-24 درجة. تحقق من متطلبات كل نوع." } },
-          { "@type": "Question", name: "كم مرة أطعم الأسماك؟", acceptedAnswer: { "@type": "Answer", text: "مرتين يومياً بكمية تستهلكها الأسماك خلال 2-3 دقائق. الإفراط في التغذية أخطر من التقليل ويلوث الماء." } },
-          { "@type": "Question", name: "لماذا تموت أسماكي رغم العناية بها؟", acceptedAnswer: { "@type": "Answer", text: "الأسباب الشائعة: عدم تدوير الحوض قبل إضافة الأسماك، تغيير الماء بكميات كبيرة، أو اكتظاظ الحوض. تواصل معنا للتشخيص المجاني." } },
-          // المنتجات والجودة
-          { "@type": "Question", name: "شلون أعرف دليل أصالة المنتج؟", acceptedAnswer: { "@type": "Answer", text: "نعرض دليل الأصالة المتوفر لكل براند أو منتج بصفحته. شهادة YEE المعروضة تخص منتجات YEE الموردة إلى AQUAVO ولا تعني ضماناً شاملاً لكل المنتجات." } },
-          { "@type": "Question", name: "هل يوجد ضمان على المعدات؟", acceptedAnswer: { "@type": "Answer", text: "الضمان المحدود لمدة 6 أشهر ينطبق فقط على المنتج الكهربائي الذي تذكر صفحته بوضوح أنه مشمول. إذا ما مذكور، فالضمان غير مفعّل تلقائياً." } },
-          { "@type": "Question", name: "هل توفرون كائنات حية؟", acceptedAnswer: { "@type": "Answer", text: "لا. المتجر الإلكتروني متخصص بمعدات ومستلزمات الأحواض فقط." } },
-          { "@type": "Question", name: "هل تتوفر منتجات للمبتدئين؟", acceptedAnswer: { "@type": "Answer", text: "نعم! لدينا قسم خاص للمبتدئين يشمل أحواض جاهزة ومعدات سهلة الاستخدام مع دليل عناية مجاني." } },
-          { "@type": "Question", name: "هل يمكن طلب منتج غير متوفر؟", acceptedAnswer: { "@type": "Answer", text: "بالتأكيد! أخبرنا بما تحتاجه وسنوفره لك خلال أسبوع إلى أسبوعين. لا يوجد حد أدنى للطلبات الخاصة." } },
-          // الضمان والدعم
-          { "@type": "Question", name: "ما هي مدة الضمان؟", acceptedAnswer: { "@type": "Answer", text: "6 أشهر للمنتجات الكهربائية المعتمدة والمذكور شمولها بوضوح في صفحة المنتج، وتبدأ من تاريخ الاستلام المؤكد." } },
-          { "@type": "Question", name: "ماذا يغطي الضمان؟", acceptedAnswer: { "@type": "Answer", text: "يغطي عيب التصنيع المثبت بعد الفحص للمنتجات المشمولة فقط، ولا يشمل سوء الاستخدام أو التركيب الخاطئ أو الضرر الخارجي." } },
-          { "@type": "Question", name: "كيف أستفيد من الضمان؟", acceptedAnswer: { "@type": "Answer", text: "احتفظ بفاتورة الشراء. عند حدوث مشكلة، تواصل معنا مع صور المنتج ورقم الفاتورة. سنوجهك للخطوات التالية." } },
-          { "@type": "Question", name: "هل تقدمون دعماً فنياً؟", acceptedAnswer: { "@type": "Answer", text: "الدعم متوفر 24/7 عبر واتساب والهاتف للمساعدة باختيار المعدات ومراجعة المشكلة." } },
-          { "@type": "Question", name: "هل تتوفر قطع غيار؟", acceptedAnswer: { "@type": "Answer", text: "نعم، نوفر قطع غيار لمعظم المنتجات التي نبيعها. تواصل معنا مع موديل المنتج وسنخبرك بالتوفر والسعر." } },
-        ],
+        // The eleven-plus questions the /faq page actually renders, from
+        // shared/faq-content.ts. This list used to be 31 hand-written
+        // questions — spare parts, delivery zones and more — none of which
+        // the page rendered. FAQPage schema describing Q&As a visitor cannot
+        // find on the page is the mismatch Google asks you not to publish, so
+        // the schema now follows the page instead of leading it.
+        mainEntity: AQUAVO_FAQ_ITEMS.map((item) => ({
+          "@type": "Question",
+          name: item.question,
+          acceptedAnswer: { "@type": "Answer", text: item.answer },
+        })),
       },
       {
         "@context": "https://schema.org",

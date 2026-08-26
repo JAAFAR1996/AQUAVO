@@ -255,3 +255,62 @@ describe("adding the entities did not disturb existing schema", () => {
     expect(hours.closes).toBe("23:59");
   });
 });
+
+/**
+ * The FAQ has one source.
+ *
+ * There were three: the customer page, the prerender shell, and a 31-question
+ * list hand-written inside api/ssr-meta.ts's STATIC_PAGES. The third described
+ * Q&As — spare parts, delivery zones — that no version of the page rendered,
+ * which is precisely the FAQPage/content mismatch Google asks you not to
+ * publish. All three now read shared/faq-content.ts.
+ */
+describe("FAQ content has a single source", () => {
+  it("publishes the same questions on both paths", async () => {
+    const crawler = await render(crawlerHandler as Handler, "/faq", "Googlebot/2.1");
+    const browser = await render(browserHandler as Handler, "/faq", BROWSER_UA);
+
+    const questions = (html: string) =>
+      nodes(html)
+        .filter((n) => n["@type"] === "Question")
+        .map((n) => n.name as string)
+        .sort();
+
+    const crawlerQs = questions(crawler);
+    const browserQs = questions(browser);
+    expect(crawlerQs.length).toBeGreaterThan(0);
+    expect(browserQs).toEqual(crawlerQs);
+  });
+
+  it("publishes exactly the questions shared/faq-content.ts defines", async () => {
+    const { AQUAVO_FAQ_ITEMS } = await import("../../shared/faq-content");
+    const expected = AQUAVO_FAQ_ITEMS.map((i) => i.question).sort();
+
+    for (const html of [
+      await render(crawlerHandler as Handler, "/faq", "Googlebot/2.1"),
+      await render(browserHandler as Handler, "/faq", BROWSER_UA),
+    ]) {
+      const got = nodes(html)
+        .filter((n) => n["@type"] === "Question")
+        .map((n) => n.name as string)
+        .sort();
+      expect(got).toEqual(expected);
+    }
+  });
+
+  it("renders every question it claims, so the schema matches the page", async () => {
+    const { AQUAVO_FAQ_ITEMS } = await import("../../shared/faq-content");
+    const html = await render(crawlerHandler as Handler, "/faq", "Googlebot/2.1");
+    // Each question must appear in the visible markup, not only in JSON-LD.
+    const visible = html.replace(/<script[\s\S]*?<\/script>/g, "");
+    for (const item of AQUAVO_FAQ_ITEMS) {
+      expect(visible, `not rendered: ${item.question}`).toContain(item.question);
+    }
+  });
+
+  it("states both live payment methods", async () => {
+    const html = await render(crawlerHandler as Handler, "/faq", "Googlebot/2.1");
+    expect(html).toContain("نقداً عند الاستلام");
+    expect(html).toContain("ما يخزنها AQUAVO");
+  });
+});
