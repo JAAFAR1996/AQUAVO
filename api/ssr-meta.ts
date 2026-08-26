@@ -6,6 +6,7 @@ import { HTML_TEMPLATE } from "./_html-template.js";
 import { GUIDE_CONTENT_PAGES, renderGuideHtml, renderGuideMarkdown, renderGuidesIndexHtml, renderGuidesIndexMarkdown } from "./_guides-content.js";
 import { getSeoMetaOverride } from "./_seo-content.js";
 import { toPublicVariant } from "../shared/public-product.js";
+import { buildProductStructuredData } from "./_seo-structured-data.js";
 import { isKnownSitePath } from "../shared/site-routes.js";
 import { canonicalUrlFor, isNoindexPath } from "../shared/seo-contract.js";
 
@@ -550,7 +551,12 @@ async function getProductMeta(slug: string): Promise<(PageMeta & { productImage?
   if (!db) return null;
   try {
     const { rows } = await db.query(
-      `SELECT id, name, description, price, currency, brand, category, images, thumbnail, slug, specifications, stock, variants, has_variants AS "hasVariants"
+      // originalPrice/rating/reviewCount are selected for the shared schema
+      // builder: without them a product with real reviews silently lost its
+      // AggregateRating on the browser path while the crawler path kept it.
+      `SELECT id, name, description, price, original_price AS "originalPrice", currency,
+              brand, category, images, thumbnail, slug, specifications, stock, variants,
+              has_variants AS "hasVariants", rating, review_count AS "reviewCount"
        FROM products
        WHERE slug = $1 AND deleted_at IS NULL
        LIMIT 1`,
@@ -565,11 +571,6 @@ async function getProductMeta(slug: string): Promise<(PageMeta & { productImage?
     // basis of the whole catalogue. Sanitize at the source instead of relying on every downstream
     // renderer to keep being careful.
     const variants = Array.isArray(p.variants) ? p.variants.map(toPublicVariant) : [];
-    const defaultVariant = variants.find((variant) => variant?.isDefault) || variants[0];
-    const stock = Number(p.stock ?? 0);
-    const variantStock = defaultVariant ? Number(defaultVariant.stock ?? 0) : stock;
-    const schemaPrice = defaultVariant?.price ?? p.price;
-    const inStock = p.hasVariants && defaultVariant ? stock > 0 && variantStock > 0 : stock > 0;
     const desc = buildProductMetaDescription({
       name: p.name,
       brand: p.brand,
@@ -584,33 +585,40 @@ async function getProductMeta(slug: string): Promise<(PageMeta & { productImage?
       keywords: `${p.name}، ${p.category || "مستلزمات احواض"}، ${p.brand || "AQUAVO"}، شراء اونلاين العراق`,
       ogType: "product",
       productImage: primaryImage,
-      jsonLd: [
-        {
-          "@context": "https://schema.org",
-          "@type": "Product",
-          name: p.name,
-          description: desc,
-          image: primaryImage,
-          ...(p.brand ? { brand: { "@type": "Brand", name: p.brand } } : {}),
-          offers: {
-            "@type": "Offer",
-            price: schemaPrice,
-            priceCurrency: p.currency || "IQD",
-            availability: inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-            url: `${BASE}/products/${p.slug}`,
-            seller: { "@type": "Organization", name: "AQUAVO" },
-          },
-        },
-        {
-          "@context": "https://schema.org",
-          "@type": "BreadcrumbList",
-          itemListElement: [
-            { "@type": "ListItem", position: 1, name: "الرئيسية", item: BASE },
-            { "@type": "ListItem", position: 2, name: "المنتجات", item: `${BASE}/products` },
-            { "@type": "ListItem", position: 3, name: p.name, item: `${BASE}/products/${p.slug}` },
-          ],
-        },
-      ],
+      // One producer of Product schema, shared with the prerendered crawler
+      // route. This handler used to hand-roll a thinner copy, so the same
+      // product described itself differently depending on who asked: the
+      // browser path had no sku, no category, no itemCondition, no shipping
+      // details, no eligibleRegion, a single image instead of the gallery, and
+      // — for a product with options — a flat Product where the crawler
+      // correctly published a ProductGroup with hasVariant.
+      //
+      // It also published the *meta* description, which is truncated to ~155
+      // characters for the SERP snippet. On this catalogue that cut
+      // "لا نعامل رقم 0.1°C كدقة قياس مؤكدة" down to "لا نعامل رقم 0.",
+      // inverting the claim. The <meta name="description"> below still uses
+      // the truncated text, which is what it is for; the schema now carries
+      // the full description, which is what *it* is for.
+      jsonLd: buildProductStructuredData({
+        id: p.id,
+        slug: p.slug,
+        name: p.name,
+        description: p.description,
+        price: p.price,
+        originalPrice: p.originalPrice,
+        currency: p.currency,
+        brand: p.brand,
+        category: p.category,
+        stock: p.stock,
+        thumbnail: p.thumbnail,
+        images: p.images,
+        hasVariants: p.hasVariants,
+        // Already stripped of the costPrice/costStatus/costBasis/costEvidence
+        // keys above; the builder must never see them.
+        variants,
+        rating: p.rating,
+        reviewCount: p.reviewCount,
+      }),
     };
   } catch (err) {
     console.error("SSR meta: product query error", err);
@@ -833,6 +841,7 @@ export function injectMeta(html: string, meta: PageMeta & { url: string; image: 
   const imagePreloadPattern = /<link\b(?=[^>]*\brel=["']preload["'])(?=[^>]*\bas=["']image["'])[^>]*>\s*/gi;
   result = result.replace(imagePreloadPattern, "");
   const isProductPage = meta.ogType === 'product' && meta.image && meta.image !== DEFAULT_IMAGE;
+  const isArticlePage = meta.ogType === 'article' && meta.image && meta.image !== DEFAULT_IMAGE;
   const isHomePage = !meta.notFound && new URL(meta.url, BASE).pathname === "/";
   let imagePreload = "";
   if (isProductPage) {
@@ -851,6 +860,13 @@ export function injectMeta(html: string, meta: PageMeta & { url: string; image: 
       ? ` imagesrcset="${escapeHtml(srcSet)}" imagesizes="${escapeHtml(DETAIL_IMAGE_SIZES)}"`
       : "";
     imagePreload = `<link rel="preload" as="image" href="${preloadImage}"${responsive} fetchpriority="high">`;
+  } else if (isArticlePage) {
+    // The article hero is the blog LCP element. Serving it as WebP took that
+    // LCP from 14,436 ms to 3,882 ms, but 3,280 ms of what is left is still
+    // load delay: the hero is only discovered once React renders it. This
+    // preload is the same trick the product and home paths already use.
+    const preloadImage = escapeHtml(safeHttpUrl(toBlogHeroPreloadImage(meta.image), DEFAULT_IMAGE));
+    imagePreload = `<link rel="preload" as="image" href="${preloadImage}" fetchpriority="high">`;
   } else if (isHomePage) {
     imagePreload = `<link rel="preload" fetchpriority="high" as="image" type="image/webp" href="/images/aquascape-styles/iwagumi_aquascape_1765676307763.webp" imagesrcset="/images/aquascape-styles/iwagumi_aquascape_1765676307763-640.webp 640w, /images/aquascape-styles/iwagumi_aquascape_1765676307763.webp 1024w" imagesizes="(max-width: 1024px) 100vw, 48vw">`;
   }
@@ -904,6 +920,18 @@ function toDetailPreloadImage(url: string): string {
     return url;
   }
   return url.replace("/upload/", "/upload/f_auto,q_auto:good,w_800,h_800,c_limit/");
+}
+
+// Mirrors `blogHeroImage` (client/src/lib/cloudinary.ts: width 1200, quality
+// auto:good, format auto, crop limit, no height) so the preload targets the
+// exact URL the article's <img> requests. A mismatch here means the browser
+// fetches both copies and the preload is wasted — see the PDP srcset case.
+function toBlogHeroPreloadImage(url: string): string {
+  if (!url.includes("res.cloudinary.com")) return url;
+  if (url.includes("/upload/f_") || url.includes("/upload/w_") || url.includes("/upload/q_")) {
+    return url;
+  }
+  return url.replace("/upload/", "/upload/f_auto,q_auto:good,w_1200,c_limit/");
 }
 
 // Mirrors `detailImageSrcSet` (client/src/lib/cloudinary.ts): the same 400/600/

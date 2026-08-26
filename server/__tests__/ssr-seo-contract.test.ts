@@ -222,13 +222,17 @@ describe("structured data deduplication contract", () => {
     // (SSR must be a complete owner before the client copy can be safely removed).
     expect(products[0]).toMatchObject({
       name: FAKE_PRODUCT_ROW.name,
-      image: expect.stringContaining(FAKE_PRODUCT_ROW.images[0]),
+      // `image` is now the whole gallery rather than one string, because this
+      // handler shares buildProductStructuredData with the crawler route. The
+      // primary image must still lead it.
+      image: expect.arrayContaining([expect.stringContaining(FAKE_PRODUCT_ROW.images[0])]),
       offers: expect.objectContaining({
         price: FAKE_PRODUCT_ROW.price,
         priceCurrency: FAKE_PRODUCT_ROW.currency,
         availability: "https://schema.org/InStock",
       }),
     });
+    expect((products[0].image as string[])[0]).toContain(FAKE_PRODUCT_ROW.images[0]);
   });
 
   it("does not emit a Product entity for non-product routes", async () => {
