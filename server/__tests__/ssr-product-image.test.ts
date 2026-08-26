@@ -34,6 +34,9 @@ const PRODUCT_ROW = {
 // made absolute the same way the schema's image URLs are.
 const RELATIVE_ROW = {
   ...PRODUCT_ROW,
+  // Its own id, so the fake pool's review lookup does not match it — this row
+  // doubles as the "product with no reviews" case.
+  id: "aquavo-driftwood-collection",
   slug: "aquavo-driftwood-collection",
   name: "قطع خشب طبيعية للأكواسكيب",
   brand: "AQUAVO",
@@ -51,6 +54,16 @@ const IMAGELESS_ROW = {
   images: [],
 };
 
+// A genuine approved review, shaped exactly as the SSR projection returns it:
+// no user id, no ip_address, no moderation status — those are not selected.
+const REVIEW_ROW = {
+  rating: 5,
+  title: null,
+  comment: "جيدة جدا و تساعد على متابعة كيمياء الحوض و الوقاية من الاضرار",
+  author: "زهراء تحسين",
+  createdAt: "2026-06-05T16:18:46.742Z",
+};
+
 const ROWS_BY_SLUG: Record<string, unknown> = {
   "houyi-thermostat": PRODUCT_ROW,
   "aquavo-driftwood-collection": RELATIVE_ROW,
@@ -62,6 +75,10 @@ vi.mock("@neondatabase/serverless", () => ({
   Pool: vi.fn().mockImplementation(function FakePool() {
     return {
       query: vi.fn(async (sql: string, values?: unknown[]) => {
+        if (sql.includes("FROM reviews")) {
+          const productId = typeof values?.[0] === "string" ? values[0] : null;
+          return { rows: productId === PRODUCT_ROW.id ? [REVIEW_ROW] : [] };
+        }
         if (sql.includes("FROM products")) {
           const slug = typeof values?.[0] === "string" ? values[0] : null;
           if (slug && ROWS_BY_SLUG[slug]) return { rows: [ROWS_BY_SLUG[slug]] };
@@ -195,5 +212,46 @@ describe("crawler-visible product image", () => {
     expect(schema.review).toBeUndefined();
     expect(schema.gtin).toBeUndefined();
     expect(schema.mpn).toBeUndefined();
+  });
+});
+
+/**
+ * The reviews behind a product's aggregateRating.
+ *
+ * The Product schema publishes an aggregateRating whenever a product has real
+ * reviews — and it does: `/api/reviews/yee-c4-1123-1a` returns a genuine
+ * approved review. But the crawler-visible page rendered none of them, so a
+ * crawler was shown a 5-star rating with nothing on the page behind it. Google
+ * asks that a review snippet be backed by a review the visitor can see.
+ *
+ * These reviews are real customer content, which also means the projection
+ * matters: no user id, no IP address, no moderation status may reach the page.
+ */
+describe("crawler-visible customer reviews", () => {
+  it("renders an approved review with its author, rating and text", async () => {
+    const { body } = await render("/products/houyi-thermostat");
+    expect(body).toContain("آراء الزبائن");
+    expect(body).toContain("زهراء تحسين");
+    expect(body).toContain("جيدة جدا و تساعد على متابعة كيمياء الحوض");
+    expect(body).toContain("5 من 5");
+  });
+
+  it("publishes no reviewer PII on the page", async () => {
+    const { body } = await render("/products/houyi-thermostat");
+    // The public reviews API leaked exactly these two by spreading the row.
+    expect(body).not.toContain("162.158.210.203");
+    expect(body).not.toContain("6c420beb");
+    expect(body).not.toContain("approved");
+  });
+
+  it("renders nothing at all for a product with no reviews", async () => {
+    const { body } = await render("/products/aquavo-driftwood-collection");
+    expect(body).not.toContain("آراء الزبائن");
+  });
+
+  it("keeps the page's single h1 — reviews are an h2 section", async () => {
+    const { body } = await render("/products/houyi-thermostat");
+    expect(body.match(/<h1\b/g) ?? []).toHaveLength(1);
+    expect(body).toMatch(/<h2[^>]*aq-reviews-title[^>]*>آراء الزبائن<\/h2>|<h2[^>]*id="aq-reviews-title"/);
   });
 });

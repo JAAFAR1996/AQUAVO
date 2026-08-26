@@ -84,6 +84,35 @@ export const PUBLIC_VARIANT_FIELDS = [
 ] as const;
 
 /**
+ * Review keys an anonymous visitor may see.
+ *
+ * `GET /api/reviews/:productId` is public and returned `{ ...review }` — the raw row — so every approved
+ * review published the reviewer's `ipAddress` and their `userId` to anyone who asked. An IP address is
+ * personal data in its own right, and the pairing of the two deanonymises a named reviewer.
+ *
+ * `author` and `authorTier` are not columns: the route resolves them from the user record (or the guest
+ * name) and they are the intended public identity, so they are named here rather than arriving by accident.
+ *
+ * `status` is excluded too. Only approved reviews are ever returned, so it carries no information for a
+ * visitor — it only advertises that a moderation state exists and what its values look like.
+ */
+export const PUBLIC_REVIEW_FIELDS = [
+  "id",
+  "productId",
+  "rating",
+  "title",
+  "comment",
+  "images",
+  "videoUrl",
+  "helpfulCount",
+  "verifiedPurchase",
+  "createdAt",
+  "updatedAt",
+  "author",
+  "authorTier",
+] as const;
+
+/**
  * Order-line keys a customer may see on their OWN order.
  *
  * Separate list, because a line item is a different object with a different risk profile: it carries an
@@ -225,6 +254,17 @@ export function toPublicProducts(products: unknown): AnyRecord[] {
 /** Strip an enriched order line item down to what the customer who placed the order may see. */
 export function toPublicOrderItem(item: unknown): AnyRecord {
   return pick(item as AnyRecord, PUBLIC_ORDER_ITEM_FIELDS);
+}
+
+/** Strip a review down to what an anonymous visitor may see — no reviewer IP, no user id. */
+export function toPublicReview(review: unknown): AnyRecord {
+  return pick(review as AnyRecord, PUBLIC_REVIEW_FIELDS);
+}
+
+/** Convert a list of reviews. Non-object entries are dropped rather than passed through. */
+export function toPublicReviews(reviews: unknown): AnyRecord[] {
+  if (!Array.isArray(reviews)) return [];
+  return reviews.filter((r) => r && typeof r === "object").map(toPublicReview);
 }
 
 /**
