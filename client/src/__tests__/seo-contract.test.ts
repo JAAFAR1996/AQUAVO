@@ -82,10 +82,25 @@ describe("AQUAVO discoverability contract", () => {
 
   it("routes health checks to the application and keeps product schema factual", () => {
     expect(read("vercel.json")).toContain('"source": "/health"');
+
+    // Product schema has one producer now: api/ssr-meta.ts hands off to
+    // buildProductStructuredData instead of hand-rolling a second, thinner
+    // copy, so the factual-brand invariant is asserted where it now lives.
     const ssr = read("api/ssr-meta.ts");
-    expect(ssr).toContain('"@type": "BreadcrumbList"');
-    expect(ssr).toContain('...(p.brand ? { brand:');
-    expect(ssr).not.toContain('name: p.brand || "AQUAVO"');
+    expect(ssr).toContain("buildProductStructuredData(");
+
+    const builder = read("api/_seo-structured-data.ts");
+    expect(builder).toContain('"@type": "BreadcrumbList"');
+    // Brand is emitted only when the product really has one …
+    expect(builder).toContain(
+      'product.brand ? { "@type": "Brand", name: product.brand } : undefined',
+    );
+    // … and is never defaulted to the store name, which would claim AQUAVO
+    // manufactured every third-party product in the catalogue.
+    for (const source of [ssr, builder]) {
+      expect(source).not.toContain('name: p.brand || "AQUAVO"');
+      expect(source).not.toContain('brand: { "@type": "Brand", name: "AQUAVO" }');
+    }
   });
 
   it("publishes a product sitemap architecture and disables unready discovery claims", () => {

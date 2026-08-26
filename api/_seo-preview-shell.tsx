@@ -250,8 +250,12 @@ function ProductPage({ product, related }: { product: SeoPreviewProduct; related
   const heroImage = image ? cloudinaryHeroUrl(image, 1000) : null;
   return (
     <main id="main-content">
+      {/* Mirrors the BreadcrumbList in the structured data, category step
+          included, so the visible trail and the schema tell the same story. */}
       <nav className="aq-ssr-breadcrumb" aria-label="مسار الصفحة">
-        <a href="/">الرئيسية</a><span>/</span><a href="/products">المنتجات</a><span>/</span><span>{product.name}</span>
+        <a href="/">الرئيسية</a><span>/</span><a href="/products">المنتجات</a><span>/</span>
+        {category && <><a href={categoryProductsPath(category)}>{category}</a><span>/</span></>}
+        <span>{product.name}</span>
       </nav>
       <article itemScope itemType="https://schema.org/Product">
         <p className="aq-ssr-kicker">{product.brand || "AQUAVO"}</p>

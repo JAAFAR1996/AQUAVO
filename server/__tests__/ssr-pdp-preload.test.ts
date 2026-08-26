@@ -187,3 +187,65 @@ describe("Home hero preload is unaffected by the PDP preload fix", () => {
     expect(preloads).toHaveLength(1);
   });
 });
+
+/**
+ * The blog hero preload.
+ *
+ * Serving the article hero as WebP took the blog LCP from 14,436 ms to
+ * 3,882 ms, but 3,280 ms of the remainder was still load delay: the hero was
+ * only discovered once React rendered it. The preload must therefore name the
+ * exact URL `blogHeroImage` produces (w_1200, no height), or the browser
+ * fetches both copies and the preload is wasted.
+ */
+describe("blog article hero preload", () => {
+  const RAW = "https://res.cloudinary.com/dyczh8ogv/image/upload/v177/aquavo/blog/equipment.png";
+
+  function renderArticle(image: string) {
+    return injectMeta(TEMPLATE, {
+      title: "أفضل أنواع فلاتر أحواض الأسماك",
+      description: "مقارنة عملية.",
+      ogType: "article",
+      url: "https://www.aquavoiq.com/blog/best-aquarium-filters-iraq",
+      image,
+    });
+  }
+
+  function preloadTag(html: string): string {
+    return html.match(/<link[^>]*rel="preload"[^>]*as="image"[^>]*>/)?.[0] ?? "";
+  }
+
+  it("preloads the hero at the transform blogHeroImage produces", () => {
+    const href = preloadTag(renderArticle(RAW)).match(/href="([^"]*)"/)?.[1] ?? "";
+    expect(href).toContain("f_auto");
+    expect(href).toContain("q_auto:good");
+    expect(href).toContain("w_1200");
+    expect(href).toContain("c_limit");
+    // blogHeroImage constrains width only, so the hero keeps its aspect ratio.
+    expect(href).not.toContain("h_1200");
+  });
+
+  it("never preloads the raw original, which is what shipped the 497KB PNG", () => {
+    expect(preloadTag(renderArticle(RAW))).not.toContain(`href="${RAW}"`);
+  });
+
+  it("marks the hero high priority and emits exactly one preload", () => {
+    const html = renderArticle(RAW);
+    expect(preloadTag(html)).toContain('fetchpriority="high"');
+    expect(html.match(/<link[^>]*rel="preload"[^>]*as="image"[^>]*>/g) ?? []).toHaveLength(1);
+  });
+
+  it("leaves a local or already-transformed hero untouched", () => {
+    const local = "https://www.aquavoiq.com/images/blog/equipment.webp";
+    expect(preloadTag(renderArticle(local))).toContain(`href="${local}"`);
+    const done = "https://res.cloudinary.com/dyczh8ogv/image/upload/w_600,f_auto/v1/hero.png";
+    expect(preloadTag(renderArticle(done))).toContain(`href="${done}"`);
+  });
+
+  it("does not apply the article preload to a product page", () => {
+    const href = preloadTag(renderProduct(
+      "https://res.cloudinary.com/aquavo/image/upload/v123/products/yee-filter.jpg",
+    )).match(/href="([^"]*)"/)?.[1] ?? "";
+    // The product transform is square; the article one is width-only.
+    expect(href).toContain("h_800");
+  });
+});

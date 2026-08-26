@@ -4,6 +4,7 @@ import {
   AQUAVO_ENTITY,
   AQUAVO_SEO_RELEASE_LASTMOD,
   canonicalProductCategory,
+  categoryProductsPath,
 } from "../shared/seo-contract.js";
 
 const DEFAULT_IMAGE = AQUAVO_ENTITY.logoUrl;
@@ -282,12 +283,28 @@ export function buildProductStructuredData(product: SeoPreviewProduct): object[]
     {
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",
+      // The category step is real: it is the product's own canonical category,
+      // and it links to the listing filtered by that category — a page that
+      // exists and that the product is genuinely reachable through. It is
+      // omitted rather than invented when a product has no canonical category.
       itemListElement: [
         { "@type": "ListItem", position: 1, name: "الرئيسية", item: AQUAVO_BASE_URL },
         { "@type": "ListItem", position: 2, name: "المنتجات", item: `${AQUAVO_BASE_URL}/products` },
-        { "@type": "ListItem", position: 3, name: product.name, item: url },
+        ...(category
+          ? [{
+              "@type": "ListItem",
+              position: 3,
+              name: category,
+              item: `${AQUAVO_BASE_URL}${categoryProductsPath(category)}`,
+            }]
+          : []),
+        { "@type": "ListItem", position: category ? 4 : 3, name: product.name, item: url },
       ],
     },
+    // The Offer's `seller` and the WebPage's `isPartOf` both point at @ids that
+    // were only ever defined on the home page. Defining them here too is what
+    // makes those references resolve on a product page instead of dangling.
+    ...buildEntityStructuredData(),
   ];
 }
 
@@ -332,7 +349,17 @@ export function buildCollectionStructuredData(
   ];
 }
 
-export function buildHomeStructuredData(products: SeoPreviewProduct[]): object[] {
+/**
+ * The two site-level entity nodes every other node points at: the store
+ * (`#organization`, the `seller` on every Offer) and the site (`#website`,
+ * what each WebPage `isPartOf`).
+ *
+ * These used to be emitted on the home page alone, so on a product page both
+ * references dangled — an Offer whose `seller` resolved to nothing and a
+ * WebPage that was part of nothing. Every page that references them now also
+ * defines them.
+ */
+export function buildEntityStructuredData(): object[] {
   return [
     {
       "@context": "https://schema.org",
@@ -375,6 +402,12 @@ export function buildHomeStructuredData(products: SeoPreviewProduct[]): object[]
       dateModified: AQUAVO_SEO_RELEASE_LASTMOD,
       publisher: { "@id": `${AQUAVO_BASE_URL}/#organization` },
     },
+  ];
+}
+
+export function buildHomeStructuredData(products: SeoPreviewProduct[]): object[] {
+  return [
+    ...buildEntityStructuredData(),
     ...buildCollectionStructuredData(products.slice(0, 24), "/", "منتجات AQUAVO"),
   ];
 }
