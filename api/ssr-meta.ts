@@ -5,8 +5,8 @@ import ws from "ws";
 import { HTML_TEMPLATE } from "./_html-template.js";
 import { GUIDE_CONTENT_PAGES, renderGuideHtml, renderGuideMarkdown, renderGuidesIndexHtml, renderGuidesIndexMarkdown } from "./_guides-content.js";
 import { getSeoMetaOverride } from "./_seo-content.js";
-import { toPublicVariant } from "../shared/public-product.js";
-import { buildProductStructuredData } from "./_seo-structured-data.js";
+import { toPublicProduct, toPublicVariant } from "../shared/public-product.js";
+import { buildProductStructuredData, withSiteEntities } from "./_seo-structured-data.js";
 import { isKnownSitePath } from "../shared/site-routes.js";
 import { canonicalUrlFor, isNoindexPath } from "../shared/seo-contract.js";
 
@@ -41,7 +41,33 @@ export interface PageMeta {
   jsonLd?: object | object[];
   notFound?: boolean;
   noIndex?: boolean;
+  /**
+   * The product this page is about, already reduced to its public shape, for
+   * the client to hydrate from instead of re-fetching what the server just
+   * read. Exactly what `GET /api/products/:slug` returns — same
+   * `toPublicProduct` boundary, so it can carry no cost fields.
+   */
+  embeddedProduct?: EmbeddedProduct;
 }
+
+/**
+ * A product payload embedded in the HTML, stamped with the moment the server
+ * built it.
+ *
+ * `renderedAt` is the whole safety mechanism: the client hands it to TanStack
+ * Query as `initialDataUpdatedAt`, so the payload ages like any other cached
+ * query. If this HTML is ever served from an edge cache, the data is treated
+ * as exactly as old as it really is and refetched once past `staleTime` —
+ * a visitor never sees a price that is stale without the client knowing it.
+ */
+export interface EmbeddedProduct {
+  slug: string;
+  renderedAt: number;
+  product: Record<string, unknown>;
+}
+
+/** The id of the <script type="application/json"> block carrying the above. */
+export const EMBEDDED_PRODUCT_SCRIPT_ID = "__AQUAVO_PRODUCT__";
 
 const PRODUCT_CATEGORY_ITEMS = [
   { "@type": "ListItem", position: 1, name: "أحواض زجاجية", url: `${BASE}/products?category=tanks` },
@@ -551,12 +577,24 @@ async function getProductMeta(slug: string): Promise<(PageMeta & { productImage?
   if (!db) return null;
   try {
     const { rows } = await db.query(
-      // originalPrice/rating/reviewCount are selected for the shared schema
-      // builder: without them a product with real reviews silently lost its
-      // AggregateRating on the browser path while the crawler path kept it.
-      `SELECT id, name, description, price, original_price AS "originalPrice", currency,
-              brand, category, images, thumbnail, slug, specifications, stock, variants,
-              has_variants AS "hasVariants", rating, review_count AS "reviewCount"
+      // Every column in PUBLIC_PRODUCT_FIELDS, so this row can be reduced by
+      // `toPublicProduct` into the byte-identical payload
+      // `GET /api/products/:slug` returns and embedded for the client to
+      // hydrate from. Selecting a subset here would ship a product that is
+      // *missing* fields the PDP reads, which is worse than not embedding at
+      // all — the page would render half-empty and never know why.
+      //
+      // Explicitly NOT selected: cost_price, packaging_cost, insert_cost and
+      // the *_resolution columns. `toPublicProduct` would drop them anyway,
+      // but they have no business being read into a process that writes HTML.
+      `SELECT id, slug, name, brand, category, category_id AS "categoryId",
+              subcategory, description, price, original_price AS "originalPrice",
+              currency, images, thumbnail, rating, review_count AS "reviewCount",
+              stock, low_stock_threshold AS "lowStockThreshold",
+              is_new AS "isNew", is_best_seller AS "isBestSeller",
+              is_product_of_week AS "isProductOfWeek", specifications,
+              variants, has_variants AS "hasVariants",
+              created_at AS "createdAt", updated_at AS "updatedAt"
        FROM products
        WHERE slug = $1 AND deleted_at IS NULL
        LIMIT 1`,
@@ -579,12 +617,22 @@ async function getProductMeta(slug: string): Promise<(PageMeta & { productImage?
     });
     const rawImage = (p.images && p.images.length > 0 ? p.images[0] : p.thumbnail) || DEFAULT_IMAGE;
     const primaryImage = rawImage.startsWith("http") ? rawImage : `${BASE}${rawImage}`;
+    // The same public boundary GET /api/products/:slug goes through. Reusing
+    // it — rather than assembling an object here — is what guarantees the
+    // embedded payload and the API response are the same shape, and is the
+    // only reason it is safe to put a product row into HTML at all: the
+    // allowlist in shared/public-product.ts fails closed, so a column added by
+    // a future migration cannot ride along into the page.
+    const publicProduct = toPublicProduct(p);
     return {
       title: buildProductMetaTitle(p.name, p.brand),
       description: desc,
       keywords: `${p.name}، ${p.category || "مستلزمات احواض"}، ${p.brand || "AQUAVO"}، شراء اونلاين العراق`,
       ogType: "product",
       productImage: primaryImage,
+      embeddedProduct: publicProduct
+        ? { slug: String(p.slug), renderedAt: Date.now(), product: publicProduct }
+        : undefined,
       // One producer of Product schema, shared with the prerendered crawler
       // route. This handler used to hand-roll a thinner copy, so the same
       // product described itself differently depending on who asked: the
@@ -769,13 +817,14 @@ function safeJsonLd(obj: object): string {
 export function injectMeta(html: string, meta: PageMeta & { url: string; image: string }): string {
   let jsonLdScript = "";
   if (meta.jsonLd) {
-    if (Array.isArray(meta.jsonLd)) {
-      jsonLdScript = meta.jsonLd
-        .map((ld) => `<script type="application/ld+json">${safeJsonLd(ld)}</script>`)
-        .join("\n  ");
-    } else {
-      jsonLdScript = `<script type="application/ld+json">${safeJsonLd(meta.jsonLd)}</script>`;
-    }
+    // Same treatment as the prerendered route: whatever this page's builder
+    // produced, make sure the #organization and #website nodes it points at
+    // are actually defined here. `withSiteEntities` is a no-op when a builder
+    // already includes them, so pages that had them keep exactly one copy.
+    const nodes = withSiteEntities(Array.isArray(meta.jsonLd) ? meta.jsonLd : [meta.jsonLd]);
+    jsonLdScript = nodes
+      .map((ld) => `<script type="application/ld+json">${safeJsonLd(ld)}</script>`)
+      .join("\n  ");
   }
 
   // Validate + escape URLs before they land in href/src/content attributes (XSS / scheme injection guard)
@@ -895,7 +944,43 @@ export function injectMeta(html: string, meta: PageMeta & { url: string; image: 
     .replace(/<!--__JSON_LD__-->/g, jsonLdScript)
     .replace(/__JSON_LD__/g, jsonLdScript);
 
+  // Hand the client the product the server just read, so the PDP renders from
+  // it instead of asking for the same row again after hydration. Measured on
+  // production before this: /api/products/:slug was requested at 3,823 ms and
+  // resolved at 4,390 ms, and the variants/similar/frequently-bought requests
+  // all queued behind it.
+  if (meta.embeddedProduct) {
+    result = injectEmbeddedProduct(result, meta.embeddedProduct);
+  }
+
   return result;
+}
+
+/**
+ * Serialize a product into an inert `<script type="application/json">`.
+ *
+ * A closing script tag inside a JSON string would end the block early and turn
+ * the rest of the payload into live markup, so every angle bracket is written
+ * as its \u00XX escape. That is still valid JSON and parses back to the exact
+ * same string, so nothing downstream has to know — but the sequence that would
+ * close the tag can no longer appear in the output at all.
+ *
+ * U+2028/U+2029 are deliberately NOT escaped: they terminate a line inside a
+ * JavaScript string literal, which is why an inline `window.__DATA__ = {...}`
+ * assignment has to handle them. They are ordinary characters inside JSON, and
+ * this payload is parsed by `JSON.parse`, never evaluated. Using an inert JSON
+ * block instead of an inline assignment is the point: there is no JavaScript
+ * here to hijack, and the site's CSP needs to grant this nothing.
+ */
+function injectEmbeddedProduct(html: string, payload: EmbeddedProduct): string {
+  const json = JSON.stringify(payload)
+    .replace(/</g, "\\u003c")
+    .replace(/>/g, "\\u003e")
+    .replace(/&/g, "\\u0026");
+  const block = `<script type="application/json" id="${EMBEDDED_PRODUCT_SCRIPT_ID}">${json}</script>`;
+  // Before </body> so it never delays the head or the preload scanner.
+  if (/<\/body>/i.test(html)) return html.replace(/<\/body>/i, `${block}</body>`);
+  return html + block;
 }
 
 function escapeHtml(str: string): string {

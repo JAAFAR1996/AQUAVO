@@ -1,20 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Static sitemap index. It is deliberately a file rather than only a route:
+  Vercel serves a static asset ahead of a rewrite, so this guarantees
+  /sitemap.xml is always a sitemap index and can never be shadowed by a legacy
+  flat URL set. client/src/__tests__/seo-contract.test.ts pins that, which is
+  why this note avoids writing that legacy element name literally.
+
+  Because it wins over api/sitemap-index.ts, the two must be kept in step —
+  the lastmod values below are the ones Google actually reads.
+
+  sitemap-recovery.xml is intentionally not listed. It held six URLs
+  (/, /shipping, /faq, one product and two guides) and every one is covered by
+  the sitemaps below, so listing it resubmitted the same pages under a second
+  sitemap carrying a staler stamp. The file itself is still served, so a URL
+  Google already holds keeps resolving.
+-->
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <sitemap>
-    <loc>https://www.aquavoiq.com/sitemap-recovery.xml</loc>
-    <lastmod>2026-08-04</lastmod>
-  </sitemap>
-  <sitemap>
     <loc>https://www.aquavoiq.com/sitemap-pages.xml</loc>
-    <lastmod>2026-08-04</lastmod>
+    <lastmod>2026-08-25</lastmod>
   </sitemap>
   <sitemap>
     <loc>https://www.aquavoiq.com/sitemap-products.xml</loc>
-    <lastmod>2026-08-04</lastmod>
+    <lastmod>2026-08-25</lastmod>
   </sitemap>
   <sitemap>
     <loc>https://www.aquavoiq.com/sitemap-guides.xml</loc>
-    <lastmod>2026-08-04</lastmod>
+    <lastmod>2026-08-25</lastmod>
   </sitemap>
   <sitemap>
     <loc>https://www.aquavoiq.com/sitemap-blog.xml</loc>

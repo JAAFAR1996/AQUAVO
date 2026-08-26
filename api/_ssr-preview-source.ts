@@ -5,6 +5,11 @@ import ws from "ws";
 import { HTML_TEMPLATE } from "./_html-template.js";
 import originalSsrHandler from "./ssr-meta.js";
 import {
+  cleanText,
+  formatMoney,
+  formatPrice,
+  getActiveVariants,
+  isInStock,
   renderSeoPreviewShell,
   SEO_FAQ_ITEMS,
   type SeoPreviewPage,
@@ -17,6 +22,7 @@ import {
   buildFaqStructuredData,
   buildHomeStructuredData,
   buildProductStructuredData,
+  withSiteEntities,
 } from "./_seo-structured-data.js";
 import {
   canonicalGuidePath,
@@ -524,7 +530,10 @@ function robotsValue(indexable: boolean, status: number, pathname: string): stri
 
 function injectDocument(template: string, meta: Meta, shell: string, robots: string): string {
   const canonical = meta.canonicalPath ? `${AQUAVO_BASE_URL}${meta.canonicalPath}` : undefined;
-  const jsonLdItems = meta.notFound || !meta.jsonLd ? [] : Array.isArray(meta.jsonLd) ? meta.jsonLd : [meta.jsonLd];
+  const rawJsonLd = meta.notFound || !meta.jsonLd ? [] : Array.isArray(meta.jsonLd) ? meta.jsonLd : [meta.jsonLd];
+  // Every route that references #organization or #website now also defines
+  // them. A 404 stays bare on purpose: it describes no page and no business.
+  const jsonLdItems = rawJsonLd.length > 0 ? withSiteEntities(rawJsonLd) : rawJsonLd;
   const jsonLd = jsonLdItems.map((item) => `<script type="application/ld+json">${safeJson(item)}</script>`).join("\n  ");
 
   let html = template
@@ -562,17 +571,102 @@ function injectDocument(template: string, meta: Meta, shell: string, robots: str
   );
 }
 
+/**
+ * The `Accept: text/markdown` representation of a page.
+ *
+ * This exists for LLM fetchers, and it used to be strictly worse than the HTML
+ * it stands in for: a product's markdown carried availability and category but
+ * **no price**, `/faq` returned a title and one line with none of its six
+ * questions, and articles returned no article. An agent that preferred this
+ * representation got less than one that ignored it.
+ *
+ * Every fact below is read from the same page object the HTML shell renders,
+ * through the same helpers (`formatPrice`, `isInStock`, `articlePlainText`),
+ * so the two cannot state different prices or a different stock status. There
+ * is nothing here that is not also on the page.
+ */
 function markdown(page: SeoPreviewPage, meta: Meta): string {
   const lines = [`# ${meta.title}`, "", meta.description, ""];
   if (meta.canonicalPath) lines.push(`Canonical: ${AQUAVO_BASE_URL}${meta.canonicalPath}`, "");
+
+  const productUrl = (slug: string) => `${AQUAVO_BASE_URL}/products/${encodeURIComponent(slug)}`;
+
   if (page.kind === "home" || page.kind === "products") {
+    // Price and availability inline, so a listing is usable without following
+    // every link.
     for (const product of page.products) {
-      lines.push(`- [${product.name}](${AQUAVO_BASE_URL}/products/${encodeURIComponent(product.slug)})`);
+      const stock = isInStock(product) ? "متوفر" : "غير متوفر حالياً";
+      lines.push(`- [${product.name}](${productUrl(product.slug)}) — ${formatPrice(product)} — ${stock}`);
     }
   } else if (page.kind === "product") {
-    lines.push(`- Availability: ${(numberValue(page.product.stock) ?? 0) > 0 ? "In stock" : "Out of stock"}`);
-    if (page.product.category) lines.push(`- Category: ${canonicalProductCategory(page.product.category)}`);
+    const product = page.product;
+    const category = canonicalProductCategory(product.category);
+    lines.push("## المواصفات", "");
+    lines.push(`- السعر: ${formatPrice(product)}`);
+    lines.push(`- التوفر: ${isInStock(product) ? "متوفر" : "غير متوفر حالياً"}`);
+    if (product.brand) lines.push(`- العلامة: ${product.brand}`);
+    if (category) lines.push(`- الفئة: ${category}`);
+    lines.push(`- التوصيل: ${formatMoney(AQUAVO_ENTITY.deliveryFee, AQUAVO_ENTITY.currency)} لكل العراق`);
+
+    const variants = getActiveVariants(product);
+    if (variants.length > 0) {
+      lines.push("", "## الخيارات المتاحة", "");
+      for (const variant of variants) {
+        const price = formatMoney(numberValue(variant.price) ?? 0, product.currency || AQUAVO_ENTITY.currency);
+        const stock = (numberValue(variant.stock) ?? 0) > 0 ? "متوفر" : "غير متوفر حالياً";
+        lines.push(`- ${variant.label}: ${price} — ${stock}`);
+      }
+    }
+
+    // The full description, not the ~155-character meta snippet above it.
+    const description = cleanText(product.description, "");
+    if (description) lines.push("", "## الوصف", "", description);
+
+    if (page.related.length > 0) {
+      lines.push("", "## منتجات مرتبطة", "");
+      for (const related of page.related.slice(0, 6)) {
+        lines.push(`- [${related.name}](${productUrl(related.slug)})`);
+      }
+    }
+  } else if (page.kind === "faq") {
+    lines.push("## الأسئلة الشائعة", "");
+    for (const [question, answer] of SEO_FAQ_ITEMS) {
+      lines.push(`### ${question}`, "", answer, "");
+    }
+  } else if (page.kind === "blog-post") {
+    const post = page.post;
+    const meta2: string[] = [];
+    if (post.author) meta2.push(`الكاتب: ${post.author}`);
+    if (post.category) meta2.push(`القسم: ${post.category}`);
+    if (post.readTime) meta2.push(`مدة القراءة: ${post.readTime}`);
+    if (meta2.length > 0) lines.push(meta2.join(" · "), "");
+    const body = articlePlainText(post.content);
+    if (body) lines.push(body, "");
+    if (page.related.length > 0) {
+      lines.push("## مقالات ذات صلة", "");
+      for (const related of page.related.slice(0, 6)) {
+        lines.push(`- [${related.title}](${AQUAVO_BASE_URL}/blog/${encodeURIComponent(related.slug)})`);
+      }
+    }
+  } else if (page.kind === "blog-index") {
+    lines.push("## المقالات", "");
+    for (const post of page.posts) {
+      const excerpt = cleanText(post.excerpt, "");
+      const suffix = excerpt ? ` — ${excerpt}` : "";
+      lines.push(`- [${post.title}](${AQUAVO_BASE_URL}/blog/${encodeURIComponent(post.slug)})${suffix}`);
+    }
+  } else if (page.kind === "about") {
+    lines.push(
+      `AQUAVO، المشغّل قانونياً باسم ${AQUAVO_ENTITY.legalName}، متجر إلكتروني عراقي متخصص في معدات ومستلزمات أحواض الزينة.`,
+      "",
+      "العمل بالكامل عبر الموقع وواتساب، ولا يوجد محل لاستقبال الزبائن حالياً. AQUAVO لا يبيع أسماكاً أو كائنات أو نباتات حية.",
+      "",
+      `التوصيل لكل العراق خلال 24 ساعة بأجور ${formatMoney(AQUAVO_ENTITY.deliveryFee, AQUAVO_ENTITY.currency)}، والدعم متوفر 24/7.`,
+    );
+  } else if (page.kind === "static") {
+    for (const paragraph of page.paragraphs ?? []) lines.push(paragraph, "");
   }
+
   return lines.join("\n");
 }
 

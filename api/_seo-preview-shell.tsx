@@ -99,12 +99,12 @@ function priceRange(product: SeoPreviewProduct): { min: number; max: number } | 
   return { min: Math.min(...prices), max: Math.max(...prices) };
 }
 
-function formatMoney(value: number, currency = "IQD"): string {
+export function formatMoney(value: number, currency = "IQD"): string {
   if (currency === "IQD") return `${new Intl.NumberFormat("ar-IQ").format(value)} د.ع`;
   return `${new Intl.NumberFormat("ar-IQ").format(value)} ${currency}`;
 }
 
-function formatPrice(product: SeoPreviewProduct): string {
+export function formatPrice(product: SeoPreviewProduct): string {
   const range = priceRange(product);
   if (!range) return "السعر غير منشور حالياً";
   if (range.min !== range.max) {
@@ -113,13 +113,13 @@ function formatPrice(product: SeoPreviewProduct): string {
   return formatMoney(range.min, product.currency || "IQD");
 }
 
-function isInStock(product: SeoPreviewProduct): boolean {
+export function isInStock(product: SeoPreviewProduct): boolean {
   const variants = getActiveVariants(product);
   if (variants.length > 0) return variants.some((variant) => (numberValue(variant.stock) ?? 0) > 0);
   return (numberValue(product.stock) ?? 0) > 0;
 }
 
-function cleanText(value: string | null | undefined, fallback: string): string {
+export function cleanText(value: string | null | undefined, fallback: string): string {
   const text = (value || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
   return text || fallback;
 }

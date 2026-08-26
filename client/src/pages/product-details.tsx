@@ -3,6 +3,7 @@ import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { type Product, type ProductVariant } from "@/types";
 import { fetchProductBySlug, fetchProductVariants } from "@/lib/api";
+import { getEmbeddedProduct } from "@/lib/embedded-product";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -81,10 +82,23 @@ export default function ProductDetails() {
   // product's main image. Inert unless a view transition is actually running.
   const heroTransitionName = slug ? productTransitionName(slug) : undefined;
 
+  // The server already read this product to build the page's title, meta
+  // description and Product schema, and now ships it in the HTML. Starting
+  // from that removes a full round trip on first load — and, because the
+  // variants / similar / frequently-bought queries are gated on `product`,
+  // it starts those ~600ms earlier too.
+  const embedded = getEmbeddedProduct(slug);
+
   const { data: product, isLoading, isError } = useQuery({
     queryKey: ["product", slug],
     queryFn: () => fetchProductBySlug(slug!),
     enabled: !!slug,
+    initialData: embedded?.product,
+    // Age the embedded payload from the moment the SERVER rendered it, not
+    // from now. If this HTML is ever served from a cache, the data is treated
+    // as exactly as old as it really is and refetched once past staleTime, so
+    // a stale price can never be presented as fresh.
+    initialDataUpdatedAt: embedded?.renderedAt,
   });
 
   // Related products are rendered by <RecommendationsSection/> below (dedicated
