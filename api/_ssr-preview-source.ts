@@ -264,8 +264,13 @@ async function loadProductReviews(productId: string | undefined): Promise<SeoPre
   if (!productId) return [];
   try {
     const { rows } = await getPool().query(
+      // Columns are named against shared/schema.ts `reviews`. There is no
+      // guest_name column — an earlier draft referenced one, the query threw,
+      // and the catch below silently rendered a product page with no reviews.
+      // A signed-out reviewer has no name to show, so they are "عميل"; the
+      // user's email is never used as a display name.
       `SELECT r.rating, r.title, r.comment, r.created_at AS "createdAt",
-              COALESCE(NULLIF(r.guest_name, ''), u.full_name, 'عميل') AS author
+              COALESCE(NULLIF(u.full_name, ''), 'عميل') AS author
          FROM reviews r
          LEFT JOIN users u ON u.id = r.user_id
         WHERE r.product_id = $1
