@@ -135,9 +135,14 @@ describe("SEO preview shell", () => {
     const html = renderSeoPreviewShell({ kind: "faq" });
 
     expect(html).toContain("<h1>الأسئلة الشائعة عن AQUAVO وأحواض الزينة</h1>");
-    expect((html.match(/<details>/g) || []).length).toBeGreaterThanOrEqual(6);
-    expect(html).toContain("هل AQUAVO يوصّل لكل العراق؟");
+    // The crawler FAQ used to be its own six questions, separate from the
+    // eleven on the customer-facing /faq page. Both now render
+    // shared/faq-content.ts, so a crawler is shown the FAQ a customer is shown
+    // — which is why the wording asserted here is the customer wording.
+    expect((html.match(/<details>/g) || []).length).toBeGreaterThanOrEqual(11);
+    expect(html).toContain("وين يوصل AQUAVO؟");
     expect(html).toContain("شلون أختار الفلتر المناسب؟");
+    expect(html).toContain("شلون أدفع؟");
   });
 
   it("renders a crawlable not-found page", () => {

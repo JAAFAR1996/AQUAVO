@@ -175,17 +175,27 @@ describe("FAQ markdown contains the actual questions and answers", () => {
 
   it("carries every question the page renders, each with its answer", async () => {
     const { body } = await md("/faq");
-    expect(body).toContain("هل AQUAVO يوصّل لكل العراق؟");
-    expect(body).toContain("شنو طرق الدفع المتوفرة؟");
+    // The same eleven questions shared/faq-content.ts gives the /faq page.
+    expect(body).toContain("وين يوصل AQUAVO؟");
+    expect(body).toContain("شلون أدفع؟");
     expect(body).toContain("هل دعم AQUAVO متوفر طول اليوم؟");
     // …and the answers, not just the headings.
     expect(body).toContain("24/7");
-    expect(body).toContain("جميع محافظات العراق");
+    expect(body).toContain("نوصل لكل العراق خلال 24 ساعة");
   });
 
   it("keeps the truthful no-live-animals answer", async () => {
     const { body } = await md("/faq");
-    expect(body).toContain("لا يبيع أسماكاً أو كائنات أو نباتات حية");
+    expect(body).toContain("ما نبيع أسماك حية، كائنات حية، أو نباتات مائية حية");
+  });
+
+  it("states both payment methods, matching the live checkout", async () => {
+    const { body } = await md("/faq");
+    // Al-Qaseh online payment is live alongside cash on delivery; the FAQ says
+    // so, and adds that AQUAVO itself stores no card data.
+    expect(body).toContain("نقداً عند الاستلام");
+    expect(body).toContain("إلكترونياً");
+    expect(body).toContain("ما يخزنها AQUAVO");
   });
 });
 
