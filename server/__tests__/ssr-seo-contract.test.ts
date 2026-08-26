@@ -114,6 +114,15 @@ describe("SEO metadata contracts", () => {
     expect(buildProductMetaTitle("فلتر YEE 600 | AQUAVO", "YEE")).toBe("فلتر YEE 600 | AQUAVO");
   });
 
+  it("states the AQUAVO name once for own-brand products", () => {
+    // The five driftwood products in the catalogue carry brand "AQUAVO", which
+    // used to be appended as a brand on top of the site suffix.
+    expect(buildProductMetaTitle("خشب طبيعي للأحواض والأكواسكيب — DW-01", "AQUAVO"))
+      .toBe("خشب طبيعي للأحواض والأكواسكيب — DW-01 | AQUAVO");
+    expect(buildProductMetaTitle("قطع خشب طبيعية للأكواسكيب", "aquavo"))
+      .not.toMatch(/AQUAVO[\s\S]*AQUAVO/i);
+  });
+
   it("derives ItemList numberOfItems from the final list", async () => {
     const html = await render("/products");
     const scripts = [...html.matchAll(/<script type="application\/ld\+json">([^<]+)<\/script>/g)]
