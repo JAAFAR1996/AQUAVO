@@ -15,6 +15,7 @@ import {
   type SeoPreviewPage,
   type SeoPreviewBlogPost,
   type SeoPreviewProduct,
+  type SeoPreviewReview,
 } from "./_seo-preview-shell.js";
 import { articlePlainText, cloudinaryHeroUrl } from "./_blog-article.js";
 import {
@@ -247,6 +248,44 @@ async function loadProduct(slug: string): Promise<SeoPreviewProduct | null> {
   return (rows[0] ? (sanitizeSeoProductVariants(rows[0]) as SeoPreviewProduct) : null);
 }
 
+/**
+ * Approved reviews for a product, for the crawler-visible page.
+ *
+ * Deliberately narrow: no `user_id`, no `ip_address`, no moderation `status`.
+ * The public reviews API leaked the first two by spreading the row (see
+ * shared/public-product.ts `toPublicReview`), and this renders into HTML that
+ * is served to the whole internet, so the projection is the boundary.
+ *
+ * Only `status = 'approved'` is selected — a pending or rejected review must
+ * never reach a page — and the author's display name comes from the review's
+ * own guest name or the user's full name, never their email.
+ */
+async function loadProductReviews(productId: string | undefined): Promise<SeoPreviewReview[]> {
+  if (!productId) return [];
+  try {
+    const { rows } = await getPool().query(
+      `SELECT r.rating, r.title, r.comment, r.created_at AS "createdAt",
+              COALESCE(NULLIF(r.guest_name, ''), u.full_name, 'عميل') AS author
+         FROM reviews r
+         LEFT JOIN users u ON u.id = r.user_id
+        WHERE r.product_id = $1
+          AND r.status = 'approved'
+          AND r.comment IS NOT NULL
+          AND r.comment <> ''
+        ORDER BY r.created_at DESC
+        LIMIT 5`,
+      [productId],
+    );
+    return rows as SeoPreviewReview[];
+  } catch (error) {
+    // A product page must render even if the reviews table shape changes. The
+    // aggregateRating is built from the product row, not from here, so the
+    // worst case is a page without its review list — never a 500.
+    console.error("[ssr-preview] review lookup failed", error);
+    return [];
+  }
+}
+
 
 const BLOG_COLUMNS = `slug, title, excerpt, content, category, author,
             read_time AS "readTime", image_url AS "imageUrl",
@@ -379,8 +418,13 @@ async function resolvePage(pathname: string, rawCategory?: string): Promise<Reso
       .filter((item) => item.slug !== product.slug)
       .slice(0, 6);
     const productPath = `/products/${encodeURIComponent(product.slug)}`;
+    // The Product schema carries an aggregateRating whenever the product has
+    // real reviews, but this page rendered none of them, so a crawler was shown
+    // a rating with nothing behind it. Google asks that a review snippet be
+    // backed by a review the visitor can actually see on the page.
+    const reviews = await loadProductReviews(product.id);
     return {
-      page: { kind: "product", product, related },
+      page: { kind: "product", product, related, reviews },
       meta: {
         title: `${product.name} | AQUAVO العراق`,
         description: cleanText(product.description, `معلومات ومواصفات ${product.name} من AQUAVO.`).slice(0, 160),

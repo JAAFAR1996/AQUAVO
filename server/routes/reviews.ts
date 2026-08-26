@@ -2,6 +2,7 @@ import type { Router as RouterType, Request, Response, NextFunction } from "expr
 import { Router } from "express";
 import { storage } from "../storage/index.js";
 import { localRequireAuth, getSession } from "../utils/auth-helpers.js";
+import { toPublicReview } from "../../shared/public-product.js";
 import { reviewLimiter } from "../middleware/rate-limit.js";
 
 export function createReviewsRouter(): RouterType {
@@ -28,11 +29,16 @@ export function createReviewsRouter(): RouterType {
                     // Guest reviewer — use the name they provided
                     authorName = (review as any).guestName;
                 }
-                return {
+                // Never spread the row: it carries the reviewer's ipAddress and
+                // userId, and this endpoint is public. toPublicReview names every
+                // key that may leave the server, so a column added by a future
+                // migration stays invisible until somebody decides otherwise —
+                // the same boundary GET /api/products already goes through.
+                return toPublicReview({
                     ...review,
                     author: authorName,
                     authorTier,
-                };
+                });
             }));
 
             res.json(reviewsWithAuthor);

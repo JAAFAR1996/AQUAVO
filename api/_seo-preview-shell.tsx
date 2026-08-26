@@ -53,10 +53,24 @@ export type SeoPreviewBlogPost = {
   updatedAt?: string | Date | null;
 };
 
+/**
+ * One approved review, as the crawler-visible product page shows it.
+ *
+ * Deliberately only these five fields: no user id, no IP address, no
+ * moderation status. What is not loaded cannot be rendered by mistake.
+ */
+export type SeoPreviewReview = {
+  rating?: string | number | null;
+  title?: string | null;
+  comment?: string | null;
+  author?: string | null;
+  createdAt?: string | Date | null;
+};
+
 export type SeoPreviewPage =
   | { kind: "home"; products: SeoPreviewProduct[] }
   | { kind: "products"; products: SeoPreviewProduct[]; category?: string }
-  | { kind: "product"; product: SeoPreviewProduct; related: SeoPreviewProduct[] }
+  | { kind: "product"; product: SeoPreviewProduct; related: SeoPreviewProduct[]; reviews?: SeoPreviewReview[] }
   | { kind: "faq" }
   | { kind: "about" }
   | { kind: "static"; heading: string; summary: string; path: string; paragraphs?: string[] }
@@ -238,7 +252,7 @@ function ProductsPage({ products, category }: { products: SeoPreviewProduct[]; c
   );
 }
 
-function ProductPage({ product, related }: { product: SeoPreviewProduct; related: SeoPreviewProduct[] }) {
+function ProductPage({ product, related, reviews = [] }: { product: SeoPreviewProduct; related: SeoPreviewProduct[]; reviews?: SeoPreviewReview[] }) {
   const description = cleanText(product.description, `معلومات ومواصفات ${product.name} من AQUAVO.`);
   const variants = getActiveVariants(product);
   const category = canonicalProductCategory(product.category);
@@ -294,6 +308,31 @@ function ProductPage({ product, related }: { product: SeoPreviewProduct; related
           </section>
         )}
       </article>
+      {reviews.length > 0 && (
+        // The reviews behind this product's aggregateRating. A rating shown to
+        // a crawler with no review on the page is a review snippet Google is
+        // entitled to distrust; these are the real, approved ones.
+        <section className="aq-ssr-reviews" aria-labelledby="aq-reviews-title">
+          <h2 id="aq-reviews-title">آراء الزبائن</h2>
+          <ul className="aq-ssr-review-list">
+            {reviews.map((review, index) => {
+              const rating = numberValue(review.rating);
+              const written = articleDate(review.createdAt);
+              return (
+                <li key={`${review.author ?? "review"}-${index}`} className="aq-ssr-review">
+                  <p className="aq-ssr-review-meta">
+                    <strong>{review.author || "عميل"}</strong>
+                    {rating !== null && <span> · {rating} من 5</span>}
+                    {written && <><span> · </span><time dateTime={written}>{written}</time></>}
+                  </p>
+                  {review.title && <p><strong>{review.title}</strong></p>}
+                  <p>{review.comment}</p>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
       {related.length > 0 && (
         <section aria-labelledby="aq-related-title">
           <h2 id="aq-related-title">منتجات مرتبطة</h2>
@@ -459,13 +498,14 @@ function SeoPreviewShell({ page }: { page: SeoPreviewPage }) {
         .aq-ssr-faq{display:grid;gap:.8rem}.aq-ssr-faq summary{cursor:pointer;font-weight:700}.aq-ssr-breadcrumb{display:flex;gap:.5rem;flex-wrap:wrap;color:#b9ccd1;margin-bottom:1.5rem}.aq-ssr-footer{border-top:1px solid rgba(255,255,255,.14);border-bottom:0;max-width:1180px;margin:0 auto}
         .aq-ssr-meta{color:#9fc5cc;font-size:.95rem}.aq-ssr-hero-image{display:block;width:100%;height:auto;aspect-ratio:1200/630;object-fit:cover;border-radius:.6rem;margin:1.5rem 0;border:1px solid rgba(255,255,255,.14)}
         .aq-ssr-product-image{display:block;width:100%;max-width:520px;height:auto;aspect-ratio:1/1;object-fit:contain;border-radius:.6rem;margin:1.5rem 0;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.035)}
+        .aq-ssr-review-list{display:grid;gap:.8rem;list-style:none;padding:0}.aq-ssr-review{border:1px solid rgba(255,255,255,.14);border-radius:.6rem;padding:1rem;background:rgba(255,255,255,.035)}.aq-ssr-review p{margin:.25rem 0}.aq-ssr-review-meta{color:#9fc5cc;font-size:.95rem}
         .aq-ssr-article{max-width:820px}.aq-ssr-article img{max-width:100%;height:auto}.aq-ssr-article h2{margin-top:2.25rem}.aq-ssr-article h3{margin-top:1.75rem;font-size:1.15rem}.aq-ssr-article ul,.aq-ssr-article ol{padding-inline-start:1.4rem}
         @media(max-width:720px){.aq-ssr-header,.aq-ssr-footer{align-items:flex-start;flex-direction:column}.aq-ssr-shell{padding-inline:1.1rem}.aq-ssr-shell main{padding-top:2rem}}
       `}</style>
       <SiteHeader />
       {page.kind === "home" && <HomePage products={page.products} />}
       {page.kind === "products" && <ProductsPage products={page.products} category={page.category} />}
-      {page.kind === "product" && <ProductPage product={page.product} related={page.related} />}
+      {page.kind === "product" && <ProductPage product={page.product} related={page.related} reviews={page.reviews} />}
       {page.kind === "faq" && <FaqPage />}
       {page.kind === "about" && <AboutPage />}
       {page.kind === "static" && <StaticPage heading={page.heading} summary={page.summary} path={page.path} paragraphs={page.paragraphs} />}
