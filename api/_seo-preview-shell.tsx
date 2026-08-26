@@ -6,6 +6,9 @@ import {
   canonicalProductCategory,
 } from "../shared/seo-contract.js";
 import { cloudinaryHeroUrl, renderArticleBodyHtml } from "./_blog-article.js";
+// _seo-structured-data imports only *types* from this module, so this value
+// import does not create a runtime cycle.
+import { primaryProductImage } from "./_seo-structured-data.js";
 
 export type SeoPreviewVariant = {
   id?: string;
@@ -240,6 +243,11 @@ function ProductPage({ product, related }: { product: SeoPreviewProduct; related
   const description = cleanText(product.description, `معلومات ومواصفات ${product.name} من AQUAVO.`);
   const variants = getActiveVariants(product);
   const category = canonicalProductCategory(product.category);
+  // The same URL the Product schema leads with, right-sized by Cloudinary when
+  // the asset lives there. Rendered with object-fit:contain inside a fixed
+  // 1000×1000 box, so no product photo is cropped and the box never reflows.
+  const image = primaryProductImage(product);
+  const heroImage = image ? cloudinaryHeroUrl(image, 1000) : null;
   return (
     <main id="main-content">
       <nav className="aq-ssr-breadcrumb" aria-label="مسار الصفحة">
@@ -248,6 +256,18 @@ function ProductPage({ product, related }: { product: SeoPreviewProduct; related
       <article itemScope itemType="https://schema.org/Product">
         <p className="aq-ssr-kicker">{product.brand || "AQUAVO"}</p>
         <h1 itemProp="name">{product.name}</h1>
+        {heroImage && (
+          <img
+            className="aq-ssr-product-image"
+            src={heroImage}
+            alt={product.name}
+            width={1000}
+            height={1000}
+            loading="eager"
+            decoding="async"
+            itemProp="image"
+          />
+        )}
         <p itemProp="description">{description}</p>
         <dl className="aq-ssr-facts">
           <div><dt>السعر</dt><dd>{formatPrice(product)}</dd></div>
@@ -435,6 +455,7 @@ function SeoPreviewShell({ page }: { page: SeoPreviewPage }) {
         .aq-ssr-variants{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.75rem;list-style:none;padding:0}.aq-ssr-variants li{display:grid;gap:.25rem;border:1px solid rgba(255,255,255,.14);border-radius:.6rem;padding:.8rem;background:rgba(255,255,255,.035)}
         .aq-ssr-faq{display:grid;gap:.8rem}.aq-ssr-faq summary{cursor:pointer;font-weight:700}.aq-ssr-breadcrumb{display:flex;gap:.5rem;flex-wrap:wrap;color:#b9ccd1;margin-bottom:1.5rem}.aq-ssr-footer{border-top:1px solid rgba(255,255,255,.14);border-bottom:0;max-width:1180px;margin:0 auto}
         .aq-ssr-meta{color:#9fc5cc;font-size:.95rem}.aq-ssr-hero-image{display:block;width:100%;height:auto;aspect-ratio:1200/630;object-fit:cover;border-radius:.6rem;margin:1.5rem 0;border:1px solid rgba(255,255,255,.14)}
+        .aq-ssr-product-image{display:block;width:100%;max-width:520px;height:auto;aspect-ratio:1/1;object-fit:contain;border-radius:.6rem;margin:1.5rem 0;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.035)}
         .aq-ssr-article{max-width:820px}.aq-ssr-article img{max-width:100%;height:auto}.aq-ssr-article h2{margin-top:2.25rem}.aq-ssr-article h3{margin-top:1.75rem;font-size:1.15rem}.aq-ssr-article ul,.aq-ssr-article ol{padding-inline-start:1.4rem}
         @media(max-width:720px){.aq-ssr-header,.aq-ssr-footer{align-items:flex-start;flex-direction:column}.aq-ssr-shell{padding-inline:1.1rem}.aq-ssr-shell main{padding-top:2rem}}
       `}</style>

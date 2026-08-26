@@ -46,6 +46,20 @@ function productImages(product: SeoPreviewProduct, variant?: SeoPreviewVariant):
   return unique.length > 0 ? unique.slice(0, 10) : [DEFAULT_IMAGE];
 }
 
+/**
+ * The one image a product page leads with: the same URL, resolved the same way,
+ * that lands first in the Product schema's `image` array. The crawler-visible
+ * <img> is rendered from this so the picture a crawler sees and the picture the
+ * structured data claims can never drift apart.
+ *
+ * Returns null when the product carries no image of its own, so callers render
+ * nothing rather than presenting the AQUAVO logo as if it were the product.
+ */
+export function primaryProductImage(product: SeoPreviewProduct): string | null {
+  const [first] = productImages(product);
+  return !first || first === DEFAULT_IMAGE ? null : first;
+}
+
 function availability(stock: string | number | null | undefined): string {
   return (numberValue(stock) ?? 0) > 0
     ? "https://schema.org/InStock"
