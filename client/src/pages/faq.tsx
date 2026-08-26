@@ -1,48 +1,22 @@
 import { Banknote, PackageCheck, ShieldCheck, Truck } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { Link } from "wouter";
 
+import { AQUAVO_FAQ_GROUPS, AQUAVO_FAQ_ITEMS, type FaqGroup } from "@shared/faq-content";
 import { BreadcrumbSchema, FAQSchema, MetaTags } from "@/components/seo/meta-tags";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
-const groups = [
-  {
-    title: "الطلب والتوصيل",
-    icon: Truck,
-    items: [
-      { question: "وين يوصل AQUAVO؟", answer: "نوصل لكل العراق خلال 24 ساعة، وأجرة التوصيل ثابتة 5,000 د.ع." },
-      { question: "شلون أدفع؟", answer: "تگدر تدفع نقداً عند الاستلام، أو إلكترونياً من خلال بوابة الدفع أثناء إكمال الطلب. بيانات بطاقتك تدخل ببوابة الدفع وما يخزنها AQUAVO." },
-      { question: "شلون أتتبع طلبي؟", answer: "استخدم صفحة تتبع الطلب برقم الطلب ورقم الهاتف. وإذا احتجت مساعدة، الدعم متوفر 24/7." },
-    ],
-  },
-  {
-    title: "المنتجات والاختيار",
-    icon: PackageCheck,
-    items: [
-      { question: "شنو يبيع AQUAVO؟", answer: "نبيع معدات ومستلزمات الأحواض مثل الفلاتر والسخانات والإضاءة والغذاء والديكور ومعالجة المياه. ما نبيع أسماك حية، كائنات حية، أو نباتات مائية حية." },
-      { question: "شلون أعرف القطعة تناسب حوضي؟", answer: "راجع المواصفات بصفحة المنتج، أو دز حجم الحوض ونوع الاستخدام حتى نرتبلك الخيار المناسب بدون تخمين." },
-      { question: "هل كل المنتجات عليها وثيقة YEE؟", answer: "لا. وثيقة YEE تخص منتجات YEE الموردة إلى AQUAVO العراق فقط، وما تشمل باقي العلامات تلقائياً." },
-    ],
-  },
-  {
-    title: "مشاكل الاستلام",
-    icon: ShieldCheck,
-    items: [
-      { question: "شنو أسوي إذا وصل المنتج تالف أو غلط؟", answer: "دز رقم الطلب وصور واضحة فور ما تلاحظ المشكلة. نراجع حالة الضرر أو النقص أو عدم المطابقة ونرتب الحل حسب السياسة." },
-      { question: "هل كل جهاز عليه ضمان 6 أشهر؟", answer: "لا. ضمان AQUAVO المحدود ينطبق فقط على منتج كهربائي معتمد ومذكور بوضوح بصفحة المنتج. إذا ما مذكور، لا تعتبر المنتج مشمول." },
-      { question: "منو مقدم ضمان AQUAVO؟", answer: "إذا المنتج معتمد ومشمول بوضوح، مقدم الضمان هو AQUAVO / محل المنبع / AL NABEA SHOP، مو شركة YEE تلقائياً." },
-    ],
-  },
-  {
-    title: "الدفع والفاتورة",
-    icon: Banknote,
-    items: [
-      { question: "هل السعر النهائي واضح؟", answer: "ملخص الطلب يعرض سعر المنتجات والخصم إن وجد وأجرة التوصيل والمبلغ الكلي قبل التأكيد." },
-      { question: "هل أقدر أشوف تفاصيل طلبي بعد التأكيد؟", answer: "نعم، صفحة تأكيد الطلب تعرض رقم الطلب والمنتجات والمبلغ وحالة الطلب." },
-    ],
-  },
-] as const;
+// The questions themselves live in shared/faq-content.ts so the prerendered
+// /faq a crawler sees and the /faq a customer sees are the same FAQ. Icons are
+// presentation and stay here: a server module must not import lucide-react.
+const GROUP_ICONS: Record<FaqGroup["id"], LucideIcon> = {
+  delivery: Truck,
+  products: PackageCheck,
+  receiving: ShieldCheck,
+  payment: Banknote,
+};
 
-const questions = groups.flatMap((group) => group.items.map((item) => ({ question: item.question, answer: item.answer })));
+const questions = AQUAVO_FAQ_ITEMS.map((item) => ({ question: item.question, answer: item.answer }));
 
 export default function FAQ() {
   return (
@@ -56,19 +30,22 @@ export default function FAQ() {
           <p className="mt-5 text-lg leading-8 text-muted-foreground">المعلومة اللي تهمك بدون وعود زايدة. وإذا حالتك خاصة، دز تفاصيل حوضك.</p>
         </header>
         <div className="mt-10 grid gap-5 md:grid-cols-2">
-          {groups.map(({ title, icon: Icon, items }) => (
-            <section key={title} className="rounded-2xl border border-border bg-card/55 p-5">
-              <h2 className="flex items-center gap-3 text-xl font-bold"><Icon className="h-5 w-5 text-primary" aria-hidden="true" />{title}</h2>
-              <Accordion type="single" collapsible className="mt-4">
-                {items.map((item) => (
-                  <AccordionItem key={item.question} value={item.question}>
-                    <AccordionTrigger className="text-right">{item.question}</AccordionTrigger>
-                    <AccordionContent className="leading-7 text-muted-foreground">{item.answer}</AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
-            </section>
-          ))}
+          {AQUAVO_FAQ_GROUPS.map(({ id, title, items }) => {
+            const Icon = GROUP_ICONS[id];
+            return (
+              <section key={id} className="rounded-2xl border border-border bg-card/55 p-5">
+                <h2 className="flex items-center gap-3 text-xl font-bold"><Icon className="h-5 w-5 text-primary" aria-hidden="true" />{title}</h2>
+                <Accordion type="single" collapsible className="mt-4">
+                  {items.map((item) => (
+                    <AccordionItem key={item.question} value={item.question}>
+                      <AccordionTrigger className="text-right">{item.question}</AccordionTrigger>
+                      <AccordionContent className="leading-7 text-muted-foreground">{item.answer}</AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+              </section>
+            );
+          })}
         </div>
         <div className="mt-8 rounded-2xl border border-primary/20 bg-primary/5 p-5 text-sm">بعدك محتار؟ <Link href="/contact" className="font-bold text-primary hover:underline">تواصل ويانه</Link></div>
       </main>    </div>

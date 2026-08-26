@@ -5,6 +5,7 @@ import {
   categoryProductsPath,
   canonicalProductCategory,
 } from "../shared/seo-contract.js";
+import { AQUAVO_FAQ_PAIRS } from "../shared/faq-content.js";
 import { cloudinaryHeroUrl, renderArticleBodyHtml } from "./_blog-article.js";
 // _seo-structured-data imports only *types* from this module, so this value
 // import does not create a runtime cycle.
@@ -63,17 +64,15 @@ export type SeoPreviewPage =
   | { kind: "blog-post"; post: SeoPreviewBlogPost; related: SeoPreviewBlogPost[] }
   | { kind: "not-found"; path: string };
 
-export const SEO_FAQ_ITEMS = [
-  [
-    "هل AQUAVO يوصّل لكل العراق؟",
-    `نعم. AQUAVO متجر إلكتروني ويوصل الطلبات إلى جميع محافظات العراق خلال 24 ساعة، وأجور التوصيل الثابتة ${new Intl.NumberFormat("ar-IQ").format(AQUAVO_ENTITY.deliveryFee)} د.ع.`,
-  ],
-  ["شنو طرق الدفع المتوفرة؟", "تگدر تختار الدفع نقداً عند الاستلام أو الدفع الإلكتروني من صفحة إكمال الطلب."],
-  ["هل دعم AQUAVO متوفر طول اليوم؟", "نعم، دعم AQUAVO متوفر 24/7 للاستفسار عن الطلبات واختيار المعدات."],
-  ["شلون أختار الفلتر المناسب؟", "ابدأ بحجم الحوض وعدد الأسماك والحمل الحيوي، ثم قارن التدفق الفعلي ومساحة وسائط الفلترة، مو رقم اللترات المكتوب وحده."],
-  ["شلون أختار السخان؟", "يعتمد اختيار السخان على حجم الحوض وفرق الحرارة بين الماء والغرفة، ويجب مراقبة الحرارة بميزان مستقل."],
-  ["هل AQUAVO يبيع أسماك أو كائنات أو نباتات حية؟", "لا. AQUAVO متخصص في معدات ومستلزمات أحواض الزينة ولا يبيع أسماكاً أو كائنات أو نباتات حية."],
-] as const;
+/**
+ * The FAQ a crawler is shown — now the same one a customer is shown.
+ *
+ * This used to be its own six-question list, separate from the eleven in
+ * `client/src/pages/faq.tsx`, so `/faq` answered different questions depending
+ * on who asked and each side's FAQPage schema described content the other
+ * never rendered. Both now read `shared/faq-content.ts`.
+ */
+export const SEO_FAQ_ITEMS = AQUAVO_FAQ_PAIRS;
 
 function numberValue(value: string | number | null | undefined): number | null {
   if (value === null || value === undefined || value === "") return null;
