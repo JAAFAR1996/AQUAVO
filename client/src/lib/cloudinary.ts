@@ -142,11 +142,27 @@ export function blogHeroImage(url: string | null | undefined): string {
  * `client/src/__tests__/blog-image-variants.test.ts` asserts every PNG in that
  * directory still has one, so adding a fifth without its variant fails the
  * build rather than serving a 404.
+ *
+ * The variant is `.opt.webp`, not `.webp`, and the suffix is load-bearing.
+ * Vercel answers a missing static asset with the same
+ * `Cache-Control: public, max-age=2678400` it puts on real ones, so a request
+ * for an asset that does not exist *yet* is a 404 the CDN then holds for
+ * thirty-one days:
+ *
+ *   HTTP/1.1 404 Not Found
+ *   Cache-Control: public, max-age=2678400, stale-while-revalidate=86400
+ *   cf-cache-status: HIT
+ *
+ * A plain `.webp` had been probed before these were generated, so that URL was
+ * already poisoned and kept answering 404 after the files shipped, while the
+ * three never probed answered 200. Naming the variant for the transform gives
+ * it a URL nothing has asked for, and matches `.card.webp` in
+ * `preferLocalProductCardWebp`.
  */
 const LOCAL_BLOG_IMAGE = /^\/images\/blog\/[^?#]+\.(png|jpe?g)$/i;
 
 function preferGeneratedBlogWebp(url: string): string {
-  return LOCAL_BLOG_IMAGE.test(url) ? url.replace(/\.(png|jpe?g)$/i, ".webp") : url;
+  return LOCAL_BLOG_IMAGE.test(url) ? url.replace(/\.(png|jpe?g)$/i, ".opt.webp") : url;
 }
 
 function cloudinaryOnly(url: string | null | undefined, options: ImageOptions): string {
