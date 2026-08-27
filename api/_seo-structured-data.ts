@@ -33,16 +33,62 @@ function absoluteImage(value: string | null | undefined): string | null {
   return `${AQUAVO_BASE_URL}${value.startsWith("/") ? "" : "/"}${value}`;
 }
 
+/**
+ * An image's filename without its extension — enough to recognise the same
+ * photograph published under two different URLs.
+ */
+function imageIdentity(url: string): string {
+  const path = url.split("?")[0].split("#")[0];
+  const file = path.slice(path.lastIndexOf("/") + 1);
+  const dot = file.lastIndexOf(".");
+  return (dot > 0 ? file.slice(0, dot) : file).toLowerCase();
+}
+
+/**
+ * A variant's photograph, as a URL that actually resolves.
+ *
+ * Variants store their own `image`, and most of those references were never
+ * updated when the catalogue moved to Cloudinary: they still name a local
+ * `.png` that no longer exists. Twelve of the seventeen variant images in the
+ * catalogue answered 404, and because the variant's own image leads its
+ * `image` array, that dead URL was the first picture the Product schema
+ * offered Google for those variants:
+ *
+ *   $ curl -o /dev/null -w '%{http_code}'  *       .../images/products/houyi/houyi-oxygenation-tube/Gemini_Generated_Image_p3at6op3at6op3at.png
+ *   404
+ *
+ * They are not missing pictures, though — they are the same pictures under
+ * their old names. `Gemini_Generated_Image_p3at6op3at6op3at.png` is the local
+ * name of the `.webp` the product's own gallery already publishes and the
+ * image sitemap already declares. So a variant image is resolved against that
+ * gallery by identity, and the gallery's working URL is used.
+ *
+ * A variant image with no counterpart there is dropped rather than published:
+ * one exists (`houyi-connectors-4mm`, the Y-connector), its asset is genuinely
+ * gone, and that variant falls back to the product's own photographs. Showing
+ * a crawler a picture of the product is honest; showing it a 404 is not. This
+ * re-points a stale reference at an image the site already serves — it invents
+ * nothing and adds no image that was not already published.
+ */
+function resolveVariantImage(
+  variantImage: string | null | undefined,
+  gallery: string[],
+): string | null {
+  const absolute = absoluteImage(variantImage);
+  if (!absolute) return null;
+  if (gallery.includes(absolute)) return absolute;
+  const identity = imageIdentity(absolute);
+  return gallery.find((image) => imageIdentity(image) === identity) ?? null;
+}
+
 function productImages(product: SeoPreviewProduct, variant?: SeoPreviewVariant): string[] {
-  const candidates: Array<string | null | undefined> = [variant?.image, product.thumbnail];
-  if (Array.isArray(product.images)) {
-    for (const item of product.images) {
-      if (typeof item === "string") candidates.push(item);
-    }
-  }
-  const images = candidates
+  const gallery = [product.thumbnail, ...(Array.isArray(product.images) ? product.images : [])]
+    .filter((item): item is string => typeof item === "string")
     .map(absoluteImage)
     .filter((item): item is string => Boolean(item));
+
+  const variantImage = variant ? resolveVariantImage(variant.image, gallery) : null;
+  const images = variantImage ? [variantImage, ...gallery] : gallery;
   const unique = [...new Set(images)];
   return unique.length > 0 ? unique.slice(0, 10) : [DEFAULT_IMAGE];
 }

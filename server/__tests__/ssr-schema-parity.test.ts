@@ -104,6 +104,7 @@ process.env.DATABASE_URL ||= "postgres://u:p@localhost:5432/db";
 
 import browserHandler from "../../api/ssr-meta";
 import crawlerHandler from "../../api/_ssr-preview-source";
+import { buildProductStructuredData } from "../../api/_seo-structured-data";
 
 type Handler = (req: VercelRequest, res: VercelResponse) => Promise<unknown>;
 
@@ -371,5 +372,79 @@ describe("product breadcrumbs use the real category relationship", () => {
     expect(trail.map((c) => c.position)).toEqual([1, 2, 3]);
     expect(trail[2].name).toBe(UNCATEGORIZED_ROW.name);
     expect(html).not.toContain("/products?category=undefined");
+  });
+});
+
+describe("a variant's image is a URL that resolves", () => {
+  // Variants store their own image, and most of those references were never
+  // updated when the catalogue moved to Cloudinary — they still name a local
+  // .png that no longer exists. Measured against production: 12 of the 17
+  // variant images in the catalogue answered 404, and because the variant's
+  // own image leads its `image` array, that dead URL was the first picture
+  // the Product schema offered Google for those variants.
+  const GALLERY_WEBP =
+    "https://res.cloudinary.com/dyczh8ogv/image/upload/v1780947611/aquavo/products/houyi/tube/Gemini_Generated_Image_p3at6op3at6op3at.webp";
+  const SECOND_WEBP =
+    "https://res.cloudinary.com/dyczh8ogv/image/upload/v1780947612/aquavo/products/houyi/tube/Gemini_Generated_Image_unvjivunvjivunvj.webp";
+  // The same photograph under its retired local name — this is the 404.
+  const STALE_LOCAL_PNG =
+    "/images/products/houyi/tube/Gemini_Generated_Image_p3at6op3at6op3at.png";
+
+  const PRODUCT = {
+    id: "tube",
+    slug: "houyi-oxygenation-tube",
+    name: "خرطوم هواء للأحواض",
+    description: "خرطوم هواء مرن.",
+    price: "4000",
+    currency: "IQD",
+    brand: "Houyi",
+    category: "التهوية والأكسجين",
+    stock: 8,
+    thumbnail: GALLERY_WEBP,
+    images: [GALLERY_WEBP, SECOND_WEBP],
+    hasVariants: true,
+    specifications: {},
+  };
+
+  // A ProductGroup is only emitted for more than one variant, and
+  // buildProductStructuredData returns the whole graph as an array.
+  function imagesFor(variantImage: string | null) {
+    const product = {
+      ...PRODUCT,
+      variants: [
+        { id: "v1", label: "4 متر أسود", price: "4000", stock: 4, isDefault: true, image: variantImage },
+        { id: "v2", label: "4 متر أبيض", price: "4500", stock: 2, image: SECOND_WEBP },
+      ],
+    };
+    const graph = buildProductStructuredData(product as never) as Array<Record<string, unknown>>;
+    const group = graph.find((node) => node["@type"] === "ProductGroup");
+    expect(group, "expected a ProductGroup for a two-variant product").toBeDefined();
+    const variants = (group?.hasVariant ?? []) as Array<Record<string, unknown>>;
+    return (variants[0]?.image ?? []) as string[];
+  }
+
+  it("re-points a stale local name at the gallery copy of the same photograph", () => {
+    const images = imagesFor(STALE_LOCAL_PNG);
+    expect(images[0]).toBe(GALLERY_WEBP);
+    // The dead URL must not survive anywhere in the array.
+    expect(images.some((url) => url.endsWith(".png"))).toBe(false);
+  });
+
+  it("keeps the variant's own photograph leading, not just any gallery image", () => {
+    const images = imagesFor(SECOND_WEBP);
+    expect(images[0]).toBe(SECOND_WEBP);
+  });
+
+  it("falls back to the product's photographs when the variant's asset is genuinely gone", () => {
+    // houyi-connectors-4mm has one such variant: no counterpart in the gallery.
+    const images = imagesFor("/images/products/houyi/connectors/Gemini_Generated_Image_gone.png");
+    expect(images).not.toHaveLength(0);
+    expect(images).toContain(GALLERY_WEBP);
+    expect(images.some((url) => url.includes("_gone"))).toBe(false);
+  });
+
+  it("still works for a variant that carries no image at all", () => {
+    const images = imagesFor(null);
+    expect(images[0]).toBe(GALLERY_WEBP);
   });
 });
