@@ -66,6 +66,45 @@ export function cloudinaryHeroUrl(url: string, width = 1200): string {
   return url.replace(/\/image\/upload\//, `/image/upload/f_auto,q_auto,c_limit,w_${width}/`);
 }
 
+/**
+ * How long the article in front of the reader actually takes to read.
+ *
+ * blog_posts.read_time is a stored string and it is inflated across the whole
+ * catalogue. Sampled on production, claim against real length:
+ *
+ *   196 words  ->  "8 دقائق"     (best-aquarium-filters-iraq)
+ *   222 words  ->  "6 دقائق"     (how-to-clean-aquarium-properly)
+ *   373 words  ->  "9 دقائق"     (ro-water-vs-tap-water-aquarium)
+ *
+ * Eight of eight posts sampled were overstated, by three to eight times. The
+ * page was already carrying the true number: the Article schema's `wordCount`
+ * is computed from this same text and is correct. Only the sentence a person
+ * reads disagreed with it.
+ *
+ * So this derives the label from the article rather than from the column, and
+ * the two numbers on the page now come from one source. It shortens a claim to
+ * the truth; it does not touch the article itself.
+ */
+const ARABIC_WORDS_PER_MINUTE = 200;
+
+export function articleReadTime(html: string | null | undefined): string | null {
+  const words = articleWordCount(html);
+  if (words === 0) return null;
+  const minutes = Math.max(1, Math.round(words / ARABIC_WORDS_PER_MINUTE));
+  // Arabic counts one, two, and many differently, so a single "N دقائق"
+  // template is wrong for the two shortest cases — which, given the lengths
+  // above, are the common ones.
+  if (minutes === 1) return "دقيقة واحدة";
+  if (minutes === 2) return "دقيقتان";
+  if (minutes <= 10) return `${minutes} دقائق`;
+  return `${minutes} دقيقة`;
+}
+
+/** Words in the article body — the number the Article schema publishes. */
+export function articleWordCount(html: string | null | undefined): number {
+  return articlePlainText(html).split(/\s+/).filter(Boolean).length;
+}
+
 /** Plain-text preview of an article, for meta descriptions and markdown output. */
 export function articlePlainText(html: string | null | undefined): string {
   return sanitizeArticleHtml(html)

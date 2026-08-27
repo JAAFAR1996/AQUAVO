@@ -17,7 +17,7 @@ import {
   type SeoPreviewProduct,
   type SeoPreviewReview,
 } from "./_seo-preview-shell.js";
-import { articlePlainText, cloudinaryHeroUrl } from "./_blog-article.js";
+import { articlePlainText, articleReadTime, articleWordCount, cloudinaryHeroUrl } from "./_blog-article.js";
 import {
   buildCollectionStructuredData,
   buildFaqStructuredData,
@@ -547,7 +547,7 @@ async function resolvePage(pathname: string, rawCategory?: string): Promise<Reso
             },
             datePublished: published,
             dateModified: modified,
-            wordCount: articlePlainText(post.content).split(/\s+/).filter(Boolean).length || undefined,
+            wordCount: articleWordCount(post.content) || undefined,
             articleSection: post.category || undefined,
             inLanguage: "ar-IQ",
             mainEntityOfPage: { "@type": "WebPage", "@id": `${AQUAVO_BASE_URL}${blogPath}` },
@@ -752,7 +752,10 @@ function markdown(page: SeoPreviewPage, meta: Meta): string {
     const meta2: string[] = [];
     if (post.author) meta2.push(`الكاتب: ${post.author}`);
     if (post.category) meta2.push(`القسم: ${post.category}`);
-    if (post.readTime) meta2.push(`مدة القراءة: ${post.readTime}`);
+    // Derived from the article, matching the HTML and the schema wordCount,
+    // rather than the overstated blog_posts.read_time column.
+    const readTime = articleReadTime(post.content);
+    if (readTime) meta2.push(`مدة القراءة: ${readTime}`);
     // Publish and update dates: the HTML renders both and the Article schema
     // carries datePublished/dateModified, but the markdown stated neither, so
     // the representation an LLM fetcher prefers had no recency signal at all.
