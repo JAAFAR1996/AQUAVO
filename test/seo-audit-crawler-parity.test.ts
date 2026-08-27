@@ -2,6 +2,9 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
+import { AQUAVO_SEO_RELEASE_LASTMOD } from "../shared/seo-contract";
+import { BLOG_SITEMAP_RELEASE_LASTMOD } from "../api/sitemap-index";
+
 const read = (path: string) => readFileSync(resolve(process.cwd(), path), "utf8");
 
 describe("SEO audit crawler parity", () => {
@@ -54,8 +57,17 @@ describe("SEO audit crawler parity", () => {
     // say so here too — this index is what Vercel actually serves, so a stale
     // value here is the one Google reads. They previously said 2026-08-04
     // while the child sitemaps themselves were serving 2026-08-25.
-    expect(sitemap.match(/<lastmod>2026-08-25<\/lastmod>/g)?.length).toBe(3);
-    expect(sitemap.match(/<lastmod>2026-08-19<\/lastmod>/g)?.length).toBe(1);
+    //
+    // Read from the constants rather than written as literals. Spelling the
+    // dates out here meant every release that changed a child sitemap had to
+    // hand-edit this line too, and the release that added 81 <image:image>
+    // entries to sitemap-blog.xml did not — so the assertion kept passing
+    // against a stamp that had gone stale, which is the failure it exists to
+    // catch. sitemap-index-agreement.test.ts pins the file against the route.
+    const release = new RegExp(`<lastmod>${AQUAVO_SEO_RELEASE_LASTMOD}</lastmod>`, "g");
+    const blog = new RegExp(`<lastmod>${BLOG_SITEMAP_RELEASE_LASTMOD}</lastmod>`, "g");
+    expect(sitemap.match(release)?.length).toBe(3);
+    expect(sitemap.match(blog)?.length).toBe(1);
   });
 
   it("keeps serving the recovery sitemap it no longer advertises", () => {

@@ -5,6 +5,7 @@ import {
   type GuidePage,
 } from "./_guides-content.js";
 import { canonicalProductCategory } from "../shared/seo-contract.js";
+import { withSiteEntities } from "./_seo-structured-data.js";
 
 const GUIDE_ROUTE_ALIASES: Record<string, string> = {
   "/guides/aquarium-filter-guide": "/guides/filter-choice",
@@ -272,7 +273,7 @@ export function renderCanonicalGuideHtml(
   baseUrl: string,
   defaultImage: string,
 ): string {
-  return renderGuideHtml(canonicalPath, canonicalizePage(page, canonicalPath), baseUrl, defaultImage);
+  return renderGuideHtml(canonicalPath, canonicalizePage(page, canonicalPath), baseUrl, defaultImage, withSiteEntities);
 }
 
 export function renderCanonicalGuideMarkdown(
@@ -333,7 +334,7 @@ export function renderCanonicalGuidesIndexHtml(baseUrl: string, defaultImage: st
 <meta property="og:title" content="أدلة أحواض الزينة بالعربي | AQUAVO">
 <meta property="og:description" content="أدلة عملية قابلة للقراءة والاقتباس عن أحواض الزينة في العراق.">
 <meta property="og:url" content="${baseUrl}/guides"><meta property="og:image" content="${defaultImage}">
-<script type="application/ld+json">${JSON.stringify(itemList).replace(/</g, "\\u003c")}</script>
+${withSiteEntities([itemList]).map((node) => `<script type="application/ld+json">${JSON.stringify(node).replace(/</g, "\\u003c")}</script>`).join("\n")}
 <style>body{font-family:Cairo,Tahoma,sans-serif;background:#0B1E28;color:#fff;line-height:1.8;margin:0;padding:32px}main{max-width:1080px;margin:auto}a{color:#67d7e5}section{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}article{border:1px solid #34505b;padding:18px;border-radius:10px;background:#102a35}h1{font-size:clamp(32px,5vw,56px)}</style>
 </head><body><main><nav><a href="/">الرئيسية</a> / الأدلة</nav><h1>أدلة AQUAVO لأحواض الزينة</h1><p>إجابات عملية تبدأ بالخلاصة ثم تشرح الخطوات والتحذيرات والاختيارات المناسبة.</p><section>${cards}</section></main></body></html>`;
 }
