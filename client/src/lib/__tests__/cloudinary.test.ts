@@ -2,7 +2,7 @@
  * Cloudinary responsive image helpers (Phase H).
  */
 import { describe, it, expect } from 'vitest';
-import { blogCardImage, blogHeroImage, cardImage, cardImageSrcSet, detailImage, detailImageSrcSet } from '../cloudinary';
+import { blogCardImage, blogHeroImage, blogThumbImage, cardImage, cardImageSrcSet, detailImage, detailImageSrcSet } from '../cloudinary';
 
 const CLOUDINARY_URL = 'https://res.cloudinary.com/demo/image/upload/v1/product.jpg';
 const LOCAL_URL = '/images/products/filter.jpg';
@@ -106,5 +106,48 @@ describe('blogCardImage', () => {
 
   it('returns an empty string for a missing image, so callers fall back', () => {
     expect(blogCardImage(null)).toBe('');
+  });
+});
+
+describe("blog images: transform what Cloudinary hosts, never invent a local WebP", () => {
+  // Verified on production before this change: the three related-article
+  // thumbnails on /blog/best-aquarium-filters-iraq were the articles' full
+  // originals — 893 KB + 832 KB + 713 KB of PNG drawn into 80×80 squares.
+  const CLOUDINARY_PNG =
+    "https://res.cloudinary.com/dyczh8ogv/image/upload/v1773199287/aquavo/blog/turtle.png";
+  // A real file in client/public/images/blog. It has no .webp sibling:
+  //   curl -o /dev/null -w '%{http_code}' .../blog_planted_tank.webp -> 404
+  const LOCAL_PNG = "/images/blog/blog_planted_tank.png";
+
+  it("right-sizes a Cloudinary thumbnail instead of shipping the original", () => {
+    const url = blogThumbImage(CLOUDINARY_PNG);
+    expect(url).toContain("f_auto");
+    expect(url).toContain("q_auto:eco");
+    expect(url).toContain("w_160");
+    expect(url).toContain("c_limit");
+  });
+
+  it("leaves a local blog image exactly as it is", () => {
+    // The regression this guards: rewriting it to .webp turns a heavy image
+    // into a 404, which is worse than the weight it was meant to save.
+    expect(blogThumbImage(LOCAL_PNG)).toBe(LOCAL_PNG);
+    expect(blogCardImage(LOCAL_PNG)).toBe(LOCAL_PNG);
+    expect(blogHeroImage(LOCAL_PNG)).toBe(LOCAL_PNG);
+  });
+
+  it("still transforms Cloudinary cards and heroes", () => {
+    expect(blogCardImage(CLOUDINARY_PNG)).toContain("w_600");
+    expect(blogHeroImage(CLOUDINARY_PNG)).toContain("w_1200");
+  });
+
+  it("does not double-transform a URL that already carries one", () => {
+    const already =
+      "https://res.cloudinary.com/dyczh8ogv/image/upload/f_auto,q_auto,c_limit,w_1000/v1/aquavo/blog/x.png";
+    expect(blogThumbImage(already)).toBe(already);
+  });
+
+  it("returns an empty string for a missing image rather than throwing", () => {
+    expect(blogThumbImage(null)).toBe("");
+    expect(blogThumbImage(undefined)).toBe("");
   });
 });

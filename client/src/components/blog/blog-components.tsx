@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import type { BlogArticle } from "@/data/blog-articles";
+import { blogCardImage, blogThumbImage } from "@/lib/cloudinary";
 
 // Category icon mapping
 const categoryIcons: Record<BlogArticle["category"], React.ReactNode> = {
@@ -61,10 +62,11 @@ export function BlogCard({ article, featured = false }: BlogCardProps) {
                     )}
                 >
                     <img
-                        src={article.coverImage}
+                        src={blogCardImage(article.coverImage)}
                         alt={article.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         loading="lazy"
+                        decoding="async"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
 
@@ -235,10 +237,13 @@ export function RelatedArticles({ articles }: RelatedArticlesProps) {
                     <Link key={article.id} href={`/blog/${article.slug}`}>
                         <div className="flex gap-3 p-3 rounded-lg hover:bg-muted transition-colors cursor-pointer">
                             <img
-                                src={article.coverImage}
+                                src={blogThumbImage(article.coverImage)}
                                 alt={article.title}
                                 className="w-20 h-20 rounded-lg object-cover flex-shrink-0"
+                                width={80}
+                                height={80}
                                 loading="lazy"
+                                decoding="async"
                             />
                             <div className="min-w-0">
                                 <h4 className="font-medium text-sm line-clamp-2 mb-1">
