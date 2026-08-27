@@ -129,6 +129,7 @@ vi.mock("@neondatabase/serverless", () => ({
 process.env.DATABASE_URL ||= "postgres://u:p@localhost:5432/db";
 
 import handler from "../../api/_ssr-preview-source";
+import { articleReadTime } from "../../api/_blog-article";
 
 async function md(url: string): Promise<{ body: string; contentType: string }> {
   let body = "";
@@ -351,5 +352,56 @@ describe("blog markdown carries the dates the Article schema carries", () => {
   it("states when it was last updated", async () => {
     const { body } = await md("/blog/best-aquarium-filters-iraq");
     expect(body).toContain("آخر تحديث: 2026-04-01");
+  });
+});
+
+describe("reading time describes the article that is actually there", () => {
+  // blog_posts.read_time is a stored string and it overstates every post.
+  // Sampled on production, claim against real length:
+  //   196 words -> "8 دقائق" · 222 words -> "6 دقائق" · 373 words -> "9 دقائق"
+  // Eight of eight posts sampled were overstated, by three to eight times.
+  // The page already carried the true number — the Article schema's wordCount
+  // is computed from this same text and is correct.
+
+  it("does not repeat the inflated stored claim", async () => {
+    const { body } = await md("/blog/best-aquarium-filters-iraq");
+    // BLOG_ROW.readTime is "7 دقائق" for a body of a dozen words.
+    expect(body).not.toContain("7 دقائق");
+  });
+
+  it("calls a very short article one minute, in correct Arabic", async () => {
+    const { body } = await md("/blog/best-aquarium-filters-iraq");
+    expect(body).toContain("مدة القراءة: دقيقة واحدة");
+  });
+
+});
+
+describe("articleReadTime counts Arabic minutes the way Arabic counts them", () => {
+  const words = (n: number) => `<p>${Array.from({ length: n }, () => "كلمة").join(" ")}</p>`;
+
+  it("uses the singular for one minute", () => {
+    expect(articleReadTime(words(120))).toBe("دقيقة واحدة");
+  });
+
+  it("uses the dual for two, which Arabic does not write as a number", () => {
+    expect(articleReadTime(words(400))).toBe("دقيقتان");
+  });
+
+  it("uses the plural of paucity from three to ten", () => {
+    expect(articleReadTime(words(600))).toBe("3 دقائق");
+    expect(articleReadTime(words(2000))).toBe("10 دقائق");
+  });
+
+  it("switches to the singular noun past ten, as Arabic does", () => {
+    expect(articleReadTime(words(2400))).toBe("12 دقيقة");
+  });
+
+  it("never rounds a real article down to zero minutes", () => {
+    expect(articleReadTime(words(5))).toBe("دقيقة واحدة");
+  });
+
+  it("returns nothing for an empty article rather than claiming a minute", () => {
+    expect(articleReadTime("")).toBeNull();
+    expect(articleReadTime(null)).toBeNull();
   });
 });

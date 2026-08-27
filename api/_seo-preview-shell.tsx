@@ -6,7 +6,7 @@ import {
   canonicalProductCategory,
 } from "../shared/seo-contract.js";
 import { AQUAVO_FAQ_PAIRS } from "../shared/faq-content.js";
-import { cloudinaryHeroUrl, renderArticleBodyHtml } from "./_blog-article.js";
+import { articleReadTime, cloudinaryHeroUrl, renderArticleBodyHtml } from "./_blog-article.js";
 // _seo-structured-data imports only *types* from this module, so this value
 // import does not create a runtime cycle.
 import { primaryProductImage, productGalleryImages } from "./_seo-structured-data.js";
@@ -487,6 +487,7 @@ function BlogPostPage({ post, related }: { post: SeoPreviewBlogPost; related: Se
   const published = articleDate(post.publishedAt);
   const updated = articleDate(post.updatedAt);
   const hero = post.imageUrl ? cloudinaryHeroUrl(post.imageUrl, 1200) : null;
+  const readTime = articleReadTime(post.content);
   return (
     <main id="main-content">
       <nav className="aq-ssr-breadcrumb" aria-label="مسار الصفحة">
@@ -502,7 +503,9 @@ function BlogPostPage({ post, related }: { post: SeoPreviewBlogPost; related: Se
           {updated && updated !== published && (
             <><span> · تحديث </span><time itemProp="dateModified" dateTime={updated}>{updated}</time></>
           )}
-          {post.readTime && <span> · {post.readTime}</span>}
+          {/* Derived from the article, not from blog_posts.read_time, which
+              overstates every post in the catalogue. See articleReadTime. */}
+          {readTime && <span> · {readTime}</span>}
         </p>
         {hero && (
           <img
