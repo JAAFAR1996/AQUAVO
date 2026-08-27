@@ -4,6 +4,9 @@
 // crawlers — independent of the React SPA. JSON-LD is emitted with the visible
 // content so Article, FAQPage, and BreadcrumbList are present in raw HTML.
 
+/** Lets a caller add nodes (the site entities) without this module importing them. */
+export type JsonLdDecorator = (nodes: object[]) => object[];
+
 export interface GuideLink {
   href: string;
   label: string;
@@ -683,8 +686,24 @@ function safeJsonForScript(data: object): string {
     .replace(/\u2029/g, "\\u2029");
 }
 
-function renderJsonLdScripts(items: object[]): string {
-  return items
+/**
+ * Guide JSON-LD, optionally widened by the caller.
+ *
+ * /guides and /guides/* return straight from their renderers, so they never
+ * reach the injectMeta / injectDocument call that publishes #organization and
+ * #website on every other route: a product page carried OnlineStore + WebSite
+ * and a blog post Organization + WebSite, while all 12 guides and the guide
+ * index carried neither, leaving their Articles attached to no site entity.
+ *
+ * `decorate` is how the caller supplies those nodes rather than this module
+ * importing them. client/src/__tests__/flow-gate-guides-boundary.test.ts
+ * imports this file, which puts it inside tsconfig.json's `client/src/**`
+ * include; that config sets no `target`, so pulling _seo-structured-data in
+ * here drags it and _seo-preview-shell into a graph where their Set and Map
+ * iteration no longer compiles. Passing a function keeps that edge out.
+ */
+function renderJsonLdScripts(items: object[], decorate: JsonLdDecorator = (nodes) => nodes): string {
+  return decorate(items)
     .map((item) => `<script type="application/ld+json">${safeJsonForScript(item)}</script>`)
     .join("\n");
 }
@@ -849,9 +868,9 @@ function renderLinks(links: GuideLink[], base: string): string {
   );
 }
 
-export function renderGuideHtml(path: string, page: GuidePage, base: string, image: string): string {
+export function renderGuideHtml(path: string, page: GuidePage, base: string, image: string, decorate?: JsonLdDecorator): string {
   const url = `${base}${path}`;
-  const jsonLd = renderJsonLdScripts(buildGuideJsonLd(path, page, base, image));
+  const jsonLd = renderJsonLdScripts(buildGuideJsonLd(path, page, base, image), decorate);
   const crumb = page.breadcrumb
     .map((c, i) =>
       i === page.breadcrumb.length - 1

@@ -4,7 +4,13 @@ import {
   AQUAVO_SEO_RELEASE_LASTMOD,
 } from "../shared/seo-contract.js";
 
-const BLOG_SITEMAP_RELEASE_LASTMOD = "2026-08-19";
+// sitemap-blog.xml last changed on 2026-08-27, when 81 <image:image> entries
+// were added to it. Google reads this stamp to decide whether to refetch a
+// child sitemap, so leaving it at the previous date advertised "nothing has
+// changed" over the release that published the entire blog image corpus.
+// sitemap-index-agreement.test.ts pins this against client/public/sitemap.xml,
+// which is the copy Vercel actually serves.
+export const BLOG_SITEMAP_RELEASE_LASTMOD = "2026-08-27";
 
 export default function handler(_req: VercelRequest, res: VercelResponse): void {
   // sitemap-recovery.xml is deliberately absent. It was submitted during an
@@ -24,6 +30,6 @@ export default function handler(_req: VercelRequest, res: VercelResponse): void 
 
   res.setHeader("Content-Type", "application/xml; charset=utf-8");
   res.setHeader("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
-  res.setHeader("Last-Modified", "Wed, 19 Aug 2026 00:00:00 GMT");
+  res.setHeader("Last-Modified", "Thu, 27 Aug 2026 00:00:00 GMT");
   res.status(200).send(xml);
 }
