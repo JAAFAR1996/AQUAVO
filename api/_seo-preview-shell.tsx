@@ -209,6 +209,15 @@ function SiteHeader() {
       <nav aria-label="التنقل الرئيسي">
         <a href="/products">المنتجات</a>
         <a href="/guides">الأدلة</a>
+        {/*
+          Nothing on the site linked to /blog — not this nav, not this footer,
+          not the client header or footer. All 81 posts and the index itself sat
+          at infinite click-depth from the homepage, discoverable only through
+          sitemap-blog.xml, which carries no internal link equity. This nav
+          renders on every crawled page, so one entry here puts /blog at depth 1
+          and every post at depth 2.
+        */}
+        <a href="/blog">المدونة</a>
         <a href="/faq">الأسئلة الشائعة</a>
         <a href="/about">عن AQUAVO</a>
         <a href="/contact">تواصل معنا</a>
