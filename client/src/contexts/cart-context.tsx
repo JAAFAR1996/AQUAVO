@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from "react";
 import { Product } from "@/types";
 import { useAuth } from "./auth-context";
 import { toast } from "@/hooks/use-toast";
@@ -38,13 +38,43 @@ export interface CartItem {
   slug: string;
   variantId?: string;
   variantLabel?: string;
-  /**
-   * Known available stock for this exact line (variant stock when this is a
-   * variant, base-product stock otherwise). `undefined` means "unknown" —
-   * the client never invents a cap and defers enforcement to the server,
-   * matching the existing addItem() semantics.
-   */
+  /** Fresh known stock for this exact line. Guests no longer treat unknown stock
+   * as permission to oversell: every mutation is revalidated against the server. */
   stock?: number;
+}
+
+export interface CartAvailabilityIssue {
+  id: string;
+  productId: string;
+  variantId?: string;
+  name: string;
+  variantLabel?: string;
+  previousQuantity: number;
+  availableStock: number;
+  action: "reduced" | "removed";
+}
+
+export interface CartAvailabilityResult {
+  ok: boolean;
+  changed: boolean;
+  issues: CartAvailabilityIssue[];
+  checkedAt?: string;
+}
+
+interface AvailabilityLine {
+  productId: string;
+  variantId: string | null;
+  productName: string;
+  variantLabel: string | null;
+  requestedQuantity: number;
+  availableStock: number;
+  status: "available" | "limited" | "unavailable";
+  reason: string | null;
+}
+
+interface AvailabilityResponse {
+  items: AvailabilityLine[];
+  checkedAt?: string;
 }
 
 // Type for server cart item response
@@ -71,11 +101,12 @@ interface CartContextType {
   items: CartItem[];
   /** Resolves true when the item was added, false when blocked (e.g. out of stock). */
   addItem: (product: Product, quantity?: number) => Promise<boolean>;
-  addItems: (products: Product[]) => void;
-  removeItem: (id: string) => void;
-  updateQuantity: (id: string, quantity: number) => void;
-  clearCart: () => void;
+  addItems: (products: Product[]) => Promise<void>;
+  removeItem: (id: string) => Promise<void>;
+  updateQuantity: (id: string, quantity: number) => Promise<void>;
+  clearCart: () => Promise<void>;
   refetchCart: () => Promise<void>;
+  validateAvailability: (options?: { notify?: boolean }) => Promise<CartAvailabilityResult>;
   totalItems: number;
   totalPrice: number;
 }
@@ -110,10 +141,130 @@ const getCartVariantMeta = (product: Product | ProductWithCartVariant) => {
   };
 };
 
-// Resolves the KNOWN stock cap for a server-sourced cart line: variant stock
-// when the line has a variant, base-product stock otherwise. Returns
-// `undefined` when the source value is missing/non-numeric — "unknown" defers
-// enforcement to the server rather than inventing a limit.
+const lineKey = (productId: string, variantId?: string | null): string =>
+  `${productId}::${variantId || "default"}`;
+
+const persistGuestCart = (newItems: CartItem[]) => {
+  syncStorage.setItem(CART_STORAGE_KEY, newItems);
+  window.dispatchEvent(new StorageEvent("storage", {
+    key: CART_STORAGE_KEY,
+    newValue: JSON.stringify(newItems),
+  }));
+};
+
+async function requestAvailability(
+  lines: Array<Pick<CartItem, "productId" | "variantId" | "quantity">>
+): Promise<AvailabilityResponse> {
+  if (lines.length === 0) return { items: [], checkedAt: new Date().toISOString() };
+
+  const response = await fetch("/api/cart/availability", {
+    method: "POST",
+    headers: addCsrfHeader({ "Content-Type": "application/json" }),
+    credentials: "include",
+    cache: "no-store",
+    body: JSON.stringify({
+      items: lines.map(({ productId, variantId, quantity }) => ({
+        productId,
+        ...(variantId ? { variantId } : {}),
+        quantity,
+      })),
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Availability check failed (${response.status})`);
+  }
+
+  const data = await response.json();
+  if (!data || !Array.isArray(data.items)) {
+    throw new Error("Invalid availability response");
+  }
+  return data as AvailabilityResponse;
+}
+
+function reconcileCartWithAvailability(
+  currentItems: CartItem[],
+  availability: AvailabilityLine[]
+): { nextItems: CartItem[]; issues: CartAvailabilityIssue[]; changed: boolean } {
+  const availabilityByKey = new Map(
+    availability.map((line) => [lineKey(line.productId, line.variantId), line])
+  );
+  const issues: CartAvailabilityIssue[] = [];
+  const nextItems: CartItem[] = [];
+
+  for (const item of currentItems) {
+    const line = availabilityByKey.get(lineKey(item.productId, item.variantId));
+    // An incomplete response is treated as a failed check by the caller; do not
+    // silently delete a customer's item merely because a response line is absent.
+    if (!line) {
+      nextItems.push(item);
+      continue;
+    }
+
+    const availableStock = Math.max(0, Math.floor(Number(line.availableStock) || 0));
+    if (availableStock <= 0) {
+      issues.push({
+        id: item.id,
+        productId: item.productId,
+        variantId: item.variantId,
+        name: line.productName || item.name,
+        variantLabel: line.variantLabel || item.variantLabel,
+        previousQuantity: item.quantity,
+        availableStock: 0,
+        action: "removed",
+      });
+      continue;
+    }
+
+    if (item.quantity > availableStock) {
+      issues.push({
+        id: item.id,
+        productId: item.productId,
+        variantId: item.variantId,
+        name: line.productName || item.name,
+        variantLabel: line.variantLabel || item.variantLabel,
+        previousQuantity: item.quantity,
+        availableStock,
+        action: "reduced",
+      });
+      nextItems.push({ ...item, quantity: availableStock, stock: availableStock });
+      continue;
+    }
+
+    nextItems.push({ ...item, stock: availableStock });
+  }
+
+  return {
+    nextItems,
+    issues,
+    changed: issues.length > 0,
+  };
+}
+
+function availabilityToast(issueList: CartAvailabilityIssue[]): { title: string; description: string } {
+  if (issueList.length === 1) {
+    const issue = issueList[0];
+    const label = issue.variantLabel ? `${issue.name} — ${issue.variantLabel}` : issue.name;
+    if (issue.action === "reduced") {
+      return {
+        title: "حدّثنا الكمية المتوفرة",
+        description: `بقيت ${issue.availableStock} قطعة فقط من «${label}». عدّلنا الكمية تلقائياً من ${issue.previousQuantity} إلى ${issue.availableStock}.`,
+      };
+    }
+    return {
+      title: "تغيّر توفر أحد المنتجات",
+      description: `نفدت كمية «${label}»، لذلك أزلناها من السلة تلقائياً.`,
+    };
+  }
+
+  return {
+    title: "حدّثنا سلتك حسب المخزون",
+    description: "تغيّرت الكمية المتوفرة لبعض المنتجات. حدّثنا السلة تلقائياً حسب المخزون الحالي.",
+  };
+}
+
+// Resolves the known stock cap for a server-sourced cart line: variant stock
+// when the line has a variant, base-product stock otherwise.
 const resolveServerCartItemStock = (
   product: ServerCartItem["product"],
   variantId: string | undefined
@@ -140,7 +291,7 @@ const mapServerCartItem = (item: ServerCartItem): CartItem => {
     name: normalizeCartItemName(item.product.name, variantLabel),
     price: Number(item.variantPrice ?? item.product.price),
     quantity: item.quantity,
-    image: item.product.thumbnail || item.product.images?.[0] || '',
+    image: item.product.thumbnail || item.product.images?.[0] || "",
     slug: item.product.slug,
     variantId,
     variantLabel,
@@ -152,8 +303,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [items, setItems] = useState<CartItem[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
+  const guestInitialRevalidationDone = useRef(false);
 
-  // Load from LocalStorage on mount (for guest)
+  // Load from LocalStorage on mount (for guest). The snapshot is shown immediately
+  // for a fast UI, then a fresh server reconciliation runs below before checkout.
   useEffect(() => {
     if (!user && !isInitialized) {
       const stored = syncStorage.getItem<CartItem[]>(CART_STORAGE_KEY);
@@ -171,64 +324,65 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [user, isInitialized]);
 
-  // Sync with Server on Login - MERGE local cart with server cart
+  // Sync with Server on Login - MERGE local cart with server cart.
   useEffect(() => {
     if (user) {
       const mergeGuestCartWithServer = async () => {
         try {
-          // 1. Get local cart BEFORE we replace it
           const localItems: CartItem[] = syncStorage.getItem<CartItem[]>(CART_STORAGE_KEY) || [];
 
-          // 2. If we have local items, push them to server first
           if (localItems.length > 0) {
-            const pushPromises = localItems.map(item =>
-              fetch("/api/cart", {
-                method: "POST",
-                headers: addCsrfHeader({ "Content-Type": "application/json" }),
-                credentials: "include",
-                body: JSON.stringify({
-                  productId: item.productId,
-                  quantity: item.quantity,
-                  variantId: item.variantId,
-                  variantLabel: item.variantLabel,
-                  variantPrice: item.price
-                }),
-              }).catch(err => {
+            const results = await Promise.all(localItems.map(async (item) => {
+              try {
+                const response = await fetch("/api/cart", {
+                  method: "POST",
+                  headers: addCsrfHeader({ "Content-Type": "application/json" }),
+                  credentials: "include",
+                  body: JSON.stringify({
+                    productId: item.productId,
+                    quantity: item.quantity,
+                    variantId: item.variantId,
+                    variantLabel: item.variantLabel,
+                    variantPrice: item.price,
+                  }),
+                });
+                return response.ok;
+              } catch (err) {
                 console.error(`Failed to push item ${item.id} to server:`, err);
-                return null; // Don't fail the whole merge
-              })
-            );
+                return false;
+              }
+            }));
 
-            await Promise.all(pushPromises);
-
-            // Clear local storage after successful push
             syncStorage.removeItem(CART_STORAGE_KEY);
-
-            toast({
-              title: "تم دمج سلتك",
-              description: `تمت إضافة ${localItems.length} منتج من سلتك السابقة`,
-            });
+            const mergedCount = results.filter(Boolean).length;
+            if (mergedCount === localItems.length) {
+              toast({
+                title: "تم دمج سلتك",
+                description: `تمت إضافة ${mergedCount} منتج من سلتك السابقة`,
+              });
+            } else {
+              toast({
+                title: "حدّثنا سلتك بعد تسجيل الدخول",
+                description: "بعض المنتجات أو الكميات القديمة لم تعد متوفرة، لذلك احتفظنا فقط بالكميات المتاحة.",
+              });
+            }
           }
 
-          // 3. Fetch the merged cart from server
-          const cartRes = await fetch("/api/cart", { credentials: "include" });
+          const cartRes = await fetch("/api/cart", { credentials: "include", cache: "no-store" });
           if (cartRes.ok) {
             const serverItems = await cartRes.json();
             if (Array.isArray(serverItems)) {
-              const mappedItems = serverItems.map(mapServerCartItem);
-              setItems(mappedItems);
+              setItems(serverItems.map(mapServerCartItem));
             }
           }
         } catch (err) {
           console.error("Failed to merge cart:", err);
-          // On error, try to at least fetch server cart
           try {
-            const cartRes = await fetch("/api/cart", { credentials: "include" });
+            const cartRes = await fetch("/api/cart", { credentials: "include", cache: "no-store" });
             if (cartRes.ok) {
               const serverItems = await cartRes.json();
               if (Array.isArray(serverItems)) {
-                const mappedItems = serverItems.map(mapServerCartItem);
-                setItems(mappedItems);
+                setItems(serverItems.map(mapServerCartItem));
               }
             }
           } catch (e) {
@@ -237,40 +391,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
         }
       };
 
-      mergeGuestCartWithServer();
+      void mergeGuestCartWithServer();
     }
   }, [user]);
 
-  // Persist changes
   const saveCart = async (newItems: CartItem[]) => {
     setItems(newItems);
-
-    if (user) {
-      // If logged in, we should ideally sync each change. 
-      // But passing the whole cart on every change is heavy.
-      // The API is granular (add/remove). 
-      // So this state-based save is tricky without a diff.
-      // We will rely on the add/remove functions to call API directly.
-    } else {
-      syncStorage.setItem(CART_STORAGE_KEY, newItems);
-      window.dispatchEvent(new StorageEvent('storage', {
-        key: CART_STORAGE_KEY,
-        newValue: JSON.stringify(newItems),
-      }));
-    }
+    if (!user) persistGuestCart(newItems);
   };
 
   const addItem = async (product: Product, quantity: number = 1): Promise<boolean> => {
     let { variantId, variantLabel } = getCartVariantMeta(product);
 
-    // Safety net for "quick add" surfaces (suggestions, frequently-bought,
-    // comparison, personalized…) that pass a variant product without choosing an
-    // option. Variant products usually have base price 0, which would otherwise be
-    // rejected below as "unavailable". Auto-pick the cheapest in-stock variant so
-    // the add always succeeds; the detail page still passes an explicit choice.
-    // Tracks the selected variant's stock when it is a known number (undefined
-    // means "unknown" — we then defer stock validation to the server/checkout).
-    let chosenVariantStock: number | undefined;
+    // Quick-add surfaces may omit a variant. Pick the cheapest currently-marked
+    // in-stock variant, then verify it against the fresh availability endpoint.
     if (!variantId && product.hasVariants && product.variants?.length) {
       const inStock = product.variants.filter((v) => (v.stock ?? 0) > 0 && Number(v.price) > 0);
       const pool = inStock.length > 0 ? inStock : product.variants.filter((v) => Number(v.price) > 0);
@@ -279,14 +413,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
         product = { ...product, price: Number(chosen.price) } as Product;
         variantId = chosen.id;
         variantLabel = chosen.label;
-        if (chosen.stock != null) chosenVariantStock = Number(chosen.stock);
       }
-    } else if (variantId && product.variants?.length) {
-      const selected = product.variants.find((v) => v.id === variantId);
-      if (selected && selected.stock != null) chosenVariantStock = Number(selected.stock);
     }
 
-    // Only block products with no price set (coming soon)
     const productPrice = Number(product.price);
     if (!productPrice || productPrice <= 0) {
       toast({
@@ -297,11 +426,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return false;
     }
 
-    // Display name carries the variant label so analytics + cart match the PDP.
     const displayName = variantLabel ? `${product.name} (${variantLabel})` : product.name;
 
     if (user) {
-      // Server Side — the server is the source of truth for stock.
       try {
         const res = await fetch("/api/cart", {
           method: "POST",
@@ -317,14 +444,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
         });
         if (res.ok) {
           await res.json();
-          // Refresh full cart to ensure sync with server state
-          const cartRes = await fetch("/api/cart", { credentials: "include" });
+          const cartRes = await fetch("/api/cart", { credentials: "include", cache: "no-store" });
           if (cartRes.ok) {
             const serverItems = await cartRes.json();
-            const mappedItems = serverItems.map(mapServerCartItem);
-            setItems(mappedItems);
+            if (Array.isArray(serverItems)) setItems(serverItems.map(mapServerCartItem));
           }
-          // If cartRes is not ok, item was still added — optimistic local state is already correct
           fireAddToCartAnalytics({ id: product.id, name: displayName, price: productPrice, quantity, category: product.category });
           return true;
         }
@@ -338,7 +462,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
           return false;
         }
 
-        // Out-of-stock / validation → surface the server's clean Arabic message.
         let description = "الكمية المطلوبة غير متوفرة حالياً";
         try {
           const data = await res.json();
@@ -357,69 +480,78 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    // Guest (client-side) — validate against the product's stock before adding so
-    // a guest can never oversell (the old bug: checkout later threw a raw error).
-    const cartItemId = `${product.id}-${variantId || 'default'}`;
-    // Only enforce a limit when stock is a KNOWN number. Unknown stock
-    // (undefined/null) defers validation to the server + checkout, so we never
-    // wrongly block a product whose stock field wasn't included on this surface.
-    const rawStock = chosenVariantStock !== undefined
-      ? chosenVariantStock
-      : (product.stock ?? null);
-    const stockKnown = rawStock != null && Number.isFinite(Number(rawStock));
-    const available = stockKnown ? Number(rawStock) : Infinity;
-    // Cap stored on the cart line itself so later quantity increments (e.g. the
-    // "+" button in the cart drawer) can enforce it without re-deriving stock.
-    const itemStock = stockKnown ? Number(rawStock) : undefined;
+    // Guest cart: ALWAYS ask the server for fresh stock before mutating browser
+    // storage. Unknown/stale client stock is never interpreted as unlimited.
+    const cartItemId = `${product.id}-${variantId || "default"}`;
     const currentQty = items.find((item) => item.id === cartItemId)?.quantity ?? 0;
+    const requestedQuantity = currentQty + quantity;
 
-    if (stockKnown && available <= 0) {
-      toast({ title: "غير متوفر", description: "نفدت الكمية", variant: "destructive" });
-      return false;
-    }
-    if (currentQty + quantity > available) {
+    let liveLine: AvailabilityLine | undefined;
+    try {
+      const availability = await requestAvailability([{
+        productId: product.id,
+        variantId,
+        quantity: requestedQuantity,
+      }]);
+      liveLine = availability.items[0];
+    } catch (err) {
+      console.warn("Failed to validate guest cart stock", err);
       toast({
-        title: "غير متوفر",
-        description: currentQty >= available ? "وصلت للكمية المتوفرة" : "الكمية المطلوبة غير متوفرة حالياً",
+        title: "تعذر التأكد من المخزون",
+        description: "ما قدرنا نتأكد من الكمية المتوفرة الآن. حاول مرة ثانية بعد لحظات.",
         variant: "destructive",
       });
       return false;
     }
 
-    // Use a functional update so rapid successive clicks never read a stale
-    // `items` snapshot (the old "had to click add twice" bug).
+    if (!liveLine || liveLine.availableStock <= 0) {
+      toast({
+        title: "نفدت الكمية",
+        description: variantLabel ? `الخيار «${variantLabel}» غير متوفر حالياً.` : "هذا المنتج غير متوفر حالياً.",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    if (requestedQuantity > liveLine.availableStock) {
+      toast({
+        title: "وصلت للكمية المتوفرة",
+        description: `المتوفر حالياً ${liveLine.availableStock} فقط من هذا المنتج.`,
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    const liveStock = liveLine.availableStock;
     setItems((prev) => {
       const existingItem = prev.find((item) => item.id === cartItemId);
       let newItems: CartItem[];
       if (existingItem) {
+        // The min() is a second client-side race guard: even two very fast clicks
+        // that validate concurrently cannot push localStorage beyond live stock.
+        const nextQuantity = Math.min(existingItem.quantity + quantity, liveStock);
+        if (nextQuantity === existingItem.quantity) return prev;
         newItems = prev.map((item) =>
           item.id === cartItemId
-            ? { ...item, quantity: item.quantity + quantity, stock: itemStock }
+            ? { ...item, quantity: nextQuantity, stock: liveStock }
             : item
         );
       } else {
-        const newItem: CartItem = {
+        newItems = [...prev, {
           id: cartItemId,
           productId: product.id,
           name: product.name,
           price: Number(product.price),
-          quantity: quantity,
-          image: product.thumbnail || product.image || product.images?.[0] || '',
+          quantity: Math.min(quantity, liveStock),
+          image: product.thumbnail || product.image || product.images?.[0] || "",
           slug: product.slug,
           variantId: variantId ?? undefined,
           variantLabel,
-          stock: itemStock,
-        };
-        newItems = [...prev, newItem];
+          stock: liveStock,
+        }];
       }
 
-      // Persist to localStorage + notify other tabs/components.
-      syncStorage.setItem(CART_STORAGE_KEY, newItems);
-      window.dispatchEvent(new StorageEvent('storage', {
-        key: CART_STORAGE_KEY,
-        newValue: JSON.stringify(newItems),
-      }));
-
+      persistGuestCart(newItems);
       return newItems;
     });
 
@@ -427,9 +559,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     return true;
   };
 
-  const addItems = async (products: Product[]) => {
-    // Filter: only products with a price can be added
-    const purchasableProducts = products.filter(p => Number(p.price) > 0);
+  const addItems = async (products: Product[]): Promise<void> => {
+    const purchasableProducts = products.filter((p) => Number(p.price) > 0 || (p.hasVariants && p.variants?.some((v) => Number(v.price) > 0)));
     if (purchasableProducts.length === 0) {
       toast({
         title: "غير متوفرة حالياً",
@@ -438,117 +569,36 @@ export function CartProvider({ children }: { children: ReactNode }) {
       });
       return;
     }
+
     if (purchasableProducts.length < products.length) {
       toast({
         title: "تنبيه",
-        description: `تم إضافة ${purchasableProducts.length} منتج فقط — البقية قريباً.`,
+        description: `تمت محاولة إضافة ${purchasableProducts.length} منتج فقط — البقية غير متوفرة حالياً.`,
       });
     }
-    if (user) {
-      // Server Side: Add all concurrently then update state
-      try {
-        const promises = purchasableProducts.map(product => {
-          const { variantId, variantLabel } = getCartVariantMeta(product);
-          return fetch("/api/cart", {
-            method: "POST",
-            headers: addCsrfHeader({ "Content-Type": "application/json" }),
-            credentials: "include",
-            body: JSON.stringify({
-              productId: product.id,
-              quantity: 1,
-              variantPrice: variantId ? Number(product.price) : undefined,
-              variantLabel,
-              variantId,
-            }),
-          });
-        });
 
-        await Promise.all(promises);
-
-        // Refresh cart once
-        const cartRes = await fetch("/api/cart", { credentials: "include" });
-        if (cartRes.ok) {
-          const serverItems = await cartRes.json();
-          const mappedItems = serverItems.map(mapServerCartItem);
-          setItems(mappedItems);
-        }
-
-        purchasableProducts.forEach((product) => {
-          fireAddToCartAnalytics({ id: product.id, name: product.name, price: Number(product.price), quantity: 1, category: product.category });
-        });
-      } catch (err) {
-        console.error("Failed to add items batch", err);
-        toast({
-          title: "خطأ",
-          description: "حدث خطأ أثناء إضافة المنتجات",
-          variant: "destructive"
-        });
-      }
-    } else {
-      // Client Side: Compute new state in one go
-      setItems(prev => {
-        let newItems = [...prev];
-        purchasableProducts.forEach((product) => {
-          const { variantId, variantLabel } = getCartVariantMeta(product);
-          const cartItemId = `${product.id}-${variantId || 'default'}`;
-          
-          const existingIndex = newItems.findIndex(i => i.id === cartItemId);
-          if (existingIndex > -1) {
-            newItems[existingIndex] = {
-              ...newItems[existingIndex],
-              quantity: newItems[existingIndex].quantity + 1
-            };
-          } else {
-            newItems.push({
-              id: cartItemId,
-              productId: product.id,
-              name: product.name,
-              price: Number(product.price),
-              quantity: 1,
-              image: product.thumbnail || product.image || product.images?.[0] || '',
-              slug: product.slug,
-              variantId: variantId ?? undefined,
-              variantLabel,
-            });
-          }
-        });
-
-        // Side effect: Save to local storage
-        syncStorage.setItem(CART_STORAGE_KEY, newItems);
-        window.dispatchEvent(new StorageEvent('storage', {
-          key: CART_STORAGE_KEY,
-          newValue: JSON.stringify(newItems),
-        }));
-
-        return newItems;
-      });
-
-      purchasableProducts.forEach((product) => {
-        fireAddToCartAnalytics({ id: product.id, name: product.name, price: Number(product.price), quantity: 1, category: product.category });
-      });
+    // Reuse the exact same stock-safe path for every surface instead of keeping a
+    // second batch implementation that can drift away from addItem's protections.
+    for (const product of purchasableProducts) {
+      await addItem(product, 1);
     }
   };
 
-  const removeItem = useCallback(async (id: string) => {
+  const removeItem = useCallback(async (id: string): Promise<void> => {
     if (user) {
-      // Optimistic update first
-      setItems(prev => prev.filter((item) => item.id !== id));
+      setItems((prev) => prev.filter((item) => item.id !== id));
 
       try {
         const res = await fetch(`/api/cart/${id}`, {
           method: "DELETE",
           headers: addCsrfHeader(),
-          credentials: "include"
+          credentials: "include",
         });
         if (!res.ok) {
-          // Rollback on failure - refetch from server
-          const cartRes = await fetch("/api/cart", { credentials: "include" });
+          const cartRes = await fetch("/api/cart", { credentials: "include", cache: "no-store" });
           if (cartRes.ok) {
             const serverItems = await cartRes.json();
-            if (Array.isArray(serverItems)) {
-              const mappedItems = serverItems.map(mapServerCartItem);
-              setItems(mappedItems);
-            }
+            if (Array.isArray(serverItems)) setItems(serverItems.map(mapServerCartItem));
           }
           toast({
             title: "فشل حذف المنتج",
@@ -558,60 +608,25 @@ export function CartProvider({ children }: { children: ReactNode }) {
         }
       } catch (err) {
         console.warn("Failed to remove from server cart", err);
-        toast({
-          title: "فشل حذف المنتج",
-          variant: "destructive",
-        });
+        toast({ title: "فشل حذف المنتج", variant: "destructive" });
       }
     } else {
-      // Use functional update to avoid stale closure
-      setItems(prev => {
+      setItems((prev) => {
         const newItems = prev.filter((item) => item.id !== id);
-        syncStorage.setItem(CART_STORAGE_KEY, newItems);
-        window.dispatchEvent(new StorageEvent('storage', {
-          key: CART_STORAGE_KEY,
-          newValue: JSON.stringify(newItems),
-        }));
+        persistGuestCart(newItems);
         return newItems;
       });
     }
   }, [user]);
 
-  const updateQuantity = useCallback(async (id: string, quantity: number) => {
-    // Never auto-remove — user must use the trash button explicitly
-    if (quantity <= 0) {
-      quantity = 1;
-    }
-
-    // Enforce the KNOWN stock cap client-side (variant stock for variant
-    // lines, base-product stock otherwise) so the "+" control can't push the
-    // quantity past what we know is available. Unknown stock (undefined)
-    // means we never saw a stock number for this line — defer entirely to
-    // the server, which remains the final authority either way.
+  const updateQuantity = useCallback(async (id: string, requestedQuantity: number): Promise<void> => {
+    const quantity = Math.max(1, Math.floor(requestedQuantity));
     const currentItem = items.find((item) => item.id === id);
-    const knownStock = currentItem?.stock;
-    if (knownStock != null && Number.isFinite(knownStock) && quantity > knownStock) {
-      toast({
-        title: "غير متوفر",
-        description: knownStock <= 0 ? "نفدت الكمية" : "وصلت للكمية المتوفرة",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Store old quantity for potential rollback
-    let oldQuantity = 0;
-
-    // Optimistic update using functional form
-    setItems(prev => {
-      const item = prev.find(i => i.id === id);
-      if (item) oldQuantity = item.quantity;
-      return prev.map((item) =>
-        item.id === id ? { ...item, quantity } : item
-      );
-    });
+    if (!currentItem) return;
 
     if (user) {
+      const oldQuantity = currentItem.quantity;
+      setItems((prev) => prev.map((item) => item.id === id ? { ...item, quantity } : item));
       try {
         const res = await fetch(`/api/cart/${id}`, {
           method: "PUT",
@@ -621,72 +636,204 @@ export function CartProvider({ children }: { children: ReactNode }) {
         });
 
         if (!res.ok) {
-          // Rollback on failure
-          setItems(prev => prev.map((item) =>
-            item.id === id ? { ...item, quantity: oldQuantity } : item
-          ));
-          toast({
-            title: "فشل تحديث الكمية",
-            variant: "destructive",
-          });
+          setItems((prev) => prev.map((item) => item.id === id ? { ...item, quantity: oldQuantity } : item));
+          let description = "يرجى المحاولة مرة أخرى";
+          try {
+            const data = await res.json();
+            if (typeof data?.message === "string") description = data.message;
+          } catch { /* keep fallback */ }
+          toast({ title: "تعذر تحديث الكمية", description, variant: "destructive" });
+          return;
+        }
+
+        const cartRes = await fetch("/api/cart", { credentials: "include", cache: "no-store" });
+        if (cartRes.ok) {
+          const serverItems = await cartRes.json();
+          if (Array.isArray(serverItems)) setItems(serverItems.map(mapServerCartItem));
         }
       } catch (err) {
         console.warn("Failed to update server cart", err);
-        // Rollback on error
-        setItems(prev => prev.map((item) =>
-          item.id === id ? { ...item, quantity: oldQuantity } : item
-        ));
+        setItems((prev) => prev.map((item) => item.id === id ? { ...item, quantity: oldQuantity } : item));
+        toast({ title: "تعذر تحديث الكمية", description: "يرجى المحاولة مرة أخرى", variant: "destructive" });
+      }
+      return;
+    }
+
+    // Guest quantity controls are server-validated before localStorage changes.
+    let liveLine: AvailabilityLine | undefined;
+    try {
+      const availability = await requestAvailability([{
+        productId: currentItem.productId,
+        variantId: currentItem.variantId,
+        quantity,
+      }]);
+      liveLine = availability.items[0];
+    } catch (err) {
+      console.warn("Failed to validate guest quantity", err);
+      toast({
+        title: "تعذر التأكد من المخزون",
+        description: "ما قدرنا نتأكد من الكمية المتوفرة الآن. حاول مرة ثانية بعد لحظات.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!liveLine || liveLine.availableStock <= 0) {
+      await removeItem(id);
+      toast({
+        title: "نفدت الكمية",
+        description: "هذا المنتج لم يعد متوفراً، لذلك أزلناه من السلة.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (quantity > liveLine.availableStock) {
+      setItems((prev) => {
+        const newItems = prev.map((item) => item.id === id ? { ...item, stock: liveLine!.availableStock } : item);
+        persistGuestCart(newItems);
+        return newItems;
+      });
+      toast({
+        title: "وصلت للكمية المتوفرة",
+        description: `المتوفر حالياً ${liveLine.availableStock} فقط من هذا المنتج.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setItems((prev) => {
+      const newItems = prev.map((item) =>
+        item.id === id ? { ...item, quantity, stock: liveLine!.availableStock } : item
+      );
+      persistGuestCart(newItems);
+      return newItems;
+    });
+  }, [user, items, removeItem]);
+
+  const validateAvailability = useCallback(async (options: { notify?: boolean } = {}): Promise<CartAvailabilityResult> => {
+    const snapshot = items;
+    if (snapshot.length === 0) {
+      return { ok: true, changed: false, issues: [], checkedAt: new Date().toISOString() };
+    }
+
+    try {
+      const availability = await requestAvailability(snapshot);
+      if (availability.items.length !== snapshot.length) {
+        throw new Error("Availability response is incomplete");
+      }
+
+      const reconciled = reconcileCartWithAvailability(snapshot, availability.items);
+
+      if (user && reconciled.changed) {
+        // Keep the persisted account cart aligned with the corrected quantities.
+        await Promise.all(reconciled.issues.map(async (issue) => {
+          if (issue.action === "removed") {
+            await fetch(`/api/cart/${issue.id}`, {
+              method: "DELETE",
+              headers: addCsrfHeader(),
+              credentials: "include",
+            });
+          } else {
+            await fetch(`/api/cart/${issue.id}`, {
+              method: "PUT",
+              headers: addCsrfHeader({ "Content-Type": "application/json" }),
+              credentials: "include",
+              body: JSON.stringify({ quantity: issue.availableStock }),
+            });
+          }
+        }));
+
+        const cartRes = await fetch("/api/cart", { credentials: "include", cache: "no-store" });
+        if (cartRes.ok) {
+          const serverItems = await cartRes.json();
+          if (Array.isArray(serverItems)) setItems(serverItems.map(mapServerCartItem));
+          else setItems(reconciled.nextItems);
+        } else {
+          setItems(reconciled.nextItems);
+        }
+      } else {
+        setItems(reconciled.nextItems);
+        if (!user) persistGuestCart(reconciled.nextItems);
+      }
+
+      if (options.notify && reconciled.issues.length > 0) {
+        const message = availabilityToast(reconciled.issues);
+        toast({ title: message.title, description: message.description });
+      }
+
+      return {
+        ok: true,
+        changed: reconciled.changed,
+        issues: reconciled.issues,
+        checkedAt: availability.checkedAt,
+      };
+    } catch (err) {
+      console.warn("Failed to validate cart availability", err);
+      if (options.notify) {
         toast({
-          title: "فشل تحديث الكمية",
+          title: "تعذر تحديث المخزون",
+          description: "ما قدرنا نتأكد من الكميات المتوفرة الآن. حاول مرة ثانية بعد لحظات.",
           variant: "destructive",
         });
       }
-    } else {
-      // For guest users, persist to localStorage
-      setItems(prev => {
-        const newItems = prev.map((item) =>
-          item.id === id ? { ...item, quantity } : item
-        );
-        syncStorage.setItem(CART_STORAGE_KEY, newItems);
-        window.dispatchEvent(new StorageEvent('storage', {
-          key: CART_STORAGE_KEY,
-          newValue: JSON.stringify(newItems),
-        }));
-        return newItems;
-      });
+      return { ok: false, changed: false, issues: [] };
     }
-  }, [user, removeItem, items]);
+  }, [items, user]);
 
-  const refetchCart = useCallback(async () => {
-    if (!user) return;
+  // A restored guest cart is immediately reconciled with fresh stock once per
+  // page load, fixing stale quantities from older browser sessions.
+  useEffect(() => {
+    if (user || !isInitialized || items.length === 0 || guestInitialRevalidationDone.current) return;
+    guestInitialRevalidationDone.current = true;
+    void validateAvailability({ notify: true });
+  }, [user, isInitialized, items.length, validateAvailability]);
+
+  // Revalidate when the shopper returns to the tab. Stock can change while a cart
+  // sits open, and this keeps long-lived guest sessions honest without polling.
+  useEffect(() => {
+    if (user || !isInitialized) return;
+    const revalidate = () => {
+      if (document.visibilityState === "visible") void validateAvailability({ notify: false });
+    };
+    window.addEventListener("focus", revalidate);
+    document.addEventListener("visibilitychange", revalidate);
+    return () => {
+      window.removeEventListener("focus", revalidate);
+      document.removeEventListener("visibilitychange", revalidate);
+    };
+  }, [user, isInitialized, validateAvailability]);
+
+  const refetchCart = useCallback(async (): Promise<void> => {
+    if (!user) {
+      await validateAvailability({ notify: false });
+      return;
+    }
     try {
-      const cartRes = await fetch("/api/cart", { credentials: "include" });
+      const cartRes = await fetch("/api/cart", { credentials: "include", cache: "no-store" });
       if (cartRes.ok) {
         const serverItems = await cartRes.json();
-        if (Array.isArray(serverItems)) {
-          const mappedItems = serverItems.map(mapServerCartItem);
-          setItems(mappedItems);
-        }
+        if (Array.isArray(serverItems)) setItems(serverItems.map(mapServerCartItem));
       }
     } catch (err) {
       console.warn("Failed to refetch cart:", err);
     }
-  }, [user]);
+  }, [user, validateAvailability]);
 
-  const clearCart = async () => {
+  const clearCart = async (): Promise<void> => {
     if (user) {
       try {
         await fetch("/api/cart", {
           method: "DELETE",
           headers: addCsrfHeader(),
-          credentials: "include"
+          credentials: "include",
         });
         setItems([]);
       } catch (err) {
         console.warn("Failed to clear server cart", err);
       }
     } else {
-      saveCart([]);
+      await saveCart([]);
     }
   };
 
@@ -700,6 +847,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         updateQuantity,
         clearCart,
         refetchCart,
+        validateAvailability,
         totalItems: items.reduce((sum, item) => sum + item.quantity, 0),
         totalPrice: items.reduce((sum, item) => sum + item.price * item.quantity, 0),
       }}
