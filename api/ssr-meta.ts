@@ -174,7 +174,7 @@ const STATIC_PAGES: Record<string, PageMeta> = {
         description: "تصفح جميع مستلزمات أحواض الزينة في العراق",
         url: `${BASE}/products`,
         inLanguage: "ar",
-        isPartOf: { "@type": "WebSite", name: "AQUAVO", url: BASE },
+        isPartOf: { "@id": `${BASE}/#website` },
       },
       {
         "@context": "https://schema.org",
@@ -458,7 +458,7 @@ for (const g of GUIDE_META) {
         publisher: { "@type": "Organization", name: "AQUAVO", logo: { "@type": "ImageObject", url: DEFAULT_IMAGE } },
         mainEntityOfPage: { "@type": "WebPage", "@id": `${BASE}${path}` },
         inLanguage: "ar",
-        isPartOf: { "@type": "WebSite", name: "AQUAVO", url: BASE },
+        isPartOf: { "@id": `${BASE}/#website` },
       },
       {
         "@context": "https://schema.org",
@@ -685,7 +685,7 @@ async function getBlogMeta(slug: string): Promise<PageMeta | null> {
           wordCount,
           inLanguage: "ar",
           mainEntityOfPage: { "@type": "WebPage", "@id": `${BASE}/blog/${slug}` },
-          isPartOf: { "@type": "WebSite", name: "AQUAVO", url: BASE },
+          isPartOf: { "@id": `${BASE}/#website` },
         },
         {
           "@context": "https://schema.org",
@@ -1096,7 +1096,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(200).send(renderGuidesIndexMarkdown(BASE));
       }
       res.setHeader("Content-Type", "text/html; charset=utf-8");
-      return res.status(200).send(renderGuidesIndexHtml(BASE, DEFAULT_IMAGE));
+      return res.status(200).send(renderGuidesIndexHtml(BASE, DEFAULT_IMAGE, withSiteEntities));
     }
     // Resolve a guide the same way the crawler route does.
     //

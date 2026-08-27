@@ -1179,7 +1179,17 @@ export function renderImportantInternalLinksSection(): string {
 }
 
 // Full server-rendered /guides index page.
-export function renderGuidesIndexHtml(base: string, image: string): string {
+/**
+ * The browser path's guide index.
+ *
+ * #155 threaded the site entities through renderGuideHtml and the canonical
+ * index, which covers what a crawler is served, but this renderer is what
+ * ssr-meta hands a browser for /guides — so that URL still published no
+ * #organization and no #website to browsers while every other page type
+ * published both on both paths. Same `decorate` seam, same reason it is a
+ * parameter rather than an import.
+ */
+export function renderGuidesIndexHtml(base: string, image: string, decorate?: JsonLdDecorator): string {
   const url = `${base}/guides`;
   const title = "أدلة AQUAVO لأحواض الزينة — التجهيز والعناية والصيانة | AQUAVO";
   const description =
@@ -1189,7 +1199,8 @@ export function renderGuidesIndexHtml(base: string, image: string): string {
       `<li><a class="card" href="${esc(g.href)}"><span class="t">${esc(g.label)}</span><p>${esc(g.blurb)}</p></a></li>`
   ).join("");
   const faq = HOME_FAQ.map((f) => `<h3>${esc(f.q)}</h3><p>${esc(f.a)}</p>`).join("");
-  const jsonLd = renderJsonLdScripts([
+  const jsonLd = renderJsonLdScripts(
+    [
     {
       "@context": "https://schema.org",
       "@type": "Article",
@@ -1225,7 +1236,9 @@ export function renderGuidesIndexHtml(base: string, image: string): string {
         { "@type": "ListItem", position: 2, name: "الأدلة", item: url },
       ],
     },
-  ]);
+    ],
+    decorate,
+  );
   return `<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
