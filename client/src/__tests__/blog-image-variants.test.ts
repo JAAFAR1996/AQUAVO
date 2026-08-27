@@ -1,7 +1,7 @@
 /**
  * Every local blog photograph must have the WebP the code asks for.
  *
- * `cloudinaryOnly` substitutes `/images/blog/foo.png` with `/images/blog/foo.webp`,
+ * `cloudinaryOnly` substitutes `/images/blog/foo.png` with `/images/blog/foo.opt.webp`,
  * which is only safe for as long as that file is really there. It was not,
  * once: a request for blog_planted_tank.webp answered 404 while the PNG
  * answered 200, which is why the substitution was removed in the first place.
@@ -23,12 +23,12 @@ describe("local blog images", () => {
   });
 
   it.each(originals)("%s has a .webp beside it", (file) => {
-    const variant = file.replace(/\.(png|jpe?g)$/i, ".webp");
+    const variant = file.replace(/\.(png|jpe?g)$/i, ".opt.webp");
     expect(() => statSync(resolve(BLOG_IMAGES, variant))).not.toThrow();
   });
 
   it.each(originals)("%s's variant is actually smaller than the original", (file) => {
-    const variant = file.replace(/\.(png|jpe?g)$/i, ".webp");
+    const variant = file.replace(/\.(png|jpe?g)$/i, ".opt.webp");
     const originalSize = statSync(resolve(BLOG_IMAGES, file)).size;
     const variantSize = statSync(resolve(BLOG_IMAGES, variant)).size;
     // Substituting a *larger* file would be a regression wearing the costume
