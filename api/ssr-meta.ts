@@ -10,7 +10,7 @@ import { AQUAVO_FAQ_ITEMS } from "../shared/faq-content.js";
 import { toPublicProduct, toPublicVariant } from "../shared/public-product.js";
 import { buildProductStructuredData, withSiteEntities } from "./_seo-structured-data.js";
 import { isKnownSitePath } from "../shared/site-routes.js";
-import { canonicalUrlFor, isNoindexPath } from "../shared/seo-contract.js";
+import { AQUAVO_ENTITY, canonicalUrlFor, isNoindexPath } from "../shared/seo-contract.js";
 
 // ─── DB Setup (lightweight, no Drizzle overhead) ────────────────────────────
 neonConfig.webSocketConstructor = ws;
@@ -98,8 +98,13 @@ const STATIC_PAGES: Record<string, PageMeta> = {
         "@type": "Organization",
         "@id": `${BASE}/#organization`,
         name: "AQUAVO",
-        legalName: "محل المنبع / AL NABEA SHOP",
-        alternateName: ["أكوافو", "AQUAVO Iraq"],
+        // Identity comes from shared/seo-contract.ts, the same source the
+        // crawler-facing graph uses. Stated literally here, these had already
+        // drifted from it: the legal name separated by "/" where the contract
+        // uses an em dash, and the WebSite node below spelling the Arabic name
+        // "اكوافو" while this one spelled it "أكوافو" — one @id, two spellings.
+        legalName: AQUAVO_ENTITY.legalName,
+        alternateName: [AQUAVO_ENTITY.arabicName, "اكوافو", `${AQUAVO_ENTITY.brandName} Iraq`],
         url: BASE,
         logo: {
           "@type": "ImageObject",
@@ -146,7 +151,7 @@ const STATIC_PAGES: Record<string, PageMeta> = {
         "@type": "WebSite",
         "@id": `${BASE}/#website`,
         name: "AQUAVO",
-        alternateName: "اكوافو",
+        alternateName: [AQUAVO_ENTITY.arabicName, "اكوافو"],
         url: BASE,
         inLanguage: "ar",
         potentialAction: {
@@ -251,31 +256,6 @@ const STATIC_PAGES: Record<string, PageMeta> = {
     jsonLd: [
       {
         "@context": "https://schema.org",
-        "@type": "HowTo",
-        name: "كيف تبدأ بتربية اسماك الزينة في العراق - دليل خطوة بخطوة",
-        description: "دليل شامل للمبتدئين لإنشاء حوض اسماك زينة ناجح من الصفر",
-        totalTime: "P7D",
-        estimatedCost: { "@type": "MonetaryAmount", currency: "IQD", value: "100000" },
-        supply: [
-          { "@type": "HowToSupply", name: "حوض زجاجي (60 لتر على الأقل)" },
-          { "@type": "HowToSupply", name: "فلتر مناسب لحجم الحوض" },
-          { "@type": "HowToSupply", name: "سخان مائي" },
-          { "@type": "HowToSupply", name: "إضاءة LED" },
-          { "@type": "HowToSupply", name: "حصى أو ركيزة" },
-          { "@type": "HowToSupply", name: "مزيل كلور" },
-        ],
-        step: [
-          { "@type": "HowToStep", name: "اختيار الحوض", text: "اختر حوضاً بحجم 60 لتر على الأقل. الأحواض الأكبر أسهل في الصيانة وأكثر استقراراً." },
-          { "@type": "HowToStep", name: "تركيب المعدات", text: "ركّب الفلتر والسخان والإضاءة حسب تعليمات الشركة المصنعة." },
-          { "@type": "HowToStep", name: "إضافة الركيزة والديكور", text: "أضف الحصى أو الركيزة ثم النباتات والصخور والديكورات." },
-          { "@type": "HowToStep", name: "ملء الحوض بالماء", text: "املأ الحوض بالماء المعالج بمزيل الكلور ببطء لتجنب تحريك الديكور." },
-          { "@type": "HowToStep", name: "تدوير الحوض", text: "شغّل الفلتر والسخان وانتظر 5-7 أيام قبل إضافة أي أسماك لتنمو البكتيريا النافعة." },
-          { "@type": "HowToStep", name: "إضافة الأسماك", text: "أضف 2-3 أسماك صغيرة في البداية ثم زد العدد تدريجياً كل أسبوع." },
-        ],
-        inLanguage: "ar",
-      },
-      {
-        "@context": "https://schema.org",
         "@type": "BreadcrumbList",
         itemListElement: [
           { "@type": "ListItem", position: 1, name: "الرئيسية", item: BASE },
@@ -289,20 +269,6 @@ const STATIC_PAGES: Record<string, PageMeta> = {
     description: "دليل عملي لاختيار الفلتر المناسب لحوض اسماك الزينة في العراق. مقارنة بين الفلاتر الداخلية، الخارجية، والإسفنجية لتصل إلى تصفية مستقرة لماء حوضك.",
     keywords: "اختيار فلتر حوض، دليل فلاتر احواض زينة، فلاتر خارجية بغداد، فلاتر داخلية، تنظيف ماء الحوض",
     jsonLd: [
-      {
-        "@context": "https://schema.org",
-        "@type": "HowTo",
-        name: "كيف تختار الفلتر المناسب لحوض أسماك الزينة في العراق",
-        description: "خطوات عملية لاختيار الفلتر المثالي لضمان جودة ونقاء مياه حوض أسماك الزينة",
-        totalTime: "P1D",
-        step: [
-          { "@type": "HowToStep", name: "تحديد حجم الحوض", text: "الفلتر يجب أن يكون قادراً على تدوير مياه الحوض بالكامل 4-5 مرات في الساعة. احسب حجم حوضك باللتر." },
-          { "@type": "HowToStep", name: "معرفة نوع الأسماك", text: "الأسماك الذهبية والسيشيلد تحتاج فلاتر قوية جداً. أسماك البيتا والنيون تيترا تفضل الفلاتر الهادئة مثل الإسفنجية أو الشلال." },
-          { "@type": "HowToStep", name: "اختيار نوع الفلتر", text: "الفلاتر الخارجية (Canister) للأحواض الكبيرة. الفلاتر الداخلية (Internal) للأحواض الصغيرة. فلاتر الإسفنج (Sponge) لأحواض التفريخ والروبيان." },
-          { "@type": "HowToStep", name: "التحقق من الميديا (Media)", text: "تأكد أن الفلتر يدعم التصفية الميكانيكية (إسفنج)، البيولوجية (سيراميك رينج)، والكيميائية (كربون نشط)." }
-        ],
-        inLanguage: "ar"
-      },
       {
         "@context": "https://schema.org",
         "@type": "BreadcrumbList",

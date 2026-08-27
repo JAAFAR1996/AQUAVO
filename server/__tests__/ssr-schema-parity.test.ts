@@ -105,6 +105,7 @@ process.env.DATABASE_URL ||= "postgres://u:p@localhost:5432/db";
 import browserHandler from "../../api/ssr-meta";
 import crawlerHandler from "../../api/_ssr-preview-source";
 import { buildProductStructuredData } from "../../api/_seo-structured-data";
+import { AQUAVO_ENTITY } from "../../shared/seo-contract";
 
 type Handler = (req: VercelRequest, res: VercelResponse) => Promise<unknown>;
 
@@ -516,6 +517,72 @@ describe("a guide is the same document whether a crawler or a person asks", () =
     for (const type of ["Article", "FAQPage", "BreadcrumbList"]) {
       expect(browser.has(type), `browser missing ${type}`).toBe(true);
       expect(crawler.has(type), `crawler missing ${type}`).toBe(true);
+    }
+  });
+});
+
+describe("one brand identity, and no retired schema types", () => {
+  const CHROME =
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
+
+  async function nodesAt(path: string): Promise<Record<string, unknown>[]> {
+    let body = "";
+    const response = {
+      setHeader: vi.fn(),
+      status: vi.fn(() => response),
+      send: vi.fn((value: unknown) => {
+        body = String(value);
+        return response;
+      }),
+      end: vi.fn((value?: unknown) => {
+        if (value !== undefined) body = String(value);
+        return response;
+      }),
+    };
+    const req = {
+      url: path,
+      headers: { accept: "text/html", host: "www.aquavoiq.com", "user-agent": CHROME },
+    } as unknown as VercelRequest;
+    await (browserHandler as Handler)(req, response as unknown as VercelResponse);
+    return schemaNodes(body);
+  }
+
+  it("serves no HowTo on /beginner-guide", async () => {
+    // Google retired HowTo rich results in September 2023. The crawler-facing
+    // version of this page never carried one; only the browser version did.
+    const types = (await nodesAt("/beginner-guide")).map((n) => String(n["@type"]));
+    expect(types).not.toContain("HowTo");
+    expect(types).not.toContain("HowToStep");
+    expect(types).not.toContain("HowToSupply");
+    // …and the page keeps the schema that does earn something.
+    expect(types).toContain("BreadcrumbList");
+  });
+
+  it("spells the Arabic brand name the same way in every node that claims it", async () => {
+    // One @id, two spellings: Organization said "أكوافو" and WebSite said
+    // "اكوافو". Both are real transliterations people search, so both are
+    // listed — the defect was disagreeing, not the extra variant.
+    const nodes = await nodesAt("/");
+    const identities = nodes.filter((n) =>
+      ["Organization", "OnlineStore", "WebSite"].includes(String(n["@type"])),
+    );
+    expect(identities.length).toBeGreaterThan(0);
+    for (const node of identities) {
+      const alt = node.alternateName;
+      if (alt === undefined) continue;
+      const values = Array.isArray(alt) ? alt.map(String) : [String(alt)];
+      expect(values, `${String(node["@type"])} omits the canonical spelling`).toContain(
+        AQUAVO_ENTITY.arabicName,
+      );
+    }
+  });
+
+  it("states one legal name, the one the contract defines", async () => {
+    const nodes = await nodesAt("/");
+    const named = nodes.filter((n) => typeof n.legalName === "string");
+    expect(named.length).toBeGreaterThan(0);
+    for (const node of named) {
+      expect(node.legalName).toBe(AQUAVO_ENTITY.legalName);
     }
   });
 });
