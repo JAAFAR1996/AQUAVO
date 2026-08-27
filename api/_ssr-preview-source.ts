@@ -66,7 +66,10 @@ type ResolvedPage = {
   status: number;
 };
 
-const STATIC_COPY: Record<string, { heading: string; summary: string; paragraphs?: string[] }> = {
+// Exported so seo-footer-orphan-links.test.ts can pin every anchor label in
+// FOOTER_EXPLORE_LINKS to the heading of the page it points at. This module
+// imports _seo-preview-shell, so the dependency has to run in this direction.
+export const STATIC_COPY: Record<string, { heading: string; summary: string; paragraphs?: string[] }> = {
   "/contact": {
     heading: "تواصل مع AQUAVO",
     summary: "تواصل للاستفسار عن الطلبات أو اختيار معدات متوافقة مع حجم الحوض.",
