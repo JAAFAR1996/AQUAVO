@@ -1,0 +1,108 @@
+name: Create Free Shipping Recovery Coupon 2026-08-28
+
+on:
+  push:
+    branches:
+      - ops/create-free-shipping-coupon-20260828
+    paths:
+      - .github/workflows/create-free-shipping-coupon-20260828.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: create-free-shipping-coupon-20260828
+  cancel-in-progress: false
+
+jobs:
+  create-coupon:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: production
+    steps:
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y postgresql-client
+
+      - name: Create and verify one-time free shipping coupon
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          set -euo pipefail
+          test -n "$DATABASE_URL"
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 <<'SQL'
+          BEGIN;
+
+          DO $guard$
+          DECLARE
+            v_count integer;
+          BEGIN
+            SELECT COUNT(*) INTO v_count
+            FROM public.coupons
+            WHERE upper(code)=upper('AQUAVOFREE28');
+
+            IF v_count <> 0 THEN
+              RAISE EXCEPTION 'COUPON_CODE_ALREADY_EXISTS: AQUAVOFREE28';
+            END IF;
+          END
+          $guard$;
+
+          INSERT INTO public.coupons (
+            code,
+            discount_type,
+            discount_value,
+            min_order_amount,
+            max_uses,
+            used_count,
+            max_uses_per_user,
+            start_date,
+            end_date,
+            is_active,
+            description,
+            user_id
+          ) VALUES (
+            'AQUAVOFREE28',
+            'free_shipping',
+            0,
+            NULL,
+            1,
+            0,
+            1,
+            NOW(),
+            NOW() + INTERVAL '30 days',
+            TRUE,
+            'Customer service recovery: one complimentary delivery after checkout issue',
+            NULL
+          );
+
+          DO $verify$
+          DECLARE
+            v_bad integer;
+          BEGIN
+            SELECT COUNT(*) INTO v_bad
+            FROM public.coupons
+            WHERE code='AQUAVOFREE28'
+              AND discount_type='free_shipping'
+              AND discount_value::numeric=0
+              AND min_order_amount IS NULL
+              AND max_uses=1
+              AND used_count=0
+              AND max_uses_per_user=1
+              AND is_active=true
+              AND start_date <= NOW()
+              AND end_date > NOW();
+
+            IF v_bad <> 1 THEN
+              RAISE EXCEPTION 'COUPON_VERIFY_FAILED: expected exactly one active coupon';
+            END IF;
+          END
+          $verify$;
+
+          COMMIT;
+
+          SELECT code, discount_type, discount_value, min_order_amount,
+                 max_uses, used_count, max_uses_per_user, start_date, end_date, is_active
+          FROM public.coupons
+          WHERE code='AQUAVOFREE28';
+          SQL
