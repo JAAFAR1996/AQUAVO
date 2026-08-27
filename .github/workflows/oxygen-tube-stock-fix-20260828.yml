@@ -13,7 +13,7 @@ permissions:
 
 concurrency:
   group: oxygen-tube-stock-fix-20260828
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   repair:
@@ -23,6 +23,11 @@ jobs:
     steps:
       - name: Checkout guarded repair
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          sparse-checkout: |
+            migrations/0088_variant_stock_ledger_sync_and_oxygen_tube_repair.sql
+          sparse-checkout-cone-mode: false
 
       - name: Install PostgreSQL client
         run: |
