@@ -392,6 +392,29 @@ const STATIC_PAGES: Record<string, PageMeta> = {
       ],
     },
   },
+
+  // These three are in sitemap-pages.xml and were the only entries missing
+  // here, so resolveMetadata's fallback handed each of them DEFAULT_TITLE —
+  // which is the homepage title verbatim. Four indexed URLs therefore shared
+  // one title and one description, and all four ran 63 characters, the only
+  // over-length titles on the browser path. The crawler path already resolved
+  // these correctly; the wording below is taken from it so the two paths agree
+  // rather than inventing a third variant, and each matches the page's own H1.
+  "/contact": {
+    title: "تواصل مع AQUAVO | AQUAVO",
+    description: "تواصل للاستفسار عن الطلبات أو اختيار معدات متوافقة مع حجم الحوض.",
+    keywords: "تواصل مع AQUAVO، خدمة العملاء، استفسار طلب، دعم اسماك الزينة",
+  },
+  "/fish-health-diagnosis": {
+    title: "مساعد تنظيم أعراض الأسماك | AQUAVO",
+    description: "أداة إرشادية لتنظيم الأعراض والمعلومات قبل اتخاذ إجراء أو مراجعة مختص.",
+    keywords: "اعراض اسماك الزينة، تنظيم اعراض السمك، صحة الاسماك، مساعد ارشادي",
+  },
+  "/fish-breeding-calculator": {
+    title: "حاسبة تفريخ أسماك الزينة | AQUAVO",
+    description: "أداة تعليمية لتنظيم بيانات التفريخ والمتابعة بحسب النوع والظروف المسجلة.",
+    keywords: "تفريخ اسماك الزينة، حاسبة تفريخ، تكاثر الاسماك، متابعة التفريخ",
+  },
 };
 
 // ─── Guide pages (educational — high AEO value) ─────────────────────────────
@@ -485,7 +508,18 @@ export function buildProductMetaDescription(product: ProductDescriptionInput): s
   const normalized = (product.description ?? "").replace(/\s+/g, " ").trim();
   if (!normalized || /(?:\.{2,}|…)$/.test(normalized)) return productDescriptionFallback(product);
 
-  const completeSentences = normalized.match(/[^.!؟]+[.!؟]+/g)?.map((sentence) => sentence.trim()) ?? [];
+  // A decimal point is not a sentence end. The bare /[^.!؟]+[.!؟]+/ split cut
+  // "لا نعامل رقم 0.1°C كدقة قياس مؤكدة" down to "لا نعامل رقم 0." — inverting
+  // the claim into "we do not treat the number 0". Mask the inner decimal
+  // points, split on what is left, then restore them. 14 of the 112 catalogue
+  // descriptions contain a decimal, so the blast radius grows with the
+  // catalogue rather than staying at the two products visibly wrong today.
+  const DECIMAL_MASK = "\u0000";
+  const completeSentences =
+    normalized
+      .replace(/(\d)\.(\d)/g, `$1${DECIMAL_MASK}$2`)
+      .match(/[^.!؟]+[.!؟]+/g)
+      ?.map((sentence) => sentence.split(DECIMAL_MASK).join(".").trim()) ?? [];
   if (completeSentences.length === 0) {
     return normalized.length <= 155 ? `${normalized}.` : productDescriptionFallback(product);
   }
@@ -756,12 +790,22 @@ function safeJsonLd(obj: object): string {
 // ─── Inject metadata into HTML ──────────────────────────────────────────────
 export function injectMeta(html: string, meta: PageMeta & { url: string; image: string }): string {
   let jsonLdScript = "";
-  if (meta.jsonLd) {
+  if (!meta.notFound) {
     // Same treatment as the prerendered route: whatever this page's builder
     // produced, make sure the #organization and #website nodes it points at
     // are actually defined here. `withSiteEntities` is a no-op when a builder
     // already includes them, so pages that had them keep exactly one copy.
-    const nodes = withSiteEntities(Array.isArray(meta.jsonLd) ? meta.jsonLd : [meta.jsonLd]);
+    //
+    // This used to sit behind `if (meta.jsonLd)`, so a page with no page-level
+    // builder emitted nothing at all rather than falling back to the site
+    // entities. 12 of the 21 STATIC_PAGES entries carry no `jsonLd`, and the
+    // resolveMetadata fallback carries none either, so /shipping, /terms,
+    // /deals, /return-policy and /privacy-policy each served zero ld+json to
+    // browsers while the crawler path published four nodes for the same URL.
+    // The site entities are true of every page here; only a 404, which
+    // describes no entity, is still skipped.
+    const pageNodes = meta.jsonLd ? (Array.isArray(meta.jsonLd) ? meta.jsonLd : [meta.jsonLd]) : [];
+    const nodes = withSiteEntities(pageNodes);
     jsonLdScript = nodes
       .map((ld) => `<script type="application/ld+json">${safeJsonLd(ld)}</script>`)
       .join("\n  ");

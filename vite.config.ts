@@ -42,12 +42,23 @@ const getVendorChunkName = (id: string): string | null => {
   if (includesPackage("lucide-react")) return "vendor-icons";
   if (includesPackage("framer-motion")) return "vendor-animation";
 
+  // Only packages the eager entry actually needs belong here. `vendor-utils`
+  // is a static import of the entry, so anything named here is downloaded,
+  // parsed and compiled on every route.
+  //
+  // `zod` and `date-fns` used to be in this list and are deliberately not:
+  // zod's only importers are client/src/components/admin/*, the admin-only
+  // hooks/use-packaging.ts, and lib/validations.ts (which nothing imports at
+  // all), while date-fns is imported solely by two admin panels and the blog
+  // components. Every one of those sits behind a React.lazy route boundary in
+  // App.tsx, whose single static page import is Home. Naming them here pinned
+  // 75 KB raw / ~18 KB brotli of admin-only code into the critical path of
+  // every storefront page load. Left unnamed, they fall to the bundler's
+  // default splitting and land in chunks reachable only from those routes.
   if (
     [
       "@tanstack/react-query",
-      "date-fns",
       "wouter",
-      "zod",
       "clsx",
       "tailwind-merge",
     ].some(includesPackage)
