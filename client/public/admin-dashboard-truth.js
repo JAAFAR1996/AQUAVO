@@ -140,14 +140,66 @@
 
   const observer = new MutationObserver(queueApply);
 
+  let started = false;
+
+  /**
+   * Arm the dashboard machinery — on an admin page, and nowhere else.
+   *
+   * Every visitor used to run this. The fetch and the card writes were already
+   * guarded by isAdminPage(), but the observer was not: a
+   * `{childList, subtree, characterData}` observer on document.documentElement
+   * watched the whole tree on the homepage and on every product page, and each
+   * mutation queued a requestAnimationFrame that then did nothing. Hydration
+   * and gallery interaction are exactly the mutation-heavy moments where that
+   * is most expensive, and they are also when responsiveness is being
+   * measured. A 60-second interval and a visibilitychange listener were armed
+   * on those pages too.
+   *
+   * Nothing an admin sees changes; the work simply starts when it can matter.
+   */
   function start() {
+    if (started || !isAdminPage()) return;
+    started = true;
     observer.observe(document.documentElement, { childList: true, subtree: true, characterData: true });
     refreshTruth();
     refreshTimer = window.setInterval(refreshTruth, 60_000);
     document.addEventListener("visibilitychange", () => {
       if (!document.hidden) refreshTruth();
     });
-    window.addEventListener("popstate", refreshTruth);
+  }
+
+  /**
+   * /admin is a client-side route, so arriving there may never reload the page.
+   *
+   * popstate covers back and forward. It does not fire for the router's own
+   * pushState/replaceState, which is how a link into /admin actually navigates,
+   * so those are wrapped: the original runs first and its result is returned
+   * untouched, and the notification cannot throw into the caller. Previously
+   * this case was covered only incidentally, by the always-on observer
+   * noticing that the page had changed.
+   */
+  function onNavigate() {
+    if (started) {
+      refreshTruth();
+      return;
+    }
+    start();
+  }
+
+  window.addEventListener("popstate", onNavigate);
+
+  for (const method of ["pushState", "replaceState"]) {
+    const original = history[method];
+    if (typeof original !== "function") continue;
+    history[method] = function patchedHistoryMethod() {
+      const result = original.apply(this, arguments);
+      try {
+        onNavigate();
+      } catch (error) {
+        console.error("[Admin Truth Cards] navigation hook failed:", error);
+      }
+      return result;
+    };
   }
 
   if (document.readyState === "loading") {
