@@ -1,0 +1,155 @@
+name: Verify Checkout Stock 2026-08-28
+
+on:
+  push:
+    branches:
+      - ops/verify-checkout-stock-20260828
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y postgresql-client
+
+      - name: Verify live production inventory parity
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          set -euo pipefail
+          test -n "$DATABASE_URL"
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 <<'SQL'
+          \pset pager off
+
+          -- Every sellable storefront stock value must equal the canonical MAIN ledger.
+          WITH main AS (
+            SELECT id FROM public.inventory_locations
+            WHERE code='MAIN' AND is_active=true
+            LIMIT 1
+          ), advertised AS (
+            SELECT p.id AS product_id,p.name,NULL::text AS variant_id,
+                   NULL::text AS variant_label,p.stock::bigint AS advertised_stock
+            FROM public.products p
+            WHERE p.deleted_at IS NULL
+              AND COALESCE(p.has_variants,false)=false
+              AND p.price::numeric>0
+            UNION ALL
+            SELECT p.id,p.name,v->>'id',v->>'label',
+                   COALESCE(NULLIF(v->>'stock','')::bigint,0)
+            FROM public.products p
+            CROSS JOIN LATERAL jsonb_array_elements(COALESCE(p.variants,'[]'::jsonb)) v
+            WHERE p.deleted_at IS NULL
+              AND COALESCE(p.has_variants,false)=true
+              AND p.price::numeric>0
+          ), scored AS (
+            SELECT a.*,
+                   COALESCE((SELECT SUM(im.quantity_delta)::bigint
+                     FROM public.inventory_movements im,main
+                     WHERE im.product_id=a.product_id
+                       AND im.variant_id IS NOT DISTINCT FROM a.variant_id
+                       AND im.location_id=main.id),0) AS canonical_stock
+            FROM advertised a
+          )
+          SELECT product_id,name,variant_id,variant_label,advertised_stock,canonical_stock,
+                 advertised_stock-canonical_stock AS difference
+          FROM scored
+          WHERE advertised_stock<>canonical_stock
+          ORDER BY ABS(advertised_stock-canonical_stock) DESC,product_id,variant_id NULLS FIRST;
+
+          WITH main AS (
+            SELECT id FROM public.inventory_locations
+            WHERE code='MAIN' AND is_active=true LIMIT 1
+          ), advertised AS (
+            SELECT p.id AS product_id,NULL::text AS variant_id,p.stock::bigint AS advertised_stock
+            FROM public.products p
+            WHERE p.deleted_at IS NULL AND COALESCE(p.has_variants,false)=false AND p.price::numeric>0
+            UNION ALL
+            SELECT p.id,v->>'id',COALESCE(NULLIF(v->>'stock','')::bigint,0)
+            FROM public.products p
+            CROSS JOIN LATERAL jsonb_array_elements(COALESCE(p.variants,'[]'::jsonb)) v
+            WHERE p.deleted_at IS NULL AND COALESCE(p.has_variants,false)=true AND p.price::numeric>0
+          ), scored AS (
+            SELECT a.*,
+                   COALESCE((SELECT SUM(im.quantity_delta)::bigint
+                     FROM public.inventory_movements im,main
+                     WHERE im.product_id=a.product_id
+                       AND im.variant_id IS NOT DISTINCT FROM a.variant_id
+                       AND im.location_id=main.id),0) AS canonical_stock
+            FROM advertised a
+          )
+          SELECT COUNT(*) AS remaining_storefront_ledger_mismatches
+          FROM scored
+          WHERE advertised_stock<>canonical_stock;
+
+          -- Verify the products implicated during diagnosis.
+          WITH main AS (
+            SELECT id FROM public.inventory_locations WHERE code='MAIN' AND is_active=true LIMIT 1
+          )
+          SELECT p.id,p.name,
+                 CASE WHEN COALESCE(p.has_variants,false) THEN v->>'id' ELSE NULL END AS variant_id,
+                 CASE WHEN COALESCE(p.has_variants,false) THEN v->>'label' ELSE NULL END AS variant_label,
+                 CASE WHEN COALESCE(p.has_variants,false)
+                      THEN COALESCE(NULLIF(v->>'stock','')::bigint,0)
+                      ELSE p.stock::bigint END AS advertised_stock,
+                 COALESCE((SELECT SUM(im.quantity_delta)::bigint
+                   FROM public.inventory_movements im,main
+                   WHERE im.product_id=p.id
+                     AND im.variant_id IS NOT DISTINCT FROM CASE WHEN COALESCE(p.has_variants,false) THEN v->>'id' ELSE NULL END
+                     AND im.location_id=main.id),0) AS canonical_stock
+          FROM public.products p
+          LEFT JOIN LATERAL jsonb_array_elements(CASE WHEN COALESCE(p.has_variants,false) THEN COALESCE(p.variants,'[]'::jsonb) ELSE '[{}]'::jsonb END) v ON true
+          WHERE p.id IN (
+            'houyi-net-bag',
+            'houyi-oxygenation-tube',
+            'houyi-feeding-cup',
+            'houyi-ceramic-ring',
+            'houyi-breathing-ring-white',
+            'yee-c4-1123-1a'
+          )
+          ORDER BY p.id,variant_id NULLS FIRST;
+
+          -- Fail the workflow if any live mismatch remains.
+          DO $verify$
+          DECLARE
+            v_main text;
+            v_bad bigint;
+          BEGIN
+            SELECT id INTO v_main FROM public.inventory_locations
+            WHERE code='MAIN' AND is_active=true LIMIT 1;
+            IF v_main IS NULL THEN
+              RAISE EXCEPTION 'VERIFY_MAIN_LOCATION_MISSING';
+            END IF;
+
+            WITH advertised AS (
+              SELECT p.id product_id,NULL::text variant_id,p.stock::bigint advertised_stock
+              FROM public.products p
+              WHERE p.deleted_at IS NULL AND COALESCE(p.has_variants,false)=false AND p.price::numeric>0
+              UNION ALL
+              SELECT p.id,v->>'id',COALESCE(NULLIF(v->>'stock','')::bigint,0)
+              FROM public.products p
+              CROSS JOIN LATERAL jsonb_array_elements(COALESCE(p.variants,'[]'::jsonb)) v
+              WHERE p.deleted_at IS NULL AND COALESCE(p.has_variants,false)=true AND p.price::numeric>0
+            ), scored AS (
+              SELECT a.*,
+                     COALESCE((SELECT SUM(im.quantity_delta)::bigint
+                       FROM public.inventory_movements im
+                       WHERE im.product_id=a.product_id
+                         AND im.variant_id IS NOT DISTINCT FROM a.variant_id
+                         AND im.location_id=v_main),0) canonical_stock
+              FROM advertised a
+            )
+            SELECT COUNT(*) INTO v_bad FROM scored
+            WHERE advertised_stock<>canonical_stock;
+
+            IF v_bad<>0 THEN
+              RAISE EXCEPTION 'LIVE_STOCK_PARITY_FAILED mismatches=%',v_bad;
+            END IF;
+          END
+          $verify$;
+          SQL
