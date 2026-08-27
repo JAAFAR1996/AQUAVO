@@ -57,8 +57,24 @@ function productImages(product: SeoPreviewProduct, variant?: SeoPreviewVariant):
  * nothing rather than presenting the AQUAVO logo as if it were the product.
  */
 export function primaryProductImage(product: SeoPreviewProduct): string | null {
-  const [first] = productImages(product);
-  return !first || first === DEFAULT_IMAGE ? null : first;
+  const [first] = productGalleryImages(product);
+  return first ?? null;
+}
+
+/**
+ * Every real photograph a product has, in the order the Product schema claims
+ * them, so the pictures a crawler can see are exactly the pictures the
+ * structured data advertises.
+ *
+ * The catalogue holds 342 images across 112 products, but the prerendered page
+ * rendered only the first: 230 real photographs reached no crawler and no image
+ * sitemap while `Product.image` had been listing them the whole time. Returns
+ * an empty array for a product with no image of its own, so callers render
+ * nothing rather than presenting the AQUAVO logo as if it were the product.
+ */
+export function productGalleryImages(product: SeoPreviewProduct): string[] {
+  const images = productImages(product);
+  return images.length === 1 && images[0] === DEFAULT_IMAGE ? [] : images;
 }
 
 function availability(stock: string | number | null | undefined): string {

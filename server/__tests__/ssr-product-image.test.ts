@@ -162,10 +162,19 @@ describe("crawler-visible product image", () => {
     expect(body).toContain("object-fit:contain");
   });
 
-  it("shows exactly one product image, so hydration cannot duplicate it", async () => {
+  // The page now renders the product's whole gallery, so "one image" is no
+  // longer the invariant. What still has to hold is the reason that assertion
+  // existed: exactly one *hero*. React mounts into a separate #root and never
+  // hydrates #seo-root, and #seo-root is display:none for JS visitors, so the
+  // gallery cannot duplicate anything on screen — but two eager images would
+  // still make the LCP candidate ambiguous. The gallery's own lazy-loading
+  // contract is pinned in "crawler-visible product gallery" below.
+  it("leads with exactly one hero image, so the LCP candidate is unambiguous", async () => {
     const { body } = await render("/products/houyi-thermostat");
     const productImages = imgTags(body).filter((tag) => tag.includes("aq-ssr-product-image"));
-    expect(productImages).toHaveLength(1);
+    const eager = productImages.filter((tag) => /loading="eager"/.test(tag));
+    expect(eager).toHaveLength(1);
+    expect(productImages[0]).toMatch(/loading="eager"/);
   });
 
   it("serves the same image the Product schema leads with", async () => {
@@ -253,5 +262,69 @@ describe("crawler-visible customer reviews", () => {
     const { body } = await render("/products/houyi-thermostat");
     expect(body.match(/<h1\b/g) ?? []).toHaveLength(1);
     expect(body).toMatch(/<h2[^>]*aq-reviews-title[^>]*>آراء الزبائن<\/h2>|<h2[^>]*id="aq-reviews-title"/);
+  });
+});
+
+// A product carrying several real photographs. The catalogue holds 342 images
+// across 112 products, but the prerendered page led with one and dropped the
+// rest, so 230 real pictures reached no crawler and no image sitemap while the
+// Product schema had been advertising them all along.
+describe("crawler-visible product gallery", () => {
+  it("renders every real product image, not just the hero", async () => {
+    const { body } = await render("/products/houyi-thermostat");
+    const productImages = imgTags(body).filter((tag) => tag.includes("aq-ssr-product-image"));
+    expect(productImages).toHaveLength(PRODUCT_ROW.images.length);
+  });
+
+  it("keeps exactly one eager hero, so the LCP candidate stays unambiguous", async () => {
+    const { body } = await render("/products/houyi-thermostat");
+    const productImages = imgTags(body).filter((tag) => tag.includes("aq-ssr-product-image"));
+    const eager = productImages.filter((tag) => /loading="eager"/.test(tag));
+    expect(eager).toHaveLength(1);
+    expect(productImages[0]).toMatch(/loading="eager"/);
+  });
+
+  // #seo-root is display:none for JS visitors and is removed once React commits,
+  // so a lazy image inside it never intersects a viewport and is never fetched.
+  // Eager gallery images would be fetched by every real browser for nothing.
+  it("lazy-loads every image after the hero, so browsers fetch none of them", async () => {
+    const { body } = await render("/products/houyi-thermostat");
+    const productImages = imgTags(body).filter((tag) => tag.includes("aq-ssr-product-image"));
+    for (const tag of productImages.slice(1)) {
+      expect(tag).toMatch(/loading="lazy"/);
+      expect(tag).not.toMatch(/loading="eager"/);
+    }
+  });
+
+  it("shows the same set of images the Product schema claims", async () => {
+    const { body } = await render("/products/houyi-thermostat");
+    const schema = findProductSchema(body);
+    const assetId = (url: string) => url.split("/").pop();
+    const rendered = imgTags(body)
+      .filter((tag) => tag.includes("aq-ssr-product-image"))
+      .map((tag) => assetId(tag.match(/src="([^"]+)"/)?.[1] ?? ""));
+    const claimed = (schema.image as string[]).map(assetId);
+    expect(rendered).toEqual(claimed);
+  });
+
+  it("gives each gallery image a descriptive alt naming the product", async () => {
+    const { body } = await render("/products/houyi-thermostat");
+    const productImages = imgTags(body).filter((tag) => tag.includes("aq-ssr-product-image"));
+    for (const tag of productImages) {
+      const alt = tag.match(/alt="([^"]*)"/)?.[1] ?? "";
+      expect(alt).toContain(PRODUCT_ROW.name);
+    }
+  });
+
+  it("still renders a single image for a single-image product", async () => {
+    const { body } = await render("/products/aquavo-driftwood-collection");
+    const productImages = imgTags(body).filter((tag) => tag.includes("aq-ssr-product-image"));
+    expect(productImages).toHaveLength(1);
+  });
+
+  it("still renders nothing for a product with no images", async () => {
+    const { body } = await render("/products/houyi-check-valve");
+    const productImages = imgTags(body).filter((tag) => tag.includes("aq-ssr-product-image"));
+    expect(productImages).toHaveLength(0);
   });
 });
