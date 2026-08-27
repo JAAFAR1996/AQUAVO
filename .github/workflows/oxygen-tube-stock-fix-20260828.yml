@@ -34,7 +34,7 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y postgresql-client
 
-      - name: Diagnose live target identity read-only
+      - name: Diagnose hose inventory history read-only
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
@@ -44,31 +44,31 @@ jobs:
           SELECT p.id,p.slug,p.name,p.has_variants,p.stock,
                  jsonb_pretty(COALESCE(p.variants,'[]'::jsonb)) AS variants
           FROM public.products p
-          WHERE p.id='houyi-oxygenation-tube'
-             OR p.slug='houyi-oxygenation-tube'
-             OR p.name ILIKE '%خرطوم%هواء%ملو%'
-             OR p.name ILIKE '%oxygen%tube%';
+          WHERE p.id='houyi-oxygenation-tube';
 
-          SELECT p.id,p.name,v->>'id' AS variant_id,v->>'label' AS label,
-                 v->>'stock' AS advertised_stock,
-                 COALESCE((
-                   SELECT SUM(im.quantity_delta)
-                   FROM public.inventory_movements im
-                   JOIN public.inventory_locations il ON il.id=im.location_id
-                   WHERE il.code='MAIN' AND il.is_active=true
-                     AND im.product_id=p.id
-                     AND im.variant_id IS NOT DISTINCT FROM v->>'id'
-                 ),0) AS canonical_stock
-          FROM public.products p
-          CROSS JOIN LATERAL jsonb_array_elements(COALESCE(p.variants,'[]'::jsonb)) v
-          WHERE p.id='houyi-oxygenation-tube'
-             OR p.slug='houyi-oxygenation-tube'
-             OR p.name ILIKE '%خرطوم%هواء%ملو%'
-             OR p.name ILIKE '%oxygen%tube%'
-          ORDER BY p.id,v->>'id';
+          SELECT im.variant_id,im.quantity_delta,im.movement_type,im.source_type,
+                 im.source_id,im.idempotency_key,im.happened_at,im.created_at,
+                 im.created_by,im.metadata
+          FROM public.inventory_movements im
+          JOIN public.inventory_locations il ON il.id=im.location_id
+          WHERE il.code='MAIN' AND il.is_active=true
+            AND im.product_id='houyi-oxygenation-tube'
+          ORDER BY im.variant_id NULLS FIRST,im.happened_at,im.created_at,im.id;
+
+          SELECT im.variant_id,
+                 COALESCE(SUM(im.quantity_delta),0) AS canonical_stock,
+                 COALESCE(SUM(CASE WHEN im.quantity_delta<0 THEN -im.quantity_delta ELSE 0 END),0) AS total_out,
+                 COALESCE(SUM(CASE WHEN im.quantity_delta>0 THEN im.quantity_delta ELSE 0 END),0) AS total_in,
+                 COUNT(*) AS movement_count
+          FROM public.inventory_movements im
+          JOIN public.inventory_locations il ON il.id=im.location_id
+          WHERE il.code='MAIN' AND il.is_active=true
+            AND im.product_id='houyi-oxygenation-tube'
+          GROUP BY im.variant_id
+          ORDER BY im.variant_id NULLS FIRST;
           SQL
 
-          echo "Read-only diagnosis complete; mutation intentionally blocked in this run."
+          echo "Read-only movement diagnosis complete; no stock was changed."
           exit 1
 
       - name: Apply canonical stock repair and durable guard
