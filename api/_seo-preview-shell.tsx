@@ -9,7 +9,7 @@ import { AQUAVO_FAQ_PAIRS } from "../shared/faq-content.js";
 import { cloudinaryHeroUrl, renderArticleBodyHtml } from "./_blog-article.js";
 // _seo-structured-data imports only *types* from this module, so this value
 // import does not create a runtime cycle.
-import { productGalleryImages } from "./_seo-structured-data.js";
+import { primaryProductImage, productGalleryImages } from "./_seo-structured-data.js";
 
 export type SeoPreviewVariant = {
   id?: string;
@@ -149,19 +149,55 @@ export function deriveProductCategories(products: SeoPreviewProduct[]): Array<{ 
     .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, "ar"));
 }
 
+/**
+ * A product listing, each entry with the photograph that belongs to it.
+ *
+ * This rendered names, prices and stock but no pictures at all, so the two
+ * pages that list the whole catalogue showed a crawler none of it:
+ *
+ *   $ curl -A Googlebot https://www.aquavoiq.com/ | grep -c '<img'
+ *   0
+ *   $ curl -A Googlebot https://www.aquavoiq.com/products | grep -c '<img'
+ *   0
+ *
+ * Every thumbnail below is the same image the product's own page leads with
+ * and the same one the image sitemap already declares — this shows what is
+ * already published, it does not add anything new.
+ *
+ * All of them are lazy. #seo-root is display:none for JS visitors and is
+ * removed once React commits, so a lazy image inside it never intersects a
+ * viewport and is never fetched: a real browser pays nothing for any of this.
+ * A product with no photograph of its own renders no <img> rather than
+ * presenting the AQUAVO logo as if it were the product.
+ */
 function ProductLinks({ products, limit }: { products: SeoPreviewProduct[]; limit?: number }) {
   const visible = typeof limit === "number" ? products.slice(0, limit) : products;
   return (
     <ul className="aq-ssr-products" aria-label="روابط المنتجات">
-      {visible.map((product) => (
-        <li key={product.slug}>
-          <a href={`/products/${encodeURIComponent(product.slug)}`}>
-            <strong>{product.name}</strong>
-            <span>{formatPrice(product)}</span>
-            <small>{isInStock(product) ? "متوفر" : "غير متوفر حالياً"}</small>
-          </a>
-        </li>
-      ))}
+      {visible.map((product) => {
+        const image = primaryProductImage(product);
+        const thumbnail = image ? cloudinaryHeroUrl(image, 320) : null;
+        return (
+          <li key={product.slug}>
+            <a href={`/products/${encodeURIComponent(product.slug)}`}>
+              {thumbnail && (
+                <img
+                  className="aq-ssr-product-thumb"
+                  src={thumbnail}
+                  alt={product.name}
+                  width={320}
+                  height={320}
+                  loading="lazy"
+                  decoding="async"
+                />
+              )}
+              <strong>{product.name}</strong>
+              <span>{formatPrice(product)}</span>
+              <small>{isInStock(product) ? "متوفر" : "غير متوفر حالياً"}</small>
+            </a>
+          </li>
+        );
+      })}
     </ul>
   );
 }
@@ -520,6 +556,7 @@ function SeoPreviewShell({ page }: { page: SeoPreviewPage }) {
         .aq-ssr-faq{display:grid;gap:.8rem}.aq-ssr-faq summary{cursor:pointer;font-weight:700}.aq-ssr-breadcrumb{display:flex;gap:.5rem;flex-wrap:wrap;color:#b9ccd1;margin-bottom:1.5rem}.aq-ssr-footer{border-top:1px solid rgba(255,255,255,.14);border-bottom:0;max-width:1180px;margin:0 auto}
         .aq-ssr-meta{color:#9fc5cc;font-size:.95rem}.aq-ssr-hero-image{display:block;width:100%;height:auto;aspect-ratio:1200/630;object-fit:cover;border-radius:.6rem;margin:1.5rem 0;border:1px solid rgba(255,255,255,.14)}
         .aq-ssr-product-image{display:block;width:100%;max-width:520px;height:auto;aspect-ratio:1/1;object-fit:contain;border-radius:.6rem;margin:1.5rem 0;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.035)}
+        .aq-ssr-product-thumb{display:block;width:100%;max-width:120px;height:auto;aspect-ratio:1/1;object-fit:contain;border-radius:.5rem;background:rgba(255,255,255,.035);margin-bottom:.5rem}
         .aq-ssr-product-gallery{display:flex;flex-wrap:wrap;gap:1rem}
         .aq-ssr-product-gallery .aq-ssr-product-image{max-width:240px;margin:0}
         .aq-ssr-review-list{display:grid;gap:.8rem;list-style:none;padding:0}.aq-ssr-review{border:1px solid rgba(255,255,255,.14);border-radius:.6rem;padding:1rem;background:rgba(255,255,255,.035)}.aq-ssr-review p{margin:.25rem 0}.aq-ssr-review-meta{color:#9fc5cc;font-size:.95rem}
