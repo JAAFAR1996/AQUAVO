@@ -165,6 +165,18 @@ function getPool(): Pool {
   return pool;
 }
 
+/**
+ * The calendar day of a timestamp, or null if there isn't one.
+ *
+ * Mirrors what the HTML shell puts in its <time dateTime> attributes, so the
+ * markdown cannot claim a different date than the page.
+ */
+function isoDay(value: string | Date | null | undefined): string | null {
+  if (!value) return null;
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date.toISOString().slice(0, 10);
+}
+
 function numberValue(value: string | number | null | undefined): number | null {
   if (value === null || value === undefined || value === "") return null;
   const numeric = Number(value);
@@ -174,6 +186,40 @@ function numberValue(value: string | number | null | undefined): number | null {
 function cleanText(value: string | null | undefined, fallback = ""): string {
   const text = (value || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
   return text || fallback;
+}
+
+/**
+ * A meta description cut to fit, at a word boundary.
+ *
+ * These were sliced at exactly 160 characters, which lands wherever it lands.
+ * Every product description long enough to be cut was therefore cut mid-word,
+ * with nothing to signal the cut. Verified on production before this change:
+ *
+ *   $ curl -A Googlebot .../products/houyi-blue-dragon-stone | grep description
+ *   ...وتفاصيل صخرية داخل الأ      # "الأحواض", cut after two letters
+ *   $ curl -A Googlebot .../products/yxl-003 | grep description
+ *   ...أنظف للأكواسكيب. التصم      # "التصميم", cut after four
+ *
+ * All six products sampled came back at exactly 160 characters with no
+ * ellipsis. Backing up to the last space and marking the elision is what
+ * CLAUDE.md already documents for `api/ssr-meta.ts`, which is the other path
+ * that builds these tags; this keeps the crawler path to the same rule.
+ *
+ * Nothing here invents text — a shortened description is a strict prefix of
+ * the real one.
+ */
+const META_DESCRIPTION_LIMIT = 160;
+const META_DESCRIPTION_ELLIPSIS = "...";
+
+function metaDescription(text: string): string {
+  if (text.length <= META_DESCRIPTION_LIMIT) return text;
+  const budget = META_DESCRIPTION_LIMIT - META_DESCRIPTION_ELLIPSIS.length;
+  const cut = text.slice(0, budget);
+  const boundary = cut.lastIndexOf(" ");
+  // A description with no space inside the budget (a single very long token)
+  // still has to be cut somewhere, so fall back to the hard edge.
+  const kept = boundary > 0 ? cut.slice(0, boundary) : cut;
+  return `${kept.replace(/[\s،,.]+$/, "")}${META_DESCRIPTION_ELLIPSIS}`;
 }
 
 function escapeHtml(value: string): string {
@@ -432,7 +478,7 @@ async function resolvePage(pathname: string, rawCategory?: string): Promise<Reso
       page: { kind: "product", product, related, reviews },
       meta: {
         title: `${product.name} | AQUAVO العراق`,
-        description: cleanText(product.description, `معلومات ومواصفات ${product.name} من AQUAVO.`).slice(0, 160),
+        description: metaDescription(cleanText(product.description, `معلومات ومواصفات ${product.name} من AQUAVO.`)),
         canonicalPath: productPath,
         image: productImage(product),
         ogType: "product",
@@ -475,7 +521,7 @@ async function resolvePage(pathname: string, rawCategory?: string): Promise<Reso
     const related = (await loadBlogPosts(6, post.slug));
     const blogPath = `/blog/${encodeURIComponent(post.slug)}`;
     const image = blogImage(post);
-    const description = cleanText(post.excerpt, articlePlainText(post.content)).slice(0, 160);
+    const description = metaDescription(cleanText(post.excerpt, articlePlainText(post.content)));
     const published = post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined;
     const modified = post.updatedAt ? new Date(post.updatedAt).toISOString() : published;
     return {
@@ -671,6 +717,25 @@ function markdown(page: SeoPreviewPage, meta: Meta): string {
     const description = cleanText(product.description, "");
     if (description) lines.push("", "## الوصف", "", description);
 
+    // The reviews behind the aggregateRating the Product schema publishes.
+    // The HTML shell renders these; the markdown dropped them, so an agent
+    // that preferred this representation saw a rating with nothing behind it.
+    const reviews = page.reviews ?? [];
+    if (reviews.length > 0) {
+      lines.push("", "## آراء الزبائن", "");
+      for (const review of reviews) {
+        const rating = numberValue(review.rating);
+        const parts = [review.author || "عميل"];
+        if (rating !== null) parts.push(`${rating} من 5`);
+        const written = isoDay(review.createdAt);
+        if (written) parts.push(written);
+        lines.push(`- ${parts.join(" · ")}`);
+        if (review.title) lines.push(`  - ${cleanText(review.title, "")}`);
+        const comment = cleanText(review.comment, "");
+        if (comment) lines.push(`  - ${comment}`);
+      }
+    }
+
     if (page.related.length > 0) {
       lines.push("", "## منتجات مرتبطة", "");
       for (const related of page.related.slice(0, 6)) {
@@ -688,6 +753,13 @@ function markdown(page: SeoPreviewPage, meta: Meta): string {
     if (post.author) meta2.push(`الكاتب: ${post.author}`);
     if (post.category) meta2.push(`القسم: ${post.category}`);
     if (post.readTime) meta2.push(`مدة القراءة: ${post.readTime}`);
+    // Publish and update dates: the HTML renders both and the Article schema
+    // carries datePublished/dateModified, but the markdown stated neither, so
+    // the representation an LLM fetcher prefers had no recency signal at all.
+    const publishedDay = isoDay(post.publishedAt);
+    const updatedDay = isoDay(post.updatedAt);
+    if (publishedDay) meta2.push(`تاريخ النشر: ${publishedDay}`);
+    if (updatedDay && updatedDay !== publishedDay) meta2.push(`آخر تحديث: ${updatedDay}`);
     if (meta2.length > 0) lines.push(meta2.join(" · "), "");
     const body = articlePlainText(post.content);
     if (body) lines.push(body, "");
