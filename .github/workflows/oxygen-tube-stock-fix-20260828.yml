@@ -1,11 +1,10 @@
-name: Oxygen Tube Stock Repair 2026-08-28
+name: Inventory Checkout Diagnosis 2026-08-28
 
 on:
   push:
     branches:
       - ops/oxygen-tube-stock-fix-20260828
     paths:
-      - migrations/0088_variant_stock_ledger_sync_and_oxygen_tube_repair.sql
       - .github/workflows/oxygen-tube-stock-fix-20260828.yml
 
 permissions:
@@ -16,63 +15,88 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  repair:
+  diagnose:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment: production
     steps:
-      - name: Checkout guarded repair
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-          sparse-checkout: |
-            migrations/0088_variant_stock_ledger_sync_and_oxygen_tube_repair.sql
-          sparse-checkout-cone-mode: false
-
       - name: Install PostgreSQL client
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y postgresql-client
 
-      - name: Diagnose hose inventory history read-only
+      - name: Find every storefront-ledger mismatch read-only
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           set -euo pipefail
           test -n "$DATABASE_URL"
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 <<'SQL'
-          SELECT p.id,p.slug,p.name,p.has_variants,p.stock,
+          \pset pager off
+
+          WITH main AS (
+            SELECT id FROM public.inventory_locations
+            WHERE code='MAIN' AND is_active=true
+            LIMIT 1
+          ), advertised AS (
+            SELECT p.id AS product_id,p.name,NULL::text AS variant_id,
+                   NULL::text AS variant_label,p.stock::bigint AS advertised_stock
+            FROM public.products p
+            WHERE p.deleted_at IS NULL
+              AND COALESCE(p.has_variants,false)=false
+              AND p.price::numeric>0
+            UNION ALL
+            SELECT p.id,p.name,v->>'id',v->>'label',
+                   COALESCE(NULLIF(v->>'stock','')::bigint,0)
+            FROM public.products p
+            CROSS JOIN LATERAL jsonb_array_elements(COALESCE(p.variants,'[]'::jsonb)) v
+            WHERE p.deleted_at IS NULL
+              AND COALESCE(p.has_variants,false)=true
+              AND p.price::numeric>0
+          ), scored AS (
+            SELECT a.*,
+                   COALESCE((SELECT SUM(im.quantity_delta)::bigint
+                     FROM public.inventory_movements im,main
+                     WHERE im.product_id=a.product_id
+                       AND im.variant_id IS NOT DISTINCT FROM a.variant_id
+                       AND im.location_id=main.id),0) AS canonical_stock
+            FROM advertised a
+          )
+          SELECT product_id,name,variant_id,variant_label,advertised_stock,canonical_stock,
+                 advertised_stock-canonical_stock AS difference
+          FROM scored
+          WHERE advertised_stock<>canonical_stock
+          ORDER BY ABS(advertised_stock-canonical_stock) DESC,product_id,variant_id NULLS FIRST;
+
+          SELECT p.id,p.name,p.stock,p.has_variants,
                  jsonb_pretty(COALESCE(p.variants,'[]'::jsonb)) AS variants
           FROM public.products p
-          WHERE p.id='houyi-oxygenation-tube';
+          WHERE p.deleted_at IS NULL
+            AND (p.name ILIKE '%كيس%شبكي%'
+              OR p.name ILIKE '%شبكي%فلتر%'
+              OR p.id ILIKE '%net-bag%'
+              OR p.id='houyi-oxygenation-tube')
+          ORDER BY p.id;
 
-          SELECT im.variant_id,im.quantity_delta,im.movement_type,im.source_type,
-                 im.source_id,im.idempotency_key,im.happened_at,im.created_at,
-                 im.created_by,im.metadata
-          FROM public.inventory_movements im
-          JOIN public.inventory_locations il ON il.id=im.location_id
-          WHERE il.code='MAIN' AND il.is_active=true
-            AND im.product_id='houyi-oxygenation-tube'
-          ORDER BY im.variant_id NULLS FIRST,im.happened_at,im.created_at,im.id;
-
-          SELECT im.variant_id,
-                 COALESCE(SUM(im.quantity_delta),0) AS canonical_stock,
-                 COALESCE(SUM(CASE WHEN im.quantity_delta<0 THEN -im.quantity_delta ELSE 0 END),0) AS total_out,
-                 COALESCE(SUM(CASE WHEN im.quantity_delta>0 THEN im.quantity_delta ELSE 0 END),0) AS total_in,
-                 COUNT(*) AS movement_count
-          FROM public.inventory_movements im
-          JOIN public.inventory_locations il ON il.id=im.location_id
-          WHERE il.code='MAIN' AND il.is_active=true
-            AND im.product_id='houyi-oxygenation-tube'
-          GROUP BY im.variant_id
-          ORDER BY im.variant_id NULLS FIRST;
+          WITH main AS (
+            SELECT id FROM public.inventory_locations WHERE code='MAIN' AND is_active=true LIMIT 1
+          )
+          SELECT p.id,p.name,v->>'id' AS variant_id,v->>'label' AS label,
+                 COALESCE(NULLIF(v->>'stock','')::bigint,0) AS advertised_stock,
+                 COALESCE((SELECT SUM(im.quantity_delta)::bigint
+                   FROM public.inventory_movements im,main
+                   WHERE im.product_id=p.id
+                     AND im.variant_id IS NOT DISTINCT FROM v->>'id'
+                     AND im.location_id=main.id),0) AS canonical_stock
+          FROM public.products p
+          CROSS JOIN LATERAL jsonb_array_elements(COALESCE(p.variants,'[]'::jsonb)) v
+          WHERE p.deleted_at IS NULL
+            AND (p.name ILIKE '%كيس%شبكي%'
+              OR p.name ILIKE '%شبكي%فلتر%'
+              OR p.id ILIKE '%net-bag%'
+              OR p.id='houyi-oxygenation-tube')
+          ORDER BY p.id,v->>'id';
           SQL
 
-          echo "Read-only movement diagnosis complete; no stock was changed."
+          echo "Read-only inventory diagnosis complete; no stock was changed."
           exit 1
-
-      - name: Apply canonical stock repair and durable guard
-        if: ${{ false }}
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f migrations/0088_variant_stock_ledger_sync_and_oxygen_tube_repair.sql
