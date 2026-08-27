@@ -91,3 +91,52 @@ describe("the product loading skeleton reserves the space the content will need"
     expect(productDetails()).toContain('data-testid="pdp-loading-skeleton"');
   });
 });
+
+describe("blog related-article thumbnails", () => {
+  /**
+   * These are 80-pixel squares that rendered each article's full-size
+   * original. Measured on production with Lighthouse (mobile, simulated
+   * throttling), the three of them on one article page were:
+   *
+   *   895,394  image/png  /images/blog/blog_planted_tank.png
+   *   833,214  image/png  .../v1773199287/aquavo/blog/turtle.png
+   *   714,185  image/png  .../v1773199289/aquavo/blog/planted.png
+   *
+   * 2.44 MB to paint 19,200 pixels — more than the page's entire JavaScript
+   * payload (1.12 MB), and image/png was the single largest resource type on
+   * the page by a factor of two.
+   *
+   * A first attempt fixed `RelatedArticles` in blog/blog-components.tsx, which
+   * is not the component this page renders — blog-post.tsx has its own markup.
+   * That is what this pins: the page a reader actually loads.
+   */
+  const page = source("client/src/pages/blog-post.tsx");
+
+  it("asks for a thumbnail-sized copy, not the article's original", () => {
+    const tag = imgTagUsing(page, "blogThumbImage");
+    expect(tag).toContain("related.imageUrl");
+  });
+
+  it("reserves the 80px box so the sidebar does not shift", () => {
+    const tag = imgTagUsing(page, "blogThumbImage");
+    expect(tag).toContain("width={80}");
+    expect(tag).toContain("height={80}");
+  });
+
+  it("keeps them lazy — they sit in a sidebar below the fold", () => {
+    const tag = imgTagUsing(page, "blogThumbImage");
+    expect(tag).toContain('loading="lazy"');
+  });
+
+  it("still falls back to the brand mark when an article has no image", () => {
+    const tag = imgTagUsing(page, "blogThumbImage");
+    expect(tag).toContain("/brand/aquavo-v2-icon.svg");
+  });
+
+  it("leaves the hero on the hero-width helper, not the thumbnail one", () => {
+    // blogHeroImage and blogThumbImage must not be transposed.
+    const hero = imgTagUsing(page, "blogHeroImage");
+    expect(hero).toContain('fetchPriority="high"');
+    expect(hero).toContain('loading="eager"');
+  });
+});

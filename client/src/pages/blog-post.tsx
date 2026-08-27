@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Calendar, Clock, User, Share2, ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
 import DOMPurify from 'isomorphic-dompurify';
-import { blogHeroImage } from "@/lib/cloudinary";
+import { blogHeroImage, blogThumbImage } from "@/lib/cloudinary";
 
 
 export default function BlogPost() {
@@ -159,7 +159,20 @@ export default function BlogPost() {
                                     {allPosts && allPosts.filter(p => p.id !== post.id).slice(0, 3).map(related => (
                                         <Link key={related.id} href={`/blog/${related.slug}`}>
                                             <a className="flex gap-4 group cursor-pointer">
-                                                <img src={related.imageUrl || "/brand/aquavo-v2-icon.svg"} alt={related.title} className="w-20 h-20 rounded-lg object-cover" />
+                                                {/* An 80-pixel square, so ask for 160 and let it
+                                                    stay lazy: these rendered each article's full-size
+                                                    original, which measured 895KB + 833KB + 714KB on
+                                                    this page — more than its entire JavaScript
+                                                    payload, to paint 19,200 pixels. */}
+                                                <img
+                                                    src={blogThumbImage(related.imageUrl) || "/brand/aquavo-v2-icon.svg"}
+                                                    alt={related.title}
+                                                    className="w-20 h-20 rounded-lg object-cover"
+                                                    width={80}
+                                                    height={80}
+                                                    loading="lazy"
+                                                    decoding="async"
+                                                />
                                                 <div>
                                                     <h4 className="font-bold text-sm group-hover:text-primary transition-colors line-clamp-2">
                                                         {related.title}
