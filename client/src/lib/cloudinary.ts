@@ -108,7 +108,7 @@ export function detailImage(url: string | null | undefined): string {
  * left at its own size.
  */
 export function blogHeroImage(url: string | null | undefined): string {
-  return optimizeCloudinaryUrl(url, {
+  return cloudinaryOnly(url, {
     width: 1200,
     quality: "auto:good",
     format: "auto",
@@ -116,11 +116,52 @@ export function blogHeroImage(url: string | null | undefined): string {
   });
 }
 
+/**
+ * Blog images live in two places and only one of them can be transformed.
+ *
+ * `optimizeCloudinaryUrl` sends a non-Cloudinary URL through
+ * `preferLocalWebp`, which rewrites `/images/foo.png` to `/images/foo.webp`.
+ * That holds for product art, where `scripts/optimize-images.mjs` generated a
+ * WebP beside every original. It does not hold for blog art: the four PNGs in
+ * `client/public/images/blog/` have no WebP sibling, and asking for one is a
+ * 404 —
+ *
+ *   $ curl -o /dev/null -w '%{http_code}' .../images/blog/blog_planted_tank.webp
+ *   404
+ *   $ curl -o /dev/null -w '%{http_code}' .../images/blog/blog_planted_tank.png
+ *   200
+ *
+ * — so a blog image must be left exactly as it is unless it is on Cloudinary,
+ * where a transform is a query about an asset that already exists. Trading a
+ * heavy image for a broken one is not an optimization.
+ */
+function cloudinaryOnly(url: string | null | undefined, options: ImageOptions): string {
+  if (!url || typeof url !== "string") return "";
+  if (!url.includes("res.cloudinary.com")) return url;
+  return optimizeCloudinaryUrl(url, options);
+}
+
 /** Blog listing card image — 600px WebP, for the article grid. */
 export function blogCardImage(url: string | null | undefined): string {
-  return optimizeCloudinaryUrl(url, {
+  return cloudinaryOnly(url, {
     width: 600,
     quality: "auto",
+    format: "auto",
+    crop: "limit",
+  });
+}
+
+/**
+ * Blog thumbnail — 160px WebP for the 80×80 related-article cards.
+ *
+ * These rendered the article's full-size original. On one post that was
+ * 893 KB + 832 KB + 713 KB of PNG for three 80-pixel squares: 2.4 MB to draw
+ * 19,200 pixels. 160px covers the card at 2× DPR.
+ */
+export function blogThumbImage(url: string | null | undefined): string {
+  return cloudinaryOnly(url, {
+    width: 160,
+    quality: "auto:eco",
     format: "auto",
     crop: "limit",
   });
