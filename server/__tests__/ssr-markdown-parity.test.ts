@@ -53,6 +53,35 @@ const PLAIN_PRODUCT = {
   variants: null,
 };
 
+// A description comfortably past the 160-character meta limit, so the meta tag
+// has to be cut. Production cut every such description at exactly 160
+// characters, mid-word, with nothing marking the elision.
+const LONG_DESCRIPTION =
+  "حجر التنين الأزرق صخرة طبيعية بمسامات وتفاصيل صخرية داخل الأحواض المزروعة، " +
+  "تعطي مظهراً طبيعياً وتصميماً أنظف للأكواسكيب، وتصلح لتثبيت الموس والأنوبياس " +
+  "عليها بخيط رفيع أو غراء مخصص للأحواض بدون ما تأثر على كيمياء الماء.";
+
+const LONG_DESCRIPTION_PRODUCT = {
+  ...VARIANT_PRODUCT,
+  id: "blue-dragon-stone",
+  slug: "houyi-blue-dragon-stone",
+  name: "حجر التنين الأزرق",
+  description: LONG_DESCRIPTION,
+  hasVariants: false,
+  variants: null,
+};
+
+// Real, approved reviews as loadProductReviews selects them.
+const REVIEW_ROWS = [
+  {
+    rating: 5,
+    title: "ممتاز",
+    comment: "جيدة جدا و تساعد على متابعة كيمياء الحوض و الوقاية من الاضرار",
+    createdAt: new Date("2026-06-05T00:00:00.000Z"),
+    author: "زهراء تحسين",
+  },
+];
+
 const BLOG_ROW = {
   slug: "best-aquarium-filters-iraq",
   title: "أفضل أنواع فلاتر أحواض الأسماك",
@@ -69,6 +98,7 @@ const BLOG_ROW = {
 const PRODUCTS: Record<string, unknown> = {
   [PLAIN_PRODUCT.slug]: PLAIN_PRODUCT,
   [VARIANT_PRODUCT.slug]: VARIANT_PRODUCT,
+  [LONG_DESCRIPTION_PRODUCT.slug]: LONG_DESCRIPTION_PRODUCT,
 };
 
 vi.mock("@neondatabase/serverless", () => ({
@@ -80,6 +110,10 @@ vi.mock("@neondatabase/serverless", () => ({
           const slug = typeof values?.[0] === "string" ? values[0] : null;
           if (slug) return { rows: PRODUCTS[slug] ? [PRODUCTS[slug]] : [] };
           return { rows: [PLAIN_PRODUCT, VARIANT_PRODUCT] };
+        }
+        if (sql.includes("FROM reviews")) {
+          // Only the product that actually has reviews returns any.
+          return { rows: values?.[0] === PLAIN_PRODUCT.id ? REVIEW_ROWS : [] };
         }
         if (sql.includes("FROM blog_posts")) {
           const slug = typeof values?.[0] === "string" ? values[0] : null;
@@ -245,5 +279,77 @@ describe("about markdown states the business truth", () => {
     const { body } = await md("/about");
     expect(body).not.toMatch(/شارع|street/i);
     expect(body).toContain("24/7");
+  });
+});
+
+describe("meta descriptions are cut at a word boundary, not mid-word", () => {
+  // The markdown representation opens with the very meta.description the HTML
+  // <meta name="description"> tag carries, so asserting here pins both.
+  async function description(url: string): Promise<string> {
+    const { body } = await md(url);
+    // `# title`, blank, description.
+    return body.split("\n")[2] ?? "";
+  }
+
+  it("does not cut a word in half", async () => {
+    const text = await description("/products/houyi-blue-dragon-stone");
+    // Production returned "...وتفاصيل صخرية داخل الأ" — "الأحواض" beheaded.
+    expect(text).not.toContain("داخل الأ.");
+    const withoutEllipsis = text.replace(/\.\.\.$/, "");
+    // Whatever survives must be a whole-word prefix of the real description:
+    // the character following it in the source is a space, not a letter.
+    expect(LONG_DESCRIPTION.startsWith(withoutEllipsis)).toBe(true);
+    const next = LONG_DESCRIPTION.charAt(withoutEllipsis.length);
+    expect([" ", ""]).toContain(next);
+  });
+
+  it("marks the elision instead of stopping silently", async () => {
+    const text = await description("/products/houyi-blue-dragon-stone");
+    expect(text.endsWith("...")).toBe(true);
+  });
+
+  it("still fits inside the 160-character budget", async () => {
+    const text = await description("/products/houyi-blue-dragon-stone");
+    expect(text.length).toBeLessThanOrEqual(160);
+    // …and is not so eager that it throws the description away.
+    expect(text.length).toBeGreaterThan(120);
+  });
+
+  it("leaves a description that already fits completely alone", async () => {
+    const text = await description("/products/houyi-thermostat");
+    expect(text).toBe(PLAIN_PRODUCT.description);
+    expect(text.endsWith("...")).toBe(false);
+  });
+});
+
+describe("product markdown carries the reviews behind the rating", () => {
+  it("states the reviewer, the score and the comment", async () => {
+    const { body } = await md("/products/houyi-thermostat");
+    expect(body).toContain("آراء الزبائن");
+    expect(body).toContain("زهراء تحسين");
+    expect(body).toContain("5 من 5");
+    expect(body).toContain("جيدة جدا و تساعد على متابعة كيمياء الحوض");
+  });
+
+  it("dates the review, as the HTML does", async () => {
+    const { body } = await md("/products/houyi-thermostat");
+    expect(body).toContain("2026-06-05");
+  });
+
+  it("renders no reviews section for a product that has none", async () => {
+    const { body } = await md("/products/houyi-heater");
+    expect(body).not.toContain("آراء الزبائن");
+  });
+});
+
+describe("blog markdown carries the dates the Article schema carries", () => {
+  it("states when the post was published", async () => {
+    const { body } = await md("/blog/best-aquarium-filters-iraq");
+    expect(body).toContain("تاريخ النشر: 2026-03-08");
+  });
+
+  it("states when it was last updated", async () => {
+    const { body } = await md("/blog/best-aquarium-filters-iraq");
+    expect(body).toContain("آخر تحديث: 2026-04-01");
   });
 });
