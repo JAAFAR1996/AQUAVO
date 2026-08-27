@@ -134,7 +134,7 @@ describe("blog images: transform what Cloudinary hosts, never invent a local Web
     // 449 KB of WebP across the four), and
     // client/src/__tests__/blog-image-variants.test.ts is what keeps that
     // true, failing if a PNG is ever added without its variant.
-    const variant = "/images/blog/blog_planted_tank.opt.webp";
+    const variant = "/images/blog/optimized/blog_planted_tank.webp";
     expect(blogThumbImage(LOCAL_PNG)).toBe(variant);
     expect(blogCardImage(LOCAL_PNG)).toBe(variant);
     expect(blogHeroImage(LOCAL_PNG)).toBe(variant);
