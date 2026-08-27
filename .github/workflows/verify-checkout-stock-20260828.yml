@@ -12,6 +12,7 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    environment: production
     steps:
       - name: Install PostgreSQL client
         run: |
@@ -27,7 +28,6 @@ jobs:
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 <<'SQL'
           \pset pager off
 
-          -- Every sellable storefront stock value must equal the canonical MAIN ledger.
           WITH main AS (
             SELECT id FROM public.inventory_locations
             WHERE code='MAIN' AND is_active=true
@@ -87,7 +87,6 @@ jobs:
           FROM scored
           WHERE advertised_stock<>canonical_stock;
 
-          -- Verify the products implicated during diagnosis.
           WITH main AS (
             SELECT id FROM public.inventory_locations WHERE code='MAIN' AND is_active=true LIMIT 1
           )
@@ -114,7 +113,6 @@ jobs:
           )
           ORDER BY p.id,variant_id NULLS FIRST;
 
-          -- Fail the workflow if any live mismatch remains.
           DO $verify$
           DECLARE
             v_main text;
