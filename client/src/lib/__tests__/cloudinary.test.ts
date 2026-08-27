@@ -127,12 +127,25 @@ describe("blog images: transform what Cloudinary hosts, never invent a local Web
     expect(url).toContain("c_limit");
   });
 
-  it("leaves a local blog image exactly as it is", () => {
-    // The regression this guards: rewriting it to .webp turns a heavy image
-    // into a 404, which is worse than the weight it was meant to save.
-    expect(blogThumbImage(LOCAL_PNG)).toBe(LOCAL_PNG);
-    expect(blogCardImage(LOCAL_PNG)).toBe(LOCAL_PNG);
-    expect(blogHeroImage(LOCAL_PNG)).toBe(LOCAL_PNG);
+  it("serves the generated WebP for a local blog image", () => {
+    // This originally asserted the opposite — that the PNG was returned
+    // untouched — because rewriting it to .webp turned a heavy image into a
+    // 404: the variant did not exist. It does now (3.15 MB of PNG against
+    // 449 KB of WebP across the four), and
+    // client/src/__tests__/blog-image-variants.test.ts is what keeps that
+    // true, failing if a PNG is ever added without its variant.
+    const variant = "/images/blog/blog_planted_tank.webp";
+    expect(blogThumbImage(LOCAL_PNG)).toBe(variant);
+    expect(blogCardImage(LOCAL_PNG)).toBe(variant);
+    expect(blogHeroImage(LOCAL_PNG)).toBe(variant);
+  });
+
+  it("leaves a local image outside /images/blog exactly as it is", () => {
+    // Only blog art has generated variants; nothing else may be assumed to.
+    const svg = "/brand/aquavo-v2-icon.svg";
+    expect(blogThumbImage(svg)).toBe(svg);
+    const elsewhere = "/images/aquascape-styles/iwagumi.png";
+    expect(blogThumbImage(elsewhere)).toBe(elsewhere);
   });
 
   it("still transforms Cloudinary cards and heroes", () => {

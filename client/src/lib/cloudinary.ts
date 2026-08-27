@@ -134,10 +134,24 @@ export function blogHeroImage(url: string | null | undefined): string {
  * — so a blog image must be left exactly as it is unless it is on Cloudinary,
  * where a transform is a query about an asset that already exists. Trading a
  * heavy image for a broken one is not an optimization.
+ *
+ * That WebP now exists. `client/public/images/blog` holds four PNGs, all of
+ * them photographs, and all four were shipping at full size: 3.15 MB between
+ * them, against 449 KB as WebP. A variant has been generated beside each, so
+ * the substitution below is safe — and
+ * `client/src/__tests__/blog-image-variants.test.ts` asserts every PNG in that
+ * directory still has one, so adding a fifth without its variant fails the
+ * build rather than serving a 404.
  */
+const LOCAL_BLOG_IMAGE = /^\/images\/blog\/[^?#]+\.(png|jpe?g)$/i;
+
+function preferGeneratedBlogWebp(url: string): string {
+  return LOCAL_BLOG_IMAGE.test(url) ? url.replace(/\.(png|jpe?g)$/i, ".webp") : url;
+}
+
 function cloudinaryOnly(url: string | null | undefined, options: ImageOptions): string {
   if (!url || typeof url !== "string") return "";
-  if (!url.includes("res.cloudinary.com")) return url;
+  if (!url.includes("res.cloudinary.com")) return preferGeneratedBlogWebp(url);
   return optimizeCloudinaryUrl(url, options);
 }
 
