@@ -82,8 +82,10 @@ vi.mock("@neondatabase/serverless", () => ({
         if (sql.includes("FROM products")) {
           const slug = typeof values?.[0] === "string" ? values[0] : null;
           if (slug && ROWS_BY_SLUG[slug]) return { rows: [ROWS_BY_SLUG[slug]] };
-          // The listing query (no slug parameter) backs "related products".
-          return { rows: slug ? [] : [PRODUCT_ROW, RELATIVE_ROW] };
+          // The listing query (no slug parameter) backs "related products" and
+          // the catalogue listings. IMAGELESS_ROW is included so the listings
+          // cover a product that has no photograph of its own.
+          return { rows: slug ? [] : [PRODUCT_ROW, RELATIVE_ROW, IMAGELESS_ROW] };
         }
         return { rows: [] };
       }),
@@ -326,5 +328,75 @@ describe("crawler-visible product gallery", () => {
     const { body } = await render("/products/houyi-check-valve");
     const productImages = imgTags(body).filter((tag) => tag.includes("aq-ssr-product-image"));
     expect(productImages).toHaveLength(0);
+  });
+});
+
+describe("the catalogue listings show a crawler the products, not just their names", () => {
+  // Verified on production before this change:
+  //   $ curl -A Googlebot https://www.aquavoiq.com/          | grep -c '<img'
+  //   0
+  //   $ curl -A Googlebot https://www.aquavoiq.com/products  | grep -c '<img'
+  //   0
+  // Every product had a photograph, its own page led with it, and the image
+  // sitemap declared it — the two pages that list the whole catalogue were
+  // simply the ones that showed none of them.
+
+  it("renders a thumbnail for every product on /products that has one", async () => {
+    const { body } = await render("/products");
+    const thumbs = imgTags(body).filter((tag) => tag.includes("aq-ssr-product-thumb"));
+    // Two of the three fixture products have a real image; the third has none.
+    expect(thumbs).toHaveLength(2);
+  });
+
+  it("renders thumbnails on the homepage too", async () => {
+    const { body } = await render("/");
+    const thumbs = imgTags(body).filter((tag) => tag.includes("aq-ssr-product-thumb"));
+    expect(thumbs.length).toBeGreaterThan(0);
+  });
+
+  it("names the product in the alt text rather than leaving it empty", async () => {
+    const { body } = await render("/products");
+    const thumb = imgTags(body).find((tag) => tag.includes("aq-ssr-product-thumb")) ?? "";
+    expect(thumb).toContain('alt="');
+    expect(thumb).not.toContain('alt=""');
+  });
+
+  it("reserves the box, so nothing reflows", async () => {
+    const { body } = await render("/products");
+    const thumb = imgTags(body).find((tag) => tag.includes("aq-ssr-product-thumb")) ?? "";
+    expect(thumb).toContain('width="320"');
+    expect(thumb).toContain('height="320"');
+  });
+
+  it("keeps every listing thumbnail lazy, so a real browser fetches none of them", async () => {
+    // #seo-root is display:none for JS visitors, so a lazy image inside it
+    // never intersects a viewport. An eager one would be fetched anyway.
+    const { body } = await render("/products");
+    const thumbs = imgTags(body).filter((tag) => tag.includes("aq-ssr-product-thumb"));
+    expect(thumbs.length).toBeGreaterThan(0);
+    for (const thumb of thumbs) {
+      expect(thumb).toContain('loading="lazy"');
+    }
+  });
+
+  it("renders no thumbnail at all for a product with no photograph", async () => {
+    const { body } = await render("/products");
+    // The imageless fixture is listed by name…
+    expect(body).toContain("صمام عدم رجوع");
+    // …but must not borrow the AQUAVO logo as if it were the product.
+    const thumbs = imgTags(body).filter((tag) => tag.includes("aq-ssr-product-thumb"));
+    for (const thumb of thumbs) {
+      expect(thumb).not.toContain("صمام عدم رجوع");
+    }
+  });
+
+  it("right-sizes a Cloudinary thumbnail instead of shipping the full-size original", async () => {
+    const { body } = await render("/products");
+    const cloudinaryThumb = imgTags(body).find(
+      (tag) => tag.includes("aq-ssr-product-thumb") && tag.includes("res.cloudinary.com"),
+    );
+    expect(cloudinaryThumb).toBeDefined();
+    expect(cloudinaryThumb).toContain("w_320");
+    expect(cloudinaryThumb).toContain("f_auto");
   });
 });
