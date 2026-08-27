@@ -34,110 +34,45 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y postgresql-client
 
-      - name: Preflight target and canonical balances
+      - name: Diagnose live target identity read-only
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           set -euo pipefail
           test -n "$DATABASE_URL"
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 <<'SQL'
-          DO $preflight$
-          DECLARE
-            v_product_count integer;
-            v_variant_count integer;
-            v_main_count integer;
-          BEGIN
-            SELECT COUNT(*) INTO v_product_count
-            FROM public.products
-            WHERE id='houyi-oxygenation-tube' AND deleted_at IS NULL;
-
-            SELECT COUNT(*) INTO v_variant_count
-            FROM public.products p
-            CROSS JOIN LATERAL jsonb_array_elements(COALESCE(p.variants,'[]'::jsonb)) v
-            WHERE p.id='houyi-oxygenation-tube'
-              AND v->>'id' IN ('black','white');
-
-            SELECT COUNT(*) INTO v_main_count
-            FROM public.inventory_locations
-            WHERE code='MAIN' AND is_active=true;
-
-            IF v_product_count<>1 OR v_variant_count<>2 OR v_main_count<>1 THEN
-              RAISE EXCEPTION
-                'OXYGEN_TUBE_PREFLIGHT_FAILED product=% variants=% main_locations=%',
-                v_product_count,v_variant_count,v_main_count;
-            END IF;
-          END
-          $preflight$;
+          SELECT p.id,p.slug,p.name,p.has_variants,p.stock,
+                 jsonb_pretty(COALESCE(p.variants,'[]'::jsonb)) AS variants
+          FROM public.products p
+          WHERE p.id='houyi-oxygenation-tube'
+             OR p.slug='houyi-oxygenation-tube'
+             OR p.name ILIKE '%خرطوم%هواء%ملو%'
+             OR p.name ILIKE '%oxygen%tube%';
 
           SELECT p.id,p.name,v->>'id' AS variant_id,v->>'label' AS label,
-                 (v->>'stock')::integer AS advertised_stock,
+                 v->>'stock' AS advertised_stock,
                  COALESCE((
                    SELECT SUM(im.quantity_delta)
                    FROM public.inventory_movements im
                    JOIN public.inventory_locations il ON il.id=im.location_id
                    WHERE il.code='MAIN' AND il.is_active=true
                      AND im.product_id=p.id
-                     AND im.variant_id=v->>'id'
+                     AND im.variant_id IS NOT DISTINCT FROM v->>'id'
                  ),0) AS canonical_stock
           FROM public.products p
           CROSS JOIN LATERAL jsonb_array_elements(COALESCE(p.variants,'[]'::jsonb)) v
           WHERE p.id='houyi-oxygenation-tube'
-            AND v->>'id' IN ('black','white')
-          ORDER BY v->>'id';
+             OR p.slug='houyi-oxygenation-tube'
+             OR p.name ILIKE '%خرطوم%هواء%ملو%'
+             OR p.name ILIKE '%oxygen%tube%'
+          ORDER BY p.id,v->>'id';
           SQL
+
+          echo "Read-only diagnosis complete; mutation intentionally blocked in this run."
+          exit 1
 
       - name: Apply canonical stock repair and durable guard
+        if: ${{ false }}
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: |
-          set -euo pipefail
-          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 \
-            -f migrations/0088_variant_stock_ledger_sync_and_oxygen_tube_repair.sql
-
-      - name: Verify exact final stock
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: |
-          set -euo pipefail
-          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 <<'SQL'
-          DO $verify$
-          DECLARE
-            v_bad integer;
-          BEGIN
-            WITH main AS (
-              SELECT id FROM public.inventory_locations
-              WHERE code='MAIN' AND is_active=true
-              LIMIT 1
-            ), expected(variant_id,target) AS (
-              VALUES ('black'::text,25::bigint),('white'::text,25::bigint)
-            ), actual AS (
-              SELECT e.variant_id,e.target,
-                     COALESCE((SELECT SUM(im.quantity_delta)::bigint
-                       FROM public.inventory_movements im,main
-                       WHERE im.product_id='houyi-oxygenation-tube'
-                         AND im.variant_id=e.variant_id
-                         AND im.location_id=main.id),0) canonical,
-                     COALESCE((SELECT (v->>'stock')::bigint
-                       FROM public.products p
-                       CROSS JOIN LATERAL jsonb_array_elements(COALESCE(p.variants,'[]'::jsonb)) v
-                       WHERE p.id='houyi-oxygenation-tube'
-                         AND v->>'id'=e.variant_id),-1) projected
-              FROM expected e
-            )
-            SELECT COUNT(*) INTO v_bad
-            FROM actual
-            WHERE canonical<>target OR projected<>target;
-
-            IF v_bad<>0 THEN
-              RAISE EXCEPTION 'OXYGEN_TUBE_FINAL_VERIFY_FAILED bad_variants=%',v_bad;
-            END IF;
-          END
-          $verify$;
-
-          SELECT v->>'label' AS label,(v->>'stock')::integer AS stock
-          FROM public.products p
-          CROSS JOIN LATERAL jsonb_array_elements(COALESCE(p.variants,'[]'::jsonb)) v
-          WHERE p.id='houyi-oxygenation-tube'
-            AND v->>'id' IN ('black','white')
-          ORDER BY v->>'id';
-          SQL
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f migrations/0088_variant_stock_ledger_sync_and_oxygen_tube_repair.sql
