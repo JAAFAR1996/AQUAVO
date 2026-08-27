@@ -1,0 +1,49 @@
+name: Verify Post-Fix Sales 2026-08-28
+
+on:
+  push:
+    branches:
+      - ops/verify-checkout-stock-20260828
+    paths:
+      - .github/workflows/verify-postfix-sales-20260828.yml
+
+permissions:
+  contents: read
+
+jobs:
+  verify-sales:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: production
+    steps:
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y postgresql-client
+
+      - name: Read post-fix sale movements
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          set -euo pipefail
+          test -n "$DATABASE_URL"
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 <<'SQL'
+          \pset pager off
+          SELECT im.happened_at,im.product_id,im.variant_id,im.quantity_delta,
+                 im.movement_type,im.source_type,im.source_id,im.idempotency_key
+          FROM public.inventory_movements im
+          JOIN public.inventory_locations il ON il.id=im.location_id
+          WHERE il.code='MAIN' AND il.is_active=true
+            AND im.happened_at >= TIMESTAMPTZ '2026-08-27 22:37:35+00'
+            AND im.movement_type='sale'
+          ORDER BY im.happened_at,im.created_at,im.id;
+
+          SELECT COUNT(DISTINCT im.source_id) AS post_fix_sale_source_count,
+                 COALESCE(SUM(-im.quantity_delta),0) AS post_fix_units_sold
+          FROM public.inventory_movements im
+          JOIN public.inventory_locations il ON il.id=im.location_id
+          WHERE il.code='MAIN' AND il.is_active=true
+            AND im.happened_at >= TIMESTAMPTZ '2026-08-27 22:37:35+00'
+            AND im.movement_type='sale'
+            AND im.quantity_delta < 0;
+          SQL
