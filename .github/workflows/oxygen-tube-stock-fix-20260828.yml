@@ -1,4 +1,4 @@
-name: Inventory Checkout Diagnosis 2026-08-28
+name: Inventory Checkout Repair 2026-08-28
 
 on:
   push:
@@ -11,11 +11,11 @@ permissions:
   contents: read
 
 concurrency:
-  group: oxygen-tube-stock-fix-20260828
-  cancel-in-progress: true
+  group: inventory-checkout-repair-20260828
+  cancel-in-progress: false
 
 jobs:
-  diagnose:
+  repair:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment: production
@@ -25,78 +25,166 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y postgresql-client
 
-      - name: Find every storefront-ledger mismatch read-only
+      - name: Reconcile only verified storefront-ledger gaps
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           set -euo pipefail
           test -n "$DATABASE_URL"
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 <<'SQL'
-          \pset pager off
+          BEGIN;
 
-          WITH main AS (
-            SELECT id FROM public.inventory_locations
+          DO $guard$
+          DECLARE
+            v_main text;
+            v_bad bigint;
+            v_global_mismatch bigint;
+          BEGIN
+            SELECT id INTO v_main
+            FROM public.inventory_locations
             WHERE code='MAIN' AND is_active=true
-            LIMIT 1
-          ), advertised AS (
-            SELECT p.id AS product_id,p.name,NULL::text AS variant_id,
-                   NULL::text AS variant_label,p.stock::bigint AS advertised_stock
-            FROM public.products p
-            WHERE p.deleted_at IS NULL
-              AND COALESCE(p.has_variants,false)=false
-              AND p.price::numeric>0
-            UNION ALL
-            SELECT p.id,p.name,v->>'id',v->>'label',
-                   COALESCE(NULLIF(v->>'stock','')::bigint,0)
-            FROM public.products p
-            CROSS JOIN LATERAL jsonb_array_elements(COALESCE(p.variants,'[]'::jsonb)) v
-            WHERE p.deleted_at IS NULL
-              AND COALESCE(p.has_variants,false)=true
-              AND p.price::numeric>0
-          ), scored AS (
-            SELECT a.*,
-                   COALESCE((SELECT SUM(im.quantity_delta)::bigint
-                     FROM public.inventory_movements im,main
-                     WHERE im.product_id=a.product_id
-                       AND im.variant_id IS NOT DISTINCT FROM a.variant_id
-                       AND im.location_id=main.id),0) AS canonical_stock
-            FROM advertised a
-          )
-          SELECT product_id,name,variant_id,variant_label,advertised_stock,canonical_stock,
-                 advertised_stock-canonical_stock AS difference
-          FROM scored
-          WHERE advertised_stock<>canonical_stock
-          ORDER BY ABS(advertised_stock-canonical_stock) DESC,product_id,variant_id NULLS FIRST;
+            LIMIT 1;
+            IF v_main IS NULL THEN
+              RAISE EXCEPTION 'CHECKOUT_REPAIR_MAIN_LOCATION_MISSING';
+            END IF;
 
-          SELECT p.id,p.name,p.stock,p.has_variants,
-                 jsonb_pretty(COALESCE(p.variants,'[]'::jsonb)) AS variants
-          FROM public.products p
-          WHERE p.deleted_at IS NULL
-            AND (p.name ILIKE '%كيس%شبكي%'
-              OR p.name ILIKE '%شبكي%فلتر%'
-              OR p.id ILIKE '%net-bag%'
-              OR p.id='houyi-oxygenation-tube')
-          ORDER BY p.id;
+            WITH expected(product_id,target) AS (
+              VALUES
+                ('houyi-feeding-cup'::text,15::bigint),
+                ('houyi-ceramic-ring'::text,11::bigint),
+                ('houyi-breathing-ring-white'::text,10::bigint),
+                ('yee-c4-1123-1a'::text,7::bigint)
+            ), checked AS (
+              SELECT e.product_id,e.target,p.stock::bigint advertised,
+                     COALESCE((SELECT SUM(im.quantity_delta)::bigint
+                       FROM public.inventory_movements im
+                       WHERE im.product_id=e.product_id
+                         AND im.variant_id IS NULL
+                         AND im.location_id=v_main),0) canonical,
+                     p.deleted_at,p.has_variants,p.price
+              FROM expected e
+              LEFT JOIN public.products p ON p.id=e.product_id
+            )
+            SELECT COUNT(*) INTO v_bad
+            FROM checked
+            WHERE advertised IS NULL
+               OR deleted_at IS NOT NULL
+               OR COALESCE(has_variants,false)=true
+               OR COALESCE(price::numeric,0)<=0
+               OR advertised<>target
+               OR canonical<>0;
+
+            IF v_bad<>0 THEN
+              RAISE EXCEPTION 'CHECKOUT_REPAIR_TARGET_PRECONDITION_CHANGED: bad=%',v_bad;
+            END IF;
+
+            WITH advertised AS (
+              SELECT p.id product_id,NULL::text variant_id,p.stock::bigint advertised_stock
+              FROM public.products p
+              WHERE p.deleted_at IS NULL AND COALESCE(p.has_variants,false)=false AND p.price::numeric>0
+              UNION ALL
+              SELECT p.id,v->>'id',COALESCE(NULLIF(v->>'stock','')::bigint,0)
+              FROM public.products p
+              CROSS JOIN LATERAL jsonb_array_elements(COALESCE(p.variants,'[]'::jsonb)) v
+              WHERE p.deleted_at IS NULL AND COALESCE(p.has_variants,false)=true AND p.price::numeric>0
+            ), scored AS (
+              SELECT a.*,
+                     COALESCE((SELECT SUM(im.quantity_delta)::bigint
+                       FROM public.inventory_movements im
+                       WHERE im.product_id=a.product_id
+                         AND im.variant_id IS NOT DISTINCT FROM a.variant_id
+                         AND im.location_id=v_main),0) canonical_stock
+              FROM advertised a
+            )
+            SELECT COUNT(*) INTO v_global_mismatch
+            FROM scored WHERE advertised_stock<>canonical_stock;
+
+            IF v_global_mismatch<>4 THEN
+              RAISE EXCEPTION 'CHECKOUT_REPAIR_GLOBAL_SHAPE_CHANGED: expected=4 actual=%',v_global_mismatch;
+            END IF;
+          END
+          $guard$;
 
           WITH main AS (
             SELECT id FROM public.inventory_locations WHERE code='MAIN' AND is_active=true LIMIT 1
+          ), targets(product_id,target) AS (
+            VALUES
+              ('houyi-feeding-cup'::text,15::integer),
+              ('houyi-ceramic-ring'::text,11::integer),
+              ('houyi-breathing-ring-white'::text,10::integer),
+              ('yee-c4-1123-1a'::text,7::integer)
+          ), current AS (
+            SELECT t.product_id,t.target,
+                   COALESCE((SELECT SUM(im.quantity_delta)::integer
+                     FROM public.inventory_movements im,main
+                     WHERE im.product_id=t.product_id
+                       AND im.variant_id IS NULL
+                       AND im.location_id=main.id),0) canonical
+            FROM targets t
           )
-          SELECT p.id,p.name,v->>'id' AS variant_id,v->>'label' AS label,
-                 COALESCE(NULLIF(v->>'stock','')::bigint,0) AS advertised_stock,
-                 COALESCE((SELECT SUM(im.quantity_delta)::bigint
-                   FROM public.inventory_movements im,main
-                   WHERE im.product_id=p.id
-                     AND im.variant_id IS NOT DISTINCT FROM v->>'id'
-                     AND im.location_id=main.id),0) AS canonical_stock
-          FROM public.products p
-          CROSS JOIN LATERAL jsonb_array_elements(COALESCE(p.variants,'[]'::jsonb)) v
-          WHERE p.deleted_at IS NULL
-            AND (p.name ILIKE '%كيس%شبكي%'
-              OR p.name ILIKE '%شبكي%فلتر%'
-              OR p.id ILIKE '%net-bag%'
-              OR p.id='houyi-oxygenation-tube')
-          ORDER BY p.id,v->>'id';
-          SQL
+          INSERT INTO public.inventory_movements(
+            product_id,variant_id,location_id,quantity_delta,movement_type,
+            source_type,source_id,idempotency_key,happened_at,created_by,metadata
+          )
+          SELECT c.product_id,NULL,(SELECT id FROM main),c.target-c.canonical,
+                 'manual_adjustment','availability_reconciliation',
+                 'CHECKOUT-STOCK-REPAIR-20260828',
+                 'checkout-stock-repair:20260828:'||c.product_id||':base',
+                 clock_timestamp(),'chatgpt',
+                 jsonb_build_object(
+                   'reason','Reconcile advertised storefront stock to canonical ledger after checkout diagnosis',
+                   'advertised_target',c.target,
+                   'canonical_before',c.canonical,
+                   'owner_request','Arrange it and make checkout work'
+                 )
+          FROM current c
+          WHERE c.target-c.canonical<>0
+          ON CONFLICT (idempotency_key) DO NOTHING;
 
-          echo "Read-only inventory diagnosis complete; no stock was changed."
-          exit 1
+          DO $verify$
+          DECLARE
+            v_main text;
+            v_bad bigint;
+          BEGIN
+            SELECT id INTO v_main FROM public.inventory_locations
+            WHERE code='MAIN' AND is_active=true LIMIT 1;
+
+            WITH advertised AS (
+              SELECT p.id product_id,NULL::text variant_id,p.stock::bigint advertised_stock
+              FROM public.products p
+              WHERE p.deleted_at IS NULL AND COALESCE(p.has_variants,false)=false AND p.price::numeric>0
+              UNION ALL
+              SELECT p.id,v->>'id',COALESCE(NULLIF(v->>'stock','')::bigint,0)
+              FROM public.products p
+              CROSS JOIN LATERAL jsonb_array_elements(COALESCE(p.variants,'[]'::jsonb)) v
+              WHERE p.deleted_at IS NULL AND COALESCE(p.has_variants,false)=true AND p.price::numeric>0
+            ), scored AS (
+              SELECT a.*,
+                     COALESCE((SELECT SUM(im.quantity_delta)::bigint
+                       FROM public.inventory_movements im
+                       WHERE im.product_id=a.product_id
+                         AND im.variant_id IS NOT DISTINCT FROM a.variant_id
+                         AND im.location_id=v_main),0) canonical_stock
+              FROM advertised a
+            )
+            SELECT COUNT(*) INTO v_bad
+            FROM scored WHERE advertised_stock<>canonical_stock;
+
+            IF v_bad<>0 THEN
+              RAISE EXCEPTION 'CHECKOUT_REPAIR_POST_VERIFY_FAILED: remaining_mismatches=%',v_bad;
+            END IF;
+          END
+          $verify$;
+
+          COMMIT;
+
+          SELECT p.id,p.name,p.stock,
+                 COALESCE((SELECT SUM(im.quantity_delta)
+                   FROM public.inventory_movements im
+                   JOIN public.inventory_locations il ON il.id=im.location_id
+                   WHERE il.code='MAIN' AND il.is_active=true
+                     AND im.product_id=p.id AND im.variant_id IS NULL),0) AS canonical_stock
+          FROM public.products p
+          WHERE p.id IN ('houyi-feeding-cup','houyi-ceramic-ring','houyi-breathing-ring-white','yee-c4-1123-1a')
+          ORDER BY p.id;
+          SQL
