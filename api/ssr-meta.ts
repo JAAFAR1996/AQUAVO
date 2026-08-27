@@ -3,7 +3,8 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { Pool, neonConfig } from "@neondatabase/serverless";
 import ws from "ws";
 import { HTML_TEMPLATE } from "./_html-template.js";
-import { GUIDE_CONTENT_PAGES, renderGuideHtml, renderGuideMarkdown, renderGuidesIndexHtml, renderGuidesIndexMarkdown } from "./_guides-content.js";
+import { GUIDE_CONTENT_PAGES, renderGuidesIndexHtml, renderGuidesIndexMarkdown } from "./_guides-content.js";
+import { renderCanonicalGuideHtml, renderCanonicalGuideMarkdown, resolveGuidePage } from "./_canonical-guides.js";
 import { getSeoMetaOverride } from "./_seo-content.js";
 import { AQUAVO_FAQ_ITEMS } from "../shared/faq-content.js";
 import { toPublicProduct, toPublicVariant } from "../shared/public-product.js";
@@ -949,7 +950,8 @@ function injectEmbeddedProduct(html: string, payload: EmbeddedProduct): string {
   const json = JSON.stringify(payload)
     .replace(/</g, "\\u003c")
     .replace(/>/g, "\\u003e")
-    .replace(/&/g, "\\u0026");
+    .replace(/&/g, "\\u0026")
+;
   const block = `<script type="application/json" id="${EMBEDDED_PRODUCT_SCRIPT_ID}">${json}</script>`;
   // Before </body> so it never delays the head or the preload scanner.
   if (/<\/body>/i.test(html)) return html.replace(/<\/body>/i, `${block}</body>`);
@@ -1086,17 +1088,38 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       res.setHeader("Content-Type", "text/html; charset=utf-8");
       return res.status(200).send(renderGuidesIndexHtml(BASE, DEFAULT_IMAGE));
     }
-    const guidePage = GUIDE_CONTENT_PAGES[guidePath];
-    if (guidePage) {
+    // Resolve a guide the same way the crawler route does.
+    //
+    // These two paths disagreed. GUIDE_CONTENT_PAGES has no entry for
+    // /guides/filter-choice — the string appears in that module only as a link
+    // target — so the request fell through to the static PAGE_META below, whose
+    // entry for that URL is a HowTo. `resolveGuidePage` does have it, which is
+    // why a crawler was served Article + FAQPage for the very same URL:
+    //
+    //   $ curl -A Googlebot .../guides/filter-choice | grep -o '"@type":"[A-Za-z]*"'
+    //   Article, FAQPage, Question, Answer, BreadcrumbList
+    //   $ curl -A Chrome    .../guides/filter-choice | grep -o '"@type":"[A-Za-z]*"'
+    //   HowTo, HowToStep, BreadcrumbList, OnlineStore, WebSite
+    //
+    // Google retired HowTo rich results in September 2023, so the version a
+    // browser received was both different from the indexed one and the weaker
+    // of the two: it had no Article and no FAQPage. Sharing one resolver makes
+    // the guide a crawler indexes and the guide a person loads the same
+    // document, and the richer of the two is the one that survives.
+    const resolvedGuide = resolveGuidePage(guidePath);
+    if (resolvedGuide) {
       const acceptHeader = (req.headers.accept || "").toLowerCase();
+      res.setHeader("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
       if (acceptHeader.includes("text/markdown")) {
         res.setHeader("Content-Type", "text/markdown; charset=utf-8");
-        res.setHeader("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
-        return res.status(200).send(renderGuideMarkdown(guidePath, guidePage, BASE));
+        return res
+          .status(200)
+          .send(renderCanonicalGuideMarkdown(resolvedGuide.canonicalPath, resolvedGuide.page, BASE));
       }
       res.setHeader("Content-Type", "text/html; charset=utf-8");
-      res.setHeader("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
-      return res.status(200).send(renderGuideHtml(guidePath, guidePage, BASE, DEFAULT_IMAGE));
+      return res
+        .status(200)
+        .send(renderCanonicalGuideHtml(resolvedGuide.canonicalPath, resolvedGuide.page, BASE, DEFAULT_IMAGE));
     }
 
     const template = getTemplate();

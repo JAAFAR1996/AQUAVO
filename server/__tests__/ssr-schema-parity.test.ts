@@ -448,3 +448,74 @@ describe("a variant's image is a URL that resolves", () => {
     expect(images[0]).toBe(GALLERY_WEBP);
   });
 });
+
+describe("a guide is the same document whether a crawler or a person asks", () => {
+  // These two paths disagreed. GUIDE_CONTENT_PAGES has no entry for
+  // /guides/filter-choice — the string appears in that module only as a link
+  // target — so a browser request fell through to the static PAGE_META, whose
+  // entry for that URL is a HowTo. resolveGuidePage does have it, which is why
+  // a crawler was served Article + FAQPage for the very same URL. Measured on
+  // production before this change:
+  //
+  //   Googlebot : Article, FAQPage, Question, Answer, BreadcrumbList
+  //   Chrome    : HowTo, HowToStep, BreadcrumbList, OnlineStore, WebSite
+  //
+  // Google retired HowTo rich results in September 2023, so the version a
+  // browser received was both different from the indexed one and the weaker of
+  // the two.
+  const GUIDE = "/guides/filter-choice";
+
+  async function guideTypes(handler: Handler, userAgent: string): Promise<string[]> {
+    let body = "";
+    const response = {
+      setHeader: vi.fn(),
+      status: vi.fn(() => response),
+      send: vi.fn((value: unknown) => {
+        body = String(value);
+        return response;
+      }),
+      end: vi.fn((value?: unknown) => {
+        if (value !== undefined) body = String(value);
+        return response;
+      }),
+    };
+    const req = {
+      url: GUIDE,
+      headers: { accept: "text/html", host: "www.aquavoiq.com", "user-agent": userAgent },
+    } as unknown as VercelRequest;
+    await handler(req, response as unknown as VercelResponse);
+    return schemaNodes(body).map((node) => String(node["@type"]));
+  }
+
+  const CHROME =
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
+
+  it("serves a browser no deprecated HowTo", async () => {
+    const types = await guideTypes(browserHandler as Handler, CHROME);
+    expect(types).not.toContain("HowTo");
+    expect(types).not.toContain("HowToStep");
+  });
+
+  it("serves a browser the Article the crawler is indexed on", async () => {
+    const types = await guideTypes(browserHandler as Handler, CHROME);
+    expect(types).toContain("Article");
+  });
+
+  it("serves a browser the FAQ the crawler gets", async () => {
+    const types = await guideTypes(browserHandler as Handler, CHROME);
+    expect(types).toContain("FAQPage");
+  });
+
+  it("gives both audiences the same entity types", async () => {
+    const browser = new Set(await guideTypes(browserHandler as Handler, CHROME));
+    const crawler = new Set(
+      await guideTypes(crawlerHandler as Handler, "Mozilla/5.0 (compatible; Googlebot/2.1)"),
+    );
+    // Not byte-parity — the same entities, so neither audience is shown a
+    // different claim about what this page is.
+    for (const type of ["Article", "FAQPage", "BreadcrumbList"]) {
+      expect(browser.has(type), `browser missing ${type}`).toBe(true);
+      expect(crawler.has(type), `crawler missing ${type}`).toBe(true);
+    }
+  });
+});
