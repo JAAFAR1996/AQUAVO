@@ -226,10 +226,55 @@ function SiteHeader() {
   );
 }
 
+/**
+ * The indexable pages that nothing on the crawled site linked to.
+ *
+ * /blog was not the only orphan, just the largest. Crawling the bot-rendered
+ * link graph outward from the homepage reaches 11 of the 26 entries in
+ * sitemap-pages.xml; the 15 below were reachable only through the sitemap,
+ * which carries no internal link equity. Each answers 200, is served
+ * `index, follow`, and renders its own H1 — these are live pages with no
+ * inbound link, not drafts or dead routes.
+ *
+ * /deals and /journey are the sharper half. client/src/components/footer.tsx
+ * has linked both for a while, so the browser and the crawler disagreed about
+ * what the site contains — the same divergence the /blog entry in SiteHeader
+ * fixed, still open for these two.
+ *
+ * Each label is the page's own STATIC_COPY heading from _ssr-preview-source.ts,
+ * copied verbatim, which is the H1 that page already renders. That file imports
+ * this one, so importing the headings back would close a runtime cycle; instead
+ * seo-footer-orphan-links.test.ts pins every label to its heading, so the two
+ * cannot drift apart and an anchor here cannot come to describe a page as
+ * something it is not.
+ */
+export const FOOTER_EXPLORE_LINKS: ReadonlyArray<{ href: string; label: string }> = [
+  { href: "/deals", label: "عروض AQUAVO" },
+  { href: "/journey", label: "رحلة بناء حوضك" },
+  { href: "/beginner-guide", label: "دليل المبتدئ لأحواض الزينة" },
+  { href: "/why-aquavo", label: "ليش تختار AQUAVO؟" },
+  { href: "/calculators", label: "حاسبات أحواض الزينة" },
+  { href: "/aquarium-wizard", label: "مساعد تجهيز الحوض" },
+  { href: "/tank-builder", label: "مخطط تجهيز الحوض" },
+  { href: "/fish-encyclopedia", label: "موسوعة أسماك الزينة" },
+  { href: "/fish-finder", label: "مساعد اختيار أسماك الزينة" },
+  { href: "/fish-compatibility", label: "توافق أسماك الزينة" },
+  { href: "/fish-health", label: "صحة أسماك الزينة" },
+  { href: "/fish-health-diagnosis", label: "مساعد تنظيم أعراض الأسماك" },
+  { href: "/fish-breeding-calculator", label: "حاسبة تفريخ أسماك الزينة" },
+  { href: "/sustainability", label: "الاستدامة في أحواض الزينة" },
+  { href: "/community-gallery", label: "مجتمع أحواض الزينة" },
+];
+
 function SiteFooter() {
   return (
     <footer className="aq-ssr-footer">
       <p>AQUAVO — متجر إلكتروني عراقي متخصص في معدات ومستلزمات أحواض الزينة.</p>
+      <nav aria-label="استكشف AQUAVO">
+        {FOOTER_EXPLORE_LINKS.map(({ href, label }) => (
+          <a key={href} href={href}>{label}</a>
+        ))}
+      </nav>
       <nav aria-label="روابط مهمة">
         <a href="/shipping">الشحن</a>
         <a href="/return-policy">الاسترجاع</a>
