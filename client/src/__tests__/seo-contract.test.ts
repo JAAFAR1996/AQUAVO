@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { canonicalUrlFor, isNoindexPath, productListingSeo } from "@shared/seo-contract";
+import { AQUAVO_ENTITY } from "@/../../shared/seo-contract";
 
 const read = (path: string) => readFileSync(resolve(process.cwd(), path), "utf8");
 
@@ -58,8 +59,20 @@ describe("AQUAVO discoverability contract", () => {
   });
 
   it("publishes the approved legal operator in server-rendered organization data", () => {
+    // This used to pin the literal string in api/ssr-meta.ts. Spelling the
+    // identity out in two places is how it drifted: ssr-meta separated the
+    // legal name with "/" while shared/seo-contract.ts — the source the
+    // crawler-facing graph uses, and therefore the one Google is already
+    // indexed on — separates it with an em dash. ssr-meta now reads from that
+    // contract, so what is pinned here is that it has no identity of its own
+    // to disagree with, and that the contract still holds the approved value.
+    //
+    // That the rendered output actually carries it is asserted against the
+    // real handler in server/__tests__/ssr-schema-parity.test.ts.
     const ssr = read("api/ssr-meta.ts");
-    expect(ssr).toContain('legalName: "محل المنبع / AL NABEA SHOP"');
+    expect(AQUAVO_ENTITY.legalName).toBe("محل المنبع — AL NABEA SHOP");
+    expect(ssr).toContain("legalName: AQUAVO_ENTITY.legalName");
+    expect(ssr).not.toMatch(/legalName:\s*"/);
     expect(ssr).not.toContain('foundingDate: "2024"');
   });
 
