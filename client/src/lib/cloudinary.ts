@@ -143,26 +143,29 @@ export function blogHeroImage(url: string | null | undefined): string {
  * directory still has one, so adding a fifth without its variant fails the
  * build rather than serving a 404.
  *
- * The variant is `.opt.webp`, not `.webp`, and the suffix is load-bearing.
- * Vercel answers a missing static asset with the same
- * `Cache-Control: public, max-age=2678400` it puts on real ones, so a request
- * for an asset that does not exist *yet* is a 404 the CDN then holds for
+ * The variants live in `images/blog/optimized/`, and the separate directory is
+ * load-bearing. Vercel answers a missing static asset with the same
+ * `Cache-Control: public, max-age=2678400` it puts on a real one, so asking
+ * for an asset that does not exist *yet* leaves a 404 the CDN then holds for
  * thirty-one days:
  *
  *   HTTP/1.1 404 Not Found
  *   Cache-Control: public, max-age=2678400, stale-while-revalidate=86400
  *   cf-cache-status: HIT
  *
- * A plain `.webp` had been probed before these were generated, so that URL was
- * already poisoned and kept answering 404 after the files shipped, while the
- * three never probed answered 200. Naming the variant for the transform gives
- * it a URL nothing has asked for, and matches `.card.webp` in
- * `preferLocalProductCardWebp`.
+ * That happened twice here, to `blog_planted_tank.webp` and then to
+ * `blog_planted_tank.opt.webp`, each poisoned by a request made while checking
+ * whether the file had shipped yet — and deploying the file does not undo it.
+ * Sibling variants nobody had asked for beforehand served correctly both
+ * times, which is what identifies the cause. A directory nothing has ever
+ * requested cannot already hold a 404, and unlike a suffix it stays clean for
+ * every future image rather than needing a new one each time.
  */
 const LOCAL_BLOG_IMAGE = /^\/images\/blog\/[^?#]+\.(png|jpe?g)$/i;
 
 function preferGeneratedBlogWebp(url: string): string {
-  return LOCAL_BLOG_IMAGE.test(url) ? url.replace(/\.(png|jpe?g)$/i, ".opt.webp") : url;
+  if (!LOCAL_BLOG_IMAGE.test(url)) return url;
+  return url.replace(/^\/images\/blog\/(.+)\.(png|jpe?g)$/i, "/images/blog/optimized/$1.webp");
 }
 
 function cloudinaryOnly(url: string | null | undefined, options: ImageOptions): string {
