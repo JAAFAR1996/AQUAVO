@@ -35,7 +35,10 @@ async function freshModule() {
 }
 
 function scriptTags(): HTMLScriptElement[] {
-  return [...document.querySelectorAll("script")].filter((s) =>
+  // Array.from, not a spread: the project's tsc target rejects iterating a
+  // NodeList without downlevelIteration, and vitest's esbuild transform is
+  // permissive enough to hide that until CI runs the real type check.
+  return Array.from(document.querySelectorAll("script")).filter((s) =>
     (s.src || "").includes("fbevents.js"),
   );
 }
