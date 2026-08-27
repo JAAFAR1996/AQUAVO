@@ -26,6 +26,10 @@ const shopLinks = [
 
 const learningLinks = [
   { href: "/guides", label: "كل الأدلة" },
+  // The blog had no inbound link anywhere on the site — see the note in
+  // api/_seo-preview-shell.tsx. This is the browser-path half of that fix, so
+  // the two footers stop diverging on what the site says it contains.
+  { href: "/blog", label: "المدونة" },
   { href: "/guides/new-aquarium-setup-iraq", label: "تجهيز حوض جديد" },
   { href: "/guides/filter-choice", label: "اختيار الفلتر" },
   { href: "/guides/aquarium-water-test-guide", label: "فحص ماء الحوض" },

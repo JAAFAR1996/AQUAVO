@@ -354,6 +354,30 @@ async function loadBlogPost(slug: string): Promise<SeoPreviewBlogPost | null> {
   return (rows[0] as SeoPreviewBlogPost | undefined) ?? null;
 }
 
+/**
+ * The blog index, in full and without the article bodies.
+ *
+ * /blog listed 60 of 81 published posts and has no pagination, so 21 posts had
+ * no inbound link from anywhere — /products renders all 112 of its products and
+ * /guides all 12 of its guides; only the blog truncated. Raising the cap on
+ * loadBlogPosts would have pulled 81 full `content` bodies through a function
+ * with a 10s ceiling to render a list that uses only slug, title and excerpt
+ * (see BlogIndexPage/BlogLinks in _seo-preview-shell.tsx), so the index gets its
+ * own projection instead: every post, none of the bodies. `content` is selected
+ * as an empty string to keep SeoPreviewBlogPost's shape intact.
+ */
+async function loadBlogIndexPosts(): Promise<SeoPreviewBlogPost[]> {
+  const { rows } = await getPool().query(
+    `SELECT slug, title, excerpt, '' AS content, category, author,
+            read_time AS "readTime", image_url AS "imageUrl",
+            published_at AS "publishedAt", updated_at AS "updatedAt"
+       FROM blog_posts
+      WHERE is_published = TRUE
+      ORDER BY published_at DESC NULLS LAST`,
+  );
+  return rows as SeoPreviewBlogPost[];
+}
+
 async function loadBlogPosts(limit = 60, excludeSlug?: string): Promise<SeoPreviewBlogPost[]> {
   const { rows } = await getPool().query(
     `SELECT ${BLOG_COLUMNS}
@@ -489,7 +513,7 @@ async function resolvePage(pathname: string, rawCategory?: string): Promise<Reso
   }
 
   if (pathname === "/blog") {
-    const posts = await loadBlogPosts(60);
+    const posts = await loadBlogIndexPosts();
     const copy = STATIC_COPY["/blog"];
     return {
       page: { kind: "blog-index", posts, heading: copy.heading, summary: copy.summary },
