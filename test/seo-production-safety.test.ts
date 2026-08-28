@@ -173,7 +173,10 @@ describe("SEO production safety invariants", () => {
       "/calculators",
       "/journey",
       "/fish-encyclopedia",
-      "/fish-health",
+      // /fish-health used to be listed here. It routes to the same component as
+      // /fish-health-diagnosis and now redirects to it, so the destination is
+      // what the sitemap must carry. See server/__tests__/alias-routes.test.ts.
+      "/fish-health-diagnosis",
       "/sustainability",
       "/contact",
     ]) {
@@ -181,5 +184,9 @@ describe("SEO production safety invariants", () => {
     }
     expect(PUBLIC_INDEXABLE_PATHS).not.toContain("/search");
     expect(PUBLIC_INDEXABLE_PATHS).not.toContain("/checkout");
+    // Redirect-only routes must never be advertised as pages.
+    for (const alias of ["/fish-health", "/aquarium-wizard", "/tank-builder", "/auth", "/fish-doctor"]) {
+      expect(PUBLIC_INDEXABLE_PATHS, alias).not.toContain(alias);
+    }
   });
 });
