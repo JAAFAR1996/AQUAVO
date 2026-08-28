@@ -2,6 +2,7 @@ import { build as esbuild } from "esbuild";
 import { build as viteBuild } from "vite";
 import { rm, readFile, rename, mkdir, writeFile } from "fs/promises";
 import { generateHomeHeroModule } from "./prerender-home-hero.js";
+import { generateStaticPagesModule } from "./prerender-static-pages.js";
 
 // server deps to bundle to reduce openat(2) syscalls
 // which helps cold start times
@@ -66,6 +67,11 @@ async function buildAll() {
   // component rather than a second copy of the markup.
   console.log("prerendering home hero...");
   await generateHomeHeroModule();
+
+  // Prerender the hook-free static pages so the crawler sees the same content
+  // a visitor does. See script/prerender-static-pages.ts.
+  console.log("prerendering static pages...");
+  await generateStaticPagesModule();
 
   // Keep the reviewed semantic SSR implementation separate from the stable
   // Vercel function entry. Build the self-contained runtime first; the tracked
