@@ -669,6 +669,23 @@ async function resolvePage(pathname: string, rawCategory?: string): Promise<Reso
     };
   }
 
+  if (pathname === "/community-gallery") {
+    const copy = STATIC_COPY[pathname];
+    return {
+      page: { kind: "community-gallery", heading: copy.heading, summary: copy.summary },
+      meta: {
+        title: `${copy.heading} | AQUAVO`,
+        description: copy.summary,
+        canonicalPath: pathname,
+        jsonLd: [
+          webPageSchema(copy.heading, copy.summary, pathname),
+          breadcrumbSchema(copy.heading, pathname),
+        ].flat(),
+      },
+      status: 200,
+    };
+  }
+
   if (pathname === "/journey") {
     const copy = STATIC_COPY[pathname];
     return {

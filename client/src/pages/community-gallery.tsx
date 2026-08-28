@@ -10,6 +10,10 @@ import { useToast } from "@/hooks/use-toast";
 import { Upload, Heart, Trophy, Camera, Award, Crown, Star, MessageCircle } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/auth-context";
+import { GALLERY_ENTRY_TERMS, GALLERY_PRIZES } from "@shared/gallery-terms";
+
+/** Decoration only; the prize wording is shared with the crawler view. */
+const PRIZE_ICONS = ["🏆", "⭐", "📱", "👑"];
 import { Link } from "wouter";
 import { addCsrfHeader } from "@/lib/csrf";
 
@@ -454,48 +458,24 @@ export default function CommunityGallery() {
             <div>
               <h3 className="font-bold mb-3">📋 الشروط:</h3>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li className="flex items-start gap-2">
-                  <span className="text-primary mt-1">•</span>
-                  <span>الصورة يجب أن تكون لحوض أسماك حقيقي تملكه</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-primary mt-1">•</span>
-                  <span>جودة الصورة واضحة (دقة عالية)</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-primary mt-1">•</span>
-                  <span>يمكنك المشاركة مرة واحدة شهرياً</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-primary mt-1">•</span>
-                  <span>الصور تخضع للمراجعة قبل النشر</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-primary mt-1">•</span>
-                  <span>الفائز يُختار من قبل إدارة AQUAVO</span>
-                </li>
+                {GALLERY_ENTRY_TERMS.map((term) => (
+                  <li key={term} className="flex items-start gap-2">
+                    <span className="text-primary mt-1">•</span>
+                    <span>{term}</span>
+                  </li>
+                ))}
               </ul>
             </div>
 
             <div>
               <h3 className="font-bold mb-3">🎁 الجوائز:</h3>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li className="flex items-start gap-2">
-                  <span className="text-yellow-500 mt-1">🏆</span>
-                  <span>كوبون خصم على المنتجات (تحدده الإدارة)</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-yellow-500 mt-1">⭐</span>
-                  <span>عرض صورتك واسمك في الصفحة الرئيسية</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-yellow-500 mt-1">📱</span>
-                  <span>مشاركة حوضك على حسابات AQUAVO</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-yellow-500 mt-1">👑</span>
-                  <span>شهادة "أفضل حوض الشهر"</span>
-                </li>
+                {GALLERY_PRIZES.map((prize, index) => (
+                  <li key={prize} className="flex items-start gap-2">
+                    <span className="text-yellow-500 mt-1">{PRIZE_ICONS[index]}</span>
+                    <span>{prize}</span>
+                  </li>
+                ))}
               </ul>
             </div>
           </div>
