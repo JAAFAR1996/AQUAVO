@@ -187,21 +187,30 @@
   animation: aqv-first-dive-mark 780ms var(--aqv-e-meniscus) forwards !important;
 }
 
+/* The line spans its final width and is scaled, rather than being grown by
+   animating inset-inline. inset-inline is a layout property: animating it moved
+   a rendered element every frame and Chrome scored each step as a layout shift,
+   which made this the dominant CLS contributor on a first visit. transform is
+   exempt from layout-shift scoring and composites, and because width is linear
+   in inset the scaleX values below reproduce the original motion exactly.
+   client/src/__tests__/intro-animation-cls.test.ts pins this. */
 .aqv-first-dive__line {
   position: absolute;
-  inset-inline: 50%;
+  inset-inline: 0;
   top: 50%;
   height: 2px;
+  transform-origin: center;
   background: linear-gradient(90deg, transparent, #C4F7FF 24%, #0B93A6 50%, #C4F7FF 76%, transparent);
   box-shadow: 0 0 24px rgb(196 247 255 / 70%);
   animation: aqv-first-dive-line 760ms var(--aqv-e-meniscus) forwards !important;
 }
 
 @keyframes aqv-first-dive-line {
-  0% { inset-inline: 50%; opacity: 0; }
+  /* inset-inline 50% -> 8% -> 0 spans width 0% -> 84% -> 100%. */
+  0% { transform: scaleX(0); opacity: 0; }
   22% { opacity: 1; }
-  62% { inset-inline: 8%; opacity: 1; }
-  100% { inset-inline: 0; opacity: 0; }
+  62% { transform: scaleX(.84); opacity: 1; }
+  100% { transform: scaleX(1); opacity: 0; }
 }
 
 @keyframes aqv-first-dive-mark {
