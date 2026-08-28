@@ -788,8 +788,15 @@ function defaultStaticPageJsonLd(path: string, meta: PageMeta): object[] {
 function withStaticPageGraph(path: string, meta: PageMeta): object[] {
   const own = meta.jsonLd ? (Array.isArray(meta.jsonLd) ? meta.jsonLd : [meta.jsonLd]) : null;
   if (!own) return defaultStaticPageJsonLd(path, meta);
+  // The homepage is the root of the hierarchy a breadcrumb describes, so it has
+  // no trail to state. #158 gave it one anyway, and it came out self-referential
+  // — "الرئيسية" and then the page's own 63-character SEO title, both pointing
+  // at the homepage, the site listed as a child of itself. The suffix stripper
+  // left that title whole because it ends in "أغذية" rather than "AQUAVO", so
+  // the crumb was the entire meta title.
+  const wantsCrumb = path !== "/";
   const hasCrumb = own.some((node) => (node as Record<string, unknown>)?.["@type"] === "BreadcrumbList");
-  return hasCrumb ? own : [...own, breadcrumbFor(path, staticPageName(meta))];
+  return hasCrumb || !wantsCrumb ? own : [...own, breadcrumbFor(path, staticPageName(meta))];
 }
 
 async function resolveMetadata(pathname: string, notFound = false): Promise<PageMeta & { url: string; image: string }> {
@@ -876,9 +883,10 @@ async function resolveMetadata(pathname: string, notFound = false): Promise<Page
     // from the override. A page with no override has no name of its own to be
     // a crumb — it is an unknown path the handler answers 404 — so it gets
     // none.
-    jsonLd: seoOverride
-      ? [breadcrumbFor(cleanPath, staticPageName({ title: seoOverride.title || DEFAULT_TITLE } as PageMeta))]
-      : undefined,
+    jsonLd:
+      seoOverride && cleanPath !== "/"
+        ? [breadcrumbFor(cleanPath, staticPageName({ title: seoOverride.title || DEFAULT_TITLE } as PageMeta))]
+        : undefined,
   };
 }
 
