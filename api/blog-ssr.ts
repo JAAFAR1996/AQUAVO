@@ -129,7 +129,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
           wordCount,
           inLanguage: "ar",
           mainEntityOfPage: { "@type": "WebPage", "@id": canonicalUrl },
-          isPartOf: { "@type": "WebSite", name: "AQUAVO", url: CANONICAL_ORIGIN },
+          isPartOf: { "@id": `${CANONICAL_ORIGIN}/#website` },
         },
         {
           "@context": "https://schema.org",
