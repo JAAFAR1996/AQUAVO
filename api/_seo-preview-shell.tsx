@@ -74,6 +74,7 @@ export type SeoPreviewPage =
   | { kind: "product"; product: SeoPreviewProduct; related: SeoPreviewProduct[]; reviews?: SeoPreviewReview[] }
   | { kind: "faq" }
   | { kind: "about" }
+  | { kind: "fish-encyclopedia"; species: SeoPreviewFish[]; heading: string; summary: string }
   | { kind: "static"; heading: string; summary: string; path: string; paragraphs?: string[]; prerendered?: string }
   | { kind: "blog-index"; posts: SeoPreviewBlogPost[]; heading: string; summary: string }
   | { kind: "blog-post"; post: SeoPreviewBlogPost; related: SeoPreviewBlogPost[] }
@@ -500,6 +501,41 @@ function StaticPage({ heading, summary, paragraphs = [], prerendered }: { headin
   );
 }
 
+
+/**
+ * The species list a crawler receives, built from the fish_species rows the
+ * resolver read. Every value printed is a column: nothing is computed,
+ * translated or asserted about a species beyond what the table holds, and the
+ * count comes from the array rather than a written number.
+ *
+ * AQUAVO does not sell live animals, so this deliberately reads as a reference
+ * list — no price, availability or purchase language anywhere.
+ */
+function FishEncyclopediaPage({ species, heading, summary }: { species: SeoPreviewFish[]; heading: string; summary: string }) {
+  return (
+    <main id="main-content">
+      <nav className="aq-ssr-breadcrumb" aria-label="مسار الصفحة"><a href="/">الرئيسية</a><span>/</span><span>{heading}</span></nav>
+      <h1>{heading}</h1>
+      <p>{summary}</p>
+      <p>تضم الموسوعة {species.length} نوعاً موثقاً من أسماك الزينة. AQUAVO متجر معدات ومستلزمات أحواض ولا يبيع أسماكاً أو كائنات حية؛ هذه الصفحة مرجع تعليمي للعناية والتوافق قبل التجهيز.</p>
+      <section aria-labelledby="aq-fish-list-title">
+        <h2 id="aq-fish-list-title">الأنواع الموثقة</h2>
+        {species.map((fish) => (
+          <article key={fish.id}>
+            <h3>{fish.arabicName} — {fish.commonName}</h3>
+            <p><em>{fish.scientificName}</em>{fish.family ? ` · ${fish.family}` : ""}{fish.origin ? ` · ${fish.origin}` : ""}</p>
+            {typeof fish.minTankSize === "number" && fish.minTankSize > 0 && (
+              <p>أقل حجم حوض مناسب: {fish.minTankSize} لتر.</p>
+            )}
+            <p>{fish.description}</p>
+          </article>
+        ))}
+      </section>
+      <p><a href="/fish-compatibility">توافق أسماك الزينة</a> · <a href="/products">معدات ومستلزمات الأحواض</a></p>
+    </main>
+  );
+}
+
 function BlogIndexPage({ posts, heading, summary }: { posts: SeoPreviewBlogPost[]; heading: string; summary: string }) {
   return (
     <main id="main-content">
@@ -634,6 +670,7 @@ function SeoPreviewShell({ page }: { page: SeoPreviewPage }) {
       {page.kind === "faq" && <FaqPage />}
       {page.kind === "about" && <AboutPage />}
       {page.kind === "static" && <StaticPage heading={page.heading} summary={page.summary} path={page.path} paragraphs={page.paragraphs} prerendered={page.prerendered} />}
+      {page.kind === "fish-encyclopedia" && <FishEncyclopediaPage species={page.species} heading={page.heading} summary={page.summary} />}
       {page.kind === "blog-index" && <BlogIndexPage posts={page.posts} heading={page.heading} summary={page.summary} />}
       {page.kind === "blog-post" && <BlogPostPage post={page.post} related={page.related} />}
       {page.kind === "not-found" && <NotFoundPage />}

@@ -14,6 +14,7 @@ import {
   SEO_FAQ_ITEMS,
   type SeoPreviewPage,
   type SeoPreviewBlogPost,
+  type SeoPreviewFish,
   type SeoPreviewProduct,
   type SeoPreviewReview,
 } from "./_seo-preview-shell.js";
@@ -371,6 +372,27 @@ async function loadBlogPost(slug: string): Promise<SeoPreviewBlogPost | null> {
  * own projection instead: every post, none of the bodies. `content` is selected
  * as an empty string to keep SeoPreviewBlogPost's shape intact.
  */
+/**
+ * The species a crawler is shown come from the same table /api/fish reads, at
+ * request time, so the encyclopedia cannot drift from the application and new
+ * rows appear without a rebuild.
+ *
+ * Only columns that are printed are selected. There is deliberately no fallback
+ * to shared/initial-fish-data.ts here: that file is the API's emergency copy,
+ * and publishing it to a crawler could announce species the live database no
+ * longer has. An empty or failing query degrades to the page's summary instead.
+ */
+async function loadFishSpecies(): Promise<SeoPreviewFish[]> {
+  const { rows } = await getPool().query(
+    `SELECT id, common_name AS "commonName", arabic_name AS "arabicName",
+            scientific_name AS "scientificName", family, origin,
+            min_tank_size AS "minTankSize", description
+       FROM fish_species
+      ORDER BY arabic_name`,
+  );
+  return rows as SeoPreviewFish[];
+}
+
 async function loadBlogIndexPosts(): Promise<SeoPreviewBlogPost[]> {
   const { rows } = await getPool().query(
     `SELECT slug, title, excerpt, '' AS content, category, author,
@@ -621,6 +643,34 @@ async function resolvePage(pathname: string, rawCategory?: string): Promise<Reso
       },
       status: 200,
     };
+  }
+
+  if (pathname === "/fish-encyclopedia") {
+    const copy = STATIC_COPY[pathname];
+    // A failed or empty read must not turn into "0 species": fall through to the
+    // summary, which is thin but true. server/__tests__/fish-encyclopedia-crawler
+    // pins both directions.
+    let species: SeoPreviewFish[] = [];
+    try {
+      species = await loadFishSpecies();
+    } catch {
+      species = [];
+    }
+    if (species.length > 0) {
+      return {
+        page: { kind: "fish-encyclopedia", species, heading: copy.heading, summary: copy.summary },
+        meta: {
+          title: `${copy.heading} | AQUAVO`,
+          description: copy.summary,
+          canonicalPath: pathname,
+          jsonLd: [
+            webPageSchema(copy.heading, copy.summary, pathname),
+            breadcrumbSchema(copy.heading, pathname),
+          ].flat(),
+        },
+        status: 200,
+      };
+    }
   }
 
   const copy = STATIC_COPY[pathname];
