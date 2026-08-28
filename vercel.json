@@ -184,6 +184,21 @@
       "permanent": true
     },
     {
+      "source": "/fish-health",
+      "destination": "/fish-health-diagnosis",
+      "permanent": true
+    },
+    {
+      "source": "/fish-doctor",
+      "destination": "/fish-health-diagnosis",
+      "permanent": true
+    },
+    {
+      "source": "/auth",
+      "destination": "/login",
+      "permanent": true
+    },
+    {
       "source": "/temperature-guide",
       "destination": "/guides/temperature-guide",
       "permanent": true

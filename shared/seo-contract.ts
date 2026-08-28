@@ -98,7 +98,6 @@ export const PUBLIC_INDEXABLE_PATHS = Object.freeze([
   "/fish-finder",
   "/fish-compatibility",
   "/community-gallery",
-  "/fish-health",
   "/fish-health-diagnosis",
   "/fish-breeding-calculator",
   "/sustainability",

@@ -24,14 +24,32 @@ const VERCEL_CONFIG = JSON.parse(
   readFileSync(resolve(process.cwd(), "vercel.json"), "utf8"),
 ) as { redirects?: Array<{ source: string; destination: string; permanent?: boolean }> };
 
-const ALIASES = ["/aquarium-wizard", "/tank-builder"];
+/**
+ * Every route whose component only redirects. Each answered 200 with
+ * `index, follow` on production, so a crawler was invited to index a URL whose
+ * whole content is a redirect it may never run. /fish-health was additionally
+ * listed in sitemap-pages.xml and routes to the same component as
+ * /fish-health-diagnosis, which is the real destination: /fish-doctor already
+ * redirected there and fish-patients.tsx navigates to it.
+ *
+ * /cart, /admin-login and /returns redirect too but are already served
+ * noindex, so they are left alone.
+ */
+const ALIAS_TARGETS: Record<string, string> = {
+  "/aquarium-wizard": "/journey",
+  "/tank-builder": "/journey",
+  "/fish-health": "/fish-health-diagnosis",
+  "/fish-doctor": "/fish-health-diagnosis",
+  "/auth": "/login",
+};
+const ALIASES = Object.keys(ALIAS_TARGETS);
 
-describe("wizard aliases are redirects, not indexable pages", () => {
-  it("redirects each alias to /journey permanently", () => {
+describe("redirect-only routes are redirects, not indexable pages", () => {
+  it("redirects each alias to its real destination, permanently", () => {
     for (const alias of ALIASES) {
       const rule = (VERCEL_CONFIG.redirects ?? []).find((entry) => entry.source === alias);
       expect(rule, `${alias} needs a redirect in vercel.json`).toBeDefined();
-      expect(rule?.destination, `${alias} destination`).toBe("/journey");
+      expect(rule?.destination, `${alias} destination`).toBe(ALIAS_TARGETS[alias]);
       expect(rule?.permanent, `${alias} should be permanent`).toBe(true);
     }
   });
@@ -49,8 +67,9 @@ describe("wizard aliases are redirects, not indexable pages", () => {
     for (const alias of ALIASES) {
       expect(linked, `${alias} should not be a footer destination`).not.toContain(alias);
     }
-    // The page they redirect to is still reachable, so nothing is orphaned.
+    // The pages they redirect to stay reachable, so nothing is orphaned.
     expect(linked).toContain("/journey");
+    expect(linked).toContain("/fish-health-diagnosis");
   });
 
   it("still routes them in the client so an in-app link keeps working", () => {

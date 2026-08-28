@@ -262,7 +262,6 @@ export const FOOTER_EXPLORE_LINKS: ReadonlyArray<{ href: string; label: string }
   { href: "/fish-encyclopedia", label: "موسوعة أسماك الزينة" },
   { href: "/fish-finder", label: "مساعد اختيار أسماك الزينة" },
   { href: "/fish-compatibility", label: "توافق أسماك الزينة" },
-  { href: "/fish-health", label: "صحة أسماك الزينة" },
   { href: "/fish-health-diagnosis", label: "مساعد تنظيم أعراض الأسماك" },
   { href: "/fish-breeding-calculator", label: "حاسبة تفريخ أسماك الزينة" },
   { href: "/sustainability", label: "الاستدامة في أحواض الزينة" },

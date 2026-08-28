@@ -1100,7 +1100,7 @@ const IMPORTANT_INTERNAL_LINK_GROUPS = [
       { href: "/tank-builder", label: "مصمم الحوض" },
       { href: "/fish-finder", label: "اختيار السمك المناسب" },
       { href: "/fish-compatibility", label: "توافق الأسماك" },
-      { href: "/fish-health", label: "تشخيص مشاكل الأسماك" },
+      { href: "/fish-health-diagnosis", label: "تشخيص مشاكل الأسماك" },
       { href: "/ai-tools", label: "أدوات تعليمية" },
     ],
   },

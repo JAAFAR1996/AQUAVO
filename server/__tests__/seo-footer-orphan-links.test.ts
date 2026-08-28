@@ -25,7 +25,8 @@ import { STATIC_COPY } from "../../api/_ssr-preview-source";
 // /aquarium-wizard and /tank-builder were on this list until they turned out to
 // be redirects to /journey rather than pages; they are now server-side
 // redirects and out of the sitemap, so there is nothing to orphan. See
-// server/__tests__/alias-routes.test.ts.
+// server/__tests__/alias-routes.test.ts. /fish-health left for the same
+// reason: it redirects to /fish-health-diagnosis, which stays listed.
 const PREVIOUSLY_ORPHANED = [
   "/deals",
   "/journey",
@@ -35,7 +36,6 @@ const PREVIOUSLY_ORPHANED = [
   "/fish-encyclopedia",
   "/fish-finder",
   "/fish-compatibility",
-  "/fish-health",
   "/fish-health-diagnosis",
   "/fish-breeding-calculator",
   "/sustainability",
