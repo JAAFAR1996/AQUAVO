@@ -382,6 +382,30 @@ async function loadBlogPost(slug: string): Promise<SeoPreviewBlogPost | null> {
  * and publishing it to a crawler could announce species the live database no
  * longer has. An empty or failing query degrades to the page's summary instead.
  */
+/**
+ * The offers a crawler sees are the rows the database marks as discounted --
+ * original_price above price -- which is the same rule the deals page applies
+ * to the products it fetches. No price is recomputed here; the row's own
+ * values are printed.
+ */
+async function loadDealProducts(): Promise<SeoPreviewProduct[]> {
+  const { rows } = await getPool().query(
+    `SELECT id, slug, name, description, price, original_price AS "originalPrice",
+            currency, brand, category, stock, thumbnail, images,
+            has_variants AS "hasVariants", variants, rating,
+            review_count AS "reviewCount"
+       FROM products
+      WHERE deleted_at IS NULL
+        AND slug IS NOT NULL
+        AND slug <> ''
+        AND original_price IS NOT NULL
+        AND original_price::numeric > price::numeric
+      ORDER BY updated_at DESC NULLS LAST, name ASC
+      LIMIT 250`,
+  );
+  return rows.map(sanitizeSeoProductVariants) as SeoPreviewProduct[];
+}
+
 async function loadFishSpecies(): Promise<SeoPreviewFish[]> {
   const { rows } = await getPool().query(
     `SELECT id, common_name AS "commonName", arabic_name AS "arabicName",
@@ -643,6 +667,32 @@ async function resolvePage(pathname: string, rawCategory?: string): Promise<Reso
       },
       status: 200,
     };
+  }
+
+  if (pathname === "/deals") {
+    const copy = STATIC_COPY[pathname];
+    // Nothing on sale must not become "0 offers": fall through to the summary.
+    let deals: SeoPreviewProduct[] = [];
+    try {
+      deals = await loadDealProducts();
+    } catch {
+      deals = [];
+    }
+    if (deals.length > 0) {
+      return {
+        page: { kind: "deals", products: deals, heading: copy.heading, summary: copy.summary },
+        meta: {
+          title: `${copy.heading} | AQUAVO`,
+          description: copy.summary,
+          canonicalPath: pathname,
+          jsonLd: [
+            webPageSchema(copy.heading, copy.summary, pathname),
+            breadcrumbSchema(copy.heading, pathname),
+          ].flat(),
+        },
+        status: 200,
+      };
+    }
   }
 
   if (pathname === "/fish-encyclopedia") {

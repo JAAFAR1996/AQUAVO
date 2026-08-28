@@ -75,6 +75,7 @@ export type SeoPreviewPage =
   | { kind: "faq" }
   | { kind: "about" }
   | { kind: "fish-encyclopedia"; species: SeoPreviewFish[]; heading: string; summary: string }
+  | { kind: "deals"; products: SeoPreviewProduct[]; heading: string; summary: string }
   | { kind: "static"; heading: string; summary: string; path: string; paragraphs?: string[]; prerendered?: string }
   | { kind: "blog-index"; posts: SeoPreviewBlogPost[]; heading: string; summary: string }
   | { kind: "blog-post"; post: SeoPreviewBlogPost; related: SeoPreviewBlogPost[] }
@@ -536,6 +537,40 @@ function FishEncyclopediaPage({ species, heading, summary }: { species: SeoPrevi
   );
 }
 
+
+/**
+ * The discounted products, rendered from the rows the resolver read. Both the
+ * current and the original price come straight from the row, and the count is
+ * the array length, so the page cannot advertise an offer the database does not
+ * have.
+ */
+function DealsPage({ products, heading, summary }: { products: SeoPreviewProduct[]; heading: string; summary: string }) {
+  return (
+    <main id="main-content">
+      <nav className="aq-ssr-breadcrumb" aria-label="مسار الصفحة"><a href="/">الرئيسية</a><span>/</span><span>{heading}</span></nav>
+      <h1>{heading}</h1>
+      <p>{summary}</p>
+      <p>{products.length} منتج عليه تخفيض حالياً حسب المخزون المسجل.</p>
+      <section aria-labelledby="aq-deals-list-title">
+        <h2 id="aq-deals-list-title">المنتجات المخفّضة</h2>
+        <ul className="aq-ssr-products" aria-label="روابط العروض">
+          {products.map((product) => (
+            <li key={product.slug}>
+              <a href={`/products/${encodeURIComponent(product.slug)}`}>{product.name}</a>
+              {" — "}
+              <span>{formatMoney(Number(product.price), product.currency ?? "IQD")}</span>
+              {product.originalPrice != null && (
+                <> <s>{formatMoney(Number(product.originalPrice), product.currency ?? "IQD")}</s></>
+              )}
+              <p>{cleanText(product.description, `${product.name} من AQUAVO.`)}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+    </main>
+  );
+}
+
 function BlogIndexPage({ posts, heading, summary }: { posts: SeoPreviewBlogPost[]; heading: string; summary: string }) {
   return (
     <main id="main-content">
@@ -671,6 +706,7 @@ function SeoPreviewShell({ page }: { page: SeoPreviewPage }) {
       {page.kind === "about" && <AboutPage />}
       {page.kind === "static" && <StaticPage heading={page.heading} summary={page.summary} path={page.path} paragraphs={page.paragraphs} prerendered={page.prerendered} />}
       {page.kind === "fish-encyclopedia" && <FishEncyclopediaPage species={page.species} heading={page.heading} summary={page.summary} />}
+      {page.kind === "deals" && <DealsPage products={page.products} heading={page.heading} summary={page.summary} />}
       {page.kind === "blog-index" && <BlogIndexPage posts={page.posts} heading={page.heading} summary={page.summary} />}
       {page.kind === "blog-post" && <BlogPostPage post={page.post} related={page.related} />}
       {page.kind === "not-found" && <NotFoundPage />}
