@@ -4,6 +4,7 @@ import {
   renderGuideMarkdown,
   type GuidePage,
 } from "./_guides-content.js";
+import { SPA_GUIDE_PAGES } from "./_guides-content-spa.js";
 import { canonicalProductCategory } from "../shared/seo-contract.js";
 import { withSiteEntities } from "./_seo-structured-data.js";
 
@@ -22,7 +23,7 @@ const CANONICAL_SOURCE_FALLBACKS: Record<string, string[]> = {
   "/guides/5-mistakes": ["/guides/5-mistakes", "/guides/beginner-aquarium-mistakes"],
 };
 
-const EXTRA_GUIDE_PAGES: Record<string, GuidePage> = {
+const INLINE_EXTRA_GUIDE_PAGES: Record<string, GuidePage> = {
   "/guides/cloudy-water-causes": {
     title: "ليش ماء الحوض يصير عكر؟ الأسباب والحل خطوة بخطوة | AQUAVO",
     description: "دليل عملي لتحديد سبب عكورة ماء الحوض: غبار الركيزة، ازدهار بكتيري، إفراط بالتغذية، أو ضعف الفلترة، مع خطوات آمنة للتصحيح.",
@@ -210,6 +211,17 @@ const EXTRA_GUIDE_PAGES: Record<string, GuidePage> = {
       { label: "قائمة صيانة الحوض", href: "/guides/aquarium-maintenance-checklist" },
     ],
   },
+};
+
+/**
+ * The guides the crawler path can serve: the ones defined inline above plus
+ * the SPA-only guides ported in _guides-content-spa.ts. Merging here keeps
+ * resolveGuidePage and canonicalGuidePaths — and therefore the crawler HTML,
+ * the guides index and sitemap-guides.xml — working from one list.
+ */
+const EXTRA_GUIDE_PAGES: Record<string, GuidePage> = {
+  ...INLINE_EXTRA_GUIDE_PAGES,
+  ...SPA_GUIDE_PAGES,
 };
 
 function cleanPath(pathname: string): string {
