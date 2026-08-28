@@ -669,6 +669,23 @@ async function resolvePage(pathname: string, rawCategory?: string): Promise<Reso
     };
   }
 
+  if (pathname === "/journey") {
+    const copy = STATIC_COPY[pathname];
+    return {
+      page: { kind: "journey", heading: copy.heading, summary: copy.summary },
+      meta: {
+        title: `${copy.heading} | AQUAVO`,
+        description: copy.summary,
+        canonicalPath: pathname,
+        jsonLd: [
+          webPageSchema(copy.heading, copy.summary, pathname),
+          breadcrumbSchema(copy.heading, pathname),
+        ].flat(),
+      },
+      status: 200,
+    };
+  }
+
   if (pathname === "/deals") {
     const copy = STATIC_COPY[pathname];
     // Nothing on sale must not become "0 offers": fall through to the summary.
