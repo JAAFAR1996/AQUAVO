@@ -6,6 +6,7 @@ import { HTML_TEMPLATE } from "./_html-template.js";
 import { GUIDE_CONTENT_PAGES, renderGuidesIndexHtml, renderGuidesIndexMarkdown } from "./_guides-content.js";
 import { renderCanonicalGuideHtml, renderCanonicalGuideMarkdown, resolveGuidePage } from "./_canonical-guides.js";
 import { SPA_GUIDE_PAGES } from "./_guides-content-spa.js";
+import { HOME_HERO_HTML } from "./_home-hero-html.js";
 import { getSeoMetaOverride } from "./_seo-content.js";
 import { AQUAVO_FAQ_ITEMS } from "../shared/faq-content.js";
 import { toPublicProduct, toPublicVariant } from "../shared/public-product.js";
@@ -903,6 +904,32 @@ function safeJsonLd(obj: object): string {
 }
 
 // ─── Inject metadata into HTML ──────────────────────────────────────────────
+/**
+ * Homepage routes that render the React <Home> page, and so the same hero.
+ * Everything else keeps the empty shell it has today.
+ */
+const HOME_HERO_PATHS = new Set(["/", "/ar"]);
+
+/**
+ * Put the prerendered hero inside #root so the LCP image can paint before the
+ * React bundle executes. main.tsx mounts with createRoot().render(), which
+ * clears the container on its first render, so React replaces this markup
+ * rather than duplicating it and no hydration comparison ever happens.
+ *
+ * The match is deliberately anchored to the empty #root element: if the shell
+ * ever ships with content of its own this becomes a no-op instead of silently
+ * dropping it. server/__tests__/home-hero-shell.test.ts pins both halves.
+ */
+export function injectHomeHero(html: string, pathname: string): string {
+  if (!HOME_HERO_PATHS.has(pathname)) return html;
+  // A function replacer, not a string: the hero markup is arbitrary HTML and
+  // "$&"-style sequences in a replacement string would be substituted.
+  return html.replace(
+    /(<div id="root"(?:\s[^>]*)?>)\s*(<\/div>)/,
+    (_match, open: string, close: string) => `${open}${HOME_HERO_HTML}${close}`,
+  );
+}
+
 export function injectMeta(html: string, meta: PageMeta & { url: string; image: string }): string {
   let jsonLdScript = "";
   if (!meta.notFound) {
@@ -1260,7 +1287,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const template = getTemplate();
     const status = isKnownSitePath(pathname, Object.keys(GUIDE_CONTENT_PAGES)) ? 200 : 404;
     const meta = await resolveMetadata(pathname, status === 404);
-    const html = injectMeta(template, meta);
+    const html = injectHomeHero(injectMeta(template, meta), pathname);
 
     // Markdown for Agents: If Accept: text/markdown, return markdown version
     const acceptHeader = (req.headers.accept || "").toLowerCase();
