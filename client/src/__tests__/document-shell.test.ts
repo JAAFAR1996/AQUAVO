@@ -30,7 +30,11 @@ describe("document shell", () => {
 
   it("preloads the real hero LCP asset with sizes matching the runtime <img> on the home page", () => {
     const html = readFileSync(resolve(process.cwd(), "client/index.html"), "utf8");
-    const home = readFileSync(resolve(process.cwd(), "client/src/pages/home.tsx"), "utf8");
+    // The hero moved into its own component so the build can prerender it;
+    // read both so this still checks whatever the home page actually renders.
+    const home =
+      readFileSync(resolve(process.cwd(), "client/src/pages/home.tsx"), "utf8") +
+      readFileSync(resolve(process.cwd(), "client/src/components/home/home-hero.tsx"), "utf8");
 
     // The static preload in the document shell must reference the same file the
     // home page actually renders as its LCP image (otherwise the preload wastes

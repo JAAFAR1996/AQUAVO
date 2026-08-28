@@ -169,7 +169,11 @@ describe("Home — Phase C structure and landmarks", () => {
 });
 
 describe("Home — Phase C identity guardrails", () => {
-  const source = readFileSync(path.resolve(__dirname, "../home.tsx"), "utf-8");
+  // The hero lives in its own component so the build can prerender it. These
+  // guardrails are about what the home page renders, so cover both files.
+  const source =
+    readFileSync(path.resolve(__dirname, "../home.tsx"), "utf-8") +
+    readFileSync(path.resolve(__dirname, "../../components/home/home-hero.tsx"), "utf-8");
 
   it("does not introduce rejected AQUAVO colors", () => {
     const rejected = ["#FF7B5A", "#ff7b5a", "#FFD700", "#ffd700", "#199BB8", "#199bb8", "#7ed9e3", "#7ED9E3"];
