@@ -204,11 +204,22 @@ function jsonLdEntities(html: string): Array<{ "@type"?: string; [key: string]: 
 }
 
 describe("structured data deduplication contract", () => {
-  it("emits exactly one Organization and one WebSite entity for the home page", async () => {
+  it("emits exactly one organization and one website entity for the home page", async () => {
     const html = await render("/");
     const entities = jsonLdEntities(html);
-    expect(entities.filter((e) => e["@type"] === "Organization")).toHaveLength(1);
-    expect(entities.filter((e) => e["@type"] === "WebSite")).toHaveLength(1);
+    // Counted by @id, not by @type. What this contract is about is that the
+    // site is described once — that a client component has not rendered a
+    // second copy — and identity lives in the @id. Matching the literal string
+    // "Organization" also asserted a type, which is a different claim: the
+    // homepage now declares the OnlineStore subtype, the same one
+    // buildEntityStructuredData and every other page already used for this very
+    // @id. Counting @ids keeps the deduplication guarantee exactly as strict
+    // while letting the entity be described as precisely as it truthfully can.
+    const withId = (id: string) => entities.filter((e) => e["@id"] === `https://www.aquavoiq.com/${id}`);
+    expect(withId("#organization")).toHaveLength(1);
+    expect(withId("#website")).toHaveLength(1);
+    // Still a kind of organization, not something unrelated.
+    expect(["Organization", "OnlineStore"]).toContain(withId("#organization")[0]["@type"]);
   });
 
   it("emits exactly one Product and one BreadcrumbList entity for a product detail page", async () => {

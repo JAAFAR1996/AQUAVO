@@ -95,7 +95,17 @@ const STATIC_PAGES: Record<string, PageMeta> = {
     jsonLd: [
       {
         "@context": "https://schema.org",
-        "@type": "Organization",
+        // OnlineStore, not Organization. This node and the one
+        // buildEntityStructuredData publishes share the @id #organization, so
+        // Google reads them as one entity — but this one said Organization
+        // while that one, the crawler path, and every other browser page said
+        // OnlineStore, leaving the homepage the single place the site called
+        // itself the less specific type. OnlineStore is a subtype of
+        // Organization, so this narrows the claim rather than widening it, and
+        // asserts nothing the site does not already assert everywhere else.
+        // withSiteEntities counts OnlineStore as a site entity too, so the
+        // homepage still supplies its own and gains no duplicate.
+        "@type": "OnlineStore",
         "@id": `${BASE}/#organization`,
         name: "AQUAVO",
         // Identity comes from shared/seo-contract.ts, the same source the
@@ -854,6 +864,21 @@ async function resolveMetadata(pathname: string, notFound = false): Promise<Page
     noIndex,
     image: DEFAULT_IMAGE,
     ogType: "website",
+    // /sustainability and /aquarium-wizard are in sitemap-pages.xml and are
+    // served `index, follow`, but they have no STATIC_PAGES entry — their copy
+    // comes from getSeoMetaOverride — so they reached this fallback and were
+    // the two pages the STATIC_PAGES breadcrumb fix could not touch. They kept
+    // publishing a trail to crawlers and none to browsers.
+    //
+    // The trail is built from the title this fallback already resolved rather
+    // than by copying their wording into STATIC_PAGES, which would give the
+    // same two pages a second source of truth for their names, free to drift
+    // from the override. A page with no override has no name of its own to be
+    // a crumb — it is an unknown path the handler answers 404 — so it gets
+    // none.
+    jsonLd: seoOverride
+      ? [breadcrumbFor(cleanPath, staticPageName({ title: seoOverride.title || DEFAULT_TITLE } as PageMeta))]
+      : undefined,
   };
 }
 

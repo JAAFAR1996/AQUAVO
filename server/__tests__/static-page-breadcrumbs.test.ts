@@ -91,6 +91,25 @@ describe("static pages publish a breadcrumb to browsers too", () => {
     expect(typed(html, "BreadcrumbList").length, `${path} has no BreadcrumbList`).toBe(1);
   });
 
+  // These two are in sitemap-pages.xml and served `index, follow`, but have no
+  // STATIC_PAGES entry — their copy comes from getSeoMetaOverride — so the
+  // STATIC_PAGES fix could not reach them. Verified live on 10258ea4: 15 of the
+  // 17 gap pages were closed and exactly these two still published none.
+  it.each(["/sustainability", "/aquarium-wizard"])(
+    "gives %s a trail even though it has no STATIC_PAGES entry",
+    async (path) => {
+      const html = await render(path);
+      const crumbs = typed(html, "BreadcrumbList");
+      expect(crumbs.length, `${path} has no BreadcrumbList`).toBe(1);
+      const items = (crumbs[0] as { itemListElement: Array<Record<string, unknown>> }).itemListElement;
+      expect(items[0].name).toBe("الرئيسية");
+      expect(items[1].item).toBe(`https://www.aquavoiq.com${path}`);
+      expect(String(items[1].name)).not.toMatch(/\|\s*AQUAVO\s*$/);
+      // Named from the override, not from the homepage default title.
+      expect(String(items[1].name)).not.toBe("AQUAVO");
+    },
+  );
+
   it("adds no breadcrumb to a 404, which describes no page", async () => {
     const html = await render("/this-route-does-not-exist-xyz");
     expect(typed(html, "BreadcrumbList")).toHaveLength(0);
