@@ -5,6 +5,7 @@ import ws from "ws";
 import { HTML_TEMPLATE } from "./_html-template.js";
 import { GUIDE_CONTENT_PAGES, renderGuidesIndexHtml, renderGuidesIndexMarkdown } from "./_guides-content.js";
 import { renderCanonicalGuideHtml, renderCanonicalGuideMarkdown, resolveGuidePage } from "./_canonical-guides.js";
+import { SPA_GUIDE_PAGES } from "./_guides-content-spa.js";
 import { getSeoMetaOverride } from "./_seo-content.js";
 import { AQUAVO_FAQ_ITEMS } from "../shared/faq-content.js";
 import { toPublicProduct, toPublicVariant } from "../shared/public-product.js";
@@ -1230,8 +1231,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // of the two: it had no Article and no FAQPage. Sharing one resolver makes
     // the guide a crawler indexes and the guide a person loads the same
     // document, and the richer of the two is the one that survives.
+    // ...with one exception. The guides in SPA_GUIDE_PAGES have their own React
+    // implementations and routes in App.tsx. They were ported into the guide
+    // registry so a crawler stops getting a 404 for them, but serving that same
+    // server document to a browser replaces the page that was actually
+    // designed — no #root to mount into, and the bespoke layout gone. A crawler
+    // gets the full server-rendered content; a person gets the SPA shell and
+    // the React page, with meta and Article/BreadcrumbList still coming from
+    // GUIDE_META below. server/__tests__/guides-spa-shell.test.ts pins both
+    // halves.
     const resolvedGuide = resolveGuidePage(guidePath);
-    if (resolvedGuide) {
+    const isSpaBackedGuide = resolvedGuide !== null && resolvedGuide.canonicalPath in SPA_GUIDE_PAGES;
+    if (resolvedGuide && !isSpaBackedGuide) {
       const acceptHeader = (req.headers.accept || "").toLowerCase();
       res.setHeader("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
       if (acceptHeader.includes("text/markdown")) {
