@@ -12,6 +12,7 @@ import { articleReadTime, cloudinaryHeroUrl, renderArticleBodyHtml } from "./_bl
 import { primaryProductImage, productGalleryImages } from "./_seo-structured-data.js";
 import { displayAuthorName } from "../shared/author-name.js";
 import { JOURNEY_STEPS } from "../shared/journey-steps.js";
+import { GALLERY_ENTRY_TERMS, GALLERY_PRIZES } from "../shared/gallery-terms.js";
 
 export type SeoPreviewVariant = {
   id?: string;
@@ -78,6 +79,7 @@ export type SeoPreviewPage =
   | { kind: "fish-encyclopedia"; species: SeoPreviewFish[]; heading: string; summary: string }
   | { kind: "deals"; products: SeoPreviewProduct[]; heading: string; summary: string }
   | { kind: "journey"; heading: string; summary: string }
+  | { kind: "community-gallery"; heading: string; summary: string }
   | { kind: "static"; heading: string; summary: string; path: string; paragraphs?: string[]; prerendered?: string }
   | { kind: "blog-index"; posts: SeoPreviewBlogPost[]; heading: string; summary: string }
   | { kind: "blog-post"; post: SeoPreviewBlogPost; related: SeoPreviewBlogPost[] }
@@ -602,6 +604,38 @@ function JourneyPage({ heading, summary }: { heading: string; summary: string })
   );
 }
 
+
+/**
+ * The gallery itself is customer submissions read from /api/gallery behind an
+ * auth context, so it cannot be rendered here and is not what a search engine
+ * should index. What is fixed and published is how the competition works, so
+ * that is what a crawler gets — from the same list the page renders, with the
+ * decorative icons left in the UI.
+ */
+function CommunityGalleryPage({ heading, summary }: { heading: string; summary: string }) {
+  return (
+    <main id="main-content">
+      <nav className="aq-ssr-breadcrumb" aria-label="مسار الصفحة"><a href="/">الرئيسية</a><span>/</span><span>{heading}</span></nav>
+      <h1>{heading}</h1>
+      <p>{summary}</p>
+      <p>المشاركة مفتوحة لأصحاب الأحواض، والصور المنشورة يرسلها الزبائن ويُراجعها فريق AQUAVO قبل النشر.</p>
+      <section aria-labelledby="aq-gallery-terms-title">
+        <h2 id="aq-gallery-terms-title">شروط المشاركة</h2>
+        <ul>
+          {GALLERY_ENTRY_TERMS.map((term) => <li key={term}>{term}</li>)}
+        </ul>
+      </section>
+      <section aria-labelledby="aq-gallery-prizes-title">
+        <h2 id="aq-gallery-prizes-title">الجوائز</h2>
+        <ul>
+          {GALLERY_PRIZES.map((prize) => <li key={prize}>{prize}</li>)}
+        </ul>
+      </section>
+      <p><a href="/products">معدات ومستلزمات الأحواض</a> · <a href="/guides">أدلة AQUAVO</a></p>
+    </main>
+  );
+}
+
 function BlogIndexPage({ posts, heading, summary }: { posts: SeoPreviewBlogPost[]; heading: string; summary: string }) {
   return (
     <main id="main-content">
@@ -739,6 +773,7 @@ function SeoPreviewShell({ page }: { page: SeoPreviewPage }) {
       {page.kind === "fish-encyclopedia" && <FishEncyclopediaPage species={page.species} heading={page.heading} summary={page.summary} />}
       {page.kind === "deals" && <DealsPage products={page.products} heading={page.heading} summary={page.summary} />}
       {page.kind === "journey" && <JourneyPage heading={page.heading} summary={page.summary} />}
+      {page.kind === "community-gallery" && <CommunityGalleryPage heading={page.heading} summary={page.summary} />}
       {page.kind === "blog-index" && <BlogIndexPage posts={page.posts} heading={page.heading} summary={page.summary} />}
       {page.kind === "blog-post" && <BlogPostPage post={page.post} related={page.related} />}
       {page.kind === "not-found" && <NotFoundPage />}
