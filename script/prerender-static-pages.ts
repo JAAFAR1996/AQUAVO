@@ -22,8 +22,20 @@ import { resolve } from "node:path";
  * stays the only source of truth, so the two can never disagree, and the
  * browser is untouched — it still gets the SPA.
  *
- * Only pages whose component uses no hooks are listed. Anything interactive is
- * left on the existing summary path rather than risking a half-rendered page.
+ * A page is listed only after its prerendered output was compared against the
+ * browser and found to match. Several were tried and rejected because a static
+ * render shows an unfilled state rather than the page a visitor reads:
+ *
+ *   /fish-encyclopedia  renders "أكثر من 0 نوع" -- a literal zero count -- where
+ *                       a visitor sees 1,680 words. Publishing that to a crawler
+ *                       would state something untrue.
+ *   /aquarium-wizard    renders one word.
+ *   /tank-builder       same component as /aquarium-wizard.
+ *   /deals              needs CartProvider.
+ *   /community-gallery  needs AuthProvider.
+ *   /journey            needs QueryClientProvider.
+ *
+ * Those keep the existing summary path, which is thin but accurate.
  *
  * /about is deliberately excluded even though it qualifies technically. Its
  * crawler shell publishes business facts the React page does not carry -- the
@@ -33,10 +45,14 @@ import { resolve } from "node:path";
  * change.
  */
 export const PRERENDERABLE_PAGES: Record<string, string> = {
+  "/beginner-guide": "beginner-guide",
   "/calculators": "calculators",
   "/contact": "contact",
   "/fish-compatibility": "fish-compatibility",
+  "/fish-breeding-calculator": "fish-breeding-calculator",
   "/fish-finder": "fish-finder",
+  "/fish-health": "fish-health-diagnosis",
+  "/fish-health-diagnosis": "fish-health-diagnosis",
   "/privacy-policy": "privacy-policy",
   "/return-policy": "return-policy",
   "/shipping": "shipping",
@@ -53,6 +69,7 @@ export const PRERENDERABLE_PAGES: Record<string, string> = {
 function stripHeadArtefacts(html: string): string {
   return html
     .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/<style[\s\S]*?<\/style>/gi, "")
     .replace(/<title[\s\S]*?<\/title>/gi, "")
     .replace(/<meta\b[^>]*\/?>/gi, "")
     .replace(/<link\b[^>]*\/?>/gi, "");
@@ -89,6 +106,7 @@ export async function prerenderStaticPages(): Promise<Record<string, string>> {
     entry,
     [
       'import { renderToStaticMarkup } from "react-dom/server";',
+      'import { createElement } from "react";',
       imports,
       "const PAGES = {",
       table,
@@ -96,7 +114,7 @@ export async function prerenderStaticPages(): Promise<Record<string, string>> {
       "export function renderAll() {",
       "  const out = {};",
       "  for (const [route, Component] of Object.entries(PAGES)) {",
-      "    out[route] = renderToStaticMarkup(Component());",
+      "    out[route] = renderToStaticMarkup(createElement(Component));",
       "  }",
       "  return out;",
       "}",
