@@ -10,18 +10,30 @@ import {
     ShoppingCart,
 } from "lucide-react";
 import { JourneyStepDefinition } from "@/types/journey";
+import { JOURNEY_STEPS } from "@shared/journey-steps";
 
-export const STEPS: JourneyStepDefinition[] = [
-    { id: "tank", title: "اختيار الحوض", icon: Package },
-    { id: "location", title: "الموقع", icon: MapPin },
-    { id: "equipment", title: "المعدات", icon: Filter },
-    { id: "decor", title: "الديكور", icon: Mountain },
-    { id: "water", title: "المياه", icon: Droplets },
-    { id: "cycling", title: "التدوير", icon: TestTube },
-    { id: "fish", title: "الأسماك", icon: Fish },
-    { id: "maintenance", title: "الصيانة", icon: Calendar },
-    { id: "summary", title: "الملخص", icon: ShoppingCart }
-];
+/**
+ * Icons for the shared step outline. The ids and titles live in
+ * shared/journey-steps.ts so the crawler page and this wizard describe the same
+ * steps; only the icon is a UI concern and stays here.
+ */
+const STEP_ICONS: Record<string, JourneyStepDefinition["icon"]> = {
+    tank: Package,
+    location: MapPin,
+    equipment: Filter,
+    decor: Mountain,
+    water: Droplets,
+    cycling: TestTube,
+    fish: Fish,
+    maintenance: Calendar,
+    summary: ShoppingCart,
+};
+
+export const STEPS: JourneyStepDefinition[] = JOURNEY_STEPS.map((step) => ({
+    id: step.id as JourneyStepDefinition["id"],
+    title: step.title,
+    icon: STEP_ICONS[step.id],
+}));
 
 export const INITIAL_WIZARD_DATA = {
     tankSize: "",

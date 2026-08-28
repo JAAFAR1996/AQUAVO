@@ -11,6 +11,7 @@ import { articleReadTime, cloudinaryHeroUrl, renderArticleBodyHtml } from "./_bl
 // import does not create a runtime cycle.
 import { primaryProductImage, productGalleryImages } from "./_seo-structured-data.js";
 import { displayAuthorName } from "../shared/author-name.js";
+import { JOURNEY_STEPS } from "../shared/journey-steps.js";
 
 export type SeoPreviewVariant = {
   id?: string;
@@ -76,6 +77,7 @@ export type SeoPreviewPage =
   | { kind: "about" }
   | { kind: "fish-encyclopedia"; species: SeoPreviewFish[]; heading: string; summary: string }
   | { kind: "deals"; products: SeoPreviewProduct[]; heading: string; summary: string }
+  | { kind: "journey"; heading: string; summary: string }
   | { kind: "static"; heading: string; summary: string; path: string; paragraphs?: string[]; prerendered?: string }
   | { kind: "blog-index"; posts: SeoPreviewBlogPost[]; heading: string; summary: string }
   | { kind: "blog-post"; post: SeoPreviewBlogPost; related: SeoPreviewBlogPost[] }
@@ -569,6 +571,33 @@ function DealsPage({ products, heading, summary }: { products: SeoPreviewProduct
   );
 }
 
+
+/**
+ * /journey is an interactive wizard: its answers and suggestions only exist once
+ * a person fills it in, so nothing about a result belongs here. What the tool
+ * covers is fixed, and that is what a crawler is shown — the step outline, read
+ * from the same shared list the wizard builds its UI from.
+ */
+function JourneyPage({ heading, summary }: { heading: string; summary: string }) {
+  return (
+    <main id="main-content">
+      <nav className="aq-ssr-breadcrumb" aria-label="مسار الصفحة"><a href="/">الرئيسية</a><span>/</span><span>{heading}</span></nav>
+      <h1>{heading}</h1>
+      <p>{summary}</p>
+      <p>الأداة تمشي معك {JOURNEY_STEPS.length} خطوات مرتبة، وتُملأ داخل المتصفح حسب حوضك:</p>
+      <section aria-labelledby="aq-journey-steps-title">
+        <h2 id="aq-journey-steps-title">خطوات التجهيز</h2>
+        <ol>
+          {JOURNEY_STEPS.map((step) => (
+            <li key={step.id}>{step.title}</li>
+          ))}
+        </ol>
+      </section>
+      <p>بعد إكمال الخطوات تحصل على قائمة تجهيز مبنية على اختياراتك. <a href="/products">تصفح المعدات</a> · <a href="/guides">أدلة AQUAVO</a></p>
+    </main>
+  );
+}
+
 function BlogIndexPage({ posts, heading, summary }: { posts: SeoPreviewBlogPost[]; heading: string; summary: string }) {
   return (
     <main id="main-content">
@@ -705,6 +734,7 @@ function SeoPreviewShell({ page }: { page: SeoPreviewPage }) {
       {page.kind === "static" && <StaticPage heading={page.heading} summary={page.summary} path={page.path} paragraphs={page.paragraphs} prerendered={page.prerendered} />}
       {page.kind === "fish-encyclopedia" && <FishEncyclopediaPage species={page.species} heading={page.heading} summary={page.summary} />}
       {page.kind === "deals" && <DealsPage products={page.products} heading={page.heading} summary={page.summary} />}
+      {page.kind === "journey" && <JourneyPage heading={page.heading} summary={page.summary} />}
       {page.kind === "blog-index" && <BlogIndexPage posts={page.posts} heading={page.heading} summary={page.summary} />}
       {page.kind === "blog-post" && <BlogPostPage post={page.post} related={page.related} />}
       {page.kind === "not-found" && <NotFoundPage />}
