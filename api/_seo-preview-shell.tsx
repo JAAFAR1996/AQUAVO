@@ -257,8 +257,6 @@ export const FOOTER_EXPLORE_LINKS: ReadonlyArray<{ href: string; label: string }
   { href: "/beginner-guide", label: "دليل المبتدئ لأحواض الزينة" },
   { href: "/why-aquavo", label: "ليش تختار AQUAVO؟" },
   { href: "/calculators", label: "حاسبات أحواض الزينة" },
-  { href: "/aquarium-wizard", label: "مساعد تجهيز الحوض" },
-  { href: "/tank-builder", label: "مخطط تجهيز الحوض" },
   { href: "/fish-encyclopedia", label: "موسوعة أسماك الزينة" },
   { href: "/fish-finder", label: "مساعد اختيار أسماك الزينة" },
   { href: "/fish-compatibility", label: "توافق أسماك الزينة" },

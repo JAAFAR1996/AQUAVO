@@ -102,8 +102,6 @@ export const PUBLIC_INDEXABLE_PATHS = Object.freeze([
   "/fish-health-diagnosis",
   "/fish-breeding-calculator",
   "/sustainability",
-  "/aquarium-wizard",
-  "/tank-builder",
 ] as const);
 
 export const NOINDEX_PUBLIC_PATHS = Object.freeze([

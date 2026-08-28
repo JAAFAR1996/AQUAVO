@@ -22,14 +22,16 @@ import { FOOTER_EXPLORE_LINKS, renderSeoPreviewShell } from "../../api/_seo-prev
 import { STATIC_COPY } from "../../api/_ssr-preview-source";
 
 // Every sitemap-pages.xml entry that had no inbound link on the crawler path.
+// /aquarium-wizard and /tank-builder were on this list until they turned out to
+// be redirects to /journey rather than pages; they are now server-side
+// redirects and out of the sitemap, so there is nothing to orphan. See
+// server/__tests__/alias-routes.test.ts.
 const PREVIOUSLY_ORPHANED = [
   "/deals",
   "/journey",
   "/beginner-guide",
   "/why-aquavo",
   "/calculators",
-  "/aquarium-wizard",
-  "/tank-builder",
   "/fish-encyclopedia",
   "/fish-finder",
   "/fish-compatibility",
