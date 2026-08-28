@@ -330,7 +330,7 @@ export function CompatibilityCalculator() {
                             <Fish className="w-8 h-8 text-blue-500" />
                         </div>
                         <div>
-                            <h2 className="text-2xl font-bold">كاشف توافقية الأسماك</h2>
+                            <h1 className="text-2xl font-bold">كاشف توافقية الأسماك</h1>
                             <p className="text-muted-foreground">اختر الأسماك للتحقق من توافقها معاً</p>
                         </div>
                     </div>

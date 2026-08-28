@@ -45,14 +45,14 @@ import { resolve } from "node:path";
  * decision rather than a rendering one. assertNoDuplicateContent stops this
  * class of mistake recurring.
  *
- * /about is deliberately excluded even though it qualifies technically. Its
- * crawler shell publishes business facts the React page does not carry -- the
- * registered legal name, that there is no walk-in shop, and that AQUAVO sells
- * no live animals -- so swapping content in would drop disclosures. That one
- * needs an editorial decision about where those facts belong, not a rendering
- * change.
+ * /about is included, but its crawler shell keeps publishing the business facts
+ * the React page does not carry -- the registered legal name, that there is no
+ * walk-in shop, and that AQUAVO sells no live animals. The page content is
+ * appended beneath those, never in place of them, and a test asserts each fact
+ * survives.
  */
 export const PRERENDERABLE_PAGES: Record<string, string> = {
+  "/about": "about",
   "/beginner-guide": "beginner-guide",
   "/calculators": "calculators",
   "/contact": "contact",

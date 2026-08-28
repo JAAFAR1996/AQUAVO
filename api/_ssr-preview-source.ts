@@ -658,7 +658,7 @@ async function resolvePage(pathname: string, rawCategory?: string): Promise<Reso
 
   if (pathname === "/about") {
     return {
-      page: { kind: "about" },
+      page: { kind: "about", prerendered: PRERENDERED_PAGES["/about"] },
       meta: {
         title: "عن AQUAVO | متجر أحواض الزينة في العراق",
         description: "AQUAVO متجر إلكتروني عراقي لمعدات ومستلزمات أحواض الزينة، يعمل عبر الموقع وواتساب ولا يبيع كائنات حية.",
