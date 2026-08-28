@@ -31,3 +31,17 @@ export function Link({
     </a>
   );
 }
+
+/**
+ * Pages and contexts also read the current location. During the prerender there
+ * is no history to subscribe to, so this reports the site root and a navigate
+ * function that does nothing. Only the build-time bundle sees this; the browser
+ * keeps real wouter and real navigation.
+ */
+export function useLocation(): [string, (to: string) => void] {
+  return ["/", () => {}];
+}
+
+export function useRoute(): [boolean, Record<string, string> | null] {
+  return [false, null];
+}
