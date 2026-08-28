@@ -44,6 +44,7 @@ import {
 import { isKnownSitePath } from "../shared/site-routes.js";
 import { toPublicVariant } from "../shared/public-product.js";
 import { displayAuthorName } from "../shared/author-name.js";
+import { PRERENDERED_PAGES } from "./_prerendered-pages.js";
 
 neonConfig.webSocketConstructor = ws;
 
@@ -625,7 +626,7 @@ async function resolvePage(pathname: string, rawCategory?: string): Promise<Reso
   const copy = STATIC_COPY[pathname];
   if (copy) {
     return {
-      page: { kind: "static", path: pathname, ...copy },
+      page: { kind: "static", path: pathname, ...copy, prerendered: PRERENDERED_PAGES[pathname] },
       meta: {
         title: `${copy.heading} | AQUAVO`,
         description: copy.summary,

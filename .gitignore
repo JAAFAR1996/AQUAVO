@@ -87,6 +87,8 @@ scratch/
 script/*
 !script/build.ts
 !script/prerender-home-hero.ts
+!script/prerender-static-pages.ts
+!script/dompurify-static-stub.ts
 !script/wouter-static-link.tsx
 tmp_*.mjs
 tmp-*.mjs
@@ -149,6 +151,7 @@ env.prod
 api/_html-template.ts
 api/_html-template.js
 api/_home-hero-html.ts
+api/_prerendered-pages.ts
 generated/ssr-preview-runtime.js
 
 # Private supplier catalogs / invoices (cost prices, margins, PII — never commit)

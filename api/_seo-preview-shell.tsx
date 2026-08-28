@@ -74,7 +74,7 @@ export type SeoPreviewPage =
   | { kind: "product"; product: SeoPreviewProduct; related: SeoPreviewProduct[]; reviews?: SeoPreviewReview[] }
   | { kind: "faq" }
   | { kind: "about" }
-  | { kind: "static"; heading: string; summary: string; path: string; paragraphs?: string[] }
+  | { kind: "static"; heading: string; summary: string; path: string; paragraphs?: string[]; prerendered?: string }
   | { kind: "blog-index"; posts: SeoPreviewBlogPost[]; heading: string; summary: string }
   | { kind: "blog-post"; post: SeoPreviewBlogPost; related: SeoPreviewBlogPost[] }
   | { kind: "not-found"; path: string };
@@ -482,13 +482,19 @@ function AboutPage() {
   );
 }
 
-function StaticPage({ heading, summary, paragraphs = [] }: { heading: string; summary: string; path: string; paragraphs?: string[] }) {
+function StaticPage({ heading, summary, paragraphs = [], prerendered }: { heading: string; summary: string; path: string; paragraphs?: string[]; prerendered?: string }) {
   return (
     <main id="main-content">
       <nav className="aq-ssr-breadcrumb" aria-label="مسار الصفحة"><a href="/">الرئيسية</a><span>/</span><span>{heading}</span></nav>
       <h1>{heading}</h1>
       <p>{summary}</p>
       {paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+      {/* The real page, rendered from its own component at build time. Appended
+          rather than substituted: the heading, summary and paragraphs above are
+          the only place some business facts are published to a crawler (the
+          /fish-finder disclaimer that no live fish are sold, for one), so
+          nothing here removes them. See script/prerender-static-pages.ts. */}
+      {prerendered && <div className="aq-ssr-page" dangerouslySetInnerHTML={{ __html: prerendered }} />}
       <p><a href="/products">تصفح المنتجات</a> · <a href="/faq">الأسئلة الشائعة</a></p>
     </main>
   );
@@ -627,7 +633,7 @@ function SeoPreviewShell({ page }: { page: SeoPreviewPage }) {
       {page.kind === "product" && <ProductPage product={page.product} related={page.related} reviews={page.reviews} />}
       {page.kind === "faq" && <FaqPage />}
       {page.kind === "about" && <AboutPage />}
-      {page.kind === "static" && <StaticPage heading={page.heading} summary={page.summary} path={page.path} paragraphs={page.paragraphs} />}
+      {page.kind === "static" && <StaticPage heading={page.heading} summary={page.summary} path={page.path} paragraphs={page.paragraphs} prerendered={page.prerendered} />}
       {page.kind === "blog-index" && <BlogIndexPage posts={page.posts} heading={page.heading} summary={page.summary} />}
       {page.kind === "blog-post" && <BlogPostPage post={page.post} related={page.related} />}
       {page.kind === "not-found" && <NotFoundPage />}
