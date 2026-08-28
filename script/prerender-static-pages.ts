@@ -37,6 +37,14 @@ import { resolve } from "node:path";
  *
  * Those keep the existing summary path, which is thin but accurate.
  *
+ * /fish-health is also left out. It routes to the same component as
+ * /fish-health-diagnosis, so prerendering both published the same ~240 words on
+ * two self-canonical URLs -- measured at 88% token overlap on production. Only
+ * the more descriptive route carries the content now; whether the duplicate
+ * route should exist at all, or canonicalise to the other, is a routing
+ * decision rather than a rendering one. assertNoDuplicateContent stops this
+ * class of mistake recurring.
+ *
  * /about is deliberately excluded even though it qualifies technically. Its
  * crawler shell publishes business facts the React page does not carry -- the
  * registered legal name, that there is no walk-in shop, and that AQUAVO sells
@@ -51,7 +59,6 @@ export const PRERENDERABLE_PAGES: Record<string, string> = {
   "/fish-compatibility": "fish-compatibility",
   "/fish-breeding-calculator": "fish-breeding-calculator",
   "/fish-finder": "fish-finder",
-  "/fish-health": "fish-health-diagnosis",
   "/fish-health-diagnosis": "fish-health-diagnosis",
   "/privacy-policy": "privacy-policy",
   "/return-policy": "return-policy",
@@ -88,6 +95,39 @@ function demoteHeading(html: string): string {
 function innerMain(html: string): string {
   const match = html.match(/<main[^>]*>([\s\S]*)<\/main>/i);
   return (match ? match[1] : html).trim();
+}
+
+/**
+ * Two routes sharing a component would publish the same text on two canonical
+ * URLs. That happened with /fish-health and /fish-health-diagnosis, so the
+ * build now refuses it rather than letting a duplicate reach production.
+ */
+function assertNoDuplicateContent(pages: Record<string, string>): void {
+  const words = (html: string) =>
+    new Set(
+      html
+        .replace(/<[^>]+>/g, " ")
+        .replace(/\s+/g, " ")
+        .trim()
+        .split(" ")
+        .filter(Boolean),
+    );
+  const entries = Object.entries(pages).map(([route, html]) => [route, words(html)] as const);
+  for (let i = 0; i < entries.length; i += 1) {
+    for (let j = i + 1; j < entries.length; j += 1) {
+      const [routeA, a] = entries[i];
+      const [routeB, b] = entries[j];
+      let shared = 0;
+      for (const word of a) if (b.has(word)) shared += 1;
+      const overlap = shared / (a.size + b.size - shared);
+      if (overlap > 0.7) {
+        throw new Error(
+          `${routeA} and ${routeB} prerender to ${(overlap * 100).toFixed(0)}% the same content; ` +
+            "two canonical URLs must not publish the same page",
+        );
+      }
+    }
+  }
 }
 
 export async function prerenderStaticPages(): Promise<Record<string, string>> {
@@ -173,6 +213,8 @@ export async function prerenderStaticPages(): Promise<Record<string, string>> {
     }
     rendered[route] = cleaned;
   }
+
+  assertNoDuplicateContent(rendered);
 
   await rm(entry, { force: true });
   await rm(bundle, { force: true });
