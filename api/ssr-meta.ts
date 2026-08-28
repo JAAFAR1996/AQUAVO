@@ -13,6 +13,7 @@ import { toPublicProduct, toPublicVariant } from "../shared/public-product.js";
 import { buildProductStructuredData, withSiteEntities } from "./_seo-structured-data.js";
 import { isKnownSitePath } from "../shared/site-routes.js";
 import { AQUAVO_ENTITY, canonicalUrlFor, isNoindexPath } from "../shared/seo-contract.js";
+import { displayAuthorName } from "../shared/author-name.js";
 
 // ─── DB Setup (lightweight, no Drizzle overhead) ────────────────────────────
 neonConfig.webSocketConstructor = ws;
@@ -690,7 +691,7 @@ async function getBlogMeta(slug: string): Promise<PageMeta | null> {
           headline: post.title,
           description: post.excerpt || post.title,
           image: post.imageUrl || DEFAULT_IMAGE,
-          author: { "@type": "Person", name: post.author || "AQUAVO" },
+          author: { "@type": "Person", name: displayAuthorName(post.author) },
           publisher: { "@type": "Organization", name: "AQUAVO", logo: { "@type": "ImageObject", url: DEFAULT_IMAGE } },
           datePublished,
           dateModified,

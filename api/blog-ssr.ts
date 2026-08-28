@@ -4,6 +4,7 @@ import { Pool, neonConfig } from "@neondatabase/serverless";
 import ws from "ws";
 import { HTML_TEMPLATE } from "./_html-template.js";
 import { injectMeta, type PageMeta } from "./ssr-meta.js";
+import { displayAuthorName } from "../shared/author-name.js";
 
 neonConfig.webSocketConstructor = ws;
 
@@ -118,7 +119,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
           headline: post.title,
           description,
           image,
-          author: { "@type": "Person", name: post.author || "AQUAVO" },
+          author: { "@type": "Person", name: displayAuthorName(post.author) },
           publisher: {
             "@type": "Organization",
             name: "AQUAVO",

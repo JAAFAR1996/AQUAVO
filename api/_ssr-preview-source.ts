@@ -43,6 +43,7 @@ import {
 } from "../shared/seo-contract.js";
 import { isKnownSitePath } from "../shared/site-routes.js";
 import { toPublicVariant } from "../shared/public-product.js";
+import { displayAuthorName } from "../shared/author-name.js";
 
 neonConfig.webSocketConstructor = ws;
 
@@ -566,7 +567,7 @@ async function resolvePage(pathname: string, rawCategory?: string): Promise<Reso
             headline: post.title,
             description,
             image,
-            author: { "@type": "Person", name: post.author || "AQUAVO" },
+            author: { "@type": "Person", name: displayAuthorName(post.author) },
             publisher: {
               "@type": "Organization",
               name: AQUAVO_ENTITY.brandName,
@@ -777,7 +778,7 @@ function markdown(page: SeoPreviewPage, meta: Meta): string {
   } else if (page.kind === "blog-post") {
     const post = page.post;
     const meta2: string[] = [];
-    if (post.author) meta2.push(`الكاتب: ${post.author}`);
+    if (post.author) meta2.push(`الكاتب: ${displayAuthorName(post.author)}`);
     if (post.category) meta2.push(`القسم: ${post.category}`);
     // Derived from the article, matching the HTML and the schema wordCount,
     // rather than the overstated blog_posts.read_time column.
