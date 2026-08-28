@@ -74,7 +74,7 @@ export type SeoPreviewPage =
   | { kind: "products"; products: SeoPreviewProduct[]; category?: string }
   | { kind: "product"; product: SeoPreviewProduct; related: SeoPreviewProduct[]; reviews?: SeoPreviewReview[] }
   | { kind: "faq" }
-  | { kind: "about" }
+  | { kind: "about"; prerendered?: string }
   | { kind: "fish-encyclopedia"; species: SeoPreviewFish[]; heading: string; summary: string }
   | { kind: "deals"; products: SeoPreviewProduct[]; heading: string; summary: string }
   | { kind: "journey"; heading: string; summary: string }
@@ -471,13 +471,18 @@ function FaqPage() {
   );
 }
 
-function AboutPage() {
+function AboutPage({ prerendered }: { prerendered?: string }) {
   return (
     <main id="main-content">
       <h1>عن AQUAVO</h1>
       <p>AQUAVO، المشغّل قانونياً باسم {AQUAVO_ENTITY.legalName}، متجر إلكتروني عراقي متخصص في معدات ومستلزمات أحواض الزينة.</p>
       <p>العمل بالكامل عبر الموقع وواتساب، ولا يوجد محل لاستقبال الزبائن حالياً. AQUAVO لا يبيع أسماكاً أو كائنات أو نباتات حية.</p>
       <p>التوصيل لكل العراق خلال 24 ساعة بأجور 5,000 د.ع، والدفع عند الاستلام أو إلكترونياً، والدعم متوفر 24/7.</p>
+      {/* The real /about page, rendered from its own component at build time and
+          appended: the disclosures above are published to a crawler only here,
+          so nothing replaces them. server/__tests__/about-crawler.test.ts pins
+          that each one survives. */}
+      {prerendered && <div className="aq-ssr-page" dangerouslySetInnerHTML={{ __html: prerendered }} />}
       <p><a href="/products">تصفح المنتجات</a> · <a href="/contact">تواصل معنا</a></p>
     </main>
   );
@@ -729,7 +734,7 @@ function SeoPreviewShell({ page }: { page: SeoPreviewPage }) {
       {page.kind === "products" && <ProductsPage products={page.products} category={page.category} />}
       {page.kind === "product" && <ProductPage product={page.product} related={page.related} reviews={page.reviews} />}
       {page.kind === "faq" && <FaqPage />}
-      {page.kind === "about" && <AboutPage />}
+      {page.kind === "about" && <AboutPage prerendered={page.prerendered} />}
       {page.kind === "static" && <StaticPage heading={page.heading} summary={page.summary} path={page.path} paragraphs={page.paragraphs} prerendered={page.prerendered} />}
       {page.kind === "fish-encyclopedia" && <FishEncyclopediaPage species={page.species} heading={page.heading} summary={page.summary} />}
       {page.kind === "deals" && <DealsPage products={page.products} heading={page.heading} summary={page.summary} />}
