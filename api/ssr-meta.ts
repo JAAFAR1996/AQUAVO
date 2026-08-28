@@ -705,6 +705,83 @@ async function getBlogMeta(slug: string): Promise<PageMeta | null> {
 }
 
 // ─── Resolve metadata for any path ──────────────────────────────────────────
+/**
+ * The WebPage and BreadcrumbList a static page gets when it defines none.
+ *
+ * The crawler path builds these for every static page through webPageSchema in
+ * _ssr-preview-source, but most STATIC_PAGES entries carry no `jsonLd` at all,
+ * so browsers were served neither. Measured on live production 618c9ad8, 17
+ * URLs — /shipping, /terms, /deals, /journey, /calculators, /contact and 11
+ * more — published a BreadcrumbList to a crawler and nothing to a browser.
+ *
+ * The trail is Home > this page: two levels, because these pages sit directly
+ * off the root, which is the same shape breadcrumbSchema builds on the crawler
+ * path. The crumb is the page's own title with the " | AQUAVO" suffix removed —
+ * the crawler derives its crumb from its title the same way — so this names the
+ * page what the page already calls itself and introduces no new copy.
+ */
+function staticPageName(meta: PageMeta): string {
+  return meta.title.replace(/\s*\|\s*AQUAVO\s*$/, "").trim() || meta.title;
+}
+
+function breadcrumbFor(path: string, name: string): object {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "الرئيسية", item: BASE },
+      { "@type": "ListItem", position: 2, name, item: `${BASE}${path}` },
+    ],
+  };
+}
+
+/**
+ * The WebPage and BreadcrumbList a static page gets when it publishes none.
+ *
+ * The crawler path builds both for every static page through webPageSchema in
+ * _ssr-preview-source, but most STATIC_PAGES entries carry no `jsonLd` at all,
+ * so browsers were served neither. Measured on live production 618c9ad8, 17
+ * URLs — /shipping, /terms, /deals, /journey, /calculators, /contact and 11
+ * more — published a BreadcrumbList to a crawler and nothing to a browser.
+ *
+ * The trail is Home > this page: two levels, because these pages sit directly
+ * off the root, which is the shape breadcrumbSchema builds on the crawler path.
+ * The crumb is the page's own title with the " | AQUAVO" suffix removed — the
+ * crawler derives its crumb from its title the same way — so this names each
+ * page what it already calls itself and introduces no new copy.
+ */
+function defaultStaticPageJsonLd(path: string, meta: PageMeta): object[] {
+  const name = staticPageName(meta);
+  return [
+    {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      name,
+      description: meta.description,
+      url: `${BASE}${path}`,
+      inLanguage: "ar-IQ",
+      isPartOf: { "@id": `${BASE}/#website` },
+    },
+    breadcrumbFor(path, name),
+  ];
+}
+
+/**
+ * The page's own graph, guaranteed to carry a breadcrumb.
+ *
+ * Pages that define no graph at all are the common case, but not the only one:
+ * /calculators publishes a WebApplication and /about an AboutPage, and neither
+ * included a BreadcrumbList, so a fallback keyed only on "has no jsonLd" left
+ * them exactly as they were. The crawler path gives those pages a breadcrumb
+ * too, so the trail is appended rather than replacing what the page built.
+ */
+function withStaticPageGraph(path: string, meta: PageMeta): object[] {
+  const own = meta.jsonLd ? (Array.isArray(meta.jsonLd) ? meta.jsonLd : [meta.jsonLd]) : null;
+  if (!own) return defaultStaticPageJsonLd(path, meta);
+  const hasCrumb = own.some((node) => (node as Record<string, unknown>)?.["@type"] === "BreadcrumbList");
+  return hasCrumb ? own : [...own, breadcrumbFor(path, staticPageName(meta))];
+}
+
 async function resolveMetadata(pathname: string, notFound = false): Promise<PageMeta & { url: string; image: string }> {
   const cleanPath = pathname.replace(/\/+$/, "") || "/";
   const seoOverride = getSeoMetaOverride(cleanPath);
@@ -724,9 +801,13 @@ async function resolveMetadata(pathname: string, notFound = false): Promise<Page
   // Static pages
   if (STATIC_PAGES[cleanPath]) {
     const meta = STATIC_PAGES[cleanPath];
+    const resolved = { ...meta, ...(seoOverride ?? {}) };
     return {
-      ...meta,
-      ...(seoOverride ?? {}),
+      ...resolved,
+      // A page that builds its own graph keeps it; only the ones that defined
+      // nothing get the WebPage + BreadcrumbList the crawler path already
+      // publishes for them. The homepage is unaffected — it has its own.
+      jsonLd: withStaticPageGraph(cleanPath, resolved),
       url: canonicalUrlFor(cleanPath),
       noIndex,
       image: DEFAULT_IMAGE,
