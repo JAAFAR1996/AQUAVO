@@ -110,6 +110,22 @@ describe("static pages publish a breadcrumb to browsers too", () => {
     },
   );
 
+  // The root of the hierarchy a breadcrumb describes has no trail to state.
+  // #158 gave the homepage one anyway and it came out self-referential:
+  // "الرئيسية" followed by the page's own 63-character SEO title, both pointing
+  // at the homepage — the site listed as a child of itself.
+  it("gives the homepage no breadcrumb, because the root has no parent", async () => {
+    const html = await render("/");
+    expect(typed(html, "BreadcrumbList")).toHaveLength(0);
+  });
+
+  it("still gives the homepage the rest of its graph", async () => {
+    const html = await render("/");
+    const ids = nodes(html).map((n) => n["@id"]).filter(Boolean);
+    expect(ids).toContain("https://www.aquavoiq.com/#organization");
+    expect(ids).toContain("https://www.aquavoiq.com/#website");
+  });
+
   it("adds no breadcrumb to a 404, which describes no page", async () => {
     const html = await render("/this-route-does-not-exist-xyz");
     expect(typed(html, "BreadcrumbList")).toHaveLength(0);
