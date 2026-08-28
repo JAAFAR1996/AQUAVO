@@ -10,6 +10,7 @@ import { articleReadTime, cloudinaryHeroUrl, renderArticleBodyHtml } from "./_bl
 // _seo-structured-data imports only *types* from this module, so this value
 // import does not create a runtime cycle.
 import { primaryProductImage, productGalleryImages } from "./_seo-structured-data.js";
+import { displayAuthorName } from "../shared/author-name.js";
 
 export type SeoPreviewVariant = {
   id?: string;
@@ -552,7 +553,7 @@ function BlogPostPage({ post, related }: { post: SeoPreviewBlogPost; related: Se
         <h1 itemProp="headline">{post.title}</h1>
         {post.excerpt && <p itemProp="description">{post.excerpt}</p>}
         <p className="aq-ssr-meta">
-          {post.author && <span itemProp="author">{post.author}</span>}
+          {post.author && <span itemProp="author">{displayAuthorName(post.author)}</span>}
           {published && <><span> · </span><time itemProp="datePublished" dateTime={published}>{published}</time></>}
           {updated && updated !== published && (
             <><span> · تحديث </span><time itemProp="dateModified" dateTime={updated}>{updated}</time></>
