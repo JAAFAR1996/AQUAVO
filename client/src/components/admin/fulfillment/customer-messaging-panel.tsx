@@ -46,17 +46,17 @@ type JobsResponse = {
 const STATUS_LABELS: Record<string, string> = {
   pending: "بانتظار الإرسال",
   sending: "جاري الإرسال",
-  completed: "قبلتها WhatsApp",
+  completed: "قبلتها WhatsApp — مو شرط وصلت",
   failed: "فشل الإرسال",
   cancelled: "ملغاة",
 };
 
 const PROVIDER_LABELS: Record<string, string> = {
-  accepted: "قبلتها Meta",
-  sent: "أُرسلت",
+  accepted: "قبلتها Meta — بانتظار التسليم",
+  sent: "أُرسلت من Meta",
   delivered: "وصلت للزبون",
   read: "قراها الزبون",
-  failed: "فشلت لدى WhatsApp",
+  failed: "Meta لم توصلها للزبون",
 };
 
 const AUTO_REPLY_LABELS: Record<string, string> = {
@@ -68,11 +68,16 @@ const AUTO_REPLY_LABELS: Record<string, string> = {
   disabled: "الرد التلقائي غير مفعّل",
 };
 
+const META_MARKETING_LIMIT_CODE = "WHATSAPP_PROVIDER_FAILED_131049";
+
 function errorLabel(code: string | null | undefined): string | null {
   if (!code) return null;
   if (code === "INVALID_IRAQI_MOBILE") return "رقم الزبون غير صالح لواتساب";
   if (code === "INVALID_CUSTOMER_NAME") return "اسم الزبون غير صالح لقالب الرسالة";
   if (code === "ORDER_NOT_DELIVERED_OR_MISSING") return "الطلب غير موجود أو لم يعد بحالة مستلم";
+  if (code === META_MARKETING_LIMIT_CODE) {
+    return "Meta قبلت الرسالة أولاً ثم منعت تسليم قالب Marketing لهذا الرقم بسبب حد التفاعل (131049). لا تعيد نفس القالب فوراً؛ الأفضل استخدام قالب Utility مرتبط بالطلب.";
+  }
   if (code.startsWith("WHATSAPP_PROVIDER_FAILED_")) return `WhatsApp رفض توصيل الرسالة (${code.replace("WHATSAPP_PROVIDER_FAILED_", "")})`;
   if (code.includes("AMBIGUOUS") || code.startsWith("AMBIGUOUS_")) {
     return "حالة إرسال غير مؤكدة؛ الإعادة محظورة حتى لا تتكرر الرسالة على الزبون";
@@ -105,8 +110,6 @@ export function CustomerMessagingPanel({ orderId }: { orderId: string }) {
       const body = await response.json() as JobsResponse;
       setJobs(Array.isArray(body.jobs) ? body.jobs : []);
     } catch {
-      // Messaging history is operational support UI. A temporary read failure
-      // must not break the rest of the order/fulfillment view.
       setJobs([]);
     } finally {
       setLoading(false);
@@ -119,6 +122,15 @@ export function CustomerMessagingPanel({ orderId }: { orderId: string }) {
   }, [loadJobs]);
 
   const retryJob = async (job: CustomerMessageJob) => {
+    if (job.last_error_code === META_MARKETING_LIMIT_CODE) {
+      toast({
+        title: "إعادة الإرسال موقوفة",
+        description: "Meta منعت هذا Marketing template للرقم بكود 131049. إعادة نفس الرسالة فوراً ما راح تحل المشكلة.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setRetryingJobId(job.id);
     try {
       const response = await fetch(`/api/admin/customer-messaging/jobs/${encodeURIComponent(job.id)}/retry`, {
@@ -141,7 +153,7 @@ export function CustomerMessagingPanel({ orderId }: { orderId: string }) {
       }
 
       if (body.status === "sent") {
-        toast({ title: "واتساب", description: "تم إرسال رسالة ما بعد الاستلام" });
+        toast({ title: "واتساب", description: "Meta قبلت رسالة إعادة المحاولة؛ ننتظر تأكيد التسليم للزبون" });
       } else if (body.status === "retry_scheduled") {
         toast({ title: "واتساب", description: "فشل مؤقت؛ انحفظت محاولة تلقائية جديدة" });
       } else if (body.status === "disabled") {
@@ -184,6 +196,7 @@ export function CustomerMessagingPanel({ orderId }: { orderId: string }) {
           {jobs.map((job) => {
             const error = errorLabel(job.last_error_code);
             const ambiguous = Boolean(job.last_error_code?.includes("AMBIGUOUS") || job.last_error_code?.startsWith("AMBIGUOUS_"));
+            const marketingLimited = job.last_error_code === META_MARKETING_LIMIT_CODE;
             const reply = job.metadata?.delivery_care_reply;
             const effectiveChoice = reply?.latest_choice ?? reply?.choice;
             const effectiveChoiceAt = reply?.latest_choice_at ?? reply?.received_at;
@@ -240,14 +253,14 @@ export function CustomerMessagingPanel({ orderId }: { orderId: string }) {
                       </p>
                     )}
                     {error && (
-                      <p className={`text-xs leading-5 ${ambiguous ? "text-amber-700 dark:text-amber-400" : "text-red-600"}`}>
-                        {ambiguous && <AlertTriangle className="ml-1 inline h-3.5 w-3.5" />}
+                      <p className={`text-xs leading-5 ${ambiguous || marketingLimited ? "text-amber-700 dark:text-amber-400" : "text-red-600"}`}>
+                        {(ambiguous || marketingLimited) && <AlertTriangle className="ml-1 inline h-3.5 w-3.5" />}
                         {error}
                       </p>
                     )}
                   </div>
 
-                  {job.manualRetryAllowed && (
+                  {job.manualRetryAllowed && !marketingLimited && (
                     <Button
                       type="button"
                       size="sm"
