@@ -292,7 +292,7 @@ async function loadProduct(slug: string): Promise<SeoPreviewProduct | null> {
     `SELECT id, slug, name, description, price, original_price AS "originalPrice",
             currency, brand, category, stock, thumbnail, images,
             has_variants AS "hasVariants", variants, rating,
-            review_count AS "reviewCount"
+            review_count AS "reviewCount", specifications
        FROM products
       WHERE slug = $1
         AND deleted_at IS NULL
