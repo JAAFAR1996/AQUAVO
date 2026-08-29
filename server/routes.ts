@@ -2,6 +2,7 @@ import type { Server } from "http";
 import express from "express";
 import { createProductRouter } from "./routes/products.js";
 import { createOrderRouter } from "./routes/orders.js";
+import { createProductionTestCheckoutRouter, createProductionTestAdminRouter } from "./routes/production-test-orders.js";
 import { createAlqasehRouter } from "./routes/alqaseh.js";
 import { createPaymentPageRouter } from "./routes/payment-pages.js";
 import alwaseetPublicTrackingRouter from "./routes/alwaseet-public-tracking.js";
@@ -92,6 +93,7 @@ export async function registerRoutes(httpServer: Server, app: express.Applicatio
   // Carrier tracking is intentionally mounted before the legacy orders router.
   // It owns only /track/* and never changes order/finance/fulfillment state.
   app.use("/api/orders", alwaseetPublicTrackingRouter);
+  app.use("/api/orders", createProductionTestCheckoutRouter());
   app.use("/api/orders", createOrderRouter());
   app.use("/api/payments/alqaseh", createAlqasehRouter());
   app.use("/payment", createPaymentPageRouter());
@@ -105,6 +107,7 @@ export async function registerRoutes(httpServer: Server, app: express.Applicatio
   // DELETE route and remains mounted before the legacy hard-delete handler.
   app.use("/api/admin", createAdminOrderPurgeRouter());
   app.use("/api/admin", createAdminOrderArchiveRouter());
+  app.use("/api/admin", createProductionTestAdminRouter());
   app.use("/api/admin", createAdminOrdersV2Router());
   app.use("/api/admin", createCustomerMessagingAdminRouter());
   app.use("/api/admin", createAdminRouter());
