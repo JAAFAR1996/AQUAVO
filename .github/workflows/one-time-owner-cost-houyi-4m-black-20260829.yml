@@ -1,0 +1,201 @@
+name: One-time owner cost fix - Houyi 4m black
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/one-time-owner-cost-houyi-4m-black-20260829.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: one-time-owner-cost-houyi-4m-black-20260829
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    environment: production
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    steps:
+      - name: Verify PostgreSQL client
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$DATABASE_URL"
+          if ! command -v psql >/dev/null 2>&1; then
+            sudo apt-get update -y
+            sudo apt-get install -y postgresql-client
+          fi
+          psql --version
+
+      - name: Record owner-confirmed unit cost and repair open-order snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 <<'SQL'
+          BEGIN;
+          SET LOCAL lock_timeout = '8s';
+          SET LOCAL statement_timeout = '45s';
+
+          SELECT pg_advisory_xact_lock(hashtextextended('aquavo:owner-cost-fix:houyi-oxygenation-tube:4m-black:2026-08-29', 0));
+
+          DO $do$
+          DECLARE
+            v_status text;
+            v_counted boolean;
+            v_existing_variant_cost numeric;
+            v_line_count bigint;
+            v_line_cost numeric;
+            v_packaging_cost numeric;
+            v_insert_cost numeric;
+            v_updated bigint;
+            v_stored_cost numeric;
+            v_stored_status text;
+          BEGIN
+            SELECT o.status, o.financially_counted
+              INTO v_status, v_counted
+            FROM public.orders o
+            WHERE o.id = '2cd4e18a-e934-49d5-8b0e-fc21cb085a19'
+            FOR UPDATE;
+
+            IF NOT FOUND THEN
+              RAISE EXCEPTION 'OWNER_COST_FIX_ORDER_NOT_FOUND';
+            END IF;
+
+            IF public.is_financially_realized_order(v_status, v_counted) THEN
+              RAISE EXCEPTION 'OWNER_COST_FIX_ORDER_ALREADY_REALIZED: status=% counted=%', v_status, v_counted;
+            END IF;
+
+            IF EXISTS (
+              SELECT 1 FROM public.order_accounting_facts
+              WHERE order_id = '2cd4e18a-e934-49d5-8b0e-fc21cb085a19'
+            ) THEN
+              RAISE EXCEPTION 'OWNER_COST_FIX_ORDER_ALREADY_HAS_ACCOUNTING_FACT';
+            END IF;
+
+            PERFORM 1
+            FROM public.products p
+            WHERE p.id = 'houyi-oxygenation-tube'
+              AND p.deleted_at IS NULL
+            FOR UPDATE;
+
+            IF NOT FOUND THEN
+              RAISE EXCEPTION 'OWNER_COST_FIX_PRODUCT_NOT_FOUND_OR_DELETED';
+            END IF;
+
+            SELECT NULLIF(v.elem->>'costPrice','')::numeric
+              INTO v_existing_variant_cost
+            FROM public.products p
+            CROSS JOIN LATERAL jsonb_array_elements(COALESCE(p.variants,'[]'::jsonb)) v(elem)
+            WHERE p.id = 'houyi-oxygenation-tube'
+              AND v.elem->>'id' = '4m-black'
+            LIMIT 1;
+
+            IF NOT FOUND THEN
+              RAISE EXCEPTION 'OWNER_COST_FIX_VARIANT_NOT_FOUND';
+            END IF;
+
+            IF v_existing_variant_cost IS NOT NULL AND v_existing_variant_cost <> 500 THEN
+              RAISE EXCEPTION 'OWNER_COST_FIX_EXISTING_VARIANT_COST_CONFLICT: existing=% expected=500', v_existing_variant_cost;
+            END IF;
+
+            PERFORM 1
+            FROM public.order_items_relational oi
+            WHERE oi.order_id = '2cd4e18a-e934-49d5-8b0e-fc21cb085a19'
+              AND oi.product_id = 'houyi-oxygenation-tube'
+              AND NULLIF(oi.metadata->>'variantId','') = '4m-black'
+            FOR UPDATE;
+
+            SELECT COUNT(*), MIN(oi.unit_cost_price), MIN(oi.unit_packaging_cost), MIN(oi.unit_insert_cost)
+              INTO v_line_count, v_line_cost, v_packaging_cost, v_insert_cost
+            FROM public.order_items_relational oi
+            WHERE oi.order_id = '2cd4e18a-e934-49d5-8b0e-fc21cb085a19'
+              AND oi.product_id = 'houyi-oxygenation-tube'
+              AND NULLIF(oi.metadata->>'variantId','') = '4m-black';
+
+            IF v_line_count <> 1 THEN
+              RAISE EXCEPTION 'OWNER_COST_FIX_EXPECTED_ONE_ORDER_LINE: found=%', v_line_count;
+            END IF;
+
+            IF v_line_cost IS NOT NULL AND v_line_cost <> 500 THEN
+              RAISE EXCEPTION 'OWNER_COST_FIX_EXISTING_LINE_COST_CONFLICT: existing=% expected=500', v_line_cost;
+            END IF;
+
+            IF v_packaging_cost IS NULL OR v_insert_cost IS NULL THEN
+              RAISE EXCEPTION 'OWNER_COST_FIX_OTHER_COST_COMPONENT_MISSING: packaging=% insert=%', v_packaging_cost, v_insert_cost;
+            END IF;
+
+            PERFORM public.set_current_inventory_unit_cost(
+              'houyi-oxygenation-tube',
+              '4m-black',
+              500,
+              'owner:Jaafar',
+              'Owner-confirmed unit cost 500 IQD on 2026-08-29; source request linked to open order 2cd4e18a-e934-49d5-8b0e-fc21cb085a19'
+            );
+
+            SELECT NULLIF(v.elem->>'costPrice','')::numeric,
+                   NULLIF(v.elem->>'costStatus','')
+              INTO v_stored_cost, v_stored_status
+            FROM public.products p
+            CROSS JOIN LATERAL jsonb_array_elements(COALESCE(p.variants,'[]'::jsonb)) v(elem)
+            WHERE p.id = 'houyi-oxygenation-tube'
+              AND v.elem->>'id' = '4m-black'
+            LIMIT 1;
+
+            IF v_stored_cost IS DISTINCT FROM 500 OR v_stored_status IS DISTINCT FROM 'verified_derived' THEN
+              RAISE EXCEPTION 'OWNER_COST_FIX_PRODUCT_VERIFICATION_FAILED: cost=% status=%', v_stored_cost, v_stored_status;
+            END IF;
+
+            UPDATE public.order_items_relational oi
+            SET unit_cost_price = 500,
+                cost_snapshot_status = 'exact',
+                cost_snapshot_source = 'manual',
+                cost_snapshot_confidence = 'high',
+                cost_snapshot_version = COALESCE(oi.cost_snapshot_version, 0) + 1,
+                cost_snapshot_at = clock_timestamp()
+            WHERE oi.order_id = '2cd4e18a-e934-49d5-8b0e-fc21cb085a19'
+              AND oi.product_id = 'houyi-oxygenation-tube'
+              AND NULLIF(oi.metadata->>'variantId','') = '4m-black';
+
+            GET DIAGNOSTICS v_updated = ROW_COUNT;
+            IF v_updated <> 1 THEN
+              RAISE EXCEPTION 'OWNER_COST_FIX_ORDER_LINE_UPDATE_COUNT: %', v_updated;
+            END IF;
+
+            PERFORM public.assert_order_ready_for_accounting_delivery('2cd4e18a-e934-49d5-8b0e-fc21cb085a19');
+          END
+          $do$;
+
+          COMMIT;
+
+          SELECT
+            p.id AS product_id,
+            v.elem->>'id' AS variant_id,
+            v.elem->>'costPrice' AS unit_cost_iqd,
+            v.elem->>'costStatus' AS cost_status,
+            v.elem->>'costEvidence' AS cost_evidence
+          FROM public.products p
+          CROSS JOIN LATERAL jsonb_array_elements(COALESCE(p.variants,'[]'::jsonb)) v(elem)
+          WHERE p.id='houyi-oxygenation-tube'
+            AND v.elem->>'id'='4m-black';
+
+          SELECT
+            oi.order_id,
+            oi.product_id,
+            oi.metadata->>'variantId' AS variant_id,
+            oi.unit_cost_price,
+            oi.unit_packaging_cost,
+            oi.unit_insert_cost,
+            oi.cost_snapshot_status,
+            oi.cost_snapshot_source,
+            oi.cost_snapshot_confidence,
+            oi.cost_snapshot_version
+          FROM public.order_items_relational oi
+          WHERE oi.order_id='2cd4e18a-e934-49d5-8b0e-fc21cb085a19'
+            AND oi.product_id='houyi-oxygenation-tube'
+            AND NULLIF(oi.metadata->>'variantId','')='4m-black';
+          SQL
