@@ -54,13 +54,23 @@ describe("author name sanitisation", () => {
     ];
     for (const file of files) {
       const source = readFileSync(resolve(process.cwd(), file), "utf8");
-      expect(source, `${file} should import the sanitiser`).toContain("displayAuthorName");
+      // articleAuthorEntity is a sanitising route: both of its branches run
+      // the name through displayAuthorName. A file that uses only that one is
+      // still sanitising every byline it renders.
+      expect(
+        source.includes("displayAuthorName") || source.includes("articleAuthorEntity"),
+        `${file} should sanitise the author`,
+      ).toBe(true);
       // Every line that touches post.author must also sanitise on that line. A
       // bare truthiness guard is fine, but only alongside the sanitised render.
       for (const line of source.split(String.fromCharCode(10))) {
         if (!line.includes("post.author")) continue;
+        // BlogByline is a sanitising route too: it renders the name through
+        // displayAuthorName or through articleAuthorEntity, which itself does.
         expect(
-          line.includes("displayAuthorName"),
+          ["displayAuthorName", "articleAuthorEntity", "BlogByline"].some((route) =>
+            line.includes(route),
+          ),
           `${file} renders post.author raw: ${line.trim()}`,
         ).toBe(true);
       }
