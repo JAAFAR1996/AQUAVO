@@ -14,6 +14,7 @@ import { displayAuthorName } from "../shared/author-name.js";
 import { JOURNEY_STEPS } from "../shared/journey-steps.js";
 import { GALLERY_ENTRY_TERMS, GALLERY_PRIZES } from "../shared/gallery-terms.js";
 import { GUIDE_LINKS_HEADING, guidesForCategory } from "../shared/guide-links.js";
+import { CATEGORY_CHECKS_HEADING, categoryContent } from "../shared/category-content.js";
 import { authorProfilePath } from "../shared/editorial-author.js";
 
 export type SeoPreviewVariant = {
@@ -355,6 +356,29 @@ function GuideLinks({ category }: { category?: string | null }) {
   );
 }
 
+/**
+ * What a buyer needs to know about this category before choosing, and what to
+ * weigh before buying. One shared module feeds this and the React listing, so
+ * a crawler and a reader are shown the same words.
+ */
+function CategoryIntro({ category }: { category?: string | null }) {
+  const content = categoryContent(category);
+  if (!content) return null;
+  return (
+    <section className="aq-ssr-category-intro" aria-labelledby="aq-category-checks-title">
+      {content.intro.map((paragraph) => (
+        <p key={paragraph}>{paragraph}</p>
+      ))}
+      <h2 id="aq-category-checks-title">{CATEGORY_CHECKS_HEADING}</h2>
+      <ul>
+        {content.checks.map((check) => (
+          <li key={check}>{check}</li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 function ProductsPage({ products, category }: { products: SeoPreviewProduct[]; category?: string }) {
   const heading = category ? `منتجات ${category}` : "جميع مستلزمات أحواض الزينة في العراق";
   return (
@@ -362,6 +386,7 @@ function ProductsPage({ products, category }: { products: SeoPreviewProduct[]; c
       <nav className="aq-ssr-breadcrumb" aria-label="مسار الصفحة"><a href="/">الرئيسية</a><span>/</span><a href="/products">المنتجات</a>{category && <><span>/</span><span>{category}</span></>}</nav>
       <h1>{heading}</h1>
       <p>{category ? `المنتجات المسجلة ضمن فئة ${category} مع السعر والمخزون وروابط مباشرة.` : "تصفح منتجات AQUAVO حسب الفئة، ثم افتح صفحة المنتج للاطلاع على السعر والمخزون والمواصفات المتوفرة."}</p>
+      <CategoryIntro category={category} />
       {!category && <Categories products={products} />}
       <section aria-labelledby="aq-all-products-title">
         <h2 id="aq-all-products-title">قائمة المنتجات</h2>

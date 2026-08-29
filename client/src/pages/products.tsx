@@ -9,6 +9,8 @@ import { productListingSeo } from "@shared/seo-contract";
 import { ProductCard } from "@/components/products/product-card";
 import { CategoryScrollBar } from "@/components/products/category-scroll-bar";
 import { GuideLinksSection } from "@/components/seo/guide-links-section";
+import { CategoryIntro } from "@/components/seo/category-intro";
+import { categoryContent } from "@shared/category-content";
 import { FilterBar } from "@/components/products/filter-bar";
 import type { FilterState } from "@/components/products/filter-modal";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -414,7 +416,13 @@ export default function Products() {
     <div className="flex flex-1 flex-col bg-background font-sans transition-colors duration-300">
       <MetaTags
         title={listingSeo.category ? listingSeo.title : "متجر معدات الأحواض"}
-        description="اختار معدات حوضك حسب الفئة والسعر والاستخدام. فلاتر وسخانات وإضاءة ومستلزمات عناية، مع الدفع عند الاستلام أو إلكترونياً وتوصيل لكل العراق."
+        description={
+          // Each category has its own description. All eleven previously
+          // shared this one sentence, so eleven indexable listings competed
+          // with an identical snippet.
+          categoryContent(listingSeo.category)?.metaDescription ??
+          "اختار معدات حوضك حسب الفئة والسعر والاستخدام. فلاتر وسخانات وإضاءة ومستلزمات عناية، مع الدفع عند الاستلام أو إلكترونياً وتوصيل لكل العراق."
+        }
         canonicalUrl={listingSeo.canonicalUrl}
       />
       <BreadcrumbSchema items={breadcrumbItems} />
@@ -622,6 +630,7 @@ export default function Products() {
         {/* The guides for the category being browsed, on the same condition the
             canonical and the breadcrumb use: exactly one category selected is
             the state that has a category URL to be a page about. */}
+        {filters.categories.length === 1 && <CategoryIntro category={filters.categories[0]} />}
         {filters.categories.length === 1 && <GuideLinksSection category={filters.categories[0]} />}
       </main>
 
