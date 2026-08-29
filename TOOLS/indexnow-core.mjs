@@ -1,5 +1,5 @@
 // Pure selection logic for the IndexNow submission. Kept free of network and
-// filesystem access so it can be tested directly; scripts/submit-indexnow.mjs
+// filesystem access so it can be tested directly; TOOLS/submit-indexnow.mjs
 // supplies the IO.
 
 export const INDEXNOW_HOST = "www.aquavoiq.com";

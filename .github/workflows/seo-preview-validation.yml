@@ -31,7 +31,8 @@ on:
       - "test/seo-runtime-entry.test.ts"
       - "test/seo-production-safety.test.ts"
       - "scripts/verify-generated-ssr-runtime.ts"
-      - "scripts/submit-indexnow.mjs"
+      - "TOOLS/submit-indexnow.mjs"
+      - "TOOLS/indexnow-core.mjs"
       - "scripts/seo-preview-live-audit.mjs"
       - "scripts/seo-preview-visual-parity.mjs"
       - "scripts/seo-production-360-audit.mjs"
@@ -91,7 +92,9 @@ jobs:
         run: pnpm exec vitest run test/seo-preview-shell.test.tsx test/seo-runtime-entry.test.ts test/seo-production-safety.test.ts --reporter=verbose
 
       - name: Verify IndexNow submission syntax
-        run: node --check scripts/submit-indexnow.mjs
+        run: |
+          node --check TOOLS/submit-indexnow.mjs
+          node --check TOOLS/indexnow-core.mjs
 
       - name: Verify browser-audit script syntax
         run: node --check scripts/seo-preview-live-audit.mjs

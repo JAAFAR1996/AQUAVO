@@ -173,6 +173,6 @@ env.prod
 playwright-report/
 reports/screenshots/
 
-# Written by scripts/submit-indexnow.mjs; carried between CI runs by the
+# Written by TOOLS/submit-indexnow.mjs; carried between CI runs by the
 # workflow cache, never committed.
 .indexnow-ledger.json

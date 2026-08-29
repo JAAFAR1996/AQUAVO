@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -185,5 +185,26 @@ describe("IndexNow: the workflow fires on a real deployment", () => {
     const yaml = workflow();
     expect(yaml).toContain("actions/cache");
     expect(yaml).toContain(".indexnow-ledger.json");
+  });
+});
+
+describe("IndexNow: nothing still points at the old script path", () => {
+  it("has no workflow referencing scripts/submit-indexnow.mjs", () => {
+    // .gitignore excludes scripts/, so moving the script there back would make
+    // it invisible to git; a workflow left pointing at the old path fails with
+    // MODULE_NOT_FOUND, which is exactly how this was caught in CI.
+    const dir = resolve(process.cwd(), ".github/workflows");
+    for (const file of readdirSync(dir).filter((f) => f.endsWith(".yml") || f.endsWith(".yaml"))) {
+      const yaml = readFileSync(resolve(dir, file), "utf8");
+      expect(yaml, `${file} still references the old script path`).not.toContain("scripts/submit-indexnow");
+      expect(yaml, `${file} still references the old core path`).not.toContain("scripts/indexnow-core");
+    }
+  });
+
+  it("syntax-checks both IndexNow modules, not just one", () => {
+    const yaml = readFileSync(
+      resolve(process.cwd(), ".github/workflows/seo-preview-validation.yml"), "utf8");
+    expect(yaml).toContain("node --check TOOLS/submit-indexnow.mjs");
+    expect(yaml).toContain("node --check TOOLS/indexnow-core.mjs");
   });
 });
