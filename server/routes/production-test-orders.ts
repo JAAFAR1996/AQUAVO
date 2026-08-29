@@ -21,19 +21,17 @@ function rowsOf(result: unknown): Array<Record<string, unknown>> {
   return Array.isArray(rows) ? rows : [];
 }
 
-function isAdminRole(role: unknown): boolean {
-  return role === "admin" || role === "accounting_admin";
-}
-
 /** Mounted at /api/orders before the genuine storefront order router. */
 export function createProductionTestCheckoutRouter() {
   const router = Router();
 
-  router.post("/test", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  // The session stores userId only. Use the canonical DB-backed admin guard
+  // instead of reading a non-existent session.role value.
+  router.post("/test", requireAccountingAdmin, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const session = getSession(req);
-      if (!session?.userId || !isAdminRole(session.role)) {
-        res.status(403).json({ message: "وضع الاختبار متاح للأدمن فقط" });
+      if (!session?.userId) {
+        res.status(401).json({ message: "يجب تسجيل الدخول أولاً" });
         return;
       }
 
