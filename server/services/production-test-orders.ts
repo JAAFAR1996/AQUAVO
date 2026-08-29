@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { sql } from "drizzle-orm";
 import { getDb } from "../db.js";
 
@@ -121,7 +122,7 @@ export async function createProductionTestOrder(input: {
 
   const shippingCost = 5000;
   const total = subtotal + shippingCost;
-  const orderId = input.idempotencyKey ?? crypto.randomUUID();
+  const orderId = input.idempotencyKey ?? randomUUID();
   const orderNumber = `TEST-${orderId.replace(/-/g, "").slice(0, 10).toUpperCase()}`;
 
   return await db.transaction(async (tx) => {
