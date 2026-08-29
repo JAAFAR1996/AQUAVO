@@ -1,0 +1,42 @@
+name: Production Test Order Mode Migration
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/production-test-order-mode-migrate.yml"
+      - "migrations/20260829_production_test_order_mode.sql"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-test-order-mode-migration
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: production
+    steps:
+      - name: Checkout release
+        uses: actions/checkout@v4
+
+      - name: Apply isolated test-order migration
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          set -euo pipefail
+          test -n "$DATABASE_URL"
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f migrations/20260829_production_test_order_mode.sql
+
+      - name: Verify test-order isolation triggers
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          set -euo pipefail
+          test -n "$DATABASE_URL"
+          test "$(psql "$DATABASE_URL" -Atqc "SELECT count(*) FROM public.schema_migrations WHERE version='20260829_production_test_order_mode' AND rolled_back_at IS NULL")" = "1"
+          psql "$DATABASE_URL" -Atqc "SELECT tgname || ':' || pg_get_triggerdef(oid) FROM pg_trigger WHERE tgrelid='public.orders'::regclass AND tgname IN ('orders_01_block_test_status_side_effects','orders_accounting_delivery_readiness_guard','orders_record_delivery_accounting','trg_orders_post_delivery_messages') ORDER BY tgname"
