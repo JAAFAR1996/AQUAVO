@@ -103,6 +103,17 @@ export const PUBLIC_INDEXABLE_PATHS = Object.freeze([
   "/sustainability",
 ] as const);
 
+// The eleven category listings. They are the only browse step AQUAVO has
+// between the storefront root and a single product, and they are real pages —
+// /products?category=<value> renders a category-scoped listing, self-canonical
+// on this exact string, and every English alias 308s here. They live apart from
+// PUBLIC_INDEXABLE_PATHS because that list is matched against pathnames and
+// these carry a query string; keeping them separate stops path-based callers
+// from ever seeing a "/products?category=..." where they expect a path.
+export const PUBLIC_INDEXABLE_CATEGORY_PATHS = Object.freeze(
+  AQUAVO_PRODUCT_CATEGORIES.map((category) => categoryProductsPath(category)),
+) as readonly string[];
+
 export const NOINDEX_PUBLIC_PATHS = Object.freeze([
   "/search",
   "/wishlist",

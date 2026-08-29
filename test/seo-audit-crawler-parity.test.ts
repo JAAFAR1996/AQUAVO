@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { AQUAVO_SEO_RELEASE_LASTMOD } from "../shared/seo-contract";
-import { BLOG_SITEMAP_RELEASE_LASTMOD } from "../api/sitemap-index";
+import { BLOG_SITEMAP_RELEASE_LASTMOD, PAGES_SITEMAP_RELEASE_LASTMOD } from "../api/sitemap-index";
 
 const read = (path: string) => readFileSync(resolve(process.cwd(), path), "utf8");
 
@@ -64,10 +64,25 @@ describe("SEO audit crawler parity", () => {
     // entries to sitemap-blog.xml did not — so the assertion kept passing
     // against a stamp that had gone stale, which is the failure it exists to
     // catch. sitemap-index-agreement.test.ts pins the file against the route.
-    const release = new RegExp(`<lastmod>${AQUAVO_SEO_RELEASE_LASTMOD}</lastmod>`, "g");
-    const blog = new RegExp(`<lastmod>${BLOG_SITEMAP_RELEASE_LASTMOD}</lastmod>`, "g");
-    expect(sitemap.match(release)?.length).toBe(3);
-    expect(sitemap.match(blog)?.length).toBe(1);
+    //
+    // Counting occurrences of one shared constant was the earlier shape, and it
+    // silently forced every child sitemap to share a stamp: giving one of them
+    // its own release date broke the count even though the file was correct.
+    // Each sitemap is now checked against the constant that actually governs
+    // it, so a per-sitemap stamp is expressible and a stale one still fails.
+    const expected: Array<[string, string]> = [
+      ["/sitemap-pages.xml", PAGES_SITEMAP_RELEASE_LASTMOD],
+      ["/sitemap-products.xml", AQUAVO_SEO_RELEASE_LASTMOD],
+      ["/sitemap-guides.xml", AQUAVO_SEO_RELEASE_LASTMOD],
+      ["/sitemap-blog.xml", BLOG_SITEMAP_RELEASE_LASTMOD],
+    ];
+    const blocks = [...sitemap.matchAll(/<sitemap>[\s\S]*?<\/sitemap>/g)].map((m) => m[0]);
+    expect(blocks).toHaveLength(expected.length);
+    for (const [name, stamp] of expected) {
+      const block = blocks.find((b) => b.includes(name));
+      expect(block, `${name} is not listed`).toBeDefined();
+      expect(block, `${name} advertises a stale lastmod`).toContain(`<lastmod>${stamp}</lastmod>`);
+    }
   });
 
   it("keeps serving the recovery sitemap it no longer advertises", () => {
