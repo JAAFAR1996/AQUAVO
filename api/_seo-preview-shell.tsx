@@ -44,6 +44,8 @@ export type SeoPreviewProduct = {
   variants?: SeoPreviewVariant[] | null;
   rating?: string | number | null;
   reviewCount?: string | number | null;
+  /** products.specifications — open jsonb, so it is read defensively below. */
+  specifications?: unknown;
 };
 
 export type SeoPreviewBlogPost = {
@@ -397,6 +399,73 @@ function ProductsPage({ products, category }: { products: SeoPreviewProduct[]; c
   );
 }
 
+/**
+ * What AQUAVO knows about the product, from products.specifications.
+ *
+ * This column already holds researched per-product content — benefits, usage
+ * steps and safety warnings on all 112 products, distinct on 105 to 107 of
+ * them — and a crawler could not see a line of it: the SSR query did not even
+ * select the column. A reader got it in the product-details tabs; Googlebot,
+ * GPTBot, ClaudeBot and PerplexityBot got a page with none of it.
+ *
+ * The column is open jsonb, so nothing here trusts its shape. Editorial lists
+ * are read by name, plain attributes are allowlisted to string/number values,
+ * and anything internal (a "__" key) is dropped rather than rendered.
+ */
+const SPEC_LISTS = [
+  ["benefits", "لماذا هذا المنتج"],
+  ["usageInstructions", "طريقة الاستخدام"],
+  ["safetyWarnings", "تنبيهات وسلامة"],
+] as const;
+
+function specRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+function specLines(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.map((item) => String(item ?? "").trim()).filter(Boolean);
+}
+
+function ProductSpecifications({ product }: { product: SeoPreviewProduct }) {
+  const specs = specRecord(product.specifications);
+  const listed = SPEC_LISTS.map(([key, heading]) => [heading, specLines(specs[key])] as const)
+    .filter(([, lines]) => lines.length > 0);
+  const named = new Set(SPEC_LISTS.map(([key]) => key as string));
+  const attributes = Object.entries(specs)
+    .filter(([key, value]) =>
+      !key.startsWith("__") &&
+      !named.has(key) &&
+      (typeof value === "string" || typeof value === "number") &&
+      String(value).trim() !== "")
+    .map(([key, value]) => [key, String(value).trim()] as const);
+
+  if (listed.length === 0 && attributes.length === 0) return null;
+
+  return (
+    <section className="aq-ssr-product-facts" aria-labelledby="aq-ssr-product-facts-title">
+      <h2 id="aq-ssr-product-facts-title">تفاصيل المنتج</h2>
+      {attributes.length > 0 && (
+        <dl className="aq-ssr-facts">
+          {attributes.map(([key, value]) => (
+            <div key={key}><dt>{key}</dt><dd>{value}</dd></div>
+          ))}
+        </dl>
+      )}
+      {listed.map(([heading, lines]) => (
+        <section key={heading}>
+          <h3>{heading}</h3>
+          <ul>
+            {lines.map((line) => (<li key={line}>{line}</li>))}
+          </ul>
+        </section>
+      ))}
+    </section>
+  );
+}
+
 function ProductPage({ product, related, reviews = [] }: { product: SeoPreviewProduct; related: SeoPreviewProduct[]; reviews?: SeoPreviewReview[] }) {
   const description = cleanText(product.description, `معلومات ومواصفات ${product.name} من AQUAVO.`);
   const variants = getActiveVariants(product);
@@ -500,6 +569,7 @@ function ProductPage({ product, related, reviews = [] }: { product: SeoPreviewPr
           </ul>
         </section>
       )}
+      <ProductSpecifications product={product} />
       {related.length > 0 && (
         <section aria-labelledby="aq-related-title">
           <h2 id="aq-related-title">منتجات مرتبطة</h2>
