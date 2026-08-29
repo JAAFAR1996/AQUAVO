@@ -13,6 +13,7 @@ import { primaryProductImage, productGalleryImages } from "./_seo-structured-dat
 import { displayAuthorName } from "../shared/author-name.js";
 import { JOURNEY_STEPS } from "../shared/journey-steps.js";
 import { GALLERY_ENTRY_TERMS, GALLERY_PRIZES } from "../shared/gallery-terms.js";
+import { GUIDE_LINKS_HEADING, guidesForCategory } from "../shared/guide-links.js";
 
 export type SeoPreviewVariant = {
   id?: string;
@@ -330,6 +331,29 @@ function HomePage({ products }: { products: SeoPreviewProduct[] }) {
   );
 }
 
+/**
+ * The guides that belong to a category, as real links.
+ *
+ * Rendered on the category listing and on every product page in that category
+ * from one map, so 113 product pages do not each carry a hand-written block
+ * that can rot independently. The link text is the guide's own heading; nothing
+ * here asserts anything about the product it sits under.
+ */
+function GuideLinks({ category }: { category?: string | null }) {
+  const links = guidesForCategory(category);
+  if (links.length === 0) return null;
+  return (
+    <section className="aq-ssr-guide-links" aria-labelledby="aq-guide-links-title">
+      <h2 id="aq-guide-links-title">{GUIDE_LINKS_HEADING}</h2>
+      <ul>
+        {links.map((link) => (
+          <li key={link.href}><a href={link.href}>{link.label}</a></li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 function ProductsPage({ products, category }: { products: SeoPreviewProduct[]; category?: string }) {
   const heading = category ? `منتجات ${category}` : "جميع مستلزمات أحواض الزينة في العراق";
   return (
@@ -342,6 +366,7 @@ function ProductsPage({ products, category }: { products: SeoPreviewProduct[]; c
         <h2 id="aq-all-products-title">قائمة المنتجات</h2>
         {products.length > 0 ? <ProductLinks products={products} /> : <p>لا توجد منتجات منشورة ضمن هذه الفئة حالياً.</p>}
       </section>
+      <GuideLinks category={category} />
     </main>
   );
 }
@@ -455,6 +480,7 @@ function ProductPage({ product, related, reviews = [] }: { product: SeoPreviewPr
           <ProductLinks products={related} limit={6} />
         </section>
       )}
+      <GuideLinks category={category} />
     </main>
   );
 }

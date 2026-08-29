@@ -8,6 +8,7 @@ import { MetaTags, ItemListSchema, BreadcrumbSchema } from "@/components/seo/met
 import { productListingSeo } from "@shared/seo-contract";
 import { ProductCard } from "@/components/products/product-card";
 import { CategoryScrollBar } from "@/components/products/category-scroll-bar";
+import { GuideLinksSection } from "@/components/seo/guide-links-section";
 import { FilterBar } from "@/components/products/filter-bar";
 import type { FilterState } from "@/components/products/filter-modal";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -617,6 +618,11 @@ export default function Products() {
             )}
           </>
         ) : null}
+
+        {/* The guides for the category being browsed, on the same condition the
+            canonical and the breadcrumb use: exactly one category selected is
+            the state that has a category URL to be a page about. */}
+        {filters.categories.length === 1 && <GuideLinksSection category={filters.categories[0]} />}
       </main>
 
       <BackToTop />
