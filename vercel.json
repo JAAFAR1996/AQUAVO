@@ -339,7 +339,7 @@
         {
           "type": "header",
           "key": "user-agent",
-          "value": ".*(Googlebot|bingbot|BingPreview|DuckDuckBot|YandexBot|Baiduspider|Applebot|Twitterbot|facebookexternalhit|LinkedInBot|Slackbot|Discordbot|WhatsApp|TelegramBot|GPTBot|ChatGPT-User|OAI-SearchBot|ClaudeBot|Claude-User|PerplexityBot|Amazonbot|Bytespider|PetalBot|CCBot|SiteAuditBot|SemrushBot|AhrefsBot|AhrefsSiteAudit|MJ12bot|DotBot|Screaming Frog SEO Spider|Google-Extended|Meta-ExternalAgent|meta-externalfetcher|anthropic-ai|cohere-ai|DuckAssistBot|YouBot|Diffbot|Timpibot|omgili).*"
+          "value": ".*(Googlebot|Storebot-Google|Google-InspectionTool|GoogleOther|AdsBot-Google|bingbot|BingPreview|DuckDuckBot|YandexBot|Baiduspider|Applebot|Twitterbot|facebookexternalhit|LinkedInBot|Slackbot|Discordbot|WhatsApp|TelegramBot|GPTBot|ChatGPT-User|OAI-SearchBot|ClaudeBot|Claude-User|PerplexityBot|Amazonbot|Bytespider|PetalBot|CCBot|SiteAuditBot|SemrushBot|AhrefsBot|AhrefsSiteAudit|MJ12bot|DotBot|Screaming Frog SEO Spider|Google-Extended|Meta-ExternalAgent|meta-externalfetcher|anthropic-ai|cohere-ai|DuckAssistBot|YouBot|Diffbot|Timpibot|omgili).*"
         }
       ],
       "destination": "/api/ssr-preview"
