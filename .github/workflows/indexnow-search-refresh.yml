@@ -37,6 +37,10 @@ jobs:
        github.event.deployment.environment == 'Production')
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
+      # Reading previous runs and their artifacts to recover the ledger.
+      actions: read
     steps:
       - name: Checkout main
         uses: actions/checkout@v4
@@ -46,21 +50,43 @@ jobs:
         with:
           node-version: 20.19.0
 
-      # What has already been submitted, and for which lastmod. Restored from
-      # the most recent run and saved under a fresh key so the entry rolls
-      # forward. If it is ever evicted the recency window still bounds the
-      # batch, so the worst case is one repeated submission of recently
-      # changed URLs — never the whole corpus.
-      - name: Restore IndexNow ledger
-        uses: actions/cache@v4
-        with:
-          path: .indexnow-ledger.json
-          key: indexnow-ledger-${{ github.run_id }}
-          restore-keys: |
-            indexnow-ledger-
+      # What has already been submitted, and for which lastmod.
+      #
+      # This was an actions/cache entry and it silently never persisted: the
+      # cache refuses to save from a deployment_status event — "not tied to a
+      # branch or tag ref" — so every run started from an empty ledger and
+      # resubmitted the same URLs the previous deployment had just sent. The
+      # recency window kept that bounded, but the second brake was inert.
+      # Artifacts are scoped to the run rather than a ref, so they survive.
+      - name: Restore the ledger from the last run that wrote one
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          for id in $(gh run list --workflow=indexnow-search-refresh.yml                         --status=success --limit 20                         --json databaseId -q '.[].databaseId'); do
+            if gh api "repos/$REPO/actions/runs/$id/artifacts"                  -q '.artifacts[].name' 2>/dev/null | grep -qx indexnow-ledger; then
+              gh run download "$id" --name indexnow-ledger --dir . && break || true
+            fi
+          done
+          if [ -f .indexnow-ledger.json ]; then
+            echo "Ledger restored with $(node -e "console.log(Object.keys(require('./.indexnow-ledger.json')).length)") URL(s)."
+          else
+            echo "No previous ledger; the recency window bounds this run."
+          fi
 
       - name: Submit changed URLs to IndexNow
         env:
           INDEXNOW_WINDOW_DAYS: ${{ github.event.inputs.window_days || '7' }}
           INDEXNOW_DRY_RUN: ${{ github.event.inputs.dry_run || '0' }}
         run: node TOOLS/submit-indexnow.mjs
+
+      # Written only when the submission succeeded, so a failed or rate-limited
+      # run leaves the previous ledger standing and the next run retries.
+      - name: Persist the ledger for the next run
+        uses: actions/upload-artifact@v4
+        with:
+          name: indexnow-ledger
+          path: .indexnow-ledger.json
+          if-no-files-found: ignore
+          retention-days: 90
+          overwrite: true

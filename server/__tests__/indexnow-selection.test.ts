@@ -181,10 +181,25 @@ describe("IndexNow: the workflow fires on a real deployment", () => {
     expect(yaml).toContain("deployment.environment == 'Production'");
   });
 
-  it("carries the ledger between runs", () => {
+  // The ledger was an actions/cache entry and it silently never persisted:
+  // the cache refuses to save from a deployment_status event, so every run
+  // began with an empty ledger and resubmitted what the previous deployment
+  // had just sent. Artifacts are scoped to the run, not to a ref.
+  it("carries the ledger between runs by artifact, not by cache", () => {
     const yaml = workflow();
-    expect(yaml).toContain("actions/cache");
     expect(yaml).toContain(".indexnow-ledger.json");
+    expect(yaml).toContain("actions/upload-artifact");
+    expect(yaml).toContain("gh run download");
+    // Matched as a step rather than as a substring: the comment above the
+    // restore step names actions/cache to explain why it is not used.
+    expect(yaml, "actions/cache cannot save from deployment_status")
+      .not.toMatch(/uses:\s*actions\/cache/);
+  });
+
+  it("can read previous runs in order to recover the ledger", () => {
+    const yaml = workflow();
+    expect(yaml).toMatch(/permissions:/);
+    expect(yaml).toMatch(/actions:\s*read/);
   });
 });
 
