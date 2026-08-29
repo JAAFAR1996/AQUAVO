@@ -45,6 +45,7 @@ import {
 import { isKnownSitePath } from "../shared/site-routes.js";
 import { toPublicVariant } from "../shared/public-product.js";
 import { displayAuthorName } from "../shared/author-name.js";
+import { categoryContent } from "../shared/category-content.js";
 import { articleAuthorEntity } from "../shared/editorial-author.js";
 import { PRERENDERED_PAGES } from "./_prerendered-pages.js";
 
@@ -516,9 +517,14 @@ async function resolvePage(pathname: string, rawCategory?: string): Promise<Reso
       page: { kind: "products", products, category },
       meta: {
         title: listingSeo.title,
-        description: category
-          ? `تصفح منتجات ${category} المتوفرة من AQUAVO مع السعر وحالة المخزون.`
-          : "تصفح مستلزمات أحواض الزينة المتوفرة من AQUAVO مع روابط مباشرة لكل منتج.",
+        // Each category carries its own description. All eleven previously
+        // shared one templated sentence with the name substituted, so eleven
+        // indexable listings went to Google with an identical snippet.
+        description:
+          categoryContent(category)?.metaDescription ??
+          (category
+            ? `تصفح منتجات ${category} المتوفرة من AQUAVO مع السعر وحالة المخزون.`
+            : "تصفح مستلزمات أحواض الزينة المتوفرة من AQUAVO مع روابط مباشرة لكل منتج."),
         canonicalPath,
         jsonLd: buildCollectionStructuredData(products, canonicalPath, name),
       },
