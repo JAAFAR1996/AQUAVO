@@ -31,6 +31,9 @@ export default function CheckoutPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const { items: cartItems, totalPrice: cartTotal, clearCart } = useCart();
+  const canUseTestMode = user?.role === "admin" || user?.role === "accounting_admin";
+  const testRequested = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("test") === "1";
+  const [testMode, setTestMode] = useState(testRequested);
 
   const [step, setStep] = useState<"info" | "confirm" | "success">("info");
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({
@@ -57,6 +60,26 @@ export default function CheckoutPage() {
     setLoyaltyData(data);
   }, []);
 
+  const setSafeTestMode = (enabled: boolean) => {
+    setTestMode(enabled);
+    if (enabled) {
+      setAppliedCoupon(null);
+      setCouponCode("");
+      setCouponDiscount(0);
+      setCouponError("");
+      setCouponSuccess("");
+      setLoyaltyData({
+        usePoints: false,
+        useCashback: false,
+        pointsToUse: 0,
+        cashbackToUse: 0,
+        pointsDiscount: 0,
+        roundedAmount: 0,
+        cashbackEarned: 0,
+      });
+    }
+  };
+
   useEffect(() => {
     if (cartItems.length === 0 && step !== "success") {
       setLocation("/");
@@ -70,11 +93,14 @@ export default function CheckoutPage() {
         name: user.fullName || prev.name,
         phone: user.phone || prev.phone,
       }));
+      if (testMode && user.role !== "admin" && user.role !== "accounting_admin") {
+        setTestMode(false);
+      }
     }
   }, [user]);
 
   useEffect(() => {
-    if (cartItems.length > 0) {
+    if (cartItems.length > 0 && !testMode) {
       ttqInitiateCheckout(
         cartItems.map((item) => ({
           id: item.productId,
@@ -163,21 +189,23 @@ export default function CheckoutPage() {
 
   const handleContinue = () => {
     if (validateInfo()) {
-      trackAddShippingInfo(cartItems.map((item) => ({
-        id: item.productId,
-        name: item.name,
-        price: item.price,
-        quantity: item.quantity,
-      })), cartTotal);
-      ttqAddPaymentInfo(
-        cartItems.map((item) => ({
+      if (!testMode) {
+        trackAddShippingInfo(cartItems.map((item) => ({
           id: item.productId,
           name: item.name,
           price: item.price,
           quantity: item.quantity,
-        })),
-        cartTotal
-      );
+        })), cartTotal);
+        ttqAddPaymentInfo(
+          cartItems.map((item) => ({
+            id: item.productId,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+          })),
+          cartTotal
+        );
+      }
       setStep("confirm");
       window.scrollTo(0, 0);
     }
@@ -189,11 +217,12 @@ export default function CheckoutPage() {
     try {
       const cartSignature = JSON.stringify({
         items: cartItems.map(({ productId, variantId, quantity }) => ({ productId, variantId, quantity })),
-        couponCode: appliedCoupon?.code ?? null,
-        cashbackToUse: loyaltyData.cashbackToUse,
+        couponCode: testMode ? null : appliedCoupon?.code ?? null,
+        cashbackToUse: testMode ? 0 : loyaltyData.cashbackToUse,
+        testMode,
       });
       const idempotencyKey = getOrderIdempotencyKey(cartSignature);
-      const response = await fetch("/api/orders", {
+      const response = await fetch(testMode ? "/api/orders/test" : "/api/orders", {
         method: "POST",
         headers: addCsrfHeader({
           "Content-Type": "application/json",
@@ -211,11 +240,11 @@ export default function CheckoutPage() {
             ...(item.variantId ? { variantId: item.variantId } : {}),
           })),
           total: cartTotal,
-          couponCode: appliedCoupon ? appliedCoupon.code : undefined,
-          usePoints: loyaltyData.usePoints,
-          useCashback: loyaltyData.useCashback,
-          pointsToUse: loyaltyData.pointsToUse,
-          cashbackToUse: loyaltyData.cashbackToUse,
+          couponCode: testMode ? undefined : appliedCoupon ? appliedCoupon.code : undefined,
+          usePoints: testMode ? false : loyaltyData.usePoints,
+          useCashback: testMode ? false : loyaltyData.useCashback,
+          pointsToUse: testMode ? 0 : loyaltyData.pointsToUse,
+          cashbackToUse: testMode ? 0 : loyaltyData.cashbackToUse,
         }),
       });
 
@@ -227,42 +256,44 @@ export default function CheckoutPage() {
       const orderData = await response.json();
       const confirmedTotal = resolveCheckoutTotal(orderData, grandTotal);
 
-      ttqPlaceAnOrder(
-        cartItems.map((item) => ({
-          id: item.productId,
-          name: item.name,
-          price: item.price,
-          quantity: item.quantity,
-        })),
-        cartTotal
-      );
-      metaTrackPurchase({
-        orderId: orderData.orderNumber || orderData.id || "unknown",
-        totalIQD: confirmedTotal,
-        productIds: cartItems.map((i) => i.productId),
-        numItems: cartItems.reduce((sum, i) => sum + i.quantity, 0),
-        phone: customerInfo.phone,
-      });
-      // Reached only after `response.ok` and a parsed order body, so a failed submission cannot emit it.
-      // Note this deliberately does NOT forward customerInfo.phone the way the Meta call above does:
-      // Meta hashes it for CAPI matching, PostHog would simply store it.
-      phTrackPurchase({
-        orderId: orderData.orderNumber ?? orderData.id,
-        totalValue: confirmedTotal,
-        numItems: cartItems.reduce((sum, i) => sum + i.quantity, 0),
-        productIds: cartItems.map((i) => i.productId),
-        sourcePage: "checkout",
-      });
-      trackPurchase({
-        orderId: orderData.id || "unknown",
-        total: confirmedTotal,
-        items: cartItems.map((item) => ({
-          id: item.productId,
-          name: item.name,
-          price: item.price,
-          quantity: item.quantity,
-        })),
-      });
+      if (!testMode) {
+        ttqPlaceAnOrder(
+          cartItems.map((item) => ({
+            id: item.productId,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+          })),
+          cartTotal
+        );
+        metaTrackPurchase({
+          orderId: orderData.orderNumber || orderData.id || "unknown",
+          totalIQD: confirmedTotal,
+          productIds: cartItems.map((i) => i.productId),
+          numItems: cartItems.reduce((sum, i) => sum + i.quantity, 0),
+          phone: customerInfo.phone,
+        });
+        // Reached only after `response.ok` and a parsed order body, so a failed submission cannot emit it.
+        // Note this deliberately does NOT forward customerInfo.phone the way the Meta call above does:
+        // Meta hashes it for CAPI matching, PostHog would simply store it.
+        phTrackPurchase({
+          orderId: orderData.orderNumber ?? orderData.id,
+          totalValue: confirmedTotal,
+          numItems: cartItems.reduce((sum, i) => sum + i.quantity, 0),
+          productIds: cartItems.map((i) => i.productId),
+          sourcePage: "checkout",
+        });
+        trackPurchase({
+          orderId: orderData.id || "unknown",
+          total: confirmedTotal,
+          items: cartItems.map((item) => ({
+            id: item.productId,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+          })),
+        });
+      }
 
       setOrderResult({
         orderId: orderData.id,
@@ -270,6 +301,12 @@ export default function CheckoutPage() {
       });
       setStep("success");
       clearOrderIdempotencyKey();
+
+      if (testMode) {
+        clearCart();
+        window.scrollTo(0, 0);
+        return;
+      }
 
       if (orderData.id) {
         const governorateLabel = GOVERNORATES.find((g) => g.value === customerInfo.governorate)?.label;
@@ -394,7 +431,7 @@ export default function CheckoutPage() {
   if (step === "success" && orderResult) {
     return (
       <>
-        <MetaTags title="طلبك مسجّل" noIndex />
+        <MetaTags title={testMode ? "طلب اختبار مسجّل" : "طلبك مسجّل"} noIndex />
         <CheckoutSuccessFallback
           orderNumber={orderResult.orderNumber}
           headingRef={successHeadingRef}
@@ -433,16 +470,35 @@ export default function CheckoutPage() {
               isGuest={!user}
             />
 
-            <CouponSection
-              couponCode={couponCode}
-              setCouponCode={setCouponCode}
-              applyCoupon={applyCoupon}
-              couponError={couponError}
-              couponSuccess={couponSuccess}
-              isApplying={isApplyingCoupon}
-            />
+            {canUseTestMode && (
+              <label className="flex gap-3 rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={testMode}
+                  onChange={(event) => setSafeTestMode(event.target.checked)}
+                  className="mt-1 h-4 w-4"
+                />
+                <span className="space-y-1">
+                  <span className="block font-semibold text-sm">وضع الاختبار</span>
+                  <span className="block text-xs text-muted-foreground">
+                    لا يخصم مخزون ولا يدخل المحاسب أو المبيعات أو النقاط. بعد تم الاستلام يُسمح فقط باختبار رسالة واتساب.
+                  </span>
+                </span>
+              </label>
+            )}
 
-            {user && (
+            {!testMode && (
+              <CouponSection
+                couponCode={couponCode}
+                setCouponCode={setCouponCode}
+                applyCoupon={applyCoupon}
+                couponError={couponError}
+                couponSuccess={couponSuccess}
+                isApplying={isApplyingCoupon}
+              />
+            )}
+
+            {user && !testMode && (
               <CheckoutLoyaltySection
                 cartTotal={cartTotal - couponDiscount}
                 onPointsChange={handleLoyaltyChange}
@@ -470,23 +526,30 @@ export default function CheckoutPage() {
             </Button>
           </div>
         ) : (
-          <ConfirmationView
-            customerInfo={customerInfo}
-            cartItems={cartItems}
-            cartTotal={cartTotal}
-            deliveryFee={deliveryFee}
-            grandTotal={grandTotal}
-            isFreeShipping={isFreeShipping}
-            getDeliveryEstimate={getDeliveryEstimate}
-            agreed={agreed}
-            setAgreed={setAgreed}
-            isSubmitting={isSubmitting}
-            handleBack={handleBack}
-            handleConfirmOrder={handleConfirmOrder}
-            couponDiscount={couponDiscount}
-            loyaltyData={loyaltyData}
-            isLoggedIn={!!user}
-          />
+          <div className="space-y-4">
+            {testMode && (
+              <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-sm">
+                <strong>طلب اختبار:</strong> لن يُحسب كمبيعة ولن يخصم مخزون. رقم الهاتف المكتوب هو الذي ستصل إليه رسالة واتساب عند تم الاستلام.
+              </div>
+            )}
+            <ConfirmationView
+              customerInfo={customerInfo}
+              cartItems={cartItems}
+              cartTotal={cartTotal}
+              deliveryFee={deliveryFee}
+              grandTotal={grandTotal}
+              isFreeShipping={isFreeShipping}
+              getDeliveryEstimate={getDeliveryEstimate}
+              agreed={agreed}
+              setAgreed={setAgreed}
+              isSubmitting={isSubmitting}
+              handleBack={handleBack}
+              handleConfirmOrder={handleConfirmOrder}
+              couponDiscount={couponDiscount}
+              loyaltyData={loyaltyData}
+              isLoggedIn={!!user}
+            />
+          </div>
         )}
       </main>
 
