@@ -11,6 +11,8 @@ import {
   type CustomerMessageDispatchResult,
 } from "../services/customer-messaging.js";
 
+const META_MARKETING_LIMIT_CODE = "WHATSAPP_PROVIDER_FAILED_131049";
+
 function rowsOf(result: unknown): Array<Record<string, unknown>> {
   if (Array.isArray(result)) return result as Array<Record<string, unknown>>;
   const rows = (result as { rows?: Array<Record<string, unknown>> } | null)?.rows;
@@ -34,11 +36,6 @@ function metadataRecord(value: unknown): Record<string, unknown> {
   }
 }
 
-/**
- * Admin support UI needs the customer's choice and auto-reply state, not raw
- * WhatsApp message ids, payloads, manual retry history, or internal provider
- * bookkeeping stored in JSONB. Keep the API response on a strict allowlist.
- */
 function sanitizeCustomerMessageMetadata(value: unknown): Record<string, unknown> | null {
   const root = metadataRecord(value);
   const reply = asRecord(root.delivery_care_reply);
@@ -66,12 +63,6 @@ function sanitizeCustomerMessageMetadata(value: unknown): Record<string, unknown
     : null;
 }
 
-/**
- * If Meta already returned a wamid, the provider send must never be presented as
- * retryable merely because our DB acknowledgement stayed ambiguous. The UI can
- * continue using its existing "sent" branch while the durable worker/webhook
- * resolves tracking state; errorCode remains present for audit/diagnostics.
- */
 function normalizeAdminDispatchResult(result: CustomerMessageDispatchResult) {
   if (
     result.errorCode === "WHATSAPP_ACCEPTED_PERSISTENCE_AMBIGUOUS"
@@ -86,10 +77,6 @@ function normalizeAdminDispatchResult(result: CustomerMessageDispatchResult) {
   return result;
 }
 
-/**
- * Admin-only operational controls for post-delivery messaging.
- * These endpoints do not create delivery truth; orders.status remains canonical.
- */
 export function createCustomerMessagingAdminRouter(): RouterType {
   const router = Router();
   router.use(requireAdmin);
@@ -166,6 +153,15 @@ export function createCustomerMessagingAdminRouter(): RouterType {
           res.status(404).json({ success: false, code: "MESSAGE_JOB_NOT_FOUND" });
           return;
         }
+        if (prepared.errorCode === META_MARKETING_LIMIT_CODE) {
+          res.status(409).json({
+            success: false,
+            code: "MESSAGE_JOB_RETRY_DEFERRED_MARKETING_LIMIT",
+            status: "unsafe_to_retry_now",
+            errorCode: prepared.errorCode,
+          });
+          return;
+        }
         if (prepared.status !== "ready" || !prepared.orderId) {
           const codeByStatus = {
             wrong_job_type: "MESSAGE_JOB_NOT_DELIVERY_CARE",
@@ -232,7 +228,9 @@ export function createCustomerMessagingAdminRouter(): RouterType {
             `);
 
         const jobs = rowsOf(result).map((job) => {
-          const errorIsRetrySafe = canManuallyRetryDeliveryCare(job.last_error_code);
+          const errorCode = String(job.last_error_code ?? "");
+          const marketingLimit = errorCode === META_MARKETING_LIMIT_CODE;
+          const errorIsRetrySafe = !marketingLimit && canManuallyRetryDeliveryCare(job.last_error_code);
           const preAcceptanceFailure =
             String(job.status) === "failed"
             && job.provider_message_id == null
@@ -242,7 +240,7 @@ export function createCustomerMessagingAdminRouter(): RouterType {
             && String(job.provider_status) === "failed"
             && job.provider_message_id != null
             && job.accepted_at != null
-            && String(job.last_error_code ?? "").startsWith("WHATSAPP_PROVIDER_FAILED_");
+            && errorCode.startsWith("WHATSAPP_PROVIDER_FAILED_");
 
           return {
             ...job,
