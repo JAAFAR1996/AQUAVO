@@ -77,10 +77,13 @@ export async function createProductionTestOrder(input: {
   if (!db) throw Object.assign(new Error("قاعدة البيانات غير مهيأة"), { statusCode: 503 });
 
   const ids = [...new Set(input.items.map((item) => item.productId))];
+  const idsJson = JSON.stringify(ids);
   const productResult = await db.execute(sql`
     SELECT id,name,price,variants,has_variants
     FROM public.products
-    WHERE id = ANY(${ids}::text[]) AND deleted_at IS NULL
+    WHERE id = ANY(
+      ARRAY(SELECT jsonb_array_elements_text(${idsJson}::jsonb))
+    ) AND deleted_at IS NULL
   `);
   const products = rowsOf<ProductRow>(productResult);
   const byId = new Map(products.map((product) => [product.id, product]));
