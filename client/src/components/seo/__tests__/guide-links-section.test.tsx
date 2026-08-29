@@ -31,7 +31,7 @@ describe("GuideLinksSection", () => {
 
   it("resolves an English alias to the same links as the canonical value", () => {
     const { container } = render(<GuideLinksSection category="heaters" />);
-    const hrefs = [...container.querySelectorAll("a")].map((a) => a.getAttribute("href"));
+    const hrefs = Array.from(container.querySelectorAll("a")).map((a) => a.getAttribute("href"));
     expect(hrefs).toEqual(guidesForCategory("التحكم بالحرارة").map((l) => l.href));
   });
 
