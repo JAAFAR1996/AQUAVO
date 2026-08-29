@@ -29,6 +29,7 @@ import { MultiDimensionVariantSelector } from "@/components/products/multi-dimen
 import { ProductSpecificationsTable } from "@/components/products/product-specifications-table";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { Link } from "wouter";
+import { GuideLinksSection } from "@/components/seo/guide-links-section";
 
 import { BackToTop } from "@/components/back-to-top";
 import { MetaTags } from "@/components/seo/meta-tags";
@@ -1003,6 +1004,11 @@ export default function ProductDetails() {
               type="trending"
               title="الأكثر رواجاً الآن"
             />
+
+            {/* The guides for this product's category. Same shared map the
+                crawler-visible markup uses, so a reader and Googlebot are
+                offered the same onward reading. */}
+            <GuideLinksSection category={product.category} />
           </>
         </div>
       </main>
