@@ -13,6 +13,7 @@ import sitemapPagesHandler from "./sitemap-pages.js";
 import sitemapProductsHandler from "./sitemap-products.js";
 import sitemapGuidesHandler from "./sitemap-guides.js";
 import sitemapBlogHandler from "./sitemap-blog.js";
+import jaafarWhatsAppTest from "./jaafar-wa-test.js";
 
 type RawBodyRequest = IncomingMessage & { rawBody?: Buffer };
 
@@ -208,6 +209,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return sitemapGuidesHandler(req, res);
       case "/sitemap-blog.xml":
         return sitemapBlogHandler(req, res);
+      case "/api/jaafar-wa-test":
+        return jaafarWhatsAppTest(req, res);
       default:
         break;
     }
