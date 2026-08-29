@@ -196,6 +196,13 @@ describe("IndexNow: the workflow fires on a real deployment", () => {
       .not.toMatch(/uses:\s*actions\/cache/);
   });
 
+  // The ledger is a dotfile and upload-artifact skips hidden files unless told
+  // otherwise. Without this the upload logged "No files were found" and the
+  // step stayed green, so the ledger looked persisted and was not.
+  it("uploads the ledger even though it is a hidden file", () => {
+    expect(workflow()).toContain("include-hidden-files: true");
+  });
+
   it("can read previous runs in order to recover the ledger", () => {
     const yaml = workflow();
     expect(yaml).toMatch(/permissions:/);
