@@ -172,9 +172,15 @@ export async function createProductionTestOrder(input: {
 export async function transitionProductionTestOrder(orderId: string, status: string) {
   const db = getDb();
   if (!db) throw Object.assign(new Error("قاعدة البيانات غير مهيأة"), { statusCode: 503 });
-  if (!["delivered", "cancelled"].includes(status)) {
-    throw Object.assign(new Error("طلب الاختبار يسمح فقط بـ تم الاستلام أو الإلغاء"), { statusCode: 400 });
+
+  // The normal admin screen starts a pending order with `processing`, then opens
+  // a carrier-assignment flow. Test orders must never create real carrier or
+  // fulfillment records, so that first click safely jumps to a synthetic
+  // `shipped` state. The next visible action is then "استلم الزبون".
+  if (!["processing", "delivered", "cancelled"].includes(status)) {
+    throw Object.assign(new Error("طلب الاختبار يسمح ببدء التجهيز أو تم الاستلام أو الإلغاء فقط"), { statusCode: 400 });
   }
+  const persistedStatus = status === "processing" ? "shipped" : status;
 
   return await db.transaction(async (tx) => {
     const lockedResult = await tx.execute(sql`
@@ -189,7 +195,7 @@ export async function transitionProductionTestOrder(orderId: string, status: str
 
     const updatedResult = await tx.execute(sql`
       UPDATE public.orders
-      SET status=${status},updated_at=clock_timestamp()
+      SET status=${persistedStatus},updated_at=clock_timestamp()
       WHERE id=${orderId} AND is_test=true
       RETURNING id,order_number,status,payment_status,total,rounded_total,shipping_cost,
                 discount_total,items,customer_name,customer_phone,customer_email,source,
