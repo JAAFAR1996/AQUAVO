@@ -14,6 +14,7 @@ import { displayAuthorName } from "../shared/author-name.js";
 import { JOURNEY_STEPS } from "../shared/journey-steps.js";
 import { GALLERY_ENTRY_TERMS, GALLERY_PRIZES } from "../shared/gallery-terms.js";
 import { GUIDE_LINKS_HEADING, guidesForCategory } from "../shared/guide-links.js";
+import { authorProfilePath } from "../shared/editorial-author.js";
 
 export type SeoPreviewVariant = {
   id?: string;
@@ -703,6 +704,20 @@ function articleDate(value: string | Date | null | undefined): string | null {
   return Number.isNaN(date.getTime()) ? null : date.toISOString().slice(0, 10);
 }
 
+function BlogByline({ author }: { author: string }) {
+  // The wording of the byline is left exactly as the post stores it, sanitised
+  // — "AQUAVO Team" stays "AQUAVO Team". What changes is that it now links to
+  // the page the Article author entity names, which is what ties the visible
+  // byline and the schema to one identity. Rewriting the visible text would be
+  // editing 70 posts' bylines to fix a structured-data bug.
+  const profile = authorProfilePath(author);
+  const name = displayAuthorName(author);
+  if (profile) {
+    return <a itemProp="author" href={profile}>{name}</a>;
+  }
+  return <span itemProp="author">{name}</span>;
+}
+
 function BlogPostPage({ post, related }: { post: SeoPreviewBlogPost; related: SeoPreviewBlogPost[] }) {
   // The stored article HTML is sanitized and its headings demoted, so the post
   // title below stays the only <h1> on the page.
@@ -721,7 +736,11 @@ function BlogPostPage({ post, related }: { post: SeoPreviewBlogPost; related: Se
         <h1 itemProp="headline">{post.title}</h1>
         {post.excerpt && <p itemProp="description">{post.excerpt}</p>}
         <p className="aq-ssr-meta">
-          {post.author && <span itemProp="author">{displayAuthorName(post.author)}</span>}
+          {/* The byline links to the same page the Article author entity names,
+              so a reader and a crawler resolve the byline to one identity. A
+              post by a named author links nowhere: there is no page describing
+              them, and pointing at /about would say they are the company. */}
+          {post.author && <BlogByline author={post.author} />}
           {published && <><span> · </span><time itemProp="datePublished" dateTime={published}>{published}</time></>}
           {updated && updated !== published && (
             <><span> · تحديث </span><time itemProp="dateModified" dateTime={updated}>{updated}</time></>

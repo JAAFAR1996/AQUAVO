@@ -7,6 +7,7 @@ import {
   canonicalProductCategory,
   canonicalUrlFor,
 } from "@shared/seo-contract";
+import { articleAuthorEntity } from "@shared/editorial-author";
 
 const LOGO_URL = AQUAVO_ENTITY.logoUrl;
 
@@ -387,7 +388,7 @@ export function ArticleSchema({
         image,
         datePublished,
         dateModified: dateModified || datePublished,
-        author: { "@type": "Person", name: author },
+        author: articleAuthorEntity(author),
         publisher: { "@id": `${AQUAVO_BASE_URL}/#organization` },
         mainEntityOfPage: {
           "@type": "WebPage",
