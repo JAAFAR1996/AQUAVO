@@ -1,27 +1,42 @@
 name: IndexNow Search Refresh
 
+# Fires when Vercel reports a successful *production* deployment, not on push.
+#
+# The push trigger was the reason this job kept notifying IndexNow about a
+# state that was not live yet: it started the moment main moved, and its
+# readiness probe only checked that sitemap-recovery.xml still contained a
+# product that had been there for weeks, so it always passed instantly and
+# submitted against the previous deployment. deployment_status is the event
+# that actually means "the new build is serving".
 on:
+  deployment_status:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - "api/**"
-      - "client/public/sitemap*.xml"
-      - "client/public/67d3eed08e869c3cd18bdf563d183fcc.txt"
-      - "shared/seo-contract.ts"
-      - "script/build.ts"
-      - "scripts/submit-indexnow.mjs"
-      - ".github/workflows/indexnow-search-refresh.yml"
+    inputs:
+      window_days:
+        description: "Only submit URLs whose sitemap lastmod is within this many days"
+        required: false
+        default: "7"
+      dry_run:
+        description: "Set to 1 to log the selection without calling IndexNow"
+        required: false
+        default: "0"
 
 concurrency:
   group: indexnow-production-refresh
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   submit:
     name: Submit changed AQUAVO URLs
+    # deployment_status fires for preview deployments too, and for every state
+    # transition. Only a successful production deployment should notify search
+    # engines, and a preview URL must never be submitted.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.deployment_status.state == 'success' &&
+       github.event.deployment.environment == 'Production')
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     steps:
       - name: Checkout main
         uses: actions/checkout@v4
@@ -31,5 +46,21 @@ jobs:
         with:
           node-version: 20.19.0
 
-      - name: Wait for production and submit IndexNow
-        run: node scripts/submit-indexnow.mjs
+      # What has already been submitted, and for which lastmod. Restored from
+      # the most recent run and saved under a fresh key so the entry rolls
+      # forward. If it is ever evicted the recency window still bounds the
+      # batch, so the worst case is one repeated submission of recently
+      # changed URLs — never the whole corpus.
+      - name: Restore IndexNow ledger
+        uses: actions/cache@v4
+        with:
+          path: .indexnow-ledger.json
+          key: indexnow-ledger-${{ github.run_id }}
+          restore-keys: |
+            indexnow-ledger-
+
+      - name: Submit changed URLs to IndexNow
+        env:
+          INDEXNOW_WINDOW_DAYS: ${{ github.event.inputs.window_days || '7' }}
+          INDEXNOW_DRY_RUN: ${{ github.event.inputs.dry_run || '0' }}
+        run: node TOOLS/submit-indexnow.mjs

@@ -172,3 +172,7 @@ env.prod
 .env.vercel.production
 playwright-report/
 reports/screenshots/
+
+# Written by TOOLS/submit-indexnow.mjs; carried between CI runs by the
+# workflow cache, never committed.
+.indexnow-ledger.json
