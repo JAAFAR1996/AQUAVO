@@ -344,8 +344,13 @@ describe('Order loyalty checkout contract', () => {
     it('checkout page sends useCashback and cashbackToUse instead of legacy cashbackUsed', () => {
         const source = readFileSync(resolve(process.cwd(), 'client/src/pages/checkout.tsx'), 'utf8');
 
-        expect(source).toContain('useCashback: loyaltyData.useCashback');
-        expect(source).toContain('cashbackToUse: loyaltyData.cashbackToUse');
+        // Matched as "the field is assigned from loyaltyData" rather than as an
+        // exact string. The admin test-mode work wrapped both in a ternary —
+        // `useCashback: testMode ? false : loyaltyData.useCashback` — which
+        // still sends the real value for a real order, but broke a literal
+        // comparison and turned main red on a change that was correct.
+        expect(source).toMatch(/useCashback:[^,\n]*loyaltyData\.useCashback/);
+        expect(source).toMatch(/cashbackToUse:[^,\n]*loyaltyData\.cashbackToUse/);
         expect(source).not.toContain('loyaltyPointsUsed:');
         expect(source).not.toContain('cashbackUsed: loyaltyData.useCashback');
     });
