@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { formatIQD } from "@/lib/utils";
-import { useCart } from "@/contexts/cart-context";
+import { useCart, type CartAvailabilityResult } from "@/contexts/cart-context";
 import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/hooks/use-toast";
 import { addCsrfHeader } from "@/lib/csrf";
@@ -30,7 +30,12 @@ export default function CheckoutPage() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
   const { toast } = useToast();
-  const { items: cartItems, totalPrice: cartTotal, clearCart } = useCart();
+  const {
+    items: cartItems,
+    totalPrice: cartTotal,
+    clearCart,
+    validateAvailability,
+  } = useCart();
 
   const [step, setStep] = useState<"info" | "confirm" | "success">("info");
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({
@@ -41,6 +46,7 @@ export default function CheckoutPage() {
     notes: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCheckingStock, setIsCheckingStock] = useState(false);
   const [orderResult, setOrderResult] = useState<{ orderId: string; orderNumber: string } | null>(null);
 
   const [loyaltyData, setLoyaltyData] = useState({
@@ -161,32 +167,123 @@ export default function CheckoutPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleContinue = () => {
-    if (validateInfo()) {
-      trackAddShippingInfo(cartItems.map((item) => ({
+  const resetPriceAdjustmentsAfterStockChange = () => {
+    setAgreed(false);
+    setAppliedCoupon(null);
+    setCouponDiscount(0);
+    setCouponSuccess("");
+    if (couponCode.trim()) {
+      setCouponError("تغيّر محتوى السلة؛ يرجى تطبيق كود الخصم مرة أخرى بعد مراجعة الكميات.");
+    }
+    setLoyaltyData({
+      usePoints: false,
+      useCashback: false,
+      pointsToUse: 0,
+      cashbackToUse: 0,
+      pointsDiscount: 0,
+      roundedAmount: 0,
+      cashbackEarned: 0,
+    });
+  };
+
+  const showAvailabilityUpdate = (result: CartAvailabilityResult) => {
+    if (!result.changed) return;
+
+    resetPriceAdjustmentsAfterStockChange();
+    setStep("info");
+    window.scrollTo(0, 0);
+
+    if (result.issues.length === 1) {
+      const issue = result.issues[0];
+      const label = issue.variantLabel ? `${issue.name} — ${issue.variantLabel}` : issue.name;
+      if (issue.action === "reduced") {
+        toast({
+          title: "تغيّرت الكمية المتوفرة",
+          description: `بقيت ${issue.availableStock} قطعة فقط من «${label}». عدّلنا الكمية تلقائياً من ${issue.previousQuantity} إلى ${issue.availableStock}. راجع الطلب ثم أكّد من جديد.`,
+        });
+      } else {
+        toast({
+          title: "تغيّر توفر أحد المنتجات",
+          description: `نفدت كمية «${label}» قبل إتمام الطلب، لذلك أزلناها من السلة. راجع الطلب ثم أكّد من جديد.`,
+        });
+      }
+      return;
+    }
+
+    toast({
+      title: "حدّثنا سلتك حسب المخزون",
+      description: "تغيّرت الكمية المتوفرة لبعض المنتجات. حدّثنا سلتك تلقائياً حسب المخزون الحالي. راجع التغييرات ثم أكّد الطلب من جديد.",
+    });
+  };
+
+  const checkStockBeforeNextStep = async (): Promise<boolean> => {
+    setIsCheckingStock(true);
+    try {
+      const result = await validateAvailability({ notify: false });
+      if (!result.ok) {
+        toast({
+          title: "تعذر التأكد من المخزون",
+          description: "ما قدرنا نتأكد من الكميات المتوفرة الآن. حاول مرة ثانية بعد لحظات.",
+          variant: "destructive",
+        });
+        return false;
+      }
+      if (result.changed) {
+        showAvailabilityUpdate(result);
+        return false;
+      }
+      return true;
+    } finally {
+      setIsCheckingStock(false);
+    }
+  };
+
+  const handleContinue = async () => {
+    if (!validateInfo() || isCheckingStock) return;
+
+    const stockIsCurrent = await checkStockBeforeNextStep();
+    if (!stockIsCurrent) return;
+
+    trackAddShippingInfo(cartItems.map((item) => ({
+      id: item.productId,
+      name: item.name,
+      price: item.price,
+      quantity: item.quantity,
+    })), cartTotal);
+    ttqAddPaymentInfo(
+      cartItems.map((item) => ({
         id: item.productId,
         name: item.name,
         price: item.price,
         quantity: item.quantity,
-      })), cartTotal);
-      ttqAddPaymentInfo(
-        cartItems.map((item) => ({
-          id: item.productId,
-          name: item.name,
-          price: item.price,
-          quantity: item.quantity,
-        })),
-        cartTotal
-      );
-      setStep("confirm");
-      window.scrollTo(0, 0);
-    }
+      })),
+      cartTotal
+    );
+    setStep("confirm");
+    window.scrollTo(0, 0);
   };
 
   const handleConfirmOrder = async () => {
-    if (!agreed || isSubmitting) return;
+    if (!agreed || isSubmitting || isCheckingStock) return;
     setIsSubmitting(true);
     try {
+      // Re-check immediately before the transactional order request. This closes
+      // the stale-cart window between review and confirmation; createOrderSecure
+      // remains the final race-safe authority at commit time.
+      const availability = await validateAvailability({ notify: false });
+      if (!availability.ok) {
+        toast({
+          title: "تعذر التأكد من المخزون",
+          description: "ما قدرنا نتأكد من الكميات المتوفرة الآن. حاول مرة ثانية بعد لحظات.",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (availability.changed) {
+        showAvailabilityUpdate(availability);
+        return;
+      }
+
       const cartSignature = JSON.stringify({
         items: cartItems.map(({ productId, variantId, quantity }) => ({ productId, variantId, quantity })),
         couponCode: appliedCoupon?.code ?? null,
@@ -221,7 +318,25 @@ export default function CheckoutPage() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => null);
-        throw new Error(errorData?.message || `خطأ في إنشاء الطلب (${response.status})`);
+
+        // A final 409 can still happen if the very last unit is sold between the
+        // preflight above and the DB transaction. Reconcile once more and give the
+        // customer an actionable message instead of a raw "order error" toast.
+        if (response.status === 409 && errorData?.code === "OUT_OF_STOCK") {
+          const refreshed = await validateAvailability({ notify: false });
+          if (refreshed.ok && refreshed.changed) {
+            showAvailabilityUpdate(refreshed);
+            return;
+          }
+          toast({
+            title: "تغيّر المخزون قبل تأكيد الطلب",
+            description: "يبدو أن الكمية تغيّرت قبل لحظات. راجع السلة وحاول تأكيد الطلب مرة أخرى.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        throw new Error(errorData?.message || `تعذر إنشاء الطلب (${response.status})`);
       }
 
       const orderData = await response.json();
@@ -302,17 +417,17 @@ export default function CheckoutPage() {
             tierUpgraded: false,
           },
         });
-        clearCart();
+        await clearCart();
         setLocation(`/order-confirmation/${orderData.id}`);
         return;
       }
 
-      clearCart();
+      await clearCart();
       window.scrollTo(0, 0);
     } catch (error: unknown) {
       console.error("Checkout error:", error);
       const message = error instanceof Error ? error.message : "حدث خطأ";
-      toast({ title: "خطأ في الطلب", description: message, variant: "destructive" });
+      toast({ title: "تعذر إتمام الطلب", description: message, variant: "destructive" });
     } finally {
       setIsSubmitting(false);
     }
@@ -465,8 +580,13 @@ export default function CheckoutPage() {
             <p className="sr-only" aria-live="assertive" aria-atomic="true">
               {formErrorSummary}
             </p>
-            <Button onClick={handleContinue} className="w-full h-12 text-base font-semibold" size="lg">
-              مراجعة الطلب
+            <Button
+              onClick={handleContinue}
+              disabled={isCheckingStock}
+              className="w-full h-12 text-base font-semibold"
+              size="lg"
+            >
+              {isCheckingStock ? "نتأكد من المخزون..." : "مراجعة الطلب"}
             </Button>
           </div>
         ) : (

@@ -6,6 +6,14 @@ import { z } from "zod";
 import { analyticsTracker } from "../services/analytics-tracker.js";
 import * as Sentry from "@sentry/node";
 
+const availabilityRequestSchema = z.object({
+    items: z.array(z.object({
+        productId: z.string().min(1),
+        variantId: z.string().min(1).optional(),
+        quantity: z.number().int().positive().max(999),
+    })).min(1).max(100),
+});
+
 export function createCartRouter(): RouterType {
     const router = Router();
 
@@ -19,7 +27,109 @@ export function createCartRouter(): RouterType {
         return (req as any).session?.userId;
     };
 
-    // Middleware to ensure user is logged in
+    /**
+     * Public, read-only cart availability preflight.
+     *
+     * Guest carts live in browser storage, so their quantity snapshot can become
+     * stale after another sale or an inventory correction. This endpoint gives
+     * both guest and signed-in carts one fresh, cache-free source of truth before
+     * a quantity mutation or checkout. It deliberately returns availability only
+     * — never internal cost/accounting fields and never trusts client prices.
+     *
+     * Final order creation remains the authoritative transactional guard; this is
+     * the UX guard that prevents customers reaching the last step with stale stock.
+     */
+    router.post("/availability", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const { items } = availabilityRequestSchema.parse(req.body);
+            const productIds = Array.from(new Set(items.map((item) => item.productId)));
+            const productRows = await storage.getProductsByIds(productIds);
+            const productById = new Map(productRows.map((product) => [product.id, product]));
+
+            const results = items.map((item) => {
+                const product = productById.get(item.productId);
+                if (!product) {
+                    return {
+                        productId: item.productId,
+                        variantId: item.variantId ?? null,
+                        productName: "هذا المنتج",
+                        variantLabel: null,
+                        requestedQuantity: item.quantity,
+                        availableStock: 0,
+                        status: "unavailable" as const,
+                        reason: "PRODUCT_NOT_FOUND" as const,
+                    };
+                }
+
+                if (item.variantId) {
+                    const variants = Array.isArray(product.variants) ? product.variants : [];
+                    const variant = variants.find((candidate) => candidate.id === item.variantId);
+                    if (!variant) {
+                        return {
+                            productId: item.productId,
+                            variantId: item.variantId,
+                            productName: product.name,
+                            variantLabel: null,
+                            requestedQuantity: item.quantity,
+                            availableStock: 0,
+                            status: "unavailable" as const,
+                            reason: "VARIANT_NOT_FOUND" as const,
+                        };
+                    }
+
+                    const parsedStock = Number(variant.stock ?? 0);
+                    const availableStock = Number.isFinite(parsedStock) ? Math.max(0, Math.floor(parsedStock)) : 0;
+                    return {
+                        productId: item.productId,
+                        variantId: item.variantId,
+                        productName: product.name,
+                        variantLabel: variant.label ?? null,
+                        requestedQuantity: item.quantity,
+                        availableStock,
+                        status: item.quantity <= availableStock
+                            ? "available" as const
+                            : availableStock > 0
+                                ? "limited" as const
+                                : "unavailable" as const,
+                        reason: item.quantity <= availableStock
+                            ? null
+                            : availableStock > 0
+                                ? "INSUFFICIENT_STOCK" as const
+                                : "OUT_OF_STOCK" as const,
+                    };
+                }
+
+                const parsedStock = Number(product.stock ?? 0);
+                const availableStock = Number.isFinite(parsedStock) ? Math.max(0, Math.floor(parsedStock)) : 0;
+                return {
+                    productId: item.productId,
+                    variantId: null,
+                    productName: product.name,
+                    variantLabel: null,
+                    requestedQuantity: item.quantity,
+                    availableStock,
+                    status: item.quantity <= availableStock
+                        ? "available" as const
+                        : availableStock > 0
+                            ? "limited" as const
+                            : "unavailable" as const,
+                    reason: item.quantity <= availableStock
+                        ? null
+                        : availableStock > 0
+                            ? "INSUFFICIENT_STOCK" as const
+                            : "OUT_OF_STOCK" as const,
+                };
+            });
+
+            res.set("Cache-Control", "no-store, max-age=0");
+            res.json({ items: results, checkedAt: new Date().toISOString() });
+        } catch (err) {
+            next(err);
+        }
+    });
+
+    // Middleware to ensure user is logged in. The availability preflight above is
+    // intentionally public; all persisted-cart mutations below remain authenticated.
     const requireAuth = (req: Request, res: Response, next: NextFunction): void => {
         const userId = getSessionUserId(req);
         if (!userId) {
