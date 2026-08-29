@@ -56,7 +56,7 @@ EXECUTE FUNCTION public.record_order_delivery_accounting();
 INSERT INTO public.schema_migrations(version,checksum,notes)
 VALUES(
   '20260829_production_test_order_mode',
-  '20260829productiontestordermode00000000000000000000000000000000000000',
+  'a4c80e193f20c219a1e398c4bb7e7c91ca1ea41b8f9a30bf75037fdaf8e40668',
   'Admin-only Production Test Order mode: no inventory/accounting lifecycle; WhatsApp delivery-care remains live'
 )
 ON CONFLICT(version) DO UPDATE SET
