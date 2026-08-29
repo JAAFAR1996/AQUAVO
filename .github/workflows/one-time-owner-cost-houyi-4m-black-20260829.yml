@@ -51,6 +51,7 @@ jobs:
             v_existing_variant_cost numeric;
             v_line_count bigint;
             v_line_cost numeric;
+            v_line_status text;
             v_packaging_cost numeric;
             v_insert_cost numeric;
             v_updated bigint;
@@ -111,8 +112,8 @@ jobs:
               AND NULLIF(oi.metadata->>'variantId','') = '4m-black'
             FOR UPDATE;
 
-            SELECT COUNT(*), MIN(oi.unit_cost_price), MIN(oi.unit_packaging_cost), MIN(oi.unit_insert_cost)
-              INTO v_line_count, v_line_cost, v_packaging_cost, v_insert_cost
+            SELECT COUNT(*), MIN(oi.unit_cost_price), MIN(oi.cost_snapshot_status), MIN(oi.unit_packaging_cost), MIN(oi.unit_insert_cost)
+              INTO v_line_count, v_line_cost, v_line_status, v_packaging_cost, v_insert_cost
             FROM public.order_items_relational oi
             WHERE oi.order_id = v_order_id
               AND oi.product_id = 'houyi-oxygenation-tube'
@@ -122,8 +123,12 @@ jobs:
               RAISE EXCEPTION 'OWNER_COST_FIX_EXPECTED_ONE_ORDER_LINE: order=% found=%', v_order_id, v_line_count;
             END IF;
 
-            IF v_line_cost IS NOT NULL AND v_line_cost <> 500 THEN
-              RAISE EXCEPTION 'OWNER_COST_FIX_EXISTING_LINE_COST_CONFLICT: existing=% expected=500', v_line_cost;
+            -- The open order currently carries a fallback cost while its snapshot is
+            -- explicitly incomplete. Owner-confirmed evidence is allowed to replace
+            -- that fallback before financial realization, but never an exact/frozen cost.
+            IF v_line_cost IS NOT NULL AND v_line_cost <> 500
+               AND COALESCE(v_line_status,'unknown') IN ('exact','verified_zero') THEN
+              RAISE EXCEPTION 'OWNER_COST_FIX_EXACT_LINE_COST_CONFLICT: existing=% status=% expected=500', v_line_cost, v_line_status;
             END IF;
 
             IF v_packaging_cost IS NULL OR v_insert_cost IS NULL THEN
@@ -135,7 +140,7 @@ jobs:
               '4m-black',
               500,
               'owner:Jaafar',
-              'Owner-confirmed unit cost 500 IQD on 2026-08-29; source request linked to order FH-260827-8ED182F2'
+              'Owner-confirmed unit cost 500 IQD on 2026-08-29; source request linked to order FH-260827-8ED182F2; replaced pre-realization incomplete fallback snapshot'
             );
 
             SELECT NULLIF(v.elem->>'costPrice','')::numeric,
