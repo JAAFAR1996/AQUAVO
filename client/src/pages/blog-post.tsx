@@ -146,17 +146,20 @@ export default function BlogPost() {
                 <article className="container mx-auto px-4 mt-8">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
                         <div className="lg:col-span-8">
+                            {/* aq-article, not prose. The 22 prose utilities that used
+                                to sit on this element applied nothing:
+                                @tailwindcss/typography is not a dependency of this
+                                project and no @plugin line loads it, so no .prose rule
+                                exists in any stylesheet, while Tailwind preflight still
+                                removed the browser defaults they were meant to replace.
+                                Measured on production: 0px between paragraphs, h2 and h3
+                                the same 16px as body text, and 145 characters per line at
+                                1920. See .aq-article in index.css. */}
                             <motion.div
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 transition={{ delay: 0.3 }}
-                                className="prose prose-lg dark:prose-invert max-w-none 
-                                prose-headings:font-bold prose-headings:text-primary prose-headings:tracking-tight 
-                                prose-p:text-foreground/90 prose-p:leading-relaxed prose-p:text-lg
-                                prose-a:text-primary prose-a:no-underline hover:prose-a:underline
-                                prose-blockquote:border-r-4 prose-blockquote:border-l-0 prose-blockquote:border-primary prose-blockquote:bg-primary/5 prose-blockquote:p-6 prose-blockquote:rounded-l-2xl prose-blockquote:text-lg prose-blockquote:font-medium prose-blockquote:italic
-                                prose-li:marker:text-primary prose-img:rounded-3xl prose-img:shadow-2xl
-                                mb-20"
+                                className="aq-article mb-20"
                                 dangerouslySetInnerHTML={{
                                     __html: DOMPurify.sanitize(post.content, {
                                         ALLOWED_TAGS: ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'strong', 'em', 'a', 'br', 'blockquote', 'code', 'pre', 'img', 'div', 'span', 'section', 'article'],
