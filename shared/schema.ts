@@ -2044,7 +2044,10 @@ export const blogPosts = pgTable("blog_posts", {
   content: text("content").notNull(),
   category: text("category").notNull(),
   readTime: text("read_time"),
-  author: text("author").default("شريمب 🦐"),
+  // Default was the chat assistant's persona, so any post inserted without an
+  // explicit byline was credited to a person who does not exist. See
+  // shared/editorial-author.ts.
+  author: text("author").default("AQUAVO Editorial Team"),
   imageUrl: text("image_url"),
   iconName: text("icon_name").default("Fish"),
   isPublished: boolean("is_published").default(false),

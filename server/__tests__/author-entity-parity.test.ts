@@ -3,7 +3,11 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { renderSeoPreviewShell, type SeoPreviewBlogPost } from "../../api/_seo-preview-shell";
-import { EDITORIAL_TEAM_PROFILE_PATH, articleAuthorEntity } from "../../shared/editorial-author";
+import {
+  EDITORIAL_TEAM_BYLINE,
+  EDITORIAL_TEAM_PROFILE_PATH,
+  articleAuthorEntity,
+} from "../../shared/editorial-author";
 
 // Four separate code paths emit the blog author, and each one hard-coded
 // {"@type":"Person"}. That is a claim that a human named "AQUAVO Team" wrote
@@ -84,10 +88,20 @@ describe("visible byline and schema name the same entity", () => {
   });
 
   it("leaves a named byline as plain text, linking nowhere", () => {
-    const html = renderSeoPreviewShell({ kind: "blog-post", post: post("شريمب"), related: [] });
+    const html = renderSeoPreviewShell({ kind: "blog-post", post: post("Jane Doe"), related: [] });
     const byline = bylineElement(html);
-    expect(byline).toContain("شريمب");
+    expect(byline).toContain("Jane Doe");
     expect(byline).not.toContain("href=");
+  });
+
+  // The assistant persona is not a named author. It resolves to the team, so
+  // its byline reads as the editorial team and links where the schema points.
+  it("renders the assistant persona as the editorial team", () => {
+    const html = renderSeoPreviewShell({ kind: "blog-post", post: post("شريمب 🦐"), related: [] });
+    const byline = bylineElement(html);
+    expect(byline).toContain(EDITORIAL_TEAM_BYLINE);
+    expect(byline).not.toContain("شريمب");
+    expect(byline).toContain(`href="${EDITORIAL_TEAM_PROFILE_PATH}"`);
   });
 
   it("keeps the published date the post actually carries", () => {

@@ -6,6 +6,8 @@ import { HTML_TEMPLATE } from "./_html-template.js";
 import { injectMeta, type PageMeta } from "./ssr-meta.js";
 import { displayAuthorName } from "../shared/author-name.js";
 import { articleAuthorEntity } from "../shared/editorial-author.js";
+import { articleWordCount } from "../shared/article-reading.js";
+import { articleDatePublished } from "../shared/article-dates.js";
 
 neonConfig.webSocketConstructor = ws;
 
@@ -84,7 +86,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       `SELECT title, excerpt, content, author,
               image_url AS "imageUrl",
               published_at AS "publishedAt",
-              updated_at AS "updatedAt"
+              created_at AS "createdAt"
          FROM blog_posts
         WHERE slug = $1
           AND is_published = TRUE
@@ -100,11 +102,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     const post = rows[0];
     const canonicalUrl = `${CANONICAL_ORIGIN}${resolved.path}`;
     const image = absoluteImage(post.imageUrl);
-    const datePublished = post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined;
-    const dateModified = post.updatedAt ? new Date(post.updatedAt).toISOString() : datePublished;
-    const wordCount = typeof post.content === "string"
-      ? post.content.trim().split(/\s+/).filter(Boolean).length
-      : undefined;
+    // Ten posts store a published_at from before the row existed, and
+    // updated_at records maintenance writes rather than rewrites, so no
+    // modification date is published at all. See shared/article-dates.ts.
+    const datePublished = articleDatePublished(post);
+    // Words in the article, not tokens in its markup.
+    const wordCount = articleWordCount(post.content) || undefined;
     const description = (post.excerpt || post.title || "مقال من مدونة AQUAVO").trim();
 
     const meta: PageMeta & { url: string; image: string } = {
@@ -127,7 +130,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
             logo: { "@type": "ImageObject", url: DEFAULT_IMAGE },
           },
           datePublished,
-          dateModified,
           wordCount,
           inLanguage: "ar",
           mainEntityOfPage: { "@type": "WebPage", "@id": canonicalUrl },

@@ -8,6 +8,9 @@ import { ArrowRight, Calendar, Clock, User, Share2, ArrowLeft } from "lucide-rea
 import { motion } from "framer-motion";
 import DOMPurify from 'isomorphic-dompurify';
 import { blogHeroImage, blogThumbImage } from "@/lib/cloudinary";
+import { authorBylineText, authorProfilePath } from "@shared/editorial-author";
+import { articleReadingTimeLabel } from "@shared/article-reading";
+import { articleDatePublished } from "@shared/article-dates";
 
 
 export default function BlogPost() {
@@ -42,6 +45,11 @@ export default function BlogPost() {
         );
     }
 
+    // Both figures come from the same helpers the crawler routes use, so the
+    // two renderings of one article can no longer disagree.
+    const publishedAt = articleDatePublished(post);
+    const readingTime = articleReadingTimeLabel(post.content);
+
     return (
         <div className="flex-1 flex flex-col bg-background font-sans">
             <MetaTags
@@ -54,7 +62,7 @@ export default function BlogPost() {
                 title={post.title}
                 description={post.excerpt || post.title}
                 image={post.imageUrl || "https://www.aquavoiq.com/brand/aquavo-v2-horizontal.png"}
-                datePublished={post.publishedAt ? new Date(post.publishedAt).toISOString() : new Date().toISOString()}
+                datePublished={publishedAt}
                 author={post.author || "AQUAVO"}
             />
             <main id="main-content" className="flex-1 pb-20">
@@ -90,29 +98,45 @@ export default function BlogPost() {
                                 {post.title}
                             </h1>
                             <div className="flex flex-wrap items-center gap-6 text-muted-foreground bg-background/50 backdrop-blur-sm p-4 rounded-xl w-fit border border-border/50">
+                                {/* The byline a reader sees is the one the Article
+                                    schema names. It used to print blog_posts.author
+                                    raw, which showed the AI assistant persona — emoji
+                                    and all — as the human who wrote eleven posts. */}
                                 <div className="flex items-center gap-2">
                                     <User className="w-5 h-5" />
-                                    <span className="font-medium">{post.author}</span>
+                                    {authorProfilePath(post.author) ? (
+                                        <Link href={authorProfilePath(post.author)!}>
+                                            <span className="font-medium hover:underline">{authorBylineText(post.author)}</span>
+                                        </Link>
+                                    ) : (
+                                        <span className="font-medium">{authorBylineText(post.author)}</span>
+                                    )}
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <Calendar className="w-5 h-5" />
-                                    <span>
-                                        {post.publishedAt
-                                            ? new Date(post.publishedAt).toLocaleDateString('ar-IQ', {
+                                {publishedAt && (
+                                    <div className="flex items-center gap-2">
+                                        <Calendar className="w-5 h-5" />
+                                        <span>
+                                            {new Date(publishedAt).toLocaleDateString('ar-IQ', {
                                                 year: 'numeric',
                                                 month: 'long',
                                                 day: 'numeric'
-                                            })
-                                            : "تم النشر حديثاً"}
-                                    </span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Clock className="w-5 h-5" />
-                                    <span>{post.readTime}</span>
-                                </div>
-                                <div className="flex items-center gap-2 bg-primary/20 text-primary px-3 py-1 rounded-full text-sm font-bold">
-                                    <span>المشاهدات: {post.viewCount || 0}</span>
-                                </div>
+                                            })}
+                                        </span>
+                                    </div>
+                                )}
+                                {/* Derived from this article, so the reader and the
+                                    crawler see one number, and labelled as an
+                                    estimate. blog_posts.read_time overstated every
+                                    post — 11 minutes claimed on a 227-word article. */}
+                                {readingTime && (
+                                    <div className="flex items-center gap-2">
+                                        <Clock className="w-5 h-5" />
+                                        <span>{readingTime}</span>
+                                    </div>
+                                )}
+                                {/* No view count. blog_posts.view_count counts API
+                                    requests, not readers: every refresh, crawl, and
+                                    prerender incremented it. See server/routes/blog.ts. */}
                             </div>
                         </motion.div>
                     </div>

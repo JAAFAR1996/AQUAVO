@@ -6,16 +6,17 @@ import {
   canonicalProductCategory,
 } from "../shared/seo-contract.js";
 import { AQUAVO_FAQ_PAIRS } from "../shared/faq-content.js";
-import { articleReadTime, cloudinaryHeroUrl, renderArticleBodyHtml } from "./_blog-article.js";
+import { cloudinaryHeroUrl, renderArticleBodyHtml } from "./_blog-article.js";
+import { articleReadingTimeLabel } from "../shared/article-reading.js";
+import { articleDatePublished } from "../shared/article-dates.js";
 // _seo-structured-data imports only *types* from this module, so this value
 // import does not create a runtime cycle.
 import { primaryProductImage, productGalleryImages } from "./_seo-structured-data.js";
-import { displayAuthorName } from "../shared/author-name.js";
 import { JOURNEY_STEPS } from "../shared/journey-steps.js";
 import { GALLERY_ENTRY_TERMS, GALLERY_PRIZES } from "../shared/gallery-terms.js";
 import { GUIDE_LINKS_HEADING, guidesForCategory } from "../shared/guide-links.js";
 import { CATEGORY_CHECKS_HEADING, categoryContent } from "../shared/category-content.js";
-import { authorProfilePath } from "../shared/editorial-author.js";
+import { authorBylineText, authorProfilePath } from "../shared/editorial-author.js";
 
 export type SeoPreviewVariant = {
   id?: string;
@@ -55,10 +56,16 @@ export type SeoPreviewBlogPost = {
   content?: string | null;
   category?: string | null;
   author?: string | null;
+  /**
+   * Kept for the DB row shape only. Nothing renders it: it overstates every
+   * post in the catalogue, and the displayed figure is derived from `content`.
+   * See shared/article-reading.ts.
+   */
   readTime?: string | null;
   imageUrl?: string | null;
   publishedAt?: string | Date | null;
-  updatedAt?: string | Date | null;
+  /** Bounds `publishedAt`: a post cannot predate its own row. */
+  createdAt?: string | Date | null;
 };
 
 /**
@@ -800,13 +807,12 @@ function articleDate(value: string | Date | null | undefined): string | null {
 }
 
 function BlogByline({ author }: { author: string }) {
-  // The wording of the byline is left exactly as the post stores it, sanitised
-  // — "AQUAVO Team" stays "AQUAVO Team". What changes is that it now links to
-  // the page the Article author entity names, which is what ties the visible
-  // byline and the schema to one identity. Rewriting the visible text would be
-  // editing 70 posts' bylines to fix a structured-data bug.
+  // Where the team is responsible the byline reads "فريق AQUAVO التحريري" and
+  // links to the page the Article author entity names, so a reader and a
+  // crawler resolve one identity. A byline that names someone is left as the
+  // post stores it, sanitised, and links nowhere.
   const profile = authorProfilePath(author);
-  const name = displayAuthorName(author);
+  const name = authorBylineText(author);
   if (profile) {
     return <a itemProp="author" href={profile}>{name}</a>;
   }
@@ -817,10 +823,11 @@ function BlogPostPage({ post, related }: { post: SeoPreviewBlogPost; related: Se
   // The stored article HTML is sanitized and its headings demoted, so the post
   // title below stays the only <h1> on the page.
   const body = renderArticleBodyHtml(post.content);
-  const published = articleDate(post.publishedAt);
-  const updated = articleDate(post.updatedAt);
+  // Not post.publishedAt directly: ten posts carry a date from before the row
+  // existed. See shared/article-dates.ts. No modification date is published.
+  const published = articleDate(articleDatePublished(post));
   const hero = post.imageUrl ? cloudinaryHeroUrl(post.imageUrl, 1200) : null;
-  const readTime = articleReadTime(post.content);
+  const readTime = articleReadingTimeLabel(post.content);
   return (
     <main id="main-content">
       <nav className="aq-ssr-breadcrumb" aria-label="مسار الصفحة">
@@ -837,11 +844,12 @@ function BlogPostPage({ post, related }: { post: SeoPreviewBlogPost; related: Se
               them, and pointing at /about would say they are the company. */}
           {post.author && <BlogByline author={post.author} />}
           {published && <><span> · </span><time itemProp="datePublished" dateTime={published}>{published}</time></>}
-          {updated && updated !== published && (
-            <><span> · تحديث </span><time itemProp="dateModified" dateTime={updated}>{updated}</time></>
-          )}
+          {/* No dateModified. blog_posts.updated_at records any write to the
+              row, not a rewrite of the article, so publishing it would claim a
+              revision that did not happen. See shared/article-dates.ts. */}
           {/* Derived from the article, not from blog_posts.read_time, which
-              overstates every post in the catalogue. See articleReadTime. */}
+              overstates every post in the catalogue, and labelled as the
+              estimate it is. See shared/article-reading.ts. */}
           {readTime && <span> · {readTime}</span>}
         </p>
         {hero && (

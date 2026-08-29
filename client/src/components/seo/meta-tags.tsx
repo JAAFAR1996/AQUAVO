@@ -368,14 +368,17 @@ export function ArticleSchema({
   description,
   image,
   datePublished,
-  dateModified,
   author,
 }: {
   title: string;
   description: string;
   image: string;
-  datePublished: string;
-  dateModified?: string;
+  /**
+   * The article's genuine first-publication date, or undefined when there
+   * isn't one. Callers must not substitute "now": a missing date is a missing
+   * date, and defaulting it publishes today as the day the article appeared.
+   */
+  datePublished?: string;
   author: string;
 }) {
   return (
@@ -387,7 +390,9 @@ export function ArticleSchema({
         description,
         image,
         datePublished,
-        dateModified: dateModified || datePublished,
+        // No dateModified. It used to mirror datePublished, which asserts the
+        // article was revised on the day it was written. See
+        // shared/article-dates.ts for why nothing here can state one honestly.
         author: articleAuthorEntity(author),
         publisher: { "@id": `${AQUAVO_BASE_URL}/#organization` },
         mainEntityOfPage: {

@@ -24,6 +24,26 @@ import { displayAuthorName } from "./author-name.js";
  * The identities that mean "the AQUAVO team", not a person. Compared
  * case-insensitively after trimming, against the sanitised name, so a stored
  * value that picked up whitespace or decoration still resolves.
+ *
+ * "شريمب" belongs here, and it is the reason this list is not simply the
+ * AQUAVO spellings. شريمب is not a contributor. It is the storefront's AI
+ * assistant persona: it introduces itself in the chat widget
+ * (client/src/components/chat/ai-chat-bot.tsx) and its system prompt casts it
+ * as "أخصائي أحواض أسماك بخبرة 15 سنة" — an aquarium specialist with fifteen
+ * years of experience (server/services/gemini-ai.ts). No such person exists.
+ *
+ * Eleven published posts carry that byline, because the automatic generator
+ * stamped it on everything it wrote and the column default applied it to
+ * anything else, and every one of them reached Google as
+ * {"@type":"Person","name":"شريمب"} — a claim that a named human with fifteen
+ * years in the hobby wrote the article. That is invented authorship and
+ * invented experience at once, which is the strongest version of the thing
+ * this module exists to prevent.
+ *
+ * The honest reading is that these posts are AQUAVO editorial content, so they
+ * resolve to the same Organization as the rest of it. The alternative —
+ * keeping a Person and merely removing the emoji — leaves the fabricated human
+ * in place with better punctuation.
  */
 const TEAM_AUTHOR_NAMES: readonly string[] = [
   "aquavo",
@@ -32,6 +52,7 @@ const TEAM_AUTHOR_NAMES: readonly string[] = [
   "فريق aquavo",
   "فريق تحرير aquavo",
   "فريق أكوافو",
+  "شريمب",
 ];
 
 /**
@@ -44,6 +65,29 @@ const TEAM_AUTHOR_NAMES: readonly string[] = [
  * those are facts anyone has established — writing them would be fabrication.
  */
 export const EDITORIAL_TEAM_PROFILE_PATH = "/about";
+
+/**
+ * What a reader sees where the team is the author.
+ *
+ * The schema node stays named "AQUAVO" and keeps the site Organization's @id,
+ * so a crawler resolves author and publisher to one entity. A human reading a
+ * byline is better served by the Arabic phrase that says what that entity is,
+ * and the stored values it replaces are inconsistent anyway — "AQUAVO Team" on
+ * seventy posts, the assistant persona on eleven. Both now read the same.
+ *
+ * This is a label for an entity that exists, not an invented masthead: it
+ * carries no editor names, no credentials and no editorial-process claims,
+ * because none of those have been established.
+ */
+export const EDITORIAL_TEAM_BYLINE = "فريق AQUAVO التحريري";
+
+/**
+ * The value to store in `blog_posts.author` for AQUAVO editorial content,
+ * including anything the automatic generator writes. It is one of the
+ * identities `isTeamAuthor` recognises, so it renders as the editorial byline
+ * and resolves to the Organization rather than to a person.
+ */
+export const EDITORIAL_TEAM_AUTHOR = "AQUAVO Editorial Team";
 
 export function isTeamAuthor(raw: string | null | undefined): boolean {
   const name = displayAuthorName(raw).trim().toLowerCase();
@@ -83,4 +127,13 @@ export function articleAuthorEntity(raw: string | null | undefined): ArticleAuth
  */
 export function authorProfilePath(raw: string | null | undefined): string | undefined {
   return isTeamAuthor(raw) ? EDITORIAL_TEAM_PROFILE_PATH : undefined;
+}
+
+/**
+ * The byline text for a stored author value: the editorial-team phrase where
+ * the team is responsible, and otherwise the stored name with decoration
+ * stripped. It never invents a name it was not given.
+ */
+export function authorBylineText(raw: string | null | undefined): string {
+  return isTeamAuthor(raw) ? EDITORIAL_TEAM_BYLINE : displayAuthorName(raw);
 }

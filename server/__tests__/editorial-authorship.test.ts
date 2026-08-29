@@ -24,8 +24,19 @@ describe("team authorship is an Organization, not a Person", () => {
   });
 
   it("does not claim a real byline is the team", () => {
-    for (const name of ["شريمب", "شريمب 🦐", "Jane Doe"]) {
+    for (const name of ["Jane Doe", "أحمد الربيعي"]) {
       expect(isTeamAuthor(name), `${name} should not be the team`).toBe(false);
+    }
+  });
+
+  // شريمب is the storefront's AI chat assistant, cast in its system prompt as
+  // an aquarium specialist of fifteen years' experience. Eleven published posts
+  // carried it as a byline and reached Google as a Person. It is AQUAVO
+  // editorial content, and resolving it to the team is what makes that true.
+  it("treats the assistant persona as the team, not as a person", () => {
+    for (const name of ["شريمب", "شريمب 🦐", "  شريمب  "]) {
+      expect(isTeamAuthor(name), `${name} should resolve to the team`).toBe(true);
+      expect(articleAuthorEntity(name)["@type"]).toBe("Organization");
     }
   });
 
@@ -38,10 +49,10 @@ describe("team authorship is an Organization, not a Person", () => {
   });
 
   it("still emits Person for a byline that names someone", () => {
-    const author = articleAuthorEntity("شريمب 🦐");
+    const author = articleAuthorEntity("Jane Doe 🦐");
     expect(author["@type"]).toBe("Person");
     // The emoji strip that already existed must survive untouched.
-    expect(author.name).toBe(displayAuthorName("شريمب 🦐"));
+    expect(author.name).toBe(displayAuthorName("Jane Doe 🦐"));
     expect(author["@id"]).toBeUndefined();
   });
 
@@ -56,7 +67,7 @@ describe("team authorship is an Organization, not a Person", () => {
     expect(authorProfilePath("AQUAVO Team")).toBe(EDITORIAL_TEAM_PROFILE_PATH);
     // A named author has no profile page, so the byline stays plain text
     // rather than linking somewhere that does not describe them.
-    expect(authorProfilePath("شريمب")).toBeUndefined();
+    expect(authorProfilePath("Jane Doe")).toBeUndefined();
   });
 
   it("uses a page that already exists and is already indexable", () => {

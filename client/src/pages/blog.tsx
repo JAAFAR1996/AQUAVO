@@ -23,6 +23,15 @@ import { useQuery } from "@tanstack/react-query";
 import type { BlogPost, BlogCategory } from "@shared/schema";
 import { Loader2 } from "lucide-react";
 import { blogCardImage, blogHeroImage } from "@/lib/cloudinary";
+import { authorBylineText } from "@shared/editorial-author";
+
+/**
+ * A row from /api/blog/posts. The endpoint no longer returns the stored
+ * `readTime` string, which overstated every post, nor `viewCount`, which
+ * counted requests rather than readers. It sends `readingTime` instead: the
+ * estimate derived from the article body, already labelled.
+ */
+type BlogListItem = BlogPost & { readingTime?: string | null };
 
 // Map icon strings to components
 const iconMap: Record<string, React.ReactNode> = {
@@ -45,7 +54,7 @@ export default function Blog() {
     });
 
     // Fetch Posts
-    const { data: blogPosts = [], isLoading: postsLoading } = useQuery<BlogPost[]>({
+    const { data: blogPosts = [], isLoading: postsLoading } = useQuery<BlogListItem[]>({
         queryKey: ["/api/blog/posts"],
     });
 
@@ -166,11 +175,11 @@ export default function Blog() {
                                                     <div className="w-8 h-8 rounded-full bg-card/20 flex items-center justify-center backdrop-blur-sm">
                                                         <User className="w-4 h-4" />
                                                     </div>
-                                                    {featuredPost.author}
+                                                    {authorBylineText(featuredPost.author)}
                                                 </div>
                                                 <div className="flex items-center gap-2">
                                                     <Clock className="w-4 h-4" />
-                                                    {featuredPost.readTime}
+                                                    {(featuredPost as BlogListItem).readingTime}
                                                 </div>
                                             </div>
                                         </div>
@@ -215,7 +224,7 @@ export default function Blog() {
                                                 <div className="flex items-center justify-between text-xs text-muted-foreground mt-auto pt-4 border-t border-border/50">
                                                     <span className="flex items-center gap-1">
                                                         <Clock className="w-3 h-3" />
-                                                        {post.readTime}
+                                                        {(post as BlogListItem).readingTime}
                                                     </span>
                                                     <span className="font-medium text-primary cursor-pointer group-hover:underline">
                                                         اقرأ المزيد &larr;

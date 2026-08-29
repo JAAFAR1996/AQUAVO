@@ -1,5 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { describe, expect, it, vi } from "vitest";
+import { EDITORIAL_TEAM_BYLINE } from "../../shared/editorial-author";
+import { READING_TIME_LABEL } from "../../shared/article-reading";
 
 /**
  * The `Accept: text/markdown` representation must not be worse than the HTML.
@@ -92,7 +94,7 @@ const BLOG_ROW = {
   readTime: "7 دقائق",
   imageUrl: "/images/blog/filters.png",
   publishedAt: new Date("2026-03-08T00:00:00.000Z"),
-  updatedAt: new Date("2026-04-01T00:00:00.000Z"),
+  createdAt: new Date("2026-03-08T00:00:00.000Z"),
 };
 
 const PRODUCTS: Record<string, unknown> = {
@@ -129,7 +131,7 @@ vi.mock("@neondatabase/serverless", () => ({
 process.env.DATABASE_URL ||= "postgres://u:p@localhost:5432/db";
 
 import handler from "../../api/_ssr-preview-source";
-import { articleReadTime } from "../../api/_blog-article";
+import { articleReadingDuration } from "../../api/_blog-article";
 
 async function md(url: string): Promise<{ body: string; contentType: string }> {
   let body = "";
@@ -242,7 +244,8 @@ describe("article markdown contains the article", () => {
 
   it("attributes the author and section", async () => {
     const { body } = await md("/blog/best-aquarium-filters-iraq");
-    expect(body).toContain("AQUAVO Team");
+    // The editorial-team byline, matching the HTML and the Article author.
+    expect(body).toContain(EDITORIAL_TEAM_BYLINE);
     expect(body).toContain("معدات");
   });
 
@@ -349,9 +352,12 @@ describe("blog markdown carries the dates the Article schema carries", () => {
     expect(body).toContain("تاريخ النشر: 2026-03-08");
   });
 
-  it("states when it was last updated", async () => {
+  // No update date. blog_posts.updated_at records any write to the row — an
+  // image repair, a slug fix — not a rewrite of the article, so stating one
+  // would claim a revision that never happened. See shared/article-dates.ts.
+  it("states no update date, because nothing records a real revision", async () => {
     const { body } = await md("/blog/best-aquarium-filters-iraq");
-    expect(body).toContain("آخر تحديث: 2026-04-01");
+    expect(body).not.toContain("آخر تحديث");
   });
 });
 
@@ -371,37 +377,37 @@ describe("reading time describes the article that is actually there", () => {
 
   it("calls a very short article one minute, in correct Arabic", async () => {
     const { body } = await md("/blog/best-aquarium-filters-iraq");
-    expect(body).toContain("مدة القراءة: دقيقة واحدة");
+    expect(body).toContain(`${READING_TIME_LABEL}: دقيقة واحدة`);
   });
 
 });
 
-describe("articleReadTime counts Arabic minutes the way Arabic counts them", () => {
+describe("articleReadingDuration counts Arabic minutes the way Arabic counts them", () => {
   const words = (n: number) => `<p>${Array.from({ length: n }, () => "كلمة").join(" ")}</p>`;
 
   it("uses the singular for one minute", () => {
-    expect(articleReadTime(words(120))).toBe("دقيقة واحدة");
+    expect(articleReadingDuration(words(120))).toBe("دقيقة واحدة");
   });
 
   it("uses the dual for two, which Arabic does not write as a number", () => {
-    expect(articleReadTime(words(400))).toBe("دقيقتان");
+    expect(articleReadingDuration(words(400))).toBe("دقيقتان");
   });
 
   it("uses the plural of paucity from three to ten", () => {
-    expect(articleReadTime(words(600))).toBe("3 دقائق");
-    expect(articleReadTime(words(2000))).toBe("10 دقائق");
+    expect(articleReadingDuration(words(600))).toBe("3 دقائق");
+    expect(articleReadingDuration(words(2000))).toBe("10 دقائق");
   });
 
   it("switches to the singular noun past ten, as Arabic does", () => {
-    expect(articleReadTime(words(2400))).toBe("12 دقيقة");
+    expect(articleReadingDuration(words(2400))).toBe("12 دقيقة");
   });
 
   it("never rounds a real article down to zero minutes", () => {
-    expect(articleReadTime(words(5))).toBe("دقيقة واحدة");
+    expect(articleReadingDuration(words(5))).toBe("دقيقة واحدة");
   });
 
   it("returns nothing for an empty article rather than claiming a minute", () => {
-    expect(articleReadTime("")).toBeNull();
-    expect(articleReadTime(null)).toBeNull();
+    expect(articleReadingDuration("")).toBeNull();
+    expect(articleReadingDuration(null)).toBeNull();
   });
 });

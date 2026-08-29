@@ -8,6 +8,7 @@ import { getDb } from "../db.js";
 import { productViews, searchQueries, products, blogPosts } from "../../shared/schema.js";
 import { desc, count, eq } from "drizzle-orm";
 import { aiMonitor } from "./ai-monitor.js";
+import { EDITORIAL_TEAM_AUTHOR } from "../../shared/editorial-author.js";
 
 interface BlogTopicSuggestion {
   topic: string;
@@ -260,7 +261,10 @@ async function generateBlogContent(topic: BlogTopicSuggestion): Promise<Generate
         content: fullContent,
         category: topic.category,
         readTime: blogData.readTime,
-        author: "شريمب 🦐",
+        // Not the chat assistant's persona. Attributing a generated article to
+        // "شريمب" published a named human with an invented fifteen-year career
+        // as its author; this is AQUAVO editorial content and says so.
+        author: EDITORIAL_TEAM_AUTHOR,
         iconName: blogData.iconName,
         metaDescription: blogData.metaDescription,
         keywords: blogData.keywords,
