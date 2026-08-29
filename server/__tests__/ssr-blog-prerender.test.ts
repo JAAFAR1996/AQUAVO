@@ -11,6 +11,8 @@ import {
   renderSeoPreviewShell,
   type SeoPreviewBlogPost,
 } from "../../api/_seo-preview-shell.js";
+import { EDITORIAL_TEAM_BYLINE } from "../../shared/editorial-author";
+import { READING_TIME_LABEL } from "../../shared/article-reading";
 
 // Shaped like a real row from `blog_posts`: the article body is first-party
 // HTML authored in the admin panel, and headings inside it start at <h3>.
@@ -23,7 +25,7 @@ const POST: SeoPreviewBlogPost = {
   readTime: "7 دقائق",
   imageUrl: "https://res.cloudinary.com/dyczh8ogv/image/upload/v1773199279/aquavo/blog/betta.png",
   publishedAt: "2026-03-08T00:00:00.000Z",
-  updatedAt: "2026-04-01T00:00:00.000Z",
+  createdAt: "2026-03-08T00:00:00.000Z",
   content: `
     <div class="bg-primary/5 p-6">
       <h3 class="text-xl">الخلاصة المباشرة</h3>
@@ -122,15 +124,38 @@ describe("prerendered blog article", () => {
     expect(img).toContain("f_auto,q_auto");
   });
 
-  it("publishes the author and dates it actually has, and invents none", () => {
+  it("publishes the author and date it actually has, and invents none", () => {
     const html = render();
-    expect(html).toContain("AQUAVO Team");
+    // The team byline, not the stored "AQUAVO Team" string: the visible byline
+    // and the Article author entity now name one entity.
+    expect(html).toContain(EDITORIAL_TEAM_BYLINE);
     expect(html).toContain('dateTime="2026-03-08"');
-    expect(html).toContain('dateTime="2026-04-01"');
+    // No modification date: blog_posts.updated_at records maintenance writes,
+    // not rewrites, so there is nothing here to state honestly.
+    expect(html).not.toContain("dateModified");
 
     const bare = render({ slug: "s", title: "عنوان", content: "<p>نص</p>" });
     expect(bare).not.toContain("<time");
     expect(bare.match(/<h1\b/g) ?? []).toHaveLength(1);
+  });
+
+  it("refuses a publication date from before the post existed", () => {
+    // The ten backdated posts, as production stores them.
+    const html = render({
+      ...POST,
+      publishedAt: "2025-10-31T21:00:00.000Z",
+      createdAt: "2026-02-23T01:32:11.491Z",
+    });
+    expect(html).not.toContain("2025-10-31");
+    expect(html).toContain('dateTime="2026-02-23"');
+  });
+
+  it("states the reading time of this article, as an estimate", () => {
+    const html = render();
+    expect(html).toContain(READING_TIME_LABEL);
+    // The stored column claims seven minutes for a fourteen-word article.
+    expect(html).not.toContain("7 دقائق");
+    expect(html).toContain("دقيقة واحدة");
   });
 
   it("still renders an article that has no hero image", () => {

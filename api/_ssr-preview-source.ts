@@ -18,7 +18,9 @@ import {
   type SeoPreviewProduct,
   type SeoPreviewReview,
 } from "./_seo-preview-shell.js";
-import { articlePlainText, articleReadTime, articleWordCount, cloudinaryHeroUrl } from "./_blog-article.js";
+import { articlePlainText, cloudinaryHeroUrl } from "./_blog-article.js";
+import { articleReadingTimeLabel, articleWordCount } from "../shared/article-reading.js";
+import { articleDatePublished } from "../shared/article-dates.js";
 import {
   buildCollectionStructuredData,
   buildFaqStructuredData,
@@ -44,7 +46,7 @@ import {
 } from "../shared/seo-contract.js";
 import { isKnownSitePath } from "../shared/site-routes.js";
 import { toPublicVariant } from "../shared/public-product.js";
-import { displayAuthorName } from "../shared/author-name.js";
+import { authorBylineText } from "../shared/editorial-author.js";
 import { categoryContent } from "../shared/category-content.js";
 import { articleAuthorEntity } from "../shared/editorial-author.js";
 import { PRERENDERED_PAGES } from "./_prerendered-pages.js";
@@ -348,7 +350,7 @@ async function loadProductReviews(productId: string | undefined): Promise<SeoPre
 
 const BLOG_COLUMNS = `slug, title, excerpt, content, category, author,
             read_time AS "readTime", image_url AS "imageUrl",
-            published_at AS "publishedAt", updated_at AS "updatedAt"`;
+            published_at AS "publishedAt", created_at AS "createdAt"`;
 
 async function loadBlogPost(slug: string): Promise<SeoPreviewBlogPost | null> {
   const { rows } = await getPool().query(
@@ -423,7 +425,7 @@ async function loadBlogIndexPosts(): Promise<SeoPreviewBlogPost[]> {
   const { rows } = await getPool().query(
     `SELECT slug, title, excerpt, '' AS content, category, author,
             read_time AS "readTime", image_url AS "imageUrl",
-            published_at AS "publishedAt", updated_at AS "updatedAt"
+            published_at AS "publishedAt", created_at AS "createdAt"
        FROM blog_posts
       WHERE is_published = TRUE
       ORDER BY published_at DESC NULLS LAST`,
@@ -604,8 +606,7 @@ async function resolvePage(pathname: string, rawCategory?: string): Promise<Reso
     const blogPath = `/blog/${encodeURIComponent(post.slug)}`;
     const image = blogImage(post);
     const description = metaDescription(cleanText(post.excerpt, articlePlainText(post.content)));
-    const published = post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined;
-    const modified = post.updatedAt ? new Date(post.updatedAt).toISOString() : published;
+    const published = articleDatePublished(post);
     return {
       page: { kind: "blog-post", post, related },
       meta: {
@@ -628,7 +629,6 @@ async function resolvePage(pathname: string, rawCategory?: string): Promise<Reso
               logo: { "@type": "ImageObject", url: AQUAVO_ENTITY.logoUrl },
             },
             datePublished: published,
-            dateModified: modified,
             wordCount: articleWordCount(post.content) || undefined,
             articleSection: post.category || undefined,
             inLanguage: "ar-IQ",
@@ -920,19 +920,17 @@ function markdown(page: SeoPreviewPage, meta: Meta): string {
   } else if (page.kind === "blog-post") {
     const post = page.post;
     const meta2: string[] = [];
-    if (post.author) meta2.push(`الكاتب: ${displayAuthorName(post.author)}`);
+    if (post.author) meta2.push(`الكاتب: ${authorBylineText(post.author)}`);
     if (post.category) meta2.push(`القسم: ${post.category}`);
     // Derived from the article, matching the HTML and the schema wordCount,
     // rather than the overstated blog_posts.read_time column.
-    const readTime = articleReadTime(post.content);
-    if (readTime) meta2.push(`مدة القراءة: ${readTime}`);
-    // Publish and update dates: the HTML renders both and the Article schema
-    // carries datePublished/dateModified, but the markdown stated neither, so
-    // the representation an LLM fetcher prefers had no recency signal at all.
-    const publishedDay = isoDay(post.publishedAt);
-    const updatedDay = isoDay(post.updatedAt);
+    const readTime = articleReadingTimeLabel(post.content);
+    if (readTime) meta2.push(readTime);
+    // The publication date, validated against the row's own creation. No
+    // update date: updated_at records maintenance writes, not rewrites, so
+    // stating one would invent a revision. See shared/article-dates.ts.
+    const publishedDay = isoDay(articleDatePublished(post));
     if (publishedDay) meta2.push(`تاريخ النشر: ${publishedDay}`);
-    if (updatedDay && updatedDay !== publishedDay) meta2.push(`آخر تحديث: ${updatedDay}`);
     if (meta2.length > 0) lines.push(meta2.join(" · "), "");
     const body = articlePlainText(post.content);
     if (body) lines.push(body, "");

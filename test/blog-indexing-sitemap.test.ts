@@ -23,7 +23,13 @@ describe("published blog indexing and sitemap wiring", () => {
     expect(source).not.toContain("status = 'published'");
     expect(source).toContain('image_url AS "imageUrl"');
     expect(source).toContain('published_at AS "publishedAt"');
-    expect(source).toContain('updated_at AS "updatedAt"');
+    // created_at, not updated_at: the Article schema publishes no dateModified,
+    // and published_at is bounded by the row's own creation because ten posts
+    // are backdated to before it. See shared/article-dates.ts. The sitemap
+    // still reads updated_at — lastmod is a crawl hint about the URL, not an
+    // editorial claim that the article was rewritten.
+    expect(source).toContain('created_at AS "createdAt"');
+    expect(source).not.toContain("dateModified");
     expect(source).toContain("injectMeta(HTML_TEMPLATE, meta)");
     expect(source).toContain('"@type": "Article"');
     expect(source).toContain('res.status(404)');

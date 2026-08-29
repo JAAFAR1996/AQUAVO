@@ -14,6 +14,8 @@ import { buildProductStructuredData, withSiteEntities } from "./_seo-structured-
 import { isKnownSitePath } from "../shared/site-routes.js";
 import { AQUAVO_ENTITY, canonicalUrlFor, isNoindexPath } from "../shared/seo-contract.js";
 import { displayAuthorName } from "../shared/author-name.js";
+import { articleWordCount } from "../shared/article-reading.js";
+import { articleDatePublished } from "../shared/article-dates.js";
 import { articleAuthorEntity } from "../shared/editorial-author.js";
 
 // ─── DB Setup (lightweight, no Drizzle overhead) ────────────────────────────
@@ -672,15 +674,19 @@ async function getBlogMeta(slug: string): Promise<PageMeta | null> {
       // the stable handler, which is how a blog post lost its title and Article
       // schema entirely whenever the semantic renderer fell back to here.
       `SELECT title, excerpt, image_url AS "imageUrl", author,
-              published_at AS "publishedAt", updated_at AS "updatedAt", content
+              published_at AS "publishedAt", created_at AS "createdAt", content
          FROM blog_posts WHERE slug = $1 AND is_published = TRUE LIMIT 1`,
       [slug]
     );
     if (rows.length === 0) return null;
     const post = rows[0];
-    const wordCount = post.content ? post.content.split(/\s+/).length : undefined;
-    const datePublished = post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined;
-    const dateModified = post.updatedAt ? new Date(post.updatedAt).toISOString() : datePublished;
+    // Words in the article, not tokens in its markup: splitting the raw HTML
+    // counted every tag as a word and overstated the length of every post.
+    const wordCount = articleWordCount(post.content) || undefined;
+    // Ten posts store a published_at from before the row existed, and
+    // updated_at records maintenance writes rather than rewrites, so no
+    // modification date is published at all. See shared/article-dates.ts.
+    const datePublished = articleDatePublished(post);
     return {
       title: `${post.title} | مدونة AQUAVO`,
       description: post.excerpt || post.title,
@@ -695,7 +701,6 @@ async function getBlogMeta(slug: string): Promise<PageMeta | null> {
           author: articleAuthorEntity(post.author),
           publisher: { "@type": "Organization", name: "AQUAVO", logo: { "@type": "ImageObject", url: DEFAULT_IMAGE } },
           datePublished,
-          dateModified,
           wordCount,
           inLanguage: "ar",
           mainEntityOfPage: { "@type": "WebPage", "@id": `${BASE}/blog/${slug}` },
