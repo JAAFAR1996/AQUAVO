@@ -1,0 +1,27 @@
+name: Test Canva Original Fetch
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/test-canva-original-fetch.yml']
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test signed Canva image variants
+        shell: bash
+        run: |
+          set -u
+          BASE_QUERY='csig=AAAAAAAAAAAAAAAAAAAAAOrpWvczqsp-5cudNk9Jgi0-XchlSl7liT4lLSvVpuOo&exp=1788149796&osig=AAAAAAAAAAAAAAAAAAAAAPHTvGygM9cKScuMzPHBKSSEsVoMeM1USILSC7JagQVM&signer=media-rpc&x-canva-quality=thumbnail'
+          URI='uri:ifs%3A%2F%2FM%2F46307d64-268c-40fe-be06-81b4228eae56'
+          U1="https://media.canva.com/v2/image-resize/format:JPG/height:200/quality:75/${URI}/watermark:F/width:200?${BASE_QUERY}"
+          U2="https://media.canva.com/v2/image-resize/format:PNG/height:1254/quality:100/${URI}/watermark:F/width:1254?${BASE_QUERY}"
+          U3="https://media.canva.com/v2/image-resize/format:JPG/height:1254/quality:100/${URI}/watermark:F/width:1254?${BASE_QUERY}"
+          for n in 1 2 3; do
+            uvar="U${n}"; u="${!uvar}"
+            code=$(curl -L -sS -o "/tmp/c${n}" -w '%{http_code}' "$u" || true)
+            bytes=$(wc -c < "/tmp/c${n}" 2>/dev/null || echo 0)
+            type=$(file -b "/tmp/c${n}" 2>/dev/null || true)
+            echo "candidate=$n status=$code bytes=$bytes type=$type"
+          done
