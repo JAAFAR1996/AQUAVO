@@ -205,15 +205,6 @@ export const FORBIDDEN_PUBLIC_FIELD_PATTERN =
 
 type AnyRecord = Record<string, unknown>;
 
-/** Storefront-only image replacements for products whose legacy DB gallery should no longer be shown. */
-const PRODUCT_IMAGE_OVERRIDES: Record<string, readonly string[]> = {
-  "houyi-blue-dragon-stone": [
-    "/products/houyi-blue-dragon-stone/blue-dragon-stone-hero.webp",
-    "/products/houyi-blue-dragon-stone/blue-dragon-stone-scale.webp",
-    "/products/houyi-blue-dragon-stone/blue-dragon-stone-variation.webp",
-  ],
-};
-
 /** Pick an explicit set of keys. Absent keys stay absent — no `undefined` padding, no spread. */
 function pick<T extends AnyRecord>(source: T | null | undefined, keys: readonly string[]): AnyRecord {
   const out: AnyRecord = {};
@@ -240,15 +231,6 @@ export function toPublicProduct(product: unknown): AnyRecord | null {
   if (typeof product !== "object") return null;
 
   const publicProduct = pick(product as AnyRecord, PUBLIC_PRODUCT_FIELDS);
-
-  const slug = publicProduct.slug;
-  if (typeof slug === "string") {
-    const images = PRODUCT_IMAGE_OVERRIDES[slug];
-    if (images) {
-      publicProduct.images = [...images];
-      publicProduct.thumbnail = images[0];
-    }
-  }
 
   // `variants` is deliberately NOT in PUBLIC_PRODUCT_FIELDS: it must be rebuilt element by element,
   // never copied. The raw blob carries costPrice/costStatus/costBasis/costEvidence written by
