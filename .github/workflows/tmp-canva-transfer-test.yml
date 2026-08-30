@@ -1,0 +1,33 @@
+name: Temp Canva Fullres Transfer Test
+
+on:
+  push:
+    branches:
+      - tmp/fullres-image-transfer
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test signed Canva asset URL at thumbnail and requested full size
+        shell: bash
+        env:
+          THUMB_URL: 'https://media.canva.com/v2/image-resize/format:JPG/height:200/quality:75/uri:ifs%3A%2F%2FM%2F6cb05363-681e-4ffc-bf1f-de1a0304eec5/watermark:F/width:200?csig=AAAAAAAAAAAAAAAAAAAAANKDArMKxB-St_hinPj0Ql-Ci-3VTjlXF8rgfKqfi1d0&exp=1788149344&osig=AAAAAAAAAAAAAAAAAAAAAPjK_FFQ78HUlyG7pS5bJKb-sJuI-V4c0hIynVnHmC9u&signer=media-rpc&x-canva-quality=thumbnail'
+        run: |
+          set -euo pipefail
+          FULL_URL="${THUMB_URL/height:200/height:1254}"
+          FULL_URL="${FULL_URL/width:200/width:1254}"
+          FULL_URL="${FULL_URL/quality:75/quality:100}"
+          echo 'thumbnail:'
+          curl -fsSL "$THUMB_URL" -o thumb.jpg
+          file thumb.jpg
+          wc -c thumb.jpg
+          echo 'modified full-size request:'
+          code=$(curl -sSL -o full.jpg -w '%{http_code}' "$FULL_URL")
+          echo "HTTP $code"
+          file full.jpg || true
+          wc -c full.jpg || true
+          test "$code" = "200"
