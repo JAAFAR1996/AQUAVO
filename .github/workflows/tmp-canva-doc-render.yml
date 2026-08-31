@@ -1,0 +1,26 @@
+name: Temp Canva Document Render
+on:
+  push:
+    branches: [tmp/canva-doc-render]
+    paths: ['.github/workflows/tmp-canva-doc-render.yml']
+permissions:
+  contents: write
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch 1254px Canva document render
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL='https://media.canva.com/v2/document-image/hash:-2092872343/height:1254/id:DAHT0FjtvDM/type:B/width:1254?brand=BAEkRcTPLAc&csig=AAAAAAAAAAAAAAAAAAAAABJPrGoZ2C5oCc6abfv2Kom_2i2fg26cMJ-IgpMSGuk5&disableexport=T&exp=1788143398&fallback=https%3A%2F%2Fs3.amazonaws.com%2Fdocument-export.canva.com%2FjtvDM%2FDAHT0FjtvDM%2F1%2Fthumbnail%2F0001.png%3FX-Amz-Algorithm%3DAWS4-HMAC-SHA256%26X-Amz-Credential%3DAKIAQYCGKMUH4GDRW44L%252F20260830%252Fus-east-1%252Fs3%252Faws4_request%26X-Amz-Date%3D20260830T213912Z%26X-Amz-Expires%3D17446%26X-Amz-Signature%3D3129fcfb65608042ae34975c07d984aad265a0bcc0feab52772808a4d61bc065%26X-Amz-SignedHeaders%3Dhost%26response-expires%3DMon%252C%252031%2520Aug%25202026%252002%253A29%253A58%2520GMT&osig=AAAAAAAAAAAAAAAAAAAAACzu9gVmBnhZKbTqEJCmxgRgpAFywH27dbos1REv1QxC&page=1&signed=brand%2Cdisableexport%2Cfallback%2Cpage%2Cversion&signer=document-rpc&version=1'
+          mkdir -p tmp/canva-doc-render
+          curl -L --fail --retry 2 -o tmp/canva-doc-render/hero.png "$URL"
+          file tmp/canva-doc-render/hero.png | tee tmp/canva-doc-render/report.txt
+          test $(wc -c < tmp/canva-doc-render/hero.png) -gt 50000
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tmp/canva-doc-render/hero.png tmp/canva-doc-render/report.txt
+          git commit -m 'test: capture 1254px Canva document render'
+          git push
