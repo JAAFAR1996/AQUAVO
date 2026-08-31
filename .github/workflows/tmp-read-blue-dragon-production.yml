@@ -1,0 +1,28 @@
+name: Temp Read Blue Dragon Production
+
+on:
+  push:
+    branches: [tmp/canva-fullres-v4]
+    paths:
+      - ".github/workflows/tmp-read-blue-dragon-production.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  read-product:
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    steps:
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client
+      - name: Read product public fields
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql "$DATABASE_URL" -X -v ON_ERROR_STOP=1 -P pager=off -c "SELECT slug, thumbnail, images::text AS images, description, specifications::text AS specifications FROM products WHERE slug='houyi-blue-dragon-stone';"
