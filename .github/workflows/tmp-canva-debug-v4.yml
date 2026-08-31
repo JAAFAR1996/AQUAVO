@@ -1,0 +1,39 @@
+name: Temp Canva Debug V4
+on:
+  push:
+    branches: [tmp/canva-fullres-v4]
+    paths: ['.github/workflows/tmp-canva-debug-v4.yml']
+permissions:
+  contents: write
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Probe Canva URLs and commit diagnostics
+        shell: bash
+        run: |
+          set -u
+          mkdir -p tmp/canva-v4
+          BASE='csig=AAAAAAAAAAAAAAAAAAAAAOZR7r1LkYqseFoMMnq13hF2KW4YFad8G7gy9AQzltWD&exp=1788152077&osig=AAAAAAAAAAAAAAAAAAAAAI1uNiODmndSrIjM1qm5iu7WhZDgMizbBWQ-X67XtTjg&signer=media-rpc&x-canva-quality=thumbnail'
+          URI='uri:ifs%3A%2F%2FM%2F9bc1a8c5-a305-4bf6-a03d-34677179963f'
+          U1="https://media.canva.com/v2/image-resize/format:JPG/height:200/quality:75/${URI}/watermark:F/width:200?${BASE}"
+          U2="https://media.canva.com/v2/image-resize/format:PNG/height:1254/quality:100/${URI}/watermark:F/width:1254?${BASE}"
+          U3="https://media.canva.com/v2/image-resize/format:JPG/height:1254/quality:100/${URI}/watermark:F/width:1254?${BASE}"
+          U4="https://media.canva.com/v2/image-resize/format:WEBP/height:1254/quality:100/${URI}/watermark:F/width:1254?${BASE}"
+          U5='https://design.canva.ai/gav80HcN9l0nYH5'
+          : > tmp/canva-v4/report.txt
+          for n in 1 2 3 4 5; do
+            uvar="U${n}"; u="${!uvar}"
+            out="tmp/canva-v4/c${n}"
+            code=$(curl -L -sS --max-time 20 -o "$out" -w '%{http_code}' "$u" 2>>tmp/canva-v4/report.txt || true)
+            bytes=$(wc -c < "$out" 2>/dev/null || echo 0)
+            type=$(file -b "$out" 2>/dev/null || true)
+            printf 'candidate=%s status=%s bytes=%s type=%s\n' "$n" "$code" "$bytes" "$type" >> tmp/canva-v4/report.txt
+          done
+          cat tmp/canva-v4/report.txt
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tmp/canva-v4/report.txt tmp/canva-v4/c*
+          git commit -m 'test: capture Canva URL diagnostics v4' || true
+          git push || true
