@@ -12,15 +12,6 @@ interface ProductImageGalleryProps {
     heroTransitionName?: string;
 }
 
-const HOUYI_BLUE_DRAGON_STONE_IMAGES = [
-    "/images/products/houyi-blue-dragon-stone/hero.webp",
-    "/images/products/houyi-blue-dragon-stone/scale.webp",
-    "/images/products/houyi-blue-dragon-stone/texture.webp",
-    "/images/products/houyi-blue-dragon-stone/dry-wet.webp",
-    "/images/products/houyi-blue-dragon-stone/use.webp",
-    "/images/products/houyi-blue-dragon-stone/variant.webp",
-];
-
 function buildGalleryImages(images: string[], productName: string): string[] {
     const sourceImages = images && images.length > 0
         ? images.filter((image) => image && image.length > 0)
@@ -31,14 +22,12 @@ function buildGalleryImages(images: string[], productName: string): string[] {
         productName.includes("دراقون ستون") ||
         productName.includes("دراجون ستون");
 
-    if (!isHouyiBlueDragonStone) return sourceImages;
+    if (!isHouyiBlueDragonStone || sourceImages.length < 2) return sourceImages;
 
-    // Keep the supplier/current real photos first as the truth reference for a
-    // natural product, then append the AQUAVO decision-support images.
-    return [
-        ...sourceImages,
-        ...HOUYI_BLUE_DRAGON_STONE_IMAGES.filter((image) => !sourceImages.includes(image)),
-    ];
+    // The first supplier image is the scale/ruler shot. Keep only the real
+    // product photos and move that scale image to the end so the gallery opens
+    // with a cleaner product view, then shows the remaining angle, then scale.
+    return [...sourceImages.slice(1), sourceImages[0]];
 }
 
 export function ProductImageGallery({
