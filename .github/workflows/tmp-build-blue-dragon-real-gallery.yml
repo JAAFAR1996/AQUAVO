@@ -22,48 +22,73 @@ jobs:
           ref: tmp/canva-fullres-v4
           fetch-depth: 1
 
-      - name: Reconstruct and validate real source image
+      - name: Reconstruct and verify exact source
         shell: bash
         run: |
           set -euo pipefail
-          cat tmp/blue-upload/hero/part*.txt | tr -d '\n\r' | base64 -d > /tmp/blue-dragon-source.webp
+          python - <<'PY'
+          from pathlib import Path
+          import base64, hashlib
+
+          d=Path('tmp/blue-upload/hero')
+          parts={p.name:p.read_text().replace('\n','').replace('\r','') for p in sorted(d.glob('part*.txt'))}
+          target_b64_sha='f02164d1edc8b7dd29c21fc5b80230e21b951c51b29db6c3f6cc9992205eeb4e'
+          target_bytes_sha='91acb9e9d18f76a1a74d217291544ed1be6e7d7784e8df6244915230c89d8368'
+          s=''.join(parts[k] for k in sorted(parts))
+
+          if hashlib.sha256(s.encode()).hexdigest()!=target_b64_sha:
+              # One transfer character was accidentally duplicated in part006.
+              bad=parts['part006.txt']
+              fixed=None
+              for i in range(len(bad)):
+                  candidate=bad[:i]+bad[i+1:]
+                  full=''.join(candidate if k=='part006.txt' else parts[k] for k in sorted(parts))
+                  if hashlib.sha256(full.encode()).hexdigest()==target_b64_sha:
+                      fixed=full
+                      print('repaired_duplicate_at_part006_index',i)
+                      break
+              if fixed is None:
+                  raise SystemExit('staged source does not match verified source checksum')
+              s=fixed
+
+          data=base64.b64decode(s,validate=True)
+          if hashlib.sha256(data).hexdigest()!=target_bytes_sha:
+              raise SystemExit('decoded source checksum mismatch')
+          Path('/tmp/blue-dragon-source.webp').write_bytes(data)
+          print('verified_source_bytes',len(data))
+          PY
+
+      - name: Build truth-preserving gallery
+        shell: bash
+        run: |
+          set -euo pipefail
           python -m pip install --quiet pillow
           python - <<'PY'
           from PIL import Image, ImageOps
           from pathlib import Path
 
-          src = Path('/tmp/blue-dragon-source.webp')
-          im = Image.open(src)
-          im.load()
-          if im.format != 'WEBP':
-              raise SystemExit(f'Expected WEBP, got {im.format}')
-          if min(im.size) < 700:
-              raise SystemExit(f'Source too small: {im.size}')
+          src=Path('/tmp/blue-dragon-source.webp')
+          im=Image.open(src); im.load()
+          if im.format!='WEBP': raise SystemExit(f'Expected WEBP, got {im.format}')
+          if min(im.size)<700: raise SystemExit(f'Source too small: {im.size}')
+          im=im.convert('RGB')
 
-          # Truth-preserving only: no generated pixels beyond neutral padding,
-          # no object removal/addition, no geometry invention.
-          im = im.convert('RGB')
-          master = ImageOps.pad(im, (1200, 1200), method=Image.Resampling.LANCZOS, color=(246,246,244), centering=(0.5,0.5))
+          out=Path('/tmp/blue-dragon-gallery'); out.mkdir(parents=True,exist_ok=True)
+          hero=ImageOps.pad(im,(1200,1200),method=Image.Resampling.LANCZOS,color=(246,246,244),centering=(0.5,0.5))
+          hero.save(out/'blue-dragon-stone-hero.webp','WEBP',quality=90,method=6)
 
-          out = Path('/tmp/blue-dragon-gallery')
-          out.mkdir(parents=True, exist_ok=True)
-          master.save(out/'blue-dragon-stone-hero.webp', 'WEBP', quality=90, method=6)
+          w,h=im.size
+          detail=im.crop((int(w*.18),int(h*.18),int(w*.82),int(h*.82)))
+          detail=ImageOps.fit(detail,(1200,1200),method=Image.Resampling.LANCZOS,centering=(.5,.5))
+          detail.save(out/'blue-dragon-stone-detail.webp','WEBP',quality=90,method=6)
 
-          # Secondary 1: centered texture/detail crop from the same real source.
-          w, h = im.size
-          crop1 = im.crop((int(w*0.18), int(h*0.18), int(w*0.82), int(h*0.82)))
-          crop1 = ImageOps.fit(crop1, (1200,1200), method=Image.Resampling.LANCZOS, centering=(0.5,0.5))
-          crop1.save(out/'blue-dragon-stone-detail.webp', 'WEBP', quality=90, method=6)
+          batch=im.crop((int(w*.08),int(h*.08),int(w*.92),int(h*.92)))
+          batch=ImageOps.fit(batch,(1200,1200),method=Image.Resampling.LANCZOS,centering=(.5,.5))
+          batch.save(out/'blue-dragon-stone-batch.webp','WEBP',quality=88,method=6)
 
-          # Secondary 2: broader crop preserving more of the real batch/composition.
-          crop2 = im.crop((int(w*0.08), int(h*0.08), int(w*0.92), int(h*0.92)))
-          crop2 = ImageOps.fit(crop2, (1200,1200), method=Image.Resampling.LANCZOS, centering=(0.5,0.5))
-          crop2.save(out/'blue-dragon-stone-batch.webp', 'WEBP', quality=88, method=6)
-
-          print('source', im.size, 'source_bytes', src.stat().st_size)
+          print('source',im.size,src.stat().st_size)
           for p in sorted(out.glob('*.webp')):
-              check = Image.open(p); check.load()
-              print(p.name, check.size, p.stat().st_size)
+              c=Image.open(p); c.load(); print(p.name,c.size,p.stat().st_size)
           PY
 
       - name: Publish gallery to clean feature branch
@@ -77,9 +102,7 @@ jobs:
           git fetch origin main
           git checkout -B "$BRANCH" origin/main
           mkdir -p client/public/products/houyi-blue-dragon-stone
-          cp /tmp/blue-dragon-gallery/blue-dragon-stone-hero.webp client/public/products/houyi-blue-dragon-stone/blue-dragon-stone-hero.webp
-          cp /tmp/blue-dragon-gallery/blue-dragon-stone-detail.webp client/public/products/houyi-blue-dragon-stone/blue-dragon-stone-detail.webp
-          cp /tmp/blue-dragon-gallery/blue-dragon-stone-batch.webp client/public/products/houyi-blue-dragon-stone/blue-dragon-stone-batch.webp
+          cp /tmp/blue-dragon-gallery/*.webp client/public/products/houyi-blue-dragon-stone/
           git add client/public/products/houyi-blue-dragon-stone/
-          git commit -m "feat(products): add real Blue Dragon Stone gallery" || true
+          git commit -m "feat(products): add real Blue Dragon Stone gallery"
           git push --force-with-lease origin "$BRANCH"
