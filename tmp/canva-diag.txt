@@ -1,0 +1,5 @@
+candidate=1 status=200 bytes=10634 type=JPEG image data, Exif standard: [TIFF image data, little-endian, direntries=6, orientation=upper-left, xresolution=86, yresolution=94, resolutionunit=2], baseline, precision 8, 200x200, components 3
+candidate=2 status=403 bytes=17 type=ASCII text, with no line terminators
+candidate=3 status=403 bytes=17 type=ASCII text, with no line terminators
+candidate=4 status=403 bytes=17 type=ASCII text, with no line terminators
+candidate=5 status=403 bytes=17 type=ASCII text, with no line terminators
