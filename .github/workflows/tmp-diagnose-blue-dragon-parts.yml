@@ -1,0 +1,47 @@
+name: Temp Diagnose Blue Dragon Source Parts
+
+on:
+  push:
+    branches: [tmp/canva-fullres-v4]
+    paths:
+      - ".github/workflows/tmp-diagnose-blue-dragon-parts.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: tmp/canva-fullres-v4
+          fetch-depth: 1
+      - name: Report exact chunk integrity
+        shell: bash
+        run: |
+          set -euo pipefail
+          for f in tmp/blue-upload/hero/part*.txt; do
+            printf '%s bytes=' "$f"
+            wc -c < "$f"
+            sha256sum "$f"
+          done
+          python - <<'PY'
+          from pathlib import Path
+          import base64, hashlib, re
+          files=sorted(Path('tmp/blue-upload/hero').glob('part*.txt'))
+          s=''.join(p.read_text() for p in files)
+          clean=s.replace('\n','').replace('\r','')
+          print('raw_total',len(s),'clean_total',len(clean),'mod4',len(clean)%4)
+          bad=[(i,repr(c)) for i,c in enumerate(clean) if c not in 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=']
+          print('bad_count',len(bad),'first_bad',bad[:20])
+          print('equals_count',clean.count('='),'equals_positions',[i for i,c in enumerate(clean) if c=='='][:20])
+          print('combined_sha256',hashlib.sha256(clean.encode()).hexdigest())
+          try:
+            data=base64.b64decode(clean,validate=True)
+            print('decode_ok',len(data),data[:12])
+          except Exception as e:
+            print('decode_error',repr(e))
+          PY
