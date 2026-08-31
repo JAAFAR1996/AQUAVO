@@ -1,0 +1,84 @@
+name: Temp Build Blue Dragon Real Gallery
+
+on:
+  push:
+    branches: [tmp/canva-fullres-v4]
+    paths:
+      - ".github/workflows/tmp-build-blue-dragon-real-gallery.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-gallery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout staged source branch
+        uses: actions/checkout@v4
+        with:
+          ref: tmp/canva-fullres-v4
+          fetch-depth: 0
+
+      - name: Reconstruct and validate real source image
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat tmp/blue-upload/hero/part*.txt | tr -d '\n\r' | base64 -d > /tmp/blue-dragon-source.webp
+          python -m pip install --quiet pillow
+          python - <<'PY'
+          from PIL import Image, ImageOps
+          from pathlib import Path
+
+          src = Path('/tmp/blue-dragon-source.webp')
+          im = Image.open(src)
+          im.load()
+          if im.format != 'WEBP':
+              raise SystemExit(f'Expected WEBP, got {im.format}')
+          if min(im.size) < 700:
+              raise SystemExit(f'Source too small: {im.size}')
+
+          # Truth-preserving only: no generated pixels beyond neutral padding,
+          # no object removal/addition, no geometry invention.
+          im = im.convert('RGB')
+          master = ImageOps.pad(im, (1200, 1200), method=Image.Resampling.LANCZOS, color=(246,246,244), centering=(0.5,0.5))
+
+          out = Path('/tmp/blue-dragon-gallery')
+          out.mkdir(parents=True, exist_ok=True)
+          master.save(out/'blue-dragon-stone-hero.webp', 'WEBP', quality=90, method=6)
+
+          # Secondary 1: centered texture/detail crop from the same real source.
+          w, h = im.size
+          crop1 = im.crop((int(w*0.18), int(h*0.18), int(w*0.82), int(h*0.82)))
+          crop1 = ImageOps.fit(crop1, (1200,1200), method=Image.Resampling.LANCZOS, centering=(0.5,0.5))
+          crop1.save(out/'blue-dragon-stone-detail.webp', 'WEBP', quality=90, method=6)
+
+          # Secondary 2: broader crop preserving more of the real batch/composition.
+          crop2 = im.crop((int(w*0.08), int(h*0.08), int(w*0.92), int(h*0.92)))
+          crop2 = ImageOps.fit(crop2, (1200,1200), method=Image.Resampling.LANCZOS, centering=(0.5,0.5))
+          crop2.save(out/'blue-dragon-stone-batch.webp', 'WEBP', quality=88, method=6)
+
+          print('source', im.size, 'source_bytes', src.stat().st_size)
+          for p in sorted(out.glob('*.webp')):
+              check = Image.open(p); check.load()
+              print(p.name, check.size, p.stat().st_size)
+          PY
+
+      - name: Publish gallery to clean feature branch
+        env:
+          BRANCH: feat/blue-dragon-real-gallery-20260831
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "AQUAVO Automation"
+          git config user.email "138117801+JAAFAR1996@users.noreply.github.com"
+          git fetch origin main
+          git checkout -B "$BRANCH" origin/main
+          mkdir -p client/public/products/houyi-blue-dragon-stone
+          cp /tmp/blue-dragon-gallery/blue-dragon-stone-hero.webp client/public/products/houyi-blue-dragon-stone/blue-dragon-stone-hero.webp
+          cp /tmp/blue-dragon-gallery/blue-dragon-stone-detail.webp client/public/products/houyi-blue-dragon-stone/blue-dragon-stone-detail.webp
+          cp /tmp/blue-dragon-gallery/blue-dragon-stone-batch.webp client/public/products/houyi-blue-dragon-stone/blue-dragon-stone-batch.webp
+          git add client/public/products/houyi-blue-dragon-stone/
+          git commit -m "feat(products): add real Blue Dragon Stone gallery" || true
+          git push --force-with-lease origin "$BRANCH"
