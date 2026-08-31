@@ -5,6 +5,7 @@ on:
     branches: [tmp/canva-fullres-v4]
     paths:
       - ".github/workflows/tmp-build-blue-dragon-real-gallery.yml"
+      - "tmp/blue-upload/hero/**"
   workflow_dispatch:
 
 permissions:
@@ -19,7 +20,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: tmp/canva-fullres-v4
-          fetch-depth: 0
+          fetch-depth: 1
 
       - name: Reconstruct and validate real source image
         shell: bash
