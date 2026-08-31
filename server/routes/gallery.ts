@@ -46,7 +46,7 @@ function uploadBufferToCloudinary(buffer: Buffer, mimetype: string): Promise<str
 
 const gallerySubmitLimiter = rateLimit({
     windowMs: 60 * 60 * 1000, // 1 hour
-    max: 10,
+    max: 3,
     message: { error: "تم تجاوز عدد الصور المسموحة. يرجى المحاولة بعد ساعة." },
     standardHeaders: true,
     legacyHeaders: false,
