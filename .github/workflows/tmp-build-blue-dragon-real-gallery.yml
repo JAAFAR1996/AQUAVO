@@ -32,8 +32,8 @@ jobs:
 
           d=Path('tmp/blue-upload/hero')
           parts={p.name:p.read_text().replace('\n','').replace('\r','') for p in sorted(d.glob('part*.txt'))}
-          target_b64_sha='f02164d1edc8b7dd29c21fc5b80230e21b951c51b29db6c3f6cc9992205eeb4e'
-          target_bytes_sha='91acb9e9d18f76a1a74d217291544ed1be6e7d7784e8df6244915230c89d8368'
+          target_b64_sha='c7f53cdba26fc8874f28c405c2241bf096bcd03d67f0bf2bc0ae6261b094287c'
+          target_bytes_sha='8c645ff2da011944211aa9ac2c5db3eaf27e9f6ce3edf960bd4202493abce0f3'
           s=''.join(parts[k] for k in sorted(parts))
 
           if hashlib.sha256(s.encode()).hexdigest()!=target_b64_sha:
@@ -74,15 +74,15 @@ jobs:
           im=im.convert('RGB')
 
           out=Path('/tmp/blue-dragon-gallery'); out.mkdir(parents=True,exist_ok=True)
-          hero=ImageOps.pad(im,(1200,1200),method=Image.Resampling.LANCZOS,color=(246,246,244),centering=(0.5,0.5))
+          hero=im.resize((1200,1200),Image.Resampling.LANCZOS)
           hero.save(out/'blue-dragon-stone-hero.webp','WEBP',quality=90,method=6)
 
           w,h=im.size
-          detail=im.crop((int(w*.18),int(h*.18),int(w*.82),int(h*.82)))
+          detail=im.crop((int(w*.27),int(h*.32),int(w*.74),int(h*.70)))
           detail=ImageOps.fit(detail,(1200,1200),method=Image.Resampling.LANCZOS,centering=(.5,.5))
           detail.save(out/'blue-dragon-stone-detail.webp','WEBP',quality=90,method=6)
 
-          batch=im.crop((int(w*.08),int(h*.08),int(w*.92),int(h*.92)))
+          batch=im.crop((int(w*.03),int(h*.07),int(w*.97),int(h*.92)))
           batch=ImageOps.fit(batch,(1200,1200),method=Image.Resampling.LANCZOS,centering=(.5,.5))
           batch.save(out/'blue-dragon-stone-batch.webp','WEBP',quality=88,method=6)
 
