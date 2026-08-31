@@ -12,15 +12,20 @@ interface ProductImageGalleryProps {
     heroTransitionName?: string;
 }
 
+function isHouyiBlueDragonStoneProduct(productName: string): boolean {
+    return (
+        productName.includes("حجر التنين الأزرق") ||
+        productName.includes("دراقون ستون") ||
+        productName.includes("دراجون ستون")
+    );
+}
+
 function buildGalleryImages(images: string[], productName: string): string[] {
     const sourceImages = images && images.length > 0
         ? images.filter((image) => image && image.length > 0)
         : [];
 
-    const isHouyiBlueDragonStone =
-        productName.includes("حجر التنين الأزرق") ||
-        productName.includes("دراقون ستون") ||
-        productName.includes("دراجون ستون");
+    const isHouyiBlueDragonStone = isHouyiBlueDragonStoneProduct(productName);
 
     if (!isHouyiBlueDragonStone || sourceImages.length < 2) return sourceImages;
 
@@ -45,6 +50,10 @@ export function ProductImageGallery({
 
     const galleryImages = buildGalleryImages(images, productName);
     const currentImage = galleryImages[selectedIndex] || "";
+    const preserveOriginalQuality = isHouyiBlueDragonStoneProduct(productName);
+    const mainImageSrc = preserveOriginalQuality ? currentImage : detailImage(currentImage);
+    const mainImageSrcSet = preserveOriginalQuality ? undefined : detailImageSrcSet(currentImage);
+    const fullImageSrc = preserveOriginalQuality ? currentImage : lightboxImage(currentImage);
 
     const handlePrevious = useCallback(() => {
         setImageFailed(false);
@@ -104,8 +113,8 @@ export function ProductImageGallery({
                     ) : (
                         <>
                             <img
-                                src={detailImage(currentImage)}
-                                srcSet={detailImageSrcSet(currentImage)}
+                                src={mainImageSrc}
+                                srcSet={mainImageSrcSet}
                                 sizes="(max-width: 512px) 100vw, 512px"
                                 alt={`${productName} - صورة ${selectedIndex + 1}`}
                                 className={cn(
@@ -230,7 +239,7 @@ export function ProductImageGallery({
                             </div>
                         ) : (
                             <img
-                                src={lightboxImage(currentImage)}
+                                src={fullImageSrc}
                                 alt={productName}
                                 className="max-w-full max-h-[85vh] object-contain select-none"
                                 draggable={false}
