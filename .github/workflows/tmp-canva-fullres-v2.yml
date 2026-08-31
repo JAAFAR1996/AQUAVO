@@ -10,24 +10,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Fetch full-size hero and commit
+      - name: Diagnose signed Canva variants
         shell: bash
         run: |
-          set -euo pipefail
-          URL='https://media.canva.com/v2/image-resize/format:PNG/height:1254/quality:100/uri:ifs%3A%2F%2FM%2F9bc1a8c5-a305-4bf6-a03d-34677179963f/watermark:F/width:1254?csig=AAAAAAAAAAAAAAAAAAAAAOZR7r1LkYqseFoMMnq13hF2KW4YFad8G7gy9AQzltWD&exp=1788152077&osig=AAAAAAAAAAAAAAAAAAAAAI1uNiODmndSrIjM1qm5iu7WhZDgMizbBWQ-X67XtTjg&signer=media-rpc&x-canva-quality=thumbnail'
+          set -u
+          Q='csig=AAAAAAAAAAAAAAAAAAAAAOZR7r1LkYqseFoMMnq13hF2KW4YFad8G7gy9AQzltWD&exp=1788152077&osig=AAAAAAAAAAAAAAAAAAAAAI1uNiODmndSrIjM1qm5iu7WhZDgMizbBWQ-X67XtTjg&signer=media-rpc&x-canva-quality=thumbnail'
+          URI='uri:ifs%3A%2F%2FM%2F9bc1a8c5-a305-4bf6-a03d-34677179963f'
+          U1="https://media.canva.com/v2/image-resize/format:JPG/height:200/quality:75/${URI}/watermark:F/width:200?${Q}"
+          U2="https://media.canva.com/v2/image-resize/format:PNG/height:1254/quality:100/${URI}/watermark:F/width:1254?${Q}"
+          U3="https://media.canva.com/v2/image-resize/format:JPG/height:1254/quality:100/${URI}/watermark:F/width:1254?${Q}"
+          U4="https://media.canva.com/v2/image-resize/format:PNG/${URI}/watermark:F/width:1254?${Q}"
+          U5="https://media.canva.com/v2/image-resize/format:JPG/${URI}/watermark:F/width:1254?${Q}"
           mkdir -p tmp
-          curl -L --fail --retry 2 -o tmp/canva-hero-test.png "$URL"
-          file tmp/canva-hero-test.png
-          python - <<'PY'
-          from PIL import Image
-          p='tmp/canva-hero-test.png'
-          im=Image.open(p)
-          print(im.size, im.mode)
-          assert im.size == (1254,1254), im.size
-          PY
-          test $(wc -c < tmp/canva-hero-test.png) -gt 100000
+          : > tmp/canva-diag.txt
+          for n in 1 2 3 4 5; do
+            uvar="U${n}"; u="${!uvar}"
+            code=$(curl -L -sS -o "tmp/c${n}" -w '%{http_code}' "$u" || true)
+            bytes=$(wc -c < "tmp/c${n}" 2>/dev/null || echo 0)
+            type=$(file -b "tmp/c${n}" 2>/dev/null || true)
+            echo "candidate=$n status=$code bytes=$bytes type=$type" >> tmp/canva-diag.txt
+          done
+          cat tmp/canva-diag.txt
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add tmp/canva-hero-test.png
-          git commit -m 'test: capture full-size Canva hero'
+          git add tmp/canva-diag.txt
+          git commit -m 'test: record Canva transfer diagnostics' || true
           git push
