@@ -1,0 +1,5 @@
+candidate=1 status=200 bytes=7150 type=JPEG image data, JFIF standard 1.01, aspect ratio, density 1x1, segment length 16, progressive, precision 8, 200x200, components 3
+candidate=2 status=403 bytes=17 type=ASCII text, with no line terminators
+candidate=3 status=403 bytes=17 type=ASCII text, with no line terminators
+candidate=4 status=403 bytes=17 type=ASCII text, with no line terminators
+candidate=5 status=403 bytes=754757 type=HTML document, ASCII text, with very long lines (65000)
