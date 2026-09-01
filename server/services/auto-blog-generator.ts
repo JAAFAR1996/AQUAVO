@@ -9,6 +9,7 @@ import { productViews, searchQueries, products, blogPosts } from "../../shared/s
 import { desc, count, eq } from "drizzle-orm";
 import { aiMonitor } from "./ai-monitor.js";
 import { EDITORIAL_TEAM_AUTHOR } from "../../shared/editorial-author.js";
+import { EDITORIAL_COMMERCE_RULE, findEditorialViolations } from "../../shared/editorial-guard.js";
 
 interface BlogTopicSuggestion {
   topic: string;
@@ -182,6 +183,21 @@ function validateGeneratedBlogData(value: Record<string, unknown>): {
     throw new Error("BLOG_CONTENT_UNSAFE_ATTRIBUTE");
   }
 
+  // Editorial refusal, not just a safety refusal.
+  //
+  // A generated article once told readers to go and buy fish and plants at
+  // سوق الغزل — AQUAVO's own voice sending its readers to a competing market —
+  // and others claimed AQUAVO stocks live fish, live plants and CO2 systems it
+  // does not carry. The prompt now forbids both, but a prompt is a request; this
+  // is the constraint. See shared/editorial-guard.ts.
+  const editorial = findEditorialViolations(content).concat(
+    findEditorialViolations(title),
+    findEditorialViolations(excerpt),
+  );
+  if (editorial.length > 0) {
+    throw new Error(`BLOG_CONTENT_EDITORIAL_VIOLATION:${editorial[0].rule}:${editorial[0].evidence.slice(0, 160)}`);
+  }
+
   const keywords = Array.isArray(value.keywords)
     ? value.keywords.filter((item): item is string => typeof item === "string").map((item) => item.trim()).filter(Boolean).slice(0, 8)
     : [];
@@ -212,6 +228,18 @@ function buildPrompt(topic: BlogTopicSuggestion): string {
 - روابط داخلية فقط إلى مسارات تبدأ بـ / داخل AQUAVO.
 - لا تستخدم script/style/iframe/form أو event handlers أو javascript URLs.
 - لا تخترع ادعاءات طبية أو ضمانات أو أرقام غير مدعومة.
+- ممنوع منعاً باتاً توجيه القارئ للشراء من أي متجر أو سوق أو بائع خارج AQUAVO.
+  لا تذكر سوق الغزل أو الشورجة أو الأسواق أو المحلات المحلية أو البائعين
+  المحليين أو المتاجر الإلكترونية الأخرى كمكان للشراء أو الزيارة.
+- AQUAVO متجر إلكتروني فقط ولا يملك محلاً أو فرعاً في أي سوق.
+- AQUAVO لا يبيع أسماكاً حية ولا نباتات حية ولا نباتات صناعية ولا أنظمة CO2.
+  لا تقل إن هذه المنتجات متوفرة لدى AQUAVO.
+- إذا كان المنتج غير متوفر لدى AQUAVO، اكتفِ بالشرح التعليمي ولا تذكر أي جهة
+  شراء بديلة.
+- لا تستخدم عبارات تفضيل غير مثبتة مثل "الأول في العراق" أو "أفضل متجر".
+
+القاعدة التحريرية الملزمة (تُرفض المقالة آلياً عند مخالفتها):
+${EDITORIAL_COMMERCE_RULE}
 
 أجب JSON فقط:
 {
