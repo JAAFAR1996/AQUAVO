@@ -77,35 +77,60 @@ describe("ProductImageGallery", () => {
         expect(screen.getByRole("img", { name: "فلتر اختبار - صورة 1" })).toBeInTheDocument();
     });
 
-    // WCAG 44x44 touch-target regression: the shared `size="icon"` Button
-    // variant collapses to 36x36 at the md breakpoint unless an explicit
-    // md: override is added (tailwind-merge treats md: as a separate merge
-    // group). These assertions pin each control's intended size at desktop
-    // so the collapse can't silently reappear.
-    it("keeps the main-image previous/next controls at 44x44 at desktop (md:)", () => {
+    // WCAG 2.5.5 touch-target regression guard.
+    //
+    // These pin each control's *effective* rendered size rather than the literal
+    // utility classes it is built from. An earlier version required duplicate
+    // `md:h-11 md:w-11` overrides, which guarded a shared Button whose `icon`
+    // size once collapsed to 36x36 at the md breakpoint. That Button is now
+    // mobile-first (`icon: "h-11 w-11 p-0"`), so the duplicates became no-ops
+    // and a later cleanup dropped them — breaking the test while the rendered
+    // size never changed. Checking the effective size keeps the real guarantee
+    // (never below the target at any breakpoint) across such refactors.
+    const expectTouchTarget = (element: HTMLElement, minPx: number) => {
+        const sizeClass = /^(?:(.+):)?(?:min-)?([hw])-(\d+)$/;
+        const seen = { h: false, w: false };
+
+        for (const className of element.className.split(/\s+/)) {
+            const match = sizeClass.exec(className);
+            if (!match) continue;
+
+            const [, breakpoint, axis, steps] = match;
+            // Tailwind's spacing scale is 0.25rem per step at a 16px root.
+            const px = Number(steps) * 4;
+
+            expect(
+                `${axis}=${px}px${breakpoint ? ` at ${breakpoint}` : ""}`,
+            ).toBe(`${axis}=${Math.max(px, minPx)}px${breakpoint ? ` at ${breakpoint}` : ""}`);
+
+            if (!breakpoint) seen[axis as "h" | "w"] = true;
+        }
+
+        expect({ hasHeight: seen.h, hasWidth: seen.w }).toEqual({
+            hasHeight: true,
+            hasWidth: true,
+        });
+    };
+
+    it("keeps the main-image previous/next controls at least 44x44 at every breakpoint", () => {
         render(<ProductImageGallery images={images} productName="فلتر اختبار" />);
-        const previous = screen.getByRole("button", { name: "الصورة السابقة" });
-        const next = screen.getByRole("button", { name: "الصورة التالية" });
-        expect(previous).toHaveClass("h-11", "w-11", "md:h-11", "md:w-11");
-        expect(next).toHaveClass("h-11", "w-11", "md:h-11", "md:w-11");
+        expectTouchTarget(screen.getByRole("button", { name: "الصورة السابقة" }), 44);
+        expectTouchTarget(screen.getByRole("button", { name: "الصورة التالية" }), 44);
     });
 
-    it("keeps the lightbox close control at 44x44 at desktop (md:)", () => {
+    it("keeps the lightbox close control at least 44x44 at every breakpoint", () => {
         render(<ProductImageGallery images={images} productName="فلتر اختبار" />);
         fireEvent.click(screen.getAllByRole("img", { name: /فلتر اختبار/ })[0]);
-        const close = screen.getByRole("button", { name: "إغلاق معرض الصور" });
-        expect(close).toHaveClass("h-11", "w-11", "md:h-11", "md:w-11");
+        expectTouchTarget(screen.getByRole("button", { name: "إغلاق معرض الصور" }), 44);
     });
 
-    it("keeps the lightbox previous/next controls at 48x48 (not collapsed to 44/36) at desktop", () => {
+    it("keeps the lightbox previous/next controls at 48x48 at every breakpoint", () => {
         render(<ProductImageGallery images={images} productName="فلتر اختبار" />);
         fireEvent.click(screen.getAllByRole("img", { name: /فلتر اختبار/ })[0]);
-        const buttons = screen.getAllByRole("button", { name: "الصورة السابقة" });
-        const previous = buttons[buttons.length - 1];
-        const nextButtons = screen.getAllByRole("button", { name: "الصورة التالية" });
-        const next = nextButtons[nextButtons.length - 1];
-        expect(previous).toHaveClass("w-12", "h-12", "md:h-12", "md:w-12");
-        expect(next).toHaveClass("w-12", "h-12", "md:h-12", "md:w-12");
+        const previous = screen.getAllByRole("button", { name: "الصورة السابقة" });
+        const next = screen.getAllByRole("button", { name: "الصورة التالية" });
+        expectTouchTarget(previous[previous.length - 1], 48);
+        expectTouchTarget(next[next.length - 1], 48);
     });
 
     it("navigates within the lightbox using the previous/next controls", () => {
