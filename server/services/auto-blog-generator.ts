@@ -10,6 +10,7 @@ import { desc, count, eq } from "drizzle-orm";
 import { aiMonitor } from "./ai-monitor.js";
 import { EDITORIAL_TEAM_AUTHOR } from "../../shared/editorial-author.js";
 import { EDITORIAL_COMMERCE_RULE, findEditorialViolations } from "../../shared/editorial-guard.js";
+import { findScriptViolations, SCRIPT_PURITY_RULE } from "../../shared/script-purity.js";
 
 interface BlogTopicSuggestion {
   topic: string;
@@ -198,6 +199,21 @@ function validateGeneratedBlogData(value: Record<string, unknown>): {
     throw new Error(`BLOG_CONTENT_EDITORIAL_VIOLATION:${editorial[0].rule}:${editorial[0].evidence.slice(0, 160)}`);
   }
 
+  // Language refusal, not a style preference.
+  //
+  // The generator shipped 30 of 80 published articles carrying stray Chinese,
+  // Russian, Devanagari, Vietnamese, French and spliced-English fragments inside
+  // Arabic sentences. Those were cleaned in migration
+  // blog-language-contamination-20260901; this stops them coming back.
+  // See shared/script-purity.ts.
+  const script = findScriptViolations(content).concat(
+    findScriptViolations(title),
+    findScriptViolations(excerpt),
+  );
+  if (script.length > 0) {
+    throw new Error(`BLOG_CONTENT_SCRIPT_IMPURITY:${script[0].rule}:${script[0].evidence.slice(0, 160)}`);
+  }
+
   const keywords = Array.isArray(value.keywords)
     ? value.keywords.filter((item): item is string => typeof item === "string").map((item) => item.trim()).filter(Boolean).slice(0, 8)
     : [];
@@ -240,6 +256,9 @@ function buildPrompt(topic: BlogTopicSuggestion): string {
 
 القاعدة التحريرية الملزمة (تُرفض المقالة آلياً عند مخالفتها):
 ${EDITORIAL_COMMERCE_RULE}
+
+قاعدة اللغة الملزمة (تُرفض المقالة آلياً عند مخالفتها):
+${SCRIPT_PURITY_RULE}
 
 أجب JSON فقط:
 {
