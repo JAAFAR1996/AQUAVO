@@ -3,7 +3,11 @@
  * checked with the same code that gates the generator before it ever reaches a
  * migration.
  *
- *   npx tsx scripts/gate-draft.ts <file.html>
+ *   npx tsx scripts/gate-draft.ts <file.html> [--allow-slug=a,b]
+ *
+ * Also resolves every internal /blog/ link against the live corpus, because a
+ * mistyped slug is invisible to all three guards and ships a dead link. Slugs
+ * being created in the same migration are declared with --allow-slug.
  */
 import fs from "node:fs";
 import { findScriptViolations } from "../shared/script-purity.js";
@@ -27,6 +31,19 @@ const facts: BusinessFacts = {
   ),
 };
 
+// Internal /blog/ links must resolve. A typo here passes every guard and every
+// SQL post-flight, and lands the reader on a 404.
+const allowExtra = new Set(
+  (process.argv.find((a) => a.startsWith("--allow-slug=")) ?? "").replace("--allow-slug=", "").split(",").filter(Boolean),
+);
+const listBody = (await (await fetch(`${BASE}/api/blog/posts`)).json()) as
+  | Array<{ slug: string }>
+  | { posts: Array<{ slug: string }> };
+const live = new Set((Array.isArray(listBody) ? listBody : listBody.posts).map((p) => p.slug));
+const linked = [...html.matchAll(/href="\/blog\/([^"#?]+)"/g)].map((m) => decodeURIComponent(m[1]));
+const dead = linked.filter((slug) => !live.has(slug) && !allowExtra.has(slug));
+for (const slug of dead) console.log(`DEAD LINK   /blog/${slug} does not resolve`);
+
 const script = findScriptViolations(html);
 const editorial = findEditorialViolations(html);
 const business = findBusinessTruthViolations(html, facts);
@@ -42,4 +59,5 @@ console.log(`internal links  : ${(html.match(/href="\//g) ?? []).length}`);
 console.log(`script purity   : ${script.length}`);
 console.log(`editorial       : ${editorial.length}`);
 console.log(`business truth  : ${business.length}`);
-if (script.length + editorial.length + business.length > 0) process.exitCode = 1;
+console.log(`dead links      : ${dead.length}`);
+if (script.length + editorial.length + business.length + dead.length > 0) process.exitCode = 1;
