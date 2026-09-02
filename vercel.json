@@ -164,6 +164,31 @@
   ],
   "redirects": [
     {
+      "source": "/blog/nitrogen-cycle-simple",
+      "destination": "/blog/nitrogen-cycle-simple-arabic-explained",
+      "permanent": true
+    },
+    {
+      "source": "/blog/cloudy-aquarium-water-causes-fix",
+      "destination": "/blog/cloudy-water-fix",
+      "permanent": true
+    },
+    {
+      "source": "/blog/real-vs-fake-plants",
+      "destination": "/blog/real-vs-fake-plants-iraq",
+      "permanent": true
+    },
+    {
+      "source": "/blog/iraqi-summer-aquarium-cooling",
+      "destination": "/blog/protect-fish-iraqi-summer-50-degrees",
+      "permanent": true
+    },
+    {
+      "source": "/blog/كيف-تحافظ-على-أجواء-مريحة-لأحواض-السمك-في-حرارة-ال-1788055556978",
+      "destination": "/blog/protect-fish-iraqi-summer-50-degrees",
+      "permanent": true
+    },
+    {
       "source": "/guides/aquarium-filter-guide",
       "destination": "/guides/filter-choice",
       "permanent": true
