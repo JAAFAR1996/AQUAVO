@@ -14,6 +14,11 @@
     "incremental": true,
     "tsBuildInfoFile": "./node_modules/typescript/tsbuildinfo",
     "noEmit": true,
+    // `lib` has always been esnext and Vite transpiles for modern browsers, but
+    // `target` was never set, so tsc defaulted to ES5 and rejected the Unicode
+    // property escapes (`\p{Script=...}`, which require the `u` flag) and the
+    // `matchAll` iteration in shared/script-purity.ts. This only relaxes checks.
+    "target": "ES2020",
     "module": "ESNext",
     "strict": true,
     "types": [

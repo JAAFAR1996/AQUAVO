@@ -63,6 +63,51 @@ describe("script purity — legitimate Arabic technical writing must pass", () =
   });
 });
 
+/**
+ * Pass 1's *migration* post-flight tested only `[一-鿿぀-ヿЀ-ӿऀ-ॿ]` — Han, Kana,
+ * Cyrillic, Devanagari — and so certified a corpus that still carried Hangul,
+ * Thai, Hebrew and Latin-Extended. The guard itself was always right about
+ * these; nothing had ever pinned them. These four fragments are verbatim from
+ * production on 2026-09-02, after pass 1 had run.
+ */
+describe("script purity — residue pass 1's post-flight regex could not see", () => {
+  const REJECT: Array<[string, string]> = [
+    ["Hangul, fused", "فإنها تتطلب ظروف معينة لتربية 성공ية."],
+    ["Thai, inside a word", "غالبًا ما يكون معرضًا للتعرض للคลور بكميات زائدة."],
+    ["Hebrew, leading a word", "طفيلي يصيب الأسماك بسبب الإجهاد. לעلاجه بسرعة: ارفع درجة الحرارة."],
+    ["Vietnamese, fused mid-word", "السيكلد الإفريقية، التي تمتاز bằngرارها وعدوانيتها."],
+  ];
+
+  for (const [name, text] of REJECT) {
+    it(`rejects ${name}`, () => {
+      expect(findScriptViolations(text).length).toBeGreaterThan(0);
+    });
+  }
+});
+
+/**
+ * SPLICED_LATIN fails closed. `وCO2` is correct Arabic — the conjunction و
+ * proclitic on a Latin technical term — and the guard rejects it anyway,
+ * because ب and ل are proclitics too and `بbehind` / `لallow` are exactly how
+ * the real corruption arrived. Exempting proclitics would readmit those, so the
+ * rule stays strict and the one live instance was spaced in the content
+ * instead. This pins the trade-off so it is not silently "fixed" later.
+ */
+describe("script purity — SPLICED_LATIN fails closed on Arabic proclitics", () => {
+  it("rejects a conjunction welded to a Latin term, though the Arabic is correct", () => {
+    expect(findScriptViolations("خلل في التوازن بين الإضاءة والمغذيات وCO2").length).toBeGreaterThan(0);
+  });
+
+  it("accepts the same sentence once the term is separated", () => {
+    expect(findScriptViolations("خلل في التوازن بين الإضاءة والمغذيات و CO2")).toEqual([]);
+  });
+
+  it("still rejects the corruption that motivates the strictness", () => {
+    expect(findScriptViolations("مساحة كافية لallow الأسماك").length).toBeGreaterThan(0);
+    expect(findScriptViolations("الأسبابbehind تعفن الجذور").length).toBeGreaterThan(0);
+  });
+});
+
 describe("script purity — the prompt states the same rule it enforces", () => {
   it("names the blocked scripts and the allowed Latin terms", () => {
     expect(SCRIPT_PURITY_RULE).toContain("بالعربية");

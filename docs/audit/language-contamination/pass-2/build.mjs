@@ -1,0 +1,203 @@
+// Verifies the pass-2 ledger against live production, proves the whole set
+// leaves zero residue when applied in memory, and only then emits the migration.
+//
+//   node docs/audit/language-contamination/pass-2/build.mjs
+//
+// Refuses to emit SQL if any target is missing or present at the wrong count,
+// or if applying every correction still leaves a script violation anywhere in
+// the corpus. The scan uses the same rules as shared/script-purity.ts.
+
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { LEDGER } from "./ledger.mjs";
+
+const HERE = path.dirname(fileURLToPath(import.meta.url));
+const API = "https://aquavoiq.com/api/blog/posts";
+
+// Mirrors shared/script-purity.ts. Kept literal here so the audit artefact is
+// self-contained and reviewable without a TypeScript toolchain.
+const STRAY_SCRIPT =
+  /[\p{Script=Han}\p{Script=Cyrillic}\p{Script=Devanagari}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}\p{Script=Thai}\p{Script=Hebrew}]+/gu;
+const FOREIGN_DIACRITIC = /[Ā-ɏḀ-ỿ][\p{Script=Latin}Ā-ɏḀ-ỿ]*/gu;
+const AR = "\\u0621-\\u063A\\u0641-\\u064A\\u066E-\\u06D3\\u06FA-\\u06FF";
+const SPLICED_LATIN = new RegExp(`[${AR}][A-Za-z]{2,}|[A-Za-z]{2,}[${AR}]`, "gu");
+const RULES = [
+  ["STRAY_SCRIPT", STRAY_SCRIPT],
+  ["FOREIGN_DIACRITIC", FOREIGN_DIACRITIC],
+  ["SPLICED_LATIN", SPLICED_LATIN],
+];
+
+function violations(text) {
+  const out = [];
+  for (const [rule, re] of RULES) {
+    re.lastIndex = 0;
+    for (const m of String(text ?? "").matchAll(re)) out.push({ rule, hit: m[0] });
+  }
+  return out;
+}
+
+const sqlLit = (s) => "'" + s.replace(/'/g, "''") + "'";
+const fail = (m) => {
+  console.error("ABORT: " + m);
+  process.exit(1);
+};
+
+const index = await (await fetch(API)).json();
+if (!Array.isArray(index)) fail("index endpoint did not return an array");
+if (index.length !== 80) fail(`expected 80 published posts, got ${index.length}`);
+
+const posts = new Map();
+for (const p of index) {
+  const r = await fetch(`${API}/${encodeURIComponent(p.slug)}`);
+  if (!r.ok) fail(`fetch ${p.slug} -> ${r.status}`);
+  const full = await r.json();
+  posts.set(full.slug, full);
+}
+console.log(`fetched ${posts.size} published articles`);
+
+// 1. every target must exist in production at its stated count
+for (const e of LEDGER) {
+  const p = posts.get(e.slug);
+  if (!p) fail(`${e.slug} is not published`);
+  if (p.id !== e.id) fail(`${e.slug} id drift: ledger ${e.id}, live ${p.id}`);
+  const n = p.content.split(e.old).length - 1;
+  if (n !== e.n) fail(`${e.slug}: expected ${e.n} x ${JSON.stringify(e.old)}, found ${n}`);
+}
+console.log(`verified ${LEDGER.length} corrections against live content`);
+
+// 2. apply the whole set in memory and prove the corpus comes out clean
+const patched = new Map([...posts].map(([slug, p]) => [slug, p.content]));
+for (const e of LEDGER) patched.set(e.slug, patched.get(e.slug).split(e.old).join(e.new));
+
+let residue = 0;
+for (const [slug, content] of patched) {
+  const post = posts.get(slug);
+  for (const field of [content, post.title, post.excerpt]) {
+    for (const v of violations(field)) {
+      residue++;
+      console.error(`RESIDUE ${slug} [${v.rule}] ${JSON.stringify(v.hit)}`);
+    }
+  }
+}
+if (residue) fail(`${residue} violations survive the ledger`);
+console.log("in-memory result: 0 script violations across all 80 articles");
+
+// 3. emit
+const byId = new Map();
+for (const e of LEDGER) {
+  if (!byId.has(e.id)) byId.set(e.id, { slug: e.slug, edits: [] });
+  byId.get(e.id).edits.push(e);
+}
+
+const blocks = [...byId]
+  .map(([id, { slug, edits }]) => {
+    let expr = "content";
+    for (const e of edits) expr = `replace(${expr}, ${sqlLit(e.old)}, ${sqlLit(e.new)})`;
+    const notes = edits.map((e) => "--   " + e.conf + " · " + e.why.replace(/\s+/g, " ")).join("\n");
+    const label = `-- ${slug} (${edits.length} correction${edits.length > 1 ? "s" : ""})`;
+    return `${label}\n${notes}\nUPDATE blog_posts SET content = ${expr}\n WHERE id = '${id}';`;
+  })
+  .join("\n\n");
+
+const preflightRows = LEDGER.map((e) => `      (${sqlLit(e.slug)}, ${sqlLit(e.old)})`).join(",\n");
+
+const sql = `-- Migration ID: blog-language-contamination-pass2-20260902
+-- Target:       Neon production, blog_posts
+-- Rollback:     rollback.sql (restores content verbatim from the backup table)
+--
+-- Wave 1 Item 0, residue pass. Pass 1's post-flight guard tested only
+-- Han, Kana, Cyrillic and Devanagari, so Hangul, Thai, Hebrew and
+-- Latin-Extended contamination passed the gate. Re-scanning with the real guard
+-- from shared/script-purity.ts found ${LEDGER.length} corrections across ${byId.size} articles.
+--
+-- Two are removals, not recoveries: the fragments recorded as RESEARCH BLOCKED
+-- in pass 1 are still unrecoverable, so the corrupted text is dropped and the
+-- sentence closes cleanly rather than publishing a guess. Neither is
+-- load-bearing, so neither article needs unpublishing.
+--
+-- Generated by build.mjs, which verified every target against live production
+-- and proved the full set leaves 0 violations corpus-wide before emitting.
+
+BEGIN;
+
+DO $$
+DECLARE n int;
+BEGIN
+  SELECT count(*) INTO n FROM blog_posts WHERE is_published;
+  IF n <> 80 THEN RAISE EXCEPTION 'expected 80 published posts, found %', n; END IF;
+END $$;
+
+CREATE TABLE blog_posts_content_backup_lang_p2_20260902 AS
+SELECT id, slug, title, excerpt, content, is_published, now() AS backed_up_at
+  FROM blog_posts;
+
+-- Pre-flight: every target must still be present exactly as drafted.
+DO $$
+DECLARE missing text;
+BEGIN
+  SELECT string_agg(t.slug || ' :: ' || t.frag, chr(10)) INTO missing
+    FROM (VALUES
+${preflightRows}
+    ) AS t(slug, frag)
+    LEFT JOIN blog_posts b ON b.slug = t.slug
+   WHERE b.id IS NULL OR position(t.frag in b.content) = 0;
+  IF missing IS NOT NULL THEN
+    RAISE EXCEPTION 'live content changed since drafting; missing targets: %', missing;
+  END IF;
+END $$;
+
+${blocks}
+
+-- Post-flight. Unlike pass 1 this covers every script the guard rejects:
+-- Han, Kana, Hangul, Cyrillic, Devanagari, Thai, Hebrew and Latin-Extended.
+DO $$
+DECLARE
+  leftover int;
+  sample text;
+  bad text := '[\\u4e00-\\u9fff\\u3040-\\u30ff\\uac00-\\ud7af\\u0400-\\u04ff\\u0900-\\u097f\\u0e00-\\u0e7f\\u0590-\\u05ff\\u0100-\\u024f\\u1e00-\\u1eff]';
+BEGIN
+  SELECT count(*), string_agg(slug, ', ') INTO leftover, sample
+    FROM blog_posts WHERE is_published AND content ~ bad;
+  IF leftover <> 0 THEN
+    RAISE EXCEPTION '% published articles still carry stray script: %', leftover, sample;
+  END IF;
+END $$;
+
+-- Post-flight: nothing outside content may move, and exactly the drafted rows
+-- may change.
+DO $$
+DECLARE n int;
+BEGIN
+  SELECT count(*) INTO n
+    FROM blog_posts b JOIN blog_posts_content_backup_lang_p2_20260902 k USING (id)
+   WHERE b.title IS DISTINCT FROM k.title
+      OR b.excerpt IS DISTINCT FROM k.excerpt
+      OR b.is_published IS DISTINCT FROM k.is_published;
+  IF n <> 0 THEN RAISE EXCEPTION '% rows had title/excerpt/is_published altered', n; END IF;
+
+  SELECT count(*) INTO n
+    FROM blog_posts b JOIN blog_posts_content_backup_lang_p2_20260902 k USING (id)
+   WHERE b.content IS DISTINCT FROM k.content;
+  IF n <> ${byId.size} THEN RAISE EXCEPTION 'expected ${byId.size} content rewrites, got %', n; END IF;
+END $$;
+
+COMMIT;
+`;
+
+fs.writeFileSync(path.join(HERE, "migration.sql"), sql);
+fs.writeFileSync(
+  path.join(HERE, "rollback.sql"),
+  `-- Rollback for blog-language-contamination-pass2-20260902.
+-- Restores content verbatim from the snapshot. content is the only column the
+-- migration wrote, so this is fully reversible.
+
+BEGIN;
+UPDATE blog_posts b
+   SET content = k.content
+  FROM blog_posts_content_backup_lang_p2_20260902 k
+ WHERE b.id = k.id AND b.content IS DISTINCT FROM k.content;
+COMMIT;
+`,
+);
+console.log(`emitted migration.sql (${byId.size} rows, ${LEDGER.length} corrections) and rollback.sql`);

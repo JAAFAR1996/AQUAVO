@@ -51,15 +51,53 @@ Discipline built into `migration.sql`:
   PerplexityBot (the browser path is CSR and takes the body from the API, which
   was verified clean directly)
 
-## RESEARCH BLOCKED — deliberately not fixed
+## Pass 2 — the residue this pass missed
 
-Two fragments whose intended meaning cannot be recovered from context. Both are
-Latin-script, so the post-flight guard still passes. They need a human decision.
+**See `pass-2/`. Status: drafted 2026-09-02, verified against production.**
 
-| Article | Fragment | Why |
+The post-flight guard above tests `[一-鿿぀-ヿЀ-ӿऀ-ॿ]`. That is Han, Kana,
+Cyrillic and Devanagari — and nothing else. **Hangul, Thai, Hebrew and
+Latin-Extended fall outside it**, so this pass certified a corpus that was still
+contaminated, and "0 stray glyphs across all 80 articles" above was true only of
+the scripts it looked for.
+
+Re-scanning with the real guard from `shared/script-purity.ts` — which is the
+authority, and which had always covered these — found **8 corrections across 5
+articles** still live:
+
+| Article | Fragment | Script |
 | --- | --- | --- |
-| `american-vs-african-cichlids-differences` | `bằngرارها` | Vietnamese `bằng` displaced an unknown prefix. The surviving `رارها` fits several words (`باستمرارها` / `بإصرارها` / `باحمرارها`) and the sentence is about behaviour, not colour, so no reading is safely inferable. |
-| `neon-tetra-color-care-guide` | `ط Ard` | Two fragments with a space. Could be a product type or a verb; the list item gives no further signal. |
+| `common-fish-diseases-white-spot` | `לעلاجه` → `لعلاجه` | Hebrew |
+| `american-vs-african-cichlids-differences` | `لتربية 성공ية` → `لتربية ناجحة` | Hangul |
+| `ph-level-iraqi-tap-water-fish` | `للคลور` → `للكلور` | Thai |
+| `algae-war-guide` | `وCO2` → `و CO2` | guard false positive, see below |
+| `neon-tetra-color-care-guide` | `<p>"…"</p>` wrapper | structural |
+
+The Hangul one is the same phrase pass 1 repaired in its Han spelling
+(`لتربية成功ية`) — it fixed one spelling of one phrase and missed the other.
+
+## RESEARCH BLOCKED — now resolved by removal
+
+Both fragments were re-examined in pass 2 with the full paragraph and article
+intent. Neither meaning is recoverable, and neither was guessed at. Rather than
+leave visible corruption on a published page, the corrupted fragment is removed
+and the sentence closes cleanly. Nothing is invented, and neither sentence is
+load-bearing, so neither article needed unpublishing.
+
+| Article | Fragment | Decision |
+| --- | --- | --- |
+| `american-vs-african-cichlids-differences` | `bằngرارها` | Vietnamese `bằng` displaced an unknown prefix; the surviving `رارها` fits `باستمرارها` / `بإصرارها` / `باحمرارها` / `بفرارها` and the bullet is about behaviour, so no reading is safely inferable. **Removed**: `التي تمتاز bằngرارها وعدوانيتها` → `التي تمتاز بعدوانيتها`, keeping only the trait that survived intact. |
+| `neon-tetra-color-care-guide` | `ط Ard` | Two fragments with a space in a list of water-quality equipment; could be a product type, a brand or a verb. **Removed**: `استخدام ط Ard معقم المياه` → `استخدام معقم المياه`, which is the advice the sentence already carried. |
+
+## `وCO2` — a guard false positive, fixed in the content
+
+`وCO2` is correct Arabic: the conjunction `و` proclitic on a Latin technical
+term. `SPLICED_LATIN` rejects it anyway. That is deliberate and stays: `ب` and
+`ل` are proclitics too, and `بbehind` / `لallow` are exactly how the real
+corruption arrived, so exempting proclitics would readmit them. The guard fails
+closed — a false positive costs a regeneration, a false negative ships
+corruption. The one live instance is spaced instead, and the trade-off is pinned
+by tests so it is not silently "fixed" later.
 
 ## Rollback
 
@@ -75,4 +113,10 @@ prompt. It blocks foreign scripts and Latin fused onto an Arabic letter, while
 allowing the technical English the corpus legitimately uses — `pH`, `CO2`, `RO`,
 `LED`, brand names, scientific binomials and units. Regression tests covering ten
 true positives (all real production fragments) and ten false positives are in
-`server/__tests__/script-purity.test.ts`.
+`server/__tests__/script-purity.test.ts`, plus the four pass-2 fragments and the
+`وCO2` trade-off — 30 tests in all.
+
+The lesson from pass 2 is that the migration's post-flight guard must be the
+same rule as the code guard, or it certifies what it did not check. `pass-2/`
+generates its post-flight from the ledger and covers every script
+`findScriptViolations` rejects.
