@@ -240,3 +240,97 @@ describe("business truth — the prompt carries the injected facts, not remember
     expect(BUSINESS_TRUTH_RULE).toContain("تعليمي");
   });
 });
+
+/**
+ * Cycle 9 regression. The otocinclus article's closing line was live on
+ * www.aquavoiq.com and passed every rule, while doing two forbidden things at
+ * once: pointing readers at AQUAVO to browse live fish, and calling AQUAVO the
+ * largest store.
+ *
+ * It escaped through three separate gaps:
+ *   1. LIVE_STOCK required an explicit "حية", so "فصائل" did not register.
+ *   2. AQUAVO_SUPPLIES listed supply verbs only, so "تصفح ... عبر المتجر" — a
+ *      shopping directive with no supply verb — matched nothing.
+ *   3. RANKING listed adjective-first forms ("أكبر متجر") but not the definite
+ *      noun-first form Arabic uses just as naturally ("المتجر الأكبر").
+ */
+describe("business truth — the otocinclus storefront line (Cycle 9 regression)", () => {
+  const PUBLISHED =
+    "يمكنك تصفح فصائل التنظيف هذه عبر المتجر الأكبر لحلول الأسماك: AQUAVO العراقي.";
+
+  it("rejects the exact sentence that was published", () => {
+    expect(findBusinessTruthViolations(PUBLISHED, CATALOGUE)).not.toHaveLength(0);
+  });
+
+  it("flags it as directing readers to AQUAVO for live animals", () => {
+    const rules = findBusinessTruthViolations(PUBLISHED, CATALOGUE).map((v) => v.rule);
+    expect(rules).toContain("LIVE_ANIMAL_OR_PLANT_SUPPLY");
+  });
+
+  it("flags the unverifiable superlative as well", () => {
+    const rules = findBusinessTruthViolations(PUBLISHED, CATALOGUE).map((v) => v.rule);
+    expect(rules).toContain("UNSUPPORTED_RANKING");
+  });
+
+  const REJECT: Array<[string, string, string]> = [
+    [
+      "browse fish species at AQUAVO",
+      "تصفح أنواع الأسماك المتاحة في AQUAVO واختر ما يناسب حوضك.",
+      "LIVE_ANIMAL_OR_PLANT_SUPPLY",
+    ],
+    [
+      "shop live plants at AQUAVO",
+      "تسوق نباتات مائية من متجرنا بأسعار مناسبة.",
+      "LIVE_ANIMAL_OR_PLANT_SUPPLY",
+    ],
+    [
+      "order shrimp from AQUAVO",
+      "اطلب روبيان أمانو من AQUAVO لتنظيف الطحالب.",
+      "LIVE_ANIMAL_OR_PLANT_SUPPLY",
+    ],
+    [
+      "AQUAVO as the largest store, definite form",
+      "AQUAVO هو المتجر الأكبر لحلول الأحواض في البلد.",
+      "UNSUPPORTED_RANKING",
+    ],
+    [
+      "AQUAVO as the first, definite form",
+      "يعتبر متجرنا المورد الأول لهواة الأحواض.",
+      "UNSUPPORTED_RANKING",
+    ],
+    [
+      "bare superlative scoped to Iraq",
+      "AQUAVO هي الأكبر في العراق بمجال الأحواض.",
+      "UNSUPPORTED_RANKING",
+    ],
+  ];
+  for (const [name, html, rule] of REJECT) {
+    it(`rejects ${name}`, () => {
+      expect(findBusinessTruthViolations(html, CATALOGUE).map((v) => v.rule)).toContain(rule);
+    });
+  }
+
+  /**
+   * The rule must not swallow the legitimate cases. AQUAVO really does sell
+   * equipment and consumables for fish, and articles really do discuss fish and
+   * plants at length — that is the entire point of the corpus.
+   */
+  const ACCEPT: Array<[string, string]> = [
+    ["buying a catalogued heater for the fish", "اشترِ سخاناً مناسباً للأسماك من AQUAVO."],
+    ["buying equipment from AQUAVO", "تصفح فلاتر وسخانات الأحواض في متجرنا واختر حسب حجم الحوض."],
+    ["aquascaping supplies from AQUAVO", "تتوفر في AQUAVO خيوط وشباك وغراء أكواسكيب ضمن قسم تربة وديكور."],
+    ["supplies for ornamental fish", "اطلب مستلزمات أسماك الزينة من AQUAVO."],
+    ["educational talk about fish species", "فصائل التيترا كثيرة، ومنها ما يقرض الزعانف ومنها المسالم."],
+    ["educational talk about live plants", "نباتات مائية سريعة النمو تنافس الطحالب على المغذيات."],
+    ["advice to buy from a specialist supplier", "اشترِ أسماكك من مورد مختص يحجرها قبل البيع."],
+    ["educational superlative not about AQUAVO", "أفضل النباتات المائية للمبتدئين هي منخفضة الاحتياج."],
+    ["best choice for a tank, not the store", "الأكبر حجماً بين الأحواض أسهل بالاستقرار الحراري."],
+    ["truthful denial of live stock", "AQUAVO لا يبيع أسماكاً حية ولا نباتات حية."],
+  ];
+  for (const [name, html] of ACCEPT) {
+    it(`accepts ${name}`, () => {
+      const found = findBusinessTruthViolations(html, CATALOGUE);
+      expect(found.map((v) => `${v.rule}: ${v.evidence}`)).toEqual([]);
+    });
+  }
+});

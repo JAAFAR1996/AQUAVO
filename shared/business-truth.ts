@@ -138,9 +138,62 @@ const WARRANTY_OFFER =
 const WARRANTY_SCOPE =
   /جميع المنتجات|كل المنتجات|لجميع|على منتجاتنا|شامل|طويلة الأجل|مطولة|لمدة عام|لمدة سنة|\d+\s*سنوات|صحي|عالية الجودة/u;
 
-/** Rankings and firsts. */
+/**
+ * Rankings and firsts.
+ *
+ * The adjective-first forms ("أكبر متجر") were covered from the start, but
+ * Arabic states the same claim just as naturally with the definite noun first
+ * ("المتجر الأكبر"), and that form reached production in the otocinclus
+ * article's closing line. Both orders are listed, plus a bare superlative when
+ * it is scoped to Iraq or the market — which is the only way it reads as a
+ * competitive claim rather than ordinary description.
+ *
+ * Every branch is still gated on `aboutAquavo`, so educational superlatives
+ * like "أفضل النباتات المائية للمبتدئين" stay legal.
+ */
 const RANKING =
-  /أفضل وأكبر|أكبر متجر|أفضل متجر|أول متجر|المتجر الأول|المورد الأول|الخيار الأول|رائدة|الرائد|الرائدة|الأول والرئيسي|رقم واحد|رقم ١|الوحيد في العراق|أعرق/u;
+  /أفضل وأكبر|أكبر متجر|أفضل متجر|أول متجر|المتجر الأول|المورد الأول|الخيار الأول|رائدة|الرائد|الرائدة|الأول والرئيسي|رقم واحد|رقم ١|الوحيد في العراق|أعرق|(?:المتجر|المورد|المنصة|الموقع|الوجهة|الاسم)\s+(?:ال)?(?:أكبر|أفضل|أول|أشهر|أعرق|أضخم|رائد)|(?:الأكبر|الأفضل|الأول|الأضخم|الأشهر)\s+(?:في العراق|بالعراق|في السوق|بالسوق)/u;
+
+/**
+ * A directive telling the reader to *obtain* something from AQUAVO.
+ *
+ * Distinct from `SUPPLY_VERB`: "browse", "shop", "order" assert availability
+ * without ever using a supply verb. That is exactly how the otocinclus
+ * article's closing line — "يمكنك تصفح فصائل التنظيف هذه عبر المتجر ... AQUAVO"
+ * — passed every rule while pointing readers at AQUAVO for live fish.
+ *
+ * An explicit AQUAVO reference is required, so ordinary advice to buy from a
+ * specialist shop ("اشترِ من مورد مختص") stays legal.
+ */
+const SHOP_AT_AQUAVO =
+  /(?:تصفح|تصفّح|تسوق|تسوّق|اطلب|اشتر[ِيه]?|احصل على|اقتن[ِي]?)[^.]{0,60}?(?:AQUAVO|أكوافو|متجرنا)/u;
+
+/**
+ * Living things named the way a shopper names them, rather than the way
+ * husbandry prose names them. `LIVE_STOCK` requires an explicit "حية"/"حي",
+ * which is correct for article prose but misses a storefront line listing
+ * species or families.
+ *
+ * Deliberately excludes bare "الأسماك" and "نباتات": those appear in every
+ * legitimate line about equipment *for* fish, and including them would reject
+ * "اشترِ علفاً للأسماك من AQUAVO", which is a true statement about a product
+ * AQUAVO really sells.
+ */
+const LIVE_STOCK_SHOPPABLE =
+  /فصائل|سلالات|أنواع الأسماك|أصناف الأسماك|أسماك الزينة|أسماك حية|الأسماك الحية|نباتات مائية|نباتات حية|حلزونات|روبيان|سلاحف/u;
+
+/**
+ * Equipment and consumables. Their presence means the shopping line is about a
+ * product AQUAVO genuinely carries, even when a fish word appears nearby, so
+ * the shop-directive rule stands down.
+ *
+ * Deliberately excludes "حوض"/"أحواض": the tank is the subject of nearly every
+ * sentence in the corpus, so treating it as a product signal would switch this
+ * rule off almost everywhere — it let "تصفح أنواع الأسماك ... واختر ما يناسب
+ * حوضك" through during development.
+ */
+const PRODUCT_CONTEXT =
+  /مستلزمات|معدات|أدوات|علف|أعلاف|فلتر|فلاتر|ميديا|سخان|سخانات|إضاءة|مضخة|مضخات|ديكور|تربة|ركيزة|دواء|أدوية|معالج|اختبار|شباك|غراء|خيوط|سماد|أقراص/u;
 
 /** Provenance claims. */
 const SOURCING =
@@ -218,6 +271,21 @@ export function findBusinessTruthViolations(
     // choosing a supplier and stays legal; "نوفر الأسماك" and "متوفرة في
     // أكوافو" are the claim.
     if (LIVE_STOCK.test(sentence) && AQUAVO_SUPPLIES.test(sentence) && !facts.sellsLiveAnimals) {
+      violations.push({ rule: "LIVE_ANIMAL_OR_PLANT_SUPPLY", evidence: sentence });
+    }
+
+    // Second path to the same rule: a shopping directive aimed at AQUAVO for
+    // something living. Catches storefront phrasing that names no supply verb
+    // and no "حية", which is how a line inviting readers to browse fish
+    // families at AQUAVO stayed published. Stands down when the sentence is
+    // plainly about equipment, so lines about real products keep passing.
+    else if (
+      SHOP_AT_AQUAVO.test(sentence) &&
+      LIVE_STOCK_SHOPPABLE.test(sentence) &&
+      !PRODUCT_CONTEXT.test(sentence) &&
+      !facts.sellsLiveAnimals &&
+      !facts.sellsLivePlants
+    ) {
       violations.push({ rule: "LIVE_ANIMAL_OR_PLANT_SUPPLY", evidence: sentence });
     }
 
