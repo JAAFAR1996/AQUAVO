@@ -165,12 +165,22 @@ BEGIN
   SELECT count(*) INTO n FROM blog_posts WHERE is_published;
   IF n <> ${published + NEW.length} THEN RAISE EXCEPTION 'expected ${published + NEW.length} published, found %', n; END IF;
 
+  -- Structure is asserted for all six.
   SELECT count(*) INTO n FROM blog_posts
    WHERE slug IN (${ALL.map(q).join(", ")})
      AND is_published AND length(content) > 2500
-     AND content LIKE '%<table%' AND content LIKE '%href="/blog/%'
-     AND author = 'AQUAVO Editorial Team';
+     AND content LIKE '%<table%' AND content LIKE '%href="/blog/%';
   IF n <> ${ALL.length} THEN RAISE EXCEPTION 'only % of ${ALL.length} articles carry their structure', n; END IF;
+
+  -- Byline is asserted only for the articles this migration creates. The three
+  -- rewrite targets keep whatever byline they already carry: two of them are
+  -- legacy articles bylined 'AQUAVO Team', and changing a published byline is a
+  -- separate editorial decision, not a side effect of a content correction.
+  -- Asserting it across all six is what rolled back the first apply attempt.
+  SELECT count(*) INTO n FROM blog_posts
+   WHERE slug IN (${NEW.map((x) => q(x.slug)).join(", ")})
+     AND author = 'AQUAVO Editorial Team';
+  IF n <> ${NEW.length} THEN RAISE EXCEPTION 'only % of ${NEW.length} new articles carry the editorial byline', n; END IF;
 
   -- The corrected article must no longer assert the automatic diagnosis.
   SELECT count(*) INTO n FROM blog_posts

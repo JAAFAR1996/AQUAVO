@@ -328,12 +328,22 @@ BEGIN
   SELECT count(*) INTO n FROM blog_posts WHERE is_published;
   IF n <> 103 THEN RAISE EXCEPTION 'expected 103 published, found %', n; END IF;
 
+  -- Structure is asserted for all six.
   SELECT count(*) INTO n FROM blog_posts
    WHERE slug IN ('small-schooling-fish-selection', 'aquarium-barbs-guide', 'aquarium-loaches-guide', 'fish-bloating-swim-bladder-dropsy', 'best-aquarium-cleaner-fish-pleco-corydoras', 'molly-platy-breeding-save-fry')
      AND is_published AND length(content) > 2500
-     AND content LIKE '%<table%' AND content LIKE '%href="/blog/%'
-     AND author = 'AQUAVO Editorial Team';
+     AND content LIKE '%<table%' AND content LIKE '%href="/blog/%';
   IF n <> 6 THEN RAISE EXCEPTION 'only % of 6 articles carry their structure', n; END IF;
+
+  -- Byline is asserted only for the articles this migration creates. The three
+  -- rewrite targets keep whatever byline they already carry: two of them are
+  -- legacy articles bylined 'AQUAVO Team', and changing a published byline is a
+  -- separate editorial decision, not a side effect of a content correction.
+  -- Asserting it across all six is what rolled back the first apply attempt.
+  SELECT count(*) INTO n FROM blog_posts
+   WHERE slug IN ('small-schooling-fish-selection', 'aquarium-barbs-guide', 'aquarium-loaches-guide')
+     AND author = 'AQUAVO Editorial Team';
+  IF n <> 3 THEN RAISE EXCEPTION 'only % of 3 new articles carry the editorial byline', n; END IF;
 
   -- The corrected article must no longer assert the automatic diagnosis.
   SELECT count(*) INTO n FROM blog_posts
