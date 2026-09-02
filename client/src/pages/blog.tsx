@@ -11,11 +11,28 @@ import {
     ArrowLeft,
     Fish,
     Droplets,
+    Droplet,
     AlertTriangle,
     Sparkles,
     Filter,
     Leaf,
-    Heart
+    Heart,
+    Shell,
+    Users,
+    Activity,
+    Scissors,
+    Truck,
+    Zap,
+    Sprout,
+    Mountain,
+    Utensils,
+    ArrowUp,
+    Wind,
+    Plane,
+    Stethoscope,
+    Beaker,
+    Shield,
+    Waves
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
@@ -40,8 +57,31 @@ const iconMap: Record<string, React.ReactNode> = {
     Heart: <Heart className="w-5 h-5" />,
     Filter: <Filter className="w-5 h-5" />,
     Droplets: <Droplets className="w-5 h-5" />,
+    Droplet: <Droplet className="w-5 h-5" />,
     Leaf: <Leaf className="w-5 h-5" />,
+    Sparkles: <Sparkles className="w-5 h-5" />,
+    Shell: <Shell className="w-5 h-5" />,
+    Users: <Users className="w-5 h-5" />,
+    Activity: <Activity className="w-5 h-5" />,
+    Scissors: <Scissors className="w-5 h-5" />,
+    Truck: <Truck className="w-5 h-5" />,
+    Zap: <Zap className="w-5 h-5" />,
+    Sprout: <Sprout className="w-5 h-5" />,
+    Mountain: <Mountain className="w-5 h-5" />,
+    Utensils: <Utensils className="w-5 h-5" />,
+    ArrowUp: <ArrowUp className="w-5 h-5" />,
+    Wind: <Wind className="w-5 h-5" />,
+    Plane: <Plane className="w-5 h-5" />,
+    Stethoscope: <Stethoscope className="w-5 h-5" />,
+    Beaker: <Beaker className="w-5 h-5" />,
+    Shield: <Shield className="w-5 h-5" />,
+    Waves: <Waves className="w-5 h-5" />,
 };
+
+// An unknown icon name must fall back, not render nothing. The previous
+// `iconMap[x || 'Fish']` only covered an empty name, so every article whose
+// icon was missing from the map above rendered a blank slot.
+const iconFor = (name?: string | null): React.ReactNode => iconMap[name ?? ""] ?? iconMap.Fish;
 
 // Dynamic categories will be fetched from the API
 
@@ -161,7 +201,7 @@ export default function Blog() {
                                         />
                                         <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12 z-20 flex flex-col items-start gap-4">
                                             <Badge className="bg-primary text-primary-foreground border-0 px-4 py-1.5 text-sm font-bold backdrop-blur-md shadow-lg shadow-primary/20">
-                                                {iconMap[featuredPost.iconName || 'Fish']}
+                                                {iconFor(featuredPost.iconName)}
                                                 <span className="mr-2">{featuredPost.category}</span>
                                             </Badge>
                                             <h2 className="text-3xl md:text-5xl font-black text-white leading-tight group-hover:text-primary transition-colors duration-300">
@@ -209,7 +249,7 @@ export default function Blog() {
                                                 />
                                                 <div className="absolute top-4 right-4 z-20">
                                                     <Badge variant="secondary" className="backdrop-blur-md bg-background/80 border-0">
-                                                        {iconMap[post.iconName || 'Fish']}
+                                                        {iconFor(post.iconName)}
                                                         <span className="mr-1">{post.category}</span>
                                                     </Badge>
                                                 </div>

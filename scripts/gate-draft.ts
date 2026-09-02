@@ -49,7 +49,10 @@ for (const slug of dead) console.log(`DEAD LINK   /blog/${slug} does not resolve
 const BLOCK = ["p", "ul", "ol", "li", "table", "tr", "td", "th", "blockquote", "h2", "h3", "strong", "em"];
 const unbalanced: string[] = [];
 for (const tag of BLOCK) {
-  const open = (html.match(new RegExp(`<${tag}(?:\s[^>]*)?>`, "g")) ?? []).length;
+  // NB: this pattern is built inside a template literal, so a bare \s would
+  // reach RegExp as a literal "s" and the count would miss every tag carrying
+  // attributes. Escape it.
+  const open = (html.match(new RegExp(`<${tag}(?:\\s[^>]*)?>`, "g")) ?? []).length;
   const close = (html.match(new RegExp(`</${tag}>`, "g")) ?? []).length;
   if (open !== close) unbalanced.push(`${tag}: ${open} open vs ${close} close`);
 }
