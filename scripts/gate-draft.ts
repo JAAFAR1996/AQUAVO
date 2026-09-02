@@ -44,6 +44,17 @@ const linked = [...html.matchAll(/href="\/blog\/([^"#?]+)"/g)].map((m) => decode
 const dead = linked.filter((slug) => !live.has(slug) && !allowExtra.has(slug));
 for (const slug of dead) console.log(`DEAD LINK   /blog/${slug} does not resolve`);
 
+// Block-level tag balance. A stray closing tag passes every content guard and
+// every SQL post-flight, and renders as broken markup.
+const BLOCK = ["p", "ul", "ol", "li", "table", "tr", "td", "th", "blockquote", "h2", "h3", "strong", "em"];
+const unbalanced: string[] = [];
+for (const tag of BLOCK) {
+  const open = (html.match(new RegExp(`<${tag}(?:\s[^>]*)?>`, "g")) ?? []).length;
+  const close = (html.match(new RegExp(`</${tag}>`, "g")) ?? []).length;
+  if (open !== close) unbalanced.push(`${tag}: ${open} open vs ${close} close`);
+}
+for (const u of unbalanced) console.log(`UNBALANCED  ${u}`);
+
 const script = findScriptViolations(html);
 const editorial = findEditorialViolations(html);
 const business = findBusinessTruthViolations(html, facts);
@@ -60,4 +71,5 @@ console.log(`script purity   : ${script.length}`);
 console.log(`editorial       : ${editorial.length}`);
 console.log(`business truth  : ${business.length}`);
 console.log(`dead links      : ${dead.length}`);
-if (script.length + editorial.length + business.length + dead.length > 0) process.exitCode = 1;
+console.log(`unbalanced tags : ${unbalanced.length}`);
+if (script.length + editorial.length + business.length + dead.length + unbalanced.length > 0) process.exitCode = 1;
