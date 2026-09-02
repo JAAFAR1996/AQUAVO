@@ -77,6 +77,24 @@ Format: CLAIM · SOURCE · TYPE · CONFIDENCE · LIMITATION
   matters — a dechlorinator that neutralises chlorine leaves the ammonia half of chloramine behind.
   The article states the conditional ("if your supply uses chloramine…") and does not assert which.
 
+## Correction — 2026-09-02: an Iraq-wide water claim that no ledger entry supported
+
+The first draft of the hub wrote that the ammonia/pH interaction matters
+"especially for Iraqi tap water, which usually tends alkaline". **No claim in
+this dossier supports that**, and none can: the only Iraqi-water entry here is a
+RESEARCH BLOCKED note about chloramine. The sentence generalised the water
+chemistry of an entire country from nothing.
+
+It is replaced with conditional wording keyed to what the reader can actually
+measure — if your pH is 7.5 or above treat any ammonia reading as more dangerous
+than it looks, if it is 6.8 or below the same number is far less dangerous — plus
+an explicit statement that pH cannot be inferred from location and must be
+tested. Both thresholds come straight from claim 5's EPA table (0.18% un-ionised
+at pH 6.5 versus 1.77% at pH 7.5 and 5.38% at pH 8.0), so the rewrite adds no
+new claim; it removes one and grounds the rest in the existing ledger.
+
+The migration now carries a post-flight guard that aborts if the phrase returns.
+
 ## Health-and-safety handling
 
 Ammonia and nitrite poisoning are health content. Observable signs, causes, first actions and

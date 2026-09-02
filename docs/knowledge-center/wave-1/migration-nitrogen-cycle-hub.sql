@@ -77,7 +77,7 @@ UPDATE blog_posts
     <tr><td>8.5</td><td>15.3%</td><td>18.2%</td></tr>
   </tbody>
 </table>
-<p>اقرأ الجدول عمودياً: نفس قراءة الأمونيا على الجهاز تصير أخطر بحدود عشر مرات مع كل درجة pH تزيد. يعني قراءة أمونيا مقبولة بحوض pH فيه 6.8 ممكن تكون حالة طوارئ بحوض pH فيه 8.2 — وهذا مهم بالذات لمي الحنفية العراقية اللي غالباً تميل للقلوية. إذا ما تعرف قراءة الـ pH عندك، شوف <a href="/blog/ph-level-iraqi-tap-water-fish">درجة الحموضة في ماء الحنفية العراقي</a> قبل ما تفسّر أي رقم أمونيا.</p>
+<p>اقرأ الجدول عمودياً: نفس قراءة الأمونيا على الجهاز تصير أخطر بحدود عشر مرات مع كل درجة pH تزيد. يعني قراءة أمونيا مقبولة بحوض pH فيه 6.8 ممكن تكون حالة طوارئ بحوض pH فيه 8.2. إذا كان الـ pH بحوضك 7.5 أو أعلى، فسّر أي قراءة أمونيا على أنها أخطر مما تبدو عليه بالجهاز، وإذا كان 6.8 أو أقل فالخطر أقل بكثير عند نفس الرقم. ما نقدر نعرف الـ pH مالتك من موقعك على الخارطة — يختلف بين مدينة ومدينة وبين مصدر ومصدر، فقسه بجهاز أو شريط فحص قبل ما تفسّر أي رقم أمونيا. شوف <a href="/blog/ph-level-iraqi-tap-water-fish">درجة الحموضة في ماء الحنفية العراقي</a>.</p>
 <p>نتيجة عملية مهمة: لا ترفع الـ pH فجأة وعندك أمونيا بالحوض. رفع الحموضة يحوّل جزءاً من الأمونيا الآمنة نسبياً إلى الصورة السامة خلال دقائق. عالج الأمونيا أولاً بتغيير الماء. تفاصيل التعامل مع ارتفاع مفاجئ موجودة في <a href="/blog/ammonia-spike-emergency-treatment">علاج ارتفاع الأمونيا الطارئ</a>.</p>
 
 <h2>النتريت: ليش السمكة تختنق والماء صافي</h2>
@@ -133,7 +133,17 @@ BEGIN
   IF (length(c) - length(replace(c, 'href=', ''))) / 5 < 8 THEN
     RAISE EXCEPTION 'rewrite has fewer than 8 internal links';
   END IF;
-  IF c ~ '[一-鿿぀-ヿЀ-ӿऀ-ॿ]' THEN RAISE EXCEPTION 'rewrite introduced stray script'; END IF;
+  -- Same script set the real guard rejects. The first contamination sweep
+  -- tested only Han/Kana/Cyrillic/Devanagari and so certified a corpus that
+  -- still carried Hangul, Thai, Hebrew and Latin-Extended; do not repeat it.
+  IF c ~ '[一-鿿぀-ヿ가-힯Ѐ-ӿऀ-ॿ฀-๿֐-׿Ā-ɏḀ-ỿ]' THEN
+    RAISE EXCEPTION 'rewrite introduced stray script';
+  END IF;
+  -- Truth contract: no Iraq-wide water chemistry generalisation. The dossier
+  -- supports no claim about Iraqi tap water pH, so the page must not make one.
+  IF c ~ 'تميل للقلوية' OR c ~ 'مي الحنفية العراقية اللي' THEN
+    RAISE EXCEPTION 'rewrite generalises Iraqi water chemistry';
+  END IF;
   IF c ~ 'سوق الغزل' OR c ~ 'الشورجة' THEN RAISE EXCEPTION 'rewrite names an external marketplace'; END IF;
 END $$;
 
