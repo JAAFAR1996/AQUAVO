@@ -24,10 +24,25 @@
  * Latin-Extended diacritics are treated as (1) because in this corpus they only
  * ever arrive as Vietnamese. Latin-1 Supplement is NOT blocked, so European
  * brand names such as Söchting remain writable.
+ *
+ * A second audit on 2026-09-02 found a class all three rules were blind to:
+ * a *standalone* foreign word written entirely in Latin/Latin-1, welded to
+ * nothing and carrying no extended diacritic — `trung tâm`, `yüksek`, `phân`,
+ * `hoàn`, `também`, `votre`, `salud`, `faktor`, plus bare English dropped
+ * mid-sentence (`require`, `warranties`). Ten articles carried these.
+ *
+ * Rule (3), FOREIGN_LEXICAL, closes that. It is deliberately NOT "no Latin
+ * words". It asks a narrower question: *is this lowercase Latin word presented
+ * as a term, or just sitting in the middle of an Arabic sentence?* Anything
+ * carrying a capital, a digit, a parenthetical gloss, an explicit Arabic gloss
+ * marker ("بالإنجليزية", "يسمى"), or a position inside a capitalised multi-word
+ * name is a term and passes. A bare lowercase word with none of those is the
+ * defect. pH, CO2, RO, LED, GH/KH/TDS, Söchting, Echinodorus bleheri,
+ * (Quarantine), (basking area) and Catappa leaves all pass unchanged.
  */
 
 export type ScriptViolation = {
-  rule: "STRAY_SCRIPT" | "FOREIGN_DIACRITIC" | "SPLICED_LATIN";
+  rule: "STRAY_SCRIPT" | "FOREIGN_DIACRITIC" | "SPLICED_LATIN" | "FOREIGN_LEXICAL";
   evidence: string;
 };
 
@@ -68,6 +83,119 @@ function evidenceAround(text: string, index: number, length: number): string {
   return text.slice(start, end).replace(/\s+/g, " ").trim();
 }
 
+
+/* ------------------------------------------------------------------ *
+ * Rule 3 — FOREIGN_LEXICAL
+ * ------------------------------------------------------------------ */
+
+/**
+ * Latin letters including Latin-1 Supplement, which is where the Turkish and
+ * Portuguese fragments live (ü, é). Latin-Extended is already rule (1)'s job.
+ */
+const LATIN_WORD = /[A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ0-9'’-]*/g;
+
+/**
+ * Arabic phrases that explicitly introduce a foreign term. Text after one of
+ * these is a gloss, which is exactly how the corpus is supposed to name things
+ * the reader will meet in English: "ولهذا يسمونه بالإنجليزية brown blood disease".
+ */
+const GLOSS_MARKER =
+  /(?:بالإنجليزية|بالانكليزية|بالإنكليزية|بالاتينية|باللاتينية|يسمى|تسمى|يسمونه|تسمونها|يسمونها|اسمه|اسمها|المعروف باسم|المعروفة باسم|تُعرف بـ|يُعرف بـ|تعرف باسم|يعرف باسم|أو ما يسمى|تباع باسم)\s*$/u;
+
+/**
+ * Lowercase Latin terms that are genuinely established and are not always
+ * written with a capital or inside parentheses. Kept deliberately short: every
+ * entry has to earn its place, because each one is a hole in the rule.
+ */
+const LEXICAL_ALLOWLIST = new Set<string>([
+  // Accepted lowercase scientific shorthand for complete ammonia oxidisers.
+  // Published lowercase in the literature, and the hub uses it that way.
+  "comammox",
+  // Unit and measure words the corpus writes bare.
+  "ppm", "mg", "ml", "cm", "mm", "km", "kg", "watt", "dkh", "dgh",
+  // Technical vocabulary that is conventionally lowercase.
+  "ph", "co", "ro", "led", "gh", "kh", "tds", "uv", "uvb", "par", "diy",
+]);
+
+/** Strip markup, entities and URLs: none of them are prose. */
+function proseOnly(html: string): string {
+  return html
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&[a-zA-Z#0-9]+;/g, " ")
+    .replace(/https?:\/\/\S+/g, " ");
+}
+
+/** Character offsets that sit inside (), [], {} or a quoted run. */
+function glossedRanges(text: string): Array<[number, number]> {
+  const ranges: Array<[number, number]> = [];
+  const pairs: Array<[string, string]> = [["(", ")"], ["[", "]"], ["{", "}"], ["«", "»"]];
+  for (const [open, close] of pairs) {
+    let from = 0;
+    for (;;) {
+      const a = text.indexOf(open, from);
+      if (a < 0) break;
+      const b = text.indexOf(close, a + 1);
+      if (b < 0) break;
+      ranges.push([a, b]);
+      from = b + 1;
+    }
+  }
+  // Straight and typographic double quotes, treated as a paired gloss too.
+  for (const quote of ['"', "“", "”"]) {
+    const positions: number[] = [];
+    for (let i = text.indexOf(quote); i >= 0; i = text.indexOf(quote, i + 1)) positions.push(i);
+    for (let i = 0; i + 1 < positions.length; i += 2) ranges.push([positions[i], positions[i + 1]]);
+  }
+  return ranges;
+}
+
+/**
+ * A bare lowercase Latin word sitting in an Arabic sentence. See the header:
+ * this is the class that has no capital, no digit, no gloss and no name to
+ * belong to, which in this corpus has only ever been a substitution artefact.
+ */
+function findLexicalViolations(html: string): ScriptViolation[] {
+  const text = proseOnly(html);
+  const ranges = glossedRanges(text);
+  const inGloss = (i: number) => ranges.some(([a, b]) => i > a && i < b);
+
+  const out: ScriptViolation[] = [];
+  // True when the previous Latin word was accepted as a term. A term opens a
+  // phrase: 'Catappa leaves' and 'بالإنجليزية brown blood disease' are each one
+  // name, so the words after the first inherit its standing.
+  let previousWasTerm = false;
+  let previousEnd = -1;
+
+  for (let m = LATIN_WORD.exec(text); m; m = LATIN_WORD.exec(text)) {
+    const word = m[0];
+    const start = m.index;
+
+    // Only the gap between this word and the last one; a Latin phrase is a run
+    // of Latin words separated by spaces or hyphens and nothing else.
+    const gap = previousEnd >= 0 ? text.slice(previousEnd, start) : "";
+    const continuesPhrase: boolean = previousWasTerm && /^[\s-]{1,3}$/.test(gap);
+
+    const hasCapital = /[A-ZÀ-ÖØ-Þ]/.test(word);
+    const hasDigit = /[0-9]/.test(word);
+    const allowed: boolean =
+      hasCapital ||
+      hasDigit ||
+      word.length < 3 ||
+      LEXICAL_ALLOWLIST.has(word.toLowerCase()) ||
+      inGloss(start) ||
+      continuesPhrase ||
+      GLOSS_MARKER.test(text.slice(Math.max(0, start - 40), start));
+
+    if (!allowed) {
+      out.push({ rule: "FOREIGN_LEXICAL", evidence: evidenceAround(text, start, word.length) });
+    }
+
+    previousWasTerm = allowed;
+    previousEnd = start + word.length;
+  }
+  return out;
+}
+
 /**
  * Returns every script-purity violation in `text`. Empty array means clean.
  * Safe to call on null/undefined so it can be pointed at optional fields.
@@ -86,6 +214,7 @@ export function findScriptViolations(text: string | null | undefined): ScriptVio
   for (const match of text.matchAll(SPLICED_LATIN)) {
     violations.push({ rule: "SPLICED_LATIN", evidence: evidenceAround(text, match.index, match[0].length) });
   }
+  violations.push(...findLexicalViolations(text));
   return violations;
 }
 
@@ -95,4 +224,5 @@ export const SCRIPT_PURITY_RULE = [
   "ممنوع تماماً استخدام أي حرف صيني أو روسي أو هندي أو ياباني أو كوري أو تايلندي أو عبري.",
   "ممنوع لصق كلمة إنجليزية داخل كلمة عربية مثل (تutilize) أو (حobbyists).",
   "المسموح: المصطلحات التقنية اللاتينية المستقلة مثل pH و CO2 و RO و LED وأسماء الماركات والأسماء العلمية والوحدات.",
+  "أي كلمة لاتينية صغيرة الحروف داخل جملة عربية ممنوعة إلا إذا كانت مصطلحاً معرّفاً: ضعها بين قوسين أو بعد (بالإنجليزية) أو اكتبها باسم علم بحرف كبير.",
 ].join(" ");

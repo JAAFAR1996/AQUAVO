@@ -11,6 +11,12 @@ import { aiMonitor } from "./ai-monitor.js";
 import { EDITORIAL_TEAM_AUTHOR } from "../../shared/editorial-author.js";
 import { EDITORIAL_COMMERCE_RULE, findEditorialViolations } from "../../shared/editorial-guard.js";
 import { findScriptViolations, SCRIPT_PURITY_RULE } from "../../shared/script-purity.js";
+import {
+  findBusinessTruthViolations,
+  businessTruthPrompt,
+  AQUAVO_INVARIANTS,
+  type BusinessFacts,
+} from "../../shared/business-truth.js";
 
 interface BlogTopicSuggestion {
   topic: string;
@@ -149,7 +155,42 @@ function safeString(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
-function validateGeneratedBlogData(value: Record<string, unknown>): {
+/**
+ * Reads the business facts the article is allowed to rely on straight from the
+ * catalogue, so the model is shown what AQUAVO sells instead of remembering it.
+ *
+ * On any failure this returns the invariants with an empty catalogue, which
+ * makes every availability claim a violation. That is the safe direction: a
+ * generator that cannot see the catalogue must not write about the catalogue.
+ */
+async function loadBusinessFacts(): Promise<BusinessFacts> {
+  try {
+    const db = getDb();
+    const rows = await db
+      .select({ category: products.category, name: products.name })
+      .from(products);
+    if (rows.length === 0) return AQUAVO_INVARIANTS;
+    return {
+      ...AQUAVO_INVARIANTS,
+      categories: Array.from(new Set(rows.map((r) => r.category).filter(Boolean))),
+      // Every significant word of every product name, not just the head noun:
+      // the catalogue calls it "أزرق الميثيلين" and an article may write
+      // "الميثيلين الأزرق". Matching on words keeps a genuinely stocked product
+      // recognisable regardless of word order.
+      productTerms: Array.from(
+        new Set(rows.flatMap((r) => (r.name ?? "").split(/[\s—–\-،(),.\/]+/)).filter((w) => w.length > 3)),
+      ),
+    };
+  } catch (error) {
+    console.error("[auto-blog] catalogue unavailable, failing closed on availability claims:", error);
+    return AQUAVO_INVARIANTS;
+  }
+}
+
+function validateGeneratedBlogData(
+  value: Record<string, unknown>,
+  facts: BusinessFacts = AQUAVO_INVARIANTS,
+): {
   title: string;
   metaDescription: string;
   excerpt: string;
@@ -214,6 +255,23 @@ function validateGeneratedBlogData(value: Record<string, unknown>): {
     throw new Error(`BLOG_CONTENT_SCRIPT_IMPURITY:${script[0].rule}:${script[0].evidence.slice(0, 160)}`);
   }
 
+  // Business-fact refusal, not a style preference.
+  //
+  // A claims audit on 2026-09-02 found 38 false or unsupported business claims
+  // across 23 of 80 published articles: live fish and plants "in stock",
+  // branches that do not exist, warranties the return policy disclaims, three
+  // separate "first in Iraq" claims, and five products with no catalogue match
+  // at all. The prompt had already forbidden every one of them, which is why
+  // this is a gate and not another sentence in the prompt.
+  // See shared/business-truth.ts.
+  const business = findBusinessTruthViolations(content, facts).concat(
+    findBusinessTruthViolations(title, facts),
+    findBusinessTruthViolations(excerpt, facts),
+  );
+  if (business.length > 0) {
+    throw new Error(`BLOG_CONTENT_BUSINESS_UNTRUTH:${business[0].rule}:${business[0].evidence.slice(0, 160)}`);
+  }
+
   const keywords = Array.isArray(value.keywords)
     ? value.keywords.filter((item): item is string => typeof item === "string").map((item) => item.trim()).filter(Boolean).slice(0, 8)
     : [];
@@ -229,7 +287,7 @@ function validateGeneratedBlogData(value: Record<string, unknown>): {
   return { title, metaDescription, excerpt, content, readTime, iconName, keywords, faq };
 }
 
-function buildPrompt(topic: BlogTopicSuggestion): string {
+function buildPrompt(topic: BlogTopicSuggestion, facts: BusinessFacts): string {
   return `أنت خبير أحواض سمك عراقي تكتب لموقع AQUAVO.
 اكتب مقالاً عربياً مفيداً ومحسناً لمحركات البحث عن: "${topic.topic}".
 الفئة: ${topic.category}.
@@ -260,6 +318,8 @@ ${EDITORIAL_COMMERCE_RULE}
 قاعدة اللغة الملزمة (تُرفض المقالة آلياً عند مخالفتها):
 ${SCRIPT_PURITY_RULE}
 
+${businessTruthPrompt(facts)}
+
 أجب JSON فقط:
 {
   "title":"...",
@@ -276,7 +336,8 @@ ${SCRIPT_PURITY_RULE}
 async function generateBlogContent(topic: BlogTopicSuggestion): Promise<GeneratedBlog | null> {
   if (!groqClient.hasKeys()) return null;
 
-  const prompt = buildPrompt(topic);
+  const facts = await loadBusinessFacts();
+  const prompt = buildPrompt(topic, facts);
   const models = ["llama-3.3-70b-versatile", "openai/gpt-oss-20b"];
 
   for (const model of models) {
@@ -287,7 +348,7 @@ async function generateBlogContent(topic: BlogTopicSuggestion): Promise<Generate
       );
       if (!responseText) continue;
 
-      const blogData = validateGeneratedBlogData(extractJsonObject(responseText));
+      const blogData = validateGeneratedBlogData(extractJsonObject(responseText), facts);
       let fullContent = blogData.content;
       if (blogData.faq.length > 0) {
         fullContent += `\n<section class="faq-section"><h2>أسئلة شائعة</h2>`;
