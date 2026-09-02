@@ -173,11 +173,12 @@ async function loadBusinessFacts(): Promise<BusinessFacts> {
     return {
       ...AQUAVO_INVARIANTS,
       categories: Array.from(new Set(rows.map((r) => r.category).filter(Boolean))),
-      // The head noun of each product name — "سخان حوض أسود قابل لضبط الحرارة"
-      // contributes "سخان" — which is the granularity a sentence names a
-      // product at.
+      // Every significant word of every product name, not just the head noun:
+      // the catalogue calls it "أزرق الميثيلين" and an article may write
+      // "الميثيلين الأزرق". Matching on words keeps a genuinely stocked product
+      // recognisable regardless of word order.
       productTerms: Array.from(
-        new Set(rows.flatMap((r) => (r.name ?? "").split(/[\s—–-]+/).slice(0, 2)).filter((w) => w.length > 2)),
+        new Set(rows.flatMap((r) => (r.name ?? "").split(/[\s—–\-،(),.\/]+/)).filter((w) => w.length > 3)),
       ),
     };
   } catch (error) {

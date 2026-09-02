@@ -4,7 +4,7 @@
  * with the catalogue injected from the live API — so the audit and the gate see
  * identical facts and can never disagree.
  *
- *   npx tsx scripts/audit-business-truth.ts
+ *   npx tsx scripts/audit-business-truth.ts [--json]
  */
 import {
   findBusinessTruthViolations,
@@ -27,7 +27,7 @@ async function loadFacts(): Promise<BusinessFacts> {
     ...AQUAVO_INVARIANTS,
     categories: Array.from(new Set(items.map((p) => p.category).filter(Boolean))),
     productTerms: Array.from(
-      new Set(items.flatMap((p) => (p.name ?? "").split(/[\s—–-]+/).slice(0, 2)).filter((w) => w.length > 2)),
+      new Set(items.flatMap((p) => (p.name ?? "").split(/[\s—–\-،(),.\/]+/)).filter((w) => w.length > 3)),
     ),
   };
 }
@@ -48,6 +48,11 @@ async function main(): Promise<void> {
         findings.push({ slug: post.slug, violation });
       }
     }
+  }
+
+  if (process.argv.includes("--json")) {
+    for (const f of findings) console.log(JSON.stringify({ slug: f.slug, ...f.violation }));
+    return;
   }
 
   const byRule = new Map<string, number>();

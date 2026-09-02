@@ -174,6 +174,32 @@ describe("business truth — verified facts must keep passing", () => {
   });
 });
 
+/**
+ * Denials must pass. A guard that blocks "AQUAVO does not sell live fish" would
+ * forbid the single most useful sentence a knowledge article can contain — and
+ * it did, until a Phase 3 rewrite tripped over it.
+ */
+describe("business truth — truthful denials are not claims", () => {
+  const ACCEPT: Array<[string, string]> = [
+    ["a denial of live fish", "AQUAVO لا يبيع أسماكاً حية، فاشترِ الأسماك من مصدر مختص."],
+    ["a dialect denial of live plants", "(AQUAVO ما يبيع نباتات حية، فهذا جزء تدبّره من مصدر مختص.)"],
+    ["a denial of a physical branch", "AQUAVO متجر إلكتروني وما يملك فرعاً في أي سوق."],
+    ["a denial of a blanket warranty", "لا يوجد ضمان شامل على جميع المنتجات في AQUAVO."],
+    ["an availability denial", "أنظمة ثاني أكسيد الكربون غير متوفرة في AQUAVO حالياً."],
+  ];
+
+  for (const [name, text] of ACCEPT) {
+    it(`accepts ${name}`, () => {
+      expect(findBusinessTruthViolations(text, CATALOGUE)).toEqual([]);
+    });
+  }
+
+  it("still rejects the positive form of the same claim", () => {
+    const found = findBusinessTruthViolations("AQUAVO يبيع أسماكاً حية بأسعار جيدة.", CATALOGUE);
+    expect(found.map((v) => v.rule)).toContain("LIVE_ANIMAL_OR_PLANT_SUPPLY");
+  });
+});
+
 describe("business truth — delivery claims are checked against the injected numbers", () => {
   it("rejects a governorate count that is not the real one", () => {
     const found = findBusinessTruthViolations("يوفر AQUAVO توصيلاً إلى 25 محافظة في العراق.", CATALOGUE);

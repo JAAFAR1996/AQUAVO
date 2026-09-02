@@ -104,14 +104,14 @@ const SUPPLY_VERB =
 
 /** Live animals and plants. AQUAVO sells neither, in any catalogue snapshot. */
 const LIVE_STOCK =
-  /أسماك حية|سمك حي|أسماك زينة حية|نباتات مائية|نباتات حية|حلزونات|حلزون|روبيان حي|سلاحف|أسماك مالحة|الأسماك المالحة|تسليم الأسماك|توصيل الأسماك|بيع الأسماك|متاجر الأسماك/u;
+  /أسماك\S* حية|سمك\S* حي|نباتات\S* (?:مائية|حية)|حلزونات|حلزون|روبيان حي|سلاحف|أسماك\S* مالحة|الأسماك المالحة|تسليم الأسماك|توصيل الأسماك|بيع الأسماك|متاجر الأسماك/u;
 
 /**
  * AQUAVO itself doing the supplying: a first-person supply verb, an
  * availability phrase pointing at the store, or a delivery-of-fish claim.
  */
 const AQUAVO_SUPPLIES =
-  /نوفر|نبيع|نقدم لك|يوفر(?:ها)? AQUAVO|توفر(?:ها)? AQUAVO|AQUAVO[^.]{0,40}(?:يوفر|توفر|يبيع|تبيع|يقدم|تقدم)|(?:متوفرة?|متاحة?|تباع|يباع)[^.]{0,30}(?:في |لدى )(?:AQUAVO|أكوافو|متجرنا)|تسليم الأسماك|توصيل الأسماك|بيع الأسماك|متاجر الأسماك/u;
+  /نوفر|نبيع|نقدم لك|AQUAVO يبيع|AQUAVO يوفر|أكوافو يبيع|يوفر(?:ها)? AQUAVO|توفر(?:ها)? AQUAVO|AQUAVO[^.]{0,40}(?:يوفر|توفر|يبيع|تبيع|يقدم|تقدم)|(?:متوفرة?|متاحة?|تباع|يباع)[^.]{0,30}(?:في |لدى )(?:AQUAVO|أكوافو|متجرنا)|تسليم الأسماك|توصيل الأسماك|بيع الأسماك|متاجر الأسماك/u;
 
 /** A physical place a reader could walk into. */
 const PHYSICAL_LOCATION =
@@ -161,6 +161,19 @@ function sentences(html: string): string[] {
     .filter((s) => s.length > 0);
 }
 
+/**
+ * Denials. A guard that blocks "AQUAVO does not sell live fish" would forbid the
+ * single most useful sentence an article can contain, so a negated supply claim
+ * is never a violation. The editorial guard makes the same exemption for its own
+ * rules; this is the equivalent for these.
+ */
+const NEGATED_SUPPLY =
+  /لا يبيع|ما يبيع|لا نبيع|ما نبيع|لا يوفر|ما يوفر|لا نوفر|ما نوفر|لا تباع|غير متوفر|غير متاح|لا يقدم|ما يقدم|لا يوجد|ما موجود|ليس لدينا|ما عندنا|لا يملك|ما يملك/u;
+
+function isDenial(sentence: string): boolean {
+  return NEGATED_SUPPLY.test(sentence);
+}
+
 /** True when the sentence is asking rather than asserting. */
 function isQuestion(sentence: string): boolean {
   return /[؟?]\s*$/.test(sentence);
@@ -194,7 +207,7 @@ export function findBusinessTruthViolations(
   const violations: BusinessTruthViolation[] = [];
 
   for (const sentence of sentences(html)) {
-    if (isQuestion(sentence)) continue;
+    if (isQuestion(sentence) || isDenial(sentence)) continue;
     const aboutAquavo = ABOUT_AQUAVO.test(sentence);
 
     // Live animals and plants: a violation whenever the sentence ties AQUAVO to
@@ -245,7 +258,15 @@ export function findBusinessTruthViolations(
       // catalogue word appears somewhere in it: "لأحواض النباتات" contains the
       // category "أحواض" and would otherwise clear a claim about a CO2 system.
       const named = namedProduct(sentence);
-      if (named !== null && !catalogueCovers(named, facts)) {
+      // A generic head noun like "دواء" matches no catalogue entry, but the
+      // sentence naming "الميثيلين" is still talking about something really
+      // stocked. So a specific catalogue word anywhere in the sentence also
+      // clears it — product words only, never the category names, because
+      // those are broad enough to appear incidentally.
+      const namesStockedItem = facts.productTerms.some(
+        (term) => term.length > 3 && sentence.includes(term),
+      );
+      if (named !== null && !catalogueCovers(named, facts) && !namesStockedItem) {
         violations.push({ rule: "UNVERIFIED_AVAILABILITY", evidence: sentence });
       }
     }
