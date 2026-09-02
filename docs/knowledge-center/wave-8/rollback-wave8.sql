@@ -1,4 +1,4 @@
--- Rollback for kc-wave8-articles-20260903. Deletes the four new articles.
+-- Rollback for kc-wave8-articles-20260903. Deletes the six new articles.
 
 BEGIN;
 

@@ -2,11 +2,11 @@
 -- Target:       Neon production, blog_posts (6 inserts)
 -- Rollback:     rollback-wave8.sql
 --
--- Wave 2: four Topic Registry gaps, none of which appears in any published
+-- Wave 8: six Topic Registry gaps, none of which appears in any published
 -- title. Claim ledgers, sources and the RESEARCH BLOCKED items are in
--- dossier-wave2.md.
+-- dossier-wave8.md.
 --
--- Two of the four rest on genuinely contested evidence and say so rather than
+-- Two of the six rest on genuinely contested evidence and say so rather than
 -- picking a side: whether a long open-bag drip is safer than a fast transfer
 -- for shipped fish, and whether scaleless species tolerate aquarium salt. In
 -- both cases the practical advice follows from the disagreement itself, so no
@@ -19,7 +19,7 @@
 -- AQUAVO sells no aquarium salt, so that article names no product at all — the
 -- business-truth guard would reject an availability claim there, correctly.
 --
--- All four drafts passed script-purity, editorial, business-truth, internal
+-- All six drafts passed script-purity, editorial, business-truth, internal
 -- link resolution and block-tag balance via scripts/gate-draft.ts.
 
 BEGIN;

@@ -1,11 +1,12 @@
 /**
- * Wave 2 — publish four new canonical articles.
+ * Wave 8 — Discovery Cycle 8: publish SIX new canonical articles.
  *
- *   node docs/knowledge-center/wave-2/build-wave2.mjs
+ *   node docs/knowledge-center/wave-8/build-wave8.mjs
  *
- * All four are Topic Registry gaps confirmed against the live corpus: none
- * appears in any published title. Dossier, claim ledgers and the RESEARCH
- * BLOCKED items are in dossier-wave2.md.
+ * All six are Topic Registry gaps confirmed against the live corpus: none
+ * appears in any published title. The count is six — an earlier revision of
+ * this header was copied from Wave 2 and said "four", which is where the
+ * Cycle 8 report's five-row table came from.
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -60,11 +61,11 @@ const sql = `-- Migration ID: ${ID}
 -- Target:       Neon production, blog_posts (${NEW.length} inserts)
 -- Rollback:     rollback-wave8.sql
 --
--- Wave 2: four Topic Registry gaps, none of which appears in any published
+-- Wave 8: six Topic Registry gaps, none of which appears in any published
 -- title. Claim ledgers, sources and the RESEARCH BLOCKED items are in
--- dossier-wave2.md.
+-- dossier-wave8.md.
 --
--- Two of the four rest on genuinely contested evidence and say so rather than
+-- Two of the six rest on genuinely contested evidence and say so rather than
 -- picking a side: whether a long open-bag drip is safer than a fast transfer
 -- for shipped fish, and whether scaleless species tolerate aquarium salt. In
 -- both cases the practical advice follows from the disagreement itself, so no
@@ -77,7 +78,7 @@ const sql = `-- Migration ID: ${ID}
 -- AQUAVO sells no aquarium salt, so that article names no product at all — the
 -- business-truth guard would reject an availability claim there, correctly.
 --
--- All four drafts passed script-purity, editorial, business-truth, internal
+-- All six drafts passed script-purity, editorial, business-truth, internal
 -- link resolution and block-tag balance via scripts/gate-draft.ts.
 
 BEGIN;
@@ -136,7 +137,7 @@ COMMIT;
 fs.writeFileSync(path.join(HERE, "migration-wave8.sql"), lf(sql));
 fs.writeFileSync(
   path.join(HERE, "rollback-wave8.sql"),
-  lf(`-- Rollback for ${ID}. Deletes the four new articles.
+  lf(`-- Rollback for ${ID}. Deletes the ${NEW.length} new articles.
 
 BEGIN;
 
