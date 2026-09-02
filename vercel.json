@@ -179,6 +179,21 @@
       "permanent": true
     },
     {
+      "source": "/blog/how-to-get-rid-of-green-algae",
+      "destination": "/blog/algae-war-guide",
+      "permanent": true
+    },
+    {
+      "source": "/blog/best-aquarium-filters-iraq",
+      "destination": "/blog/filter-types-guide",
+      "permanent": true
+    },
+    {
+      "source": "/blog/goldfish-bowl-myth",
+      "destination": "/blog/goldfish-5-deadly-mistakes-beginners",
+      "permanent": true
+    },
+    {
       "source": "/blog/iraqi-summer-aquarium-cooling",
       "destination": "/blog/protect-fish-iraqi-summer-50-degrees",
       "permanent": true
