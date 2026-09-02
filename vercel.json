@@ -164,31 +164,26 @@
   ],
   "redirects": [
     {
-      "_comment": "Wave 1 merge: absorbed by the canonical nitrogen-cycle hub, which covers every section it had and corrects the three-stage and Nitrobacter errors it taught.",
       "source": "/blog/nitrogen-cycle-simple",
       "destination": "/blog/nitrogen-cycle-simple-arabic-explained",
       "permanent": true
     },
     {
-      "_comment": "Wave 1 merge: the surviving article diagnoses by water colour, and this one told readers to change 10-15% of the water daily, which is wrong for a bacterial bloom.",
       "source": "/blog/cloudy-aquarium-water-causes-fix",
       "destination": "/blog/cloudy-water-fix",
       "permanent": true
     },
     {
-      "_comment": "Wave 1 merge: the -iraq slug matches local intent and carries the power-cut angle that differentiates the topic here.",
       "source": "/blog/real-vs-fake-plants",
       "destination": "/blog/real-vs-fake-plants-iraq",
       "permanent": true
     },
     {
-      "_comment": "Wave 1 three-way merge: absorbed into the summer-heat article, which keeps the strongest local slug.",
       "source": "/blog/iraqi-summer-aquarium-cooling",
       "destination": "/blog/protect-fish-iraqi-summer-50-degrees",
       "permanent": true
     },
     {
-      "_comment": "Wave 1 three-way merge: machine-generated timestamp slug, unusable as a URL.",
       "source": "/blog/كيف-تحافظ-على-أجواء-مريحة-لأحواض-السمك-في-حرارة-ال-1788055556978",
       "destination": "/blog/protect-fish-iraqi-summer-50-degrees",
       "permanent": true
