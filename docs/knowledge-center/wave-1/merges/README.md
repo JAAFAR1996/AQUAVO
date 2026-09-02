@@ -19,6 +19,14 @@ useful). Doing only one of the two leaves either a dead URL or a live duplicate.
 | `/blog/iraqi-summer-aquarium-cooling` | `protect-fish-iraqi-summer-50-degrees` | Three-way merge. This one had the only real content of the three and it was absorbed; the survivor's slug is the stronger one because "50 degrees" is the query Iraqi readers type. |
 | `/blog/كيف-تحافظ-…-1788055556978` | `protect-fish-iraqi-summer-50-degrees` | Same cluster. Machine-generated timestamp slug, unusable as a URL. |
 
+## Non-ASCII sources must be percent-encoded
+
+The Arabic timestamp slug was written into `vercel.json` as raw UTF-8 and did
+not match — the URL 404'd while the other four redirected correctly. Vercel
+matches `source` against the request path as sent, and a browser or crawler
+sends Arabic percent-encoded, so the source has to be percent-encoded too. Only
+live verification caught this; the JSON was valid and the deployment was green.
+
 ## Rules these follow
 
 - **Permanent** (`"permanent": true`), never temporary — these merges are not
@@ -27,6 +35,8 @@ useful). Doing only one of the two leaves either a dead URL or a live duplicate.
   source. Checked after every addition.
 - **Never point at an unpublished target.** The destination has to be a live,
   published article or the reader lands on a 404 after a hop.
+- **Percent-encode any non-ASCII source**, and verify the actual status code
+  after deploy rather than trusting a green build.
 - The rollback for each merge migration republishes the loser, but the redirect
   must be removed from `vercel.json` in the same change or the URL stays
   unreachable regardless of publication state.
