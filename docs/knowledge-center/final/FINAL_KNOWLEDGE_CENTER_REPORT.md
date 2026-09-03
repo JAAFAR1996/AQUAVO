@@ -110,7 +110,7 @@ The 2,328-char filler version with its promotional block is gone.
 | Sitemap ↔ DB consistency | **115 = 115**, 0 missing, 0 extra | ✅ |
 | Canonical URLs | correct, self-referential, absolute `https://www.aquavoiq.com/...`, **0 mismatches** | ✅ |
 | `robots.txt` | `Allow: /`, blog not disallowed, sitemap declared | ✅ |
-| HTML tag balance | **114 / 115 clean** — 1 legacy defect, see §5 | ⚠️ |
+| HTML tag balance | **114 / 115 clean** — 1 legacy defect, see §5 (fixed later the same day; now **115 / 115**) | ⚠️→✅ |
 
 Sitemap index resolves 4 children: pages (34), products (112), guides (27),
 **blog (115)**. Every published slug appears exactly once; nothing extra.
@@ -265,7 +265,7 @@ The batch landed as +1 `مشاكل وحلول` (`fish-eye-problems`), +1 `للم
 | Sitemap ↔ DB | **115 = 115**, 0 drift ✅ |
 | Canonicals | 0 mismatches ✅ |
 | Crawler reachability | 115 / 115 ✅ |
-| Tag balance | 114 / 115 ⚠️ (1 legacy) |
+| Tag balance | 114 / 115 ⚠️ (1 legacy) — **115 / 115** after `kc-cleanup-20260903` |
 | Migration fidelity | 23 / 23 byte-identical ✅ |
 
 ---
@@ -275,20 +275,23 @@ The batch landed as +1 `مشاكل وحلول` (`fish-eye-problems`), +1 `للم
 Ordered by what actually matters. None blocks certification; all are recorded so
 the maintenance phase inherits an honest backlog.
 
-> **Update:** items 1 and 2 below now have a prepared fix —
-> `docs/knowledge-center/cleanup/` (migration written, gated, dry-run passed,
-> **not applied**). See `cleanup/CLEANUP_REPORT.md`. This section still
-> describes what is live.
+> **Update 2026-09-03 19:22 UTC — items 1 and 2 are CLOSED.** Migration
+> `kc-cleanup-20260903` was applied to production; the three legacy content
+> defects and the markup defect are gone, and tag balance is now 115/115. See
+> `cleanup/FINAL_MAINTENANCE_CERTIFICATION.md`. They are kept below as a record
+> of what was found and fixed, struck through where cleared.
 
-1. **Three legacy content defects** (§3): two invented `90%` figures and one
-   promotional guarantee. Live now. Not urgent — none is a safety claim — but
-   each violates the corpus's own standards. **Not fixed in this session**: the
-   brief scoped it to verification, and any fix is a content migration needing
-   approval.
-2. **One malformed article.** `ornamental-fish-import-middle-east-origins` has
-   two unclosed `<p>` tags (4 open / 2 close). Browsers auto-close them so
-   rendering is unaffected, but the markup is invalid. The same article still
-   carries the «مقدمة / ختام» filler shape.
+1. ~~**Three legacy content defects** (§3): two invented `90%` figures and one
+   promotional guarantee.~~ **FIXED 2026-09-03.** All three were removed by
+   `kc-cleanup-20260903`. The figures became statements of mechanism with no
+   number invented; the guarantee became the honest limit. `top-5-mistakes`
+   needed a title change because the number was inside the title; its slug and
+   URL are unchanged.
+2. ~~**One malformed article.** `ornamental-fish-import-middle-east-origins` has
+   two unclosed `<p>` tags (4 open / 2 close).~~ **FIXED 2026-09-03** by
+   `kc-cleanup-20260903` — two `</p>` tags, zero prose changed. Tag balance is
+   now 115/115. The article still carries the «مقدمة / ختام» filler shape,
+   which was out of scope.
 3. **Dependency advisories keep CI red.** `pnpm audit --audit-level=moderate`
    fails on transitive advisories. Pre-existing, tracked separately, must not be
    silenced.
@@ -405,3 +408,9 @@ one of the five triggers in §6, not a discovery pass.
 
 The known limitations in §5 are recorded, non-blocking, and none originates in
 the content shipped by this project.
+
+**Maintenance cleanup, 2026-09-03 19:22 UTC:** the two content-quality items in
+§5 were subsequently fixed and re-verified against production. Every gate is at
+zero and tag balance reached 115/115. See
+`docs/knowledge-center/cleanup/FINAL_MAINTENANCE_CERTIFICATION.md` —
+**AQUAVO Knowledge Center = MAINTENANCE COMPLETE.**
