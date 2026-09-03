@@ -1,0 +1,1764 @@
+[
+ {
+  "area": "breeding",
+  "concept": "culling / rehoming fry",
+  "status": "ABSENT",
+  "owner": null,
+  "arts": 0,
+  "top": []
+ },
+ {
+  "area": "buying decisions",
+  "concept": "how to pick a healthy fish",
+  "status": "ABSENT",
+  "owner": null,
+  "arts": 0,
+  "top": []
+ },
+ {
+  "area": "diseases",
+  "concept": "popeye / eye problems",
+  "status": "ABSENT",
+  "owner": null,
+  "arts": 0,
+  "top": []
+ },
+ {
+  "area": "diseases",
+  "concept": "cloudy eye",
+  "status": "ABSENT",
+  "owner": null,
+  "arts": 0,
+  "top": []
+ },
+ {
+  "area": "diseases",
+  "concept": "mouth fungus",
+  "status": "ABSENT",
+  "owner": null,
+  "arts": 0,
+  "top": []
+ },
+ {
+  "area": "diseases",
+  "concept": "tumors / lumps",
+  "status": "ABSENT",
+  "owner": null,
+  "arts": 0,
+  "top": []
+ },
+ {
+  "area": "diseases",
+  "concept": "gas bubble disease",
+  "status": "ABSENT",
+  "owner": null,
+  "arts": 0,
+  "top": []
+ },
+ {
+  "area": "diseases",
+  "concept": "ammonia burn",
+  "status": "ABSENT",
+  "owner": null,
+  "arts": 0,
+  "top": []
+ },
+ {
+  "area": "diseases",
+  "concept": "temperature shock",
+  "status": "ABSENT",
+  "owner": null,
+  "arts": 0,
+  "top": []
+ },
+ {
+  "area": "diseases",
+  "concept": "fish TB / zoonosis",
+  "status": "ABSENT",
+  "owner": null,
+  "arts": 0,
+  "top": []
+ },
+ {
+  "area": "diseases",
+  "concept": "water change during illness",
+  "status": "ABSENT",
+  "owner": null,
+  "arts": 0,
+  "top": []
+ },
+ {
+  "area": "emergencies",
+  "concept": "what to do when a fish dies",
+  "status": "ABSENT",
+  "owner": null,
+  "arts": 0,
+  "top": []
+ },
+ {
+  "area": "equipment",
+  "concept": "UV steriliser",
+  "status": "ABSENT",
+  "owner": null,
+  "arts": 0,
+  "top": []
+ },
+ {
+  "area": "equipment",
+  "concept": "auto feeder",
+  "status": "ABSENT",
+  "owner": null,
+  "arts": 0,
+  "top": []
+ },
+ {
+  "area": "equipment",
+  "concept": "pump noise / vibration",
+  "status": "ABSENT",
+  "owner": null,
+  "arts": 0,
+  "top": []
+ },
+ {
+  "area": "equipment",
+  "concept": "leaks / silicone failure",
+  "status": "ABSENT",
+  "owner": null,
+  "arts": 0,
+  "top": []
+ },
+ {
+  "area": "feeding",
+  "concept": "frozen food handling",
+  "status": "ABSENT",
+  "owner": null,
+  "arts": 0,
+  "top": []
+ },
+ {
+  "area": "fish care",
+  "concept": "species: killifish",
+  "status": "ABSENT",
+  "owner": null,
+  "arts": 0,
+  "top": []
+ },
+ {
+  "area": "fish care",
+  "concept": "species: catfish (synodontis/pangasius)",
+  "status": "ABSENT",
+  "owner": null,
+  "arts": 0,
+  "top": []
+ },
+ {
+  "area": "fish care",
+  "concept": "species: shark-type sold small",
+  "status": "ABSENT",
+  "owner": null,
+  "arts": 0,
+  "top": []
+ },
+ {
+  "area": "fish care",
+  "concept": "fish lifespan / commitment",
+  "status": "ABSENT",
+  "owner": null,
+  "arts": 0,
+  "top": []
+ },
+ {
+  "area": "maintenance",
+  "concept": "hair / thread algae",
+  "status": "ABSENT",
+  "owner": null,
+  "arts": 0,
+  "top": []
+ },
+ {
+  "area": "maintenance",
+  "concept": "tank teardown / restart",
+  "status": "ABSENT",
+  "owner": null,
+  "arts": 0,
+  "top": []
+ },
+ {
+  "area": "parasites",
+  "concept": "hexamita / hole in head",
+  "status": "ABSENT",
+  "owner": null,
+  "arts": 0,
+  "top": []
+ },
+ {
+  "area": "plants",
+  "concept": "new plant acclimation / melt",
+  "status": "ABSENT",
+  "owner": null,
+  "arts": 0,
+  "top": []
+ },
+ {
+  "area": "plants",
+  "concept": "plants for hard water",
+  "status": "ABSENT",
+  "owner": null,
+  "arts": 0,
+  "top": []
+ },
+ {
+  "area": "safety",
+  "concept": "human hygiene / handwashing",
+  "status": "ABSENT",
+  "owner": null,
+  "arts": 0,
+  "top": []
+ },
+ {
+  "area": "safety",
+  "concept": "children and the tank",
+  "status": "ABSENT",
+  "owner": null,
+  "arts": 0,
+  "top": []
+ },
+ {
+  "area": "shrimp/snails",
+  "concept": "shrimp breeding / colony",
+  "status": "ABSENT",
+  "owner": null,
+  "arts": 0,
+  "top": []
+ },
+ {
+  "area": "shrimp/snails",
+  "concept": "shrimp moulting / GH",
+  "status": "ABSENT",
+  "owner": null,
+  "arts": 0,
+  "top": []
+ },
+ {
+  "area": "water chemistry",
+  "concept": "nitrate reduction",
+  "status": "ABSENT",
+  "owner": null,
+  "arts": 0,
+  "top": []
+ },
+ {
+  "area": "water chemistry",
+  "concept": "adjust water vs choose fish",
+  "status": "ABSENT",
+  "owner": null,
+  "arts": 0,
+  "top": []
+ },
+ {
+  "area": "aquascaping",
+  "concept": "composition rules",
+  "status": "MENTION",
+  "owner": null,
+  "arts": 1,
+  "top": [
+   "1x budget-aquascaping"
+  ]
+ },
+ {
+  "area": "breeding",
+  "concept": "egg-layer strategies",
+  "status": "MENTION",
+  "owner": null,
+  "arts": 1,
+  "top": [
+   "2x fish-breeding-basics"
+  ]
+ },
+ {
+  "area": "breeding",
+  "concept": "fry first foods",
+  "status": "MENTION",
+  "owner": null,
+  "arts": 1,
+  "top": [
+   "1x raising-fish-fry"
+  ]
+ },
+ {
+  "area": "diseases",
+  "concept": "dropsy / buoyancy",
+  "status": "MENTION",
+  "owner": null,
+  "arts": 1,
+  "top": [
+   "6x fish-bloating-swim-bladder-dropsy"
+  ]
+ },
+ {
+  "area": "diseases",
+  "concept": "wasting / skinny disease",
+  "status": "MENTION",
+  "owner": null,
+  "arts": 2,
+  "top": [
+   "4x internal-fish-parasites",
+   "1x external-fish-parasites"
+  ]
+ },
+ {
+  "area": "diseases",
+  "concept": "medication safety for scaleless",
+  "status": "MENTION",
+  "owner": null,
+  "arts": 4,
+  "top": [
+   "3x aquarium-loaches-guide",
+   "3x aquarium-salt-guide",
+   "1x fish-treatment-protocol"
+  ]
+ },
+ {
+  "area": "emergencies",
+  "concept": "green water bloom",
+  "status": "MENTION",
+  "owner": null,
+  "arts": 3,
+  "top": [
+   "3x algae-war-guide",
+   "1x aquarium-planted-led-lighting-guide",
+   "1x cloudy-water-fix"
+  ]
+ },
+ {
+  "area": "emergencies",
+  "concept": "winter heating",
+  "status": "MENTION",
+  "owner": null,
+  "arts": 1,
+  "top": [
+   "1x protect-fish-iraqi-summer-50-degrees"
+  ]
+ },
+ {
+  "area": "equipment",
+  "concept": "running cost / electricity",
+  "status": "MENTION",
+  "owner": null,
+  "arts": 1,
+  "top": [
+   "1x aquarium-planted-led-lighting-guide"
+  ]
+ },
+ {
+  "area": "feeding",
+  "concept": "overfeeding",
+  "status": "MENTION",
+  "owner": null,
+  "arts": 5,
+  "top": [
+   "2x goldfish-5-deadly-mistakes-beginners",
+   "1x aquarium-fish-feeding-guide",
+   "1x aquarium-care-while-traveling"
+  ]
+ },
+ {
+  "area": "feeding",
+  "concept": "vegetables",
+  "status": "MENTION",
+  "owner": null,
+  "arts": 1,
+  "top": [
+   "1x aquarium-fish-feeding-guide"
+  ]
+ },
+ {
+  "area": "feeding",
+  "concept": "food brands comparison",
+  "status": "MENTION",
+  "owner": null,
+  "arts": 1,
+  "top": [
+   "1x aquarium-fish-feeding-guide"
+  ]
+ },
+ {
+  "area": "feeding",
+  "concept": "live food",
+  "status": "MENTION",
+  "owner": null,
+  "arts": 1,
+  "top": [
+   "1x internal-fish-parasites"
+  ]
+ },
+ {
+  "area": "feeding",
+  "concept": "fasting days",
+  "status": "MENTION",
+  "owner": null,
+  "arts": 2,
+  "top": [
+   "1x aquarium-fish-feeding-guide",
+   "1x goldfish-5-deadly-mistakes-beginners"
+  ]
+ },
+ {
+  "area": "filtration",
+  "concept": "sponge filter",
+  "status": "MENTION",
+  "owner": null,
+  "arts": 5,
+  "top": [
+   "1x fish-treatment-protocol",
+   "1x raising-fish-fry",
+   "1x aquarium-shrimp-snails-guide"
+  ]
+ },
+ {
+  "area": "filtration",
+  "concept": "filter maintenance / cleaning media",
+  "status": "MENTION",
+  "owner": null,
+  "arts": 5,
+  "top": [
+   "2x filter-types-guide",
+   "1x aquarium-water-change-guide",
+   "1x how-to-treat-tap-water-for-fish-iraq"
+  ]
+ },
+ {
+  "area": "filtration",
+  "concept": "beneficial bacteria products",
+  "status": "MENTION",
+  "owner": null,
+  "arts": 15,
+  "top": [
+   "2x how-to-treat-tap-water-for-fish-iraq",
+   "2x filter-media-ceramic-rings-bioballs",
+   "2x nitrogen-cycle-simple-arabic-explained"
+  ]
+ },
+ {
+  "area": "fish care",
+  "concept": "species: molly/platy",
+  "status": "MENTION",
+  "owner": null,
+  "arts": 8,
+  "top": [
+   "5x 5-hardy-fish-for-beginners",
+   "4x molly-platy-breeding-save-fry",
+   "3x how-to-sex-aquarium-fish"
+  ]
+ },
+ {
+  "area": "fish care",
+  "concept": "species: cardinal tetra",
+  "status": "MENTION",
+  "owner": null,
+  "arts": 3,
+  "top": [
+   "5x small-schooling-fish-selection",
+   "1x discus-fish-care-guide",
+   "1x amazon-biotope-aquarium-setup"
+  ]
+ },
+ {
+  "area": "fish care",
+  "concept": "species: pleco",
+  "status": "MENTION",
+  "owner": null,
+  "arts": 1,
+  "top": [
+   "1x best-aquarium-cleaner-fish-pleco-corydoras"
+  ]
+ },
+ {
+  "area": "fish care",
+  "concept": "species: otocinclus",
+  "status": "MENTION",
+  "owner": null,
+  "arts": 2,
+  "top": [
+   "2x best-aquarium-cleaner-fish-pleco-corydoras",
+   "1x algae-war-guide"
+  ]
+ },
+ {
+  "area": "fish care",
+  "concept": "species: rainbowfish",
+  "status": "MENTION",
+  "owner": null,
+  "arts": 1,
+  "top": [
+   "4x small-schooling-fish-selection"
+  ]
+ },
+ {
+  "area": "maintenance",
+  "concept": "surface film",
+  "status": "MENTION",
+  "owner": null,
+  "arts": 1,
+  "top": [
+   "1x aquarium-water-flow"
+  ]
+ },
+ {
+  "area": "maintenance",
+  "concept": "stocking order",
+  "status": "MENTION",
+  "owner": null,
+  "arts": 1,
+  "top": [
+   "1x first-aquarium-setup-guide"
+  ]
+ },
+ {
+  "area": "parasites",
+  "concept": "velvet",
+  "status": "MENTION",
+  "owner": null,
+  "arts": 1,
+  "top": [
+   "3x external-fish-parasites"
+  ]
+ },
+ {
+  "area": "parasites",
+  "concept": "flukes",
+  "status": "MENTION",
+  "owner": null,
+  "arts": 1,
+  "top": [
+   "1x external-fish-parasites"
+  ]
+ },
+ {
+  "area": "parasites",
+  "concept": "anchor worm",
+  "status": "MENTION",
+  "owner": null,
+  "arts": 1,
+  "top": [
+   "3x external-fish-parasites"
+  ]
+ },
+ {
+  "area": "parasites",
+  "concept": "fish lice",
+  "status": "MENTION",
+  "owner": null,
+  "arts": 1,
+  "top": [
+   "2x external-fish-parasites"
+  ]
+ },
+ {
+  "area": "safety",
+  "concept": "structural load deferral",
+  "status": "MENTION",
+  "owner": null,
+  "arts": 1,
+  "top": [
+   "1x aquarium-placement-and-stand"
+  ]
+ },
+ {
+  "area": "shrimp/snails",
+  "concept": "copper danger",
+  "status": "MENTION",
+  "owner": null,
+  "arts": 1,
+  "top": [
+   "1x aquarium-shrimp-snails-guide"
+  ]
+ },
+ {
+  "area": "water chemistry",
+  "concept": "chlorine / chloramine",
+  "status": "MENTION",
+  "owner": null,
+  "arts": 29,
+  "top": [
+   "8x how-to-treat-tap-water-for-fish-iraq",
+   "6x nitrogen-cycle-simple-arabic-explained",
+   "4x aquarium-water-change-guide"
+  ]
+ },
+ {
+  "area": "water chemistry",
+  "concept": "phosphate",
+  "status": "MENTION",
+  "owner": null,
+  "arts": 1,
+  "top": [
+   "1x aquarium-plant-fertilizer-guide"
+  ]
+ },
+ {
+  "area": "water chemistry",
+  "concept": "buffering / stability",
+  "status": "MENTION",
+  "owner": null,
+  "arts": 16,
+  "top": [
+   "3x dwarf-cichlids-guide",
+   "3x aquarium-heaters-cheap-vs-premium",
+   "2x small-schooling-fish-selection"
+  ]
+ },
+ {
+  "area": "water chemistry",
+  "concept": "test frequency",
+  "status": "MENTION",
+  "owner": null,
+  "arts": 1,
+  "top": [
+   "1x aquarium-test-kit-guide"
+  ]
+ },
+ {
+  "area": "aquascaping",
+  "concept": "hardscape arrangement",
+  "status": "OWNED",
+  "owner": "hardscape-rock-arrangement-visual-depth",
+  "arts": 1,
+  "top": [
+   "6x hardscape-rock-arrangement-visual-depth"
+  ]
+ },
+ {
+  "area": "aquascaping",
+  "concept": "iwagumi",
+  "status": "OWNED",
+  "owner": "iwagumi-aquascape-step-by-step",
+  "arts": 2,
+  "top": [
+   "7x iwagumi-aquascape-step-by-step",
+   "1x hardscape-rock-arrangement-visual-depth"
+  ]
+ },
+ {
+  "area": "aquascaping",
+  "concept": "budget aquascaping",
+  "status": "OWNED",
+  "owner": "budget-aquascaping",
+  "arts": 1,
+  "top": [
+   "2x budget-aquascaping"
+  ]
+ },
+ {
+  "area": "aquascaping",
+  "concept": "3D background",
+  "status": "OWNED",
+  "owner": "diy-3d-aquarium-background",
+  "arts": 2,
+  "top": [
+   "4x diy-3d-aquarium-background",
+   "1x hardscape-rock-arrangement-visual-depth"
+  ]
+ },
+ {
+  "area": "aquascaping",
+  "concept": "biotope",
+  "status": "OWNED",
+  "owner": "amazon-biotope-aquarium-setup",
+  "arts": 2,
+  "top": [
+   "10x amazon-biotope-aquarium-setup",
+   "1x aquarium-soil-volcanic-substrate-secrets"
+  ]
+ },
+ {
+  "area": "aquascaping",
+  "concept": "safe rocks and wood",
+  "status": "OWNED",
+  "owner": "aquarium-safe-rocks-and-wood",
+  "arts": 1,
+  "top": [
+   "2x aquarium-safe-rocks-and-wood"
+  ]
+ },
+ {
+  "area": "aquascaping",
+  "concept": "driftwood prep / tannins",
+  "status": "OWNED",
+  "owner": "driftwood-preparation-yellow-water-fix",
+  "arts": 2,
+  "top": [
+   "18x driftwood-preparation-yellow-water-fix",
+   "1x aquarium-safe-rocks-and-wood"
+  ]
+ },
+ {
+  "area": "aquascaping",
+  "concept": "substrate & decor選 guide",
+  "status": "OWNED",
+  "owner": "aquarium-substrate-and-decor-guide",
+  "arts": 4,
+  "top": [
+   "3x aquarium-substrate-and-decor-guide",
+   "1x aquarium-plant-trimming-propagation",
+   "1x aquarium-safe-rocks-and-wood"
+  ]
+ },
+ {
+  "area": "breeding",
+  "concept": "breeding as a decision",
+  "status": "OWNED",
+  "owner": "fish-breeding-basics",
+  "arts": 3,
+  "top": [
+   "1x fish-breeding-basics",
+   "1x raising-fish-fry",
+   "1x flowerhorn-breeding-nuchal-hump-secrets"
+  ]
+ },
+ {
+  "area": "breeding",
+  "concept": "livebearers",
+  "status": "OWNED",
+  "owner": "molly-platy-breeding-save-fry",
+  "arts": 5,
+  "top": [
+   "2x molly-platy-breeding-save-fry",
+   "1x fish-breeding-basics",
+   "1x raising-fish-fry"
+  ]
+ },
+ {
+  "area": "breeding",
+  "concept": "fry rearing / grow-out",
+  "status": "OWNED",
+  "owner": "raising-fish-fry",
+  "arts": 3,
+  "top": [
+   "1x fish-breeding-basics",
+   "1x raising-fish-fry",
+   "1x flowerhorn-breeding-nuchal-hump-secrets"
+  ]
+ },
+ {
+  "area": "buying decisions",
+  "concept": "avoiding scam sellers",
+  "status": "OWNED",
+  "owner": "avoid-fake-fish-stores-instagram-scams",
+  "arts": 2,
+  "top": [
+   "1x quarantine-new-fish-guide",
+   "1x avoid-fake-fish-stores-instagram-scams"
+  ]
+ },
+ {
+  "area": "buying decisions",
+  "concept": "prices",
+  "status": "OWNED",
+  "owner": "aquarium-fish-prices-iraq-2026",
+  "arts": 2,
+  "top": [
+   "3x aquarium-fish-prices-iraq-2026",
+   "1x how-to-choose-aquarium-tank"
+  ]
+ },
+ {
+  "area": "buying decisions",
+  "concept": "store guide",
+  "status": "OWNED",
+  "owner": "best-aquarium-store-iraq-2026",
+  "arts": 1,
+  "top": [
+   "1x best-aquarium-store-iraq-2026"
+  ]
+ },
+ {
+  "area": "buying decisions",
+  "concept": "import origins",
+  "status": "OWNED",
+  "owner": "ornamental-fish-import-middle-east-origins",
+  "arts": 1,
+  "top": [
+   "1x ornamental-fish-import-middle-east-origins"
+  ]
+ },
+ {
+  "area": "buying decisions",
+  "concept": "hardy beginner fish",
+  "status": "OWNED",
+  "owner": "5-hardy-fish-for-beginners",
+  "arts": 1,
+  "top": [
+   "1x 5-hardy-fish-for-beginners"
+  ]
+ },
+ {
+  "area": "buying decisions",
+  "concept": "saltwater vs freshwater",
+  "status": "OWNED",
+  "owner": "saltwater-vs-freshwater-aquarium-beginners",
+  "arts": 1,
+  "top": [
+   "4x saltwater-vs-freshwater-aquarium-beginners"
+  ]
+ },
+ {
+  "area": "diseases",
+  "concept": "diagnosis hub",
+  "status": "OWNED",
+  "owner": "fish-disease-symptoms-diagnosis",
+  "arts": 1,
+  "top": [
+   "2x fish-disease-symptoms-diagnosis"
+  ]
+ },
+ {
+  "area": "diseases",
+  "concept": "ich / white spot",
+  "status": "OWNED",
+  "owner": "common-fish-diseases-white-spot",
+  "arts": 11,
+  "top": [
+   "5x external-fish-parasites",
+   "3x common-fish-diseases-white-spot",
+   "2x fish-treatment-protocol"
+  ]
+ },
+ {
+  "area": "diseases",
+  "concept": "fin rot",
+  "status": "OWNED",
+  "owner": "fin-rot-treatment-guide",
+  "arts": 8,
+  "top": [
+   "10x fin-rot-treatment-guide",
+   "2x angelfish-care-guide",
+   "2x fish-disease-symptoms-diagnosis"
+  ]
+ },
+ {
+  "area": "diseases",
+  "concept": "fungus vs columnaris",
+  "status": "OWNED",
+  "owner": "fish-fungus-vs-columnaris",
+  "arts": 6,
+  "top": [
+   "8x fish-fungus-vs-columnaris",
+   "1x fish-treatment-protocol",
+   "1x external-fish-parasites"
+  ]
+ },
+ {
+  "area": "diseases",
+  "concept": "hospital tank / how to medicate",
+  "status": "OWNED",
+  "owner": "fish-treatment-protocol",
+  "arts": 3,
+  "top": [
+   "3x fish-treatment-protocol",
+   "1x external-fish-parasites",
+   "1x internal-fish-parasites"
+  ]
+ },
+ {
+  "area": "emergencies",
+  "concept": "sudden death rescue",
+  "status": "OWNED",
+  "owner": "why-fish-die-suddenly-rescue-guide",
+  "arts": 1,
+  "top": [
+   "5x why-fish-die-suddenly-rescue-guide"
+  ]
+ },
+ {
+  "area": "emergencies",
+  "concept": "cloudy water",
+  "status": "OWNED",
+  "owner": "cloudy-water-fix",
+  "arts": 1,
+  "top": [
+   "1x cloudy-water-fix"
+  ]
+ },
+ {
+  "area": "emergencies",
+  "concept": "airborne toxins",
+  "status": "OWNED",
+  "owner": "aquarium-airborne-toxins",
+  "arts": 3,
+  "top": [
+   "1x aquarium-placement-and-stand",
+   "1x aquarium-airborne-toxins",
+   "1x aquarium-water-change-guide"
+  ]
+ },
+ {
+  "area": "emergencies",
+  "concept": "jumping / lids",
+  "status": "OWNED",
+  "owner": "why-fish-jump-out-aquarium",
+  "arts": 1,
+  "top": [
+   "2x why-fish-jump-out-aquarium"
+  ]
+ },
+ {
+  "area": "emergencies",
+  "concept": "summer heat",
+  "status": "OWNED",
+  "owner": "protect-fish-iraqi-summer-50-degrees",
+  "arts": 30,
+  "top": [
+   "2x aquarium-placement-and-stand",
+   "2x aquarium-water-flow",
+   "2x dwarf-cichlids-guide"
+  ]
+ },
+ {
+  "area": "equipment",
+  "concept": "heater choice",
+  "status": "OWNED",
+  "owner": "aquarium-heaters-cheap-vs-premium",
+  "arts": 13,
+  "top": [
+   "10x aquarium-heaters-cheap-vs-premium",
+   "10x aquarium-heater-winter-iraq",
+   "4x first-aquarium-setup-guide"
+  ]
+ },
+ {
+  "area": "equipment",
+  "concept": "air pump / aeration",
+  "status": "OWNED",
+  "owner": "air-pumps-decoration-or-necessity",
+  "arts": 8,
+  "top": [
+   "3x aquarium-airborne-toxins",
+   "3x air-pumps-decoration-or-necessity",
+   "1x fish-treatment-protocol"
+  ]
+ },
+ {
+  "area": "equipment",
+  "concept": "water flow / current",
+  "status": "OWNED",
+  "owner": "aquarium-water-flow",
+  "arts": 2,
+  "top": [
+   "1x aquarium-water-flow",
+   "1x air-pumps-decoration-or-necessity"
+  ]
+ },
+ {
+  "area": "equipment",
+  "concept": "lighting for plants",
+  "status": "OWNED",
+  "owner": "aquarium-planted-led-lighting-guide",
+  "arts": 1,
+  "top": [
+   "1x aquarium-planted-led-lighting-guide"
+  ]
+ },
+ {
+  "area": "equipment",
+  "concept": "photoperiod",
+  "status": "OWNED",
+  "owner": "aquarium-planted-led-lighting-guide",
+  "arts": 5,
+  "top": [
+   "2x aquarium-planted-led-lighting-guide",
+   "2x cloudy-water-fix",
+   "1x aquarium-plant-fertilizer-guide"
+  ]
+ },
+ {
+  "area": "equipment",
+  "concept": "electrical safety",
+  "status": "OWNED",
+  "owner": "aquarium-electrical-safety",
+  "arts": 3,
+  "top": [
+   "3x aquarium-electrical-safety",
+   "2x aquarium-placement-and-stand",
+   "1x how-to-clean-aquarium-properly"
+  ]
+ },
+ {
+  "area": "equipment",
+  "concept": "power outage kit",
+  "status": "OWNED",
+  "owner": "power-outage-emergency-aquarium-tools",
+  "arts": 13,
+  "top": [
+   "3x power-outage-emergency-aquarium-tools",
+   "2x aquarium-electrical-safety",
+   "2x aquarium-heaters-cheap-vs-premium"
+  ]
+ },
+ {
+  "area": "equipment",
+  "concept": "tank placement / stand / weight",
+  "status": "OWNED",
+  "owner": "aquarium-placement-and-stand",
+  "arts": 2,
+  "top": [
+   "2x aquarium-placement-and-stand",
+   "1x first-aquarium-setup-guide"
+  ]
+ },
+ {
+  "area": "equipment",
+  "concept": "choosing a tank",
+  "status": "OWNED",
+  "owner": "how-to-choose-aquarium-tank",
+  "arts": 2,
+  "top": [
+   "1x aquarium-placement-and-stand",
+   "1x how-to-choose-aquarium-tank"
+  ]
+ },
+ {
+  "area": "equipment",
+  "concept": "capacity calculation",
+  "status": "OWNED",
+  "owner": "calculate-aquarium-capacity-liters",
+  "arts": 1,
+  "top": [
+   "4x calculate-aquarium-capacity-liters"
+  ]
+ },
+ {
+  "area": "feeding",
+  "concept": "feeding guide",
+  "status": "OWNED",
+  "owner": "aquarium-fish-feeding-guide",
+  "arts": 11,
+  "top": [
+   "1x internal-fish-parasites",
+   "1x fish-breeding-basics",
+   "1x aquarium-barbs-guide"
+  ]
+ },
+ {
+  "area": "feeding",
+  "concept": "holiday / travel feeding",
+  "status": "OWNED",
+  "owner": "aquarium-care-while-traveling",
+  "arts": 2,
+  "top": [
+   "1x aquarium-fish-feeding-guide",
+   "1x aquarium-care-while-traveling"
+  ]
+ },
+ {
+  "area": "filtration",
+  "concept": "filter types",
+  "status": "OWNED",
+  "owner": "filter-types-guide",
+  "arts": 5,
+  "top": [
+   "1x fish-treatment-protocol",
+   "1x aquarium-water-flow",
+   "1x raising-fish-fry"
+  ]
+ },
+ {
+  "area": "filtration",
+  "concept": "filter media",
+  "status": "OWNED",
+  "owner": "filter-media-ceramic-rings-bioballs",
+  "arts": 10,
+  "top": [
+   "16x filter-media-ceramic-rings-bioballs",
+   "2x transporting-fish-and-aquarium",
+   "2x filter-types-guide"
+  ]
+ },
+ {
+  "area": "filtration",
+  "concept": "activated carbon",
+  "status": "OWNED",
+  "owner": "activated-carbon-aquarium-when-to-use",
+  "arts": 3,
+  "top": [
+   "24x activated-carbon-aquarium-when-to-use",
+   "2x fish-treatment-protocol",
+   "1x aquarium-test-kit-guide"
+  ]
+ },
+ {
+  "area": "filtration",
+  "concept": "sump vs canister",
+  "status": "OWNED",
+  "owner": "sump-vs-canister-filter-comparison",
+  "arts": 2,
+  "top": [
+   "16x sump-vs-canister-filter-comparison",
+   "2x filter-types-guide"
+  ]
+ },
+ {
+  "area": "filtration",
+  "concept": "tank without a filter",
+  "status": "OWNED",
+  "owner": "fish-that-live-without-filter",
+  "arts": 6,
+  "top": [
+   "3x fish-that-live-without-filter",
+   "2x how-many-fish-in-aquarium",
+   "2x real-vs-fake-plants-iraq"
+  ]
+ },
+ {
+  "area": "fish care",
+  "concept": "species: betta",
+  "status": "OWNED",
+  "owner": "betta-fish-bowl-truth-iraq",
+  "arts": 20,
+  "top": [
+   "40x betta-compatible-tank-mates",
+   "12x betta-fish-bowl-truth-iraq",
+   "6x tank-mates-compatibility"
+  ]
+ },
+ {
+  "area": "fish care",
+  "concept": "species: goldfish",
+  "status": "OWNED",
+  "owner": "goldfish-5-deadly-mistakes-beginners",
+  "arts": 7,
+  "top": [
+   "11x goldfish-5-deadly-mistakes-beginners",
+   "4x fish-that-live-without-filter",
+   "2x how-many-fish-in-aquarium"
+  ]
+ },
+ {
+  "area": "fish care",
+  "concept": "species: guppy",
+  "status": "OWNED",
+  "owner": "guppy-fish-care-breeding-guide",
+  "arts": 10,
+  "top": [
+   "8x guppy-fish-care-breeding-guide",
+   "5x molly-platy-breeding-save-fry",
+   "4x tank-mates-compatibility"
+  ]
+ },
+ {
+  "area": "fish care",
+  "concept": "species: swordtail",
+  "status": "OWNED",
+  "owner": "molly-platy-breeding-save-fry",
+  "arts": 4,
+  "top": [
+   "4x molly-platy-breeding-save-fry",
+   "1x fish-breeding-basics",
+   "1x 5-hardy-fish-for-beginners"
+  ]
+ },
+ {
+  "area": "fish care",
+  "concept": "species: neon tetra",
+  "status": "OWNED",
+  "owner": "neon-tetra-color-care-guide",
+  "arts": 4,
+  "top": [
+   "6x neon-tetra-color-care-guide",
+   "2x fish-that-live-without-filter",
+   "1x small-schooling-fish-selection"
+  ]
+ },
+ {
+  "area": "fish care",
+  "concept": "species: rasbora",
+  "status": "OWNED",
+  "owner": "small-schooling-fish-selection",
+  "arts": 3,
+  "top": [
+   "3x small-schooling-fish-selection",
+   "1x how-to-sex-aquarium-fish",
+   "1x schooling-fish-minimum-numbers"
+  ]
+ },
+ {
+  "area": "fish care",
+  "concept": "species: danio",
+  "status": "OWNED",
+  "owner": "small-schooling-fish-selection",
+  "arts": 5,
+  "top": [
+   "5x small-schooling-fish-selection",
+   "2x 5-hardy-fish-for-beginners",
+   "1x how-to-sex-aquarium-fish"
+  ]
+ },
+ {
+  "area": "fish care",
+  "concept": "species: barb",
+  "status": "OWNED",
+  "owner": "aquarium-barbs-guide",
+  "arts": 3,
+  "top": [
+   "16x aquarium-barbs-guide",
+   "1x aquarium-fish-aggression",
+   "1x angelfish-care-guide"
+  ]
+ },
+ {
+  "area": "fish care",
+  "concept": "species: angelfish",
+  "status": "OWNED",
+  "owner": "angelfish-care-guide",
+  "arts": 5,
+  "top": [
+   "11x angelfish-care-guide",
+   "2x aquarium-barbs-guide",
+   "2x small-schooling-fish-selection"
+  ]
+ },
+ {
+  "area": "fish care",
+  "concept": "species: discus",
+  "status": "OWNED",
+  "owner": "discus-fish-care-guide",
+  "arts": 7,
+  "top": [
+   "8x discus-fish-care-guide",
+   "2x aquarium-barbs-guide",
+   "1x aquarium-water-flow"
+  ]
+ },
+ {
+  "area": "fish care",
+  "concept": "species: oscar",
+  "status": "OWNED",
+  "owner": "oscar-fish-care-guide-water-dog",
+  "arts": 6,
+  "top": [
+   "5x oscar-fish-care-guide-water-dog",
+   "1x dwarf-cichlids-guide",
+   "1x how-many-fish-in-aquarium"
+  ]
+ },
+ {
+  "area": "fish care",
+  "concept": "species: flowerhorn",
+  "status": "OWNED",
+  "owner": "flowerhorn-breeding-nuchal-hump-secrets",
+  "arts": 4,
+  "top": [
+   "14x flowerhorn-breeding-nuchal-hump-secrets",
+   "1x dwarf-cichlids-guide",
+   "1x aquarium-fish-aggression"
+  ]
+ },
+ {
+  "area": "fish care",
+  "concept": "species: african cichlid",
+  "status": "OWNED",
+  "owner": "african-cichlids-best-types-colors",
+  "arts": 7,
+  "top": [
+   "12x african-cichlids-best-types-colors",
+   "6x american-vs-african-cichlids-differences",
+   "2x tank-mates-compatibility"
+  ]
+ },
+ {
+  "area": "fish care",
+  "concept": "species: dwarf cichlid",
+  "status": "OWNED",
+  "owner": "dwarf-cichlids-guide",
+  "arts": 2,
+  "top": [
+   "7x dwarf-cichlids-guide",
+   "1x american-vs-african-cichlids-differences"
+  ]
+ },
+ {
+  "area": "fish care",
+  "concept": "species: gourami",
+  "status": "OWNED",
+  "owner": "gourami-care-guide",
+  "arts": 6,
+  "top": [
+   "5x gourami-care-guide",
+   "2x aquarium-water-flow",
+   "1x fish-breeding-basics"
+  ]
+ },
+ {
+  "area": "fish care",
+  "concept": "species: corydoras",
+  "status": "OWNED",
+  "owner": "corydoras-types-best-cleaner-fish",
+  "arts": 17,
+  "top": [
+   "25x corydoras-types-best-cleaner-fish",
+   "4x best-aquarium-cleaner-fish-pleco-corydoras",
+   "3x 5-hardy-fish-for-beginners"
+  ]
+ },
+ {
+  "area": "fish care",
+  "concept": "species: loach",
+  "status": "OWNED",
+  "owner": "aquarium-loaches-guide",
+  "arts": 4,
+  "top": [
+   "14x aquarium-loaches-guide",
+   "2x external-fish-parasites",
+   "1x fish-treatment-protocol"
+  ]
+ },
+ {
+  "area": "fish care",
+  "concept": "species: arowana",
+  "status": "OWNED",
+  "owner": "arowana-fish-care-guide-prices",
+  "arts": 4,
+  "top": [
+   "25x arowana-fish-care-guide-prices",
+   "1x how-many-fish-in-aquarium",
+   "1x real-vs-fake-plants-iraq"
+  ]
+ },
+ {
+  "area": "fish care",
+  "concept": "species: koi",
+  "status": "OWNED",
+  "owner": "koi-fish-outdoor-pond-building-tips",
+  "arts": 2,
+  "top": [
+   "8x koi-fish-outdoor-pond-building-tips",
+   "1x how-many-fish-in-aquarium"
+  ]
+ },
+ {
+  "area": "fish care",
+  "concept": "species: pufferfish",
+  "status": "OWNED",
+  "owner": "freshwater-pufferfish-care-guide",
+  "arts": 2,
+  "top": [
+   "13x freshwater-pufferfish-care-guide",
+   "1x tank-mates-compatibility"
+  ]
+ },
+ {
+  "area": "fish care",
+  "concept": "sexing fish",
+  "status": "OWNED",
+  "owner": "how-to-sex-aquarium-fish",
+  "arts": 4,
+  "top": [
+   "2x gourami-care-guide",
+   "2x how-to-sex-aquarium-fish",
+   "1x fish-breeding-basics"
+  ]
+ },
+ {
+  "area": "fish care",
+  "concept": "schooling minimums",
+  "status": "OWNED",
+  "owner": "small-schooling-fish-selection",
+  "arts": 10,
+  "top": [
+   "6x small-schooling-fish-selection",
+   "5x schooling-fish-minimum-numbers",
+   "2x aquarium-fish-aggression"
+  ]
+ },
+ {
+  "area": "fish care",
+  "concept": "aggression / territoriality",
+  "status": "OWNED",
+  "owner": "aquarium-fish-aggression",
+  "arts": 12,
+  "top": [
+   "6x aquarium-fish-aggression",
+   "4x molly-platy-breeding-save-fry",
+   "3x dwarf-cichlids-guide"
+  ]
+ },
+ {
+  "area": "fish care",
+  "concept": "tank mates compatibility",
+  "status": "OWNED",
+  "owner": "tank-mates-compatibility",
+  "arts": 12,
+  "top": [
+   "6x tank-mates-compatibility",
+   "1x fish-treatment-protocol",
+   "1x fish-breeding-basics"
+  ]
+ },
+ {
+  "area": "fish care",
+  "concept": "turtles with fish",
+  "status": "OWNED",
+  "owner": "turtles-with-aquarium-fish",
+  "arts": 2,
+  "top": [
+   "8x turtles-with-aquarium-fish",
+   "1x tank-mates-compatibility"
+  ]
+ },
+ {
+  "area": "maintenance",
+  "concept": "water change",
+  "status": "OWNED",
+  "owner": "aquarium-water-change-guide",
+  "arts": 1,
+  "top": [
+   "1x aquarium-water-change-guide"
+  ]
+ },
+ {
+  "area": "maintenance",
+  "concept": "cleaning without killing bacteria",
+  "status": "OWNED",
+  "owner": "how-to-clean-aquarium-properly",
+  "arts": 1,
+  "top": [
+   "1x how-to-clean-aquarium-properly"
+  ]
+ },
+ {
+  "area": "maintenance",
+  "concept": "algae guide",
+  "status": "OWNED",
+  "owner": "algae-war-guide",
+  "arts": 9,
+  "top": [
+   "1x aquarium-water-flow",
+   "1x aquarium-plant-trimming-propagation",
+   "1x first-aquarium-setup-guide"
+  ]
+ },
+ {
+  "area": "maintenance",
+  "concept": "black beard algae",
+  "status": "OWNED",
+  "owner": "black-beard-algae-removal-steps",
+  "arts": 2,
+  "top": [
+   "8x black-beard-algae-removal-steps",
+   "2x best-aquarium-cleaner-fish-pleco-corydoras"
+  ]
+ },
+ {
+  "area": "maintenance",
+  "concept": "quarantine",
+  "status": "OWNED",
+  "owner": "quarantine-new-fish-guide",
+  "arts": 19,
+  "top": [
+   "2x fish-treatment-protocol",
+   "2x external-fish-parasites",
+   "2x first-aquarium-setup-guide"
+  ]
+ },
+ {
+  "area": "maintenance",
+  "concept": "acclimation",
+  "status": "OWNED",
+  "owner": "acclimating-new-fish",
+  "arts": 7,
+  "top": [
+   "1x external-fish-parasites",
+   "1x small-schooling-fish-selection",
+   "1x transporting-fish-and-aquarium"
+  ]
+ },
+ {
+  "area": "maintenance",
+  "concept": "stocking limits",
+  "status": "OWNED",
+  "owner": "how-many-fish-in-aquarium",
+  "arts": 29,
+  "top": [
+   "2x small-schooling-fish-selection",
+   "1x aquarium-water-flow",
+   "1x external-fish-parasites"
+  ]
+ },
+ {
+  "area": "maintenance",
+  "concept": "transport / moving",
+  "status": "OWNED",
+  "owner": "transporting-fish-and-aquarium",
+  "arts": 1,
+  "top": [
+   "1x transporting-fish-and-aquarium"
+  ]
+ },
+ {
+  "area": "maintenance",
+  "concept": "aquarium photography",
+  "status": "OWNED",
+  "owner": "aquarium-photography-mobile-tips",
+  "arts": 2,
+  "top": [
+   "4x aquarium-photography-mobile-tips",
+   "1x aquarium-planted-led-lighting-guide"
+  ]
+ },
+ {
+  "area": "parasites",
+  "concept": "external parasite hub",
+  "status": "OWNED",
+  "owner": "external-fish-parasites",
+  "arts": 1,
+  "top": [
+   "1x external-fish-parasites"
+  ]
+ },
+ {
+  "area": "parasites",
+  "concept": "internal worms",
+  "status": "OWNED",
+  "owner": "internal-fish-parasites",
+  "arts": 3,
+  "top": [
+   "5x internal-fish-parasites",
+   "1x fish-treatment-protocol",
+   "1x external-fish-parasites"
+  ]
+ },
+ {
+  "area": "plants",
+  "concept": "low-tech plants",
+  "status": "OWNED",
+  "owner": "best-low-tech-aquarium-plants-beginners",
+  "arts": 7,
+  "top": [
+   "2x aquarium-plant-fertilizer-guide",
+   "2x best-low-tech-aquarium-plants-beginners",
+   "1x aquarium-water-flow"
+  ]
+ },
+ {
+  "area": "plants",
+  "concept": "fertiliser",
+  "status": "OWNED",
+  "owner": "aquarium-plant-fertilizer-guide",
+  "arts": 4,
+  "top": [
+   "1x aquarium-plant-trimming-propagation",
+   "1x aquarium-plant-fertilizer-guide",
+   "1x aquarium-planted-led-lighting-guide"
+  ]
+ },
+ {
+  "area": "plants",
+  "concept": "substrate / soil",
+  "status": "OWNED",
+  "owner": "aquarium-soil-volcanic-substrate-secrets",
+  "arts": 11,
+  "top": [
+   "9x aquarium-soil-volcanic-substrate-secrets",
+   "3x first-aquarium-setup-guide",
+   "2x aquarium-placement-and-stand"
+  ]
+ },
+ {
+  "area": "plants",
+  "concept": "trimming / propagation",
+  "status": "OWNED",
+  "owner": "aquarium-plant-trimming-propagation",
+  "arts": 2,
+  "top": [
+   "1x aquarium-plant-trimming-propagation",
+   "1x aquarium-planted-led-lighting-guide"
+  ]
+ },
+ {
+  "area": "plants",
+  "concept": "plant problems (yellowing/holes)",
+  "status": "OWNED",
+  "owner": "aquatic-plant-root-rot-treatment",
+  "arts": 3,
+  "top": [
+   "2x aquatic-plant-root-rot-treatment",
+   "1x aquarium-plant-trimming-propagation",
+   "1x aquarium-plant-fertilizer-guide"
+  ]
+ },
+ {
+  "area": "plants",
+  "concept": "amazon sword",
+  "status": "OWNED",
+  "owner": "amazon-sword-plant-care-propagation",
+  "arts": 3,
+  "top": [
+   "14x amazon-sword-plant-care-propagation",
+   "1x aquarium-plant-trimming-propagation",
+   "1x algae-war-guide"
+  ]
+ },
+ {
+  "area": "plants",
+  "concept": "real vs fake plants",
+  "status": "OWNED",
+  "owner": "real-vs-fake-plants-iraq",
+  "arts": 2,
+  "top": [
+   "1x real-vs-fake-plants-iraq",
+   "1x algae-war-guide"
+  ]
+ },
+ {
+  "area": "safety",
+  "concept": "electrical / drip loop",
+  "status": "OWNED",
+  "owner": "aquarium-electrical-safety",
+  "arts": 2,
+  "top": [
+   "2x aquarium-electrical-safety",
+   "1x aquarium-placement-and-stand"
+  ]
+ },
+ {
+  "area": "safety",
+  "concept": "human medicine danger",
+  "status": "OWNED",
+  "owner": "human-medicine-dangers-for-fish",
+  "arts": 8,
+  "top": [
+   "5x human-medicine-dangers-for-fish",
+   "1x fish-treatment-protocol",
+   "1x internal-fish-parasites"
+  ]
+ },
+ {
+  "area": "shrimp/snails",
+  "concept": "shrimp & snail basics",
+  "status": "OWNED",
+  "owner": "aquarium-shrimp-snails-guide",
+  "arts": 7,
+  "top": [
+   "2x aquarium-snail-population-control",
+   "2x aquarium-airborne-toxins",
+   "1x fish-treatment-protocol"
+  ]
+ },
+ {
+  "area": "shrimp/snails",
+  "concept": "snail population control",
+  "status": "OWNED",
+  "owner": "aquarium-snail-population-control",
+  "arts": 3,
+  "top": [
+   "2x aquarium-loaches-guide",
+   "2x aquarium-snail-population-control",
+   "1x best-aquarium-cleaner-fish-pleco-corydoras"
+  ]
+ },
+ {
+  "area": "water chemistry",
+  "concept": "nitrogen cycle",
+  "status": "OWNED",
+  "owner": "nitrogen-cycle-simple-arabic-explained",
+  "arts": 29,
+  "top": [
+   "4x nitrogen-cycle-simple-arabic-explained",
+   "2x first-aquarium-setup-guide",
+   "2x real-vs-fake-plants-iraq"
+  ]
+ },
+ {
+  "area": "water chemistry",
+  "concept": "ammonia spike",
+  "status": "OWNED",
+  "owner": "ammonia-spike-emergency-treatment",
+  "arts": 18,
+  "top": [
+   "3x ammonia-spike-emergency-treatment",
+   "2x transporting-fish-and-aquarium",
+   "1x aquarium-water-flow"
+  ]
+ },
+ {
+  "area": "water chemistry",
+  "concept": "nitrite spike",
+  "status": "OWNED",
+  "owner": "nitrite-spike-aquarium",
+  "arts": 2,
+  "top": [
+   "2x nitrite-spike-aquarium",
+   "1x fish-bloating-swim-bladder-dropsy"
+  ]
+ },
+ {
+  "area": "water chemistry",
+  "concept": "pH meaning",
+  "status": "OWNED",
+  "owner": "ph-level-iraqi-tap-water-fish",
+  "arts": 5,
+  "top": [
+   "10x ph-level-iraqi-tap-water-fish",
+   "3x nitrogen-cycle-simple-arabic-explained",
+   "2x tank-mates-compatibility"
+  ]
+ },
+ {
+  "area": "water chemistry",
+  "concept": "GH / KH / TDS",
+  "status": "OWNED",
+  "owner": "gh-kh-water-hardness-guide",
+  "arts": 7,
+  "top": [
+   "1x dwarf-cichlids-guide",
+   "1x small-schooling-fish-selection",
+   "1x aquarium-snail-population-control"
+  ]
+ },
+ {
+  "area": "water chemistry",
+  "concept": "remineralisation / RO mixing",
+  "status": "OWNED",
+  "owner": "ro-water-vs-tap-water-aquarium",
+  "arts": 1,
+  "top": [
+   "14x ro-water-vs-tap-water-aquarium"
+  ]
+ },
+ {
+  "area": "water chemistry",
+  "concept": "dissolved oxygen",
+  "status": "OWNED",
+  "owner": "air-pumps-decoration-or-necessity",
+  "arts": 14,
+  "top": [
+   "3x gourami-care-guide",
+   "3x air-pumps-decoration-or-necessity",
+   "1x fish-treatment-protocol"
+  ]
+ },
+ {
+  "area": "water chemistry",
+  "concept": "CO2",
+  "status": "OWNED",
+  "owner": "co2-system-planted-aquarium-guide",
+  "arts": 8,
+  "top": [
+   "22x co2-system-planted-aquarium-guide",
+   "4x best-low-tech-aquarium-plants-beginners",
+   "2x acclimating-new-fish"
+  ]
+ },
+ {
+  "area": "water chemistry",
+  "concept": "test kit reading",
+  "status": "OWNED",
+  "owner": "aquarium-test-kit-guide",
+  "arts": 26,
+  "top": [
+   "2x first-aquarium-setup-guide",
+   "1x fish-treatment-protocol",
+   "1x external-fish-parasites"
+  ]
+ }
+]
