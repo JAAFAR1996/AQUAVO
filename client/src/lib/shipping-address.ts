@@ -73,7 +73,8 @@ function normalizeOrder(order: unknown): unknown {
  * storefront. Admin and public tracking contracts stay untouched.
  */
 export function normalizeCustomerOrderResponse(url: string, payload: unknown): unknown {
-  const path = url.split(/[?#]/, 1)[0].replace(/\/+$/, "") || "/";
+  const [rawPath = ""] = url.split(/[?#]/, 1);
+  const path = rawPath.replace(/\/+$/, "") || "/";
 
   if (path === "/api/orders") {
     return Array.isArray(payload) ? payload.map(normalizeOrder) : payload;
