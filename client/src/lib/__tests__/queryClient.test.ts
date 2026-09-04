@@ -162,6 +162,46 @@ describe('QueryClient', () => {
             expect(result).toEqual(mockData);
         });
 
+        it('should normalize object shippingAddress on authenticated order details', async () => {
+            const mockOrder = {
+                id: '669a245f-59b0-4e96-85d8-cc61e080a90f',
+                orderNumber: 'FH-TEST',
+                shippingAddress: {
+                    addressLine1: 'شارع الاختبار',
+                    city: 'بغداد',
+                    country: 'IQ',
+                },
+            };
+
+            (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+                ok: true,
+                json: () => Promise.resolve(mockOrder),
+            });
+
+            const queryFn = getQueryFn({ on401: 'throw' });
+            const result = await queryFn({ queryKey: [`/api/orders/${mockOrder.id}`] } as any) as typeof mockOrder & { shippingAddress: string };
+
+            expect(result.shippingAddress).toBe('بغداد - شارع الاختبار');
+            expect(result.id).toBe(mockOrder.id);
+        });
+
+        it('should leave public tracking response shapes untouched', async () => {
+            const mockData = {
+                orderNumber: 'FH-TEST',
+                shippingAddress: { city: 'بغداد', addressLine1: 'خاص' },
+            };
+
+            (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+                ok: true,
+                json: () => Promise.resolve(mockData),
+            });
+
+            const queryFn = getQueryFn({ on401: 'throw' });
+            const result = await queryFn({ queryKey: ['/api/orders/track/FH-TEST'] } as any);
+
+            expect(result).toEqual(mockData);
+        });
+
         it('should join queryKey for URL', async () => {
             (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
                 ok: true,
