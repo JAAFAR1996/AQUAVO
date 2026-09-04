@@ -1,5 +1,6 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 import { addCsrfHeader } from "@/lib/csrf";
+import { normalizeCustomerOrderResponse } from "@/lib/shipping-address";
 
 // Default timeout for API requests (30 seconds)
 const DEFAULT_TIMEOUT_MS = 30000;
@@ -40,48 +41,6 @@ async function throwIfResNotOk(res: Response) {
     const text = (await res.text()) || res.statusText;
     throw new Error(`${res.status}: ${text}`);
   }
-}
-
-/**
- * The authenticated order API returns `shippingAddress` in its canonical DB
- * shape (`{ addressLine1, city, country }`), while the customer confirmation UI
- * consumes a printable string. A logged-in customer therefore used to hand a
- * plain object to React as text, which throws "Objects are not valid as a React
- * child" and drops the whole confirmation route into ErrorBoundary.
- *
- * Keep the server contract canonical and adapt only the customer order-detail
- * response at the query boundary. Guest checkout stashes already contain a
- * string, so they pass through unchanged.
- */
-export function normalizeOrderDetailResponse(url: string, payload: unknown): unknown {
-  // Match `/api/orders/:id` only. Do not touch the list endpoint or public
-  // tracking routes such as `/api/orders/track/:orderNumber`.
-  if (!/^\/api\/orders\/[^/?#]+(?:[?#].*)?$/.test(url)) return payload;
-  if (!payload || typeof payload !== "object" || Array.isArray(payload)) return payload;
-
-  const order = payload as Record<string, unknown>;
-  const rawAddress = order.shippingAddress;
-  if (rawAddress == null || typeof rawAddress === "string") return payload;
-
-  if (typeof rawAddress !== "object" || Array.isArray(rawAddress)) {
-    return { ...order, shippingAddress: "" };
-  }
-
-  const address = rawAddress as Record<string, unknown>;
-  const asText = (value: unknown): string => typeof value === "string" ? value.trim() : "";
-  const city = asText(address.city) || asText(address.governorate);
-  const addressLine = asText(address.addressLine1) || asText(address.address) || asText(address.street);
-  const country = asText(address.country);
-  const parts = [city, addressLine].filter(Boolean);
-
-  // Country is only useful as a last-resort display value; Iraqi checkout
-  // normally has both city and addressLine1.
-  if (parts.length === 0 && country) parts.push(country);
-
-  return {
-    ...order,
-    shippingAddress: parts.join(" - "),
-  };
 }
 
 export async function apiRequest(
@@ -126,7 +85,7 @@ export const getQueryFn: <T>(options: {
 
         await throwIfResNotOk(res);
         const payload = await res.json();
-        return normalizeOrderDetailResponse(url, payload) as T;
+        return normalizeCustomerOrderResponse(url, payload) as T;
       } catch (e: unknown) {
         if (e instanceof Error && e.name === 'AbortError') {
           throw new Error("انتهت مهلة الطلب - يرجى المحاولة مرة أخرى");
