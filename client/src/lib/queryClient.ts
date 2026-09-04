@@ -1,5 +1,6 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 import { addCsrfHeader } from "@/lib/csrf";
+import { normalizeCustomerOrderResponse } from "@/lib/shipping-address";
 
 // Default timeout for API requests (30 seconds)
 const DEFAULT_TIMEOUT_MS = 30000;
@@ -67,29 +68,32 @@ export async function apiRequest(
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
-export const getQueryFn: <T>(options: {
+
+export function getQueryFn<T>(options: {
   on401: UnauthorizedBehavior;
-}) => QueryFunction<T> =
-  ({ on401: unauthorizedBehavior }) =>
-    async ({ queryKey }) => {
-      try {
-        const res = await fetchWithRetryOn503(queryKey.join("/") as string, {
-          credentials: "include",
-        });
+}): QueryFunction<T> {
+  return async ({ queryKey }) => {
+    try {
+      const url = queryKey.join("/") as string;
+      const res = await fetchWithRetryOn503(url, {
+        credentials: "include",
+      });
 
-        if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-          return null;
-        }
-
-        await throwIfResNotOk(res);
-        return await res.json();
-      } catch (e: unknown) {
-        if (e instanceof Error && e.name === 'AbortError') {
-          throw new Error("انتهت مهلة الطلب - يرجى المحاولة مرة أخرى");
-        }
-        throw e;
+      if (options.on401 === "returnNull" && res.status === 401) {
+        return null as T;
       }
-    };
+
+      await throwIfResNotOk(res);
+      const payload: unknown = await res.json();
+      return normalizeCustomerOrderResponse(url, payload) as T;
+    } catch (e: unknown) {
+      if (e instanceof Error && e.name === 'AbortError') {
+        throw new Error("انتهت مهلة الطلب - يرجى المحاولة مرة أخرى");
+      }
+      throw e;
+    }
+  };
+}
 
 export const queryClient = new QueryClient({
   defaultOptions: {
