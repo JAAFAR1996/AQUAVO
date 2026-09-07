@@ -1,5 +1,6 @@
 export interface StockCheckLine {
   productId: string;
+  slug?: string;
   name: string;
   quantity: number;
   variantId?: string;
@@ -47,11 +48,11 @@ const extractProduct = (payload: unknown): LiveProduct | null => {
   return typeof product.id === "string" ? product : null;
 };
 
-async function fetchLiveProduct(productId: string): Promise<LiveProduct | null> {
+async function fetchLiveProduct(idOrSlug: string): Promise<LiveProduct | null> {
   // The catalogue list is intentionally cacheable. Stock validation must not use
   // that cached response, so hit the single-product route with a cache-busting
   // query and no-store. The route reads the product directly from storage.
-  const url = `/api/products/${encodeURIComponent(productId)}?inventory_check=${Date.now()}`;
+  const url = `/api/products/${encodeURIComponent(idOrSlug)}?inventory_check=${Date.now()}`;
   const response = await fetch(url, {
     method: "GET",
     credentials: "include",
@@ -89,9 +90,19 @@ function resolveAvailableStock(product: LiveProduct, variantId?: string): number
 export async function validateCartStock(
   lines: StockCheckLine[],
 ): Promise<CartStockValidationResult> {
-  const uniqueProductIds = Array.from(new Set(lines.map((line) => line.productId)));
+  // The public single-product route accepts UUID ids or slugs. Most storefront
+  // product ids are not UUIDs, so prefer the cart's canonical slug when present.
+  const productLookups = new Map<string, string>();
+  for (const line of lines) {
+    if (!productLookups.has(line.productId)) {
+      productLookups.set(line.productId, line.slug || line.productId);
+    }
+  }
+
   const liveProducts = await Promise.all(
-    uniqueProductIds.map(async (productId) => [productId, await fetchLiveProduct(productId)] as const),
+    Array.from(productLookups.entries()).map(async ([productId, lookup]) => (
+      [productId, await fetchLiveProduct(lookup)] as const
+    )),
   );
   const productMap = new Map(liveProducts);
   const conflicts: StockConflict[] = [];
