@@ -35,6 +35,29 @@ describe("validateCartStock", () => {
     );
   });
 
+  it("prefers the cart slug for non-UUID storefront product ids", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse({
+      id: "internal-product-id",
+      stock: 4,
+    }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await validateCartStock([
+      {
+        productId: "internal-product-id",
+        slug: "filter-media-bag",
+        name: "Filter bag",
+        quantity: 1,
+      },
+    ]);
+
+    expect(result.ok).toBe(true);
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining("/api/products/filter-media-bag?inventory_check="),
+      expect.any(Object),
+    );
+  });
+
   it("uses the selected variant stock instead of the base product stock", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse({
       id: "prod-1",
