@@ -68,6 +68,7 @@ vi.mock("lucide-react", () => ({
   AlertTriangle: () => <span>alert</span>,
   ReceiptText: () => <span>receipt</span>,
   RotateCcw: () => <span>rotate</span>,
+  Trash2: () => <span>trash</span>,
 }));
 
 vi.mock("@/hooks/use-toast", () => ({
@@ -92,7 +93,7 @@ vi.mock("@/components/admin/order-ship-carrier-dialog", () => ({
 }));
 
 vi.mock("@/components/admin/fulfillment", () => ({
-  OrderFulfillmentPanel: () => null,
+  OrderFulfillmentPanel: () => <div>fulfillment-panel</div>,
 }));
 
 import { OrdersManagement } from "../orders-management";
@@ -110,6 +111,17 @@ const order = {
   shippingCost: 5000,
   createdAt: "2026-08-07T10:00:00.000Z",
   updatedAt: "2026-08-07T10:00:00.000Z",
+};
+
+const pendingPaymentOrder = {
+  ...order,
+  id: "order-payment",
+  userId: "user-payment",
+  customerName: "Online Customer",
+  customerEmail: "online@example.com",
+  status: "pending_payment",
+  paymentStatus: "pending",
+  orderNumber: "FH-PAYMENT-PENDING",
 };
 
 const verifiedEvent = {
@@ -177,5 +189,38 @@ describe("OrdersManagement operational return events runtime", () => {
     expect(await screen.findByText("تعديلات الفاتورة / الراجعات (1)")).toBeInTheDocument();
     expect(screen.getByText("confirmed return")).toBeInTheDocument();
     expect(screen.queryByText("preserved as disputed legacy record")).not.toBeInTheDocument();
+  });
+
+  it("shows pending online payment explicitly and keeps preparation controls locked", async () => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.startsWith("/api/admin/orders")) {
+        return new Response(JSON.stringify([pendingPaymentOrder]), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      if (url.startsWith("/api/admin/accounting/return-events")) {
+        return new Response(JSON.stringify({ success: true, data: [] }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      throw new Error(`Unexpected fetch: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<OrdersManagement />);
+
+    await screen.findByText("FH-PAYMENT-PENDING");
+    expect(screen.getByText("بانتظار الدفع الإلكتروني 💳")).toBeInTheDocument();
+    expect(screen.getByText("بانتظار دفع الزبون 💳")).toBeInTheDocument();
+    expect(screen.queryByText("بدء التجهيز ⚡")).not.toBeInTheDocument();
+    expect(screen.queryByText("receipt")).not.toBeInTheDocument();
+    expect(screen.queryByText("trash")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByText("view-order"));
+    expect(await screen.findByText(/التجهيز متوقف إلى أن تؤكد Al-Qaseh نجاح الدفع/)).toBeInTheDocument();
+    expect(screen.queryByText("fulfillment-panel")).not.toBeInTheDocument();
   });
 });
