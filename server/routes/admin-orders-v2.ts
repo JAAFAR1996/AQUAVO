@@ -30,6 +30,15 @@ const statusTransitionSchema = z.object({
   financialReason: z.string().trim().min(3).max(500).optional(),
 }).strict();
 
+const PAYMENT_MANAGED_STATUSES = new Set(["pending_payment", "payment_review"]);
+
+function paymentManagedTransitionMessage(status: string): string {
+  if (status === "pending_payment") {
+    return "هذا الطلب بانتظار تأكيد الدفع الإلكتروني. لا يمكن بدء التجهيز أو تغيير حالته يدوياً؛ بعد نجاح Al-Qaseh ينتقل تلقائياً إلى قيد الانتظار.";
+  }
+  return "تم تأكيد الدفع الإلكتروني لكن الطلب يحتاج مراجعة مخزون. لا تغيّر الحالة يدوياً قبل إكمال مراجعة الدفع والمخزون.";
+}
+
 type LockedOrder = {
   id: string;
   order_number: string | null;
@@ -208,6 +217,18 @@ export function createAdminOrdersV2Router() {
 
         const oldStatus = locked.status;
         const input = parsed.data;
+
+        // Payment lifecycle states are owned by the Al-Qaseh verification flow.
+        // Admin status buttons must never bypass payment verification or a paid
+        // inventory-review hold. The payment service moves a verified successful
+        // order from `pending_payment` to `pending` directly and atomically.
+        if (PAYMENT_MANAGED_STATUSES.has(oldStatus) && input.status !== oldStatus) {
+          throw Object.assign(
+            new Error(paymentManagedTransitionMessage(oldStatus)),
+            { statusCode: 409 },
+          );
+        }
+
         const enteringShipped = input.status === "shipped" && oldStatus !== "shipped";
         if (enteringShipped && !input.deliveryCompanyId) {
           throw Object.assign(new Error("اختر شركة التوصيل قبل تسليم الطلب للنقل"), { statusCode: 400 });
