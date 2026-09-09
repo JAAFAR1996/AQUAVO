@@ -13,6 +13,8 @@ describe("admin cancellation for unpaid Al-Qaseh orders", () => {
     expect(adminRoute).toContain('oldStatus === "pending_payment" && input.status === "cancelled"');
     expect(adminRoute).toContain("admin_cancelled_before_payment");
     expect(adminRoute).toContain('{ paymentStatus: "cancelled" }');
+    expect(adminRoute).toContain('${String(actor.id ?? "admin")}::text');
+    expect(adminRoute).toContain('${input.financialReason ?? "إلغاء الزبون قبل إتمام الدفع"}::text');
   });
 
   it("prevents a late successful payment from reviving fulfillment", () => {
