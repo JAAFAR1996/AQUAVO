@@ -43,10 +43,16 @@ type LockedOrder = {
   id: string;
   order_number: string | null;
   status: string;
+  payment_status: string | null;
   user_id: string | null;
   client_ip: string | null;
   carrier: string | null;
   carrier_fee: string | null;
+};
+type LockedPayment = {
+  id: string;
+  status: string;
+  transaction_id: string | null;
 };
 type DeliveryCompany = { id: string; name: string; default_fee: string };
 type ActiveDeliveryCompany = DeliveryCompany & { active: boolean };
@@ -209,7 +215,7 @@ export function createAdminOrdersV2Router() {
     try {
       const result = await db.transaction(async (tx) => {
         const lockedResult = await tx.execute(sql`
-          SELECT id,order_number,status,user_id,client_ip,carrier,carrier_fee
+          SELECT id,order_number,status,payment_status,user_id,client_ip,carrier,carrier_fee
           FROM orders WHERE id=${req.params.id} FOR UPDATE
         `);
         const locked = rowsOf<LockedOrder>(lockedResult)[0];
@@ -219,14 +225,52 @@ export function createAdminOrdersV2Router() {
         const input = parsed.data;
 
         // Payment lifecycle states are owned by the Al-Qaseh verification flow.
-        // Admin status buttons must never bypass payment verification or a paid
-        // inventory-review hold. The payment service moves a verified successful
-        // order from `pending_payment` to `pending` directly and atomically.
-        if (PAYMENT_MANAGED_STATUSES.has(oldStatus) && input.status !== oldStatus) {
+        // The single admin exception is cancelling an UNPAID `pending_payment`
+        // order. That path releases the reservation and closes the local payment
+        // record atomically. A late provider success is handled by the payment
+        // service as `payment_review`; it can never resurrect fulfillment.
+        const cancellingPendingPayment = oldStatus === "pending_payment" && input.status === "cancelled";
+        if (PAYMENT_MANAGED_STATUSES.has(oldStatus) && input.status !== oldStatus && !cancellingPendingPayment) {
           throw Object.assign(
             new Error(paymentManagedTransitionMessage(oldStatus)),
             { statusCode: 409 },
           );
+        }
+
+        if (cancellingPendingPayment) {
+          const paymentResult = await tx.execute(sql`
+            SELECT id,status,transaction_id
+            FROM public.payments
+            WHERE order_id=${locked.id} AND method='alqaseh'
+            FOR UPDATE
+          `);
+          const payment = rowsOf<LockedPayment>(paymentResult)[0];
+          if (!payment) {
+            throw Object.assign(new Error("سجل الدفع الإلكتروني لهذا الطلب غير موجود؛ أوقف الإلغاء وراجع الطلب."), { statusCode: 409 });
+          }
+          if (locked.payment_status === "paid" || payment.status === "completed") {
+            throw Object.assign(new Error("تم تأكيد دفع هذا الطلب بالفعل. لا يمكن إلغاؤه كطلب غير مدفوع؛ راجع الدفع والاسترجاع أولاً."), { statusCode: 409 });
+          }
+
+          await tx.execute(sql`
+            UPDATE public.payment_stock_reservations
+               SET status='released',
+                   release_reason='admin_cancelled_before_payment',
+                   updated_at=clock_timestamp()
+             WHERE order_id=${locked.id} AND status='active'
+          `);
+
+          await tx.execute(sql`
+            UPDATE public.payments
+               SET status='cancelled',
+                   provider_response=COALESCE(provider_response,'{}'::jsonb) || jsonb_build_object(
+                     'adminCancelledAt', clock_timestamp(),
+                     'adminCancelledBy', ${actor.id},
+                     'adminCancelReason', ${input.financialReason ?? "إلغاء الزبون قبل إتمام الدفع"}
+                   ),
+                   updated_at=clock_timestamp()
+             WHERE id=${payment.id}
+          `);
         }
 
         const enteringShipped = input.status === "shipped" && oldStatus !== "shipped";
@@ -289,6 +333,7 @@ export function createAdminOrdersV2Router() {
 
         const [updated] = await tx.update(orders).set({
           status: input.status,
+          ...(cancellingPendingPayment ? { paymentStatus: "cancelled" } : {}),
           ...(input.shippingCost !== undefined ? { shippingCost: String(input.shippingCost) } : {}),
           ...(input.roundedTotal !== undefined ? { roundedTotal: String(input.roundedTotal) } : {}),
           ...(carrierName !== undefined ? { carrier: carrierName } : {}),

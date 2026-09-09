@@ -18,7 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Archive, Package, Search, Eye, AlertTriangle, ReceiptText, RotateCcw, Trash2 } from "lucide-react";
+import { Archive, Package, Search, Eye, AlertTriangle, ReceiptText, RotateCcw, Trash2, XCircle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -108,6 +108,8 @@ const ORDER_STATUSES = {
 
 const PAYMENT_LOCKED_STATUSES = new Set(["pending_payment", "payment_review"]);
 
+const CANCELLABLE_STATUSES = new Set(["pending_payment", "pending", "confirmed", "processing"]);
+
 const ARCHIVABLE_STATUSES = new Set([
   "delivered",
   "returned",
@@ -152,6 +154,7 @@ export function OrdersManagement() {
   const [deliverOrderId, setDeliverOrderId] = useState<string | null>(null);
   const [rejectOrderId, setRejectOrderId] = useState<string | null>(null);
   const [rejectStep, setRejectStep] = useState(0);
+  const [cancelOrderId, setCancelOrderId] = useState<string | null>(null);
   const [archiveOrderId, setArchiveOrderId] = useState<string | null>(null);
   const [purgeOrderId, setPurgeOrderId] = useState<string | null>(null);
   const [purgingOrderId, setPurgingOrderId] = useState<string | null>(null);
@@ -578,7 +581,20 @@ export function OrdersManagement() {
                           <Eye className="h-4 w-4" />
                         </Button>
 
-                        {order.status !== 'delivered' && !PAYMENT_LOCKED_STATUSES.has(order.status) && (
+                        {CANCELLABLE_STATUSES.has(order.status) && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-red-600 border-red-300 hover:bg-red-50 dark:hover:bg-red-950/30"
+                            title="إلغاء الطلب"
+                            onClick={() => setCancelOrderId(order.id)}
+                          >
+                            <XCircle className="h-4 w-4 ml-1" />
+                            إلغاء الطلب
+                          </Button>
+                        )}
+
+                        {order.status !== 'delivered' && order.status !== 'cancelled' && !PAYMENT_LOCKED_STATUSES.has(order.status) && (
                           <Button
                             size="sm"
                             variant="ghost"
@@ -691,6 +707,34 @@ export function OrdersManagement() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Cancel Order Confirmation Dialog */}
+      <AlertDialog open={!!cancelOrderId} onOpenChange={(open) => { if (!open) setCancelOrderId(null); }}>
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-red-600">
+              <XCircle className="h-5 w-5" />
+              إلغاء الطلب؟
+            </AlertDialogTitle>
+            <AlertDialogDescription className="leading-6">
+              استخدم الإلغاء إذا الزبون تراجع أو رفض الطلب قبل الشحن. إذا الطلب بانتظار الدفع الإلكتروني راح يتحرر حجز المخزون ويتوقف التنفيذ. إذا وصل دفع متأخر بعد الإلغاء، النظام يمنع التجهيز ويحوله تلقائياً إلى مراجعة دفع حتى ما يضيع حق الزبون.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>رجوع</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700 text-white"
+              onClick={() => {
+                const orderId = cancelOrderId;
+                setCancelOrderId(null);
+                if (orderId) void handleStatusChange(orderId, 'cancelled');
+              }}
+            >
+              تأكيد إلغاء الطلب
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Delivery Confirmation Dialog */}
       <AlertDialog open={!!deliverOrderId} onOpenChange={(open) => { if (!open) setDeliverOrderId(null); }}>

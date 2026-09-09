@@ -104,6 +104,13 @@ export class PaidOrderInventoryConflict extends Error {
   }
 }
 
+class CancelledOrderPaidConflict extends Error {
+  constructor() {
+    super("Payment succeeded after the order was cancelled");
+    this.name = "CancelledOrderPaidConflict";
+  }
+}
+
 function dbOrThrow() {
   const db = getDb();
   if (!db) throw new Error("Database not connected");
@@ -159,6 +166,9 @@ async function ensureOrderReservation(orderId: string): Promise<void> {
     await tx.execute(sql`SELECT id FROM orders WHERE id=${orderId} FOR UPDATE`);
     const [order] = await tx.select().from(orders).where(eq(orders.id, orderId)).limit(1);
     if (!order) throw Object.assign(new Error("Order not found"), { status: 404 });
+    if (order.status === "cancelled" || order.paymentStatus === "cancelled") {
+      throw Object.assign(new Error("هذا الطلب ملغي ولا يمكن إعادة فتح حجز الدفع أو المخزون له."), { status: 409 });
+    }
     const lines = Array.isArray(order.items) ? order.items : [];
     if (lines.length === 0) throw Object.assign(new Error("Order has no items"), { status: 409 });
 
@@ -606,6 +616,10 @@ async function finalizePaidOrder(
         };
       }
 
+      if (order.status === "cancelled" || order.paymentStatus === "cancelled" || payment.status === "cancelled") {
+        throw new CancelledOrderPaidConflict();
+      }
+
       const lines = Array.isArray(order.items) ? order.items : [];
       if (lines.length === 0) throw new PaidOrderInventoryConflict("Order has no stored line items");
 
@@ -714,6 +728,7 @@ async function recordPaidInventoryReview(
   orderId: string,
   providerPaymentId: string,
   context: AlqasehPaymentContext,
+  reviewReason: "inventory_conflict" | "paid_after_cancellation" = "inventory_conflict",
 ): Promise<void> {
   const db = dbOrThrow();
   const { payment } = await getOrderAndPayment(orderId);
@@ -735,13 +750,20 @@ async function recordPaidInventoryReview(
         providerStatus: context.payment_status,
         paymentId: providerPaymentId,
         inventoryReview: true,
+        reviewReason,
         verifiedAt: new Date().toISOString(),
       },
       updatedAt: new Date(),
     } as any).where(eq(payments.id, payment.id));
   });
+  const reviewTitle = reviewReason === "paid_after_cancellation"
+    ? "دفع إلكتروني وصل بعد إلغاء الطلب"
+    : "دفع إلكتروني ناجح يحتاج مراجعة مخزون";
+  const reviewDetail = reviewReason === "paid_after_cancellation"
+    ? "الطلب كان ملغياً قبل وصول تأكيد الدفع. لم يتم تجهيز الطلب أو استهلاك المخزون؛ راجع المبلغ ونفّذ الاسترجاع المالي حسب الإجراء المعتمد."
+    : "تم تأكيد الدفع من Al-Qaseh لكن لم يتم تنفيذ المخزون/التنفيذ تلقائياً.";
   await sendTelegramMessage(
-    `⚠️ <b>دفع إلكتروني ناجح يحتاج مراجعة مخزون</b>\nالطلب: <code>${orderId}</code>\nPayment: <code>${providerPaymentId}</code>\nتم تأكيد الدفع من Al-Qaseh لكن لم يتم تنفيذ المخزون/التنفيذ تلقائياً.`
+    `⚠️ <b>${reviewTitle}</b>\nالطلب: <code>${orderId}</code>\nPayment: <code>${providerPaymentId}</code>\n${reviewDetail}`
   ).catch(() => {});
 }
 
@@ -794,8 +816,11 @@ export async function verifyAndSyncAlqasehPayment(
         console.error("[AQUAVO Al-Qaseh] durable outbox immediate drain failed:", error),
       );
     } catch (error) {
-      if (!(error instanceof PaidOrderInventoryConflict)) throw error;
-      await recordPaidInventoryReview(order.id, providerPaymentId, context);
+      if (!(error instanceof PaidOrderInventoryConflict) && !(error instanceof CancelledOrderPaidConflict)) throw error;
+      const reviewReason = error instanceof CancelledOrderPaidConflict
+        ? "paid_after_cancellation"
+        : "inventory_conflict";
+      await recordPaidInventoryReview(order.id, providerPaymentId, context, reviewReason);
       const refreshed = await getOrderAndPayment(order.id);
       finalOrder = refreshed.order;
       inventoryReview = true;
@@ -805,9 +830,10 @@ export async function verifyAndSyncAlqasehPayment(
     if (isCurrentAttempt) {
       const meta = safeProviderResponse(payment.providerResponse);
       const attempts = Array.isArray(meta.attempts) ? meta.attempts : [];
+      const locallyCancelled = order.status === "cancelled" || order.paymentStatus === "cancelled" || payment.status === "cancelled";
       await dbOrThrow().transaction(async (tx) => {
         await tx.update(payments).set({
-          status: mappedStatus === "pending" ? "pending" : "failed",
+          status: locallyCancelled ? "cancelled" : (mappedStatus === "pending" ? "pending" : "failed"),
           providerResponse: {
             ...meta,
             attempts: attempts.map((entry: any) => entry?.paymentId === providerPaymentId
@@ -818,10 +844,10 @@ export async function verifyAndSyncAlqasehPayment(
           },
           updatedAt: new Date(),
         } as any).where(eq(payments.id, payment.id));
-        await tx.update(orders).set({ paymentStatus: mappedStatus, updatedAt: new Date() } as any)
+        await tx.update(orders).set({ paymentStatus: locallyCancelled ? "cancelled" : mappedStatus, updatedAt: new Date() } as any)
           .where(eq(orders.id, order.id));
       });
-      finalOrder = { ...order, paymentStatus: mappedStatus } as Order;
+      finalOrder = { ...order, paymentStatus: locallyCancelled ? "cancelled" : mappedStatus } as Order;
       if (mappedStatus !== "pending") {
         await releaseOrderReservation(order.id, `payment_${mappedStatus}`).catch((error) =>
           console.error("[AQUAVO Al-Qaseh] reservation release failed:", error),
