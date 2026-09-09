@@ -92,6 +92,8 @@ interface Order {
 }
 
 const ORDER_STATUSES = {
+  pending_payment: { label: "بانتظار الدفع الإلكتروني 💳", color: "bg-amber-500 hover:bg-amber-600 text-black" },
+  payment_review: { label: "الدفع مؤكد — مراجعة المخزون ⚠️", color: "bg-fuchsia-600 hover:bg-fuchsia-700 text-white" },
   pending: { label: "قيد الانتظار", color: "bg-red-500 hover:bg-red-600" },
   confirmed: { label: "تم التأكيد", color: "bg-blue-500 hover:bg-blue-600" },
   processing: { label: "جاري التجهيز", color: "bg-yellow-500 hover:bg-yellow-600 text-black" },
@@ -103,6 +105,8 @@ const ORDER_STATUSES = {
   rejected_returned: { label: "رجع للبائع", color: "bg-orange-600 hover:bg-orange-700" },
   rejected_carrier:  { label: "بقي بالشركة", color: "bg-rose-700 hover:bg-rose-800" },
 };
+
+const PAYMENT_LOCKED_STATUSES = new Set(["pending_payment", "payment_review"]);
 
 const ARCHIVABLE_STATUSES = new Set([
   "delivered",
@@ -455,7 +459,12 @@ export function OrdersManagement() {
   });
 
   const getStatusInfo = (status: string) => {
-    return ORDER_STATUSES[status as keyof typeof ORDER_STATUSES] || ORDER_STATUSES.pending;
+    const known = ORDER_STATUSES[status as keyof typeof ORDER_STATUSES];
+    if (known) return known;
+    return {
+      label: `حالة غير معروفة: ${status || "فارغة"}`,
+      color: "bg-slate-500 hover:bg-slate-600 text-white",
+    };
   };
 
   const REJECT_MESSAGES = [
@@ -569,7 +578,7 @@ export function OrdersManagement() {
                           <Eye className="h-4 w-4" />
                         </Button>
 
-                        {order.status !== 'delivered' && (
+                        {order.status !== 'delivered' && !PAYMENT_LOCKED_STATUSES.has(order.status) && (
                           <Button
                             size="sm"
                             variant="ghost"
@@ -595,15 +604,17 @@ export function OrdersManagement() {
                           </Button>
                         ) : (
                           <>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="text-orange-500 border-orange-300 hover:bg-orange-50 dark:hover:bg-orange-950/30"
-                              title="تعديل الفاتورة / راجع"
-                              onClick={() => setReturnAdjustOrder(order)}
-                            >
-                              <ReceiptText className="h-4 w-4" />
-                            </Button>
+                            {!PAYMENT_LOCKED_STATUSES.has(order.status) && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="text-orange-500 border-orange-300 hover:bg-orange-50 dark:hover:bg-orange-950/30"
+                                title="تعديل الفاتورة / راجع"
+                                onClick={() => setReturnAdjustOrder(order)}
+                              >
+                                <ReceiptText className="h-4 w-4" />
+                              </Button>
+                            )}
 
                             {ARCHIVABLE_STATUSES.has(order.status) && (
                               <Button
@@ -621,6 +632,24 @@ export function OrdersManagement() {
                               <Button size="sm" className="bg-yellow-500 hover:bg-yellow-600 text-black" onClick={() => handleStatusChange(order.id, 'processing')}>
                                 بدء التجهيز ⚡
                               </Button>
+                            )}
+
+                            {order.status === 'pending_payment' && (
+                              <span
+                                className="text-amber-700 dark:text-amber-300 font-semibold px-3 py-1 border border-amber-300 dark:border-amber-700 rounded-md bg-amber-50 dark:bg-amber-950/30"
+                                title="لا يبدأ التجهيز قبل تأكيد الدفع من Al-Qaseh"
+                              >
+                                بانتظار دفع الزبون 💳
+                              </span>
+                            )}
+
+                            {order.status === 'payment_review' && (
+                              <span
+                                className="text-fuchsia-700 dark:text-fuchsia-300 font-semibold px-3 py-1 border border-fuchsia-300 dark:border-fuchsia-700 rounded-md bg-fuchsia-50 dark:bg-fuchsia-950/30"
+                                title="الدفع مؤكد لكن تنفيذ الطلب متوقف حتى مراجعة المخزون"
+                              >
+                                مراجعة الدفع والمخزون ⚠️
+                              </span>
                             )}
 
                             {order.status === 'processing' && (
@@ -777,7 +806,7 @@ export function OrdersManagement() {
                 </DialogDescription>
               </div>
               <div className="flex gap-2 print:hidden">
-                {selectedOrder && !selectedOrder.archivedAt && (
+                {selectedOrder && !selectedOrder.archivedAt && !PAYMENT_LOCKED_STATUSES.has(selectedOrder.status) && (
                   <Button
                     variant="outline"
                     size="sm"
@@ -1003,7 +1032,15 @@ export function OrdersManagement() {
                 </div>
               )}
 
-              <OrderFulfillmentPanel orderId={selectedOrder.id} />
+              {PAYMENT_LOCKED_STATUSES.has(selectedOrder.status) ? (
+                <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200">
+                  {selectedOrder.status === "pending_payment"
+                    ? "التجهيز متوقف إلى أن تؤكد Al-Qaseh نجاح الدفع. بعد التأكيد ينتقل الطلب تلقائياً إلى قيد الانتظار ويظهر زر بدء التجهيز."
+                    : "الدفع مؤكد، لكن تنفيذ الطلب متوقف بسبب مراجعة مخزون مطلوبة. لا تبدأ التجهيز قبل حل المراجعة."}
+                </div>
+              ) : (
+                <OrderFulfillmentPanel orderId={selectedOrder.id} />
+              )}
 
               <div className="text-center text-xs text-muted-foreground border-t pt-4">
                 <p>شكراً لتسوقكم من AQUAVO</p>
