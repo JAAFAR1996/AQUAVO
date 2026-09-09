@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
 
+// This contract keeps admin cancellation from bypassing payment truth or reviving fulfillment after a late provider callback.
 const root = process.cwd();
 const adminRoute = fs.readFileSync(path.join(root, "server/routes/admin-orders-v2.ts"), "utf8");
 const paymentService = fs.readFileSync(path.join(root, "server/services/alqaseh-order-payment.ts"), "utf8");
