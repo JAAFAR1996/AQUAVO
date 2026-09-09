@@ -265,8 +265,8 @@ export function createAdminOrdersV2Router() {
                SET status='cancelled',
                    provider_response=COALESCE(provider_response,'{}'::jsonb) || jsonb_build_object(
                      'adminCancelledAt', clock_timestamp(),
-                     'adminCancelledBy', ${actor.id},
-                     'adminCancelReason', ${input.financialReason ?? "إلغاء الزبون قبل إتمام الدفع"}
+                     'adminCancelledBy', ${String(actor.id ?? "admin")}::text,
+                     'adminCancelReason', ${input.financialReason ?? "إلغاء الزبون قبل إتمام الدفع"}::text
                    ),
                    updated_at=clock_timestamp()
              WHERE id=${payment.id}
