@@ -1,4 +1,4 @@
-import { memo, useRef, useState, type MouseEvent } from "react";
+import { memo, useEffect, useRef, useState, type CSSProperties, type MouseEvent } from "react";
 import { Leaf, Package, ShoppingCart } from "lucide-react";
 import { Link, useLocation } from "wouter";
 
@@ -9,6 +9,12 @@ import { DifficultyBadge } from "@/components/ui/difficulty-badge";
 import { WishlistButton } from "@/components/wishlist/wishlist-button";
 import { useCart } from "@/contexts/cart-context";
 import { useToast } from "@/hooks/use-toast";
+import {
+  analyzeImageBackground,
+  FALLBACK_CARD_BACKGROUND,
+  getCachedAdaptiveBackground,
+  type AdaptiveBackgroundResult,
+} from "@/lib/adaptive-card-background";
 import { cardImage, cardImageSrcSet } from "@/lib/cloudinary";
 import { formatPrice } from "@/lib/format";
 import { trackSelectItem } from "@/lib/analytics";
@@ -28,6 +34,13 @@ interface ProductCardProps {
   /** Pass true for above-the-fold cards to load eagerly. */
   priority?: boolean;
 }
+
+const neutralBackground: AdaptiveBackgroundResult = {
+  imageBackground: FALLBACK_CARD_BACKGROUND,
+  seamBackground: FALLBACK_CARD_BACKGROUND,
+  confidence: 0,
+  mode: "fallback",
+};
 
 export const ProductCard = memo(function ProductCard({
   product,
@@ -56,6 +69,34 @@ export const ProductCard = memo(function ProductCard({
     ? product.variants?.every((variant) => (variant.stock ?? 0) <= 0) ?? true
     : (product.stock ?? 0) <= 0;
   const supportingLine = product.specs || product.description || "";
+
+  const rawImage = product.thumbnail || product.image;
+  const imageSrc = cardImage(rawImage) || "/brand/aquavo-v2-icon.svg";
+  const imageSrcSet = cardImageSrcSet(rawImage);
+  const [adaptiveBackground, setAdaptiveBackground] = useState<AdaptiveBackgroundResult>(
+    () => getCachedAdaptiveBackground(imageSrc) || neutralBackground,
+  );
+
+  useEffect(() => {
+    setAdaptiveBackground(getCachedAdaptiveBackground(imageSrc) || neutralBackground);
+  }, [imageSrc]);
+
+  const updateAdaptiveBackground = () => {
+    const image = imgRef.current;
+    if (!image || !image.complete || !image.naturalWidth) return;
+
+    const cached = getCachedAdaptiveBackground(imageSrc);
+    if (cached) {
+      setAdaptiveBackground(cached);
+      return;
+    }
+
+    // Defer tiny canvas work until after the browser has painted the product.
+    window.setTimeout(() => {
+      if (!imgRef.current) return;
+      setAdaptiveBackground(analyzeImageBackground(imgRef.current, imageSrc));
+    }, 0);
+  };
 
   const handlePrimaryAction = async (event: MouseEvent<HTMLButtonElement>) => {
     if (isOutOfStock) return;
@@ -98,10 +139,6 @@ export const ProductCard = memo(function ProductCard({
     });
   };
 
-  const rawImage = product.thumbnail || product.image;
-  const imageSrc = cardImage(rawImage) || "/brand/aquavo-v2-icon.svg";
-  const imageSrcSet = cardImageSrcSet(rawImage);
-
   const primaryActionLabel = !hasPrice
     ? "قريباً"
     : isOutOfStock
@@ -118,8 +155,24 @@ export const ProductCard = memo(function ProductCard({
         ? `اختار خيار ${product.name}`
         : `أضف ${product.name} إلى سلة المشتريات`;
 
+  const imageSurfaceStyle: CSSProperties = {
+    backgroundColor: adaptiveBackground.imageBackground,
+  };
+
+  const headerSurfaceStyle: CSSProperties = adaptiveBackground.mode === "fallback"
+    ? { backgroundColor: FALLBACK_CARD_BACKGROUND }
+    : {
+        background: `linear-gradient(to bottom, ${adaptiveBackground.seamBackground} 0px, ${FALLBACK_CARD_BACKGROUND} 64px)`,
+      };
+
+  const cloudinaryCrossOrigin = imageSrc.includes("res.cloudinary.com") ? "anonymous" : undefined;
+
   return (
-    <Card className="group relative flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-[#ddd9d2] bg-[#f5f3f0] text-right shadow-[0_4px_14px_rgba(35,42,43,0.07)] transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-[#d2ccc3] hover:shadow-[0_8px_22px_rgba(35,42,43,0.10)]">
+    <Card
+      className="group relative flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-[#ddd9d2] bg-[#f5f3f0] text-right shadow-[0_4px_14px_rgba(35,42,43,0.07)] transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-[#d2ccc3] hover:shadow-[0_8px_22px_rgba(35,42,43,0.10)]"
+      data-background-mode={adaptiveBackground.mode}
+      data-background-confidence={adaptiveBackground.confidence.toFixed(2)}
+    >
       <div className="pointer-events-none absolute inset-x-3 top-3 z-20 flex items-start justify-between gap-2">
         <div className="pointer-events-auto">
           <WishlistButton
@@ -151,7 +204,11 @@ export const ProductCard = memo(function ProductCard({
         aria-label={`عرض تفاصيل ${product.name}`}
         className="flex min-w-0 flex-1 flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
       >
-        <div className="relative aspect-square overflow-hidden bg-[#f5f3f0]" data-protected="true">
+        <div
+          className="relative aspect-square overflow-hidden transition-colors duration-300"
+          style={imageSurfaceStyle}
+          data-protected="true"
+        >
           {!imgLoaded ? <div className="absolute inset-0 bg-muted/30" aria-hidden="true" /> : null}
           <img
             ref={imgRef}
@@ -162,24 +219,33 @@ export const ProductCard = memo(function ProductCard({
             className={`h-full w-full select-none object-contain p-3 sm:p-4 ${imgLoaded ? "opacity-100" : "opacity-0"}`}
             loading={priority ? "eager" : "lazy"}
             fetchPriority={priority ? "high" : "auto"}
+            crossOrigin={cloudinaryCrossOrigin}
             width={400}
             height={400}
             decoding="async"
             draggable={false}
             onContextMenu={(event) => event.preventDefault()}
             onDragStart={(event) => event.preventDefault()}
-            onLoad={() => setImgLoaded(true)}
+            onLoad={() => {
+              setImgLoaded(true);
+              updateAdaptiveBackground();
+            }}
             onError={(event) => {
               const target = event.currentTarget;
               if (!target.src.endsWith("/brand/aquavo-v2-icon.svg")) {
+                target.removeAttribute("crossorigin");
                 target.src = "/brand/aquavo-v2-icon.svg";
               }
               setImgLoaded(true);
+              setAdaptiveBackground(neutralBackground);
             }}
           />
         </div>
 
-        <CardHeader className="space-y-1.5 px-3 pb-1 pt-2.5 sm:px-4 sm:pb-1 sm:pt-3">
+        <CardHeader
+          className="space-y-1.5 px-3 pb-1 pt-2.5 transition-[background] duration-300 sm:px-4 sm:pb-1 sm:pt-3"
+          style={headerSurfaceStyle}
+        >
           <div className="flex min-w-0 items-center justify-between gap-2">
             <span className="truncate text-[11px] font-medium text-muted-foreground sm:text-xs">
               {product.brand || "AQUAVO"}
@@ -196,7 +262,7 @@ export const ProductCard = memo(function ProductCard({
           </p>
         </CardHeader>
 
-        <CardContent className="mt-auto px-3 pb-2 pt-1 sm:px-4 sm:pb-2 sm:pt-1">
+        <CardContent className="mt-auto bg-[#f5f3f0] px-3 pb-2 pt-1 sm:px-4 sm:pb-2 sm:pt-1">
           <div className="flex min-h-7 items-end justify-between gap-2">
             <div className="flex min-w-0 items-baseline gap-x-1.5">
               {hasPrice ? (
@@ -235,7 +301,7 @@ export const ProductCard = memo(function ProductCard({
         </CardContent>
       </Link>
 
-      <CardFooter className="px-3 pb-3 pt-0 sm:px-4 sm:pb-4 sm:pt-0">
+      <CardFooter className="bg-[#f5f3f0] px-3 pb-3 pt-0 sm:px-4 sm:pb-4 sm:pt-0">
         <Button
           type="button"
           variant={isOutOfStock && hasPrice ? "outline" : "default"}
