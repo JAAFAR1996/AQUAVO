@@ -1,4 +1,4 @@
-import { memo, useRef, useState, type MouseEvent } from "react";
+import { memo, useRef, useState, type CSSProperties, type MouseEvent } from "react";
 import { Leaf, Package, ShoppingCart } from "lucide-react";
 import { Link, useLocation } from "wouter";
 
@@ -28,6 +28,11 @@ interface ProductCardProps {
   /** Pass true for above-the-fold cards to load eagerly. */
   priority?: boolean;
 }
+
+const foregroundImageMask: CSSProperties = {
+  WebkitMaskImage: "linear-gradient(to bottom, #000 0%, #000 78%, rgba(0,0,0,.92) 84%, rgba(0,0,0,.55) 92%, transparent 100%)",
+  maskImage: "linear-gradient(to bottom, #000 0%, #000 78%, rgba(0,0,0,.92) 84%, rgba(0,0,0,.55) 92%, transparent 100%)",
+};
 
 export const ProductCard = memo(function ProductCard({
   product,
@@ -119,23 +124,24 @@ export const ProductCard = memo(function ProductCard({
         : `أضف ${product.name} إلى سلة المشتريات`;
 
   return (
-    <Card className="group isolate relative flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-[#ddd9d2] bg-[#f5f3f0] text-right shadow-[0_4px_14px_rgba(35,42,43,0.07)] transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-[#d2ccc3] hover:shadow-[0_10px_26px_rgba(35,42,43,0.11)]">
+    <Card className="group isolate relative flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-[#ddd9d2] bg-[#f7f4ef] text-right shadow-[0_4px_14px_rgba(35,42,43,0.07)] transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-[#d2ccc3] hover:shadow-[0_10px_26px_rgba(35,42,43,0.11)]">
       {/*
-        Full-bleed visual layer. The same product image softly continues behind
-        the lower information area so the card reads as one continuous object,
-        while the neutral gradient keeps Arabic copy, price and CTA readable.
-        The foreground image remains object-contain so products are never cropped.
+        Continuous full-card image treatment:
+        - a soft cover layer carries the product image through the entire card;
+        - the real product image stays uncropped in the upper area;
+        - its lower edge is feathered instead of ending as a visible square;
+        - a neutral scrim appears only where text needs contrast.
       */}
       <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden" aria-hidden="true">
         <img
           src={imageSrc}
           alt=""
-          className={`h-full w-full scale-110 object-cover object-center blur-xl transition-opacity duration-500 ${imgLoaded ? "opacity-55" : "opacity-0"}`}
+          className={`h-full w-full scale-[1.18] object-cover object-center blur-[16px] saturate-[0.88] transition-opacity duration-500 ${imgLoaded ? "opacity-60" : "opacity-0"}`}
           loading={priority ? "eager" : "lazy"}
           decoding="async"
           draggable={false}
         />
-        <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(245,243,240,0.02)_0%,rgba(245,243,240,0.05)_36%,rgba(245,243,240,0.62)_52%,rgba(245,243,240,0.90)_66%,rgba(245,243,240,0.98)_78%,#f5f3f0_90%,#f5f3f0_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(247,244,239,0.00)_0%,rgba(247,244,239,0.00)_40%,rgba(247,244,239,0.18)_50%,rgba(247,244,239,0.62)_62%,rgba(247,244,239,0.90)_72%,rgba(247,244,239,0.97)_80%,#f7f4ef_90%,#f7f4ef_100%)]" />
       </div>
 
       <div className="pointer-events-none absolute inset-x-3 top-3 z-30 flex items-start justify-between gap-2">
@@ -144,16 +150,16 @@ export const ProductCard = memo(function ProductCard({
             product={product}
             variant="icon"
             size="icon"
-            className="h-10 w-10 border border-white/65 bg-[#f5f3f0]/82 shadow-sm backdrop-blur-md md:h-10 md:w-10"
+            className="h-10 w-10 border border-white/75 bg-[#f7f4ef]/80 shadow-sm backdrop-blur-md md:h-10 md:w-10"
           />
         </div>
 
         <div className="flex flex-col items-end gap-1">
           {product.isNew ? <Badge className="bg-primary text-primary-foreground">جديد</Badge> : null}
           {product.isBestSeller ? <Badge variant="secondary">الأكثر مبيعاً</Badge> : null}
-          {product.difficulty ? <DifficultyBadge level={product.difficulty} className="shrink-0 bg-[#f5f3f0]/88 backdrop-blur-md" /> : null}
+          {product.difficulty ? <DifficultyBadge level={product.difficulty} className="shrink-0 bg-[#f7f4ef]/88 backdrop-blur-md" /> : null}
           {product.ecoFriendly ? (
-            <Badge variant="outline" className="gap-1 border-primary/25 bg-[#f5f3f0]/88 text-primary backdrop-blur-md">
+            <Badge variant="outline" className="gap-1 border-primary/25 bg-[#f7f4ef]/88 text-primary backdrop-blur-md">
               <Leaf className="h-3 w-3" aria-hidden="true" />
               صديق للبيئة
             </Badge>
@@ -170,15 +176,16 @@ export const ProductCard = memo(function ProductCard({
         aria-label={`عرض تفاصيل ${product.name}`}
         className="relative z-10 flex min-w-0 flex-1 flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
       >
-        <div className="relative aspect-square w-full shrink-0 overflow-hidden" data-protected="true">
-          {!imgLoaded ? <div className="absolute inset-0 bg-muted/30" aria-hidden="true" /> : null}
+        <div className="relative aspect-square w-full shrink-0 overflow-visible" data-protected="true">
+          {!imgLoaded ? <div className="absolute inset-0 bg-muted/20" aria-hidden="true" /> : null}
           <img
             ref={imgRef}
             src={imageSrc}
             srcSet={imageSrcSet}
             sizes={imageSrcSet ? "(max-width: 639px) 50vw, (max-width: 1023px) 33vw, (max-width: 1279px) 25vw, 20vw" : undefined}
             alt={`صورة منتج ${product.name}`}
-            className={`h-full w-full select-none object-contain p-3 transition-[opacity,transform] duration-300 sm:p-4 ${imgLoaded ? "opacity-100" : "opacity-0"} group-hover:scale-[1.015]`}
+            className={`h-full w-full select-none object-cover object-center transition-[opacity,transform] duration-300 ${imgLoaded ? "opacity-100" : "opacity-0"} group-hover:scale-[1.012]`}
+            style={foregroundImageMask}
             loading={priority ? "eager" : "lazy"}
             fetchPriority={priority ? "high" : "auto"}
             width={400}
@@ -198,7 +205,7 @@ export const ProductCard = memo(function ProductCard({
           />
         </div>
 
-        <CardHeader className="relative -mt-10 space-y-1.5 px-3 pb-1 pt-12 sm:-mt-12 sm:px-4 sm:pb-1 sm:pt-14">
+        <CardHeader className="relative -mt-[4.75rem] space-y-1.5 px-3 pb-1 pt-[4.9rem] sm:-mt-20 sm:px-4 sm:pb-1 sm:pt-[5.1rem]">
           <h3 className="line-clamp-2 min-h-10 text-sm font-bold leading-5 tracking-[-0.01em] text-foreground transition-colors group-hover:text-primary sm:min-h-12 sm:text-[15px] sm:leading-6">
             {product.name}
           </h3>
