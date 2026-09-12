@@ -159,7 +159,7 @@ export const ProductCard = memo(function ProductCard({
             srcSet={imageSrcSet}
             sizes={imageSrcSet ? "(max-width: 639px) 50vw, (max-width: 1023px) 33vw, (max-width: 1279px) 25vw, 20vw" : undefined}
             alt={`صورة منتج ${product.name}`}
-            className={`h-full w-full select-none object-cover object-center transition-[opacity,transform] duration-300 ${imgLoaded ? "opacity-100" : "opacity-0"} group-hover:scale-[1.012]`}
+            className={`h-full w-full select-none object-cover object-center transition-[opacity,transform] duration-300 ${imgLoaded ? "opacity-100" : "opacity-0"} group-hover:scale-[1.01]`}
             loading={priority ? "eager" : "lazy"}
             fetchPriority={priority ? "high" : "auto"}
             width={400}
@@ -177,14 +177,18 @@ export const ProductCard = memo(function ProductCard({
               setImgLoaded(true);
             }}
           />
+          <div
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-b from-transparent via-[#f7f4ef]/55 to-[#f7f4ef]"
+            aria-hidden="true"
+          />
         </div>
 
-        <CardHeader className="space-y-1.5 bg-[#f7f4ef] px-3 pb-1 pt-3 sm:px-4 sm:pb-1 sm:pt-3.5">
+        <CardHeader className="-mt-px space-y-1 bg-[#f7f4ef] px-3 pb-1 pt-2.5 sm:px-4 sm:pb-1 sm:pt-3">
           <h3 className="line-clamp-2 min-h-10 text-sm font-bold leading-5 tracking-[-0.01em] text-foreground transition-colors group-hover:text-primary sm:min-h-12 sm:text-[15px] sm:leading-6">
             {product.name}
           </h3>
 
-          <p className="line-clamp-2 min-h-10 text-xs leading-5 text-muted-foreground sm:text-[13px]">
+          <p className="line-clamp-1 min-h-5 text-xs leading-5 text-muted-foreground sm:text-[13px]">
             {supportingLine || "\u00a0"}
           </p>
         </CardHeader>
