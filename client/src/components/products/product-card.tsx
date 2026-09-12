@@ -1,4 +1,4 @@
-import { memo, useRef, useState, type CSSProperties, type MouseEvent } from "react";
+import { memo, useRef, useState, type MouseEvent } from "react";
 import { Leaf, Package, ShoppingCart } from "lucide-react";
 import { Link, useLocation } from "wouter";
 
@@ -29,11 +29,6 @@ interface ProductCardProps {
   priority?: boolean;
 }
 
-const foregroundImageMask: CSSProperties = {
-  WebkitMaskImage: "linear-gradient(to bottom, #000 0%, #000 78%, rgba(0,0,0,.92) 84%, rgba(0,0,0,.55) 92%, transparent 100%)",
-  maskImage: "linear-gradient(to bottom, #000 0%, #000 78%, rgba(0,0,0,.92) 84%, rgba(0,0,0,.55) 92%, transparent 100%)",
-};
-
 export const ProductCard = memo(function ProductCard({
   product,
   priority = false,
@@ -42,7 +37,6 @@ export const ProductCard = memo(function ProductCard({
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [imgLoaded, setImgLoaded] = useState(false);
-  // Motion is the normal experience; only reduced-motion users opt out.
   const motionActive = !prefersReducedMotion();
   const imgRef = useRef<HTMLImageElement>(null);
   const navLockRef = useRef(false);
@@ -124,26 +118,7 @@ export const ProductCard = memo(function ProductCard({
         : `أضف ${product.name} إلى سلة المشتريات`;
 
   return (
-    <Card className="group isolate relative flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-[#ddd9d2] bg-[#f7f4ef] text-right shadow-[0_4px_14px_rgba(35,42,43,0.07)] transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-[#d2ccc3] hover:shadow-[0_10px_26px_rgba(35,42,43,0.11)]">
-      {/*
-        Continuous full-card image treatment:
-        - a soft cover layer carries the product image through the entire card;
-        - the real product image stays uncropped in the upper area;
-        - its lower edge is feathered instead of ending as a visible square;
-        - a neutral scrim appears only where text needs contrast.
-      */}
-      <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden" aria-hidden="true">
-        <img
-          src={imageSrc}
-          alt=""
-          className={`h-full w-full scale-[1.18] object-cover object-center blur-[16px] saturate-[0.88] transition-opacity duration-500 ${imgLoaded ? "opacity-60" : "opacity-0"}`}
-          loading={priority ? "eager" : "lazy"}
-          decoding="async"
-          draggable={false}
-        />
-        <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(247,244,239,0.00)_0%,rgba(247,244,239,0.00)_40%,rgba(247,244,239,0.18)_50%,rgba(247,244,239,0.62)_62%,rgba(247,244,239,0.90)_72%,rgba(247,244,239,0.97)_80%,#f7f4ef_90%,#f7f4ef_100%)]" />
-      </div>
-
+    <Card className="group relative flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-[#ddd9d2] bg-[#f7f4ef] text-right shadow-[0_4px_14px_rgba(35,42,43,0.07)] transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-[#d2ccc3] hover:shadow-[0_10px_26px_rgba(35,42,43,0.11)]">
       <div className="pointer-events-none absolute inset-x-3 top-3 z-30 flex items-start justify-between gap-2">
         <div className="pointer-events-auto">
           <WishlistButton
@@ -174,9 +149,9 @@ export const ProductCard = memo(function ProductCard({
         onPointerDown={prefetchDestination}
         onFocus={prefetchDestination}
         aria-label={`عرض تفاصيل ${product.name}`}
-        className="relative z-10 flex min-w-0 flex-1 flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
+        className="flex min-w-0 flex-1 flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
       >
-        <div className="relative aspect-square w-full shrink-0 overflow-visible" data-protected="true">
+        <div className="relative aspect-square w-full shrink-0 overflow-hidden bg-[#f7f4ef]" data-protected="true">
           {!imgLoaded ? <div className="absolute inset-0 bg-muted/20" aria-hidden="true" /> : null}
           <img
             ref={imgRef}
@@ -185,7 +160,6 @@ export const ProductCard = memo(function ProductCard({
             sizes={imageSrcSet ? "(max-width: 639px) 50vw, (max-width: 1023px) 33vw, (max-width: 1279px) 25vw, 20vw" : undefined}
             alt={`صورة منتج ${product.name}`}
             className={`h-full w-full select-none object-cover object-center transition-[opacity,transform] duration-300 ${imgLoaded ? "opacity-100" : "opacity-0"} group-hover:scale-[1.012]`}
-            style={foregroundImageMask}
             loading={priority ? "eager" : "lazy"}
             fetchPriority={priority ? "high" : "auto"}
             width={400}
@@ -205,7 +179,7 @@ export const ProductCard = memo(function ProductCard({
           />
         </div>
 
-        <CardHeader className="relative -mt-[4.75rem] space-y-1.5 px-3 pb-1 pt-[4.9rem] sm:-mt-20 sm:px-4 sm:pb-1 sm:pt-[5.1rem]">
+        <CardHeader className="space-y-1.5 bg-[#f7f4ef] px-3 pb-1 pt-3 sm:px-4 sm:pb-1 sm:pt-3.5">
           <h3 className="line-clamp-2 min-h-10 text-sm font-bold leading-5 tracking-[-0.01em] text-foreground transition-colors group-hover:text-primary sm:min-h-12 sm:text-[15px] sm:leading-6">
             {product.name}
           </h3>
@@ -215,7 +189,7 @@ export const ProductCard = memo(function ProductCard({
           </p>
         </CardHeader>
 
-        <CardContent className="mt-auto px-3 pb-2 pt-1 sm:px-4 sm:pb-2 sm:pt-1">
+        <CardContent className="mt-auto bg-[#f7f4ef] px-3 pb-2 pt-1 sm:px-4 sm:pb-2 sm:pt-1">
           <div className="flex min-h-7 items-end justify-between gap-2">
             <div className="flex min-w-0 items-baseline gap-x-1.5">
               {hasPrice ? (
@@ -254,7 +228,7 @@ export const ProductCard = memo(function ProductCard({
         </CardContent>
       </Link>
 
-      <CardFooter className="relative z-20 px-3 pb-3 pt-0 sm:px-4 sm:pb-4 sm:pt-0">
+      <CardFooter className="bg-[#f7f4ef] px-3 pb-3 pt-0 sm:px-4 sm:pb-4 sm:pt-0">
         <Button
           type="button"
           variant={isOutOfStock && hasPrice ? "outline" : "default"}
