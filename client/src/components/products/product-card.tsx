@@ -119,22 +119,41 @@ export const ProductCard = memo(function ProductCard({
         : `أضف ${product.name} إلى سلة المشتريات`;
 
   return (
-    <Card className="group relative flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-[#ddd9d2] bg-[#f5f3f0] text-right shadow-[0_4px_14px_rgba(35,42,43,0.07)] transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-[#d2ccc3] hover:shadow-[0_8px_22px_rgba(35,42,43,0.10)]">
-      <div className="pointer-events-none absolute inset-x-3 top-3 z-20 flex items-start justify-between gap-2">
+    <Card className="group isolate relative flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-[#ddd9d2] bg-[#f5f3f0] text-right shadow-[0_4px_14px_rgba(35,42,43,0.07)] transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-[#d2ccc3] hover:shadow-[0_10px_26px_rgba(35,42,43,0.11)]">
+      {/*
+        Full-bleed visual layer. The same product image softly continues behind
+        the lower information area so the card reads as one continuous object,
+        while the neutral gradient keeps Arabic copy, price and CTA readable.
+        The foreground image remains object-contain so products are never cropped.
+      */}
+      <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden" aria-hidden="true">
+        <img
+          src={imageSrc}
+          alt=""
+          className={`h-full w-full scale-110 object-cover object-center blur-xl transition-opacity duration-500 ${imgLoaded ? "opacity-55" : "opacity-0"}`}
+          loading={priority ? "eager" : "lazy"}
+          decoding="async"
+          draggable={false}
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(245,243,240,0.02)_0%,rgba(245,243,240,0.05)_36%,rgba(245,243,240,0.62)_52%,rgba(245,243,240,0.90)_66%,rgba(245,243,240,0.98)_78%,#f5f3f0_90%,#f5f3f0_100%)]" />
+      </div>
+
+      <div className="pointer-events-none absolute inset-x-3 top-3 z-30 flex items-start justify-between gap-2">
         <div className="pointer-events-auto">
           <WishlistButton
             product={product}
             variant="icon"
             size="icon"
-            className="h-10 w-10 border border-[#ddd9d2]/90 bg-[#f5f3f0]/92 shadow-sm backdrop-blur-sm md:h-10 md:w-10"
+            className="h-10 w-10 border border-white/65 bg-[#f5f3f0]/82 shadow-sm backdrop-blur-md md:h-10 md:w-10"
           />
         </div>
 
         <div className="flex flex-col items-end gap-1">
           {product.isNew ? <Badge className="bg-primary text-primary-foreground">جديد</Badge> : null}
           {product.isBestSeller ? <Badge variant="secondary">الأكثر مبيعاً</Badge> : null}
+          {product.difficulty ? <DifficultyBadge level={product.difficulty} className="shrink-0 bg-[#f5f3f0]/88 backdrop-blur-md" /> : null}
           {product.ecoFriendly ? (
-            <Badge variant="outline" className="gap-1 border-primary/25 bg-[#f5f3f0]/92 text-primary">
+            <Badge variant="outline" className="gap-1 border-primary/25 bg-[#f5f3f0]/88 text-primary backdrop-blur-md">
               <Leaf className="h-3 w-3" aria-hidden="true" />
               صديق للبيئة
             </Badge>
@@ -149,9 +168,9 @@ export const ProductCard = memo(function ProductCard({
         onPointerDown={prefetchDestination}
         onFocus={prefetchDestination}
         aria-label={`عرض تفاصيل ${product.name}`}
-        className="flex min-w-0 flex-1 flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
+        className="relative z-10 flex min-w-0 flex-1 flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
       >
-        <div className="relative aspect-square overflow-hidden bg-[#f5f3f0]" data-protected="true">
+        <div className="relative aspect-square w-full shrink-0 overflow-hidden" data-protected="true">
           {!imgLoaded ? <div className="absolute inset-0 bg-muted/30" aria-hidden="true" /> : null}
           <img
             ref={imgRef}
@@ -159,7 +178,7 @@ export const ProductCard = memo(function ProductCard({
             srcSet={imageSrcSet}
             sizes={imageSrcSet ? "(max-width: 639px) 50vw, (max-width: 1023px) 33vw, (max-width: 1279px) 25vw, 20vw" : undefined}
             alt={`صورة منتج ${product.name}`}
-            className={`h-full w-full select-none object-contain p-3 sm:p-4 ${imgLoaded ? "opacity-100" : "opacity-0"}`}
+            className={`h-full w-full select-none object-contain p-3 transition-[opacity,transform] duration-300 sm:p-4 ${imgLoaded ? "opacity-100" : "opacity-0"} group-hover:scale-[1.015]`}
             loading={priority ? "eager" : "lazy"}
             fetchPriority={priority ? "high" : "auto"}
             width={400}
@@ -179,19 +198,12 @@ export const ProductCard = memo(function ProductCard({
           />
         </div>
 
-        <CardHeader className="space-y-1.5 px-3 pb-1 pt-2.5 sm:px-4 sm:pb-1 sm:pt-3">
-          <div className="flex min-w-0 items-center justify-between gap-2">
-            <span className="truncate text-[11px] font-medium text-muted-foreground sm:text-xs">
-              {product.brand || "AQUAVO"}
-            </span>
-            {product.difficulty ? <DifficultyBadge level={product.difficulty} className="shrink-0" /> : null}
-          </div>
-
+        <CardHeader className="relative -mt-10 space-y-1.5 px-3 pb-1 pt-12 sm:-mt-12 sm:px-4 sm:pb-1 sm:pt-14">
           <h3 className="line-clamp-2 min-h-10 text-sm font-bold leading-5 tracking-[-0.01em] text-foreground transition-colors group-hover:text-primary sm:min-h-12 sm:text-[15px] sm:leading-6">
             {product.name}
           </h3>
 
-          <p className="line-clamp-1 min-h-5 text-xs leading-5 text-muted-foreground sm:text-[13px]">
+          <p className="line-clamp-2 min-h-10 text-xs leading-5 text-muted-foreground sm:text-[13px]">
             {supportingLine || "\u00a0"}
           </p>
         </CardHeader>
@@ -235,11 +247,11 @@ export const ProductCard = memo(function ProductCard({
         </CardContent>
       </Link>
 
-      <CardFooter className="px-3 pb-3 pt-0 sm:px-4 sm:pb-4 sm:pt-0">
+      <CardFooter className="relative z-20 px-3 pb-3 pt-0 sm:px-4 sm:pb-4 sm:pt-0">
         <Button
           type="button"
           variant={isOutOfStock && hasPrice ? "outline" : "default"}
-          className="min-h-11 w-full gap-2 rounded-xl text-xs font-semibold sm:text-sm"
+          className="min-h-11 w-full gap-2 rounded-xl text-xs font-semibold shadow-sm sm:text-sm"
           onClick={handlePrimaryAction}
           aria-label={primaryActionAriaLabel}
           disabled={!hasPrice || isOutOfStock}
