@@ -307,6 +307,11 @@ export default function ProductDetails() {
   const productRating = Number(product.rating || 0);
   const reviewCount = product.reviewCount || 0;
   const inStock = displayStock > 0;
+  const isKilogramProduct =
+    product.name.includes("كغم") ||
+    product.name.includes("كيلو") ||
+    ["رمال", "أحجار", "حصى"].includes(product.subcategory) ||
+    ["houyi-activated-carbon", "houyi-ceramic-ring", "houyi-breathing-ring-white"].includes(product.slug);
 
   return (
     <div className="flex-1 flex flex-col bg-background">
@@ -578,7 +583,7 @@ export default function ProductDetails() {
                 {hasPrice && displayStock > 0 && (
                   <div className="space-y-4 mb-6">
                     <div className="flex items-center gap-4">
-                      <span className="text-sm font-medium" id="quantity-label">الكمية:</span>
+                      <span className="text-sm font-medium" id="quantity-label">الكمية:{isKilogramProduct ? " كيلو" : ""}</span>
                       <div
                         className="flex items-center border rounded-lg"
                         role="group"
