@@ -54,7 +54,11 @@ export const ProductCard = memo(function ProductCard({
   const isOutOfStock = requiresVariantChoice
     ? product.variants?.every((variant) => (variant.stock ?? 0) <= 0) ?? true
     : (product.stock ?? 0) <= 0;
-  const supportingLine = product.specs || product.description || "";
+  const cardBenefit =
+    typeof product.specifications?.__cardBenefit === "string"
+      ? product.specifications.__cardBenefit.trim()
+      : "";
+  const supportingLine = cardBenefit || product.specs || product.description || "";
 
   const handlePrimaryAction = async (event: MouseEvent<HTMLButtonElement>) => {
     if (isOutOfStock) return;
@@ -188,7 +192,7 @@ export const ProductCard = memo(function ProductCard({
             {product.name}
           </h3>
 
-          <p className="line-clamp-1 min-h-5 text-xs leading-5 text-muted-foreground sm:text-[13px]">
+          <p className="line-clamp-2 min-h-10 text-xs leading-5 text-muted-foreground sm:text-[12.5px] sm:leading-5">
             {supportingLine || "\u00a0"}
           </p>
         </CardHeader>
