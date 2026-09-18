@@ -9,6 +9,8 @@ import {
 
 const service = readFileSync("server/services/wayl-order-payment.ts", "utf8");
 const route = readFileSync("server/routes/wayl.ts", "utf8");
+const vercelEntry = readFileSync("api/index.ts", "utf8");
+const localEntry = readFileSync("server/index.ts", "utf8");
 
 describe("Wayl status mapping (documented lifecycle only)", () => {
   it.each([
@@ -146,5 +148,33 @@ describe("webhook route contract", () => {
   it("never echoes the webhook secret or provider payloads to clients", () => {
     expect(route).not.toContain("webhookSecret");
     expect(route).not.toContain("providerResponse");
+  });
+
+  // Production regression (2026-09-18): Wayl POSTs server-to-server with no
+  // Origin/Referer, and the Vercel entrypoint's CSRF guard answered 403
+  // ("[Security] Blocked mutating request with missing origin") before the
+  // router ever ran. Both entrypoints must exempt exactly this path.
+  it("is exempt from the browser-origin CSRF guard in BOTH the Vercel and the local entrypoint", () => {
+    expect(vercelEntry).toContain('realRoute === "/api/payments/wayl/webhook"');
+    expect(localEntry).toContain('"/api/payments/wayl/webhook"');
+  });
+});
+
+describe("availability route contract", () => {
+  it("answers from the layered readiness check and exposes only { available } publicly", () => {
+    expect(route).toContain("const readiness = await checkWaylReadiness();");
+    expect(route).toContain("res.json({ available: readiness.available });");
+    expect(route).not.toMatch(/res\.json\(\{[^}]*reason/);
+    expect(route).not.toMatch(/res\.json\(\{[^}]*checks/);
+  });
+
+  it("logs the readiness reason server-side only", () => {
+    expect(route).toContain('console.log(`[AQUAVO Wayl] availability: ${readiness.reason}');
+  });
+
+  it("fails closed with a customer-safe Arabic message when Wayl refuses links for an unverified store", () => {
+    expect(route).toContain("if (isWaylStoreVerificationError(error)) {");
+    expect(route).toContain("noteWaylStoreVerificationFailure();");
+    expect(route).toContain("res.status(503).json({ message: \"الدفع الإلكتروني غير متاح حالياً. اختر الدفع عند الاستلام وراح نكمل طلبك.\" });");
   });
 });

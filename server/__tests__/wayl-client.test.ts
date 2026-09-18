@@ -1,9 +1,14 @@
 import { createHmac } from "node:crypto";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
+  WaylApiError,
+  checkWaylReadiness,
+  classifyWaylConfigError,
   createWaylLink,
   getWaylConfig,
   getWaylLinkByReferenceId,
+  isWaylStoreVerificationError,
+  resetWaylReadinessCache,
   resolveWaylEnvironment,
   verifyWaylWebhookSignature,
 } from "../services/wayl-client.js";
@@ -36,6 +41,7 @@ function jsonResponse(body: unknown, status = 200) {
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  resetWaylReadinessCache();
   for (const key of KEYS) {
     const value = original[key];
     if (value === undefined) delete process.env[key];
@@ -204,6 +210,162 @@ describe("Wayl link responses", () => {
 
     await expect(getWaylLinkByReferenceId("order-abc")).rejects.toMatchObject({ name: "WaylApiError", status: 401 });
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("Wayl readiness (config → auth → live merchant)", () => {
+  // Exact production responses observed on 2026-09-18 against https://api.thewayl.com.
+  const authOk = { data: {}, message: "Authentication key is valid", success: true };
+  const authBad = { success: false, message: "Invalid authentication key" };
+  const storeUnverified = {
+    success: false,
+    message: "Store must be verified to create payment links. Please complete the verification process before creating links.",
+  };
+
+  function withProduction<T>(waylEnv: string | undefined, run: () => T): T {
+    const previousNodeEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = "production";
+    if (waylEnv === undefined) delete process.env.WAYL_ENV;
+    else process.env.WAYL_ENV = waylEnv;
+    try {
+      return run();
+    } finally {
+      process.env.NODE_ENV = previousNodeEnv;
+    }
+  }
+
+  it("classifies every configuration failure with a stable, secret-free reason code", () => {
+    for (const key of KEYS) delete process.env[key];
+    expect(classifyWaylConfigError(new Error("Wayl configuration is incomplete. Set WAYL_API_KEY"))).toBe("WAYL_API_KEY_MISSING");
+    expect(classifyWaylConfigError(new Error("Wayl configuration error: WAYL_ENV is missing."))).toBe("WAYL_ENV_MISSING");
+    expect(classifyWaylConfigError(new Error('Wayl configuration error: WAYL_ENV="sandbox" is invalid.'))).toBe("WAYL_ENV_INVALID");
+    expect(classifyWaylConfigError(new Error("Wayl configuration error: production requires WAYL_ENV=live explicitly"))).toBe("WAYL_ENV_NOT_LIVE_IN_PRODUCTION");
+    expect(classifyWaylConfigError(new Error("something else"))).toBe("UNKNOWN_CONFIG_ERROR");
+  });
+
+  it("reports WAYL_ENV_NOT_LIVE_IN_PRODUCTION without calling Wayl when production still has WAYL_ENV=test", async () => {
+    configure();
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    const readiness = await withProduction("test", () => checkWaylReadiness());
+
+    expect(readiness).toMatchObject({ available: false, reason: "WAYL_ENV_NOT_LIVE_IN_PRODUCTION" });
+    expect(readiness.checks).toMatchObject({ configValid: false, authValid: false, storeVerified: false });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("reports WAYL_AUTH_FAILED on a 401 from verify-auth-key and never surfaces the key", async () => {
+    configure();
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse(authBad, 401));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const readiness = await checkWaylReadiness();
+
+    expect(readiness).toMatchObject({ available: false, reason: "WAYL_AUTH_FAILED", checks: { configValid: true, authValid: false } });
+    expect(String(fetchMock.mock.calls[0]?.[0])).toBe("https://api.thewayl.com/api/v1/verify-auth-key");
+    expect(JSON.stringify(readiness)).not.toContain("unit-test-key");
+  });
+
+  it.each([
+    [429, "WAYL_RATE_LIMITED"],
+    [503, "WAYL_SERVICE_ERROR"],
+  ])("maps verify-auth-key HTTP %s to %s instead of a generic false", async (status, reason) => {
+    configure();
+    // Fresh Response per attempt: the client retries 429/5xx and a body can only be read once.
+    vi.stubGlobal("fetch", vi.fn().mockImplementation(async () => jsonResponse({ message: "nope" }, status)));
+
+    expect((await checkWaylReadiness()).reason).toBe(reason);
+  });
+
+  it("reports WAYL_NETWORK_FAILED when Wayl cannot be reached at all", async () => {
+    configure();
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("fetch failed")));
+
+    expect(await checkWaylReadiness()).toMatchObject({ available: false, reason: "WAYL_NETWORK_FAILED" });
+  });
+
+  it("reports WAYL_ACCOUNT_NOT_LIVE_ENABLED when auth is valid but Wayl refuses link creation for an unverified store", async () => {
+    configure();
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(jsonResponse(authOk))
+      .mockResolvedValueOnce(jsonResponse(storeUnverified, 403));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const readiness = await checkWaylReadiness();
+
+    expect(readiness).toMatchObject({
+      available: false,
+      reason: "WAYL_ACCOUNT_NOT_LIVE_ENABLED",
+      checks: { configValid: true, authValid: true, storeVerified: false },
+    });
+    const probe = JSON.parse(String((fetchMock.mock.calls[1]?.[1] as RequestInit).body));
+    expect(probe).toMatchObject({ env: "test", currency: "IQD", total: 1000, linkExpiresIn: "1m" });
+    expect(probe.referenceId).toMatch(/^aquavo-readiness-/);
+  });
+
+  it("is available only when config, auth and a live link probe all succeed, and invalidates the probe link", async () => {
+    configure();
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url.endsWith("/verify-auth-key")) return jsonResponse(authOk);
+      if (url.endsWith("/api/v1/links") && init?.method === "POST") {
+        const sent = JSON.parse(String(init.body));
+        return jsonResponse({ message: "Link created", data: { ...officialLinkData, referenceId: sent.referenceId } }, 201);
+      }
+      if (/\/invalidate$/.test(url)) return jsonResponse({ message: "Link invalidated successfully" }, 201);
+      throw new Error(`unexpected call ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const readiness = await withProduction("live", () => checkWaylReadiness());
+
+    expect(readiness).toEqual({
+      available: true,
+      reason: "WAYL_CONFIG_VALID",
+      checks: { configValid: true, authValid: true, storeVerified: true },
+    });
+    const calls = fetchMock.mock.calls.map(([url]) => String(url));
+    expect(calls.some((url) => url.includes("/api/v1/links/aquavo-readiness-") && url.endsWith("/invalidate"))).toBe(true);
+    expect(JSON.parse(String((fetchMock.mock.calls[1]?.[1] as RequestInit).body)).env).toBe("live");
+  });
+
+  it("caches a successful readiness result so the checkout radio does not create a probe link per request", async () => {
+    configure();
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url.endsWith("/verify-auth-key")) return jsonResponse(authOk);
+      if (init?.method === "POST" && url.endsWith("/api/v1/links")) {
+        return jsonResponse({ data: { ...officialLinkData, referenceId: JSON.parse(String(init.body)).referenceId } }, 201);
+      }
+      return jsonResponse({ message: "ok" }, 201);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await checkWaylReadiness();
+    const callsAfterFirst = fetchMock.mock.calls.length;
+    await checkWaylReadiness();
+
+    expect(fetchMock.mock.calls.length).toBe(callsAfterFirst);
+  });
+
+  it("can skip the link probe via WAYL_READINESS_PROBE=off and then stops at auth", async () => {
+    configure();
+    process.env.WAYL_READINESS_PROBE = "off";
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse(authOk));
+    vi.stubGlobal("fetch", fetchMock);
+    try {
+      const readiness = await checkWaylReadiness();
+      expect(readiness).toMatchObject({ available: true, checks: { authValid: true, storeVerified: null } });
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    } finally {
+      delete process.env.WAYL_READINESS_PROBE;
+    }
+  });
+
+  it("recognises Wayl's store-verification refusal so checkout can fail closed with a customer-safe message", () => {
+    expect(isWaylStoreVerificationError(new WaylApiError(storeUnverified.message, 403, storeUnverified))).toBe(true);
+    expect(isWaylStoreVerificationError(new WaylApiError("Forbidden", 403))).toBe(false);
+    expect(isWaylStoreVerificationError(new WaylApiError(storeUnverified.message, 400))).toBe(false);
+    expect(isWaylStoreVerificationError(new Error(storeUnverified.message))).toBe(false);
   });
 });
 

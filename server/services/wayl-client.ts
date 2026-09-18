@@ -1,4 +1,4 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
+import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
 import { setTimeout as sleep } from "node:timers/promises";
 import { z } from "zod";
 
@@ -52,6 +52,8 @@ export interface WaylCreateLinkInput {
   webhookUrl?: string;
   webhookSecret?: string;
   redirectionUrl?: string;
+  /** Documented: number + m/h/d, between 1m and 30d; Wayl defaults to "1h". */
+  linkExpiresIn?: string;
 }
 
 export interface WaylLink {
@@ -105,6 +107,8 @@ export function resolveWaylEnvironment(
   return requested;
 }
 
+let configLoadLogged = false;
+
 export function getWaylConfig(): WaylConfig {
   const environment = resolveWaylEnvironment();
 
@@ -116,7 +120,70 @@ export function getWaylConfig(): WaylConfig {
   }
 
   const apiBaseUrl = stripTrailingSlash(process.env.WAYL_API_BASE_URL?.trim() || DEFAULT_API_BASE_URL);
+  if (!configLoadLogged) {
+    // Once per process. Never the key, never the header — only booleans and mode names.
+    configLoadLogged = true;
+    console.log(`[AQUAVO Wayl] configuration loaded | environment: ${environment} | api key present: true | api host: ${apiBaseUrl}`);
+  }
   return { environment, apiBaseUrl, apiKey };
+}
+
+/**
+ * Stable, secret-free reason codes for why online payment is (un)available.
+ * Logged server-side; the public availability endpoint only ever returns
+ * `{ available: boolean }`.
+ */
+export type WaylReadinessReason =
+  | "WAYL_CONFIG_VALID"
+  | "WAYL_API_KEY_MISSING"
+  | "WAYL_ENV_MISSING"
+  | "WAYL_ENV_INVALID"
+  | "WAYL_ENV_NOT_LIVE_IN_PRODUCTION"
+  | "WAYL_AUTH_FAILED"
+  | "WAYL_RATE_LIMITED"
+  | "WAYL_SERVICE_ERROR"
+  | "WAYL_NETWORK_FAILED"
+  | "WAYL_ACCOUNT_NOT_LIVE_ENABLED"
+  | "UNKNOWN_CONFIG_ERROR";
+
+export interface WaylReadiness {
+  available: boolean;
+  reason: WaylReadinessReason;
+  checks: {
+    configValid: boolean;
+    authValid: boolean;
+    /** null when the link probe is disabled (WAYL_READINESS_PROBE=off). */
+    storeVerified: boolean | null;
+  };
+}
+
+export function classifyWaylConfigError(error: unknown): WaylReadinessReason {
+  const message = error instanceof Error ? error.message : String(error);
+  if (/WAYL_API_KEY/.test(message)) return "WAYL_API_KEY_MISSING";
+  if (/WAYL_ENV is missing/.test(message)) return "WAYL_ENV_MISSING";
+  if (/requires WAYL_ENV=live/.test(message)) return "WAYL_ENV_NOT_LIVE_IN_PRODUCTION";
+  if (/WAYL_ENV=.* is invalid/.test(message)) return "WAYL_ENV_INVALID";
+  return "UNKNOWN_CONFIG_ERROR";
+}
+
+/**
+ * Observed on 2026-09-18 against the production API: an authenticated key whose
+ * store has not completed Wayl's verification gets HTTP 403
+ * "Store must be verified to create payment links…" from POST /api/v1/links in
+ * BOTH env=live and env=test. No read-only endpoint exposes that state.
+ */
+export function isWaylStoreVerificationError(error: unknown): boolean {
+  return error instanceof WaylApiError && error.status === 403 && /verif/i.test(error.message);
+}
+
+function classifyProviderFailure(error: unknown): WaylReadinessReason {
+  if (error instanceof WaylApiError) {
+    if (error.status === 401 || error.status === 403) return "WAYL_AUTH_FAILED";
+    if (error.status === 429) return "WAYL_RATE_LIMITED";
+    if (error.status === 502 && /Unable to reach Wayl/.test(error.message)) return "WAYL_NETWORK_FAILED";
+    if (error.status >= 500) return "WAYL_SERVICE_ERROR";
+  }
+  return "WAYL_NETWORK_FAILED";
 }
 
 export class WaylApiError extends Error {
@@ -292,6 +359,7 @@ export async function createWaylLink(input: WaylCreateLinkInput): Promise<WaylLi
     ...(input.webhookUrl ? { webhookUrl: input.webhookUrl } : {}),
     ...(input.webhookSecret ? { webhookSecret: input.webhookSecret } : {}),
     ...(input.redirectionUrl ? { redirectionUrl: input.redirectionUrl } : {}),
+    ...(input.linkExpiresIn ? { linkExpiresIn: input.linkExpiresIn } : {}),
   };
 
   const raw = await waylRequest<unknown>("/api/v1/links", {
@@ -333,6 +401,116 @@ export async function verifyWaylAuthKey(): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+const READINESS_SUCCESS_TTL_MS = 15 * 60_000;
+const READINESS_FAILURE_TTL_MS = 2 * 60_000;
+const STORE_UNVERIFIED_COOLDOWN_MS = 15 * 60_000;
+
+let readinessCache: { value: WaylReadiness; expiresAt: number } | null = null;
+let storeUnverifiedUntil = 0;
+
+export function resetWaylReadinessCache(): void {
+  readinessCache = null;
+  storeUnverifiedUntil = 0;
+}
+
+/** Called by checkout when a real link creation was refused for an unverified store. */
+export function noteWaylStoreVerificationFailure(now = Date.now()): void {
+  storeUnverifiedUntil = now + STORE_UNVERIFIED_COOLDOWN_MS;
+  readinessCache = null;
+}
+
+function probeEnabled(): boolean {
+  const raw = process.env.WAYL_READINESS_PROBE?.trim().toLowerCase();
+  return !(raw === "off" || raw === "0" || raw === "false");
+}
+
+/**
+ * The only way to learn whether Wayl will actually issue links for this merchant
+ * is to ask for one. The probe is the smallest documented link (1000 IQD minimum,
+ * 1-minute expiry), is invalidated immediately, and is never shown to a customer.
+ */
+async function probeLinkCreation(): Promise<void> {
+  const referenceId = `aquavo-readiness-${randomUUID()}`;
+  await createWaylLink({
+    referenceId,
+    total: 1000,
+    currency: "IQD",
+    customParameter: "AQUAVO readiness probe - not a customer order",
+    lineItem: [{ label: "AQUAVO readiness probe", amount: 1000, type: "increase" }],
+    linkExpiresIn: "1m",
+  });
+  try {
+    await waylRequest<unknown>(`/api/v1/links/${encodeURIComponent(referenceId)}/invalidate`, { method: "POST" });
+  } catch (error) {
+    // The link expires on its own after one minute; invalidation is tidiness only.
+    console.warn("[AQUAVO Wayl] readiness probe link could not be invalidated:", error instanceof Error ? error.message : error);
+  }
+}
+
+/**
+ * Layered readiness: local configuration → GET /api/v1/verify-auth-key →
+ * (optional) live link probe. Distinguishes "configured", "authenticated" and
+ * "merchant may take payments" instead of collapsing everything into `false`.
+ * Results are cached per process so the checkout page does not hit Wayl on
+ * every render.
+ */
+export async function checkWaylReadiness(now = Date.now()): Promise<WaylReadiness> {
+  if (readinessCache && readinessCache.expiresAt > now) return readinessCache.value;
+
+  const unavailable = (reason: WaylReadinessReason, checks: WaylReadiness["checks"], ttl = READINESS_FAILURE_TTL_MS): WaylReadiness => {
+    const value: WaylReadiness = { available: false, reason, checks };
+    if (ttl > 0) readinessCache = { value, expiresAt: now + ttl };
+    return value;
+  };
+
+  let config: WaylConfig;
+  try {
+    config = getWaylConfig();
+  } catch (error) {
+    // Configuration is cheap to re-evaluate and can change only with a new
+    // deployment, so it is not cached.
+    return unavailable(classifyWaylConfigError(error), { configValid: false, authValid: false, storeVerified: false }, 0);
+  }
+
+  try {
+    await waylRequest<unknown>("/api/v1/verify-auth-key", { method: "GET" });
+    console.log("[AQUAVO Wayl] auth check: success");
+  } catch (error) {
+    const reason = classifyProviderFailure(error);
+    const status = error instanceof WaylApiError ? error.status : "n/a";
+    console.error(`[AQUAVO Wayl] auth check: failed | reason: ${reason} | http: ${status}`);
+    return unavailable(reason, { configValid: true, authValid: false, storeVerified: false });
+  }
+
+  if (!probeEnabled()) {
+    const value: WaylReadiness = { available: true, reason: "WAYL_CONFIG_VALID", checks: { configValid: true, authValid: true, storeVerified: null } };
+    readinessCache = { value, expiresAt: now + READINESS_SUCCESS_TTL_MS };
+    return value;
+  }
+
+  if (storeUnverifiedUntil > now) {
+    return unavailable("WAYL_ACCOUNT_NOT_LIVE_ENABLED", { configValid: true, authValid: true, storeVerified: false }, storeUnverifiedUntil - now);
+  }
+
+  try {
+    await probeLinkCreation();
+  } catch (error) {
+    if (isWaylStoreVerificationError(error)) {
+      console.error(`[AQUAVO Wayl] live merchant check: store not verified at Wayl (env=${config.environment}); online payment disabled until Wayl completes verification`);
+      storeUnverifiedUntil = now + STORE_UNVERIFIED_COOLDOWN_MS;
+      return unavailable("WAYL_ACCOUNT_NOT_LIVE_ENABLED", { configValid: true, authValid: true, storeVerified: false }, STORE_UNVERIFIED_COOLDOWN_MS);
+    }
+    const reason = classifyProviderFailure(error);
+    console.error(`[AQUAVO Wayl] live merchant check: failed | reason: ${reason} | ${error instanceof Error ? error.message : error}`);
+    return unavailable(reason, { configValid: true, authValid: true, storeVerified: false });
+  }
+
+  console.log(`[AQUAVO Wayl] live merchant check: success (env=${config.environment})`);
+  const value: WaylReadiness = { available: true, reason: "WAYL_CONFIG_VALID", checks: { configValid: true, authValid: true, storeVerified: true } };
+  readinessCache = { value, expiresAt: now + READINESS_SUCCESS_TTL_MS };
+  return value;
 }
 
 export async function createWaylRefund(referenceId: string, amount: number, reason: string): Promise<unknown> {

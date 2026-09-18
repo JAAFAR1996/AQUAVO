@@ -62,7 +62,7 @@ concurrent second request return 409; older claims are treated as abandoned.
 | `POST /api/payments/wayl/checkout` | Create order + Wayl link, returns `redirectUrl`. |
 | `GET  /api/payments/wayl/order/:orderId/status?paymentId=` | Server-verified state, used by result-page polling. |
 | `POST /api/payments/wayl/order/:orderId/retry` | New link for a failed/expired attempt on the same order. |
-| `POST /api/payments/wayl/webhook` | Wayl → AQUAVO. Signature-verified, then re-verified against Wayl. CSRF-exempt. |
+| `POST /api/payments/wayl/webhook` | Wayl → AQUAVO. Signature-verified, then re-verified against Wayl. CSRF-exempt in both `server/index.ts` and the Vercel entrypoint `api/index.ts`. |
 | `GET  /api/payments/wayl/return` | Customer redirect back from Wayl. Verifies, then redirects to result page. |
 | `GET  /payment/{success,failed,pending}` | Result pages (re-verify on every load; refresh never double-applies). |
 
@@ -91,6 +91,35 @@ use `test` while testing and switch to `live` only when going live, so
 "Disabled" means `GET /api/payments/wayl/availability` returns `{available:false}` (the
 checkout radio falls back to cash on delivery) and `/checkout` returns an error. To go
 live: set `WAYL_API_KEY` and `WAYL_ENV=live` in the production environment explicitly.
+On Vercel, environment variable changes apply only to the *next* deployment.
+
+### Availability is layered (2026-09-18)
+
+`checkWaylReadiness()` in `server/services/wayl-client.ts` answers the checkout radio in
+three steps and logs a stable reason code server-side (never returned to the browser):
+
+| Step | Check | Failure reason codes |
+| --- | --- | --- |
+| 1 | local config (`getWaylConfig`) | `WAYL_API_KEY_MISSING`, `WAYL_ENV_MISSING`, `WAYL_ENV_INVALID`, `WAYL_ENV_NOT_LIVE_IN_PRODUCTION`, `UNKNOWN_CONFIG_ERROR` |
+| 2 | `GET /api/v1/verify-auth-key` | `WAYL_AUTH_FAILED` (401/403), `WAYL_RATE_LIMITED` (429), `WAYL_SERVICE_ERROR` (5xx), `WAYL_NETWORK_FAILED` |
+| 3 | minimal link probe (1000 IQD, `linkExpiresIn: "1m"`, invalidated at once) | `WAYL_ACCOUNT_NOT_LIVE_ENABLED` |
+
+Step 3 exists because Wayl exposes no read-only "store verified" endpoint: an
+authenticated but unverified store gets HTTP 403 `Store must be verified to create
+payment links…` from `POST /api/v1/links` in **both** `env=test` and `env=live`
+(observed 2026-09-18). Results are cached 15 minutes (success) / 2 minutes (provider
+failure) per process; `WAYL_READINESS_PROBE=off` skips step 3. Probe links appear in the
+Wayl dashboard as cancelled `aquavo-readiness-<uuid>` links.
+
+If a real checkout is refused with that 403, `/checkout` answers 503 with a Baghdadi
+message pointing to cash on delivery and hides the online option for 15 minutes.
+
+### Merchant-side activation
+
+Per Wayl's docs, link creation "is available to verified stores only". Verification is
+done by Wayl on the merchant account (contact jisr@wayl.io / the merchant dashboard); the
+same API key is used before and after. There is no separate live key, no IP allowlist
+and no callback-domain registration documented.
 
 ## Wayl dashboard values (production)
 

@@ -97,6 +97,16 @@ function csrfOriginProtection(req: Request, res: Response, next: NextFunction) {
     return next();
   }
 
+  // Wayl calls the payment webhook server-to-server with no browser Origin or
+  // Referer. Authenticity is enforced in the route itself (HMAC-SHA256 over the
+  // raw body with the per-payment secret, then re-verification against Wayl's
+  // API), so the browser-origin check must not run for this exact path. Mirrors
+  // the exemption in server/index.ts; production blocked real webhooks with 403
+  // ("Blocked mutating request with missing origin") until this was added.
+  if (realRoute === "/api/payments/wayl/webhook" || realRoute === "/api/payments/wayl/webhook/") {
+    return next();
+  }
+
   const sourceOrigin = getSourceOrigin(req);
   const targetHost = getTargetHost(req);
 

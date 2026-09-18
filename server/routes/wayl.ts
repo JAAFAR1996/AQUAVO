@@ -4,7 +4,13 @@ import { z } from "zod";
 import { getSession } from "../middleware/auth.js";
 import { orderLimiter } from "../middleware/rate-limit.js";
 import { db } from "../db.js";
-import { WaylApiError, getWaylConfig, verifyWaylWebhookSignature } from "../services/wayl-client.js";
+import {
+  WaylApiError,
+  checkWaylReadiness,
+  isWaylStoreVerificationError,
+  noteWaylStoreVerificationFailure,
+  verifyWaylWebhookSignature,
+} from "../services/wayl-client.js";
 import {
   findWebhookSecretForReference,
   getVerifiedPaymentState,
@@ -115,12 +121,18 @@ async function isBannedPurchaseIp(req: Request): Promise<boolean> {
 export function createWaylRouter() {
   const router = Router();
 
-  router.get("/availability", (_req, res) => {
+  // Config → auth → live-merchant readiness (see checkWaylReadiness). The public
+  // body is deliberately only { available }; the reason stays in server logs.
+  router.get("/availability", async (_req, res) => {
     res.setHeader("Cache-Control", "no-store, max-age=0");
     try {
-      getWaylConfig();
-      res.json({ available: true });
-    } catch {
+      const readiness = await checkWaylReadiness();
+      if (!readiness.available) {
+        console.log(`[AQUAVO Wayl] availability: ${readiness.reason} | config: ${readiness.checks.configValid} | auth: ${readiness.checks.authValid} | store verified: ${readiness.checks.storeVerified}`);
+      }
+      res.json({ available: readiness.available });
+    } catch (error) {
+      console.error("[AQUAVO Wayl] availability: UNKNOWN_CONFIG_ERROR |", error instanceof Error ? error.message : error);
       res.json({ available: false });
     }
   });
@@ -158,6 +170,14 @@ export function createWaylRouter() {
       const started = await startWaylPaymentForOrder(prepared.order.id, paymentUrls(req));
       res.status(prepared.reused ? 200 : 201).json(started);
     } catch (error) {
+      if (isWaylStoreVerificationError(error)) {
+        // Wayl refused to issue a link because the merchant store is not verified.
+        // Never echo the provider's English message; hide the option for a while.
+        noteWaylStoreVerificationFailure();
+        console.error("[AQUAVO Wayl] checkout refused: WAYL_ACCOUNT_NOT_LIVE_ENABLED (store not verified at Wayl)");
+        res.status(503).json({ message: "الدفع الإلكتروني غير متاح حالياً. اختر الدفع عند الاستلام وراح نكمل طلبك." });
+        return;
+      }
       const status = errorStatus(error);
       console.error("[AQUAVO Wayl] checkout failed:", error instanceof Error ? error.message : error);
       res.status(status).json({
