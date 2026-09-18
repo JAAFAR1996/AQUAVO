@@ -245,6 +245,7 @@ export default function CheckoutPage() {
           useCashback: testMode ? false : loyaltyData.useCashback,
           pointsToUse: testMode ? 0 : loyaltyData.pointsToUse,
           cashbackToUse: testMode ? 0 : loyaltyData.cashbackToUse,
+          ...(testMode ? { notifyTelegram: true } : {}),
         }),
       });
 
