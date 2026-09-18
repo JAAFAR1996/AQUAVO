@@ -73,7 +73,7 @@ export function createProductionTestCheckoutRouter() {
           customerName: order.customerName,
           customerPhone: order.customerPhone,
           customerAddress: parsed.data.customerInfo.address,
-          total: order.total,
+          total: order.roundedTotal ?? order.total,
           shippingCost: order.shippingCost,
           discountTotal: order.discountTotal,
           paymentMethod: "cod",

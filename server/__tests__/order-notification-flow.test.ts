@@ -134,11 +134,22 @@ describe("durable merchant notification (shared by COD and Wayl)", () => {
     expect(result).toEqual({ processed: 1, failed: 0 });
     expect(fetchMock).toHaveBeenCalledTimes(1);
     const text = JSON.parse(String((fetchMock.mock.calls[0] as any)[1].body)).text as string;
-    expect(text).toContain("💵 الدفع عند الاستلام");
-    expect(text).toContain("الخيار: 12/16 mm");
+    expect(text).toContain("💵 <b>طريقة الدفع:</b>\nالدفع عند الاستلام");
+    expect(text).toContain("▸ الخيار: 12/16 mm");
     expect(text).toContain("زبون &amp; &lt;b&gt;");
-    expect(text).toContain("💰 <b>المطلوب: 22,000 د.ع</b>");
+    expect(text).toContain("💰 <b>المجموع النهائي:</b> 22,000 د.ع");
     expect(state.outbox[0].status).toBe("delivered");
+  });
+
+  it("the payable amount is the stored rounded total (post-cashback), never the raw total", async () => {
+    // Raw total 32,000 with 1,750 cashback used → 30,250 collected.
+    const order = { ...storedOrder, total: "32000", pointsDiscount: "1750", roundedTotal: "30250", discountTotal: "0" };
+    const state = { order, payment: { method: "cod", status: "pending" }, outbox: [] as OutboxRow[] };
+    (getDb as any).mockReturnValue(createFakeDb(state));
+
+    const data = await buildMerchantNotificationFromStoredOrder(order);
+    expect(data.total).toBe("30250");
+    expect(data.pointsDiscount).toBe("1750");
   });
 
   it("a duplicate enqueue for the same order (repeated request / duplicate webhook) sends nothing more", async () => {
@@ -223,6 +234,20 @@ describe("trigger-point contracts", () => {
     expect(ordersRoute).not.toMatch(/customerName: customerInfo\.name,\r?\n\s+customerPhone: customerInfo\.phone/);
   });
 
+  it("COD: the direct fallback fires only when the outbox INSERT itself failed; a drain failure after a successful enqueue is left to the cron (no duplicate)", () => {
+    const fn = ordersRoute.slice(ordersRoute.indexOf("async function notifyMerchantOfCodOrder"));
+    const enqueue = fn.indexOf("await enqueueMerchantNotificationOutbox(orderId);");
+    const fallback = fn.indexOf("await sendCodNotificationDirectly(orderId);");
+    const drain = fn.indexOf("await processPaymentOutboxForOrder(orderId);");
+    expect(enqueue).toBeGreaterThan(-1);
+    expect(fallback).toBeGreaterThan(enqueue);
+    expect(drain).toBeGreaterThan(fallback);
+    // The drain's catch only logs.
+    expect(fn).toMatch(/await processPaymentOutboxForOrder\(orderId\);\r?\n\s+\} catch \(drainErr\) \{\r?\n\s+console\.error\([^\n]*\r?\n\s+\}/);
+    // Exactly one direct-send site in the route file.
+    expect(ordersRoute.split("await sendOrderNotification(data);").length - 1).toBe(1);
+  });
+
   it("Wayl: the alert is enqueued inside the paid-finalize transaction, after provider verification, and the webhook/return routes never send it directly", () => {
     const verify = waylService.indexOf("const link = await getWaylLinkByReferenceId(referenceId);");
     const finalize = waylService.indexOf("const finalized = await finalizePaidOrder(order.id, referenceId, context);");
@@ -245,6 +270,7 @@ describe("trigger-point contracts", () => {
   it("admin test orders notify only on explicit opt-in, directly and with the test prefix", () => {
     expect(testRoute).toContain("if (req.body?.notifyTelegram === true) {");
     expect(testRoute).toMatch(/paymentMethod: "cod",[\s\S]{0,120}testOrder: true,/);
+    expect(testRoute).toContain("total: order.roundedTotal ?? order.total,");
     expect(testRoute).not.toContain("enqueueMerchantNotificationOutbox");
   });
 });

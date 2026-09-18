@@ -81,11 +81,15 @@ export interface OrderNotificationData {
     customerPhone?: string | null;
     customerAddress?: string | null;
     customerNotes?: string | null;
-    /** Authoritative stored totals. Subtotal is derived when omitted. */
+    /** Authoritative stored totals. `total` = amount actually payable (rounded total). */
     total: string | number;
+    /** Sum of stored line totals; computed from `items` when omitted. */
     subtotal?: string | number | null;
     shippingCost?: string | number | null;
+    /** Coupon discount (orders.discount_total). */
     discountTotal?: string | number | null;
+    /** Cashback/points deduction in IQD (orders.points_discount). */
+    pointsDiscount?: string | number | null;
     paymentMethod: "cod" | "wayl_paid";
     items: OrderNotificationLine[];
     /** Committed order timestamp; rendered in Asia/Baghdad. */
@@ -137,37 +141,47 @@ function shippingAddressText(value: unknown): string {
 }
 
 export function paymentMethodLabel(method: OrderNotificationData["paymentMethod"]): string {
-    return method === "wayl_paid" ? "✅ مدفوع إلكترونياً — Wayl" : "💵 الدفع عند الاستلام";
+    return method === "wayl_paid" ? "✅ مدفوع إلكترونياً عبر Wayl" : "الدفع عند الاستلام";
+}
+
+function finiteOrNull(value: unknown): number | null {
+    if (value == null || value === "") return null;
+    const n = Number(value);
+    return Number.isFinite(n) ? n : null;
 }
 
 /**
  * Pure: builds the merchant message (Telegram HTML). Every customer-supplied
  * string is escaped; only fields that exist are rendered.
+ *
+ * Money rules: `total` is the amount the customer actually pays (the stored
+ * rounded total for COD collection / the Wayl charge). The products subtotal is
+ * the sum of the STORED line totals, never derived from the request.
  */
 export function buildOrderNotificationMessage(data: OrderNotificationData): string {
     const items = Array.isArray(data.items) ? data.items : [];
+    let linesSum = 0;
     const itemBlocks = items.map((item, i) => {
         const qty = Number(item.quantity) || 1;
-        const unit = Number(item.priceAtPurchase ?? 0);
-        const line = item.lineTotal != null && Number.isFinite(Number(item.lineTotal))
-            ? Number(item.lineTotal)
-            : unit * qty;
-        const rows = [`${i + 1}. <b>${escapeHtml(item.productName || item.productId)}</b>`];
+        const unit = finiteOrNull(item.priceAtPurchase) ?? 0;
+        const line = finiteOrNull(item.lineTotal) ?? unit * qty;
+        linesSum += line;
+        const rows = [`${i + 1}. ${escapeHtml(item.productName || item.productId)}`];
         if (item.variantLabel && String(item.variantLabel).trim()) {
-            rows.push(`   الخيار: ${escapeHtml(String(item.variantLabel).trim())}`);
+            rows.push(`   ▸ الخيار: ${escapeHtml(String(item.variantLabel).trim())}`);
         }
-        rows.push(`   الكمية: ${qty}`);
-        rows.push(`   سعر القطعة: ${formatIQD(unit)}`);
-        rows.push(`   المجموع: ${formatIQD(line)}`);
+        rows.push(`   ▸ الكمية: ${qty}`);
+        rows.push(`   ▸ سعر القطعة: ${formatIQD(unit)}`);
+        rows.push(`   ▸ المجموع: ${formatIQD(line)}`);
         return rows.join("\n");
     });
 
-    const shipping = data.shippingCost == null ? null : Number(data.shippingCost);
-    const discount = data.discountTotal == null ? 0 : Number(data.discountTotal);
-    const total = Number(data.total);
-    const subtotal = data.subtotal != null && Number.isFinite(Number(data.subtotal))
-        ? Number(data.subtotal)
-        : total - (shipping ?? 0) + (Number.isFinite(discount) ? discount : 0);
+    const shipping = finiteOrNull(data.shippingCost);
+    const discount = finiteOrNull(data.discountTotal) ?? 0;
+    const cashbackDiscount = finiteOrNull(data.pointsDiscount) ?? 0;
+    const total = finiteOrNull(data.total) ?? 0;
+    const subtotal = finiteOrNull(data.subtotal)
+        ?? (items.length ? linesSum : total - (shipping ?? 0) + discount + cashbackDiscount);
 
     const address = shippingAddressText(data.customerAddress);
     const notes = typeof data.customerNotes === "string" ? data.customerNotes.trim() : "";
@@ -178,24 +192,42 @@ export function buildOrderNotificationMessage(data: OrderNotificationData): stri
         lines.push(`🧪 <b>طلب اختبار — لا يتم التجهيز</b>`, ``);
     }
     lines.push(`🛒 <b>طلب جديد من AQUAVO</b>`, ``);
-    lines.push(`📋 <b>رقم الطلب:</b>`, `<code>${escapeHtml(data.orderNumber || data.orderId)}</code>`, ``);
-    if (data.customerName?.trim()) lines.push(`👤 <b>الزبون:</b>`, escapeHtml(data.customerName.trim()), ``);
-    if (data.customerPhone?.trim()) lines.push(`📱 <b>الهاتف:</b>`, escapeHtml(data.customerPhone.trim()), ``);
-    if (address.trim()) lines.push(`📍 <b>العنوان:</b>`, escapeHtml(address.trim()), ``);
-    lines.push(`💳 <b>طريقة الدفع:</b>`, paymentMethodLabel(data.paymentMethod), ``);
-    lines.push(`📦 <b>المنتجات:</b>`, ``);
+    lines.push(`📋 <b>رقم الطلب:</b> <code>${escapeHtml(data.orderNumber || data.orderId)}</code>`);
+    if (data.customerName?.trim()) lines.push(`👤 <b>الزبون:</b> ${escapeHtml(data.customerName.trim())}`);
+    if (data.customerPhone?.trim()) lines.push(`📱 <b>الهاتف:</b> ${escapeHtml(data.customerPhone.trim())}`);
+    if (address.trim()) lines.push(`📍 <b>العنوان:</b> ${escapeHtml(address.trim())}`);
+    lines.push(``, `📦 <b>المنتجات:</b>`, ``);
     lines.push(itemBlocks.length ? itemBlocks.join("\n\n") : "—");
     lines.push(``, `━━━━━━━━━━━━━━`);
-    lines.push(`🧾 المنتجات: ${formatIQD(subtotal)}`);
-    if (shipping != null && Number.isFinite(shipping)) {
-        lines.push(shipping > 0 ? `🚚 التوصيل: ${formatIQD(shipping)}` : `🚚 التوصيل: مجاني`);
+    lines.push(`🧾 <b>مجموع المنتجات:</b> ${formatIQD(subtotal)}`);
+    if (shipping != null) {
+        lines.push(shipping > 0 ? `🚚 <b>التوصيل:</b> ${formatIQD(shipping)}` : `🚚 <b>التوصيل:</b> مجاني`);
     }
-    if (Number.isFinite(discount) && discount > 0) lines.push(`🎁 الخصم: -${formatIQD(discount)}`);
-    lines.push(`💰 <b>المطلوب: ${formatIQD(total)}</b>`);
+    if (discount > 0) lines.push(`🎁 <b>الخصم:</b> -${formatIQD(discount)}`);
+    if (cashbackDiscount > 0) lines.push(`🎁 <b>خصم الباقي (Cashback):</b> -${formatIQD(cashbackDiscount)}`);
+    lines.push(`💰 <b>المجموع النهائي:</b> ${formatIQD(total)}`);
+    lines.push(``, `💵 <b>طريقة الدفع:</b>`, paymentMethodLabel(data.paymentMethod));
+    if (when) lines.push(``, `🕐 <b>وقت الطلب:</b> ${when} (بغداد)`);
     if (notes) lines.push(``, `📝 <b>ملاحظات الزبون:</b>`, escapeHtml(notes));
-    if (when) lines.push(``, `🕐 <b>وقت الطلب:</b>`, `${when} بغداد`);
-    lines.push(``, `🔗 <a href="${ADMIN_URL}">فتح الطلب في لوحة AQUAVO</a>`);
+    lines.push(``, `🔗 <a href="${ADMIN_URL}">فتح لوحة AQUAVO</a>`);
     return lines.join("\n");
+}
+
+/**
+ * Pure: the one-off connectivity check sent when credentials are first
+ * configured. Clearly not a customer order.
+ */
+export function buildTelegramConnectivityTestMessage(now: Date = new Date()): string {
+    const when = formatBaghdadTime(now) ?? "";
+    return [
+        `🧪 <b>AQUAVO — اختبار إشعارات الطلبات</b>`,
+        ``,
+        `نظام إشعارات الطلبات متصل بنجاح ✅`,
+        ``,
+        `هذا اختبار تقني فقط وليس طلب زبون.`,
+        ``,
+        `🕐 ${when} (بغداد)`,
+    ].join("\n");
 }
 
 export interface SendOrderNotificationOptions {

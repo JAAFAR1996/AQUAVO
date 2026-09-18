@@ -220,9 +220,12 @@ export async function buildMerchantNotificationFromStoredOrder(order: any): Prom
     customerPhone: order.customerPhone,
     customerAddress: order.shippingAddress,
     customerNotes: typeof order.customerNotes === "string" ? order.customerNotes : (typeof order.notes === "string" ? order.notes : null),
+    // roundedTotal is what the customer actually pays (COD collection / Wayl charge);
+    // `total` is the pre-rounding, pre-cashback figure and is only a fallback.
     total: order.roundedTotal ?? order.total,
     shippingCost: order.shippingCost,
     discountTotal: order.discountTotal,
+    pointsDiscount: order.pointsDiscount,
     paymentMethod: waylPaid ? "wayl_paid" : "cod",
     createdAt: order.createdAt,
     items: lines.map((line: any) => ({

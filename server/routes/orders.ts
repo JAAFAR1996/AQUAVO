@@ -553,11 +553,22 @@ export function createOrderRouter(): RouterType {
 async function notifyMerchantOfCodOrder(orderId: string): Promise<void> {
     try {
         await enqueueMerchantNotificationOutbox(orderId);
-        await processPaymentOutboxForOrder(orderId);
-        return;
     } catch (outboxErr) {
         console.error("[AQUAVO] Order notification outbox unavailable, sending directly:", outboxErr instanceof Error ? outboxErr.message : outboxErr);
+        await sendCodNotificationDirectly(orderId);
+        return;
     }
+    // Enqueued: the durable event now owns delivery. If the immediate drain
+    // fails, the event stays pending and the nightly cron retries it, so no
+    // direct send here (that would risk a duplicate message).
+    try {
+        await processPaymentOutboxForOrder(orderId);
+    } catch (drainErr) {
+        console.error("[AQUAVO] Order notification drain failed; cron will retry:", drainErr instanceof Error ? drainErr.message : drainErr);
+    }
+}
+
+async function sendCodNotificationDirectly(orderId: string): Promise<void> {
     try {
         const stored = await storage.getOrder(orderId);
         if (!stored) return;

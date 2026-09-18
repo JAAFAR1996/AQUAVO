@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   TelegramSendError,
   buildOrderNotificationMessage,
+  buildTelegramConnectivityTestMessage,
   escapeHtml,
   formatBaghdadTime,
   formatIQD,
@@ -79,30 +80,29 @@ describe("formatting helpers", () => {
   });
 
   it("labels the two payment states exactly", () => {
-    expect(paymentMethodLabel("cod")).toBe("💵 الدفع عند الاستلام");
-    expect(paymentMethodLabel("wayl_paid")).toBe("✅ مدفوع إلكترونياً — Wayl");
+    expect(paymentMethodLabel("cod")).toBe("الدفع عند الاستلام");
+    expect(paymentMethodLabel("wayl_paid")).toBe("✅ مدفوع إلكترونياً عبر Wayl");
+  });
+
+  it("builds the connectivity test message with Baghdad time and no order fields", () => {
+    const message = buildTelegramConnectivityTestMessage(new Date("2026-09-18T12:45:00.000Z"));
+    expect(message.startsWith("🧪 <b>AQUAVO — اختبار إشعارات الطلبات</b>")).toBe(true);
+    expect(message).toContain("نظام إشعارات الطلبات متصل بنجاح ✅");
+    expect(message).toContain("هذا اختبار تقني فقط وليس طلب زبون.");
+    expect(message).toContain("18/09/2026 - 3:45 م (بغداد)");
+    expect(message).not.toContain("رقم الطلب");
   });
 });
 
 describe("buildOrderNotificationMessage", () => {
   it("renders the target layout from stored lines with variant, quantity, unit price and line total", () => {
     const message = buildOrderNotificationMessage(baseOrder);
-    expect(message).toContain("🛒 <b>طلب جديد من AQUAVO</b>");
-    expect(message).toContain("📋 <b>رقم الطلب:</b>\n<code>FH-2609181</code>");
-    expect(message).toContain("👤 <b>الزبون:</b>\nجعفر محمد");
-    expect(message).toContain("📱 <b>الهاتف:</b>\n07701234567");
-    expect(message).toContain("📍 <b>العنوان:</b>\nبغداد - حي الجامعة - شارع 12");
-    expect(message).toContain("💳 <b>طريقة الدفع:</b>\n💵 الدفع عند الاستلام");
-    expect(message).toContain("1. <b>YEE Filter</b>\n   الخيار: 16/22 mm\n   الكمية: 2\n   سعر القطعة: 8,500 د.ع\n   المجموع: 17,000 د.ع");
-    expect(message).toContain("2. <b>Black Sand</b>\n   الخيار: 1 kg\n   الكمية: 3\n   سعر القطعة: 4,000 د.ع\n   المجموع: 12,000 د.ع");
-    expect(message).toContain("🧾 المنتجات: 29,000 د.ع");
-    expect(message).toContain("🚚 التوصيل: 5,000 د.ع");
-    expect(message).toContain("🎁 الخصم: -2,000 د.ع");
-    expect(message).toContain("💰 <b>المطلوب: 32,000 د.ع</b>");
-    expect(message).toContain("🕐 <b>وقت الطلب:</b>\n18/09/2026 - 3:45 م بغداد");
-    expect(message).toContain('<a href="https://www.aquavoiq.com/admin">فتح الطلب في لوحة AQUAVO</a>');
+    expect(message.startsWith("🛒 <b>طلب جديد من AQUAVO</b>\n\n📋 <b>رقم الطلب:</b> <code>FH-2609181</code>\n👤 <b>الزبون:</b> جعفر محمد\n📱 <b>الهاتف:</b> 07701234567\n📍 <b>العنوان:</b> بغداد - حي الجامعة - شارع 12\n\n📦 <b>المنتجات:</b>\n\n")).toBe(true);
+    expect(message).toContain("1. YEE Filter\n   ▸ الخيار: 16/22 mm\n   ▸ الكمية: 2\n   ▸ سعر القطعة: 8,500 د.ع\n   ▸ المجموع: 17,000 د.ع\n\n2. Black Sand\n   ▸ الخيار: 1 kg\n   ▸ الكمية: 3\n   ▸ سعر القطعة: 4,000 د.ع\n   ▸ المجموع: 12,000 د.ع");
+    expect(message).toContain("━━━━━━━━━━━━━━\n🧾 <b>مجموع المنتجات:</b> 29,000 د.ع\n🚚 <b>التوصيل:</b> 5,000 د.ع\n🎁 <b>الخصم:</b> -2,000 د.ع\n💰 <b>المجموع النهائي:</b> 32,000 د.ع\n\n💵 <b>طريقة الدفع:</b>\nالدفع عند الاستلام\n\n🕐 <b>وقت الطلب:</b> 18/09/2026 - 3:45 م (بغداد)\n\n🔗 <a href=\"https://www.aquavoiq.com/admin\">فتح لوحة AQUAVO</a>");
     expect(message).not.toContain("طلب اختبار");
     expect(message).not.toContain("ملاحظات الزبون");
+    expect(message).not.toContain("Cashback");
   });
 
   it("omits the variant row when the line has no variant and computes a missing line total", () => {
@@ -110,28 +110,39 @@ describe("buildOrderNotificationMessage", () => {
       ...baseOrder,
       items: [{ productId: "p9", productName: "Heater 100W", quantity: 2, priceAtPurchase: 15000 }],
     });
-    expect(message).toContain("1. <b>Heater 100W</b>\n   الكمية: 2\n   سعر القطعة: 15,000 د.ع\n   المجموع: 30,000 د.ع");
+    expect(message).toContain("1. Heater 100W\n   ▸ الكمية: 2\n   ▸ سعر القطعة: 15,000 د.ع\n   ▸ المجموع: 30,000 د.ع");
     expect(message).not.toContain("الخيار:");
   });
 
   it("shows free shipping and hides a zero discount, using the stored shippingCost (never a hardcoded 5,000)", () => {
     const message = buildOrderNotificationMessage({ ...baseOrder, shippingCost: 0, discountTotal: 0, total: 29000 });
-    expect(message).toContain("🚚 التوصيل: مجاني");
-    expect(message).not.toContain("🎁 الخصم");
+    expect(message).toContain("🚚 <b>التوصيل:</b> مجاني");
+    expect(message).not.toContain("🎁");
     expect(message).not.toContain("5,000");
-    expect(message).toContain("🧾 المنتجات: 29,000 د.ع");
+    expect(message).toContain("🧾 <b>مجموع المنتجات:</b> 29,000 د.ع");
+  });
+
+  it("uses the stored line totals for the products subtotal and the payable (rounded, post-cashback) total as the final amount", () => {
+    // Lines sum to 29,000; coupon 2,000; cashback 1,750; shipping 5,000 →
+    // raw total 32,000 − cashback 1,750 = 30,250 → rounded to 250 = 30,250.
+    const message = buildOrderNotificationMessage({ ...baseOrder, pointsDiscount: 1750, total: 30250 });
+    expect(message).toContain("🧾 <b>مجموع المنتجات:</b> 29,000 د.ع");
+    expect(message).toContain("🎁 <b>الخصم:</b> -2,000 د.ع");
+    expect(message).toContain("🎁 <b>خصم الباقي (Cashback):</b> -1,750 د.ع");
+    expect(message).toContain("💰 <b>المجموع النهائي:</b> 30,250 د.ع");
+    expect(message).not.toContain("32,000");
   });
 
   it("labels a verified Wayl payment as paid and never as cash", () => {
     const message = buildOrderNotificationMessage({ ...baseOrder, paymentMethod: "wayl_paid" });
-    expect(message).toContain("💳 <b>طريقة الدفع:</b>\n✅ مدفوع إلكترونياً — Wayl");
+    expect(message).toContain("💵 <b>طريقة الدفع:</b>\n✅ مدفوع إلكترونياً عبر Wayl");
     expect(message).not.toContain("الدفع عند الاستلام");
   });
 
-  it("includes customer notes only when present, escaped", () => {
+  it("includes customer notes only when present, escaped, after the order time", () => {
     expect(buildOrderNotificationMessage({ ...baseOrder, customerNotes: "   " })).not.toContain("ملاحظات الزبون");
     const message = buildOrderNotificationMessage({ ...baseOrder, customerNotes: "اتصل قبل <التوصيل>" });
-    expect(message).toContain("📝 <b>ملاحظات الزبون:</b>\nاتصل قبل &lt;التوصيل&gt;");
+    expect(message).toContain("(بغداد)\n\n📝 <b>ملاحظات الزبون:</b>\nاتصل قبل &lt;التوصيل&gt;\n\n🔗");
   });
 
   it("escapes customer-controlled text so it cannot inject Telegram HTML", () => {
@@ -145,7 +156,8 @@ describe("buildOrderNotificationMessage", () => {
     expect(message).not.toMatch(/<script>|<a href="x">|<i>Filter|<u>16/);
     expect(message).toContain("&lt;a href=&quot;x&quot;&gt;مهاجم&lt;/a&gt;");
     expect(message).toContain("<code>FH-&lt;script&gt;</code>");
-    expect(message).toContain("الخيار: &lt;u&gt;16/22&lt;/u&gt;");
+    expect(message).toContain("▸ الخيار: &lt;u&gt;16/22&lt;/u&gt;");
+    expect(message).toContain("1. &lt;i&gt;Filter&lt;/i&gt;");
   });
 
   it("renders a JSON shipping address object as readable text", () => {
@@ -153,7 +165,7 @@ describe("buildOrderNotificationMessage", () => {
       ...baseOrder,
       customerAddress: { addressLine1: "الكرادة - شارع 62", city: "Iraq", country: "IQ" } as unknown as string,
     });
-    expect(message).toContain("📍 <b>العنوان:</b>\nالكرادة - شارع 62");
+    expect(message).toContain("📍 <b>العنوان:</b> الكرادة - شارع 62");
   });
 
   it("prefixes explicit test orders so nobody prepares them", () => {
