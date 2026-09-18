@@ -9,7 +9,7 @@ import { runAutomaticPeriodClose } from "../services/accounting-auto-close-v2.js
 const periodKeySchema = z.string().regex(/^20\d{2}-(0[1-9]|1[0-2])$/);
 const closeBodySchema = z.object({ periodKey: periodKeySchema }).strict();
 const reopenBodySchema = z.object({ reason: z.string().trim().min(5).max(500) }).strict();
-const LATEST_ACCOUNTING_MIGRATION = "0078_accounting_external_handoff_hardening";
+const LATEST_ACCOUNTING_MIGRATION = "0080_accounting_operational_hardening";
 const ACTIVE_ACCOUNTING_POLICY = "v3_explicit_rounding_carrier_snapshot";
 const ACCOUNTANT_PACKAGE_VERSION = "2026-08-v3.0";
 
@@ -55,6 +55,7 @@ async function assertV2Schema(db: ReturnType<typeof getDb>): Promise<void> {
       to_regclass('public.accounting_monthly_positions') IS NOT NULL AS positions,
       to_regclass('public.v_accounting_live_balances') IS NOT NULL AS live_balances,
       to_regclass('public.order_accounting_carrier_corrections') IS NOT NULL AS carrier_corrections,
+      to_regclass('public.v_accounting_operational_hardening') IS NOT NULL AS operational_hardening_view,
       to_regprocedure('public.auto_close_ended_accounting_periods(text,text)') IS NOT NULL AS auto_close,
       to_regprocedure('public.accounting_effective_carrier(text)') IS NOT NULL AS effective_carrier,
       EXISTS(
@@ -80,7 +81,47 @@ async function assertV2Schema(db: ReturnType<typeof getDb>): Promise<void> {
       pg_get_functiondef('public.prepare_verified_return_inventory()'::regprocedure)
         ILIKE '%RETURN_ORDER_ITEM_ID_REQUIRED%' AS return_line_identity_guard,
       pg_get_functiondef('public.prepare_verified_return_inventory()'::regprocedure)
-        ILIKE '%refund_amount%v_refund_total%' AS return_refund_snapshot_guard
+        ILIKE '%refund_amount%v_refund_total%' AS return_refund_snapshot_guard,
+      COALESCE(pg_get_viewdef(to_regclass('public.v_order_accounting'),true) ILIKE '%rounding_adjustment%',false)
+        AS order_profit_includes_rounding,
+      (
+        SELECT COUNT(*)=11 AND COUNT(*) FILTER (WHERE NOT c.convalidated)=0
+        FROM pg_constraint c
+        JOIN pg_class t ON t.oid=c.conrelid
+        JOIN pg_namespace n ON n.oid=t.relnamespace
+        WHERE n.nspname='public'
+          AND (t.relname,c.conname) IN (
+            ('accounting_period_closes','accounting_period_closes_close_type_chk'),
+            ('order_items_relational','order_items_cost_confidence_chk'),
+            ('order_items_relational','order_items_cost_nonneg'),
+            ('order_items_relational','order_items_cost_source_chk'),
+            ('order_items_relational','order_items_cost_status_chk'),
+            ('order_items_relational','order_items_cost_version_chk'),
+            ('order_items_relational','order_items_sale_price_identity_chk'),
+            ('order_items_relational','order_items_sale_price_nonneg'),
+            ('order_items_relational','order_items_sale_price_provenance_chk'),
+            ('order_items_relational','order_items_sale_price_source_chk'),
+            ('orders','orders_coupon_id_coupons_id_fk')
+          )
+      ) AS operational_constraints_validated,
+      CASE
+        WHEN NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname='aquavo_runtime') THEN true
+        ELSE NOT EXISTS(
+          SELECT 1
+          FROM (VALUES
+            ('inventory_cost_events'),
+            ('inventory_movements'),
+            ('journal_entries'),
+            ('journal_lines'),
+            ('order_accounting_carrier_corrections'),
+            ('order_accounting_facts'),
+            ('order_accounting_settlements'),
+            ('payment_events')
+          ) AS x(table_name)
+          WHERE has_table_privilege('aquavo_runtime',format('public.%I',x.table_name),'UPDATE')
+             OR has_table_privilege('aquavo_runtime',format('public.%I',x.table_name),'DELETE')
+        )
+      END AS append_only_acl_hardened
   `);
   const state = rowsOf(result)[0] as Record<string, boolean> | undefined;
   if (!state || Object.values(state).some((value) => value !== true)) {
@@ -128,7 +169,7 @@ export function createAccountingV2Router() {
         cutover: "2026-08-01",
         timezone: "Asia/Baghdad",
         currency: "IQD",
-        migrationsThrough: "0078",
+        migrationsThrough: "0080",
         policyVersion: ACTIVE_ACCOUNTING_POLICY,
         automaticClose: true,
       });
@@ -357,6 +398,5 @@ export function createAccountingV2Router() {
       res.json(normalize(row));
     } catch (error) { next(error); }
   });
-
   return router;
 }
