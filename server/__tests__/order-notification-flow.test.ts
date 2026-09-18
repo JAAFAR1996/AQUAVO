@@ -267,10 +267,16 @@ describe("trigger-point contracts", () => {
     expect(maintenance).toContain("await sendOrderNotification(data, { rethrow: true });");
   });
 
-  it("admin test orders notify only on explicit opt-in, directly and with the test prefix", () => {
-    expect(testRoute).toContain("if (req.body?.notifyTelegram === true) {");
+  it("admin test orders always notify directly, with the test prefix and the payable total, never via the durable outbox", () => {
+    // The route is admin-only and fully isolated, so the alert must not depend on
+    // a frontend flag: a cached checkout bundle would silently suppress it.
+    expect(testRoute).toContain("const telegram = await sendOrderNotification({");
+    expect(testRoute).not.toContain("notifyTelegram");
     expect(testRoute).toMatch(/paymentMethod: "cod",[\s\S]{0,120}testOrder: true,/);
     expect(testRoute).toContain("total: order.roundedTotal ?? order.total,");
+    // Direct send only: the outbox path is reserved for real confirmed orders,
+    // and it skips is_test rows anyway.
     expect(testRoute).not.toContain("enqueueMerchantNotificationOutbox");
+    expect(testRoute.split("await sendOrderNotification(").length - 1).toBe(1);
   });
 });
