@@ -63,7 +63,7 @@
     if (live) live.textContent = manual ? "جارٍ التحقق الآن…" : "جارٍ التحقق تلقائياً…";
     try {
       const query = new URLSearchParams({ paymentId });
-      const response = await fetch(`/api/payments/alqaseh/order/${encodeURIComponent(orderId)}/status?${query.toString()}`, {
+      const response = await fetch(`/api/payments/wayl/order/${encodeURIComponent(orderId)}/status?${query.toString()}`, {
         credentials: "include",
         cache: "no-store",
       });
@@ -118,7 +118,7 @@
     if (errorBox) errorBox.hidden = true;
 
     try {
-      const response = await fetch(`/api/payments/alqaseh/order/${encodeURIComponent(orderId)}/retry`, {
+      const response = await fetch(`/api/payments/wayl/order/${encodeURIComponent(orderId)}/retry`, {
         method: "POST",
         credentials: "include",
         headers: {

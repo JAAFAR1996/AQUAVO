@@ -3,7 +3,7 @@ import express from "express";
 import { createProductRouter } from "./routes/products.js";
 import { createOrderRouter } from "./routes/orders.js";
 import { createProductionTestCheckoutRouter, createProductionTestAdminRouter } from "./routes/production-test-orders.js";
-import { createAlqasehRouter } from "./routes/alqaseh.js";
+import { createWaylRouter } from "./routes/wayl.js";
 import { createPaymentPageRouter } from "./routes/payment-pages.js";
 import alwaseetPublicTrackingRouter from "./routes/alwaseet-public-tracking.js";
 import { createUserRouter } from "./routes/users.js";
@@ -95,7 +95,7 @@ export async function registerRoutes(httpServer: Server, app: express.Applicatio
   app.use("/api/orders", alwaseetPublicTrackingRouter);
   app.use("/api/orders", createProductionTestCheckoutRouter());
   app.use("/api/orders", createOrderRouter());
-  app.use("/api/payments/alqaseh", createAlqasehRouter());
+  app.use("/api/payments/wayl", createWaylRouter());
   app.use("/payment", createPaymentPageRouter());
 
   // Public Meta callback: no session/admin auth. POST authenticity is enforced

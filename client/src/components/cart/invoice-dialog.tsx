@@ -60,7 +60,7 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
   const pointsEarned = orderData?.pointsEarned ?? 0;
   const cashbackEarned = orderData?.cashbackEarned ?? 0;
   const orderStatus = orderData?.status ?? 'pending';
-  const isOnlinePayment = orderData?.paymentMethod === 'alqaseh';
+  const isOnlinePayment = orderData?.paymentMethod === 'alqaseh' || orderData?.paymentMethod === 'wayl';
   const paymentMethodLabel = isOnlinePayment ? 'مدفوع إلكترونياً' : 'الدفع عند الاستلام';
 
   // ⚠️ roundedTotal من الباكند = ceil((grandTotal - cashbackUsed) / 250) * 250

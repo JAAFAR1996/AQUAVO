@@ -63,10 +63,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Execute Al-Qaseh payment and accounting tests
+      - name: Execute online payment and Al-Qaseh accounting tests
         run: >-
           pnpm exec vitest run
-          server/__tests__/alqaseh-payment-flow.test.ts
+          server/__tests__/wayl-payment-flow.test.ts
           server/__tests__/alqaseh-accounting-contract.test.ts
           server/__tests__/alqaseh-accounting-execution.test.ts
 

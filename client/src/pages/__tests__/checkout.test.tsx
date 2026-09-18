@@ -29,7 +29,7 @@ vi.mock("@/lib/analytics", () => ({
 
 import CheckoutPage from "../checkout";
 
-// The confirmation step probes Al-Qaseh availability on mount, so fetch calls
+// The confirmation step probes Wayl availability on mount, so fetch calls
 // are no longer in a single predictable order. Responses are routed by URL and
 // the order endpoint keeps its own queue, which also keeps `mock.calls[0]` from
 // meaning "the order request".
@@ -42,7 +42,7 @@ function queueOrderResponse(build: () => unknown) {
 /** Answers the availability probe; everything else drains the order queue. */
 function routeFetch(onlineAvailable: boolean) {
   mockFetch.mockImplementation(async (url: unknown) => {
-    if (String(url).includes("/api/payments/alqaseh/availability")) {
+    if (String(url).includes("/api/payments/wayl/availability")) {
       return { ok: true, json: async () => ({ available: onlineAvailable }) };
     }
     const next = queuedOrderResponses.shift();
@@ -59,7 +59,7 @@ describe("checkout page", () => {
     queuedOrderResponses.length = 0;
     vi.stubGlobal("fetch", mockFetch);
     // Default to gateway-down so the COD assertions below stay deterministic;
-    // the Al-Qaseh cases opt in explicitly.
+    // the Wayl cases opt in explicitly.
     routeFetch(false);
   });
 
@@ -151,7 +151,7 @@ describe("checkout page", () => {
     await user.click(screen.getByRole("button", { name: "مراجعة الطلب" }));
   }
 
-  it("offers Al-Qaseh alongside COD when the gateway reports itself available", async () => {
+  it("offers Wayl alongside COD when the gateway reports itself available", async () => {
     routeFetch(true);
     const user = userEvent.setup();
     render(<CheckoutPage />);

@@ -18,7 +18,7 @@
 
 - Delivery within 24 hours throughout Iraq
 - Fixed delivery fee: 5,000 IQD
-- Checkout supports cash on delivery and online payment through Al-Qaseh; online payment is accepted only after server-side gateway confirmation
+- Checkout supports cash on delivery and online payment through Wayl; online payment is accepted only after server-side gateway confirmation
 - Customer support is available 24/7
 
 ## Store scope

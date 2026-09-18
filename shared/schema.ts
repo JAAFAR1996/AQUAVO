@@ -641,7 +641,7 @@ export const payments = pgTable("payments", {
   orderId: text("order_id").references(() => orders.id).unique().notNull(), // One-to-One
   amount: numeric("amount").notNull(),
   currency: text("currency").default("IQD"),
-  method: text("method").notNull(), // cod/cash_on_delivery (legacy) or alqaseh (online hosted checkout)
+  method: text("method").notNull(), // cod/cash_on_delivery (legacy), alqaseh (retired online gateway, historical orders only), or wayl (active online hosted checkout)
   status: text("status").notNull().default("pending"), // pending, completed, failed, refunded
   transactionId: text("transaction_id"),
   providerResponse: jsonb("provider_response"),

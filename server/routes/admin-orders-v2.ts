@@ -34,7 +34,7 @@ const PAYMENT_MANAGED_STATUSES = new Set(["pending_payment", "payment_review"]);
 
 function paymentManagedTransitionMessage(status: string): string {
   if (status === "pending_payment") {
-    return "هذا الطلب بانتظار تأكيد الدفع الإلكتروني. لا يمكن بدء التجهيز أو تغيير حالته يدوياً؛ بعد نجاح Al-Qaseh ينتقل تلقائياً إلى قيد الانتظار.";
+    return "هذا الطلب بانتظار تأكيد الدفع الإلكتروني. لا يمكن بدء التجهيز أو تغيير حالته يدوياً؛ بعد نجاح Wayl ينتقل تلقائياً إلى قيد الانتظار.";
   }
   return "تم تأكيد الدفع الإلكتروني لكن الطلب يحتاج مراجعة مخزون. لا تغيّر الحالة يدوياً قبل إكمال مراجعة الدفع والمخزون.";
 }
@@ -224,7 +224,7 @@ export function createAdminOrdersV2Router() {
         const oldStatus = locked.status;
         const input = parsed.data;
 
-        // Payment lifecycle states are owned by the Al-Qaseh verification flow.
+        // Payment lifecycle states are owned by the Wayl verification flow.
         // The single admin exception is cancelling an UNPAID `pending_payment`
         // order. That path releases the reservation and closes the local payment
         // record atomically. A late provider success is handled by the payment
@@ -241,7 +241,7 @@ export function createAdminOrdersV2Router() {
           const paymentResult = await tx.execute(sql`
             SELECT id,status,transaction_id
             FROM public.payments
-            WHERE order_id=${locked.id} AND method='alqaseh'
+            WHERE order_id=${locked.id} AND method IN ('alqaseh','wayl')
             FOR UPDATE
           `);
           const payment = rowsOf<LockedPayment>(paymentResult)[0];

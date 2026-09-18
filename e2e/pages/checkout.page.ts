@@ -107,7 +107,7 @@ export class CheckoutPage extends BasePage {
         this.paymentSection = page.locator('[class*="payment"]');
         this.paymentMethods = page.locator('input[name*="payment"][type="radio"], [class*="payment-option"]');
         this.cashOnDeliveryOption = page.locator('text=/الدفع عند الاستلام|Cash on Delivery/');
-        this.onlinePaymentOption = page.locator('text=/الدفع الإلكتروني|Online Payment|Al-Qaseh/');
+        this.onlinePaymentOption = page.locator('text=/الدفع الإلكتروني|Online Payment|Wayl/');
 
         // Order Summary
         this.orderSummary = page.locator('[class*="order-summary"], [class*="cart-summary"]');

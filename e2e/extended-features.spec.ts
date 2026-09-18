@@ -44,7 +44,7 @@ test.describe('نافذة الدفع - Checkout Dialog', () => {
         await page.goto('/checkout', { waitUntil: 'domcontentloaded' });
         await page.waitForTimeout(2000);
 
-        const paymentMethods = page.locator('text=/الدفع الإلكتروني|الدفع عند الاستلام|Online Payment|Al-Qaseh|Payment/i');
+        const paymentMethods = page.locator('text=/الدفع الإلكتروني|الدفع عند الاستلام|Online Payment|Wayl|Payment/i');
         const isVisible = await paymentMethods.isVisible();
         expect(isVisible || true).toBe(true);
     });

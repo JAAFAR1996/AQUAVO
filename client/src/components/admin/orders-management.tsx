@@ -653,7 +653,7 @@ export function OrdersManagement() {
                             {order.status === 'pending_payment' && (
                               <span
                                 className="text-amber-700 dark:text-amber-300 font-semibold px-3 py-1 border border-amber-300 dark:border-amber-700 rounded-md bg-amber-50 dark:bg-amber-950/30"
-                                title="لا يبدأ التجهيز قبل تأكيد الدفع من Al-Qaseh"
+                                title="لا يبدأ التجهيز قبل تأكيد الدفع من Wayl"
                               >
                                 بانتظار دفع الزبون 💳
                               </span>
@@ -1079,7 +1079,7 @@ export function OrdersManagement() {
               {PAYMENT_LOCKED_STATUSES.has(selectedOrder.status) ? (
                 <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200">
                   {selectedOrder.status === "pending_payment"
-                    ? "التجهيز متوقف إلى أن تؤكد Al-Qaseh نجاح الدفع. بعد التأكيد ينتقل الطلب تلقائياً إلى قيد الانتظار ويظهر زر بدء التجهيز."
+                    ? "التجهيز متوقف إلى أن تؤكد Wayl نجاح الدفع. بعد التأكيد ينتقل الطلب تلقائياً إلى قيد الانتظار ويظهر زر بدء التجهيز."
                     : "الدفع مؤكد، لكن تنفيذ الطلب متوقف بسبب مراجعة مخزون مطلوبة. لا تبدأ التجهيز قبل حل المراجعة."}
                 </div>
               ) : (

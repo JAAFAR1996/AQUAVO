@@ -39,7 +39,7 @@ export function PaymentMethodCard({ method, selected, onChange, disabled = false
               {online ? "الدفع الإلكتروني الآمن" : "الدفع عند الاستلام"}
             </span>
             <span className="mt-0.5 block text-xs font-medium text-muted-foreground">
-              {online ? "عبر بوابة Al-Qaseh" : "نقداً عند وصول الطلب"}
+              {online ? "عبر بوابة Wayl" : "نقداً عند وصول الطلب"}
             </span>
           </div>
         </div>

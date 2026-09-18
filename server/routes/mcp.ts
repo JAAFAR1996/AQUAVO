@@ -366,7 +366,7 @@ async function buildSiteOverview(db: ReturnType<typeof getDb>) {
     },
     rules: {
       sells_live_fish: false,
-      payment_methods: ["cash_on_delivery", "alqaseh"],
+      payment_methods: ["cash_on_delivery", "wayl"],
       shipping_fee_iqd: 5000,
     },
   };
