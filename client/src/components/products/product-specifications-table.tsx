@@ -18,6 +18,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
+import { useLocale } from "@/i18n/locale-context";
 
 interface Specification {
     label: string;
@@ -102,7 +104,7 @@ function normalizeSpecifications(specs: Specification[] | Record<string, any>): 
         .map(([key, value]) => ({
             label: key,
             value: typeof value === 'boolean'
-                ? (value ? 'نعم ✓' : 'لا ✗')
+                ? (value ? '__YES__' : '__NO__')
                 : typeof value === 'object'
                     ? JSON.stringify(value)
                     : String(value),
@@ -114,20 +116,25 @@ export function ProductSpecificationsTable({
     category,
     className,
 }: ProductSpecificationsTableProps) {
-    const specs = normalizeSpecifications(specifications);
+    const { t } = useTranslation("products");
+    const { dir } = useLocale();
+    const specs = normalizeSpecifications(specifications).map((spec) => ({
+        ...spec,
+        value: spec.value === "__YES__" ? t("specs.yes") : spec.value === "__NO__" ? t("specs.no") : spec.value,
+    }));
 
     if (specs.length === 0) {
         return null;
     }
 
     return (
-        <Card className={cn("overflow-hidden", className)} dir="rtl">
+        <Card className={cn("overflow-hidden", className)} dir={dir}>
             <CardHeader className="bg-gradient-to-br from-primary/5 to-transparent pb-4">
                 <CardTitle className="flex items-center gap-2 text-lg">
                     <Settings className="w-5 h-5 text-primary" aria-hidden="true" />
-                    <span>المواصفات التقنية</span>
+                    <span>{t("specs.title")}</span>
                     {category && (
-                        <Badge variant="secondary" className="mr-2 text-xs">
+                        <Badge variant="secondary" className="ms-2 text-xs">
                             {category}
                         </Badge>
                     )}
