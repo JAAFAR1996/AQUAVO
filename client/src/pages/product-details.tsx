@@ -485,15 +485,15 @@ export default function ProductDetails() {
                       selectedVariantId={selectedVariant?.id || ""}
                       onVariantSelect={setSelectedVariant}
                     />
-                    {/* Fall back to EmbeddedVariantSelector for single-dimension variants */}
-                    {!product.variants.some(v => v.specifications?.["اللون"] && v.specifications?.["الحجم"]) && (
-                      <EmbeddedVariantSelector
-                        variants={product.variants}
-                        selectedVariantId={selectedVariant?.id || ""}
-                        onVariantSelect={setSelectedVariant}
-                        productCategory={product.category}
-                      />
-                    )}
+                    {/* Single-dimension products (for example: one fixed color + multiple sizes)
+                        are handled here. The selector itself hides when the variant set truly has
+                        multiple changing dimensions, so a constant color must not suppress sizes. */}
+                    <EmbeddedVariantSelector
+                      variants={product.variants}
+                      selectedVariantId={selectedVariant?.id || ""}
+                      onVariantSelect={setSelectedVariant}
+                      productCategory={product.category}
+                    />
                   </div>
                 )}
 
