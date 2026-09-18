@@ -61,34 +61,31 @@ export function createProductionTestCheckoutRouter() {
         idempotencyKey: idempotencyKey?.success ? idempotencyKey.data : undefined,
       });
 
-      // Telegram is OFF for test orders unless this single request opts in. The
-      // message is sent directly (never through the durable outbox) and carries
-      // the "طلب اختبار — لا يتم التجهيز" prefix. Uses the stored row, so the
-      // merchant sees exactly what a real alert would show.
-      let telegram: "sent" | "skipped" | "failed" | "off" = "off";
-      if (req.body?.notifyTelegram === true) {
-        telegram = await sendOrderNotification({
-          orderId: order.id,
-          orderNumber: order.orderNumber,
-          customerName: order.customerName,
-          customerPhone: order.customerPhone,
-          customerAddress: parsed.data.customerInfo.address,
-          total: order.roundedTotal ?? order.total,
-          shippingCost: order.shippingCost,
-          discountTotal: order.discountTotal,
-          paymentMethod: "cod",
-          createdAt: order.createdAt as Date | string | null,
-          testOrder: true,
-          items: (order.items as any[]).map((line) => ({
-            productId: String(line.productId),
-            productName: line.productName,
-            variantLabel: line.variantLabel,
-            quantity: Number(line.quantity) || 1,
-            priceAtPurchase: line.priceAtPurchase,
-            lineTotal: line.lineTotal,
-          })),
-        });
-      }
+      // Every admin test order sends one direct Telegram test alert. This route is
+      // already admin-only and isolated from inventory/accounting/loyalty, so the
+      // notification must not depend on a frontend flag (which can be stale/cached).
+      // The message is clearly prefixed "طلب اختبار — لا يتم التجهيز".
+      const telegram = await sendOrderNotification({
+        orderId: order.id,
+        orderNumber: order.orderNumber,
+        customerName: order.customerName,
+        customerPhone: order.customerPhone,
+        customerAddress: parsed.data.customerInfo.address,
+        total: order.roundedTotal ?? order.total,
+        shippingCost: order.shippingCost,
+        discountTotal: order.discountTotal,
+        paymentMethod: "cod",
+        createdAt: order.createdAt as Date | string | null,
+        testOrder: true,
+        items: (order.items as any[]).map((line) => ({
+          productId: String(line.productId),
+          productName: line.productName,
+          variantLabel: line.variantLabel,
+          quantity: Number(line.quantity) || 1,
+          priceAtPurchase: line.priceAtPurchase,
+          lineTotal: line.lineTotal,
+        })),
+      });
 
       res.status(201).json({
         ...order,
