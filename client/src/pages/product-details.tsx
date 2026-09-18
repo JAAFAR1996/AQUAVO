@@ -310,7 +310,7 @@ export default function ProductDetails() {
   const isKilogramProduct =
     product.name.includes("كغم") ||
     product.name.includes("كيلو") ||
-    ["رمال", "أحجار", "حصى"].includes(product.subcategory) ||
+    ["رمال", "أحجار", "حصى"].includes(product.subcategory ?? "") ||
     ["houyi-activated-carbon", "houyi-ceramic-ring", "houyi-breathing-ring-white"].includes(product.slug);
 
   return (

@@ -17,6 +17,10 @@ import { displayAuthorName } from "../shared/author-name.js";
 import { articleWordCount } from "../shared/article-reading.js";
 import { articleDatePublished } from "../shared/article-dates.js";
 import { articleAuthorEntity } from "../shared/editorial-author.js";
+import { DEFAULT_LOCALE, splitLocaleFromPath, localizePath, type Locale } from "../shared/i18n/locales.js";
+import { applyBlogPostTranslation, applyProductTranslation, type BlogPostTranslationData, type ProductTranslationData } from "../shared/i18n/content.js";
+import { applyLocaleToHtml, SHELL_META } from "./_locale-meta.js";
+import { getLocalizedStaticMeta } from "./_static-meta-i18n.js";
 
 // ─── DB Setup (lightweight, no Drizzle overhead) ────────────────────────────
 neonConfig.webSocketConstructor = ws;
@@ -25,6 +29,25 @@ function getPool(): Pool | null {
   if (!process.env.DATABASE_URL) return null;
   if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
   return pool;
+}
+
+/** One translated record for an entity, or null (Arabic requests never query). */
+async function loadTranslation<T>(entityType: string, entityId: string, locale: Locale): Promise<T | null> {
+  if (locale === DEFAULT_LOCALE) return null;
+  const db = getPool();
+  if (!db) return null;
+  try {
+    const { rows } = await db.query(
+      `SELECT data FROM content_translations WHERE entity_type = $1 AND entity_id = $2 AND locale = $3 LIMIT 1`,
+      [entityType, entityId, locale],
+    );
+    return rows.length ? (rows[0].data as T) : null;
+  } catch (err) {
+    // The table is created by migrations/add_content_translations.sql; until
+    // it exists every locale falls back to Arabic and is marked as such.
+    console.error("SSR meta: translation query error", err);
+    return null;
+  }
 }
 
 // ─── HTML template (imported from build-generated file) ─────────────────────
@@ -56,6 +79,8 @@ export interface PageMeta {
    * `toPublicProduct` boundary, so it can carry no cost fields.
    */
   embeddedProduct?: EmbeddedProduct;
+  /** Non-Arabic locale requested but no translation exists: page is served in Arabic and kept out of the index. */
+  translationMissing?: boolean;
 }
 
 /**
@@ -562,7 +587,7 @@ export function buildProductMetaTitle(name: string, brand?: string | null): stri
   return `${productTitle} | AQUAVO`;
 }
 
-async function getProductMeta(slug: string): Promise<(PageMeta & { productImage?: string }) | null> {
+async function getProductMeta(slug: string, locale: Locale = DEFAULT_LOCALE): Promise<(PageMeta & { productImage?: string }) | null> {
   const db = getPool();
   if (!db) return null;
   try {
@@ -591,7 +616,9 @@ async function getProductMeta(slug: string): Promise<(PageMeta & { productImage?
       [slug]
     );
     if (rows.length === 0) return null;
-    const p = rows[0];
+    const translation = await loadTranslation<ProductTranslationData>("product", String(rows[0].id), locale);
+    const localized = applyProductTranslation(rows[0] as Record<string, unknown>, translation, locale);
+    const p = localized.value as typeof rows[0];
     // The `variants` jsonb carries costPrice/costStatus/costBasis/costEvidence, written by
     // migrations/0073_accounting_final_hardening.sql and absent from the ProductVariant type. Nothing
     // below renders them today — but this function feeds HTML that is served to crawlers, and a single
@@ -617,9 +644,12 @@ async function getProductMeta(slug: string): Promise<(PageMeta & { productImage?
     return {
       title: buildProductMetaTitle(p.name, p.brand),
       description: desc,
-      keywords: `${p.name}، ${p.category || "مستلزمات احواض"}، ${p.brand || "AQUAVO"}، شراء اونلاين العراق`,
+      keywords: locale === "en"
+        ? `${p.name}, ${p.brand || "AQUAVO"}, buy online Iraq, aquarium supplies`
+        : `${p.name}، ${p.category || "مستلزمات احواض"}، ${p.brand || "AQUAVO"}، شراء اونلاين العراق`,
       ogType: "product",
       productImage: primaryImage,
+      translationMissing: localized.translationMissing,
       embeddedProduct: publicProduct
         ? { slug: String(p.slug), renderedAt: Date.now(), product: publicProduct }
         : undefined,
@@ -664,7 +694,7 @@ async function getProductMeta(slug: string): Promise<(PageMeta & { productImage?
   }
 }
 
-async function getBlogMeta(slug: string): Promise<PageMeta | null> {
+async function getBlogMeta(slug: string, locale: Locale = DEFAULT_LOCALE): Promise<PageMeta | null> {
   const db = getPool();
   if (!db) return null;
   try {
@@ -673,13 +703,18 @@ async function getBlogMeta(slug: string): Promise<PageMeta | null> {
       // is_published. This query threw 42703 on every blog request that reached
       // the stable handler, which is how a blog post lost its title and Article
       // schema entirely whenever the semantic renderer fell back to here.
-      `SELECT title, excerpt, image_url AS "imageUrl", author,
+      `SELECT id, title, excerpt, image_url AS "imageUrl", author,
               published_at AS "publishedAt", created_at AS "createdAt", content
          FROM blog_posts WHERE slug = $1 AND is_published = TRUE LIMIT 1`,
       [slug]
     );
     if (rows.length === 0) return null;
-    const post = rows[0];
+    const translation = await loadTranslation<BlogPostTranslationData>("blog_post", String(rows[0].id), locale);
+    const localizedPost = applyBlogPostTranslation(rows[0] as Record<string, unknown>, translation, locale);
+    const post = localizedPost.value as typeof rows[0];
+    const shell = SHELL_META[locale];
+    const blogBase = `${BASE}${localizePath("/blog", locale)}`;
+    const postUrl = `${BASE}${localizePath(`/blog/${slug}`, locale)}`;
     // Words in the article, not tokens in its markup: splitting the raw HTML
     // counted every tag as a word and overstated the length of every post.
     const wordCount = articleWordCount(post.content) || undefined;
@@ -688,9 +723,10 @@ async function getBlogMeta(slug: string): Promise<PageMeta | null> {
     // modification date is published at all. See shared/article-dates.ts.
     const datePublished = articleDatePublished(post);
     return {
-      title: `${post.title} | مدونة AQUAVO`,
+      title: `${post.title} | ${shell.blogSuffix}`,
       description: post.excerpt || post.title,
       ogType: "article",
+      translationMissing: localizedPost.translationMissing,
       jsonLd: [
         {
           "@context": "https://schema.org",
@@ -702,17 +738,17 @@ async function getBlogMeta(slug: string): Promise<PageMeta | null> {
           publisher: { "@type": "Organization", name: "AQUAVO", logo: { "@type": "ImageObject", url: DEFAULT_IMAGE } },
           datePublished,
           wordCount,
-          inLanguage: "ar",
-          mainEntityOfPage: { "@type": "WebPage", "@id": `${BASE}/blog/${slug}` },
+          inLanguage: localizedPost.contentLocale,
+          mainEntityOfPage: { "@type": "WebPage", "@id": postUrl },
           isPartOf: { "@id": `${BASE}/#website` },
         },
         {
           "@context": "https://schema.org",
           "@type": "BreadcrumbList",
           itemListElement: [
-            { "@type": "ListItem", position: 1, name: "الرئيسية", item: BASE },
-            { "@type": "ListItem", position: 2, name: "المدونة", item: `${BASE}/blog` },
-            { "@type": "ListItem", position: 3, name: post.title, item: `${BASE}/blog/${slug}` },
+            { "@type": "ListItem", position: 1, name: shell.homeName, item: locale === DEFAULT_LOCALE ? BASE : `${BASE}${localizePath("/", locale)}` },
+            { "@type": "ListItem", position: 2, name: shell.blogName, item: blogBase },
+            { "@type": "ListItem", position: 3, name: post.title, item: postUrl },
           ],
         },
       ],
@@ -808,15 +844,19 @@ function withStaticPageGraph(path: string, meta: PageMeta): object[] {
   return hasCrumb || !wantsCrumb ? own : [...own, breadcrumbFor(path, staticPageName(meta))];
 }
 
-async function resolveMetadata(pathname: string, notFound = false): Promise<PageMeta & { url: string; image: string }> {
+async function resolveMetadata(pathname: string, notFound = false, locale: Locale = DEFAULT_LOCALE): Promise<PageMeta & { url: string; image: string }> {
   const cleanPath = pathname.replace(/\/+$/, "") || "/";
   const seoOverride = getSeoMetaOverride(cleanPath);
   const noIndex = isNoindexPath(cleanPath);
+  const shell = SHELL_META[locale];
+  // English / Kurdish static copy replaces the Arabic title+description; the
+  // structured data builders below still run on the logical path.
+  const localizedStatic = locale === DEFAULT_LOCALE ? undefined : getLocalizedStaticMeta(locale, cleanPath);
 
   if (notFound) {
     return {
-      title: "الصفحة غير موجودة | AQUAVO",
-      description: "الرابط الذي فتحته غير موجود. تقدر ترجع للرئيسية أو تتصفح معدات ومستلزمات أحواض الزينة المتوفرة لدى AQUAVO.",
+      title: shell.notFoundTitle,
+      description: shell.notFoundDescription,
       url: canonicalUrlFor(cleanPath),
       noIndex,
       image: DEFAULT_IMAGE,
@@ -827,7 +867,7 @@ async function resolveMetadata(pathname: string, notFound = false): Promise<Page
   // Static pages
   if (STATIC_PAGES[cleanPath]) {
     const meta = STATIC_PAGES[cleanPath];
-    const resolved = { ...meta, ...(seoOverride ?? {}) };
+    const resolved = { ...meta, ...(seoOverride ?? {}), ...(localizedStatic ?? {}) };
     return {
       ...resolved,
       // A page that builds its own graph keeps it; only the ones that defined
@@ -844,7 +884,7 @@ async function resolveMetadata(pathname: string, notFound = false): Promise<Page
   // Product detail: /products/:slug
   const productMatch = cleanPath.match(/^\/products\/([^/]+)$/);
   if (productMatch) {
-    const meta = await getProductMeta(productMatch[1]);
+    const meta = await getProductMeta(productMatch[1], locale);
     if (meta) {
       return {
         ...meta,
@@ -859,7 +899,7 @@ async function resolveMetadata(pathname: string, notFound = false): Promise<Page
   // Blog post: /blog/:slug
   const blogMatch = cleanPath.match(/^\/blog\/([^/]+)$/);
   if (blogMatch) {
-    const meta = await getBlogMeta(blogMatch[1]);
+    const meta = await getBlogMeta(blogMatch[1], locale);
     if (meta) {
       return {
         ...meta,
@@ -873,9 +913,9 @@ async function resolveMetadata(pathname: string, notFound = false): Promise<Page
 
   // Fallback
   return {
-    title: seoOverride?.title || DEFAULT_TITLE,
-    description: seoOverride?.description || DEFAULT_DESC,
-    keywords: seoOverride?.keywords || DEFAULT_KEYWORDS,
+    title: localizedStatic?.title || seoOverride?.title || (locale === DEFAULT_LOCALE ? DEFAULT_TITLE : shell.defaultTitle),
+    description: localizedStatic?.description || seoOverride?.description || (locale === DEFAULT_LOCALE ? DEFAULT_DESC : shell.defaultDescription),
+    keywords: localizedStatic?.keywords || seoOverride?.keywords || DEFAULT_KEYWORDS,
     url: canonicalUrlFor(cleanPath),
     noIndex,
     image: DEFAULT_IMAGE,
@@ -1227,18 +1267,25 @@ function generateMarkdown(meta: PageMeta & { url: string; image: string }, pathn
 // ─── Handler ────────────────────────────────────────────────────────────────
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
-    const pathname = (req.url || "/").split("?")[0];
+    const rawUrl = req.url || "/";
+    const requestPath = rawUrl.split("?")[0];
+    const search = rawUrl.includes("?") ? `?${rawUrl.split("?").slice(1).join("?")}` : "";
 
     // Skip for actual static files (shouldn't reach here, but safety)
-    if (/\.(js|css|png|jpg|jpeg|gif|svg|webp|ico|woff2?|ttf|json|xml|txt|map|gz|br)$/i.test(pathname)) {
+    if (/\.(js|css|png|jpg|jpeg|gif|svg|webp|ico|woff2?|ttf|json|xml|txt|map|gz|br)$/i.test(requestPath)) {
       return res.status(404).end();
     }
+
+    // The locale lives in the URL prefix (/en, /ckb); Arabic is unprefixed.
+    // Everything below works on the logical, locale-free path.
+    const { locale, path: pathname } = splitLocaleFromPath(requestPath);
+    res.setHeader("Content-Language", locale);
 
     // Fully server-rendered educational content pages (visible in View Source,
     // quotable by AI engines). Served as complete HTML, bypassing the SPA shell.
     const guidePath = pathname.replace(/\/+$/, "") || "/";
     const acceptMd = (req.headers.accept || "").toLowerCase().includes("text/markdown");
-    if (guidePath === "/guides") {
+    if (guidePath === "/guides" && locale === DEFAULT_LOCALE) {
       res.setHeader("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
       if (acceptMd) {
         res.setHeader("Content-Type", "text/markdown; charset=utf-8");
@@ -1276,7 +1323,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // halves.
     const resolvedGuide = resolveGuidePage(guidePath);
     const isSpaBackedGuide = resolvedGuide !== null && resolvedGuide.canonicalPath in SPA_GUIDE_PAGES;
-    if (resolvedGuide && !isSpaBackedGuide) {
+    // Only Arabic guides are server-rendered from the Arabic registry. Other
+    // locales get the SPA shell; translated guide bodies come from the app.
+    if (resolvedGuide && !isSpaBackedGuide && locale === DEFAULT_LOCALE) {
       const acceptHeader = (req.headers.accept || "").toLowerCase();
       res.setHeader("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
       if (acceptHeader.includes("text/markdown")) {
@@ -1293,8 +1342,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const template = getTemplate();
     const status = isKnownSitePath(pathname, Object.keys(GUIDE_CONTENT_PAGES)) ? 200 : 404;
-    const meta = await resolveMetadata(pathname, status === 404);
-    const html = injectHomeHero(injectMeta(template, meta), pathname);
+    const meta = await resolveMetadata(pathname, status === 404, locale);
+    // Canonical is per locale: each translated page is its own indexable document.
+    if (locale !== DEFAULT_LOCALE) {
+      try {
+        const u = new URL(meta.url);
+        meta.url = `${u.origin}${localizePath(u.pathname, locale)}${u.search}`;
+      } catch {
+        /* keep the Arabic canonical */
+      }
+      // A page that fell back to Arabic must not be indexed as English/Kurdish.
+      if (meta.translationMissing) meta.noIndex = true;
+    }
+    const localizedHtml = applyLocaleToHtml(injectMeta(template, meta), locale, pathname, pathname === "/products" ? search : "", {
+      indexable: !meta.noIndex && !meta.notFound,
+    });
+    const html = injectHomeHero(localizedHtml, pathname);
 
     // Markdown for Agents: If Accept: text/markdown, return markdown version
     const acceptHeader = (req.headers.accept || "").toLowerCase();

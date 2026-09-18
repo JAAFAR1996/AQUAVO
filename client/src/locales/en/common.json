@@ -1,0 +1,76 @@
+{
+  "brand": "AQUAVO",
+  "language": {
+    "label": "Language",
+    "change": "Change language, current language {{current}}",
+    "menuLabel": "Choose language"
+  },
+  "theme": {
+    "label": "Appearance",
+    "change": "Change theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "actions": {
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "submit": "Submit",
+    "save": "Save",
+    "cancel": "Cancel",
+    "close": "Close",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "edit": "Edit",
+    "search": "Search",
+    "retry": "Try again",
+    "viewAll": "View all",
+    "learnMore": "Learn more",
+    "backToHome": "Back to home",
+    "browseProducts": "Browse products",
+    "copy": "Copy",
+    "copied": "Copied",
+    "share": "Share",
+    "loadMore": "Load more"
+  },
+  "status": {
+    "loading": "Loading...",
+    "working": "Working...",
+    "saving": "Saving...",
+    "error": "Something went wrong. Please try again.",
+    "success": "Done",
+    "empty": "No results",
+    "offline": "You are offline right now",
+    "updateAvailable": "A new version of the site is available",
+    "update": "Update"
+  },
+  "skipToMain": "Skip to main content",
+  "currency": "IQD",
+  "price": "{{value}} IQD",
+  "quantity": "Quantity",
+  "quantityValue": "Quantity: {{count}}",
+  "items_zero": "No items",
+  "items_one": "1 item",
+  "items_other": "{{count}} items",
+  "shipping": {
+    "flatFee": "Flat delivery fee: 5,000 IQD",
+    "within24h": "Delivery within 24 hours",
+    "allIraq": "Across all of Iraq",
+    "payment": "Cash on delivery or online payment",
+    "support247": "Support available 24/7"
+  },
+  "legalName": "AL NABEA SHOP",
+  "location": "Baghdad, Iraq",
+  "notFound": {
+    "title": "Page not found",
+    "description": "The link you opened does not exist. You can go back to the home page or browse the products.",
+    "metaTitle": "Page not found | AQUAVO"
+  },
+  "errorBoundary": {
+    "title": "An unexpected error occurred",
+    "description": "Try reloading the page. If the problem persists, contact us.",
+    "reload": "Reload page"
+  },
+  "translationNotice": "This content is not fully translated yet and is shown in Arabic."
+}

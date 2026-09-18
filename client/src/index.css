@@ -1251,3 +1251,37 @@ button:active, [role="button"]:active { transform: scale(.985); transition-durat
   .aq-article h2 { font-size: 1.35rem; }
   .aq-article h3 { font-size: 1.125rem; }
 }
+
+/* ── Locale typography & direction ─────────────────────────────────────────
+   Cairo (the brand face) lacks five Sorani letters (ڕ ڵ ۆ ێ ە), verified by
+   scripts/i18n/check-font-coverage.mjs. Kurdish pages therefore use Vazirmatn,
+   an OFL sans with full Central Kurdish coverage that sits well next to Cairo.
+   The stylesheet for it is only injected when the locale is ckb. */
+html[lang="ckb"] {
+  --font-sans: "Vazirmatn", "Noto Sans Arabic", "Cairo", Tahoma, sans-serif;
+  --font-heading: "Vazirmatn", "Noto Sans Arabic", "Cairo", Tahoma, sans-serif;
+  --font-display: "Vazirmatn", "Changa", "Cairo", Tahoma, sans-serif;
+}
+html[lang="ckb"] body,
+html[lang="ckb"] h1,
+html[lang="ckb"] h2,
+html[lang="ckb"] h3,
+html[lang="ckb"] h4 {
+  font-family: var(--font-sans);
+}
+
+/* English is LTR: the base RTL rules above are keyed on [dir], so an LTR
+   document gets the standard defaults. Only the list padding needs mirroring. */
+html[dir="ltr"] body {
+  direction: ltr;
+  text-align: start;
+}
+[dir="ltr"] ul,
+[dir="ltr"] ol {
+  padding-inline-start: 1.5em;
+  padding-inline-end: 0;
+}
+/* Model numbers, SKUs and prices inside RTL sentences must not reorder. */
+.aq-bidi-isolate {
+  unicode-bidi: isolate;
+}

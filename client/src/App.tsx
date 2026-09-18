@@ -26,6 +26,8 @@ import { useDeviceDetection } from "@/hooks/use-device-detection";
 import { ComparisonProvider } from "@/contexts/comparison-context";
 import { NavbarPreferencesProvider } from "@/hooks/use-navbar-preferences";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
+import { LocaleProvider } from "@/i18n/locale-context";
+import { SkipToMainLink } from "@/components/ui/skip-to-main";
 import { PageTransition } from "@/components/ui/page-transition";
 
 // Persistent chrome — rendered once in the shell around the Router
@@ -1025,9 +1027,7 @@ function AppShell() {
                   <PageViewTracker />
                   {/* Skip to main content for keyboard navigation */}
                   {group !== 'bare' && (
-                    <a href="#main-content" className="skip-to-main">
-                      الانتقال إلى المحتوى الرئيسي
-                    </a>
+                    <SkipToMainLink />
                   )}
                   {!isStandalonePage && (
                     <IdleMount timeout={30000}>
@@ -1299,7 +1299,11 @@ function App() {
   }, []);
 
   if (!initDone) return <AppInitLoader onDone={handleInitDone} />;
-  return <AppShell />;
+  return (
+    <LocaleProvider>
+      <AppShell />
+    </LocaleProvider>
+  );
 }
 
 export default App;

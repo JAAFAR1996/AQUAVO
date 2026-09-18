@@ -64,6 +64,8 @@ export const users = pgTable("users", {
     mainProblem?: string;
     tankAge?: string;
   }>(),
+  /** Explicit language choice (ar | en | ckb); NULL means Arabic. */
+  locale: text("locale"),
   preferences: jsonb("preferences").$type<{
     tourSeen?: Record<string, boolean>; // e.g. { "/": true, "/products": true }
     theme?: "light" | "dark" | "system";
@@ -191,6 +193,8 @@ export const orders = pgTable("orders", {
   boxCost: numeric("box_cost").default("0"),
   // Order origin: 'website' (default) | 'whatsapp' (created from a manual WhatsApp invoice)
   source: text("source").default("website"),
+  /** Storefront language at checkout, for customer notifications. NULL means Arabic. */
+  locale: text("locale"),
   // Manual financial inclusion override: null=auto (use status), true=force include, false=force exclude
   financiallyCounted: boolean("financially_counted"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -657,6 +661,30 @@ export const translations = pgTable("translations", {
   language: text("language").notNull(), // en, ar, ku
   value: text("value").notNull(),
 });
+
+/**
+ * One translated record per (entity, locale). Arabic rows in products,
+ * blog_posts, categories and blog_categories stay the source of truth; this
+ * table only ever adds English and Central Kurdish text next to them.
+ * Shape of `data` per entityType is defined in shared/i18n/content.ts.
+ */
+export const contentTranslations = pgTable("content_translations", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  entityType: text("entity_type").notNull(), // product | blog_post | category | blog_category | guide
+  entityId: text("entity_id").notNull(),
+  locale: text("locale").notNull(), // en | ckb
+  data: jsonb("data").notNull().$type<Record<string, unknown>>().default({}),
+  status: text("status").notNull().default("machine"), // machine | reviewed
+  sourceHash: text("source_hash"),
+  translatedBy: text("translated_by"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  entityLocaleKey: uniqueIndex("content_translations_entity_locale_key").on(table.entityType, table.entityId, table.locale),
+  typeLocaleIdx: index("content_translations_type_locale_idx").on(table.entityType, table.locale),
+}));
+export type ContentTranslation = typeof contentTranslations.$inferSelect;
+export type InsertContentTranslation = typeof contentTranslations.$inferInsert;
 
 export const userAddresses = pgTable("user_addresses", {
   id: text("id").primaryKey().default(sql`gen_random_uuid()`),

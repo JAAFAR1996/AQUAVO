@@ -4,7 +4,11 @@ import { blogPosts, blogCategories } from "../../shared/schema.js";
 import { eq, desc, and } from "drizzle-orm";
 import { articleReadingTimeLabel } from "../../shared/article-reading.js";
 
+import { localizeJsonResponses } from "../middleware/localize-response.js";
+
 const router = Router();
+// Posts, single post and categories are localized on the way out (no-op for Arabic).
+router.use(localizeJsonResponses);
 
 // GET all categories
 router.get("/categories", async (_req: Request, res: Response, next: NextFunction): Promise<void> => {

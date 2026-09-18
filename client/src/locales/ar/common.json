@@ -1,0 +1,79 @@
+{
+  "brand": "AQUAVO",
+  "language": {
+    "label": "اللغة",
+    "change": "تغيير اللغة، اللغة الحالية {{current}}",
+    "menuLabel": "اختر اللغة"
+  },
+  "theme": {
+    "label": "المظهر",
+    "change": "تغيير السمة",
+    "light": "فاتح",
+    "dark": "داكن",
+    "system": "النظام"
+  },
+  "actions": {
+    "back": "رجوع",
+    "next": "التالي",
+    "previous": "السابق",
+    "submit": "إرسال",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "close": "إغلاق",
+    "confirm": "تأكيد",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "search": "بحث",
+    "retry": "حاول مرة ثانية",
+    "viewAll": "شوف الكل",
+    "learnMore": "اعرف أكثر",
+    "backToHome": "ارجع للرئيسية",
+    "browseProducts": "شوف المنتجات",
+    "copy": "نسخ",
+    "copied": "تم النسخ",
+    "share": "مشاركة",
+    "loadMore": "عرض المزيد"
+  },
+  "status": {
+    "loading": "جاري التحميل...",
+    "working": "جاري...",
+    "saving": "جاري الحفظ...",
+    "error": "صار خطأ. جرّب مرة ثانية.",
+    "success": "تم بنجاح",
+    "empty": "ماكو نتائج",
+    "offline": "أنت غير متصل بالإنترنت هسه",
+    "updateAvailable": "متوفر تحديث جديد للموقع",
+    "update": "تحديث"
+  },
+  "skipToMain": "الانتقال إلى المحتوى الرئيسي",
+  "currency": "د.ع",
+  "price": "{{value}} د.ع",
+  "quantity": "الكمية",
+  "quantityValue": "الكمية: {{count}}",
+  "items_zero": "ماكو منتجات",
+  "items_one": "منتج واحد",
+  "items_two": "منتجان",
+  "items_few": "{{count}} منتجات",
+  "items_many": "{{count}} منتج",
+  "items_other": "{{count}} منتج",
+  "shipping": {
+    "flatFee": "أجور التوصيل الثابتة: 5,000 د.ع",
+    "within24h": "توصيل خلال 24 ساعة",
+    "allIraq": "لكل العراق",
+    "payment": "الدفع عند الاستلام أو إلكترونياً",
+    "support247": "الدعم متوفر 24/7"
+  },
+  "legalName": "محل المنبع — AL NABEA SHOP",
+  "location": "بغداد — العراق",
+  "notFound": {
+    "title": "الصفحة غير موجودة",
+    "description": "الرابط الذي فتحته غير موجود. تقدر ترجع للرئيسية أو تتصفح المنتجات.",
+    "metaTitle": "الصفحة غير موجودة | AQUAVO"
+  },
+  "errorBoundary": {
+    "title": "صار خطأ غير متوقع",
+    "description": "جرّب تحديث الصفحة. إذا استمرت المشكلة تواصل ويانا.",
+    "reload": "تحديث الصفحة"
+  },
+  "translationNotice": "هذا المحتوى ما زال غير مترجم بالكامل ويظهر بالعربية."
+}
