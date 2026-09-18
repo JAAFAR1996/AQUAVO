@@ -1,11 +1,11 @@
 import { eq, sql } from "drizzle-orm";
-import { orders } from "../../shared/schema.js";
+import { orders, payments } from "../../shared/schema.js";
 import { getDb } from "../db.js";
 import { analyticsTracker } from "./analytics-tracker.js";
 import { loyaltyNotifications } from "./loyalty-notifications.js";
 import { ReferralStorage } from "../storage/referral-storage.js";
 import { loyaltyStorage, type TransactionalOrderLoyaltyResult } from "../storage/loyalty-storage.js";
-import { sendOrderNotification } from "./order-notifications.js";
+import { sendOrderNotification, type OrderNotificationData } from "./order-notifications.js";
 
 const referralStorage = new ReferralStorage();
 const OUTBOX_STALE_LOCK_MINUTES = 5;
@@ -41,6 +41,21 @@ export async function enqueuePaidOrderOutbox(
       ON CONFLICT(event_key) DO NOTHING
     `);
   }
+}
+
+/**
+ * Cash-on-delivery orders share the same durable merchant_notification event as
+ * paid Wayl orders. The unique event_key (`<orderId>:merchant_notification`) is the
+ * deduplication guarantee: a repeated Idempotency-Key request never reaches this
+ * code, and even if it did, the second INSERT is a no-op.
+ */
+export async function enqueueMerchantNotificationOutbox(orderId: string): Promise<void> {
+  const db = dbOrThrow();
+  await db.execute(sql`
+    INSERT INTO payment_outbox(event_key, order_id, event_type, payload, status, next_attempt_at)
+    VALUES (${`${orderId}:merchant_notification`}, ${orderId}, 'merchant_notification', '{}'::jsonb, 'pending', now())
+    ON CONFLICT(event_key) DO NOTHING
+  `);
 }
 
 export async function releaseExpiredPaymentReservations(limit = 500): Promise<number> {
@@ -166,19 +181,50 @@ async function deliverOutboxEvent(event: ClaimedOutbox): Promise<void> {
     return;
   }
 
-  await sendOrderNotification({
+  // merchant_notification — the single "new order" Telegram alert.
+  if (await isTestOrder(order.id)) {
+    console.log(`[PaymentOutbox] merchant_notification skipped for test order ${order.id}`);
+    return;
+  }
+  const data = await buildMerchantNotificationFromStoredOrder(order);
+  // rethrow: a Telegram failure must leave the event pending so the cron retries it.
+  await sendOrderNotification(data, { rethrow: true });
+}
+
+async function isTestOrder(orderId: string): Promise<boolean> {
+  const db = dbOrThrow();
+  try {
+    const result = await db.execute(sql`SELECT is_test FROM orders WHERE id=${orderId} LIMIT 1`);
+    return Boolean(rowsFromExecute(result)[0]?.is_test);
+  } catch {
+    // Column absent on an older schema: nothing marks it as a test order.
+    return false;
+  }
+}
+
+/**
+ * The paid label is derived from the stored payment row, never from the event:
+ * only a Wayl payment already verified and marked completed by finalizePaidOrder
+ * renders as paid. Everything else is cash on delivery.
+ */
+export async function buildMerchantNotificationFromStoredOrder(order: any): Promise<OrderNotificationData> {
+  const db = dbOrThrow();
+  const lines = Array.isArray(order.items) ? order.items : [];
+  const [payment] = await db.select({ method: payments.method, status: payments.status }).from(payments)
+    .where(eq(payments.orderId, order.id)).limit(1);
+  const waylPaid = payment?.method === "wayl" && payment?.status === "completed" && order.paymentStatus === "paid";
+  return {
     orderId: order.id,
     orderNumber: order.orderNumber || order.id,
-    customerName: order.customerName || "عميل AQUAVO",
-    customerPhone: order.customerPhone || "",
-    customerAddress: typeof order.shippingAddress === "string"
-      ? order.shippingAddress
-      : JSON.stringify(order.shippingAddress ?? ""),
+    customerName: order.customerName,
+    customerPhone: order.customerPhone,
+    customerAddress: order.shippingAddress,
+    customerNotes: typeof order.customerNotes === "string" ? order.customerNotes : (typeof order.notes === "string" ? order.notes : null),
     total: order.roundedTotal ?? order.total,
-    subtotal: Number(order.total) - Number(order.shippingCost ?? 0) + Number(order.discountTotal ?? 0),
     shippingCost: order.shippingCost,
     discountTotal: order.discountTotal,
-    paymentMethod: "الدفع الإلكتروني — Wayl ✅",
+    paymentMethod: waylPaid ? "wayl_paid" : "cod",
+    createdAt: order.createdAt,
     items: lines.map((line: any) => ({
       productId: line.productId,
       productName: line.productName,
@@ -187,7 +233,7 @@ async function deliverOutboxEvent(event: ClaimedOutbox): Promise<void> {
       priceAtPurchase: line.priceAtPurchase,
       lineTotal: line.lineTotal,
     })),
-  });
+  };
 }
 
 async function markDelivered(id: string): Promise<void> {

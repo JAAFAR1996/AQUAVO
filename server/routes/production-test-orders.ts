@@ -11,6 +11,7 @@ import {
   transitionProductionTestOrder,
 } from "../services/production-test-orders.js";
 import { dispatchDeliveryCareForOrder } from "../services/customer-messaging.js";
+import { sendOrderNotification } from "../services/order-notifications.js";
 
 const uuidSchema = z.string().uuid();
 const testStatusSchema = z.object({ status: z.string().trim().min(1).max(64) });
@@ -60,9 +61,39 @@ export function createProductionTestCheckoutRouter() {
         idempotencyKey: idempotencyKey?.success ? idempotencyKey.data : undefined,
       });
 
+      // Telegram is OFF for test orders unless this single request opts in. The
+      // message is sent directly (never through the durable outbox) and carries
+      // the "طلب اختبار — لا يتم التجهيز" prefix. Uses the stored row, so the
+      // merchant sees exactly what a real alert would show.
+      let telegram: "sent" | "skipped" | "failed" | "off" = "off";
+      if (req.body?.notifyTelegram === true) {
+        telegram = await sendOrderNotification({
+          orderId: order.id,
+          orderNumber: order.orderNumber,
+          customerName: order.customerName,
+          customerPhone: order.customerPhone,
+          customerAddress: parsed.data.customerInfo.address,
+          total: order.total,
+          shippingCost: order.shippingCost,
+          discountTotal: order.discountTotal,
+          paymentMethod: "cod",
+          createdAt: order.createdAt as Date | string | null,
+          testOrder: true,
+          items: (order.items as any[]).map((line) => ({
+            productId: String(line.productId),
+            productName: line.productName,
+            variantLabel: line.variantLabel,
+            quantity: Number(line.quantity) || 1,
+            priceAtPurchase: line.priceAtPurchase,
+            lineTotal: line.lineTotal,
+          })),
+        });
+      }
+
       res.status(201).json({
         ...order,
         testOrder: true,
+        telegram,
         isolation: {
           inventory: "skipped",
           accounting: "skipped",

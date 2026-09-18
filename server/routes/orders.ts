@@ -14,6 +14,11 @@ import { isStockError } from "../storage/order-storage.js";
 import { ReferralStorage } from "../storage/referral-storage.js";
 import { loyaltyNotifications } from "../services/loyalty-notifications.js";
 import { sendOrderNotification } from "../services/order-notifications.js";
+import {
+    buildMerchantNotificationFromStoredOrder,
+    enqueueMerchantNotificationOutbox,
+    processPaymentOutboxForOrder,
+} from "../services/payment-maintenance.js";
 import { toPublicOrderItem } from "../../shared/public-product.js";
 import { payments } from "../../shared/schema.js";
 
@@ -337,37 +342,16 @@ export function createOrderRouter(): RouterType {
                 };
             }
 
-            // === TELEGRAM ORDER NOTIFICATION ===
-            try {
-                // Use the order's own stored line items — they already carry the chosen
-                // variant label and the real price paid (variant price), so the admin
-                // sees EXACTLY what the customer selected, not just the base product.
-                const storedItems = ((order as any).items as any[]) || [];
-                const notifyItems = storedItems.map((item: any) => ({
-                    productId: item.productId,
-                    productName: item.productName || item.productId,
-                    variantLabel: item.variantLabel,
-                    quantity: Number(item.quantity) || 1,
-                    priceAtPurchase: item.priceAtPurchase ?? 0,
-                    lineTotal: item.lineTotal ?? (Number(item.priceAtPurchase ?? 0) * (Number(item.quantity) || 1)),
-                }));
-
-                sendOrderNotification({
-                    orderId: order.id,
-                    orderNumber: (order as any).orderNumber,
-                    customerName: customerInfo.name,
-                    customerPhone: customerInfo.phone,
-                    customerAddress: customerInfo.address,
-                    total: String((order as any).total ?? 0),
-                    subtotal: (order as any).subtotal != null ? String((order as any).subtotal) : undefined,
-                    shippingCost: (order as any).shippingCost != null ? String((order as any).shippingCost) : undefined,
-                    discountTotal: (order as any).discountTotal != null ? String((order as any).discountTotal) : undefined,
-                    paymentMethod: "الدفع عند الاستلام",
-                    items: notifyItems,
-                }).catch(err => console.error("[AQUAVO] Order notification failed:", err));
-            } catch (notifyErr) {
-                console.error("[AQUAVO] Order notification setup failed:", notifyErr);
-            }
+            // === TELEGRAM ORDER NOTIFICATION (cash on delivery) ===
+            // Runs only after createOrderSecure committed. It goes through the same
+            // durable payment_outbox merchant_notification event as paid Wayl orders:
+            // the unique event_key deduplicates, the cron retries a Telegram outage,
+            // and the message is built from the STORED order row (customer, address,
+            // lines with variant labels, totals, createdAt) — never from the request.
+            // Any failure here is logged and never reaches the customer response.
+            notifyMerchantOfCodOrder(order.id).catch((err) =>
+                console.error("[AQUAVO] Order notification failed:", err instanceof Error ? err.message : err),
+            );
 
             res.status(201).json(response);
         } catch (err: any) {
@@ -557,4 +541,29 @@ export function createOrderRouter(): RouterType {
     });
 
     return router;
+}
+
+/**
+ * Cash-on-delivery merchant alert. Durable path first (payment_outbox
+ * merchant_notification + immediate drain; the cron retries a Telegram outage
+ * and the unique event_key deduplicates). If the outbox itself is unavailable,
+ * fall back to ONE direct sendOrderNotification from the stored order so the
+ * merchant still hears about the sale. Never throws.
+ */
+async function notifyMerchantOfCodOrder(orderId: string): Promise<void> {
+    try {
+        await enqueueMerchantNotificationOutbox(orderId);
+        await processPaymentOutboxForOrder(orderId);
+        return;
+    } catch (outboxErr) {
+        console.error("[AQUAVO] Order notification outbox unavailable, sending directly:", outboxErr instanceof Error ? outboxErr.message : outboxErr);
+    }
+    try {
+        const stored = await storage.getOrder(orderId);
+        if (!stored) return;
+        const data = await buildMerchantNotificationFromStoredOrder(stored);
+        await sendOrderNotification(data);
+    } catch (directErr) {
+        console.error("[AQUAVO] Direct order notification failed:", directErr instanceof Error ? directErr.message : directErr);
+    }
 }
