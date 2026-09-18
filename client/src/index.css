@@ -1254,7 +1254,7 @@ button:active, [role="button"]:active { transform: scale(.985); transition-durat
 
 /* ── Locale typography & direction ─────────────────────────────────────────
    Cairo (the brand face) lacks five Sorani letters (ڕ ڵ ۆ ێ ە), verified by
-   scripts/i18n/check-font-coverage.mjs. Kurdish pages therefore use Vazirmatn,
+   TOOLS/i18n/check-font-coverage.mjs. Kurdish pages therefore use Vazirmatn,
    an OFL sans with full Central Kurdish coverage that sits well next to Cairo.
    The stylesheet for it is only injected when the locale is ckb. */
 html[lang="ckb"] {

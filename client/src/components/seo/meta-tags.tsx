@@ -8,6 +8,28 @@ import {
   canonicalUrlFor,
 } from "@shared/seo-contract";
 import { articleAuthorEntity } from "@shared/editorial-author";
+import { DEFAULT_LOCALE, LOCALES, SUPPORTED_LOCALES, alternatesFor, localizePath, splitLocaleFromPath, type Locale } from "@shared/i18n/locales";
+
+/** Locale of the page on screen, read from the URL prefix (the source of truth). */
+function currentLocale(): Locale {
+  return typeof window !== "undefined" ? splitLocaleFromPath(window.location.pathname).locale : DEFAULT_LOCALE;
+}
+
+/** Canonical URL of a logical path in the current locale. */
+function localizedCanonical(logicalPath: string): string {
+  const locale = currentLocale();
+  const arabic = canonicalUrlFor(logicalPath);
+  if (locale === DEFAULT_LOCALE) return arabic;
+  const u = new URL(arabic);
+  return `${u.origin}${localizePath(u.pathname, locale)}${u.search}`;
+}
+
+const DEFAULT_DESCRIPTIONS: Record<Locale, string> = {
+  ar: "AQUAVO متجر إلكتروني عراقي لمعدات ومستلزمات أحواض الزينة، مع توصيل لكل العراق ودفع عند الاستلام أو إلكترونياً.",
+  en: "AQUAVO is an Iraqi online store for aquarium equipment and supplies, with delivery across Iraq and cash on delivery or online payment.",
+  ckb: "AQUAVO فرۆشگایەکی ئۆنلاینی عێراقییە بۆ کەرەستە و پێداویستییەکانی حەوزی ماسی، لەگەڵ گەیاندن بۆ هەموو عێراق و پارەدان لە کاتی وەرگرتن یان ئەلیکترۆنی.",
+};
+const TITLE_SUFFIX: Record<Locale, string> = { ar: "AQUAVO العراق", en: "AQUAVO Iraq", ckb: "AQUAVO عێراق" };
 
 const LOGO_URL = AQUAVO_ENTITY.logoUrl;
 
@@ -17,7 +39,7 @@ const LOGO_URL = AQUAVO_ENTITY.logoUrl;
  * one page into many @id values and contradict the published canonical.
  */
 function currentCanonicalUrl(): string {
-  return typeof window !== "undefined" ? canonicalUrlFor(window.location.pathname) : AQUAVO_BASE_URL;
+  return typeof window !== "undefined" ? localizedCanonical(splitLocaleFromPath(window.location.pathname).path) : AQUAVO_BASE_URL;
 }
 
 function sanitizeSchemaValue(value: unknown): unknown {
@@ -62,7 +84,7 @@ interface MetaTagsProps {
 
 export function MetaTags({
   title,
-  description = "AQUAVO متجر إلكتروني عراقي لمعدات ومستلزمات أحواض الزينة، مع توصيل لكل العراق ودفع عند الاستلام أو إلكترونياً.",
+  description: descriptionProp,
   keywords = [],
   image = LOGO_URL,
   url,
@@ -75,9 +97,11 @@ export function MetaTags({
 }: MetaTagsProps) {
   useEffect(() => {
     const isPreview = !isTrackingAllowed();
+    const locale = currentLocale();
+    const description = descriptionProp ?? DEFAULT_DESCRIPTIONS[locale];
     const fullTitle = /\|\s*AQUAVO(?:\s|$)/i.test(title)
       ? title
-      : `${title} | AQUAVO العراق`;
+      : `${title} | ${TITLE_SUFFIX[locale]}`;
     document.title = fullTitle;
 
     const setMetaTag = (name: string, content: string, property = false) => {
@@ -118,10 +142,28 @@ export function MetaTags({
     if (keywords.length > 0) setMetaTag("keywords", keywords.slice(0, 7).join(", "));
     else removeMeta('meta[name="keywords"]');
 
-    const currentPath = window.location.pathname;
-    const canonical = canonicalUrl || url || canonicalUrlFor(currentPath);
+    const logicalPath = splitLocaleFromPath(window.location.pathname).path;
+    const canonical = canonicalUrl || url || localizedCanonical(logicalPath);
     if (notFound) removeMeta('link[rel="canonical"]');
     else setLinkTag("canonical", canonical);
+
+    // Reciprocal alternates for every locale, or none on pages that are not indexed.
+    removeMeta('link[rel="alternate"][hreflang]');
+    if (!notFound && !noIndex && !isPreview) {
+      const { alternates, xDefault } = alternatesFor(logicalPath);
+      for (const alt of alternates) {
+        const link = document.createElement("link");
+        link.rel = "alternate";
+        link.hreflang = alt.hreflang;
+        link.href = `${AQUAVO_BASE_URL}${alt.path}`;
+        document.head.appendChild(link);
+      }
+      const xd = document.createElement("link");
+      xd.rel = "alternate";
+      xd.hreflang = "x-default";
+      xd.href = `${AQUAVO_BASE_URL}${xDefault}`;
+      document.head.appendChild(xd);
+    }
 
     if (notFound) {
       removeMeta('meta[property^="og:"], meta[name^="twitter:"], meta[property^="product:"]');
@@ -135,7 +177,18 @@ export function MetaTags({
     setMetaTag("og:type", type === "product" ? "product" : type === "article" ? "article" : "website", true);
     setMetaTag("og:url", canonical, true);
     setMetaTag("og:site_name", AQUAVO_ENTITY.brandName, true);
-    setMetaTag("og:locale", "ar_IQ", true);
+    removeMeta('meta[property="og:locale"], meta[property="og:locale:alternate"]');
+    const ownOg = LOCALES[locale].ogLocale;
+    if (ownOg) setMetaTag("og:locale", ownOg, true);
+    for (const other of SUPPORTED_LOCALES) {
+      const alt = LOCALES[other].ogLocale;
+      if (other !== locale && alt) {
+        const meta = document.createElement("meta");
+        meta.setAttribute("property", "og:locale:alternate");
+        meta.setAttribute("content", alt);
+        document.head.appendChild(meta);
+      }
+    }
 
     setMetaTag("twitter:card", "summary_large_image");
     setMetaTag("twitter:title", fullTitle);
@@ -149,7 +202,7 @@ export function MetaTags({
     } else {
       removeMeta('meta[property^="product:"]');
     }
-  }, [title, description, keywords, image, url, type, price, currency, canonicalUrl, noIndex, notFound]);
+  }, [title, descriptionProp, keywords, image, url, type, price, currency, canonicalUrl, noIndex, notFound]);
 
   return null;
 }
@@ -279,7 +332,7 @@ function onlineStoreSchema() {
       "@type": "ContactPoint",
       telephone: AQUAVO_ENTITY.telephone,
       contactType: "customer support",
-      availableLanguage: ["Arabic"],
+      availableLanguage: ["Arabic", "English", "Central Kurdish"],
       areaServed: AQUAVO_ENTITY.countryCode,
       hoursAvailable: {
         "@type": "OpeningHoursSpecification",
@@ -351,7 +404,7 @@ export function WebsiteSchema() {
         name: AQUAVO_ENTITY.brandName,
         alternateName: AQUAVO_ENTITY.arabicName,
         url: AQUAVO_BASE_URL,
-        inLanguage: "ar-IQ",
+        inLanguage: LOCALES[currentLocale()].hreflang,
         publisher: { "@id": `${AQUAVO_BASE_URL}/#organization` },
         potentialAction: {
           "@type": "SearchAction",
@@ -399,7 +452,7 @@ export function ArticleSchema({
           "@type": "WebPage",
           "@id": currentCanonicalUrl(),
         },
-        inLanguage: "ar-IQ",
+        inLanguage: LOCALES[currentLocale()].hreflang,
       }}
     />
   );
@@ -435,7 +488,7 @@ export function VideoObjectSchema({
         duration,
         embedUrl,
         publisher: { "@id": `${AQUAVO_BASE_URL}/#organization` },
-        inLanguage: "ar-IQ",
+        inLanguage: LOCALES[currentLocale()].hreflang,
       }}
     />
   );
@@ -520,7 +573,7 @@ export function HowToSchema({
           url: step.url,
         })),
         publisher: { "@id": `${AQUAVO_BASE_URL}/#organization` },
-        inLanguage: "ar-IQ",
+        inLanguage: LOCALES[currentLocale()].hreflang,
       }}
     />
   );

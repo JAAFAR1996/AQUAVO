@@ -1,0 +1,656 @@
+{
+  "aquavo-driftwood-dw-01": {
+    "entityId": "aquavo-driftwood-dw-01",
+    "slug": "aquavo-driftwood-dw-01",
+    "sourceHash": "3cf4393b560efdfd",
+    "translatedBy": "groq:openai/gpt-oss-120b",
+    "translatedAt": "2026-09-18T22:37:19.787Z",
+    "data": {
+      "name": "AQUAVO Natural Wood for Aquariums and Aquascape — DW-01",
+      "description": "A unique natural wood piece with code DW-01, and the photos and 3D preview represent the exact piece you will receive. The branching shape makes it suitable as a focal point in aquascapes or for anchoring moss, anubias, and attached plants.\n\nWash and soak it before use; it may require temporary weighting until it becomes water‑saturated. Natural wood can release tannins that give the water a amber hue, and a temporary white biofilm may appear initially.",
+      "subcategory": "Natural Wood",
+      "seoTitle": "Natural Wood for Aquariums – DW-01 | AQUAVO",
+      "seoDescription": "Unique natural wood DW-01 for aquariums and aquascapes, shown in exact photos and 3D preview. Adds depth, anchors plants, and releases amber tannins.",
+      "specifications": {
+        "benefits": [
+          "You see the exact piece before purchase, not a generic image.",
+          "Provides deeper, more natural character to the tank layout.",
+          "Each piece is unique and differs from the next."
+        ],
+        "usageInstructions": [
+          "View the photo and 3D preview before selecting the piece.",
+          "Clean any décor before placing it in the tank according to your tank’s care method.",
+          "Secure it within the layout without pressing on glass or equipment."
+        ],
+        "safetyWarnings": [
+          "Ensure the piece’s location does not press against glass or obstruct water flow.",
+          "If your tank is small or crowded, choose the piece after visually comparing its size with the layout."
+        ],
+        "__cardBenefit": "The exact displayed piece; adds depth and natural character to the design",
+        "labelled": {
+          "ملاحظة": {
+            "label": "Note",
+            "value": "The displayed item is the exact piece you will receive"
+          },
+          "رمز القطعة": {
+            "label": "Item Code",
+            "value": "DW-01"
+          },
+          "نمط الاستخدام": {
+            "label": "Usage Type",
+            "value": "Decoration and Aquascape"
+          },
+          "طريقة المعاينة": {
+            "label": "Preview Method",
+            "value": "Photo and 3D preview of the exact piece"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "aquavo-driftwood-dw-02": {
+    "entityId": "aquavo-driftwood-dw-02",
+    "slug": "aquavo-driftwood-dw-02",
+    "sourceHash": "be99a0fb171eb513",
+    "translatedBy": "groq:openai/gpt-oss-120b",
+    "translatedAt": "2026-09-18T22:36:51.959Z",
+    "data": {
+      "name": "AQUAVO Natural Wood for Aquariums and Aquascape — DW-02",
+      "description": "Unique natural wood piece DW-02, and the photos and 3D preview represent the exact piece you will receive. It can be used as a primary or complementary element in aquascapes, anchoring driftwood and attached plants according to branch shape and tank space.\n\nWash and soak before use; it may need temporary weighting until fully water‑logged. Natural wood may release tannins giving the water a amber hue, and a temporary white biofilm may appear initially.",
+      "subcategory": "Natural Woods",
+      "seoTitle": "AQUAVO Natural Wood DW-02 | AQUAVO",
+      "seoDescription": "Natural wood DW-02 for aquariums and aquascapes. See exact item via 3D preview; wash and soak before use, may release tannins and white biofilm.",
+      "specifications": {
+        "benefits": [
+          "View the exact piece before purchase, not a generic image.",
+          "Adds depth and stronger natural character to the tank layout.",
+          "Each piece is unique and differs from the next."
+        ],
+        "usageInstructions": [
+          "Examine the photo and 3D preview before selecting the piece.",
+          "Clean any décor before placing it in the tank according to your tank’s care method.",
+          "Secure it within the layout without pressing on glass or equipment."
+        ],
+        "safetyWarnings": [
+          "Ensure the piece’s location does not press against glass or impede water flow.",
+          "If your tank is small or crowded, choose the piece after visually comparing its size with the layout."
+        ],
+        "__cardBenefit": "The displayed piece; adds depth and natural character to the design",
+        "labelled": {
+          "ملاحظة": {
+            "label": "Note",
+            "value": "The displayed item is the same piece you receive"
+          },
+          "رمز القطعة": {
+            "label": "Item Code",
+            "value": "DW-02"
+          },
+          "نمط الاستخدام": {
+            "label": "Usage Type",
+            "value": "Decoration and Aquascape"
+          },
+          "طريقة المعاينة": {
+            "label": "Preview Method",
+            "value": "Photo and 3D preview of the same piece"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "aquavo-driftwood-dw-03": {
+    "entityId": "aquavo-driftwood-dw-03",
+    "slug": "aquavo-driftwood-dw-03",
+    "sourceHash": "1d1daa3e3b8297f8",
+    "translatedBy": "groq:openai/gpt-oss-120b",
+    "translatedAt": "2026-09-18T22:38:11.528Z",
+    "data": {
+      "name": "Natural Wood for Aquariums and Aquascape — DW-03",
+      "description": "Unique natural wood piece DW-03, and the photos and 3D preview represent the exact piece you will receive. Its shape is suitable for adding visual height and depth to the design and can be combined with rocks or attached plants.\n\nWash and soak before use; it may need temporary fixation until fully water‑saturated. Natural wood may release tannins that give the water a amber hue, and a temporary white biofilm may appear at first.",
+      "subcategory": "Natural Wood",
+      "seoTitle": "Natural Wood for Aquariums and Aquascape — DW-03 | AQUAVO",
+      "seoDescription": "Natural wood piece DW-03 for aquariums and aquascapes adds height and depth. Wash and soak before use; it may release tannins and a white biofilm.",
+      "specifications": {
+        "benefits": [
+          "You see the exact piece before purchase, not a generic image.",
+          "It gives the aquarium layout stronger natural depth and character.",
+          "Each piece is unique and differs from the next."
+        ],
+        "usageInstructions": [
+          "View the photo and 3D preview before selecting the piece.",
+          "Clean any décor before placing it in the tank according to your tank’s proper care method.",
+          "Secure it within the layout without pressing on glass or equipment."
+        ],
+        "safetyWarnings": [
+          "Ensure the piece’s location does not press on glass or impede water flow.",
+          "If your tank is small or crowded, choose the piece after visually comparing its size with the layout."
+        ],
+        "__cardBenefit": "The displayed piece; adds height and depth to the design",
+        "labelled": {
+          "ملاحظة": {
+            "label": "Note",
+            "value": "The displayed item is the exact piece you will receive"
+          },
+          "رمز القطعة": {
+            "label": "Item Code",
+            "value": "DW-03"
+          },
+          "نمط الاستخدام": {
+            "label": "Usage Type",
+            "value": "Decoration and Aquascape"
+          },
+          "طريقة المعاينة": {
+            "label": "Preview Method",
+            "value": "Photo and 3D preview of the same piece"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "aquavo-driftwood-dw-11": {
+    "entityId": "aquavo-driftwood-dw-11",
+    "slug": "aquavo-driftwood-dw-11",
+    "sourceHash": "4926778e2cdc588e",
+    "translatedBy": "groq:openai/gpt-oss-120b",
+    "translatedAt": "2026-09-18T22:33:09.592Z",
+    "data": {
+      "name": "AQUAVO Natural Wood for Aquariums and Aquascape — DW-11",
+      "description": "A unique natural wood piece with code DW-11, and the photos and 3D preview represent the exact item you will receive. Suitable as a primary or accent element within rock and plant arrangements, with the option to secure driftwood and attached plants.\n\nWash and soak before use; it may need temporary weighting until fully water‑logged. Natural wood can release tannins giving the water an amber hue, and a temporary white biofilm may appear initially.",
+      "subcategory": "Natural Wood",
+      "seoTitle": "Natural Wood for Aquariums – DW-11 | AQUAVO",
+      "seoDescription": "AQUAVO natural wood DW-11 for aquariums and aquascapes. Use as accent décor; wash, soak and weight down. Unique piece may release tannins and biofilm.",
+      "specifications": {
+        "benefits": [
+          "You see the exact piece before purchase, not a generic image.",
+          "It adds deeper, more natural character to the tank layout.",
+          "Each piece is unique and differs from the next."
+        ],
+        "usageInstructions": [
+          "View the photo and 3D preview before selecting the piece.",
+          "Clean any décor before placing it in the tank according to your tank’s care method.",
+          "Secure it in the layout without pressing on glass or equipment."
+        ],
+        "safetyWarnings": [
+          "Ensure the piece does not press against the glass or obstruct water flow.",
+          "If your tank is small or crowded, choose the piece after visually comparing its size with the layout."
+        ],
+        "__cardBenefit": "The displayed piece; adds depth and natural character to the design",
+        "labelled": {
+          "ملاحظة": {
+            "label": "Note",
+            "value": "The displayed item is the exact piece you will receive"
+          },
+          "رمز القطعة": {
+            "label": "Item Code",
+            "value": "DW-11"
+          },
+          "نمط الاستخدام": {
+            "label": "Usage Type",
+            "value": "Decoration and aquascape"
+          },
+          "طريقة المعاينة": {
+            "label": "Preview Method",
+            "value": "Photo and 3D preview of the same piece"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "aquavo-driftwood-small-collection": {
+    "entityId": "aquavo-driftwood-small-collection",
+    "slug": "aquavo-driftwood-collection",
+    "sourceHash": "16717a1927f28543",
+    "translatedBy": "groq:openai/gpt-oss-120b",
+    "translatedAt": "2026-09-18T22:33:05.547Z",
+    "data": {
+      "name": "AQUAVO Natural Wood Pieces for Aquascape — Choose Piece by Image",
+      "description": "A set of natural wood pieces for aquascaping, each varying in shape, branches, and size. Choose the piece code that fits your tank space and design; when an image or 3D preview is available it represents the exact piece selected.\n\nWash the wood and soak it before use, and it may require temporary anchoring until it becomes waterlogged. It is normal for some pieces to release tannins that give the water an amber hue or a temporary white biofilm may appear initially.",
+      "subcategory": "Natural Woods",
+      "seoTitle": "Natural Wood Pieces for Aquascape – Choose by Image | AQUAVO",
+      "seoDescription": "Natural wood pieces for aquascaping by AQUAVO, each unique in shape and size. Choose the right piece, soak before use, and add a natural look to your tank.",
+      "specifications": {
+        "benefits": [
+          "5 different pieces to choose from.",
+          "Adds a natural touch to any design.",
+          "Allows you to select the shape that fits your tank design."
+        ],
+        "usageInstructions": [
+          "Select the appropriate number for your tank design.",
+          "Clean it before placing it in the tank.",
+          "Secure it in a way that does not impede water flow."
+        ],
+        "safetyWarnings": [
+          "Each piece varies in shape, size, and weight.",
+          "Inspect the piece for any sharp edges.",
+          "Wash the wood and soak it before use.",
+          "Secure pieces that do not sink until they become waterlogged.",
+          "A tannin or temporary white film may appear at the start of use."
+        ],
+        "__cardBenefit": "Choose the piece that fits your design instead of buying a random wood shape",
+        "labelled": {
+          "الحجم": {
+            "label": "Size",
+            "value": "Suitable for small and medium tanks"
+          },
+          "النوع": {
+            "label": "Type",
+            "value": "Natural decorative wood"
+          },
+          "ملاحظة": {
+            "label": "Note",
+            "value": "Each piece is unique — select its number from the list"
+          },
+          "الاستخدام": {
+            "label": "Usage",
+            "value": "Fish tanks and aquascapes"
+          }
+        }
+      },
+      "variantLabels": {
+        "dw-12": "Piece DW-12",
+        "dw-13": "Piece DW-13",
+        "dw-14": "Piece DW-14",
+        "dw-15": "Piece DW-15",
+        "dw-16": "Piece DW-16"
+      }
+    }
+  },
+  "houyi-breathing-ring-white": {
+    "entityId": "houyi-breathing-ring-white",
+    "slug": "houyi-breathing-ring-white",
+    "sourceHash": "22ca32b8a6363e12",
+    "translatedBy": "groq:openai/gpt-oss-120b",
+    "translatedAt": "2026-09-18T22:34:55.194Z",
+    "data": {
+      "name": "White Porous Ceramic Rings for Biological Filtration — 1 كغم",
+      "description": "Porous ceramic ring for use as biological filter media inside the filter. Provides a surface colonized by beneficial bacteria and its open shape allows water to flow around the material.\n\nPlace it after the mechanical filtration stage, and clean it gently when debris accumulates. Avoid replacing all biological media at once without need.",
+      "subcategory": "Filter Media",
+      "seoTitle": "White Porous Ceramic Rings – 1 kg | AQUAVO",
+      "seoDescription": "White porous ceramic rings offer a high‑surface area for beneficial bacteria in biological filtration. Their open ring shape ensures optimal water flow, and the white color makes debris easy to detect. Includes 1 كغم.",
+      "specifications": {
+        "benefits": [
+          "Porous surface for colonizing beneficial bacteria",
+          "Ring shape allows water flow",
+          "Suitable for the biological filtration stage",
+          "White color makes dirt buildup easy to notice"
+        ],
+        "usageInstructions": [
+          "Rinse manufacturing dust before use",
+          "Place it after mechanical filtration",
+          "Clean gently when debris accumulates",
+          "Do not replace the entire quantity at once without need"
+        ],
+        "safetyWarnings": [
+          "Do not use soap or detergents to clean it",
+          "Avoid washing all settled media with chlorinated water at once",
+          "Exclude broken pieces with sharp edges"
+        ],
+        "__cardBenefit": "Porous rings for beneficial bacteria with good water flow around them",
+        "labelled": {
+          "اللون": {
+            "label": "Color",
+            "value": "White"
+          },
+          "النوع": {
+            "label": "Type",
+            "value": "Biological filter media"
+          },
+          "الوزن": {
+            "label": "Weight",
+            "value": "1 كغم"
+          },
+          "المادة": {
+            "label": "Material",
+            "value": "Porous ceramic"
+          }
+        }
+      },
+      "variantLabels": {
+        "1kg": "1 كغم"
+      }
+    }
+  },
+  "houyi-medium-cotton": {
+    "entityId": "houyi-medium-cotton",
+    "slug": "houyi-medium-cotton",
+    "sourceHash": "39e1416e11858fbc",
+    "translatedBy": "groq:openai/gpt-oss-120b",
+    "translatedAt": "2026-09-18T22:35:46.084Z",
+    "data": {
+      "name": "Houyi Plant and Moss Fixing Cotton – 50 gram",
+      "description": "Fibrous cotton used as a supportive layer when fixing moss or attached plants to wood and stone with aquarium-safe glue. Available in brown or grey, weighing 50 gram.\n\nOnly a small amount is needed to create a fibrous surface that holds the glue, reducing the need to apply it directly over a large area.",
+      "subcategory": "Plant Installation",
+      "seoTitle": "Houyi Plant and Moss Fixing Cotton – 50 gram | AQUAVO",
+      "seoDescription": "Houyi cotton provides a fibrous backing for secure attachment of moss and plants to wood or stone, using aquarium-safe glue. Available in brown or grey, 50 g.",
+      "specifications": {
+        "benefits": [
+          "Creates a fibrous anchoring point for moss and plants",
+          "Available in brown or grey to match wood or stone",
+          "50 gram package for multiple uses",
+          "Used in small quantities at attachment points"
+        ],
+        "usageInstructions": [
+          "Take a small amount of the cotton",
+          "Place it on the attachment spot",
+          "Use aquarium-safe glue according to its instructions",
+          "Gently press the plant or moss until it adheres"
+        ],
+        "safetyWarnings": [
+          "Use glue specifically formulated for aquariums",
+          "Avoid using large amounts of cotton or glue",
+          "Avoid contact of glue with skin and eyes"
+        ],
+        "__cardBenefit": "Creates a fibrous anchoring point for moss and plants on wood and stone",
+        "labelled": {
+          "الوزن": {
+            "label": "Weight",
+            "value": "50 gram"
+          },
+          "الألوان": {
+            "label": "Colors",
+            "value": "Brown / Grey"
+          },
+          "الاستخدام": {
+            "label": "Usage",
+            "value": "Supportive layer for fixing moss and plants to décor"
+          }
+        }
+      },
+      "variantLabels": {
+        "brown": "Brown 50 gram",
+        "grey": "Grey 50 gram"
+      }
+    }
+  },
+  "houyi-moss-glue-20g": {
+    "entityId": "houyi-moss-glue-20g",
+    "slug": "houyi-moss-glue-20g",
+    "sourceHash": "8610a1ffa2b12713",
+    "translatedBy": "groq:openai/gpt-oss-120b",
+    "translatedAt": "2026-09-18T22:34:03.444Z",
+    "data": {
+      "name": "Aquascape Glue for Securing Moss — 20 غرام",
+      "description": "Cyanoacrylate glue for securing moss and some aquatic plants to wood and stone, in a 20 غرام package for medium projects.\n\nApply a small amount to a clean surface, then gently press the plant according to the package instructions. A white color may appear at the glue spot when contacting water, and it diminishes after the plant grows.\n\nUse only if the package confirms its suitability for aquariums after curing, and avoid contact with skin and eyes.",
+      "subcategory": "Accessories",
+      "seoTitle": "Aquascape Moss Glue 20 g – Secure Plants | AQUAVO",
+      "seoDescription": "Cyanoacrylate glue for attaching moss and aquatic plants to wood or stone. 20 gram tube for projects. Apply a tiny amount, press gently, and let cure.",
+      "specifications": {
+        "benefits": [
+          "Helps secure moss and attached plants to wood and stone.",
+          "Suitable package for use according to the selected size.",
+          "Small dots can be used to control placement of the attachment."
+        ],
+        "usageInstructions": [
+          "Clean and dry the attachment area as much as possible.",
+          "Apply only a small amount of glue.",
+          "Secure the moss or plant for the duration specified by the package.",
+          "Follow the product instructions before returning the piece to the tank."
+        ],
+        "safetyWarnings": [
+          "Avoid contact with skin and eyes.",
+          "Keep out of reach of children.",
+          "Use only if the package confirms its suitability for aquariums.",
+          "Follow the printed curing time and usage method; do not rely on a generic duration."
+        ],
+        "__cardBenefit": "Secures moss and plants to wood and stone with small dots",
+        "labelled": {
+          "الحجم": {
+            "label": "Size",
+            "value": "20 غرام"
+          },
+          "النوع": {
+            "label": "Type",
+            "value": "Installation glue for plants and aquascape according to product data"
+          },
+          "العلامة التجارية": {
+            "label": "Brand",
+            "value": "HOUYI"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "houyi-moss-glue-50g": {
+    "entityId": "houyi-moss-glue-50g",
+    "slug": "ghraa-tthbyt-50-ghram",
+    "sourceHash": "0dc8a2bc9c668b58",
+    "translatedBy": "groq:openai/gpt-oss-120b",
+    "translatedAt": "2026-09-18T22:40:04.726Z",
+    "data": {
+      "name": "Houyi Aquascape Glue for Moss — 50 غرام",
+      "description": "Cyanoacrylate glue for securing moss and some aquatic plants to wood or stone, in a 50 gram tube for large projects or frequent use.\n\nApply a small amount to a clean surface, then gently press the plant according to the package instructions. A white spot may appear where the glue contacts water.\n\nUse only if the package confirms suitability for aquariums after curing, and avoid contact with skin and eyes.",
+      "subcategory": "Accessories",
+      "seoTitle": "Houyi Aquascape Glue for Moss — 50 gram | AQUAVO",
+      "seoDescription": "Cyanoacrylate glue for securing moss and aquatic plants to wood or stone, 50 gram tube for large projects or frequent use. Apply sparingly, avoid skin contact.",
+      "specifications": {
+        "benefits": [
+          "Helps attach moss and plants firmly to wood and stone",
+          "Convenient package size for the chosen application",
+          "Small dots can be used to control placement"
+        ],
+        "usageInstructions": [
+          "Clean and dry the attachment area as much as possible",
+          "Apply only a tiny amount of glue",
+          "Secure the moss or plant for the duration specified by the package",
+          "Follow product instructions before returning the piece to the tank"
+        ],
+        "safetyWarnings": [
+          "Avoid contact with skin and eyes",
+          "Keep out of reach of children",
+          "Use only if the package confirms aquarium suitability",
+          "Follow the printed curing time and usage method; do not rely on a generic duration"
+        ],
+        "__cardBenefit": "Large size for repeated mounting in aquascape projects",
+        "labelled": {
+          "الحجم": {
+            "label": "Size",
+            "value": "50 غرام"
+          },
+          "النوع": {
+            "label": "Type",
+            "value": "Moss and aquascape mounting glue as per product data"
+          },
+          "العلامة التجارية": {
+            "label": "Brand",
+            "value": "HOUYI"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "houyi-moss-glue-5g": {
+    "entityId": "houyi-moss-glue-5g",
+    "slug": "houyi-moss-glue-5g",
+    "sourceHash": "469bfcb9bbb7946f",
+    "translatedBy": "groq:openai/gpt-oss-120b",
+    "translatedAt": "2026-09-18T22:40:01.243Z",
+    "data": {
+      "name": "Houyi Aquascape Glue for Moss Attachment — 5 gram",
+      "description": "Cyanoacrylate glue for attaching moss and some aquatic plants to wood and stone, in a 5 gram package for small projects.\n\nApply a small amount to a clean surface, then gently press the plant for the duration specified in the package instructions. The glue spot may turn white when exposed to water.\n\nUse only if the package confirms its suitability for aquariums after curing, and avoid contact with skin and eyes.",
+      "subcategory": "Accessories",
+      "seoTitle": "Houyi Aquascape Glue for Moss – 5 gram | AQUAVO",
+      "seoDescription": "Houyi's 5 gram cyanoacrylate glue securely attaches moss and aquatic plants to wood or stone, ideal for small aquascape projects. Apply a small amount, press gently, and allow curing as instructed.",
+      "specifications": {
+        "benefits": [
+          "Helps secure moss and attached plants to wood and stone.",
+          "Package size suitable for the chosen application.",
+          "Small dots can be used to control placement."
+        ],
+        "usageInstructions": [
+          "Clean and dry the attachment area as much as possible.",
+          "Apply only a small amount of glue.",
+          "Secure the moss or plant for the time specified by the package.",
+          "Follow the product instructions before returning the piece to the tank."
+        ],
+        "safetyWarnings": [
+          "Avoid contact with skin and eyes.",
+          "Keep out of reach of children.",
+          "Use only if the package confirms its suitability for aquariums.",
+          "Follow the printed curing time and usage method; do not rely on a generic duration."
+        ],
+        "__cardBenefit": "Compact size for attaching moss and plants in light aquascape projects",
+        "labelled": {
+          "الحجم": {
+            "label": "Size",
+            "value": "5 gram"
+          },
+          "النوع": {
+            "label": "Type",
+            "value": "Plant and aquascape attachment glue as per product specifications"
+          },
+          "العلامة التجارية": {
+            "label": "Brand",
+            "value": "HOUYI"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "houyi-moss-tree": {
+    "entityId": "houyi-moss-tree",
+    "slug": "houyi-moss-tree",
+    "sourceHash": "6fb8cdeb4f788fb3",
+    "translatedBy": "groq:openai/gpt-oss-120b",
+    "translatedAt": "2026-09-18T22:35:19.258Z",
+    "data": {
+      "name": "Houyi Moss Tree Ready for Aquascape",
+      "description": "Ready-to-use moss tree for aquascaping provides a vibrant green focal point, easy to install, trim, and maintain, enhancing natural décor in any aquarium.",
+      "subcategory": "Natural wood",
+      "seoTitle": "Houyi Moss Tree Ready for Aquascape | AQUAVO",
+      "seoDescription": "Ready-to-use moss tree for aquascaping provides a vibrant green focal point, easy to install, trim, and maintain, enhancing natural décor in any aquarium.",
+      "specifications": {
+        "benefits": [
+          "Ready-made arrangement provides a moss tree shape in the tank",
+          "Provides a suitable visual point for aquascape",
+          "Moss can be trimmed to maintain shape",
+          "Adds small surfaces and hideouts within the design"
+        ],
+        "usageInstructions": [
+          "Rinse the piece gently before inserting",
+          "Place it in a stable, suitable spot for the design",
+          "Monitor moss growth and condition over time",
+          "Trim excess parts as needed"
+        ],
+        "safetyWarnings": [
+          "Secure the piece firmly before adding fish",
+          "Ensure there are no sharp edges or loose parts",
+          "Adjust lighting and fertilization according to moss type, not a fixed schedule"
+        ],
+        "__cardBenefit": "Ready green point that gives a moss tree shape within the aquascape",
+        "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "Ready moss tree for arrangement"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "houyi-volcanic-stone-black": {
+    "entityId": "houyi-volcanic-stone-black",
+    "slug": "houyi-volcanic-stone-black",
+    "sourceHash": "5d70bf494e79a941",
+    "translatedBy": "groq:openai/gpt-oss-120b",
+    "translatedAt": "2026-09-18T22:39:02.481Z",
+    "data": {
+      "name": "Black Volcanic Lava Stone",
+      "description": "Black volcanic lava stone with a porous structure, used as décor or as a porous medium within certain filtration systems.\n\nRinse thoroughly before use to remove dust. As natural stones may vary between batches, it is not chemically neutral without testing; if the tank is sensitive to pH or GH/KH, monitor readings after addition.\n\nEnsure the pieces are stable and free of sharp edges that could harm fish.",
+      "subcategory": "Stones",
+      "seoTitle": "Black Volcanic Lava Stone – Aquarium Decor | AQUAVO",
+      "seoDescription": "Black volcanic lava stone with porous structure for aquarium use. Wash before use, monitor water parameters, and ensure stable placement.",
+      "specifications": {
+        "benefits": [
+          "Porous structure suitable for increasing surface area within the filter or tank layout",
+          "Black color provides contrast with plants and light-colored sand",
+          "Can be used as décor or as a porous medium in filtration",
+          "Relatively lightweight compared to many dense rocks"
+        ],
+        "usageInstructions": [
+          "Rinse the stones until dust is removed",
+          "Arrange them securely in the tank or place them in a suitable bag inside the filter",
+          "Monitor water quality after the first use in sensitive tanks",
+          "Rinse them when dirty if used in the filter"
+        ],
+        "safetyWarnings": [
+          "Wash thoroughly to remove dust",
+          "Inspect edges before placing with sensitive fish",
+          "Do not assume its effect on pH or hardness is stable without testing",
+          "Secure the pieces firmly inside the tank"
+        ],
+        "__cardBenefit": "Porous texture and black color highlight plants and light sand",
+        "labelled": {
+          "اللون": {
+            "label": "Color",
+            "value": "Black"
+          },
+          "النوع": {
+            "label": "Type",
+            "value": "Natural volcanic lava stone"
+          },
+          "حجم القطع": {
+            "label": "Piece size",
+            "value": "3–5 cm"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "houyi-volcanic-stone-red": {
+    "entityId": "houyi-volcanic-stone-red",
+    "slug": "houyi-volcanic-stone-red",
+    "sourceHash": "f8a6a54ca6cdbeea",
+    "translatedBy": "groq:openai/gpt-oss-120b",
+    "translatedAt": "2026-09-18T22:39:11.676Z",
+    "data": {
+      "name": "Houyi Red Volcanic Stone",
+      "description": "Red volcanic lava stone with a porous structure, suitable for aquarium decoration or as filter media. Rinse before use in pH‑sensitive tanks.\n\nWash thoroughly before use to remove dust. As natural stones may vary between batches, it is not chemically neutral without testing; monitor readings after adding if the tank is sensitive to pH or GH/KH.\n\nEnsure pieces are stable and free of sharp edges that could harm fish.",
+      "subcategory": "Stones",
+      "seoTitle": "Red Volcanic Stone – Decorative Aquarium Substrate | AQUAVO",
+      "seoDescription": "Red volcanic lava stone with porous structure, suitable for aquarium decoration or as filter media. Rinse before use in pH‑sensitive tanks.",
+      "specifications": {
+        "benefits": [
+          "Porous structure suitable for increasing surface area within the filter or tank design.",
+          "Red volcanic color provides warm contrast inside the aquarium.",
+          "Can be used as decoration or as a porous medium in filtration.",
+          "Relatively lightweight compared to many dense rocks."
+        ],
+        "usageInstructions": [
+          "Rinse the stones until dust is reduced.",
+          "Arrange them securely in the tank or place them in a suitable bag inside the filter.",
+          "Monitor water quality after the first use in sensitive tanks.",
+          "Rinse them when debris accumulates if used in the filter."
+        ],
+        "safetyWarnings": [
+          "Wash thoroughly to remove dust.",
+          "Inspect edges before placing with sensitive fish.",
+          "Do not assume its effect on pH or hardness is stable without testing.",
+          "Secure the pieces firmly inside the tank."
+        ],
+        "__cardBenefit": "Porous texture and red color add warm contrast to the design",
+        "labelled": {
+          "اللون": {
+            "label": "Color",
+            "value": "Red volcanic"
+          },
+          "النوع": {
+            "label": "Type",
+            "value": "Natural volcanic lava stone"
+          },
+          "حجم القطع": {
+            "label": "Piece size",
+            "value": "3–5 سم"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  }
+}

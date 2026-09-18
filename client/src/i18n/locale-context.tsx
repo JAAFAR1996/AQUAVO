@@ -68,7 +68,7 @@ export function applyDocumentLocale(locale: Locale): void {
 
 /**
  * Cairo, the brand font, lacks five Sorani letters (verified by
- * scripts/i18n/check-font-coverage.mjs). Kurdish pages load Vazirmatn on
+ * TOOLS/i18n/check-font-coverage.mjs). Kurdish pages load Vazirmatn on
  * demand; other locales never pay for it.
  */
 const KURDISH_FONT_ID = "aq-font-ckb";

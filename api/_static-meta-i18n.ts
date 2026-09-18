@@ -4,7 +4,7 @@
  * api/_seo-content.ts, which remain the source of truth for that locale.
  *
  * A path missing here for a locale falls back to the site default title for
- * that locale and is reported by scripts/i18n/audit.ts as missing metadata.
+ * that locale and is reported by TOOLS/i18n/audit.ts as missing metadata.
  */
 import type { Locale } from "../shared/i18n/locales.js";
 
