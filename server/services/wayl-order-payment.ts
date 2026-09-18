@@ -23,19 +23,16 @@ import { loyaltyStorage, type TransactionalOrderLoyaltyResult } from "../storage
 import { isCanonicalInventoryBalanceError, STOCK_ERROR_INSUFFICIENT } from "../storage/order-storage.js";
 import { sendTelegramMessage } from "./order-notifications.js";
 import {
-  AlqasehApiError,
-  createAlqasehPayment,
-  getAlqasehHostedPaymentUrl,
-  getAlqasehPaymentInfo,
-  retryAlqasehPaymentContext,
-  type AlqasehPaymentContext,
-  type AlqasehPaymentStatus,
-} from "./alqaseh-client.js";
+  createWaylLink,
+  getWaylLinkByReferenceId,
+  type WaylLink,
+} from "./wayl-client.js";
 import { enqueuePaidOrderOutbox, processPaymentOutboxForOrder } from "./payment-maintenance.js";
 
 const IRAQI_DENOMINATION = 250;
 const ORDER_NUMBER_MAX_ATTEMPTS = 3;
 const PAYMENT_CURRENCY = "IQD";
+export const PAYMENT_METHOD = "wayl";
 
 export type AquavoPaymentStatus = "pending" | "paid" | "failed" | "cancelled" | "expired";
 
@@ -67,7 +64,7 @@ export interface PreparedOnlineOrder {
   reused: boolean;
 }
 
-export interface StartedAlqasehPayment {
+export interface StartedWaylPayment {
   orderId: string;
   orderNumber: string;
   amount: number;
@@ -84,7 +81,7 @@ export interface VerifiedOnlinePaymentState {
   currency: string;
   paymentId: string;
   paymentStatus: AquavoPaymentStatus;
-  providerStatus: AlqasehPaymentStatus;
+  providerStatus: string;
   orderStatus: string;
   inventoryReview: boolean;
   newlyFinalized: boolean;
@@ -118,7 +115,7 @@ function dbOrThrow() {
 }
 
 function reservationTtlMinutes(): number {
-  const configured = Number(process.env.ALQASEH_RESERVATION_TTL_MINUTES ?? 15);
+  const configured = Number(process.env.WAYL_RESERVATION_TTL_MINUTES ?? 15);
   if (!Number.isFinite(configured)) return 15;
   return Math.max(5, Math.min(60, Math.trunc(configured)));
 }
@@ -225,20 +222,6 @@ function safeProviderResponse(value: unknown): Record<string, any> {
     : {};
 }
 
-function paymentTokenForProviderId(
-  payment: { transactionId?: string | null; providerResponse?: unknown },
-  providerPaymentId: string,
-): string | null {
-  const meta = safeProviderResponse(payment.providerResponse);
-  const currentToken = typeof meta.token === "string" ? meta.token.trim() : "";
-  if (payment.transactionId === providerPaymentId && currentToken) return currentToken;
-
-  const attempts = Array.isArray(meta.attempts) ? meta.attempts : [];
-  const matched = attempts.find((entry: any) => entry?.paymentId === providerPaymentId);
-  const attemptToken = typeof matched?.token === "string" ? matched.token.trim() : "";
-  return attemptToken || null;
-}
-
 function paymentAmount(payment: { amount: unknown }): number {
   const amount = Number(payment.amount);
   if (!Number.isFinite(amount) || amount <= 0) throw new Error("Invalid stored payment amount");
@@ -259,31 +242,49 @@ function snapshotFromStoredLine(line: OrderLineItem, at: Date): ProductCostSnaps
   };
 }
 
-export function mapAlqasehPaymentStatus(status: AlqasehPaymentStatus): AquavoPaymentStatus {
-  switch (status) {
-    case "succeeded":
-      return "paid";
-    case "failed":
-    case "declined":
-    case "duplicated":
-      return "failed";
-    case "revoked":
-      return "cancelled";
-    case "expired":
-      return "expired";
-    case "prepared":
-    case "retried":
-    case "unknown":
-    default:
-      return "pending";
-  }
+function normalizeStatus(status: string): string {
+  return String(status || "").trim().toLowerCase();
 }
 
+/**
+ * Documented Wayl link lifecycle (https://wayl.io/docs): Created, Pending,
+ * Processing, Complete, Delivered, Cancelled, Rejected, Returned.
+ *
+ * - "Complete" is the only status the documentation identifies as a successful
+ *   payment, so it is the only one that maps to "paid".
+ * - "Cancelled" and "Rejected" are the documented terminal non-paid states; only
+ *   these unlock a retry (a new link) for the same order.
+ * - "Delivered" and "Returned" are post-payment lifecycle states. They are never
+ *   used as proof of payment on their own: an order that was verified as paid on
+ *   "Complete" stays paid (monotonic guard in verifyAndSyncWaylPayment); an order
+ *   that was never verified stays "pending" and is flagged for manual review.
+ * - Anything undocumented stays "pending". We never guess a payment into "paid".
+ */
+export function mapWaylLinkStatus(status: string): AquavoPaymentStatus {
+  const normalized = normalizeStatus(status);
+  if (normalized === "complete") return "paid";
+  if (normalized === "rejected") return "failed";
+  if (normalized === "cancelled") return "cancelled";
+  return "pending";
+}
+
+export function isTerminalNonPaidWaylStatus(status: string): boolean {
+  const normalized = normalizeStatus(status);
+  return normalized === "cancelled" || normalized === "rejected";
+}
+
+export function isPostPaymentWaylStatus(status: string): boolean {
+  const normalized = normalizeStatus(status);
+  return normalized === "delivered" || normalized === "returned";
+}
+
+const LINK_CREATION_CLAIM_TTL_MS = 45_000;
+
 export function isVerifiedPaymentContext(
-  context: Pick<AlqasehPaymentContext, "order_id" | "amount" | "currency">,
-  expected: { orderId: string; amount: number; currency: string },
+  context: { referenceId: string; amount: number; currency: string },
+  expected: { referenceId: string; amount: number; currency: string },
 ): boolean {
-  return context.order_id === expected.orderId
+  return context.referenceId === expected.referenceId
     && Number(context.amount) === Number(expected.amount)
     && String(context.currency).toUpperCase() === expected.currency.toUpperCase();
 }
@@ -293,49 +294,41 @@ async function getOrderAndPayment(orderId: string) {
   const [order] = await db.select().from(orders).where(eq(orders.id, orderId)).limit(1);
   if (!order) throw Object.assign(new Error("Order not found"), { status: 404 });
   const [payment] = await db.select().from(payments).where(eq(payments.orderId, orderId)).limit(1);
-  if (!payment || payment.method !== "alqaseh") {
+  if (!payment || payment.method !== PAYMENT_METHOD) {
     throw Object.assign(new Error("Online payment not found for this order"), { status: 404 });
   }
   return { order, payment };
 }
 
-async function paymentRecognizesProviderId(orderId: string, paymentId: string): Promise<boolean> {
-  const db = dbOrThrow();
-  const result = await db.execute(sql`
-    SELECT 1
-    FROM payments
-    WHERE order_id = ${orderId}
-      AND method = 'alqaseh'
-      AND (
-        transaction_id = ${paymentId}
-        OR EXISTS (
-          SELECT 1
-          FROM jsonb_array_elements(COALESCE(provider_response->'attempts', '[]'::jsonb)) AS attempt
-          WHERE attempt->>'paymentId' = ${paymentId}
-        )
-      )
-    LIMIT 1
-  `);
-  return rowsFromExecute(result).length > 0;
+function attemptSecret(
+  payment: { providerResponse?: unknown },
+  referenceId: string,
+): string | null {
+  const meta = safeProviderResponse(payment.providerResponse);
+  const attempts = Array.isArray(meta.attempts) ? meta.attempts : [];
+  const matched = attempts.find((entry: any) => entry?.referenceId === referenceId);
+  const secret = typeof matched?.webhookSecret === "string" ? matched.webhookSecret : "";
+  return secret || null;
 }
 
-async function findOrderIdByProviderPaymentId(paymentId: string): Promise<string | null> {
+/**
+ * Looks up the AQUAVO order that owns a given Wayl referenceId. The first attempt's
+ * referenceId is the order id itself; retries use `${orderId}#r{n}` so each Wayl link
+ * still has a unique referenceId while remaining traceable to a single AQUAVO order.
+ */
+function orderIdFromReferenceId(referenceId: string): string {
+  const hashIndex = referenceId.indexOf("#");
+  return hashIndex === -1 ? referenceId : referenceId.slice(0, hashIndex);
+}
+
+export async function findWebhookSecretForReference(referenceId: string): Promise<{ orderId: string; secret: string } | null> {
+  const orderId = orderIdFromReferenceId(referenceId);
   const db = dbOrThrow();
-  const result = await db.execute(sql`
-    SELECT order_id AS "orderId"
-    FROM payments
-    WHERE method = 'alqaseh'
-      AND (
-        transaction_id = ${paymentId}
-        OR EXISTS (
-          SELECT 1
-          FROM jsonb_array_elements(COALESCE(provider_response->'attempts', '[]'::jsonb)) AS attempt
-          WHERE attempt->>'paymentId' = ${paymentId}
-        )
-      )
-    LIMIT 1
-  `);
-  return rowsFromExecute(result)[0]?.orderId ?? null;
+  const [payment] = await db.select().from(payments).where(eq(payments.orderId, orderId)).limit(1);
+  if (!payment || payment.method !== PAYMENT_METHOD) return null;
+  const secret = attemptSecret(payment, referenceId);
+  if (!secret) return null;
+  return { orderId, secret };
 }
 
 export async function prepareOnlineOrder(input: OnlineCheckoutInput): Promise<PreparedOnlineOrder> {
@@ -350,7 +343,7 @@ export async function prepareOnlineOrder(input: OnlineCheckoutInput): Promise<Pr
   const existing = await db.select().from(orders).where(eq(orders.id, input.idempotencyKey)).limit(1);
   if (existing[0]) {
     const [existingPayment] = await db.select().from(payments).where(eq(payments.orderId, existing[0].id)).limit(1);
-    if (existingPayment?.method !== "alqaseh") {
+    if (existingPayment?.method !== PAYMENT_METHOD) {
       throw Object.assign(new Error("Idempotency key is already attached to another order"), { status: 409 });
     }
     return { order: existing[0], payment: existingPayment, reused: true };
@@ -362,7 +355,7 @@ export async function prepareOnlineOrder(input: OnlineCheckoutInput): Promise<Pr
         const concurrent = await tx.select().from(orders).where(eq(orders.id, input.idempotencyKey)).limit(1);
         if (concurrent[0]) {
           const [concurrentPayment] = await tx.select().from(payments).where(eq(payments.orderId, concurrent[0].id)).limit(1);
-          if (concurrentPayment?.method !== "alqaseh") {
+          if (concurrentPayment?.method !== PAYMENT_METHOD) {
             throw Object.assign(new Error("Idempotency key is already attached to another order"), { status: 409 });
           }
           return { order: concurrent[0], payment: concurrentPayment, reused: true };
@@ -467,10 +460,10 @@ export async function prepareOnlineOrder(input: OnlineCheckoutInput): Promise<Pr
           orderId: order.id,
           amount: String(roundedTotal),
           currency: PAYMENT_CURRENCY,
-          method: "alqaseh",
+          method: PAYMENT_METHOD,
           status: "pending",
           providerResponse: {
-            flowVersion: 2,
+            flowVersion: 1,
             sessionId: input.sessionId || null,
             couponCode: normalizedCouponCode || null,
             attempts: [],
@@ -486,7 +479,7 @@ export async function prepareOnlineOrder(input: OnlineCheckoutInput): Promise<Pr
         const existingAfterRace = await db.select().from(orders).where(eq(orders.id, input.idempotencyKey)).limit(1);
         if (existingAfterRace[0]) {
           const [existingPayment] = await db.select().from(payments).where(eq(payments.orderId, existingAfterRace[0].id)).limit(1);
-          if (existingPayment?.method === "alqaseh") {
+          if (existingPayment?.method === PAYMENT_METHOD) {
             return { order: existingAfterRace[0], payment: existingPayment, reused: true };
           }
         }
@@ -499,22 +492,48 @@ export async function prepareOnlineOrder(input: OnlineCheckoutInput): Promise<Pr
   throw new Error("Unable to prepare online order");
 }
 
-export async function startAlqasehPaymentForOrder(
-  orderId: string,
-  urls: { redirectUrl: string; webhookUrl: string },
-  options: { forceNew?: boolean } = {},
-): Promise<StartedAlqasehPayment> {
-  const db = dbOrThrow();
-  await ensureOrderReservation(orderId);
+interface ClaimedAttempt {
+  order: Order;
+  paymentRowId: string;
+  amount: number;
+  currency: string;
+  referenceId: string;
+  webhookSecret: string;
+}
 
-  // Serialize hosted-session creation on the payment row. Holding the row lock
-  // through the provider call is deliberate: checkout volume is low, the provider
-  // client has a 10s timeout, and this closes the double-session race from two tabs.
+/**
+ * Link creation is split into two short transactions around the Wayl HTTP call so
+ * no PostgreSQL row lock or transaction is ever held across the network:
+ *
+ *   1. claim  (tx, FOR UPDATE)  – validate, pick the next referenceId, generate the
+ *                                webhookSecret, persist a "creating" placeholder
+ *                                attempt, point transactionId at it.
+ *   2. call   (no tx)            – POST /api/v1/links.
+ *   3. record (tx, FOR UPDATE)  – store id/url/status on the placeholder, or drop
+ *                                the placeholder and restore the previous
+ *                                transactionId if the call failed.
+ *
+ * Concurrency: a second request that finds a live "creating" placeholder gets 409
+ * (the client already blocks double clicks; this covers two tabs). A placeholder
+ * older than LINK_CREATION_CLAIM_TTL_MS is treated as abandoned (process died
+ * mid-call) and is replaced. Because the webhookSecret is persisted in step 1, a
+ * webhook that races ahead of step 3 can still be signature-verified.
+ *
+ * Double-charge guard: a new link is only ever claimed when either no link exists
+ * yet, or `forceNew` is set AND the current link's last verified provider status
+ * is a documented terminal non-paid state (Cancelled/Rejected). `forceNew` is only
+ * passed by retryWaylPayment after a live re-verification against Wayl.
+ */
+async function claimLinkAttempt(
+  orderId: string,
+  options: { forceNew?: boolean },
+): Promise<ClaimedAttempt | StartedWaylPayment> {
+  const db = dbOrThrow();
   return db.transaction(async (tx) => {
     await tx.execute(sql`SELECT id FROM payments WHERE order_id=${orderId} FOR UPDATE`);
     const [order] = await tx.select().from(orders).where(eq(orders.id, orderId)).limit(1);
     const [payment] = await tx.select().from(payments).where(eq(payments.orderId, orderId)).limit(1);
-    if (!order || !payment || payment.method !== "alqaseh") {
+    if (!order || !payment || payment.method !== PAYMENT_METHOD) {
       throw Object.assign(new Error("Online payment not found for this order"), { status: 404 });
     }
     if (order.paymentStatus === "paid" || payment.status === "completed") {
@@ -522,80 +541,153 @@ export async function startAlqasehPaymentForOrder(
     }
 
     const previous = safeProviderResponse(payment.providerResponse);
-    const currentToken = typeof previous.token === "string" ? previous.token : "";
-    if (!options.forceNew && payment.transactionId && currentToken) {
-      return {
-        orderId: order.id,
-        orderNumber: order.orderNumber || order.id,
-        amount: paymentAmount(payment),
-        currency: String(payment.currency || PAYMENT_CURRENCY),
-        paymentId: payment.transactionId,
-        redirectUrl: getAlqasehHostedPaymentUrl(currentToken),
-        reused: true,
-      };
+    const attempts: any[] = Array.isArray(previous.attempts) ? [...previous.attempts] : [];
+    const amount = paymentAmount(payment);
+    const currency = String(payment.currency || PAYMENT_CURRENCY);
+    const now = Date.now();
+
+    const currentAttempt = attempts.find((entry: any) => entry?.referenceId === payment.transactionId);
+    if (currentAttempt) {
+      if (currentAttempt.status === "creating") {
+        const claimedAt = Date.parse(currentAttempt.claimedAt || "");
+        if (Number.isFinite(claimedAt) && now - claimedAt < LINK_CREATION_CLAIM_TTL_MS) {
+          throw Object.assign(new Error("جاري تجهيز رابط الدفع لهذا الطلب. انتظر لحظات ثم أعد المحاولة."), { status: 409 });
+        }
+        // Abandoned claim: the previous process died between claim and record.
+        attempts.splice(attempts.indexOf(currentAttempt), 1);
+      } else if (!options.forceNew && currentAttempt.url) {
+        return {
+          orderId: order.id,
+          orderNumber: order.orderNumber || order.id,
+          amount,
+          currency,
+          paymentId: payment.transactionId as string,
+          redirectUrl: currentAttempt.url,
+          reused: true,
+        };
+      } else if (options.forceNew && currentAttempt.url && !isTerminalNonPaidWaylStatus(String(currentAttempt.status || ""))) {
+        throw Object.assign(
+          new Error("لا يمكن إنشاء رابط دفع جديد قبل أن تصبح المحاولة الحالية ملغاة أو مرفوضة لدى Wayl."),
+          { status: 409 },
+        );
+      }
     }
 
-    const created = await createAlqasehPayment({
-      amount: paymentAmount(payment),
-      currency: String(payment.currency || PAYMENT_CURRENCY),
-      description: `AQUAVO order ${order.orderNumber || order.id}`,
-      orderId: order.id,
-      redirectUrl: urls.redirectUrl,
-      webhookUrl: urls.webhookUrl,
-      country: "IQ",
-      email: order.customerEmail || undefined,
-      nonce: randomUUID(),
-      customData: { orderNumber: order.orderNumber || order.id },
+    const referenceId = attempts.length === 0 ? order.id : `${order.id}#r${attempts.length}`;
+    const webhookSecret = randomBytes(32).toString("hex");
+    attempts.push({
+      referenceId,
+      webhookSecret,
+      status: "creating",
+      claimedAt: new Date(now).toISOString(),
+      previousTransactionId: payment.transactionId ?? null,
     });
 
-    const attempts = Array.isArray(previous.attempts) ? [...previous.attempts] : [];
-    if (payment.transactionId) {
-      const currentIndex = attempts.findIndex((entry: any) => entry?.paymentId === payment.transactionId);
-      const currentAttempt = {
-        paymentId: payment.transactionId,
-        status: previous.providerStatus || "unknown",
-        ...(currentToken ? { token: currentToken } : {}),
-      };
-      if (currentIndex >= 0) attempts[currentIndex] = { ...attempts[currentIndex], ...currentAttempt };
-      else attempts.push(currentAttempt);
-    }
-    const createdIndex = attempts.findIndex((entry: any) => entry?.paymentId === created.payment_id);
-    const createdAttempt = { paymentId: created.payment_id, token: created.token, status: "prepared" };
-    if (createdIndex >= 0) attempts[createdIndex] = { ...attempts[createdIndex], ...createdAttempt };
-    else attempts.push(createdAttempt);
-
     await tx.update(payments).set({
-      transactionId: created.payment_id,
+      transactionId: referenceId,
       status: "pending",
-      providerResponse: {
-        ...previous,
-        attempts,
-        token: created.token,
-        providerStatus: "prepared",
-        paymentId: created.payment_id,
-        startedAt: new Date().toISOString(),
-      },
+      providerResponse: { ...previous, attempts },
       updatedAt: new Date(),
     } as any).where(eq(payments.id, payment.id));
-    await tx.update(orders).set({ paymentStatus: "pending", status: "pending_payment", updatedAt: new Date() } as any)
-      .where(eq(orders.id, order.id));
 
-    return {
-      orderId: order.id,
-      orderNumber: order.orderNumber || order.id,
-      amount: paymentAmount(payment),
-      currency: String(payment.currency || PAYMENT_CURRENCY),
-      paymentId: created.payment_id,
-      redirectUrl: getAlqasehHostedPaymentUrl(created.token),
-      reused: false,
-    };
+    return { order, paymentRowId: payment.id, amount, currency, referenceId, webhookSecret };
   });
+}
+
+async function recordLinkAttempt(
+  claim: ClaimedAttempt,
+  outcome: { link: WaylLink } | { error: unknown },
+): Promise<void> {
+  const db = dbOrThrow();
+  await db.transaction(async (tx) => {
+    await tx.execute(sql`SELECT id FROM payments WHERE id=${claim.paymentRowId} FOR UPDATE`);
+    const [payment] = await tx.select().from(payments).where(eq(payments.id, claim.paymentRowId)).limit(1);
+    if (!payment) return;
+    const previous = safeProviderResponse(payment.providerResponse);
+    const attempts: any[] = Array.isArray(previous.attempts) ? [...previous.attempts] : [];
+    const index = attempts.findIndex((entry: any) => entry?.referenceId === claim.referenceId);
+    if (index === -1) return;
+
+    if ("link" in outcome) {
+      const { previousTransactionId: _drop, claimedAt: _claimedAt, ...placeholder } = attempts[index];
+      attempts[index] = {
+        ...placeholder,
+        linkId: outcome.link.id,
+        status: outcome.link.status,
+        url: outcome.link.url,
+        createdAt: new Date().toISOString(),
+      };
+      await tx.update(payments).set({
+        transactionId: claim.referenceId,
+        status: "pending",
+        providerResponse: { ...previous, attempts, providerStatus: outcome.link.status, startedAt: new Date().toISOString() },
+        updatedAt: new Date(),
+      } as any).where(eq(payments.id, payment.id));
+      await tx.update(orders).set({ paymentStatus: "pending", status: "pending_payment", updatedAt: new Date() } as any)
+        .where(eq(orders.id, claim.order.id));
+      return;
+    }
+
+    const restoreTo = attempts[index].previousTransactionId ?? null;
+    attempts.splice(index, 1);
+    await tx.update(payments).set({
+      transactionId: restoreTo,
+      providerResponse: { ...previous, attempts },
+      updatedAt: new Date(),
+    } as any).where(eq(payments.id, payment.id));
+  });
+}
+
+export async function startWaylPaymentForOrder(
+  orderId: string,
+  urls: { redirectUrl: string; webhookUrl: string },
+  options: { forceNew?: boolean } = {},
+): Promise<StartedWaylPayment> {
+  await ensureOrderReservation(orderId);
+
+  const claimed = await claimLinkAttempt(orderId, options);
+  if ("redirectUrl" in claimed) return claimed;
+
+  // Wayl may append its own query parameters to redirectionUrl; embedding our
+  // referenceId keeps the return handler independent of that. It is a lookup key
+  // only — never proof of payment.
+  const redirectionUrl = `${urls.redirectUrl}?payment_id=${encodeURIComponent(claimed.referenceId)}`;
+  let link: WaylLink;
+  try {
+    link = await createWaylLink({
+      referenceId: claimed.referenceId,
+      total: claimed.amount,
+      currency: claimed.currency,
+      customParameter: claimed.order.customerEmail || claimed.order.id,
+      lineItem: [{ label: `AQUAVO order ${claimed.order.orderNumber || claimed.order.id}`, amount: claimed.amount, type: "increase" }],
+      webhookUrl: urls.webhookUrl,
+      webhookSecret: claimed.webhookSecret,
+      redirectionUrl,
+    });
+  } catch (error) {
+    await recordLinkAttempt(claimed, { error }).catch((recordError) =>
+      console.error("[AQUAVO Wayl] failed to roll back link claim:", recordError),
+    );
+    throw error;
+  }
+
+  await recordLinkAttempt(claimed, { link });
+
+  return {
+    orderId: claimed.order.id,
+    orderNumber: claimed.order.orderNumber || claimed.order.id,
+    amount: claimed.amount,
+    currency: claimed.currency,
+    paymentId: claimed.referenceId,
+    redirectUrl: link.url,
+    reused: false,
+  };
 }
 
 async function finalizePaidOrder(
   orderId: string,
-  providerPaymentId: string,
-  context: AlqasehPaymentContext,
+  referenceId: string,
+  context: { referenceId: string; amount: number; currency: string; status: string },
 ): Promise<FinalizeResult> {
   const db = dbOrThrow();
   try {
@@ -683,18 +775,14 @@ async function finalizePaidOrder(
         .where(eq(orders.id, order.id)).returning();
       const attempts = Array.isArray(providerMeta.attempts) ? providerMeta.attempts : [];
       await tx.update(payments).set({
-        transactionId: providerPaymentId,
+        transactionId: referenceId,
         status: "completed",
         providerResponse: {
           ...providerMeta,
-          attempts: attempts.map((entry: any) => entry?.paymentId === providerPaymentId
-            ? { ...entry, status: "succeeded" }
+          attempts: attempts.map((entry: any) => entry?.referenceId === referenceId
+            ? { ...entry, status: context.status }
             : entry),
-          token: null,
-          providerStatus: context.payment_status,
-          paymentId: context.payment_id,
-          approvalCode: context.approval_code || null,
-          rrn: context.rrn || null,
+          providerStatus: context.status,
           verifiedAt: new Date().toISOString(),
           finalizedAt: new Date().toISOString(),
         },
@@ -726,8 +814,8 @@ async function finalizePaidOrder(
 
 async function recordPaidInventoryReview(
   orderId: string,
-  providerPaymentId: string,
-  context: AlqasehPaymentContext,
+  referenceId: string,
+  context: { status: string },
   reviewReason: "inventory_conflict" | "paid_after_cancellation" = "inventory_conflict",
 ): Promise<void> {
   const db = dbOrThrow();
@@ -742,13 +830,11 @@ async function recordPaidInventoryReview(
        WHERE order_id=${orderId} AND status='active'
     `);
     await tx.update(payments).set({
-      transactionId: providerPaymentId,
+      transactionId: referenceId,
       status: "completed",
       providerResponse: {
         ...meta,
-        token: null,
-        providerStatus: context.payment_status,
-        paymentId: providerPaymentId,
+        providerStatus: context.status,
         inventoryReview: true,
         reviewReason,
         verifiedAt: new Date().toISOString(),
@@ -761,85 +847,112 @@ async function recordPaidInventoryReview(
     : "دفع إلكتروني ناجح يحتاج مراجعة مخزون";
   const reviewDetail = reviewReason === "paid_after_cancellation"
     ? "الطلب كان ملغياً قبل وصول تأكيد الدفع. لم يتم تجهيز الطلب أو استهلاك المخزون؛ راجع المبلغ ونفّذ الاسترجاع المالي حسب الإجراء المعتمد."
-    : "تم تأكيد الدفع من Al-Qaseh لكن لم يتم تنفيذ المخزون/التنفيذ تلقائياً.";
+    : "تم تأكيد الدفع من Wayl لكن لم يتم تنفيذ المخزون/التنفيذ تلقائياً.";
   await sendTelegramMessage(
-    `⚠️ <b>${reviewTitle}</b>\nالطلب: <code>${orderId}</code>\nPayment: <code>${providerPaymentId}</code>\n${reviewDetail}`
+    `⚠️ <b>${reviewTitle}</b>\nالطلب: <code>${orderId}</code>\nPayment: <code>${referenceId}</code>\n${reviewDetail}`
   ).catch(() => {});
 }
 
-export async function verifyAndSyncAlqasehPayment(
-  providerPaymentId: string,
+/**
+ * The webhook is treated as a trigger only — never as proof. We always re-read the
+ * link's current amount/currency/status directly from Wayl (GET /api/v1/links/{referenceId})
+ * before changing any order state.
+ */
+export async function verifyAndSyncWaylPayment(
+  referenceId: string,
   expectedOrderId?: string,
 ): Promise<VerifiedOnlinePaymentState> {
-  const recognizedOrderId = await findOrderIdByProviderPaymentId(providerPaymentId);
-  if (!recognizedOrderId) throw Object.assign(new Error("Payment not found"), { status: 404 });
-  if (expectedOrderId && recognizedOrderId !== expectedOrderId) {
+  const orderId = orderIdFromReferenceId(referenceId);
+  if (expectedOrderId && orderId !== expectedOrderId) {
     throw Object.assign(new Error("Payment does not belong to this order"), { status: 403 });
   }
 
-  const { order, payment } = await getOrderAndPayment(recognizedOrderId);
-  const providerToken = paymentTokenForProviderId(payment, providerPaymentId);
-  if (!providerToken) {
-    throw Object.assign(new Error("Stored Al-Qaseh payment token is missing for this payment attempt"), { status: 409 });
+  const { order, payment } = await getOrderAndPayment(orderId);
+  const meta = safeProviderResponse(payment.providerResponse);
+  const attempts = Array.isArray(meta.attempts) ? meta.attempts : [];
+  const knownAttempt = attempts.find((entry: any) => entry?.referenceId === referenceId);
+  if (!knownAttempt) {
+    throw Object.assign(new Error("Payment attempt is not registered for this order"), { status: 404 });
   }
 
-  // Al-Qaseh v2 documents authoritative status retrieval by request token:
-  // GET /egw/payments/info/{token}. The order<->payment_id<->token binding
-  // comes from the create/retry response we persisted server-side; the
-  // browser redirect status is never trusted as proof.
-  const info = await getAlqasehPaymentInfo(providerToken);
+  const link = await getWaylLinkByReferenceId(referenceId);
   const amount = paymentAmount(payment);
   const currency = String(payment.currency || PAYMENT_CURRENCY);
-  const context: AlqasehPaymentContext = {
-    amount: Number(info.amount),
-    currency: String(info.currency),
-    description: info.description,
-    order_id: order.id,
-    payment_id: providerPaymentId,
-    payment_status: info.payment_status,
-  };
-  if (!isVerifiedPaymentContext(context, { orderId: order.id, amount, currency })) {
+  const context = { referenceId: link.referenceId, amount: Number(link.total), currency: String(link.currency), status: link.status };
+  if (!isVerifiedPaymentContext(context, { referenceId, amount, currency })) {
     throw Object.assign(new Error("Payment verification mismatch"), { status: 409 });
   }
 
-  const mappedStatus = mapAlqasehPaymentStatus(context.payment_status);
+  const mappedStatus = mapWaylLinkStatus(context.status);
   let finalOrder = order;
   let newlyFinalized = false;
   let inventoryReview = false;
 
+  // Monotonic guard: once an order has been securely verified as paid, no later
+  // provider status (Delivered, Returned, or anything else) can move it back to
+  // unpaid. If a *different* link for the same order also reports Complete, the
+  // customer may have been charged twice — flag it for a refund review.
+  const locallyPaid = order.paymentStatus === "paid" && payment.status === "completed";
+  if (locallyPaid) {
+    if (mappedStatus === "paid" && payment.transactionId && payment.transactionId !== referenceId) {
+      await sendTelegramMessage(
+        `⚠️ <b>احتمال دفع مكرر عبر Wayl</b>\nالطلب: <code>${order.id}</code>\nالرابط المدفوع أولاً: <code>${payment.transactionId}</code>\nرابط ثانٍ مكتمل: <code>${referenceId}</code>\nراجع الحسابات ونفّذ الاسترجاع للمحاولة الثانية حسب الإجراء المعتمد.`,
+      ).catch(() => {});
+    }
+    return {
+      orderId: order.id,
+      orderNumber: order.orderNumber || order.id,
+      amount,
+      currency,
+      paymentId: payment.transactionId || referenceId,
+      paymentStatus: "paid",
+      providerStatus: context.status,
+      orderStatus: order.status,
+      inventoryReview: order.status === "payment_review",
+      newlyFinalized: false,
+    };
+  }
+
+  if (isPostPaymentWaylStatus(context.status)) {
+    // Post-payment lifecycle state seen without a prior verified Complete. Not
+    // proof of payment; keep the order pending and ask a human to look.
+    console.warn(`[AQUAVO Wayl] post-payment status "${context.status}" for unverified reference ${referenceId}`);
+    await sendTelegramMessage(
+      `⚠️ <b>حالة Wayl بعد الدفع بدون تأكيد سابق</b>\nالطلب: <code>${order.id}</code>\nالمرجع: <code>${referenceId}</code>\nالحالة: <code>${context.status}</code>\nلم يُعتبر الطلب مدفوعاً تلقائياً؛ راجع لوحة Wayl يدوياً.`,
+    ).catch(() => {});
+  }
+
   if (mappedStatus === "paid") {
     try {
-      const finalized = await finalizePaidOrder(order.id, providerPaymentId, context);
+      const finalized = await finalizePaidOrder(order.id, referenceId, context);
       finalOrder = finalized.order;
       newlyFinalized = finalized.newlyFinalized;
       await processPaymentOutboxForOrder(order.id).catch((error) =>
-        console.error("[AQUAVO Al-Qaseh] durable outbox immediate drain failed:", error),
+        console.error("[AQUAVO Wayl] durable outbox immediate drain failed:", error),
       );
     } catch (error) {
       if (!(error instanceof PaidOrderInventoryConflict) && !(error instanceof CancelledOrderPaidConflict)) throw error;
       const reviewReason = error instanceof CancelledOrderPaidConflict
         ? "paid_after_cancellation"
         : "inventory_conflict";
-      await recordPaidInventoryReview(order.id, providerPaymentId, context, reviewReason);
+      await recordPaidInventoryReview(order.id, referenceId, context, reviewReason);
       const refreshed = await getOrderAndPayment(order.id);
       finalOrder = refreshed.order;
       inventoryReview = true;
     }
   } else {
-    const isCurrentAttempt = payment.transactionId === providerPaymentId;
+    const isCurrentAttempt = payment.transactionId === referenceId;
     if (isCurrentAttempt) {
-      const meta = safeProviderResponse(payment.providerResponse);
-      const attempts = Array.isArray(meta.attempts) ? meta.attempts : [];
       const locallyCancelled = order.status === "cancelled" || order.paymentStatus === "cancelled" || payment.status === "cancelled";
       await dbOrThrow().transaction(async (tx) => {
         await tx.update(payments).set({
           status: locallyCancelled ? "cancelled" : (mappedStatus === "pending" ? "pending" : "failed"),
           providerResponse: {
             ...meta,
-            attempts: attempts.map((entry: any) => entry?.paymentId === providerPaymentId
-              ? { ...entry, status: context.payment_status }
+            attempts: attempts.map((entry: any) => entry?.referenceId === referenceId
+              ? { ...entry, status: context.status }
               : entry),
-            providerStatus: context.payment_status,
+            providerStatus: context.status,
             verifiedAt: new Date().toISOString(),
           },
           updatedAt: new Date(),
@@ -850,7 +963,7 @@ export async function verifyAndSyncAlqasehPayment(
       finalOrder = { ...order, paymentStatus: locallyCancelled ? "cancelled" : mappedStatus } as Order;
       if (mappedStatus !== "pending") {
         await releaseOrderReservation(order.id, `payment_${mappedStatus}`).catch((error) =>
-          console.error("[AQUAVO Al-Qaseh] reservation release failed:", error),
+          console.error("[AQUAVO Wayl] reservation release failed:", error),
         );
       }
     }
@@ -861,100 +974,40 @@ export async function verifyAndSyncAlqasehPayment(
     orderNumber: finalOrder.orderNumber || finalOrder.id,
     amount,
     currency,
-    paymentId: providerPaymentId,
+    paymentId: referenceId,
     paymentStatus: mappedStatus === "paid" ? "paid" : (finalOrder.paymentStatus as AquavoPaymentStatus) || mappedStatus,
-    providerStatus: context.payment_status,
+    providerStatus: context.status,
     orderStatus: finalOrder.status,
     inventoryReview: inventoryReview || finalOrder.status === "payment_review",
     newlyFinalized,
   };
 }
 
-export async function retryAlqasehPayment(
+export async function retryWaylPayment(
   orderId: string,
   currentPaymentId: string,
   urls: { redirectUrl: string; webhookUrl: string },
-): Promise<StartedAlqasehPayment | VerifiedOnlinePaymentState> {
-  if (!(await paymentRecognizesProviderId(orderId, currentPaymentId))) {
+): Promise<StartedWaylPayment | VerifiedOnlinePaymentState> {
+  if (orderIdFromReferenceId(currentPaymentId) !== orderId) {
     throw Object.assign(new Error("Payment does not belong to this order"), { status: 403 });
   }
 
-  const verified = await verifyAndSyncAlqasehPayment(currentPaymentId, orderId);
+  // Live re-verification against Wayl first. A new link is only created once the
+  // provider itself reports the current link as Cancelled or Rejected — the only
+  // documented states in which it can no longer charge the customer. Created,
+  // Pending, Processing, Delivered, Returned and unknown states all refuse.
+  const verified = await verifyAndSyncWaylPayment(currentPaymentId, orderId);
   if (verified.paymentStatus === "paid") return verified;
-  if (verified.paymentStatus === "pending") {
-    throw Object.assign(new Error("عملية الدفع ما زالت قيد التحقق. انتظر قليلاً قبل إعادة المحاولة."), { status: 409 });
+  if (!isTerminalNonPaidWaylStatus(verified.providerStatus)) {
+    throw Object.assign(new Error("عملية الدفع ما زالت قيد التحقق لدى Wayl. انتظر قليلاً قبل إعادة المحاولة."), { status: 409 });
   }
 
-  await ensureOrderReservation(orderId);
-  const db = dbOrThrow();
-  try {
-    return await db.transaction(async (tx) => {
-      await tx.execute(sql`SELECT id FROM payments WHERE order_id=${orderId} FOR UPDATE`);
-      const [order] = await tx.select().from(orders).where(eq(orders.id, orderId)).limit(1);
-      const [payment] = await tx.select().from(payments).where(eq(payments.orderId, orderId)).limit(1);
-      if (!order || !payment || payment.method !== "alqaseh") {
-        throw Object.assign(new Error("Online payment not found for this order"), { status: 404 });
-      }
-      if (order.paymentStatus === "paid" || payment.status === "completed") {
-        throw Object.assign(new Error("تم تأكيد الدفع بالفعل."), { status: 409 });
-      }
-
-      const retried = await retryAlqasehPaymentContext(currentPaymentId);
-      const previous = safeProviderResponse(payment.providerResponse);
-      const attempts = Array.isArray(previous.attempts) ? [...previous.attempts] : [];
-      const index = attempts.findIndex((entry: any) => entry?.paymentId === retried.payment_id);
-      const nextAttempt = {
-      paymentId: retried.payment_id,
-      token: retried.token,
-      status: retried.payment_status || "prepared",
-      retriedAt: new Date().toISOString(),
-    };
-      if (index >= 0) attempts[index] = { ...attempts[index], ...nextAttempt };
-      else attempts.push(nextAttempt);
-
-      await tx.update(payments).set({
-        transactionId: retried.payment_id,
-        status: "pending",
-        providerResponse: {
-          ...previous,
-          attempts,
-          token: retried.token,
-          providerStatus: retried.payment_status || "prepared",
-          paymentId: retried.payment_id,
-          nativeRetryAt: new Date().toISOString(),
-        },
-        updatedAt: new Date(),
-      } as any).where(eq(payments.id, payment.id));
-      await tx.update(orders).set({ paymentStatus: "pending", status: "pending_payment", updatedAt: new Date() } as any)
-        .where(eq(orders.id, order.id));
-
-      return {
-        orderId: order.id,
-        orderNumber: order.orderNumber || order.id,
-        amount: paymentAmount(payment),
-        currency: String(payment.currency || PAYMENT_CURRENCY),
-        paymentId: retried.payment_id,
-        redirectUrl: getAlqasehHostedPaymentUrl(retried.token),
-        reused: false,
-      };
-    });
-  } catch (error) {
-    // Al-Qaseh documents retry for failed/expiring contexts. If it explicitly
-    // rejects a terminal context, create a fresh context for the SAME AQUAVO
-    // order. Never fall back on timeout/5xx because the retry may have executed.
-    if (error instanceof AlqasehApiError && (error.status === 400 || error.status === 404)) {
-      return startAlqasehPaymentForOrder(orderId, urls, { forceNew: true });
-    }
-    throw error;
-  }
+  return startWaylPaymentForOrder(orderId, urls, { forceNew: true });
 }
 
 export async function getVerifiedPaymentState(
   orderId: string,
   paymentId: string,
 ): Promise<VerifiedOnlinePaymentState> {
-  if (!(await paymentRecognizesProviderId(orderId, paymentId))) {
-    throw Object.assign(new Error("Payment does not belong to this order"), { status: 403 });
-  }
-  return verifyAndSyncAlqasehPayment(paymentId, orderId);
+  return verifyAndSyncWaylPayment(paymentId, orderId);
 }

@@ -2,19 +2,25 @@ import { describe, expect, it } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
 
-// This contract keeps admin cancellation from bypassing payment truth or reviving fulfillment after a late provider callback.
+// This contract keeps admin cancellation from bypassing payment truth or reviving
+// fulfillment after a late provider callback, for both the retired Al-Qaseh method
+// (historical orders) and the active Wayl method.
 const root = process.cwd();
 const adminRoute = fs.readFileSync(path.join(root, "server/routes/admin-orders-v2.ts"), "utf8");
-const paymentService = fs.readFileSync(path.join(root, "server/services/alqaseh-order-payment.ts"), "utf8");
+const paymentService = fs.readFileSync(path.join(root, "server/services/wayl-order-payment.ts"), "utf8");
 const adminUi = fs.readFileSync(path.join(root, "client/src/components/admin/orders-management.tsx"), "utf8");
 
-describe("admin cancellation for unpaid Al-Qaseh orders", () => {
+describe("admin cancellation for unpaid online-payment orders", () => {
   it("only allows the payment-managed escape hatch to cancelled", () => {
     expect(adminRoute).toContain('oldStatus === "pending_payment" && input.status === "cancelled"');
     expect(adminRoute).toContain("admin_cancelled_before_payment");
     expect(adminRoute).toContain('{ paymentStatus: "cancelled" }');
     expect(adminRoute).toContain('${String(actor.id ?? "admin")}::text');
     expect(adminRoute).toContain('${input.financialReason ?? "إلغاء الزبون قبل إتمام الدفع"}::text');
+  });
+
+  it("recognizes both the historical Al-Qaseh method and the active Wayl method", () => {
+    expect(adminRoute).toContain("method IN ('alqaseh','wayl')");
   });
 
   it("prevents a late successful payment from reviving fulfillment", () => {

@@ -76,7 +76,7 @@ export function ConfirmationView({
 
     useEffect(() => {
         let active = true;
-        fetch("/api/payments/alqaseh/availability", { credentials: "include", cache: "no-store" })
+        fetch("/api/payments/wayl/availability", { credentials: "include", cache: "no-store" })
             .then((response) => response.json())
             .then((data) => { if (active) setOnlineAvailable(data?.available === true); })
             .catch(() => { if (active) setOnlineAvailable(false); });
@@ -125,7 +125,7 @@ export function ConfirmationView({
             const governorate = GOVERNORATES.find((entry) => entry.value === customerInfo.governorate)?.label;
             const address = governorate ? `${governorate} - ${customerInfo.address}` : customerInfo.address;
 
-            const response = await fetch("/api/payments/alqaseh/checkout", {
+            const response = await fetch("/api/payments/wayl/checkout", {
                 method: "POST",
                 headers: addCsrfHeader({
                     "Content-Type": "application/json",
@@ -188,14 +188,14 @@ export function ConfirmationView({
                     <div className="rounded-2xl border border-border/70 bg-background px-4 py-3 text-sm font-black tracking-[0.16em] shadow-sm">AQUAVO</div>
                     <ArrowLeft className="h-5 w-5 text-muted-foreground" />
                     <div className="grid h-12 w-12 place-items-center rounded-2xl border border-primary/15 bg-primary/10 text-primary"><ShieldCheck className="h-6 w-6" /></div>
-                    <div className="text-right"><div className="text-sm font-bold">Al-Qaseh</div><div className="text-[11px] text-muted-foreground">بوابة الدفع الآمنة</div></div>
+                    <div className="text-right"><div className="text-sm font-bold">Wayl</div><div className="text-[11px] text-muted-foreground">بوابة الدفع الآمنة</div></div>
                 </div>
                 <div className="mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-primary/10 text-primary">
                     <Loader2 className="h-7 w-7 animate-spin" aria-hidden="true" />
                 </div>
                 <h3 className="text-xl font-bold">جاري نقلك إلى بوابة الدفع الآمنة</h3>
                 <p className="mt-2 max-w-md text-sm leading-7 text-muted-foreground">
-                    لا تغلق الصفحة. ستُدخل بيانات البطاقة مباشرة لدى Al-Qaseh ثم ستعود تلقائياً إلى AQUAVO.
+                    لا تغلق الصفحة. ستُدخل بيانات البطاقة مباشرة لدى Wayl ثم ستعود تلقائياً إلى AQUAVO.
                 </p>
                 <div className="mt-6 w-full max-w-sm rounded-2xl border border-border/70 bg-background/90 p-4 text-sm shadow-sm">
                     <div className="flex justify-between gap-4 py-1.5">
@@ -293,7 +293,7 @@ export function ConfirmationView({
                         <div className="flex items-start gap-2.5">
                             <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
                             <div>
-                                <p className="text-sm font-semibold">ستنتقل إلى صفحة Al-Qaseh الآمنة</p>
+                                <p className="text-sm font-semibold">ستنتقل إلى صفحة Wayl الآمنة</p>
                                 <p className="mt-1 text-xs leading-6 text-muted-foreground">بيانات البطاقة تُدخل لدى مزود الدفع مباشرة، وبعد إكمال العملية ستعود تلقائياً إلى AQUAVO للتحقق من النتيجة.</p>
                             </div>
                         </div>

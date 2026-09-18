@@ -238,7 +238,7 @@ app.use(apiOnly((req: Request, res: Response, next: NextFunction) => {
   // Security is enforced via PKCE + admin password on the consent screen.
   if (pathToCheck.startsWith("/oauth")) return next();
 
-  // Al-Qaseh calls the webhook server-to-server and therefore does not carry the
+  // Wayl calls the webhook server-to-server and therefore does not carry the
   // browser Origin/Referer CSRF signal. Exempt only this exact callback path.
   // The webhook payload itself is never trusted as proof of payment: the payment
   // route fetches the provider context and matches order ID, amount and currency
@@ -248,7 +248,7 @@ app.use(apiOnly((req: Request, res: Response, next: NextFunction) => {
     req.originalUrl,
     req.path,
   ].filter((value): value is string => Boolean(value)).map((value) => value.split("?", 1)[0]);
-  if (csrfRouteCandidates.includes("/api/payments/alqaseh/webhook")) return next();
+  if (csrfRouteCandidates.includes("/api/payments/wayl/webhook")) return next();
 
   const origin = req.headers.origin || req.headers.referer;
 

@@ -178,7 +178,7 @@ async function deliverOutboxEvent(event: ClaimedOutbox): Promise<void> {
     subtotal: Number(order.total) - Number(order.shippingCost ?? 0) + Number(order.discountTotal ?? 0),
     shippingCost: order.shippingCost,
     discountTotal: order.discountTotal,
-    paymentMethod: "الدفع الإلكتروني — Al-Qaseh ✅",
+    paymentMethod: "الدفع الإلكتروني — Wayl ✅",
     items: lines.map((line: any) => ({
       productId: line.productId,
       productName: line.productName,

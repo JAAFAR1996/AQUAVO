@@ -220,7 +220,7 @@ describe("OrdersManagement operational return events runtime", () => {
     expect(screen.queryByText("trash")).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByText("view-order"));
-    expect(await screen.findByText(/التجهيز متوقف إلى أن تؤكد Al-Qaseh نجاح الدفع/)).toBeInTheDocument();
+    expect(await screen.findByText(/التجهيز متوقف إلى أن تؤكد Wayl نجاح الدفع/)).toBeInTheDocument();
     expect(screen.queryByText("fulfillment-panel")).not.toBeInTheDocument();
   });
 });

@@ -20,7 +20,7 @@ describe("admin payment-managed order states", () => {
 
     expect(ui).toContain('const PAYMENT_LOCKED_STATUSES = new Set(["pending_payment", "payment_review"])');
     expect(ui).toContain("بانتظار دفع الزبون 💳");
-    expect(ui).toContain("التجهيز متوقف إلى أن تؤكد Al-Qaseh نجاح الدفع");
+    expect(ui).toContain("التجهيز متوقف إلى أن تؤكد Wayl نجاح الدفع");
     expect(ui).toContain("PAYMENT_LOCKED_STATUSES.has(selectedOrder.status)");
     expect(ui).toContain("order.status === 'pending'");
   });
@@ -31,6 +31,6 @@ describe("admin payment-managed order states", () => {
     expect(route).toContain('const PAYMENT_MANAGED_STATUSES = new Set(["pending_payment", "payment_review"])');
     expect(route).toContain("PAYMENT_MANAGED_STATUSES.has(oldStatus) && input.status !== oldStatus");
     expect(route).toContain("{ statusCode: 409 }");
-    expect(route).toContain("بعد نجاح Al-Qaseh ينتقل تلقائياً إلى قيد الانتظار");
+    expect(route).toContain("بعد نجاح Wayl ينتقل تلقائياً إلى قيد الانتظار");
   });
 });

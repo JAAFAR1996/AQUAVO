@@ -107,7 +107,7 @@ function getOrderStage(status?: string): number {
 }
 
 function getPaymentLabel(orderData: OrderData | null): string {
-    if (orderData?.paymentMethod !== "alqaseh") return "الدفع عند الاستلام";
+    if (orderData?.paymentMethod !== "alqaseh" && orderData?.paymentMethod !== "wayl") return "الدفع عند الاستلام";
 
     switch (orderData.paymentStatus) {
         case "paid":

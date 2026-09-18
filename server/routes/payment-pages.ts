@@ -1,5 +1,5 @@
 import { Router, type Request, type Response } from "express";
-import { getVerifiedPaymentState, type VerifiedOnlinePaymentState } from "../services/alqaseh-order-payment.js";
+import { getVerifiedPaymentState, type VerifiedOnlinePaymentState } from "../services/wayl-order-payment.js";
 
 const validPages = new Set(["success", "failed", "pending"]);
 
@@ -29,19 +29,20 @@ function canonicalUrl(state: VerifiedOnlinePaymentState): string {
 
 function friendlyProviderStatus(status: string): string {
   const labels: Record<string, string> = {
-    succeeded: "تم الدفع بنجاح",
-    prepared: "بانتظار إكمال الدفع",
-    retried: "تم تجهيز محاولة جديدة",
+    complete: "تم الدفع بنجاح",
+    completed: "تم الدفع بنجاح",
+    created: "بانتظار إكمال الدفع",
+    pending: "جارٍ تأكيد الحالة",
+    processing: "جارٍ معالجة الدفع",
     failed: "لم تكتمل عملية الدفع",
     declined: "لم تُقبل عملية الدفع",
     expired: "انتهت مهلة الدفع",
     revoked: "أُلغيت عملية الدفع",
     cancelled: "أُلغيت عملية الدفع",
-    duplicated: "تعذر إكمال المحاولة",
+    canceled: "أُلغيت عملية الدفع",
     unknown: "جارٍ تأكيد الحالة",
-    pending: "جارٍ تأكيد الحالة",
   };
-  return labels[status] || "جارٍ تأكيد الحالة";
+  return labels[status.toLowerCase()] || "جارٍ تأكيد الحالة";
 }
 
 function shell(title: string, content: string): string {
@@ -75,12 +76,12 @@ h1{text-align:center;font-size:clamp(24px,5vw,32px);margin:0 0 10px;letter-spaci
 function successPage(state: VerifiedOnlinePaymentState): string {
   const reviewNotice = state.inventoryReview
     ? `<div class="notice warn">تم تأكيد الدفع بنجاح. الطلب يحتاج مراجعة داخلية للمخزون قبل التجهيز. لا تعِد الدفع؛ فريق AQUAVO سيتابع نفس الطلب.</div>`
-    : `<div class="notice ok">تم التحقق من عملية الدفع مباشرة من بوابة Al-Qaseh، وطلبك دخل الآن مرحلة التجهيز.</div>`;
+    : `<div class="notice ok">تم التحقق من عملية الدفع مباشرة من بوابة Wayl، وطلبك دخل الآن مرحلة التجهيز.</div>`;
   const content = `<section class="card" data-payment-page="success" data-order-id="${h(state.orderId)}" data-payment-id="${h(state.paymentId)}">
     <div class="icon ok">✓</div>
     <h1>تم الدفع بنجاح</h1>
     <p class="lead">شكراً لطلبك من AQUAVO. تم تأكيد العملية من الخادم وربطها بطلبك بشكل آمن.</p>
-    <div class="trust"><span class="pill">تحقق من Al-Qaseh</span><span class="pill">لا نخزن بيانات البطاقة</span><span class="pill">الطلب محفوظ</span></div>
+    <div class="trust"><span class="pill">تحقق من Wayl</span><span class="pill">لا نخزن بيانات البطاقة</span><span class="pill">الطلب محفوظ</span></div>
     <div class="summary">
       <div class="row"><span>رقم الطلب</span><strong>${h(state.orderNumber)}</strong></div>
       <div class="row"><span>المبلغ المدفوع</span><strong>${h(formatIQD(state.amount))}</strong></div>
@@ -135,7 +136,7 @@ function pendingPage(state: VerifiedOnlinePaymentState): string {
   const content = `<section class="card" data-payment-page="pending" data-payment-auto="true" data-order-id="${h(state.orderId)}" data-payment-id="${h(state.paymentId)}">
     <div class="icon pending"><span class="spin"></span></div>
     <h1>جارٍ تأكيد عملية الدفع</h1>
-    <p class="lead">لا تحتاج إلى إعادة الدفع. سنراجع الحالة تلقائياً مع Al-Qaseh لعدة محاولات قبل أن نطلب منك أي إجراء.</p>
+    <p class="lead">لا تحتاج إلى إعادة الدفع. سنراجع الحالة تلقائياً مع Wayl لعدة محاولات قبل أن نطلب منك أي إجراء.</p>
     <div class="summary">
       <div class="row"><span>رقم الطلب</span><strong>${h(state.orderNumber)}</strong></div>
       <div class="row"><span>المبلغ</span><strong>${h(formatIQD(state.amount))}</strong></div>

@@ -109,7 +109,7 @@
 
 **Payment Methods**:
 - Cash on Delivery
-- Online payment through the Al-Qaseh hosted checkout (AQUAVO does not collect or store card details)
+- Online payment through the Wayl hosted checkout (AQUAVO does not collect or store card details)
 
 ---
 
