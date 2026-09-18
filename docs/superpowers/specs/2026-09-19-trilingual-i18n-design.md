@@ -18,7 +18,7 @@ Date: 2026-09-19. Branch: `feat/i18n-trilingual` (worktree `wt-i18n`, from `orig
 | Dynamic content | products: 107 live (Arabic `name`, `description`, `category`, `subcategory`, jsonb `specifications` with Arabic keys and arrays `benefits`, `usageInstructions`, `safetyWarnings`, `__cardBenefit`); blog_posts: 117 (115 latin slugs, 2 Arabic slugs); categories table + hard-coded `AQUAVO_PRODUCT_CATEGORIES` (Arabic strings are the canonical category identity, used in URLs `/products?category=<arabic>`); blog_categories (Arabic names + Arabic slugs) |
 | Search | `server/storage/product-storage.ts` ILIKE over name/description/brand with an Arabic synonym expander; client `site-search.ts` for pages |
 | Formatting | `formatNumber` uses `toLocaleString('en-US')` (Latin digits) and `formatPrice` appends `د.ع` |
-| Fonts | Cairo (Arabic/Latin) + Inter + Changa from Google Fonts. Cairo's Google Fonts build covers the Arabic block incl. Kurdish letters (پ چ ژ ڤ گ ک ڵ ڕ ۆ ێ ە ئ) — verified glyph-by-glyph in `scripts/i18n/check-font-coverage.mjs` |
+| Fonts | Cairo (Arabic/Latin) + Inter + Changa from Google Fonts. Cairo's Google Fonts build covers the Arabic block incl. Kurdish letters (پ چ ژ ڤ گ ک ڵ ڕ ۆ ێ ە ئ) — verified glyph-by-glyph in `TOOLS/i18n/check-font-coverage.mjs` |
 | Cron | `/api/cron/weekly-blog` generates new Arabic blog posts automatically |
 
 ## 2. Research (Phase 2) and decisions
@@ -75,7 +75,7 @@ source_hash text, created_at, updated_at, unique(entity_type, entity_id, locale)
 
 ## 8. Content migration
 
-`scripts/i18n/translate-content.ts`: reads Arabic source rows, translates to `en` and `ckb` with Claude (glossary of aquarium terms, never translates SKUs/model codes/brand names, keeps numbers), writes `content_translations` with `status='machine'`. Idempotent (skips rows whose `source_hash` matches). Same script serves future products/articles (cron `weekly-blog` will produce `translationMissing` posts until run).
+`TOOLS/i18n/translate-content.ts`: reads Arabic source rows, translates to `en` and `ckb` with Claude (glossary of aquarium terms, never translates SKUs/model codes/brand names, keeps numbers), writes `content_translations` with `status='machine'`. Idempotent (skips rows whose `source_hash` matches). Same script serves future products/articles (cron `weekly-blog` will produce `translationMissing` posts until run).
 
 ## 9. UI string migration
 
@@ -93,7 +93,7 @@ SSR HTML is cached per URL and the locale is in the URL, so no `Vary` on cookies
 
 - vitest: locale utils, path mapping, hreflang generation, localizer fallback, coverage report.
 - playwright: home/product/category/blog/search/cart/checkout in 3 locales, selector on mobile + desktop, direct URL, refresh persistence, `lang`/`dir`, hreflang/canonical, 404.
-- `scripts/i18n/audit.ts`: missing keys per locale, Arabic script inside en/ckb JSON, DB coverage counts, hard-coded Arabic in customer-facing components (allow-list for intentional Arabic).
+- `TOOLS/i18n/audit.ts`: missing keys per locale, Arabic script inside en/ckb JSON, DB coverage counts, hard-coded Arabic in customer-facing components (allow-list for intentional Arabic).
 
 ## 13. Out of scope / risks
 

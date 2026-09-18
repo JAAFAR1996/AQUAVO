@@ -2,6 +2,7 @@ import type { Product, ProductQueryParams, GallerySubmission } from "@/types";
 import { buildApiUrl } from "./config/env";
 import { addCsrfHeader } from "./csrf";
 import { getClientSessionId } from "./client-session";
+import { i18next } from "@/i18n";
 
 // Default timeout for API requests (30 seconds)
 const DEFAULT_TIMEOUT_MS = 30000;
@@ -46,7 +47,7 @@ async function getJson<T>(path: string, options?: RequestInit, timeoutMs?: numbe
     return res.json() as Promise<T>;
   } catch (e: unknown) {
     if (e instanceof Error && e.name === 'AbortError') {
-      throw new Error("انتهت مهلة الطلب - يرجى المحاولة مرة أخرى");
+      throw new Error(i18next.t("errors:timeout"));
     }
     const message = e instanceof Error ? e.message : "Unknown fetch error";
     throw new Error(message);

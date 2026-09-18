@@ -25,8 +25,13 @@ import { ConfirmationView } from "@/components/cart/checkout/confirmation-view";
 import { CheckoutLoyaltySection } from "@/components/cart/checkout/loyalty-section";
 import { CheckoutSuccessFallback } from "@/components/cart/checkout/checkout-success-fallback";
 import { WhatsAppLink } from "@/components/whatsapp-link";
+import { useTranslation } from "react-i18next";
+import { useLocale } from "@/i18n/locale-context";
+import { ArrowBack } from "@/components/ui/directional-icons";
 
 export default function CheckoutPage() {
+  const { t } = useTranslation("checkout");
+  const { dir } = useLocale();
   const [, setLocation] = useLocation();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -151,7 +156,7 @@ export default function CheckoutPage() {
   } | null>(null);
 
   const getDeliveryEstimate = () => {
-    return `خلال ${DELIVERY_DAYS}`;
+    return t("deliveryEstimate", { days: DELIVERY_DAYS });
   };
 
   const validatePhone = (phone: string): boolean => {
@@ -164,16 +169,16 @@ export default function CheckoutPage() {
 
   const validateInfo = (): boolean => {
     const newErrors: Record<string, string> = {};
-    if (!customerInfo.name.trim()) newErrors.name = "الاسم مطلوب";
-    if (!customerInfo.phone.trim()) newErrors.phone = "رقم الهاتف مطلوب";
+    if (!customerInfo.name.trim()) newErrors.name = t("validation.nameRequired");
+    if (!customerInfo.phone.trim()) newErrors.phone = t("validation.phoneRequired");
     else if (!validatePhone(customerInfo.phone))
-      newErrors.phone = "رقم الهاتف غير صحيح (مثال: 07801234567)";
-    if (!customerInfo.governorate) newErrors.governorate = "يرجى اختيار المحافظة";
-    if (!customerInfo.address.trim()) newErrors.address = "العنوان مطلوب";
+      newErrors.phone = t("validation.phoneInvalid");
+    if (!customerInfo.governorate) newErrors.governorate = t("validation.governorateRequired");
+    if (!customerInfo.address.trim()) newErrors.address = t("validation.addressRequired");
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length > 0) {
-      setFormErrorSummary(`فيه ${Object.keys(newErrors).length} حقول تحتاج تصحيح`);
+      setFormErrorSummary(t("validation.summary", { count: Object.keys(newErrors).length }));
       const firstInvalidField = FIELD_ORDER.find((field) => newErrors[field]);
       if (firstInvalidField) {
         requestAnimationFrame(() => {
@@ -251,7 +256,7 @@ export default function CheckoutPage() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => null);
-        throw new Error(errorData?.message || `خطأ في إنشاء الطلب (${response.status})`);
+        throw new Error(errorData?.message || t("errors.createFailed", { status: response.status }));
       }
 
       const orderData = await response.json();
@@ -349,8 +354,8 @@ export default function CheckoutPage() {
       window.scrollTo(0, 0);
     } catch (error: unknown) {
       console.error("Checkout error:", error);
-      const message = error instanceof Error ? error.message : "حدث خطأ";
-      toast({ title: "خطأ في الطلب", description: message, variant: "destructive" });
+      const message = error instanceof Error ? error.message : t("errors.generic");
+      toast({ title: t("errors.orderTitle"), description: message, variant: "destructive" });
     } finally {
       setIsSubmitting(false);
     }
@@ -400,7 +405,7 @@ export default function CheckoutPage() {
       });
       if (!response.ok) {
         const error = await response.json();
-        setCouponError(error.message || "كود الخصم غير صالح");
+        setCouponError(error.message || t("coupon.invalid"));
         return;
       }
       const coupon = await response.json();
@@ -408,22 +413,22 @@ export default function CheckoutPage() {
         setAppliedCoupon(coupon);
         const discountAmount = Math.round(cartTotal * (Number(coupon.value) / 100));
         setCouponDiscount(discountAmount);
-        setCouponSuccess(`تم تطبيق خصم ${coupon.value}% (${formatIQD(discountAmount)})`);
+        setCouponSuccess(t("coupon.appliedPercent", { value: coupon.value, amount: formatIQD(discountAmount) }));
       } else if (coupon.type === "fixed") {
         setAppliedCoupon(coupon);
         const discountAmount = Number(coupon.value);
         setCouponDiscount(discountAmount);
-        setCouponSuccess(`تم تطبيق خصم بقيمة ${formatIQD(discountAmount)}`);
+        setCouponSuccess(t("coupon.appliedFixed", { amount: formatIQD(discountAmount) }));
       } else if (coupon.type === "free_shipping") {
         setAppliedCoupon(coupon);
         setCouponDiscount(0);
-        setCouponSuccess("تم تطبيق شحن مجاني");
+        setCouponSuccess(t("coupon.appliedFreeShipping"));
       } else {
-        setCouponError("نوع الكوبون غير مدعوم حالياً");
+        setCouponError(t("coupon.unsupported"));
       }
     } catch (error) {
       console.error("Coupon error:", error);
-      setCouponError("حدث خطأ أثناء التحقق من الكوبون");
+      setCouponError(t("coupon.checkError"));
     } finally {
       setIsApplyingCoupon(false);
     }
@@ -432,7 +437,7 @@ export default function CheckoutPage() {
   if (step === "success" && orderResult) {
     return (
       <>
-        <MetaTags title={testMode ? "طلب اختبار مسجّل" : "طلبك مسجّل"} noIndex />
+        <MetaTags title={testMode ? t("meta.testSuccess") : t("meta.success")} noIndex />
         <CheckoutSuccessFallback
           orderNumber={orderResult.orderNumber}
           headingRef={successHeadingRef}
@@ -444,16 +449,16 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col" dir="rtl">
-      <MetaTags title="إتمام الطلب" noIndex />
+    <div className="min-h-screen bg-background flex flex-col" dir={dir}>
+      <MetaTags title={t("meta.title")} noIndex />
 
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b border-border">
         <div className="container mx-auto px-4 h-14 flex items-center justify-between">
           <Button variant="ghost" size="sm" onClick={() => window.history.back()} className="gap-2">
-            <ArrowRight className="w-4 h-4" aria-hidden="true" />
-            رجوع
+            <ArrowBack className="w-4 h-4" aria-hidden="true" />
+            {t("steps.back")}
           </Button>
-          <h1 ref={stepHeadingRef} tabIndex={-1} className="text-lg font-bold outline-none">{step === "info" ? "إتمام الطلب" : "تأكيد الطلب"}</h1>
+          <h1 ref={stepHeadingRef} tabIndex={-1} className="text-lg font-bold outline-none">{step === "info" ? t("steps.info") : t("steps.confirm")}</h1>
           <div className="flex items-center gap-1 text-sm text-muted-foreground">
             <ShoppingCart className="w-4 h-4" />
             {cartItems.length}
@@ -480,9 +485,9 @@ export default function CheckoutPage() {
                   className="mt-1 h-4 w-4"
                 />
                 <span className="space-y-1">
-                  <span className="block font-semibold text-sm">وضع الاختبار</span>
+                  <span className="block font-semibold text-sm">{t("testMode.label")}</span>
                   <span className="block text-xs text-muted-foreground">
-                    لا يخصم مخزون ولا يدخل المحاسب أو المبيعات أو النقاط. بعد تم الاستلام يُسمح فقط باختبار رسالة واتساب.
+                    {t("testMode.hint")}
                   </span>
                 </span>
               </label>
@@ -523,14 +528,14 @@ export default function CheckoutPage() {
               {formErrorSummary}
             </p>
             <Button onClick={handleContinue} className="w-full h-12 text-base font-semibold" size="lg">
-              مراجعة الطلب
+              {t("steps.review")}
             </Button>
           </div>
         ) : (
           <div className="space-y-4">
             {testMode && (
               <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-sm">
-                <strong>طلب اختبار:</strong> لن يُحسب كمبيعة ولن يخصم مخزون. رقم الهاتف المكتوب هو الذي ستصل إليه رسالة واتساب عند تم الاستلام.
+                <strong>{t("testMode.bannerTitle")}</strong> {t("testMode.banner")}
               </div>
             )}
             <ConfirmationView
@@ -554,13 +559,13 @@ export default function CheckoutPage() {
         )}
       </main>
 
-      <footer className="container mx-auto px-4 max-w-lg py-6 mt-6 border-t border-border/40 text-center" dir="rtl">
+      <footer className="container mx-auto px-4 max-w-lg py-6 mt-6 border-t border-border/40 text-center" dir={dir}>
         <p className="text-sm font-semibold text-foreground mb-1">AQUAVO</p>
-        <p className="text-xs text-muted-foreground mb-3">AQUAVO — معدات أحواض بريميوم من بغداد لكل العراق</p>
+        <p className="text-xs text-muted-foreground mb-3">{t("footer.tagline")}</p>
         <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground mb-3">
-          <span>الدفع عند الاستلام أو إلكترونياً</span>
+          <span>{t("footer.payment")}</span>
           <span className="opacity-40">·</span>
-          <span>التوصيل 5,000 د.ع لكل العراق</span>
+          <span>{t("footer.delivery")}</span>
         </div>
         <div className="flex items-center justify-center gap-4">
           <WhatsAppLink
@@ -568,7 +573,7 @@ export default function CheckoutPage() {
             className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-green-500 transition-colors"
           >
             <MessageCircle className="w-3.5 h-3.5" />
-            واتساب
+            {t("footer.whatsapp")}
           </WhatsAppLink>
           <a
             href="https://www.instagram.com/aquavo_iq"

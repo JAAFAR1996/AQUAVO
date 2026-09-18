@@ -5,8 +5,11 @@ import { Button } from "@/components/ui/button";
 import { ShoppingCart, Sparkles } from "lucide-react";
 import { thumbImage } from "@/lib/cloudinary";
 import type { Product } from "@/types";
+import { useTranslation } from "react-i18next";
+import { formatIQD } from "@/lib/utils";
 
 export function CartSuggestions() {
+  const { t } = useTranslation("checkout");
   const { items: cartItems, addItem } = useCart();
   const productIds = cartItems.map((item) => item.productId);
 
@@ -24,7 +27,7 @@ export function CartSuggestions() {
   return (
     <div className="hidden py-3 sm:block">
       <div className="flex items-center gap-1.5 mb-2 justify-end">
-        <h4 className="text-xs font-bold text-muted-foreground">أكمل حوضك</h4>
+        <h4 className="text-xs font-bold text-muted-foreground">{t("suggestions.title")}</h4>
         <Sparkles className="h-3 w-3 text-primary" aria-hidden="true" />
       </div>
       <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
@@ -56,13 +59,13 @@ export function CartSuggestions() {
                 variant="ghost"
                 className="h-6 w-6 p-0 hover:bg-primary/10 hover:text-primary"
                 onClick={() => addItem(product)}
-                aria-label={`أضف ${product.name} للسلة`}
+                aria-label={t("suggestions.add", { name: product.name })}
               >
                 <ShoppingCart className="h-3 w-3" aria-hidden="true" />
               </Button>
               <span className="text-[10px] font-bold text-primary">
                 {product.price && Number(product.price) > 0
-                  ? `${Number(product.price).toLocaleString("en-US")} د.ع`
+                  ? formatIQD(Number(product.price))
                   : ""}
               </span>
             </div>

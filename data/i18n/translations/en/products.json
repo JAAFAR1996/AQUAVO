@@ -258,6 +258,353 @@
       }
     }
   },
+  "general-air-stone": {
+    "entityId": "general-air-stone",
+    "slug": "general-air-stone",
+    "sourceHash": "2eb2af6c9cb4b44a",
+    "translatedBy": "groq:openai/gpt-oss-120b",
+    "translatedAt": "2026-09-18T22:42:24.230Z",
+    "data": {
+      "name": "General Cylindrical Air Stone for Bubble Distribution — Multiple Sizes",
+      "description": "Porous air stone in multiple sizes to disperse air as bubbles within the aquarium. Choose the appropriate size and tube diameter for your air pump and tubing.\n\nPerformance depends on pump strength, stone size, and water depth, so you may need to adjust airflow according to the tank.",
+      "subcategory": "Air Stones",
+      "seoTitle": "Cylindrical Air Stone – Multiple Sizes | AQUAVO",
+      "seoDescription": "Porous cylindrical air stones in various sizes distribute bubbles evenly throughout the aquarium. Choose the appropriate size and tube diameter for your air pump.",
+      "specifications": {
+        "benefits": [
+          "Multiple sizes available for selection",
+          "Helps distribute air evenly throughout the tank",
+          "Compatible with matching air pump and tubing",
+          "Simple part, easy to replace when clogged"
+        ],
+        "usageInstructions": [
+          "Select the stone that matches the tubing diameter",
+          "Connect it to the air pump",
+          "Fully submerge and secure it in the desired position",
+          "Clean or replace it if bubble output weakens"
+        ],
+        "safetyWarnings": [
+          "Use a non-return valve if the pump is below water level",
+          "Ensure the tubing is tightly secured",
+          "Do not rely on the stone alone to gauge oxygen levels; monitor surface movement and fish behavior"
+        ],
+        "__cardBenefit": "Distributes air as bubbles throughout the tank in sizes that suit your needs",
+        "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "Porous Air Stone"
+          },
+          "الألوان": {
+            "label": "Color",
+            "value": "Blue"
+          }
+        }
+      },
+      "variantLabels": {
+        "10x25-blue": "10×25 mm — Blue",
+        "10x30-blue": "10×30 mm — Blue",
+        "12x25-blue": "12×25 mm — Blue",
+        "13x25-blue": "13×25 mm — Blue",
+        "15x25-blue": "15×25 mm — Blue",
+        "15x30-blue": "15×30 mm — Blue",
+        "18x30-blue": "18×30 mm — Blue",
+        "18x45-blue": "18×45 mm — Blue",
+        "18x50-blue": "18×50 mm — Blue",
+        "20x50-blue": "20×50 mm — Blue",
+        "25x40-blue": "25×40 mm — Blue",
+        "25x50-blue": "25×50 mm — Blue",
+        "25x100-blue": "25×100 mm — Blue",
+        "30x70-blue": "30×70 mm — Blue",
+        "30x100-blue": "30×100 mm — Blue",
+        "50x50-blue": "50×50 mm — Blue",
+        "50x100-blue": "50×100 mm — Blue"
+      }
+    }
+  },
+  "general-sponge-filter-xy180": {
+    "entityId": "general-sponge-filter-xy180",
+    "slug": "general-sponge-filter-xy180",
+    "sourceHash": "04b0855e25156d0c",
+    "translatedBy": "groq:openai/gpt-oss-120b",
+    "translatedAt": "2026-09-18T22:41:35.846Z",
+    "data": {
+      "name": "General Air Sponge Filter with Gentle Flow — for Shrimp and Small Fish",
+      "description": "A simple air-powered filter with a gentle flow that combines waste filtration with space for beneficial bacteria, making it ideal for shrimp, small fish, and tanks that do not require strong currents. The sponge is washable and reusable.\n\nAvailable in two sizes and requires an air pump and tubing to operate. Adjust the airflow to match the inhabitants of the tank.",
+      "subcategory": "Sponge Filters",
+      "seoTitle": "Air Sponge Filter with Gentle Flow for Shrimp | AQUAVO",
+      "seoDescription": "A gentle-flow air-powered sponge filter ideal for shrimp and small fish, offering mechanical and biological filtration with a reusable, washable sponge.",
+      "specifications": {
+        "benefits": [
+          "Two size options: small or large",
+          "Gentle flow suitable for shrimp and small fish when adjusted appropriately",
+          "Combines mechanical and biological filtration",
+          "Sponge is washable and reusable"
+        ],
+        "usageInstructions": [
+          "Connect the tubing to an air source",
+          "Submerge the filter and secure it in the tank",
+          "Adjust the air flow to suit the inhabitants",
+          "Rinse the sponge with tank water when dirty",
+          "Replace the sponge when it deteriorates or loses structure"
+        ],
+        "safetyWarnings": [
+          "Do not use soap or detergents",
+          "Avoid cleaning the biological sponge with chlorinated water after bacteria have colonized",
+          "Ensure the filter is stable and the flow is appropriate for small creatures"
+        ],
+        "__cardBenefit": "Gentle-flow filtration suitable for shrimp and small fish",
+        "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "Air Sponge Filter"
+          },
+          "يحتاج": {
+            "label": "Requires",
+            "value": "Air pump and suitable tubing"
+          }
+        }
+      },
+      "variantLabels": {
+        "xy-180": "Small",
+        "xy-2835": "Large"
+      }
+    }
+  },
+  "houyi-5-in-1-cleaning-tool": {
+    "entityId": "houyi-5-in-1-cleaning-tool",
+    "slug": "houyi-5-in-1-cleaning-tool",
+    "sourceHash": "00cb1f37dadeedf9",
+    "translatedBy": "groq:openai/gpt-oss-120b",
+    "translatedAt": "2026-09-18T22:54:38.722Z",
+    "data": {
+      "name": "5-in-1 Aquarium Cleaning and Maintenance Kit",
+      "description": "Five essential tools in one box instead of buying each separately. The kit combines a fishing net, glass scraper, algae removal tool, plant tweezers and a substrate leveling tool, covering most daily cleaning and arranging tasks.\n\nChoosing the right tool for each job helps clean the tank without unnecessarily disturbing fish or décor.",
+      "subcategory": "Cleaning Tools",
+      "seoTitle": "5-in-1 Aquarium Cleaning and Maintenance Kit | AQUAVO",
+      "seoDescription": "A compact 5‑in‑1 kit includes a fishing net, glass scraper, algae remover, plant tweezers and substrate tool, covering daily aquarium cleaning tasks without disturbing fish or décor.",
+      "specifications": {
+        "benefits": [
+          "5 maintenance tools in one set",
+          "Handles glass cleaning, fish capture, plant arrangement and substrate leveling",
+          "Suitable for home use and routine maintenance",
+          "Reduces the need to purchase separate tools"
+        ],
+        "usageInstructions": [
+          "Select the appropriate tool for the task",
+          "Use the glass scraper carefully, away from silicone",
+          "Move the fishing net slowly",
+          "Wash the tools after use and dry metal parts"
+        ],
+        "safetyWarnings": [
+          "Do not use a blade or scraper unsuitable for acrylic",
+          "Avoid pressing on the tank silicone",
+          "Keep sharp parts away from children",
+          "Do not leave metal parts submerged after use"
+        ],
+        "__cardBenefit": "5 tools cover glass, plant, substrate cleaning and fish capture",
+        "labelled": {
+          "يشمل": {
+            "label": "Includes",
+            "value": "Fishing net + glass scraper + algae tool + plant tweezers + substrate tool"
+          },
+          "عدد الأدوات": {
+            "label": "Number of tools",
+            "value": "5 pieces"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "houyi-acrylic-pipe-clamp": {
+    "entityId": "houyi-acrylic-pipe-clamp",
+    "slug": "houyi-acrylic-pipe-clamp",
+    "sourceHash": "8e5eb116bb96145e",
+    "translatedBy": "groq:openai/gpt-oss-120b",
+    "translatedAt": "2026-09-18T22:41:11.302Z",
+    "data": {
+      "name": "Houyi Acrylic Bracket for Securing Filter Tubes",
+      "description": "Transparent acrylic bracket for securing filter inlet and outlet tubes on the aquarium glass edge.\n\nHelps keep the tube in a fixed position, especially with Lily Pipe tubes or external filter tubes compatible with the bracket opening. Verify glass thickness and tube diameter before purchase.\n\nTighten the screws gradually without excessive pressure on the glass.",
+      "subcategory": "Mounting Brackets",
+      "seoTitle": "Acrylic Filter Tube Bracket - Houyi | AQUAVO",
+      "seoDescription": "Transparent acrylic bracket holds filter inlet and outlet tubes on the aquarium glass edge. Compatible with Lily Pipe and filter tubes. Easy install.",
+      "specifications": {
+        "benefits": [
+          "Helps secure filter tubes to the tank edge",
+          "Transparent acrylic with minimal visual impact",
+          "Adjustable screws",
+          "Suitable for tubes compatible with the bracket dimensions"
+        ],
+        "usageInstructions": [
+          "Place the bracket on the glass edge",
+          "Tighten the screws gradually until secure without excessive pressure",
+          "Insert the tube into the designated opening",
+          "Ensure the tube is stable before turning on the filter"
+        ],
+        "safetyWarnings": [
+          "Verify glass thickness and tube diameter compatibility before purchase",
+          "Do not overtighten the screws on the glass",
+          "Check bracket stability after installation",
+          "Clean the acrylic with a soft cloth and avoid abrasive materials"
+        ],
+        "__cardBenefit": "Secures filter tubes to the edge and keeps them organized",
+        "labelled": {
+          "المادة": {
+            "label": "Material",
+            "value": "Transparent acrylic"
+          },
+          "الاستخدام": {
+            "label": "Usage",
+            "value": "Securing filter inlet and outlet tubes"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "houyi-activated-carbon": {
+    "entityId": "houyi-activated-carbon",
+    "slug": "houyi-activated-carbon",
+    "sourceHash": "84a6a91876413bb0",
+    "translatedBy": "groq:openai/gpt-oss-120b",
+    "translatedAt": "2026-09-18T22:49:53.425Z",
+    "data": {
+      "name": "Active Carbon for Aquarium Water Filtration",
+      "description": "Active carbon is used as a chemical filtration media to help reduce odors, yellowing, and adsorbable compounds. It is placed in a mesh bag in the water flow path after mechanical filtration.\n\nThe effectiveness and service life of the carbon depend on the amount of carbon and the water load; replace it when its efficiency declines rather than relying on a fixed duration for all tanks. Remove it during treatment if the medication is adsorbable or if the instructions recommend it.",
+      "subcategory": "Filter Media",
+      "seoTitle": "Active Carbon for Aquarium Water Filtration | AQUAVO",
+      "seoDescription": "Active carbon chemically filters to reduce odors, yellowing, and adsorbable compounds. Place in a mesh bag after filtration; replace when effectiveness drops.",
+      "specifications": {
+        "benefits": [
+          "Chemical filtration media to help reduce yellowing and odors",
+          "Can be used after certain treatments to remove adsorbable residues per treatment instructions",
+          "Granules suitable for placement inside a filter bag",
+          "Used in the water flow path after mechanical filtration"
+        ],
+        "usageInstructions": [
+          "Rinse dust off the carbon before use",
+          "Place it in a mesh bag inside the filter",
+          "Put it after the mechanical filtration stage",
+          "Monitor water clarity and replace when its effectiveness declines",
+          "Remove it during treatment if medication instructions require"
+        ],
+        "safetyWarnings": [
+          "Do not rely on it to treat ammonia or nitrite",
+          "Do not use it during medication treatment without confirming compatibility",
+          "Do not use soap or detergents to clean it",
+          "Follow the packaging data if a usage duration or amount is specified"
+        ],
+        "__cardBenefit": "Helps reduce water yellowing and odors through chemical filtration",
+        "labelled": {
+          "الاستخدام": {
+            "label": "Usage",
+            "value": "Inside a mesh bag in the filter"
+          },
+          "نوع الترشيح": {
+            "label": "Filtration type",
+            "value": "Chemical — adsorption"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "houyi-base-fertilizer": {
+    "entityId": "houyi-base-fertilizer",
+    "slug": "houyi-base-fertilizer",
+    "sourceHash": "c671f208241094b8",
+    "translatedBy": "groq:openai/gpt-oss-120b",
+    "translatedAt": "2026-09-18T22:58:32.281Z",
+    "data": {
+      "name": "Houyi Foundational Substrate Fertilizer",
+      "description": "A foundational substrate fertilizer designed for planted aquariums, placed beneath the substrate to provide nutrients directly to plant roots for healthy growth.\n\nDistribute the specified amount from the package onto the dry tank bottom. Cover the fertilizer completely with a layer of substrate. Plant the vegetation after preparing the bottom layer. When reusing, follow the manufacturer's dosage instructions for the product.",
+      "subcategory": "Fertilizing",
+      "seoTitle": "Houyi Substrate Fertilizer for Planted Tanks | AQUAVO",
+      "seoDescription": "A foundational substrate fertilizer for planted aquariums, placed beneath the substrate to deliver nutrients directly to plant roots for healthy growth.",
+      "specifications": {
+        "benefits": [
+          "Placed in the root zone beneath the substrate",
+          "Formulated to support aquatic plant nutrition as per product specifications",
+          "Remains concealed under the soil or sand layer",
+          "Suitable for setting up planted tanks from the start"
+        ],
+        "usageInstructions": [
+          "Distribute the specified amount from the package onto the dry tank bottom",
+          "Cover the fertilizer completely with a layer of substrate",
+          "Plant the vegetation after preparing the bottom layer",
+          "When reusing, follow the manufacturer's dosage instructions for the product"
+        ],
+        "safetyWarnings": [
+          "Use the amount printed on the package and do not exceed it",
+          "It must be covered with substrate and not left exposed in the water column",
+          "Avoid vigorously disturbing the deep layer after tank setup"
+        ],
+        "__cardBenefit": "Feeds the root zone from beneath the substrate since tank establishment",
+        "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "Aquatic plant substrate base fertilizer"
+          },
+          "الوزن": {
+            "label": "Weight",
+            "value": "500 g"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "houyi-blue-dragon-stone": {
+    "entityId": "houyi-blue-dragon-stone",
+    "slug": "houyi-blue-dragon-stone",
+    "sourceHash": "c3c26c086db4a906",
+    "translatedBy": "groq:openai/gpt-oss-120b",
+    "translatedAt": "2026-09-18T22:45:42.472Z",
+    "data": {
+      "name": "Blue Dragon Stone (دراقون ستون) — 1 kg",
+      "description": "Add a striking rock formation to the tank with natural stones that vary from piece to piece in shape and gray‑blue gradients. Suitable for building focal points, passages, and rocky details within the aquascape.\n\nWash the stone before use and secure it on a stable base. If your tank is sensitive to pH or GH/KH, test the stone and water after setup.",
+      "subcategory": "Stones",
+      "seoTitle": "Blue Dragon Stone (دراقون ستون) – 1 kg | AQUAVO",
+      "seoDescription": "Natural blue‑gray stone for freshwater aquascapes, ideal for focal points, passages and decorative layouts. Wash before use and test water chemistry.",
+      "specifications": {
+        "benefits": [
+          "Each piece is natural and uniquely shaped",
+          "Gray and blue colors for rock arrangements",
+          "Suitable for building focal points and aquascape structures",
+          "Can be combined with sand and wood according to design"
+        ],
+        "usageInstructions": [
+          "Wash the stone with water and a brush before use",
+          "Try arranging the rocks outside the tank first",
+          "Secure large pieces on a stable base",
+          "Test the water after setup if the inhabitants are chemistry‑sensitive"
+        ],
+        "safetyWarnings": [
+          "Edges may be sharp; inspect them before use",
+          "Secure the stones well to prevent falling onto the glass",
+          "Do not assume the stone is chemically inert without testing if the tank is sensitive"
+        ],
+        "__cardBenefit": "A unique natural piece that creates a strong visual rock focal point in the tank",
+        "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "Natural decorative stone"
+          },
+          "الوزن": {
+            "label": "Weight",
+            "value": "1 كغم"
+          },
+          "الاستخدام": {
+            "label": "Usage",
+            "value": "Aquascape and freshwater tank decoration"
+          }
+        }
+      },
+      "variantLabels": {
+        "1kg": "1 كغم"
+      }
+    }
+  },
   "houyi-breathing-ring-white": {
     "entityId": "houyi-breathing-ring-white",
     "slug": "houyi-breathing-ring-white",
@@ -311,6 +658,531 @@
       "variantLabels": {
         "1kg": "1 كغم"
       }
+    }
+  },
+  "houyi-ceramic-ring": {
+    "entityId": "houyi-ceramic-ring",
+    "slug": "houyi-ceramic-ring",
+    "sourceHash": "968399e2ae047dc2",
+    "translatedBy": "groq:openai/gpt-oss-120b",
+    "translatedAt": "2026-09-18T22:50:19.739Z",
+    "data": {
+      "name": "Houyi Ceramic Rings for Bio Filtration – 1 kg",
+      "description": "Porous ceramic rings for use as biological filter media inside the filter. They provide a surface for beneficial bacterial colonies when water and oxygen pass through the media.\n\nPlace them after the mechanical filtration stage as much as possible, and rinse off dust before first use. Once the tank is stable, gently clean them with tank water as needed and do not replace the entire quantity at once.",
+      "subcategory": "Filter Media",
+      "seoTitle": "Houyi Ceramic Rings for Bio Filtration – 1 kg | AQUAVO",
+      "seoDescription": "Houyi porous ceramic rings provide a high‑surface area for beneficial bacteria, enhancing biological filtration in aquarium filters. 1 kg pack.",
+      "specifications": {
+        "benefits": [
+          "Porous ceramic media for biological filtration",
+          "Provides surface for colonization of beneficial bacteria",
+          "Can be placed in mesh bags or suitable filter chambers",
+          "Does not require periodic replacement as long as it remains in good condition"
+        ],
+        "usageInstructions": [
+          "Rinse manufacturing dust before first use",
+          "Place the rings after the mechanical filtration stage as much as possible",
+          "After the tank stabilizes, gently rinse them with tank water when dirty",
+          "Replace damaged parts gradually, not the entire quantity at once"
+        ],
+        "safetyWarnings": [
+          "Do not use soap or detergents",
+          "Avoid cleaning all biological media at the same time",
+          "Do not let debris clog the pores and block water flow"
+        ],
+        "__cardBenefit": "Porous surface providing space for beneficial bacteria inside the filter",
+        "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "Ceramic biological filtration media"
+          },
+          "الوزن": {
+            "label": "Weight",
+            "value": "1 kg"
+          },
+          "المادة": {
+            "label": "Material",
+            "value": "Porous ceramic"
+          },
+          "نوع الترشيح": {
+            "label": "Filtration type",
+            "value": "Biological"
+          }
+        }
+      },
+      "variantLabels": {
+        "1kg": "1 kg"
+      }
+    }
+  },
+  "houyi-chubby-thermometer": {
+    "entityId": "houyi-chubby-thermometer",
+    "slug": "houyi-chubby-thermometer",
+    "sourceHash": "49e85da0c81ca490",
+    "translatedBy": "groq:openai/gpt-oss-120b",
+    "translatedAt": "2026-09-18T22:51:56.237Z",
+    "data": {
+      "name": "Wide Aquarium Thermometer — Easy Read",
+      "description": "A wide glass thermometer with a clear scale for reading aquarium water temperature without a battery. It mounts inside the tank with a suction cup on the glass.\n\nPlace it in a spot that reflects the tank’s temperature, away from the heater outlet, and wait for the reading to stabilize before recording.",
+      "subcategory": "Thermometers",
+      "seoTitle": "Wide Aquarium Thermometer – Easy Read | AQUAVO",
+      "seoDescription": "A wide glass aquarium thermometer with a battery‑free scale for quick temperature reading. Mounts with a suction cup on the tank glass for monitoring.",
+      "specifications": {
+        "benefits": [
+          "Wider scale that is easier to read than narrow gauges",
+          "Battery‑free operation",
+          "Mounts inside the tank with a suction cup",
+          "Suitable for daily water temperature monitoring"
+        ],
+        "usageInstructions": [
+          "Secure the thermometer inside the tank",
+          "Place it away from direct heater output",
+          "Allow the reading to stabilize before recording",
+          "Compare readings regularly if you doubt its accuracy"
+        ],
+        "safetyWarnings": [
+          "Handle with care as it is made of glass",
+          "Remove it immediately if it breaks",
+          "Inspect the suction cup regularly",
+          "Do not rely on unstable readings or a damaged thermometer"
+        ],
+        "__cardBenefit": "Wide, clear scale for battery‑free water temperature reading",
+        "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "Internal glass thermometer"
+          },
+          "التثبيت": {
+            "label": "Installation",
+            "value": "Suction cup on glass"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "houyi-cleaning-towel": {
+    "entityId": "houyi-cleaning-towel",
+    "slug": "houyi-cleaning-towel",
+    "sourceHash": "9ca15ab9dfeff23d",
+    "translatedBy": "groq:openai/gpt-oss-120b",
+    "translatedAt": "2026-09-18T22:53:33.661Z",
+    "data": {
+      "name": "Microfiber Towel for Aquarium Glass Cleaning",
+      "description": "Soft microfiber towel for cleaning and drying aquarium glass, removing water spots and fingerprints from the outer surface. It can be used with water for daily cleaning without household detergents near the tank.\n\nReserve the towel for aquarium use only, and ensure it is free of sand or grit before wiping to reduce the risk of scratching glass or acrylic. Wash and dry it after use.",
+      "subcategory": "Cleaning Tools",
+      "seoTitle": "Microfiber Towel for Aquarium Glass Cleaning | AQUAVO",
+      "seoDescription": "Soft microfiber towel designed for cleaning and drying aquarium glass, removing water spots and fingerprints without chemicals. Reusable and easy to wash.",
+      "specifications": {
+        "benefits": [
+          "Soft microfiber fibers suitable for wiping glass and drying water marks",
+          "Helps remove fingerprints and water marks from the exterior surface",
+          "Washable and reusable",
+          "Suitable for daily water cleaning without household detergents near the tank"
+        ],
+        "usageInstructions": [
+          "Ensure the towel and glass are free of sand or grit before wiping",
+          "Use gentle strokes on the outer glass",
+          "Reserve the towel for aquarium use only; do not use with household cleaners",
+          "Wash after use and air‑dry without fabric softener"
+        ],
+        "safetyWarnings": [
+          "Sand or grit trapped between the towel and surface may cause scratches",
+          "Do not use the towel with household cleaning agents near aquarium water",
+          "Test cautiously on sensitive surfaces such as acrylic",
+          "Replace the towel if it becomes rough or retains debris that cannot be removed"
+        ],
+        "__cardBenefit": "Removes fingerprints and water marks from glass without household cleaners",
+        "labelled": {
+          "المادة": {
+            "label": "Material",
+            "value": "Microfiber"
+          },
+          "الاستخدام": {
+            "label": "Usage",
+            "value": "Cleaning glass and equipment"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "houyi-control-valve": {
+    "entityId": "houyi-control-valve",
+    "slug": "houyi-control-valve-4mm",
+    "sourceHash": "b7f044e000cdd6f8",
+    "translatedBy": "groq:openai/gpt-oss-120b",
+    "translatedAt": "2026-09-18T23:36:59.291Z",
+    "data": {
+      "name": "Houyi Air Flow Control Valve — 4 mm",
+      "description": "Air flow control valve for aquarium air lines with a 4 mm diameter, used to reduce or increase the airflow in a line connected to an air pump.\n\nUseful when operating multiple air stones or sponge filters and you need to balance flow between lines. The tubing must match the fitting size and connections should remain tight to prevent air leaks.",
+      "subcategory": "Accessories",
+      "seoTitle": "Houyi Air Flow Control Valve – 4 mm | AQUAVO",
+      "seoDescription": "Houyi 4 mm Air Flow Control Valve fine‑tunes aquarium air lines, balancing flow between multiple air stones or sponge filters without electricity or tools.",
+      "specifications": {
+        "benefits": [
+          "Helps adjust the airflow in the line",
+          "Useful for balancing air between multiple outlets",
+          "Mounts directly onto a compatible tubing",
+          "Does not require electricity or special tools to adjust"
+        ],
+        "usageInstructions": [
+          "Install the valve onto compatible air tubing",
+          "Turn on the pump",
+          "Adjust the valve gradually until the desired flow is reached",
+          "Check the connections to ensure no air leaks"
+        ],
+        "safetyWarnings": [
+          "Do not restrict the pump’s flow beyond its specifications",
+          "Ensure connections are tight",
+          "Use a separate non-return valve when needed to protect the pump from backflow",
+          "Replace the valve if leaks or adjustment difficulty appear"
+        ],
+        "__cardBenefit": "Precisely adjust air power and balance flow between lines",
+        "labelled": {
+          "القطر": {
+            "label": "Diameter",
+            "value": "4 mm"
+          },
+          "النوع": {
+            "label": "Type",
+            "value": "Air Flow Control Valve"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "houyi-dophin-skimmer": {
+    "entityId": "houyi-dophin-skimmer",
+    "slug": "houyi-dophin-electric-skimmer",
+    "sourceHash": "7da92e98c09a03ca",
+    "translatedBy": "groq:openai/gpt-oss-120b",
+    "translatedAt": "2026-09-18T22:50:48.110Z",
+    "data": {
+      "name": "DoPhin Surface Skimmer for Removing Oil Layer",
+      "description": "The DoPhin electric surface skimmer pulls the oily and protein film and light debris from the aquarium water surface. It helps keep the surface cleaner and improves water movement at the surface.\n\nMount the inlet at water level and clean it when flow decreases. Always disconnect power before disassembly or maintenance.",
+      "subcategory": "Surface Scrapers",
+      "seoTitle": "DoPhin Surface Skimmer for Oil Layer Removal | AQUAVO",
+      "seoDescription": "DoPhin electric surface skimmer removes oily and protein films and debris from the aquarium surface, keeping water clearer. Easy to install and maintain.",
+      "specifications": {
+        "benefits": [
+          "Helps remove the oily and protein film from the water surface",
+          "Improves water movement at the surface",
+          "Provides continuous electric operation when needed",
+          "Easy access for cleaning and maintenance"
+        ],
+        "usageInstructions": [
+          "Mount the skimmer so the inlet contacts the water surface",
+          "Turn on the device and monitor surface film removal",
+          "Clean the inlet and filter media when debris builds up",
+          "Disconnect power before disassembly or cleaning"
+        ],
+        "safetyWarnings": [
+          "Disconnect power before maintenance",
+          "Maintain appropriate water level for the inlet",
+          "Clean the inlet when flow decreases",
+          "Ensure the wire and pump are safe before use"
+        ],
+        "__cardBenefit": "Pulls the oily layer and light debris to keep the water surface cleaner",
+        "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "Electric surface skimmer"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "houyi-dutch-sand": {
+    "entityId": "houyi-dutch-sand",
+    "slug": "houyi-dutch-sand",
+    "sourceHash": "5dd10e9472218f2a",
+    "translatedBy": "groq:openai/gpt-oss-120b",
+    "translatedAt": "2026-09-18T22:47:30.322Z",
+    "data": {
+      "name": "Houyi Dutch Aquascape Sand",
+      "description": "Decorative sand with a natural color gradient, suitable for planted tank layouts and aquascapes. It can be used as a surface layer or as part of the substrate design.\n\nRinse thoroughly before use to remove dust, and if the tank is sensitive to pH or GH/KH changes, test the water after adding it. Rooted plants require an appropriate nutrient source if the substrate is unfertilized.",
+      "subcategory": "Sand",
+      "seoTitle": "Dutch Aquascape Sand – Natural Color Gradient | AQUAVO",
+      "seoDescription": "Natural Dutch decorative sand with a subtle color gradient, ideal for planted tanks and aquascapes. Rinse before use and monitor water parameters.",
+      "specifications": {
+        "benefits": [
+          "Natural color gradient suitable for planted layouts",
+          "Can be used as a decorative layer in aquascapes",
+          "Rinse before use to remove dust",
+          "Visually integrates with rocks and driftwood"
+        ],
+        "usageInstructions": [
+          "Rinse the sand until excess dust is removed",
+          "Apply a thickness appropriate for the tank design and plant types",
+          "Fill the tank slowly to minimize substrate cloudiness",
+          "Monitor pH, GH, and KH in sensitive tanks after use"
+        ],
+        "safetyWarnings": [
+          "Do not assume it alters water chemistry without testing",
+          "Inspect grains before use and avoid sharp pieces with delicate bottom-dwelling fish",
+          "Unfertilized sand does not replace feeding of root plants"
+        ],
+        "__cardBenefit": "A subtle natural gradient that complements plant layouts and aquascapes",
+        "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "Decorative sand for tanks"
+          },
+          "وحدة البيع": {
+            "label": "Sale unit",
+            "value": "5 kg"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "houyi-fat-injection": {
+    "entityId": "houyi-fat-injection",
+    "slug": "houyi-fat-injection",
+    "sourceHash": "dfb0cedfe08e902b",
+    "translatedBy": "groq:openai/gpt-oss-120b",
+    "translatedAt": "2026-09-18T23:03:11.426Z",
+    "data": {
+      "name": "Precision Feeding and Fertilizing Syringe for Aquariums",
+      "description": "A long tool for controlling the addition of small amounts of liquid food or aquarium-specific solutions to a precise point, and it can also be used to direct liquid fertilizer near the root area according to the product method.\n\nUsed for underwater targeting only; do not insert into a fish's mouth or body and do not use as a medical injection tool.",
+      "subcategory": "Fertilizing",
+      "seoTitle": "Precision Aquarium Feeding Syringe | AQUAVO",
+      "seoDescription": "A long, precise syringe delivers small amounts of liquid food or solutions to targeted spots in the aquarium, reducing waste and ensuring localized feeding.",
+      "specifications": {
+        "benefits": [
+          "Helps direct a small amount to a specific location",
+          "Useful for spot feeding or adding permitted solutions",
+          "Long design to reach areas inside the tank",
+          "Reduces food dispersion when used in small quantities"
+        ],
+        "usageInstructions": [
+          "Fill the tool with an appropriate small amount",
+          "Point the tip to the desired location underwater",
+          "Add the liquid slowly",
+          "Wash the tool thoroughly after use"
+        ],
+        "safetyWarnings": [
+          "Do not insert the tool into the fish's mouth or body",
+          "Do not use it to inject medicines into fish",
+          "Do not mix food and chemicals in the same tool without proper cleaning",
+          "Avoid sharp tips near fish"
+        ],
+        "__cardBenefit": "Direct food or liquids to a specific point instead of spreading them throughout the tank",
+        "labelled": {
+          "الاستخدام": {
+            "label": "Usage",
+            "value": "Spot feeding or directing custom aquarium liquids"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "houyi-foam-glue": {
+    "entityId": "houyi-foam-glue",
+    "slug": "houyi-foam-glue",
+    "sourceHash": "5d73ea5f8dfdee75",
+    "translatedBy": "groq:openai/gpt-oss-120b",
+    "translatedAt": "2026-09-18T22:44:48.697Z",
+    "data": {
+      "name": "Decorative Gap Fill and Hide Paste – Wood Color",
+      "description": "A specialized paste for filling gaps and concealing mounting points in decorative and aquascape work, with a wood‑like color to achieve a more uniform appearance.\n\nUse in small amounts and thin layers, allowing each layer to dry before applying the next. After drying, the surface can be shaped or gently sanded as needed.\n\nBefore using it inside the tank, ensure the package clearly states its suitability for aquatic environments after full drying.",
+      "subcategory": "Accessories",
+      "seoTitle": "Houyi Decorative Gap Fill Paste – Wood Color | AQUAVO",
+      "seoDescription": "Houyi wood‑colored decorative paste fills small gaps and hides mounting points. Apply thin layers and let dry fully before adding more or placing in tank.",
+      "specifications": {
+        "benefits": [
+          "Helps fill small gaps between decorative pieces",
+          "Wood‑like color reduces visibility of mounting points",
+          "Can be applied in thin layers for controlled final shape"
+        ],
+        "usageInstructions": [
+          "Clean and dry the surface before use",
+          "Apply a small amount in a thin layer",
+          "Allow the layer to dry according to package instructions before adding another layer",
+          "After drying, shape or gently sand the surface as needed",
+          "Do not place the piece in the tank until fully dry and suitability for aquariums is confirmed"
+        ],
+        "safetyWarnings": [
+          "Do not use inside a stocked tank unless the package confirms it is safe after drying",
+          "Do not allow the wet product to contact water or fish",
+          "Use in a well‑ventilated area and follow package warnings"
+        ],
+        "__cardBenefit": "Fills decorative gaps and hides mounting points with a wood‑like color",
+        "labelled": {
+          "اللون": {
+            "label": "Color",
+            "value": "Wood color"
+          },
+          "الوزن": {
+            "label": "Weight",
+            "value": "900 غرام"
+          },
+          "الاستخدام": {
+            "label": "Usage",
+            "value": "Filling and hiding gaps in decorations and crafts"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "houyi-hose-brush": {
+    "entityId": "houyi-hose-brush",
+    "slug": "houyi-hose-brush",
+    "sourceHash": "3c71638668a4c26a",
+    "translatedBy": "groq:openai/gpt-oss-120b",
+    "translatedAt": "2026-09-18T22:53:46.358Z",
+    "data": {
+      "name": "Houyi Dual Filter Hose Cleaning Brush — 1.55 metre",
+      "description": "A dual‑head brush 1.55 metre long for cleaning the interior of filter hoses and compatible flexible tubes.\n\nIt helps remove biofilm and deposits that can reduce water flow over time. There is no single cleaning schedule for all tanks; clean the hoses when you notice buildup or a flow decrease.\n\nUse the head that fits inside the hose without excessive force.",
+      "subcategory": "Cleaning Tools",
+      "seoTitle": "Dual Filter Hose Cleaning Brush – 1.55m | AQUAVO",
+      "seoDescription": "A 1.55 m dual‑head brush for cleaning filter hoses and flexible tubing, removing biofilm and debris to maintain optimal water flow.",
+      "specifications": {
+        "benefits": [
+          "1.55 m length to reach inside long hoses",
+          "Two heads with different sizes",
+          "Flexible wire to navigate bends",
+          "Helps remove deposits and biofilm from inside the hose"
+        ],
+        "usageInstructions": [
+          "Select the appropriate head for the hose diameter",
+          "Gently push the brush through the hose",
+          "Move it back and forth to dislodge debris",
+          "Rinse the hose and brush after cleaning"
+        ],
+        "safetyWarnings": [
+          "Do not use a head larger than the hose diameter",
+          "Do not force the brush if it catches",
+          "Wash the brush after use",
+          "Stop if the wire or bristles show damage"
+        ],
+        "__cardBenefit": "Reaches deep into long hoses and removes debris from water flow",
+        "labelled": {
+          "الطول": {
+            "label": "Length",
+            "value": "1.55 متر"
+          },
+          "الرؤوس": {
+            "label": "Heads",
+            "value": "Two cleaning heads"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "houyi-koi-fish-net": {
+    "entityId": "houyi-koi-fish-net",
+    "slug": "houyi-koi-fish-net",
+    "sourceHash": "20be3b48c10a5794",
+    "translatedBy": "groq:openai/gpt-oss-120b",
+    "translatedAt": "2026-09-18T22:56:44.203Z",
+    "data": {
+      "name": "Houyi Telescopic Koi Net — Aluminum",
+      "description": "A large fishing net suitable for koi and outdoor ponds, featuring an aluminum frame and a telescopic handle that reaches deeper areas. The deep‑mesh design helps keep the fish inside during guiding and transport.\n\nUse it with gentle movements and avoid holding the fish suspended in the net for extended periods. Inspect the net and handle before use and dry them after use.",
+      "subcategory": "Fishing Nets",
+      "seoTitle": "Houyi Telescopic Koi Net — Aluminum | AQUAVO",
+      "seoDescription": "A large, retractable aluminum koi net with a telescopic handle for deep ponds. Lightweight frame, deep mesh and easy cleaning ensure safe fish handling.",
+      "specifications": {
+        "benefits": [
+          "Appropriate size for handling koi and outdoor ponds",
+          "Lightweight aluminum frame for easy control and maneuverability",
+          "Telescopic handle to reach deeper areas",
+          "Deep mesh that keeps the fish inside during guiding"
+        ],
+        "usageInstructions": [
+          "Extend the handle to the desired length and lock it before use",
+          "Guide the fish calmly into the net",
+          "Support the fish’s weight and do not leave it hanging in the net for long",
+          "Rinse the net and dry the handle after use"
+        ],
+        "safetyWarnings": [
+          "Inspect the net, handle, and lock point before lifting a large fish",
+          "Avoid lifting a weight that exceeds the net’s actual capacity",
+          "Do not press on the fish’s body inside the net",
+          "Clean the net between ponds as needed to reduce disease transmission"
+        ],
+        "__cardBenefit": "Large net for koi with telescopic handle for reaching deep ponds",
+        "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "Retractable"
+          },
+          "المادة": {
+            "label": "Material",
+            "value": "Aluminum alloy"
+          },
+          "الاستخدام": {
+            "label": "Usage",
+            "value": "Koi ponds and large fish tanks"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "houyi-led-light": {
+    "entityId": "houyi-led-light",
+    "slug": "houyi-thermostat",
+    "sourceHash": "d9991c6ddaa9be89",
+    "translatedBy": "groq:openai/gpt-oss-120b",
+    "translatedAt": "2026-09-18T22:58:06.303Z",
+    "data": {
+      "name": "Houyi Digital Aquarium Thermometer — LED Display",
+      "description": "A digital thermometer placed inside the aquarium water that displays the temperature directly and helps monitor its changes throughout the day.\n\nDo not treat the 0.1°C reading as a guaranteed measurement accuracy unless the packaging states so; it may be the display precision. Use it for daily monitoring and compare the reading with another thermometer if an illogical result appears.",
+      "subcategory": "Thermometers",
+      "seoTitle": "Houyi Digital Aquarium Thermometer with LED Display | AQUAVO",
+      "seoDescription": "Accurately monitor aquarium temperature with the Houyi digital thermometer, featuring an LED display and a sensor. Easy to install for daily checks.",
+      "specifications": {
+        "benefits": [
+          "Clear digital display for temperature monitoring",
+          "Separate sensor placed inside the water",
+          "Helps notice aquarium temperature changes",
+          "Easy to install and use"
+        ],
+        "usageInstructions": [
+          "Place the sensor inside the water, away from the heater",
+          "Mount the display outside the tank in a dry location",
+          "Wait until the reading stabilizes",
+          "Compare with another thermometer if an illogical reading appears"
+        ],
+        "safetyWarnings": [
+          "Do not submerge the display in water",
+          "Inspect the cable and sensor before use",
+          "Replace the battery if the display dims or the reading is unstable",
+          "Do not rely on a single thermometer when temperature is critical for the inhabitants"
+        ],
+        "__cardBenefit": "External LED display with a water‑immersed sensor for temperature monitoring",
+        "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "Digital thermometer with sensor"
+          },
+          "الشاشة": {
+            "label": "Display",
+            "value": "Illuminated digital LED"
+          },
+          "نطاق القياس": {
+            "label": "Measurement range",
+            "value": "-50 to +70 °C"
+          },
+          "طول سلك المستشعر": {
+            "label": "Sensor cable length",
+            "value": "1 metre"
+          },
+          "العلامة التجارية": {
+            "label": "Brand",
+            "value": "HOUYI"
+          }
+        }
+      },
+      "variantLabels": {}
     }
   },
   "houyi-medium-cotton": {
@@ -553,6 +1425,475 @@
       "variantLabels": {}
     }
   },
+  "houyi-nylon-fishing-net": {
+    "entityId": "houyi-nylon-fishing-net",
+    "slug": "houyi-nylon-fishing-net",
+    "sourceHash": "ab112f8c990ead2c",
+    "translatedBy": "groq:openai/gpt-oss-120b",
+    "translatedAt": "2026-09-18T22:56:28.192Z",
+    "data": {
+      "name": "Houyi Soft Nylon Fish Net",
+      "description": "A soft nylon fish net suitable for small and medium fish. The fine mesh helps reduce the chance of scale and fin damage when used gently, and it is lightweight and easy to control inside the tank. Ideal for transport or temporary separation within the aquarium.\n\nMove the net calmly and avoid chasing the fish for a long time. Rinse the net and dry it after use, and replace it if any tears or damage appear.",
+      "subcategory": "Fish Nets",
+      "seoTitle": "Soft Nylon Fish Net for Small to Medium Fish | AQUAVO",
+      "seoDescription": "Soft nylon fish net for small and medium aquarium fish, minimizing scale and fin damage during gentle handling, transport or separation. Easy to clean.",
+      "specifications": {
+        "benefits": [
+          "Soft nylon net suitable for small and medium fish",
+          "The soft mesh helps reduce the chance of scale and fin damage when used gently",
+          "Lightweight and easy to control inside the tank",
+          "Suitable for transport or temporary separation of fish"
+        ],
+        "usageInstructions": [
+          "Insert the net slowly and guide the fish toward it instead of chasing",
+          "Lift the fish gently and move it in the shortest possible time",
+          "Avoid keeping the fish suspended in the net out of water",
+          "Rinse the net and dry it after use"
+        ],
+        "safetyWarnings": [
+          "Choose a net size that fits the fish",
+          "Do not chase the fish for a long time to reduce stress",
+          "Replace the net if tears or rough edges appear",
+          "Use a separate net for quarantine when needed to reduce disease transmission"
+        ],
+        "__cardBenefit": "Soft net for small and medium fish to reduce fin friction",
+        "labelled": {
+          "الحجم": {
+            "label": "Size",
+            "value": "Small"
+          },
+          "المادة": {
+            "label": "Material",
+            "value": "Nylon"
+          },
+          "الاستخدام": {
+            "label": "Usage",
+            "value": "Small and medium fish"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "houyi-planting-ring": {
+    "entityId": "houyi-planting-ring",
+    "slug": "houyi-planting-ring",
+    "sourceHash": "e9bed7d0197a44e8",
+    "translatedBy": "groq:openai/gpt-oss-120b",
+    "translatedAt": "2026-09-18T22:45:38.175Z",
+    "data": {
+      "name": "Ceramic Plant Base Anchor Ring",
+      "description": "Ceramic ring for anchoring aquatic plants, providing weight to keep stems stable during rooting. Reusable, fits substrates up to 52×26 mm.\n\nGently thread stems through the ring and embed it in the substrate without crushing plant tissue. Wash the piece before use and avoid any broken or sharp‑edged pieces.",
+      "subcategory": "Accessories",
+      "seoTitle": "Ceramic Plant Base Anchor Ring – Houyi | AQUAVO",
+      "seoDescription": "Ceramic ring for anchoring aquatic plants, providing weight to keep stems stable during rooting. Reusable, fits substrates up to 52×26 mm.",
+      "specifications": {
+        "benefits": [
+          "Helps reduce plant floatation after planting",
+          "Provides additional weight around the plant base",
+          "Reusable",
+          "Suitable for anchoring stem clusters when size matches"
+        ],
+        "usageInstructions": [
+          "Gently thread stems through the ring",
+          "Place the ring at the plant base",
+          "Embed it in the substrate enough to secure the plant",
+          "Monitor the plant and adjust its position if needed"
+        ],
+        "safetyWarnings": [
+          "Do not press hard on delicate stems",
+          "Wash the piece before use",
+          "Do not use broken or sharp‑edged pieces",
+          "Ensure the ring size is suitable for the plant"
+        ],
+        "__cardBenefit": "Keeps the plant at the bottom during rooting and reduces floatation after planting",
+        "labelled": {
+          "القياس": {
+            "label": "Size",
+            "value": "52×26 mm per product specifications"
+          },
+          "المادة": {
+            "label": "Material",
+            "value": "Porous material per product specifications"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "houyi-polished-driftwood": {
+    "entityId": "houyi-polished-driftwood",
+    "slug": "houyi-polished-driftwood",
+    "sourceHash": "9c5ec6dcfbf1e5c2",
+    "translatedBy": "groq:openai/gpt-oss-120b",
+    "translatedAt": "2026-09-18T22:47:21.052Z",
+    "data": {
+      "name": "Houyi Polished Natural Wood for Aquascape — 13 to 30 cm",
+      "description": "Natural wood ready for arrangement, sized to suit small and medium tanks, adding height and branches that can be combined with rocks or used to anchor Anubias, Java fern, and moss. Approximately available in sizes 13–20 cm or 18–30 cm.\n\nEach piece naturally varies from another, and may require soaking or temporary anchoring until it becomes water‑saturated.",
+      "subcategory": "Natural Woods",
+      "seoTitle": "Polished Natural Wood for Aquascape – 13-30 cm | AQUAVO",
+      "seoDescription": "Polished natural wood pieces for aquascaping, sized 13–20 cm or 18–30 cm, ideal for small to medium tanks to add height, branches, and anchor plants.",
+      "specifications": {
+        "benefits": [
+          "Natural pieces with varied shapes",
+          "Polished surface suitable for arrangement inside the tank",
+          "Two size options to match design space",
+          "Suitable for anchoring epiphyte plants such as Anubias and Java fern"
+        ],
+        "usageInstructions": [
+          "Rinse the piece thoroughly before use",
+          "Soak it as needed until fully saturated and stable underwater",
+          "Secure it firmly if it does not sink immediately",
+          "Clean its surface with a soft brush when necessary"
+        ],
+        "safetyWarnings": [
+          "The wood may release tannins, slightly tinting the water",
+          "A temporary white biofilm may appear on new wood",
+          "Inspect the piece and avoid sharp edges",
+          "Do not move a large piece in a way that could stress the glass"
+        ],
+        "__cardBenefit": "Natural wood with ready branches to enhance depth and shape of the aquascape",
+        "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "Polished natural wood"
+          },
+          "الأحجام": {
+            "label": "Sizes",
+            "value": "Small 13–20 cm / Medium 18–30 cm"
+          },
+          "وحدة البيع": {
+            "label": "Unit of sale",
+            "value": "Per piece"
+          }
+        }
+      },
+      "variantLabels": {
+        "sm": "Small 13-20 cm",
+        "md": "Medium 18-30 cm"
+      }
+    }
+  },
+  "houyi-river-sand": {
+    "entityId": "houyi-river-sand",
+    "slug": "houyi-river-sand",
+    "sourceHash": "210891a27de815e0",
+    "translatedBy": "groq:openai/gpt-oss-120b",
+    "translatedAt": "2026-09-18T22:49:15.927Z",
+    "data": {
+      "name": "Houyi Natural River Sand for Aquariums and Aquascapes",
+      "description": "Natural river sand with fine, graded grains for use as a decorative substrate in tanks. Rinse thoroughly before use to reduce dust and fine particles.\n\nBecause the mineral composition of natural sand can vary between batches, we do not assume it is chemically inert; if your inhabitants are sensitive to pH or GH/KH, test the water after preparation.",
+      "subcategory": "Sand",
+      "seoTitle": "Natural River Sand for Aquariums - Houyi | AQUAVO",
+      "seoDescription": "Houyi natural river sand with fine, graded grains provides a realistic substrate for aquariums and aquascapes. Rinse before use and test water parameters.",
+      "specifications": {
+        "benefits": [
+          "Natural appearance resembling river bottoms",
+          "Suitable as decorative substrate for multiple tanks",
+          "Fine grains help create a uniform surface",
+          "Natural colors blend with wood and stone"
+        ],
+        "usageInstructions": [
+          "Rinse the sand several times before use",
+          "Distribute it at the appropriate thickness for the design",
+          "Fill with water slowly to minimize cloudiness",
+          "Gently clean the surface with a siphon when needed"
+        ],
+        "safetyWarnings": [
+          "Do not use soap or detergents",
+          "Inspect grains and ensure no sharp fragments before using with sensitive bottom-dwelling fish",
+          "Test water chemistry after setup if the tank is sensitive to changes"
+        ],
+        "__cardBenefit": "Natural river appearance easily blends with wood and stone",
+        "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "Natural river sand"
+          },
+          "حجم الحبيبات": {
+            "label": "Grain size",
+            "value": "1–2 mm according to product data"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "houyi-stream-sand": {
+    "entityId": "houyi-stream-sand",
+    "slug": "houyi-stream-sand",
+    "sourceHash": "470ffb23f874aaa3",
+    "translatedBy": "groq:openai/gpt-oss-120b",
+    "translatedAt": "2026-09-18T22:48:26.444Z",
+    "data": {
+      "name": "Houyi Natural River Sand for Aquascape — 2–6 ملم",
+      "description": "Natural river sand with 2–6 ملم grains for arranging the tank floor and providing a look close to river bottoms. Suitable as an independent decorative layer or as a surface layer depending on the tank design.\n\nRinse it lightly with water before use to remove dust and fine particles. This sand is not a substitute for a root‑plant nutrition source.",
+      "subcategory": "Sand",
+      "seoTitle": "Houyi Natural River Sand 2–6 ملم – Aquascape | AQUAVO",
+      "seoDescription": "Natural river sand with 2–6 ملم grains, perfect for aquascape tank floors. Rinse before use; serves as decorative or surface layer, not a plant source.",
+      "specifications": {
+        "benefits": [
+          "Natural grains sized 2–6 ملم",
+          "Suitable for natural layouts and aquascape pathways",
+          "Can be used as a decorative substrate or surface layer",
+          "Natural color blends with stone and wood"
+        ],
+        "usageInstructions": [
+          "Rinse the sand lightly before use",
+          "Spread it at the appropriate thickness for the design",
+          "Fill the tank slowly to minimize water cloudiness",
+          "Clean the surface with a siphon when debris accumulates"
+        ],
+        "safetyWarnings": [
+          "Do not use detergents or soap to wash the sand",
+          "If your inhabitants are sensitive to water chemistry, test parameters after setting up the tank",
+          "Rooted plants require an appropriate nutrition source if no nutrient-rich substrate is present"
+        ],
+        "__cardBenefit": "Natural 2–6 ملم grains create a river‑bottom‑like substrate",
+        "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "Natural river sand"
+          },
+          "حجم الحبيبات": {
+            "label": "Grain size",
+            "value": "2–6 ملم"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "houyi-sucker-buckle": {
+    "entityId": "houyi-sucker-buckle",
+    "slug": "houyi-sucker-buckle",
+    "sourceHash": "82b795adddd456d3",
+    "translatedBy": "groq:openai/gpt-oss-120b",
+    "translatedAt": "2026-09-18T23:16:58.899Z",
+    "data": {
+      "name": "Houyi Suction Cups for Tank Equipment Mounting",
+      "description": "Transparent suction cups with a clip securely attach hoses and siphons to smooth glass, keeping equipment organized and reducing movement. Easy to install.\n\nClean the glass and suction cup before installation, then moisten the cup slightly and press onto the smooth surface. Secure the device within the clip and verify stability before operation. Regularly check adhesion and replace if cracked or loss of elasticity.",
+      "subcategory": "Suction & Mounting",
+      "seoTitle": "Houyi Suction Cups for Tank Equipment Mounting | AQUAVO",
+      "seoDescription": "Transparent suction cups with clips securely attach hoses and siphons to smooth glass, keeping equipment organized and reducing movement. Easy to install.",
+      "specifications": {
+        "benefits": [
+          "Helps secure hoses and siphons to glass",
+          "Low-visibility transparent design inside the tank",
+          "Easy to disassemble and reassemble",
+          "Available in various sizes to match the equipment"
+        ],
+        "usageInstructions": [
+          "Clean the glass and suction cup before installation",
+          "Moisten the suction cup slightly and press onto smooth glass",
+          "Secure the device within the clip",
+          "Verify stability before allowing the device to operate"
+        ],
+        "safetyWarnings": [
+          "Check adhesion strength regularly",
+          "Replace the suction cup if it cracks or loses elasticity",
+          "Do not rely on a weak suction cup to mount heavy or hot equipment",
+          "Ensure the size matches the equipment to be mounted"
+        ],
+        "__cardBenefit": "Secures hoses and siphons to glass, reducing their movement",
+        "labelled": {
+          "المادة": {
+            "label": "Material",
+            "value": "Rubber/Silicone with clip as per product specifications"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "houyi-suction-thermometer": {
+    "entityId": "houyi-suction-thermometer",
+    "slug": "houyi-suction-thermometer",
+    "sourceHash": "e5b08d2c19ba1db0",
+    "translatedBy": "groq:openai/gpt-oss-120b",
+    "translatedAt": "2026-09-18T22:51:37.852Z",
+    "data": {
+      "name": "Glass Aquarium Thermometer — with Suction Cup",
+      "description": "Glass thermometer with suction cup for monitoring aquarium water temperature without battery or power source.\n\nAttach it inside the tank in a clear reading spot, away from the heater directly and from strong flow areas, and check the suction cup regularly to ensure it stays in place.",
+      "subcategory": "Thermometers",
+      "seoTitle": "Glass Aquarium Thermometer with Suction Cup | AQUAVO",
+      "seoDescription": "A battery‑free glass aquarium thermometer with a suction cup for easy attachment, providing accurate water temperature readings without electricity.",
+      "specifications": {
+        "benefits": [
+          "Works without battery or electricity",
+          "Suction cup for attachment to glass",
+          "Direct reading of water temperature",
+          "Simple design for daily maintenance"
+        ],
+        "usageInstructions": [
+          "Attach the suction cup to clean interior glass",
+          "Submerge the measuring part in water",
+          "Place it away from the heater and direct water outflow",
+          "Read the temperature after the indicator stabilizes"
+        ],
+        "safetyWarnings": [
+          "Handle with care as it is glass",
+          "Keep it away from direct heater contact for an accurate tank water reading",
+          "Remove pieces immediately if broken",
+          "Check suction cup strength regularly"
+        ],
+        "__cardBenefit": "Direct water temperature measurement without battery and with suction cup",
+        "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "Glass Aquarium Thermometer"
+          },
+          "التثبيت": {
+            "label": "Mounting",
+            "value": "Suction Cup"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "houyi-telescopic-fishnet": {
+    "entityId": "houyi-telescopic-fishnet",
+    "slug": "houyi-telescopic-fishnet",
+    "sourceHash": "ee8f4861d25cdb49",
+    "translatedBy": "groq:openai/gpt-oss-120b",
+    "translatedAt": "2026-09-18T22:54:46.458Z",
+    "data": {
+      "name": "Houyi Telescopic Fishing Net — Stainless Steel",
+      "description": "A fishing net with a telescopic stainless steel handle, extending approximately from 66 to 107 cm as per product specifications. The square design aids reaching tank corners, and the extendable handle suits various depths.\n\nMove the net slowly to reduce fish stress, and rinse and dry the handle after use.",
+      "subcategory": "Fishing Nets",
+      "seoTitle": "Houyi Telescopic Fishing Net – Stainless Steel | AQUAVO",
+      "seoDescription": "Houyi telescopic fishing net with stainless steel handle extending 66–107 cm, square mesh for corner access, and grip for depths. Provides gentle handling.",
+      "specifications": {
+        "benefits": [
+          "Telescopic handle with adjustable length",
+          "Square design for corner access",
+          "Stainless steel handle as per product specifications",
+          "Collapsible for easy storage"
+        ],
+        "usageInstructions": [
+          "Extend the handle to the desired length",
+          "Move the net slowly in the water",
+          "Support the fish during transfer and avoid leaving it hanging for long",
+          "Wash the net and dry the handle after use"
+        ],
+        "safetyWarnings": [
+          "Do not force the handle beyond its limits",
+          "Do not leave it submerged for extended periods",
+          "Replace it if rust, damage, or tearing appears",
+          "Choose a larger net if the fish size is unsuitable"
+        ],
+        "__cardBenefit": "Handle extends for deep access and square design captures corners",
+        "labelled": {
+          "الطول": {
+            "label": "Length",
+            "value": "Approximately 66–107 cm"
+          },
+          "المادة": {
+            "label": "Material",
+            "value": "Stainless steel + net"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "houyi-tool-kit": {
+    "entityId": "houyi-tool-kit",
+    "slug": "houyi-tool-kit",
+    "sourceHash": "2e02c9d19fd113f3",
+    "translatedBy": "groq:openai/gpt-oss-120b",
+    "translatedAt": "2026-09-18T22:52:44.934Z",
+    "data": {
+      "name": "Houyi Aquascape Tool Set — 5 Pieces",
+      "description": "All essential aquascaping planting and arranging tools in one kit: a straight and curved tweezer, a straight and curved scissors, and a shovel for leveling sand or substrate. Enables precise planting, trimming and substrate arrangement without using your hands for every detail.\n\nWash and dry the tools after use, especially the metal parts.",
+      "subcategory": "Aquascape Tools",
+      "seoTitle": "Houyi Aquascape Tool Set – 5 Pieces | AQUAVO",
+      "seoDescription": "Complete aquascape tool kit includes straight and curved tweezers, straight and curved scissors, and a shovel for leveling sand or substrate. Ideal for precise planting, trimming and substrate arrangement.",
+      "specifications": {
+        "benefits": [
+          "5 tools for planting, trimming and substrate arrangement",
+          "Straight and curved tweezer for reaching different areas",
+          "Straight and curved scissors for various trimming tasks",
+          "Shovel for leveling sand and substrate"
+        ],
+        "usageInstructions": [
+          "Use the appropriate tweezer for the planting location",
+          "Trim plants with the scissors without stressing the tool",
+          "Use the shovel to level the substrate",
+          "Wash and dry the tools after finishing"
+        ],
+        "safetyWarnings": [
+          "Tools are sharp; keep them away from children",
+          "Do not use the scissors to cut hard materials",
+          "Do not leave the tools submerged for long periods",
+          "Replace any tool showing severe damage or corrosion"
+        ],
+        "__cardBenefit": "5 tools for precise planting, trimming and substrate leveling in one set",
+        "labelled": {
+          "يشمل": {
+            "label": "Includes",
+            "value": "Straight tweezer 27 cm + curved tweezer 27 cm + straight scissors 24.5 cm + curved scissors 24.5 cm + shovel 31 cm"
+          },
+          "المادة": {
+            "label": "Material",
+            "value": "Stainless steel according to product data"
+          },
+          "عدد الأدوات": {
+            "label": "Number of tools",
+            "value": "5 pieces"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "houyi-tracheal-suction-cup": {
+    "entityId": "houyi-tracheal-suction-cup",
+    "slug": "houyi-tracheal-suction-cup",
+    "sourceHash": "5efaaf788d62e18a",
+    "translatedBy": "groq:openai/gpt-oss-120b",
+    "translatedAt": "2026-09-18T22:44:19.910Z",
+    "data": {
+      "name": "Houyi Air Tube Suction Cup — Classic Design",
+      "description": "A transparent suction cup securely holds an air tubing on aquarium glass, offering a low‑profile, tool‑free installation and easy tube routing.\n\nClean the installation area on the glass, moisten the suction cup and press it onto the glass, thread the tubing through the flexible opening, and check its hold periodically.\n\nVerify the tubing diameter matches the opening, clean the glass before installation, replace the suction cup when adhesion weakens, and do not pull the tubing forcefully while attached to the cup.",
+      "subcategory": "Accessories",
+      "seoTitle": "Houyi Air Tube Suction Cup – Classic Design | AQUAVO",
+      "seoDescription": "A transparent suction cup securely holds an air tubing on aquarium glass, offering a low‑profile, tool‑free installation and easy tube routing.",
+      "specifications": {
+        "benefits": [
+          "Secures the air tubing to the glass",
+          "Transparent and minimally visible inside the tank",
+          "Simple tool‑free installation",
+          "Helps organize the tubing path"
+        ],
+        "usageInstructions": [
+          "Clean the installation area on the glass",
+          "Moisten the suction cup and press it onto the glass",
+          "Thread the tubing through the flexible opening",
+          "Check its hold periodically"
+        ],
+        "safetyWarnings": [
+          "Verify the tubing diameter matches the opening",
+          "Clean the glass before installation",
+          "Replace the suction cup when adhesion weakens",
+          "Do not pull the tubing forcefully while attached to the cup"
+        ],
+        "__cardBenefit": "Secures the air tubing to glass with a simple, transparent installation",
+        "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "Air tubing suction cup"
+          },
+          "الكمية": {
+            "label": "Quantity",
+            "value": "Sold per piece"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
   "houyi-volcanic-stone-black": {
     "entityId": "houyi-volcanic-stone-black",
     "slug": "houyi-volcanic-stone-black",
@@ -647,6 +1988,292 @@
           "حجم القطع": {
             "label": "Piece size",
             "value": "3–5 سم"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "houyi-water-changer-siphon": {
+    "entityId": "houyi-water-changer-siphon",
+    "slug": "houyi-water-changer-siphon",
+    "sourceHash": "1a8c3d043098fb92",
+    "translatedBy": "groq:openai/gpt-oss-120b",
+    "translatedAt": "2026-09-18T22:53:50.315Z",
+    "data": {
+      "name": "Houyi Bottom Cleaning Siphon – 1.9 m",
+      "description": "Manual siphon for water changes and bottom cleaning, equipped with a 1.9 m hose and a hand pump to start suction without electricity.\n\nUse it to remove water and debris during maintenance, and set the water change volume and bottom area to clean according to tank condition and substrate type. With fine sand, glide the siphon head over the surface to minimize sand intake.",
+      "subcategory": "Cleaning Tools",
+      "seoTitle": "Houyi Bottom Cleaning Siphon – 1.9m | AQUAVO",
+      "seoDescription": "Manual siphon for water changes and bottom cleaning, featuring a 1.9 m hose and hand pump for electricity‑free operation, ideal for fine sand substrates.",
+      "specifications": {
+        "benefits": [
+          "Combines water changes and bottom cleaning in one tool",
+          "Hand pump to start the siphon without electricity",
+          "1.9 m hose",
+          "Helps pull debris from between the gravel"
+        ],
+        "usageInstructions": [
+          "Place the outlet end below the aquarium water level",
+          "Submerge the siphon head and start flow using the hand pump",
+          "Move the head along the bottom according to the substrate type",
+          "Stop suction when the desired water change volume for your tank is reached"
+        ],
+        "safetyWarnings": [
+          "Monitor water level during suction and never leave the siphon unattended",
+          "Handle fine sand gently to avoid pulling large amounts",
+          "Treat new fill water appropriately for your tank before adding"
+        ],
+        "__cardBenefit": "Bottom cleaning and water changes with one tool, no electricity required",
+        "labelled": {
+          "نوع المضخة": {
+            "label": "Pump Type",
+            "value": "Manual"
+          },
+          "طول الخرطوم": {
+            "label": "Hose Length",
+            "value": "1.9 metre"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "houyi-wave-pump": {
+    "entityId": "houyi-wave-pump",
+    "slug": "houyi-wave-pump",
+    "sourceHash": "ae27f4ffd1f79e7b",
+    "translatedBy": "groq:openai/gpt-oss-120b",
+    "translatedAt": "2026-09-18T22:57:14.440Z",
+    "data": {
+      "name": "SOBO Wave Maker — Aquarium Water Circulation Pump",
+      "description": "The SOBO Wave Maker is a compact device for circulating water within the aquarium and reducing dead zones, with the ability to direct flow according to the tank layout.\n\nFlow power should be selected based on tank dimensions, fish species, plants, and décor arrangement, so adjust its direction to move water without stressing inhabitants. It operates submerged and must be unplugged before installation or cleaning.",
+      "subcategory": "Water Circulation",
+      "seoTitle": "SOBO Wave Maker – Aquarium Water Circulation Pump | AQUAVO",
+      "seoDescription": "SOBO Wave Maker is a compact aquarium water circulation pump that reduces dead zones and offers adjustable flow direction, suitable for any tank size.",
+      "specifications": {
+        "benefits": [
+          "Helps circulate water and reduce dead zones",
+          "Flow direction can be adjusted based on placement",
+          "Compact size within the tank",
+          "Suitable when additional water movement is needed"
+        ],
+        "usageInstructions": [
+          "Attach the Wave Maker to clean glass inside the tank",
+          "Direct the flow to suit the tank and décor",
+          "Operate it submerged according to product instructions",
+          "Clean the impeller and chamber when flow decreases"
+        ],
+        "safetyWarnings": [
+          "Do not run the pump out of water",
+          "Disconnect power before installation or maintenance",
+          "Aim the flow so it does not stress fish or uproot plants",
+          "Inspect the cord and mounting base before use"
+        ],
+        "__cardBenefit": "Moves water and reduces dead zones with a directionally adjustable flow",
+        "labelled": {
+          "العلامة التجارية": {
+            "label": "Brand",
+            "value": "SOBO"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "houyi-white-cotton": {
+    "entityId": "houyi-white-cotton",
+    "slug": "houyi-white-cotton",
+    "sourceHash": "acaa7dc889ce4e5a",
+    "translatedBy": "groq:openai/gpt-oss-120b",
+    "translatedAt": "2026-09-18T22:49:23.838Z",
+    "data": {
+      "name": "White Filter Cotton for Aquariums — 30×50 cm",
+      "description": "White filter cotton measuring 30×50 cm provides mechanical filtration and traps debris and particles before water reaches the subsequent stages of the filter.\n\nIt can be cut to fit the filter chamber. There is no single replacement interval for all tanks; clean or replace it based on dirt buildup, reduced flow, or fiber tearing or collapse.",
+      "subcategory": "Filter Media",
+      "seoTitle": "White Filter Cotton for Aquariums 30×50 cm | AQUAVO",
+      "seoDescription": "White filter cotton (30×50 cm) offers mechanical filtration by capturing debris and particles before water reaches later filter media. Cut to fit.",
+      "specifications": {
+        "benefits": [
+          "Traps debris as a mechanical filtration stage",
+          "Can be cut to fit the filter chamber dimensions",
+          "Its white color makes it easy to see dirt buildup",
+          "Helps protect downstream filter media from rapid clogging"
+        ],
+        "usageInstructions": [
+          "Cut the cotton to the appropriate size",
+          "Place it in the water flow stage where you want to capture debris",
+          "Inspect regularly and clean when dirt accumulates",
+          "Replace it when cleaning no longer restores flow or the fibers are damaged"
+        ],
+        "safetyWarnings": [
+          "Do not overload the chamber with too much cotton, which can impede water flow",
+          "Do not use soap or detergents to clean it",
+          "Replace it if the fibers tear or collapse"
+        ],
+        "__cardBenefit": "Traps particles and debris before they reach the remaining filter media",
+        "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "Mechanical filter cotton"
+          },
+          "القياس": {
+            "label": "Size",
+            "value": "30×50 cm"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "houyi-white-sand": {
+    "entityId": "houyi-white-sand",
+    "slug": "houyi-white-sand",
+    "sourceHash": "135025612e83b88b",
+    "translatedBy": "groq:openai/gpt-oss-120b",
+    "translatedAt": "2026-09-18T22:48:20.026Z",
+    "data": {
+      "name": "Houyi White Sand for Aquariums and Aquascape",
+      "description": "Premium white decorative sand provides bright contrast for plants and rocks, ideal for aquascape pathways and front displays. Rinse before use.\n\nWash the sand thoroughly before use to remove dust. Check the grain texture before using with sensitive bottom‑dwelling fish, and monitor pH and GH/KH after addition in chemically sensitive tanks.",
+      "subcategory": "Sand",
+      "seoTitle": "White Decorative Sand for Aquariums – Houyi | AQUAVO",
+      "seoDescription": "Premium white decorative sand provides bright contrast for plants and rocks, ideal for aquascape pathways and front displays. Rinse before use.",
+      "specifications": {
+        "benefits": [
+          "Clear white color highlights plants and décor",
+          "Suitable for pathways and decorative areas in aquascapes",
+          "Reflects light and gives a brighter appearance",
+          "Can be used as an unfertilized decorative layer"
+        ],
+        "usageInstructions": [
+          "Rinse the sand until excess dust is removed",
+          "Apply the appropriate amount and thickness for the design",
+          "Fill the water slowly to minimize cloudiness",
+          "Monitor water chemistry in sensitive tanks after addition"
+        ],
+        "safetyWarnings": [
+          "Wash it thoroughly before use",
+          "Check the grain texture before using with sensitive bottom‑dwelling fish",
+          "Do not assume it will not affect water chemistry without testing",
+          "Unfertilized sand does not provide sufficient nutrition for root plants"
+        ],
+        "__cardBenefit": "White color highlights plants and rocks, creating clear aquascape pathways",
+        "labelled": {
+          "اللون": {
+            "label": "Color",
+            "value": "White"
+          },
+          "النوع": {
+            "label": "Type",
+            "value": "Decorative sand"
+          },
+          "أفضل استخدام": {
+            "label": "Best use",
+            "value": "Aquascape pathways and front areas"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "sunsun-air-pump": {
+    "entityId": "sunsun-air-pump",
+    "slug": "sunsun-air-pump",
+    "sourceHash": "174ba5551d527573",
+    "translatedBy": "groq:openai/gpt-oss-120b",
+    "translatedAt": "2026-09-18T22:42:42.566Z",
+    "data": {
+      "name": "SUNSUN Air Pump — 2 Ports",
+      "description": "Run two air lines from a single pump instead of using two separate pumps. The SUNSUN pump with two ports is suitable for connecting air stones or two sponge filters when its capacity is sufficient for the water depth and accessory resistance.\n\nUse an appropriate air tubing, place the pump in a dry, well‑ventilated location, and use a non‑return valve if the pump is below water level.",
+      "subcategory": "Air Pumps",
+      "seoTitle": "SUNSUN 2-Port Air Pump | AQUAVO",
+      "seoDescription": "SUNSUN 2‑port air pump provides two streams for air stones or sponge filters, for tanks needing air sources. Install dry use a check valve when submerged.",
+      "specifications": {
+        "benefits": [
+          "Two air outlets to run two aeration points",
+          "Can be connected to air stones or suitable sponge filters",
+          "Designed for external use outside the tank",
+          "Reduces the need to split a single line when two outlets are required"
+        ],
+        "usageInstructions": [
+          "Connect the air tubing to each required outlet",
+          "Install a non‑return valve if needed",
+          "Place the pump on a stable surface outside the tank",
+          "Turn it on and ensure the flow is suitable for the connected devices"
+        ],
+        "safetyWarnings": [
+          "Do not submerge the pump in water",
+          "Place it in a dry, well‑ventilated location",
+          "Use a non‑return valve if the pump is below water level",
+          "Verify the pump’s capacity matches accessories after reading the device label"
+        ],
+        "__cardBenefit": "Run two aeration points from a single pump via two independent ports",
+        "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "Electric air pump"
+          },
+          "عدد المنافذ": {
+            "label": "Number of ports",
+            "value": "2"
+          },
+          "العلامة التجارية": {
+            "label": "Brand",
+            "value": "SUNSUN"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "yee-c1-1082-2a": {
+    "entityId": "yee-c1-1082-2a",
+    "slug": "yee-all-in-one-microparticles-02mm-210g",
+    "sourceHash": "ad454993e7924191",
+    "translatedBy": "groq:openai/gpt-oss-120b",
+    "translatedAt": "2026-09-18T22:40:53.520Z",
+    "data": {
+      "name": "Food for Fry and Small-Mouth Species — 210 gram",
+      "description": "Very fine 0.2 mm pellets so that fry after hatching or birth and small‑mouth species can reach the food more easily than larger pellets. The 210 gram pack suits the earliest growth stages according to mouth size.\n\nSprinkle a small amount and monitor consumption before adding more, as excess soft food accumulates quickly.",
+      "subcategory": "General Feed",
+      "seoTitle": "Fine Pellet Fish Food for Fry – 210g | AQUAVO",
+      "seoDescription": "Very fine 0.2 mm pellets designed for fry and small‑mouth fish, 210 g pack. Sprinkle a small amount, monitor consumption and store tightly sealed.",
+      "specifications": {
+        "benefits": [
+          "Very fine 0.2 mm pellets suit early growth stages",
+          "Suitable for fry after hatching or birth",
+          "Fits small‑mouth species according to mouth size",
+          "210 gram pack"
+        ],
+        "usageInstructions": [
+          "Sprinkle a small amount on the water surface",
+          "Monitor fish consumption before adding more",
+          "Adjust quantity based on number and size of fish",
+          "Seal the pack tightly after use"
+        ],
+        "safetyWarnings": [
+          "Do not over‑feed",
+          "Remove uneaten food remnants",
+          "Keep the pack dry and closed",
+          "Refer to the printed ingredient list on the pack for the exact formulation"
+        ],
+        "__cardBenefit": "Very fine 0.2 mm pellets for fry and small mouths",
+        "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "Food with very fine pellets"
+          },
+          "الوزن": {
+            "label": "Weight",
+            "value": "210 gram"
+          },
+          "حجم الحبيبات": {
+            "label": "Pellet Size",
+            "value": "0.2 mm"
+          },
+          "الأسماك المناسبة": {
+            "label": "Suitable Fish",
+            "value": "Fry and small‑mouth species according to mouth size"
           }
         }
       },
