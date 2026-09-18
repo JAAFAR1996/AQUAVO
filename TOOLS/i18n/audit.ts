@@ -128,20 +128,19 @@ function walk(dir: string, out: string[] = []): string[] {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     const full = resolve(dir, entry.name);
     if (entry.isDirectory()) walk(full, out);
-    else if (/.(ts|tsx)$/.test(entry.name)) out.push(full);
+    else if (/\.(ts|tsx)$/.test(entry.name)) out.push(full);
   }
   return out;
 }
 const ROOT = resolve("client/src");
+const NEWLINE = String.fromCharCode(10);
 let rgOut = "";
 for (const file of walk(ROOT)) {
-  const rel = "client/src/" + file.slice(ROOT.length + 1).replace(/\/g, "/");
+  const rel = "client/src/" + file.slice(ROOT.length + 1).split(String.fromCharCode(92)).join("/");
   const text = readFileSync(file, "utf8");
   if (!ARABIC.test(text)) continue;
-  text.split(/?
-/).forEach((line, i) => {
-    if (ARABIC.test(line)) rgOut += `${rel}:${i + 1}:${line}
-`;
+  text.split(/\r?\n/).forEach((line, i) => {
+    if (ARABIC.test(line)) rgOut += rel + ":" + (i + 1) + ":" + line + NEWLINE;
   });
 }
 const byFile = new Map<string, { code: number; comments: number }>();

@@ -1,12 +1,12 @@
 {
   "ui": {
     "en": {
-      "total": 649,
+      "total": 681,
       "missing": [],
       "arabicLeaks": []
     },
     "ckb": {
-      "total": 649,
+      "total": 681,
       "missing": [],
       "arabicLeaks": []
     }
@@ -491,8 +491,728 @@
     }
   },
   "classified": {
-    "B": [],
-    "C": [],
-    "D": []
+    "B": [
+      "client/src/components/journey/fish-species-data.ts",
+      "client/src/data/blog-articles.ts",
+      "client/src/data/breeding-data.ts",
+      "client/src/lib/aquascape-data.ts",
+      "client/src/lib/site-search.ts"
+    ],
+    "C": [
+      "client/src/App.tsx",
+      "client/src/components/cart/checkout/order-summary.tsx",
+      "client/src/hooks/use-loyalty.ts",
+      "client/src/lib/format.ts",
+      "client/src/lib/meta-pixel.ts",
+      "client/src/lib/motion/caustics.ts",
+      "client/src/lib/motion/membrane.ts",
+      "client/src/lib/utils.ts"
+    ],
+    "D": [
+      {
+        "file": "client/src/pages/guides-essential-tools.tsx",
+        "lines": 176
+      },
+      {
+        "file": "client/src/pages/guides-fish-hiding.tsx",
+        "lines": 175
+      },
+      {
+        "file": "client/src/pages/guides-water-myths.tsx",
+        "lines": 169
+      },
+      {
+        "file": "client/src/pages/fish-health-diagnosis.tsx",
+        "lines": 162
+      },
+      {
+        "file": "client/src/pages/fish-breeding-calculator.tsx",
+        "lines": 142
+      },
+      {
+        "file": "client/src/pages/guides-decor-stones.tsx",
+        "lines": 130
+      },
+      {
+        "file": "client/src/pages/guides-new-aquarium-setup.tsx",
+        "lines": 118
+      },
+      {
+        "file": "client/src/pages/guides-water-test-guide.tsx",
+        "lines": 107
+      },
+      {
+        "file": "client/src/components/profile/profile-loyalty.tsx",
+        "lines": 98
+      },
+      {
+        "file": "client/src/pages/guides-water-change-schedule.tsx",
+        "lines": 86
+      },
+      {
+        "file": "client/src/pages/guides-temperature-guide.tsx",
+        "lines": 85
+      },
+      {
+        "file": "client/src/pages/partners.tsx",
+        "lines": 84
+      },
+      {
+        "file": "client/src/pages/order-confirmation.tsx",
+        "lines": 76
+      },
+      {
+        "file": "client/src/components/cart/invoice-dialog.tsx",
+        "lines": 75
+      },
+      {
+        "file": "client/src/lib/accountant-pdf-v2.ts",
+        "lines": 75
+      },
+      {
+        "file": "client/src/pages/guides-tank-rescue-plan.tsx",
+        "lines": 75
+      },
+      {
+        "file": "client/src/components/fish/fish-detail-modal.tsx",
+        "lines": 72
+      },
+      {
+        "file": "client/src/pages/guides-heater-choice.tsx",
+        "lines": 70
+      },
+      {
+        "file": "client/src/pages/guides-filter-media.tsx",
+        "lines": 69
+      },
+      {
+        "file": "client/src/pages/terms.tsx",
+        "lines": 67
+      },
+      {
+        "file": "client/src/pages/guides-eco-friendly.tsx",
+        "lines": 64
+      },
+      {
+        "file": "client/src/pages/guides-filter-choice.tsx",
+        "lines": 63
+      },
+      {
+        "file": "client/src/components/journey/fish-selection.tsx",
+        "lines": 60
+      },
+      {
+        "file": "client/src/components/journey/journey-summary.tsx",
+        "lines": 58
+      },
+      {
+        "file": "client/src/pages/about.tsx",
+        "lines": 57
+      },
+      {
+        "file": "client/src/pages/guides-quarantine.tsx",
+        "lines": 57
+      },
+      {
+        "file": "client/src/pages/fish-patients.tsx",
+        "lines": 56
+      },
+      {
+        "file": "client/src/pages/order-tracking.tsx",
+        "lines": 56
+      },
+      {
+        "file": "client/src/pages/fish-encyclopedia.tsx",
+        "lines": 55
+      },
+      {
+        "file": "client/src/pages/guides-happy-fish-signs.tsx",
+        "lines": 55
+      },
+      {
+        "file": "client/src/components/calculators/water-parameters-calculator.tsx",
+        "lines": 53
+      },
+      {
+        "file": "client/src/components/products/product-reviews.tsx",
+        "lines": 51
+      },
+      {
+        "file": "client/src/pages/guides-feeding-table.tsx",
+        "lines": 51
+      },
+      {
+        "file": "client/src/components/journey/maintenance-schedule.tsx",
+        "lines": 47
+      },
+      {
+        "file": "client/src/lib/validations.ts",
+        "lines": 45
+      },
+      {
+        "file": "client/src/components/calculators/maintenance-calculator.tsx",
+        "lines": 43
+      },
+      {
+        "file": "client/src/pages/guides-white-scale.tsx",
+        "lines": 43
+      },
+      {
+        "file": "client/src/components/products/category-scroll-bar.tsx",
+        "lines": 42
+      },
+      {
+        "file": "client/src/pages/guides-aquarium-salt.tsx",
+        "lines": 42
+      },
+      {
+        "file": "client/src/components/products/product-comparison.tsx",
+        "lines": 41
+      },
+      {
+        "file": "client/src/pages/community-gallery.tsx",
+        "lines": 41
+      },
+      {
+        "file": "client/src/pages/guides-treatment-basics.tsx",
+        "lines": 41
+      },
+      {
+        "file": "client/src/pages/guides-algae-control.tsx",
+        "lines": 40
+      },
+      {
+        "file": "client/src/pages/invoice-view.tsx",
+        "lines": 40
+      },
+      {
+        "file": "client/src/pages/sustainability.tsx",
+        "lines": 40
+      },
+      {
+        "file": "client/src/pages/temperature-guide.tsx",
+        "lines": 39
+      },
+      {
+        "file": "client/src/components/fish/fish-comparison-tool.tsx",
+        "lines": 37
+      },
+      {
+        "file": "client/src/components/journey/equipment-selection.tsx",
+        "lines": 36
+      },
+      {
+        "file": "client/src/components/journey/nitrogen-cycle.tsx",
+        "lines": 36
+      },
+      {
+        "file": "client/src/pages/register.tsx",
+        "lines": 36
+      },
+      {
+        "file": "client/src/pages/search-results.tsx",
+        "lines": 34
+      },
+      {
+        "file": "client/src/components/fish/compatibility-calculator.tsx",
+        "lines": 33
+      },
+      {
+        "file": "client/src/components/chat/ai-chat-bot.tsx",
+        "lines": 32
+      },
+      {
+        "file": "client/src/components/onboarding-tour.tsx",
+        "lines": 31
+      },
+      {
+        "file": "client/src/components/profile/profile-referral.tsx",
+        "lines": 30
+      },
+      {
+        "file": "client/src/components/ai/VisualAnalyzer.tsx",
+        "lines": 27
+      },
+      {
+        "file": "client/src/components/journey/journey-experience.tsx",
+        "lines": 27
+      },
+      {
+        "file": "client/src/components/calculators/salt-calculator.tsx",
+        "lines": 26
+      },
+      {
+        "file": "client/src/components/journey/water-parameters.tsx",
+        "lines": 26
+      },
+      {
+        "file": "client/src/contexts/cart-context.tsx",
+        "lines": 26
+      },
+      {
+        "file": "client/src/pages/beginner-guide.tsx",
+        "lines": 26
+      },
+      {
+        "file": "client/src/pages/verify-certificate.tsx",
+        "lines": 26
+      },
+      {
+        "file": "client/src/pages/wishlist.tsx",
+        "lines": 26
+      },
+      {
+        "file": "client/src/components/journey/location-setup.tsx",
+        "lines": 25
+      },
+      {
+        "file": "client/src/pages/deals.tsx",
+        "lines": 25
+      },
+      {
+        "file": "client/src/components/journey/decoration-setup.tsx",
+        "lines": 24
+      },
+      {
+        "file": "client/src/components/journey/tank-selection.tsx",
+        "lines": 24
+      },
+      {
+        "file": "client/src/lib/variant-dimensions.ts",
+        "lines": 24
+      },
+      {
+        "file": "client/src/pages/calculators.tsx",
+        "lines": 24
+      },
+      {
+        "file": "client/src/pages/profile.tsx",
+        "lines": 24
+      },
+      {
+        "file": "client/src/components/profile/profile-info.tsx",
+        "lines": 23
+      },
+      {
+        "file": "client/src/components/search/product-filters-advanced.tsx",
+        "lines": 23
+      },
+      {
+        "file": "client/src/components/products/category-cards.tsx",
+        "lines": 22
+      },
+      {
+        "file": "client/src/components/calculators/tank-size-calculator.tsx",
+        "lines": 21
+      },
+      {
+        "file": "client/src/components/profile/profile-addresses.tsx",
+        "lines": 21
+      },
+      {
+        "file": "client/src/components/calculators/filter-calculator.tsx",
+        "lines": 20
+      },
+      {
+        "file": "client/src/components/products/product-variant-selector.tsx",
+        "lines": 20
+      },
+      {
+        "file": "client/src/components/profile/profile-orders.tsx",
+        "lines": 20
+      },
+      {
+        "file": "client/src/lib/fulfillment-format.ts",
+        "lines": 20
+      },
+      {
+        "file": "client/src/components/ai/SentimentIndicator.tsx",
+        "lines": 19
+      },
+      {
+        "file": "client/src/pages/cultural-twin.tsx",
+        "lines": 19
+      },
+      {
+        "file": "client/src/pages/fish-finder.tsx",
+        "lines": 19
+      },
+      {
+        "file": "client/src/pages/login.tsx",
+        "lines": 19
+      },
+      {
+        "file": "client/src/components/blog/blog-components.tsx",
+        "lines": 18
+      },
+      {
+        "file": "client/src/components/cart/checkout/types.ts",
+        "lines": 18
+      },
+      {
+        "file": "client/src/components/cart/checkout-dialog.tsx",
+        "lines": 18
+      },
+      {
+        "file": "client/src/components/gallery/masonry-gallery-grid.tsx",
+        "lines": 18
+      },
+      {
+        "file": "client/src/components/search/global-search.tsx",
+        "lines": 18
+      },
+      {
+        "file": "client/src/pages/return-policy.tsx",
+        "lines": 18
+      },
+      {
+        "file": "client/src/components/fish/breeding-pdf.tsx",
+        "lines": 17
+      },
+      {
+        "file": "client/src/pages/blog.tsx",
+        "lines": 16
+      },
+      {
+        "file": "client/src/pages/links.tsx",
+        "lines": 16
+      },
+      {
+        "file": "client/src/pages/privacy-policy.tsx",
+        "lines": 16
+      },
+      {
+        "file": "client/src/components/reviews/review-form.tsx",
+        "lines": 15
+      },
+      {
+        "file": "client/src/components/reviews/review-list.tsx",
+        "lines": 15
+      },
+      {
+        "file": "client/src/components/calculators/heater-calculator.tsx",
+        "lines": 14
+      },
+      {
+        "file": "client/src/components/fish/fish-card.tsx",
+        "lines": 14
+      },
+      {
+        "file": "client/src/components/products/multi-dimension-variant-selector.tsx",
+        "lines": 14
+      },
+      {
+        "file": "client/src/components/products/product-specifications-table.tsx",
+        "lines": 14
+      },
+      {
+        "file": "client/src/components/profile/profile-notifications.tsx",
+        "lines": 14
+      },
+      {
+        "file": "client/src/hooks/use-packaging.ts",
+        "lines": 14
+      },
+      {
+        "file": "client/src/pages/contact.tsx",
+        "lines": 14
+      },
+      {
+        "file": "client/src/pages/forgot-password.tsx",
+        "lines": 14
+      },
+      {
+        "file": "client/src/components/chat/live-chat-widget.tsx",
+        "lines": 13
+      },
+      {
+        "file": "client/src/components/notifications/notification-bell.tsx",
+        "lines": 13
+      },
+      {
+        "file": "client/src/pages/why-aquavo.tsx",
+        "lines": 13
+      },
+      {
+        "file": "client/src/hooks/use-navbar-preferences.tsx",
+        "lines": 12
+      },
+      {
+        "file": "client/src/pages/shipping.tsx",
+        "lines": 12
+      },
+      {
+        "file": "client/src/components/home/product-of-the-week.tsx",
+        "lines": 11
+      },
+      {
+        "file": "client/src/components/journey/tank-fit.tsx",
+        "lines": 11
+      },
+      {
+        "file": "client/src/components/profile/profile-coupons.tsx",
+        "lines": 11
+      },
+      {
+        "file": "client/src/components/ui/font-size-controller.tsx",
+        "lines": 11
+      },
+      {
+        "file": "client/src/components/journey/saved-plan-view.tsx",
+        "lines": 10
+      },
+      {
+        "file": "client/src/components/pwa/pwa-components.tsx",
+        "lines": 10
+      },
+      {
+        "file": "client/src/components/auth/password-strength.tsx",
+        "lines": 9
+      },
+      {
+        "file": "client/src/components/birthday/birthday-celebration.tsx",
+        "lines": 9
+      },
+      {
+        "file": "client/src/components/home/aquascape-styles.tsx",
+        "lines": 9
+      },
+      {
+        "file": "client/src/components/home/home-hero.tsx",
+        "lines": 9
+      },
+      {
+        "file": "client/src/components/recommendations/product-recommendations.tsx",
+        "lines": 9
+      },
+      {
+        "file": "client/src/components/search/search-autocomplete.tsx",
+        "lines": 9
+      },
+      {
+        "file": "client/src/components/seo/meta-tags.tsx",
+        "lines": 9
+      },
+      {
+        "file": "client/src/components/ui/error-boundary.tsx",
+        "lines": 9
+      },
+      {
+        "file": "client/src/pages/journey.tsx",
+        "lines": 9
+      },
+      {
+        "file": "client/src/components/gamification/shrimp-mascot.tsx",
+        "lines": 8
+      },
+      {
+        "file": "client/src/components/products/product-transparency.tsx",
+        "lines": 8
+      },
+      {
+        "file": "client/src/pages/product-details.tsx",
+        "lines": 8
+      },
+      {
+        "file": "client/src/lib/product-category-links.ts",
+        "lines": 7
+      },
+      {
+        "file": "client/src/lib/push-notifications.ts",
+        "lines": 7
+      },
+      {
+        "file": "client/src/pages/compare.tsx",
+        "lines": 7
+      },
+      {
+        "file": "client/src/components/auth/require-admin.tsx",
+        "lines": 6
+      },
+      {
+        "file": "client/src/components/reviews/review-with-images.tsx",
+        "lines": 6
+      },
+      {
+        "file": "client/src/components/wishlist/wishlist-button.tsx",
+        "lines": 6
+      },
+      {
+        "file": "client/src/lib/product-filter-values.ts",
+        "lines": 6
+      },
+      {
+        "file": "client/src/pages/faq.tsx",
+        "lines": 6
+      },
+      {
+        "file": "client/src/components/home/personalized-section.tsx",
+        "lines": 5
+      },
+      {
+        "file": "client/src/components/journey/utils.ts",
+        "lines": 5
+      },
+      {
+        "file": "client/src/components/notifications/winner-notification-banner.tsx",
+        "lines": 5
+      },
+      {
+        "file": "client/src/components/products/luxury-product-showcase.tsx",
+        "lines": 5
+      },
+      {
+        "file": "client/src/components/ui/image-zoom.tsx",
+        "lines": 5
+      },
+      {
+        "file": "client/src/components/ui/theme-switcher.tsx",
+        "lines": 5
+      },
+      {
+        "file": "client/src/hooks/use-journey.ts",
+        "lines": 5
+      },
+      {
+        "file": "client/src/components/motion/displacement-runtime.tsx",
+        "lines": 4
+      },
+      {
+        "file": "client/src/components/products/product-image-gallery.tsx",
+        "lines": 4
+      },
+      {
+        "file": "client/src/components/reviews/review-card.tsx",
+        "lines": 4
+      },
+      {
+        "file": "client/src/components/search/search-dialog.tsx",
+        "lines": 4
+      },
+      {
+        "file": "client/src/components/ui/difficulty-badge.tsx",
+        "lines": 4
+      },
+      {
+        "file": "client/src/components/ui/dual-range-slider.tsx",
+        "lines": 4
+      },
+      {
+        "file": "client/src/contexts/auth-context.tsx",
+        "lines": 4
+      },
+      {
+        "file": "client/src/pages/ai-driftwood-experiment.tsx",
+        "lines": 4
+      },
+      {
+        "file": "client/src/pages/blog-post.tsx",
+        "lines": 4
+      },
+      {
+        "file": "client/src/pages/invest.tsx",
+        "lines": 4
+      },
+      {
+        "file": "client/src/app/not-found.tsx",
+        "lines": 3
+      },
+      {
+        "file": "client/src/components/accessibility/a11y-components.tsx",
+        "lines": 3
+      },
+      {
+        "file": "client/src/components/checkout/order-packing-reveal.tsx",
+        "lines": 3
+      },
+      {
+        "file": "client/src/components/fish/fish-compatibility-badge.tsx",
+        "lines": 3
+      },
+      {
+        "file": "client/src/components/navbar/NavbarStyleSwitcher.tsx",
+        "lines": 3
+      },
+      {
+        "file": "client/src/components/reviews/product-reviews-section.tsx",
+        "lines": 3
+      },
+      {
+        "file": "client/src/lib/pdf-generator.ts",
+        "lines": 3
+      },
+      {
+        "file": "client/src/pages/fish-compatibility.tsx",
+        "lines": 3
+      },
+      {
+        "file": "client/src/pages/guides-5-mistakes.tsx",
+        "lines": 3
+      },
+      {
+        "file": "client/src/components/motion/displacement.tsx",
+        "lines": 2
+      },
+      {
+        "file": "client/src/components/reviews/rating-breakdown.tsx",
+        "lines": 2
+      },
+      {
+        "file": "client/src/components/ui/dialog.tsx",
+        "lines": 2
+      },
+      {
+        "file": "client/src/components/ui/sheet.tsx",
+        "lines": 2
+      },
+      {
+        "file": "client/src/components/ui/toaster.tsx",
+        "lines": 2
+      },
+      {
+        "file": "client/src/lib/ab-testing.ts",
+        "lines": 2
+      },
+      {
+        "file": "client/src/lib/constants/shipping.ts",
+        "lines": 2
+      },
+      {
+        "file": "client/src/components/back-to-top.tsx",
+        "lines": 1
+      },
+      {
+        "file": "client/src/components/cart/checkout/loyalty-section.tsx",
+        "lines": 1
+      },
+      {
+        "file": "client/src/components/journey/journey-progress.tsx",
+        "lines": 1
+      },
+      {
+        "file": "client/src/components/products/embedded-variant-selector.tsx",
+        "lines": 1
+      },
+      {
+        "file": "client/src/components/ui/spinner.tsx",
+        "lines": 1
+      },
+      {
+        "file": "client/src/hooks/use-toast.ts",
+        "lines": 1
+      },
+      {
+        "file": "client/src/lib/motion/flow-gate.ts",
+        "lines": 1
+      },
+      {
+        "file": "client/src/test-utils.tsx",
+        "lines": 1
+      },
+      {
+        "file": "client/src/types/index.ts",
+        "lines": 1
+      }
+    ]
   }
 }

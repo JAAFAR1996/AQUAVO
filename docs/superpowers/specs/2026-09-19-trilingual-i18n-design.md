@@ -18,7 +18,7 @@ Date: 2026-09-19. Branch: `feat/i18n-trilingual` (worktree `wt-i18n`, from `orig
 | Dynamic content | products: 107 live (Arabic `name`, `description`, `category`, `subcategory`, jsonb `specifications` with Arabic keys and arrays `benefits`, `usageInstructions`, `safetyWarnings`, `__cardBenefit`); blog_posts: 117 (115 latin slugs, 2 Arabic slugs); categories table + hard-coded `AQUAVO_PRODUCT_CATEGORIES` (Arabic strings are the canonical category identity, used in URLs `/products?category=<arabic>`); blog_categories (Arabic names + Arabic slugs) |
 | Search | `server/storage/product-storage.ts` ILIKE over name/description/brand with an Arabic synonym expander; client `site-search.ts` for pages |
 | Formatting | `formatNumber` uses `toLocaleString('en-US')` (Latin digits) and `formatPrice` appends `د.ع` |
-| Fonts | Cairo (Arabic/Latin) + Inter + Changa from Google Fonts. Cairo's Google Fonts build covers the Arabic block incl. Kurdish letters (پ چ ژ ڤ گ ک ڵ ڕ ۆ ێ ە ئ) — verified glyph-by-glyph in `TOOLS/i18n/check-font-coverage.mjs` |
+| Fonts | Cairo (Arabic/Latin) + Inter + Changa from Google Fonts. `TOOLS/i18n/check-font-coverage.mjs` reads the served TTF cmap: Cairo LACKS five Sorani letters (ڕ ڵ ۆ ێ ە); Noto Sans Arabic, Vazirmatn, Noto Naskh Arabic and IBM Plex Sans Arabic cover all of them. Decision: keep Cairo for ar/en, load Vazirmatn (OFL) only on ckb pages. |
 | Cron | `/api/cron/weekly-blog` generates new Arabic blog posts automatically |
 
 ## 2. Research (Phase 2) and decisions
