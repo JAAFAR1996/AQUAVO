@@ -138,6 +138,69 @@ function compactProviderFailureCode(status: Record<string, unknown>): string {
   return `WHATSAPP_PROVIDER_FAILED_${code}`.slice(0, 120);
 }
 
+type WhatsAppWebhookDiagnosticSummary = {
+  object: string | null;
+  fields: string[];
+  messageTypes: string[];
+  messageCount: number;
+  statusCount: number;
+  contextualMessageCount: number;
+};
+
+/**
+ * Return only routing/shape metadata needed for short-lived webhook diagnosis.
+ * Deliberately excludes phone numbers, message ids, message text, payload values,
+ * tokens and all other customer/provider content.
+ */
+export function summarizeWhatsAppWebhookForDiagnostics(
+  payload: unknown,
+): WhatsAppWebhookDiagnosticSummary {
+  const root = asRecord(payload);
+  const object = typeof root?.object === "string" ? root.object : null;
+  const fields = new Set<string>();
+  const messageTypes = new Set<string>();
+  let messageCount = 0;
+  let statusCount = 0;
+  let contextualMessageCount = 0;
+
+  const entries = Array.isArray(root?.entry) ? root.entry : [];
+  for (const rawEntry of entries) {
+    const entry = asRecord(rawEntry);
+    const changes = Array.isArray(entry?.changes) ? entry.changes : [];
+    for (const rawChange of changes) {
+      const change = asRecord(rawChange);
+      if (typeof change?.field === "string") fields.add(change.field.slice(0, 100));
+      const value = asRecord(change?.value);
+      const messages = Array.isArray(value?.messages) ? value.messages : [];
+      const statuses = Array.isArray(value?.statuses) ? value.statuses : [];
+      statusCount += statuses.length;
+
+      for (const rawMessage of messages) {
+        messageCount += 1;
+        const message = asRecord(rawMessage);
+        if (typeof message?.type === "string") messageTypes.add(message.type.slice(0, 100));
+        const context = asRecord(message?.context);
+        if (typeof context?.id === "string" && context.id.length > 0) contextualMessageCount += 1;
+      }
+    }
+  }
+
+  return {
+    object,
+    fields: [...fields].slice(0, 20),
+    messageTypes: [...messageTypes].slice(0, 20),
+    messageCount,
+    statusCount,
+    contextualMessageCount,
+  };
+}
+
+function writeWebhookDiagnostic(event: Record<string, unknown>): void {
+  // stdout is intentional: Vercel runtime logs can prove whether Meta reached
+  // this route without storing customer content in the application database.
+  process.stdout.write(`${JSON.stringify({ tag: "WHATSAPP_WEBHOOK_DIAGNOSTIC", ...event })}\n`);
+}
+
 /** Extract outgoing-message lifecycle events we persist. */
 export function extractWhatsAppStatusEvents(payload: unknown): WhatsAppStatusEvent[] {
   const root = webhookEnvelopeSchema.safeParse(payload);
@@ -276,6 +339,7 @@ export function createWhatsAppWebhookRouter(): RouterType {
   router.post("/", async (req: Request, res: Response): Promise<void> => {
     const appSecret = process.env.META_APP_SECRET?.trim() ?? "";
     if (!appSecret) {
+      writeWebhookDiagnostic({ stage: "rejected", reason: "app_secret_missing", httpStatus: 503 });
       res.status(503).json({ code: "WHATSAPP_WEBHOOK_NOT_CONFIGURED" });
       return;
     }
@@ -283,6 +347,13 @@ export function createWhatsAppWebhookRouter(): RouterType {
     const rawBody = (req as RawBodyRequest).rawBody;
     const signature = req.get("x-hub-signature-256") ?? undefined;
     if (!rawBody || !verifyMetaWebhookSignature(rawBody, signature, appSecret)) {
+      writeWebhookDiagnostic({
+        stage: "rejected",
+        reason: "signature_invalid",
+        httpStatus: 401,
+        rawBodyPresent: Boolean(rawBody?.length),
+        signaturePresent: Boolean(signature),
+      });
       res.sendStatus(401);
       return;
     }
@@ -291,9 +362,13 @@ export function createWhatsAppWebhookRouter(): RouterType {
     try {
       payload = JSON.parse(rawBody.toString("utf8"));
     } catch {
+      writeWebhookDiagnostic({ stage: "rejected", reason: "invalid_json", httpStatus: 400 });
       res.status(400).json({ code: "INVALID_WEBHOOK_JSON" });
       return;
     }
+
+    const diagnosticSummary = summarizeWhatsAppWebhookForDiagnostics(payload);
+    writeWebhookDiagnostic({ stage: "parsed", httpStatus: null, ...diagnosticSummary });
 
     const statusEvents = extractWhatsAppStatusEvents(payload);
     const buttonReplyEvents = extractDeliveryCareButtonReplyEvents(payload);
@@ -309,6 +384,14 @@ export function createWhatsAppWebhookRouter(): RouterType {
       for (const event of buttonReplyEvents) {
         const result = await handleDeliveryCareButtonReply(event);
         if (result.status === "db_unavailable") {
+          writeWebhookDiagnostic({
+            stage: "response",
+            reason: "button_db_unavailable",
+            httpStatus: 503,
+            statusEvents: statusEvents.length,
+            buttonReplies: buttonReplyEvents.length,
+            buttonRepliesHandled,
+          });
           res.status(503).json({ code: "WEBHOOK_PERSISTENCE_FAILED" });
           return;
         }
@@ -333,6 +416,14 @@ export function createWhatsAppWebhookRouter(): RouterType {
           // Keep Meta redelivery as a second recovery path. The durable callback
           // state and the external worker independently enforce the same bounded
           // retry policy, so duplicate provider sends remain impossible.
+          writeWebhookDiagnostic({
+            stage: "response",
+            reason: "auto_reply_retry_requested",
+            httpStatus: 503,
+            statusEvents: statusEvents.length,
+            buttonReplies: buttonReplyEvents.length,
+            buttonRepliesHandled,
+          });
           res.status(503).json({ code: "WHATSAPP_AUTO_REPLY_RETRY_REQUESTED" });
           return;
         }
@@ -341,6 +432,14 @@ export function createWhatsAppWebhookRouter(): RouterType {
         }
       }
 
+      writeWebhookDiagnostic({
+        stage: "response",
+        reason: "ok",
+        httpStatus: 200,
+        statusEvents: statusEvents.length,
+        buttonReplies: buttonReplyEvents.length,
+        buttonRepliesHandled,
+      });
       res.status(200).json({
         received: true,
         events: statusEvents.length,
@@ -350,6 +449,13 @@ export function createWhatsAppWebhookRouter(): RouterType {
     } catch {
       // Non-2xx deliberately asks Meta to retry a verified event when persistence
       // failed. No provider payload, phone, customer text or token is logged.
+      writeWebhookDiagnostic({
+        stage: "response",
+        reason: "persistence_exception",
+        httpStatus: 503,
+        statusEvents: statusEvents.length,
+        buttonReplies: buttonReplyEvents.length,
+      });
       res.status(503).json({ code: "WEBHOOK_PERSISTENCE_FAILED" });
     }
   });
