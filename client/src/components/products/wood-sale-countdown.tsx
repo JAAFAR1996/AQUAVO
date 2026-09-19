@@ -33,27 +33,32 @@ function getRemainingTime() {
   };
 }
 
-function formatRemaining(
-  remaining: ReturnType<typeof getRemainingTime>,
-  compact: boolean,
-) {
-  if (remaining.days > 0) {
-    return compact
-      ? `باقي ${remaining.days} يوم و${remaining.hours} ساعة`
-      : `باقي ${remaining.days} يوم و${remaining.hours} ساعة و${remaining.minutes} دقيقة`;
-  }
-
-  if (remaining.hours > 0) {
-    return compact
-      ? `باقي ${remaining.hours} ساعة و${remaining.minutes} دقيقة`
-      : `باقي ${remaining.hours} ساعة و${remaining.minutes} دقيقة و${remaining.seconds} ثانية`;
-  }
-
-  if (remaining.minutes > 0) {
-    return `باقي ${remaining.minutes} دقيقة و${remaining.seconds} ثانية`;
-  }
-
-  return `باقي ${remaining.seconds} ثانية`;
+function CountdownUnit({
+  value,
+  label,
+  compact,
+}: {
+  value: number;
+  label: string;
+  compact: boolean;
+}) {
+  return (
+    <span className={compact ? "inline-flex items-baseline gap-0.5" : "inline-flex flex-col items-center leading-none"}>
+      <span
+        dir="ltr"
+        className={
+          compact
+            ? "tabular-nums font-bold text-[#173a43]"
+            : "min-w-7 text-center text-base font-bold tabular-nums text-[#173a43]"
+        }
+      >
+        {value.toString().padStart(2, "0")}
+      </span>
+      <span className={compact ? "text-[9px] text-[#607278]" : "mt-1 text-[10px] font-medium text-[#607278]"}>
+        {label}
+      </span>
+    </span>
+  );
 }
 
 export function WoodSaleCountdown({ compact = false }: { compact?: boolean }) {
@@ -66,20 +71,43 @@ export function WoodSaleCountdown({ compact = false }: { compact?: boolean }) {
 
   if (remaining.remainingMs <= 0) return null;
 
-  const label = formatRemaining(remaining, compact);
-
   return (
     <div
       className={
         compact
           ? "inline-flex max-w-full items-center gap-1.5 rounded-lg border border-[#d8d0c3] bg-white/70 px-2 py-1 text-[10px] font-semibold text-[#365158]"
-          : "inline-flex items-center gap-2 rounded-xl border border-[#d8d0c3] bg-[#fbfaf7] px-3 py-2 text-sm font-semibold text-[#365158] shadow-sm"
+          : "inline-flex flex-wrap items-center gap-2 rounded-xl border border-[#d8d0c3] bg-[#fbfaf7] px-3 py-2 text-sm font-semibold text-[#365158] shadow-sm"
       }
-      aria-label={`ينتهي عرض نهاية الشهر: ${label}`}
+      aria-label={`ينتهي عرض نهاية الشهر خلال ${remaining.days} يوم و${remaining.hours} ساعة و${remaining.minutes} دقيقة و${remaining.seconds} ثانية`}
       dir="rtl"
     >
       <Clock3 className={compact ? "h-3 w-3 shrink-0" : "h-4 w-4 shrink-0"} aria-hidden="true" />
-      <span className="whitespace-nowrap tabular-nums text-[#173a43]">{label}</span>
+
+      {compact ? (
+        <>
+          <span className="whitespace-nowrap text-[9px] font-medium text-[#607278]">باقي</span>
+          <CountdownUnit value={remaining.days} label="يوم" compact />
+          <span className="text-[#b2aaa0]" aria-hidden="true">•</span>
+          <CountdownUnit value={remaining.hours} label="ساعة" compact />
+          <span className="text-[#b2aaa0]" aria-hidden="true">•</span>
+          <CountdownUnit value={remaining.minutes} label="دقيقة" compact />
+          <span className="text-[#b2aaa0]" aria-hidden="true">•</span>
+          <CountdownUnit value={remaining.seconds} label="ثانية" compact />
+        </>
+      ) : (
+        <>
+          <span className="ml-1 whitespace-nowrap text-xs font-medium text-[#607278]">باقي</span>
+          <div className="flex items-center gap-2">
+            <CountdownUnit value={remaining.days} label="يوم" compact={false} />
+            <span className="text-[#d0c8bc]" aria-hidden="true">:</span>
+            <CountdownUnit value={remaining.hours} label="ساعة" compact={false} />
+            <span className="text-[#d0c8bc]" aria-hidden="true">:</span>
+            <CountdownUnit value={remaining.minutes} label="دقيقة" compact={false} />
+            <span className="text-[#d0c8bc]" aria-hidden="true">:</span>
+            <CountdownUnit value={remaining.seconds} label="ثانية" compact={false} />
+          </div>
+        </>
+      )}
     </div>
   );
 }
