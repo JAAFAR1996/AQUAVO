@@ -305,17 +305,9 @@ describe("Wayl readiness (config → auth → live merchant)", () => {
     expect(probe.referenceId).toMatch(/^aquavo-readiness-/);
   });
 
-  it("is available only when config, auth and a live link probe all succeed, and invalidates the probe link", async () => {
+  it("production availability stops after config + auth and does not create disposable payment links", async () => {
     configure();
-    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
-      if (url.endsWith("/verify-auth-key")) return jsonResponse(authOk);
-      if (url.endsWith("/api/v1/links") && init?.method === "POST") {
-        const sent = JSON.parse(String(init.body));
-        return jsonResponse({ message: "Link created", data: { ...officialLinkData, referenceId: sent.referenceId } }, 201);
-      }
-      if (/\/invalidate$/.test(url)) return jsonResponse({ message: "Link invalidated successfully" }, 201);
-      throw new Error(`unexpected call ${url}`);
-    });
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse(authOk));
     vi.stubGlobal("fetch", fetchMock);
 
     const readiness = await withProduction("live", () => checkWaylReadiness());
@@ -323,11 +315,10 @@ describe("Wayl readiness (config → auth → live merchant)", () => {
     expect(readiness).toEqual({
       available: true,
       reason: "WAYL_CONFIG_VALID",
-      checks: { configValid: true, authValid: true, storeVerified: true },
+      checks: { configValid: true, authValid: true, storeVerified: null },
     });
-    const calls = fetchMock.mock.calls.map(([url]) => String(url));
-    expect(calls.some((url) => url.includes("/api/v1/links/aquavo-readiness-") && url.endsWith("/invalidate"))).toBe(true);
-    expect(JSON.parse(String((fetchMock.mock.calls[1]?.[1] as RequestInit).body)).env).toBe("live");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(String(fetchMock.mock.calls[0]?.[0])).toBe("https://api.thewayl.com/api/v1/verify-auth-key");
   });
 
   it("caches a successful readiness result so the checkout radio does not create a probe link per request", async () => {
