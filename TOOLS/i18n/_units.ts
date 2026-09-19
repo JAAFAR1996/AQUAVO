@@ -5,7 +5,8 @@
  */
 const UNITS: Array<{ ar: RegExp; en: string; ckb: string }> = [
   { ar: /(\d)\s*(?:كغم|كيلو ?غرام|كيلوغرام|كجم)/g, en: "$1 kg", ckb: "$1 کگم" },
-  { ar: /(\d)\s*(?:غرام|غم|جرام|جم)\b/g, en: "$1 g", ckb: "$1 گرام" },
+  // No \b after Arabic letters (it only understands ASCII word characters); use a negative Arabic-letter lookahead instead.
+  { ar: /(\d)\s*(?:غرام|غم|جرام|جم)(?![\p{Script=Arabic}])/gu, en: "$1 g", ckb: "$1 گرام" },
   { ar: /(\d)\s*(?:ملم|مم|مليمتر)/g, en: "$1 mm", ckb: "$1 ملم" },
   { ar: /(\d)\s*(?:سم|سنتيمتر|سنتمتر)/g, en: "$1 cm", ckb: "$1 سم" },
   { ar: /(\d)\s*(?:متر|م)(?![\p{Script=Arabic}])/gu, en: "$1 m", ckb: "$1 مەتر" },
