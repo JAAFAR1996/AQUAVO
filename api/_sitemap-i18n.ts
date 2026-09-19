@@ -46,21 +46,30 @@ export function localizedUrlEntries(logicalPath: string, locales: readonly Local
 export const ALL_LOCALES: readonly Locale[] = SUPPORTED_LOCALES;
 
 /**
- * For each entity id, the locales that have a translation row (Arabic always).
+ * For each entity id, the locales whose translation is reviewed and still
+ * matches the Arabic source (Arabic always). Machine or outdated rows are
+ * served on the page but the URL stays noindex, so it is not listed here.
  * Fails soft: if the table is missing or the query errors, everything is Arabic-only.
  */
 export async function translatedLocalesByEntity(
   pool: Pool,
   entityType: "product" | "blog_post",
   ids: string[],
+  /** id -> current Arabic source hash; rows whose stored hash differs are outdated and skipped. */
+  currentHashes?: Record<string, string>,
 ): Promise<Map<string, Locale[]>> {
   const map = new Map<string, Locale[]>();
   for (const id of ids) map.set(id, [DEFAULT_LOCALE]);
   if (ids.length === 0) return map;
   try {
     const { rows } = await pool.query<{ entity_id: string; locale: Locale }>(
-      `SELECT entity_id, locale FROM content_translations WHERE entity_type = $1 AND entity_id = ANY($2::text[])`,
-      [entityType, ids],
+      currentHashes
+        ? `SELECT entity_id, locale FROM content_translations
+             WHERE entity_type = $1 AND entity_id = ANY($2::text[]) AND status = 'reviewed'
+               AND (source_hash IS NULL OR source_hash = ($3::jsonb ->> entity_id))`
+        : `SELECT entity_id, locale FROM content_translations
+             WHERE entity_type = $1 AND entity_id = ANY($2::text[]) AND status = 'reviewed'`,
+      currentHashes ? [entityType, ids, JSON.stringify(currentHashes)] : [entityType, ids],
     );
     for (const row of rows) {
       const list = map.get(row.entity_id);

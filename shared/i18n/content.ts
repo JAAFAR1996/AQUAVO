@@ -151,6 +151,17 @@ export interface LocalizedResult<T> {
   /** The locale actually served. Equals the requested locale unless we fell back. */
   contentLocale: Locale;
   translationMissing: boolean;
+  /**
+   * Coverage of the record that was applied. Only "complete" (reviewed by a
+   * person and still matching the Arabic source) makes a page indexable in
+   * that locale; machine output is served but stays noindex.
+   */
+  coverage?: TranslationCoverage;
+}
+
+/** The one rule for "may this locale of this entity be indexed / listed in sitemaps". */
+export function isIndexableCoverage(coverage: TranslationCoverage | undefined): boolean {
+  return coverage === "complete";
 }
 
 function nonEmpty(value: unknown): value is string {

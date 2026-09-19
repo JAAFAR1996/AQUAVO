@@ -18,7 +18,18 @@ import { articleWordCount } from "../shared/article-reading.js";
 import { articleDatePublished } from "../shared/article-dates.js";
 import { articleAuthorEntity } from "../shared/editorial-author.js";
 import { DEFAULT_LOCALE, splitLocaleFromPath, localizePath, type Locale } from "../shared/i18n/locales.js";
-import { applyBlogPostTranslation, applyProductTranslation, type BlogPostTranslationData, type ProductTranslationData } from "../shared/i18n/content.js";
+import {
+  applyBlogPostTranslation,
+  applyProductTranslation,
+  blogPostSourceFields,
+  coverageOf,
+  isIndexableCoverage,
+  productSourceFields,
+  sourceHash,
+  type BlogPostTranslationData,
+  type ProductTranslationData,
+  type TranslationRecord,
+} from "../shared/i18n/content.js";
 import { applyLocaleToHtml, SHELL_META } from "./_locale-meta.js";
 import { getLocalizedStaticMeta } from "./_static-meta-i18n.js";
 import { isPageTranslated } from "./_page-i18n.js";
@@ -33,16 +44,17 @@ function getPool(): Pool | null {
 }
 
 /** One translated record for an entity, or null (Arabic requests never query). */
-async function loadTranslation<T>(entityType: string, entityId: string, locale: Locale): Promise<T | null> {
+async function loadTranslation<T>(entityType: TranslationRecord["entityType"], entityId: string, locale: Locale): Promise<TranslationRecord<T> | null> {
   if (locale === DEFAULT_LOCALE) return null;
   const db = getPool();
   if (!db) return null;
   try {
     const { rows } = await db.query(
-      `SELECT data FROM content_translations WHERE entity_type = $1 AND entity_id = $2 AND locale = $3 LIMIT 1`,
+      `SELECT data, status, source_hash AS "sourceHash" FROM content_translations WHERE entity_type = $1 AND entity_id = $2 AND locale = $3 LIMIT 1`,
       [entityType, entityId, locale],
     );
-    return rows.length ? (rows[0].data as T) : null;
+    if (!rows.length) return null;
+    return { entityType, entityId, locale, data: rows[0].data as T, status: rows[0].status === "reviewed" ? "reviewed" : "machine", sourceHash: rows[0].sourceHash ?? null };
   } catch (err) {
     // The table is created by migrations/add_content_translations.sql; until
     // it exists every locale falls back to Arabic and is marked as such.
@@ -82,6 +94,13 @@ export interface PageMeta {
   embeddedProduct?: EmbeddedProduct;
   /** Non-Arabic locale requested but no translation exists: page is served in Arabic and kept out of the index. */
   translationMissing?: boolean;
+  /**
+   * Non-Arabic locale served from a translation that is machine output or
+   * outdated against the Arabic source. The copy is shown but the URL stays
+   * noindex until an editor marks it reviewed (rule: presence of a record is
+   * not completeness).
+   */
+  translationUnreviewed?: boolean;
 }
 
 /**
@@ -618,7 +637,10 @@ async function getProductMeta(slug: string, locale: Locale = DEFAULT_LOCALE): Pr
     );
     if (rows.length === 0) return null;
     const translation = await loadTranslation<ProductTranslationData>("product", String(rows[0].id), locale);
-    const localized = applyProductTranslation(rows[0] as Record<string, unknown>, translation, locale);
+    const localized = applyProductTranslation(rows[0] as Record<string, unknown>, translation?.data, locale);
+    const productCoverage = locale === DEFAULT_LOCALE || localized.translationMissing
+      ? undefined
+      : coverageOf(translation, sourceHash(productSourceFields(rows[0] as { name: string; description: string; subcategory?: string | null; specifications?: unknown })));
     const p = localized.value as typeof rows[0];
     // The `variants` jsonb carries costPrice/costStatus/costBasis/costEvidence, written by
     // migrations/0073_accounting_final_hardening.sql and absent from the ProductVariant type. Nothing
@@ -651,6 +673,7 @@ async function getProductMeta(slug: string, locale: Locale = DEFAULT_LOCALE): Pr
       ogType: "product",
       productImage: primaryImage,
       translationMissing: localized.translationMissing,
+      translationUnreviewed: productCoverage !== undefined && !isIndexableCoverage(productCoverage),
       embeddedProduct: publicProduct
         ? { slug: String(p.slug), renderedAt: Date.now(), product: publicProduct }
         : undefined,
@@ -711,7 +734,10 @@ async function getBlogMeta(slug: string, locale: Locale = DEFAULT_LOCALE): Promi
     );
     if (rows.length === 0) return null;
     const translation = await loadTranslation<BlogPostTranslationData>("blog_post", String(rows[0].id), locale);
-    const localizedPost = applyBlogPostTranslation(rows[0] as Record<string, unknown>, translation, locale);
+    const localizedPost = applyBlogPostTranslation(rows[0] as Record<string, unknown>, translation?.data, locale);
+    const postCoverage = locale === DEFAULT_LOCALE || localizedPost.translationMissing
+      ? undefined
+      : coverageOf(translation, sourceHash(blogPostSourceFields(rows[0] as { title: string; excerpt: string; content: string; category?: string | null })));
     const post = localizedPost.value as typeof rows[0];
     const shell = SHELL_META[locale];
     const blogBase = `${BASE}${localizePath("/blog", locale)}`;
@@ -728,6 +754,7 @@ async function getBlogMeta(slug: string, locale: Locale = DEFAULT_LOCALE): Promi
       description: post.excerpt || post.title,
       ogType: "article",
       translationMissing: localizedPost.translationMissing,
+      translationUnreviewed: postCoverage !== undefined && !isIndexableCoverage(postCoverage),
       jsonLd: [
         {
           "@context": "https://schema.org",
@@ -1352,9 +1379,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       } catch {
         /* keep the Arabic canonical */
       }
-      // A page that fell back to Arabic must not be indexed as English/Kurdish.
+      // A page that fell back to Arabic must not be indexed as English/Kurdish,
+      // and neither may one served from machine or outdated copy: only a
+      // reviewed, current translation is a complete document in that locale.
       // Static pages count as translated once their UI bundle section is complete.
-      if (meta.translationMissing || !isPageTranslated(locale, pathname)) meta.noIndex = true;
+      if (meta.translationMissing || meta.translationUnreviewed || !isPageTranslated(locale, pathname)) meta.noIndex = true;
     }
     const localizedHtml = applyLocaleToHtml(injectMeta(template, meta), locale, pathname, pathname === "/products" ? search : "", {
       indexable: !meta.noIndex && !meta.notFound,

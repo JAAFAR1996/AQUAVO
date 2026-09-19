@@ -11,6 +11,13 @@ import { DEFAULT_LOCALE, type Locale } from "../../shared/i18n/locales.js";
 import {
   applyBlogPostTranslation,
   applyProductTranslation,
+  blogPostSourceFields,
+  coverageOf,
+  isIndexableCoverage,
+  productSourceFields,
+  sourceHash,
+  type TranslationCoverage,
+  type TranslationRecord,
   type BlogPostTranslationData,
   type CategoryTranslationData,
   type BlogCategoryTranslationData,
@@ -24,34 +31,35 @@ import {
  */
 const FILE_FALLBACK = process.env.AQUAVO_TRANSLATIONS_FILE_FALLBACK === "1";
 const FILE_ENTITY: Record<string, string> = { product: "products", blog_post: "blog_posts", blog_category: "blog_categories", category: "categories", guide: "guides" };
-const fileCache = new Map<string, Record<string, { data: unknown }>>();
-function fileFallback<T>(entityType: TranslatableEntityType, ids: string[], locale: Locale, map: Map<string, T>): Map<string, T> {
+type Loaded<T> = { data: T; status: "machine" | "reviewed"; sourceHash: string | null };
+const fileCache = new Map<string, Record<string, { data: unknown; sourceHash?: string }>>();
+function fileFallback<T>(entityType: TranslatableEntityType, ids: string[], locale: Locale, map: Map<string, Loaded<T>>): Map<string, Loaded<T>> {
   if (!FILE_FALLBACK) return map;
   const key = `${locale}/${FILE_ENTITY[entityType]}`;
   let store = fileCache.get(key);
   if (!store) {
     try {
-      store = JSON.parse(readFileSync(resolve("data/i18n/translations", locale, `${FILE_ENTITY[entityType]}.json`), "utf8")) as Record<string, { data: unknown }>;
+      store = JSON.parse(readFileSync(resolve("data/i18n/translations", locale, `${FILE_ENTITY[entityType]}.json`), "utf8")) as Record<string, { data: unknown; sourceHash?: string }>;
     } catch {
       store = {};
     }
     fileCache.set(key, store);
   }
-  for (const id of ids) if (!map.has(id) && store[id]) map.set(id, store[id].data as T);
+  for (const id of ids) if (!map.has(id) && store[id]) map.set(id, { data: store[id].data as T, status: "machine", sourceHash: store[id].sourceHash ?? null });
   return map;
 }
 
-async function loadTranslations<T>(entityType: TranslatableEntityType, ids: string[], locale: Locale): Promise<Map<string, T>> {
-  const map = new Map<string, T>();
+async function loadTranslations<T>(entityType: TranslatableEntityType, ids: string[], locale: Locale): Promise<Map<string, Loaded<T>>> {
+  const map = new Map<string, Loaded<T>>();
   if (locale === DEFAULT_LOCALE || ids.length === 0) return map;
   const db = getDb();
   if (!db) return fileFallback(entityType, ids, locale, map);
   try {
     const rows = await db
-      .select({ entityId: contentTranslations.entityId, data: contentTranslations.data })
+      .select({ entityId: contentTranslations.entityId, data: contentTranslations.data, status: contentTranslations.status, sourceHash: contentTranslations.sourceHash })
       .from(contentTranslations)
       .where(and(eq(contentTranslations.entityType, entityType), eq(contentTranslations.locale, locale), inArray(contentTranslations.entityId, ids)));
-    for (const row of rows) map.set(row.entityId, row.data as T);
+    for (const row of rows) map.set(row.entityId, { data: row.data as T, status: row.status === "reviewed" ? "reviewed" : "machine", sourceHash: row.sourceHash ?? null });
     if (map.size > 0 || !FILE_FALLBACK) return map;
   } catch (err) {
     // Table not migrated yet (or transient DB error): serve Arabic, or the
@@ -66,35 +74,71 @@ export interface LocalizedList<T> {
   contentLocale: Locale;
   /** Ids of items that fell back to Arabic. Empty for Arabic requests. */
   missing: string[];
+  /** Coverage per id for non-Arabic requests: only "complete" may be indexed. */
+  coverage: Map<string, TranslationCoverage>;
+}
+
+function coverageFor<T>(entityType: TranslatableEntityType, entityId: string, locale: Locale, loaded: Loaded<T> | undefined, currentHash: string): TranslationCoverage {
+  if (!loaded) return "missing";
+  const record: TranslationRecord = { entityType, entityId, locale, data: loaded.data as Record<string, unknown>, status: loaded.status, sourceHash: loaded.sourceHash };
+  return coverageOf(record, currentHash);
 }
 
 export async function localizeProducts<T extends Record<string, unknown> & { id: string }>(products: T[], locale: Locale): Promise<LocalizedList<T>> {
-  if (locale === DEFAULT_LOCALE) return { items: products, contentLocale: DEFAULT_LOCALE, missing: [] };
+  if (locale === DEFAULT_LOCALE) return { items: products, contentLocale: DEFAULT_LOCALE, missing: [], coverage: new Map() };
   const translations = await loadTranslations<ProductTranslationData>("product", products.map((p) => p.id), locale);
   const missing: string[] = [];
+  const coverage = new Map<string, TranslationCoverage>();
   const items = products.map((p) => {
-    const r = applyProductTranslation(p, translations.get(p.id), locale);
+    const loaded = translations.get(p.id);
+    const r = applyProductTranslation(p, loaded?.data, locale);
     if (r.translationMissing) missing.push(p.id);
+    const src = p as unknown as Parameters<typeof productSourceFields>[0];
+    coverage.set(p.id, r.translationMissing ? "missing" : coverageFor("product", p.id, locale, loaded, sourceHash(productSourceFields(src))));
     return r.value;
   });
-  return { items, contentLocale: locale, missing };
+  return { items, contentLocale: locale, missing, coverage };
 }
 
 export async function localizeProduct<T extends Record<string, unknown> & { id: string }>(product: T, locale: Locale) {
-  const { items, missing } = await localizeProducts([product], locale);
-  return { product: items[0], contentLocale: missing.length ? DEFAULT_LOCALE : locale, translationMissing: missing.length > 0 };
+  const { items, missing, coverage } = await localizeProducts([product], locale);
+  const cov = coverage.get(product.id);
+  return {
+    product: items[0],
+    contentLocale: missing.length ? DEFAULT_LOCALE : locale,
+    translationMissing: missing.length > 0,
+    coverage: cov,
+    /** Reviewed and current translation: the only state in which the en/ckb URL may be indexed. */
+    indexable: locale === DEFAULT_LOCALE ? true : isIndexableCoverage(cov),
+  };
 }
 
 export async function localizeBlogPosts<T extends Record<string, unknown> & { id: string }>(posts: T[], locale: Locale): Promise<LocalizedList<T>> {
-  if (locale === DEFAULT_LOCALE) return { items: posts, contentLocale: DEFAULT_LOCALE, missing: [] };
+  if (locale === DEFAULT_LOCALE) return { items: posts, contentLocale: DEFAULT_LOCALE, missing: [], coverage: new Map() };
   const translations = await loadTranslations<BlogPostTranslationData>("blog_post", posts.map((p) => p.id), locale);
   const missing: string[] = [];
+  const coverage = new Map<string, TranslationCoverage>();
   const items = posts.map((p) => {
-    const r = applyBlogPostTranslation(p, translations.get(p.id), locale);
+    const loaded = translations.get(p.id);
+    const r = applyBlogPostTranslation(p, loaded?.data, locale);
     if (r.translationMissing) missing.push(p.id);
+    const src = p as unknown as Parameters<typeof blogPostSourceFields>[0];
+    coverage.set(p.id, r.translationMissing ? "missing" : coverageFor("blog_post", p.id, locale, loaded, sourceHash(blogPostSourceFields(src))));
     return r.value;
   });
-  return { items, contentLocale: locale, missing };
+  return { items, contentLocale: locale, missing, coverage };
+}
+
+export async function localizeBlogPost<T extends Record<string, unknown> & { id: string }>(post: T, locale: Locale) {
+  const { items, missing, coverage } = await localizeBlogPosts([post], locale);
+  const cov = coverage.get(post.id);
+  return {
+    post: items[0],
+    contentLocale: missing.length ? DEFAULT_LOCALE : locale,
+    translationMissing: missing.length > 0,
+    coverage: cov,
+    indexable: locale === DEFAULT_LOCALE ? true : isIndexableCoverage(cov),
+  };
 }
 
 /** Category display names keyed by the Arabic canonical name (which is also the URL identity). */
@@ -105,7 +149,7 @@ export async function localizeCategoryNames(
   if (locale === DEFAULT_LOCALE) return categories;
   const translations = await loadTranslations<CategoryTranslationData>("category", categories.map((c) => c.id), locale);
   return categories.map((c) => {
-    const t = translations.get(c.id);
+    const t = translations.get(c.id)?.data;
     return t?.displayName ? { ...c, displayName: t.displayName, description: t.description ?? c.description } : c;
   });
 }
@@ -117,7 +161,7 @@ export async function localizeBlogCategories(
   if (locale === DEFAULT_LOCALE) return categories;
   const translations = await loadTranslations<BlogCategoryTranslationData>("blog_category", categories.map((c) => c.id), locale);
   return categories.map((c) => {
-    const t = translations.get(c.id);
+    const t = translations.get(c.id)?.data;
     return t?.name ? { ...c, name: t.name, description: t.description ?? c.description } : c;
   });
 }
