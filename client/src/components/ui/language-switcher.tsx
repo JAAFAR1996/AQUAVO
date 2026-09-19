@@ -8,7 +8,19 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { LOCALES, SUPPORTED_LOCALES, type Locale } from "@shared/i18n/locales";
+import { LOCALE_PREVIEW_COOKIE, isLocaleReleased } from "@shared/i18n/release";
 import { useLocale } from "@/i18n/locale-context";
+
+/**
+ * Locales offered to this visitor: Arabic plus released locales, plus the
+ * current one (a direct /en URL must still be able to switch back). QA and
+ * previews see all three with VITE_I18N_PREVIEW_LOCALES=1 or the preview cookie.
+ */
+function offeredLocales(current: Locale): Locale[] {
+  const preview = import.meta.env.VITE_I18N_PREVIEW_LOCALES === "1" || (typeof document !== "undefined" && document.cookie.split(";").some((c) => c.trim() === `${LOCALE_PREVIEW_COOKIE}=1`));
+  if (preview) return [...SUPPORTED_LOCALES];
+  return SUPPORTED_LOCALES.filter((l) => l === current || isLocaleReleased(l));
+}
 
 interface LanguageSwitcherProps {
   /** "icon" for the compact header button, "full" for the mobile drawer row. */
@@ -26,6 +38,9 @@ export function LanguageSwitcher({ variant = "icon", className = "" }: LanguageS
   const { locale, setLocale } = useLocale();
   const { t } = useTranslation("common");
   const current = LOCALES[locale];
+  const offered = offeredLocales(locale);
+  // Nothing to switch to: no control at all rather than a one-item menu.
+  if (offered.length < 2) return null;
 
   return (
     <DropdownMenu>
@@ -45,7 +60,7 @@ export function LanguageSwitcher({ variant = "icon", className = "" }: LanguageS
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-[180px]" aria-label={t("language.menuLabel")}>
-        {SUPPORTED_LOCALES.map((code: Locale) => {
+        {offered.map((code: Locale) => {
           const def = LOCALES[code];
           const active = code === locale;
           return (

@@ -18,6 +18,7 @@ import {
   splitLocaleFromPath,
   type Locale,
 } from "../shared/i18n/locales.js";
+import { RELEASED_LOCALES, releasedAlternatesFor } from "../shared/i18n/release.js";
 
 export { splitLocaleFromPath, localizePath };
 
@@ -36,7 +37,8 @@ export function localizedAbsoluteUrl(logicalPath: string, locale: Locale, search
  * construction. Query strings that define a page (category listings) are kept.
  */
 export function hreflangLinks(logicalPath: string, search = ""): string {
-  const { alternates, xDefault } = alternatesFor(logicalPath);
+  // Only released locales are advertised to crawlers (shared/i18n/release.ts).
+  const { alternates, xDefault } = releasedAlternatesFor(logicalPath);
   const lines = alternates.map(
     (a) => `<link rel="alternate" hreflang="${a.hreflang}" href="${escapeAttr(`${AQUAVO_BASE_URL}${a.path}${search}`)}" />`,
   );
@@ -48,7 +50,7 @@ export function ogLocaleTags(locale: Locale): string {
   const own = LOCALES[locale].ogLocale;
   const tags: string[] = [];
   if (own) tags.push(`<meta property="og:locale" content="${own}" />`);
-  for (const other of SUPPORTED_LOCALES) {
+  for (const other of RELEASED_LOCALES) {
     if (other === locale) continue;
     const alt = LOCALES[other].ogLocale;
     if (alt) tags.push(`<meta property="og:locale:alternate" content="${alt}" />`);

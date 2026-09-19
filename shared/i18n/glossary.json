@@ -1,122 +1,1058 @@
 {
   "$comment": "AQUAVO trilingual glossary. Single source of truth for aquarium and shop terminology across UI bundles, product content and articles. ckb = Central Kurdish (Sorani, Arabic script, Sulaymaniyah/Erbil usage). Every translator prompt and the translation validator read this file. Add a term here before using it anywhere else.",
   "terms": [
-    { "id": "aquarium", "ar": ["حوض", "حوض السمك", "حوض الأسماك", "الأحواض"], "en": "aquarium", "ckb": "حەوز", "ckbAlt": ["حەوزی ماسی"] },
-    { "id": "fish", "ar": ["سمك", "أسماك", "السمك"], "en": "fish", "ckb": "ماسی" },
-    { "id": "ornamental-fish", "ar": ["أسماك الزينة"], "en": "ornamental fish", "ckb": "ماسی ڕازاندنەوە" },
-    { "id": "filter", "ar": ["فلتر", "الفلتر", "فلاتر"], "en": "filter", "ckb": "فلتەر" },
-    { "id": "hob-filter", "ar": ["فلتر معلق", "فلتر خلفي"], "en": "hang-on-back filter", "ckb": "فلتەری هەڵواسراو" },
-    { "id": "sponge-filter", "ar": ["فلتر إسفنجي", "فلتر اسفنجي"], "en": "sponge filter", "ckb": "فلتەری ئیسفەنجی" },
-    { "id": "external-filter", "ar": ["فلتر خارجي"], "en": "external (canister) filter", "ckb": "فلتەری دەرەکی" },
-    { "id": "internal-filter", "ar": ["فلتر داخلي"], "en": "internal filter", "ckb": "فلتەری ناوەکی" },
-    { "id": "filter-media", "ar": ["وسائط الفلتر", "وسط فلتر", "مواد الفلتر"], "en": "filter media", "ckb": "ماددەی فلتەر" },
-    { "id": "heater", "ar": ["سخان", "هيتر", "سخانات"], "en": "heater", "ckb": "گەرمکەرەوە" },
-    { "id": "air-pump", "ar": ["مضخة هواء", "مضخات هواء"], "en": "air pump", "ckb": "پەمپی هەوا" },
-    { "id": "water-pump", "ar": ["مضخة ماء", "مضخة مياه"], "en": "water pump", "ckb": "پەمپی ئاو" },
-    { "id": "air-stone", "ar": ["حجر هواء", "حجر الهواء"], "en": "air stone", "ckb": "بەردی هەوا" },
-    { "id": "air-tubing", "ar": ["خرطوم هواء", "خرطوم"], "en": "air tubing", "ckb": "بۆری هەوا" },
-    { "id": "valve", "ar": ["صمام"], "en": "valve", "ckb": "ڤاڵڤ" },
-    { "id": "non-return-valve", "ar": ["صمام عدم رجوع", "صمام عدم الرجوع"], "en": "check valve", "ckb": "ڤاڵڤی نەگەڕانەوە" },
-    { "id": "lighting", "ar": ["إضاءة", "إضاءات", "الإضاءة"], "en": "lighting", "ckb": "ڕووناکی" },
-    { "id": "led-light", "ar": ["إضاءة LED", "لمبة LED"], "en": "LED light", "ckb": "ڕووناکی LED" },
-    { "id": "substrate", "ar": ["ركيزة", "تربة", "ترب نباتية"], "en": "substrate", "ckb": "خاک" },
-    { "id": "sand", "ar": ["رمل", "رمال"], "en": "sand", "ckb": "لم" },
-    { "id": "gravel", "ar": ["حصى"], "en": "gravel", "ckb": "بەردەلانک" },
-    { "id": "driftwood", "ar": ["خشب طبيعي", "جذوع", "خشب الحوض"], "en": "driftwood", "ckb": "داری ئاوی" },
-    { "id": "stone", "ar": ["حجر", "أحجار", "صخور"], "en": "stone", "ckb": "بەرد" },
-    { "id": "decor", "ar": ["ديكور", "زينة"], "en": "decor", "ckb": "دیکۆر" },
-    { "id": "aquascape", "ar": ["أكواسكيب", "اكواسكيب"], "en": "aquascape", "ckb": "ئەکواسکەیپ" },
-    { "id": "background", "ar": ["خلفية", "خلفيات أحواض"], "en": "background", "ckb": "پاشبنەما" },
-    { "id": "water-conditioner", "ar": ["معالج مياه", "مكيف مياه", "معالجة المياه"], "en": "water conditioner", "ckb": "ئامادەکەری ئاو" },
-    { "id": "dechlorinator", "ar": ["مزيل الكلور", "مزيل كلور"], "en": "dechlorinator", "ckb": "لابەری کلۆر" },
-    { "id": "chlorine", "ar": ["كلور"], "en": "chlorine", "ckb": "کلۆر" },
-    { "id": "chloramine", "ar": ["كلورامين"], "en": "chloramine", "ckb": "کلۆرامین" },
-    { "id": "ammonia", "ar": ["أمونيا", "الأمونيا"], "en": "ammonia", "ckb": "ئەمۆنیا" },
-    { "id": "nitrite", "ar": ["نتريت", "النتريت"], "en": "nitrite", "ckb": "نایترایت" },
-    { "id": "nitrate", "ar": ["نترات", "النترات"], "en": "nitrate", "ckb": "نایترات" },
-    { "id": "nitrogen-cycle", "ar": ["دورة النيتروجين"], "en": "nitrogen cycle", "ckb": "سووڕی نایترۆجین" },
-    { "id": "beneficial-bacteria", "ar": ["بكتيريا نافعة", "البكتيريا النافعة"], "en": "beneficial bacteria", "ckb": "بەکتریای سوودبەخش" },
-    { "id": "water-change", "ar": ["تغيير الماء", "تغيير المياه", "تبديل الماء"], "en": "water change", "ckb": "گۆڕینی ئاو" },
-    { "id": "siphon", "ar": ["شفاط", "سيفون"], "en": "siphon (gravel vacuum)", "ckb": "سایفۆن" },
-    { "id": "thermometer", "ar": ["مقياس حرارة", "ثرمومتر", "ميزان حرارة"], "en": "thermometer", "ckb": "پلەپێو" },
-    { "id": "temperature", "ar": ["درجة الحرارة", "الحرارة"], "en": "temperature", "ckb": "پلەی گەرمی" },
-    { "id": "water-test", "ar": ["فحص الماء", "فحوصات", "مجموعات الاختبار", "عدة فحص"], "en": "water test kit", "ckb": "کیتی پشکنینی ئاو" },
-    { "id": "ph", "ar": ["pH", "الحموضة"], "en": "pH", "ckb": "pH" },
-    { "id": "hardness", "ar": ["عسر الماء", "العسر"], "en": "water hardness", "ckb": "ڕەقی ئاو" },
-    { "id": "aquarium-salt", "ar": ["ملح الأحواض", "ملح"], "en": "aquarium salt", "ckb": "خوێی حەوز" },
-    { "id": "minerals", "ar": ["معادن", "المعادن"], "en": "minerals", "ckb": "کانزاکان" },
-    { "id": "medicine", "ar": ["دواء", "أدوية", "الأدوية"], "en": "medication", "ckb": "دەرمان" },
-    { "id": "food", "ar": ["طعام", "طعام الأسماك", "غذاء", "أعلاف"], "en": "fish food", "ckb": "خۆراکی ماسی" },
-    { "id": "flake-food", "ar": ["رقائق"], "en": "flake food", "ckb": "خۆراکی پەڕە" },
-    { "id": "pellet-food", "ar": ["حبيبات"], "en": "pellet food", "ckb": "خۆراکی دەنکە" },
-    { "id": "sinking-food", "ar": ["طعام غاطس"], "en": "sinking food", "ckb": "خۆراکی نقووم" },
-    { "id": "floating-food", "ar": ["طعام طافي"], "en": "floating food", "ckb": "خۆراکی سەرئاو" },
-    { "id": "supplement", "ar": ["مكمل غذائي", "مكملات غذائية", "فيتامينات"], "en": "supplement", "ckb": "تەواوکەری خۆراکی" },
-    { "id": "plant", "ar": ["نبات", "نباتات"], "en": "plant", "ckb": "ڕووەک" },
-    { "id": "algae", "ar": ["طحالب", "الطحالب"], "en": "algae", "ckb": "کەوز" },
-    { "id": "algae-control", "ar": ["مكافحة الطحالب"], "en": "algae control", "ckb": "کۆنترۆڵی کەوز" },
-    { "id": "white-spot", "ar": ["النقطة البيضاء", "البقع البيضاء"], "en": "white spot (ich)", "ckb": "خاڵی سپی" },
-    { "id": "breeding", "ar": ["تفريخ", "تكاثر"], "en": "breeding", "ckb": "زاوزێ" },
-    { "id": "breeder-box", "ar": ["صندوق عزل", "صندوق تفريخ"], "en": "breeder box", "ckb": "سندوقی جیاکردنەوە" },
-    { "id": "shrimp", "ar": ["روبيان", "جمبري"], "en": "shrimp", "ckb": "میگۆ" },
-    { "id": "goldfish", "ar": ["سمك ذهبي", "السمك الذهبي"], "en": "goldfish", "ckb": "ماسی زێڕین" },
-    { "id": "betta", "ar": ["بيتا"], "en": "betta", "ckb": "بێتا" },
-    { "id": "guppy", "ar": ["جوبي", "غوبي"], "en": "guppy", "ckb": "گۆپی" },
-    { "id": "cichlid", "ar": ["سيكلد", "سيكليد"], "en": "cichlid", "ckb": "سیکلید" },
-    { "id": "tannins", "ar": ["تانينات"], "en": "tannins", "ckb": "تانین" },
-    { "id": "biofilm", "ar": ["بيوفيلم", "طبقة بيضاء"], "en": "biofilm", "ckb": "بایۆفیلم" },
-    { "id": "net", "ar": ["شبكة", "شبكة صيد"], "en": "net", "ckb": "تۆڕ" },
-    { "id": "scraper", "ar": ["كاشطة", "مكشطة"], "en": "scraper", "ckb": "خاوێنکەرەوەی شووشە" },
-    { "id": "accessories", "ar": ["اكسسوارات", "إكسسوارات"], "en": "accessories", "ckb": "پێداویستییەکان" },
-    { "id": "litre", "ar": ["لتر"], "en": "L", "ckb": "لیتر" },
-    { "id": "watt", "ar": ["واط"], "en": "W", "ckb": "وات" },
-    { "id": "litre-per-hour", "ar": ["لتر/ساعة", "لتر في الساعة"], "en": "L/h", "ckb": "لیتر/کاتژمێر" },
-    { "id": "cm", "ar": ["سم"], "en": "cm", "ckb": "سم" },
-    { "id": "celsius", "ar": ["درجة مئوية", "°م"], "en": "°C", "ckb": "پلەی سەدی" },
-    { "id": "week", "ar": ["أسبوع"], "en": "week", "ckb": "هەفتە" },
-    { "id": "day", "ar": ["يوم"], "en": "day", "ckb": "ڕۆژ" },
-    { "id": "cart", "ar": ["السلة", "سلة المشتريات", "سلة"], "en": "cart", "ckb": "سەبەتە" },
-    { "id": "add-to-cart", "ar": ["أضف للسلة", "أضف إلى السلة"], "en": "Add to cart", "ckb": "بیخە ناو سەبەتە" },
-    { "id": "checkout", "ar": ["إتمام الطلب", "الدفع"], "en": "checkout", "ckb": "تەواوکردنی داواکاری" },
-    { "id": "order", "ar": ["الطلب", "طلب", "طلبات"], "en": "order", "ckb": "داواکاری" },
-    { "id": "delivery", "ar": ["التوصيل", "توصيل", "الشحن"], "en": "delivery", "ckb": "گەیاندن" },
-    { "id": "cash-on-delivery", "ar": ["الدفع عند الاستلام", "الدفع عند التوصيل"], "en": "cash on delivery", "ckb": "پارەدان لە کاتی وەرگرتن" },
-    { "id": "in-stock", "ar": ["متوفر", "متوفر الآن", "بالمخزون"], "en": "in stock", "ckb": "بەردەستە" },
-    { "id": "out-of-stock", "ar": ["غير متوفر", "نفدت الكمية", "نفد"], "en": "out of stock", "ckb": "بەردەست نییە" },
-    { "id": "product", "ar": ["المنتج", "منتج", "منتجات"], "en": "product", "ckb": "بەرهەم" },
-    { "id": "category", "ar": ["الفئة", "فئة", "التصنيف"], "en": "category", "ckb": "بەش" },
-    { "id": "account", "ar": ["الحساب", "حسابي"], "en": "account", "ckb": "هەژمار" },
-    { "id": "login", "ar": ["تسجيل الدخول", "دخول"], "en": "sign in", "ckb": "چوونەژوورەوە" },
-    { "id": "register", "ar": ["إنشاء حساب", "تسجيل"], "en": "create account", "ckb": "دروستکردنی هەژمار" },
-    { "id": "password", "ar": ["كلمة المرور", "كلمة السر"], "en": "password", "ckb": "وشەی نهێنی" },
-    { "id": "wishlist", "ar": ["المفضلة", "قائمة المفضلة"], "en": "wishlist", "ckb": "دڵخوازەکان" },
-    { "id": "customer", "ar": ["الزبون", "العميل", "زبون"], "en": "customer", "ckb": "کڕیار" },
-    { "id": "price", "ar": ["السعر", "سعر"], "en": "price", "ckb": "نرخ" },
-    { "id": "iqd", "ar": ["د.ع", "دينار عراقي", "دينار"], "en": "IQD", "ckb": "د.ع" },
-    { "id": "warranty", "ar": ["ضمان", "الضمان"], "en": "warranty", "ckb": "گەرەنتی" },
-    { "id": "maintenance", "ar": ["صيانة", "الصيانة"], "en": "maintenance", "ckb": "چاودێری" },
-    { "id": "cleaning", "ar": ["تنظيف", "التنظيف"], "en": "cleaning", "ckb": "پاککردنەوە" },
-    { "id": "installation", "ar": ["تركيب", "التركيب"], "en": "installation", "ckb": "دامەزراندن" },
-    { "id": "usage", "ar": ["الاستخدام", "طريقة الاستخدام"], "en": "usage", "ckb": "بەکارهێنان" },
-    { "id": "warning", "ar": ["تحذير", "تحذيرات"], "en": "warning", "ckb": "ئاگاداری" },
-    { "id": "benefit", "ar": ["ميزة", "مميزات", "فوائد"], "en": "benefit", "ckb": "سوود" },
-    { "id": "size", "ar": ["الحجم", "حجم", "قياس", "المقاس"], "en": "size", "ckb": "قەبارە" },
-    { "id": "large", "ar": ["كبير"], "en": "large", "ckb": "گەورە" },
-    { "id": "small", "ar": ["صغير"], "en": "small", "ckb": "بچووک" },
-    { "id": "medium", "ar": ["متوسط"], "en": "medium", "ckb": "مامناوەند" },
-    { "id": "natural", "ar": ["طبيعي"], "en": "natural", "ckb": "سروشتی" },
-    { "id": "suitable", "ar": ["مناسب", "يناسب"], "en": "suitable", "ckb": "گونجاو" },
-    { "id": "3d-preview", "ar": ["معاينة ثلاثية الأبعاد", "عرض ثلاثي الأبعاد"], "en": "3D preview", "ckb": "پێشبینینی سێ ڕەهەندی" },
-    { "id": "photo", "ar": ["الصورة", "صورة", "صور"], "en": "photo", "ckb": "وێنە" },
-    { "id": "search", "ar": ["بحث", "ابحث"], "en": "search", "ckb": "گەڕان" },
-    { "id": "guide", "ar": ["دليل", "أدلة"], "en": "guide", "ckb": "ڕێنمایی" },
-    { "id": "article", "ar": ["مقال", "مقالة", "مقالات"], "en": "article", "ckb": "وتار" },
-    { "id": "support", "ar": ["الدعم", "خدمة العملاء"], "en": "support", "ckb": "پشتگیری" },
-    { "id": "iraq", "ar": ["العراق"], "en": "Iraq", "ckb": "عێراق" },
-    { "id": "baghdad", "ar": ["بغداد"], "en": "Baghdad", "ckb": "بەغدا" },
-    { "id": "erbil", "ar": ["أربيل", "اربيل"], "en": "Erbil", "ckb": "هەولێر" },
-    { "id": "sulaymaniyah", "ar": ["السليمانية"], "en": "Sulaymaniyah", "ckb": "سلێمانی" },
-    { "id": "duhok", "ar": ["دهوك"], "en": "Duhok", "ckb": "دهۆک" }
+    {
+      "id": "aquarium",
+      "ar": [
+        "حوض",
+        "حوض السمك",
+        "حوض الأسماك",
+        "الأحواض"
+      ],
+      "en": "aquarium",
+      "ckb": "حەوز",
+      "ckbAlt": [
+        "حەوزی ماسی"
+      ]
+    },
+    {
+      "id": "fish",
+      "ar": [
+        "سمك",
+        "أسماك",
+        "السمك"
+      ],
+      "en": "fish",
+      "ckb": "ماسی"
+    },
+    {
+      "id": "ornamental-fish",
+      "ar": [
+        "أسماك الزينة"
+      ],
+      "en": "ornamental fish",
+      "ckb": "ماسی ڕازاندنەوە"
+    },
+    {
+      "id": "filter",
+      "ar": [
+        "فلتر",
+        "الفلتر",
+        "فلاتر"
+      ],
+      "en": "filter",
+      "ckb": "فلتەر"
+    },
+    {
+      "id": "hob-filter",
+      "ar": [
+        "فلتر معلق",
+        "فلتر خلفي"
+      ],
+      "en": "hang-on-back filter",
+      "ckb": "فلتەری هەڵواسراو"
+    },
+    {
+      "id": "sponge-filter",
+      "ar": [
+        "فلتر إسفنجي",
+        "فلتر اسفنجي"
+      ],
+      "en": "sponge filter",
+      "ckb": "فلتەری ئیسفەنجی"
+    },
+    {
+      "id": "external-filter",
+      "ar": [
+        "فلتر خارجي"
+      ],
+      "en": "external (canister) filter",
+      "ckb": "فلتەری دەرەکی"
+    },
+    {
+      "id": "internal-filter",
+      "ar": [
+        "فلتر داخلي"
+      ],
+      "en": "internal filter",
+      "ckb": "فلتەری ناوەکی"
+    },
+    {
+      "id": "filter-media",
+      "ar": [
+        "وسائط الفلتر",
+        "وسط فلتر",
+        "مواد الفلتر"
+      ],
+      "en": "filter media",
+      "ckb": "ماددەی فلتەر"
+    },
+    {
+      "id": "heater",
+      "ar": [
+        "سخان",
+        "هيتر",
+        "سخانات"
+      ],
+      "en": "heater",
+      "ckb": "گەرمکەرەوە"
+    },
+    {
+      "id": "air-pump",
+      "ar": [
+        "مضخة هواء",
+        "مضخات هواء"
+      ],
+      "en": "air pump",
+      "ckb": "پەمپی هەوا"
+    },
+    {
+      "id": "water-pump",
+      "ar": [
+        "مضخة ماء",
+        "مضخة مياه"
+      ],
+      "en": "water pump",
+      "ckb": "پەمپی ئاو"
+    },
+    {
+      "id": "air-stone",
+      "ar": [
+        "حجر هواء",
+        "حجر الهواء"
+      ],
+      "en": "air stone",
+      "ckb": "بەردی هەوا"
+    },
+    {
+      "id": "air-tubing",
+      "ar": [
+        "خرطوم هواء",
+        "خرطوم"
+      ],
+      "en": "air tubing",
+      "ckb": "بۆری هەوا"
+    },
+    {
+      "id": "valve",
+      "ar": [
+        "صمام"
+      ],
+      "en": "valve",
+      "ckb": "ڤاڵڤ"
+    },
+    {
+      "id": "non-return-valve",
+      "ar": [
+        "صمام عدم رجوع",
+        "صمام عدم الرجوع"
+      ],
+      "en": "check valve",
+      "ckb": "ڤاڵڤی نەگەڕانەوە"
+    },
+    {
+      "id": "lighting",
+      "ar": [
+        "إضاءة",
+        "إضاءات",
+        "الإضاءة"
+      ],
+      "en": "lighting",
+      "ckb": "ڕووناکی"
+    },
+    {
+      "id": "led-light",
+      "ar": [
+        "إضاءة LED",
+        "لمبة LED"
+      ],
+      "en": "LED light",
+      "ckb": "ڕووناکی LED"
+    },
+    {
+      "id": "substrate",
+      "ar": [
+        "ركيزة",
+        "تربة",
+        "ترب نباتية"
+      ],
+      "en": "substrate",
+      "ckb": "خاک"
+    },
+    {
+      "id": "sand",
+      "ar": [
+        "رمل",
+        "رمال"
+      ],
+      "en": "sand",
+      "ckb": "لم"
+    },
+    {
+      "id": "gravel",
+      "ar": [
+        "حصى"
+      ],
+      "en": "gravel",
+      "ckb": "بەردەلانک"
+    },
+    {
+      "id": "driftwood",
+      "ar": [
+        "خشب طبيعي",
+        "جذوع",
+        "خشب الحوض"
+      ],
+      "en": "driftwood",
+      "ckb": "داری ئاوی"
+    },
+    {
+      "id": "stone",
+      "ar": [
+        "حجر",
+        "أحجار",
+        "صخور"
+      ],
+      "en": "stone",
+      "ckb": "بەرد"
+    },
+    {
+      "id": "decor",
+      "ar": [
+        "ديكور",
+        "زينة"
+      ],
+      "en": "decor",
+      "ckb": "دیکۆر"
+    },
+    {
+      "id": "aquascape",
+      "ar": [
+        "أكواسكيب",
+        "اكواسكيب"
+      ],
+      "en": "aquascape",
+      "ckb": "ئەکواسکەیپ"
+    },
+    {
+      "id": "background",
+      "ar": [
+        "خلفية",
+        "خلفيات أحواض"
+      ],
+      "en": "background",
+      "ckb": "پاشبنەما"
+    },
+    {
+      "id": "water-conditioner",
+      "ar": [
+        "معالج مياه",
+        "مكيف مياه",
+        "معالجة المياه"
+      ],
+      "en": "water conditioner",
+      "ckb": "ئامادەکەری ئاو"
+    },
+    {
+      "id": "dechlorinator",
+      "ar": [
+        "مزيل الكلور",
+        "مزيل كلور"
+      ],
+      "en": "dechlorinator",
+      "ckb": "لابەری کلۆر"
+    },
+    {
+      "id": "chlorine",
+      "ar": [
+        "كلور"
+      ],
+      "en": "chlorine",
+      "ckb": "کلۆر"
+    },
+    {
+      "id": "chloramine",
+      "ar": [
+        "كلورامين"
+      ],
+      "en": "chloramine",
+      "ckb": "کلۆرامین"
+    },
+    {
+      "id": "ammonia",
+      "ar": [
+        "أمونيا",
+        "الأمونيا"
+      ],
+      "en": "ammonia",
+      "ckb": "ئەمۆنیا"
+    },
+    {
+      "id": "nitrite",
+      "ar": [
+        "نتريت",
+        "النتريت"
+      ],
+      "en": "nitrite",
+      "ckb": "نایترایت"
+    },
+    {
+      "id": "nitrate",
+      "ar": [
+        "نترات",
+        "النترات"
+      ],
+      "en": "nitrate",
+      "ckb": "نایترات"
+    },
+    {
+      "id": "nitrogen-cycle",
+      "ar": [
+        "دورة النيتروجين"
+      ],
+      "en": "nitrogen cycle",
+      "ckb": "سووڕی نایترۆجین"
+    },
+    {
+      "id": "beneficial-bacteria",
+      "ar": [
+        "بكتيريا نافعة",
+        "البكتيريا النافعة"
+      ],
+      "en": "beneficial bacteria",
+      "ckb": "بەکتریای سوودبەخش"
+    },
+    {
+      "id": "water-change",
+      "ar": [
+        "تغيير الماء",
+        "تغيير المياه",
+        "تبديل الماء"
+      ],
+      "en": "water change",
+      "ckb": "گۆڕینی ئاو"
+    },
+    {
+      "id": "siphon",
+      "ar": [
+        "شفاط",
+        "سيفون"
+      ],
+      "en": "siphon (gravel vacuum)",
+      "ckb": "سایفۆن"
+    },
+    {
+      "id": "thermometer",
+      "ar": [
+        "مقياس حرارة",
+        "ثرمومتر",
+        "ميزان حرارة"
+      ],
+      "en": "thermometer",
+      "ckb": "پلەپێو"
+    },
+    {
+      "id": "temperature",
+      "ar": [
+        "درجة الحرارة",
+        "الحرارة"
+      ],
+      "en": "temperature",
+      "ckb": "پلەی گەرمی"
+    },
+    {
+      "id": "water-test",
+      "ar": [
+        "فحص الماء",
+        "فحوصات",
+        "مجموعات الاختبار",
+        "عدة فحص"
+      ],
+      "en": "water test kit",
+      "ckb": "کیتی پشکنینی ئاو"
+    },
+    {
+      "id": "ph",
+      "ar": [
+        "pH",
+        "الحموضة"
+      ],
+      "en": "pH",
+      "ckb": "pH"
+    },
+    {
+      "id": "hardness",
+      "ar": [
+        "عسر الماء",
+        "العسر"
+      ],
+      "en": "water hardness",
+      "ckb": "ڕەقی ئاو"
+    },
+    {
+      "id": "aquarium-salt",
+      "ar": [
+        "ملح الأحواض",
+        "ملح"
+      ],
+      "en": "aquarium salt",
+      "ckb": "خوێی حەوز"
+    },
+    {
+      "id": "minerals",
+      "ar": [
+        "معادن",
+        "المعادن"
+      ],
+      "en": "minerals",
+      "ckb": "کانزاکان"
+    },
+    {
+      "id": "medicine",
+      "ar": [
+        "دواء",
+        "أدوية",
+        "الأدوية"
+      ],
+      "en": "medication",
+      "ckb": "دەرمان"
+    },
+    {
+      "id": "food",
+      "ar": [
+        "طعام",
+        "طعام الأسماك",
+        "غذاء",
+        "أعلاف"
+      ],
+      "en": "fish food",
+      "ckb": "خۆراکی ماسی"
+    },
+    {
+      "id": "flake-food",
+      "ar": [
+        "رقائق"
+      ],
+      "en": "flake food",
+      "ckb": "خۆراکی پەڕە"
+    },
+    {
+      "id": "pellet-food",
+      "ar": [
+        "حبيبات"
+      ],
+      "en": "pellet food",
+      "ckb": "خۆراکی دەنکە"
+    },
+    {
+      "id": "sinking-food",
+      "ar": [
+        "طعام غاطس"
+      ],
+      "en": "sinking food",
+      "ckb": "خۆراکی نقووم"
+    },
+    {
+      "id": "floating-food",
+      "ar": [
+        "طعام طافي"
+      ],
+      "en": "floating food",
+      "ckb": "خۆراکی سەرئاو"
+    },
+    {
+      "id": "supplement",
+      "ar": [
+        "مكمل غذائي",
+        "مكملات غذائية",
+        "فيتامينات"
+      ],
+      "en": "supplement",
+      "ckb": "تەواوکەری خۆراکی"
+    },
+    {
+      "id": "plant",
+      "ar": [
+        "نبات",
+        "نباتات"
+      ],
+      "en": "plant",
+      "ckb": "ڕووەک"
+    },
+    {
+      "id": "algae",
+      "ar": [
+        "طحالب",
+        "الطحالب"
+      ],
+      "en": "algae",
+      "ckb": "کەوز"
+    },
+    {
+      "id": "algae-control",
+      "ar": [
+        "مكافحة الطحالب"
+      ],
+      "en": "algae control",
+      "ckb": "کۆنترۆڵی کەوز"
+    },
+    {
+      "id": "white-spot",
+      "ar": [
+        "النقطة البيضاء",
+        "البقع البيضاء"
+      ],
+      "en": "white spot (ich)",
+      "ckb": "خاڵی سپی"
+    },
+    {
+      "id": "breeding",
+      "ar": [
+        "تفريخ",
+        "تكاثر"
+      ],
+      "en": "breeding",
+      "ckb": "زاوزێ"
+    },
+    {
+      "id": "breeder-box",
+      "ar": [
+        "صندوق عزل",
+        "صندوق تفريخ"
+      ],
+      "en": "breeder box",
+      "ckb": "سندوقی جیاکردنەوە"
+    },
+    {
+      "id": "shrimp",
+      "ar": [
+        "روبيان",
+        "جمبري"
+      ],
+      "en": "shrimp",
+      "ckb": "میگۆ"
+    },
+    {
+      "id": "goldfish",
+      "ar": [
+        "سمك ذهبي",
+        "السمك الذهبي"
+      ],
+      "en": "goldfish",
+      "ckb": "ماسی زێڕین"
+    },
+    {
+      "id": "betta",
+      "ar": [
+        "بيتا"
+      ],
+      "en": "betta",
+      "ckb": "بێتا"
+    },
+    {
+      "id": "guppy",
+      "ar": [
+        "جوبي",
+        "غوبي"
+      ],
+      "en": "guppy",
+      "ckb": "گۆپی"
+    },
+    {
+      "id": "cichlid",
+      "ar": [
+        "سيكلد",
+        "سيكليد"
+      ],
+      "en": "cichlid",
+      "ckb": "سیکلید"
+    },
+    {
+      "id": "tannins",
+      "ar": [
+        "تانينات"
+      ],
+      "en": "tannins",
+      "ckb": "تانین"
+    },
+    {
+      "id": "biofilm",
+      "ar": [
+        "بيوفيلم",
+        "طبقة بيضاء"
+      ],
+      "en": "biofilm",
+      "ckb": "بایۆفیلم"
+    },
+    {
+      "id": "net",
+      "ar": [
+        "شبكة",
+        "شبكة صيد"
+      ],
+      "en": "net",
+      "ckb": "تۆڕ"
+    },
+    {
+      "id": "scraper",
+      "ar": [
+        "كاشطة",
+        "مكشطة"
+      ],
+      "en": "scraper",
+      "ckb": "خاوێنکەرەوەی شووشە"
+    },
+    {
+      "id": "accessories",
+      "ar": [
+        "اكسسوارات",
+        "إكسسوارات"
+      ],
+      "en": "accessories",
+      "ckb": "پێداویستییەکان"
+    },
+    {
+      "id": "litre",
+      "ar": [
+        "لتر"
+      ],
+      "en": "L",
+      "ckb": "لیتر"
+    },
+    {
+      "id": "watt",
+      "ar": [
+        "واط"
+      ],
+      "en": "W",
+      "ckb": "وات"
+    },
+    {
+      "id": "litre-per-hour",
+      "ar": [
+        "لتر/ساعة",
+        "لتر في الساعة"
+      ],
+      "en": "L/h",
+      "ckb": "لیتر/کاتژمێر"
+    },
+    {
+      "id": "cm",
+      "ar": [
+        "سم"
+      ],
+      "en": "cm",
+      "ckb": "سم"
+    },
+    {
+      "id": "celsius",
+      "ar": [
+        "درجة مئوية",
+        "°م"
+      ],
+      "en": "°C",
+      "ckb": "پلەی سەدی"
+    },
+    {
+      "id": "week",
+      "ar": [
+        "أسبوع"
+      ],
+      "en": "week",
+      "ckb": "هەفتە"
+    },
+    {
+      "id": "day",
+      "ar": [
+        "يوم"
+      ],
+      "en": "day",
+      "ckb": "ڕۆژ"
+    },
+    {
+      "id": "cart",
+      "ar": [
+        "السلة",
+        "سلة المشتريات",
+        "سلة"
+      ],
+      "en": "cart",
+      "ckb": "سەبەتە"
+    },
+    {
+      "id": "add-to-cart",
+      "ar": [
+        "أضف للسلة",
+        "أضف إلى السلة"
+      ],
+      "en": "Add to cart",
+      "ckb": "بیخە ناو سەبەتە"
+    },
+    {
+      "id": "checkout",
+      "ar": [
+        "إتمام الطلب",
+        "الدفع"
+      ],
+      "en": "checkout",
+      "ckb": "تەواوکردنی داواکاری"
+    },
+    {
+      "id": "order",
+      "ar": [
+        "الطلب",
+        "طلب",
+        "طلبات"
+      ],
+      "en": "order",
+      "ckb": "داواکاری"
+    },
+    {
+      "id": "delivery",
+      "ar": [
+        "التوصيل",
+        "توصيل",
+        "الشحن"
+      ],
+      "en": "delivery",
+      "ckb": "گەیاندن"
+    },
+    {
+      "id": "cash-on-delivery",
+      "ar": [
+        "الدفع عند الاستلام",
+        "الدفع عند التوصيل"
+      ],
+      "en": "cash on delivery",
+      "ckb": "پارەدان لە کاتی وەرگرتن"
+    },
+    {
+      "id": "in-stock",
+      "ar": [
+        "متوفر",
+        "متوفر الآن",
+        "بالمخزون"
+      ],
+      "en": "in stock",
+      "ckb": "بەردەستە"
+    },
+    {
+      "id": "out-of-stock",
+      "ar": [
+        "غير متوفر",
+        "نفدت الكمية",
+        "نفد"
+      ],
+      "en": "out of stock",
+      "ckb": "بەردەست نییە"
+    },
+    {
+      "id": "product",
+      "ar": [
+        "المنتج",
+        "منتج",
+        "منتجات"
+      ],
+      "en": "product",
+      "ckb": "بەرهەم"
+    },
+    {
+      "id": "category",
+      "ar": [
+        "الفئة",
+        "فئة",
+        "التصنيف"
+      ],
+      "en": "category",
+      "ckb": "بەش"
+    },
+    {
+      "id": "account",
+      "ar": [
+        "الحساب",
+        "حسابي"
+      ],
+      "en": "account",
+      "ckb": "هەژمار"
+    },
+    {
+      "id": "login",
+      "ar": [
+        "تسجيل الدخول",
+        "دخول"
+      ],
+      "en": "sign in",
+      "ckb": "چوونەژوورەوە"
+    },
+    {
+      "id": "register",
+      "ar": [
+        "إنشاء حساب",
+        "تسجيل"
+      ],
+      "en": "create account",
+      "ckb": "دروستکردنی هەژمار"
+    },
+    {
+      "id": "password",
+      "ar": [
+        "كلمة المرور",
+        "كلمة السر"
+      ],
+      "en": "password",
+      "ckb": "وشەی نهێنی"
+    },
+    {
+      "id": "wishlist",
+      "ar": [
+        "المفضلة",
+        "قائمة المفضلة"
+      ],
+      "en": "wishlist",
+      "ckb": "دڵخوازەکان"
+    },
+    {
+      "id": "customer",
+      "ar": [
+        "الزبون",
+        "العميل",
+        "زبون"
+      ],
+      "en": "customer",
+      "ckb": "کڕیار"
+    },
+    {
+      "id": "price",
+      "ar": [
+        "السعر",
+        "سعر"
+      ],
+      "en": "price",
+      "ckb": "نرخ"
+    },
+    {
+      "id": "iqd",
+      "ar": [
+        "د.ع",
+        "دينار عراقي",
+        "دينار"
+      ],
+      "en": "IQD",
+      "ckb": "د.ع"
+    },
+    {
+      "id": "warranty",
+      "ar": [
+        "ضمان",
+        "الضمان"
+      ],
+      "en": "warranty",
+      "ckb": "گەرەنتی"
+    },
+    {
+      "id": "maintenance",
+      "ar": [
+        "صيانة",
+        "الصيانة"
+      ],
+      "en": "maintenance",
+      "ckb": "چاودێری"
+    },
+    {
+      "id": "cleaning",
+      "ar": [
+        "تنظيف",
+        "التنظيف"
+      ],
+      "en": "cleaning",
+      "ckb": "پاککردنەوە"
+    },
+    {
+      "id": "installation",
+      "ar": [
+        "تركيب",
+        "التركيب"
+      ],
+      "en": "installation",
+      "ckb": "دامەزراندن"
+    },
+    {
+      "id": "usage",
+      "ar": [
+        "الاستخدام",
+        "طريقة الاستخدام"
+      ],
+      "en": "usage",
+      "ckb": "بەکارهێنان"
+    },
+    {
+      "id": "warning",
+      "ar": [
+        "تحذير",
+        "تحذيرات"
+      ],
+      "en": "warning",
+      "ckb": "ئاگاداری"
+    },
+    {
+      "id": "benefit",
+      "ar": [
+        "ميزة",
+        "مميزات",
+        "فوائد"
+      ],
+      "en": "benefit",
+      "ckb": "سوود"
+    },
+    {
+      "id": "size",
+      "ar": [
+        "الحجم",
+        "حجم",
+        "قياس",
+        "المقاس"
+      ],
+      "en": "size",
+      "ckb": "قەبارە"
+    },
+    {
+      "id": "large",
+      "ar": [
+        "كبير"
+      ],
+      "en": "large",
+      "ckb": "گەورە"
+    },
+    {
+      "id": "small",
+      "ar": [
+        "صغير"
+      ],
+      "en": "small",
+      "ckb": "بچووک"
+    },
+    {
+      "id": "medium",
+      "ar": [
+        "متوسط"
+      ],
+      "en": "medium",
+      "ckb": "مامناوەند"
+    },
+    {
+      "id": "natural",
+      "ar": [
+        "طبيعي"
+      ],
+      "en": "natural",
+      "ckb": "سروشتی"
+    },
+    {
+      "id": "suitable",
+      "ar": [
+        "مناسب",
+        "يناسب"
+      ],
+      "en": "suitable",
+      "ckb": "گونجاو"
+    },
+    {
+      "id": "3d-preview",
+      "ar": [
+        "معاينة ثلاثية الأبعاد",
+        "عرض ثلاثي الأبعاد"
+      ],
+      "en": "3D preview",
+      "ckb": "پێشبینینی سێ ڕەهەندی"
+    },
+    {
+      "id": "photo",
+      "ar": [
+        "الصورة",
+        "صورة",
+        "صور"
+      ],
+      "en": "photo",
+      "ckb": "وێنە"
+    },
+    {
+      "id": "search",
+      "ar": [
+        "بحث",
+        "ابحث"
+      ],
+      "en": "search",
+      "ckb": "گەڕان"
+    },
+    {
+      "id": "guide",
+      "ar": [
+        "دليل",
+        "أدلة"
+      ],
+      "en": "guide",
+      "ckb": "ڕێنمایی"
+    },
+    {
+      "id": "article",
+      "ar": [
+        "مقال",
+        "مقالة",
+        "مقالات"
+      ],
+      "en": "article",
+      "ckb": "وتار"
+    },
+    {
+      "id": "support",
+      "ar": [
+        "الدعم",
+        "خدمة العملاء"
+      ],
+      "en": "support",
+      "ckb": "پشتگیری"
+    },
+    {
+      "id": "iraq",
+      "ar": [
+        "العراق"
+      ],
+      "en": "Iraq",
+      "ckb": "عێراق"
+    },
+    {
+      "id": "baghdad",
+      "ar": [
+        "بغداد"
+      ],
+      "en": "Baghdad",
+      "ckb": "بەغدا"
+    },
+    {
+      "id": "erbil",
+      "ar": [
+        "أربيل",
+        "اربيل"
+      ],
+      "en": "Erbil",
+      "ckb": "هەولێر"
+    },
+    {
+      "id": "sulaymaniyah",
+      "ar": [
+        "السليمانية"
+      ],
+      "en": "Sulaymaniyah",
+      "ckb": "سلێمانی"
+    },
+    {
+      "id": "duhok",
+      "ar": [
+        "دهوك"
+      ],
+      "en": "Duhok",
+      "ckb": "دهۆک"
+    }
   ],
   "styleExamples": [
     {
@@ -129,5 +1065,171 @@
       "en": "Change 25% of the tank water every week and keep the temperature between 24 and 28 °C.",
       "ckb": "هەفتانە 25% ی ئاوی حەوزەکە بگۆڕە و پلەی گەرمی لە نێوان 24 و 28 پلەی سەدی ڕابگرە."
     }
-  ]
+  ],
+  "specLabels": {
+    "الحجم": {
+      "en": "Size",
+      "ckb": "قەبارە"
+    },
+    "الوزن": {
+      "en": "Weight",
+      "ckb": "کێش"
+    },
+    "القدرة": {
+      "en": "Power",
+      "ckb": "هێز"
+    },
+    "القطر": {
+      "en": "Diameter",
+      "ckb": "تیرە"
+    },
+    "النوع": {
+      "en": "Type",
+      "ckb": "جۆر"
+    },
+    "الأبعاد": {
+      "en": "Dimensions",
+      "ckb": "ڕەهەندەکان"
+    },
+    "القياسات": {
+      "en": "Measurements",
+      "ckb": "پێوانەکان"
+    },
+    "المقاس": {
+      "en": "Size",
+      "ckb": "قەبارە"
+    },
+    "الموديل": {
+      "en": "Model",
+      "ckb": "مۆدێل"
+    },
+    "الماركة": {
+      "en": "Brand",
+      "ckb": "براند"
+    },
+    "اللون": {
+      "en": "Color",
+      "ckb": "ڕەنگ"
+    },
+    "الألوان": {
+      "en": "Colors",
+      "ckb": "ڕەنگەکان"
+    },
+    "المادة": {
+      "en": "Material",
+      "ckb": "ماددە"
+    },
+    "السعة": {
+      "en": "Capacity",
+      "ckb": "توانای هەڵگرتن"
+    },
+    "التدفق": {
+      "en": "Flow rate",
+      "ckb": "ڕێژەی لێشاو"
+    },
+    "الطاقة": {
+      "en": "Power",
+      "ckb": "هێز"
+    },
+    "الجهد": {
+      "en": "Voltage",
+      "ckb": "ڤۆڵتیە"
+    },
+    "الحرارة": {
+      "en": "Temperature",
+      "ckb": "پلەی گەرمی"
+    },
+    "الضمان": {
+      "en": "Warranty",
+      "ckb": "گەرەنتی"
+    },
+    "العمر الافتراضي": {
+      "en": "Service life",
+      "ckb": "تەمەنی بەکارهێنان"
+    },
+    "التوافق": {
+      "en": "Compatibility",
+      "ckb": "گونجان"
+    },
+    "الإعدادات": {
+      "en": "Settings",
+      "ckb": "ڕێکخستنەکان"
+    },
+    "العمق": {
+      "en": "Depth",
+      "ckb": "قووڵی"
+    },
+    "الطول": {
+      "en": "Length",
+      "ckb": "درێژی"
+    },
+    "العرض": {
+      "en": "Width",
+      "ckb": "پانی"
+    },
+    "الارتفاع": {
+      "en": "Height",
+      "ckb": "بەرزی"
+    },
+    "قياس الحوض": {
+      "en": "Tank size",
+      "ckb": "قەبارەی حەوز"
+    },
+    "حجم الحوض": {
+      "en": "Tank volume",
+      "ckb": "قەبارەی حەوز"
+    },
+    "الكمية": {
+      "en": "Quantity",
+      "ckb": "بڕ"
+    },
+    "يشمل": {
+      "en": "Includes",
+      "ckb": "لەخۆدەگرێت"
+    },
+    "عدد الأدوات": {
+      "en": "Number of tools",
+      "ckb": "ژمارەی ئامرازەکان"
+    },
+    "يحتاج": {
+      "en": "Requires",
+      "ckb": "پێویستی بە"
+    },
+    "ملاحظة": {
+      "en": "Note",
+      "ckb": "تێبینی"
+    },
+    "رمز القطعة": {
+      "en": "Item code",
+      "ckb": "کۆدی پارچە"
+    },
+    "نمط الاستخدام": {
+      "en": "Usage type",
+      "ckb": "شێوازی بەکارهێنان"
+    },
+    "طريقة المعاينة": {
+      "en": "Preview method",
+      "ckb": "شێوازی پێشبینین"
+    },
+    "الاستخدام": {
+      "en": "Usage",
+      "ckb": "بەکارهێنان"
+    },
+    "طريقة الاستخدام": {
+      "en": "How to use",
+      "ckb": "شێوازی بەکارهێنان"
+    },
+    "تحذيرات": {
+      "en": "Warnings",
+      "ckb": "ئاگادارییەکان"
+    },
+    "المنشأ": {
+      "en": "Origin",
+      "ckb": "سەرچاوە"
+    },
+    "بلد المنشأ": {
+      "en": "Country of origin",
+      "ckb": "وڵاتی بەرهەمهێنان"
+    }
+  }
 }

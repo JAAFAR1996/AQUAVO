@@ -9,6 +9,7 @@ import {
 } from "@shared/seo-contract";
 import { articleAuthorEntity } from "@shared/editorial-author";
 import { DEFAULT_LOCALE, LOCALES, SUPPORTED_LOCALES, alternatesFor, localizePath, splitLocaleFromPath, type Locale } from "@shared/i18n/locales";
+import { RELEASED_LOCALES, releasedAlternatesFor } from "@shared/i18n/release";
 
 /** Locale of the page on screen, read from the URL prefix (the source of truth). */
 function currentLocale(): Locale {
@@ -150,7 +151,7 @@ export function MetaTags({
     // Reciprocal alternates for every locale, or none on pages that are not indexed.
     removeMeta('link[rel="alternate"][hreflang]');
     if (!notFound && !noIndex && !isPreview) {
-      const { alternates, xDefault } = alternatesFor(logicalPath);
+      const { alternates, xDefault } = releasedAlternatesFor(logicalPath);
       for (const alt of alternates) {
         const link = document.createElement("link");
         link.rel = "alternate";
@@ -180,7 +181,7 @@ export function MetaTags({
     removeMeta('meta[property="og:locale"], meta[property="og:locale:alternate"]');
     const ownOg = LOCALES[locale].ogLocale;
     if (ownOg) setMetaTag("og:locale", ownOg, true);
-    for (const other of SUPPORTED_LOCALES) {
+    for (const other of RELEASED_LOCALES) {
       const alt = LOCALES[other].ogLocale;
       if (other !== locale && alt) {
         const meta = document.createElement("meta");

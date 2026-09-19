@@ -28,7 +28,7 @@ import {
   type ProductTranslationData,
 } from "../../shared/i18n/content.js";
 import { TRANSLATION_TARGET_LOCALES, type Locale } from "../../shared/i18n/locales.js";
-import { completeJson, extractJson, modelChain, normalizeDeep, renderGlossary, type TargetLocale } from "./_llm.js";
+import { completeJson, extractJson, loadGlossary, modelChain, normalizeDeep, renderGlossary, type TargetLocale } from "./_llm.js";
 
 const BASE = process.env.AQUAVO_SOURCE_BASE || "https://www.aquavoiq.com";
 const OUT_DIR = resolve(process.env.AQUAVO_TRANSLATIONS_DIR || "data/i18n/translations");
@@ -167,7 +167,31 @@ ${JSON.stringify(src, null, 2)}`;
   const out = normalizeDeep(parseJson(raw) as unknown as ProductTranslationData);
   if (!out.name || !out.description) throw new Error("incomplete product translation");
   const ss = src as Record<string, unknown>; // productSourceFields() lifts the lists to the top level
-  const ts = out.specifications ?? ({} as NonNullable<ProductTranslationData["specifications"]>);
+  out.specifications ??= {};
+  const ts = out.specifications;
+  // The source defines the structure: a list the Arabic row does not have must not be invented.
+  for (const key of ["benefits", "usageInstructions", "safetyWarnings"] as const) if (!Array.isArray(ss[key]) || (ss[key] as unknown[]).length === 0) ts[key] = [];
+  // Labelled specs whose value is purely technical (no Arabic letters) are copied, with the label from the glossary dictionary.
+  const specLabels = (loadGlossary() as unknown as { specLabels?: Record<string, Record<string, string>> }).specLabels ?? {};
+  ts.labelled ??= {};
+  // Models sometimes translate the KEY instead of keeping the Arabic key: re-key extra entries onto the missing source keys by position.
+  const srcKeys = Object.keys((ss.labelled ?? {}) as Record<string, unknown>);
+  const extra = Object.keys(ts.labelled).filter((k) => !srcKeys.includes(k));
+  for (const k of srcKeys) {
+    if (ts.labelled[k]?.label) continue;
+    const next = extra.shift();
+    if (!next) break;
+    const entry = ts.labelled[next];
+    delete ts.labelled[next];
+    if (entry && typeof entry === "object" && "label" in entry) ts.labelled[k] = entry;
+    else ts.labelled[k] = { label: next, value: String(entry) };
+  }
+  for (const [k, v] of Object.entries((ss.labelled ?? {}) as Record<string, unknown>)) {
+    if (ts.labelled[k]?.label) continue;
+    const value = String(v);
+    const label = specLabels[k]?.[locale];
+    if (label && !/\p{Script=Arabic}/u.test(value)) ts.labelled[k] = { label, value };
+  }
   for (const key of ["benefits", "usageInstructions", "safetyWarnings"] as const) {
     const a = Array.isArray(ss[key]) ? (ss[key] as unknown[]).length : 0;
     const b = Array.isArray(ts[key]) ? (ts[key] as unknown[]).length : 0;

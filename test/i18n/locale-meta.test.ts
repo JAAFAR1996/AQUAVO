@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { applyLocaleToHtml, hreflangLinks, ogLocaleTags } from "../../api/_locale-meta";
+import { isLocaleReleased } from "../../shared/i18n/release";
 
 const TEMPLATE = `<!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -13,17 +14,19 @@ const TEMPLATE = `<!DOCTYPE html>
 </html>`;
 
 describe("hreflangLinks", () => {
-  it("emits reciprocal ar/en/ckb links and an Arabic x-default", () => {
+  it("emits an Arabic link, an Arabic x-default, and a link per RELEASED locale only", () => {
     const html = hreflangLinks("/products/x");
     expect(html).toContain('hreflang="ar-IQ" href="https://www.aquavoiq.com/products/x"');
-    expect(html).toContain('hreflang="en" href="https://www.aquavoiq.com/en/products/x"');
-    expect(html).toContain('hreflang="ckb-IQ" href="https://www.aquavoiq.com/ckb/products/x"');
     expect(html).toContain('hreflang="x-default" href="https://www.aquavoiq.com/products/x"');
+    // Unreleased locales are not advertised to crawlers (shared/i18n/release.ts).
+    expect(html.includes('hreflang="en" href="https://www.aquavoiq.com/en/products/x"')).toBe(isLocaleReleased("en"));
+    expect(html.includes('hreflang="ckb-IQ" href="https://www.aquavoiq.com/ckb/products/x"')).toBe(isLocaleReleased("ckb"));
   });
 
   it("keeps the category query string that defines a listing page", () => {
     const html = hreflangLinks("/products", "?category=%D8%A3%D8%AD%D9%88%D8%A7%D8%B6");
-    expect(html).toContain("https://www.aquavoiq.com/en/products?category=%D8%A3%D8%AD%D9%88%D8%A7%D8%B6");
+    expect(html).toContain("https://www.aquavoiq.com/products?category=%D8%A3%D8%AD%D9%88%D8%A7%D8%B6");
+    if (isLocaleReleased("en")) expect(html).toContain("https://www.aquavoiq.com/en/products?category=%D8%A3%D8%AD%D9%88%D8%A7%D8%B6");
   });
 });
 

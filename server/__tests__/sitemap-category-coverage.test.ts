@@ -3,7 +3,8 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { describe, expect, it, vi } from "vitest";
-import { SUPPORTED_LOCALES } from "../../shared/i18n/locales.js";
+import { SUPPORTED_LOCALES as _SUPPORTED_LOCALES } from "../../shared/i18n/locales.js";
+import { RELEASED_LOCALES, isLocaleReleased } from "../../shared/i18n/release.js";
 
 import pagesHandler from "../../api/sitemap-pages";
 import indexHandler from "../../api/sitemap-index";
@@ -55,13 +56,15 @@ describe("sitemap-pages: the eleven category listings are advertised", () => {
 
   it("advertises exactly the static paths plus the eleven categories, once per locale", async () => {
     // Every static page exists in ar, en and ckb (api/_static-meta-i18n.ts),
-    // so each logical URL is listed three times with reciprocal hreflang.
+    // but only RELEASED locales are listed (shared/i18n/release.ts): each
+    // logical URL appears once per released locale with reciprocal hreflang.
     const xml = await render(pagesHandler);
     const locs = locsOf(xml);
-    expect(locs).toHaveLength((PUBLIC_INDEXABLE_PATHS.length + AQUAVO_PRODUCT_CATEGORIES.length) * SUPPORTED_LOCALES.length);
-    expect(locs.filter((l) => l.startsWith(`${AQUAVO_BASE_URL}/en/`) || l === `${AQUAVO_BASE_URL}/en`)).toHaveLength(PUBLIC_INDEXABLE_PATHS.length + AQUAVO_PRODUCT_CATEGORIES.length);
+    expect(locs).toHaveLength((PUBLIC_INDEXABLE_PATHS.length + AQUAVO_PRODUCT_CATEGORIES.length) * RELEASED_LOCALES.length);
+    const enCount = locs.filter((l) => l.startsWith(`${AQUAVO_BASE_URL}/en/`) || l === `${AQUAVO_BASE_URL}/en`).length;
+    expect(enCount).toBe(isLocaleReleased("en") ? PUBLIC_INDEXABLE_PATHS.length + AQUAVO_PRODUCT_CATEGORIES.length : 0);
     expect(xml).toContain('hreflang="x-default"');
-    expect(xml).toContain('hreflang="ckb-IQ"');
+    expect(xml.includes('hreflang="ckb-IQ"')).toBe(isLocaleReleased("ckb"));
   });
 
   it("emits no duplicate URL, in any encoding", async () => {
@@ -75,7 +78,7 @@ describe("sitemap-pages: the eleven category listings are advertised", () => {
 
   it("uses one encoding form: percent-encoded UTF-8, %20 for spaces", async () => {
     const categoryLocs = locsOf(await render(pagesHandler)).filter((loc) => loc.includes("?category="));
-    expect(categoryLocs).toHaveLength(AQUAVO_PRODUCT_CATEGORIES.length * SUPPORTED_LOCALES.length);
+    expect(categoryLocs).toHaveLength(AQUAVO_PRODUCT_CATEGORIES.length * RELEASED_LOCALES.length);
     for (const loc of categoryLocs) {
       expect(loc, `${loc} carries raw non-ASCII`).toMatch(/^[\x21-\x7e]+$/);
       expect(loc, `${loc} uses + for a space`).not.toContain("+");

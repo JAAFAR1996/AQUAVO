@@ -10,6 +10,7 @@
 import type { Pool } from "@neondatabase/serverless";
 import { AQUAVO_BASE_URL } from "../shared/seo-contract.js";
 import { DEFAULT_LOCALE, LOCALES, SUPPORTED_LOCALES, localizePath, type Locale } from "../shared/i18n/locales.js";
+import { RELEASED_LOCALES, isLocaleReleased } from "../shared/i18n/release.js";
 
 export const XHTML_NS = 'xmlns:xhtml="http://www.w3.org/1999/xhtml"';
 
@@ -42,8 +43,8 @@ export function localizedUrlEntries(logicalPath: string, locales: readonly Local
     .join("\n");
 }
 
-/** Locales in which every listed page exists (static pages have copy for all three). */
-export const ALL_LOCALES: readonly Locale[] = SUPPORTED_LOCALES;
+/** Locales listed for static pages: Arabic plus released locales only (shared/i18n/release.ts). */
+export const ALL_LOCALES: readonly Locale[] = RELEASED_LOCALES;
 
 /**
  * For each entity id, the locales whose translation is reviewed and still
@@ -72,6 +73,7 @@ export async function translatedLocalesByEntity(
       currentHashes ? [entityType, ids, JSON.stringify(currentHashes)] : [entityType, ids],
     );
     for (const row of rows) {
+      if (!isLocaleReleased(row.locale)) continue;
       const list = map.get(row.entity_id);
       if (list && !list.includes(row.locale)) list.push(row.locale);
     }
