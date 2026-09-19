@@ -102,7 +102,7 @@ three steps and logs a stable reason code server-side (never returned to the bro
 | --- | --- | --- |
 | 1 | local config (`getWaylConfig`) | `WAYL_API_KEY_MISSING`, `WAYL_ENV_MISSING`, `WAYL_ENV_INVALID`, `WAYL_ENV_NOT_LIVE_IN_PRODUCTION`, `UNKNOWN_CONFIG_ERROR` |
 | 2 | `GET /api/v1/verify-auth-key` | `WAYL_AUTH_FAILED` (401/403), `WAYL_RATE_LIMITED` (429), `WAYL_SERVICE_ERROR` (5xx), `WAYL_NETWORK_FAILED` |
-| 3 | minimal link probe (1000 IQD, `linkExpiresIn: "1m"`, invalidated at once) | `WAYL_ACCOUNT_NOT_LIVE_ENABLED` |
+| 3 | minimal link probe (1000 IQD, current documented create-link fields only, invalidated at once) | `WAYL_ACCOUNT_NOT_LIVE_ENABLED` |
 
 Step 3 exists because Wayl exposes no read-only "store verified" endpoint: an
 authenticated but unverified store gets HTTP 403 `Store must be verified to create
