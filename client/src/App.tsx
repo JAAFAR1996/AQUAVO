@@ -28,6 +28,7 @@ import { NavbarPreferencesProvider } from "@/hooks/use-navbar-preferences";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { LocaleProvider } from "@/i18n/locale-context";
 import { SkipToMainLink } from "@/components/ui/skip-to-main";
+import { LanguageSwitcher } from "@/components/ui/language-switcher";
 import { PageTransition } from "@/components/ui/page-transition";
 
 // Persistent chrome — rendered once in the shell around the Router
@@ -1066,6 +1067,14 @@ function AppShell() {
                   )}
                   <div className="flex min-h-screen flex-col" style={{ ['--aq-header-h' as string]: group === 'bare' ? '0px' : '4rem' }}>
                     {group !== 'bare' && <Navbar />}
+                    {/* Pages without the global navbar (guides, checkout, wizard) still
+                        need a reachable language control; keep it out of the admin
+                        app and invoices, which are not customer-facing. */}
+                    {group === 'bare' && !location.startsWith('/admin') && !location.startsWith('/invoice/') && (
+                      <div className="fixed bottom-4 start-4 z-40 print:hidden" data-testid="floating-language-switcher">
+                        <LanguageSwitcher />
+                      </div>
+                    )}
                     <div className="flex flex-1 flex-col">
                       <Router />
                     </div>
