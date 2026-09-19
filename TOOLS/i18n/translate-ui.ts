@@ -6,16 +6,17 @@
  * {{placeholders}} and <tags>, and writes after every batch so a crash or a
  * rate limit loses nothing. Re-run until it reports 0 missing.
  *
- * Usage: node --env-file=.env --import tsx TOOLS/i18n/translate-ui.ts --locale=en|ckb [--ns=guides,tools] [--model=...] [--batch=40]
+ * Usage: node --env-file=.env --import tsx TOOLS/i18n/translate-ui.ts --locale=en|ckb [--ns=guides,tools] [--batch=40]
+ * Models: the chain in TOOLS/i18n/_llm.ts (override AQUAVO_TRANSLATE_MODELS="gemini:gemini-2.5-flash,groq:openai/gpt-oss-120b").
  */
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { completeJson, extractJson, modelChain, normalizeDeep, renderGlossary } from "./_llm.js";
 
 const args = Object.fromEntries(process.argv.slice(2).map((a) => a.replace(/^--/, "").split("=")).map(([k, v]) => [k, v ?? "true"]));
 const LOCALE = args.locale as "en" | "ckb";
 if (!LOCALE) throw new Error("--locale=en|ckb required");
 const NS = args.ns ? String(args.ns).split(",") : ["common", "nav", "home", "products", "product", "cart", "checkout", "account", "orders", "search", "errors", "pages", "seo", "tools", "guides"];
-const MODEL = String(args.model || process.env.AQUAVO_TRANSLATE_MODEL || (LOCALE === "ckb" ? "openai/gpt-oss-120b" : "openai/gpt-oss-20b"));
 const BATCH = Number(args.batch || 40);
 const PACE_MS = Number(args.pace || 1500);
 const DIR = resolve("client/src/locales");
@@ -27,8 +28,9 @@ Rules:
 2. Preserve placeholders exactly: {{v0}}, {{count}}, {{name}}, etc. Preserve HTML-like tags such as <strong>, <1>, </1>. Preserve numbers, units (L, cm, W, mm, °C), model codes, brand names (AQUAVO, YEE, HYGGER, Houyi), URLs, emails, phone numbers and the currency mark "د.ع" (write it as "IQD" in English).
 3. Tone: calm, expert, trustworthy shop copy. No emoji. Keep punctuation style natural for the target language.
 4. Short labels stay short (buttons, tabs, aria-labels). Long paragraphs (guides) get a complete, natural translation, never a summary.
-${LOCALE === "ckb" ? `5. Central Kurdish / Sorani only, as used in Sulaymaniyah and Erbil, written with Sorani letters (ڕ ڵ ۆ ێ ە ڤ گ چ پ ژ ک ی). Never Kurmanji, never Persian vocabulary where a common Sorani word exists, never a transliteration of the Arabic sentence.
-6. Aquarium glossary (Arabic -> Sorani): حوض -> حەوز; فلتر -> فلتەر; سخان -> گەرمکەر; مضخة هواء -> پەمپی هەوا; إضاءة -> ڕووناکی; ركيزة/تربة -> خاک; رمل -> لم; حصى -> بەردەلانک; خشب طبيعي -> داری ئاوی; حجر -> بەرد; معالج مياه -> ئامادەکەری ئاو; أمونيا -> ئەمۆنیا; نتريت -> نایترایت; نترات -> نایترات; دورة النيتروجين -> سووڕی نایترۆجین; بكتيريا نافعة -> بەکتریای بەسوود; تغيير الماء -> گۆڕینی ئاو; سيفون -> سایفۆن; مقياس حرارة -> پلەپێو; فحص الماء -> پشکنینی ئاو; ملح -> خوێ; طعام -> خۆراک; أسماك الزينة -> ماسی ڕازاندنەوە; روبيان -> میگۆ; نبات -> ڕووەک; طحالب -> کەوز; النقطة البيضاء -> خاڵی سپی; تفريخ -> زاوزێ; السلة -> سەبەتە; إتمام الطلب -> تەواوکردنی داواکاری; الطلب -> داواکاری; التوصيل -> گەیاندن; المخزون/متوفر -> بەردەست; المنتج -> بەرهەم; الفئة -> بەش; الحساب -> هەژمار; تسجيل الدخول -> چوونەژوورەوە; كلمة المرور -> وشەی نهێنی; المفضلة -> دڵخوازەکان; pH/GH/KH/NH3/NO2/NO3/CO2 stay as they are.` : `5. Product names follow "<Brand> <Model> <descriptive type>". Iraqi idioms are rephrased into natural ecommerce English.`}`;
+${LOCALE === "ckb" ? `5. Central Kurdish / Sorani only, as used in Sulaymaniyah and Erbil, written with Sorani letters (ڕ ڵ ۆ ێ ە ڤ گ چ پ ژ ک ی). Never Kurmanji, never Persian vocabulary where a common Sorani word exists, never a transliteration of the Arabic sentence. Chemical symbols pH/GH/KH/NH3/NO2/NO3/CO2 stay as they are. Write all digits as Western digits (0-9).
+` : `5. Product names follow "<Brand> <Model> <descriptive type>". Iraqi idioms are rephrased into natural ecommerce English.`}
+${renderGlossary(LOCALE)}`;
 
 function flatten(obj: Record<string, unknown>, prefix = "", out: Record<string, string> = {}): Record<string, string> {
   for (const [k, v] of Object.entries(obj)) {
@@ -52,51 +54,26 @@ function placeholders(s: string): string[] {
 }
 
 let lastCall = 0;
+let lastModel = "";
 async function complete(input: Record<string, string>): Promise<Record<string, string>> {
-  for (let attempt = 1; attempt <= 8; attempt++) {
-    const wait = lastCall + PACE_MS - Date.now();
-    if (wait > 0) await new Promise((r) => setTimeout(r, wait));
-    lastCall = Date.now();
-    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: { "content-type": "application/json", authorization: `Bearer ${process.env.GROQ_API_KEY}` },
-      body: JSON.stringify({
-        model: MODEL,
-        temperature: 0.2,
-        max_tokens: 8000,
-        reasoning_effort: "low",
-        response_format: { type: "json_object" },
-        messages: [
-          { role: "system", content: RULES },
-          { role: "user", content: `Translate every value. Input JSON:\n${JSON.stringify(input, null, 1)}` },
-        ],
-      }),
-    });
-    if (res.status === 429 || res.status >= 500) {
-      const body = await res.text();
-      const hinted = /try again in ([0-9.]+)s/i.exec(body);
-      const ms = hinted ? Math.ceil(parseFloat(hinted[1]) * 1000) + 800 : Math.min(60000, 3000 * 2 ** (attempt - 1));
-      console.warn(`  ${res.status} — waiting ${ms}ms (attempt ${attempt})`);
-      await new Promise((r) => setTimeout(r, ms));
-      continue;
-    }
-    if (!res.ok) throw new Error(`groq ${res.status}: ${(await res.text()).slice(0, 200)}`);
-    const json = (await res.json()) as { choices: Array<{ message: { content: string } }> };
-    const text = json.choices[0]?.message?.content ?? "{}";
-    const start = text.indexOf("{");
-    const end = text.lastIndexOf("}");
+  const wait = lastCall + PACE_MS - Date.now();
+  if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+  lastCall = Date.now();
+  const user = `Translate every value. Input JSON:\n${JSON.stringify(input, null, 1)}`;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    const { text, model } = await completeJson(LOCALE, RULES, user, { maxTokens: 8000 });
+    lastModel = model;
     try {
-      return JSON.parse(text.slice(start, end + 1)) as Record<string, string>;
+      return normalizeDeep(extractJson(text) as Record<string, string>);
     } catch {
-      console.warn("  bad JSON, retrying");
+      console.warn(`  bad JSON from ${model}, retrying`);
     }
   }
   throw new Error("exhausted retries");
 }
 
 async function main() {
-  if (!process.env.GROQ_API_KEY) throw new Error("GROQ_API_KEY missing (run with node --env-file=.env)");
-  console.log(`locale=${LOCALE} model=${MODEL} namespaces=${NS.join(",")}`);
+  console.log(`locale=${LOCALE} models=${modelChain(LOCALE).map((m) => m.id).join(" > ")} namespaces=${NS.join(",")}`);
   let translated = 0;
   let remaining = 0;
   for (const ns of NS) {
@@ -106,7 +83,7 @@ async function main() {
     const ar = flatten(JSON.parse(readFileSync(arPath, "utf8")));
     const target = existsSync(tgtPath) ? (JSON.parse(readFileSync(tgtPath, "utf8")) as Record<string, unknown>) : {};
     const have = flatten(target);
-    const todo = Object.entries(ar).filter(([k, v]) => !(k in have) || !String(have[k]).trim() || have[k] === v && /\p{Script=Arabic}/u.test(v) && LOCALE === "en");
+    const todo = Object.entries(ar).filter(([k, v]) => !(k in have) || !String(have[k]).trim() || (have[k] === v && /\p{Script=Arabic}/u.test(v)));
     console.log(`${ns}: ${todo.length} to translate (${Object.keys(ar).length} total)`);
     for (let i = 0; i < todo.length; i += BATCH) {
       const chunk = Object.fromEntries(todo.slice(i, i + BATCH));
@@ -130,7 +107,7 @@ async function main() {
       }
       translated += ok;
       writeFileSync(tgtPath, JSON.stringify(target, null, 2) + "\n");
-      console.log(`  ${ns} batch ${i / BATCH + 1}/${Math.ceil(todo.length / BATCH)}: ${ok}/${Object.keys(chunk).length}`);
+      console.log(`  ${ns} batch ${i / BATCH + 1}/${Math.ceil(todo.length / BATCH)}: ${ok}/${Object.keys(chunk).length} [${lastModel}]`);
     }
   }
   console.log(`\ndone: ${translated} translated, ${remaining} still missing (re-run to retry)`);

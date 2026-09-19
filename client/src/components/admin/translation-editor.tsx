@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { LOCALES, TRANSLATION_TARGET_LOCALES, type Locale } from "@shared/i18n/locales";
 
 type EntityType = "product" | "blog_post" | "category" | "blog_category";
-type Coverage = "complete" | "machine" | "outdated" | "missing";
+type Coverage = "complete" | "machine" | "outdated" | "partial" | "missing";
 
 const ENTITY_LABELS: Record<EntityType, string> = {
   product: "المنتجات",
@@ -79,6 +79,7 @@ function StatusBadge({ status }: { status: Coverage }) {
     complete: { label: "مكتملة", className: "bg-emerald-100 text-emerald-800", Icon: CheckCircle2 },
     machine: { label: "آلية — تحتاج مراجعة", className: "bg-amber-100 text-amber-800", Icon: Clock3 },
     outdated: { label: "قديمة — المصدر تغيّر", className: "bg-orange-100 text-orange-800", Icon: AlertTriangle },
+    partial: { label: "ناقصة — حقول مطلوبة فارغة", className: "bg-rose-100 text-rose-800", Icon: AlertTriangle },
     missing: { label: "مفقودة", className: "bg-red-100 text-red-800", Icon: XCircle },
   };
   const { label, className, Icon } = map[status];
@@ -147,7 +148,7 @@ export function TranslationEditor() {
                       return (
                         <td key={l} className="py-2">
                           <span className={done === c.total && c.outdated === 0 ? "text-emerald-700" : "text-amber-700"}>{done}/{c.total}</span>
-                          <span className="text-xs text-muted-foreground"> (مكتملة {c.complete}، آلية {c.machine}، قديمة {c.outdated}، مفقودة {c.missing})</span>
+                          <span className="text-xs text-muted-foreground"> (مكتملة {c.complete}، آلية {c.machine}، قديمة {c.outdated}، ناقصة {c.partial ?? 0}، مفقودة {c.missing})</span>
                         </td>
                       );
                     })}

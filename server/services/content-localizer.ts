@@ -78,10 +78,10 @@ export interface LocalizedList<T> {
   coverage: Map<string, TranslationCoverage>;
 }
 
-function coverageFor<T>(entityType: TranslatableEntityType, entityId: string, locale: Locale, loaded: Loaded<T> | undefined, currentHash: string): TranslationCoverage {
+function coverageFor<T>(entityType: TranslatableEntityType, entityId: string, locale: Locale, loaded: Loaded<T> | undefined, source: Record<string, unknown>): TranslationCoverage {
   if (!loaded) return "missing";
   const record: TranslationRecord = { entityType, entityId, locale, data: loaded.data as Record<string, unknown>, status: loaded.status, sourceHash: loaded.sourceHash };
-  return coverageOf(record, currentHash);
+  return coverageOf(record, sourceHash(source), source);
 }
 
 export async function localizeProducts<T extends Record<string, unknown> & { id: string }>(products: T[], locale: Locale): Promise<LocalizedList<T>> {
@@ -91,10 +91,12 @@ export async function localizeProducts<T extends Record<string, unknown> & { id:
   const coverage = new Map<string, TranslationCoverage>();
   const items = products.map((p) => {
     const loaded = translations.get(p.id);
-    const r = applyProductTranslation(p, loaded?.data, locale);
+    const src = productSourceFields(p as unknown as Parameters<typeof productSourceFields>[0]);
+    const cov = coverageFor("product", p.id, locale, loaded, src);
+    // A partial record (required fields missing) must not produce a mixed-language page: serve Arabic.
+    const r = applyProductTranslation(p, cov === "partial" ? undefined : loaded?.data, locale);
     if (r.translationMissing) missing.push(p.id);
-    const src = p as unknown as Parameters<typeof productSourceFields>[0];
-    coverage.set(p.id, r.translationMissing ? "missing" : coverageFor("product", p.id, locale, loaded, sourceHash(productSourceFields(src))));
+    coverage.set(p.id, cov);
     return r.value;
   });
   return { items, contentLocale: locale, missing, coverage };
@@ -120,10 +122,11 @@ export async function localizeBlogPosts<T extends Record<string, unknown> & { id
   const coverage = new Map<string, TranslationCoverage>();
   const items = posts.map((p) => {
     const loaded = translations.get(p.id);
-    const r = applyBlogPostTranslation(p, loaded?.data, locale);
+    const src = blogPostSourceFields(p as unknown as Parameters<typeof blogPostSourceFields>[0]);
+    const cov = coverageFor("blog_post", p.id, locale, loaded, src);
+    const r = applyBlogPostTranslation(p, cov === "partial" ? undefined : loaded?.data, locale);
     if (r.translationMissing) missing.push(p.id);
-    const src = p as unknown as Parameters<typeof blogPostSourceFields>[0];
-    coverage.set(p.id, r.translationMissing ? "missing" : coverageFor("blog_post", p.id, locale, loaded, sourceHash(blogPostSourceFields(src))));
+    coverage.set(p.id, cov);
     return r.value;
   });
   return { items, contentLocale: locale, missing, coverage };

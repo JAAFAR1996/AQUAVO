@@ -10,9 +10,27 @@ const base: TranslationRecord = {
   entityType: "product",
   entityId: "p1",
   locale: "en",
-  data: { name: "Heater 100 W" },
+  data: { name: "Heater 100 W", description: "Submersible heater." },
   status: "machine",
   sourceHash: "abc",
+};
+
+/** Arabic source shaped like the live row for aquavo-driftwood-dw-01 (list lengths match the stored English translation). */
+const DW01 = {
+  id: "aquavo-driftwood-dw-01",
+  name: "خشب طبيعي للأحواض والأكواسكيب — DW-01",
+  description: "قطعة خشب طبيعي فريدة.",
+  subcategory: "خشب طبيعي",
+  specifications: {
+    benefits: ["أ", "ب", "ج"],
+    usageInstructions: ["أ", "ب", "ج"],
+    safetyWarnings: ["أ", "ب"],
+    __cardBenefit: "القطعة المعروضة نفسها",
+    "ملاحظة": "المعروض هو نفس القطعة",
+    "رمز القطعة": "DW-01",
+    "نمط الاستخدام": "ديكور وأكواسكيب",
+    "طريقة المعاينة": "صورة ومعاينة ثلاثية الأبعاد",
+  },
 };
 
 describe("indexable coverage", () => {
@@ -42,11 +60,11 @@ describe("content localizer exposes the gate", () => {
     const { localizeProduct } = await import("../../server/services/content-localizer");
     // Arabic source row shaped like the API's product; the file store holds a
     // machine translation for this id (data/i18n/translations/en/products.json).
-    const product = { id: "aquavo-driftwood-dw-01", name: "خشب طبيعي", description: "وصف", subcategory: "خشب", specifications: {} };
-    const r = await localizeProduct(product, "en");
+    const r = await localizeProduct(DW01, "en");
     expect(r.translationMissing).toBe(false);
     expect(String(r.product.name)).toMatch(/natural wood/i);
-    expect(r.coverage === "machine" || r.coverage === "outdated").toBe(true);
+    // The fixture cannot reproduce the live source hash, so the record is machine or outdated; never partial, never complete.
+    expect(["machine", "outdated"]).toContain(r.coverage);
     expect(r.indexable).toBe(false);
   });
 
@@ -61,9 +79,8 @@ describe("content localizer exposes the gate", () => {
 
   it("Arabic is always indexable and never consults the translation store", async () => {
     const { localizeProduct } = await import("../../server/services/content-localizer");
-    const product = { id: "aquavo-driftwood-dw-01", name: "خشب طبيعي", description: "وصف", subcategory: "خشب", specifications: {} };
-    const r = await localizeProduct(product, "ar");
-    expect(r.product.name).toBe("خشب طبيعي");
+    const r = await localizeProduct(DW01, "ar");
+    expect(r.product.name).toBe(DW01.name);
     expect(r.indexable).toBe(true);
   });
 

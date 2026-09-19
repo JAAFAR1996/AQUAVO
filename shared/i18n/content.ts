@@ -12,7 +12,7 @@ export type TranslatableEntityType = "product" | "blog_post" | "category" | "blo
 
 export type TranslationStatus = "machine" | "reviewed";
 /** Derived state shown to editors. */
-export type TranslationCoverage = "complete" | "machine" | "outdated" | "missing";
+export type TranslationCoverage = "complete" | "machine" | "outdated" | "partial" | "missing";
 
 export interface ProductTranslationData {
   name: string;
@@ -140,8 +140,76 @@ export function sourceHash(fields: Record<string, unknown>): string {
   return `${h1.toString(16).padStart(8, "0")}${h2.toString(16).padStart(8, "0")}`;
 }
 
-export function coverageOf(record: TranslationRecord | null | undefined, currentSourceHash: string): TranslationCoverage {
+/**
+ * Field-level completeness: a translation record counts only when every
+ * REQUIRED localized field is present and non-empty, and list-shaped fields
+ * have the same number of items as the Arabic source. `source` is the object
+ * returned by the matching *SourceFields() helper.
+ */
+export function translationCompleteness(
+  entityType: TranslatableEntityType,
+  data: Record<string, unknown> | null | undefined,
+  source?: Record<string, unknown>,
+): { complete: boolean; missing: string[] } {
+  const missing: string[] = [];
+  const d = (data ?? {}) as Record<string, unknown>;
+  const str = (v: unknown) => typeof v === "string" && v.trim().length > 0;
+  const len = (v: unknown) => (Array.isArray(v) ? v.length : 0);
+  if (entityType === "product") {
+    if (!str(d.name)) missing.push("name");
+    if (!str(d.description)) missing.push("description");
+    if (source) {
+      if (str(source.subcategory) && !str(d.subcategory)) missing.push("subcategory");
+      const specs = (d.specifications ?? {}) as Record<string, unknown>;
+      for (const key of ["benefits", "usageInstructions", "safetyWarnings"]) {
+        if (len(source[key]) !== len(specs[key])) missing.push(`specifications.${key}`);
+        else if ((specs[key] as unknown[] | undefined)?.some((x) => !str(x))) missing.push(`specifications.${key}[]`);
+      }
+      if (str(source.cardBenefit) && !str(specs.__cardBenefit)) missing.push("specifications.__cardBenefit");
+      const labelled = (specs.labelled ?? {}) as Record<string, { label?: unknown; value?: unknown }>;
+      for (const k of Object.keys((source.labelled ?? {}) as Record<string, unknown>)) {
+        if (!str(labelled[k]?.label) || !str(labelled[k]?.value)) missing.push(`specifications.labelled.${k}`);
+      }
+      const vl = (d.variantLabels ?? {}) as Record<string, unknown>;
+      for (const id of Object.keys((source.variantLabels ?? {}) as Record<string, unknown>)) if (!str(vl[id])) missing.push(`variantLabels.${id}`);
+    }
+  } else if (entityType === "blog_post") {
+    if (!str(d.title)) missing.push("title");
+    if (!str(d.excerpt)) missing.push("excerpt");
+    if (!str(d.content)) missing.push("content");
+    else if (source && str(source.content)) {
+      const count = (html: string, re: RegExp) => (html.match(re) || []).length;
+      const src = String(source.content);
+      const out = String(d.content);
+      for (const [label, re] of [["headings", /<h[1-6]\b/gi], ["listItems", /<li\b/gi], ["tables", /<table\b/gi], ["images", /<img\b/gi]] as const) {
+        if (count(src, re) !== count(out, re)) missing.push(`content.${label}`);
+      }
+      const words = (html: string) => html.replace(/<[^>]+>/g, " ").split(/\s+/).filter(Boolean).length;
+      if (words(src) > 40 && words(out) < words(src) * 0.5) missing.push("content.length");
+    }
+  } else if (entityType === "category") {
+    if (!str(d.displayName)) missing.push("displayName");
+  } else if (entityType === "blog_category") {
+    if (!str(d.name)) missing.push("name");
+  } else if (entityType === "guide") {
+    if (!str(d.title)) missing.push("title");
+  }
+  return { complete: missing.length === 0, missing };
+}
+
+/**
+ * Coverage of one record against the current Arabic source. Order of
+ * precedence: missing -> partial (required fields absent) -> outdated ->
+ * machine -> complete. Only "complete" (reviewed by a person, current, and
+ * field-complete) makes a page indexable.
+ */
+export function coverageOf(
+  record: TranslationRecord | null | undefined,
+  currentSourceHash: string,
+  source?: Record<string, unknown>,
+): TranslationCoverage {
   if (!record) return "missing";
+  if (!translationCompleteness(record.entityType, record.data, source).complete) return "partial";
   if (record.sourceHash && record.sourceHash !== currentSourceHash) return "outdated";
   return record.status === "reviewed" ? "complete" : "machine";
 }

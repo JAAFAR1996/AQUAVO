@@ -14,7 +14,7 @@
  * Usage:
  *   node --env-file=.env --import tsx TOOLS/i18n/translate-content.ts [--entity=products|blog|categories] [--locale=en|ckb] [--limit=N] [--force]
  *
- * Provider: ANTHROPIC_API_KEY if present (Claude), else GROQ_API_KEY (OpenAI-compatible), else GEMINI_API_KEY.
+ * Models: the per-locale chain in TOOLS/i18n/_llm.ts (Gemini + Groq with rate-limit failover).
  */
 import { mkdirSync, existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -28,6 +28,7 @@ import {
   type ProductTranslationData,
 } from "../../shared/i18n/content.js";
 import { TRANSLATION_TARGET_LOCALES, type Locale } from "../../shared/i18n/locales.js";
+import { completeJson, extractJson, modelChain, normalizeDeep, renderGlossary, type TargetLocale } from "./_llm.js";
 
 const BASE = process.env.AQUAVO_SOURCE_BASE || "https://www.aquavoiq.com";
 const OUT_DIR = resolve(process.env.AQUAVO_TRANSLATIONS_DIR || "data/i18n/translations");
@@ -38,82 +39,7 @@ const LIMIT = args.limit ? Number(args.limit) : Infinity;
 const FORCE = args.force === "true";
 const CONCURRENCY = Number(args.concurrency || 3);
 
-// ── Glossary & rules ──────────────────────────────────────────────────────────
-const GLOSSARY = `
-Aquarium terminology (Arabic -> English -> Central Kurdish/Sorani):
-- حوض / حوض السمك -> aquarium / tank -> حەوزی ماسی / حەوز
-- فلتر -> filter -> فلتەر
-- فلتر معلق (HOB) -> hang-on-back filter -> فلتەری هەڵواسراو
-- فلتر إسفنجي -> sponge filter -> فلتەری ئیسفەنجی
-- فلتر خارجي / داخلي -> external (canister) / internal filter -> فلتەری دەرەکی / ناوەکی
-- وسائط الفلتر -> filter media -> ماددەی فلتەر
-- سخان / هيتر -> heater -> گەرمکەر
-- مضخة هواء -> air pump -> پەمپی هەوا
-- حجر هواء -> air stone -> بەردی هەوا
-- خرطوم هواء -> air tubing -> بۆری هەوا
-- صمام -> valve -> ڤاڵڤ
-- إضاءة LED -> LED light -> ڕووناکی LED
-- ركيزة / تربة -> substrate -> خاک / بنکە
-- رمل / حصى -> sand / gravel -> لم / بەردەلانک
-- خشب طبيعي / جذوع -> driftwood -> داری ئاوی
-- أحجار الزينة -> decorative stones -> بەردی ڕازاندنەوە
-- أكواسكيب -> aquascape -> ئەکواسکەیپ
-- معالج مياه / مكيف مياه -> water conditioner -> ئامادەکەری ئاو
-- كلور / كلورامين -> chlorine / chloramine -> کلۆر / کلۆرامین
-- أمونيا / نتريت / نترات -> ammonia / nitrite / nitrate -> ئەمۆنیا / نایترایت / نایترات
-- دورة النيتروجين -> nitrogen cycle -> سووڕی نایترۆجین
-- بكتيريا نافعة -> beneficial bacteria -> بەکتریای بەسوود
-- تغيير الماء -> water change -> گۆڕینی ئاو
-- شفاط / سيفون -> siphon / gravel vacuum -> سایفۆن
-- مقياس حرارة / ثرمومتر -> thermometer -> پلەپێو
-- فحص الماء / عدة فحص -> water test / test kit -> پشکنینی ئاو / کیتی پشکنین
-- pH -> pH -> pH
-- ملح الأحواض -> aquarium salt -> خوێی حەوز
-- طعام رقائق / حبيبات -> flake / pellet food -> خۆراکی پەڕە / دەنکە
-- طعام غاطس / طافي -> sinking / floating food -> خۆراکی نقووم / سەرئاو
-- أسماك الزينة -> ornamental fish -> ماسی ڕازاندنەوە
-- سمك ذهبي -> goldfish -> ماسی زێڕین
-- بيتا -> betta -> بێتا
-- جوبي -> guppy -> گۆپی
-- سيكلد -> cichlid -> سیکلید
-- تفريخ -> breeding -> زاوزێ
-- حجر / صندوق عزل -> isolation box / breeder box -> سندوقی جیاکردنەوە
-- طحالب -> algae -> کەوز
-- النقطة البيضاء -> white spot (ich) -> خاڵی سپی
-- لتر -> litre (L) -> لیتر
-- سم -> cm -> سم
-- واط -> W (watt) -> وات
-- لتر/ساعة -> L/h -> لیتر/کاتژمێر
-- الدفع عند الاستلام -> cash on delivery -> پارەدان لە کاتی وەرگرتن
-- توصيل -> delivery -> گەیاندن
-- د.ع / دينار عراقي -> IQD -> د.ع
-General commerce words:
-- قطعة -> piece / item -> پارچە
-- طبيعي -> natural -> سروشتی
-- تصميم -> design / layout -> دیزاین
-- مناسب -> suitable -> گونجاو
-- حجم -> size -> قەبارە
-- كبير / صغير / متوسط -> large / small / medium -> گەورە / بچووک / مامناوەند
-- الاستخدام -> use / usage -> بەکارهێنان
-- تركيب -> installation -> دامەزراندن
-- تنظيف -> cleaning -> پاککردنەوە
-- صيانة -> maintenance -> چاودێری
-- ضمان -> warranty -> گەرەنتی
-- متوفر -> available / in stock -> بەردەستە
-- الطلب -> order -> داواکاری
-- الزبون / العميل -> customer -> کڕیار
-- الشكل -> shape -> شێوە
-- الصورة -> photo / image -> وێنە
-- معاينة ثلاثية الأبعاد -> 3D preview -> پێشبینینی سێ ڕەهەندی
-- تانينات -> tannins -> تانین
-- بيوفيلم -> biofilm -> بایۆفیلم
-
-Sorani style example (do this, not a literal calque):
-Arabic: "اغسل الخشب وانقعه قبل الاستخدام، وقد يحتاج إلى تثبيت مؤقت حتى يتشبع بالماء."
-Sorani: "پێش بەکارهێنان دارەکە بشۆ و لە ئاودا بیخوسێنە؛ لەوانەیە بۆ ماوەیەک پێویستی بە جێگیرکردنی کاتی بێت تا بە تەواوی ئاو هەڵمژێت."
-English: "Wash and soak the wood before use; it may need to be weighted down temporarily until it becomes waterlogged."
-`;
-
+// ── Rules (glossary comes from shared/i18n/glossary.json) ─────────────────────
 const RULES = `
 You are a professional e-commerce translator for AQUAVO, an Iraqi aquarium equipment store.
 Translate from Iraqi Arabic into the target language exactly as instructed.
@@ -126,113 +52,43 @@ Hard rules:
 6. Central Kurdish (ckb): natural Iraqi Sorani in Arabic script as used in Sulaymaniyah/Erbil. Use Sorani letters (ڕ ڵ ۆ ێ ە ڤ گ چ پ ژ ک ی). NEVER use Kurmanji, NEVER use Persian words where a common Sorani word exists, NEVER transliterate the Arabic sentence. Kurdish product names keep the brand+model in Latin letters and put the Kurdish descriptive words around them.
 7. Use the glossary consistently. If a term is missing from the glossary, use the standard term aquarium hobbyists in Iraq use.
 8. Output ONLY the JSON object requested, valid JSON, no markdown fences, no commentary.
+9. Write all digits as Western digits (0-9), never Arabic-Indic digits.
 `;
 
-// ── Providers ────────────────────────────────────────────────────────────────
+// ── Provider (shared chain) ───────────────────────────────────────────────────
 interface Provider {
   name: string;
   complete(prompt: string, targetLocale: Locale): Promise<string>;
 }
-
-async function anthropicProvider(): Promise<Provider | null> {
-  if (!process.env.ANTHROPIC_API_KEY) return null;
-  const { default: Anthropic } = await import("@anthropic-ai/sdk");
-  const client = new Anthropic();
-  const model = process.env.AQUAVO_TRANSLATE_MODEL || "claude-opus-5";
+let lastModel = "";
+function chainProvider(): Provider {
   return {
-    name: `claude:${model}`,
-    async complete(prompt) {
-      const res = await client.messages.create({
-        model,
-        max_tokens: 8000,
-        temperature: 0.2,
-        system: RULES + GLOSSARY,
-        messages: [{ role: "user", content: prompt }],
-      });
-      return res.content.map((c) => ("text" in c ? c.text : "")).join("");
+    name: "chain",
+    async complete(prompt, targetLocale) {
+      const locale = targetLocale as TargetLocale;
+      const { text, model } = await completeJson(locale, RULES + renderGlossary(locale), prompt, { maxTokens: 16000 });
+      lastModel = model;
+      return text;
     },
   };
 }
+const usedModel = () => lastModel;
 
-async function geminiProvider(): Promise<Provider | null> {
-  if (!process.env.GEMINI_API_KEY) return null;
-  const { GoogleGenerativeAI } = await import("@google/generative-ai");
-  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-  const modelName = process.env.AQUAVO_TRANSLATE_MODEL || "gemini-2.5-pro";
-  const model = genAI.getGenerativeModel({
-    model: modelName,
-    systemInstruction: RULES + GLOSSARY,
-    generationConfig: { temperature: 0.2, responseMimeType: "application/json" },
-  });
-  return {
-    name: `gemini:${modelName}`,
-    async complete(prompt) {
-      const res = await model.generateContent(prompt);
-      return res.response.text();
-    },
-  };
-}
-
-async function groqProvider(): Promise<Provider | null> {
-  if (!process.env.GROQ_API_KEY) return null;
-  const model = process.env.AQUAVO_TRANSLATE_MODEL || "openai/gpt-oss-120b";
-  return {
-    name: `groq:${model}`,
-    async complete(prompt) {
-      const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-        method: "POST",
-        headers: { "content-type": "application/json", authorization: `Bearer ${process.env.GROQ_API_KEY}` },
-        body: JSON.stringify({
-          model,
-          temperature: 0.2,
-          max_tokens: 8000,
-          reasoning_effort: "low",
-          response_format: { type: "json_object" },
-          messages: [
-            { role: "system", content: RULES + GLOSSARY },
-            { role: "user", content: prompt },
-          ],
-        }),
-      });
-      if (!res.ok) throw new Error(`groq ${res.status}: ${(await res.text()).slice(0, 200)}`);
-      const json = (await res.json()) as { choices: Array<{ message: { content: string } }> };
-      return json.choices[0]?.message?.content ?? "";
-    },
-  };
-}
-
-function parseJson(text: string): Record<string, unknown> {
-  const cleaned = text.trim().replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/, "");
-  const start = cleaned.indexOf("{");
-  const end = cleaned.lastIndexOf("}");
-  return JSON.parse(cleaned.slice(start, end + 1));
-}
-
-const PACE_MS = Number(process.env.AQUAVO_TRANSLATE_PACE_MS || 2500);
-let lastCallAt = 0;
-async function pace(): Promise<void> {
-  const wait = lastCallAt + PACE_MS - Date.now();
-  if (wait > 0) await new Promise((r) => setTimeout(r, wait));
-  lastCallAt = Date.now();
-}
-
-async function withRetry<T>(fn: () => Promise<T>, label: string, attempts = 8): Promise<T> {
-  let lastErr: unknown;
+/** Retry structural failures (bad JSON, drift) with a fresh generation; rate limits are handled inside the chain. */
+async function withRetry<T>(fn: () => Promise<T>, label: string, attempts = 3): Promise<T> {
+  let last: unknown;
   for (let i = 1; i <= attempts; i++) {
     try {
-      await pace();
       return await fn();
     } catch (err) {
-      lastErr = err;
-      const msg = String((err as Error).message || "");
-      // Groq reports the cooldown in the body ("try again in 12.3s"); honour it.
-      const hinted = /try again in ([0-9.]+)s/i.exec(msg);
-      const wait = hinted ? Math.ceil(parseFloat(hinted[1]) * 1000) + 1000 : Math.min(60000, 3000 * 2 ** (i - 1));
-      console.warn(`  retry ${i}/${attempts} for ${label} in ${wait}ms: ${(err as Error).message?.slice(0, 120)}`);
-      await new Promise((r) => setTimeout(r, wait));
+      last = err;
+      console.warn(`  retry ${i}/${attempts} for ${label}: ${(err as Error).message.slice(0, 140)}`);
     }
   }
-  throw lastErr;
+  throw last as Error;
+}
+function parseJson(raw: string): Record<string, unknown> {
+  return extractJson(raw) as Record<string, unknown>;
 }
 
 // ── Storage ──────────────────────────────────────────────────────────────────
@@ -306,10 +162,22 @@ Return a JSON object with exactly these keys:
 }
 Source (Arabic):
 ${JSON.stringify(src, null, 2)}`;
-  const raw = await withRetry(() => provider.complete(prompt, locale), `${locale}:product:${p.slug}`);
-  const out = parseJson(raw) as unknown as ProductTranslationData;
+  return withRetry(async () => {
+  const raw = await provider.complete(prompt, locale);
+  const out = normalizeDeep(parseJson(raw) as unknown as ProductTranslationData);
   if (!out.name || !out.description) throw new Error("incomplete product translation");
+  const ss = src as Record<string, unknown>; // productSourceFields() lifts the lists to the top level
+  const ts = out.specifications ?? ({} as NonNullable<ProductTranslationData["specifications"]>);
+  for (const key of ["benefits", "usageInstructions", "safetyWarnings"] as const) {
+    const a = Array.isArray(ss[key]) ? (ss[key] as unknown[]).length : 0;
+    const b = Array.isArray(ts[key]) ? (ts[key] as unknown[]).length : 0;
+    if (a !== b) throw new Error(`${key}: ${a} source items vs ${b} translated`);
+  }
+  const srcLabelled = (ss.labelled ?? {}) as Record<string, unknown>;
+  for (const k of Object.keys(srcLabelled)) if (!ts.labelled?.[k]?.label) throw new Error(`labelled spec "${k}" missing`);
+  for (const v of p.variants ?? []) if (!out.variantLabels?.[String(v.id)]) throw new Error(`variant label "${v.id}" missing`);
   return out;
+  }, `${locale}:product:${p.slug}`);
 }
 
 async function translatePost(provider: Provider, post: ApiFullPost, locale: Locale): Promise<BlogPostTranslationData> {
@@ -320,15 +188,27 @@ Return a JSON object with exactly these keys:
 { "title": string, "excerpt": string, "content": string, "category": string, "seoTitle": string, "seoDescription": string }
 Source (Arabic):
 ${JSON.stringify(src, null, 2)}`;
-  const raw = await withRetry(() => provider.complete(prompt, locale), `${locale}:post:${post.slug}`);
-  const out = parseJson(raw) as unknown as BlogPostTranslationData;
-  if (!out.title || !out.content) throw new Error("incomplete post translation");
+  return withRetry(async () => {
+  const raw = await provider.complete(prompt, locale);
+  const out = normalizeDeep(parseJson(raw) as unknown as BlogPostTranslationData);
+  if (!out.title || !out.content || !out.excerpt) throw new Error("incomplete post translation");
+  // Body must be translated in full: same headings / list items / tables / images as the source.
+  const count = (html: string, re: RegExp) => (html.match(re) || []).length;
+  for (const [label, re] of [["headings", /<h[1-6]\b/gi], ["list items", /<li\b/gi], ["tables", /<table\b/gi], ["images", /<img\b/gi]] as const) {
+    const a = count(post.content, re), b = count(out.content, re);
+    if (a !== b) throw new Error(`${label}: ${a} in source vs ${b} translated`);
+  }
+  const srcWords = post.content.replace(/<[^>]+>/g, " ").split(/\s+/).filter(Boolean).length;
+  const outWords = out.content.replace(/<[^>]+>/g, " ").split(/\s+/).filter(Boolean).length;
+  if (srcWords > 40 && outWords < srcWords * 0.5) throw new Error(`body too short: ${outWords} words vs ${srcWords} source`);
+  if (/\p{Script=Arabic}/u.test(out.content.replace(/<[^>]+>/g, "")) && locale === "en") throw new Error("Arabic text left in English body");
   const srcTags = (post.content.match(/<[a-z][a-z0-9]*/gi) || []).length;
   const outTags = (out.content.match(/<[a-z][a-z0-9]*/gi) || []).length;
   if (srcTags && Math.abs(srcTags - outTags) > Math.max(2, srcTags * 0.1)) {
     throw new Error(`HTML structure drift: ${srcTags} source tags vs ${outTags} translated`);
   }
   return out;
+  }, `${locale}:post:${post.slug}`);
 }
 
 async function translateBlogCategory(provider: Provider, c: ApiBlogCategory, locale: Locale): Promise<BlogCategoryTranslationData> {
@@ -336,8 +216,12 @@ async function translateBlogCategory(provider: Provider, c: ApiBlogCategory, loc
   const prompt = `Target language: ${LANGUAGE_NAME[locale]}.
 Translate this blog category. Return JSON: { "name": string, "description": string }
 Source (Arabic): ${JSON.stringify(src)}`;
-  const raw = await withRetry(() => provider.complete(prompt, locale), `${locale}:blogcat:${c.slug}`);
-  return parseJson(raw) as unknown as BlogCategoryTranslationData;
+  return withRetry(async () => {
+  const raw = await provider.complete(prompt, locale);
+  const out = normalizeDeep(parseJson(raw) as unknown as BlogCategoryTranslationData);
+  if (!out.name) throw new Error("incomplete blog category translation");
+  return out;
+  }, `${locale}:blogcat:${c.slug}`);
 }
 
 // ── Runner ───────────────────────────────────────────────────────────────────
@@ -354,9 +238,8 @@ async function runPool<T>(items: T[], worker: (item: T) => Promise<void>): Promi
 }
 
 async function main(): Promise<void> {
-  const provider = (await anthropicProvider()) ?? (await groqProvider()) ?? (await geminiProvider());
-  if (!provider) throw new Error("Set ANTHROPIC_API_KEY or GEMINI_API_KEY");
-  console.log(`provider: ${provider.name}; source: ${BASE}; out: ${OUT_DIR}`);
+  const provider = chainProvider();
+  console.log(`models: en=${modelChain("en").map((m) => m.id).join(">")} ckb=${modelChain("ckb").map((m) => m.id).join(">")}; source: ${BASE}; out: ${OUT_DIR}`);
   const locales = (ONLY_LOCALE ? [ONLY_LOCALE] : TRANSLATION_TARGET_LOCALES) as Locale[];
   const summary: Record<string, { translated: number; skipped: number; failed: number }> = {};
   const bump = (k: string, f: "translated" | "skipped" | "failed") => {
@@ -374,7 +257,7 @@ async function main(): Promise<void> {
       await runPool(todo, async (p) => {
         try {
           const data = await translateProduct(provider, p, locale);
-          store[p.id] = { entityId: p.id, slug: p.slug, sourceHash: sourceHash(productSourceFields(p)), translatedBy: provider.name, translatedAt: new Date().toISOString(), data };
+          store[p.id] = { entityId: p.id, slug: p.slug, sourceHash: sourceHash(productSourceFields(p)), translatedBy: usedModel(), translatedAt: new Date().toISOString(), data };
           saveStore(locale, "products", store);
           bump(`${locale}/products`, "translated");
           console.log(`  ✓ ${locale} ${p.slug} -> ${data.name}`);
@@ -396,7 +279,7 @@ async function main(): Promise<void> {
       await runPool(todo, async (c) => {
         try {
           const data = await translateBlogCategory(provider, c, locale);
-          store[c.id] = { entityId: c.id, slug: c.slug, sourceHash: sourceHash(blogCategorySourceFields(c)), translatedBy: provider.name, translatedAt: new Date().toISOString(), data };
+          store[c.id] = { entityId: c.id, slug: c.slug, sourceHash: sourceHash(blogCategorySourceFields(c)), translatedBy: usedModel(), translatedAt: new Date().toISOString(), data };
           saveStore(locale, "blog_categories", store);
           bump(`${locale}/blog_categories`, "translated");
         } catch (err) {
@@ -428,7 +311,7 @@ async function main(): Promise<void> {
             return;
           }
           const data = await translatePost(provider, full, locale);
-          store[full.id] = { entityId: full.id, slug: full.slug, sourceHash: hash, translatedBy: provider.name, translatedAt: new Date().toISOString(), data };
+          store[full.id] = { entityId: full.id, slug: full.slug, sourceHash: hash, translatedBy: usedModel(), translatedAt: new Date().toISOString(), data };
           saveStore(locale, "blog_posts", store);
           bump(`${locale}/blog_posts`, "translated");
           console.log(`  ✓ ${locale} ${p.slug} -> ${data.title}`);

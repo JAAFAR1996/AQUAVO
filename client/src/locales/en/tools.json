@@ -1251,7 +1251,17 @@
     "s9": "Cylinder",
     "s10": "Bowfront",
     "s11": "Length (",
-    "s12": "Width ("
+    "s12": "Width (",
+    "s13": "Height (",
+    "s14": "Side Length (",
+    "s15": "Diameter (",
+    "s16": "Calculate Volume",
+    "s17": "Volume in Liters",
+    "s18": "Volume in Gallons",
+    "s19": "Approximate Water Weight:",
+    "s20": "kg",
+    "s21": "(Excluding glass and decor)",
+    "s22": "Ensure the stand can support this weight!"
   },
   "SentimentIndicator": {
     "s13": "Negative",
@@ -1261,7 +1271,19 @@
     "s17": "Recent sentiment",
     "s18": "Based on",
     "s19": "Message within",
-    "s20": "Yesterday"
+    "s20": "Yesterday",
+    "s1": "Failed to fetch sentiment data",
+    "s2": "Excellent",
+    "s3": "Good",
+    "s4": "Neutral",
+    "s5": "Slightly Negative",
+    "s6": "Needs Support",
+    "s7": "Sentiment Analysis",
+    "s8": "Sentiment Score",
+    "s9": "Negative",
+    "s10": "Positive",
+    "s11": "Positive",
+    "s12": "Neutral"
   },
   "cultural-twin": {
     "s1": "An error occurred",
@@ -1297,13 +1319,18 @@
     "s12": "This page helps you order your ornamental fish selection by tank size, temperature, compatibility, and water quality. AQUAVO does not sell live fish, live animals, or live plants; this content is educational so you can choose more calmly and reduce tank problems.",
     "s13": "Before choosing a species",
     "s14": "Enter the tank size, filter type, temperature, and current fish count. Then review compatibility, quarantine, and water testing. If you want to set up a tank from scratch, start with the setup guide instead of choosing fish directly.",
-    "s15": "Encyclopedia of ornamental fish"
+    "s15": "Encyclopedia of ornamental fish",
+    "s16": "Fish Compatibility",
+    "s17": "Setting Up a New Aquarium",
+    "s18": "Aquarium Water Testing"
   },
   "fish-compatibility": {
     "s3": "Fish Compatibility",
     "s4": "Fish Tank",
     "s5": "Fish Breeding",
-    "s6": "Compatible Fish"
+    "s6": "Compatible Fish",
+    "s1": "Fish Compatibility Checker | AQUAVO",
+    "s2": "Select the fish species you want to keep together and discover their compatibility. A smart tool to ensure the safety of your fish."
   },
   "journey-progress": {
     "s1": "Step {{v0}}: {{v1}}"
@@ -1321,7 +1348,9 @@
     "s12": "W",
     "s13": "* We recommend using heaters of",
     "s14": "W for safety",
-    "s15": "Shop suitable heaters"
+    "s15": "Shop suitable heaters",
+    "s1": "Heater Calculator",
+    "s2": "Calculate the appropriate wattage (W) for your aquarium heater based on tank size and temperature difference."
   },
   "fish-card": {
     "s1": "Betta",
@@ -1354,12 +1383,161 @@
     "s12": "Connected as"
   },
   "tank-fit": {
-    "s1": "{{v0}} IQD"
+    "s1": "{{v0}} IQD",
+    "s2": "Specifications do not mention a suitable aquarium size.",
+    "s3": "Suitable",
+    "s4": "Not specified",
+    "s5": "Enter your aquarium size in liters in the previous step, and we will provide you with suitable products from our inventory.",
+    "s6": "We could not retrieve recommendations at this time. Please try again or browse products.",
+    "s7": "Checking inventory...",
+    "s8": "What fits an aquarium",
+    "s9": "L from AQUAVO's inventory?",
+    "s10": "We do not have a product whose specifications mention it is suitable for an aquarium.",
+    "s11": "L. We will not recommend anything we are not sure about.",
+    "s12": "We do not have products in this category whose specifications specify aquarium size. The products below may be suitable, but the specifications do not confirm.",
+    "s13": "Other products in this category (",
+    "s14": ") — Size not mentioned in specifications"
   },
   "masonry-gallery-grid": {
-    "anonymous": "User"
+    "anonymous": "User",
+    "s1": "You've Liked It!",
+    "s2": "You've already liked this",
+    "s3": "Aquarium",
+    "s4": "Design",
+    "s5": "Gallery",
+    "s6": "View {{v0}}",
+    "s7": "Customer Gallery",
+    "s8": "View Details",
+    "s9": "User",
+    "s10": "Awesome Aquarium",
+    "s11": "Trending",
+    "s12": "Aquarium",
+    "s13": "A beautiful aquarium from the customer gallery",
+    "s14": "Like",
+    "s15": "Rating",
+    "s16": "Save Image",
+    "s17": "Share Image"
   },
   "journey": {
-    "fallbackTitle": "Tank journey"
+    "fallbackTitle": "Tank journey",
+    "s1": "Step {{v0}} of {{v1}} — {{v2}}",
+    "s2": "My Aquarium Journey",
+    "s3": "Plan your ideal aquarium step-by-step with AQUAVO's interactive guide — from selecting the tank to adding fish.",
+    "s4": "Aquarium Setup",
+    "s5": "Steps to Create an Aquarium",
+    "s6": "Beginner's Guide",
+    "s7": "Your Aquarium Setup Journey",
+    "s8": "Step by step towards your dream aquarium. Every choice will be reflected directly in the preview.",
+    "s9": "Previous",
+    "s10": "Saving...",
+    "s11": "Save Draft",
+    "s12": "Finish and View Plan",
+    "s13": "Next"
+  },
+  "filter-calculator": {
+    "s1": "Filter Calculator",
+    "s2": "Calculate the appropriate filter flow rate based on aquarium size and fish type",
+    "s3": "Aquarium Volume (L)",
+    "s4": "Example: 200",
+    "s5": "Fish Biolaod",
+    "s6": "Light (small fish - many plants)",
+    "s7": "Medium (standard community tank)",
+    "s8": "Heavy (large fish - crowded tank)",
+    "s9": "Tip:",
+    "s10": "A good filter should turn over the water 4-10 times per hour. For large, waste-producing fish, use a higher rate.",
+    "s11": "Calculate Result",
+    "s12": "Recommended Flow Rate",
+    "s13": "L/h",
+    "s14": "Minimum",
+    "s15": "Maximum",
+    "s16": "Choose a filter with a flow rate of",
+    "s17": "L/h or higher. If your tank has fish sensitive to current, you can use a flow control valve.",
+    "s18": "Shop Suitable Filters"
+  },
+  "breeding-pdf": {
+    "s1": "Breeding Plan - AQUAVO",
+    "s2": "L",
+    "s3": "Minimum Tank Size:",
+    "s4": "Ideal Temperature:",
+    "s5": "pH:",
+    "s6": "Easy",
+    "s7": "Medium",
+    "s8": "Hard",
+    "s9": "Difficulty:",
+    "s10": "Fry per Cycle:",
+    "s11": "Your Inputs",
+    "s12": "Start Date",
+    "s13": "Number of Pairs",
+    "s14": "Current Temperature",
+    "s15": "Current pH",
+    "s16": "Projected Timeline",
+    "s17": "Generated by AQUAVO -",
+    "s18": "Wishing you successful breeding!"
+  },
+  "saved-plan-view": {
+    "s1": "Saved Plan",
+    "s2": "Welcome back! 👋",
+    "s3": "We found an aquarium plan you started earlier.",
+    "s4": "Creation date:",
+    "s5": "Quick summary:",
+    "s6": "Aquarium",
+    "s7": "Small",
+    "s8": "Medium",
+    "s9": "Large",
+    "s10": "Giant",
+    "s11": "Planted",
+    "s12": "Freshwater",
+    "s13": "Fish species",
+    "s14": "Continue where you left off",
+    "s15": "Delete and start over"
+  },
+  "birthday-celebration": {
+    "s1": "Happy Birthday",
+    "s2": "Close",
+    "s3": "Dear {{v0}}",
+    "s4": "From all of us at AQUAVO – our gift to you is a discount",
+    "s5": "on your order, valid for two weeks.",
+    "s6": "Copied",
+    "s7": "Copy",
+    "s8": "Start Shopping"
+  },
+  "product-recommendations": {
+    "s1": "New",
+    "s2": "Best Sellers",
+    "s3": "Coming Soon",
+    "s4": "Recommended for you",
+    "s5": "Similar Products",
+    "s6": "Recently Viewed",
+    "s7": "Clear All"
+  },
+  "shrimp-mascot": {
+    "s1": "Welcome! 😊",
+    "s2": "A little sad...",
+    "s3": "Let me think...",
+    "s4": "Fantastic! 🎊",
+    "s5": "Working on it...",
+    "s6": "Enjoy! 🥤",
+    "s7": "Don't worry, the shrimp is guarding it! 🛡️",
+    "s8": "Relax, champ ❤️"
+  },
+  "compare": {
+    "s1": "Compare Products",
+    "s2": "Compare aquarium products and choose the most suitable one for you — a comprehensive comparison of specifications and prices at AQUAVO.",
+    "s3": "Compare Aquariums",
+    "s4": "Compare Water Products",
+    "s5": "Compare Selected Products",
+    "s6": "Back to Products",
+    "s7": "Clear Comparison"
+  },
+  "ai-driftwood-experiment": {
+    "s1": "Natural Driftwood Experiment — AQUAVO",
+    "s2": "Natural Driftwood Experiment",
+    "s3": "This experimental page is under development. You can browse natural driftwood decor from the products page.",
+    "s4": "Browse Decor"
+  },
+  "fish-compatibility-badge": {
+    "s1": "Fully Compatible",
+    "s2": "Requires Caution",
+    "s3": "Incompatible"
   }
 }

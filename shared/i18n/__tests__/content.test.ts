@@ -103,10 +103,12 @@ describe("source hashing and coverage", () => {
 
   it("derives complete / machine / outdated / missing", () => {
     const hash = sourceHash(productSourceFields(product));
-    const base = { entityType: "product" as const, entityId: "x", locale: "en" as const, data: {} };
+    const base = { entityType: "product" as const, entityId: "x", locale: "en" as const, data: { name: "Heater", description: "A heater." } };
     expect(coverageOf(null, hash)).toBe("missing");
     expect(coverageOf({ ...base, status: "machine", sourceHash: hash }, hash)).toBe("machine");
     expect(coverageOf({ ...base, status: "reviewed", sourceHash: hash }, hash)).toBe("complete");
     expect(coverageOf({ ...base, status: "reviewed", sourceHash: "old" }, hash)).toBe("outdated");
+    // Required fields missing -> partial, whatever the status says.
+    expect(coverageOf({ ...base, data: { name: "Heater" }, status: "reviewed", sourceHash: hash }, hash)).toBe("partial");
   });
 });

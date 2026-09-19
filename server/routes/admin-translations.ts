@@ -75,9 +75,9 @@ async function loadRecords(type: TranslatableEntityType, ids?: string[]) {
   return rows.filter((r) => !wanted || wanted.has(r.entityId));
 }
 
-function statusFor(records: Array<typeof contentTranslations.$inferSelect>, entityId: string, locale: Locale, hash: string): TranslationCoverage {
+function statusFor(records: Array<typeof contentTranslations.$inferSelect>, entityId: string, locale: Locale, fields: Record<string, unknown>): TranslationCoverage {
   const rec = records.find((r) => r.entityId === entityId && r.locale === locale);
-  return coverageOf(rec ? { entityType: rec.entityType as TranslatableEntityType, entityId: rec.entityId, locale: rec.locale as Locale, data: rec.data, status: rec.status as "machine" | "reviewed", sourceHash: rec.sourceHash } : null, hash);
+  return coverageOf(rec ? { entityType: rec.entityType as TranslatableEntityType, entityId: rec.entityId, locale: rec.locale as Locale, data: rec.data, status: rec.status as "machine" | "reviewed", sourceHash: rec.sourceHash } : null, sourceHash(fields), fields);
 }
 
 export function createAdminTranslationsRouter(): Router {
@@ -92,8 +92,8 @@ export function createAdminTranslationsRouter(): Router {
         const records = await loadRecords(type);
         out[type] = {};
         for (const locale of TRANSLATION_TARGET_LOCALES) {
-          const counts = { complete: 0, machine: 0, outdated: 0, missing: 0, total: sources.length };
-          for (const s of sources) counts[statusFor(records, s.id, locale, sourceHash(s.fields))]++;
+          const counts: Record<TranslationCoverage, number> & { total: number } = { complete: 0, machine: 0, outdated: 0, partial: 0, missing: 0, total: sources.length };
+          for (const s of sources) counts[statusFor(records, s.id, locale, s.fields)]++;
           out[type][locale] = counts;
         }
       }
@@ -112,9 +112,8 @@ export function createAdminTranslationsRouter(): Router {
       const records = await loadRecords(type);
       res.json(
         sources.map((s) => {
-          const hash = sourceHash(s.fields);
           const status: Record<string, TranslationCoverage> = {};
-          for (const locale of TRANSLATION_TARGET_LOCALES) status[locale] = statusFor(records, s.id, locale, hash);
+          for (const locale of TRANSLATION_TARGET_LOCALES) status[locale] = statusFor(records, s.id, locale, s.fields);
           return { id: s.id, label: s.label, slug: s.slug, published: s.published, status };
         }),
       );
@@ -134,7 +133,7 @@ export function createAdminTranslationsRouter(): Router {
       const translations: Record<string, unknown> = {};
       for (const locale of TRANSLATION_TARGET_LOCALES) {
         const rec = records.find((r) => r.locale === locale);
-        translations[locale] = { status: statusFor(records, source.id, locale, hash), record: rec ? { data: rec.data, status: rec.status, translatedBy: rec.translatedBy, updatedAt: rec.updatedAt } : null };
+        translations[locale] = { status: statusFor(records, source.id, locale, source.fields), record: rec ? { data: rec.data, status: rec.status, translatedBy: rec.translatedBy, updatedAt: rec.updatedAt } : null };
       }
       res.json({ id: source.id, label: source.label, slug: source.slug, sourceHash: hash, source: source.fields, translations });
     } catch (err) {

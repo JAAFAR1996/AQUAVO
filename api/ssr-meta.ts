@@ -637,10 +637,9 @@ async function getProductMeta(slug: string, locale: Locale = DEFAULT_LOCALE): Pr
     );
     if (rows.length === 0) return null;
     const translation = await loadTranslation<ProductTranslationData>("product", String(rows[0].id), locale);
-    const localized = applyProductTranslation(rows[0] as Record<string, unknown>, translation?.data, locale);
-    const productCoverage = locale === DEFAULT_LOCALE || localized.translationMissing
-      ? undefined
-      : coverageOf(translation, sourceHash(productSourceFields(rows[0] as { name: string; description: string; subcategory?: string | null; specifications?: unknown })));
+    const productSource = productSourceFields(rows[0] as { name: string; description: string; subcategory?: string | null; specifications?: Record<string, unknown> | null; variants?: Array<{ id: string; label: string }> | null });
+    const productCoverage = locale === DEFAULT_LOCALE ? undefined : coverageOf(translation, sourceHash(productSource), productSource);
+    const localized = applyProductTranslation(rows[0] as Record<string, unknown>, productCoverage === "partial" ? undefined : translation?.data, locale);
     const p = localized.value as typeof rows[0];
     // The `variants` jsonb carries costPrice/costStatus/costBasis/costEvidence, written by
     // migrations/0073_accounting_final_hardening.sql and absent from the ProductVariant type. Nothing
@@ -734,10 +733,9 @@ async function getBlogMeta(slug: string, locale: Locale = DEFAULT_LOCALE): Promi
     );
     if (rows.length === 0) return null;
     const translation = await loadTranslation<BlogPostTranslationData>("blog_post", String(rows[0].id), locale);
-    const localizedPost = applyBlogPostTranslation(rows[0] as Record<string, unknown>, translation?.data, locale);
-    const postCoverage = locale === DEFAULT_LOCALE || localizedPost.translationMissing
-      ? undefined
-      : coverageOf(translation, sourceHash(blogPostSourceFields(rows[0] as { title: string; excerpt: string; content: string; category?: string | null })));
+    const postSource = blogPostSourceFields(rows[0] as { title: string; excerpt: string; content: string; category?: string | null });
+    const postCoverage = locale === DEFAULT_LOCALE ? undefined : coverageOf(translation, sourceHash(postSource), postSource);
+    const localizedPost = applyBlogPostTranslation(rows[0] as Record<string, unknown>, postCoverage === "partial" ? undefined : translation?.data, locale);
     const post = localizedPost.value as typeof rows[0];
     const shell = SHELL_META[locale];
     const blogBase = `${BASE}${localizePath("/blog", locale)}`;
