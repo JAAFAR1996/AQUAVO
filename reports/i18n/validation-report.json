@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-19T21:43:56.043Z",
+  "generatedAt": "2026-09-19T22:01:32.880Z",
   "uiStats": {
     "en": {
       "total": 5452,
@@ -49,9 +49,9 @@
     }
   },
   "errors": 0,
-  "warnings": 237,
+  "warnings": 235,
   "byCode": {
-    "content/ckb/glossary": 116,
+    "content/ckb/glossary": 114,
     "ui/ckb/glossary": 121
   },
   "findings": [
@@ -1214,22 +1214,6 @@
       "code": "glossary",
       "severity": "warning",
       "detail": "delivery: expected \"گەیاندن\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
-      "where": "products/yff-049#name",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "substrate: expected \"خاک\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
-      "where": "products/yff-049#labelled.الاستخدام.value",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "substrate: expected \"خاک\""
     },
     {
       "scope": "content",

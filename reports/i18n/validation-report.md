@@ -1,4 +1,4 @@
-# Translation validation (2026-09-19T21:43:56.045Z)
+# Translation validation (2026-09-19T22:01:32.882Z)
 
 ## UI bundles
 
@@ -22,7 +22,7 @@
 
 | code | count |
 |---|---|
-| content/ckb/glossary | 116 |
+| content/ckb/glossary | 114 |
 | ui/ckb/glossary | 121 |
 
 ## Error samples (first 60)
