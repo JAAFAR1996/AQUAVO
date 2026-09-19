@@ -724,7 +724,7 @@
           },
           "الوزن": {
             "label": "Weight",
-            "value": "1 كغم"
+            "value": "1 kg"
           },
           "الاستخدام": {
             "label": "Usage",
@@ -733,7 +733,7 @@
         }
       },
       "variantLabels": {
-        "1kg": "1 كغم"
+        "1kg": "1 kg"
       }
     }
   },
@@ -744,11 +744,11 @@
     "translatedBy": "groq:openai/gpt-oss-120b",
     "translatedAt": "2026-09-18T22:34:55.194Z",
     "data": {
-      "name": "White Porous Ceramic Rings for Biological Filtration — 1 كغم",
+      "name": "White Porous Ceramic Rings for Biological Filtration — 1 kg",
       "description": "Porous ceramic ring for use as biological filter media inside the filter. Provides a surface colonized by beneficial bacteria and its open shape allows water to flow around the material.\n\nPlace it after the mechanical filtration stage, and clean it gently when debris accumulates. Avoid replacing all biological media at once without need.",
       "subcategory": "Filter Media",
       "seoTitle": "White Porous Ceramic Rings – 1 kg | AQUAVO",
-      "seoDescription": "White porous ceramic rings offer a high‑surface area for beneficial bacteria in biological filtration. Their open ring shape ensures optimal water flow, and the white color makes debris easy to detect. Includes 1 كغم.",
+      "seoDescription": "White porous ceramic rings offer a high‑surface area for beneficial bacteria in biological filtration. Their open ring shape ensures optimal water flow, and the white color makes debris easy to detect. Includes 1 kg.",
       "specifications": {
         "benefits": [
           "Porous surface for colonizing beneficial bacteria",
@@ -779,7 +779,7 @@
           },
           "الوزن": {
             "label": "Weight",
-            "value": "1 كغم"
+            "value": "1 kg"
           },
           "المادة": {
             "label": "Material",
@@ -788,7 +788,7 @@
         }
       },
       "variantLabels": {
-        "1kg": "1 كغم"
+        "1kg": "1 kg"
       }
     }
   },
@@ -1379,7 +1379,7 @@
         "labelled": {
           "الطول": {
             "label": "Length",
-            "value": "1.55 متر"
+            "value": "1.55 m"
           },
           "الرؤوس": {
             "label": "Heads",
@@ -1603,8 +1603,8 @@
     "translatedBy": "groq:openai/gpt-oss-20b",
     "translatedAt": "2026-09-19T11:39:54.480Z",
     "data": {
-      "name": "شبكة ستانلس لتثبيت الموس — 8×8 سم",
-      "description": "شبكة ستانلس بمقاس 8×8 سم لتثبيت الموس وتكوين مساحات خضراء على أرضية الحوض أو فوق الأسطح المناسبة. يمكن قصها أو تشكيلها بحذر حسب التصميم.\n\nوزع طبقة خفيفة من الموس وثبتها بطريقة مناسبة، ثم ضع الشبكة في موضع مستقر مع تجنب ترك حواف حادة مكشوفة.",
+      "name": "شبكة ستانلس لتثبيت الموس — 8×8 cm",
+      "description": "شبكة ستانلس بمقاس 8×8 cm لتثبيت الموس وتكوين مساحات خضراء على أرضية الحوض أو فوق الأسطح المناسبة. يمكن قصها أو تشكيلها بحذر حسب التصميم.\n\nوزع طبقة خفيفة من الموس وثبتها بطريقة مناسبة، ثم ضع الشبكة في موضع مستقر مع تجنب ترك حواف حادة مكشوفة.",
       "subcategory": "Plant Accessories",
       "seoTitle": "Houyi Stainless Mesh 8×8 cm | AQUAVO",
       "seoDescription": "Houyi stainless mesh for securing moss in aquariums. 8×8 cm size, cuttable and moldable, ideal for creating green carpets or surface covers. Durable and safe.",
@@ -1630,7 +1630,7 @@
         "labelled": {
           "القياس": {
             "label": "Measurement",
-            "value": "8×8 سم"
+            "value": "8×8 cm"
           },
           "المادة": {
             "label": "Material",
@@ -2262,14 +2262,14 @@
     "translatedBy": "groq:openai/gpt-oss-120b",
     "translatedAt": "2026-09-18T22:48:26.444Z",
     "data": {
-      "name": "Houyi Natural River Sand for Aquascape — 2–6 ملم",
-      "description": "Natural river sand with 2–6 ملم grains for arranging the tank floor and providing a look close to river bottoms. Suitable as an independent decorative layer or as a surface layer depending on the tank design.\n\nRinse it lightly with water before use to remove dust and fine particles. This sand is not a substitute for a root‑plant nutrition source.",
+      "name": "Houyi Natural River Sand for Aquascape — 2–6 mm",
+      "description": "Natural river sand with 2–6 mm grains for arranging the tank floor and providing a look close to river bottoms. Suitable as an independent decorative layer or as a surface layer depending on the tank design.\n\nRinse it lightly with water before use to remove dust and fine particles. This sand is not a substitute for a root‑plant nutrition source.",
       "subcategory": "Sand",
-      "seoTitle": "Houyi Natural River Sand 2–6 ملم – Aquascape | AQUAVO",
-      "seoDescription": "Natural river sand with 2–6 ملم grains, perfect for aquascape tank floors. Rinse before use; serves as decorative or surface layer, not a plant source.",
+      "seoTitle": "Houyi Natural River Sand 2–6 mm – Aquascape | AQUAVO",
+      "seoDescription": "Natural river sand with 2–6 mm grains, perfect for aquascape tank floors. Rinse before use; serves as decorative or surface layer, not a plant source.",
       "specifications": {
         "benefits": [
-          "Natural grains sized 2–6 ملم",
+          "Natural grains sized 2–6 mm",
           "Suitable for natural layouts and aquascape pathways",
           "Can be used as a decorative substrate or surface layer",
           "Natural color blends with stone and wood"
@@ -2285,7 +2285,7 @@
           "If your inhabitants are sensitive to water chemistry, test parameters after setting up the tank",
           "Rooted plants require an appropriate nutrition source if no nutrient-rich substrate is present"
         ],
-        "__cardBenefit": "Natural 2–6 ملم grains create a river‑bottom‑like substrate",
+        "__cardBenefit": "Natural 2–6 mm grains create a river‑bottom‑like substrate",
         "labelled": {
           "النوع": {
             "label": "Type",
@@ -2293,7 +2293,7 @@
           },
           "حجم الحبيبات": {
             "label": "Grain size",
-            "value": "2–6 ملم"
+            "value": "2–6 mm"
           }
         }
       },
@@ -2715,7 +2715,7 @@
           },
           "حجم القطع": {
             "label": "Piece size",
-            "value": "3–5 سم"
+            "value": "3–5 cm"
           }
         }
       },
