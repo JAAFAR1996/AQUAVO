@@ -52,8 +52,6 @@ export interface WaylCreateLinkInput {
   webhookUrl?: string;
   webhookSecret?: string;
   redirectionUrl?: string;
-  /** Documented: number + m/h/d, between 1m and 30d; Wayl defaults to "1h". */
-  linkExpiresIn?: string;
 }
 
 export interface WaylLink {
@@ -359,7 +357,6 @@ export async function createWaylLink(input: WaylCreateLinkInput): Promise<WaylLi
     ...(input.webhookUrl ? { webhookUrl: input.webhookUrl } : {}),
     ...(input.webhookSecret ? { webhookSecret: input.webhookSecret } : {}),
     ...(input.redirectionUrl ? { redirectionUrl: input.redirectionUrl } : {}),
-    ...(input.linkExpiresIn ? { linkExpiresIn: input.linkExpiresIn } : {}),
   };
 
   const raw = await waylRequest<unknown>("/api/v1/links", {
@@ -428,8 +425,9 @@ function probeEnabled(): boolean {
 
 /**
  * The only way to learn whether Wayl will actually issue links for this merchant
- * is to ask for one. The probe is the smallest documented link (1000 IQD minimum,
- * 1-minute expiry), is invalidated immediately, and is never shown to a customer.
+ * is to ask for one. The probe is the smallest documented link (1000 IQD minimum),
+ * uses only fields present in Wayl's current create-link documentation, is
+ * invalidated immediately, and is never shown to a customer.
  */
 async function probeLinkCreation(): Promise<void> {
   const referenceId = `aquavo-readiness-${randomUUID()}`;
@@ -439,7 +437,6 @@ async function probeLinkCreation(): Promise<void> {
     currency: "IQD",
     customParameter: "AQUAVO readiness probe - not a customer order",
     lineItem: [{ label: "AQUAVO readiness probe", amount: 1000, type: "increase" }],
-    linkExpiresIn: "1m",
   });
   try {
     await waylRequest<unknown>(`/api/v1/links/${encodeURIComponent(referenceId)}/invalidate`, { method: "POST" });
