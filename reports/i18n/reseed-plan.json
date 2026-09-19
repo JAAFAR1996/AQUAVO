@@ -1,0 +1,115 @@
+{
+  "at": "2026-09-19T21:42:18.565Z",
+  "committed": true,
+  "summary": {
+    "en/products": {
+      "insert": 0,
+      "change": 3,
+      "identical": 104,
+      "reviewed (protected)": 0,
+      "outdated": 0,
+      "skipped": 0
+    },
+    "en/blog_posts": {
+      "insert": 0,
+      "change": 2,
+      "identical": 115,
+      "reviewed (protected)": 0,
+      "outdated": 0,
+      "skipped": 0
+    },
+    "en/blog_categories": {
+      "insert": 0,
+      "change": 0,
+      "identical": 8,
+      "reviewed (protected)": 0,
+      "outdated": 0,
+      "skipped": 0
+    },
+    "ckb/products": {
+      "insert": 0,
+      "change": 0,
+      "identical": 107,
+      "reviewed (protected)": 0,
+      "outdated": 0,
+      "skipped": 0
+    },
+    "ckb/blog_posts": {
+      "insert": 0,
+      "change": 3,
+      "identical": 114,
+      "reviewed (protected)": 0,
+      "outdated": 0,
+      "skipped": 0
+    },
+    "ckb/blog_categories": {
+      "insert": 0,
+      "change": 0,
+      "identical": 8,
+      "reviewed (protected)": 0,
+      "outdated": 0,
+      "skipped": 0
+    }
+  },
+  "detail": {
+    "en/products": {
+      "insert": [],
+      "change": [
+        "general-air-stone",
+        "general-sponge-filter-xy180",
+        "yyh-039"
+      ],
+      "identical": 104,
+      "reviewed": [],
+      "outdated": [],
+      "skipped": []
+    },
+    "en/blog_posts": {
+      "insert": [],
+      "change": [
+        "common-fish-diseases-white-spot",
+        "nitrogen-cycle-simple-arabic-explained"
+      ],
+      "identical": 115,
+      "reviewed": [],
+      "outdated": [],
+      "skipped": []
+    },
+    "en/blog_categories": {
+      "insert": [],
+      "change": [],
+      "identical": 8,
+      "reviewed": [],
+      "outdated": [],
+      "skipped": []
+    },
+    "ckb/products": {
+      "insert": [],
+      "change": [],
+      "identical": 107,
+      "reviewed": [],
+      "outdated": [],
+      "skipped": []
+    },
+    "ckb/blog_posts": {
+      "insert": [],
+      "change": [
+        "algae-war-guide",
+        "common-fish-diseases-white-spot",
+        "aquarium-care-while-traveling"
+      ],
+      "identical": 114,
+      "reviewed": [],
+      "outdated": [],
+      "skipped": []
+    },
+    "ckb/blog_categories": {
+      "insert": [],
+      "change": [],
+      "identical": 8,
+      "reviewed": [],
+      "outdated": [],
+      "skipped": []
+    }
+  }
+}
