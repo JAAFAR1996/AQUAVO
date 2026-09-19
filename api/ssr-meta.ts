@@ -21,6 +21,7 @@ import { DEFAULT_LOCALE, splitLocaleFromPath, localizePath, type Locale } from "
 import { applyBlogPostTranslation, applyProductTranslation, type BlogPostTranslationData, type ProductTranslationData } from "../shared/i18n/content.js";
 import { applyLocaleToHtml, SHELL_META } from "./_locale-meta.js";
 import { getLocalizedStaticMeta } from "./_static-meta-i18n.js";
+import { isPageTranslated } from "./_page-i18n.js";
 
 // ─── DB Setup (lightweight, no Drizzle overhead) ────────────────────────────
 neonConfig.webSocketConstructor = ws;
@@ -1352,7 +1353,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         /* keep the Arabic canonical */
       }
       // A page that fell back to Arabic must not be indexed as English/Kurdish.
-      if (meta.translationMissing) meta.noIndex = true;
+      // Static pages count as translated once their UI bundle section is complete.
+      if (meta.translationMissing || !isPageTranslated(locale, pathname)) meta.noIndex = true;
     }
     const localizedHtml = applyLocaleToHtml(injectMeta(template, meta), locale, pathname, pathname === "/products" ? search : "", {
       indexable: !meta.noIndex && !meta.notFound,

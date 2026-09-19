@@ -64,6 +64,7 @@ async function complete(input: Record<string, string>): Promise<Record<string, s
         model: MODEL,
         temperature: 0.2,
         max_tokens: 8000,
+        reasoning_effort: "low",
         response_format: { type: "json_object" },
         messages: [
           { role: "system", content: RULES },

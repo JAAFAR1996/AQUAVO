@@ -186,6 +186,7 @@ async function groqProvider(): Promise<Provider | null> {
           model,
           temperature: 0.2,
           max_tokens: 8000,
+          reasoning_effort: "low",
           response_format: { type: "json_object" },
           messages: [
             { role: "system", content: RULES + GLOSSARY },

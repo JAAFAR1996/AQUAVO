@@ -10,6 +10,7 @@ import { hashPassword, verifyPassword } from "../utils/auth.js";
 import { SecurityStorage } from "../storage/security-storage.js";
 import { getDb } from "../db.js";
 import { eq } from "drizzle-orm";
+import { apiMessage } from "../i18n/messages.js";
 import crypto from "crypto";
 
 function sanitizeUser(user: Record<string, any>) {
@@ -53,15 +54,15 @@ export function createUserRouter(): RouterType {
             const passwordPolicy = validatePasswordPolicy(password);
 
             if (!email) {
-                res.status(400).json({ message: "أدخل بريد إلكتروني صالح" });
+                res.status(400).json(apiMessage(req, "invalidEmail"));
                 return;
             }
             if (!fullName) {
-                res.status(400).json({ message: "الاسم الكامل مطلوب ويجب أن يكون بين 2 و100 حرف" });
+                res.status(400).json(apiMessage(req, "invalidFullName"));
                 return;
             }
             if (!phone) {
-                res.status(400).json({ message: "أدخل رقم هاتف صالح" });
+                res.status(400).json(apiMessage(req, "invalidPhone"));
                 return;
             }
             if (!passwordPolicy.valid) {
@@ -71,7 +72,7 @@ export function createUserRouter(): RouterType {
 
             const existingUser = await storage.getUserByEmail(email);
             if (existingUser) {
-                res.status(400).json({ message: "البريد الإلكتروني مسجل بالفعل" });
+                res.status(400).json(apiMessage(req, "emailTaken"));
                 return;
             }
 
@@ -147,7 +148,7 @@ export function createUserRouter(): RouterType {
                 const blockInfo = await securityStorage.getBlockInfo(ipAddress);
                 if (blockInfo?.isBlocked) {
                     res.status(429).json({
-                        message: "تم حظر عنوان IP الخاص بك مؤقتاً بسبب محاولات دخول متعددة فاشلة",
+                        ...apiMessage(req, "ipBlocked"),
                         retryAfter: blockInfo.remainingSeconds,
                         expiresAt: blockInfo.expiresAt?.toISOString(),
                     });
@@ -170,7 +171,7 @@ export function createUserRouter(): RouterType {
                 } catch (logErr) {
                     console.error("Error recording login attempt:", logErr);
                 }
-                res.status(401).json({ message: "البريد الإلكتروني أو كلمة المرور غير صحيحة" });
+                res.status(401).json(apiMessage(req, "badCredentials"));
                 return;
             }
 
@@ -369,16 +370,16 @@ export function createUserRouter(): RouterType {
 
             const user = await storage.getUser(sess.userId);
             if (!user || !verifyPassword(currentPassword, user.passwordHash)) {
-                res.status(401).json({ message: "كلمة المرور الحالية غير صحيحة" });
+                res.status(401).json(apiMessage(req, "wrongCurrentPassword"));
                 return;
             }
             if (verifyPassword(newPassword, user.passwordHash)) {
-                res.status(400).json({ message: "اختار كلمة مرور جديدة مختلفة عن الحالية" });
+                res.status(400).json(apiMessage(req, "samePassword"));
                 return;
             }
 
             await storage.updateUser(sess.userId, { passwordHash: hashPassword(newPassword) });
-            res.json({ message: "تم تغيير كلمة المرور بنجاح" });
+            res.json(apiMessage(req, "passwordChanged"));
         } catch (err) { next(err); }
     });
 
@@ -440,7 +441,7 @@ export function createUserRouter(): RouterType {
             const { id } = req.params as { id: string };
             const deleted = await storage.deleteUserAddress(id, sess.userId);
             if (!deleted) { res.status(404).json({ message: "Address not found" }); return; }
-            res.json({ message: "تم حذف العنوان" });
+            res.json(apiMessage(req, "addressDeleted"));
         } catch (err) { next(err); }
     });
 
