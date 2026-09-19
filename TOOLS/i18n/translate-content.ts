@@ -29,6 +29,7 @@ import {
 } from "../../shared/i18n/content.js";
 import { TRANSLATION_TARGET_LOCALES, type Locale } from "../../shared/i18n/locales.js";
 import { completeJson, extractJson, loadGlossary, modelChain, normalizeDeep, renderGlossary, type TargetLocale } from "./_llm.js";
+import { normalizeUnitsDeep } from "./_units.js";
 
 const BASE = process.env.AQUAVO_SOURCE_BASE || "https://www.aquavoiq.com";
 const OUT_DIR = resolve(process.env.AQUAVO_TRANSLATIONS_DIR || "data/i18n/translations");
@@ -164,7 +165,7 @@ Source (Arabic):
 ${JSON.stringify(src, null, 2)}`;
   return withRetry(async () => {
   const raw = await provider.complete(prompt, locale);
-  const out = normalizeDeep(parseJson(raw) as unknown as ProductTranslationData);
+  const out = normalizeUnitsDeep(normalizeDeep(parseJson(raw) as unknown as ProductTranslationData), locale as TargetLocale);
   if (!out.name || !out.description) throw new Error("incomplete product translation");
   const ss = src as Record<string, unknown>; // productSourceFields() lifts the lists to the top level
   out.specifications ??= {};
@@ -214,7 +215,7 @@ Source (Arabic):
 ${JSON.stringify(src, null, 2)}`;
   return withRetry(async () => {
   const raw = await provider.complete(prompt, locale);
-  const out = normalizeDeep(parseJson(raw) as unknown as BlogPostTranslationData);
+  const out = normalizeUnitsDeep(normalizeDeep(parseJson(raw) as unknown as BlogPostTranslationData), locale as TargetLocale);
   if (!out.title || !out.content || !out.excerpt) throw new Error("incomplete post translation");
   // Body must be translated in full: same headings / list items / tables / images as the source.
   const count = (html: string, re: RegExp) => (html.match(re) || []).length;
@@ -242,7 +243,7 @@ Translate this blog category. Return JSON: { "name": string, "description": stri
 Source (Arabic): ${JSON.stringify(src)}`;
   return withRetry(async () => {
   const raw = await provider.complete(prompt, locale);
-  const out = normalizeDeep(parseJson(raw) as unknown as BlogCategoryTranslationData);
+  const out = normalizeUnitsDeep(normalizeDeep(parseJson(raw) as unknown as BlogCategoryTranslationData), locale as TargetLocale);
   if (!out.name) throw new Error("incomplete blog category translation");
   return out;
   }, `${locale}:blogcat:${c.slug}`);

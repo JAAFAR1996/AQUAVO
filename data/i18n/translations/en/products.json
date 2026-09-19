@@ -690,50 +690,50 @@
     "entityId": "houyi-blue-dragon-stone",
     "slug": "houyi-blue-dragon-stone",
     "sourceHash": "c3c26c086db4a906",
-    "translatedBy": "groq:openai/gpt-oss-120b",
-    "translatedAt": "2026-09-18T22:45:42.472Z",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:22:41.845Z",
     "data": {
-      "name": "Blue Dragon Stone (دراقون ستون) — 1 kg",
-      "description": "Add a striking rock formation to the tank with natural stones that vary from piece to piece in shape and gray‑blue gradients. Suitable for building focal points, passages, and rocky details within the aquascape.\n\nWash the stone before use and secure it on a stable base. If your tank is sensitive to pH or GH/KH, test the stone and water after setup.",
+      "name": "Houyi Dragon Stone - 1kg",
+      "description": "Add a striking rock formation to your aquarium with natural stones that vary in shape and gray-blue gradients. Suitable for building focal points, pathways, and rocky details within aquascapes.\n\nWash the stone before use and secure it on a stable base. If your aquarium is sensitive to pH or GH/KH, test the stone and water after setup.",
       "subcategory": "Stones",
-      "seoTitle": "Blue Dragon Stone (دراقون ستون) – 1 kg | AQUAVO",
-      "seoDescription": "Natural blue‑gray stone for freshwater aquascapes, ideal for focal points, passages and decorative layouts. Wash before use and test water chemistry.",
+      "seoTitle": "Houyi Dragon Stone Decor | AQUAVO",
+      "seoDescription": "Natural Houyi Dragon Stone for aquascaping. Unique gray-blue pieces add focal points to freshwater tanks. 1kg pack.",
       "specifications": {
         "benefits": [
-          "Each piece is natural and uniquely shaped",
+          "Each piece is natural and unique in shape",
           "Gray and blue colors for rock arrangements",
-          "Suitable for building focal points and aquascape structures",
-          "Can be combined with sand and wood according to design"
+          "Suitable for building focal points and aquascape formations",
+          "Can be combined with sand and wood according to the design"
         ],
         "usageInstructions": [
           "Wash the stone with water and a brush before use",
-          "Try arranging the rocks outside the tank first",
+          "Try arranging the rocks outside the aquarium first",
           "Secure large pieces on a stable base",
-          "Test the water after setup if the inhabitants are chemistry‑sensitive"
+          "Test the water after setup if inhabitants are sensitive to chemistry"
         ],
         "safetyWarnings": [
-          "Edges may be sharp; inspect them before use",
-          "Secure the stones well to prevent falling onto the glass",
-          "Do not assume the stone is chemically inert without testing if the tank is sensitive"
+          "Edges may be sharp; inspect before use",
+          "Secure stones well to prevent falling on the glass",
+          "Do not assume stone is chemically inert without testing if the aquarium is sensitive"
         ],
-        "__cardBenefit": "A unique natural piece that creates a strong visual rock focal point in the tank",
+        "__cardBenefit": "A unique natural piece that builds a strong rocky visual point in the aquarium",
         "labelled": {
           "النوع": {
             "label": "Type",
-            "value": "Natural decorative stone"
+            "value": "Natural stone for decor"
           },
           "الوزن": {
             "label": "Weight",
-            "value": "1 كغم"
+            "value": "1kg"
           },
           "الاستخدام": {
             "label": "Usage",
-            "value": "Aquascape and freshwater tank decoration"
+            "value": "Aquascaping and freshwater aquarium arrangement"
           }
         }
       },
       "variantLabels": {
-        "1kg": "1 كغم"
+        "1kg": "1kg"
       }
     }
   },
@@ -741,29 +741,29 @@
     "entityId": "houyi-breathing-ring-white",
     "slug": "houyi-breathing-ring-white",
     "sourceHash": "22ca32b8a6363e12",
-    "translatedBy": "groq:openai/gpt-oss-120b",
-    "translatedAt": "2026-09-18T22:34:55.194Z",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:22:41.297Z",
     "data": {
-      "name": "White Porous Ceramic Rings for Biological Filtration — 1 كغم",
-      "description": "Porous ceramic ring for use as biological filter media inside the filter. Provides a surface colonized by beneficial bacteria and its open shape allows water to flow around the material.\n\nPlace it after the mechanical filtration stage, and clean it gently when debris accumulates. Avoid replacing all biological media at once without need.",
+      "name": "Houyi Porous Ceramic Rings for Biological Filtration - 1 kg",
+      "description": "Porous ceramic rings for use as biological filter media inside the filter. They provide a surface for beneficial bacteria to colonize, and their open shape allows water to flow around the material.\n\nPlace them after the mechanical filtration stage, and gently clean them when sediment accumulates. Avoid replacing all biological media at once unless necessary.",
       "subcategory": "Filter Media",
-      "seoTitle": "White Porous Ceramic Rings – 1 kg | AQUAVO",
-      "seoDescription": "White porous ceramic rings offer a high‑surface area for beneficial bacteria in biological filtration. Their open ring shape ensures optimal water flow, and the white color makes debris easy to detect. Includes 1 كغم.",
+      "seoTitle": "Houyi Ceramic Rings for Biological Filtration | AQUAVO",
+      "seoDescription": "Houyi porous ceramic rings provide a large surface area for beneficial bacteria colonization, ideal for biological filtration in aquariums. 1 kg pack.",
       "specifications": {
         "benefits": [
-          "Porous surface for colonizing beneficial bacteria",
+          "Porous surface for beneficial bacteria colonization",
           "Ring shape allows water flow",
           "Suitable for the biological filtration stage",
-          "White color makes dirt buildup easy to notice"
+          "White color makes dirt accumulation easy to notice"
         ],
         "usageInstructions": [
-          "Rinse manufacturing dust before use",
-          "Place it after mechanical filtration",
-          "Clean gently when debris accumulates",
-          "Do not replace the entire quantity at once without need"
+          "Rinse off manufacturing dust before use",
+          "Place after mechanical filtration",
+          "Clean gently when sediment accumulates",
+          "Do not replace the entire quantity at once unless necessary"
         ],
         "safetyWarnings": [
-          "Do not use soap or detergents to clean it",
+          "Do not use soap or detergents to clean them",
           "Avoid washing all settled media with chlorinated water at once",
           "Exclude broken pieces with sharp edges"
         ],
@@ -779,7 +779,7 @@
           },
           "الوزن": {
             "label": "Weight",
-            "value": "1 كغم"
+            "value": "1 kg"
           },
           "المادة": {
             "label": "Material",
@@ -788,7 +788,7 @@
         }
       },
       "variantLabels": {
-        "1kg": "1 كغم"
+        "1kg": "1 kg"
       }
     }
   },
@@ -1257,45 +1257,45 @@
     "entityId": "houyi-foam-glue",
     "slug": "houyi-foam-glue",
     "sourceHash": "5d73ea5f8dfdee75",
-    "translatedBy": "groq:openai/gpt-oss-120b",
-    "translatedAt": "2026-09-18T22:44:48.697Z",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:22:39.917Z",
     "data": {
-      "name": "Decorative Gap Fill and Hide Paste – Wood Color",
-      "description": "A specialized paste for filling gaps and concealing mounting points in decorative and aquascape work, with a wood‑like color to achieve a more uniform appearance.\n\nUse in small amounts and thin layers, allowing each layer to dry before applying the next. After drying, the surface can be shaped or gently sanded as needed.\n\nBefore using it inside the tank, ensure the package clearly states its suitability for aquatic environments after full drying.",
-      "subcategory": "Accessories",
-      "seoTitle": "Houyi Decorative Gap Fill Paste – Wood Color | AQUAVO",
-      "seoDescription": "Houyi wood‑colored decorative paste fills small gaps and hides mounting points. Apply thin layers and let dry fully before adding more or placing in tank.",
+      "name": "Houyi Decor Gap Filler - Wood Color",
+      "description": "A specialized paste for filling gaps and concealing attachment points in decor and aquascaping projects. Its wood-like color helps achieve a more uniform appearance.\n\nApply in small amounts and thin layers, allowing each layer to dry before adding another. Once dry, the surface can be gently shaped or sanded as needed.\n\nBefore use inside the aquarium, ensure the packaging clearly states its suitability for aquariums after complete drying.",
+      "subcategory": "Decor",
+      "seoTitle": "Houyi Decor Gap Filler - Wood Color | AQUAVO",
+      "seoDescription": "Fill aquarium decor gaps and hide attachment points with Houyi's wood-colored paste. Safe for aquascaping after drying.",
       "specifications": {
         "benefits": [
-          "Helps fill small gaps between decorative pieces",
-          "Wood‑like color reduces visibility of mounting points",
-          "Can be applied in thin layers for controlled final shape"
+          "Helps fill small gaps between decor pieces",
+          "Wood-like color minimizes the visibility of attachment points",
+          "Can be applied in thin layers with control over the final shape"
         ],
         "usageInstructions": [
           "Clean and dry the surface before use",
           "Apply a small amount in a thin layer",
-          "Allow the layer to dry according to package instructions before adding another layer",
-          "After drying, shape or gently sand the surface as needed",
-          "Do not place the piece in the tank until fully dry and suitability for aquariums is confirmed"
+          "Allow the layer to dry according to package instructions before adding another",
+          "Once dry, gently shape or sand the surface as needed",
+          "Do not place the piece in the aquarium until fully dry and confirmed suitable for aquariums"
         ],
         "safetyWarnings": [
-          "Do not use inside a stocked tank unless the package confirms it is safe after drying",
-          "Do not allow the wet product to contact water or fish",
-          "Use in a well‑ventilated area and follow package warnings"
+          "Do not use inside a populated aquarium unless the packaging confirms it is aquarium-safe after drying",
+          "Do not allow uncured product to contact water or fish",
+          "Use in a well-ventilated area and follow package warnings"
         ],
-        "__cardBenefit": "Fills decorative gaps and hides mounting points with a wood‑like color",
+        "__cardBenefit": "Fills decor gaps and hides attachment points with a wood-like color",
         "labelled": {
           "اللون": {
             "label": "Color",
-            "value": "Wood color"
+            "value": "Wood Color"
           },
           "الوزن": {
             "label": "Weight",
-            "value": "900 غرام"
+            "value": "900 g"
           },
           "الاستخدام": {
             "label": "Usage",
-            "value": "Filling and hiding gaps in decorations and crafts"
+            "value": "Filling and concealing gaps in decor and crafts"
           }
         }
       },
@@ -1348,38 +1348,38 @@
     "entityId": "houyi-hose-brush",
     "slug": "houyi-hose-brush",
     "sourceHash": "3c71638668a4c26a",
-    "translatedBy": "groq:openai/gpt-oss-120b",
-    "translatedAt": "2026-09-18T22:53:46.358Z",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:22:43.593Z",
     "data": {
-      "name": "Houyi Dual Filter Hose Cleaning Brush — 1.55 metre",
-      "description": "A dual‑head brush 1.55 metre long for cleaning the interior of filter hoses and compatible flexible tubes.\n\nIt helps remove biofilm and deposits that can reduce water flow over time. There is no single cleaning schedule for all tanks; clean the hoses when you notice buildup or a flow decrease.\n\nUse the head that fits inside the hose without excessive force.",
+      "name": "Houyi Dual Filter Hose Cleaning Brush - 1.55m",
+      "description": "A 1.55-meter dual brush for cleaning the inside of filter hoses and flexible tubing compatible with its head sizes.\n\nIt helps remove biofilm and sediment that can reduce water flow diameter over time. There is no single cleaning schedule for all aquariums; clean hoses when you notice dirt buildup or reduced flow.\n\nUse the head that passes inside the hose without excessive force.",
       "subcategory": "Cleaning Tools",
-      "seoTitle": "Dual Filter Hose Cleaning Brush – 1.55m | AQUAVO",
-      "seoDescription": "A 1.55 m dual‑head brush for cleaning filter hoses and flexible tubing, removing biofilm and debris to maintain optimal water flow.",
+      "seoTitle": "Houyi Filter Hose Cleaning Brush - 1.55m | AQUAVO",
+      "seoDescription": "Clean your filter hoses effectively with the Houyi Dual Filter Hose Cleaning Brush. Features a 1.55m length and dual heads for thorough sediment removal.",
       "specifications": {
         "benefits": [
-          "1.55 m length to reach inside long hoses",
-          "Two heads with different sizes",
-          "Flexible wire to navigate bends",
-          "Helps remove deposits and biofilm from inside the hose"
+          "1.55m length for reaching inside long hoses",
+          "Two heads in different sizes",
+          "Flexible wire to pass through bends",
+          "Helps remove sediment and biofilm from inside the hose"
         ],
         "usageInstructions": [
           "Select the appropriate head for the hose diameter",
-          "Gently push the brush through the hose",
-          "Move it back and forth to dislodge debris",
+          "Gently pass the brush inside the hose",
+          "Move it back and forth to remove sediment",
           "Rinse the hose and brush after cleaning"
         ],
         "safetyWarnings": [
           "Do not use a head larger than the hose diameter",
-          "Do not force the brush if it catches",
+          "Do not force the brush if it gets stuck",
           "Wash the brush after use",
-          "Stop if the wire or bristles show damage"
+          "Stop if damage appears on the wire or bristles"
         ],
-        "__cardBenefit": "Reaches deep into long hoses and removes debris from water flow",
+        "__cardBenefit": "Reaches inside long hoses and removes sediment from the water flow",
         "labelled": {
           "الطول": {
             "label": "Length",
-            "value": "1.55 متر"
+            "value": "1.55m"
           },
           "الرؤوس": {
             "label": "Heads",
@@ -1600,45 +1600,45 @@
     "entityId": "houyi-mesh",
     "slug": "houyi-mesh",
     "sourceHash": "87b868b76d1871eb",
-    "translatedBy": "groq:openai/gpt-oss-20b",
-    "translatedAt": "2026-09-19T11:39:54.480Z",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:22:45.311Z",
     "data": {
-      "name": "شبكة ستانلس لتثبيت الموس — 8×8 سم",
-      "description": "شبكة ستانلس بمقاس 8×8 سم لتثبيت الموس وتكوين مساحات خضراء على أرضية الحوض أو فوق الأسطح المناسبة. يمكن قصها أو تشكيلها بحذر حسب التصميم.\n\nوزع طبقة خفيفة من الموس وثبتها بطريقة مناسبة، ثم ضع الشبكة في موضع مستقر مع تجنب ترك حواف حادة مكشوفة.",
+      "name": "Houyi Stainless Steel Moss Grid - 8x8 cm",
+      "description": "An 8x8 cm stainless steel grid for attaching moss and creating green areas on the aquarium substrate or suitable surfaces. It can be carefully cut or shaped according to your design.\n\nSpread a light layer of moss and secure it appropriately, then place the grid in a stable position, avoiding exposed sharp edges.",
       "subcategory": "Plant Accessories",
-      "seoTitle": "Houyi Stainless Mesh 8×8 cm | AQUAVO",
-      "seoDescription": "Houyi stainless mesh for securing moss in aquariums. 8×8 cm size, cuttable and moldable, ideal for creating green carpets or surface covers. Durable and safe.",
+      "seoTitle": "Houyi Stainless Steel Moss Grid 8x8 cm | AQUAVO",
+      "seoDescription": "Houyi 8x8 cm stainless steel grid for attaching moss in aquariums. Create moss carpets or cover surfaces. Shapeable and stable.",
       "specifications": {
         "benefits": [
-          "8×8 cm size suitable for small moss arrangements",
-          "Metal mesh that can be cut and shaped carefully",
-          "Helps secure moss in a defined area",
-          "Can be used to create moss rugs or surface covers"
+          "8x8 cm size is suitable for small moss arrangements",
+          "Cuttable and carefully shapeable metal mesh",
+          "Helps secure moss in a specific area",
+          "Can be used to create a moss carpet or cover a surface"
         ],
         "usageInstructions": [
-          "Spread a light layer of moss over the mesh",
-          "Secure the moss with string or the appropriate method for the design",
-          "Place the mesh in a stable position inside the tank",
-          "Monitor growth and trim moss as needed"
+          "Spread a light layer of moss onto the grid",
+          "Secure the moss with thread or your preferred method for the design",
+          "Place the grid in a stable position inside the aquarium",
+          "Monitor growth and trim the moss as needed"
         ],
         "safetyWarnings": [
-          "Cut edges may be sharp; bend them inward",
-          "Do not leave the mesh loose inside the tank",
-          "Replace if corrosion or obvious damage appears"
+          "Cut edges may be sharp; fold them inward",
+          "Do not leave the grid loose inside the aquarium",
+          "Replace if significant corrosion or damage appears"
         ],
-        "__cardBenefit": "Secures moss in a defined area for making a moss carpet or green cover",
+        "__cardBenefit": "Secures moss in a specific area to create a carpet or green cover",
         "labelled": {
           "القياس": {
-            "label": "Measurement",
-            "value": "8×8 سم"
+            "label": "Size",
+            "value": "8x8 cm"
           },
           "المادة": {
             "label": "Material",
-            "value": "ستانلس ستيل 304 بحسب بيانات المنتج"
+            "value": "304 Stainless Steel per product data"
           },
           "الاستخدام": {
             "label": "Usage",
-            "value": "تثبيت الموس في تنسيقات الأحواض"
+            "value": "Attaching moss in aquarium aquascapes"
           }
         }
       },
@@ -1649,41 +1649,41 @@
     "entityId": "houyi-moss-glue-20g",
     "slug": "houyi-moss-glue-20g",
     "sourceHash": "8610a1ffa2b12713",
-    "translatedBy": "groq:openai/gpt-oss-120b",
-    "translatedAt": "2026-09-18T22:34:03.444Z",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:22:39.498Z",
     "data": {
-      "name": "Aquascape Glue for Securing Moss — 20 غرام",
-      "description": "Cyanoacrylate glue for securing moss and some aquatic plants to wood and stone, in a 20 غرام package for medium projects.\n\nApply a small amount to a clean surface, then gently press the plant according to the package instructions. A white color may appear at the glue spot when contacting water, and it diminishes after the plant grows.\n\nUse only if the package confirms its suitability for aquariums after curing, and avoid contact with skin and eyes.",
+      "name": "Houyi Aquascape Glue - 20g",
+      "description": "Cyanoacrylate glue for attaching moss and some aquatic plants to wood and stone, in a 20g bottle for medium-sized projects.\n\nApply a small amount to a clean surface, then gently press the plant according to the package instructions. A white residue may appear where the glue was applied upon contact with water, which becomes less noticeable after the plant grows.\n\nUse only if the packaging confirms its suitability for aquariums after curing, avoiding contact with skin and eyes.",
       "subcategory": "Accessories",
-      "seoTitle": "Aquascape Moss Glue 20 g – Secure Plants | AQUAVO",
-      "seoDescription": "Cyanoacrylate glue for attaching moss and aquatic plants to wood or stone. 20 gram tube for projects. Apply a tiny amount, press gently, and let cure.",
+      "seoTitle": "Houyi Aquascape Glue for Plants & Moss | AQUAVO",
+      "seoDescription": "Houyi cyanoacrylate aquascape glue for attaching moss and plants to wood and stone. 20g bottle. Safe for aquariums after curing.",
       "specifications": {
         "benefits": [
-          "Helps secure moss and attached plants to wood and stone.",
-          "Suitable package for use according to the selected size.",
-          "Small dots can be used to control placement of the attachment."
+          "Helps attach moss and carpeting plants to wood and stone",
+          "Bottle size suitable for the chosen volume",
+          "Small dots can be used to control attachment placement"
         ],
         "usageInstructions": [
-          "Clean and dry the attachment area as much as possible.",
-          "Apply only a small amount of glue.",
-          "Secure the moss or plant for the duration specified by the package.",
-          "Follow the product instructions before returning the piece to the tank."
+          "Clean and dry the attachment area as much as possible",
+          "Apply only a small amount of glue",
+          "Hold the moss or plant for the duration specified on the packaging",
+          "Follow product instructions before returning the item to the aquarium"
         ],
         "safetyWarnings": [
-          "Avoid contact with skin and eyes.",
-          "Keep out of reach of children.",
-          "Use only if the package confirms its suitability for aquariums.",
-          "Follow the printed curing time and usage method; do not rely on a generic duration."
+          "Avoid contact with skin and eyes",
+          "Keep out of reach of children",
+          "Use only if the packaging confirms its suitability for aquariums",
+          "Follow the printed curing time and usage method; do not rely on a general duration"
         ],
-        "__cardBenefit": "Secures moss and plants to wood and stone with small dots",
+        "__cardBenefit": "Attaches moss and plants to wood and stone with small dots",
         "labelled": {
           "الحجم": {
             "label": "Size",
-            "value": "20 غرام"
+            "value": "20g"
           },
           "النوع": {
             "label": "Type",
-            "value": "Installation glue for plants and aquascape according to product data"
+            "value": "Plant and aquascape attachment glue according to product data"
           },
           "العلامة التجارية": {
             "label": "Brand",
@@ -1698,41 +1698,41 @@
     "entityId": "houyi-moss-glue-50g",
     "slug": "ghraa-tthbyt-50-ghram",
     "sourceHash": "0dc8a2bc9c668b58",
-    "translatedBy": "groq:openai/gpt-oss-120b",
-    "translatedAt": "2026-09-18T22:40:04.726Z",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:22:37.757Z",
     "data": {
-      "name": "Houyi Aquascape Glue for Moss — 50 غرام",
-      "description": "Cyanoacrylate glue for securing moss and some aquatic plants to wood or stone, in a 50 gram tube for large projects or frequent use.\n\nApply a small amount to a clean surface, then gently press the plant according to the package instructions. A white spot may appear where the glue contacts water.\n\nUse only if the package confirms suitability for aquariums after curing, and avoid contact with skin and eyes.",
+      "name": "Houyi Aquascape Glue - 50g",
+      "description": "Cyanoacrylate glue for attaching moss and some aquatic plants to wood and stone, in a 50g bottle for large projects or frequent use.\n\nApply a small amount to a clean surface, then gently press the plant according to package instructions. A white residue may appear where the glue contacts water.\n\nUse only if the packaging confirms its suitability for aquariums after curing, avoiding contact with skin and eyes.",
       "subcategory": "Accessories",
-      "seoTitle": "Houyi Aquascape Glue for Moss — 50 gram | AQUAVO",
-      "seoDescription": "Cyanoacrylate glue for securing moss and aquatic plants to wood or stone, 50 gram tube for large projects or frequent use. Apply sparingly, avoid skin contact.",
+      "seoTitle": "Houyi Aquascape Glue for Plants & Moss | AQUAVO",
+      "seoDescription": "Cyanoacrylate aquascaping glue for attaching moss and plants to wood/stone. 50g bottle. Safe for aquariums after curing. | AQUAVO",
       "specifications": {
         "benefits": [
-          "Helps attach moss and plants firmly to wood and stone",
-          "Convenient package size for the chosen application",
-          "Small dots can be used to control placement"
+          "Helps attach moss and carpeting plants to wood and stone",
+          "Bottle size suitable for use based on selected volume",
+          "Small dots can be used to control attachment placement"
         ],
         "usageInstructions": [
           "Clean and dry the attachment area as much as possible",
-          "Apply only a tiny amount of glue",
-          "Secure the moss or plant for the duration specified by the package",
-          "Follow product instructions before returning the piece to the tank"
+          "Apply only a small amount of glue",
+          "Hold the moss or plant for the duration specified on the package",
+          "Follow product instructions before returning the item to the aquarium"
         ],
         "safetyWarnings": [
           "Avoid contact with skin and eyes",
-          "Keep out of reach of children",
-          "Use only if the package confirms aquarium suitability",
-          "Follow the printed curing time and usage method; do not rely on a generic duration"
+          "Keep away from children",
+          "Use only if the packaging confirms its suitability for aquariums",
+          "Follow the printed curing time and usage method; do not rely on a general duration"
         ],
-        "__cardBenefit": "Large size for repeated mounting in aquascape projects",
+        "__cardBenefit": "Large size for frequent attachment in aquascaping projects",
         "labelled": {
           "الحجم": {
             "label": "Size",
-            "value": "50 غرام"
+            "value": "50g"
           },
           "النوع": {
             "label": "Type",
-            "value": "Moss and aquascape mounting glue as per product data"
+            "value": "Plant and aquascape attachment glue per product data"
           },
           "العلامة التجارية": {
             "label": "Brand",
@@ -2259,41 +2259,41 @@
     "entityId": "houyi-stream-sand",
     "slug": "houyi-stream-sand",
     "sourceHash": "470ffb23f874aaa3",
-    "translatedBy": "groq:openai/gpt-oss-120b",
-    "translatedAt": "2026-09-18T22:48:26.444Z",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:22:43.196Z",
     "data": {
-      "name": "Houyi Natural River Sand for Aquascape — 2–6 ملم",
-      "description": "Natural river sand with 2–6 ملم grains for arranging the tank floor and providing a look close to river bottoms. Suitable as an independent decorative layer or as a surface layer depending on the tank design.\n\nRinse it lightly with water before use to remove dust and fine particles. This sand is not a substitute for a root‑plant nutrition source.",
+      "name": "Houyi Natural Stream Sand - 2-6mm",
+      "description": "Natural stream sand with 2-6mm grains for aquascaping tank floors, providing a look similar to stream beds. Suitable as a standalone decorative layer or as a top layer, depending on the tank design.\n\nWash lightly with water before use to remove dust and fine particles. This sand is not a substitute for a root tab nutrient source.",
       "subcategory": "Sand",
-      "seoTitle": "Houyi Natural River Sand 2–6 ملم – Aquascape | AQUAVO",
-      "seoDescription": "Natural river sand with 2–6 ملم grains, perfect for aquascape tank floors. Rinse before use; serves as decorative or surface layer, not a plant source.",
+      "seoTitle": "Houyi Natural Stream Sand for Aquascaping | AQUAVO",
+      "seoDescription": "Houyi Natural Stream Sand (2-6mm) creates realistic stream bed effects. Ideal for aquascaping, decorative layers, or top coats. Shop at AQUAVO.",
       "specifications": {
         "benefits": [
-          "Natural grains sized 2–6 ملم",
-          "Suitable for natural layouts and aquascape pathways",
-          "Can be used as a decorative substrate or surface layer",
+          "Natural 2-6mm grains",
+          "Suitable for natural aquascapes and pathways",
+          "Can be used as a decorative substrate or top layer",
           "Natural color blends with stone and wood"
         ],
         "usageInstructions": [
-          "Rinse the sand lightly before use",
-          "Spread it at the appropriate thickness for the design",
-          "Fill the tank slowly to minimize water cloudiness",
-          "Clean the surface with a siphon when debris accumulates"
+          "Wash the sand lightly before use",
+          "Distribute at the appropriate thickness for the design",
+          "Add water slowly to minimize clouding",
+          "Clean the surface with a siphon when waste accumulates"
         ],
         "safetyWarnings": [
           "Do not use detergents or soap to wash the sand",
-          "If your inhabitants are sensitive to water chemistry, test parameters after setting up the tank",
-          "Rooted plants require an appropriate nutrition source if no nutrient-rich substrate is present"
+          "If your inhabitants are sensitive to water chemistry, test values after setting up the tank",
+          "Rooted plants require a suitable nutrient source if no nutrient substrate is present"
         ],
-        "__cardBenefit": "Natural 2–6 ملم grains create a river‑bottom‑like substrate",
+        "__cardBenefit": "Natural 2-6mm grains create a stream bed-like substrate",
         "labelled": {
           "النوع": {
             "label": "Type",
-            "value": "Natural river sand"
+            "value": "Natural stream sand"
           },
           "حجم الحبيبات": {
-            "label": "Grain size",
-            "value": "2–6 ملم"
+            "label": "Grain Size",
+            "value": "2-6mm"
           }
         }
       },
@@ -2676,46 +2676,46 @@
     "entityId": "houyi-volcanic-stone-red",
     "slug": "houyi-volcanic-stone-red",
     "sourceHash": "f8a6a54ca6cdbeea",
-    "translatedBy": "groq:openai/gpt-oss-120b",
-    "translatedAt": "2026-09-18T22:39:11.676Z",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:22:37.369Z",
     "data": {
-      "name": "Houyi Red Volcanic Stone",
-      "description": "Red volcanic lava stone with a porous structure, suitable for aquarium decoration or as filter media. Rinse before use in pH‑sensitive tanks.\n\nWash thoroughly before use to remove dust. As natural stones may vary between batches, it is not chemically neutral without testing; monitor readings after adding if the tank is sensitive to pH or GH/KH.\n\nEnsure pieces are stable and free of sharp edges that could harm fish.",
+      "name": "Houyi Red Lava Stone",
+      "description": "Porous red lava stone, used as decor or as a porous medium within some filtration systems.\n\nWash thoroughly before use to remove dust. As natural stones can vary in composition between batches, it is not considered chemically inert without testing; if the aquarium is sensitive to pH or GH/KH, monitor readings after adding it.\n\nEnsure pieces are stable and have no sharp edges that could harm fish.",
       "subcategory": "Stones",
-      "seoTitle": "Red Volcanic Stone – Decorative Aquarium Substrate | AQUAVO",
-      "seoDescription": "Red volcanic lava stone with porous structure, suitable for aquarium decoration or as filter media. Rinse before use in pH‑sensitive tanks.",
+      "seoTitle": "Houyi Red Lava Stone for Aquariums | AQUAVO",
+      "seoDescription": "Porous red lava stone for aquascaping and filtration. Adds warm contrast. Wash before use. Monitor water parameters.",
       "specifications": {
         "benefits": [
-          "Porous structure suitable for increasing surface area within the filter or tank design.",
-          "Red volcanic color provides warm contrast inside the aquarium.",
-          "Can be used as decoration or as a porous medium in filtration.",
-          "Relatively lightweight compared to many dense rocks."
+          "Porous structure provides increased surface area for beneficial bacteria or aquascaping",
+          "Volcanic red color provides warm contrast within the aquarium",
+          "Can be used as decor or as a porous medium in filtration",
+          "Relatively lightweight compared to many dense rocks"
         ],
         "usageInstructions": [
-          "Rinse the stones until dust is reduced.",
-          "Arrange them securely in the tank or place them in a suitable bag inside the filter.",
-          "Monitor water quality after the first use in sensitive tanks.",
-          "Rinse them when debris accumulates if used in the filter."
+          "Rinse stones until dust is reduced",
+          "Arrange them stably in the aquarium or place them in a suitable bag inside the filter",
+          "Monitor water quality after initial use in sensitive aquariums",
+          "Rinse when dirt accumulates if used in the filter"
         ],
         "safetyWarnings": [
-          "Wash thoroughly to remove dust.",
-          "Inspect edges before placing with sensitive fish.",
-          "Do not assume its effect on pH or hardness is stable without testing.",
-          "Secure the pieces firmly inside the tank."
+          "Wash thoroughly to remove dust",
+          "Check edges before placing with sensitive fish",
+          "Do not assume its effect on pH or hardness is stable without testing",
+          "Secure pieces well within the aquarium"
         ],
         "__cardBenefit": "Porous texture and red color add warm contrast to the design",
         "labelled": {
           "اللون": {
             "label": "Color",
-            "value": "Red volcanic"
+            "value": "Volcanic red"
           },
           "النوع": {
             "label": "Type",
             "value": "Natural volcanic lava stone"
           },
           "حجم القطع": {
-            "label": "Piece size",
-            "value": "3–5 سم"
+            "label": "Piece Size",
+            "value": "3–5 cm"
           }
         }
       },
@@ -3646,34 +3646,34 @@
     "entityId": "yee-07509",
     "slug": "yff-049",
     "sourceHash": "fccb6aff9b8fa1c3",
-    "translatedBy": "groq:openai/gpt-oss-120b",
-    "translatedAt": "2026-09-19T00:16:39.803Z",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:22:45.888Z",
     "data": {
-      "name": "Aquascape Substrate for Aquatic Plants — 1.5 or 3 litre",
-      "description": "Start a planted tank with a substrate designed for aquatic plants, offering a dark base for root stability and aquascape design.\n\nDo not wash it aggressively; spread it on the bottom and add water slowly to minimize grain movement and water cloudiness.",
-      "subcategory": "Plant substrate",
-      "seoTitle": "Aquascape Substrate for Aquatic Plants – 1.5 or 3 L | AQUAVO",
-      "seoDescription": "Start a planted tank with a substrate designed for aquatic plants, offering dark color for root stability and aquascape design. Available in 1.5 L or 3 L.",
+      "name": "YEE Aquascape Substrate - 1.5 or 3 L",
+      "description": "Start your planted aquarium with a substrate designed for plants, rather than relying solely on decorative sand. Aquascape substrate helps anchor roots and provides a suitable base for plant arrangements. It is available in 1.5 L or 3 L sizes.\n\nDo not wash it vigorously; spread it on the bottom and fill with water slowly to minimize substrate movement and cloudiness.",
+      "subcategory": "Plant Substrate",
+      "seoTitle": "YEE Aquascape Substrate for Planted Tanks | AQUAVO",
+      "seoDescription": "YEE Aquascape Substrate provides a dark, stable base for planted aquariums. Available in 1.5 L and 3 L, it anchors roots and supports plant growth. Ideal for aquascaping.",
       "specifications": {
         "benefits": [
-          "Available in 1.5 L or 3 L",
-          "Specifically for arranging planted tanks",
-          "Dark color enhances plant and décor visibility",
-          "Can be shaped into slopes and heights for custom aquascape designs"
+          "Available in 1.5 L or 3 L sizes",
+          "Designed for planted aquarium aquascaping",
+          "Dark color enhances plants and decor",
+          "Can be shaped with slopes and heights for aquascaping designs"
         ],
         "usageInstructions": [
-          "Select the appropriate size for the required substrate amount",
-          "Do not wash the substrate aggressively before use",
-          "Distribute it at the suitable thickness for the design",
-          "Plant the flora then slowly add water over a barrier or plate",
-          "Test the water and complete the tank cycle before adding organisms"
+          "Choose the appropriate size for the required substrate amount",
+          "Do not wash the substrate vigorously before use",
+          "Distribute it to the desired thickness for the design",
+          "Plant the plants, then slowly fill with water over a barrier or plate",
+          "Test the water and complete the aquarium cycle before adding inhabitants"
         ],
         "safetyWarnings": [
-          "Avoid stirring the substrate vigorously after the tank is filled",
-          "Do not rely on the substrate alone to set fertilization schedules; plant needs vary",
-          "Monitor water quality during the tank establishment period"
+          "Avoid disturbing the substrate vigorously after filling the aquarium",
+          "Do not rely solely on the substrate for fertilization; plant needs vary",
+          "Monitor water quality during the aquarium setup period"
         ],
-        "__cardBenefit": "Substrate for plants that stabilizes roots and provides a dark aquascape base",
+        "__cardBenefit": "Plant substrate that anchors roots and provides a dark base for aquascaping",
         "labelled": {
           "اللون": {
             "label": "Color",
@@ -3685,7 +3685,7 @@
           },
           "الاستخدام": {
             "label": "Usage",
-            "value": "Substrate for planted tanks and aquascapes"
+            "value": "Substrate for planted aquariums and aquascaping"
           }
         }
       },
@@ -4122,44 +4122,46 @@
     "entityId": "yee-19939",
     "slug": "mzyl-thalb-600-ml",
     "sourceHash": "f977dc062189b6ae",
-    "translatedBy": "groq:openai/gpt-oss-20b",
-    "translatedAt": "2026-09-19T11:44:04.468Z",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:22:47.326Z",
     "data": {
-      "name": "Algae Remover for Tanks — 600 ml",
-      "description": "Algae remover in a 600 ml bottle for use in freshwater tanks according to the dosage and compatibility printed on the bottle. It helps as part of an algae control plan, along with manual cleaning, lighting adjustment, nutrients, and maintenance.\n\nCheck the product’s compatibility with plants, shrimp, and snails before use, and do not mix it with other treatments unless the instructions allow it.",
+      "name": "YEE Algae Remover - 600ml",
+      "description": "A 600ml bottle of algae remover for freshwater aquariums, dosed according to the instructions and compatibility printed on the bottle. It assists as part of an algae control plan, alongside manual cleaning, adjusting lighting and nutrients, and maintenance.\n\nCheck product compatibility with plants, shrimp, and snails before use, and do not mix with other treatments unless instructions permit.",
       "subcategory": "Water Treatments",
-      "benefits": [
-        "600 ml bottle for repeated use according to dosage",
-        "Designed to help reduce algae per product instructions",
-        "Used as part of a plan that includes cleaning, lighting, and nutrients"
-      ],
-      "usageInstructions": [
-        "Remove as much algae as possible manually",
-        "Calculate the actual water volume",
-        "Verify the product’s compatibility with all existing organisms",
-        "Use the dosage and duration printed on the bottle",
-        "Continue adjusting lighting and maintenance to prevent algae return"
-      ],
-      "safetyWarnings": [
-        "Do not exceed the printed dosage",
-        "Do not mix with other treatments unless the instructions allow it",
-        "Keep out of reach of children",
-        "Stop use if an abnormal reaction appears in organisms"
-      ],
-      "__cardBenefit": "Helps reduce algae with a 600 ml bottle for repeated use",
-      "labelled": {
-        "الحجم": {
-          "label": "Size",
-          "value": "600 ml"
-        },
-        "النوع": {
-          "label": "Type",
-          "value": "Algae Remover for Tanks"
+      "seoTitle": "YEE Algae Remover 600ml for Freshwater Aquariums | AQUAVO",
+      "seoDescription": "YEE 600ml algae remover for freshwater tanks. Use as part of an algae control plan with manual cleaning, lighting, and nutrient adjustments. Check compatibility.",
+      "specifications": {
+        "benefits": [
+          "600ml bottle for repeated use according to dosage",
+          "Designed to help reduce algae as per product instructions",
+          "Used as part of a plan including cleaning and adjusting lighting and nutrients"
+        ],
+        "usageInstructions": [
+          "Remove as much algae as possible manually",
+          "Calculate the actual water volume",
+          "Check product compatibility with all inhabitants",
+          "Use the dosage and duration printed on the bottle",
+          "Continue adjusting lighting and maintenance to prevent algae recurrence"
+        ],
+        "safetyWarnings": [
+          "Do not exceed the printed dosage",
+          "Do not mix with other treatments unless instructions permit",
+          "Keep out of reach of children",
+          "Discontinue use if inhabitants show an abnormal response"
+        ],
+        "__cardBenefit": "Helps reduce algae with a 600ml bottle for repeated use",
+        "labelled": {
+          "الحجم": {
+            "label": "Size",
+            "value": "600ml"
+          },
+          "النوع": {
+            "label": "Type",
+            "value": "Algae Remover for Aquariums"
+          }
         }
       },
-      "variantLabels": {},
-      "seoTitle": "Algae Remover 600ml | AQUAVO",
-      "seoDescription": "A 600 ml algae remover for freshwater tanks, used per dosage instructions. Part of a comprehensive algae control plan with manual cleaning, lighting, nutrients, and maintenance."
+      "variantLabels": {}
     }
   },
   "yee-71934": {
