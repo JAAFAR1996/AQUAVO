@@ -574,7 +574,7 @@ function SpeciesCard({
                                     <span className="text-xs text-muted-foreground">
                                         {species.feedingInfo.frequencyPerDay === 0
                                             ? t("fish-selection.s54")
-                                            : t("fish-selection.s55", { v0: species.feedingInfo.frequencyPerDay, v1: species.feedingInfo.frequencyPerDay > 2 ? "مرات" : "مرتين" })
+                                            : t("fish-selection.s55", { v0: species.feedingInfo.frequencyPerDay, v1: species.feedingInfo.frequencyPerDay > 2 ? t("fish-selection.timesMany") : t("fish-selection.timesTwo") })
                                         }
                                     </span>
                                 </div>

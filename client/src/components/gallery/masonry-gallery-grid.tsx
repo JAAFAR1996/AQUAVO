@@ -76,7 +76,7 @@ export function MasonryGalleryGrid() {
               <div
                 className="cursor-pointer relative"
                 role="button"
-                aria-label={t("masonry-gallery-grid.s6", { v0: item.userName || 'مستخدم' })}
+                aria-label={t("masonry-gallery-grid.s6", { v0: item.userName || t("masonry-gallery-grid.anonymous") })}
                 onClick={() => setActiveItem(item.id)}
               >
                 <div className="relative overflow-hidden rounded-2xl">

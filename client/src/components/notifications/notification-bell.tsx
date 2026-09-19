@@ -241,7 +241,7 @@ export function NotificationBell() {
             variant="ghost"
             size="icon"
             className="relative"
-            aria-label={t("notification-bell.s6", { v0: unreadCount > 0 ? ` - ${unreadCount} جديد` : "" })}
+            aria-label={t("notification-bell.s6", { v0: unreadCount > 0 ? t("notification-bell.newCount", { n: unreadCount }) : "" })}
           >
             {unreadCount > 0 ? (
               <BellRing className="h-5 w-5 text-primary animate-pulse" aria-hidden="true" />

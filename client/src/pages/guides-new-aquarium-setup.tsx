@@ -110,7 +110,7 @@ export default function GuideNewAquariumSetup() {
       />
 
       <HowToSchema
-        name="كيف تجهز حوض سمك جديد في العراق — خطوة بخطوة"
+        name={t("guides-new-aquarium-setup.howToName")}
         description={t("guides-new-aquarium-setup.s39")}
         totalTime="PT7D"
         supply={[

@@ -125,7 +125,7 @@ function FishCard({ fish, index }: { fish: FishTemp; index: number }) {
             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0" style={{
               background: `${diffColor}15`, color: diffColor, border: `1px solid ${diffColor}30`,
             }}>
-              {fish.difficulty}
+              {t(fish.difficulty === "سهل" ? "temperature-guide.diffEasy" : fish.difficulty === "متوسط" ? "temperature-guide.diffMedium" : "temperature-guide.diffAdvanced")}
             </span>
           </div>
 

@@ -234,7 +234,7 @@ export default function FishPatients() {
                         ? tr("fish-patients.s11", { v0: Math.abs(fu.daysUntil) })
                         : fu.daysUntil === 0
                         ? tr("fish-patients.s12")
-                        : tr("fish-patients.s13", { v0: fu.daysUntil, v1: fu.daysUntil === 1 ? "يوم" : "أيام" })
+                        : tr("fish-patients.s13", { v0: fu.daysUntil, v1: fu.daysUntil === 1 ? tr("fish-patients.dayOne") : tr("fish-patients.dayMany") })
                       }
                     </p>
                   </div>

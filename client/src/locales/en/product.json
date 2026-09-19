@@ -1,7 +1,16 @@
 {
-  "notFound": { "title": "Product not found", "description": "Sorry, we could not find the product you asked for.", "browse": "Browse products" },
-  "meta": { "description": "Shop {{name}} from AQUAVO at the best prices." },
-  "breadcrumb": { "home": "Home", "products": "Products" },
+  "notFound": {
+    "title": "Product not found",
+    "description": "Sorry, we could not find the product you asked for.",
+    "browse": "Browse products"
+  },
+  "meta": {
+    "description": "Shop {{name}} from AQUAVO at the best prices."
+  },
+  "breadcrumb": {
+    "home": "Home",
+    "products": "Products"
+  },
   "toast": {
     "added": "Added",
     "addedDetail": "{{name}} was added to your cart.",
@@ -13,26 +22,60 @@
     "error": "Error",
     "shareError": "The product could not be shared"
   },
-  "badges": { "new": "New", "bestSeller": "Best seller", "eco": "Eco-friendly", "samePiece": "The exact piece you receive", "view3d": "3D view", "model": "Model" },
-  "rating": { "aria": "Rated {{rating}} out of 5", "count": "{{rating}} ({{count}} reviews)" },
-  "price": { "soon": "Coming soon" },
-  "stock": { "available": "In stock ({{count}} pcs)", "unavailable": "Currently out of stock" },
+  "badges": {
+    "new": "New",
+    "bestSeller": "Best seller",
+    "eco": "Eco-friendly",
+    "samePiece": "The exact piece you receive",
+    "view3d": "3D view",
+    "model": "Model"
+  },
+  "rating": {
+    "aria": "Rated {{rating}} out of 5",
+    "count": "{{rating}} ({{count}} reviews)"
+  },
+  "price": {
+    "soon": "Coming soon"
+  },
+  "stock": {
+    "available": "In stock ({{count}} pcs)",
+    "unavailable": "Currently out of stock"
+  },
   "trust": {
     "label": "Purchase and trust information",
     "delivery": "Delivery: {{fee}} across Iraq",
     "deliveryTime": "Arrives within {{days}}",
     "payment": "Cash on delivery or online payment"
   },
-  "description": { "more": "Read more", "less": "Read less" },
+  "description": {
+    "more": "Read more",
+    "less": "Read less"
+  },
   "model3d": {
     "note1": "This is a visual model to help you understand the shape of the piece; the product photos and written specifications are the reference for the piece shown.",
     "note2": "You can rotate the 3D model to see the overall shape from different angles.",
     "note3": "Check the written measurements and package contents before deciding whether it fits your tank layout."
   },
-  "quantity": { "label": "Quantity:", "kilo": " kg", "decrease": "Decrease quantity", "increase": "Increase quantity" },
-  "cart": { "adding": "Adding...", "added": "Added!", "add": "Add to cart", "addShort": "Add to cart" },
-  "share": { "label": "Share product", "text": "{{name}} - {{price}}" },
-  "whatsapp": { "message": "Hello, I have a question about {{name}} {{url}}", "support": "AQUAVO support is available 24/7" },
+  "quantity": {
+    "label": "Quantity:",
+    "kilo": " kg",
+    "decrease": "Decrease quantity",
+    "increase": "Increase quantity"
+  },
+  "cart": {
+    "adding": "Adding...",
+    "added": "Added!",
+    "add": "Add to cart",
+    "addShort": "Add to cart"
+  },
+  "share": {
+    "label": "Share product",
+    "text": "{{name}} - {{price}}"
+  },
+  "whatsapp": {
+    "message": "Hello, I have a question about {{name}} {{url}}",
+    "support": "AQUAVO support is available 24/7"
+  },
   "highlights": {
     "delivery": "Delivery within {{days}}",
     "deliveryDetail": "Across Iraq",
@@ -43,8 +86,17 @@
     "info": "Product information",
     "infoDetail": "Available photos and specifications"
   },
-  "certificate": { "title": "YEE product authenticity certificate", "detail": "Issued by Weifang Yipin to AQUAVO Iraq. View the document" },
-  "tabs": { "benefits": "Why this product?", "specs": "Technical specifications", "reviews": "Reviews ({{count}})", "shipping": "Shipping and returns", "usage": "Usage instructions" },
+  "certificate": {
+    "title": "YEE product authenticity certificate",
+    "detail": "Issued by Weifang Yipin to AQUAVO Iraq. View the document"
+  },
+  "tabs": {
+    "benefits": "Why this product?",
+    "specs": "Technical specifications",
+    "reviews": "Reviews ({{count}})",
+    "shipping": "Shipping and returns",
+    "usage": "Usage instructions"
+  },
   "benefits": {
     "title": "Why choose this product?",
     "clearDecision": "A clearer decision before buying",
@@ -57,8 +109,18 @@
     "fastDeliveryDetail": "Across Iraq with safe packaging",
     "keyBenefits": "Key benefits:"
   },
-  "specs": { "title": "Detailed specifications", "info": "Product information", "brand": "Brand:", "category": "Category:", "difficulty": "Experience level:", "rating": "Rating:" },
-  "reviews": { "title": "Customer reviews", "cta": "Bought this product? Share your experience to help other customers." },
+  "specs": {
+    "title": "Detailed specifications",
+    "info": "Product information",
+    "brand": "Brand:",
+    "category": "Category:",
+    "difficulty": "Experience level:",
+    "rating": "Rating:"
+  },
+  "reviews": {
+    "title": "Customer reviews",
+    "cta": "Bought this product? Share your experience to help other customers."
+  },
   "shipping": {
     "title": "Shipping and returns information",
     "policyTitle": "Shipping policy",
@@ -83,7 +145,12 @@
     "safety3": "In case of contact with eyes, rinse immediately with water",
     "safety4": "Consult an aquarium specialist when in doubt"
   },
-  "related": { "fbt": "Usually bought together", "similar": "Similar products you may like", "trending": "Trending now", "live": "Live" },
+  "related": {
+    "fbt": "Usually bought together",
+    "similar": "Similar products you may like",
+    "trending": "Trending now",
+    "live": "Live"
+  },
   "gallery": {
     "roleDescription": "Image gallery",
     "label": "Image gallery for {{name}}. Use the arrow keys to navigate and Enter to zoom",
@@ -98,7 +165,8 @@
     "dialogTitle": "Photo of {{name}}",
     "dialogDescription": "Enlarged view of {{name}} photos. Use the arrows to move between images and Escape to close",
     "close": "Close image gallery",
-    "plainAlt": "Photo {{index}}"
+    "plainAlt": "Photo {{index}}",
+    "thumbnailsFor": "Thumbnails for {{name}}"
   },
   "viewer3d": {
     "error": "The 3D view could not be loaded right now. Try refreshing the page or contact us.",
@@ -143,5 +211,17 @@
     "tipBody": "Choose the size based on your tank's length.",
     "tipHeater": " The heater's wattage should match the water volume.",
     "tipLight": " Stronger lighting suits larger tanks and more plants."
+  },
+  "variantSelector": {
+    "title": "Choose the right size for your tank",
+    "watt": "{{n}} W",
+    "lph": "{{n}} L/h",
+    "outOfStock": "Out of stock",
+    "tipLabel": "Tip:",
+    "tip": "Pick the size by your tank length.",
+    "tipHeater": "Heater wattage must match the water volume.",
+    "tipLight": "Stronger lighting suits larger, planted tanks.",
+    "sizeOptions": "Size options",
+    "ariaOption": "{{label}}{{tank}}, {{price}}{{stock}}"
   }
 }

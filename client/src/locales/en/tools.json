@@ -426,7 +426,9 @@
     "s59": "Live food",
     "s60": "Algae",
     "s61": "Vegetables",
-    "s62": "Spirulina"
+    "s62": "Spirulina",
+    "timesMany": "times",
+    "timesTwo": "twice"
   },
   "journey-summary": {
     "s1": "Added to cart",
@@ -555,7 +557,9 @@
     "s54": "Register first fish",
     "s55": "Species unspecified",
     "s56": "Registered:",
-    "s57": "AI fish assessment"
+    "s57": "AI fish assessment",
+    "dayOne": "day",
+    "dayMany": "days"
   },
   "fish-encyclopedia": {
     "s1": "Failed to load data",
@@ -1351,5 +1355,11 @@
   },
   "tank-fit": {
     "s1": "{{v0}} IQD"
+  },
+  "masonry-gallery-grid": {
+    "anonymous": "User"
+  },
+  "journey": {
+    "fallbackTitle": "Tank journey"
   }
 }

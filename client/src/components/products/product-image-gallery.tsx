@@ -274,7 +274,7 @@ export function ProductImageGallery({
                         )}
 
                         {galleryImages.length > 1 && (
-                            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 bg-black/50 p-2 rounded-lg max-w-[80vw] overflow-x-auto" role="group" aria-label={`صور مصغرة لـ ${productName}`}>
+                            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 bg-black/50 p-2 rounded-lg max-w-[80vw] overflow-x-auto" role="group" aria-label={t("gallery.thumbnailsFor", { name: productName })}>
                                 {galleryImages.map((image, index) => (
                                     <button
                                         key={`lightbox-${image}-${index}`}

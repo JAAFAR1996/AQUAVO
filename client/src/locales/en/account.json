@@ -390,7 +390,8 @@
     "s8": "Mark all as read",
     "s9": "Loading...",
     "s10": "No notifications at the moment",
-    "s11": "You will receive smart AI notifications"
+    "s11": "You will receive smart AI notifications",
+    "newCount": " - {{n}} new"
   },
   "profile-coupons": {
     "s1": "Code copied",

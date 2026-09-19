@@ -50,49 +50,49 @@ const FAQ_ITEMS = [
 
 const DECOR_TYPES = [
   {
-    type: "أحجار بازلتية وجرانيتية",
+    type: i18next.t("guides:guides-decor-stones.type1"),
     safe: true,
     phEffect: i18next.t("guides:guides-decor-stones.s17"),
     notes: i18next.t("guides:guides-decor-stones.s18"),
   },
   {
-    type: "صخر رملي (Sandstone) داكن",
+    type: i18next.t("guides:guides-decor-stones.type2"),
     safe: true,
     phEffect: i18next.t("guides:guides-decor-stones.s17"),
     notes: i18next.t("guides:guides-decor-stones.s19"),
   },
   {
-    type: "أردواز (Slate)",
+    type: i18next.t("guides:guides-decor-stones.type3"),
     safe: true,
     phEffect: i18next.t("guides:guides-decor-stones.s17"),
     notes: i18next.t("guides:guides-decor-stones.s20"),
   },
   {
-    type: "الرخام والحجر الجيري",
+    type: i18next.t("guides:guides-decor-stones.type4"),
     safe: false,
     phEffect: i18next.t("guides:guides-decor-stones.s21"),
     notes: i18next.t("guides:guides-decor-stones.s22"),
   },
   {
-    type: "المرجان والشعاب",
+    type: i18next.t("guides:guides-decor-stones.type5"),
     safe: false,
     phEffect: i18next.t("guides:guides-decor-stones.s23"),
     notes: i18next.t("guides:guides-decor-stones.s24"),
   },
   {
-    type: "خشب الحوض الطبيعي",
+    type: i18next.t("guides:guides-decor-stones.type6"),
     safe: true,
     phEffect: i18next.t("guides:guides-decor-stones.s25"),
     notes: i18next.t("guides:guides-decor-stones.s26"),
   },
   {
-    type: "ديكور راتنج/خزف",
+    type: i18next.t("guides:guides-decor-stones.type7"),
     safe: true,
     phEffect: i18next.t("guides:guides-decor-stones.s17"),
     notes: i18next.t("guides:guides-decor-stones.s27"),
   },
   {
-    type: "رمل حوض (Silica Sand)",
+    type: i18next.t("guides:guides-decor-stones.type8"),
     safe: true,
     phEffect: i18next.t("guides:guides-decor-stones.s17"),
     notes: i18next.t("guides:guides-decor-stones.s28"),

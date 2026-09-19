@@ -159,7 +159,7 @@ export default function Blog() {
                             <Button
                                 key={cat.name}
                                 variant="ghost"
-                                className={`rounded-full px-6 py-6 border transition-all duration-300 ${cat.name === "الكل"
+                                className={`rounded-full px-6 py-6 border transition-all duration-300 ${cat.name === t("blog.s1")
                                     ? "bg-primary text-primary-foreground border-primary hover:bg-primary/90 shadow-lg shadow-primary/20"
                                     : "bg-card hover:bg-muted border-border hover:border-primary/50"
                                     }`}
@@ -167,7 +167,7 @@ export default function Blog() {
                                 <span className="font-bold text-base">{cat.name}</span>
                                 <Badge
                                     variant="secondary"
-                                    className={`mr-2 ml-1 rounded-full px-2 ${cat.name === "الكل" ? "bg-card/20 text-white" : "bg-muted text-muted-foreground"
+                                    className={`mr-2 ml-1 rounded-full px-2 ${cat.name === t("blog.s1") ? "bg-card/20 text-white" : "bg-muted text-muted-foreground"
                                         }`}
                                 >
                                     {cat.count}

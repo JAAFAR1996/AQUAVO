@@ -113,7 +113,7 @@ export default function JourneyPage() {
     }
   };
 
-  const currentLabel = t("journey.s1", { v0: currentStep + 1, v1: STEPS.length, v2: STEPS[currentStep]?.title ?? "رحلة الحوض" });
+  const currentLabel = t("journey.s1", { v0: currentStep + 1, v1: STEPS.length, v2: STEPS[currentStep]?.title ?? t("journey.fallbackTitle") });
 
   return (
     <div className="flex-1 overflow-x-hidden bg-background" ref={topRef} data-aqv-motion="journey">

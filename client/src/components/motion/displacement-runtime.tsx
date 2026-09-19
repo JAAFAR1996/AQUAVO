@@ -1,3 +1,4 @@
+import { i18next } from "@/i18n";
 import { useEffect } from "react";
 import { useLocation } from "wouter";
 
@@ -149,7 +150,7 @@ function setupProductGlass() {
 
   const install = () => {
     if (destroyed) return true;
-    const gallery = document.querySelector<HTMLElement>('[aria-roledescription="معرض صور"]');
+    const gallery = document.querySelector<HTMLElement>(`[aria-roledescription="${i18next.t("product:gallery.roleDescription")}"]`);
     const host = gallery?.querySelector<HTMLElement>('[data-protected="true"] > div');
     const image = host?.querySelector<HTMLImageElement>("img");
     if (!host || !image) return false;
@@ -227,6 +228,18 @@ function setupProductGlass() {
   };
 }
 
+/** Button labels come from the active locale bundles, so match against them instead of fixed Arabic text. */
+function labelHas(label: string, keys: string[]): boolean {
+  const norm = label.replace(/\s+/g, " ");
+  return keys
+    .map((k) => i18next.t(k, { name: "", defaultValue: "" }).replace(/\s+/g, " ").trim())
+    .filter(Boolean)
+    .some((m) => norm.includes(m));
+}
+const isAddToCartLabel = (label: string) => labelHas(label, ["products:card.addToCart", "product:cart.add", "product:cart.addShort", "products:card.chooseOption", "account:wishlist.s20", "pages:product-comparison.s41"]);
+const isUnavailableLabel = (label: string) => labelHas(label, ["products:card.outOfStock", "products:card.soon"]);
+const isRemoveFromCartLabel = (label: string) => labelHas(label, ["nav:cart.remove"]);
+
 function setupSuccessSurface() {
   let observer: MutationObserver | null = null;
   let overlay: HTMLDivElement | null = null;
@@ -234,7 +247,7 @@ function setupSuccessSurface() {
 
   const install = () => {
     const heading = document.querySelector<HTMLElement>("[data-aqv-order-success]")
-      ?? Array.from(document.querySelectorAll<HTMLElement>("h1")).find((node) => node.textContent?.includes("طلبك مسجّل"));
+      ?? Array.from(document.querySelectorAll<HTMLElement>("h1")).find((node) => node.textContent?.includes(i18next.t("checkout:success.title")));
     if (!heading || heading.dataset.aqvSurfacePlayed === "true") return false;
     heading.dataset.aqvSurfacePlayed = "true";
     if (prefersReducedMotion()) return true;
@@ -301,12 +314,12 @@ function setupInteractionFeedback() {
     if (!button || button.matches(":disabled, [aria-disabled='true']")) return;
     const label = `${button.textContent ?? ""} ${button.getAttribute("aria-label") ?? ""}`;
 
-    if (/أضف.*السلة|أضف.*سلة المشتريات|اختار الخيار/.test(label) && !/نفدت الكمية|قريباً/.test(label)) {
+    if (isAddToCartLabel(label) && !isUnavailableLabel(label)) {
       refractionRing(button, event.clientX, event.clientY, 26);
       window.setTimeout(ensureCartWater, 120);
     }
 
-    if (/إزالة.*السلة/.test(label)) {
+    if (isRemoveFromCartLabel(label)) {
       const row = button.closest<HTMLElement>("li");
       if (row && typeof row.animate === "function" && !prefersReducedMotion()) {
         row.animate(

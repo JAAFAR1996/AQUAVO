@@ -11,7 +11,7 @@ import { i18next } from "@/i18n";
 
 // Company stats
 const STATS = [
-  { value: "بريميوم", label: i18next.t("pages:about.s1"), icon: Package },
+  { value: i18next.t("pages:about.statPremium"), label: i18next.t("pages:about.s1"), icon: Package },
   { value: "18", label: i18next.t("pages:about.s2"), icon: MapPin },
   { value: "24/7", label: i18next.t("pages:about.s3"), icon: Phone },
   { value: "2024", label: i18next.t("pages:about.s4"), icon: Star },
