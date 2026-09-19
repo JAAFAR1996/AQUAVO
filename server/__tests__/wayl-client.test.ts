@@ -300,7 +300,8 @@ describe("Wayl readiness (config → auth → live merchant)", () => {
       checks: { configValid: true, authValid: true, storeVerified: false },
     });
     const probe = JSON.parse(String((fetchMock.mock.calls[1]?.[1] as RequestInit).body));
-    expect(probe).toMatchObject({ env: "test", currency: "IQD", total: 1000, linkExpiresIn: "1m" });
+    expect(probe).toMatchObject({ env: "test", currency: "IQD", total: 1000 });
+    expect(probe).not.toHaveProperty("linkExpiresIn");
     expect(probe.referenceId).toMatch(/^aquavo-readiness-/);
   });
 
