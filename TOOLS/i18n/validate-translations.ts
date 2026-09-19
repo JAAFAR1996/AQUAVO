@@ -111,6 +111,14 @@ function isTechnicalOnly(v: string): boolean {
   return rest.length < 2;
 }
 /**
+ * A value with no Arabic script at all is a brand, a trade name or a code
+ * ("AQUAVO / AL NABEA SHOP"). It is supposed to read the same in every locale,
+ * so it is not an untranslated copy.
+ */
+function isNameOrCode(v: string): boolean {
+  return !/\p{Script=Arabic}/u.test(v.replace(/\{\{[^}]+\}\}|<[^>]+>/g, ""));
+}
+/**
  * Word boundary for Arabic glossary terms. Only the definite article "ال" and
  * the common single-letter clitics (و ب ل ف ك) may precede the term; a bare
  * alef may not, or "سم" (cm) matches inside "اسم" (name) and "تسجيل"
@@ -140,7 +148,7 @@ function checkString(scope: "ui" | "content", locale: "en" | "ckb", where: strin
   if (placeholders(src) !== placeholders(t)) add({ scope, locale, where, code: "placeholder", severity: "error", detail: `${placeholders(src)} vs ${placeholders(t)}` });
   if (BAD_UNICODE.test(t)) add({ scope, locale, where, code: "unicode", severity: "error", detail: "control / replacement / bidi-override character" });
   const srcHasArabic = ARABIC.test(src.replace(/\{\{[^}]+\}\}/g, ""));
-  const technical = isTechnicalOnly(t);
+  const technical = isTechnicalOnly(t) || isNameOrCode(t);
   // Proper nouns that are spelled identically in Arabic and Sorani (governorate
   // and city lists). An identical value there is correct, not a missed translation.
   const properNoun = /(?:governorates|cities|provinces)\./.test(where);

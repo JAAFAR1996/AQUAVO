@@ -23,8 +23,8 @@ as "no defect found by a second model", not as "correct".
 | Kurdish high-risk articles | 35 / 35 | 11 | 24 | 58 |
 | English high-risk articles | 35 / 35 | 23 | 12 | 14 |
 | English products | 93 / 107 | 51 | 42 | 47 |
-| Kurdish products | in progress | | | |
-| UI namespaces (en + ckb) | in progress | | | |
+| Kurdish products | 105 / 107 | ~45 | ~60 | 73 |
+| UI namespaces, en + ckb | cart, checkout, orders, errors and all policy pages 100%; common, nav, search 100%; products, product, account, home sampled | | | 99 |
 | All product names, both locales | 214 / 214 | | | 12 |
 
 High-risk was defined as an article scoring >= 24 on a weighted count of nitrogen-cycle,
@@ -35,15 +35,17 @@ dosing terms in the Arabic source. That set is 35 articles; 83 of 117 score >= 1
 
 | severity | found | fixed in this pass | open |
 |---|---|---|---|
-| SAFETY (advice reversed, warning gutted) | 6 | 5 | 1 |
+| SAFETY (advice reversed, warning gutted) | 14 | 6 | 8 |
 | CHEMISTRY (wrong compound) | 1 | 1 | 0 |
-| FACTUAL (number, duration, identity) | 3 | 2 | 1 |
-| IDENTITY (product name loses what distinguishes it) | 7 | 4 | 3 |
-| TECHNICAL (spec wrong or invented) | 12 | 6 | 6 |
-| INVENTED / overclaim | 13 | 1 | 12 |
-| MEANING | 32 | 8 | 24 |
-| LANGUAGE / quality | 45 | 18 | 27 |
-| **total** | **119** | **45** | **74** |
+| FACTUAL (number, duration, identity) | 6 | 4 | 2 |
+| IDENTITY (name loses what distinguishes it) | 14 | 6 | 8 |
+| TECHNICAL (spec wrong or invented) | 28 | 8 | 20 |
+| INVENTED / overclaim | 14 | 2 | 12 |
+| MEANING | 70 | 13 | 57 |
+| LANGUAGE / quality | 114 | 12 | 102 |
+| POLICY (a business or legal promise changed) | 10 | 8 | 2 |
+| COHERENCE (one concept, several names across the flow) | 20 | 6 | 14 |
+| **total** | **291** | **66** | **225** |
 
 ## The most serious findings
 
@@ -131,3 +133,37 @@ in the Arabic source.
 4. The Arabic contradiction in the activated-carbon article is resolved at source.
 5. Only then does anything move from `machine` to `reviewed`, and only for what a person
    actually read.
+
+## Added after the last two reviewers reported
+
+### Kurdish UI is the weakest area in the whole project
+
+The reviewer who read `cart`, `checkout`, `orders`, `errors` and every policy page in
+full concluded that `pages:terms`, `pages:shipping`, `account:profile-loyalty` and
+`orders:invoice-view` "read as unedited machine output and should be retranslated
+rather than patched". Examples, all fixed or registered:
+
+- the Diamond loyalty tier was named **ماسی**, which means *fish*
+- loyalty itself was named **سووکاری**, which means *frivolity or contempt*
+- the survey call to action said **پرسە**, which is a *funeral ceremony*
+- the customer's credit was labelled **قەرز**, which means *debt*
+- "Refunded" read as *picked up the money*
+- the replacement window said *within the first three days 7 days*
+- *force majeure* became *boring circumstances*; *competent courts* became *independent courts*
+- the Kurdish printed invoice still declares `<html lang="ar" dir="rtl">`
+
+### English had fewer but still customer-facing defects
+
+- notification timestamps: hours were labelled *sec* and days were labelled *yr*
+- an invoice line promised *you will receive a refund* where the Arabic is counterfactual
+- the legal entity was invented twice, spelled two different ways, when the Arabic
+  gives the trade name as AL NABEA SHOP
+- the contact page was titled *Contact them*
+
+### Corpus-wide Kurdish consistency clusters still open
+
+One Arabic concept rendered several ways: glue (4 words), porous (2), filtration (2),
+clamp (3), suction cup (4), tweezers (3), powder in fish food (3), quarantine (3),
+subtotal (4), discount (4), loyalty (4), track your order (5), terms and conditions (3),
+phone number (2), quantity (2), encyclopedia (4). A shopper moving from the product card
+to the cart to the invoice sees a different word for the same thing at each step.

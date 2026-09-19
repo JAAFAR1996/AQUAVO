@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-19T22:01:32.880Z",
+  "generatedAt": "2026-09-19T22:08:19.456Z",
   "uiStats": {
     "en": {
       "total": 5452,
@@ -49,10 +49,10 @@
     }
   },
   "errors": 0,
-  "warnings": 235,
+  "warnings": 234,
   "byCode": {
     "content/ckb/glossary": 114,
-    "ui/ckb/glossary": 121
+    "ui/ckb/glossary": 120
   },
   "findings": [
     {
@@ -382,14 +382,6 @@
       "code": "glossary",
       "severity": "warning",
       "detail": "guide: expected \"ڕێنمایی\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
-      "where": "pages:shipping.s8",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "baghdad: expected \"بەغدا\""
     },
     {
       "scope": "ui",

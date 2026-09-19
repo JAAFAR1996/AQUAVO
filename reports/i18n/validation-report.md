@@ -1,11 +1,11 @@
-# Translation validation (2026-09-19T22:01:32.882Z)
+# Translation validation (2026-09-19T22:08:19.459Z)
 
 ## UI bundles
 
 | locale | present / total | errors | warnings |
 |---|---|---|---|
 | en | 5452 / 5452 | 0 | 0 |
-| ckb | 5452 / 5452 | 0 | 121 |
+| ckb | 5452 / 5452 | 0 | 120 |
 
 ## Content (public set)
 
@@ -23,7 +23,7 @@
 | code | count |
 |---|---|
 | content/ckb/glossary | 114 |
-| ui/ckb/glossary | 121 |
+| ui/ckb/glossary | 120 |
 
 ## Error samples (first 60)
 
