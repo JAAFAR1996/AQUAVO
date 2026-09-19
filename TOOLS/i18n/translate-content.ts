@@ -30,7 +30,7 @@ import {
 import { TRANSLATION_TARGET_LOCALES, type Locale } from "../../shared/i18n/locales.js";
 
 const BASE = process.env.AQUAVO_SOURCE_BASE || "https://www.aquavoiq.com";
-const OUT_DIR = resolve("data/i18n/translations");
+const OUT_DIR = resolve(process.env.AQUAVO_TRANSLATIONS_DIR || "data/i18n/translations");
 const args = Object.fromEntries(process.argv.slice(2).map((a) => a.replace(/^--/, "").split("=")).map(([k, v]) => [k, v ?? "true"]));
 const ENTITY = args.entity as string | undefined;
 const ONLY_LOCALE = args.locale as Locale | undefined;

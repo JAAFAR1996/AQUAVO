@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { TestTube, Clock, Info, ArrowRight, AlertCircle, Calendar } from "lucide-react";
 import { WizardData } from "@/types/journey";
+import { useTranslation } from "react-i18next";
 
 interface NitrogenCycleProps {
     wizardData: WizardData;
@@ -12,56 +13,57 @@ interface NitrogenCycleProps {
 }
 
 export function NitrogenCycle({ wizardData, updateData }: NitrogenCycleProps) {
+  const { t } = useTranslation("tools");
     return (
         <Card className="border-2">
             <CardContent className="p-6 md:p-8 space-y-8">
                 <div className="space-y-2">
                     <h2 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-2">
                         <TestTube className="h-7 w-7 text-primary" />
-                        دورة النيتروجين (التدوير)
+                        {t("nitrogen-cycle.s1")}
                     </h2>
                     <p className="text-muted-foreground text-lg">
-                        هذه أهم خطوة لسلامة الأسماك. الصبر هنا يساوي النجاح.
+                        {t("nitrogen-cycle.s2")}
                     </p>
                 </div>
 
                 {/* Cycling Method */}
                 <div className="space-y-4">
-                    <Label className="text-lg font-bold">طريقة التدوير</Label>
+                    <Label className="text-lg font-bold">{t("nitrogen-cycle.s3")}</Label>
                     <RadioGroup value={wizardData.cyclingMethod} onValueChange={(val) => updateData("cyclingMethod", val)}>
                         <div className="grid grid-cols-1 gap-4">
                             {[
                                 {
                                     value: "fishless",
-                                    label: "تدوير بدون أسماك (الأفضل)",
-                                    desc: "باستخدام الأمونيا النقية أو طعام الأسماك",
-                                    duration: "4-6 أسابيع",
-                                    safety: "آمن 100%",
+                                    label: t("nitrogen-cycle.s4"),
+                                    desc: t("nitrogen-cycle.s5"),
+                                    duration: t("nitrogen-cycle.s6"),
+                                    safety: t("nitrogen-cycle.s7"),
                                     safe: true,
                                     recommended: true
                                 },
                                 {
                                     value: "with-hardy-fish",
-                                    label: "تدوير مع أسماك قوية",
-                                    desc: "عدد قليل من الأسماك المقاومة",
-                                    duration: "6-8 أسابيع",
-                                    safety: "مرهق للأسماك",
+                                    label: t("nitrogen-cycle.s8"),
+                                    desc: t("nitrogen-cycle.s9"),
+                                    duration: t("nitrogen-cycle.s10"),
+                                    safety: t("nitrogen-cycle.s11"),
                                     safe: false
                                 },
                                 {
                                     value: "seeded",
-                                    label: "تدوير بالبذر",
-                                    desc: "باستخدام مادة فلتر من حوض قديم",
-                                    duration: "2-3 أسابيع",
-                                    safety: "سريع وآمن",
+                                    label: t("nitrogen-cycle.s12"),
+                                    desc: t("nitrogen-cycle.s13"),
+                                    duration: t("nitrogen-cycle.s14"),
+                                    safety: t("nitrogen-cycle.s15"),
                                     safe: true
                                 },
                                 {
                                     value: "bottled-bacteria",
-                                    label: "بكتيريا معبأة",
-                                    desc: "منتجات بكتيريا جاهزة",
-                                    duration: "1-2 أسبوع",
-                                    safety: "نتائجه متغيرة",
+                                    label: t("nitrogen-cycle.s16"),
+                                    desc: t("nitrogen-cycle.s17"),
+                                    duration: t("nitrogen-cycle.s18"),
+                                    safety: t("nitrogen-cycle.s19"),
                                     safe: false
                                 }
                             ].map((option) => (
@@ -76,7 +78,7 @@ export function NitrogenCycle({ wizardData, updateData }: NitrogenCycleProps) {
                                         )}
                                     >
                                         {option.recommended && (
-                                            <Badge className="absolute -top-2 -right-2 bg-primary">مُوصى به</Badge>
+                                            <Badge className="absolute -top-2 -right-2 bg-primary">{t("nitrogen-cycle.s20")}</Badge>
                                         )}
                                         <div className="font-bold text-foreground mb-2">{option.label}</div>
                                         <div className="text-sm text-muted-foreground mb-3">{option.desc}</div>
@@ -102,15 +104,15 @@ export function NitrogenCycle({ wizardData, updateData }: NitrogenCycleProps) {
                 {/* The Nitrogen Cycle Explanation */}
                 <div className="bg-gradient-to-br from-blue-500/10 to-green-500/10 border border-primary/20 rounded-xl p-6">
                     <h3 className="font-bold text-foreground mb-4 flex items-center justify-end gap-2 text-right">
-                        ما هي دورة النيتروجين؟
+                        {t("nitrogen-cycle.s21")}
                         <Info className="h-5 w-5 text-primary" />
                     </h3>
                     <div className="space-y-3 text-sm">
                         <div className="flex items-start gap-3">
                             <div className="bg-red-500/20 text-red-500 font-bold rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 text-xs">1</div>
                             <div>
-                                <div className="font-bold text-foreground text-right">الأمونيا (NH₃)</div>
-                                <div className="text-muted-foreground text-right">سامة جداً - من فضلات الأسماك والطعام المتحلل</div>
+                                <div className="font-bold text-foreground text-right">{t("nitrogen-cycle.s22")}</div>
+                                <div className="text-muted-foreground text-right">{t("nitrogen-cycle.s23")}</div>
                             </div>
                         </div>
 
@@ -121,8 +123,8 @@ export function NitrogenCycle({ wizardData, updateData }: NitrogenCycleProps) {
                         <div className="flex items-start gap-3">
                             <div className="bg-amber-500/20 text-amber-500 font-bold rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 text-xs">2</div>
                             <div>
-                                <div className="font-bold text-foreground text-right">النيتريت (NO₂)</div>
-                                <div className="text-muted-foreground text-right">سام أيضاً - تحوله بكتيريا Nitrosomonas</div>
+                                <div className="font-bold text-foreground text-right">{t("nitrogen-cycle.s24")}</div>
+                                <div className="text-muted-foreground text-right">{t("nitrogen-cycle.s25")}</div>
                             </div>
                         </div>
 
@@ -133,8 +135,8 @@ export function NitrogenCycle({ wizardData, updateData }: NitrogenCycleProps) {
                         <div className="flex items-start gap-3">
                             <div className="bg-green-500/20 text-green-500 font-bold rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 text-xs">3</div>
                             <div>
-                                <div className="font-bold text-foreground text-right">النترات (NO₃)</div>
-                                <div className="text-muted-foreground text-right">أقل سمية - تزيله النباتات وتغييرات الماء</div>
+                                <div className="font-bold text-foreground text-right">{t("nitrogen-cycle.s26")}</div>
+                                <div className="text-muted-foreground text-right">{t("nitrogen-cycle.s27")}</div>
                             </div>
                         </div>
                     </div>
@@ -144,14 +146,14 @@ export function NitrogenCycle({ wizardData, updateData }: NitrogenCycleProps) {
                 <div className="space-y-4">
                     <h3 className="font-bold text-foreground flex items-center gap-2">
                         <Calendar className="h-5 w-5 text-primary" />
-                        الجدول الزمني المتوقع
+                        {t("nitrogen-cycle.s28")}
                     </h3>
                     <div className="space-y-3">
                         {[
-                            { week: "الأسبوع 1-2", event: "ارتفاع الأمونيا", status: "danger" },
-                            { week: "الأسبوع 2-3", event: "ظهور النيتريت، انخفاض الأمونيا", status: "warning" },
-                            { week: "الأسبوع 3-4", event: "ظهور النترات، انخفاض النيتريت", status: "info" },
-                            { week: "الأسبوع 4-6", event: "اكتمال التدوير - الحوض جاهز للأسماك", status: "success" }
+                            { week: t("nitrogen-cycle.s29"), event: t("nitrogen-cycle.s30"), status: "danger" },
+                            { week: t("nitrogen-cycle.s31"), event: t("nitrogen-cycle.s32"), status: "warning" },
+                            { week: t("nitrogen-cycle.s33"), event: t("nitrogen-cycle.s34"), status: "info" },
+                            { week: t("nitrogen-cycle.s35"), event: t("nitrogen-cycle.s36"), status: "success" }
                         ].map((phase) => (
                             <div key={phase.week} className="flex items-center gap-3 p-3 rounded-lg border bg-card">
                                 <div className={cn(
@@ -173,13 +175,12 @@ export function NitrogenCycle({ wizardData, updateData }: NitrogenCycleProps) {
                 <div className="bg-red-500/10 border-2 border-red-500/30 rounded-xl p-4 flex gap-3">
                     <AlertCircle className="h-6 w-6 text-red-500 flex-shrink-0 mt-1" />
                     <div>
-                        <div className="font-bold text-foreground mb-2 text-lg text-right">قاعدة ذهبية</div>
+                        <div className="font-bold text-foreground mb-2 text-lg text-right">{t("nitrogen-cycle.s37")}</div>
                         <p className="text-sm text-muted-foreground mb-3 text-right">
-                            <strong>لا أمونيا + لا نيتريت = جاهز للأسماك</strong>
+                            <strong>{t("nitrogen-cycle.s38")}</strong>
                         </p>
                         <p className="text-sm text-muted-foreground text-right">
-                            اختبر الماء يومياً. عندما تصبح قراءات الأمونيا والنيتريت صفر لمدة 3-5 أيام متتالية،
-                            يصبح حوضك جاهزاً لاستقبال الأسماك. لا تتعجل هذه المرحلة.
+                            {t("nitrogen-cycle.s39")}
                         </p>
                     </div>
                 </div>

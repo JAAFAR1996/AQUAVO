@@ -3,6 +3,8 @@ import { Badge } from "@/components/ui/badge";
 import { FishCompatibilityBadge } from "@/components/fish/fish-compatibility-badge";
 import { Droplets, Thermometer, Heart, Fish, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
+import { i18next } from "@/i18n";
 
 interface FishCardProps {
   fish: FishSpecies;
@@ -25,15 +27,15 @@ const careLevelColors = {
 };
 
 const temperamentLabels = {
-  peaceful: "سلمي",
-  "semi-aggressive": "شبه عدواني",
-  aggressive: "عدواني",
+  peaceful: i18next.t("tools:fish-card.s1"),
+  "semi-aggressive": i18next.t("tools:fish-card.s2"),
+  aggressive: i18next.t("tools:fish-card.s3"),
 };
 
 const careLevelLabels = {
-  beginner: "مبتدئ",
-  intermediate: "متوسط",
-  advanced: "متقدم",
+  beginner: i18next.t("tools:fish-card.s4"),
+  intermediate: i18next.t("tools:fish-card.s5"),
+  advanced: i18next.t("tools:fish-card.s6"),
 };
 
 export function FishCard({
@@ -43,6 +45,7 @@ export function FishCard({
   showCompatibility,
   compatibilityStatus,
 }: FishCardProps) {
+  const { t } = useTranslation("tools");
   return (
     <button
       type="button"
@@ -52,7 +55,7 @@ export function FishCard({
         isSelected && "ring-2 ring-primary shadow-lg scale-[1.02]",
         showCompatibility && compatibilityStatus === "incompatible" && "ring-2 ring-red-500 opacity-60"
       )}
-      aria-label={`عرض تفاصيل ${fish.arabicName}`}
+      aria-label={t("fish-card.s7", { v0: fish.arabicName })}
     >
       <div className="relative h-48 overflow-hidden bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950 dark:to-cyan-950">
         <img
@@ -68,7 +71,7 @@ export function FishCard({
           {fish.schooling && (
             <Badge className="bg-blue-500/90 backdrop-blur-sm text-white border-0 shadow-lg">
               <Fish className="w-3 h-3 ml-1" />
-              سرب {fish.minimumGroup}+
+              {t("fish-card.s8")} {fish.minimumGroup}+
             </Badge>
           )}
           {showCompatibility && compatibilityStatus && (
@@ -84,7 +87,7 @@ export function FishCard({
 
         {/* Size indicator */}
         <div className="absolute bottom-3 right-3 bg-black/70 backdrop-blur-sm text-white px-3 py-1.5 rounded-full text-xs font-bold">
-          {fish.maxSize} سم
+          {fish.maxSize} {t("fish-card.s9")}
         </div>
       </div>
 
@@ -109,19 +112,19 @@ export function FishCard({
 
         {/* Quick Stats */}
         <div className="flex items-center gap-4 text-xs text-muted-foreground">
-          <div className="flex items-center gap-1" title="درجة الحرارة">
+          <div className="flex items-center gap-1" title={t("fish-card.s10")}>
             <Thermometer className="w-4 h-4 text-orange-500" />
-            <span>{fish.waterParameters.tempMin}-{fish.waterParameters.tempMax}°س</span>
+            <span>{fish.waterParameters.tempMin}-{fish.waterParameters.tempMax}{t("fish-card.s11")}</span>
           </div>
-          <div className="flex items-center gap-1" title="الحموضة">
+          <div className="flex items-center gap-1" title={t("fish-card.s12")}>
             <Droplets className="w-4 h-4 text-blue-500" />
             <span>pH {fish.waterParameters.phMin}-{fish.waterParameters.phMax}</span>
           </div>
-          <div className="flex items-center gap-1" title="الحد الأدنى للحوض">
+          <div className="flex items-center gap-1" title={t("fish-card.s13")}>
             <svg className="w-4 h-4 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
             </svg>
-            <span>{fish.minTankSize}ل</span>
+            <span>{fish.minTankSize}{t("fish-card.s14")}</span>
           </div>
         </div>
 

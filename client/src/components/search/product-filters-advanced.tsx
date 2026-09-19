@@ -28,6 +28,8 @@ import {
     CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
+import { i18next } from "@/i18n";
 
 export interface FilterState {
     categories: string[];
@@ -52,11 +54,11 @@ interface ProductFiltersAdvancedProps {
 
 const FILTERS_STORAGE_KEY = "aquavo_product_filters";
 const SORT_OPTIONS = [
-    { value: "newest", label: "الأحدث" },
-    { value: "price_asc", label: "السعر: من الأقل للأعلى" },
-    { value: "price_desc", label: "السعر: من الأعلى للأقل" },
-    { value: "rating", label: "الأعلى تقييماً" },
-    { value: "bestseller", label: "الأكثر مبيعاً" },
+    { value: "newest", label: i18next.t("search:product-filters-advanced.s1") },
+    { value: "price_asc", label: i18next.t("search:product-filters-advanced.s2") },
+    { value: "price_desc", label: i18next.t("search:product-filters-advanced.s3") },
+    { value: "rating", label: i18next.t("search:product-filters-advanced.s4") },
+    { value: "bestseller", label: i18next.t("search:product-filters-advanced.s5") },
 ];
 
 // Hook to sync filters with URL
@@ -164,6 +166,7 @@ export function ProductFiltersAdvanced({
     filteredCount,
     className,
 }: ProductFiltersAdvancedProps) {
+  const { t } = useTranslation("search");
     const [isOpen, setIsOpen] = useState(false);
     const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
         categories: true,
@@ -246,7 +249,7 @@ export function ProductFiltersAdvanced({
                     ))}
                     {filters.inStockOnly && (
                         <Badge variant="secondary" className="gap-1">
-                            متوفر فقط
+                            {t("product-filters-advanced.s6")}
                             <X
                                 className="w-3 h-3 cursor-pointer"
                                 onClick={() => onFiltersChange({ ...filters, inStockOnly: false })}
@@ -260,7 +263,7 @@ export function ProductFiltersAdvanced({
                         onClick={resetFilters}
                     >
                         <RotateCcw className="w-3 h-3 ml-1" />
-                        إعادة تعيين
+                        {t("product-filters-advanced.s7")}
                     </Button>
                 </div>
             )}
@@ -275,7 +278,7 @@ export function ProductFiltersAdvanced({
                     }
                 />
                 <Label htmlFor="inStock" className="text-sm cursor-pointer">
-                    المنتجات المتوفرة فقط
+                    {t("product-filters-advanced.s8")}
                 </Label>
             </div>
 
@@ -285,7 +288,7 @@ export function ProductFiltersAdvanced({
                     onClick={() => toggleSection("categories")}
                     className="flex items-center justify-between w-full py-2 font-medium"
                 >
-                    الفئات
+                    {t("product-filters-advanced.s9")}
                     {expandedSections.categories ? (
                         <ChevronUp className="w-4 h-4" />
                     ) : (
@@ -317,7 +320,7 @@ export function ProductFiltersAdvanced({
                     onClick={() => toggleSection("price")}
                     className="flex items-center justify-between w-full py-2 font-medium"
                 >
-                    السعر
+                    {t("product-filters-advanced.s10")}
                     {expandedSections.price ? (
                         <ChevronUp className="w-4 h-4" />
                     ) : (
@@ -342,13 +345,13 @@ export function ProductFiltersAdvanced({
                     </div>
                     <div className="flex items-center justify-between text-sm font-medium">
                         <div className="flex flex-col items-start">
-                            <span className="text-xs text-muted-foreground">من</span>
-                            <span className="text-primary">{filters.priceRange[0].toLocaleString()} د.ع</span>
+                            <span className="text-xs text-muted-foreground">{t("product-filters-advanced.s11")}</span>
+                            <span className="text-primary">{filters.priceRange[0].toLocaleString()} {t("product-filters-advanced.s12")}</span>
                         </div>
                         <span className="text-muted-foreground">-</span>
                         <div className="flex flex-col items-end">
-                            <span className="text-xs text-muted-foreground">إلى</span>
-                            <span className="text-primary">{filters.priceRange[1].toLocaleString()} د.ع</span>
+                            <span className="text-xs text-muted-foreground">{t("product-filters-advanced.s13")}</span>
+                            <span className="text-primary">{filters.priceRange[1].toLocaleString()} {t("product-filters-advanced.s12")}</span>
                         </div>
                     </div>
                 </CollapsibleContent>
@@ -360,7 +363,7 @@ export function ProductFiltersAdvanced({
                     onClick={() => toggleSection("rating")}
                     className="flex items-center justify-between w-full py-2 font-medium"
                 >
-                    التقييم
+                    {t("product-filters-advanced.s14")}
                     {expandedSections.rating ? (
                         <ChevronUp className="w-4 h-4" />
                     ) : (
@@ -392,7 +395,7 @@ export function ProductFiltersAdvanced({
                                         />
                                     ))}
                                 </div>
-                                <span className="text-muted-foreground">وأعلى</span>
+                                <span className="text-muted-foreground">{t("product-filters-advanced.s15")}</span>
                             </Label>
                         </div>
                     ))}
@@ -406,7 +409,7 @@ export function ProductFiltersAdvanced({
                         onClick={() => toggleSection("brands")}
                         className="flex items-center justify-between w-full py-2 font-medium"
                     >
-                        العلامات التجارية
+                        {t("product-filters-advanced.s16")}
                         {expandedSections.brands ? (
                             <ChevronUp className="w-4 h-4" />
                         ) : (
@@ -443,7 +446,7 @@ export function ProductFiltersAdvanced({
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="font-semibold flex items-center gap-2">
                             <Filter className="w-4 h-4" />
-                            الفلاتر
+                            {t("product-filters-advanced.s17")}
                             {activeFiltersCount > 0 && (
                                 <Badge variant="secondary" className="h-5 px-1.5">
                                     {activeFiltersCount}
@@ -451,7 +454,7 @@ export function ProductFiltersAdvanced({
                             )}
                         </h3>
                         <span className="text-sm text-muted-foreground">
-                            {filteredCount} من {totalProducts}
+                            {filteredCount} {t("product-filters-advanced.s11")} {totalProducts}
                         </span>
                     </div>
                     <FilterContent />
@@ -464,7 +467,7 @@ export function ProductFiltersAdvanced({
                     <SheetTrigger asChild>
                         <Button variant="outline" className="gap-2">
                             <Filter className="w-4 h-4" />
-                            الفلاتر
+                            {t("product-filters-advanced.s17")}
                             {activeFiltersCount > 0 && (
                                 <Badge variant="secondary" className="h-5 px-1.5">
                                     {activeFiltersCount}
@@ -474,14 +477,14 @@ export function ProductFiltersAdvanced({
                     </SheetTrigger>
                     <SheetContent side="right" className="w-[300px] overflow-y-auto">
                         <SheetHeader>
-                            <SheetTitle className="text-right">الفلاتر</SheetTitle>
+                            <SheetTitle className="text-right">{t("product-filters-advanced.s17")}</SheetTitle>
                         </SheetHeader>
                         <div className="py-4">
                             <FilterContent />
                         </div>
                         <SheetFooter>
                             <Button onClick={() => setIsOpen(false)} className="w-full">
-                                عرض {filteredCount} نتيجة
+                                {t("product-filters-advanced.s18")} {filteredCount} {t("product-filters-advanced.s19")}
                             </Button>
                         </SheetFooter>
                     </SheetContent>
@@ -501,8 +504,9 @@ export function ProductSortDropdown({
     onChange: (value: string) => void;
     className?: string;
 }) {
+  const { t } = useTranslation("search");
     const [isOpen, setIsOpen] = useState(false);
-    const currentLabel = SORT_OPTIONS.find((o) => o.value === value)?.label || "ترتيب";
+    const currentLabel = SORT_OPTIONS.find((o) => o.value === value)?.label || t("product-filters-advanced.s20");
 
     return (
         <div className={cn("relative", className)}>

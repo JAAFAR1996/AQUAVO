@@ -1,4 +1,5 @@
 import { Download, ExternalLink } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 /*
   Sources — Researched May 2026:
@@ -12,6 +13,7 @@ import { Download, ExternalLink } from "lucide-react";
 const PDF_URL = "/assets/guides/aquavo-fish-hiding-guide.pdf";
 
 export default function GuideFishHiding() {
+  const { t } = useTranslation("guides");
   return (
     <div className="g-wrap">
 
@@ -24,7 +26,7 @@ export default function GuideFishHiding() {
             rel="noopener noreferrer"
             className="flex items-center gap-1.5 text-[#E8EDF2] border border-primary/45 hover:bg-[#0B93A6]/10 text-xs sm:text-sm h-9 px-3 rounded-full font-bold transition-colors"
           >
-            <span className="hidden sm:inline">فتح PDF</span>
+            <span className="hidden sm:inline">{t("guides-fish-hiding.s1")}</span>
             <ExternalLink className="w-4 h-4" />
           </a>
           <a
@@ -32,7 +34,7 @@ export default function GuideFishHiding() {
             download="aquavo-fish-hiding-guide.pdf"
             className="flex items-center gap-1.5 bg-primary text-foreground hover:bg-[#0B93A6]/85 text-xs sm:text-sm h-9 px-3 sm:px-4 rounded-full font-bold transition-colors"
           >
-            <span>تحميل PDF</span>
+            <span>{t("guides-fish-hiding.s2")}</span>
             <Download className="w-4 h-4" />
           </a>
         </div>
@@ -42,50 +44,48 @@ export default function GuideFishHiding() {
 
         {/* ── SECTION 1: Hero ── */}
         <section className="g-hero">
-          <span className="g-badge">دليل عملي — AQUAVO</span>
-          <h1>أسباب اختفاء السمچ</h1>
-          <p className="g-sub">مو كل اختفاء يعني مرض… بس أكو علامات لازم تنتبهلها</p>
+          <span className="g-badge">{t("guides-fish-hiding.s3")}</span>
+          <h1>{t("guides-fish-hiding.s4")}</h1>
+          <p className="g-sub">{t("guides-fish-hiding.s5")}</p>
           <p className="g-intro">
-            دليل عملي من AQUAVO يساعدك تعرف متى الاختفاء طبيعي، متى يصير إنذار،
-            وشنو ترسل لنا حتى نشخص الحالة بشكل أدق.
+            {t("guides-fish-hiding.s6")}
           </p>
           <div className="g-meta-row">
-            <span>لمن هذا: أصحاب الأحواض اللي لاحظوا سمچة تختفي</span>
-            <span>وقت القراءة: 6–8 دقائق</span>
-            <span className="g-pdf-tag g-ready">PDF: متوفر للتحميل</span>
+            <span>{t("guides-fish-hiding.s7")}</span>
+            <span>{t("guides-fish-hiding.s8")}</span>
+            <span className="g-pdf-tag g-ready">{t("guides-fish-hiding.s9")}</span>
           </div>
           <p className="g-disclaimer">
-            هذا الدليل للتوعية العامة ولا يغني عن تشخيص الحالة من صورة واضحة للحوض.
+            {t("guides-fish-hiding.s10")}
           </p>
         </section>
 
         {/* ── SECTION 2: قبل لا تقلق ── */}
         <section className="g-section">
-          <h2 className="g-title">قبل لا تقلق — اقرأ هذا أولاً</h2>
+          <h2 className="g-title">{t("guides-fish-hiding.s11")}</h2>
           <p className="g-section-intro">
-            بعض السمچ طبيعته يختفي. خصوصاً بعد النقل، أو تغيير ترتيب الحوض، أو إضافة سمچ جديد.
-            هذا سلوك بقاء غريزي — مو مرض. المشكلة الحقيقية تبدأ لما الاختفاء يجي ويا علامات ثانية.
+            {t("guides-fish-hiding.s12")}
           </p>
           <div className="g-diag-grid">
             <div className="g-diag g-safe">
-              <div className="g-diag-label">طبيعي غالباً إذا:</div>
+              <div className="g-diag-label">{t("guides-fish-hiding.s13")}</div>
               <ul className="g-diag-list">
-                <li>السمچة جديدة — وصلت من أقل من 48 ساعة</li>
-                <li>تطلع وتاكل وترجع تختفي</li>
-                <li>باقي السمچ يتصرف بشكل طبيعي</li>
-                <li>الاختفاء صار بعد نقل أو تنظيف أو تغيير ترتيب</li>
-                <li>النوع بطبيعته خجول أو ليلي</li>
+                <li>{t("guides-fish-hiding.s14")}</li>
+                <li>{t("guides-fish-hiding.s15")}</li>
+                <li>{t("guides-fish-hiding.s16")}</li>
+                <li>{t("guides-fish-hiding.s17")}</li>
+                <li>{t("guides-fish-hiding.s18")}</li>
               </ul>
             </div>
             <div className="g-diag g-warn">
-              <div className="g-diag-label">يحتاج متابعة إذا:</div>
+              <div className="g-diag-label">{t("guides-fish-hiding.s19")}</div>
               <ul className="g-diag-list">
-                <li>ما تطلع للأكل — رفض تام</li>
-                <li>تتنفس بسرعة أو تلهث على السطح</li>
-                <li>تبقى بالقاع أو خلف الفلتر طول الوقت</li>
-                <li>لونها باهت أو تغير فجأة</li>
-                <li>زعانفها مضمومة على الجسم</li>
-                <li>أكو سمچة ثانية تطاردها</li>
+                <li>{t("guides-fish-hiding.s20")}</li>
+                <li>{t("guides-fish-hiding.s21")}</li>
+                <li>{t("guides-fish-hiding.s22")}</li>
+                <li>{t("guides-fish-hiding.s23")}</li>
+                <li>{t("guides-fish-hiding.s24")}</li>
+                <li>{t("guides-fish-hiding.s25")}</li>
               </ul>
             </div>
           </div>
@@ -93,25 +93,25 @@ export default function GuideFishHiding() {
 
         {/* ── SECTION 3: التشخيص السريع ── */}
         <section className="g-section">
-          <h2 className="g-title">التشخيص السريع</h2>
-          <p className="g-section-intro">شنو تشوف بالضبط؟ ابحث عن الحالة الأقرب لوضعك:</p>
+          <h2 className="g-title">{t("guides-fish-hiding.s26")}</h2>
+          <p className="g-section-intro">{t("guides-fish-hiding.s27")}</p>
           <div className="g-table-wrap">
             <table className="g-table">
               <thead>
                 <tr>
-                  <th>الحالة</th>
-                  <th>الاحتمال الأقرب</th>
-                  <th>شنو تسوي الآن</th>
+                  <th>{t("guides-fish-hiding.s28")}</th>
+                  <th>{t("guides-fish-hiding.s29")}</th>
+                  <th>{t("guides-fish-hiding.s30")}</th>
                 </tr>
               </thead>
               <tbody>
-                <tr><td>اختفت بعد ما دخلتها للحوض مباشرة</td><td className="g-td-neutral">ضغط نقل — طبيعي</td><td>خفف الإضاءة وراقب الأكل — لا تتدخل</td></tr>
-                <tr><td>تختفي بس تطلع وتاكل بانتظام</td><td className="g-td-safe">غالباً طبيعي</td><td>لا تلاحقها بالشبكة — هذا سلوك طبيعي</td></tr>
-                <tr><td>تختفي وسمچة ثانية تطاردها</td><td className="g-td-warn">عدوانية / عدم توافق</td><td>راقب 10 دقائق — افصل إذا المطاردة مستمرة</td></tr>
-                <tr><td>تختفي وما تاكل أكثر من يومين</td><td className="g-td-warn">إنذار — يحتاج تشخيص</td><td>دز صورة الحوض ونوع السمچة لـ AQUAVO</td></tr>
-                <tr><td>تختفي قرب الفلتر أو السطح</td><td className="g-td-warn">ضعف تهوية أو ضغط بيئة</td><td>راقب التنفس وافحص جودة المي</td></tr>
-                <tr><td>تختفي بالزوايا وتتحرك ببطء</td><td className="g-td-warn">ضغط بيئة أو مشكلة جودة مي</td><td>افحص الأمونيا والنيتريت — لازم يكونون صفر</td></tr>
-                <tr><td>اختفت بعد تغيير المي</td><td className="g-td-neutral">صدمة تغيير — مؤقتة</td><td>تأكد من معالجة الكلور — راقب 24 ساعة</td></tr>
+                <tr><td>{t("guides-fish-hiding.s31")}</td><td className="g-td-neutral">{t("guides-fish-hiding.s32")}</td><td>{t("guides-fish-hiding.s33")}</td></tr>
+                <tr><td>{t("guides-fish-hiding.s34")}</td><td className="g-td-safe">{t("guides-fish-hiding.s35")}</td><td>{t("guides-fish-hiding.s36")}</td></tr>
+                <tr><td>{t("guides-fish-hiding.s37")}</td><td className="g-td-warn">{t("guides-fish-hiding.s38")}</td><td>{t("guides-fish-hiding.s39")}</td></tr>
+                <tr><td>{t("guides-fish-hiding.s40")}</td><td className="g-td-warn">{t("guides-fish-hiding.s41")}</td><td>{t("guides-fish-hiding.s42")}</td></tr>
+                <tr><td>{t("guides-fish-hiding.s43")}</td><td className="g-td-warn">{t("guides-fish-hiding.s44")}</td><td>{t("guides-fish-hiding.s45")}</td></tr>
+                <tr><td>{t("guides-fish-hiding.s46")}</td><td className="g-td-warn">{t("guides-fish-hiding.s47")}</td><td>{t("guides-fish-hiding.s48")}</td></tr>
+                <tr><td>{t("guides-fish-hiding.s49")}</td><td className="g-td-neutral">{t("guides-fish-hiding.s50")}</td><td>{t("guides-fish-hiding.s51")}</td></tr>
               </tbody>
             </table>
           </div>
@@ -121,48 +121,48 @@ export default function GuideFishHiding() {
         <section className="g-section">
           <div className="g-cause-header">
             <span className="g-cause-num-big">01</span>
-            <h2 className="g-title g-title-inline">ضغط ما بعد النقل</h2>
+            <h2 className="g-title g-title-inline">{t("guides-fish-hiding.s52")}</h2>
           </div>
           <div className="g-cause-block">
-            <h3 className="g-cause-sub">شنو يعني؟</h3>
-            <p>لما تنقل السمچة لحوض جديد، كل شيء عليها مجهول: الإضاءة، الصوت، رائحة المي، حركة الفلتر، ووجود سمچ ثاني. هذا ضغط حقيقي — جسمها يطلق هرمونات التوتر ومناعتها تنخفض. لذلك طبيعي — ومتوقع — أن تختفي أول 24 إلى 48 ساعة. هذا سلوك بقاء غريزي مو مرض.</p>
+            <h3 className="g-cause-sub">{t("guides-fish-hiding.s53")}</h3>
+            <p>{t("guides-fish-hiding.s54")}</p>
           </div>
           <div className="g-two-col">
             <div className="g-col-box g-safe-box">
-              <div className="g-col-label">علامات ضغط النقل الطبيعي:</div>
+              <div className="g-col-label">{t("guides-fish-hiding.s55")}</div>
               <ul className="g-simple-list">
-                <li>تختفي خلف الديكور أو الفلتر</li>
-                <li>تطلع شوي وترجع تختفي</li>
-                <li>تاكل قليل أو متأخر شوي</li>
-                <li>تتحرك بحذر وببطء</li>
-                <li>تبقى بجانب واحد من الحوض</li>
+                <li>{t("guides-fish-hiding.s56")}</li>
+                <li>{t("guides-fish-hiding.s57")}</li>
+                <li>{t("guides-fish-hiding.s58")}</li>
+                <li>{t("guides-fish-hiding.s59")}</li>
+                <li>{t("guides-fish-hiding.s60")}</li>
               </ul>
             </div>
             <div className="g-col-box g-warn-box">
-              <div className="g-col-label">متى تقلق؟</div>
+              <div className="g-col-label">{t("guides-fish-hiding.s61")}</div>
               <ul className="g-simple-list">
-                <li>ما تاكل بعد 48 ساعة من الوصول</li>
-                <li>تتنفس بسرعة أو تلهث على السطح</li>
-                <li>خمول تام — ماكو حركة حتى بوقت الأكل</li>
-                <li>بقت مخفية أكثر من يومين متواصلين</li>
+                <li>{t("guides-fish-hiding.s62")}</li>
+                <li>{t("guides-fish-hiding.s21")}</li>
+                <li>{t("guides-fish-hiding.s63")}</li>
+                <li>{t("guides-fish-hiding.s64")}</li>
               </ul>
             </div>
           </div>
           <div className="g-action-box">
-            <div className="g-action-label">شنو تسوي الآن:</div>
+            <div className="g-action-label">{t("guides-fish-hiding.s65")}</div>
             <ol className="g-numbered">
-              <li>خفف الإضاءة — أو أطفيها 24 ساعة إذا ما عندك نباتات حية</li>
-              <li>لا تغير ترتيب الحوض — خلي البيئة ثابتة وهادية</li>
-              <li>لا تدخل يدك كل شوي — كل تدخل يزيد التوتر</li>
-              <li>راقب من بعيد — شوف تطلع للأكل أو لا</li>
+              <li>{t("guides-fish-hiding.s66")}</li>
+              <li>{t("guides-fish-hiding.s67")}</li>
+              <li>{t("guides-fish-hiding.s68")}</li>
+              <li>{t("guides-fish-hiding.s69")}</li>
             </ol>
           </div>
           <div className="g-dont-inline">
-            <div className="g-dont-label">شنو لا تسوي:</div>
+            <div className="g-dont-label">{t("guides-fish-hiding.s70")}</div>
             <div className="g-dont-items">
-              <span className="g-dont-chip">لا تضيف علاج فوراً</span>
-              <span className="g-dont-chip">لا تبدل كمية كبيرة من المي</span>
-              <span className="g-dont-chip">لا تلاحق السمچة بالشبكة</span>
+              <span className="g-dont-chip">{t("guides-fish-hiding.s71")}</span>
+              <span className="g-dont-chip">{t("guides-fish-hiding.s72")}</span>
+              <span className="g-dont-chip">{t("guides-fish-hiding.s73")}</span>
             </div>
           </div>
         </section>
@@ -171,50 +171,50 @@ export default function GuideFishHiding() {
         <section className="g-section">
           <div className="g-cause-header">
             <span className="g-cause-num-big">02</span>
-            <h2 className="g-title g-title-inline">خوف أو مطاردة من سمچة ثانية</h2>
+            <h2 className="g-title g-title-inline">{t("guides-fish-hiding.s74")}</h2>
           </div>
           <div className="g-cause-block">
-            <h3 className="g-cause-sub">شنو يعني؟</h3>
-            <p>بعض السمچ يسيطر على منطقة بالحوض ويطارد أي سمچة تقترب. السمچة الأضعف أو الأصغر تختفي تجنباً للمواجهة. الاختفاء المفاجئ بعد إضافة سمچة جديدة — مؤشر قوي على هذا السبب.</p>
-            <p style={{ marginTop: "10px" }}>الحوض الضيق أو الفارغ من الديكور يزيد العدوانية — لأن السمچ الإقليمية تحس إنها تحتاج تدافع عن كل مساحتها.</p>
+            <h3 className="g-cause-sub">{t("guides-fish-hiding.s53")}</h3>
+            <p>{t("guides-fish-hiding.s75")}</p>
+            <p style={{ marginTop: "10px" }}>{t("guides-fish-hiding.s76")}</p>
           </div>
           <div className="g-two-col">
             <div className="g-col-box g-warn-box">
-              <div className="g-col-label">علامات المطاردة والعدوانية:</div>
+              <div className="g-col-label">{t("guides-fish-hiding.s77")}</div>
               <ul className="g-simple-list">
-                <li>سمچة بعينها تطارد الباقي باستمرار</li>
-                <li>المختفية تطلع فقط لما المطاردة توقف</li>
-                <li>زعانف متضررة أو ممزقة الحواف</li>
-                <li>الاختفاء دايماً بنفس الزاوية أو المكان</li>
-                <li>المطاردة تزيد وقت التغذية</li>
+                <li>{t("guides-fish-hiding.s78")}</li>
+                <li>{t("guides-fish-hiding.s79")}</li>
+                <li>{t("guides-fish-hiding.s80")}</li>
+                <li>{t("guides-fish-hiding.s81")}</li>
+                <li>{t("guides-fish-hiding.s82")}</li>
               </ul>
             </div>
             <div className="g-col-box g-neutral-box">
-              <div className="g-col-label">أنواع تعرف بعدوانيتها:</div>
+              <div className="g-col-label">{t("guides-fish-hiding.s83")}</div>
               <ul className="g-simple-list">
-                <li>السيكليدات — إقليمية جداً</li>
-                <li>البيتا الذكر — لا يتسامح مع ذكر ثاني</li>
-                <li>Tiger Barb — عدواني بالأرقام القليلة</li>
-                <li>Rainbow Shark — يدافع عن منطقته</li>
-                <li>بعض أنواع اللوتش</li>
+                <li>{t("guides-fish-hiding.s84")}</li>
+                <li>{t("guides-fish-hiding.s85")}</li>
+                <li>{t("guides-fish-hiding.s86")}</li>
+                <li>{t("guides-fish-hiding.s87")}</li>
+                <li>{t("guides-fish-hiding.s88")}</li>
               </ul>
             </div>
           </div>
           <div className="g-action-box">
-            <div className="g-action-label">شنو تسوي:</div>
+            <div className="g-action-label">{t("guides-fish-hiding.s89")}</div>
             <ol className="g-numbered">
-              <li>راقب الحوض 10 دقائق من بعيد — بدون أي تدخل</li>
-              <li>حدد منو يطارد منو بالضبط</li>
-              <li>إذا المطاردة مستمرة، أضف مخابئ إضافية لتقسيم المناطق</li>
-              <li>إذا الزعانف تضررت، افصل السمچة المطاردة مؤقتاً</li>
+              <li>{t("guides-fish-hiding.s90")}</li>
+              <li>{t("guides-fish-hiding.s91")}</li>
+              <li>{t("guides-fish-hiding.s92")}</li>
+              <li>{t("guides-fish-hiding.s93")}</li>
             </ol>
           </div>
           <div className="g-dont-inline">
-            <div className="g-dont-label">شنو لا تسوي:</div>
+            <div className="g-dont-label">{t("guides-fish-hiding.s70")}</div>
             <div className="g-dont-items">
-              <span className="g-dont-chip">لا تضيف سمچ جديد بنفس الوقت</span>
-              <span className="g-dont-chip">لا تفترض مرض بدون مشاهدة السلوك</span>
-              <span className="g-dont-chip">لا تنتظر أسبوع إذا الزعانف تتضرر</span>
+              <span className="g-dont-chip">{t("guides-fish-hiding.s94")}</span>
+              <span className="g-dont-chip">{t("guides-fish-hiding.s95")}</span>
+              <span className="g-dont-chip">{t("guides-fish-hiding.s96")}</span>
             </div>
           </div>
         </section>
@@ -223,37 +223,37 @@ export default function GuideFishHiding() {
         <section className="g-section">
           <div className="g-cause-header">
             <span className="g-cause-num-big">03</span>
-            <h2 className="g-title g-title-inline">الحوض مكشوف وما بيه أمان</h2>
+            <h2 className="g-title g-title-inline">{t("guides-fish-hiding.s97")}</h2>
           </div>
           <div className="g-cause-block">
-            <h3 className="g-cause-sub">شنو يعني؟</h3>
-            <p>الحوض الفارغ من الديكور يخلي بعض الأنواع تحس إنها مكشوفة — زي ما تكون بالعراء. هذا يسبب توتراً مستمراً حتى بدون وجود خطر حقيقي.</p>
-            <p style={{ marginTop: "10px" }}>المفارقة: كلما وفرت مخابئ أكثر — كلما خرجت السمچة وسبحت بثقة أكثر. السمچة تحتاج تحس إن عندها مكان ترجعله لو خافت.</p>
+            <h3 className="g-cause-sub">{t("guides-fish-hiding.s53")}</h3>
+            <p>{t("guides-fish-hiding.s98")}</p>
+            <p style={{ marginTop: "10px" }}>{t("guides-fish-hiding.s99")}</p>
           </div>
           <div className="g-two-col">
             <div className="g-col-box g-warn-box">
-              <div className="g-col-label">علامات الحوض المكشوف:</div>
+              <div className="g-col-label">{t("guides-fish-hiding.s100")}</div>
               <ul className="g-simple-list">
-                <li>السمچ يبقى خلف الفلتر أو الهيتر دايماً</li>
-                <li>يهرب كل مرة تقرب من الحوض</li>
-                <li>الحركة تقل وقت الإضاءة القوية</li>
-                <li>السمچ يتجمع بالزوايا</li>
-                <li>الحوض خالي من الديكور أو النباتات</li>
+                <li>{t("guides-fish-hiding.s101")}</li>
+                <li>{t("guides-fish-hiding.s102")}</li>
+                <li>{t("guides-fish-hiding.s103")}</li>
+                <li>{t("guides-fish-hiding.s104")}</li>
+                <li>{t("guides-fish-hiding.s105")}</li>
               </ul>
             </div>
             <div className="g-col-box g-safe-box">
-              <div className="g-col-label">الحل العملي:</div>
+              <div className="g-col-label">{t("guides-fish-hiding.s106")}</div>
               <ul className="g-simple-list">
-                <li>أضف حجارة أو خشب أو كهوف أو أنابيب</li>
-                <li>أضف نباتات — حقيقية أو اصطناعية</li>
-                <li>خلي أكو مناطق ظل بالحوض</li>
-                <li>لا تخلي كل الحوض مساحة مفتوحة</li>
-                <li>رتب الديكور بحيث السمچ يحس بالأمان مو بالازدحام</li>
+                <li>{t("guides-fish-hiding.s107")}</li>
+                <li>{t("guides-fish-hiding.s108")}</li>
+                <li>{t("guides-fish-hiding.s109")}</li>
+                <li>{t("guides-fish-hiding.s110")}</li>
+                <li>{t("guides-fish-hiding.s111")}</li>
               </ul>
             </div>
           </div>
           <div className="g-info-note">
-            نصيحة AQUAVO: إذا السمچ يختفي هواية، الجواب غالباً مو إزالة الديكور — العكس تماماً. السمچ يحتاج مناطق يحس بيها بالأمان.
+            {t("guides-fish-hiding.s112")}
           </div>
         </section>
 
@@ -261,40 +261,40 @@ export default function GuideFishHiding() {
         <section className="g-section">
           <div className="g-cause-header">
             <span className="g-cause-num-big">04</span>
-            <h2 className="g-title g-title-inline">الإضاءة القوية أو غير المنتظمة</h2>
+            <h2 className="g-title g-title-inline">{t("guides-fish-hiding.s113")}</h2>
           </div>
           <div className="g-cause-block">
-            <h3 className="g-cause-sub">شنو يعني؟</h3>
-            <p>الإضاءة القوية أو المفاجئة تسبب توتراً لبعض الأنواع. كثير من السمچ الشائعة جاية من بيئات طبيعية مضللة — تحت الأشجار، بالعمق، أو بالمياه الداكنة.</p>
-            <p style={{ marginTop: "10px" }}>عدم انتظام دورة الإضاءة — تشغيل وإطفاء متكرر، أو ضوء ليلي قوي — يربك السمچ ويؤثر على نشاطها الطبيعي.</p>
+            <h3 className="g-cause-sub">{t("guides-fish-hiding.s53")}</h3>
+            <p>{t("guides-fish-hiding.s114")}</p>
+            <p style={{ marginTop: "10px" }}>{t("guides-fish-hiding.s115")}</p>
           </div>
           <div className="g-two-col">
             <div className="g-col-box g-warn-box">
-              <div className="g-col-label">علامات مشكلة الإضاءة:</div>
+              <div className="g-col-label">{t("guides-fish-hiding.s116")}</div>
               <ul className="g-simple-list">
-                <li>تختفي بمجرد تشغيل الإضاءة</li>
-                <li>تتحرك أكثر لما الضوء يخف أو ينطفي</li>
-                <li>تبقى تحت الديكور طول النهار</li>
-                <li>تهرب من الواجهة الأمامية للحوض</li>
+                <li>{t("guides-fish-hiding.s117")}</li>
+                <li>{t("guides-fish-hiding.s118")}</li>
+                <li>{t("guides-fish-hiding.s119")}</li>
+                <li>{t("guides-fish-hiding.s120")}</li>
               </ul>
             </div>
             <div className="g-col-box g-safe-box">
-              <div className="g-col-label">المعدل الصحيح:</div>
+              <div className="g-col-label">{t("guides-fish-hiding.s121")}</div>
               <ul className="g-simple-list">
-                <li>8 إلى 10 ساعات يومياً للحوض بدون نباتات</li>
-                <li>12 ساعة للحوض النباتي</li>
-                <li>لا تشغل ضوء قوي فجأة بعد الظلام</li>
-                <li>استخدم تايمر لثبات الدورة</li>
+                <li>{t("guides-fish-hiding.s122")}</li>
+                <li>{t("guides-fish-hiding.s123")}</li>
+                <li>{t("guides-fish-hiding.s124")}</li>
+                <li>{t("guides-fish-hiding.s125")}</li>
               </ul>
             </div>
           </div>
           <div className="g-action-box">
-            <div className="g-action-label">شنو تسوي:</div>
+            <div className="g-action-label">{t("guides-fish-hiding.s89")}</div>
             <ol className="g-numbered">
-              <li>قلل مدة الإضاءة لـ 8 ساعات وراقب الفرق خلال أسبوع</li>
-              <li>إذا ما عندك تايمر — اشتريه، يساعد على الانتظام</li>
-              <li>وفر مناطق ظل بالحوض حتى وقت الإضاءة الكاملة</li>
-              <li>لا تطفي وتشغل الضوء بشكل متقطع خلال اليوم</li>
+              <li>{t("guides-fish-hiding.s126")}</li>
+              <li>{t("guides-fish-hiding.s127")}</li>
+              <li>{t("guides-fish-hiding.s128")}</li>
+              <li>{t("guides-fish-hiding.s129")}</li>
             </ol>
           </div>
         </section>
@@ -303,113 +303,113 @@ export default function GuideFishHiding() {
         <section className="g-section">
           <div className="g-cause-header">
             <span className="g-cause-num-big">05</span>
-            <h2 className="g-title g-title-inline">تعب أو مرض محتمل</h2>
+            <h2 className="g-title g-title-inline">{t("guides-fish-hiding.s130")}</h2>
           </div>
           <div className="g-cause-block">
-            <h3 className="g-cause-sub">اقرأ هذا بهدوء</h3>
-            <p>اختفاء السمچة وحده ما يكفي حتى نكول مرض. بس إذا الاختفاء جاء ويا علامات ثانية، هنا لازم ننتبه ونشوف الصورة كاملة قبل أي تصرف.</p>
-            <p style={{ marginTop: "10px" }}>أول شيء تفعله: افحص الأمونيا والنيتريت. هذين يسببان نفس أعراض المرض — خمول، لون باهت، لهاث على السطح — والناس تخلط بينهم كثير.</p>
+            <h3 className="g-cause-sub">{t("guides-fish-hiding.s131")}</h3>
+            <p>{t("guides-fish-hiding.s132")}</p>
+            <p style={{ marginTop: "10px" }}>{t("guides-fish-hiding.s133")}</p>
           </div>
           <div className="g-warn-full">
-            <div className="g-warn-full-label">علامات تحتاج متابعة:</div>
+            <div className="g-warn-full-label">{t("guides-fish-hiding.s134")}</div>
             <div className="g-warn-signs-grid">
-              <div className="g-warn-sign"><div className="g-sign-name">رفض الأكل</div><div className="g-sign-desc">أكثر من 48 ساعة بدون أكل</div></div>
-              <div className="g-warn-sign"><div className="g-sign-name">تنفس سريع</div><div className="g-sign-desc">الخياشيم تتحرك بسرعة ملحوظة</div></div>
-              <div className="g-warn-sign"><div className="g-sign-name">زعانف مضمومة</div><div className="g-sign-desc">الزعانف ملصوقة على الجسم</div></div>
-              <div className="g-warn-sign"><div className="g-sign-name">لون باهت</div><div className="g-sign-desc">فقدان الألوان الطبيعية فجأة</div></div>
-              <div className="g-warn-sign"><div className="g-sign-name">نقاط أو بقع</div><div className="g-sign-desc">أي تغيير غير طبيعي على الجسم</div></div>
-              <div className="g-warn-sign"><div className="g-sign-name">سباحة غير طبيعية</div><div className="g-sign-desc">دوران، اختلال توازن، أو سباحة بجنب</div></div>
+              <div className="g-warn-sign"><div className="g-sign-name">{t("guides-fish-hiding.s135")}</div><div className="g-sign-desc">{t("guides-fish-hiding.s136")}</div></div>
+              <div className="g-warn-sign"><div className="g-sign-name">{t("guides-fish-hiding.s137")}</div><div className="g-sign-desc">{t("guides-fish-hiding.s138")}</div></div>
+              <div className="g-warn-sign"><div className="g-sign-name">{t("guides-fish-hiding.s139")}</div><div className="g-sign-desc">{t("guides-fish-hiding.s140")}</div></div>
+              <div className="g-warn-sign"><div className="g-sign-name">{t("guides-fish-hiding.s141")}</div><div className="g-sign-desc">{t("guides-fish-hiding.s142")}</div></div>
+              <div className="g-warn-sign"><div className="g-sign-name">{t("guides-fish-hiding.s143")}</div><div className="g-sign-desc">{t("guides-fish-hiding.s144")}</div></div>
+              <div className="g-warn-sign"><div className="g-sign-name">{t("guides-fish-hiding.s145")}</div><div className="g-sign-desc">{t("guides-fish-hiding.s146")}</div></div>
             </div>
           </div>
           <div className="g-action-box">
-            <div className="g-action-label">شنو تسوي:</div>
+            <div className="g-action-label">{t("guides-fish-hiding.s89")}</div>
             <ol className="g-numbered">
-              <li>افحص المي أولاً — أمونيا ونيتريت لازم = صفر</li>
-              <li>صوّر الحوض كامل — إضاءة واضحة من الواجهة</li>
-              <li>صوّر السمچة إذا تقدر — من جنب ومن فوق</li>
-              <li>راقب باقي السمچ — هل الأعراض انتشرت؟</li>
-              <li>لا تضيف علاج بدون تشخيص — الدواء الخاطئ يضر الفلتر البيولوجي</li>
+              <li>{t("guides-fish-hiding.s147")}</li>
+              <li>{t("guides-fish-hiding.s148")}</li>
+              <li>{t("guides-fish-hiding.s149")}</li>
+              <li>{t("guides-fish-hiding.s150")}</li>
+              <li>{t("guides-fish-hiding.s151")}</li>
             </ol>
           </div>
           <div className="g-important-note">
-            مهم: الأمونيا والنيتريت بلا لون ولا ريحة — المي تبدو صافية وهي سامة. لا تحكم بعينك. الفحص بالكيت هو الطريقة الوحيدة.
+            {t("guides-fish-hiding.s152")}
           </div>
         </section>
 
         {/* ── SECTION 9: أخطاء ── */}
         <section className="g-section">
-          <h2 className="g-title">أخطاء لا تسويها</h2>
+          <h2 className="g-title">{t("guides-fish-hiding.s153")}</h2>
           <p className="g-section-intro">
-            لما تشوف سمچة مختفية، الغريزة تقول &ldquo;افعل شيء الآن.&rdquo; بعض هذه التصرفات تزيد الوضع سوءاً.
+            {t("guides-fish-hiding.s154")}
           </p>
           <div className="g-mistakes">
             <div className="g-mistake">
-              <div className="g-mistake-title">لا تلاحق السمچة بالشبكة بدون سبب قوي</div>
-              <div className="g-mistake-why">الصيد يسبب ضغط حاد على السمچة — يمكن يضر أكثر من الاختفاء نفسه. لا تلاحق إلا إذا كانت بخطر حقيقي وواضح.</div>
+              <div className="g-mistake-title">{t("guides-fish-hiding.s155")}</div>
+              <div className="g-mistake-why">{t("guides-fish-hiding.s156")}</div>
             </div>
             <div className="g-mistake">
-              <div className="g-mistake-title">لا تبدل كل المي مرة وحدة</div>
-              <div className="g-mistake-why">100% تغيير مي يصدم السمچ بتغيير مفاجئ بالحرارة والـPH. كذلك يمكن يضر البكتيريا النافعة. غيّر 25% فقط في كل مرة.</div>
+              <div className="g-mistake-title">{t("guides-fish-hiding.s157")}</div>
+              <div className="g-mistake-why">{t("guides-fish-hiding.s158")}</div>
             </div>
             <div className="g-mistake">
-              <div className="g-mistake-title">لا تضيف علاج عشوائي</div>
-              <div className="g-mistake-why">بدون تشخيص واضح للسبب، الدواء الخاطئ يقتل البكتيريا النافعة بالفلتر ويزيد المشكلة. الأمونيا والنيتريت يرتفعون بعدها.</div>
+              <div className="g-mistake-title">{t("guides-fish-hiding.s159")}</div>
+              <div className="g-mistake-why">{t("guides-fish-hiding.s160")}</div>
             </div>
             <div className="g-mistake">
-              <div className="g-mistake-title">لا تغير الفلتر والديكور والمي بنفس اليوم</div>
-              <div className="g-mistake-why">تغييرات كثيرة بيوم واحد = صدمة للسمچ والنظام البيولوجي. غيّر شيء واحد، راقب النتيجة، ثم انتقل للتالي.</div>
+              <div className="g-mistake-title">{t("guides-fish-hiding.s161")}</div>
+              <div className="g-mistake-why">{t("guides-fish-hiding.s162")}</div>
             </div>
             <div className="g-mistake">
-              <div className="g-mistake-title">لا تحكم من الاختفاء وحده</div>
-              <div className="g-mistake-why">الاختفاء ظاهرة — مو تشخيص. السبب ممكن يكون ضغط نقل أو عدوانية أو مشكلة بيئة. لازم تفرق بين الأسباب أولاً.</div>
+              <div className="g-mistake-title">{t("guides-fish-hiding.s163")}</div>
+              <div className="g-mistake-why">{t("guides-fish-hiding.s164")}</div>
             </div>
             <div className="g-mistake">
-              <div className="g-mistake-title">لا تشتري سمچ جديد قبل ما تفهم المشكلة</div>
-              <div className="g-mistake-why">إضافة سمچ جديد وقت الأزمة يزيد الضغط على الحوض ويمكن يجيب مرض إضافي — خصوصاً إذا ما عزلت السمچ الجديدة أولاً.</div>
+              <div className="g-mistake-title">{t("guides-fish-hiding.s165")}</div>
+              <div className="g-mistake-why">{t("guides-fish-hiding.s166")}</div>
             </div>
           </div>
         </section>
 
         {/* ── SECTION 10: شنو ترسل ── */}
         <section className="g-section">
-          <h2 className="g-title">شنو ترسل لنا حتى نشخص؟</h2>
-          <p className="g-section-intro">حتى نعطيك رأي أدق، اجمع هذه المعلومات قبل ما ترسل:</p>
+          <h2 className="g-title">{t("guides-fish-hiding.s167")}</h2>
+          <p className="g-section-intro">{t("guides-fish-hiding.s168")}</p>
           <div className="g-send-grid">
             <div className="g-send-card g-send-visual">
-              <div className="g-send-card-title">الصور والفيديو</div>
+              <div className="g-send-card-title">{t("guides-fish-hiding.s169")}</div>
               <ul className="g-send-list-inner">
-                <li>صورة واضحة للحوض كامل — من الواجهة</li>
-                <li>صورة قريبة للسمچة المختبئة إذا تقدر</li>
-                <li>فيديو قصير إذا فيه مطاردة أو سلوك غريب</li>
+                <li>{t("guides-fish-hiding.s170")}</li>
+                <li>{t("guides-fish-hiding.s171")}</li>
+                <li>{t("guides-fish-hiding.s172")}</li>
               </ul>
             </div>
             <div className="g-send-card g-send-info">
-              <div className="g-send-card-title">معلومات الحوض</div>
+              <div className="g-send-card-title">{t("guides-fish-hiding.s173")}</div>
               <ul className="g-send-list-inner">
-                <li>نوع السمچة وعدد السمچات بالحوض</li>
-                <li>حجم الحوض (لتر تقريباً)</li>
-                <li>نوع الفلتر المستخدم</li>
-                <li>عمر الحوض (من متى تشتغل؟)</li>
+                <li>{t("guides-fish-hiding.s174")}</li>
+                <li>{t("guides-fish-hiding.s175")}</li>
+                <li>{t("guides-fish-hiding.s176")}</li>
+                <li>{t("guides-fish-hiding.s177")}</li>
               </ul>
             </div>
             <div className="g-send-card g-send-behavior">
-              <div className="g-send-card-title">السلوك والتاريخ</div>
+              <div className="g-send-card-title">{t("guides-fish-hiding.s178")}</div>
               <ul className="g-send-list-inner">
-                <li>من متى بدأت تختفي؟</li>
-                <li>هل تطلع للأكل أو ترفض تماماً؟</li>
-                <li>أكو سمچة ثانية تطاردها؟</li>
-                <li>هل غيرت شي بالحوض مؤخراً؟</li>
+                <li>{t("guides-fish-hiding.s179")}</li>
+                <li>{t("guides-fish-hiding.s180")}</li>
+                <li>{t("guides-fish-hiding.s181")}</li>
+                <li>{t("guides-fish-hiding.s182")}</li>
               </ul>
             </div>
           </div>
-          <div className="g-send-footer">كلما الصورة أوضح، التشخيص يصير أدق.</div>
+          <div className="g-send-footer">{t("guides-fish-hiding.s183")}</div>
         </section>
 
         {/* ── CTA ── */}
         <section className="g-cta">
-          <h2>إذا تريد تشخيص أدق</h2>
-          <p>دز صورة الحوض ونوع السمچة وحجم الحوض.</p>
-          <p>AQUAVO يراجع الحالة بهدوء ويعطيك الخطوة الأنسب.</p>
+          <h2>{t("guides-fish-hiding.s184")}</h2>
+          <p>{t("guides-fish-hiding.s185")}</p>
+          <p>{t("guides-fish-hiding.s186")}</p>
         </section>
 
       </main>

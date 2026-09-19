@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Joyride, STATUS, type EventData, type Options, type Step, type Styles } from 'react-joyride';
 import { useLocation } from 'wouter';
+import { useTranslation } from "react-i18next";
 
 export function OnboardingTour() {
+  const { t } = useTranslation("pages");
     const [run, setRun] = useState(false);
     const [steps, setSteps] = useState<Step[]>([]);
     const [location] = useLocation();
@@ -28,9 +30,9 @@ export function OnboardingTour() {
                     target: 'body',
                     content: (
                         <div className="text-right font-sans" dir="rtl">
-                            <h2 className="text-xl font-extrabold mb-2 text-primary">طبيب أسماك ذكي بجيبك 🩺</h2>
+                            <h2 className="text-xl font-extrabold mb-2 text-primary">{t("onboarding-tour.s1")}</h2>
                             <p className="text-muted-foreground leading-relaxed text-sm">
-                                هالفكرة مو خيال، هسه تكدر بضغطة وحدة تشخص حالة سمكتك وتعرف شنو اللي مأذيها بدون حيرة.
+                                {t("onboarding-tour.s2")}
                             </p>
                         </div>
                     ),
@@ -41,9 +43,9 @@ export function OnboardingTour() {
                     target: '[data-tour="health-upload"]',
                     content: (
                         <div className="text-right font-sans" dir="rtl">
-                            <h3 className="font-bold mb-2 text-primary">ارفع صورة سمكتك 📷</h3>
+                            <h3 className="font-bold mb-2 text-primary">{t("onboarding-tour.s3")}</h3>
                             <p className="text-muted-foreground leading-relaxed text-sm">
-                                كل اللي تحتاجه هو صورة واضحة من الجانب لسمكتك المريضة، ارفعها هنا والـ AI راح يحلل الأعراض والالتهابات بدقة عالية.
+                                {t("onboarding-tour.s4")}
                             </p>
                         </div>
                     ),
@@ -52,9 +54,9 @@ export function OnboardingTour() {
                     target: '[data-tour="health-results"]',
                     content: (
                         <div className="text-right font-sans" dir="rtl">
-                            <h3 className="font-bold mb-2 text-primary">نتيجة التشخيص 📋</h3>
+                            <h3 className="font-bold mb-2 text-primary">{t("onboarding-tour.s5")}</h3>
                             <p className="text-muted-foreground leading-relaxed text-sm">
-                                هنا راح تطلعلك النتيجة بالتفصيل الممل، مع خطة علاج يومية وتوصيات دقيقة للمي والجرعات المناسبة حتى ترجع سمكتك بكامل صحتها.
+                                {t("onboarding-tour.s6")}
                             </p>
                         </div>
                     ),
@@ -68,9 +70,9 @@ export function OnboardingTour() {
                     target: 'body',
                     content: (
                         <div className="text-right font-sans" dir="rtl">
-                            <h2 className="text-xl font-extrabold mb-2 text-primary">حسابات الأحواض بدون دوخة راس 🧮</h2>
+                            <h2 className="text-xl font-extrabold mb-2 text-primary">{t("onboarding-tour.s7")}</h2>
                             <p className="text-muted-foreground leading-relaxed text-sm">
-                                صممنا هالقسم حتى نخلصك من الحسابات المعقدة وتجهز حوضك بالملي وبدون أي غلطة.
+                                {t("onboarding-tour.s8")}
                             </p>
                         </div>
                     ),
@@ -81,9 +83,9 @@ export function OnboardingTour() {
                     target: '[data-tour="calculators-tabs"]',
                     content: (
                         <div className="text-right font-sans" dir="rtl">
-                            <h3 className="font-bold mb-2 text-primary">تنقل بين الحاسبات بكل سهولة 📊</h3>
+                            <h3 className="font-bold mb-2 text-primary">{t("onboarding-tour.s9")}</h3>
                             <p className="text-muted-foreground leading-relaxed text-sm">
-                                حجم الحوض، قوة السخان، الفلتر المناسب، كمية الملح، وحتى جدول الصيانة، كلشي تحتاجه بمكان واحد.
+                                {t("onboarding-tour.s10")}
                             </p>
                         </div>
                     ),
@@ -92,9 +94,9 @@ export function OnboardingTour() {
                     target: '[data-tour="calculators-content"]',
                     content: (
                         <div className="text-right font-sans" dir="rtl">
-                            <h3 className="font-bold mb-2 text-primary">اكتب القياسات ✍️</h3>
+                            <h3 className="font-bold mb-2 text-primary">{t("onboarding-tour.s11")}</h3>
                             <p className="text-muted-foreground leading-relaxed text-sm">
-                                اكتب القياسات والمعلومات هنا وراح تطلعلك الأرقام الصحيحة والتوصيات مباشرة بدون أي تعقيد.
+                                {t("onboarding-tour.s12")}
                             </p>
                         </div>
                     ),
@@ -108,9 +110,9 @@ export function OnboardingTour() {
                     target: 'body',
                     content: (
                         <div className="text-right font-sans" dir="rtl">
-                            <h2 className="text-xl font-extrabold mb-2 text-primary">ألبوم العائلة ومجتمع الهواة 📸</h2>
+                            <h2 className="text-xl font-extrabold mb-2 text-primary">{t("onboarding-tour.s13")}</h2>
                             <p className="text-muted-foreground leading-relaxed text-sm">
-                                هذا مكانك الخاص ومجتمع هواة الأحواض بالعراق. شاركنا إبداعك وشوف أحواض بقية العائلة واستمتع بجمال تصاميمهم.
+                                {t("onboarding-tour.s14")}
                             </p>
                         </div>
                     ),
@@ -121,9 +123,9 @@ export function OnboardingTour() {
                     target: '[data-tour="gallery-upload"]',
                     content: (
                         <div className="text-right font-sans" dir="rtl">
-                            <h3 className="font-bold mb-2 text-primary">شارك حوضك ويا العائلة 🌟</h3>
+                            <h3 className="font-bold mb-2 text-primary">{t("onboarding-tour.s15")}</h3>
                             <p className="text-muted-foreground leading-relaxed text-sm">
-                                اضغط هنا حتى ترفع صورة حوضك وتشارك قصتك ويا الأسماك والنباتات وتدخل ويانا بالمسابقة الشهرية وتنافس على الجوائز.
+                                {t("onboarding-tour.s16")}
                             </p>
                         </div>
                     ),
@@ -132,9 +134,9 @@ export function OnboardingTour() {
                     target: '[data-tour="gallery-grid"]',
                     content: (
                         <div className="text-right font-sans" dir="rtl">
-                            <h3 className="font-bold mb-2 text-primary">تصفح وتفاعل 💬</h3>
+                            <h3 className="font-bold mb-2 text-primary">{t("onboarding-tour.s17")}</h3>
                             <p className="text-muted-foreground leading-relaxed text-sm">
-                                تصفح معرض الأحواض، انطي لايك للتصاميم اللي تعجبك وتفاعل ويا بقية المربين بالبلد.
+                                {t("onboarding-tour.s18")}
                             </p>
                         </div>
                     ),
@@ -148,9 +150,9 @@ export function OnboardingTour() {
                     target: 'body',
                     content: (
                         <div className="text-right font-sans" dir="rtl">
-                            <h2 className="text-xl font-extrabold mb-2 text-primary">رحلتك ويا الحوض تبدي من هنا 🚀</h2>
+                            <h2 className="text-xl font-extrabold mb-2 text-primary">{t("onboarding-tour.s19")}</h2>
                             <p className="text-muted-foreground leading-relaxed text-sm">
-                                خطوة بخطوة نحو حوض أحلامك. هذا الدليل التفاعلي راح يمشي وياك من الصفر لحد ما يكمل حوضك بكل تفاصيله.
+                                {t("onboarding-tour.s20")}
                             </p>
                         </div>
                     ),
@@ -161,9 +163,9 @@ export function OnboardingTour() {
                     target: '[data-tour="journey-progress"]',
                     content: (
                         <div className="text-right font-sans" dir="rtl">
-                            <h3 className="font-bold mb-2 text-primary">تتبع خطواتك 📍</h3>
+                            <h3 className="font-bold mb-2 text-primary">{t("onboarding-tour.s21")}</h3>
                             <p className="text-muted-foreground leading-relaxed text-sm">
-                                شريط التقدم هذا يوضحلك وين واصل برحلتك، وتكدر تحفظ مسودتك وترجع تكمل بأي وقت يعجبك.
+                                {t("onboarding-tour.s22")}
                             </p>
                         </div>
                     ),
@@ -172,9 +174,9 @@ export function OnboardingTour() {
                     target: '[data-tour="journey-content"]',
                     content: (
                         <div className="text-right font-sans" dir="rtl">
-                            <h3 className="font-bold mb-2 text-primary">ركز على تفاصيل حوضك 🛠️</h3>
+                            <h3 className="font-bold mb-2 text-primary">{t("onboarding-tour.s23")}</h3>
                             <p className="text-muted-foreground leading-relaxed text-sm">
-                                كل خطوة هنا تركز على جانب مهم: حجم الحوض، الأجهزة، الديكورات، معايير المياه، وحتى اختيار الأسماك المناسبة.
+                                {t("onboarding-tour.s24")}
                             </p>
                         </div>
                     ),
@@ -183,9 +185,9 @@ export function OnboardingTour() {
                     target: '[data-tour="journey-nav"]',
                     content: (
                         <div className="text-right font-sans" dir="rtl">
-                            <h3 className="font-bold mb-2 text-primary">التنقل بين الخطوات ➡️</h3>
+                            <h3 className="font-bold mb-2 text-primary">{t("onboarding-tour.s25")}</h3>
                             <p className="text-muted-foreground leading-relaxed text-sm">
-                                استخدم الأزرار هنا حتى تتنقل بين الخطوات بعد ما تكمل اختيار كل مرحلة وتنتقل للي بعدها.
+                                {t("onboarding-tour.s26")}
                             </p>
                         </div>
                     ),
@@ -267,11 +269,11 @@ export function OnboardingTour() {
             scrollToFirstStep
             options={tourOptions}
             locale={{
-                back: 'السابق',
-                close: 'إغلاق',
-                last: 'إنهاء',
-                next: 'التالي →',
-                skip: 'تخطي',
+                back: t("onboarding-tour.s27"),
+                close: t("onboarding-tour.s28"),
+                last: t("onboarding-tour.s29"),
+                next: t("onboarding-tour.s30"),
+                skip: t("onboarding-tour.s31"),
             }}
             styles={tourStyles}
             onEvent={handleJoyrideCallback}

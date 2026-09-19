@@ -3,13 +3,14 @@ import { Check, Palette, Ruler, Sparkles, Tag } from "lucide-react";
 
 import { cn, formatIQD } from "@/lib/utils";
 import type { ProductVariant } from "@/types";
-import { useTranslation } from "react-i18next";
 import {
   chooseVariantForSelection,
   extractVariantDimensions,
   isDimensionValueAvailable,
   selectionFromVariant,
 } from "@/lib/variant-dimensions";
+import { useTranslation } from "react-i18next";
+import { i18next } from "@/i18n";
 
 interface MultiDimensionVariantSelectorProps {
   variants: ProductVariant[];
@@ -18,12 +19,12 @@ interface MultiDimensionVariantSelectorProps {
 }
 
 const AQUARIUM_MEASUREMENTS_BY_MODEL: Record<string, string> = {
-  "YXL-003": "40 × 23 × 25 سم",
-  "YKK-50": "50 × 27 × 30 سم",
-  "YKK-60": "60 × 30 × 35 سم",
-  "YEE-1090": "35 × 35 × 35 سم",
-  "YCG-40": "40 × 40 × 40 سم",
-  "C5-1062": "60 × 40 × 40 سم",
+  "YXL-003": i18next.t("pages:multi-dimension-variant-selector.s1"),
+  "YKK-50": i18next.t("pages:multi-dimension-variant-selector.s2"),
+  "YKK-60": i18next.t("pages:multi-dimension-variant-selector.s3"),
+  "YEE-1090": i18next.t("pages:multi-dimension-variant-selector.s4"),
+  "YCG-40": i18next.t("pages:multi-dimension-variant-selector.s5"),
+  "C5-1062": i18next.t("pages:multi-dimension-variant-selector.s6"),
 };
 
 function cleanSpecificationValue(value: unknown): string | null {

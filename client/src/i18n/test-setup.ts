@@ -19,14 +19,15 @@ import errors from "../locales/ar/errors.json";
 import pages from "../locales/ar/pages.json";
 import seo from "../locales/ar/seo.json";
 import tools from "../locales/ar/tools.json";
+import guides from "../locales/ar/guides.json";
 
 if (!i18next.isInitialized) {
   void i18next.use(initReactI18next).init({
     lng: "ar",
     fallbackLng: "ar",
-    ns: ["common", "nav", "home", "products", "product", "cart", "checkout", "account", "orders", "search", "errors", "pages", "seo", "tools"],
+    ns: ["common", "nav", "home", "products", "product", "cart", "checkout", "account", "orders", "search", "errors", "pages", "seo", "tools", "guides"],
     defaultNS: "common",
-    resources: { ar: { common, nav, home, products, product, cart, checkout, account, orders, search, errors, pages, seo, tools } },
+    resources: { ar: { common, nav, home, products, product, cart, checkout, account, orders, search, errors, pages, seo, tools, guides } },
     interpolation: { escapeValue: false },
     initImmediate: false,
     react: { useSuspense: false },

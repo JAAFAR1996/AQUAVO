@@ -16,6 +16,7 @@ import type errors from "../locales/ar/errors.json";
 import type pages from "../locales/ar/pages.json";
 import type seo from "../locales/ar/seo.json";
 import type tools from "../locales/ar/tools.json";
+import type guides from "../locales/ar/guides.json";
 
 declare module "i18next" {
   interface CustomTypeOptions {
@@ -35,6 +36,7 @@ declare module "i18next" {
       pages: typeof pages;
       seo: typeof seo;
       tools: typeof tools;
+      guides: typeof guides;
     };
     returnNull: false;
   }

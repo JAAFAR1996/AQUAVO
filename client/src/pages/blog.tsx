@@ -41,6 +41,7 @@ import type { BlogPost, BlogCategory } from "@shared/schema";
 import { Loader2 } from "lucide-react";
 import { blogCardImage, blogHeroImage } from "@/lib/cloudinary";
 import { authorBylineText } from "@shared/editorial-author";
+import { useTranslation } from "react-i18next";
 
 /**
  * A row from /api/blog/posts. The endpoint no longer returns the stored
@@ -86,6 +87,7 @@ const iconFor = (name?: string | null): React.ReactNode => iconMap[name ?? ""] ?
 // Dynamic categories will be fetched from the API
 
 export default function Blog() {
+  const { t } = useTranslation("pages");
     const [location, setLocation] = useLocation();
 
     // Fetch Categories
@@ -102,7 +104,7 @@ export default function Blog() {
 
     // Build the dynamic category count array
     const categoryCounts = [
-        { name: "الكل", count: blogPosts.length },
+        { name: t("blog.s1"), count: blogPosts.length },
         ...categories.map(cat => ({
             name: cat.name,
             count: blogPosts.filter(p => p.category === cat.name).length
@@ -115,9 +117,9 @@ export default function Blog() {
     return (
         <div className="flex-1 flex flex-col bg-background selection:bg-primary/30">
             <MetaTags
-                title="المدونة"
-                description="مقالات ونصائح متخصصة في عالم أحواض الأسماك والحياة المائية - AQUAVO"
-                keywords={["مدونة أحواض الأسماك", "نصائح تربية الأسماك", "أحواض المياه العذبة", "AQUAVO"]}
+                title={t("blog.s2")}
+                description={t("blog.s3")}
+                keywords={[t("blog.s4"), t("blog.s5"), t("blog.s6"), "AQUAVO"]}
                 type="article"
             />
             {/* Hero Section - 2025 Premium Design */}
@@ -134,16 +136,16 @@ export default function Blog() {
                     >
                         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary mb-8 backdrop-blur-md">
                             <Sparkles className="h-4 w-4 animate-pulse" />
-                            <span className="font-bold text-sm tracking-wide">أحدث مقالات 2026</span>
+                            <span className="font-bold text-sm tracking-wide">{t("blog.s7")}</span>
                         </div>
 
                         <h1 className="text-5xl md:text-7xl lg:text-8xl font-black mb-8 tracking-tight leading-none bg-clip-text text-transparent bg-gradient-to-b from-foreground to-foreground/50">
-                            اكتشف أسرار <br />
-                            <span className="text-primary italic">عالم البحار</span>
+                            {t("blog.s8")} <br />
+                            <span className="text-primary italic">{t("blog.s9")}</span>
                         </h1>
 
                         <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                            مساحتك المعرفية الموثوقة لكل ما يخص تربية الأسماك، تصميم الأحواض، والأنظمة البيئية المائية.
+                            {t("blog.s10")}
                         </p>
                     </motion.div>
                 </div>
@@ -267,7 +269,7 @@ export default function Blog() {
                                                         {(post as BlogListItem).readingTime}
                                                     </span>
                                                     <span className="font-medium text-primary cursor-pointer group-hover:underline">
-                                                        اقرأ المزيد &larr;
+                                                        {t("blog.s11")}
                                                     </span>
                                                 </div>
                                             </div>
@@ -281,9 +283,9 @@ export default function Blog() {
                                         <BookOpen className="w-32 h-32 rotate-12" />
                                     </div>
                                     <div>
-                                        <h3 className="text-2xl font-bold mb-2">النشرة البريدية</h3>
+                                        <h3 className="text-2xl font-bold mb-2">{t("blog.s12")}</h3>
                                         <p className="text-white/90 mb-6 text-sm">
-                                            انضم لأكثر من 5000 هاوي واحصل على نصائح أسبوعية مجانية.
+                                            {t("blog.s13")}
                                         </p>
                                     </div>
                                     <form onSubmit={async (e) => {
@@ -291,7 +293,7 @@ export default function Blog() {
                                         // Logic similar to before
                                         const emailInput = (e.target as HTMLFormElement).elements.namedItem('email') as HTMLInputElement;
                                         const email = emailInput.value;
-                                        alert(`تم الاشتراك: ${email}`); // Placeholder for actual logic
+                                        alert(t("blog.s14", { v0: email })); // Placeholder for actual logic
                                         emailInput.value = "";
                                     }}>
                                         <div className="space-y-3">
@@ -299,11 +301,11 @@ export default function Blog() {
                                                 name="email"
                                                 type="email"
                                                 required
-                                                placeholder="بريدك الإلكتروني"
+                                                placeholder={t("blog.s15")}
                                                 className="w-full px-4 py-3 rounded-xl bg-card/20 border border-white/30 text-white placeholder:text-white/70 focus:outline-none focus:ring-2 focus:ring-white/50 backdrop-blur-sm"
                                             />
                                             <Button type="submit" className="w-full bg-card text-primary hover:bg-white/90 rounded-xl font-bold shadow-lg">
-                                                اشترك الآن
+                                                {t("blog.s16")}
                                             </Button>
                                         </div>
                                     </form>

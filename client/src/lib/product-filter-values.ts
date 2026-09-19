@@ -1,3 +1,4 @@
+import { i18next } from "@/i18n";
 /**
  * Identity values of the product quick filters. They are Arabic strings
  * because that is what the catalogue data, the URL state and the analytics
@@ -6,15 +7,15 @@
  * translated label.
  */
 export const PRODUCT_TAG_VALUES = {
-  new: "جديد",
-  bestSeller: "الأكثر مبيعاً",
-  eco: "صديق للبيئة",
+  new: i18next.t("pages:product-filter-values.s1"),
+  bestSeller: i18next.t("pages:product-filter-values.s2"),
+  eco: i18next.t("pages:product-filter-values.s3"),
 } as const;
 
 export const PRODUCT_DIFFICULTY_VALUES = {
-  beginner: "مبتدئ",
-  intermediate: "متوسط",
-  advanced: "متقدم",
+  beginner: i18next.t("pages:product-filter-values.s4"),
+  intermediate: i18next.t("pages:product-filter-values.s5"),
+  advanced: i18next.t("pages:product-filter-values.s6"),
 } as const;
 
 export type ProductTagKey = keyof typeof PRODUCT_TAG_VALUES;

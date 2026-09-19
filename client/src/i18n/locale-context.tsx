@@ -23,7 +23,7 @@ import {
   type Locale,
   type TextDirection,
 } from "@shared/i18n/locales";
-import { changeI18nLocale, initI18n } from "./index";
+import { bootstrapI18n } from "./index";
 
 export interface LocaleContextValue {
   locale: Locale;
@@ -98,18 +98,11 @@ export function LocaleProvider({ children, onExplicitChange }: ProviderProps) {
   const [locale, setLocaleState] = useState<Locale>(() => currentLocaleFromWindow());
   const [ready, setReady] = useState(false);
 
-  // Boot i18next for the URL locale and apply lang/dir before first paint of the app.
+  // Bundles for the URL locale were loaded by main.tsx before the app was
+  // imported; keep <html lang dir> in sync and mark ready.
   useEffect(() => {
-    let cancelled = false;
     applyDocumentLocale(locale);
-    initI18n(locale)
-      .then(() => changeI18nLocale(locale))
-      .then(() => {
-        if (!cancelled) setReady(true);
-      });
-    return () => {
-      cancelled = true;
-    };
+    void bootstrapI18n(locale).then(() => setReady(true));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -131,14 +124,7 @@ export function LocaleProvider({ children, onExplicitChange }: ProviderProps) {
 
   useEffect(() => {
     applyDocumentLocale(locale);
-    let cancelled = false;
-    setReady(false);
-    changeI18nLocale(locale).then(() => {
-      if (!cancelled) setReady(true);
-    });
-    return () => {
-      cancelled = true;
-    };
+    void bootstrapI18n(locale).then(() => setReady(true));
   }, [locale]);
 
   const setLocale = useCallback(
@@ -148,10 +134,11 @@ export function LocaleProvider({ children, onExplicitChange }: ProviderProps) {
       onExplicitChange?.(next);
       if (next === locale) return;
       const target = localizePath(window.location.pathname + window.location.search + window.location.hash, next);
-      // wouter patches history so this dispatches its "pushState" event and the
-      // Router re-renders with the new base without a page reload.
-      window.history.pushState(null, "", target);
-      setLocaleState(next);
+      // A full navigation, not pushState: the new locale's bundles must be in
+      // place before any module evaluates (module-level copy uses i18next.t),
+      // and the URL, query string, cookie session, cart and wishlist storage
+      // all survive a navigation. The customer lands on the same logical page.
+      window.location.assign(target);
     },
     [locale, onExplicitChange],
   );

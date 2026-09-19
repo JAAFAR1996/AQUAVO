@@ -1,4 +1,6 @@
+import { useTranslation } from "react-i18next";
 export default function GuideTankRescuePlan() {
+  const { t } = useTranslation("guides");
   return (
     <div className="rsc-wrap">
 
@@ -10,56 +12,55 @@ export default function GuideTankRescuePlan() {
 
         {/* ── Hero ── */}
         <section className="rsc-hero">
-          <span className="rsc-badge">خطة الإنقاذ — AQUAVO</span>
+          <span className="rsc-badge">{t("guides-tank-rescue-plan.s1")}</span>
 
           {/* Day-zero countdown ring */}
           <div className="rsc-ring" aria-hidden="true">
             <div className="rsc-ring-track"></div>
             <div className="rsc-ring-fill"></div>
             <div className="rsc-ring-core">
-              <span className="rsc-ring-num">٣٠</span>
-              <span className="rsc-ring-lbl">يوماً</span>
+              <span className="rsc-ring-num">{t("guides-tank-rescue-plan.s2")}</span>
+              <span className="rsc-ring-lbl">{t("guides-tank-rescue-plan.s3")}</span>
             </div>
           </div>
 
-          <h1>خطة الإنقاذ</h1>
-          <p className="rsc-sub">من يوم الصفر إلى الاستقرار — بدون عشوائية</p>
+          <h1>{t("guides-tank-rescue-plan.s4")}</h1>
+          <p className="rsc-sub">{t("guides-tank-rescue-plan.s5")}</p>
           <p className="rsc-intro">
-            الحوض التعبان ما يحتاج عشوائية. يحتاج خطة واضحة تعرف فيها شنو تسوي كل أسبوع،
-            وشنو تجنب حتى ما تعقد الموضوع أكثر. هاي الخطة ترتبلك الطريق من اليوم الأول إلى الاستقرار.
+            {t("guides-tank-rescue-plan.s6")}
           </p>
           <div className="rsc-meta">
-            <span>للأحواض اللي فيها مشاكل واضحة</span>
-            <span>وقت القراءة: 6–8 دقائق</span>
+            <span>{t("guides-tank-rescue-plan.s7")}</span>
+            <span>{t("guides-tank-rescue-plan.s8")}</span>
           </div>
         </section>
 
         {/* ── قبل ما تبدأ ── */}
         <section className="rsc-section">
-          <h2 className="rsc-title">قبل ما تبدأ الخطة</h2>
+          <h2 className="rsc-title">{t("guides-tank-rescue-plan.s9")}</h2>
           <p className="rsc-body">
-            الخطة ما تشتغل بدون تشخيص أولي. هاي الأشياء الثلاث لازم تعرفها قبل اليوم الأول:
+            {t("guides-tank-rescue-plan.s10")}
           </p>
           <div className="rsc-prereq-grid">
             <div className="rsc-prereq">
-              <div className="rsc-prereq-num">١</div>
+              <div className="rsc-prereq-num">{t("guides-tank-rescue-plan.s11")}</div>
               <div>
-                <strong>فحص المي</strong>
-                <p>pH، أمونيا، نترات، نتريت — بدون هاي الأرقام كل خطوة تخمين.</p>
+                <strong>{t("guides-tank-rescue-plan.s12")}</strong>
+                <p>{t("guides-tank-rescue-plan.s13")}</p>
               </div>
             </div>
             <div className="rsc-prereq">
-              <div className="rsc-prereq-num">٢</div>
+              <div className="rsc-prereq-num">{t("guides-tank-rescue-plan.s14")}</div>
               <div>
-                <strong>حجم الحوض والحمل البيولوجي</strong>
-                <p>عدد السمچ وحجمهم يحدد قوة الفلتر اللي تحتاجه وسرعة التعافي.</p>
+                <strong>{t("guides-tank-rescue-plan.s15")}</strong>
+                <p>{t("guides-tank-rescue-plan.s16")}</p>
               </div>
             </div>
             <div className="rsc-prereq">
-              <div className="rsc-prereq-num">٣</div>
+              <div className="rsc-prereq-num">{t("guides-tank-rescue-plan.s17")}</div>
               <div>
-                <strong>حالة الفلتر</strong>
-                <p>فلتر مكسور أو مشبع يعني الخطة كلها راح تفشل. تحقق منه أول شي.</p>
+                <strong>{t("guides-tank-rescue-plan.s18")}</strong>
+                <p>{t("guides-tank-rescue-plan.s19")}</p>
               </div>
             </div>
           </div>
@@ -67,75 +68,75 @@ export default function GuideTankRescuePlan() {
 
         {/* ── Timeline ── */}
         <section className="rsc-section">
-          <h2 className="rsc-title">خطة الثلاثين يوم — محطة بمحطة</h2>
-          <p className="rsc-body">كل محطة تبني على اللي قبلها. لا تتخطى محطة حتى لو الحوض بدا أحسن.</p>
+          <h2 className="rsc-title">{t("guides-tank-rescue-plan.s20")}</h2>
+          <p className="rsc-body">{t("guides-tank-rescue-plan.s21")}</p>
 
           <div className="rsc-timeline">
             <div className="rsc-tline-rail" aria-hidden="true"></div>
 
             <div className="rsc-station">
-              <div className="rsc-station-dot rsc-dot-zero">٠</div>
+              <div className="rsc-station-dot rsc-dot-zero">{t("guides-tank-rescue-plan.s22")}</div>
               <div className="rsc-station-content">
-                <h3>يوم الصفر — التشخيص</h3>
+                <h3>{t("guides-tank-rescue-plan.s23")}</h3>
                 <ul className="rsc-ul">
-                  <li>افحص المي وسجّل الأرقام</li>
-                  <li>شوف الفلتر — نظف الإسفنج بماء الحوض مو بالبوري</li>
-                  <li>عزل أي سمچة عليها علامات مرض</li>
-                  <li>وقف أي دواء كنت تستخدمه بدون تشخيص</li>
-                  <li>خفف الأكل: مرة واحدة بالنهار فقط</li>
+                  <li>{t("guides-tank-rescue-plan.s24")}</li>
+                  <li>{t("guides-tank-rescue-plan.s25")}</li>
+                  <li>{t("guides-tank-rescue-plan.s26")}</li>
+                  <li>{t("guides-tank-rescue-plan.s27")}</li>
+                  <li>{t("guides-tank-rescue-plan.s28")}</li>
                 </ul>
               </div>
             </div>
 
             <div className="rsc-station">
-              <div className="rsc-station-dot rsc-dot-week">٧</div>
+              <div className="rsc-station-dot rsc-dot-week">{t("guides-tank-rescue-plan.s29")}</div>
               <div className="rsc-station-content">
-                <h3>يوم ٧ — الاستقرار الأولي</h3>
+                <h3>{t("guides-tank-rescue-plan.s30")}</h3>
                 <ul className="rsc-ul">
-                  <li>غير 20٪ من المي يومياً لمدة 3–4 أيام أول ما تبدأ</li>
-                  <li>تحقق من الأمونيا مرة بالنهار: أي قيمة فوق 0.5 ppm تحتاج تغيير فوري</li>
-                  <li>لا تضيف سمچ جديد هالأسبوع</li>
-                  <li>تحقق إن الهيتر يحافظ على درجة ثابتة</li>
+                  <li>{t("guides-tank-rescue-plan.s31")}</li>
+                  <li>{t("guides-tank-rescue-plan.s32")}</li>
+                  <li>{t("guides-tank-rescue-plan.s33")}</li>
+                  <li>{t("guides-tank-rescue-plan.s34")}</li>
                 </ul>
               </div>
             </div>
 
             <div className="rsc-station">
-              <div className="rsc-station-dot rsc-dot-week">١٤</div>
+              <div className="rsc-station-dot rsc-dot-week">{t("guides-tank-rescue-plan.s35")}</div>
               <div className="rsc-station-content">
-                <h3>يوم ١٤ — بناء البكتيريا</h3>
+                <h3>{t("guides-tank-rescue-plan.s36")}</h3>
                 <ul className="rsc-ul">
-                  <li>راجع أرقام النترات — لو ارتفعت فالفلتر ما يشتغل صح بعد</li>
-                  <li>نظف الحصى بالسايفون مرة</li>
-                  <li>رجّع الأكل لمرتين بالنهار إذا الأمونيا صفر</li>
-                  <li>لا تنظف الفلتر هالأسبوع — البكتيريا تتبنى</li>
-                  <li>سجّل الأرقام مقارنة باليوم الصفر</li>
+                  <li>{t("guides-tank-rescue-plan.s37")}</li>
+                  <li>{t("guides-tank-rescue-plan.s38")}</li>
+                  <li>{t("guides-tank-rescue-plan.s39")}</li>
+                  <li>{t("guides-tank-rescue-plan.s40")}</li>
+                  <li>{t("guides-tank-rescue-plan.s41")}</li>
                 </ul>
               </div>
             </div>
 
             <div className="rsc-station">
-              <div className="rsc-station-dot rsc-dot-week">٢١</div>
+              <div className="rsc-station-dot rsc-dot-week">{t("guides-tank-rescue-plan.s42")}</div>
               <div className="rsc-station-content">
-                <h3>يوم ٢١ — تثبيت الدورة</h3>
+                <h3>{t("guides-tank-rescue-plan.s43")}</h3>
                 <ul className="rsc-ul">
-                  <li>الأمونيا والنتريت لازم يكونون صفر بشكل منتظم</li>
-                  <li>إذا النترات تحت 20 ppm، الدورة تعمل</li>
-                  <li>ارجع لجدول تغيير المي العادي: 20٪ أسبوعياً</li>
-                  <li>إذا فيه سمچة معزولة تحسنت، راجع قبل ترجعها</li>
+                  <li>{t("guides-tank-rescue-plan.s44")}</li>
+                  <li>{t("guides-tank-rescue-plan.s45")}</li>
+                  <li>{t("guides-tank-rescue-plan.s46")}</li>
+                  <li>{t("guides-tank-rescue-plan.s47")}</li>
                 </ul>
               </div>
             </div>
 
             <div className="rsc-station">
-              <div className="rsc-station-dot rsc-dot-final">٣٠</div>
+              <div className="rsc-station-dot rsc-dot-final">{t("guides-tank-rescue-plan.s2")}</div>
               <div className="rsc-station-content">
-                <h3>يوم ٣٠ — الاستقرار</h3>
+                <h3>{t("guides-tank-rescue-plan.s48")}</h3>
                 <ul className="rsc-ul">
-                  <li>قارن الأرقام باليوم الصفر — المفروض فيه فرق واضح</li>
-                  <li>السمچ نشيط ويأكل بشكل طبيعي</li>
-                  <li>المي صافي والفلتر يشتغل بدون روائح</li>
-                  <li>الحوض جاهز للخطوة الجاية: إضافة تدريجية</li>
+                  <li>{t("guides-tank-rescue-plan.s49")}</li>
+                  <li>{t("guides-tank-rescue-plan.s50")}</li>
+                  <li>{t("guides-tank-rescue-plan.s51")}</li>
+                  <li>{t("guides-tank-rescue-plan.s52")}</li>
                 </ul>
               </div>
             </div>
@@ -144,82 +145,82 @@ export default function GuideTankRescuePlan() {
 
         {/* ── علامات تقول الخطة ناجحة ── */}
         <section className="rsc-section">
-          <h2 className="rsc-title">علامات تقول الخطة تسير صح</h2>
+          <h2 className="rsc-title">{t("guides-tank-rescue-plan.s53")}</h2>
           <div className="rsc-signs">
             <div className="rsc-sign rsc-sign-good">
               <span className="rsc-sign-icon">✓</span>
-              <span>الأمونيا والنتريت راحوا تدريجياً</span>
+              <span>{t("guides-tank-rescue-plan.s54")}</span>
             </div>
             <div className="rsc-sign rsc-sign-good">
               <span className="rsc-sign-icon">✓</span>
-              <span>السمچ رجع يأكل بشكل طبيعي</span>
+              <span>{t("guides-tank-rescue-plan.s55")}</span>
             </div>
             <div className="rsc-sign rsc-sign-good">
               <span className="rsc-sign-icon">✓</span>
-              <span>المي واضح وما فيه رائحة</span>
+              <span>{t("guides-tank-rescue-plan.s56")}</span>
             </div>
             <div className="rsc-sign rsc-sign-good">
               <span className="rsc-sign-icon">✓</span>
-              <span>السمچ يسبح بنشاط وما يختبي</span>
+              <span>{t("guides-tank-rescue-plan.s57")}</span>
             </div>
             <div className="rsc-sign rsc-sign-warn">
               <span className="rsc-sign-icon">⚠</span>
-              <span>إذا الأمونيا رجعت بعد اليوم 14 — الفلتر يحتاج مراجعة</span>
+              <span>{t("guides-tank-rescue-plan.s58")}</span>
             </div>
             <div className="rsc-sign rsc-sign-warn">
               <span className="rsc-sign-icon">⚠</span>
-              <span>إذا السمچ ما أكل بعد اليوم 21 — أرسل صورة ونشوف</span>
+              <span>{t("guides-tank-rescue-plan.s59")}</span>
             </div>
           </div>
         </section>
 
         {/* ── إذا الخطة ما نجحت ── */}
         <section className="rsc-section">
-          <h2 className="rsc-title">إذا الخطة ما نجحت — شنو تسوي؟</h2>
+          <h2 className="rsc-title">{t("guides-tank-rescue-plan.s60")}</h2>
           <p className="rsc-body">
-            نفذت الخطوات بالتسلسل، وصلت اليوم ٣٠، والسمچ ما تحسن بشكل واضح — هذا مو فشل. يعني في متغير ما اكتشفناه بعد.
+            {t("guides-tank-rescue-plan.s61")}
           </p>
           <div className="rsc-escalation">
             <div className="rsc-esc-step">
               <div className="rsc-esc-badge">A</div>
               <div className="rsc-esc-content">
-                <strong>أعد فحص المي — كل المؤشرات</strong>
-                <p>أمونيا، نتريت، نترات، pH. أحياناً المشكلة بالـ pH أو النترات المتراكمة — مو بالأمونيا فقط. فحص واحد في اليوم الصفر مو كافي.</p>
+                <strong>{t("guides-tank-rescue-plan.s62")}</strong>
+                <p>{t("guides-tank-rescue-plan.s63")}</p>
               </div>
             </div>
             <div className="rsc-esc-step">
               <div className="rsc-esc-badge">B</div>
               <div className="rsc-esc-content">
-                <strong>تحقق من الفلتر بالتفصيل</strong>
-                <p>الفلتر يبدو يشتغل بس ممكن التدفق ضعيف أو الوسط البيولوجي تضرر. نظف الوسط الميكانيكي فقط — لا تلمس البيولوجي بعد.</p>
+                <strong>{t("guides-tank-rescue-plan.s64")}</strong>
+                <p>{t("guides-tank-rescue-plan.s65")}</p>
               </div>
             </div>
             <div className="rsc-esc-step">
               <div className="rsc-esc-badge">C</div>
               <div className="rsc-esc-content">
-                <strong>راجع دليل العلاج إذا السمچ فيها أعراض</strong>
-                <p>إذا في سمچ عليها بقع أو علامات مرض، الخطة التالية هي <a href="/guides/treatment-basics" className="rsc-link">دليل العلاج الأساسي</a> — يحدد الدواء الصح حسب الأعراض.</p>
+                <strong>{t("guides-tank-rescue-plan.s66")}</strong>
+                <p>{t("guides-tank-rescue-plan.s67")} <a href="/guides/treatment-basics" className="rsc-link">{t("guides-tank-rescue-plan.s68")}</a> {t("guides-tank-rescue-plan.s69")}</p>
               </div>
             </div>
             <div className="rsc-esc-step">
               <div className="rsc-esc-badge">D</div>
               <div className="rsc-esc-content">
-                <strong>إذا السمچ تواصل تموت — أرسل صورة لـ AQUAVO</strong>
-                <p>الموت المتسارع (أكثر من سمچة بيوم) يعني إما تسمم حاد أو مرض معدٍ. أرسل صورة الحوض ونتائج الفحص — التشخيص من صورة واضحة أسرع وأدق من أي خطوة ثانية.</p>
+                <strong>{t("guides-tank-rescue-plan.s70")}</strong>
+                <p>{t("guides-tank-rescue-plan.s71")}</p>
               </div>
             </div>
           </div>
           <div className="rsc-warn-note">
-            لا تبدأ خطة إنقاذ ثانية قبل ما تعرف ليش الأولى ما نجحت. كل خطوة عشوائية تضيف ضغط على الحوض — مو حل.
+            {t("guides-tank-rescue-plan.s72")}
           </div>
         </section>
 
         {/* ── CTA ── */}
         <section className="rsc-cta-section">
           <div className="rsc-cta-box">
-            <h2 className="rsc-cta-title">حوضك يحتاج خطة مخصصة؟</h2>
+            <h2 className="rsc-cta-title">{t("guides-tank-rescue-plan.s73")}</h2>
             <p className="rsc-cta-body">
-              دز صورة واضحة للحوض، حجمه، وأرقام الفحص — ونرتبلك خطة مباشرة.
+              {t("guides-tank-rescue-plan.s74")}
             </p>
             <a
               href="https://www.instagram.com/aquavo_iq/"
@@ -227,7 +228,7 @@ export default function GuideTankRescuePlan() {
               rel="noopener noreferrer"
               className="rsc-cta-btn"
             >
-              راسلنا على إنستغرام
+              {t("guides-tank-rescue-plan.s75")}
             </a>
           </div>
         </section>

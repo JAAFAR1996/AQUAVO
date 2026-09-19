@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { fetchProducts } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import type { Product } from "@/types";
+import { useTranslation } from "react-i18next";
 
 const RECENTLY_VIEWED_KEY = "aquavo_recently_viewed";
 const MAX_RECENTLY_VIEWED = 10;
@@ -47,6 +48,7 @@ export function useRecentlyViewed() {
 
 // Product Recommendation Card
 function RecommendationCard({ product }: { product: Product }) {
+  const { t } = useTranslation("tools");
     return (
         <Link href={`/products/${product.slug}`}>
             <Card className="group h-full overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer border-transparent hover:border-primary/20">
@@ -58,10 +60,10 @@ function RecommendationCard({ product }: { product: Product }) {
                         loading="lazy"
                     />
                     {product.isNew && (
-                        <Badge className="absolute top-2 right-2 bg-blue-500">جديد</Badge>
+                        <Badge className="absolute top-2 right-2 bg-blue-500">{t("product-recommendations.s1")}</Badge>
                     )}
                     {product.isBestSeller && (
-                        <Badge className="absolute top-2 left-2 bg-amber-500">الأكثر مبيعاً</Badge>
+                        <Badge className="absolute top-2 left-2 bg-amber-500">{t("product-recommendations.s2")}</Badge>
                     )}
                 </div>
                 <CardContent className="p-3">
@@ -69,7 +71,7 @@ function RecommendationCard({ product }: { product: Product }) {
                         {product.name}
                     </h4>
                     <div className="flex items-center justify-between">
-                        <span className="font-bold text-purple-500">قريباً جداً</span>
+                        <span className="font-bold text-purple-500">{t("product-recommendations.s3")}</span>
                     </div>
                 </CardContent>
             </Card>
@@ -127,6 +129,7 @@ export function RecommendedForYou({
     limit = 6,
     className,
 }: RecommendedForYouProps) {
+  const { t } = useTranslation("tools");
     const [startIndex, setStartIndex] = useState(0);
     const itemsPerPage = 4;
 
@@ -188,7 +191,7 @@ export function RecommendedForYou({
             <div className="flex items-center justify-between">
                 <h3 className="text-lg font-bold flex items-center gap-2">
                     <Sparkles className="w-5 h-5 text-amber-500" />
-                    موصى به لك
+                    {t("product-recommendations.s4")}
                 </h3>
                 <CarouselNavigation
                     onPrev={() => setStartIndex((i) => Math.max(0, i - itemsPerPage))}
@@ -218,6 +221,7 @@ export function SimilarProducts({
     limit = 4,
     className,
 }: SimilarProductsProps) {
+  const { t } = useTranslation("tools");
     const { data, isLoading } = useQuery({
         queryKey: ["products"],
         queryFn: () => fetchProducts(),
@@ -260,7 +264,7 @@ export function SimilarProducts({
         <div className={cn("space-y-4", className)}>
             <h3 className="text-lg font-bold flex items-center gap-2">
                 <Eye className="w-5 h-5 text-primary" />
-                منتجات مشابهة
+                {t("product-recommendations.s5")}
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {similarProducts.map((product) => (
@@ -281,6 +285,7 @@ export function RecentlyViewed({
     currentProductId,
     className,
 }: RecentlyViewedProps) {
+  const { t } = useTranslation("tools");
     const { viewedIds, clearViewed } = useRecentlyViewed();
     const [startIndex, setStartIndex] = useState(0);
     const itemsPerPage = 4;
@@ -310,7 +315,7 @@ export function RecentlyViewed({
             <div className="flex items-center justify-between">
                 <h3 className="text-lg font-bold flex items-center gap-2">
                     <History className="w-5 h-5 text-muted-foreground" />
-                    شاهدتها مؤخراً
+                    {t("product-recommendations.s6")}
                 </h3>
                 <div className="flex items-center gap-2">
                     <Button
@@ -319,7 +324,7 @@ export function RecentlyViewed({
                         className="text-xs text-muted-foreground"
                         onClick={clearViewed}
                     >
-                        مسح الكل
+                        {t("product-recommendations.s7")}
                     </Button>
                     <CarouselNavigation
                         onPrev={() => setStartIndex((i) => Math.max(0, i - itemsPerPage))}
@@ -340,6 +345,7 @@ export function RecentlyViewed({
 
 // Compact Recently Viewed (for sidebar)
 export function RecentlyViewedCompact({ className }: { className?: string }) {
+  const { t } = useTranslation("tools");
     const { viewedIds } = useRecentlyViewed();
 
     const { data } = useQuery({
@@ -363,7 +369,7 @@ export function RecentlyViewedCompact({ className }: { className?: string }) {
             <CardHeader className="pb-2">
                 <CardTitle className="text-sm flex items-center gap-2">
                     <History className="w-4 h-4" />
-                    شاهدتها مؤخراً
+                    {t("product-recommendations.s6")}
                 </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
@@ -380,7 +386,7 @@ export function RecentlyViewedCompact({ className }: { className?: string }) {
                             </div>
                             <div className="flex-1 min-w-0">
                                 <p className="text-xs font-medium truncate">{product.name}</p>
-                                <p className="text-xs font-bold text-purple-500">قريباً جداً</p>
+                                <p className="text-xs font-bold text-purple-500">{t("product-recommendations.s3")}</p>
                             </div>
                         </div>
                     </Link>

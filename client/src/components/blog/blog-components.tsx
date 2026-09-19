@@ -22,6 +22,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import type { BlogArticle } from "@/data/blog-articles";
 import { blogCardImage, blogThumbImage } from "@/lib/cloudinary";
+import { useTranslation } from "react-i18next";
+import { i18next } from "@/i18n";
 
 // Category icon mapping
 const categoryIcons: Record<BlogArticle["category"], React.ReactNode> = {
@@ -33,11 +35,11 @@ const categoryIcons: Record<BlogArticle["category"], React.ReactNode> = {
 };
 
 const categoryLabels: Record<BlogArticle["category"], string> = {
-    "care-guide": "دليل العناية",
-    tips: "نصائح",
-    equipment: "المعدات",
-    plants: "النباتات",
-    fish: "الأسماك",
+    "care-guide": i18next.t("pages:blog-components.s1"),
+    tips: i18next.t("pages:blog-components.s2"),
+    equipment: i18next.t("pages:blog-components.s3"),
+    plants: i18next.t("pages:blog-components.s4"),
+    fish: i18next.t("pages:blog-components.s5"),
 };
 
 // Blog Card Component
@@ -47,6 +49,7 @@ interface BlogCardProps {
 }
 
 export function BlogCard({ article, featured = false }: BlogCardProps) {
+  const { t } = useTranslation("pages");
     return (
         <Link href={`/blog/${article.slug}`}>
             <Card
@@ -81,7 +84,7 @@ export function BlogCard({ article, featured = false }: BlogCardProps) {
 
                     {/* Featured Badge */}
                     {article.featured && (
-                        <Badge className="absolute top-3 left-3 bg-amber-500">مميز</Badge>
+                        <Badge className="absolute top-3 left-3 bg-amber-500">{t("blog-components.s6")}</Badge>
                     )}
                 </div>
 
@@ -112,7 +115,7 @@ export function BlogCard({ article, featured = false }: BlogCardProps) {
                             </span>
                             <span className="flex items-center gap-1">
                                 <Clock className="w-3 h-3" />
-                                {article.readingTime} دقائق
+                                {article.readingTime} {t("blog-components.s7")}
                             </span>
                         </div>
                         <ChevronLeft className="w-4 h-4 text-primary group-hover:translate-x-[-4px] transition-transform" />
@@ -135,6 +138,7 @@ export function BlogList({
     showSearch = true,
     showCategories = true,
 }: BlogListProps) {
+  const { t } = useTranslation("pages");
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
@@ -162,7 +166,7 @@ export function BlogList({
                         <div className="relative flex-1">
                             <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                             <Input
-                                placeholder="ابحث في المقالات..."
+                                placeholder={t("blog-components.s8")}
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="pr-10"
@@ -177,10 +181,10 @@ export function BlogList({
                             className="w-full md:w-auto"
                         >
                             <TabsList className="w-full md:w-auto">
-                                <TabsTrigger value="all">الكل</TabsTrigger>
-                                <TabsTrigger value="care-guide">أدلة العناية</TabsTrigger>
-                                <TabsTrigger value="tips">نصائح</TabsTrigger>
-                                <TabsTrigger value="equipment">المعدات</TabsTrigger>
+                                <TabsTrigger value="all">{t("blog-components.s9")}</TabsTrigger>
+                                <TabsTrigger value="care-guide">{t("blog-components.s10")}</TabsTrigger>
+                                <TabsTrigger value="tips">{t("blog-components.s2")}</TabsTrigger>
+                                <TabsTrigger value="equipment">{t("blog-components.s3")}</TabsTrigger>
                             </TabsList>
                         </Tabs>
                     )}
@@ -209,9 +213,9 @@ export function BlogList({
             {filteredArticles.length === 0 && (
                 <div className="text-center py-12">
                     <BookOpen className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                    <h3 className="text-lg font-medium mb-2">لا توجد مقالات</h3>
+                    <h3 className="text-lg font-medium mb-2">{t("blog-components.s11")}</h3>
                     <p className="text-muted-foreground">
-                        جرب البحث بكلمات مختلفة أو اختر فئة أخرى
+                        {t("blog-components.s12")}
                     </p>
                 </div>
             )}
@@ -225,12 +229,13 @@ interface RelatedArticlesProps {
 }
 
 export function RelatedArticles({ articles }: RelatedArticlesProps) {
+  const { t } = useTranslation("pages");
     if (articles.length === 0) return null;
 
     return (
         <Card className="mt-12">
             <CardHeader>
-                <h3 className="text-xl font-bold">مقالات ذات صلة</h3>
+                <h3 className="text-xl font-bold">{t("blog-components.s13")}</h3>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {articles.map((article) => (
@@ -251,7 +256,7 @@ export function RelatedArticles({ articles }: RelatedArticlesProps) {
                                 </h4>
                                 <span className="text-xs text-muted-foreground flex items-center gap-1">
                                     <Clock className="w-3 h-3" />
-                                    {article.readingTime} دقائق
+                                    {article.readingTime} {t("blog-components.s7")}
                                 </span>
                             </div>
                         </div>
@@ -278,11 +283,12 @@ export function ArticleTags({ tags }: { tags: string[] }) {
 
 // Video Embed Component
 export function VideoEmbed({ url, title }: { url: string; title?: string }) {
+  const { t } = useTranslation("pages");
     return (
         <div className="aspect-video rounded-lg overflow-hidden shadow-lg my-8">
             <iframe
                 src={url}
-                title={title || "فيديو تعليمي"}
+                title={title || t("blog-components.s14")}
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
                 className="w-full h-full"
@@ -299,10 +305,11 @@ interface TOCItem {
 }
 
 export function TableOfContents({ items }: { items: TOCItem[] }) {
+  const { t } = useTranslation("pages");
     return (
         <Card className="sticky top-24">
             <CardHeader className="pb-2">
-                <h4 className="font-bold text-sm">محتويات المقال</h4>
+                <h4 className="font-bold text-sm">{t("blog-components.s15")}</h4>
             </CardHeader>
             <CardContent>
                 <nav className="space-y-1">

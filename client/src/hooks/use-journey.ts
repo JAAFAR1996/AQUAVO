@@ -5,8 +5,10 @@ import { INITIAL_WIZARD_DATA, STEPS } from "@/components/journey/constants";
 import { addCsrfHeader } from "@/lib/csrf";
 import { useToast } from "@/hooks/use-toast";
 import { fetchProducts } from "@/lib/api";
+import { useTranslation } from "react-i18next";
 
 export function useJourney() {
+  const { t } = useTranslation("pages");
     const { toast } = useToast();
     const queryClient = useQueryClient();
 
@@ -124,7 +126,7 @@ export function useJourney() {
     }, [currentStep]);
 
     const resetJourney = useCallback(() => {
-        if (confirm("هل أنت متأكد من البدء من جديد؟ سيتم فقدان جميع البيانات غير المحفوظة.")) {
+        if (confirm(t("use-journey.s1"))) {
             setWizardData(INITIAL_WIZARD_DATA);
             setCurrentStep(0);
             try {
@@ -143,14 +145,14 @@ export function useJourney() {
             {
                 onSuccess: () => {
                     toast({
-                        title: "تم الحفظ!",
-                        description: "تم حفظ خطتك بنجاح في حسابك.",
+                        title: t("use-journey.s2"),
+                        description: t("use-journey.s3"),
                     });
                 },
                 onError: () => {
                     toast({
-                        title: "خطأ",
-                        description: "يجب تسجيل الدخول لحفظ الخطة.",
+                        title: t("use-journey.s4"),
+                        description: t("use-journey.s5"),
                         variant: "destructive",
                     });
                 },

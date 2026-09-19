@@ -22,6 +22,7 @@ import { NitrogenCycle } from "@/components/journey/nitrogen-cycle";
 import { FishSelection } from "@/components/journey/fish-selection";
 import { MaintenanceSchedule } from "@/components/journey/maintenance-schedule";
 import { JourneySummary } from "@/components/journey/journey-summary";
+import { useTranslation } from "react-i18next";
 
 function readWizardStep(): string | null {
   if (typeof window === "undefined") return null;
@@ -38,6 +39,7 @@ function scrollBehavior(): ScrollBehavior {
 }
 
 export default function JourneyPage() {
+  const { t } = useTranslation("tools");
   const topRef = useRef<HTMLDivElement>(null);
 
   const {
@@ -111,24 +113,24 @@ export default function JourneyPage() {
     }
   };
 
-  const currentLabel = `الخطوة ${currentStep + 1} من ${STEPS.length} — ${STEPS[currentStep]?.title ?? "رحلة الحوض"}`;
+  const currentLabel = t("journey.s1", { v0: currentStep + 1, v1: STEPS.length, v2: STEPS[currentStep]?.title ?? "رحلة الحوض" });
 
   return (
     <div className="flex-1 overflow-x-hidden bg-background" ref={topRef} data-aqv-motion="journey">
       <MetaTags
-        title="رحلتي مع الحوض"
-        description="خطط لإعداد حوضك المثالي خطوة بخطوة مع دليل AQUAVO التفاعلي - من اختيار الحوض حتى إضافة الأسماك"
-        keywords={["إعداد حوض الأسماك", "خطوات إنشاء حوض", "دليل مبتدئين", "AQUAVO"]}
+        title={t("journey.s2")}
+        description={t("journey.s3")}
+        keywords={[t("journey.s4"), t("journey.s5"), t("journey.s6"), "AQUAVO"]}
       />
       <JourneyFirstVisitIntro />
 
       <div className="bg-primary/5 border-b border-primary/10 py-8 md:py-12 mb-8 pt-24">
         <div className="container text-center">
           <h1 className="text-3xl md:text-5xl font-black text-primary mb-4">
-            رحلة إنشاء حوضك
+            {t("journey.s7")}
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            خطوة بخطوة نحو حوض أحلامك. كل اختيار راح ينعكس مباشرة على المعاينة.
+            {t("journey.s8")}
           </p>
         </div>
       </div>
@@ -170,7 +172,7 @@ export default function JourneyPage() {
               className="min-w-[120px] aqv-press"
             >
               <ArrowRight className="ml-2 h-4 w-4" />
-              السابق
+              {t("journey.s9")}
             </Button>
 
             <div className="flex gap-2">
@@ -181,7 +183,7 @@ export default function JourneyPage() {
                 className="flex text-primary hover:text-primary hover:bg-primary/10 aqv-press"
               >
                 <Save className="ml-2 h-4 w-4" />
-                {isSaving ? "جاري الحفظ..." : "حفظ المسودة"}
+                {isSaving ? t("journey.s10") : t("journey.s11")}
               </Button>
 
               <Button
@@ -189,7 +191,7 @@ export default function JourneyPage() {
                 onClick={nextStep}
                 className="min-w-[140px] font-bold aqv-press"
               >
-                {currentStep === 7 ? "إنهاء وعرض الخطة" : "التالي"}
+                {currentStep === 7 ? t("journey.s12") : t("journey.s13")}
                 <ArrowLeft className="mr-2 h-4 w-4" />
               </Button>
             </div>

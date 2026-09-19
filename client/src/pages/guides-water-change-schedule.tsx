@@ -1,4 +1,6 @@
+import { useTranslation } from "react-i18next";
 export default function GuideWaterChangeSchedule() {
+  const { t } = useTranslation("guides");
   return (
     <div className="wc-wrap">
 
@@ -10,7 +12,7 @@ export default function GuideWaterChangeSchedule() {
 
         {/* ── SECTION 1: Hero ── */}
         <section className="wc-hero">
-          <span className="wc-badge">دليل عملي — AQUAVO</span>
+          <span className="wc-badge">{t("guides-water-change-schedule.s1")}</span>
 
           {/* ساعة المي — circular water-clock */}
           <div className="wc-clock-ring" aria-hidden="true">
@@ -18,57 +20,55 @@ export default function GuideWaterChangeSchedule() {
             <div className="wc-ripple wc-ripple-2"></div>
             <div className="wc-ripple wc-ripple-3"></div>
             <div className="wc-clock-core">
-              <span className="wc-clock-pct">20٪</span>
-              <span className="wc-clock-label">أسبوعياً</span>
+              <span className="wc-clock-pct">{t("guides-water-change-schedule.s2")}</span>
+              <span className="wc-clock-label">{t("guides-water-change-schedule.s3")}</span>
             </div>
           </div>
 
-          <h1>ساعة المي</h1>
-          <p className="wc-sub">مو كل مي صافي يعني ما يحتاج تغيير</p>
+          <h1>{t("guides-water-change-schedule.s4")}</h1>
+          <p className="wc-sub">{t("guides-water-change-schedule.s5")}</p>
           <p className="wc-intro">
-            المي اللي يبين نظيف ممكن يكون مليان نترات وأمونيا بدون ما تحس بي.
-            دليل AQUAVO يعطيك جدول واضح حسب حجم حوضك ويبين متى المي يصرخ يحتاج تجديد.
+            {t("guides-water-change-schedule.s6")}
           </p>
           <div className="wc-meta-row">
-            <span>لمن هذا: كل صاحب حوض يريد يحافظ على سمچه</span>
-            <span>وقت القراءة: 5–7 دقائق</span>
+            <span>{t("guides-water-change-schedule.s7")}</span>
+            <span>{t("guides-water-change-schedule.s8")}</span>
           </div>
         </section>
 
         {/* ── SECTION 2: ليش تغيير منتظم ── */}
         <section className="wc-section">
-          <h2 className="wc-title">ليش التغيير المنتظم مهم؟</h2>
+          <h2 className="wc-title">{t("guides-water-change-schedule.s9")}</h2>
           <p className="wc-section-intro">
-            الفلتر يشيل الشوائب الصلبة، لكن ما يشيل النترات. النترات تتراكم بصمت وتضعف
-            السمچ وتشجع الطحالب. التغيير المنتظم هو الطريقة الوحيدة للتخلص منها بشكل طبيعي.
+            {t("guides-water-change-schedule.s10")}
           </p>
           <div className="wc-reason-grid">
             <div className="wc-reason-card">
               <div className="wc-reason-icon">⬇</div>
               <div className="wc-reason-text">
-                <strong>تخفيض النترات</strong>
-                <p>النترات تتراكم كل أسبوع حتى لو ما شفت فرق بالمظهر</p>
+                <strong>{t("guides-water-change-schedule.s11")}</strong>
+                <p>{t("guides-water-change-schedule.s12")}</p>
               </div>
             </div>
             <div className="wc-reason-card">
               <div className="wc-reason-icon">⚖</div>
               <div className="wc-reason-text">
-                <strong>استقرار المعادن والـ pH</strong>
-                <p>المي القديم يتحمض تدريجياً ويؤثر على صحة السمچ والمرجان</p>
+                <strong>{t("guides-water-change-schedule.s13")}</strong>
+                <p>{t("guides-water-change-schedule.s14")}</p>
               </div>
             </div>
             <div className="wc-reason-card">
               <div className="wc-reason-icon">✦</div>
               <div className="wc-reason-text">
-                <strong>تجديد المعادن الضرورية</strong>
-                <p>بعض المعادن تستهلكها الأحياء ولا يضيفها الفلتر</p>
+                <strong>{t("guides-water-change-schedule.s15")}</strong>
+                <p>{t("guides-water-change-schedule.s16")}</p>
               </div>
             </div>
             <div className="wc-reason-card">
               <div className="wc-reason-icon">◎</div>
               <div className="wc-reason-text">
-                <strong>تقليل الإجهاد</strong>
-                <p>المي القديم يرفع مستوى الكورتيزول عند السمچ ويضعف مناعته</p>
+                <strong>{t("guides-water-change-schedule.s17")}</strong>
+                <p>{t("guides-water-change-schedule.s18")}</p>
               </div>
             </div>
           </div>
@@ -76,130 +76,128 @@ export default function GuideWaterChangeSchedule() {
 
         {/* ── SECTION 3: الجدول حسب حجم الحوض ── */}
         <section className="wc-section">
-          <h2 className="wc-title">الجدول الصح حسب حجم حوضك</h2>
+          <h2 className="wc-title">{t("guides-water-change-schedule.s19")}</h2>
           <p className="wc-section-intro">
-            ما أكو جدول واحد يناسب الكل. حجم الحوض وعدد الأسماك والتغذية اليومية كلها
-            تأثر على سرعة تراكم النترات.
+            {t("guides-water-change-schedule.s20")}
           </p>
 
           <div className="wc-schedule-grid">
             <div className="wc-sched-card wc-sched-sm">
               <div className="wc-sched-header">
-                <span className="wc-sched-size">صغير</span>
-                <span className="wc-sched-liters">أقل من 60 لتر</span>
+                <span className="wc-sched-size">{t("guides-water-change-schedule.s21")}</span>
+                <span className="wc-sched-liters">{t("guides-water-change-schedule.s22")}</span>
               </div>
               <div className="wc-sched-body">
                 <div className="wc-sched-row">
-                  <span className="wc-sched-key">التكرار</span>
-                  <span className="wc-sched-val">كل 5 إلى 7 أيام</span>
+                  <span className="wc-sched-key">{t("guides-water-change-schedule.s23")}</span>
+                  <span className="wc-sched-val">{t("guides-water-change-schedule.s24")}</span>
                 </div>
                 <div className="wc-sched-row">
-                  <span className="wc-sched-key">الكمية</span>
-                  <span className="wc-sched-val">20 إلى 25٪</span>
+                  <span className="wc-sched-key">{t("guides-water-change-schedule.s25")}</span>
+                  <span className="wc-sched-val">{t("guides-water-change-schedule.s26")}</span>
                 </div>
                 <div className="wc-sched-row">
-                  <span className="wc-sched-key">تنبيه</span>
-                  <span className="wc-sched-val wc-warn-text">أحواض صغيرة تتأثر بسرعة — لا تهمل التغيير</span>
+                  <span className="wc-sched-key">{t("guides-water-change-schedule.s27")}</span>
+                  <span className="wc-sched-val wc-warn-text">{t("guides-water-change-schedule.s28")}</span>
                 </div>
               </div>
             </div>
 
             <div className="wc-sched-card wc-sched-md">
               <div className="wc-sched-header">
-                <span className="wc-sched-size">متوسط</span>
-                <span className="wc-sched-liters">60 إلى 200 لتر</span>
+                <span className="wc-sched-size">{t("guides-water-change-schedule.s29")}</span>
+                <span className="wc-sched-liters">{t("guides-water-change-schedule.s30")}</span>
               </div>
               <div className="wc-sched-body">
                 <div className="wc-sched-row">
-                  <span className="wc-sched-key">التكرار</span>
-                  <span className="wc-sched-val">كل 7 إلى 10 أيام</span>
+                  <span className="wc-sched-key">{t("guides-water-change-schedule.s23")}</span>
+                  <span className="wc-sched-val">{t("guides-water-change-schedule.s31")}</span>
                 </div>
                 <div className="wc-sched-row">
-                  <span className="wc-sched-key">الكمية</span>
-                  <span className="wc-sched-val">20 إلى 30٪</span>
+                  <span className="wc-sched-key">{t("guides-water-change-schedule.s25")}</span>
+                  <span className="wc-sched-val">{t("guides-water-change-schedule.s32")}</span>
                 </div>
                 <div className="wc-sched-row">
-                  <span className="wc-sched-key">نصيحة</span>
-                  <span className="wc-sched-val">الحجم المثالي للمبتدئين — مستقر نسبياً</span>
+                  <span className="wc-sched-key">{t("guides-water-change-schedule.s33")}</span>
+                  <span className="wc-sched-val">{t("guides-water-change-schedule.s34")}</span>
                 </div>
               </div>
             </div>
 
             <div className="wc-sched-card wc-sched-lg">
               <div className="wc-sched-header">
-                <span className="wc-sched-size">كبير</span>
-                <span className="wc-sched-liters">أكثر من 200 لتر</span>
+                <span className="wc-sched-size">{t("guides-water-change-schedule.s35")}</span>
+                <span className="wc-sched-liters">{t("guides-water-change-schedule.s36")}</span>
               </div>
               <div className="wc-sched-body">
                 <div className="wc-sched-row">
-                  <span className="wc-sched-key">التكرار</span>
-                  <span className="wc-sched-val">كل 10 إلى 14 يوم</span>
+                  <span className="wc-sched-key">{t("guides-water-change-schedule.s23")}</span>
+                  <span className="wc-sched-val">{t("guides-water-change-schedule.s37")}</span>
                 </div>
                 <div className="wc-sched-row">
-                  <span className="wc-sched-key">الكمية</span>
-                  <span className="wc-sched-val">20 إلى 25٪</span>
+                  <span className="wc-sched-key">{t("guides-water-change-schedule.s25")}</span>
+                  <span className="wc-sched-val">{t("guides-water-change-schedule.s26")}</span>
                 </div>
                 <div className="wc-sched-row">
-                  <span className="wc-sched-key">نصيحة</span>
-                  <span className="wc-sched-val">الأحواض الكبيرة تستحمل أكثر — لكن لا تتأخر أكثر من أسبوعين</span>
+                  <span className="wc-sched-key">{t("guides-water-change-schedule.s33")}</span>
+                  <span className="wc-sched-val">{t("guides-water-change-schedule.s38")}</span>
                 </div>
               </div>
             </div>
           </div>
 
           <div className="wc-sched-note">
-            هذا جدول أساسي. إذا عندك حوض مكتظ أو تغذي كثير، زود التغيير بيوم أو يومين.
+            {t("guides-water-change-schedule.s39")}
           </div>
         </section>
 
         {/* ── SECTION 4: علامات المي يحتاج تغيير ── */}
         <section className="wc-section">
-          <h2 className="wc-title">متى المي يصرخ يحتاج تجديد؟</h2>
+          <h2 className="wc-title">{t("guides-water-change-schedule.s40")}</h2>
           <p className="wc-section-intro">
-            هذه العلامات تبين إن النترات وصلت مستوى خطر أو المي بدأ يفقد توازنه.
-            إذا شفت واحدة منها، غير المي هالحين.
+            {t("guides-water-change-schedule.s41")}
           </p>
           <div className="wc-signs-grid">
             <div className="wc-sign">
               <span className="wc-sign-dot wc-dot-warn"></span>
               <div>
-                <strong>رغوة على السطح</strong>
-                <p>تراكم البروتين والمواد العضوية — علامة واضحة إن المي تعبان</p>
+                <strong>{t("guides-water-change-schedule.s42")}</strong>
+                <p>{t("guides-water-change-schedule.s43")}</p>
               </div>
             </div>
             <div className="wc-sign">
               <span className="wc-sign-dot wc-dot-warn"></span>
               <div>
-                <strong>لون أصفر أو بني للمي</strong>
-                <p>الحمضيات العضوية تتراكم وتغير لون الماء تدريجياً</p>
+                <strong>{t("guides-water-change-schedule.s44")}</strong>
+                <p>{t("guides-water-change-schedule.s45")}</p>
               </div>
             </div>
             <div className="wc-sign">
               <span className="wc-sign-dot wc-dot-danger"></span>
               <div>
-                <strong>السمچ على السطح يلهث</strong>
-                <p>نقص أوكسجين أو تراكم أمونيا — اغير المي فوراً وافحصه</p>
+                <strong>{t("guides-water-change-schedule.s46")}</strong>
+                <p>{t("guides-water-change-schedule.s47")}</p>
               </div>
             </div>
             <div className="wc-sign">
               <span className="wc-sign-dot wc-dot-warn"></span>
               <div>
-                <strong>رائحة كريهة من الحوض</strong>
-                <p>المي الصحي ما يشم بنفسه. رائحة تعني تراكم عضوي زيادة</p>
+                <strong>{t("guides-water-change-schedule.s48")}</strong>
+                <p>{t("guides-water-change-schedule.s49")}</p>
               </div>
             </div>
             <div className="wc-sign">
               <span className="wc-sign-dot wc-dot-warn"></span>
               <div>
-                <strong>طحالب تزيد فجأة</strong>
-                <p>الطحالب تحب النترات. إذا طلعت فجأة، المي محتاج تجديد</p>
+                <strong>{t("guides-water-change-schedule.s50")}</strong>
+                <p>{t("guides-water-change-schedule.s51")}</p>
               </div>
             </div>
             <div className="wc-sign">
               <span className="wc-sign-dot wc-dot-danger"></span>
               <div>
-                <strong>السمچ خامل أو ما تاكل</strong>
-                <p>جودة المي الرديئة تأثر على الشهية والنشاط — لا تتأخر</p>
+                <strong>{t("guides-water-change-schedule.s52")}</strong>
+                <p>{t("guides-water-change-schedule.s53")}</p>
               </div>
             </div>
           </div>
@@ -207,51 +205,51 @@ export default function GuideWaterChangeSchedule() {
 
         {/* ── SECTION 5: خطوات التغيير ── */}
         <section className="wc-section">
-          <h2 className="wc-title">خطوات تغيير المي بشكل صحيح</h2>
+          <h2 className="wc-title">{t("guides-water-change-schedule.s54")}</h2>
           <p className="wc-section-intro">
-            التغيير الخاطئ ممكن يصدم السمچ أكثر من المي القديم. اتبع هذا الترتيب.
+            {t("guides-water-change-schedule.s55")}
           </p>
           <ol className="wc-steps">
             <li className="wc-step">
-              <span className="wc-step-num">١</span>
+              <span className="wc-step-num">{t("guides-water-change-schedule.s56")}</span>
               <div className="wc-step-content">
-                <strong>جهز الماء الجديد قبل البداية</strong>
-                <p>الماء الجديد لازم يكون بنفس درجة حرارة الحوض ± درجة. فرق الحرارة يصدم السمچ.</p>
+                <strong>{t("guides-water-change-schedule.s57")}</strong>
+                <p>{t("guides-water-change-schedule.s58")}</p>
               </div>
             </li>
             <li className="wc-step">
-              <span className="wc-step-num">٢</span>
+              <span className="wc-step-num">{t("guides-water-change-schedule.s59")}</span>
               <div className="wc-step-content">
-                <strong>وقف الهيتر والفلتر</strong>
-                <p>مهم تطفيهم قبل ما تنزل مستوى المي — الهيتر المكشوف ممكن يحترق.</p>
+                <strong>{t("guides-water-change-schedule.s60")}</strong>
+                <p>{t("guides-water-change-schedule.s61")}</p>
               </div>
             </li>
             <li className="wc-step">
-              <span className="wc-step-num">٣</span>
+              <span className="wc-step-num">{t("guides-water-change-schedule.s62")}</span>
               <div className="wc-step-content">
-                <strong>شيل 20 إلى 30٪ بالسايفون</strong>
-                <p>استخدم السايفون تمشي على الحصى وتشيل المخلفات مع المي نفس الوقت.</p>
+                <strong>{t("guides-water-change-schedule.s63")}</strong>
+                <p>{t("guides-water-change-schedule.s64")}</p>
               </div>
             </li>
             <li className="wc-step">
-              <span className="wc-step-num">٤</span>
+              <span className="wc-step-num">{t("guides-water-change-schedule.s65")}</span>
               <div className="wc-step-content">
-                <strong>أضف الماء الجديد ببطء</strong>
-                <p>ما تصب بسرعة. اصب بهدوء على الجانب أو على صخرة حتى ما تقلقل الحصى.</p>
+                <strong>{t("guides-water-change-schedule.s66")}</strong>
+                <p>{t("guides-water-change-schedule.s67")}</p>
               </div>
             </li>
             <li className="wc-step">
-              <span className="wc-step-num">٥</span>
+              <span className="wc-step-num">{t("guides-water-change-schedule.s68")}</span>
               <div className="wc-step-content">
-                <strong>أضف معالج الكلور</strong>
-                <p>ماء البوري يحتوي كلور. أضف محلل الكلور للمي الجديد قبل أو بعد الإضافة مباشرة.</p>
+                <strong>{t("guides-water-change-schedule.s69")}</strong>
+                <p>{t("guides-water-change-schedule.s70")}</p>
               </div>
             </li>
             <li className="wc-step">
-              <span className="wc-step-num">٦</span>
+              <span className="wc-step-num">{t("guides-water-change-schedule.s71")}</span>
               <div className="wc-step-content">
-                <strong>شغل الفلتر والهيتر</strong>
-                <p>انتظر 10 دقائق بعد انتهاء التغيير قبل ما تشغلهم.</p>
+                <strong>{t("guides-water-change-schedule.s72")}</strong>
+                <p>{t("guides-water-change-schedule.s73")}</p>
               </div>
             </li>
           </ol>
@@ -260,9 +258,9 @@ export default function GuideWaterChangeSchedule() {
         {/* ── SECTION 6: CTA ── */}
         <section className="wc-cta-section">
           <div className="wc-cta-box">
-            <h2 className="wc-cta-title">تريد جدول مناسب لحوضك تحديداً؟</h2>
+            <h2 className="wc-cta-title">{t("guides-water-change-schedule.s74")}</h2>
             <p className="wc-cta-body">
-              دز حجم حوضك بالليتر وعدد الأسماك تقريباً — ونرتبلك جدول مناسب لوضعك مباشرة.
+              {t("guides-water-change-schedule.s75")}
             </p>
             <a
               href="https://www.instagram.com/aquavo_iq/"
@@ -270,7 +268,7 @@ export default function GuideWaterChangeSchedule() {
               rel="noopener noreferrer"
               className="wc-cta-btn"
             >
-              راسلنا على إنستغرام
+              {t("guides-water-change-schedule.s76")}
             </a>
           </div>
         </section>

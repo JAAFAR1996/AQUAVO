@@ -1,4 +1,6 @@
+import { useTranslation } from "react-i18next";
 export default function GuideQuarantine() {
+  const { t } = useTranslation("guides");
   return (
     <div className="qrn-wrap">
 
@@ -10,7 +12,7 @@ export default function GuideQuarantine() {
 
         {/* ── Hero ── */}
         <section className="qrn-hero">
-          <span className="qrn-badge">دليل العزل — AQUAVO</span>
+          <span className="qrn-badge">{t("guides-quarantine.s1")}</span>
 
           {/* Quiet isolation tank — CSS only */}
           <div className="qrn-tank-wrap" aria-hidden="true">
@@ -20,78 +22,77 @@ export default function GuideQuarantine() {
               <div className="qrn-bubble qrn-bbl1"></div>
               <div className="qrn-bubble qrn-bbl2"></div>
             </div>
-            <div className="qrn-label">حوض العزل</div>
+            <div className="qrn-label">{t("guides-quarantine.s2")}</div>
           </div>
 
-          <h1>الغرفة الهادية</h1>
-          <p className="qrn-sub">أسبوعان تحمي فيهم الحوض كله من مرض واحد</p>
+          <h1>{t("guides-quarantine.s3")}</h1>
+          <p className="qrn-sub">{t("guides-quarantine.s4")}</p>
           <p className="qrn-intro">
-            حوض العزل ليس رفاهية — هو ضرورة لكل من يضيف سمچ جديد.
-            سمچة واحدة مريضة بدون عزل تكفي لتفشي مرض في الحوض بأكمله خلال أيام.
+            {t("guides-quarantine.s5")}
           </p>
           <div className="qrn-meta">
-            <span>ضروري عند كل إضافة جديدة</span>
-            <span>وقت القراءة: 5 دقائق</span>
+            <span>{t("guides-quarantine.s6")}</span>
+            <span>{t("guides-quarantine.s7")}</span>
           </div>
         </section>
 
         {/* ── متطلبات حوض العزل ── */}
         <section className="qrn-section">
-          <h2 className="qrn-title">ما تحتاجه لحوض عزل بسيط</h2>
+          <h2 className="qrn-title">{t("guides-quarantine.s8")}</h2>
           <div className="qrn-req-grid">
             <div className="qrn-req">
               <div className="qrn-req-icon">⬡</div>
-              <strong>حجم الحوض</strong>
-              <p>١٠–٢٠ لتر تكفي لمعظم الأسماك الصغيرة. لا تحتاج حجماً كبيراً.</p>
+              <strong>{t("guides-quarantine.s9")}</strong>
+              <p>{t("guides-quarantine.s10")}</p>
             </div>
             <div className="qrn-req">
               <div className="qrn-req-icon">⬡</div>
-              <strong>فلتر إسفنج بسيط</strong>
-              <p>ضعه في الحوض الرئيسي أسبوعاً قبل الاستخدام لتنشيطه بالبكتيريا.</p>
+              <strong>{t("guides-quarantine.s11")}</strong>
+              <p>{t("guides-quarantine.s12")}</p>
             </div>
             <div className="qrn-req">
               <div className="qrn-req-icon">⬡</div>
-              <strong>هيتر صغير</strong>
-              <p>حافظ على نفس درجة حرارة الحوض الرئيسي — الفرق يضيف إجهاداً.</p>
+              <strong>{t("guides-quarantine.s13")}</strong>
+              <p>{t("guides-quarantine.s14")}</p>
             </div>
             <div className="qrn-req">
               <div className="qrn-req-icon">⬡</div>
-              <strong>غطاء بسيط</strong>
-              <p>السمچ المريض أو الخائف يقفز. غطاء يحمي ويقلل الإجهاد.</p>
+              <strong>{t("guides-quarantine.s15")}</strong>
+              <p>{t("guides-quarantine.s16")}</p>
             </div>
           </div>
         </section>
 
         {/* ── جدول العزل ── */}
         <section className="qrn-section">
-          <h2 className="qrn-title">جدول الأسبوعين</h2>
+          <h2 className="qrn-title">{t("guides-quarantine.s17")}</h2>
           <div className="qrn-timeline">
             <div className="qrn-tl-item">
-              <div className="qrn-tl-day">يوم ١</div>
+              <div className="qrn-tl-day">{t("guides-quarantine.s18")}</div>
               <div className="qrn-tl-body">
-                <strong>الانتقال والتأقلم</strong>
-                <p>أضف السمچ ببطء — خلط الماء التدريجي على ٣٠ دقيقة. راقب التنفس والحركة.</p>
+                <strong>{t("guides-quarantine.s19")}</strong>
+                <p>{t("guides-quarantine.s20")}</p>
               </div>
             </div>
             <div className="qrn-tl-item">
-              <div className="qrn-tl-day">أيام ٢–٧</div>
+              <div className="qrn-tl-day">{t("guides-quarantine.s21")}</div>
               <div className="qrn-tl-body">
-                <strong>المراقبة الأولى</strong>
-                <p>راقب يومياً: بقع، أعراض، شهية. إذا ظهر شيء — ابدأ العلاج فوراً.</p>
+                <strong>{t("guides-quarantine.s22")}</strong>
+                <p>{t("guides-quarantine.s23")}</p>
               </div>
             </div>
             <div className="qrn-tl-item">
-              <div className="qrn-tl-day">أيام ٨–١٤</div>
+              <div className="qrn-tl-day">{t("guides-quarantine.s24")}</div>
               <div className="qrn-tl-body">
-                <strong>المراقبة النهائية</strong>
-                <p>استمر بالمراقبة. بعض الأمراض لا تظهر قبل الأسبوع الثاني.</p>
+                <strong>{t("guides-quarantine.s25")}</strong>
+                <p>{t("guides-quarantine.s26")}</p>
               </div>
             </div>
             <div className="qrn-tl-item qrn-tl-done">
-              <div className="qrn-tl-day">يوم ١٥+</div>
+              <div className="qrn-tl-day">{t("guides-quarantine.s27")}</div>
               <div className="qrn-tl-body">
-                <strong>آمن للنقل</strong>
-                <p>إذا لا أعراض طوال ١٤ يوماً — السمچ جاهز للانتقال للحوض الرئيسي.</p>
+                <strong>{t("guides-quarantine.s28")}</strong>
+                <p>{t("guides-quarantine.s29")}</p>
               </div>
             </div>
           </div>
@@ -99,30 +100,30 @@ export default function GuideQuarantine() {
 
         {/* ── متى تعزل ── */}
         <section className="qrn-section">
-          <h2 className="qrn-title">متى يجب العزل؟</h2>
+          <h2 className="qrn-title">{t("guides-quarantine.s30")}</h2>
           <div className="qrn-when-list">
             <div className="qrn-when qrn-when-must">
-              <span className="qrn-when-tag">دائماً</span>
+              <span className="qrn-when-tag">{t("guides-quarantine.s31")}</span>
               <div>
-                <strong>أي سمچ جديد قبل إضافته للحوض الرئيسي</strong>
+                <strong>{t("guides-quarantine.s32")}</strong>
               </div>
             </div>
             <div className="qrn-when qrn-when-must">
-              <span className="qrn-when-tag">دائماً</span>
+              <span className="qrn-when-tag">{t("guides-quarantine.s31")}</span>
               <div>
-                <strong>سمچ يظهر عليه بقع بيضاء أو يحك على الحصى</strong>
+                <strong>{t("guides-quarantine.s33")}</strong>
               </div>
             </div>
             <div className="qrn-when qrn-when-must">
-              <span className="qrn-when-tag">دائماً</span>
+              <span className="qrn-when-tag">{t("guides-quarantine.s31")}</span>
               <div>
-                <strong>سمچ متوقف عن الأكل أكثر من ٣ أيام مع أعراض</strong>
+                <strong>{t("guides-quarantine.s34")}</strong>
               </div>
             </div>
             <div className="qrn-when qrn-when-consider">
-              <span className="qrn-when-tag qrn-tag-consider">فكّر</span>
+              <span className="qrn-when-tag qrn-tag-consider">{t("guides-quarantine.s35")}</span>
               <div>
-                <strong>سمچ تتعرض له الأسماك الأخرى بعدوانية</strong>
+                <strong>{t("guides-quarantine.s36")}</strong>
               </div>
             </div>
           </div>
@@ -130,38 +131,37 @@ export default function GuideQuarantine() {
 
         {/* ── إذا ظهر مرض خلال العزل ── */}
         <section className="qrn-section">
-          <h2 className="qrn-title">إذا ظهر مرض خلال العزل — شنو تسوي؟</h2>
+          <h2 className="qrn-title">{t("guides-quarantine.s37")}</h2>
           <p className="qrn-body">
-            ظهور مرض خلال العزل لا يعني فشل. يعني النظام نجح — اكتشفت المشكلة في المكان الصح
-            قبل ما تنتقل للحوض الرئيسي.
+            {t("guides-quarantine.s38")}
           </p>
           <div className="qrn-disease-steps">
             <div className="qrn-ds-item">
-              <div className="qrn-ds-num">١</div>
+              <div className="qrn-ds-num">{t("guides-quarantine.s39")}</div>
               <div className="qrn-ds-body">
-                <strong>حدد نوع العرض بدقة</strong>
-                <p>بقع بيضاء صغيرة؟ تآكل الزعانف؟ انتفاخ؟ لون باهت؟ كل عرض له علاج مختلف. لا تضيف دواء قبل التشخيص.</p>
+                <strong>{t("guides-quarantine.s40")}</strong>
+                <p>{t("guides-quarantine.s41")}</p>
               </div>
             </div>
             <div className="qrn-ds-item">
-              <div className="qrn-ds-num">٢</div>
+              <div className="qrn-ds-num">{t("guides-quarantine.s42")}</div>
               <div className="qrn-ds-body">
-                <strong>راجع دليل العلاج الأساسي</strong>
-                <p>الخطوة الثانية المباشرة هي <a href="/guides/treatment-basics" className="qrn-link">دليل العلاج الأساسي</a> — يساعدك تحدد الدواء المناسب حسب الأعراض وكيف تستخدمه صح.</p>
+                <strong>{t("guides-quarantine.s43")}</strong>
+                <p>{t("guides-quarantine.s44")} <a href="/guides/treatment-basics" className="qrn-link">{t("guides-quarantine.s45")}</a> {t("guides-quarantine.s46")}</p>
               </div>
             </div>
             <div className="qrn-ds-item">
-              <div className="qrn-ds-num">٣</div>
+              <div className="qrn-ds-num">{t("guides-quarantine.s47")}</div>
               <div className="qrn-ds-body">
-                <strong>عالج بحوض العزل — مو بالرئيسي</strong>
-                <p>هذا بالضبط سبب العزل. الدواء في الحوض الرئيسي يضر الفلتر البيولوجي — الحوض الرئيسي يبقى سليم.</p>
+                <strong>{t("guides-quarantine.s48")}</strong>
+                <p>{t("guides-quarantine.s49")}</p>
               </div>
             </div>
             <div className="qrn-ds-item">
-              <div className="qrn-ds-num">٤</div>
+              <div className="qrn-ds-num">{t("guides-quarantine.s50")}</div>
               <div className="qrn-ds-body">
-                <strong>مدّد فترة العزل بعد التعافي</strong>
-                <p>بعد انتهاء العلاج، انتظر أسبوع إضافي على الأقل. لا تنقل السمچة للحوض الرئيسي وهي "تبدو أحسن" — انتظر حتى تأكل بشكل طبيعي وما في أعراض.</p>
+                <strong>{t("guides-quarantine.s51")}</strong>
+                <p>{t("guides-quarantine.s52")}</p>
               </div>
             </div>
           </div>
@@ -170,9 +170,9 @@ export default function GuideQuarantine() {
         {/* ── CTA ── */}
         <section className="qrn-cta-section">
           <div className="qrn-cta-box">
-            <h2 className="qrn-cta-title">عندك سمچ محتاج عزل وما عندك حوض عزل؟</h2>
+            <h2 className="qrn-cta-title">{t("guides-quarantine.s53")}</h2>
             <p className="qrn-cta-body">
-              نساعدك تبني حوض عزل مؤقت بما لديك. أرسل لنا وضعك الحالي.
+              {t("guides-quarantine.s54")}
             </p>
             <a
               href="https://www.instagram.com/aquavo_iq/"
@@ -180,7 +180,7 @@ export default function GuideQuarantine() {
               rel="noopener noreferrer"
               className="qrn-cta-btn"
             >
-              راسلنا على إنستغرام
+              {t("guides-quarantine.s55")}
             </a>
           </div>
         </section>
