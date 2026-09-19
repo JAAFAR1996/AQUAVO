@@ -119,7 +119,9 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
     if (open && user) {
       setCustomerInfo(prev => ({
         ...prev,
-        name: user.fullName || prev.name,
+        name: user.fullName?.trim().toLowerCase() === "system admin"
+          ? prev.name
+          : (user.fullName || prev.name),
         phone: user.phone || prev.phone
       }));
     }
