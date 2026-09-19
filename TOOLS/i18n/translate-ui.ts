@@ -11,7 +11,7 @@
  */
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { completeJson, extractJson, modelChain, normalizeDeep, renderGlossary } from "./_llm.js";
+import { completeJson, extractJson, modelChain, normalizeDeep, normalizeSoraniDeep, renderGlossary } from "./_llm.js";
 
 const args = Object.fromEntries(process.argv.slice(2).map((a) => a.replace(/^--/, "").split("=")).map(([k, v]) => [k, v ?? "true"]));
 const LOCALE = args.locale as "en" | "ckb";
@@ -64,7 +64,8 @@ async function complete(input: Record<string, string>): Promise<Record<string, s
     const { text, model } = await completeJson(LOCALE, RULES, user, { maxTokens: 8000 });
     lastModel = model;
     try {
-      return normalizeDeep(extractJson(text) as Record<string, string>);
+      const out = normalizeDeep(extractJson(text) as Record<string, string>);
+      return LOCALE === "ckb" ? normalizeSoraniDeep(out) : out;
     } catch {
       console.warn(`  bad JSON from ${model}, retrying`);
     }

@@ -84,6 +84,29 @@ function multisetMissing(src: string[], tgt: string[]): string[] {
 }
 const glossary = loadGlossary();
 
+/**
+ * Values made only of numbers, units, currency marks and placeholders ("5,000 د.ع",
+ * "40 × 23 × 25 cm", "pH", "{{v0}} IQD") are legitimately identical across
+ * locales; copy checks skip them.
+ */
+const UNIT_TOKENS = /د\.ع|IQD|pH|GH|KH|cm|mm|kg|ml|L\/h|°C|سم|ملم|مل|غم|کگم|گرام|لیتر|وات|W|L|g|m/g;
+function isTechnicalOnly(v: string): boolean {
+  const rest = v.replace(/\{\{[^}]+\}\}|<[^>]+>/g, "").replace(UNIT_TOKENS, "").replace(/[\d\s.,:;×x%°()\-–/|]/g, "");
+  return rest.length < 2;
+}
+/** Word-ish boundary for Arabic glossary terms: not glued to another Arabic letter. */
+function containsTerm(text: string, term: string): boolean {
+  let i = text.indexOf(term);
+  while (i >= 0) {
+    const before = i === 0 ? "" : text[i - 1];
+    const after = text[i + term.length] ?? "";
+    const glued = (ch: string) => /\p{Script=Arabic}/u.test(ch) && !/[ال]/.test(ch); // allow the article "ال" before
+    if (!glued(before) && !/\p{Script=Arabic}/u.test(after)) return true;
+    i = text.indexOf(term, i + 1);
+  }
+  return false;
+}
+
 /** Validate one target string against its Arabic source. Returns codes it added. */
 function checkString(scope: "ui" | "content", locale: "en" | "ckb", where: string, src: string, tgt: unknown, enValue?: string): void {
   if (typeof tgt !== "string" || !tgt.trim()) { add({ scope, locale, where, code: "empty", severity: "error", detail: "" }); return; }
@@ -91,7 +114,11 @@ function checkString(scope: "ui" | "content", locale: "en" | "ckb", where: strin
   if (placeholders(src) !== placeholders(t)) add({ scope, locale, where, code: "placeholder", severity: "error", detail: `${placeholders(src)} vs ${placeholders(t)}` });
   if (BAD_UNICODE.test(t)) add({ scope, locale, where, code: "unicode", severity: "error", detail: "control / replacement / bidi-override character" });
   const srcHasArabic = ARABIC.test(src.replace(/\{\{[^}]+\}\}/g, ""));
-  if (srcHasArabic && t.trim() === src.trim()) add({ scope, locale, where, code: "source-copy", severity: "error", detail: t.slice(0, 60) });
+  const technical = isTechnicalOnly(t);
+  if (srcHasArabic && t.trim() === src.trim() && !technical) {
+    // Very short identical values (proper nouns, "و") are reported for review, not pruned.
+    add({ scope, locale, where, code: "source-copy", severity: t.trim().length <= 5 ? "warning" : "error", detail: t.slice(0, 60) });
+  }
   if (locale === "en") {
     const stripped = t.replace(/د\.ع/g, "");
     if (ARABIC.test(stripped)) add({ scope, locale, where, code: "arabic-leak", severity: "error", detail: t.slice(0, 80) });
@@ -100,13 +127,13 @@ function checkString(scope: "ui" | "content", locale: "en" | "ckb", where: strin
     if (ARABIC_ONLY_LETTERS.test(letters) && !SORANI_LETTERS.test(letters) && srcHasArabic) {
       add({ scope, locale, where, code: "arabic-letters", severity: "error", detail: t.slice(0, 80) });
     }
-    if (enValue && t.trim() === enValue.trim() && srcHasArabic) add({ scope, locale, where, code: "english-copy", severity: "error", detail: t.slice(0, 60) });
+    if (enValue && t.trim() === enValue.trim() && srcHasArabic && !technical) add({ scope, locale, where, code: "english-copy", severity: "error", detail: t.slice(0, 60) });
     const latin = (letters.match(/[A-Za-z]/g) ?? []).length;
     const arab = (letters.match(/\p{Script=Arabic}/gu) ?? []).length;
     if (srcHasArabic && latin > 12 && latin > arab * 1.5) add({ scope, locale, where, code: "latin-heavy", severity: "warning", detail: t.slice(0, 80) });
     // glossary consistency (warning): concept present in the source, Sorani term absent in the target
     for (const term of glossary.terms) {
-      if (!term.ar.some((a) => src.includes(a))) continue;
+      if (!term.ar.some((a) => containsTerm(src, a))) continue;
       const wanted = [term.ckb, ...(term.ckbAlt ?? [])];
       if (!wanted.some((w) => t.includes(w))) add({ scope, locale, where, code: "glossary", severity: "warning", detail: `${term.id}: expected "${term.ckb}"` });
     }
@@ -114,7 +141,9 @@ function checkString(scope: "ui" | "content", locale: "en" | "ckb", where: strin
   // technical tokens
   const a = techTokens(src);
   const b = techTokens(t);
-  const missNums = multisetMissing(a.nums, b.nums);
+  // "50 ألف" (fifty thousand) is legitimately rendered "50,000" -> collapsed "50000".
+  const thousandsInSrc = new Set((normalizeDigits(src).match(/(\d+)\s*(?:ألف|الف|آلاف)/g) ?? []).map((m) => m.match(/\d+/)![0]));
+  const missNums = multisetMissing(a.nums, b.nums).filter((n) => !(thousandsInSrc.has(n) && b.nums.includes(`${n}000`)));
   // Small counts are often written as words ("four digits"); larger values, decimals and measurements must survive verbatim.
   const isSmall = (n: string) => /^\d+$/.test(n) && Number(n) <= 10;
   const hard = missNums.filter((n) => !isSmall(n));

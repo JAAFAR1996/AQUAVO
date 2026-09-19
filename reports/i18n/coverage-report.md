@@ -1,20 +1,14 @@
 # AQUAVO translation coverage report
 
-Generated 2026-09-19T10:56:55.932Z against https://www.aquavoiq.com.
+Generated 2026-09-19T12:28:01.227Z against https://www.aquavoiq.com.
 
 ## 1. UI string bundles (client/src/locales)
 
 | Locale | Keys | Missing | Arabic leaks |
 |---|---|---|---|
 | ar | 5452 | 0 (source) | n/a |
-| en | 5452 | 1160 | 0 |
-| ckb | 5452 | 3117 | 4 |
-
-Missing in en: guides:guides-essential-tools.s41, guides:guides-essential-tools.s42, guides:guides-essential-tools.s43, guides:guides-essential-tools.s44, guides:guides-essential-tools.s45, guides:guides-essential-tools.s46, guides:guides-essential-tools.s47, guides:guides-essential-tools.s48, guides:guides-essential-tools.s49, guides:guides-essential-tools.s50, guides:guides-essential-tools.s51, guides:guides-essential-tools.s52, guides:guides-essential-tools.s53, guides:guides-essential-tools.s54, guides:guides-essential-tools.s55, guides:guides-essential-tools.s56, guides:guides-essential-tools.s57, guides:guides-essential-tools.s58, guides:guides-essential-tools.s59, guides:guides-essential-tools.s60, guides:guides-essential-tools.s61, guides:guides-essential-tools.s62, guides:guides-essential-tools.s63, guides:guides-essential-tools.s64, guides:guides-essential-tools.s65, guides:guides-essential-tools.s66, guides:guides-essential-tools.s67, guides:guides-essential-tools.s68, guides:guides-essential-tools.s69, guides:guides-essential-tools.s70, guides:guides-essential-tools.s71, guides:guides-essential-tools.s72, guides:guides-essential-tools.s73, guides:guides-essential-tools.s74, guides:guides-essential-tools.s75, guides:guides-essential-tools.s76, guides:guides-essential-tools.s77, guides:guides-essential-tools.s78, guides:guides-essential-tools.s79, guides:guides-essential-tools.s80, guides:guides-essential-tools.s121, guides:guides-essential-tools.s122, guides:guides-essential-tools.s123, guides:guides-essential-tools.s124, guides:guides-essential-tools.s125, guides:guides-essential-tools.s126, guides:guides-essential-tools.s127, guides:guides-essential-tools.s128, guides:guides-essential-tools.s129, guides:guides-essential-tools.s130 …
-
-Missing in ckb: account:profile-addresses.s15, account:profile-addresses.s16, account:profile-addresses.s17, account:profile-addresses.s18, account:profile-addresses.s19, account:profile-addresses.s20, account:profile-addresses.s21, account:profile-addresses.s22, account:profile-addresses.s23, account:profile-addresses.s24, account:profile-addresses.s25, account:profile-orders.s1, account:profile-orders.s2, account:profile-orders.s3, account:profile-orders.s4, account:profile-orders.s5, account:profile-orders.s6, account:profile-orders.s7, account:profile-orders.s8, account:profile-orders.s9, account:profile-orders.s10, account:profile-orders.s11, account:profile-orders.s12, account:profile-orders.s13, account:profile-orders.s14, account:profile-orders.s15, account:profile-orders.s16, account:profile-orders.s17, account:login.s1, account:login.s2, account:login.s3, account:login.s4, account:login.s5, account:login.s6, account:login.s7, account:login.s8, account:login.s9, account:login.s10, account:login.s11, account:login.s12, account:wishlist-button.s9, account:winner-notification-banner.s1, account:winner-notification-banner.s2, account:winner-notification-banner.s3, account:winner-notification-banner.s4, account:winner-notification-banner.s5, guides:guides-essential-tools.s1, guides:guides-essential-tools.s2, guides:guides-essential-tools.s3, guides:guides-essential-tools.s4 …
-
-Arabic leaks in ckb: account:register.s23, account:profile.s6, tools:fish-detail-modal.s36, tools:community-gallery.s20
+| en | 5452 | 0 | 0 |
+| ckb | 5452 | 0 | 0 |
 
 ## 2. Static SEO metadata (indexable paths)
 
@@ -28,9 +22,9 @@ Arabic leaks in ckb: account:register.s23, account:profile.s6, tools:fish-detail
 
 | Entity | ar | en | ckb |
 |---|---|---|---|
-| products | 107/107 | 50/107 (46.7%) | 0/107 (0.0%) |
-| blog_posts | 117/117 | 0/117 (0.0%) | 0/117 (0.0%) |
-| blog_categories | 8/8 | 0/8 (0.0%) | 0/8 (0.0%) |
+| products | 107/107 | 107/107 (100.0%) | 48/107 (44.9%) |
+| blog_posts | 117/117 | 117/117 (100.0%) | 0/117 (0.0%) |
+| blog_categories | 8/8 | 8/8 (100.0%) | 0/8 (0.0%) |
 | categories | 11/11 | 11/11 (100.0%) | 11/11 (100.0%) |
 
 Translation records live in data/i18n/translations/<locale>/*.json until TOOLS/i18n/seed-translations.mjs loads them into content_translations (requires the migration).
@@ -73,3 +67,12 @@ Translation records live in data/i18n/translations/<locale>/*.json until TOOLS/i
   - client/src/hooks/use-toast.ts (1)
   - client/src/test-utils.tsx (1)
   - client/src/types/index.ts (1)
+
+## 5. Release eligibility (option A gate, shared/i18n/release.ts)
+
+| Locale | Eligible | Blocking reasons |
+|---|---|---|
+| en | yes | — |
+| ckb | no | 192 validator errors; products: 41/107 complete and valid; blog_posts: 0/117 complete and valid; blog_categories: 0/8 complete and valid |
+
+Eligibility never flips the release flag; a person sets `ready: true` in shared/i18n/release.ts in a reviewed commit. Review status (machine → reviewed) is a separate, human step in the admin editor.

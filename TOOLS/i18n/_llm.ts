@@ -171,3 +171,18 @@ export function extractJson(text: string): unknown {
   if (start < 0 || end < 0) throw new Error("no JSON object in reply");
   return JSON.parse(text.slice(start, end + 1));
 }
+
+/**
+ * Sorani orthography: Arabic kaf (ك U+0643) and yeh (ي U+064A / ى U+0649)
+ * are never used in Central Kurdish; the Kurdish keheh (ک U+06A9) and farsi
+ * yeh (ی U+06CC) are. Models trained mostly on Arabic slip these in.
+ */
+export function normalizeSorani(s: string): string {
+  return s.replace(/ك/g, "ک").replace(/[يى]/g, "ی");
+}
+export function normalizeSoraniDeep<T>(value: T): T {
+  if (typeof value === "string") return normalizeSorani(value) as unknown as T;
+  if (Array.isArray(value)) return value.map(normalizeSoraniDeep) as unknown as T;
+  if (value && typeof value === "object") return Object.fromEntries(Object.entries(value as Record<string, unknown>).map(([k, v]) => [k, normalizeSoraniDeep(v)])) as T;
+  return value;
+}

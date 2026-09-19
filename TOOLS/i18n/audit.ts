@@ -190,9 +190,36 @@ lines.push(``, `## 4. Hard-coded Arabic in customer-facing client code`, ``, `- 
 lines.push(`- B) Intentional Arabic data/content files: ${classified.B.length}`, ...classified.B.map((f) => `  - ${f}`));
 lines.push(`- C) Comments only: ${classified.C.length} files`);
 lines.push(`- D) Customer-facing Arabic still hard-coded: ${classified.D.length} files, ${classified.D.reduce((a, b) => a + b.lines, 0)} lines`, ...classified.D.map((d) => `  - ${d.file} (${d.lines})`));
+// ── 5. Release eligibility (shared/i18n/release.ts is flipped by hand) ───────
+// Eligible = UI missing 0, validator errors 0 for the locale (last run of
+// TOOLS/i18n/validate-translations.ts), and every public product / published
+// post / blog category field-complete and passing checks.
+interface ValidationReport { uiStats?: Record<string, { total: number; present: number }>; contentStats?: Record<string, { publicTotal: number; present: number; complete: number; valid: number }>; findings?: Array<{ locale: string; severity: string; scope: string }> }
+const validationPath = resolve("reports/i18n/validation-report.json");
+const validation: ValidationReport | null = existsSync(validationPath) ? (JSON.parse(readFileSync(validationPath, "utf8")) as ValidationReport) : null;
+const eligibility: Record<string, { eligible: boolean; reasons: string[] }> = {};
+lines.push(``, `## 5. Release eligibility (option A gate, shared/i18n/release.ts)`, ``, `| Locale | Eligible | Blocking reasons |`, `|---|---|---|`);
+for (const locale of TRANSLATION_TARGET_LOCALES) {
+  const reasons: string[] = [];
+  if (ui[locale].missing.length) reasons.push(`${ui[locale].missing.length} UI keys missing`);
+  if (!validation) reasons.push("validator not run");
+  else {
+    const errs = (validation.findings ?? []).filter((f) => f.locale === locale && f.severity === "error").length;
+    if (errs) reasons.push(`${errs} validator errors`);
+    for (const store of ["products", "blog_posts", "blog_categories"]) {
+      const s = validation.contentStats?.[`${locale}/${store}`];
+      if (!s) reasons.push(`${store} not validated`);
+      else if (s.valid < s.publicTotal) reasons.push(`${store}: ${s.valid}/${s.publicTotal} complete and valid`);
+    }
+  }
+  eligibility[locale] = { eligible: reasons.length === 0, reasons };
+  lines.push(`| ${locale} | ${reasons.length === 0 ? "yes" : "no"} | ${reasons.join("; ") || "—"} |`);
+}
+lines.push(``, `Eligibility never flips the release flag; a person sets \`ready: true\` in shared/i18n/release.ts in a reviewed commit. Review status (machine → reviewed) is a separate, human step in the admin editor.`);
+
 mkdirSync(resolve("reports/i18n"), { recursive: true });
 writeFileSync(resolve("reports/i18n/coverage-report.md"), lines.join("\n") + "\n");
-writeFileSync(resolve("reports/i18n/coverage-report.json"), JSON.stringify({ ui, staticMeta, content, classified }, null, 2));
+writeFileSync(resolve("reports/i18n/coverage-report.json"), JSON.stringify({ ui, staticMeta, content, classified, eligibility }, null, 2));
 console.log(lines.join("\n"));
 const failing = classified.D.length > 0 || TRANSLATION_TARGET_LOCALES.some((l) => ui[l].missing.length > 0);
 if (STRICT && failing) process.exit(1);
