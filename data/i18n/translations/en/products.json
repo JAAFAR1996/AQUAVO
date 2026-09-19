@@ -690,50 +690,50 @@
     "entityId": "houyi-blue-dragon-stone",
     "slug": "houyi-blue-dragon-stone",
     "sourceHash": "c3c26c086db4a906",
-    "translatedBy": "groq:openai/gpt-oss-120b",
-    "translatedAt": "2026-09-18T22:45:42.472Z",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:22:41.845Z",
     "data": {
-      "name": "Blue Dragon Stone (دراقون ستون) — 1 kg",
-      "description": "Add a striking rock formation to the tank with natural stones that vary from piece to piece in shape and gray‑blue gradients. Suitable for building focal points, passages, and rocky details within the aquascape.\n\nWash the stone before use and secure it on a stable base. If your tank is sensitive to pH or GH/KH, test the stone and water after setup.",
+      "name": "Houyi Dragon Stone - 1kg",
+      "description": "Add a striking rock formation to your aquarium with natural stones that vary in shape and gray-blue gradients. Suitable for building focal points, pathways, and rocky details within aquascapes.\n\nWash the stone before use and secure it on a stable base. If your aquarium is sensitive to pH or GH/KH, test the stone and water after setup.",
       "subcategory": "Stones",
-      "seoTitle": "Blue Dragon Stone (دراقون ستون) – 1 kg | AQUAVO",
-      "seoDescription": "Natural blue‑gray stone for freshwater aquascapes, ideal for focal points, passages and decorative layouts. Wash before use and test water chemistry.",
+      "seoTitle": "Houyi Dragon Stone Decor | AQUAVO",
+      "seoDescription": "Natural Houyi Dragon Stone for aquascaping. Unique gray-blue pieces add focal points to freshwater tanks. 1kg pack.",
       "specifications": {
         "benefits": [
-          "Each piece is natural and uniquely shaped",
+          "Each piece is natural and unique in shape",
           "Gray and blue colors for rock arrangements",
-          "Suitable for building focal points and aquascape structures",
-          "Can be combined with sand and wood according to design"
+          "Suitable for building focal points and aquascape formations",
+          "Can be combined with sand and wood according to the design"
         ],
         "usageInstructions": [
           "Wash the stone with water and a brush before use",
-          "Try arranging the rocks outside the tank first",
+          "Try arranging the rocks outside the aquarium first",
           "Secure large pieces on a stable base",
-          "Test the water after setup if the inhabitants are chemistry‑sensitive"
+          "Test the water after setup if inhabitants are sensitive to chemistry"
         ],
         "safetyWarnings": [
-          "Edges may be sharp; inspect them before use",
-          "Secure the stones well to prevent falling onto the glass",
-          "Do not assume the stone is chemically inert without testing if the tank is sensitive"
+          "Edges may be sharp; inspect before use",
+          "Secure stones well to prevent falling on the glass",
+          "Do not assume stone is chemically inert without testing if the aquarium is sensitive"
         ],
-        "__cardBenefit": "A unique natural piece that creates a strong visual rock focal point in the tank",
+        "__cardBenefit": "A unique natural piece that builds a strong rocky visual point in the aquarium",
         "labelled": {
           "النوع": {
             "label": "Type",
-            "value": "Natural decorative stone"
+            "value": "Natural stone for decor"
           },
           "الوزن": {
             "label": "Weight",
-            "value": "1 kg"
+            "value": "1kg"
           },
           "الاستخدام": {
             "label": "Usage",
-            "value": "Aquascape and freshwater tank decoration"
+            "value": "Aquascaping and freshwater aquarium arrangement"
           }
         }
       },
       "variantLabels": {
-        "1kg": "1 kg"
+        "1kg": "1kg"
       }
     }
   },
@@ -741,29 +741,29 @@
     "entityId": "houyi-breathing-ring-white",
     "slug": "houyi-breathing-ring-white",
     "sourceHash": "22ca32b8a6363e12",
-    "translatedBy": "groq:openai/gpt-oss-120b",
-    "translatedAt": "2026-09-18T22:34:55.194Z",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:22:41.297Z",
     "data": {
-      "name": "White Porous Ceramic Rings for Biological Filtration — 1 kg",
-      "description": "Porous ceramic ring for use as biological filter media inside the filter. Provides a surface colonized by beneficial bacteria and its open shape allows water to flow around the material.\n\nPlace it after the mechanical filtration stage, and clean it gently when debris accumulates. Avoid replacing all biological media at once without need.",
+      "name": "Houyi Porous Ceramic Rings for Biological Filtration - 1 kg",
+      "description": "Porous ceramic rings for use as biological filter media inside the filter. They provide a surface for beneficial bacteria to colonize, and their open shape allows water to flow around the material.\n\nPlace them after the mechanical filtration stage, and gently clean them when sediment accumulates. Avoid replacing all biological media at once unless necessary.",
       "subcategory": "Filter Media",
-      "seoTitle": "White Porous Ceramic Rings – 1 kg | AQUAVO",
-      "seoDescription": "White porous ceramic rings offer a high‑surface area for beneficial bacteria in biological filtration. Their open ring shape ensures optimal water flow, and the white color makes debris easy to detect. Includes 1 kg.",
+      "seoTitle": "Houyi Ceramic Rings for Biological Filtration | AQUAVO",
+      "seoDescription": "Houyi porous ceramic rings provide a large surface area for beneficial bacteria colonization, ideal for biological filtration in aquariums. 1 kg pack.",
       "specifications": {
         "benefits": [
-          "Porous surface for colonizing beneficial bacteria",
+          "Porous surface for beneficial bacteria colonization",
           "Ring shape allows water flow",
           "Suitable for the biological filtration stage",
-          "White color makes dirt buildup easy to notice"
+          "White color makes dirt accumulation easy to notice"
         ],
         "usageInstructions": [
-          "Rinse manufacturing dust before use",
-          "Place it after mechanical filtration",
-          "Clean gently when debris accumulates",
-          "Do not replace the entire quantity at once without need"
+          "Rinse off manufacturing dust before use",
+          "Place after mechanical filtration",
+          "Clean gently when sediment accumulates",
+          "Do not replace the entire quantity at once unless necessary"
         ],
         "safetyWarnings": [
-          "Do not use soap or detergents to clean it",
+          "Do not use soap or detergents to clean them",
           "Avoid washing all settled media with chlorinated water at once",
           "Exclude broken pieces with sharp edges"
         ],
@@ -1257,45 +1257,45 @@
     "entityId": "houyi-foam-glue",
     "slug": "houyi-foam-glue",
     "sourceHash": "5d73ea5f8dfdee75",
-    "translatedBy": "groq:openai/gpt-oss-120b",
-    "translatedAt": "2026-09-18T22:44:48.697Z",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:22:39.917Z",
     "data": {
-      "name": "Decorative Gap Fill and Hide Paste – Wood Color",
-      "description": "A specialized paste for filling gaps and concealing mounting points in decorative and aquascape work, with a wood‑like color to achieve a more uniform appearance.\n\nUse in small amounts and thin layers, allowing each layer to dry before applying the next. After drying, the surface can be shaped or gently sanded as needed.\n\nBefore using it inside the tank, ensure the package clearly states its suitability for aquatic environments after full drying.",
-      "subcategory": "Accessories",
-      "seoTitle": "Houyi Decorative Gap Fill Paste – Wood Color | AQUAVO",
-      "seoDescription": "Houyi wood‑colored decorative paste fills small gaps and hides mounting points. Apply thin layers and let dry fully before adding more or placing in tank.",
+      "name": "Houyi Decor Gap Filler - Wood Color",
+      "description": "A specialized paste for filling gaps and concealing attachment points in decor and aquascaping projects. Its wood-like color helps achieve a more uniform appearance.\n\nApply in small amounts and thin layers, allowing each layer to dry before adding another. Once dry, the surface can be gently shaped or sanded as needed.\n\nBefore use inside the aquarium, ensure the packaging clearly states its suitability for aquariums after complete drying.",
+      "subcategory": "Decor",
+      "seoTitle": "Houyi Decor Gap Filler - Wood Color | AQUAVO",
+      "seoDescription": "Fill aquarium decor gaps and hide attachment points with Houyi's wood-colored paste. Safe for aquascaping after drying.",
       "specifications": {
         "benefits": [
-          "Helps fill small gaps between decorative pieces",
-          "Wood‑like color reduces visibility of mounting points",
-          "Can be applied in thin layers for controlled final shape"
+          "Helps fill small gaps between decor pieces",
+          "Wood-like color minimizes the visibility of attachment points",
+          "Can be applied in thin layers with control over the final shape"
         ],
         "usageInstructions": [
           "Clean and dry the surface before use",
           "Apply a small amount in a thin layer",
-          "Allow the layer to dry according to package instructions before adding another layer",
-          "After drying, shape or gently sand the surface as needed",
-          "Do not place the piece in the tank until fully dry and suitability for aquariums is confirmed"
+          "Allow the layer to dry according to package instructions before adding another",
+          "Once dry, gently shape or sand the surface as needed",
+          "Do not place the piece in the aquarium until fully dry and confirmed suitable for aquariums"
         ],
         "safetyWarnings": [
-          "Do not use inside a stocked tank unless the package confirms it is safe after drying",
-          "Do not allow the wet product to contact water or fish",
-          "Use in a well‑ventilated area and follow package warnings"
+          "Do not use inside a populated aquarium unless the packaging confirms it is aquarium-safe after drying",
+          "Do not allow uncured product to contact water or fish",
+          "Use in a well-ventilated area and follow package warnings"
         ],
-        "__cardBenefit": "Fills decorative gaps and hides mounting points with a wood‑like color",
+        "__cardBenefit": "Fills decor gaps and hides attachment points with a wood-like color",
         "labelled": {
           "اللون": {
             "label": "Color",
-            "value": "Wood color"
+            "value": "Wood Color"
           },
           "الوزن": {
             "label": "Weight",
-            "value": "900 غرام"
+            "value": "900 g"
           },
           "الاستخدام": {
             "label": "Usage",
-            "value": "Filling and hiding gaps in decorations and crafts"
+            "value": "Filling and concealing gaps in decor and crafts"
           }
         }
       },
@@ -1348,38 +1348,38 @@
     "entityId": "houyi-hose-brush",
     "slug": "houyi-hose-brush",
     "sourceHash": "3c71638668a4c26a",
-    "translatedBy": "groq:openai/gpt-oss-120b",
-    "translatedAt": "2026-09-18T22:53:46.358Z",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:22:43.593Z",
     "data": {
-      "name": "Houyi Dual Filter Hose Cleaning Brush — 1.55 metre",
-      "description": "A dual‑head brush 1.55 metre long for cleaning the interior of filter hoses and compatible flexible tubes.\n\nIt helps remove biofilm and deposits that can reduce water flow over time. There is no single cleaning schedule for all tanks; clean the hoses when you notice buildup or a flow decrease.\n\nUse the head that fits inside the hose without excessive force.",
+      "name": "Houyi Dual Filter Hose Cleaning Brush - 1.55m",
+      "description": "A 1.55-meter dual brush for cleaning the inside of filter hoses and flexible tubing compatible with its head sizes.\n\nIt helps remove biofilm and sediment that can reduce water flow diameter over time. There is no single cleaning schedule for all aquariums; clean hoses when you notice dirt buildup or reduced flow.\n\nUse the head that passes inside the hose without excessive force.",
       "subcategory": "Cleaning Tools",
-      "seoTitle": "Dual Filter Hose Cleaning Brush – 1.55m | AQUAVO",
-      "seoDescription": "A 1.55 m dual‑head brush for cleaning filter hoses and flexible tubing, removing biofilm and debris to maintain optimal water flow.",
+      "seoTitle": "Houyi Filter Hose Cleaning Brush - 1.55m | AQUAVO",
+      "seoDescription": "Clean your filter hoses effectively with the Houyi Dual Filter Hose Cleaning Brush. Features a 1.55m length and dual heads for thorough sediment removal.",
       "specifications": {
         "benefits": [
-          "1.55 m length to reach inside long hoses",
-          "Two heads with different sizes",
-          "Flexible wire to navigate bends",
-          "Helps remove deposits and biofilm from inside the hose"
+          "1.55m length for reaching inside long hoses",
+          "Two heads in different sizes",
+          "Flexible wire to pass through bends",
+          "Helps remove sediment and biofilm from inside the hose"
         ],
         "usageInstructions": [
           "Select the appropriate head for the hose diameter",
-          "Gently push the brush through the hose",
-          "Move it back and forth to dislodge debris",
+          "Gently pass the brush inside the hose",
+          "Move it back and forth to remove sediment",
           "Rinse the hose and brush after cleaning"
         ],
         "safetyWarnings": [
           "Do not use a head larger than the hose diameter",
-          "Do not force the brush if it catches",
+          "Do not force the brush if it gets stuck",
           "Wash the brush after use",
-          "Stop if the wire or bristles show damage"
+          "Stop if damage appears on the wire or bristles"
         ],
-        "__cardBenefit": "Reaches deep into long hoses and removes debris from water flow",
+        "__cardBenefit": "Reaches inside long hoses and removes sediment from the water flow",
         "labelled": {
           "الطول": {
             "label": "Length",
-            "value": "1.55 m"
+            "value": "1.55m"
           },
           "الرؤوس": {
             "label": "Heads",
@@ -1600,45 +1600,45 @@
     "entityId": "houyi-mesh",
     "slug": "houyi-mesh",
     "sourceHash": "87b868b76d1871eb",
-    "translatedBy": "groq:openai/gpt-oss-20b",
-    "translatedAt": "2026-09-19T11:39:54.480Z",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:22:45.311Z",
     "data": {
-      "name": "شبكة ستانلس لتثبيت الموس — 8×8 cm",
-      "description": "شبكة ستانلس بمقاس 8×8 cm لتثبيت الموس وتكوين مساحات خضراء على أرضية الحوض أو فوق الأسطح المناسبة. يمكن قصها أو تشكيلها بحذر حسب التصميم.\n\nوزع طبقة خفيفة من الموس وثبتها بطريقة مناسبة، ثم ضع الشبكة في موضع مستقر مع تجنب ترك حواف حادة مكشوفة.",
+      "name": "Houyi Stainless Steel Moss Grid - 8x8 cm",
+      "description": "An 8x8 cm stainless steel grid for attaching moss and creating green areas on the aquarium substrate or suitable surfaces. It can be carefully cut or shaped according to your design.\n\nSpread a light layer of moss and secure it appropriately, then place the grid in a stable position, avoiding exposed sharp edges.",
       "subcategory": "Plant Accessories",
-      "seoTitle": "Houyi Stainless Mesh 8×8 cm | AQUAVO",
-      "seoDescription": "Houyi stainless mesh for securing moss in aquariums. 8×8 cm size, cuttable and moldable, ideal for creating green carpets or surface covers. Durable and safe.",
+      "seoTitle": "Houyi Stainless Steel Moss Grid 8x8 cm | AQUAVO",
+      "seoDescription": "Houyi 8x8 cm stainless steel grid for attaching moss in aquariums. Create moss carpets or cover surfaces. Shapeable and stable.",
       "specifications": {
         "benefits": [
-          "8×8 cm size suitable for small moss arrangements",
-          "Metal mesh that can be cut and shaped carefully",
-          "Helps secure moss in a defined area",
-          "Can be used to create moss rugs or surface covers"
+          "8x8 cm size is suitable for small moss arrangements",
+          "Cuttable and carefully shapeable metal mesh",
+          "Helps secure moss in a specific area",
+          "Can be used to create a moss carpet or cover a surface"
         ],
         "usageInstructions": [
-          "Spread a light layer of moss over the mesh",
-          "Secure the moss with string or the appropriate method for the design",
-          "Place the mesh in a stable position inside the tank",
-          "Monitor growth and trim moss as needed"
+          "Spread a light layer of moss onto the grid",
+          "Secure the moss with thread or your preferred method for the design",
+          "Place the grid in a stable position inside the aquarium",
+          "Monitor growth and trim the moss as needed"
         ],
         "safetyWarnings": [
-          "Cut edges may be sharp; bend them inward",
-          "Do not leave the mesh loose inside the tank",
-          "Replace if corrosion or obvious damage appears"
+          "Cut edges may be sharp; fold them inward",
+          "Do not leave the grid loose inside the aquarium",
+          "Replace if significant corrosion or damage appears"
         ],
-        "__cardBenefit": "Secures moss in a defined area for making a moss carpet or green cover",
+        "__cardBenefit": "Secures moss in a specific area to create a carpet or green cover",
         "labelled": {
           "القياس": {
-            "label": "Measurement",
-            "value": "8×8 cm"
+            "label": "Size",
+            "value": "8x8 cm"
           },
           "المادة": {
             "label": "Material",
-            "value": "ستانلس ستيل 304 بحسب بيانات المنتج"
+            "value": "304 Stainless Steel per product data"
           },
           "الاستخدام": {
             "label": "Usage",
-            "value": "تثبيت الموس في تنسيقات الأحواض"
+            "value": "Attaching moss in aquarium aquascapes"
           }
         }
       },
@@ -1649,41 +1649,41 @@
     "entityId": "houyi-moss-glue-20g",
     "slug": "houyi-moss-glue-20g",
     "sourceHash": "8610a1ffa2b12713",
-    "translatedBy": "groq:openai/gpt-oss-120b",
-    "translatedAt": "2026-09-18T22:34:03.444Z",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:22:39.498Z",
     "data": {
-      "name": "Aquascape Glue for Securing Moss — 20 غرام",
-      "description": "Cyanoacrylate glue for securing moss and some aquatic plants to wood and stone, in a 20 غرام package for medium projects.\n\nApply a small amount to a clean surface, then gently press the plant according to the package instructions. A white color may appear at the glue spot when contacting water, and it diminishes after the plant grows.\n\nUse only if the package confirms its suitability for aquariums after curing, and avoid contact with skin and eyes.",
+      "name": "Houyi Aquascape Glue - 20g",
+      "description": "Cyanoacrylate glue for attaching moss and some aquatic plants to wood and stone, in a 20g bottle for medium-sized projects.\n\nApply a small amount to a clean surface, then gently press the plant according to the package instructions. A white residue may appear where the glue was applied upon contact with water, which becomes less noticeable after the plant grows.\n\nUse only if the packaging confirms its suitability for aquariums after curing, avoiding contact with skin and eyes.",
       "subcategory": "Accessories",
-      "seoTitle": "Aquascape Moss Glue 20 g – Secure Plants | AQUAVO",
-      "seoDescription": "Cyanoacrylate glue for attaching moss and aquatic plants to wood or stone. 20 gram tube for projects. Apply a tiny amount, press gently, and let cure.",
+      "seoTitle": "Houyi Aquascape Glue for Plants & Moss | AQUAVO",
+      "seoDescription": "Houyi cyanoacrylate aquascape glue for attaching moss and plants to wood and stone. 20g bottle. Safe for aquariums after curing.",
       "specifications": {
         "benefits": [
-          "Helps secure moss and attached plants to wood and stone.",
-          "Suitable package for use according to the selected size.",
-          "Small dots can be used to control placement of the attachment."
+          "Helps attach moss and carpeting plants to wood and stone",
+          "Bottle size suitable for the chosen volume",
+          "Small dots can be used to control attachment placement"
         ],
         "usageInstructions": [
-          "Clean and dry the attachment area as much as possible.",
-          "Apply only a small amount of glue.",
-          "Secure the moss or plant for the duration specified by the package.",
-          "Follow the product instructions before returning the piece to the tank."
+          "Clean and dry the attachment area as much as possible",
+          "Apply only a small amount of glue",
+          "Hold the moss or plant for the duration specified on the packaging",
+          "Follow product instructions before returning the item to the aquarium"
         ],
         "safetyWarnings": [
-          "Avoid contact with skin and eyes.",
-          "Keep out of reach of children.",
-          "Use only if the package confirms its suitability for aquariums.",
-          "Follow the printed curing time and usage method; do not rely on a generic duration."
+          "Avoid contact with skin and eyes",
+          "Keep out of reach of children",
+          "Use only if the packaging confirms its suitability for aquariums",
+          "Follow the printed curing time and usage method; do not rely on a general duration"
         ],
-        "__cardBenefit": "Secures moss and plants to wood and stone with small dots",
+        "__cardBenefit": "Attaches moss and plants to wood and stone with small dots",
         "labelled": {
           "الحجم": {
             "label": "Size",
-            "value": "20 غرام"
+            "value": "20g"
           },
           "النوع": {
             "label": "Type",
-            "value": "Installation glue for plants and aquascape according to product data"
+            "value": "Plant and aquascape attachment glue according to product data"
           },
           "العلامة التجارية": {
             "label": "Brand",
@@ -1698,41 +1698,41 @@
     "entityId": "houyi-moss-glue-50g",
     "slug": "ghraa-tthbyt-50-ghram",
     "sourceHash": "0dc8a2bc9c668b58",
-    "translatedBy": "groq:openai/gpt-oss-120b",
-    "translatedAt": "2026-09-18T22:40:04.726Z",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:22:37.757Z",
     "data": {
-      "name": "Houyi Aquascape Glue for Moss — 50 غرام",
-      "description": "Cyanoacrylate glue for securing moss and some aquatic plants to wood or stone, in a 50 gram tube for large projects or frequent use.\n\nApply a small amount to a clean surface, then gently press the plant according to the package instructions. A white spot may appear where the glue contacts water.\n\nUse only if the package confirms suitability for aquariums after curing, and avoid contact with skin and eyes.",
+      "name": "Houyi Aquascape Glue - 50g",
+      "description": "Cyanoacrylate glue for attaching moss and some aquatic plants to wood and stone, in a 50g bottle for large projects or frequent use.\n\nApply a small amount to a clean surface, then gently press the plant according to package instructions. A white residue may appear where the glue contacts water.\n\nUse only if the packaging confirms its suitability for aquariums after curing, avoiding contact with skin and eyes.",
       "subcategory": "Accessories",
-      "seoTitle": "Houyi Aquascape Glue for Moss — 50 gram | AQUAVO",
-      "seoDescription": "Cyanoacrylate glue for securing moss and aquatic plants to wood or stone, 50 gram tube for large projects or frequent use. Apply sparingly, avoid skin contact.",
+      "seoTitle": "Houyi Aquascape Glue for Plants & Moss | AQUAVO",
+      "seoDescription": "Cyanoacrylate aquascaping glue for attaching moss and plants to wood/stone. 50g bottle. Safe for aquariums after curing. | AQUAVO",
       "specifications": {
         "benefits": [
-          "Helps attach moss and plants firmly to wood and stone",
-          "Convenient package size for the chosen application",
-          "Small dots can be used to control placement"
+          "Helps attach moss and carpeting plants to wood and stone",
+          "Bottle size suitable for use based on selected volume",
+          "Small dots can be used to control attachment placement"
         ],
         "usageInstructions": [
           "Clean and dry the attachment area as much as possible",
-          "Apply only a tiny amount of glue",
-          "Secure the moss or plant for the duration specified by the package",
-          "Follow product instructions before returning the piece to the tank"
+          "Apply only a small amount of glue",
+          "Hold the moss or plant for the duration specified on the package",
+          "Follow product instructions before returning the item to the aquarium"
         ],
         "safetyWarnings": [
           "Avoid contact with skin and eyes",
-          "Keep out of reach of children",
-          "Use only if the package confirms aquarium suitability",
-          "Follow the printed curing time and usage method; do not rely on a generic duration"
+          "Keep away from children",
+          "Use only if the packaging confirms its suitability for aquariums",
+          "Follow the printed curing time and usage method; do not rely on a general duration"
         ],
-        "__cardBenefit": "Large size for repeated mounting in aquascape projects",
+        "__cardBenefit": "Large size for frequent attachment in aquascaping projects",
         "labelled": {
           "الحجم": {
             "label": "Size",
-            "value": "50 غرام"
+            "value": "50g"
           },
           "النوع": {
             "label": "Type",
-            "value": "Moss and aquascape mounting glue as per product data"
+            "value": "Plant and aquascape attachment glue per product data"
           },
           "العلامة التجارية": {
             "label": "Brand",
@@ -2259,41 +2259,41 @@
     "entityId": "houyi-stream-sand",
     "slug": "houyi-stream-sand",
     "sourceHash": "470ffb23f874aaa3",
-    "translatedBy": "groq:openai/gpt-oss-120b",
-    "translatedAt": "2026-09-18T22:48:26.444Z",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:22:43.196Z",
     "data": {
-      "name": "Houyi Natural River Sand for Aquascape — 2–6 mm",
-      "description": "Natural river sand with 2–6 mm grains for arranging the tank floor and providing a look close to river bottoms. Suitable as an independent decorative layer or as a surface layer depending on the tank design.\n\nRinse it lightly with water before use to remove dust and fine particles. This sand is not a substitute for a root‑plant nutrition source.",
+      "name": "Houyi Natural Stream Sand - 2-6mm",
+      "description": "Natural stream sand with 2-6mm grains for aquascaping tank floors, providing a look similar to stream beds. Suitable as a standalone decorative layer or as a top layer, depending on the tank design.\n\nWash lightly with water before use to remove dust and fine particles. This sand is not a substitute for a root tab nutrient source.",
       "subcategory": "Sand",
-      "seoTitle": "Houyi Natural River Sand 2–6 mm – Aquascape | AQUAVO",
-      "seoDescription": "Natural river sand with 2–6 mm grains, perfect for aquascape tank floors. Rinse before use; serves as decorative or surface layer, not a plant source.",
+      "seoTitle": "Houyi Natural Stream Sand for Aquascaping | AQUAVO",
+      "seoDescription": "Houyi Natural Stream Sand (2-6mm) creates realistic stream bed effects. Ideal for aquascaping, decorative layers, or top coats. Shop at AQUAVO.",
       "specifications": {
         "benefits": [
-          "Natural grains sized 2–6 mm",
-          "Suitable for natural layouts and aquascape pathways",
-          "Can be used as a decorative substrate or surface layer",
+          "Natural 2-6mm grains",
+          "Suitable for natural aquascapes and pathways",
+          "Can be used as a decorative substrate or top layer",
           "Natural color blends with stone and wood"
         ],
         "usageInstructions": [
-          "Rinse the sand lightly before use",
-          "Spread it at the appropriate thickness for the design",
-          "Fill the tank slowly to minimize water cloudiness",
-          "Clean the surface with a siphon when debris accumulates"
+          "Wash the sand lightly before use",
+          "Distribute at the appropriate thickness for the design",
+          "Add water slowly to minimize clouding",
+          "Clean the surface with a siphon when waste accumulates"
         ],
         "safetyWarnings": [
           "Do not use detergents or soap to wash the sand",
-          "If your inhabitants are sensitive to water chemistry, test parameters after setting up the tank",
-          "Rooted plants require an appropriate nutrition source if no nutrient-rich substrate is present"
+          "If your inhabitants are sensitive to water chemistry, test values after setting up the tank",
+          "Rooted plants require a suitable nutrient source if no nutrient substrate is present"
         ],
-        "__cardBenefit": "Natural 2–6 mm grains create a river‑bottom‑like substrate",
+        "__cardBenefit": "Natural 2-6mm grains create a stream bed-like substrate",
         "labelled": {
           "النوع": {
             "label": "Type",
-            "value": "Natural river sand"
+            "value": "Natural stream sand"
           },
           "حجم الحبيبات": {
-            "label": "Grain size",
-            "value": "2–6 mm"
+            "label": "Grain Size",
+            "value": "2-6mm"
           }
         }
       },
@@ -2676,45 +2676,45 @@
     "entityId": "houyi-volcanic-stone-red",
     "slug": "houyi-volcanic-stone-red",
     "sourceHash": "f8a6a54ca6cdbeea",
-    "translatedBy": "groq:openai/gpt-oss-120b",
-    "translatedAt": "2026-09-18T22:39:11.676Z",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:22:37.369Z",
     "data": {
-      "name": "Houyi Red Volcanic Stone",
-      "description": "Red volcanic lava stone with a porous structure, suitable for aquarium decoration or as filter media. Rinse before use in pH‑sensitive tanks.\n\nWash thoroughly before use to remove dust. As natural stones may vary between batches, it is not chemically neutral without testing; monitor readings after adding if the tank is sensitive to pH or GH/KH.\n\nEnsure pieces are stable and free of sharp edges that could harm fish.",
+      "name": "Houyi Red Lava Stone",
+      "description": "Porous red lava stone, used as decor or as a porous medium within some filtration systems.\n\nWash thoroughly before use to remove dust. As natural stones can vary in composition between batches, it is not considered chemically inert without testing; if the aquarium is sensitive to pH or GH/KH, monitor readings after adding it.\n\nEnsure pieces are stable and have no sharp edges that could harm fish.",
       "subcategory": "Stones",
-      "seoTitle": "Red Volcanic Stone – Decorative Aquarium Substrate | AQUAVO",
-      "seoDescription": "Red volcanic lava stone with porous structure, suitable for aquarium decoration or as filter media. Rinse before use in pH‑sensitive tanks.",
+      "seoTitle": "Houyi Red Lava Stone for Aquariums | AQUAVO",
+      "seoDescription": "Porous red lava stone for aquascaping and filtration. Adds warm contrast. Wash before use. Monitor water parameters.",
       "specifications": {
         "benefits": [
-          "Porous structure suitable for increasing surface area within the filter or tank design.",
-          "Red volcanic color provides warm contrast inside the aquarium.",
-          "Can be used as decoration or as a porous medium in filtration.",
-          "Relatively lightweight compared to many dense rocks."
+          "Porous structure provides increased surface area for beneficial bacteria or aquascaping",
+          "Volcanic red color provides warm contrast within the aquarium",
+          "Can be used as decor or as a porous medium in filtration",
+          "Relatively lightweight compared to many dense rocks"
         ],
         "usageInstructions": [
-          "Rinse the stones until dust is reduced.",
-          "Arrange them securely in the tank or place them in a suitable bag inside the filter.",
-          "Monitor water quality after the first use in sensitive tanks.",
-          "Rinse them when debris accumulates if used in the filter."
+          "Rinse stones until dust is reduced",
+          "Arrange them stably in the aquarium or place them in a suitable bag inside the filter",
+          "Monitor water quality after initial use in sensitive aquariums",
+          "Rinse when dirt accumulates if used in the filter"
         ],
         "safetyWarnings": [
-          "Wash thoroughly to remove dust.",
-          "Inspect edges before placing with sensitive fish.",
-          "Do not assume its effect on pH or hardness is stable without testing.",
-          "Secure the pieces firmly inside the tank."
+          "Wash thoroughly to remove dust",
+          "Check edges before placing with sensitive fish",
+          "Do not assume its effect on pH or hardness is stable without testing",
+          "Secure pieces well within the aquarium"
         ],
         "__cardBenefit": "Porous texture and red color add warm contrast to the design",
         "labelled": {
           "اللون": {
             "label": "Color",
-            "value": "Red volcanic"
+            "value": "Volcanic red"
           },
           "النوع": {
             "label": "Type",
             "value": "Natural volcanic lava stone"
           },
           "حجم القطع": {
-            "label": "Piece size",
+            "label": "Piece Size",
             "value": "3–5 cm"
           }
         }
@@ -3009,6 +3009,206 @@
       "variantLabels": {}
     }
   },
+  "yee-02517": {
+    "entityId": "yee-02517",
+    "slug": "ysl-506",
+    "sourceHash": "954284a11c8f0093",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:11:35.020Z",
+    "data": {
+      "name": "YEE Breeding Box with 2 Compartments",
+      "description": "Two separate compartments help you organize fry or separate two groups within the same aquarium, with air-driven water circulation inside the box. This makes observation and feeding easier than leaving the fry scattered throughout the tank.\n\nRequires an air pump and tubing if not included; adjust airflow gently to avoid pushing fry too forcefully.",
+      "subcategory": "Breeder Boxes",
+      "seoTitle": "YEE 2-Compartment Breeding Box | AQUAVO",
+      "seoDescription": "Organize and raise fry in separate compartments with the YEE Breeding Box. Features air-driven water circulation for easy observation and feeding.",
+      "specifications": {
+        "benefits": [
+          "Two separate compartments for organizing fry or two groups within the tank",
+          "Air-driven system helps circulate water inside the breeder box",
+          "Allows for observation and feeding of fry in a designated space",
+          "Divider facilitates separating groups as needed"
+        ],
+        "usageInstructions": [
+          "Install the breeder box inside the aquarium according to its design",
+          "Connect the air system if required by the product",
+          "Start with low airflow and increase only as needed",
+          "Monitor water movement and fry; clean the box when waste accumulates"
+        ],
+        "safetyWarnings": [
+          "Adjust airflow so it does not push fry forcefully",
+          "Remove leftover food to prevent accumulation inside the box",
+          "This breeder box shares aquarium water and is not a standalone sterile environment",
+          "Ensure there are no gaps that allow fry to escape"
+        ],
+        "__cardBenefit": "Two compartments for fry organization with air-driven water circulation inside the box",
+        "labelled": {
+          "عدد الغرف": {
+            "label": "Number of Compartments",
+            "value": "Two separate compartments with a divider"
+          },
+          "يحتاج إلى": {
+            "label": "Requires",
+            "value": "Air pump and tubing if not included in the package"
+          },
+          "نوع التدفّق": {
+            "label": "Flow Type",
+            "value": "Air-driven"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "yee-02771": {
+    "entityId": "yee-02771",
+    "slug": "ykl-018",
+    "sourceHash": "270c7cd24a42fc40",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:11:34.365Z",
+    "data": {
+      "name": "YEE Acrylic Fry Breeder Box - 20x10x10 cm",
+      "description": "Place fry in a clear and easily monitored location within the main aquarium. This transparent acrylic breeder box, measuring 20x10x10 cm, helps isolate fry or small organisms while allowing water exchange with the main tank.\n\nIt is not a standalone quarantine tank; monitor the openings and the cleanliness of the breeder box, and ensure the fry cannot escape.",
+      "subcategory": "Breeder Boxes",
+      "seoTitle": "YEE Acrylic Fry Breeder Box - 20x10x10 cm | AQUAVO",
+      "seoDescription": "Isolate and monitor fry easily within your aquarium using the YEE Acrylic Fry Breeder Box (20x10x10 cm). Transparent design, easy to clean, and attaches inside the main tank.",
+      "specifications": {
+        "benefits": [
+          "Transparent breeder box for easy fry monitoring",
+          "Dimensions: 20x10x10 cm",
+          "Attaches inside the main aquarium",
+          "Disassembles for easy cleaning"
+        ],
+        "usageInstructions": [
+          "Rinse the breeder box before use",
+          "Securely attach it inside the aquarium",
+          "Ensure water circulation and that openings are not blocked",
+          "Gently transfer fry and monitor them",
+          "Clean the breeder box when debris accumulates"
+        ],
+        "safetyWarnings": [
+          "Not a substitute for a standalone quarantine tank as it shares tank water",
+          "Remove leftover food to prevent buildup in the small space",
+          "Ensure the openings are appropriately sized for the fry",
+          "Avoid abrasive materials that may scratch the acrylic"
+        ],
+        "__cardBenefit": "Isolate fry within the tank and easily monitor them from all sides",
+        "labelled": {
+          "المادة": {
+            "label": "Material",
+            "value": "Transparent acrylic"
+          },
+          "الأبعاد": {
+            "label": "Dimensions",
+            "value": "20x10x10 cm"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "yee-02856a": {
+    "entityId": "yee-02856a",
+    "slug": "yyh-006",
+    "sourceHash": "8d3860ebc6060de1",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:10:50.880Z",
+    "data": {
+      "name": "YEE Bacterial Treatment Powder - 10 Sachets",
+      "description": "Treatment powder in 10 individual sachets for use in bacterial cases as specified on the packaging. Dosage and duration depend on product concentration and water volume, so follow the packaging instructions only.\n\nDo not use as a routine or preventative addition, and do not mix with other treatments unless instructed by the manufacturer.",
+      "subcategory": "Disease Treatment",
+      "seoTitle": "YEE Bacterial Treatment Powder for Fish | AQUAVO",
+      "seoDescription": "YEE Bacterial Treatment Powder in 10 sachets for specific bacterial infections. Follow packaging instructions for dosage and duration. Monitor fish and water quality.",
+      "specifications": {
+        "benefits": [
+          "10 individual sachets for easy dosing",
+          "For specific bacterial infections mentioned on the packaging",
+          "Powder form allows for easy measurement according to product instructions"
+        ],
+        "usageInstructions": [
+          "Ensure the condition matches the packaging's intended uses",
+          "Calculate the actual water volume",
+          "Use only the printed number of sachets and treatment duration",
+          "Monitor fish and water quality during use"
+        ],
+        "safetyWarnings": [
+          "Do not exceed the dosage",
+          "Do not mix with other treatments unless instructions permit",
+          "Some bacterial treatments may affect biological filtration; monitor ammonia and nitrite",
+          "Keep out of reach of children"
+        ],
+        "__cardBenefit": "10 sachets with individual doses for specific bacterial cases indicated on the packaging",
+        "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "Aquarium Treatment Powder"
+          },
+          "التعبئة": {
+            "label": "Packaging",
+            "value": "10 sachets x 2 g per product data"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "yee-02924": {
+    "entityId": "yee-02924",
+    "slug": "yyh-039",
+    "sourceHash": "d0449a094ba33a2d",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:10:51.159Z",
+    "data": {
+      "name": "YEE Water Conditioner - 535ml",
+      "description": "Prepare tap water before adding it to the aquarium instead of adding it directly. This product is designed to remove chlorine and treat water according to the ingredients and concentration specified on the packaging. It comes in a 535ml size for use with water changes.\n\nCalculate the dosage based on the new water volume only and follow the package instructions. Chlorine treatment does not replace the aquarium cycle or water quality testing.",
+      "subcategory": "Water Conditioners",
+      "seoTitle": "YEE Water Conditioner 535ml | AQUAVO",
+      "seoDescription": "YEE Water Conditioner 535ml removes chlorine and treats tap water for freshwater and saltwater aquariums. Follow package instructions for dosage.",
+      "specifications": {
+        "benefits": [
+          "Designed for preparing tap water for aquariums according to product data",
+          "535ml bottle for use with water changes",
+          "Used with a calculated dose for the new water volume"
+        ],
+        "usageInstructions": [
+          "Shake the bottle if instructions indicate",
+          "Calculate the volume of new water being added",
+          "Use only the dosage printed on the bottle",
+          "Add to the new water or as per the company's method",
+          "Use with all new tap water requiring treatment"
+        ],
+        "safetyWarnings": [
+          "Do not exceed the dosage printed on the bottle",
+          "Does not replace the nitrogen cycle or water testing",
+          "Keep away from heat and light",
+          "Do not use if the product's color or smell changes abnormally"
+        ],
+        "__cardBenefit": "Prepare tap water for the aquarium before adding it with each water change",
+        "labelled": {
+          "الحجم": {
+            "label": "Size",
+            "value": "535ml"
+          },
+          "النوع": {
+            "label": "Type",
+            "value": "Dechlorinator + Water Stabilizer"
+          },
+          "التوافق": {
+            "label": "Compatibility",
+            "value": "Freshwater and saltwater aquariums"
+          },
+          "الوظيفة": {
+            "label": "Function",
+            "value": "Prepare tap water according to the ingredients listed on the packaging"
+          },
+          "سرعة المفعول": {
+            "label": "Speed of Action",
+            "value": "According to product instructions and concentration"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
   "yee-02938a": {
     "entityId": "yee-02938a",
     "slug": "yyh-053",
@@ -3052,6 +3252,203 @@
         }
       },
       "variantLabels": {}
+    }
+  },
+  "yee-03326": {
+    "entityId": "yee-03326",
+    "slug": "ytz-300",
+    "sourceHash": "07bbf149a26ab4a9",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:18:31.482Z",
+    "data": {
+      "name": "YEE Air Pump - 3W",
+      "description": "A practical choice for small aquariums when you need to run an air stone or sponge filter without a large pump. The YEE 3W pump has a single outlet. Its actual performance depends on water depth and the resistance of the tubing and accessory.\n\nPlace it in a dry, ventilated area and use a check valve if the pump is below the water level.",
+      "subcategory": "Air Pumps",
+      "seoTitle": "YEE 3W Single Outlet Air Pump | AQUAVO",
+      "seoDescription": "Compact YEE 3W air pump with one outlet, ideal for small aquariums. Easy to place, runs air stones and sponge filters. Requires check valve if submerged.",
+      "specifications": {
+        "benefits": [
+          "3W power",
+          "Single air outlet",
+          "Small size, easy to place beside the aquarium",
+          "Suitable for running a compatible air accessory"
+        ],
+        "usageInstructions": [
+          "Connect the air tubing to the outlet",
+          "Install a suitable air stone or air filter",
+          "Install a check valve if needed",
+          "Turn on the pump and monitor that the flow is suitable for the aquarium and accessory"
+        ],
+        "safetyWarnings": [
+          "Do not immerse the pump in water",
+          "Place in a dry, well-ventilated area",
+          "Use a check valve if the pump is below the water level",
+          "Ensure sufficient flow for the accessory and actual tank depth"
+        ],
+        "__cardBenefit": "Small 3W pump for running an air stone or sponge filter",
+        "labelled": {
+          "القدرة": {
+            "label": "Power",
+            "value": "3W"
+          },
+          "عدد المخارج": {
+            "label": "Number of Outlets",
+            "value": "1"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "yee-03446a": {
+    "entityId": "yee-03446a",
+    "slug": "yyy-078",
+    "sourceHash": "cba1d2b3f42ae419",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:11:01.350Z",
+    "data": {
+      "name": "YEE Decapsulated Artemia Eggs - 80g",
+      "description": "Decapsulated Artemia eggs weighing 80 grams, ready for direct feeding and does not require hatching. Its small size makes it particularly suitable for fry and small-mouthed species, depending on their size and feeding habits.\n\nAccording to product data, it contains over 50% crude protein. Feed a small amount spread over the water surface and monitor consumption to avoid residue buildup, then close the package tightly after use.",
+      "subcategory": "Live and Dried Food",
+      "seoTitle": "YEE Decapsulated Artemia Eggs 80g - Ready to Feed | AQUAVO",
+      "seoDescription": "YEE Decapsulated Artemia Eggs (80g) are ready to feed fry and small fish. High protein, no hatching needed. Ideal for ornamental fish. Shop now at AQUAVO.",
+      "specifications": {
+        "benefits": [
+          "Ready for direct feeding, no hatching process required",
+          "Outer shell removed while preserving the nutrient-rich inner embryo",
+          "Suitable for all ornamental fish and fry based on mouth size",
+          "Empty shell percentage less than 0.05%"
+        ],
+        "usageInstructions": [
+          "Sprinkle a small amount evenly over the water surface",
+          "Monitor fish consumption and do not add more until the previous amount is finished",
+          "Avoid overfeeding to prevent water contamination"
+        ],
+        "safetyWarnings": [
+          "Do not feed a large amount at once",
+          "Remove any uneaten residue to maintain water quality"
+        ],
+        "__cardBenefit": "Decapsulated Artemia ready to eat directly without hatching",
+        "labelled": {
+          "يشمل": {
+            "label": "Includes",
+            "value": "Hulled eggs + Feeder + White bottle"
+          },
+          "النوع": {
+            "label": "Type",
+            "value": "Decapsulated Artemia Eggs"
+          },
+          "الوزن": {
+            "label": "Weight",
+            "value": "80g (150ml)"
+          },
+          "رطوبة": {
+            "label": "Moisture",
+            "value": "< 10.0%"
+          },
+          "المصدر": {
+            "label": "Source",
+            "value": "Bohai Bay"
+          },
+          "دهون خام": {
+            "label": "Crude Fat",
+            "value": "> 4.0%"
+          },
+          "بروتين خام": {
+            "label": "Crude Protein",
+            "value": "> 50.0%"
+          },
+          "تنبيه الإطعام": {
+            "label": "Feeding Alert",
+            "value": "Avoid overfeeding to prevent food waste and aquarium water pollution"
+          },
+          "طريقة الإطعام": {
+            "label": "Feeding Method",
+            "value": "Sprinkle evenly on the water surface and feed in small quantities"
+          },
+          "الفئة المستهدفة": {
+            "label": "Target Category",
+            "value": "All ornamental fish and fry based on mouth size"
+          },
+          "نسبة القشور الفارغة": {
+            "label": "Empty Shell Percentage",
+            "value": "< 0.05%"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "yee-06255": {
+    "entityId": "yee-06255",
+    "slug": "yxl-003",
+    "sourceHash": "7ba3731eefdd25c0",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:11:22.739Z",
+    "data": {
+      "name": "YEE Ultra Clear Rimless Aquarium — 6 Sizes",
+      "description": "If you want an aquarium that highlights the colors of fish and plants more clearly, Ultra Clear glass reduces the green tint common in traditional glass and provides a cleaner look for aquascapes. The rimless design maintains a simple, open aesthetic for the aquarium.\n\nAvailable in approximately 6 sizes from 23 to 96 liters. Choose the appropriate size for your space, place the aquarium on a level and fully supported surface, and do not move it when full.",
+      "subcategory": "Glass Aquariums",
+      "seoTitle": "YEE Ultra Clear Rimless Aquarium | AQUAVO",
+      "seoDescription": "Discover the YEE Ultra Clear Rimless Aquarium, available in 6 sizes (23-96L). Enjoy enhanced clarity and a minimalist design for your aquascape. Shop now!",
+      "specifications": {
+        "benefits": [
+          "Ultra Clear glass for clearer viewing and reduced green tint compared to traditional glass",
+          "Rimless design for a minimalist look suitable for aquascaping",
+          "Multiple sizes to choose from based on space and use",
+          "Glass thickness varies by aquarium size from 5 to 8 mm",
+          "Suitable for planted tanks and detailed aquascape photography"
+        ],
+        "usageInstructions": [
+          "Choose the appropriate size and confirm dimensions before purchase",
+          "Place the aquarium on a flat, stable, and fully supported surface that can bear the weight after filling",
+          "Clean the aquarium with water only before first use; avoid soap and household cleaners",
+          "Fill the aquarium gradually, ensuring no twisting or uneven pressure on the base",
+          "Do not move or lift the aquarium when filled with water",
+          "Avoid direct impacts on the glass and edges"
+        ],
+        "safetyWarnings": [
+          "The aquarium base must be fully supported and not overhang the surface edges",
+          "Do not use a tilted or uneven surface",
+          "Do not move the aquarium when full",
+          "Avoid direct impact or localized pressure on the glass and edges"
+        ],
+        "__cardBenefit": "Clearer aquarium viewing with ultra-clear glass and a rimless design",
+        "labelled": {
+          "السعة": {
+            "label": "Capacity",
+            "value": "Approximately 23–96 L depending on size"
+          },
+          "التصميم": {
+            "label": "Design",
+            "value": "Rimless"
+          },
+          "المقاسات": {
+            "label": "Sizes",
+            "value": "6 different sizes"
+          },
+          "الاستخدام": {
+            "label": "Usage",
+            "value": "Fish tanks, aquascapes, and planted aquariums"
+          },
+          "نوع الزجاج": {
+            "label": "Glass Type",
+            "value": "Ultra Clear — Extra Clear"
+          },
+          "سماكة الزجاج": {
+            "label": "Glass Thickness",
+            "value": "5–8 mm depending on size"
+          }
+        }
+      },
+      "variantLabels": {
+        "40x23": "40×23×25 cm — 5 mm — ~23 L",
+        "50x27": "50×27×30 cm — 5 mm — ~40.5 L",
+        "60x30": "60×30×35 cm — 6 mm — ~63 L",
+        "35cube": "35×35×35 cm — 6 mm — ~42.9 L",
+        "40cube": "40×40×40 cm — 6 mm — ~64 L",
+        "60x40": "60×40×40 cm — 8 mm — ~96 L"
+      }
     }
   },
   "yee-06834": {
@@ -3117,38 +3514,166 @@
       "variantLabels": {}
     }
   },
+  "yee-07116": {
+    "entityId": "yee-07116",
+    "slug": "yff-042",
+    "sourceHash": "9ceb2d2911e4fe15",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:11:32.997Z",
+    "data": {
+      "name": "YEE Ceramic Biological Filter Media - Mixed Shapes",
+      "description": "A selection of porous ceramic filter media in various shapes for use in the biological filtration stage. The pores and surfaces provide ample space for beneficial bacteria colonization within the filter.\n\nRinse away dust before use and place the media after mechanical filtration whenever possible. There is no need to replace it on a fixed schedule if it remains intact and water-permeable.",
+      "subcategory": "Filter Media",
+      "seoTitle": "YEE Ceramic Biological Filter Media | AQUAVO",
+      "seoDescription": "Porous ceramic filter media in mixed shapes for biological filtration. Supports beneficial bacteria colonization. Rinse before use. | AQUAVO",
+      "specifications": {
+        "benefits": [
+          "Assortment of ceramic filter media shapes",
+          "Designed for the biological filtration stage",
+          "Provides porous surfaces for beneficial bacteria colonization",
+          "Can be arranged within a mesh bag or suitable filter compartment"
+        ],
+        "usageInstructions": [
+          "Rinse manufacturing dust before use",
+          "Place after the mechanical filtration stage whenever possible",
+          "Gently clean with aquarium water when debris accumulates",
+          "Replace only damaged pieces gradually as needed"
+        ],
+        "safetyWarnings": [
+          "Do not use soap or detergents",
+          "Do not clean all biological media at once",
+          "Ensure water flow through the media is maintained"
+        ],
+        "__cardBenefit": "Porous ceramic shapes supporting biological filtration",
+        "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "Mixed ceramic filter media"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "yee-07140": {
+    "entityId": "yee-07140",
+    "slug": "cls-107",
+    "sourceHash": "a64a2d831d1a63df",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:14:26.165Z",
+    "data": {
+      "name": "YEE Large Magnetic Glass Cleaner — No Hand Immersion",
+      "description": "Clean the inside glass by moving the tool from outside the aquarium, without immersing your hand in the water each time. The two magnetic pieces move together and help remove light algae and dirt marks from the glass.\n\nKeep it away from sand and gravel during use, as any grain stuck between the tool and the glass can cause scratches.",
+      "subcategory": "Cleaning Tools",
+      "seoTitle": "YEE Magnetic Glass Cleaner | AQUAVO",
+      "seoDescription": "Clean aquarium glass from the outside without getting your hands wet. Features a large, two-piece magnetic design for efficient algae removal.",
+      "specifications": {
+        "benefits": [
+          "Clean glass from the outside without immersing your hand in the water",
+          "Two-piece magnetic design",
+          "Large size covers a wider area with each movement",
+          "Suitable for removing light algae and dirt from glass"
+        ],
+        "usageInstructions": [
+          "Place the inner piece on the glass",
+          "Gradually bring the outer piece closer until it connects magnetically",
+          "Move it slowly over the glass",
+          "Stay away from the substrate to avoid trapping grains under the cleaning surface"
+        ],
+        "safetyWarnings": [
+          "Ensure there is no sand or gravel between the brush and the glass",
+          "Use on the recommended surface type on the packaging",
+          "Do not strike the two magnetic pieces together forcefully",
+          "Clean the brush surface after use"
+        ],
+        "__cardBenefit": "Clean glass from the outside without getting your hands wet",
+        "labelled": {
+          "الحجم": {
+            "label": "Size",
+            "value": "Large"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "yee-07154": {
+    "entityId": "yee-07154",
+    "slug": "ygg-135",
+    "sourceHash": "644fe89e95275a34",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:18:29.755Z",
+    "data": {
+      "name": "YEE Spherical Air Stone - 50mm",
+      "description": "A spherical air diffuser with a 50mm diameter that converts the airflow from an air pump into bubbles distributed around its porous surface, helping to agitate the water surface and improve aeration.\n\nConnect it to a suitable air pump and place it inside the aquarium. Clean it when bubble output weakens or becomes unevenly distributed.",
+      "subcategory": "Air Accessories",
+      "seoTitle": "YEE Spherical Air Stone - 50mm | AQUAVO",
+      "seoDescription": "YEE 50mm spherical air stone diffuses air into fine bubbles, enhancing aquarium aeration and water circulation. Connect to your air pump.",
+      "specifications": {
+        "benefits": [
+          "Distributes air over a spherical surface",
+          "Aids aeration and water movement",
+          "50mm diameter",
+          "Designed for use with a suitable air pump"
+        ],
+        "usageInstructions": [
+          "Connect to air tubing and a suitable pump",
+          "Place in the desired position inside the aquarium",
+          "Turn on the pump and check bubble distribution",
+          "Clean when a noticeable decrease in air output is observed"
+        ],
+        "safetyWarnings": [
+          "Handle gently as the porous material can be damaged by impact",
+          "Do not use pressure higher than recommended for the diffuser or pump",
+          "Replace if it remains clogged or cracked after cleaning"
+        ],
+        "__cardBenefit": "Distributes air over a spherical surface to agitate water and improve aeration",
+        "labelled": {
+          "القطر": {
+            "label": "Diameter",
+            "value": "50mm"
+          },
+          "النوع": {
+            "label": "Type",
+            "value": "Spherical air diffuser"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
   "yee-07509": {
     "entityId": "yee-07509",
     "slug": "yff-049",
     "sourceHash": "fccb6aff9b8fa1c3",
-    "translatedBy": "groq:openai/gpt-oss-120b",
-    "translatedAt": "2026-09-19T00:16:39.803Z",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:22:45.888Z",
     "data": {
-      "name": "Aquascape Substrate for Aquatic Plants — 1.5 or 3 litre",
-      "description": "Start a planted tank with a substrate designed for aquatic plants, offering a dark base for root stability and aquascape design.\n\nDo not wash it aggressively; spread it on the bottom and add water slowly to minimize grain movement and water cloudiness.",
-      "subcategory": "Plant substrate",
-      "seoTitle": "Aquascape Substrate for Aquatic Plants – 1.5 or 3 L | AQUAVO",
-      "seoDescription": "Start a planted tank with a substrate designed for aquatic plants, offering dark color for root stability and aquascape design. Available in 1.5 L or 3 L.",
+      "name": "YEE Aquascape Substrate - 1.5 or 3 L",
+      "description": "Start your planted aquarium with a substrate designed for plants, rather than relying solely on decorative sand. Aquascape substrate helps anchor roots and provides a suitable base for plant arrangements. It is available in 1.5 L or 3 L sizes.\n\nDo not wash it vigorously; spread it on the bottom and fill with water slowly to minimize substrate movement and cloudiness.",
+      "subcategory": "Plant Substrate",
+      "seoTitle": "YEE Aquascape Substrate for Planted Tanks | AQUAVO",
+      "seoDescription": "YEE Aquascape Substrate provides a dark, stable base for planted aquariums. Available in 1.5 L and 3 L, it anchors roots and supports plant growth. Ideal for aquascaping.",
       "specifications": {
         "benefits": [
-          "Available in 1.5 L or 3 L",
-          "Specifically for arranging planted tanks",
-          "Dark color enhances plant and décor visibility",
-          "Can be shaped into slopes and heights for custom aquascape designs"
+          "Available in 1.5 L or 3 L sizes",
+          "Designed for planted aquarium aquascaping",
+          "Dark color enhances plants and decor",
+          "Can be shaped with slopes and heights for aquascaping designs"
         ],
         "usageInstructions": [
-          "Select the appropriate size for the required substrate amount",
-          "Do not wash the substrate aggressively before use",
-          "Distribute it at the suitable thickness for the design",
-          "Plant the flora then slowly add water over a barrier or plate",
-          "Test the water and complete the tank cycle before adding organisms"
+          "Choose the appropriate size for the required substrate amount",
+          "Do not wash the substrate vigorously before use",
+          "Distribute it to the desired thickness for the design",
+          "Plant the plants, then slowly fill with water over a barrier or plate",
+          "Test the water and complete the aquarium cycle before adding inhabitants"
         ],
         "safetyWarnings": [
-          "Avoid stirring the substrate vigorously after the tank is filled",
-          "Do not rely on the substrate alone to set fertilization schedules; plant needs vary",
-          "Monitor water quality during the tank establishment period"
+          "Avoid disturbing the substrate vigorously after filling the aquarium",
+          "Do not rely solely on the substrate for fertilization; plant needs vary",
+          "Monitor water quality during the aquarium setup period"
         ],
-        "__cardBenefit": "Substrate for plants that stabilizes roots and provides a dark aquascape base",
+        "__cardBenefit": "Plant substrate that anchors roots and provides a dark base for aquascaping",
         "labelled": {
           "اللون": {
             "label": "Color",
@@ -3160,7 +3685,7 @@
           },
           "الاستخدام": {
             "label": "Usage",
-            "value": "Substrate for planted tanks and aquascapes"
+            "value": "Substrate for planted aquariums and aquascaping"
           }
         }
       },
@@ -3168,6 +3693,152 @@
         "fine15": "1.5 L",
         "coarse3": "3 L"
       }
+    }
+  },
+  "yee-1-5-1-7": {
+    "entityId": "yee-1-5-1-7",
+    "slug": "yee-3006",
+    "sourceHash": "cabec9a4fe86ec54",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:11:54.785Z",
+    "data": {
+      "name": "YEE Adjustable Stainless Steel Heater - 50 / 100 / 200W",
+      "description": "The YEE heater features an adjustable temperature, metal casing, and is available in 50W, 100W, and 200W capacities. The metal casing makes it a practical choice for those who prefer a heater less prone to breakage than glass tubes.\n\nChoose the appropriate wattage based on the water volume, ambient room temperature, and tank coverage. Monitor the temperature with a separate thermometer. Disconnect power before placing your hand in the water or removing the heater.",
+      "subcategory": "Heaters",
+      "seoTitle": "YEE Stainless Steel Aquarium Heater | AQUAVO",
+      "seoDescription": "Adjustable YEE stainless steel aquarium heater, available in 50W, 100W, and 200W. Durable metal casing, ideal for various tank sizes. Shop now at AQUAVO.",
+      "specifications": {
+        "benefits": [
+          "Metal casing less prone to breakage than glass tubes",
+          "Available capacities: 50W, 100W, 200W",
+          "Adjustable temperature",
+          "Suitable for submersible use according to product instructions"
+        ],
+        "usageInstructions": [
+          "Install the heater inside the aquarium as per package instructions",
+          "Ensure the required submersion level before operation",
+          "Set the desired temperature",
+          "Place in an area with water flow to help distribute heat",
+          "Disconnect power and allow to cool before removing"
+        ],
+        "safetyWarnings": [
+          "Do not operate the heater out of water",
+          "Disconnect power before placing your hand in the aquarium",
+          "Allow the heater to cool before removing it from the water",
+          "Monitor the temperature with a separate thermometer, especially after initial setup"
+        ],
+        "__cardBenefit": "Shatter-resistant stainless steel casing with 3 wattage options",
+        "labelled": {
+          "المادة": {
+            "label": "Material",
+            "value": "Stainless Steel"
+          },
+          "القدرات المتوفرة": {
+            "label": "Available Capacities",
+            "value": "50W / 100W / 200W"
+          }
+        }
+      },
+      "variantLabels": {
+        "50w": "50W",
+        "100w": "100W",
+        "200w": "200W"
+      }
+    }
+  },
+  "yee-11578": {
+    "entityId": "yee-11578",
+    "slug": "nyh-006",
+    "sourceHash": "d9f8db7638ae3826",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:11:29.520Z",
+    "data": {
+      "name": "YEE Porous Biological Filter Media - 500g",
+      "description": "Porous biological filter media weighing 500g, providing a surface for beneficial bacteria to colonize within the filter and allowing water to flow around the media.\n\nPlace it after the mechanical filtration stage to reduce waste reaching the pores. Gently clean it when sediment accumulates, and avoid sterilizing it or replacing all biological media at once.",
+      "subcategory": "Filter Media",
+      "seoTitle": "YEE Porous Biological Filter Media - 500g | AQUAVO",
+      "seoDescription": "YEE 500g porous biological filter media provides a large surface area for beneficial bacteria colonization. Ideal for mechanical filtration stages. Maintain aquarium health.",
+      "specifications": {
+        "benefits": [
+          "Porous structure designed for biological filtration",
+          "3D design allows water to flow around the media",
+          "500g weight",
+          "Use inside multiple filter types depending on chamber space"
+        ],
+        "usageInstructions": [
+          "Rinse off manufacturing dust before use if present",
+          "Place after mechanical filtration inside the filter",
+          "Leave sufficient space for water to flow around the media",
+          "When cleaning is needed, gently rinse off sediment without sterilizing"
+        ],
+        "safetyWarnings": [
+          "Do not use soap or detergents on the media",
+          "After the aquarium is established, avoid washing all biological media at once with chlorinated water",
+          "Do not replace all biological media at the same time without need"
+        ],
+        "__cardBenefit": "500g porous media provides surface area for beneficial bacteria",
+        "labelled": {
+          "الوزن": {
+            "label": "Weight",
+            "value": "500g"
+          },
+          "التصميم": {
+            "label": "Design",
+            "value": "3D porous material"
+          },
+          "نوع الترشيح": {
+            "label": "Filtration Type",
+            "value": "Biological"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "yee-12420": {
+    "entityId": "yee-12420",
+    "slug": "yyh-125",
+    "sourceHash": "9a0fe43f63c7e15d",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:14:12.743Z",
+    "data": {
+      "name": "YEE White Spot Ich Treatment - 300 ml",
+      "description": "A specialized solution to help treat White Spot Disease (Ich) according to the dosage and treatment duration printed on the package. Because Ich medication concentrations vary, do not use a dosage taken from another product.\n\nProvide adequate aeration during treatment, and do not mix with other treatments unless company instructions permit.",
+      "subcategory": "Disease Treatment",
+      "seoTitle": "YEE White Spot Ich Treatment - 300 ml | AQUAVO",
+      "seoDescription": "Specialized solution for treating White Spot Disease (Ich) with 300 ml volume. Follow package dosage and instructions. Ensure proper aeration.",
+      "specifications": {
+        "benefits": [
+          "Specifically for White Spot Disease per product instructions",
+          "300 ml bottle for multiple uses based on dosage",
+          "Usage method depends on actual water volume"
+        ],
+        "usageInstructions": [
+          "Calculate the actual water volume",
+          "Use only the dosage and duration printed on the package",
+          "Remove chemical filter media if instructions require",
+          "Provide adequate aeration and monitor fish",
+          "After the cycle ends, follow water change instructions"
+        ],
+        "safetyWarnings": [
+          "Do not exceed the dosage",
+          "Do not raise the temperature or mix additional medications unless instructions permit",
+          "Verify treatment compatibility with existing fish species",
+          "Keep away from children"
+        ],
+        "__cardBenefit": "Specialized for Ich and white spot treatment per package dosage",
+        "labelled": {
+          "الحجم": {
+            "label": "Size",
+            "value": "300 ml"
+          },
+          "الاستخدام": {
+            "label": "Usage",
+            "value": "White Spot Disease (Ich) according to package instructions"
+          }
+        }
+      },
+      "variantLabels": {}
     }
   },
   "yee-13343": {
@@ -3210,6 +3881,146 @@
           "النوع": {
             "label": "Type",
             "value": "Calcium Deposit Remover"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "yee-16940": {
+    "entityId": "yee-16940",
+    "slug": "yyh-173",
+    "sourceHash": "8e797b322a63c8f6",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:18:24.574Z",
+    "data": {
+      "name": "YEE Water Conditioner - 500ml",
+      "description": "A 500ml water conditioner for preparing tap water or during water changes, according to the package specifications. Calculate the dosage based on the volume of water being treated and follow the product instructions.\n\nDo not assume compatibility with medications or higher dosages unless explicitly stated on the package.",
+      "subcategory": "Water Conditioners",
+      "seoTitle": "YEE Water Conditioner 500ml for Aquariums | AQUAVO",
+      "seoDescription": "YEE 500ml water conditioner for aquarium tap water preparation and water changes. Follow dosage instructions for safe and effective use.",
+      "specifications": {
+        "benefits": [
+          "500ml bottle for multiple uses",
+          "Designed for preparing aquarium water per product data",
+          "Easy to add during water changes according to dosage"
+        ],
+        "usageInstructions": [
+          "Calculate the volume of water to be treated",
+          "Shake the bottle if instructions require",
+          "Use only the printed dosage",
+          "Add the product as specified on the label"
+        ],
+        "safetyWarnings": [
+          "Do not exceed the printed dosage",
+          "Do not mix with other medications or treatments before verifying compatibility",
+          "Keep out of reach of children",
+          "Store according to the storage conditions on the package"
+        ],
+        "__cardBenefit": "500ml water conditioner for aquarium water preparation according to package dosage",
+        "labelled": {
+          "الحجم": {
+            "label": "Size",
+            "value": "500ml"
+          },
+          "النوع": {
+            "label": "Type",
+            "value": "Aquarium Water Conditioner"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "yee-17699a": {
+    "entityId": "yee-17699a",
+    "slug": "yaa-009",
+    "sourceHash": "898e9c3928fa650b",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:11:32.344Z",
+    "data": {
+      "name": "YEE Porous Biological Filter Bricks",
+      "description": "Porous biological filter bricks from YEE designed to provide ample surface area for beneficial bacteria colonization within large filters and sumps. Features a highly porous structure and is manufactured using thermal sintering for stability in water.\n\nPlace after the mechanical filtration stage, ensuring sufficient water flow paths. Gently clean when sediment accumulates.",
+      "subcategory": "Filter Media",
+      "seoTitle": "YEE Porous Biological Filter Bricks | AQUAVO",
+      "seoDescription": "YEE porous biological filter bricks offer high porosity for beneficial bacteria colonization in large filters and sumps. Ideal for biological filtration.",
+      "specifications": {
+        "benefits": [
+          "Highly porous structure",
+          "Provides surface area for beneficial bacteria colonization",
+          "Manufactured using thermal sintering",
+          "Suitable for the biological filtration stage in filters with adequate space"
+        ],
+        "usageInstructions": [
+          "Rinse off manufacturing dust before use if present",
+          "Place the bricks after the mechanical filtration stage",
+          "Leave water flow paths between pieces",
+          "Gently clean when sediment accumulates, without sterilizing"
+        ],
+        "safetyWarnings": [
+          "Do not use soap or detergents for cleaning",
+          "Avoid replacing all biological media at once",
+          "Handle with care to avoid breakage"
+        ],
+        "__cardBenefit": "High porosity provides ample surface area for beneficial bacteria",
+        "labelled": {
+          "الشكل": {
+            "label": "Form",
+            "value": "Porous filter brick"
+          },
+          "نوع الترشيح": {
+            "label": "Filtration Type",
+            "value": "Biological"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "yee-17831": {
+    "entityId": "yee-17831",
+    "slug": "ylc-409",
+    "sourceHash": "fe53a29e0fadf21a",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:11:25.028Z",
+    "data": {
+      "name": "YEE 6-in-1 Filter Media - 500g",
+      "description": "6-in-1 filter media with a total weight of 500 grams, containing six types of filtration materials in one package. Designed to provide a suitable surface for beneficial bacteria colonization and support biological filtration, with good adsorption and water flow properties as per the original packaging.\n\nUse inside the filter chamber or in a suitable media bag. It is preferable to place it after the mechanical filtration stage to reduce the amount of debris reaching the porous media. When cleaning or replacement is needed, do not replace the entire amount at once; replace it gradually to maintain the stability of beneficial bacteria.",
+      "subcategory": "Filter Media",
+      "seoTitle": "YEE 6-in-1 Filter Media - 500g | AQUAVO",
+      "seoDescription": "YEE 6-in-1 filter media, 500g package. Provides a large surface area for beneficial bacteria, supporting biological filtration and water purification. Ideal for aquarium filters.",
+      "specifications": {
+        "benefits": [
+          "Six types of filter media in one package",
+          "Provides surface area for beneficial bacteria colonization",
+          "Supports biological filtration and water purification",
+          "Good adsorption and water flow properties as per the original packaging"
+        ],
+        "usageInstructions": [
+          "Gently rinse the media before use if dusty",
+          "Place inside the filter chamber or in a suitable media bag",
+          "Preferably place after the mechanical filtration stage whenever possible",
+          "When cleaning, use tank water or dechlorinated water to minimize loss of beneficial bacteria",
+          "Do not replace all the media at once; replace gradually in 3 to 5 batches according to package instructions"
+        ],
+        "safetyWarnings": [
+          "Do not use soap or detergents to clean the media",
+          "Do not replace all biological media at once after the tank has cycled",
+          "Keep the product out of reach of children to prevent accidental ingestion"
+        ],
+        "__cardBenefit": "6 types of media in one package to support biological filtration and water purification",
+        "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "6-in-1 Filter Media"
+          },
+          "الوزن": {
+            "label": "Weight",
+            "value": "500g"
+          },
+          "عدد الأنواع": {
+            "label": "Number of Types",
+            "value": "6 types of filter media"
           }
         }
       },
@@ -3262,48 +4073,337 @@
       "variantLabels": {}
     }
   },
+  "yee-19768a": {
+    "entityId": "yee-19768a",
+    "slug": "yyh-207",
+    "sourceHash": "95ac8e7303ccfcc9",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:10:52.599Z",
+    "data": {
+      "name": "YEE Methylene Blue Aquarium Solution - 600ml",
+      "description": "Methylene Blue solution in a 600ml bottle for use according to product concentration and package instructions. May be used for some fungal conditions or to protect eggs when the label indicates.\n\nDo not rely on general dosages from other products. The solution may stain the water, silicone, and surfaces.",
+      "subcategory": "Disease Treatment",
+      "seoTitle": "YEE Methylene Blue Aquarium Solution 600ml | AQUAVO",
+      "seoDescription": "YEE Methylene Blue 600ml solution for aquarium use. Follow package instructions for fungal issues or egg protection. May stain surfaces.",
+      "specifications": {
+        "benefits": [
+          "600ml bottle for repeated use",
+          "Methylene Blue solution for uses indicated on the package",
+          "Apply according to water volume and product concentration"
+        ],
+        "usageInstructions": [
+          "Check product concentration and package instructions",
+          "Calculate actual water volume",
+          "Use only the printed dosage and duration",
+          "Remove chemical filter media if instructions require"
+        ],
+        "safetyWarnings": [
+          "May stain water, silicone, and surfaces",
+          "Do not exceed dosage",
+          "Do not mix with other treatments unless instructions permit",
+          "Keep away from children and avoid skin and eye contact"
+        ],
+        "__cardBenefit": "Methylene Blue for conditions indicated on the 600ml package",
+        "labelled": {
+          "الحجم": {
+            "label": "Size",
+            "value": "600ml"
+          },
+          "المادة الفعالة": {
+            "label": "Active Ingredient",
+            "value": "Methylene Blue (as per product data)"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
   "yee-19939": {
     "entityId": "yee-19939",
     "slug": "mzyl-thalb-600-ml",
     "sourceHash": "f977dc062189b6ae",
-    "translatedBy": "groq:openai/gpt-oss-20b",
-    "translatedAt": "2026-09-19T11:44:04.468Z",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:22:47.326Z",
     "data": {
-      "name": "Algae Remover for Tanks — 600 ml",
-      "description": "Algae remover in a 600 ml bottle for use in freshwater tanks according to the dosage and compatibility printed on the bottle. It helps as part of an algae control plan, along with manual cleaning, lighting adjustment, nutrients, and maintenance.\n\nCheck the product’s compatibility with plants, shrimp, and snails before use, and do not mix it with other treatments unless the instructions allow it.",
+      "name": "YEE Algae Remover - 600ml",
+      "description": "A 600ml bottle of algae remover for freshwater aquariums, dosed according to the instructions and compatibility printed on the bottle. It assists as part of an algae control plan, alongside manual cleaning, adjusting lighting and nutrients, and maintenance.\n\nCheck product compatibility with plants, shrimp, and snails before use, and do not mix with other treatments unless instructions permit.",
       "subcategory": "Water Treatments",
-      "benefits": [
-        "600 ml bottle for repeated use according to dosage",
-        "Designed to help reduce algae per product instructions",
-        "Used as part of a plan that includes cleaning, lighting, and nutrients"
-      ],
-      "usageInstructions": [
-        "Remove as much algae as possible manually",
-        "Calculate the actual water volume",
-        "Verify the product’s compatibility with all existing organisms",
-        "Use the dosage and duration printed on the bottle",
-        "Continue adjusting lighting and maintenance to prevent algae return"
-      ],
-      "safetyWarnings": [
-        "Do not exceed the printed dosage",
-        "Do not mix with other treatments unless the instructions allow it",
-        "Keep out of reach of children",
-        "Stop use if an abnormal reaction appears in organisms"
-      ],
-      "__cardBenefit": "Helps reduce algae with a 600 ml bottle for repeated use",
-      "labelled": {
-        "الحجم": {
-          "label": "Size",
-          "value": "600 ml"
-        },
-        "النوع": {
-          "label": "Type",
-          "value": "Algae Remover for Tanks"
+      "seoTitle": "YEE Algae Remover 600ml for Freshwater Aquariums | AQUAVO",
+      "seoDescription": "YEE 600ml algae remover for freshwater tanks. Use as part of an algae control plan with manual cleaning, lighting, and nutrient adjustments. Check compatibility.",
+      "specifications": {
+        "benefits": [
+          "600ml bottle for repeated use according to dosage",
+          "Designed to help reduce algae as per product instructions",
+          "Used as part of a plan including cleaning and adjusting lighting and nutrients"
+        ],
+        "usageInstructions": [
+          "Remove as much algae as possible manually",
+          "Calculate the actual water volume",
+          "Check product compatibility with all inhabitants",
+          "Use the dosage and duration printed on the bottle",
+          "Continue adjusting lighting and maintenance to prevent algae recurrence"
+        ],
+        "safetyWarnings": [
+          "Do not exceed the printed dosage",
+          "Do not mix with other treatments unless instructions permit",
+          "Keep out of reach of children",
+          "Discontinue use if inhabitants show an abnormal response"
+        ],
+        "__cardBenefit": "Helps reduce algae with a 600ml bottle for repeated use",
+        "labelled": {
+          "الحجم": {
+            "label": "Size",
+            "value": "600ml"
+          },
+          "النوع": {
+            "label": "Type",
+            "value": "Algae Remover for Aquariums"
+          }
         }
       },
-      "variantLabels": {},
-      "seoTitle": "Algae Remover 600ml | AQUAVO",
-      "seoDescription": "A 600 ml algae remover for freshwater tanks, used per dosage instructions. Part of a comprehensive algae control plan with manual cleaning, lighting, nutrients, and maintenance."
+      "variantLabels": {}
+    }
+  },
+  "yee-71934": {
+    "entityId": "yee-71934",
+    "slug": "ylc-410",
+    "sourceHash": "cf92cf94fd1758d2",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:14:32.210Z",
+    "data": {
+      "name": "YEE 16-in-1 Filter Media Set - 2.5 kg",
+      "description": "A set of 16 types of filter media, totaling 2.5 kg according to product data. It combines mechanical, biological, and chemical media for equipping a large filter or sump.\n\nArrange the media according to the water flow direction and the function of each medium, placing mechanical filtration to protect porous media from clogging as much as possible. Use chemical media as needed and according to aquarium instructions.",
+      "subcategory": "Filter Media",
+      "seoTitle": "YEE 16-in-1 Filter Media Set - 2.5 kg | AQUAVO",
+      "seoDescription": "Comprehensive YEE filter media set with 16 types, 2.5 kg total weight. Combines mechanical, biological, and chemical filtration for large aquariums and sumps.",
+      "specifications": {
+        "benefits": [
+          "16 types of filter media in one set",
+          "Total weight 2.5 kg according to product data",
+          "Combines mechanical, biological, and chemical media",
+          "Suitable for equipping large filter chambers according to their size"
+        ],
+        "usageInstructions": [
+          "Rinse media that require rinsing before use",
+          "Arrange media according to the water flow direction in your filter",
+          "Place mechanical filtration before media that need protection from clogging",
+          "Place carbon or chemical media as needed, not necessarily permanently",
+          "Replace or clean each medium according to its condition and instructions"
+        ],
+        "safetyWarnings": [
+          "Do not replace all biological filter media at once",
+          "Remove carbon during treatment if medication instructions require it",
+          "Verify the nature of each medium before using it in a sensitive aquarium"
+        ],
+        "__cardBenefit": "16 types of media combining multiple filtration stages in one set",
+        "labelled": {
+          "الوزن": {
+            "label": "Weight",
+            "value": "2.5 kg"
+          },
+          "عدد الأنواع": {
+            "label": "Number of Types",
+            "value": "16 types according to product data"
+          },
+          "أنواع الفلترة": {
+            "label": "Filtration Types",
+            "value": "Mechanical + Biological + Chemical"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "yee-c1-1065-1": {
+    "entityId": "yee-c1-1065-1",
+    "slug": "c1-1065",
+    "sourceHash": "a2dbcef62daa1406",
+    "translatedBy": "groq:openai/gpt-oss-20b",
+    "translatedAt": "2026-09-19T12:11:06.522Z",
+    "data": {
+      "name": "YEE Butterfly Carp Food — 300 g",
+      "description": "YEE food designed for Butterfly Carp with a 300 g pack and 1.5 mm pellets. YEE adds astaxanthin, spirulina, and prebiotics to support nutrition and enhance natural color.\n\nProvide a small amount that fish can consume without leftovers, and follow the feeding instructions and nutritional analysis printed on the package.",
+      "subcategory": "Specialized Feed",
+      "seoTitle": "YEE Butterfly Carp Food 300g | AQUAVO",
+      "seoDescription": "YEE Butterfly Carp Food 300g offers 1.5 mm pellets enriched with astaxanthin, spirulina, and prebiotics for optimal nutrition and color enhancement.",
+      "specifications": {
+        "benefits": [
+          "Designed for Butterfly Carp per YEE",
+          "Contains astaxanthin per company",
+          "Contains spirulina per company",
+          "Includes prebiotics per company"
+        ],
+        "usageInstructions": [
+          "Serve a small amount that can be consumed without leftovers",
+          "Adjust quantity based on fish size and number",
+          "Seal the pack tightly after use",
+          "Follow printed feeding instructions on the pack"
+        ],
+        "safetyWarnings": [
+          "Do not overfeed",
+          "Remove uneaten food",
+          "Store the pack dry and sealed",
+          "Rely on printed nutritional analysis for precise ratios when needed"
+        ],
+        "__cardBenefit": "Food for Butterfly Carp with spirulina and astaxanthin",
+        "labelled": {
+          "الوزن": {
+            "label": "Weight",
+            "value": "300 g"
+          },
+          "حجم الحبيبات": {
+            "label": "Pellet Size",
+            "value": "1.5 mm per product data"
+          },
+          "الفئة المستهدفة": {
+            "label": "Target Category",
+            "value": "Butterfly Carp (Butterfly Carp)"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "yee-c1-1066-2": {
+    "entityId": "yee-c1-1066-2",
+    "slug": "c1-1066",
+    "sourceHash": "3ad2294804bdf828",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:18:27.469Z",
+    "data": {
+      "name": "YEE Ornamental Shrimp Food — 260g",
+      "description": "A sinking food that reaches ornamental shrimp directly at their feeding grounds, rather than floating on the surface. According to product data, it contains no less than 40% crude protein and includes ingredients such as fish meal, krill, and spirulina, with Bacillus subtilis in the formula.\n\nOffer a small amount to the bottom and monitor consumption, removing leftovers as needed to maintain water quality.",
+      "subcategory": "Shrimp Food",
+      "seoTitle": "YEE Ornamental Shrimp Food 260g | AQUAVO",
+      "seoDescription": "Sinking food for ornamental shrimp with over 40% crude protein. Contains fish meal, krill, spirulina, and Bacillus subtilis. Suitable for Crystal Shrimp.",
+      "specifications": {
+        "benefits": [
+          "Sinking food specifically for ornamental shrimp",
+          "No less than 40% crude protein according to product data",
+          "Formula includes fish meal, krill, and spirulina",
+          "Product data indicates Bacillus subtilis in the formula"
+        ],
+        "usageInstructions": [
+          "Offer a small amount that reaches the bottom and is consumed within approximately 5 minutes",
+          "Feed 2 to 3 times daily, depending on the number of shrimp and tank size",
+          "Remove uneaten leftovers after about 30 minutes",
+          "Seal the package tightly and store in a cool, dry place"
+        ],
+        "safetyWarnings": [
+          "Avoid overfeeding to maintain water quality",
+          "Monitor shrimp response when changing food type",
+          "Do not use the product if its smell changes or it shows signs of spoilage"
+        ],
+        "__cardBenefit": "Sinking food reaches shrimp directly with 40%+ protein",
+        "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "Sinking food flakes/pellets for shrimp"
+          },
+          "الوزن": {
+            "label": "Weight",
+            "value": "260g"
+          },
+          "رطوبة": {
+            "label": "Moisture",
+            "value": "≤ 10.0%"
+          },
+          "لايسين": {
+            "label": "Lysine",
+            "value": "≥ 1.6%"
+          },
+          "دهون خام": {
+            "label": "Crude Fat",
+            "value": "≥ 4.0%"
+          },
+          "رماد خام": {
+            "label": "Crude Ash",
+            "value": "≤ 13.0%"
+          },
+          "المكونات": {
+            "label": "Ingredients",
+            "value": "Wheat flour, white fish meal, krill meal, soybean meal, corn protein meal, nutritional yeast, fish/squid viscera meal, spirulina powder, fish oil, beneficial bacteria (Bacillus subtilis), vitamins, and natural minerals"
+          },
+          "ألياف خام": {
+            "label": "Crude Fiber",
+            "value": "≤ 6.0%"
+          },
+          "بروتين خام": {
+            "label": "Crude Protein",
+            "value": "≥ 40.0%"
+          },
+          "البروبيوتيك": {
+            "label": "Probiotics",
+            "value": "Bacillus subtilis"
+          },
+          "طريقة الإطعام": {
+            "label": "Feeding Method",
+            "value": "2–3 times daily with an amount consumed within 5 minutes; leftovers removed after 30 minutes"
+          },
+          "طريقة التخزين": {
+            "label": "Storage Method",
+            "value": "Cool, dry, well-ventilated place, away from direct light and sources of contamination"
+          },
+          "إجمالي الفوسفور": {
+            "label": "Total Phosphorus",
+            "value": "≥ 1.2%"
+          },
+          "الروبيان المناسب": {
+            "label": "Suitable Shrimp",
+            "value": "Crystal Shrimp and similar ornamental shrimp species"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "yee-c1-1073-1a": {
+    "entityId": "yee-c1-1073-1a",
+    "slug": "alf-albyta-almqatl-230-jm",
+    "sourceHash": "65651e6297447b08",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:14:24.317Z",
+    "data": {
+      "name": "YEE Betta Fish Food - 130g",
+      "description": "Small 0.8 mm pellets designed for the betta fish mouth, making it easier for you to provide a measured amount instead of large pellets that may remain in the aquarium. The package is 130g and intended for daily use according to product instructions.\n\nFeed a small amount and monitor consumption, adjusting it based on the fish's size and appetite, and avoid leftover food.",
+      "subcategory": "Specialty Foods",
+      "seoTitle": "YEE Betta Fish Food - 130g | AQUAVO",
+      "seoDescription": "YEE Betta fish food features small 0.8mm pellets suitable for betta mouths. 130g package for daily feeding. Easy to control portions.",
+      "specifications": {
+        "benefits": [
+          "Food specifically for betta fish",
+          "130g package for repeated use",
+          "Small pellets suitable for betta mouths per product data",
+          "Easy to feed in small quantities for feeding control"
+        ],
+        "usageInstructions": [
+          "Feed a small amount in each meal",
+          "Monitor fish consumption and avoid leaving leftovers in the aquarium",
+          "Adjust the amount based on the fish's size and appetite",
+          "Close the package tightly after use"
+        ],
+        "safetyWarnings": [
+          "Do not overfeed, as leftover food degrades water quality",
+          "Keep the package tightly sealed and away from moisture and heat",
+          "Follow package instructions if a dosage or duration of use after opening is specified"
+        ],
+        "__cardBenefit": "0.8 mm pellets designed for betta mouths for easier and more precise feeding",
+        "labelled": {
+          "الوزن": {
+            "label": "Weight",
+            "value": "130g"
+          },
+          "حجم الحبيبات": {
+            "label": "Pellet Size",
+            "value": "0.8mm per product data"
+          },
+          "الأسماك المناسبة": {
+            "label": "Suitable Fish",
+            "value": "Betta"
+          }
+        }
+      },
+      "variantLabels": {}
     }
   },
   "yee-c1-1082-2a": {
@@ -3360,41 +4460,293 @@
       "variantLabels": {}
     }
   },
+  "yee-c1-1082-5": {
+    "entityId": "yee-c1-1082-5",
+    "slug": "c1-1082",
+    "sourceHash": "0949af2b6c4ece3b",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:11:10.044Z",
+    "data": {
+      "name": "YEE High Protein Ornamental Fish Food - 115g",
+      "description": "YEE food with 0.5mm micro-granules for small ornamental fish, weighing 115g and containing no less than 48% crude protein according to product data. The formulation includes protein sources such as fish meal and krill, along with spirulina, astaxanthin, and beta-carotene.\n\nFeed a small amount suitable for the number and size of the fish, ensuring it is consumed without significant residue. Seal the package tightly and store in a cool, dry place away from moisture and direct light.",
+      "subcategory": "General Feed",
+      "seoTitle": "YEE High Protein Ornamental Fish Food - 115g | AQUAVO",
+      "seoDescription": "YEE 115g micro-granule fish food with 48%+ crude protein, spirulina, astaxanthin, and beta-carotene for small ornamental fish.",
+      "specifications": {
+        "benefits": [
+          "No less than 48% crude protein according to product data",
+          "0.5mm micro-granules suitable for small-mouthed ornamental fish",
+          "Contains protein sources such as fish meal and krill",
+          "Formulation includes spirulina, astaxanthin, and beta-carotene according to product data"
+        ],
+        "usageInstructions": [
+          "Feed 2 to 3 times daily",
+          "Use an amount that the fish consume completely within 5 minutes",
+          "Adjust the quantity based on the aquarium environment and fish health",
+          "Seal the package tightly after each use"
+        ],
+        "safetyWarnings": [
+          "Do not overfeed to avoid water pollution",
+          "Keep away from moisture, direct light, and sources of contamination"
+        ],
+        "__cardBenefit": "48%+ Protein & 0.5mm Granules for Small-Mouthed Fish",
+        "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "Micro-granule food for ornamental fish"
+          },
+          "الوزن": {
+            "label": "Weight",
+            "value": "115g"
+          },
+          "رطوبة": {
+            "label": "Moisture",
+            "value": "≤ 10.0%"
+          },
+          "لايسين": {
+            "label": "Lysine",
+            "value": "≥ 1.0%"
+          },
+          "دهون خام": {
+            "label": "Crude Fat",
+            "value": "≥ 3.0%"
+          },
+          "رماد خام": {
+            "label": "Crude Ash",
+            "value": "≤ 16.0%"
+          },
+          "المغذيات": {
+            "label": "Nutrients",
+            "value": "Various vitamins and natural minerals"
+          },
+          "ألياف خام": {
+            "label": "Crude Fiber",
+            "value": "≤ 6.0%"
+          },
+          "بروتين خام": {
+            "label": "Crude Protein",
+            "value": "≥ 48.0%"
+          },
+          "حجم الحبيبات": {
+            "label": "Granule Size",
+            "value": "0.5mm"
+          },
+          "مدة الصلاحية": {
+            "label": "Shelf Life",
+            "value": "24 months from production date"
+          },
+          "طريقة الإطعام": {
+            "label": "Feeding Method",
+            "value": "2–3 times daily with an amount consumed within 5 minutes, adjusted according to fish environment and health"
+          },
+          "طريقة التخزين": {
+            "label": "Storage Method",
+            "value": "Cool, dry, well-ventilated place, away from direct light and contamination, with the package sealed tightly after opening"
+          },
+          "إجمالي الفوسفور": {
+            "label": "Total Phosphorus",
+            "value": "≥ 0.8%"
+          },
+          "الفئة المستهدفة": {
+            "label": "Target Category",
+            "value": "Small ornamental fish"
+          },
+          "المكونات الأساسية": {
+            "label": "Key Ingredients",
+            "value": "Fish meal, krill meal, wheat flour, soybean meal, and corn protein meal"
+          },
+          "معززات الصحة والألوان": {
+            "label": "Health and Color Enhancers",
+            "value": "Astaxanthin, beta-carotene, spirulina powder, seaweed (kelp) powder, fish oil, lecithin, and brewer's yeast powder"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "yee-c1-1086-1": {
+    "entityId": "yee-c1-1086-1",
+    "slug": "c1-1086",
+    "sourceHash": "0a9f8aa2eb5ef290",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:10:56.461Z",
+    "data": {
+      "name": "YEE Freeze-Dried Brine Shrimp - 18g",
+      "description": "YEE Freeze-Dried Brine Shrimp in an 18g package, suitable as a supplementary food for ornamental fish. The freeze-drying technology facilitates storage and serving while preserving the form of the dried food.\n\nBreak the piece into a size suitable for the fish, and offer only a small amount to avoid residue buildup in the water. Keep the package dry and tightly sealed.",
+      "subcategory": "Live & Dried Food",
+      "seoTitle": "YEE Freeze-Dried Brine Shrimp 18g | AQUAVO",
+      "seoDescription": "YEE Freeze-Dried Brine Shrimp (18g) for ornamental fish. Easy to store and serve, this supplementary food preserves nutrients. Break to size.",
+      "specifications": {
+        "benefits": [
+          "Freeze-dried brine shrimp",
+          "FD technology by YEE",
+          "Easy storage and serving compared to live food",
+          "Can be broken down to suit different fish sizes"
+        ],
+        "usageInstructions": [
+          "Break the piece into a size suitable for the fish",
+          "Offer a small amount",
+          "Remove uneaten portions",
+          "Seal the package tightly after use"
+        ],
+        "safetyWarnings": [
+          "Do not overfeed",
+          "Keep the package dry and tightly sealed",
+          "Discard the product if signs of damage or moisture appear"
+        ],
+        "__cardBenefit": "Easy-to-serve and store freeze-dried brine shrimp as a supplementary food",
+        "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "Freeze-Dried Brine Shrimp"
+          },
+          "الوزن": {
+            "label": "Weight",
+            "value": "18g"
+          },
+          "الاستخدام": {
+            "label": "Usage",
+            "value": "Supplementary food for ornamental fish"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "yee-c1-1113-2": {
+    "entityId": "yee-c1-1113-2",
+    "slug": "c1-1113",
+    "sourceHash": "fcf4fb02fe4d84d6",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:18:27.914Z",
+    "data": {
+      "name": "YEE 0.6mm Micro Pellet Fish Food - 75g",
+      "description": "YEE fish food with 0.6mm micro pellets in a 75g package, specifically designed for small-mouthed fish such as guppies, tetras, rasboras, and similar small ornamental fish.\n\nThe small pellets make it easy to distribute an appropriate amount to small fish. Feed only what the fish can consume quickly without leaving leftovers, and seal the package tightly after use.",
+      "subcategory": "General Feed",
+      "seoTitle": "YEE 0.6mm Micro Pellet Fish Food - 75g | AQUAVO",
+      "seoDescription": "YEE 0.6mm micro pellet fish food for small-mouthed ornamental fish like guppies and tetras. 75g package.",
+      "specifications": {
+        "benefits": [
+          "0.6mm micro pellets for small-mouthed fish",
+          "75g package",
+          "Designed for small ornamental fish",
+          "Easy to control feeding amount due to small pellet size"
+        ],
+        "usageInstructions": [
+          "Feed a small amount that fish can consume quickly",
+          "Distribute food so fish can reach it without overfeeding",
+          "Monitor for leftover food and adjust the amount",
+          "Seal the package tightly after use"
+        ],
+        "safetyWarnings": [
+          "Do not overfeed",
+          "Remove uneaten food residue",
+          "Keep the package tightly sealed and away from moisture"
+        ],
+        "__cardBenefit": "0.6mm pellets facilitate feeding for small-mouthed fish",
+        "labelled": {
+          "الوزن": {
+            "label": "Weight",
+            "value": "75g"
+          },
+          "حجم الحبيبات": {
+            "label": "Pellet Size",
+            "value": "0.6mm"
+          },
+          "الأسماك المناسبة": {
+            "label": "Suitable Fish",
+            "value": "Small ornamental fish such as guppies, tetras, and rasboras, depending on mouth size"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "yee-c1-1124-1": {
+    "entityId": "yee-c1-1124-1",
+    "slug": "c1-1124",
+    "sourceHash": "f1dcbd7bc359d22f",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:10:54.682Z",
+    "data": {
+      "name": "YEE Betta Fish Food - 15g",
+      "description": "YEE food specifically for Betta (Fighter) fish in a 15-gram package, with a small size suitable for use with one or a few fish.\n\nOffer a small amount that the fish can consume without leftovers, and adjust the quantity based on its size and appetite, following the feeding instructions printed on the package.",
+      "subcategory": "Specialty Foods",
+      "seoTitle": "YEE Betta Fish Food - 15g | AQUAVO",
+      "seoDescription": "YEE Betta fish food, 15g pack. Specifically formulated for Betta fish, easy to portion and store. Ideal for single or few fish tanks.",
+      "specifications": {
+        "benefits": [
+          "Specifically formulated for Betta (Fighter) fish nutrition",
+          "15g package suitable for one or a few fish",
+          "Easy to offer in small portions",
+          "Easy to store and use"
+        ],
+        "usageInstructions": [
+          "Offer a small amount that can be consumed without leftovers",
+          "Monitor the fish's response and adjust the quantity based on its size and appetite",
+          "Close the package tightly after each use",
+          "Follow the feeding schedule printed on the package if available"
+        ],
+        "safetyWarnings": [
+          "Do not overfeed",
+          "Remove uneaten food",
+          "Store away from moisture and heat",
+          "Follow package instructions for specific dosage or storage instructions if available"
+        ],
+        "__cardBenefit": "Small pack for Betta, easy to control feeding portions",
+        "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "Food specifically for Betta (Fighter) fish"
+          },
+          "الوزن": {
+            "label": "Weight",
+            "value": "15g"
+          },
+          "الأسماك المناسبة": {
+            "label": "Suitable Fish",
+            "value": "Fighter (Betta)"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
   "yee-c1-1125-1": {
     "entityId": "yee-c1-1125-1",
     "slug": "c1-1125",
     "sourceHash": "e760dd98e3e3e590",
-    "translatedBy": "groq:openai/gpt-oss-20b",
-    "translatedAt": "2026-09-19T12:31:05.549Z",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:10:58.480Z",
     "data": {
-      "name": "YEE Crayfish Dry Food — 55g",
-      "description": "Dry food designed for crayfish in a 55g pack, easy to serve in small portions and suitable for a varied diet.\n\nServe an appropriate amount in a clean dish, monitor consumption and remove leftovers before spoilage. Store the pack in a dry, tightly sealed place.",
-      "subcategory": "Specialized Feed",
-      "seoTitle": "YEE Crayfish Dry Food 55g | AQUAVO",
-      "seoDescription": "Dry food for crayfish, 55g pack, easy to serve in small portions, suitable for a varied diet. Store in a dry, sealed container.",
+      "name": "YEE Dried Hermit Crab Food - 55g",
+      "description": "Dried food specifically for hermit crabs in a 55g package. Easy to serve in small portions and can be used as part of a varied diet.\n\nServe an appropriate amount in a clean dish, monitor consumption, and remove leftovers before they spoil. Store the package in a dry, sealed place.",
+      "subcategory": "Specialty Foods",
+      "seoTitle": "YEE Dried Hermit Crab Food - 55g | AQUAVO",
+      "seoDescription": "Dried food for hermit crabs, 55g package. Easy to serve in small portions as part of a varied diet. Store dry and sealed.",
       "specifications": {
         "benefits": [
-          "Dry food designed for crayfish per product data",
-          "55g pack",
+          "Dried food specifically for hermit crabs",
+          "55g package",
           "Easy to serve in small portions",
-          "Suitable for a varied diet"
+          "Can be used as part of a varied diet"
         ],
         "usageInstructions": [
           "Place a small amount in the food dish",
           "Monitor consumption and remove leftovers as needed",
-          "Provide appropriate dietary variety for the species you raise",
-          "Keep the pack dry and sealed after use"
+          "Provide dietary variety suitable for the species you keep",
+          "Keep the package dry and sealed after use"
         ],
         "safetyWarnings": [
-          "Remove food if it starts to spoil or rot",
-          "Store the pack tightly sealed in a dry place",
-          "Do not rely on a single product as the sole diet unless the pack specifies it"
+          "Remove food if it begins to spoil or mold",
+          "Keep the package tightly sealed and in a dry place",
+          "Do not rely on a single product as a complete diet unless stated on the package"
         ],
-        "__cardBenefit": "Dry food designed for crayfish and easy to serve in measured portions",
+        "__cardBenefit": "Dried food for hermit crabs, easy to serve in a measured portion",
         "labelled": {
           "النوع": {
             "label": "Type",
-            "value": "Dry food for crayfish"
+            "value": "Dried food for hermit crabs"
           },
           "الوزن": {
             "label": "Weight",
@@ -3402,7 +4754,162 @@
           },
           "الحيوانات المناسبة": {
             "label": "Suitable Animals",
-            "value": "Crayfish"
+            "value": "Hermit crabs"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "yee-c1-1127-1": {
+    "entityId": "yee-c1-1127-1",
+    "slug": "c1-1127",
+    "sourceHash": "a0d1262cba3944fa",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:11:14.121Z",
+    "data": {
+      "name": "YEE Goldfish & Rancho Spirulina Food - 290g",
+      "description": "Food for goldfish and ranchu with 3mm pellets, containing spirulina and probiotics in its formulation. A specialized option for these fish instead of using general food with unknown pellet size or composition.\n\nOffer small meals according to the number and size of the fish, and stop feeding before clear residue accumulates in the aquarium.",
+      "subcategory": "Goldfish Food",
+      "seoTitle": "YEE Goldfish & Rancho Spirulina Food - 290g | AQUAVO",
+      "seoDescription": "Specialized 3mm pellet food for goldfish and ranchu, enriched with spirulina and probiotics. Promotes healthy growth and vibrant colors. Suitable for similar ornamental fish.",
+      "specifications": {
+        "benefits": [
+          "Specially formulated for goldfish and ranchu",
+          "290g package",
+          "3mm pellets",
+          "Contains spirulina and probiotics within the product line"
+        ],
+        "usageInstructions": [
+          "Offer a small amount that can be consumed without residue",
+          "Adjust the quantity based on the size and number of fish and their activity level",
+          "Monitor water quality when changing food type",
+          "Close the package tightly after use"
+        ],
+        "safetyWarnings": [
+          "Do not overfeed",
+          "Remove uneaten food residue",
+          "Keep the package dry and closed",
+          "Refer to the printed nutritional analysis on your package for exact percentages if needed"
+        ],
+        "__cardBenefit": "3mm pellets for goldfish and ranchu with spirulina in the formula",
+        "labelled": {
+          "الوزن": {
+            "label": "Weight",
+            "value": "290g"
+          },
+          "حجم الحبيبات": {
+            "label": "Pellet Size",
+            "value": "3mm"
+          },
+          "الأسماك المناسبة": {
+            "label": "Suitable Fish",
+            "value": "Goldfish, ranchu, and similar ornamental fish"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "yee-c1-1134-6": {
+    "entityId": "yee-c1-1134-6",
+    "slug": "c1-1134",
+    "sourceHash": "1fadd168d982fea4",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:18:26.073Z",
+    "data": {
+      "name": "YEE Goldfish & Ranchu Food - 500g",
+      "description": "Large 500g pack for goldfish and ranchu, with 1.5mm pellets and a minimum of 45% crude protein according to product data. The formula contains fish meal, spirulina, shrimp, and nutritional yeast.\n\nFeed an amount suitable for the number and size of fish, ensuring it is consumed without significant leftovers. Keep the package sealed and dry after opening.",
+      "subcategory": "Goldfish Food",
+      "seoTitle": "YEE Goldfish & Ranchu Food 500g | AQUAVO",
+      "seoDescription": "YEE Goldfish & Ranchu food, 500g pack with 1.5mm pellets and 45%+ crude protein. Contains fish meal, spirulina, shrimp, and yeast. Ideal for goldfish and ranchu.",
+      "specifications": {
+        "benefits": [
+          "Specifically for goldfish and ranchu",
+          "Minimum 45% crude protein according to product data",
+          "1.5mm pellet size",
+          "Formula includes fish meal, spirulina, shrimp, and nutritional yeast"
+        ],
+        "usageInstructions": [
+          "Feed 2–3 times daily",
+          "Offer an amount that the fish consume completely within 3–5 minutes",
+          "Small, frequent meals are preferred",
+          "Close the package tightly after opening"
+        ],
+        "safetyWarnings": [
+          "Do not overfeed",
+          "Remove any remaining food to maintain water quality",
+          "Store away from moisture, direct light, and sources of contamination"
+        ],
+        "__cardBenefit": "45%+ protein and 1.5mm pellets for goldfish and ranchu",
+        "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "Puffed Pellet Feed"
+          },
+          "الوزن": {
+            "label": "Weight",
+            "value": "500g"
+          },
+          "رطوبة": {
+            "label": "Moisture",
+            "value": "≤ 10.0%"
+          },
+          "لايسين": {
+            "label": "Lysine",
+            "value": "≥ 1.6%"
+          },
+          "التعبئة": {
+            "label": "Packaging",
+            "value": "Bag"
+          },
+          "دهون خام": {
+            "label": "Crude Fat",
+            "value": "≥ 3.0%"
+          },
+          "رماد خام": {
+            "label": "Crude Ash",
+            "value": "≤ 16.0%"
+          },
+          "ألياف خام": {
+            "label": "Crude Fiber",
+            "value": "≤ 16.0%"
+          },
+          "بروتين خام": {
+            "label": "Crude Protein",
+            "value": "≥ 45.0%"
+          },
+          "حجم الحبيبات": {
+            "label": "Pellet Size",
+            "value": "1.5mm"
+          },
+          "مدة الصلاحية": {
+            "label": "Shelf Life",
+            "value": "24 months from the production date printed on the package"
+          },
+          "طريقة الإطعام": {
+            "label": "Feeding Method",
+            "value": "2–3 times daily in an amount consumed within 3–5 minutes, with preference for small, frequent meals"
+          },
+          "طريقة التخزين": {
+            "label": "Storage Method",
+            "value": "Cool, dry, well-ventilated place, away from direct light and sources of contamination, with the package sealed tightly after opening"
+          },
+          "إجمالي الفوسفور": {
+            "label": "Total Phosphorus",
+            "value": "≥ 0.8%"
+          },
+          "الأسماك المناسبة": {
+            "label": "Suitable Fish",
+            "value": "Goldfish / Ranchu"
+          },
+          "المكونات الأساسية": {
+            "label": "Key Ingredients",
+            "value": "Fish meal, spirulina powder, nutritional yeast powder, chicken liver powder, shrimp powder, soybean meal, wheat flour, corn protein meal, and seaweed powder (kelp)"
+          },
+          "الفيتامينات والمعادن": {
+            "label": "Vitamins and Minerals",
+            "value": "Ferrous sulfate and Vitamin A"
           }
         }
       },
@@ -3506,6 +5013,391 @@
       "variantLabels": {
         "400ml": "400 ml",
         "760ml": "760 ml"
+      }
+    }
+  },
+  "yee-c3-1010-3": {
+    "entityId": "yee-c3-1010-3",
+    "slug": "c3-1010",
+    "sourceHash": "7485f4db051d10c3",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:10:48.989Z",
+    "data": {
+      "name": "YEE Ammonia or Nitrite Liquid Test — 60 or 100 Tests",
+      "description": "Test one of the most important water quality indicators in your aquarium with a clear and easy-to-read liquid test.\n\nThis product is available in two separate options: an ammonia test for approximately 60 tests, or a nitrite test for approximately 100 tests. Choose the required test type before purchasing.\n\nEach option uses a reagent solution and a color chart for result comparison, helping you monitor the nitrogen cycle and water quality in both new and established aquariums. In a stable aquarium, the target reading for ammonia or nitrite is 0 ppm.\n\nFollow the package instructions for the option you purchased regarding sample volume, number of drops, and waiting time, then compare the sample color with the reference chart.",
+      "subcategory": "Water Test Kits",
+      "seoTitle": "YEE Ammonia/Nitrite Test Kit for Aquariums | AQUAVO",
+      "seoDescription": "Accurately test ammonia or nitrite levels in your aquarium with YEE liquid test kits. Available for ~60 (ammonia) or ~100 (nitrite) tests. Monitor water quality.",
+      "specifications": {
+        "benefits": [
+          "Choose the test you need: ammonia or nitrite",
+          "Ammonia test provides approximately 60 tests",
+          "Nitrite test provides approximately 100 tests",
+          "Reference color chart helps in easy result reading",
+          "Useful for monitoring the nitrogen cycle and water quality in new and established aquariums"
+        ],
+        "usageInstructions": [
+          "Select the ammonia test or nitrite test based on the parameter you want to measure",
+          "Take a water sample in the provided test tube",
+          "Add the reagent in the specified amount on the test package",
+          "Follow the waiting time printed on the package, then compare the color with the reference chart",
+          "Repeat the test during the tank's cycle or when suspecting a water quality issue"
+        ],
+        "safetyWarnings": [
+          "Keep test solutions away from children and eyes",
+          "Do not swallow test solutions",
+          "Wash your hands after use",
+          "Keep the package closed and away from direct sunlight"
+        ],
+        "__cardBenefit": "Detect ammonia or nitrite with a liquid test to monitor water safety",
+        "labelled": {
+          "التوافق": {
+            "label": "Compatibility",
+            "value": "Freshwater and saltwater aquariums"
+          },
+          "الخيارات": {
+            "label": "Options",
+            "value": "Ammonia (NH3/NH4+) — approx. 60 tests | Nitrite (NO2−) — approx. 100 tests"
+          },
+          "طريقة القياس": {
+            "label": "Measurement Method",
+            "value": "Reagent solution + color chart comparison"
+          },
+          "النتيجة المستهدفة": {
+            "label": "Target Reading",
+            "value": "0 ppm for ammonia or nitrite in a stable aquarium"
+          }
+        }
+      },
+      "variantLabels": {
+        "ammonia": "Ammonia Test — approx. 60 tests",
+        "nitrite": "Nitrite Test — approx. 100 tests"
+      }
+    }
+  },
+  "yee-c4-1008-1": {
+    "entityId": "yee-c4-1008-1",
+    "slug": "c4-1008",
+    "sourceHash": "3187aa585bc90206",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:11:37.144Z",
+    "data": {
+      "name": "YEE Breeding Box",
+      "description": "A floating, transparent isolation and breeding box for temporary separation inside the aquarium. Suitable for pregnant fish, protecting fry, or isolating a fish from others for a limited time. Its design allows for observation and feeding while the box remains inside the main aquarium.\n\nThe box shares aquarium water, so it is not a separate quarantine tank and does not prevent disease transmission through water. Keep it clean and regularly remove food debris.",
+      "subcategory": "Isolation Boxes",
+      "seoTitle": "YEE Breeding Box for Fish Fry Protection | AQUAVO",
+      "seoDescription": "Floating transparent breeding box by YEE for temporary fish isolation and fry protection. Easy observation and feeding. Shares aquarium water. In stock at AQUAVO.",
+      "specifications": {
+        "benefits": [
+          "Floating box for temporary separation inside the aquarium",
+          "Suitable for pregnant fish or fry protection depending on opening size",
+          "Transparent design facilitates observation and feeding",
+          "Two layers allow for space division according to product design"
+        ],
+        "usageInstructions": [
+          "Rinse the box with water before use",
+          "Place in a calm area with adequate water flow through the openings",
+          "Gently transfer the fish or fry, ensuring their size is compatible with the openings",
+          "Remove food debris and clean the openings regularly"
+        ],
+        "safetyWarnings": [
+          "Shares main aquarium water, so it is not a separate quarantine tank",
+          "Do not overcrowd the internal space with too many fish",
+          "Ensure the opening size does not allow fry intended for protection to escape",
+          "Monitor water flow and box cleanliness regularly"
+        ],
+        "__cardBenefit": "Isolates pregnant fish or protects fry within the same aquarium",
+        "labelled": {
+          "الغطاء": {
+            "label": "Lid",
+            "value": "Transparent with feeding opening"
+          },
+          "المادة": {
+            "label": "Material",
+            "value": "Clear acrylic"
+          },
+          "التثبيت": {
+            "label": "Mounting",
+            "value": "Self-floating + optional suction cups"
+          },
+          "التصميم": {
+            "label": "Design",
+            "value": "Floating — floats on the water surface"
+          },
+          "عدد الطبقات": {
+            "label": "Number of Layers",
+            "value": "Double layer"
+          },
+          "فتحات التدفّق": {
+            "label": "Flow Openings",
+            "value": "Approximately 1 mm according to product data; check suitability for fry size"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "yee-c4-1103-4": {
+    "entityId": "yee-c4-1103-4",
+    "slug": "c4-1103",
+    "sourceHash": "58f07e17149efe15",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:11:47.785Z",
+    "data": {
+      "name": "YEE Adjustable Temperature Submersible Heater - 100W",
+      "description": "A 100W submersible heater designed to stabilize aquarium temperature, featuring a black casing and adjustable control. It should be placed inside the aquarium in an area with water flow to aid heat distribution.\n\nThe suitability of the 100W rating depends on the water volume, ambient room temperature, and aquarium cover. Therefore, monitor the temperature with a separate thermometer and do not rely solely on the heater's rating.",
+      "subcategory": "Heaters",
+      "seoTitle": "YEE 100W Adjustable Submersible Aquarium Heater | AQUAVO",
+      "seoDescription": "YEE 100W submersible aquarium heater with adjustable temperature control (16-34°C). Stainless steel construction, suitable for freshwater tanks. Maintain stable aquarium temperature.",
+      "specifications": {
+        "benefits": [
+          "100W power to help stabilize aquarium temperature",
+          "Black design for less visibility inside the aquarium",
+          "304 stainless steel body",
+          "Adjustable range from 16 to 34 °C",
+          "Indicator light for operating status"
+        ],
+        "usageInstructions": [
+          "Install the heater inside the aquarium using the included mounting accessories",
+          "Submerge it completely before connecting the power",
+          "Wait 15 minutes after submersion, then turn it on",
+          "Place it near water flow for heat distribution",
+          "Monitor the temperature with a separate thermometer during the first few hours",
+          "Disconnect the power and wait 15 minutes before removing it"
+        ],
+        "safetyWarnings": [
+          "Do not operate the heater out of water",
+          "Disconnect the power before maintenance or placing your hand in the aquarium",
+          "Ensure the heater remains fully submerged during operation",
+          "Do not use if there is visible damage to the cord or body",
+          "Monitor the temperature with a separate thermometer and do not rely solely on the heater's scale"
+        ],
+        "__cardBenefit": "Helps stabilize aquarium temperature with direct adjustment from 16–34°C",
+        "labelled": {
+          "اللون": {
+            "label": "Color",
+            "value": "Black"
+          },
+          "النوع": {
+            "label": "Type",
+            "value": "Adjustable submersible aquarium heater"
+          },
+          "القدرة": {
+            "label": "Power",
+            "value": "100W"
+          },
+          "المادة": {
+            "label": "Material",
+            "value": "304 stainless steel with black coating"
+          },
+          "التوافق": {
+            "label": "Compatibility",
+            "value": "Freshwater aquariums"
+          },
+          "نوع التركيب": {
+            "label": "Installation Type",
+            "value": "Fully submersible inside the aquarium"
+          },
+          "الجهد الكهربائي": {
+            "label": "Voltage",
+            "value": "220–240V, 50Hz"
+          },
+          "نطاق درجة الحرارة": {
+            "label": "Temperature Range",
+            "value": "16–34 °C"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "yee-c4-1117-1": {
+    "entityId": "yee-c4-1117-1",
+    "slug": "mknsh-rml-khrbayyh-20-wat",
+    "sourceHash": "24201f7cbc311872",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:18:29.451Z",
+    "data": {
+      "name": "YEE Electric Gravel Vacuum - 20W",
+      "description": "A 20W electric gravel vacuum designed to help siphon debris and waste from between gravel substrates during aquarium bottom cleaning.\n\nIt can be used for bottom cleaning or to assist with partial water changes by directing the discharge hose to a suitable bucket. Slowly move the vacuum head over the gravel to siphon dirt without excessively disturbing the substrate.\n\nSuitable for use with gravel and pellets that fit the suction head size. Not recommended for very fine sand unless product instructions permit. The internal filter must be cleaned after each use.",
+      "subcategory": "Maintenance & Cleaning",
+      "seoTitle": "YEE Electric Gravel Vacuum 20W for Aquarium Cleaning | AQUAVO",
+      "seoDescription": "Efficient 20W electric gravel vacuum for aquarium maintenance. Siphons debris from gravel, aids water changes. Suitable for home aquariums. | AQUAVO",
+      "specifications": {
+        "benefits": [
+          "Helps remove debris from between gravel",
+          "Combines bottom cleaning with water change assistance",
+          "20W power for home use in suitable aquariums",
+          "Discharge hose to direct water to a bucket"
+        ],
+        "usageInstructions": [
+          "Connect the hose to the vacuum and direct the other end to a suitable bucket",
+          "Submerge the water intake part and then operate the device according to instructions",
+          "Slowly move the head over the gravel to siphon waste",
+          "After finishing, turn off and disconnect power before removing the device",
+          "Clean the internal filter after each use"
+        ],
+        "safetyWarnings": [
+          "Do not operate the device out of water if it is designed for submerged use",
+          "Do not use with very fine sand unless product instructions permit",
+          "Disconnect power before putting your hand into the aquarium",
+          "Inspect the cord and body before each use"
+        ],
+        "__cardBenefit": "Siphons debris from gravel and simplifies bottom cleaning",
+        "labelled": {
+          "القدرة": {
+            "label": "Power",
+            "value": "20W"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "yee-c4-1123-1a": {
+    "entityId": "yee-c4-1123-1a",
+    "slug": "c4-1123",
+    "sourceHash": "e4a7e5bcf9c82a9a",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:10:43.708Z",
+    "data": {
+      "name": "YEE 9-in-1 Aquarium Water Test Strips - 50 Strips",
+      "description": "Fast test strips that measure 9 different aquarium water quality parameters in a single strip. The package contains 50 strips with a color chart for comparison.\n\nThe parameters measured by the strip are: pH, KH, TA, GH, NO3, NO2, Cl2, TCl, and H2S.\n\nDip the strip and use the reading method and time indicated on the package chart, then compare each square to its corresponding color.",
+      "subcategory": "Water Test Kits",
+      "seoTitle": "YEE 9-in-1 Aquarium Water Test Strips | AQUAVO",
+      "seoDescription": "Test 9 aquarium water parameters with YEE 9-in-1 test strips. Includes 50 strips and a color chart for quick, accurate monitoring.",
+      "specifications": {
+        "benefits": [
+          "9 parameters in one strip",
+          "50 strips for frequent testing",
+          "Color chart for direct comparison",
+          "Suitable for quick, regular aquarium water monitoring"
+        ],
+        "usageInstructions": [
+          "Remove one strip and close the package immediately",
+          "Dip the strip as specified on the package chart",
+          "Lay it horizontally after removal",
+          "Adhere to the specified reading time for each parameter on the chart",
+          "Compare colors and record results if needed"
+        ],
+        "safetyWarnings": [
+          "Do not touch the test pads with fingers",
+          "Keep strips dry and close the package after each use",
+          "Do not use strips after their expiration date"
+        ],
+        "__cardBenefit": "9 water parameters in one strip for quick aquarium monitoring",
+        "labelled": {
+          "عدد الشرائط": {
+            "label": "Number of Strips",
+            "value": "50 strips"
+          },
+          "المعايير المقاسة": {
+            "label": "Parameters Measured",
+            "value": "pH, KH, TA, GH, NO3, NO2, Cl2, TCl, H2S"
+          }
+        }
+      },
+      "variantLabels": {
+        "refill": "50 Strips + AQUAVO Color Chart"
+      }
+    }
+  },
+  "yee-c5-1123-2": {
+    "entityId": "yee-c5-1123-2",
+    "slug": "c5-1123",
+    "sourceHash": "96bc60c520cd8f43",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:11:20.211Z",
+    "data": {
+      "name": "YEE 60cm Panorama Aquarium with Filter and Pump",
+      "description": "A long, narrow panoramic aquarium with dimensions of 60x15x15 cm, including a side filter and water pump. The theoretical capacity before substrate and decor is approximately 13.5 L, so careful selection of inhabitants and their numbers is required.\n\nSuitable for nano setups, plants, shrimp, and small inhabitants when their needs align with the tank's capacity and shape. Run the filter and complete the aquarium's nitrogen cycle before adding fish or shrimp.",
+      "subcategory": "Glass Aquariums",
+      "seoTitle": "YEE 60cm Panorama Aquarium | AQUAVO",
+      "seoDescription": "A 60x15x15 cm panoramic aquarium with a side filter and pump. Ideal for nano setups, plants, and shrimp. Capacity approx. 13.5L.",
+      "specifications": {
+        "benefits": [
+          "60 cm panoramic design for narrow spaces",
+          "Side filter and water pump included",
+          "Suitable for nano setups, plants, and shrimp based on species requirements",
+          "Small capacity requires careful planning of inhabitant numbers"
+        ],
+        "usageInstructions": [
+          "Place the aquarium on a level and fully supportive surface",
+          "Install the filter and pump according to product instructions",
+          "Add substrate and decor, then slowly fill with water",
+          "Run the filter and complete the aquarium's nitrogen cycle before adding inhabitants"
+        ],
+        "safetyWarnings": [
+          "Do not move the aquarium when full",
+          "Do not overcrowd the aquarium due to its small capacity",
+          "Ensure the pump and filter remain within the appropriate water level"
+        ],
+        "__cardBenefit": "Slim panoramic design with ready-to-use filter and pump",
+        "labelled": {
+          "يشمل": {
+            "label": "Includes",
+            "value": "Side filter + water pump"
+          },
+          "الأبعاد": {
+            "label": "Dimensions",
+            "value": "60x15x15 cm"
+          },
+          "السعة التقريبية": {
+            "label": "Approximate Capacity",
+            "value": "13.5 L before substrate and decor"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "yee-c5-1144-1a": {
+    "entityId": "yee-c5-1144-1a",
+    "slug": "yee-c5-1144-1a",
+    "sourceHash": "8ac14e69f5c42b31",
+    "translatedBy": "gemini:gemini-2.5-flash-lite",
+    "translatedAt": "2026-09-19T12:11:39.345Z",
+    "data": {
+      "name": "YEE Aquarium Gravel Vacuum and Water Changer — 1.5 or 1.7 meter",
+      "description": "Clean the substrate and change the water with a single tool without needing to siphon by mouth. The manual siphon is equipped with a pump to start suction and is available in lengths of 1.5 or 1.7 meters to choose the most suitable for your aquarium's location.\n\nWith fine sand, pass the head gently over the surface to reduce sand suction, and monitor the water level during changes.",
+      "subcategory": "Cleaning Tools",
+      "seoTitle": "YEE Aquarium Gravel Vacuum & Water Changer | AQUAVO",
+      "seoDescription": "YEE manual aquarium gravel vacuum and water changer with built-in pump. Available in 1.5m or 1.7m lengths. Easy to use for substrate cleaning and water changes.",
+      "specifications": {
+        "benefits": [
+          "Available in 1.5m or 1.7m lengths",
+          "Manual pump to start siphon",
+          "Helps change water and remove waste from the substrate",
+          "Does not require electricity"
+        ],
+        "usageInstructions": [
+          "Place the drain end into a bucket below the aquarium level",
+          "Submerge the siphon head into the aquarium",
+          "Use the manual pump until flow begins",
+          "Gradually clean the substrate and monitor water level",
+          "Lift the head or stop flow when the desired change amount is reached"
+        ],
+        "safetyWarnings": [
+          "Do not leave the siphon running unattended",
+          "Determine the water change percentage based on tank condition and test results",
+          "Be mindful of small fish and shrimp during cleaning",
+          "Clean the tool after use"
+        ],
+        "__cardBenefit": "Clean substrate and change water with a manual siphon without mouth siphoning",
+        "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "Manual siphon with starter pump"
+          },
+          "الأطوال": {
+            "label": "Lengths",
+            "value": "1.5 meter / 1.7 meter"
+          }
+        }
+      },
+      "variantLabels": {
+        "15m": "1.5 meter (reinforced)",
+        "17m": "1.7 meter (thick)"
       }
     }
   }

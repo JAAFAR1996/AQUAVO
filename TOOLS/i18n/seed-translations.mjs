@@ -44,12 +44,9 @@ for (const locale of LOCALES) {
     const store = JSON.parse(readFileSync(path, "utf8"));
     const entries = Object.values(store);
     console.log(`${locale}/${file}: ${entries.length} entries`);
-    for (const entry of entries) {
-      if (DRY) {
-        upserts++;
-        continue;
-      }
-      const rows = await sql`
+    if (DRY) { upserts += entries.length; continue; }
+    // One atomic transaction per locale/entity file: either every row lands or none does.
+    const queries = entries.map((entry) => sql`
         INSERT INTO content_translations (entity_type, entity_id, locale, data, status, source_hash, translated_by, updated_at)
         VALUES (${entityType}, ${entry.entityId}, ${locale}, ${JSON.stringify(entry.data)}::jsonb, 'machine', ${entry.sourceHash}, ${entry.translatedBy}, now())
         ON CONFLICT (entity_type, entity_id, locale) DO UPDATE SET
@@ -59,10 +56,13 @@ for (const locale of LOCALES) {
           status = 'machine',
           updated_at = now()
         WHERE ${OVERWRITE_REVIEWED} OR content_translations.status <> 'reviewed'
-        RETURNING id`;
+        RETURNING id`);
+    const results = await sql.transaction(queries);
+    for (const rows of results) {
       if (rows.length) upserts++;
       else skippedReviewed++;
     }
+    console.log(`  ${locale}/${file}: ${results.filter((r) => r.length).length} written in one transaction`);
   }
 }
 console.log(`${DRY ? "[dry-run] would upsert" : "upserted"} ${upserts} rows; ${skippedReviewed} reviewed rows left untouched`);
