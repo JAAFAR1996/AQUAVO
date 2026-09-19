@@ -12,11 +12,13 @@
  *   tech-token       a number / unit / chemical symbol / model code from the source is absent in the target
  *   incomplete       content record lacks a required field (shared/i18n/content.ts rules)
  *   html-structure   blog body has a different count of headings / list items / tables / images
+ *   chem-term        a water-chemistry compound named in the source is not named in the
+ *                    translation (nitrate vs nitrite is a safety fact, not a synonym)
  * Warnings (reported, not pruned):
  *   punctuation      doubled punctuation, stray spaces
  *   glossary         a glossary concept in the source is rendered with a different Sorani term
- *   latin-heavy      ckb value is mostly Latin letters although the source is Arabic prose
- *   small-number     "1" / "2" from the source not found (often written as a word in English)
+ *   latin-heavy      ckb value adds Latin text the source did not have
+ *   small-number     a small number from the source is neither a digit nor a spelled-out word
  *
  * Usage: node --import tsx TOOLS/i18n/validate-translations.ts [--scope=ui|content|all] [--locale=en|ckb] [--prune] [--strict] [--refresh-source]
  * Output: reports/i18n/validation-report.{json,md}
@@ -85,6 +87,20 @@ function multisetMissing(src: string[], tgt: string[]): string[] {
 const glossary = loadGlossary();
 
 /**
+ * Water-chemistry compounds that must survive translation by name. Nitrate and
+ * nitrite are one letter apart in Arabic (نترات / نتريت) and in Sorani
+ * (نایترات / نایترایت) and a model that confuses them changes a safety fact,
+ * so each is matched with a pattern that excludes its neighbour.
+ */
+const COMPOUNDS: Array<{ name: string; ar: RegExp; en: RegExp; ckb: RegExp }> = [
+  { name: "nitrate", ar: /نترات/, en: /nitrate/i, ckb: /نایترات/ },
+  { name: "nitrite", ar: /نتريت/, en: /nitrite/i, ckb: /نایترایت/ },
+  { name: "ammonia", ar: /أمونيا|امونيا/, en: /ammonia/i, ckb: /ئەمۆنیا/ },
+  // Stems, so "dechlorinator" / "لابەری کلۆر" count as naming chlorine.
+  { name: "chlorine", ar: /الكلور(?!يد)|كلور(?!امين|يد)/, en: /chlorin/i, ckb: /کلۆر/ },
+];
+
+/**
  * Values made only of numbers, units, currency marks and placeholders ("5,000 د.ع",
  * "40 × 23 × 25 cm", "pH", "{{v0}} IQD") are legitimately identical across
  * locales; copy checks skip them.
@@ -94,14 +110,24 @@ function isTechnicalOnly(v: string): boolean {
   const rest = v.replace(/\{\{[^}]+\}\}|<[^>]+>/g, "").replace(UNIT_TOKENS, "").replace(/[\d\s.,:;×x%°()\-–/|]/g, "");
   return rest.length < 2;
 }
-/** Word-ish boundary for Arabic glossary terms: not glued to another Arabic letter. */
+/**
+ * Word boundary for Arabic glossary terms. Only the definite article "ال" and
+ * the common single-letter clitics (و ب ل ف ك) may precede the term; a bare
+ * alef may not, or "سم" (cm) matches inside "اسم" (name) and "تسجيل"
+ * (register) inside "تسجيل الدخول" (sign in).
+ */
+const CLITICS = new Set(["و", "ال", "وال", "بال", "فال", "كال", "لل", "ولل", "بالل"]);
 function containsTerm(text: string, term: string): boolean {
   let i = text.indexOf(term);
   while (i >= 0) {
-    const before = i === 0 ? "" : text[i - 1];
     const after = text[i + term.length] ?? "";
-    const glued = (ch: string) => /\p{Script=Arabic}/u.test(ch) && !/[ال]/.test(ch); // allow the article "ال" before
-    if (!glued(before) && !/\p{Script=Arabic}/u.test(after)) return true;
+    if (!/\p{Script=Arabic}/u.test(after)) {
+      // Walk back over the Arabic letters glued to the front and check them as a whole.
+      let start = i;
+      while (start > 0 && /\p{Script=Arabic}/u.test(text[start - 1])) start--;
+      const prefix = text.slice(start, i);
+      if (prefix === "" || CLITICS.has(prefix)) return true;
+    }
     i = text.indexOf(term, i + 1);
   }
   return false;
@@ -115,7 +141,10 @@ function checkString(scope: "ui" | "content", locale: "en" | "ckb", where: strin
   if (BAD_UNICODE.test(t)) add({ scope, locale, where, code: "unicode", severity: "error", detail: "control / replacement / bidi-override character" });
   const srcHasArabic = ARABIC.test(src.replace(/\{\{[^}]+\}\}/g, ""));
   const technical = isTechnicalOnly(t);
-  if (srcHasArabic && t.trim() === src.trim() && !technical) {
+  // Proper nouns that are spelled identically in Arabic and Sorani (governorate
+  // and city lists). An identical value there is correct, not a missed translation.
+  const properNoun = /(?:governorates|cities|provinces)\./.test(where);
+  if (srcHasArabic && t.trim() === src.trim() && !technical && !properNoun) {
     // Very short identical values (proper nouns, "و") are reported for review, not pruned.
     add({ scope, locale, where, code: "source-copy", severity: t.trim().length <= 5 ? "warning" : "error", detail: t.slice(0, 60) });
   }
@@ -130,7 +159,12 @@ function checkString(scope: "ui" | "content", locale: "en" | "ckb", where: strin
     if (enValue && t.trim() === enValue.trim() && srcHasArabic && !technical) add({ scope, locale, where, code: "english-copy", severity: "error", detail: t.slice(0, 60) });
     const latin = (letters.match(/[A-Za-z]/g) ?? []).length;
     const arab = (letters.match(/\p{Script=Arabic}/gu) ?? []).length;
-    if (srcHasArabic && latin > 12 && latin > arab * 1.5) add({ scope, locale, where, code: "latin-heavy", severity: "warning", detail: t.slice(0, 80) });
+    // Only flag Latin that the target introduced: diagnostic strings and API
+    // names ("Service Worker", "STEP5_SW_ACTIVATE") are Latin in the source too.
+    const srcLatin = (src.match(/[A-Za-z]/g) ?? []).length;
+    if (srcHasArabic && latin > 12 && latin > arab * 1.5 && latin > srcLatin * 1.3) {
+      add({ scope, locale, where, code: "latin-heavy", severity: "warning", detail: t.slice(0, 80) });
+    }
     // glossary consistency (warning): concept present in the source, Sorani term absent in the target
     for (const term of glossary.terms) {
       if (!term.ar.some((a) => containsTerm(src, a))) continue;
@@ -144,14 +178,30 @@ function checkString(scope: "ui" | "content", locale: "en" | "ckb", where: strin
   // "50 ألف" (fifty thousand) is legitimately rendered "50,000" -> collapsed "50000".
   const thousandsInSrc = new Set((normalizeDigits(src).match(/(\d+)\s*(?:ألف|الف|آلاف)/g) ?? []).map((m) => m.match(/\d+/)![0]));
   const missNums = multisetMissing(a.nums, b.nums).filter((n) => !(thousandsInSrc.has(n) && b.nums.includes(`${n}000`)));
-  // Small counts are often written as words ("four digits"); larger values, decimals and measurements must survive verbatim.
-  const isSmall = (n: string) => /^\d+$/.test(n) && Number(n) <= 10;
+  // Small counts are often written as words ("four digits", "چوار ژمارە");
+  // larger values, decimals and measurements must survive verbatim.
+  const isSmall = (n: string) => /^\d+$/.test(n) && Number(n) <= 12;
+  const spelled = (n: string) => {
+    const i = Number(n);
+    const words = locale === "en"
+      ? ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve"]
+      : ["سفر", "یەک", "دوو", "سێ", "چوار", "پێنج", "شەش", "حەوت", "هەشت", "نۆ", "دە", "یازدە", "دوازدە"];
+    const w = words[i];
+    return !!w && new RegExp(locale === "en" ? `\\b${w}\\b` : w, "i").test(t);
+  };
   const hard = missNums.filter((n) => !isSmall(n));
-  const soft = missNums.filter(isSmall);
+  const soft = missNums.filter((n) => isSmall(n) && !spelled(n));
   if (hard.length) add({ scope, locale, where, code: "tech-token", severity: "error", detail: `numbers missing: ${hard.join(", ")}` });
   if (soft.length) add({ scope, locale, where, code: "small-number", severity: "warning", detail: `numbers missing: ${soft.join(", ")}` });
   const missChem = multisetMissing(a.chem, b.chem);
   if (missChem.length) add({ scope, locale, where, code: "tech-token", severity: "error", detail: `symbols missing: ${missChem.join(", ")}` });
+  // Named water-chemistry compounds. Nitrate and nitrite differ by one letter in
+  // every language here and are not interchangeable (different toxicity), so a
+  // compound named in the source must be named in the translation.
+  for (const c of COMPOUNDS) {
+    if (!c.ar.test(src)) continue;
+    if (!c[locale].test(t)) add({ scope, locale, where, code: "chem-term", severity: "error", detail: `"${c.name}" named in the source is absent from the translation` });
+  }
   const missModels = multisetMissing(a.models, b.models);
   if (missModels.length) add({ scope, locale, where, code: "tech-token", severity: "error", detail: `model codes missing: ${missModels.join(", ")}` });
   // punctuation
