@@ -170,6 +170,11 @@ export function createWaylRouter() {
       const started = await startWaylPaymentForOrder(prepared.order.id, paymentUrls(req));
       res.status(prepared.reused ? 200 : 201).json(started);
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (/PRODUCTION_TEST_ORDER_BLOCKED/.test(errorMessage)) {
+        res.status(400).json({ message: "اكتب اسم المستلم الحقيقي بدل اسم حساب الإدارة (System Admin)، وبعدها أعد المحاولة." });
+        return;
+      }
       if (isWaylStoreVerificationError(error)) {
         // Wayl refused to issue a link because the merchant store is not verified.
         // Never echo the provider's English message; hide the option for a while.
