@@ -210,10 +210,15 @@ async function parseResponseBody(response: Response): Promise<unknown> {
   }
 }
 
-async function waylRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
+async function waylRequest<T>(
+  path: string,
+  init: RequestInit = {},
+  policy: { attempts?: number; timeoutMs?: number } = {},
+): Promise<T> {
   const config = getWaylConfig();
   const url = `${config.apiBaseUrl}${path.startsWith("/") ? path : `/${path}`}`;
-  const attempts = 3;
+  const attempts = Math.max(1, policy.attempts ?? 3);
+  const timeoutMs = Math.max(1_000, policy.timeoutMs ?? 10_000);
 
   for (let attempt = 0; attempt < attempts; attempt += 1) {
     try {
@@ -225,7 +230,7 @@ async function waylRequest<T>(path: string, init: RequestInit = {}): Promise<T> 
           ...(init.body ? { "Content-Type": "application/json" } : {}),
           ...(init.headers || {}),
         },
-        signal: AbortSignal.timeout(10_000),
+        signal: AbortSignal.timeout(timeoutMs),
       });
 
       const body = await parseResponseBody(response);
@@ -359,10 +364,43 @@ export async function createWaylLink(input: WaylCreateLinkInput): Promise<WaylLi
     ...(input.redirectionUrl ? { redirectionUrl: input.redirectionUrl } : {}),
   };
 
-  const raw = await waylRequest<unknown>("/api/v1/links", {
-    method: "POST",
-    body: JSON.stringify(body),
-  });
+  let raw: unknown;
+  try {
+    // Creating a link is not idempotent at the provider. Never retry the POST
+    // automatically: one successful request whose response is lost must not be
+    // repeated. Wayl link creation can also take longer than the auth probe, so
+    // allow a longer provider timeout here.
+    raw = await waylRequest<unknown>("/api/v1/links", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }, { attempts: 1, timeoutMs: 30_000 });
+  } catch (error) {
+    // A timeout/network/5xx can leave the outcome uncertain: the provider may
+    // already have created the link. Recover by reading the exact referenceId
+    // instead of issuing a duplicate POST.
+    if (error instanceof WaylApiError && error.status >= 500) {
+      console.warn(`[AQUAVO Wayl] create-link outcome uncertain for ${input.referenceId}; checking existing link before failing`);
+      try {
+        const existingRaw = await waylRequest<unknown>(
+          `/api/v1/links/${encodeURIComponent(input.referenceId)}`,
+          { method: "GET" },
+          { attempts: 2, timeoutMs: 15_000 },
+        );
+        const existing = parseLinkResponse(existingRaw);
+        if (existing.referenceId === input.referenceId) {
+          console.log(`[AQUAVO Wayl] recovered existing link after uncertain create outcome for ${input.referenceId}`);
+          return existing;
+        }
+      } catch (recoveryError) {
+        console.warn(
+          `[AQUAVO Wayl] create-link recovery lookup failed for ${input.referenceId}:`,
+          recoveryError instanceof Error ? recoveryError.message : recoveryError,
+        );
+      }
+    }
+    throw error;
+  }
+
   const link = parseLinkResponse(raw);
   if (link.referenceId !== input.referenceId) {
     throw new WaylApiError("Wayl echoed a different referenceId than the one requested", 502);
