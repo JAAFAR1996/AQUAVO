@@ -419,6 +419,12 @@ export function noteWaylStoreVerificationFailure(now = Date.now()): void {
 }
 
 function probeEnabled(): boolean {
+  // In production, availability must not create disposable payment links just to
+  // decide whether to show the payment option. Wayl's documented flow is:
+  // validate authentication, then create the real link when the customer submits.
+  // The real checkout path already fails closed on an unverified merchant.
+  if (process.env.NODE_ENV === "production") return false;
+
   const raw = process.env.WAYL_READINESS_PROBE?.trim().toLowerCase();
   return !(raw === "off" || raw === "0" || raw === "false");
 }
