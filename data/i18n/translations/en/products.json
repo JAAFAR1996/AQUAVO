@@ -509,6 +509,54 @@
       "variantLabels": {}
     }
   },
+  "houyi-air-distributor": {
+    "entityId": "houyi-air-distributor",
+    "slug": "houyi-air-distributor",
+    "sourceHash": "2fc7f9ed300e0275",
+    "translatedBy": "groq:openai/gpt-oss-120b",
+    "translatedAt": "2026-09-18T23:55:43.455Z",
+    "data": {
+      "name": "Houyi Air Distributor with Independent Control per Line – 4 or 6 Ports",
+      "description": "Convert a single air pump outlet into 4 or 6 lines, and control each line independently. Each port has its own valve, allowing you to balance air between air stones or sponge filters as needed.\n\nSelect the appropriate number of ports and ensure the pump’s capacity is sufficient for all open lines.",
+      "subcategory": "Air Distributors",
+      "seoTitle": "Houyi Independent Air Distributor – 4 or 6 Ports | AQUAVO",
+      "seoDescription": "Convert a single air pump output into 4 or 6 independent lines with separate valves, balancing airflow to multiple air stones or sponge filters.",
+      "specifications": {
+        "benefits": [
+          "Option of 4 or 6 ports",
+          "Independent control valve for each outlet",
+          "Enables operation of multiple air stones or air filters from a single pump",
+          "Compatible with standard air tubing as per product specifications"
+        ],
+        "usageInstructions": [
+          "Connect the distributor inlet to the air pump",
+          "Attach each outlet to the desired tubing",
+          "Adjust each valve gradually",
+          "Close any unused ports"
+        ],
+        "safetyWarnings": [
+          "Ensure the pump’s capacity is suitable for the number of open lines",
+          "Inspect tubing and connections if flow is weak",
+          "Replace the distributor if any valve becomes damaged"
+        ],
+        "__cardBenefit": "Divide pump air into 4 or 6 lines and adjust each line individually",
+        "labelled": {
+          "الخيارات": {
+            "label": "Options",
+            "value": "4 ports / 6 ports"
+          },
+          "قطر التوصيل": {
+            "label": "Connector diameter",
+            "value": "4 mm"
+          }
+        }
+      },
+      "variantLabels": {
+        "4-port": "4 ports",
+        "6-port": "6 ports"
+      }
+    }
+  },
   "houyi-base-fertilizer": {
     "entityId": "houyi-base-fertilizer",
     "slug": "houyi-base-fertilizer",
@@ -980,6 +1028,50 @@
         }
       },
       "variantLabels": {}
+    }
+  },
+  "houyi-feeding-cup": {
+    "entityId": "houyi-feeding-cup",
+    "slug": "houyi-feeding-cup",
+    "sourceHash": "609105f501909b7f",
+    "translatedBy": "groq:openai/gpt-oss-20b",
+    "translatedAt": "2026-09-19T00:17:45.151Z",
+    "data": {
+      "name": "Fish Food Cup with Suction Siphon",
+      "description": "Keep fish food in a designated area with the Houyi Fish Food Cup and Suction Siphon. Easy to install, monitor feeding, and reduce food spread in the tank.\n\nClean the siphon and glass before mounting. Mount it in a location that allows easy access for the fish. Place a small amount of food and observe consumption. Remove residue and clean the cup regularly.",
+      "subcategory": "Feeding Tools",
+      "seoTitle": "Fish Food Cup with Suction Siphon | AQUAVO",
+      "seoDescription": "Keep fish food in a designated area with the Houyi Fish Food Cup and Suction Siphon. Easy to install, monitor feeding, and reduce food spread in the tank.",
+      "specifications": {
+        "benefits": [
+          "Helps keep food in a designated area inside the tank",
+          "Facilitates monitoring of food quantity and residue",
+          "Suction siphon for easy attachment and removal",
+          "Useful for foods that can be presented at a fixed point"
+        ],
+        "usageInstructions": [
+          "Clean the siphon and glass before mounting",
+          "Mount it in a location that allows easy access for the fish",
+          "Place a small amount of food and observe consumption",
+          "Remove residue and clean the cup regularly"
+        ],
+        "safetyWarnings": [
+          "Do not provide more food than the animals need",
+          "Do not rely solely on the cup to prevent all food spread in the tank",
+          "Clean food residue before it decomposes",
+          "Replace the siphon if attachment strength weakens"
+        ],
+        "__cardBenefit": "Confines food to one area for easy monitoring of eating and residue",
+        "labelled": {
+          "التثبيت": {
+            "label": "Attachment",
+            "value": "Suction siphon"
+          }
+        }
+      },
+      "variantLabels": {
+        "white": "White"
+      }
     }
   },
   "houyi-foam-glue": {
@@ -2224,6 +2316,59 @@
         }
       },
       "variantLabels": {}
+    }
+  },
+  "yee-07509": {
+    "entityId": "yee-07509",
+    "slug": "yff-049",
+    "sourceHash": "fccb6aff9b8fa1c3",
+    "translatedBy": "groq:openai/gpt-oss-120b",
+    "translatedAt": "2026-09-19T00:16:39.803Z",
+    "data": {
+      "name": "Aquascape Substrate for Aquatic Plants — 1.5 or 3 litre",
+      "description": "Start a planted tank with a substrate designed for aquatic plants, offering a dark base for root stability and aquascape design.\n\nDo not wash it aggressively; spread it on the bottom and add water slowly to minimize grain movement and water cloudiness.",
+      "subcategory": "Plant substrate",
+      "seoTitle": "Aquascape Substrate for Aquatic Plants – 1.5 or 3 L | AQUAVO",
+      "seoDescription": "Start a planted tank with a substrate designed for aquatic plants, offering dark color for root stability and aquascape design. Available in 1.5 L or 3 L.",
+      "specifications": {
+        "benefits": [
+          "Available in 1.5 L or 3 L",
+          "Specifically for arranging planted tanks",
+          "Dark color enhances plant and décor visibility",
+          "Can be shaped into slopes and heights for custom aquascape designs"
+        ],
+        "usageInstructions": [
+          "Select the appropriate size for the required substrate amount",
+          "Do not wash the substrate aggressively before use",
+          "Distribute it at the suitable thickness for the design",
+          "Plant the flora then slowly add water over a barrier or plate",
+          "Test the water and complete the tank cycle before adding organisms"
+        ],
+        "safetyWarnings": [
+          "Avoid stirring the substrate vigorously after the tank is filled",
+          "Do not rely on the substrate alone to set fertilization schedules; plant needs vary",
+          "Monitor water quality during the tank establishment period"
+        ],
+        "__cardBenefit": "Substrate for plants that stabilizes roots and provides a dark aquascape base",
+        "labelled": {
+          "اللون": {
+            "label": "Color",
+            "value": "Black"
+          },
+          "الأحجام": {
+            "label": "Sizes",
+            "value": "1.5 L / 3 L"
+          },
+          "الاستخدام": {
+            "label": "Usage",
+            "value": "Substrate for planted tanks and aquascapes"
+          }
+        }
+      },
+      "variantLabels": {
+        "fine15": "1.5 L",
+        "coarse3": "3 L"
+      }
     }
   },
   "yee-c1-1082-2a": {

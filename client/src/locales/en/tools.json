@@ -1303,5 +1303,53 @@
   },
   "journey-progress": {
     "s1": "Step {{v0}}: {{v1}}"
+  },
+  "heater-calculator": {
+    "s3": "Tank volume (L)",
+    "s4": "Example: 100",
+    "s5": "Desired temperature difference (°C)",
+    "s6": "Select difference",
+    "s7": "5°C (warm room)",
+    "s8": "10°C (cool room)",
+    "s9": "15°C (very cold room)",
+    "s10": "Calculate result",
+    "s11": "Suggested power",
+    "s12": "W",
+    "s13": "* We recommend using heaters of",
+    "s14": "W for safety",
+    "s15": "Shop suitable heaters"
+  },
+  "fish-card": {
+    "s1": "Betta",
+    "s2": "Semi-aggressive",
+    "s3": "Aggressive",
+    "s4": "Beginner",
+    "s5": "Intermediate",
+    "s6": "Advanced",
+    "s7": "View details {{v0}}",
+    "s8": "School",
+    "s9": "Poisonous",
+    "s10": "Temperature",
+    "s11": "°C",
+    "s12": "pH",
+    "s13": "Minimum tank size",
+    "s14": "L"
+  },
+  "live-chat-widget": {
+    "s1": "Welcome! How can we help you today?",
+    "s2": "Sorry, we lost connection to the server. Please try again later.",
+    "s3": "Open live support chat",
+    "s4": "Live support",
+    "s5": "Maximize chat window",
+    "s6": "Close chat",
+    "s7": "Connected now",
+    "s8": "Connecting...",
+    "s9": "Minimize chat window",
+    "s10": "Type your message...",
+    "s11": "Send message",
+    "s12": "Connected as"
+  },
+  "tank-fit": {
+    "s1": "{{v0}} IQD"
   }
 }

@@ -46,11 +46,26 @@ export function formatLocalizedDate(
   return new Intl.DateTimeFormat(LOCALES[locale].intl, options).format(date);
 }
 
+/**
+ * ICU ships no relative-time data for Central Kurdish ("-2 d"), so ckb is
+ * rendered from a small Sorani table instead of Intl.RelativeTimeFormat.
+ */
+const CKB_UNITS: Record<Intl.RelativeTimeFormatUnit, string> = {
+  second: "چرکە", seconds: "چرکە", minute: "خولەک", minutes: "خولەک", hour: "کاتژمێر", hours: "کاتژمێر",
+  day: "ڕۆژ", days: "ڕۆژ", week: "هەفتە", weeks: "هەفتە", month: "مانگ", months: "مانگ", quarter: "چارەک", quarters: "چارەک", year: "ساڵ", years: "ساڵ",
+};
+function ckbRelative(value: number, unit: Intl.RelativeTimeFormatUnit): string {
+  const n = formatLocalizedNumber(Math.abs(value), "ckb");
+  return value < 0 ? `پێش ${n} ${CKB_UNITS[unit]}` : `لە ${n} ${CKB_UNITS[unit]}دا`;
+}
+
 export function formatLocalizedRelativeTime(value: Date | string | number, locale: Locale, now: Date = new Date()): string {
   const date = value instanceof Date ? value : new Date(value);
   const diffSeconds = Math.round((date.getTime() - now.getTime()) / 1000);
   const abs = Math.abs(diffSeconds);
-  const rtf = new Intl.RelativeTimeFormat(LOCALES[locale].intl, { numeric: "auto" });
+  const rtf = locale === "ckb"
+    ? { format: ckbRelative }
+    : new Intl.RelativeTimeFormat(LOCALES[locale].intl, { numeric: "auto" });
   if (abs < 60) return rtf.format(diffSeconds, "second");
   if (abs < 3600) return rtf.format(Math.round(diffSeconds / 60), "minute");
   if (abs < 86400) return rtf.format(Math.round(diffSeconds / 3600), "hour");
