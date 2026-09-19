@@ -324,7 +324,10 @@ function validateEntity(
       const enValue = enFlat.find(([p]) => p === path)?.[2];
       if (entityType === "blog_post" && path === "content") {
         // body: compare text only, structure separately
-        const strip = (h: string) => h.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+        // Tags become a space so words do not run together, then that space is
+        // removed again before punctuation: "<strong>x</strong>. Y" must not
+        // look like "x . Y" to the punctuation check.
+        const strip = (h: string) => h.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").replace(/\s+([,،.;:!?؟)])/g, "$1").replace(/([([])\s+/g, "$1").trim();
         checkString("content", locale, `${where}#content`, strip(src), typeof tgt === "string" ? strip(tgt) : tgt, typeof enValue === "string" ? strip(enValue) : undefined);
         if (typeof tgt === "string") {
           const count = (h: string, re: RegExp) => (h.match(re) || []).length;
