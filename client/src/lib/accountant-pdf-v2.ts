@@ -1,4 +1,3 @@
-import { i18next } from "@/i18n";
 type AnyRow = Record<string, any>;
 type PageSpec = { title: string; subtitle: string; body: string };
 
@@ -33,11 +32,11 @@ function finiteNumber(value: unknown): number | null {
 }
 function iqd(value: unknown): string {
   const n = finiteNumber(value);
-  return n == null ? i18next.t("orders:accountant-pdf-v2.s1") : i18next.t("orders:accountant-pdf-v2.s2", { v0: Math.round(n).toLocaleString("en-US") });
+  return n == null ? "غير متوفر" : `${Math.round(n).toLocaleString("en-US")} د.ع`;
 }
 function countValue(value: unknown): string {
   const n = finiteNumber(value);
-  return n == null ? i18next.t("orders:accountant-pdf-v2.s1") : Math.round(n).toLocaleString("en-US");
+  return n == null ? "غير متوفر" : Math.round(n).toLocaleString("en-US");
 }
 function dateBaghdad(value: unknown): string {
   if (!value) return "—";
@@ -53,7 +52,7 @@ function table(headers: string[], rows: string[][]): string {
   const head = headers.map((header) => `<th>${esc(header)}</th>`).join("");
   const body = rows.length
     ? rows.map((row) => `<tr>${row.map((cell) => `<td>${cell}</td>`).join("")}</tr>`).join("")
-    : i18next.t("orders:accountant-pdf-v2.s3", { v0: headers.length });
+    : `<tr><td colspan="${headers.length}" class="empty">لا توجد بيانات</td></tr>`;
   return `<table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
 }
 function cards(items: Array<[string, string, string?]>): string {
@@ -63,7 +62,22 @@ function cards(items: Array<[string, string, string?]>): string {
 }
 function pageHtml(title: string, subtitle: string, body: string, meta: { period: string; status: string; page: number; pages: number; legalName: string; legalNameEn: string }): string {
   const draft = meta.status !== "tax_final";
-  return i18next.t("orders:accountant-pdf-v2.s4", { v0: draft ? `<div class="watermark">مسودة</div>` : "", v1: esc(meta.legalName), v2: esc(meta.legalNameEn), v3: esc(meta.period), v4: draft ? "مسودة إدارية" : "معتمد ضريبياً", v5: meta.page, v6: meta.pages, v7: esc(title), v8: esc(subtitle), v9: body, v10: draft ? "غير صالح للتقديم الضريبي النهائي" : "TAX FINAL — معتمد وفق بيانات المحاسب", v11: esc(meta.legalName) });
+  return `<section class="aqv-page" dir="rtl">
+    ${draft ? `<div class="watermark">مسودة</div>` : ""}
+    <header>
+      <div class="brand"><img src="/brand/aquavo-v2-horizontal.svg" alt="AQUAVO"><div class="issuer">تقرير صادر عن ${esc(meta.legalName)} <span>— ${esc(meta.legalNameEn)}</span></div></div>
+      <div class="meta"><strong>${esc(meta.period)}</strong><span>${draft ? "مسودة إدارية" : "معتمد ضريبياً"}</span><small>صفحة ${meta.page} من ${meta.pages}</small></div>
+    </header>
+    <div class="rule"></div>
+    <div class="heading"><h1>${esc(title)}</h1><p>${esc(subtitle)}</p></div>
+    <main>${body}</main>
+    <footer>
+      <strong>${draft ? "غير صالح للتقديم الضريبي النهائي" : "TAX FINAL — معتمد وفق بيانات المحاسب"}</strong>
+      <span>مصدر الأرقام: دفتر الأستاذ المزدوج وحقائق الطلبات المحاسبية؛ القيم المفقودة لا تُستبدل بأصفار.</span>
+      <span>تقرير محاسبي صادر عن ${esc(meta.legalName)} — العلامة التجارية: AQUAVO</span>
+      <small>aquavoiq.com · 07747880673 · info@aquavoiq.com · instagram.com/aquavo_iq</small>
+    </footer>
+  </section>`;
 }
 
 const STYLE = `
@@ -88,17 +102,17 @@ function appendChunkPages(
 }
 
 function validateAccountantPayload(payload: AnyRow): void {
-  if (!payload?.manifest?.periodKey) throw new Error(i18next.t("orders:accountant-pdf-v2.s5"));
+  if (!payload?.manifest?.periodKey) throw new Error("حزمة المحاسب لا تحتوي الفترة المحاسبية");
   const archive = payload.manifest?.archive === true || String(payload.manifest?.packageVersion ?? "").startsWith("historical-");
   if (archive) return;
-  if (!payload.readiness || typeof payload.readiness !== "object") throw new Error(i18next.t("orders:accountant-pdf-v2.s6"));
+  if (!payload.readiness || typeof payload.readiness !== "object") throw new Error("حزمة المحاسب لا تحتوي ملخص الجاهزية");
   const missingSummary = REQUIRED_SUMMARY_FIELDS.filter((field) => finiteNumber(payload.readiness[field]) == null);
-  if (missingSummary.length) throw new Error(i18next.t("orders:accountant-pdf-v2.s7", { v0: missingSummary.join(", ") }));
-  if (!Array.isArray(payload.liveBalances)) throw new Error(i18next.t("orders:accountant-pdf-v2.s8"));
+  if (missingSummary.length) throw new Error(`لا يمكن إنشاء PDF: أرقام الملخص ناقصة (${missingSummary.join(", ")})`);
+  if (!Array.isArray(payload.liveBalances)) throw new Error("حزمة المحاسب لا تحتوي أرصدة دفتر الأستاذ");
   const balanceCodes = new Set(payload.liveBalances.filter((row: AnyRow) => finiteNumber(row?.balance) != null).map((row: AnyRow) => String(row.code)));
   const missingBalances = REQUIRED_BALANCE_CODES.filter((code) => !balanceCodes.has(code));
-  if (missingBalances.length) throw new Error(i18next.t("orders:accountant-pdf-v2.s9", { v0: missingBalances.join(", ") }));
-  if (!Array.isArray(payload.journal)) throw new Error(i18next.t("orders:accountant-pdf-v2.s10"));
+  if (missingBalances.length) throw new Error(`لا يمكن إنشاء PDF: حسابات دفتر الأستاذ ناقصة (${missingBalances.join(", ")})`);
+  if (!Array.isArray(payload.journal)) throw new Error("حزمة المحاسب لا تحتوي دفتر اليومية");
 }
 
 function canonicalNetProfit(summary: AnyRow): number | null {
@@ -119,7 +133,7 @@ function flattenJournal(entries: AnyRow[]): AnyRow[] {
   for (const entry of entries) {
     const lines = Array.isArray(entry.lines) ? entry.lines : [];
     if (!lines.length) {
-      rows.push({ ...entry, lineNumber: null, accountCode: "—", accountName: i18next.t("orders:accountant-pdf-v2.s11"), debit: null, credit: null, memo: "—" });
+      rows.push({ ...entry, lineNumber: null, accountCode: "—", accountName: "قيد بلا سطور", debit: null, credit: null, memo: "—" });
       continue;
     }
     for (const line of lines) rows.push({ ...entry, ...line });
@@ -148,56 +162,64 @@ function buildPages(payload: AnyRow): PageSpec[] {
   }
 
   pages.push({
-    title: i18next.t("orders:accountant-pdf-v2.s12"),
-    subtitle: i18next.t("orders:accountant-pdf-v2.s13", { v0: payload.manifest?.periodKey ?? "—", v1: payload.manifest?.policyVersion ?? "—", v2: dateBaghdad(payload.manifest?.generatedAt) }),
-    body: i18next.t("orders:accountant-pdf-v2.s14", { v0: cards([
+    title: "الملف المحاسبي الشهري",
+    subtitle: `الفترة ${payload.manifest?.periodKey ?? "—"} · السياسة ${payload.manifest?.policyVersion ?? "—"} · توليد ${dateBaghdad(payload.manifest?.generatedAt)} · IQD`,
+    body: `${cards([
       ["مبيعات المنتجات", iqd(summary.product_revenue)],
       ["فرق التقريب", iqd(summary.rounding_adjustment), "حساب مستقل 3050"],
       ["صافي حق AQUAVO", iqd(summary.merchant_net)],
       ["كلفة المنتجات", iqd(summary.cogs)],
       ["كلفة التجهيز", iqd(summary.fulfillment_cost)],
       ["صافي الربح الإداري", iqd(canonicalNetProfit(summary)), "قبل TAX FINAL"],
-    ]), v1: cards([
+    ])}
+    <h2>الأرصدة الحية من دفتر الأستاذ</h2>
+    ${cards([
       ["الصندوق", iqd(balanceMap.get("1000"))],
       ["البنك", iqd(balanceMap.get("1010"))],
       ["COD لدى شركات التوصيل", iqd(balanceMap.get("1100"))],
       ["مخزون المنتجات", iqd(balanceMap.get("1200"))],
       ["مخزون مواد التجهيز", iqd(balanceMap.get("1210"))],
       ["رأس المال", iqd(balanceMap.get("3100"))],
-    ]), v2: blockers.length ? "warning" : "ok", v3: blockers.length
+    ])}
+    <div class="notice ${blockers.length ? "warning" : "ok"}">${blockers.length
       ? `الإغلاق متوقف لحين معالجة ${blockers.length} نوع من الموانع.`
-      : "لا توجد موانع محاسبية مسجلة لهذه الفترة.", v4: table(["المفتاح", "الوصف", "العدد"], blockers.map((row) => [esc(row.key), esc(row.label), esc(row.count)])) }),
+      : "لا توجد موانع محاسبية مسجلة لهذه الفترة."}</div>
+    <h2>موانع الإغلاق</h2>
+    ${table(["المفتاح", "الوصف", "العدد"], blockers.map((row) => [esc(row.key), esc(row.label), esc(row.count)]))}`,
   });
 
   pages.push({
-    title: i18next.t("orders:accountant-pdf-v2.s15"),
-    subtitle: i18next.t("orders:accountant-pdf-v2.s16"),
-    body: i18next.t("orders:accountant-pdf-v2.s17", { v0: cards([
+    title: "حالة الملف والاعتماد",
+    subtitle: "بيانات المنشأة والملف الضريبي والأدلة؛ الحقول الناقصة تبقى ظاهرة ولا تُفترض تلقائياً",
+    body: `${cards([
       ["حالة الملف الضريبي", esc(profile.status ?? "غير متوفر")],
       ["رقم المكلف", esc(profile.taxpayer_number ?? "غير متوفر")],
       ["الفرع الضريبي", esc(profile.tax_branch ?? "غير متوفر")],
       ["العنوان المسجل", esc(profile.registered_address ?? "غير متوفر")],
       ["إجازة المحاسب", esc(profile.accountant_license_number ?? "غير متوفر")],
       ["اعتماد المحاسب", profile.accountant_approved_at ? dateBaghdad(profile.accountant_approved_at) : "غير متوفر"],
-    ]), v1: payload.manifest?.taxFinal ? "ok" : "warning", v2: payload.manifest?.taxFinal
+    ])}
+    <div class="notice ${payload.manifest?.taxFinal ? "ok" : "warning"}">${payload.manifest?.taxFinal
       ? "الفترة موسومة TAX FINAL في النظام."
-      : "هذه حزمة إدارية/مراجعة وليست إقراراً أو اعتماداً ضريبياً نهائياً.", v3: table(["النوع", "الجهة", "رقم المستند", "التاريخ", "المبلغ", "المصدر"], evidenceIndex.slice(0, 12).map((row) => [
+      : "هذه حزمة إدارية/مراجعة وليست إقراراً أو اعتماداً ضريبياً نهائياً."}</div>
+    <h2>فهرس الأدلة</h2>
+    ${table(["النوع", "الجهة", "رقم المستند", "التاريخ", "المبلغ", "المصدر"], evidenceIndex.slice(0, 12).map((row) => [
       esc(row.document_type), esc(row.issuer), esc(row.document_number), esc(row.document_date), iqd(row.amount), esc(row.storage_provider),
-    ])) }),
+    ]))}`,
   });
 
   appendChunkPages(
-    pages, chunks(sales, 16), i18next.t("orders:accountant-pdf-v2.s18"),
-    (index) => i18next.t("orders:accountant-pdf-v2.s19", { v0: index + 1 }),
-    [i18next.t("orders:accountant-pdf-v2.s20"), i18next.t("orders:accountant-pdf-v2.s21"), "COD", i18next.t("orders:accountant-pdf-v2.s22"), i18next.t("orders:accountant-pdf-v2.s23"), i18next.t("orders:accountant-pdf-v2.s24"), i18next.t("orders:accountant-pdf-v2.s25"), i18next.t("orders:accountant-pdf-v2.s26")],
+    pages, chunks(sales, 16), "سجل المبيعات المتحققة",
+    (index) => `الجزء ${index + 1} · الإيراد يتحقق عند التسليم فقط`,
+    ["الطلب", "التحقق", "COD", "توصيل", "أجرة الشركة", "مبيعات المنتجات", "صافي AQUAVO", "التسوية"],
     (row) => [esc(row.order_number ?? row.order_id), dateBaghdad(row.recognized_at), iqd(row.gross_collected), iqd(row.customer_delivery_fee), iqd(row.carrier_fee), iqd(row.product_revenue), iqd(row.merchant_net), esc(row.settlement_status)],
   );
 
   const journalLines = flattenJournal(journal);
   appendChunkPages(
-    pages, chunks(journalLines, 20), i18next.t("orders:accountant-pdf-v2.s27"),
-    (index) => i18next.t("orders:accountant-pdf-v2.s28", { v0: index + 1 }),
-    [i18next.t("orders:accountant-pdf-v2.s29"), i18next.t("orders:accountant-pdf-v2.s30"), i18next.t("orders:accountant-pdf-v2.s31"), i18next.t("orders:accountant-pdf-v2.s32"), i18next.t("orders:accountant-pdf-v2.s33"), i18next.t("orders:accountant-pdf-v2.s34"), i18next.t("orders:accountant-pdf-v2.s35")],
+    pages, chunks(journalLines, 20), "دفتر اليومية التفصيلي",
+    (index) => `الجزء ${index + 1} · كل سطر يوضح الحساب المدين/الدائن وليس عنوان القيد فقط`,
+    ["القيد", "التاريخ", "المصدر", "الحساب", "البيان", "مدين", "دائن"],
     (row) => [
       esc(row.entry_number), dateBaghdad(row.entry_date), esc(`${row.source_type ?? "—"}/${row.event_kind ?? "—"}`),
       esc(`${row.accountCode ?? "—"} ${row.accountName ?? ""}`), esc(row.memo ?? row.description), iqd(row.debit), iqd(row.credit),
@@ -205,32 +227,32 @@ function buildPages(payload: AnyRow): PageSpec[] {
   );
 
   appendChunkPages(
-    pages, chunks(expenses, 18), i18next.t("orders:accountant-pdf-v2.s36"),
-    (index) => i18next.t("orders:accountant-pdf-v2.s37", { v0: index + 1 }),
-    [i18next.t("orders:accountant-pdf-v2.s30"), i18next.t("orders:accountant-pdf-v2.s38"), i18next.t("orders:accountant-pdf-v2.s39"), i18next.t("orders:accountant-pdf-v2.s40"), i18next.t("orders:accountant-pdf-v2.s41"), i18next.t("orders:accountant-pdf-v2.s42"), i18next.t("orders:accountant-pdf-v2.s43")],
+    pages, chunks(expenses, 18), "المصاريف",
+    (index) => `الجزء ${index + 1} · التصنيف الضريبي يبقى للمحاسب في مرحلة TAX FINAL`,
+    ["التاريخ", "الفئة", "الجهة", "الوصف", "المبلغ", "الحالة", "المعالجة الضريبية"],
     (row) => [dateBaghdad(row.expense_occurred_at ?? row.expense_date), esc(row.category), esc(row.vendor_name), esc(row.description), iqd(row.amount), esc(row.accounting_status), esc(row.tax_treatment ?? "pending")],
   );
 
   appendChunkPages(
-    pages, chunks(returns, 17), i18next.t("orders:accountant-pdf-v2.s44"),
-    (index) => i18next.t("orders:accountant-pdf-v2.s45", { v0: index + 1 }),
-    [i18next.t("orders:accountant-pdf-v2.s20"), i18next.t("orders:accountant-pdf-v2.s46"), i18next.t("orders:accountant-pdf-v2.s42"), i18next.t("orders:accountant-pdf-v2.s47"), i18next.t("orders:accountant-pdf-v2.s48"), i18next.t("orders:accountant-pdf-v2.s49"), i18next.t("orders:accountant-pdf-v2.s50"), i18next.t("orders:accountant-pdf-v2.s51")],
-    (row) => [esc(row.order_id), esc(row.type), esc(row.status), iqd(row.refund_amount), iqd(row.packaging_loss), iqd(row.product_write_off_amount), row.restocked ? i18next.t("orders:accountant-pdf-v2.s52") : i18next.t("orders:accountant-pdf-v2.s53"), dateBaghdad(row.updated_at)],
+    pages, chunks(returns, 17), "الراجعات والخسائر",
+    (index) => `الجزء ${index + 1} · المعتمد فقط يدخل الحسابات`,
+    ["الطلب", "النوع", "الحالة", "رد المبلغ", "التغليف", "شطب المنتج", "أعيد للمخزون", "التحديث"],
+    (row) => [esc(row.order_id), esc(row.type), esc(row.status), iqd(row.refund_amount), iqd(row.packaging_loss), iqd(row.product_write_off_amount), row.restocked ? "نعم" : "لا", dateBaghdad(row.updated_at)],
   );
 
   pages.push({
-    title: i18next.t("orders:accountant-pdf-v2.s54"),
-    subtitle: i18next.t("orders:accountant-pdf-v2.s55"),
+    title: "تسويات شركات التوصيل",
+    subtitle: "الإجمالي والأجور والصافي مشتقة من حقائق الطلبات وتخضع لمطابقة شركة النقل والدفع",
     body: table(
-      [i18next.t("orders:accountant-pdf-v2.s56"), i18next.t("orders:accountant-pdf-v2.s57"), i18next.t("orders:accountant-pdf-v2.s30"), i18next.t("orders:accountant-pdf-v2.s58"), i18next.t("orders:accountant-pdf-v2.s59"), i18next.t("orders:accountant-pdf-v2.s60"), i18next.t("orders:accountant-pdf-v2.s42")],
+      ["رقم التسوية", "الشركة", "التاريخ", "الإجمالي", "الأجور", "الصافي", "الحالة"],
       settlements.map((row) => [esc(row.settlement_number ?? row.id), esc(row.carrier), dateBaghdad(row.received_at ?? row.updated_at), iqd(row.gross_amount), iqd(row.fees_amount), iqd(row.net_amount), esc(row.status)]),
     ),
   });
 
   appendChunkPages(
-    pages, chunks(openingInventory, 20), i18next.t("orders:accountant-pdf-v2.s61"),
-    (index) => i18next.t("orders:accountant-pdf-v2.s62", { v0: index + 1 }),
-    [i18next.t("orders:accountant-pdf-v2.s63"), i18next.t("orders:accountant-pdf-v2.s64"), i18next.t("orders:accountant-pdf-v2.s65"), i18next.t("orders:accountant-pdf-v2.s66"), i18next.t("orders:accountant-pdf-v2.s67"), i18next.t("orders:accountant-pdf-v2.s68")],
+    pages, chunks(openingInventory, 20), "تفصيل المخزون الافتتاحي",
+    (index) => `الجزء ${index + 1} · مرجع القطع المحاسبي 1 آب 2026`,
+    ["المنتج", "المتغير", "الكمية", "كلفة الوحدة", "القيمة", "مصدر الكلفة"],
     (row) => [
       esc(row.product_id), esc(row.variant_id), countValue(row.quantity ?? row.stock),
       iqd(row.unit_cost_iqd ?? row.unit_cost ?? row.cost_price),
@@ -240,10 +262,10 @@ function buildPages(payload: AnyRow): PageSpec[] {
   );
 
   pages.push({
-    title: i18next.t("orders:accountant-pdf-v2.s69"),
-    subtitle: i18next.t("orders:accountant-pdf-v2.s70"),
+    title: "المراكز الشهرية المؤكدة",
+    subtitle: "تأكيدات الصندوق وذمم شركات التوصيل والمراكز الإدارية المساندة",
     body: table(
-      [i18next.t("orders:accountant-pdf-v2.s46"), i18next.t("orders:accountant-pdf-v2.s71"), i18next.t("orders:accountant-pdf-v2.s41"), i18next.t("orders:accountant-pdf-v2.s58"), i18next.t("orders:accountant-pdf-v2.s59"), i18next.t("orders:accountant-pdf-v2.s72"), i18next.t("orders:accountant-pdf-v2.s42")],
+      ["النوع", "شركة التوصيل", "المبلغ", "الإجمالي", "الأجور", "استقطاع آخر", "الحالة"],
       monthlyPositions.map((row) => [
         esc(row.position_type), esc(row.delivery_company_name), iqd(row.amount), iqd(row.gross_amount),
         iqd(row.fee_amount), iqd(row.other_deduction_amount), esc(row.status),
@@ -253,9 +275,9 @@ function buildPages(payload: AnyRow): PageSpec[] {
 
   if (evidenceIndex.length > 12) {
     appendChunkPages(
-      pages, chunks(evidenceIndex.slice(12), 20), i18next.t("orders:accountant-pdf-v2.s73"),
-      (index) => i18next.t("orders:accountant-pdf-v2.s74", { v0: index + 1 }),
-      [i18next.t("orders:accountant-pdf-v2.s46"), i18next.t("orders:accountant-pdf-v2.s39"), i18next.t("orders:accountant-pdf-v2.s75"), i18next.t("orders:accountant-pdf-v2.s30"), i18next.t("orders:accountant-pdf-v2.s41"), i18next.t("orders:accountant-pdf-v2.s31")],
+      pages, chunks(evidenceIndex.slice(12), 20), "فهرس الأدلة — تكملة",
+      (index) => `الجزء ${index + 1}`,
+      ["النوع", "الجهة", "رقم المستند", "التاريخ", "المبلغ", "المصدر"],
       (row) => [esc(row.document_type), esc(row.issuer), esc(row.document_number), esc(row.document_date), iqd(row.amount), esc(row.storage_provider)],
     );
   }
@@ -281,11 +303,11 @@ export async function downloadAccountantPdfV2(payload: AnyRow): Promise<void> {
         status: payload.manifest?.taxFinal ? "tax_final" : "draft",
         page: index + 1,
         pages: pages.length,
-        legalName: String(payload.manifest?.legalName ?? i18next.t("orders:accountant-pdf-v2.s76")),
+        legalName: String(payload.manifest?.legalName ?? "محل المنبع"),
         legalNameEn: String(payload.manifest?.legalNameEn ?? "AL NABEA SHOP"),
       })}`;
       const page = host.querySelector<HTMLElement>(".aqv-page");
-      if (!page) throw new Error(i18next.t("orders:accountant-pdf-v2.s77"));
+      if (!page) throw new Error("تعذر تجهيز صفحة PDF");
       const images = Array.from(page.querySelectorAll("img"));
       await Promise.all(images.map((img) => img.complete ? Promise.resolve() : new Promise<void>((resolve) => {
         img.onload = () => resolve();

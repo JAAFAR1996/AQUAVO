@@ -9,7 +9,6 @@ import {
 } from "@shared/seo-contract";
 import { articleAuthorEntity } from "@shared/editorial-author";
 import { DEFAULT_LOCALE, LOCALES, SUPPORTED_LOCALES, alternatesFor, localizePath, splitLocaleFromPath, type Locale } from "@shared/i18n/locales";
-import { i18next } from "@/i18n";
 
 /** Locale of the page on screen, read from the URL prefix (the source of truth). */
 function currentLocale(): Locale {
@@ -26,11 +25,11 @@ function localizedCanonical(logicalPath: string): string {
 }
 
 const DEFAULT_DESCRIPTIONS: Record<Locale, string> = {
-  ar: i18next.t("pages:meta-tags.s1"),
+  ar: "AQUAVO متجر إلكتروني عراقي لمعدات ومستلزمات أحواض الزينة، مع توصيل لكل العراق ودفع عند الاستلام أو إلكترونياً.",
   en: "AQUAVO is an Iraqi online store for aquarium equipment and supplies, with delivery across Iraq and cash on delivery or online payment.",
-  ckb: i18next.t("pages:meta-tags.s2"),
+  ckb: "AQUAVO فرۆشگایەکی ئۆنلاینی عێراقییە بۆ کەرەستە و پێداویستییەکانی حەوزی ماسی، لەگەڵ گەیاندن بۆ هەموو عێراق و پارەدان لە کاتی وەرگرتن یان ئەلیکترۆنی.",
 };
-const TITLE_SUFFIX: Record<Locale, string> = { ar: i18next.t("pages:meta-tags.s3"), en: "AQUAVO Iraq", ckb: i18next.t("pages:meta-tags.s4") };
+const TITLE_SUFFIX: Record<Locale, string> = { ar: "AQUAVO العراق", en: "AQUAVO Iraq", ckb: "AQUAVO عێراق" };
 
 const LOGO_URL = AQUAVO_ENTITY.logoUrl;
 
@@ -325,7 +324,7 @@ function onlineStoreSchema() {
     image: LOGO_URL,
     email: AQUAVO_ENTITY.email,
     telephone: AQUAVO_ENTITY.telephone,
-    description: i18next.t("pages:meta-tags.s5"),
+    description: "متجر إلكتروني عراقي متخصص في معدات ومستلزمات أحواض الزينة. لا يوجد محل لاستقبال الزبائن حالياً، ولا يبيع أسماكاً أو كائنات أو نباتات حية.",
     currenciesAccepted: AQUAVO_ENTITY.currency,
     paymentAccepted: AQUAVO_ENTITY.paymentMethod,
     areaServed: { "@type": "Country", name: AQUAVO_ENTITY.countryName },
@@ -344,11 +343,11 @@ function onlineStoreSchema() {
     },
     sameAs: [...AQUAVO_ENTITY.socialProfiles],
     knowsAbout: [
-      i18next.t("pages:meta-tags.s6"),
-      i18next.t("pages:meta-tags.s7"),
-      i18next.t("pages:meta-tags.s8"),
-      i18next.t("pages:meta-tags.s9"),
-      i18next.t("pages:meta-tags.s10"),
+      "مستلزمات أحواض الزينة",
+      "فلاتر الأحواض",
+      "سخانات الأحواض",
+      "معالجة مياه الأحواض",
+      "العناية بأحواض الزينة",
     ],
   };
 }

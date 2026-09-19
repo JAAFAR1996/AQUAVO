@@ -7,18 +7,18 @@
  * Kurdish page URL is indexable or must stay noindex until its copy exists.
  */
 import { DEFAULT_LOCALE, type Locale } from "../shared/i18n/locales.js";
-import arGuides from "../client/src/locales/ar/guides.json" with { type: "json" };
-import arPages from "../client/src/locales/ar/pages.json" with { type: "json" };
-import arTools from "../client/src/locales/ar/tools.json" with { type: "json" };
-import arAccount from "../client/src/locales/ar/account.json" with { type: "json" };
-import enGuides from "../client/src/locales/en/guides.json" with { type: "json" };
-import enPages from "../client/src/locales/en/pages.json" with { type: "json" };
-import enTools from "../client/src/locales/en/tools.json" with { type: "json" };
-import enAccount from "../client/src/locales/en/account.json" with { type: "json" };
-import ckbGuides from "../client/src/locales/ckb/guides.json" with { type: "json" };
-import ckbPages from "../client/src/locales/ckb/pages.json" with { type: "json" };
-import ckbTools from "../client/src/locales/ckb/tools.json" with { type: "json" };
-import ckbAccount from "../client/src/locales/ckb/account.json" with { type: "json" };
+import arGuides from "../client/src/locales/ar/guides.json";
+import arPages from "../client/src/locales/ar/pages.json";
+import arTools from "../client/src/locales/ar/tools.json";
+import arAccount from "../client/src/locales/ar/account.json";
+import enGuides from "../client/src/locales/en/guides.json";
+import enPages from "../client/src/locales/en/pages.json";
+import enTools from "../client/src/locales/en/tools.json";
+import enAccount from "../client/src/locales/en/account.json";
+import ckbGuides from "../client/src/locales/ckb/guides.json";
+import ckbPages from "../client/src/locales/ckb/pages.json";
+import ckbTools from "../client/src/locales/ckb/tools.json";
+import ckbAccount from "../client/src/locales/ckb/account.json";
 
 type Bundle = Record<string, Record<string, string> | string>;
 const BUNDLES: Record<Locale, Bundle[]> = {

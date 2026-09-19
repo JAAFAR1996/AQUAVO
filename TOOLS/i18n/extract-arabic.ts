@@ -32,6 +32,8 @@ const LOCALES_DIR = resolve("client/src/locales");
 // Files whose Arabic is data / identity, not copy. Handled by hand or left alone.
 const SKIP_FILES = new Set([
   "client/src/lib/variant-dimensions.ts",
+  "client/src/components/seo/meta-tags.tsx", // per-locale tables by design
+  "client/src/lib/accountant-pdf-v2.ts", // internal accounting PDF, not customer-facing
   "client/src/components/cart/checkout/types.ts",
   "client/src/components/products/category-scroll-bar.tsx",
   "client/src/components/products/product-variant-selector.tsx",

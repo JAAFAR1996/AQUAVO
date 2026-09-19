@@ -122,7 +122,11 @@ for (const locale of TRANSLATION_TARGET_LOCALES) {
 }
 
 // ── 4. Hard-coded Arabic in client code ───────────────────────────────────────
-const CLASS_B_PATTERNS = [/^client\/src\/data\//, /fish-species-data/, /breeding-data/, /^client\/src\/lib\/site-search\.ts$/, /aquascape-data/, /initial-fish-data/];
+const CLASS_B_PATTERNS = [
+  /^client\/src\/data\//, /fish-species-data/, /breeding-data/, /aquascape-data/, /initial-fish-data/, /site-search\.ts$/,
+  // Identity strings, prerender source and internal-only files (not customer-facing copy):
+  /accountant-pdf-v2\.ts$/, /home-hero\.tsx$/, /checkout\/types\.ts$/, /variant-dimensions\.ts$/, /category-scroll-bar\.tsx$/,
+];
 const EXCLUDE = ["client/src/locales/", "/__tests__/", "client/src/components/admin/", "client/src/pages/admin", "client/src/pages/admin-", ".test.", "client/src/i18n/"];
 function walk(dir: string, out: string[] = []): string[] {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {

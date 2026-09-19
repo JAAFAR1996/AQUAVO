@@ -64,8 +64,6 @@ export const users = pgTable("users", {
     mainProblem?: string;
     tankAge?: string;
   }>(),
-  /** Explicit language choice (ar | en | ckb); NULL means Arabic. */
-  locale: text("locale"),
   preferences: jsonb("preferences").$type<{
     tourSeen?: Record<string, boolean>; // e.g. { "/": true, "/products": true }
     theme?: "light" | "dark" | "system";
@@ -193,8 +191,6 @@ export const orders = pgTable("orders", {
   boxCost: numeric("box_cost").default("0"),
   // Order origin: 'website' (default) | 'whatsapp' (created from a manual WhatsApp invoice)
   source: text("source").default("website"),
-  /** Storefront language at checkout, for customer notifications. NULL means Arabic. */
-  locale: text("locale"),
   // Manual financial inclusion override: null=auto (use status), true=force include, false=force exclude
   financiallyCounted: boolean("financially_counted"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
