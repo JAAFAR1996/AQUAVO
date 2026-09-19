@@ -1,6 +1,6 @@
 # AQUAVO translation coverage report
 
-Generated 2026-09-19T12:28:01.227Z against https://www.aquavoiq.com.
+Generated 2026-09-19T13:38:21.131Z against https://www.aquavoiq.com.
 
 ## 1. UI string bundles (client/src/locales)
 
@@ -22,9 +22,9 @@ Generated 2026-09-19T12:28:01.227Z against https://www.aquavoiq.com.
 
 | Entity | ar | en | ckb |
 |---|---|---|---|
-| products | 107/107 | 107/107 (100.0%) | 48/107 (44.9%) |
-| blog_posts | 117/117 | 117/117 (100.0%) | 0/117 (0.0%) |
-| blog_categories | 8/8 | 8/8 (100.0%) | 0/8 (0.0%) |
+| products | 107/107 | 107/107 (100.0%) | 107/107 (100.0%) |
+| blog_posts | 117/117 | 117/117 (100.0%) | 117/117 (100.0%) |
+| blog_categories | 8/8 | 8/8 (100.0%) | 8/8 (100.0%) |
 | categories | 11/11 | 11/11 (100.0%) | 11/11 (100.0%) |
 
 Translation records live in data/i18n/translations/<locale>/*.json until TOOLS/i18n/seed-translations.mjs loads them into content_translations (requires the migration).
@@ -73,6 +73,6 @@ Translation records live in data/i18n/translations/<locale>/*.json until TOOLS/i
 | Locale | Eligible | Blocking reasons |
 |---|---|---|
 | en | yes | — |
-| ckb | no | 192 validator errors; products: 41/107 complete and valid; blog_posts: 0/117 complete and valid; blog_categories: 0/8 complete and valid |
+| ckb | yes | — |
 
 Eligibility never flips the release flag; a person sets `ready: true` in shared/i18n/release.ts in a reviewed commit. Review status (machine → reviewed) is a separate, human step in the admin editor.

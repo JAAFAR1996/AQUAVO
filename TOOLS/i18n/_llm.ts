@@ -169,7 +169,36 @@ export function extractJson(text: string): unknown {
   const start = text.indexOf("{");
   const end = text.lastIndexOf("}");
   if (start < 0 || end < 0) throw new Error("no JSON object in reply");
-  return JSON.parse(text.slice(start, end + 1));
+  const body = text.slice(start, end + 1);
+  try {
+    return JSON.parse(body);
+  } catch {
+    // Models sometimes emit raw newlines / tabs inside string literals; escape
+    // control characters that sit inside a string and parse again.
+    return JSON.parse(escapeControlCharsInStrings(body));
+  }
+}
+
+function escapeControlCharsInStrings(json: string): string {
+  let out = "";
+  let inString = false;
+  for (let i = 0; i < json.length; i++) {
+    const ch = json[i];
+    if (inString) {
+      if (ch === "\\") { out += ch + (json[i + 1] ?? ""); i++; continue; }
+      if (ch === '"') { inString = false; out += ch; continue; }
+      const code = ch.charCodeAt(0);
+      if (code < 0x20) {
+        out += code === 0x0a ? "\\n" : code === 0x0d ? "\\r" : code === 0x09 ? "\\t" : "";
+        continue;
+      }
+      out += ch;
+    } else {
+      if (ch === '"') inString = true;
+      out += ch;
+    }
+  }
+  return out;
 }
 
 /**
