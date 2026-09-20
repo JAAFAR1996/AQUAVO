@@ -14,7 +14,7 @@ const baseURL = process.env.PLAYWRIGHT_BASE_URL || process.env.E2E_BASE_URL || "
 
 export default defineConfig({
   testDir: ".",
-  testMatch: /i18n-locales\.spec\.ts/,
+  testMatch: /i18n-(locales|bidi)\.spec\.ts/,
   timeout: 60_000,
   retries: 0,
   workers: 2,

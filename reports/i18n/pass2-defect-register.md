@@ -353,3 +353,212 @@ Checked, not assumed:
 
 Zero rows are marked `reviewed`. Kurdish remains unfit to release. English is closer but
 has had no native review either.
+
+---
+
+# Pass 4 — deterministic review and QA (2026-09-20)
+
+From commit `11c08b78`. No provider was available, so every correction below is verified
+against the Arabic source or against a measurement, never against a model's opinion.
+Production was not written. No row was marked `reviewed`. No locale was released.
+
+## The "dropped block" was not a dropped block
+
+`real-vs-fake-plants-iraq` was registered as "Kurdish has 27 blocks against the Arabic 28,
+everything after block 11 is shifted". The paragraph is present and correctly translated.
+Its opening tag had lost its `>`:
+
+```
+<pنەک سازش، بەڵکو بڕیارێک. چەند حاڵەتێک هەیە...</p>
+```
+
+A browser parses `<pنەک` as an unknown element and swallows the rest as attributes, so the
+paragraph never renders. The validator counts headings, list items, tables and images —
+not paragraphs — which is why it passed. Fixed by restoring the `>`; no translated word
+changed.
+
+A sweep for the same class across both corpora found exactly one more:
+`small-schooling-fish-selection` (ckb) had a table row whose `<tr>` was missing, leaving
+`<tr>` 8 open / 9 closed. Also fixed. Both corpora are now structurally clean, and all
+three locales of the plants article align at 45 units.
+
+## Kurdish translated a URL
+
+`دليل-شامل-عن-الفلترة-والتنقية...` (ckb) had rewritten the Arabic letters **inside the
+href**: `ي`→`ی` and `ك`→`ک`, giving `/الفلترة-والتنقیة/الفلتر-المیکانیکی`. Both internal
+links were dead. The English kept the href and translated only the link text, which is
+correct. Restored; hrefs are now byte-identical to the source.
+
+## Every product reviewed, both locales
+
+The per-slug record of which products pass 2 reached was never persisted, so the exact
+"14 EN / 2 CKB" could not be recovered. Instead all 107 products were reviewed in both
+locales with checks the validator does not make: array-length parity across
+`benefits` / `usageInstructions` / `safetyWarnings`, model codes surviving into the target
+name, blank array entries, and numbers present in the target but nowhere in the Arabic
+record.
+
+**Result: 0 findings in either locale.** No dropped bullet, no lost model code, no invented
+figure. The register's "invented `fits substrates up to 52×26 mm`" on `houyi-planting-ring`
+does not reproduce — that product now carries no number absent from its Arabic record.
+
+The one real defect class found was subcategory inconsistency: one Arabic subcategory
+rendered several different ways, which splits the storefront's facet filters.
+
+- **English — fixed.** 17 labels across 9 Arabic subcategories normalised, including the
+  register's own example (`إكسسوارات` → "Accessories" ×9 vs "Decor" ×1). Two are editorial
+  calls worth a second opinion: "Mounting Clamps" (neither existing form was accurate —
+  مشبك is a clamp, not a bracket) and "Fish Nets" (aquarium nets, not angling nets).
+- **Kurdish — not touched,** as instructed. Choosing between `تۆڕی ماسیگرتن` and
+  `تۆڕەکانی ڕاوکردن` is native-language judgement. Ten Arabic subcategories are affected.
+
+## Every article reviewed, both locales
+
+All 117 articles in both locales were checked for link-target drift, link-count parity,
+dead internal `/blog/<slug>` targets, paragraph-count parity and malformed tags.
+After the two structural fixes and the href fix, **0 findings remain**.
+
+This is deterministic coverage of 117/117, not a model reading 117 articles. The prose
+quality of the 82 articles outside the high-risk set still has had no linguistic review in
+either locale.
+
+## Browser QA
+
+Against a local server on mock storage (no production data touched).
+
+| | result |
+|---|---|
+| Playwright i18n suite | **84 passed, 0 failed, 2 skipped** |
+| pages × locales × viewports | 11 × 3 × 2 = **66 screenshots** in `e2e-artifacts/i18n/` |
+| covered | home, products, category, product, blog, guide, login, register, order-tracking, checkout, 404 |
+| also asserted | `lang`/`dir` per locale, language selector lists all three, equivalent-page switching, direct URL access, cookie persistence, cart survives a language switch |
+
+The 2 skips are the catalogue-backed BiDi check in `i18n-locales.spec.ts`, which skips
+whenever the server has no products. That check is now superseded by the dedicated suite
+below, which needs no database.
+
+**Not covered by this run:** cart, invoice, account and orders pages need a seeded
+catalogue and a signed-in session; the mock-storage server serves neither. Those four
+surfaces remain unverified in a browser.
+
+## BiDi stress test
+
+New suite `e2e/i18n-bidi.spec.ts`. It takes the real strings off disk — 1004 mixed-direction
+ckb strings and 917 ar — renders them at the locale's own direction and measures what the
+bidi algorithm produced, rather than asserting on a heuristic.
+
+**Arabic is included as a control.** It is the source language and already in production,
+so any pattern it also shows is inherent RTL rendering rather than something the
+translation introduced.
+
+One real defect, confirmed by reading back the visual character order:
+
+```
+logical: متوسط (50-150 لتر)
+visual : )رتل 150-50( طسوتم        the shopper reads 150-50
+logical: تغذية 4-6 مرات يومياً
+visual : اًيموي تارم 6-4 ةيذغت      the shopper reads 6-4
+```
+
+**Hyphenated numeric ranges render with their two numbers swapped in RTL.** It affects
+Arabic (54 occurrences) slightly more than Kurdish (49), so it is a pre-existing storefront
+bug, not an i18n regression. The fix belongs in the rendering layer — wrap the range in
+`<bdi>` or `unicode-bidi: isolate` — and never in the translated strings, because the
+validator correctly rejects explicit bidi control characters in content.
+
+**This needs a product decision, because fixing it changes Arabic production rendering.**
+
+The suite's gate is therefore parity with Arabic, not zero findings: ckb must show no
+pattern ar does not. That currently passes. Zero explicit bidi control characters in either
+locale.
+
+## Search quality — a real defect, found and fixed
+
+`normalizeSearchText` folds Arabic orthographic variants, but its rules predate the Sorani
+catalogue. Sorani writes **ی (U+06CC)** and **ک (U+06A9)**; Arabic writes **ي (U+064A)** and
+**ك (U+0643)**. Neither pair was unified.
+
+Measured against the real catalogue: **91 of 107 Kurdish product names — 85% — could not be
+found at all from an Arabic keyboard**, which is the common input method in Iraq. Typing
+`فلتەري ئيسفەنجي` returned nothing for `فلتەری ئیسفەنجی`.
+
+Fixed by folding ی→ي and ک→ك in the normaliser only. It never touches displayed text.
+
+| | before | after |
+|---|---|---|
+| ckb findable from own name | 107/107 | 107/107 |
+| ckb findable from Arabic keyboard | **16/107** | **107/107** |
+| en findable from own name | 107/107 | 107/107 |
+
+Pinned by `test/i18n/search-quality.test.ts` (9 tests), which runs against the real product
+names, not fixtures. One known-harmless rule is left alone and documented: `ئ`→`ي` mangles
+the Sorani index but is applied to query and index alike, so matching is unaffected.
+
+## Gate results
+
+| gate | pass 3 | pass 4 |
+|---|---|---|
+| validator errors | 0 | **0** |
+| validator warnings | 311 | **311** |
+| content audit findings | 34 | **34** |
+| client typecheck | 0 | **0** |
+| api typecheck | 0 | **0** |
+| vitest (i18n + cart + lib) | — | **297 passed, 1 failed** |
+| Playwright i18n | — | **84 passed, 2 skipped** |
+| product review coverage | 93 en / 105 ckb | **107/107 both, deterministic** |
+| article review coverage | 35/117 high-risk | **117/117 deterministic**, 35/117 linguistic |
+
+The single vitest failure is `whatsapp-coverage.test.ts` › "the surfaces the audit named are
+all present and wired" (`order-confirmation`). It is **pre-existing**: it fails identically at
+`11c08b78` with this pass's changes stashed. Unrelated to i18n and left alone.
+
+Warnings stayed at 311 because nothing in this pass touched Kurdish vocabulary — instruction
+9 explicitly reserved those 86 for native judgement.
+
+## Genuinely needs a native Sorani speaker
+
+1. The systematic vocabulary table from pass 2 (gills, dose, shell, bloating, evaporation,
+   tap water ×49, snail, infection, localized, labyrinth organ, stage, dropsy, fertilizing,
+   hobby).
+2. The 86 glossary-consistency blocks surfaced in pass 3 (freshwater 32, discount 14,
+   point 8, livebearers 7, terms-and-conditions 6, loyalty 6, track-order 4, …).
+3. The 20 glossary terms added in pass 3, all still flagged `needsNativeReview: true`,
+   including the four this pass leaned on: کرێ (fee), داشکاندن (discount), خاڵ (point),
+   باڵانس (balance).
+4. The 10 Kurdish subcategory labels left inconsistent on purpose.
+5. Prose quality of all 117 Kurdish articles — the 35 high-risk set had model review only,
+   the other 82 have had none.
+6. The four sections retranslated in pass 3. They are one model's Sorani replacing a weaker
+   model's Sorani; no human has read them.
+
+## Genuinely needs an LLM provider
+
+1. Re-running `translate-content.ts` / `translate-ui.ts` for any bulk regeneration.
+2. Model-assisted linguistic review of the 82 articles outside the high-risk set, in both
+   locales.
+3. Regenerating the Kurdish articles against a corrected glossary once a native speaker has
+   settled the vocabulary table — the register's release condition #2.
+4. Re-translating the five Arabic words still embedded in the Kurdish corpus
+   (حراشف, حاسبات, الإسالة, تدریجی, قاعیدی).
+
+Both are hard blockers; neither is a matter of effort.
+
+## Needs a decision, not a translator
+
+1. **The BiDi numeric-range swap.** Real, measured, affects Arabic production. Fixing it
+   means changing storefront rendering for all three locales.
+2. **`activated-carbon-aquarium-when-to-use`** — still flagged only, translations untouched
+   as instructed. The Arabic contradicts itself and must be corrected at source first.
+3. **Cart / invoice / account / orders browser QA** — needs a seeded catalogue and a session.
+
+## Readiness — unchanged
+
+| | EN | CKB |
+|---|---|---|
+| Technical | yes | yes |
+| Automated QA | yes | yes |
+| Linguistic review | no | no |
+| Native human review | **no** | **no** |
+| Release ready | **no** | **no** |
+
+Zero rows are marked `reviewed`.
