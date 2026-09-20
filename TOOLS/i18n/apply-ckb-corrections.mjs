@@ -27,7 +27,24 @@ const TOKENS = [
   { from: "مەهمیەتی", to: "گرنگی", why: "Arabic loan أهمية; Sorani is گرنگی." },
   { from: "نقطەکانی", to: "خاڵەکانی", why: "Arabic loan نقطة left untranslated; Sorani is خاڵ." },
   { from: "نقطە یان", to: "خاڵ یان", why: "same Arabic loan." },
+  // Researched 2026-09-21 against ckb.wikipedia / Wikidata / ferheng.info.
+  { from: "باکتری", to: "بەکتریا", why: "باکتری is the Persian form; ckb.wikipedia titles the article بەکتریا (247 already correct in-corpus)." },
+  { from: "جەمبڕی", to: "مەیگوو", why: "Arabic جمبري transliteration; ckb.wikipedia en:Shrimp langlink is مەیگوو. NB: میگۆ is Persian and is NOT the fix." },
+  { from: "جەمبەری", to: "مەیگوو", why: "same Arabic transliteration." },
 ];
+
+/**
+ * Terms NOT mass-replaced, though research identified a better canonical,
+ * because the wrong form is only wrong in SOME contexts and a blanket swap
+ * would corrupt the correct uses:
+ *   پلەپێو (52) — correct as "thermometer", wrong when used for "temperature".
+ *   گەروو  (15) — correct as "throat", wrong when used for fish "gills" (ڕیشوو).
+ *   کەوز  (187) — corpus-wide form for algae; ckb.wikipedia prefers قەوزە but
+ *                 lists کەوزە as a dialect variant, so this is a house-style
+ *                 call for a native reviewer, not a defect.
+ * The glossary below records the researched canonical so the validator starts
+ * flagging the wrong-context uses for a human to work through.
+ */
 
 /**
  * Glossary Arabic-trigger narrowing. Each entry replaces term.ar wholesale.

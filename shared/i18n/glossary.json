@@ -12,8 +12,10 @@
       "en": "aquarium",
       "ckb": "حەوز",
       "ckbAlt": [
-        "حەوزی ماسی"
-      ]
+        "حەوزی ماسی",
+        "ئاوژیدان"
+      ],
+      "source": "https://ckb.wikipedia.org/wiki/%D8%A6%D8%A7%D9%88%DA%98%DB%8C%D8%AF%D8%A7%D9%86"
     },
     {
       "id": "fish",
@@ -293,7 +295,12 @@
         "كلور"
       ],
       "en": "chlorine",
-      "ckb": "کلۆر"
+      "ckb": "کلۆر",
+      "avoid": [
+        "کلر",
+        "کلۆرین"
+      ],
+      "source": "https://ckb.wikipedia.org/wiki/%DA%A9%D9%84%DB%86%D8%B1"
     },
     {
       "id": "chloramine",
@@ -310,7 +317,8 @@
         "الأمونيا"
       ],
       "en": "ammonia",
-      "ckb": "ئەمۆنیا"
+      "ckb": "ئەمۆنیا",
+      "source": "https://ckb.wikipedia.org/wiki/%D8%A6%DB%95%D9%85%DB%86%D9%86%DB%8C%D8%A7"
     },
     {
       "id": "nitrite",
@@ -377,7 +385,12 @@
         "ميزان حرارة"
       ],
       "en": "thermometer",
-      "ckb": "پلەپێو"
+      "ckb": "گەرمیپێو",
+      "ckbAlt": [
+        "پلەپێو",
+        "تەرمۆمەتر"
+      ],
+      "source": "https://ckb.wikipedia.org/wiki/%DA%AF%DB%95%D8%B1%D9%85%DB%8C%D9%BE%DB%8E%D9%88"
     },
     {
       "id": "temperature",
@@ -388,8 +401,15 @@
       "en": "temperature",
       "ckb": "پلەی گەرمی",
       "ckbAlt": [
-        "گەرما"
-      ]
+        "گەرما",
+        "پلەی گەرما",
+        "گەرمی"
+      ],
+      "avoid": [
+        "پلەپێو",
+        "گرما"
+      ],
+      "source": "https://ckb.wikipedia.org/wiki/%D9%BE%D9%84%DB%95%DB%8C_%DA%AF%DB%95%D8%B1%D9%85%DB%8C"
     },
     {
       "id": "water-test",
@@ -539,7 +559,13 @@
         "الطحالب"
       ],
       "en": "algae",
-      "ckb": "کەوز"
+      "ckb": "قەوزە",
+      "ckbAlt": [
+        "کەوزە",
+        "کەوز",
+        "کەڤز"
+      ],
+      "source": "https://ckb.wikipedia.org/wiki/%D9%82%DB%95%D9%88%D8%B2%DB%95"
     },
     {
       "id": "algae-control",
@@ -586,7 +612,16 @@
         "جمبري"
       ],
       "en": "shrimp",
-      "ckb": "میگۆ"
+      "ckb": "مەیگوو",
+      "ckbAlt": [
+        "ئەنگوش"
+      ],
+      "avoid": [
+        "جەمبڕی",
+        "جەمبەری",
+        "میگۆ"
+      ],
+      "source": "https://ckb.wikipedia.org/wiki/%D9%85%DB%95%DB%8C%DA%AF%D9%88%D9%88"
     },
     {
       "id": "goldfish",
@@ -750,8 +785,11 @@
       "en": "cart",
       "ckb": "سەبەتە",
       "ckbAlt": [
-        "سەبەت"
-      ]
+        "سەبەت",
+        "سەبەتەی کڕین",
+        "عەرەبانە"
+      ],
+      "source": "https://www.hostkurd.com/cart.php?a=view"
     },
     {
       "id": "add-to-cart",
@@ -798,8 +836,11 @@
       "en": "delivery",
       "ckb": "گەیاندن",
       "ckbAlt": [
-        "پێگەیاندن"
-      ]
+        "پێگەیاندن",
+        "گەیاندرا",
+        "گەیشت"
+      ],
+      "source": "https://kurdphone.com/shipping/"
     },
     {
       "id": "cash-on-delivery",
@@ -817,11 +858,13 @@
         "متوفر الآن"
       ],
       "en": "in stock",
-      "ckb": "بەردەست",
+      "ckb": "لەبەردەستە",
       "ckbAlt": [
         "بەردەستە",
-        "ئامادە"
-      ]
+        "ئامادە",
+        "بەردەستە لە کۆگا"
+      ],
+      "source": "https://kurdphone.com/product-category/charger/"
     },
     {
       "id": "out-of-stock",
@@ -831,11 +874,14 @@
         "نفد"
       ],
       "en": "out of stock",
-      "ckb": "بەردەست نییە",
+      "ckb": "لە کۆگا نەماوە",
       "ckbAlt": [
         "تەواو بووە",
-        "نەماوە"
-      ]
+        "نەماوە",
+        "بەردەست نییە",
+        "لە کۆگا نییە"
+      ],
+      "source": "https://kurdphone.com/"
     },
     {
       "id": "product",
@@ -868,7 +914,11 @@
         "حسابي"
       ],
       "en": "account",
-      "ckb": "هەژمار"
+      "ckb": "هەژمار",
+      "ckbAlt": [
+        "ئەکاونت"
+      ],
+      "source": "https://fib.iq/ku/faq/"
     },
     {
       "id": "login",
@@ -881,8 +931,12 @@
       "ckb": "چوونەژوورەوە",
       "ckbAlt": [
         "بچیتە ژوورەوە",
-        "بچیتە"
-      ]
+        "بچیتە",
+        "بچۆنە ژوورەوە",
+        "بچۆرە ژوورەوە",
+        "بچۆ ژوورەوە"
+      ],
+      "source": "https://kurdphone.com/"
     },
     {
       "id": "register",
@@ -952,8 +1006,13 @@
       "en": "warranty",
       "ckb": "گەرەنتی",
       "ckbAlt": [
-        "زەمانەت"
-      ]
+        "زەمانەت",
+        "زەمان"
+      ],
+      "avoid": [
+        "گارانتی"
+      ],
+      "source": "https://www.samsung.com/iq_ku/info/legal"
     },
     {
       "id": "maintenance",
@@ -1217,7 +1276,11 @@
         "الدفع الإلكتروني"
       ],
       "en": "online payment",
-      "ckb": "پارەدانی ئەلیکترۆنی"
+      "ckb": "پارەدانی ئەلیکترۆنی",
+      "ckbAlt": [
+        "پارەدانی ئۆنلاین"
+      ],
+      "source": "https://epsule.gov.krd/how-to-pay/wallets/"
     },
     {
       "id": "vitamins",
@@ -1236,12 +1299,17 @@
         "نقاط ولاء"
       ],
       "en": "loyalty points",
-      "ckb": "خاڵی وفاداری",
+      "ckb": "خاڵ",
       "ckbAlt": [
         "خاڵەکانی وفاداری",
-        "خاڵ"
+        "خاڵ",
+        "خاڵی پاداشت",
+        "خاڵەکانی پاداشت"
       ],
-      "needsNativeReview": true
+      "avoid": [
+        "نقطە"
+      ],
+      "source": "https://fib.iq/cashback/"
     },
     {
       "id": "point",
@@ -1251,7 +1319,14 @@
       ],
       "en": "point",
       "ckb": "خاڵ",
-      "needsNativeReview": true
+      "ckbAlt": [
+        "خاڵەکان"
+      ],
+      "avoid": [
+        "خال",
+        "نقطە"
+      ],
+      "source": "https://ku.wiktionary.org/wiki/%D8%AE%D8%A7%DA%B5"
     },
     {
       "id": "loyalty",
@@ -1260,8 +1335,14 @@
         "ولاء"
       ],
       "en": "loyalty",
-      "ckb": "وفاداری",
-      "needsNativeReview": true
+      "ckb": "وەفاداری",
+      "ckbAlt": [
+        "وفاداری"
+      ],
+      "avoid": [
+        "دڵسۆزی"
+      ],
+      "source": "https://citystarmall.co/ku/"
     },
     {
       "id": "discount",
@@ -1272,7 +1353,13 @@
       ],
       "en": "discount",
       "ckb": "داشکاندن",
-      "needsNativeReview": true
+      "ckbAlt": [
+        "داشکان"
+      ],
+      "avoid": [
+        "کەمکردنەوە"
+      ],
+      "source": "https://kurdphone.com/"
     },
     {
       "id": "subtotal",
@@ -1280,8 +1367,14 @@
         "المجموع الفرعي"
       ],
       "en": "subtotal",
-      "ckb": "کۆی لاوەکی",
-      "needsNativeReview": true
+      "ckb": "کۆ",
+      "ckbAlt": [
+        "کۆی لاوەکی"
+      ],
+      "avoid": [
+        "کۆی گشتی"
+      ],
+      "source": "https://www.hostkurd.com/cart.php?a=view"
     },
     {
       "id": "grand-total",
@@ -1291,7 +1384,7 @@
       ],
       "en": "total",
       "ckb": "کۆی گشتی",
-      "needsNativeReview": true
+      "source": "https://www.hostkurd.com/cart.php?a=view"
     },
     {
       "id": "delivery-fee",
@@ -1312,7 +1405,13 @@
       ],
       "en": "fee",
       "ckb": "کرێ",
-      "needsNativeReview": true
+      "ckbAlt": [
+        "تێچوو"
+      ],
+      "avoid": [
+        "باج"
+      ],
+      "source": "https://kurdphone.com/faqs/"
     },
     {
       "id": "balance",
@@ -1334,9 +1433,13 @@
       "en": "track your order",
       "ckb": "بەدواداچوونی داواکاری",
       "ckbAlt": [
-        "بەدواداچوونی داواکارییەکەت"
+        "بەدواداچوونی داواکارییەکەت",
+        "شوێنکەوتنی داواکاری"
       ],
-      "needsNativeReview": true
+      "avoid": [
+        "پێگەی داواکردن"
+      ],
+      "source": "https://kurdphone.com/track-order/"
     },
     {
       "id": "invoice",
@@ -1345,8 +1448,17 @@
         "فاتورة"
       ],
       "en": "invoice",
-      "ckb": "فاکتۆر",
-      "needsNativeReview": true
+      "ckb": "پسووڵە",
+      "ckbAlt": [
+        "پسوڵە",
+        "پسووڵەی فرۆشتن",
+        "پسووڵەی پارەدان"
+      ],
+      "avoid": [
+        "فاکتۆر",
+        "وەسڵ"
+      ],
+      "source": "https://epsule.gov.krd/how-to-pay/"
     },
     {
       "id": "terms-and-conditions",
@@ -1354,8 +1466,17 @@
         "الشروط والأحكام"
       ],
       "en": "terms and conditions",
-      "ckb": "مەرج و ڕێساکان",
-      "needsNativeReview": true
+      "ckb": "مەرج و بەندەکان",
+      "ckbAlt": [
+        "بەند و مەرجەکان",
+        "مەرج و ڕێساکان",
+        "مەرج و ڕێسایانە"
+      ],
+      "avoid": [
+        "مەرج و مەبەستەکان",
+        "مەرج و ڕێنوێن"
+      ],
+      "source": "https://www.rudaw.net/sorani/terms"
     },
     {
       "id": "survey",
@@ -1395,7 +1516,10 @@
       ],
       "en": "freshwater",
       "ckb": "ئاوی شیرین",
-      "needsNativeReview": true
+      "avoid": [
+        "ئاوی سازگار"
+      ],
+      "source": "https://ckb.wikipedia.org/wiki/%D8%A6%D8%A7%D9%88%DB%8C_%D8%B4%DB%8C%D8%B1%DB%8C%D9%86"
     },
     {
       "id": "saltwater",
@@ -1613,5 +1737,24 @@
       "en": "Country of origin",
       "ckb": "وڵاتی بەرهەمهێنان"
     }
+  },
+  "$unresolved": {
+    "note": "Researched 2026-09-21 with no authoritative attestation found. A native Sorani reviewer from Iraqi Kurdistan is required; do not ship a guessed form.",
+    "terms": [
+      "heater (aquarium)",
+      "thermostat",
+      "aeration",
+      "mechanical filtration",
+      "biological filtration",
+      "chloramine",
+      "dechlorinator / water conditioner",
+      "beneficial bacteria",
+      "aquarium cycling",
+      "algae control",
+      "livebearers vs egg-layers",
+      "dose / dosing",
+      "force majeure",
+      "loyalty tier / tier upgrade"
+    ]
   }
 }

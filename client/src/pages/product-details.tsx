@@ -632,10 +632,20 @@ export default function ProductDetails() {
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex flex-col sm:flex-row gap-3">
+                    {/*
+                      flex-wrap + min-w-0 are load-bearing for translated labels.
+                      These buttons are whitespace-nowrap, so their min-content
+                      width is the label width and flex-1 alone cannot shrink
+                      below it. Sorani labels run longer than the Arabic they
+                      were laid out against, which pushed the share button 32px
+                      off the left edge of the viewport (RTL) and produced real
+                      horizontal page scroll. Wrapping degrades gracefully in any
+                      language instead of assuming Arabic-length strings.
+                    */}
+                    <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3">
                       <Button
                         size="lg"
-                        className={`flex-1 gap-2 text-lg h-12 transition-all duration-300 ${isAddedToCart ? 'bg-green-500 hover:bg-green-600' : ''
+                        className={`flex-1 min-w-0 gap-2 text-lg h-12 transition-all duration-300 ${isAddedToCart ? 'bg-green-500 hover:bg-green-600' : ''
                           }`}
                         onClick={handleAddToCart}
                         disabled={isAddingToCart}
