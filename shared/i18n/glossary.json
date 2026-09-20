@@ -849,7 +849,12 @@
         "الدفع عند التوصيل"
       ],
       "en": "cash on delivery",
-      "ckb": "پارەدان لە کاتی وەرگرتن"
+      "ckb": "کاش لە کاتی گەیاندن",
+      "ckbAlt": [
+        "پارەی کاش لە کاتی گەیاندن",
+        "پارەدان لە کاتی وەرگرتن"
+      ],
+      "source": "https://www.samsung.com/iq_ku/shop-faq/payment-and-financing/"
     },
     {
       "id": "in-stock",
@@ -874,14 +879,16 @@
         "نفد"
       ],
       "en": "out of stock",
-      "ckb": "لە کۆگا نەماوە",
+      "ckb": "بەردەست نییە لە کۆگا",
       "ckbAlt": [
         "تەواو بووە",
         "نەماوە",
         "بەردەست نییە",
-        "لە کۆگا نییە"
+        "لە کۆگا نییە",
+        "لە کۆگا نەماوە",
+        "بەرهەمەکە لە کۆگادا نەماوە"
       ],
-      "source": "https://kurdphone.com/"
+      "source": "https://translate.wordpress.org/projects/wp-plugins/woocommerce/stable/ckb/default/"
     },
     {
       "id": "product",
@@ -1304,10 +1311,13 @@
         "خاڵەکانی وفاداری",
         "خاڵ",
         "خاڵی پاداشت",
-        "خاڵەکانی پاداشت"
+        "خاڵەکانی پاداشت",
+        "خاڵەکان"
       ],
       "avoid": [
-        "نقطە"
+        "نقطە",
+        "خاڵی",
+        "پۆینت"
       ],
       "source": "https://fib.iq/cashback/"
     },
@@ -1324,7 +1334,8 @@
       ],
       "avoid": [
         "خال",
-        "نقطە"
+        "نقطە",
+        "خاڵی"
       ],
       "source": "https://ku.wiktionary.org/wiki/%D8%AE%D8%A7%DA%B5"
     },
@@ -1395,7 +1406,14 @@
       ],
       "en": "delivery fee",
       "ckb": "کرێی گەیاندن",
-      "needsNativeReview": true
+      "ckbAlt": [
+        "نرخی گەیاندن"
+      ],
+      "avoid": [
+        "تێچووی گەیاندن",
+        "باج"
+      ],
+      "source": "https://translate.wordpress.org/projects/wp-plugins/woocommerce/stable/ckb/default/"
     },
     {
       "id": "fee",
@@ -1486,7 +1504,18 @@
       ],
       "en": "survey",
       "ckb": "ڕاپرسی",
-      "needsNativeReview": true
+      "ckbAlt": [
+        "ڕاپرسی کڕیاران",
+        "پرسیارنامە",
+        "پرسنامە",
+        "فۆڕمی سەرنج و پێشنیار"
+      ],
+      "avoid": [
+        "پرسە",
+        "هەڵسەنگاندن",
+        "ڕاپرسی گشتی"
+      ],
+      "source": "https://ckb.wikipedia.org/wiki/%DA%95%D8%A7%D9%BE%D8%B1%D8%B3%DB%8C"
     },
     {
       "id": "reward",
@@ -1537,8 +1566,18 @@
         "ظروف قاهرة"
       ],
       "en": "force majeure",
-      "ckb": "بارودۆخی ناچاری",
-      "needsNativeReview": true
+      "ckb": "هێزی هەرەزاڵ",
+      "ckbAlt": [
+        "بڕگەی هێزی هەرەزاڵ",
+        "دۆخێک کە لە دەرەوەی توانا و دەسەڵاتی لایەنەکان بێت"
+      ],
+      "avoid": [
+        "هێزی زاڵ",
+        "هێزی ناچارکەر",
+        "بارودۆخی ناچاری",
+        "هۆکاری دەرەکی"
+      ],
+      "source": "https://ckb.wikipedia.org/wiki/%D9%87%DB%8C%D9%94%D8%B2%D9%89_%D9%87%DB%95%D8%B1%DB%95%D8%B2%D8%A7%DA%B5"
     },
     {
       "id": "competent-courts",
@@ -1753,8 +1792,14 @@
       "algae control",
       "livebearers vs egg-layers",
       "dose / dosing",
-      "force majeure",
       "loyalty tier / tier upgrade"
-    ]
+    ],
+    "confirmWithNative": {
+      "note": "Resolved by research, but inferred from adjacent usage rather than a shipped Sorani label. Worth a native reviewer's confirmation before these reach customers.",
+      "terms": [
+        "force-majeure",
+        "customer-credit"
+      ]
+    }
   }
 }

@@ -66,8 +66,28 @@ const AR_RESOURCES: Record<Namespace, Record<string, unknown>> = {
   guides: arGuides,
 };
 
-/** Static glob so Vite code-splits each locale/namespace pair. */
-const bundles = import.meta.glob<{ default: Record<string, unknown> }>("../locales/*/*.json");
+/**
+ * Static glob so Vite code-splits each locale/namespace pair.
+ *
+ * Guarded because this module is also pulled into `generated/static-pages-entry.mjs`,
+ * which the prerender step bundles with esbuild rather than Vite. esbuild leaves
+ * `import.meta.glob` untransformed, so the call reaches Node as a real property
+ * access on `import.meta`, where it is undefined — `npm run build` then died with
+ * "(intermediate value).glob is not a function" during prerendering. That broke
+ * the production build on this branch only: `client/src/i18n/index.ts` does not
+ * exist on main, while `script/prerender-static-pages.ts` does and builds fine there.
+ *
+ * Vite still statically analyses the call inside the try, so code-splitting is
+ * unchanged in the app bundle. Outside Vite the map is empty, which is harmless:
+ * prerendering renders Arabic, and every Arabic namespace is statically imported
+ * above rather than loaded through this map.
+ */
+let bundles: Record<string, () => Promise<{ default: Record<string, unknown> }>>;
+try {
+  bundles = import.meta.glob<{ default: Record<string, unknown> }>("../locales/*/*.json");
+} catch {
+  bundles = {};
+}
 
 /**
  * Numeric ranges reverse when the Unicode bidi algorithm resolves them next to
