@@ -136,12 +136,12 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
     // مكافآت مكتسبة
     let rewardsHTML = '';
     if (pointsEarned > 0 || cashbackEarned > 0) {
-      rewardsHTML = t("invoice-dialog.s12", { v0: pointsEarned > 0 ? `<div style="display:flex;justify-content:space-between;font-size:12px;color:#92400e;"><span>⭐ نقاط ولاء:</span><span style="font-weight:bold;">+${pointsEarned} نقطة</span></div>` : '', v1: cashbackEarned > 0 ? `<div style="display:flex;justify-content:space-between;font-size:12px;color:#92400e;"><span>💰 باقي مضاف:</span><span style="font-weight:bold;">+${formatIQD(cashbackEarned)}</span></div>` : '' });
+      rewardsHTML = t("invoice-dialog.s12", { v0: pointsEarned > 0 ? `<div style="display:flex;justify-content:space-between;font-size:12px;color:#92400e;"><span>${t("invoice-dialog.s62")}</span><span style="font-weight:bold;">+${pointsEarned} ${t("invoice-dialog.s63")}</span></div>` : '', v1: cashbackEarned > 0 ? `<div style="display:flex;justify-content:space-between;font-size:12px;color:#92400e;"><span>${t("invoice-dialog.s64")}</span><span style="font-weight:bold;">+${formatIQD(cashbackEarned)}</span></div>` : '' });
     }
 
     const shortNum = orderData.orderNumber.length > 20 ? orderData.orderNumber.slice(0, 8).toUpperCase() : orderData.orderNumber;
 
-    printWindow.document.write(t("invoice-dialog.s13", { v0: orderData.orderNumber, v1: shortNum, v2: formatDate(orderData.orderDate), v3: orderData.customerInfo.name ? `<p style="font-weight:600;">${orderData.customerInfo.name}</p>` : '', v4: orderData.customerInfo.phone ? `<p style="color:#64748b;direction:ltr;text-align:right;">📞 ${orderData.customerInfo.phone}</p>` : '', v5: orderData.customerInfo.address ? `<p style="color:#64748b;">📍 ${orderData.customerInfo.address}</p>` : '', v6: orderData.items.length, v7: itemsRows, v8: totalsHTML, v9: isOnlinePayment ? "✅ مدفوع إلكترونياً:" : "💵 تدفع نقداً:", v10: formatIQD(actualPayAmount), v11: paymentMethodLabel, v12: rewardsHTML }));
+    printWindow.document.write(t("invoice-dialog.s13", { v0: orderData.orderNumber, v1: shortNum, v2: formatDate(orderData.orderDate), v3: orderData.customerInfo.name ? `<p style="font-weight:600;">${orderData.customerInfo.name}</p>` : '', v4: orderData.customerInfo.phone ? `<p style="color:#64748b;direction:ltr;text-align:right;">📞 ${orderData.customerInfo.phone}</p>` : '', v5: orderData.customerInfo.address ? `<p style="color:#64748b;">📍 ${orderData.customerInfo.address}</p>` : '', v6: orderData.items.length, v7: itemsRows, v8: totalsHTML, v9: isOnlinePayment ? t("invoice-dialog.s65") : t("invoice-dialog.s66"), v10: formatIQD(actualPayAmount), v11: paymentMethodLabel, v12: rewardsHTML }));
 
     printWindow.document.close();
     setTimeout(() => {
@@ -154,7 +154,7 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
   if (!orderData) return null;
 
   const handleShare = async () => {
-    const shareText = t("invoice-dialog.s14", { v0: orderData.orderNumber, v1: formatIQD(grandTotal), v2: orderData.customerInfo.name, v3: formatShortDate(orderData.orderDate), v4: clientEnv.siteUrl ? `الرابط: ${clientEnv.siteUrl}` : "" }).trim();
+    const shareText = t("invoice-dialog.s14", { v0: orderData.orderNumber, v1: formatIQD(grandTotal), v2: orderData.customerInfo.name, v3: formatShortDate(orderData.orderDate), v4: clientEnv.siteUrl ? `${t("invoice-dialog.s67")} ${clientEnv.siteUrl}` : "" }).trim();
 
     if (navigator.share) {
       try {

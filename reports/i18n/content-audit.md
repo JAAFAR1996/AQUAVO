@@ -1,14 +1,12 @@
-# Pass-2 content audit (2026-09-19 22:01)
+# Pass-2 content audit (2026-09-20 01:12)
 
-Findings: 36 (high 35, medium 1, low 0)
+Findings: 34 (high 34, medium 0, low 0)
 
 | audit | count |
 |---|---|
-| arabic-terms/ckb | 1 |
 | claims/en | 17 |
 | numbers/ckb | 4 |
 | numbers/en | 13 |
-| orthography/ckb | 1 |
 
 ## High-risk articles (score >= 12): 83 of 117
 
@@ -100,7 +98,7 @@ Findings: 36 (high 35, medium 1, low 0)
 
 ## Findings
 
-### high (35)
+### high (34)
 
 - **[en] post/fish-that-outgrow-home-tanks** — numbers: invented 5 | tgt: "ot "I'll buy it and see." Refer to Choosing Healthy Fish in Store and 5 Hardy Fish for Beginners . You Already Have This Problem—W"
 - **[en] post/aquarium-barbs-guide** — numbers: invented 50 | tgt: "r Pumps Are a Necessity and Protecting Fish in the Iraqi Summer Heat (50°C) . Broken Lines of Sight. Plants, driftwood, and rocks"
@@ -121,7 +119,7 @@ Findings: 36 (high 35, medium 1, low 0)
 - **[en] product/houyi-thermostat** — claims: "treats / cures" not supported by the source: "s monitor its changes throughout the day. Do not treat the 0.1°C reading as a guaranteed measurement accuracy unless th"
 - **[en] product/houyi-feeding-cup** — claims: "prevents" not supported by the source: "e animals need","Do not rely solely on the cup to prevent all food spread in the tank","Clean food residue before it dec"
 - **[en] product/houyi-gauze-isolation-net** — claims: "prevents" not supported by the source: "":["Not a standalone quarantine tank and does not prevent disease transmission via water","Ensure fish do not become tra"
-- **[en] product/houyi-net-bag** — claims: "prevents" not supported by the source: "removal of media for maintenance or replacement","Prevents particle scattering inside the filter chamber","Separate bags"
+- **[en] product/houyi-net-bag** — claims: "prevents" not supported by the source: "l of media for maintenance or replacement","Helps prevent particle scattering inside the filter chamber","Separate bags"
 - **[en] product/houyi-control-valve-4mm** — claims: "prevents" not supported by the source: "tting size and connections should remain tight to prevent air leaks. {"benefits":["Helps adjust the airflow in the line""
 - **[en] product/houyi-connectors-4mm** — claims: "prevents" not supported by the source: "g the tube is tightly secured to the connector to prevent air leaks. {"benefits":["Three shapes to choose from: T, Y, an"
 - **[en] product/houyi-silicone-121** — claims: "treats / cures" not supported by the source: "s for best adhesion. Allow the silicone to fully cure and harden as indicated on the package before exposing it to wate"
@@ -134,11 +132,6 @@ Findings: 36 (high 35, medium 1, low 0)
 - **[en] product/ysl-506** — claims: "prevents" not supported by the source: "not push fry forcefully","Remove leftover food to prevent accumulation inside the box","This breeder box shares aquarium"
 - **[ckb] post/dwarf-cichlids-guide** — numbers: invented 50 | tgt: "ستیارەکە یەکەم کەسە کە کاریگەر دەبێت — پاراستنی ماسی لە گەرمای هاوینی 50 پلەی عێراق . "ئاشتیخواز" تا کاتی زاوزێکردن سیکلیدی قەزەم"
 - **[ckb] post/common-fish-diseases-white-spot** — numbers: invented 50 | tgt: "بنەڕەتدا ماندووە. میکانیزمەکە لە پاراستنی ماسی لە گەرمای هاوینی عێراق 50 پلە ڕوون کراوەتەوە. دەرمانێکی تایبەت بەکاربهێنە — میثلین"
-- **[ckb] post/ph-level-iraqi-tap-water-fish** — arabic-terms: Arabic definite article in: الولودة
 - **[ckb] post/goldfish-5-deadly-mistakes-beginners** — numbers: invented 50, 5 | tgt: "ە. میکانیزمی تەواوی گەرمی و ئۆکسجین لە پاراستنی ماسی لە گەرمای هاوینی 50 پلەی سەدی . هەڵەی سێیەم: فلتەری بچووکتر لە پێویست ماسی زێ"
 - **[ckb] post/molly-platy-breeding-save-fry** — numbers: invented 5 | tgt: "کی سەربەخۆ لە ڕێنمایی گۆپی هەیە، و بۆ تازەکاران سەیری شوێنیان بکەن لە 5 ماسی خۆڕاگر بۆ تازەکاران . ڕاستییەک کە زۆربەیان سەرسام دەک"
-
-### medium (1)
-
-- **[ckb] post/ph-level-iraqi-tap-water-fish** — orthography: 2 Arabic-only letters in: الولودة, ولودة
 

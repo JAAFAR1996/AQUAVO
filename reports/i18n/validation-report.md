@@ -1,11 +1,11 @@
-# Translation validation (2026-09-19T22:08:19.459Z)
+# Translation validation (2026-09-20T01:13:34.866Z)
 
 ## UI bundles
 
 | locale | present / total | errors | warnings |
 |---|---|---|---|
-| en | 5452 / 5452 | 0 | 0 |
-| ckb | 5452 / 5452 | 0 | 120 |
+| en | 5458 / 5458 | 0 | 0 |
+| ckb | 5458 / 5458 | 0 | 168 |
 
 ## Content (public set)
 
@@ -22,16 +22,19 @@
 
 | code | count |
 |---|---|
-| content/ckb/glossary | 114 |
-| ui/ckb/glossary | 120 |
+| content/ckb/glossary | 143 |
+| ui/ckb/glossary | 168 |
 
 ## Error samples (first 60)
 
 
 ## Warning samples (first 40)
 
+- [ckb] common:validations.s16 — glossary terms-and-conditions: expected "مەرج و ڕێساکان"
 - [ckb] common:cart-context.s6 — glossary login: expected "چوونەژوورەوە"
 - [ckb] common:cart-context.s11 — glossary out-of-stock: expected "بەردەست نییە"
+- [ckb] common:error-boundary.s3 — glossary track-order: expected "بەدواداچوونی داواکاری"
+- [ckb] nav:links.orderTracking — glossary track-order: expected "بەدواداچوونی داواکاری"
 - [ckb] nav:footer.aboutText — glossary decor: expected "دیکۆر"
 - [ckb] home:hero.eyebrow — glossary decor: expected "دیکۆر"
 - [ckb] home:categories.heatersDesc — glossary temperature: expected "پلەی گەرمی"
@@ -44,29 +47,26 @@
 - [ckb] product:viewer3d.start — glossary 3d-preview: expected "پێشبینینی سێ ڕەهەندی"
 - [ckb] product:variants.tipHeater — glossary size: expected "قەبارە"
 - [ckb] product:variantSelector.tipHeater — glossary size: expected "قەبارە"
+- [ckb] checkout:form.addressPlaceholder — glossary point: expected "خاڵ"
+- [ckb] checkout:summary.subtotal — glossary subtotal: expected "کۆی لاوەکی"
+- [ckb] checkout:summary.invoice — glossary invoice: expected "فاکتۆر"
+- [ckb] checkout:confirm.onlineWithPoints — glossary loyalty: expected "وفاداری"
 - [ckb] checkout:loyalty.calculating — glossary account: expected "هەژمار"
+- [ckb] checkout:success.track — glossary track-order: expected "بەدواداچوونی داواکاری"
+- [ckb] account:register.s3 — glossary terms-and-conditions: expected "مەرج و ڕێساکان"
+- [ckb] account:register.s10 — glossary loyalty-point: expected "خاڵی وفاداری"
+- [ckb] account:register.s10 — glossary point: expected "خاڵ"
+- [ckb] account:register.s15 — glossary discount: expected "داشکاندن"
+- [ckb] account:register.s18 — glossary discount: expected "داشکاندن"
+- [ckb] account:register.s28 — glossary discount: expected "داشکاندن"
+- [ckb] account:register.s33 — glossary terms-and-conditions: expected "مەرج و ڕێساکان"
+- [ckb] account:profile-referral.s7 — glossary discount: expected "داشکاندن"
+- [ckb] account:profile-referral.s9 — glossary discount: expected "داشکاندن"
+- [ckb] account:profile-referral.s12 — glossary point: expected "خاڵ"
+- [ckb] account:profile-referral.s14 — glossary point: expected "خاڵ"
+- [ckb] account:profile-referral.s17 — glossary discount: expected "داشکاندن"
+- [ckb] account:profile-referral.s24 — glossary point: expected "خاڵ"
+- [ckb] account:profile-referral.s31 — glossary point: expected "خاڵ"
+- [ckb] account:profile.s17 — glossary loyalty: expected "وفاداری"
+- [ckb] account:profile.s26 — glossary loyalty: expected "وفاداری"
 - [ckb] account:profile-orders.s5 — glossary delivery: expected "گەیاندن"
-- [ckb] account:profile-coupons.s9 — glossary usage: expected "بەکارهێنان"
-- [ckb] orders:order-confirmation.s4 — glossary delivery: expected "گەیاندن"
-- [ckb] orders:order-confirmation.s5 — glossary delivery: expected "گەیاندن"
-- [ckb] orders:order-confirmation.s15 — glossary electronic-payment: expected "پارەدانی ئەلیکترۆنی"
-- [ckb] orders:order-confirmation.s16 — glossary electronic-payment: expected "پارەدانی ئەلیکترۆنی"
-- [ckb] orders:invoice-dialog.s52 — glossary delivery: expected "گەیاندن"
-- [ckb] orders:order-tracking.s7 — glossary delivery: expected "گەیاندن"
-- [ckb] pages:terms.s8 — glossary electronic-payment: expected "پارەدانی ئەلیکترۆنی"
-- [ckb] pages:terms.s19 — glossary warranty: expected "گەرەنتی"
-- [ckb] pages:terms.s20 — glossary warranty: expected "گەرەنتی"
-- [ckb] pages:terms.s21 — glossary warranty: expected "گەرەنتی"
-- [ckb] pages:terms.s22 — glossary warranty: expected "گەرەنتی"
-- [ckb] pages:terms.s42 — glossary cash-on-delivery: expected "پارەدان لە کاتی وەرگرتن"
-- [ckb] pages:about.s6 — glossary in-stock: expected "بەردەست"
-- [ckb] pages:product-comparison.s35 — glossary benefit: expected "سوود"
-- [ckb] pages:sustainability.s36 — glossary decor: expected "دیکۆر"
-- [ckb] pages:onboarding-tour.s16 — glossary fish: expected "ماسی"
-- [ckb] pages:onboarding-tour.s24 — glossary fish: expected "ماسی"
-- [ckb] pages:multi-dimension-variant-selector.s1 — glossary cm: expected "سم"
-- [ckb] pages:multi-dimension-variant-selector.s2 — glossary cm: expected "سم"
-- [ckb] pages:multi-dimension-variant-selector.s3 — glossary cm: expected "سم"
-- [ckb] pages:multi-dimension-variant-selector.s4 — glossary cm: expected "سم"
-- [ckb] pages:multi-dimension-variant-selector.s5 — glossary cm: expected "سم"
-- [ckb] pages:multi-dimension-variant-selector.s6 — glossary cm: expected "سم"

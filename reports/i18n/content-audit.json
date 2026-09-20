@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-19T22:01:33.353Z",
+  "generatedAt": "2026-09-20T01:12:32.353Z",
   "highRisk": [
     {
       "slug": "nitrogen-cycle-simple-arabic-explained",
@@ -2264,7 +2264,7 @@
       "locale": "en",
       "where": "product/houyi-net-bag",
       "severity": "high",
-      "detail": "\"prevents\" not supported by the source: \"removal of media for maintenance or replacement\",\"Prevents particle scattering inside the filter chamber\",\"Separate bags\""
+      "detail": "\"prevents\" not supported by the source: \"l of media for maintenance or replacement\",\"Helps prevent particle scattering inside the filter chamber\",\"Separate bags\""
     },
     {
       "audit": "claims",
@@ -2349,20 +2349,6 @@
       "where": "post/common-fish-diseases-white-spot",
       "severity": "high",
       "detail": "invented 50 | tgt: \"بنەڕەتدا ماندووە. میکانیزمەکە لە پاراستنی ماسی لە گەرمای هاوینی عێراق 50 پلە ڕوون کراوەتەوە. دەرمانێکی تایبەت بەکاربهێنە — میثلین\""
-    },
-    {
-      "audit": "orthography",
-      "locale": "ckb",
-      "where": "post/ph-level-iraqi-tap-water-fish",
-      "severity": "medium",
-      "detail": "2 Arabic-only letters in: الولودة, ولودة"
-    },
-    {
-      "audit": "arabic-terms",
-      "locale": "ckb",
-      "where": "post/ph-level-iraqi-tap-water-fish",
-      "severity": "high",
-      "detail": "Arabic definite article in: الولودة"
     },
     {
       "audit": "numbers",

@@ -1222,6 +1222,213 @@
       ],
       "en": "vitamins",
       "ckb": "ڤیتامین"
+    },
+    {
+      "id": "loyalty-point",
+      "ar": [
+        "نقاط الولاء",
+        "نقطة ولاء",
+        "نقاط ولاء"
+      ],
+      "en": "loyalty points",
+      "ckb": "خاڵی وفاداری",
+      "ckbAlt": [
+        "خاڵەکانی وفاداری",
+        "خاڵ"
+      ],
+      "needsNativeReview": true
+    },
+    {
+      "id": "point",
+      "ar": [
+        "نقطة",
+        "نقاط"
+      ],
+      "en": "point",
+      "ckb": "خاڵ",
+      "needsNativeReview": true
+    },
+    {
+      "id": "loyalty",
+      "ar": [
+        "الولاء",
+        "ولاء"
+      ],
+      "en": "loyalty",
+      "ckb": "وفاداری",
+      "needsNativeReview": true
+    },
+    {
+      "id": "discount",
+      "ar": [
+        "الخصم",
+        "خصم",
+        "خصومات"
+      ],
+      "en": "discount",
+      "ckb": "داشکاندن",
+      "needsNativeReview": true
+    },
+    {
+      "id": "subtotal",
+      "ar": [
+        "المجموع الفرعي"
+      ],
+      "en": "subtotal",
+      "ckb": "کۆی لاوەکی",
+      "needsNativeReview": true
+    },
+    {
+      "id": "grand-total",
+      "ar": [
+        "الإجمالي",
+        "المجموع الكلي"
+      ],
+      "en": "total",
+      "ckb": "کۆی گشتی",
+      "needsNativeReview": true
+    },
+    {
+      "id": "delivery-fee",
+      "ar": [
+        "أجرة التوصيل",
+        "رسوم التوصيل",
+        "أجرة توصيل"
+      ],
+      "en": "delivery fee",
+      "ckb": "کرێی گەیاندن",
+      "needsNativeReview": true
+    },
+    {
+      "id": "fee",
+      "ar": [
+        "أجرة",
+        "رسوم"
+      ],
+      "en": "fee",
+      "ckb": "کرێ",
+      "needsNativeReview": true
+    },
+    {
+      "id": "balance",
+      "ar": [
+        "رصيد",
+        "الرصيد",
+        "أرصدة"
+      ],
+      "en": "balance",
+      "ckb": "باڵانس",
+      "needsNativeReview": true
+    },
+    {
+      "id": "track-order",
+      "ar": [
+        "تتبع طلبك",
+        "تتبع الطلب"
+      ],
+      "en": "track your order",
+      "ckb": "بەدواداچوونی داواکاری",
+      "ckbAlt": [
+        "بەدواداچوونی داواکارییەکەت"
+      ],
+      "needsNativeReview": true
+    },
+    {
+      "id": "invoice",
+      "ar": [
+        "الفاتورة",
+        "فاتورة"
+      ],
+      "en": "invoice",
+      "ckb": "فاکتۆر",
+      "needsNativeReview": true
+    },
+    {
+      "id": "terms-and-conditions",
+      "ar": [
+        "الشروط والأحكام"
+      ],
+      "en": "terms and conditions",
+      "ckb": "مەرج و ڕێساکان",
+      "needsNativeReview": true
+    },
+    {
+      "id": "survey",
+      "ar": [
+        "استبيان",
+        "الاستبيان"
+      ],
+      "en": "survey",
+      "ckb": "ڕاپرسی",
+      "needsNativeReview": true
+    },
+    {
+      "id": "reward",
+      "ar": [
+        "مكافأة",
+        "مكافآت"
+      ],
+      "en": "reward",
+      "ckb": "خەڵات",
+      "needsNativeReview": true
+    },
+    {
+      "id": "upgrade-tier",
+      "ar": [
+        "ترقية",
+        "للترقية"
+      ],
+      "en": "upgrade",
+      "ckb": "بەرزبوونەوە",
+      "needsNativeReview": true
+    },
+    {
+      "id": "freshwater",
+      "ar": [
+        "مياه عذبة",
+        "المياه العذبة"
+      ],
+      "en": "freshwater",
+      "ckb": "ئاوی شیرین",
+      "needsNativeReview": true
+    },
+    {
+      "id": "saltwater",
+      "ar": [
+        "مياه مالحة",
+        "المياه المالحة"
+      ],
+      "en": "saltwater",
+      "ckb": "ئاوی سوێر",
+      "needsNativeReview": true
+    },
+    {
+      "id": "force-majeure",
+      "ar": [
+        "ظروف قاهرة"
+      ],
+      "en": "force majeure",
+      "ckb": "بارودۆخی ناچاری",
+      "needsNativeReview": true
+    },
+    {
+      "id": "competent-courts",
+      "ar": [
+        "المحاكم المختصة"
+      ],
+      "en": "competent courts",
+      "ckb": "دادگا تایبەتمەندەکان",
+      "needsNativeReview": true
+    },
+    {
+      "id": "livebearers",
+      "ar": [
+        "الأسماك الولودة",
+        "الولودة"
+      ],
+      "en": "livebearers",
+      "ckb": "زیندووزاکان",
+      "needsNativeReview": true
     }
   ],
   "styleExamples": [
