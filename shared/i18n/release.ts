@@ -16,8 +16,24 @@
 import { DEFAULT_LOCALE, SUPPORTED_LOCALES, alternatesFor, type Locale } from "./locales.js";
 
 export const LOCALE_RELEASE: Record<Exclude<Locale, typeof DEFAULT_LOCALE>, { ready: boolean; note: string }> = {
-  en: { ready: false, note: "UI complete 2026-09-19; products/blog machine-translated, awaiting validation and review" },
-  ckb: { ready: false, note: "UI in progress 2026-09-19; content not started" },
+  // Released 2026-09-21. Production content_translations synced (46 rows, all
+  // status "machine"); a re-run of TOOLS/i18n/reseed.ts --locale=en then reported
+  // 107 products / 117 posts / 8 categories identical and nothing pending.
+  // Gates at that commit: validator 0 errors, client+api tsc 0, 61/61 vitest,
+  // 94/94 Playwright on real Neon data, build exit 0, 0 dead internal links in
+  // any locale, 0 structural HTML defects, 0 commerce-integrity findings.
+  //
+  // "ready" means offered to customers, not human-reviewed: every row is still
+  // status "machine", so per-page indexability continues to be decided by
+  // translationUnreviewed in api/ssr-meta.ts. Releasing the locale does not
+  // make an unreviewed page indexable, and nothing here claims otherwise.
+  en: { ready: true, note: "Released 2026-09-21; production synced, all rows machine-translated and unreviewed, so pages stay noindex until reviewed" },
+  // CKB stays closed. The corpus has P0 defects of a kind a model cannot settle
+  // — a reversed heater instruction, quarantine rendered "the upper cage",
+  // yoghurt shipped as "fish" — and 18 terminology decisions have no
+  // authoritative Sorani source. See reports/i18n/ckb-native-final-review.md;
+  // the answers apply through TOOLS/i18n/apply-ckb-native-final.mjs.
+  ckb: { ready: false, note: "Blocked on native Sorani review: 18 open decisions (7 safety-critical) in reports/i18n/ckb-native-final-review.md" },
 };
 
 export function isLocaleReleased(locale: Locale): boolean {

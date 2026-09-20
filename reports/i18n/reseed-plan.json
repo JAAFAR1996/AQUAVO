@@ -1,43 +1,19 @@
 {
-  "at": "2026-09-19T21:42:18.565Z",
-  "committed": true,
+  "at": "2026-09-20T22:33:11.312Z",
+  "committed": false,
   "summary": {
-    "en/products": {
-      "insert": 0,
-      "change": 3,
-      "identical": 104,
-      "reviewed (protected)": 0,
-      "outdated": 0,
-      "skipped": 0
-    },
-    "en/blog_posts": {
-      "insert": 0,
-      "change": 2,
-      "identical": 115,
-      "reviewed (protected)": 0,
-      "outdated": 0,
-      "skipped": 0
-    },
-    "en/blog_categories": {
-      "insert": 0,
-      "change": 0,
-      "identical": 8,
-      "reviewed (protected)": 0,
-      "outdated": 0,
-      "skipped": 0
-    },
     "ckb/products": {
       "insert": 0,
-      "change": 0,
-      "identical": 107,
+      "change": 17,
+      "identical": 90,
       "reviewed (protected)": 0,
       "outdated": 0,
       "skipped": 0
     },
     "ckb/blog_posts": {
       "insert": 0,
-      "change": 3,
-      "identical": 114,
+      "change": 21,
+      "identical": 96,
       "reviewed (protected)": 0,
       "outdated": 0,
       "skipped": 0
@@ -52,41 +28,28 @@
     }
   },
   "detail": {
-    "en/products": {
-      "insert": [],
-      "change": [
-        "general-air-stone",
-        "general-sponge-filter-xy180",
-        "yyh-039"
-      ],
-      "identical": 104,
-      "reviewed": [],
-      "outdated": [],
-      "skipped": []
-    },
-    "en/blog_posts": {
-      "insert": [],
-      "change": [
-        "common-fish-diseases-white-spot",
-        "nitrogen-cycle-simple-arabic-explained"
-      ],
-      "identical": 115,
-      "reviewed": [],
-      "outdated": [],
-      "skipped": []
-    },
-    "en/blog_categories": {
-      "insert": [],
-      "change": [],
-      "identical": 8,
-      "reviewed": [],
-      "outdated": [],
-      "skipped": []
-    },
     "ckb/products": {
       "insert": [],
-      "change": [],
-      "identical": 107,
+      "change": [
+        "houyi-air-distributor",
+        "houyi-blue-dragon-stone",
+        "houyi-connectors-4mm",
+        "houyi-fat-injection",
+        "houyi-moss-glue-20g",
+        "ghraa-tthbyt-50-ghram",
+        "houyi-moss-glue-5g",
+        "yyh-039",
+        "yyh-053",
+        "yan-804",
+        "yff-049",
+        "yyh-207",
+        "mzyl-thalb-600-ml",
+        "c1-1125",
+        "c1-1134",
+        "c3-1010",
+        "c4-1103"
+      ],
+      "identical": 90,
       "reviewed": [],
       "outdated": [],
       "skipped": []
@@ -94,11 +57,29 @@
     "ckb/blog_posts": {
       "insert": [],
       "change": [
-        "algae-war-guide",
-        "common-fish-diseases-white-spot",
-        "aquarium-care-while-traveling"
+        "freshwater-pufferfish-care-guide",
+        "real-vs-fake-plants-iraq",
+        "nitrogen-cycle-simple-arabic-explained",
+        "fish-that-outgrow-home-tanks",
+        "aquarium-barbs-guide",
+        "oscar-fish-care-guide-water-dog",
+        "small-schooling-fish-selection",
+        "aquarium-salt-guide",
+        "discus-fish-care-guide",
+        "ammonia-spike-emergency-treatment",
+        "ph-level-iraqi-tap-water-fish",
+        "ro-water-vs-tap-water-aquarium",
+        "fish-breeding-basics",
+        "aquarium-substrate-and-decor-guide",
+        "دليل-شامل-عن-الفلترة-والتنقية-في-أحواض-المياه-1788660363857",
+        "كيف-تتعامل-مع-حرارة-الصيف-في-أحواض-السمك؟-نصائح-مو-1789265156493",
+        "how-to-treat-tap-water-for-fish-iraq",
+        "aquarium-heater-winter-iraq",
+        "how-to-clean-aquarium-properly",
+        "fish-that-live-without-filter",
+        "cloudy-water-fix"
       ],
-      "identical": 114,
+      "identical": 96,
       "reviewed": [],
       "outdated": [],
       "skipped": []

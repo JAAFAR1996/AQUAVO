@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-20T12:26:30.881Z",
+  "generatedAt": "2026-09-20T22:33:54.414Z",
   "uiStats": {
     "en": {
       "total": 5458,
@@ -18,7 +18,7 @@
       "valid": 107
     },
     "en/blog_posts": {
-      "publicTotal": 118,
+      "publicTotal": 117,
       "present": 117,
       "complete": 117,
       "valid": 117
@@ -36,7 +36,7 @@
       "valid": 107
     },
     "ckb/blog_posts": {
-      "publicTotal": 118,
+      "publicTotal": 117,
       "present": 117,
       "complete": 117,
       "valid": 117
@@ -48,13 +48,11 @@
       "valid": 8
     }
   },
-  "errors": 2,
-  "warnings": 311,
+  "errors": 0,
+  "warnings": 249,
   "byCode": {
-    "content/ckb/glossary": 143,
-    "content/ckb/missing": 1,
-    "content/en/missing": 1,
-    "ui/ckb/glossary": 168
+    "content/ckb/glossary": 124,
+    "ui/ckb/glossary": 125
   },
   "findings": [
     {
@@ -63,15 +61,7 @@
       "where": "common:validations.s16",
       "code": "glossary",
       "severity": "warning",
-      "detail": "terms-and-conditions: expected \"مەرج و ڕێساکان\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
-      "where": "common:cart-context.s6",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "login: expected \"چوونەژوورەوە\""
+      "detail": "terms-and-conditions: expected \"مەرج و بەندەکان\""
     },
     {
       "scope": "ui",
@@ -79,7 +69,7 @@
       "where": "common:cart-context.s11",
       "code": "glossary",
       "severity": "warning",
-      "detail": "out-of-stock: expected \"بەردەست نییە\""
+      "detail": "out-of-stock: expected \"بەردەست نییە لە کۆگا\""
     },
     {
       "scope": "ui",
@@ -92,66 +82,10 @@
     {
       "scope": "ui",
       "locale": "ckb",
-      "where": "nav:links.orderTracking",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "track-order: expected \"بەدواداچوونی داواکاری\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
-      "where": "nav:footer.aboutText",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "decor: expected \"دیکۆر\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
-      "where": "home:hero.eyebrow",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "decor: expected \"دیکۆر\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
-      "where": "home:categories.heatersDesc",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "temperature: expected \"پلەی گەرمی\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
       "where": "home:categories.water",
       "code": "glossary",
       "severity": "warning",
       "detail": "water-conditioner: expected \"ئامادەکەری ئاو\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
-      "where": "home:guides.heater.eyebrow",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "temperature: expected \"پلەی گەرمی\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
-      "where": "home:why.focus.description",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "decor: expected \"دیکۆر\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
-      "where": "products:meta.categoryListName",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "decor: expected \"دیکۆر\""
     },
     {
       "scope": "ui",
@@ -204,26 +138,10 @@
     {
       "scope": "ui",
       "locale": "ckb",
-      "where": "checkout:summary.subtotal",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "subtotal: expected \"کۆی لاوەکی\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
-      "where": "checkout:summary.invoice",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "invoice: expected \"فاکتۆر\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
       "where": "checkout:confirm.onlineWithPoints",
       "code": "glossary",
       "severity": "warning",
-      "detail": "loyalty: expected \"وفاداری\""
+      "detail": "loyalty: expected \"وەفاداری\""
     },
     {
       "scope": "ui",
@@ -236,34 +154,10 @@
     {
       "scope": "ui",
       "locale": "ckb",
-      "where": "checkout:success.track",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "track-order: expected \"بەدواداچوونی داواکاری\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
       "where": "account:register.s3",
       "code": "glossary",
       "severity": "warning",
-      "detail": "terms-and-conditions: expected \"مەرج و ڕێساکان\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
-      "where": "account:register.s10",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "loyalty-point: expected \"خاڵی وفاداری\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
-      "where": "account:register.s10",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "point: expected \"خاڵ\""
+      "detail": "terms-and-conditions: expected \"مەرج و بەندەکان\""
     },
     {
       "scope": "ui",
@@ -295,7 +189,7 @@
       "where": "account:register.s33",
       "code": "glossary",
       "severity": "warning",
-      "detail": "terms-and-conditions: expected \"مەرج و ڕێساکان\""
+      "detail": "terms-and-conditions: expected \"مەرج و بەندەکان\""
     },
     {
       "scope": "ui",
@@ -359,7 +253,7 @@
       "where": "account:profile.s17",
       "code": "glossary",
       "severity": "warning",
-      "detail": "loyalty: expected \"وفاداری\""
+      "detail": "loyalty: expected \"وەفاداری\""
     },
     {
       "scope": "ui",
@@ -367,15 +261,7 @@
       "where": "account:profile.s26",
       "code": "glossary",
       "severity": "warning",
-      "detail": "loyalty: expected \"وفاداری\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
-      "where": "account:profile-orders.s5",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "delivery: expected \"گەیاندن\""
+      "detail": "loyalty: expected \"وەفاداری\""
     },
     {
       "scope": "ui",
@@ -383,7 +269,7 @@
       "where": "account:profile-orders.s16",
       "code": "glossary",
       "severity": "warning",
-      "detail": "invoice: expected \"فاکتۆر\""
+      "detail": "invoice: expected \"پسووڵە\""
     },
     {
       "scope": "ui",
@@ -391,7 +277,7 @@
       "where": "account:login.s6",
       "code": "glossary",
       "severity": "warning",
-      "detail": "loyalty: expected \"وفاداری\""
+      "detail": "loyalty: expected \"وەفاداری\""
     },
     {
       "scope": "ui",
@@ -420,14 +306,6 @@
     {
       "scope": "ui",
       "locale": "ckb",
-      "where": "orders:order-confirmation.s5",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "delivery: expected \"گەیاندن\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
       "where": "orders:order-confirmation.s15",
       "code": "glossary",
       "severity": "warning",
@@ -447,7 +325,7 @@
       "where": "orders:order-confirmation.s59",
       "code": "glossary",
       "severity": "warning",
-      "detail": "loyalty: expected \"وفاداری\""
+      "detail": "loyalty: expected \"وەفاداری\""
     },
     {
       "scope": "ui",
@@ -455,31 +333,71 @@
       "where": "orders:order-confirmation.s60",
       "code": "glossary",
       "severity": "warning",
-      "detail": "loyalty: expected \"وفاداری\""
+      "detail": "loyalty: expected \"وەفاداری\""
     },
     {
       "scope": "ui",
       "locale": "ckb",
-      "where": "orders:order-confirmation.s69",
+      "where": "orders:order-confirmation.s74",
       "code": "glossary",
       "severity": "warning",
-      "detail": "subtotal: expected \"کۆی لاوەکی\""
+      "detail": "invoice: expected \"پسووڵە\""
     },
     {
       "scope": "ui",
       "locale": "ckb",
-      "where": "orders:invoice-dialog.s41",
+      "where": "orders:invoice-dialog.s13",
       "code": "glossary",
       "severity": "warning",
-      "detail": "discount: expected \"داشکاندن\""
+      "detail": "invoice: expected \"پسووڵە\""
     },
     {
       "scope": "ui",
       "locale": "ckb",
-      "where": "orders:invoice-dialog.s52",
+      "where": "orders:invoice-dialog.s14",
       "code": "glossary",
       "severity": "warning",
-      "detail": "delivery: expected \"گەیاندن\""
+      "detail": "invoice: expected \"پسووڵە\""
+    },
+    {
+      "scope": "ui",
+      "locale": "ckb",
+      "where": "orders:invoice-dialog.s16",
+      "code": "glossary",
+      "severity": "warning",
+      "detail": "invoice: expected \"پسووڵە\""
+    },
+    {
+      "scope": "ui",
+      "locale": "ckb",
+      "where": "orders:invoice-dialog.s18",
+      "code": "glossary",
+      "severity": "warning",
+      "detail": "invoice: expected \"پسووڵە\""
+    },
+    {
+      "scope": "ui",
+      "locale": "ckb",
+      "where": "orders:invoice-dialog.s21",
+      "code": "glossary",
+      "severity": "warning",
+      "detail": "invoice: expected \"پسووڵە\""
+    },
+    {
+      "scope": "ui",
+      "locale": "ckb",
+      "where": "orders:invoice-dialog.s22",
+      "code": "glossary",
+      "severity": "warning",
+      "detail": "invoice: expected \"پسووڵە\""
+    },
+    {
+      "scope": "ui",
+      "locale": "ckb",
+      "where": "orders:invoice-dialog.s30",
+      "code": "glossary",
+      "severity": "warning",
+      "detail": "invoice: expected \"پسووڵە\""
     },
     {
       "scope": "ui",
@@ -500,34 +418,42 @@
     {
       "scope": "ui",
       "locale": "ckb",
-      "where": "pages:terms.s44",
+      "where": "orders:invoice-view.s10",
       "code": "glossary",
       "severity": "warning",
-      "detail": "terms-and-conditions: expected \"مەرج و ڕێساکان\""
+      "detail": "invoice: expected \"پسووڵە\""
     },
     {
       "scope": "ui",
       "locale": "ckb",
-      "where": "pages:terms.s47",
+      "where": "orders:invoice-view.s12",
       "code": "glossary",
       "severity": "warning",
-      "detail": "terms-and-conditions: expected \"مەرج و ڕێساکان\""
+      "detail": "invoice: expected \"پسووڵە\""
     },
     {
       "scope": "ui",
       "locale": "ckb",
-      "where": "pages:terms.s61",
+      "where": "orders:invoice-view.s31",
       "code": "glossary",
       "severity": "warning",
-      "detail": "terms-and-conditions: expected \"مەرج و ڕێساکان\""
+      "detail": "invoice: expected \"پسووڵە\""
     },
     {
       "scope": "ui",
       "locale": "ckb",
-      "where": "pages:about.s6",
+      "where": "pages:terms.s11",
       "code": "glossary",
       "severity": "warning",
-      "detail": "in-stock: expected \"بەردەست\""
+      "detail": "invoice: expected \"پسووڵە\""
+    },
+    {
+      "scope": "ui",
+      "locale": "ckb",
+      "where": "pages:terms.s18",
+      "code": "glossary",
+      "severity": "warning",
+      "detail": "force-majeure: expected \"هێزی هەرەزاڵ\""
     },
     {
       "scope": "ui",
@@ -536,14 +462,6 @@
       "code": "glossary",
       "severity": "warning",
       "detail": "benefit: expected \"سوود\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
-      "where": "pages:sustainability.s36",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "decor: expected \"دیکۆر\""
     },
     {
       "scope": "ui",
@@ -612,14 +530,6 @@
     {
       "scope": "ui",
       "locale": "ckb",
-      "where": "pages:blog.s6",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "freshwater: expected \"ئاوی شیرین\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
       "where": "pages:multi-dimension-variant-selector.s1",
       "code": "glossary",
       "severity": "warning",
@@ -676,18 +586,10 @@
     {
       "scope": "ui",
       "locale": "ckb",
-      "where": "pages:product-of-the-week.s2",
+      "where": "pages:product-of-the-week.s10",
       "code": "glossary",
       "severity": "warning",
-      "detail": "in-stock: expected \"بەردەست\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
-      "where": "pages:product-of-the-week.s2",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "out-of-stock: expected \"بەردەست نییە\""
+      "detail": "in-stock: expected \"لەبەردەستە\""
     },
     {
       "scope": "ui",
@@ -696,14 +598,6 @@
       "code": "glossary",
       "severity": "warning",
       "detail": "water-conditioner: expected \"ئامادەکەری ئاو\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
-      "where": "pages:faq.s2",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "fee: expected \"کرێ\""
     },
     {
       "scope": "ui",
@@ -732,26 +626,18 @@
     {
       "scope": "ui",
       "locale": "ckb",
-      "where": "tools:fish-health-diagnosis.s100",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "stone: expected \"بەرد\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
-      "where": "tools:fish-health-diagnosis.s104",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "temperature: expected \"پلەی گەرمی\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
       "where": "tools:fish-breeding-calculator.s8",
       "code": "glossary",
       "severity": "warning",
       "detail": "small: expected \"بچووک\""
+    },
+    {
+      "scope": "ui",
+      "locale": "ckb",
+      "where": "tools:fish-breeding-calculator.s34",
+      "code": "glossary",
+      "severity": "warning",
+      "detail": "shrimp: expected \"مەیگوو\""
     },
     {
       "scope": "ui",
@@ -772,26 +658,26 @@
     {
       "scope": "ui",
       "locale": "ckb",
-      "where": "tools:fish-breeding-calculator.s59",
+      "where": "tools:fish-breeding-calculator.s53",
       "code": "glossary",
       "severity": "warning",
-      "detail": "temperature: expected \"پلەی گەرمی\""
+      "detail": "shrimp: expected \"مەیگوو\""
     },
     {
       "scope": "ui",
       "locale": "ckb",
-      "where": "tools:fish-breeding-calculator.s77",
+      "where": "tools:fish-breeding-calculator.s55",
       "code": "glossary",
       "severity": "warning",
-      "detail": "temperature: expected \"پلەی گەرمی\""
+      "detail": "shrimp: expected \"مەیگوو\""
     },
     {
       "scope": "ui",
       "locale": "ckb",
-      "where": "tools:fish-detail-modal.s35",
+      "where": "tools:fish-breeding-calculator.s63",
       "code": "glossary",
       "severity": "warning",
-      "detail": "temperature: expected \"پلەی گەرمی\""
+      "detail": "shrimp: expected \"مەیگوو\""
     },
     {
       "scope": "ui",
@@ -820,18 +706,18 @@
     {
       "scope": "ui",
       "locale": "ckb",
-      "where": "tools:fish-detail-modal.s54",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "temperature: expected \"پلەی گەرمی\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
       "where": "tools:fish-detail-modal.s57",
       "code": "glossary",
       "severity": "warning",
       "detail": "breeding: expected \"زاوزێ\""
+    },
+    {
+      "scope": "ui",
+      "locale": "ckb",
+      "where": "tools:fish-selection.s43",
+      "code": "glossary",
+      "severity": "warning",
+      "detail": "shrimp: expected \"مەیگوو\""
     },
     {
       "scope": "ui",
@@ -844,14 +730,6 @@
     {
       "scope": "ui",
       "locale": "ckb",
-      "where": "tools:journey-summary.s13",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "freshwater: expected \"ئاوی شیرین\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
       "where": "tools:journey-summary.s35",
       "code": "glossary",
       "severity": "warning",
@@ -860,50 +738,10 @@
     {
       "scope": "ui",
       "locale": "ckb",
-      "where": "tools:fish-encyclopedia.s3",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "freshwater: expected \"ئاوی شیرین\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
-      "where": "tools:fish-encyclopedia.s8",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "freshwater: expected \"ئاوی شیرین\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
-      "where": "tools:fish-encyclopedia.s12",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "freshwater: expected \"ئاوی شیرین\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
       "where": "tools:water-parameters-calculator.s7",
       "code": "glossary",
       "severity": "warning",
       "detail": "temperature: expected \"پلەی گەرمی\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
-      "where": "tools:water-parameters-calculator.s28",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "stone: expected \"بەرد\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
-      "where": "tools:water-parameters-calculator.s39",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "freshwater: expected \"ئاوی شیرین\""
     },
     {
       "scope": "ui",
@@ -940,14 +778,6 @@
     {
       "scope": "ui",
       "locale": "ckb",
-      "where": "tools:fish-comparison-tool.s1",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "temperature: expected \"پلەی گەرمی\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
       "where": "tools:fish-comparison-tool.s24",
       "code": "glossary",
       "severity": "warning",
@@ -972,34 +802,10 @@
     {
       "scope": "ui",
       "locale": "ckb",
-      "where": "tools:ai-chat-bot.s9",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "fish: expected \"ماسی\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
-      "where": "tools:ai-chat-bot.s10",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "fish: expected \"ماسی\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
       "where": "tools:ai-chat-bot.s17",
       "code": "glossary",
       "severity": "warning",
       "detail": "fish: expected \"ماسی\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
-      "where": "tools:journey-experience.s12",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "freshwater: expected \"ئاوی شیرین\""
     },
     {
       "scope": "ui",
@@ -1012,22 +818,6 @@
     {
       "scope": "ui",
       "locale": "ckb",
-      "where": "tools:location-setup.s17",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "decor: expected \"دیکۆر\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
-      "where": "tools:decoration-setup.s1",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "decor: expected \"دیکۆر\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
       "where": "tools:decoration-setup.s5",
       "code": "glossary",
       "severity": "warning",
@@ -1036,34 +826,10 @@
     {
       "scope": "ui",
       "locale": "ckb",
-      "where": "tools:decoration-setup.s13",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "decor: expected \"دیکۆر\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
       "where": "tools:decoration-setup.s16",
       "code": "glossary",
       "severity": "warning",
       "detail": "natural: expected \"سروشتی\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
-      "where": "tools:tank-selection.s21",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "freshwater: expected \"ئاوی شیرین\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
-      "where": "tools:tank-size-calculator.s21",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "decor: expected \"دیکۆر\""
     },
     {
       "scope": "ui",
@@ -1084,14 +850,6 @@
     {
       "scope": "ui",
       "locale": "ckb",
-      "where": "tools:heater-calculator.s5",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "temperature: expected \"پلەی گەرمی\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
       "where": "tools:fish-card.s9",
       "code": "glossary",
       "severity": "warning",
@@ -1104,14 +862,6 @@
       "code": "glossary",
       "severity": "warning",
       "detail": "temperature: expected \"پلەی گەرمی\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
-      "where": "tools:saved-plan-view.s12",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "freshwater: expected \"ئاوی شیرین\""
     },
     {
       "scope": "ui",
@@ -1132,34 +882,10 @@
     {
       "scope": "ui",
       "locale": "ckb",
-      "where": "guides:guides-essential-tools.s140",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "temperature: expected \"پلەی گەرمی\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
-      "where": "guides:guides-fish-hiding.s143",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "point: expected \"خاڵ\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
       "where": "guides:guides-fish-hiding.s144",
       "code": "glossary",
       "severity": "warning",
       "detail": "natural: expected \"سروشتی\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
-      "where": "guides:guides-fish-hiding.s155",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "net: expected \"تۆڕ\""
     },
     {
       "scope": "ui",
@@ -1180,14 +906,6 @@
     {
       "scope": "ui",
       "locale": "ckb",
-      "where": "guides:guides-decor-stones.s22",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "freshwater: expected \"ئاوی شیرین\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
       "where": "guides:guides-decor-stones.type6",
       "code": "glossary",
       "severity": "warning",
@@ -1204,42 +922,10 @@
     {
       "scope": "ui",
       "locale": "ckb",
-      "where": "guides:guides-new-aquarium-setup.s36",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "decor: expected \"دیکۆر\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
-      "where": "guides:guides-new-aquarium-setup.s56",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "decor: expected \"دیکۆر\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
-      "where": "guides:guides-new-aquarium-setup.s64",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "temperature: expected \"پلەی گەرمی\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
       "where": "guides:guides-new-aquarium-setup.s92",
       "code": "glossary",
       "severity": "warning",
       "detail": "water-test: expected \"پشکنینی ئاو\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
-      "where": "guides:guides-water-test-guide.s8",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "freshwater: expected \"ئاوی شیرین\""
     },
     {
       "scope": "ui",
@@ -1276,6 +962,14 @@
     {
       "scope": "ui",
       "locale": "ckb",
+      "where": "guides:guides-temperature-guide.s30",
+      "code": "glossary",
+      "severity": "warning",
+      "detail": "shrimp: expected \"مەیگوو\""
+    },
+    {
+      "scope": "ui",
+      "locale": "ckb",
       "where": "guides:guides-temperature-guide.s55",
       "code": "glossary",
       "severity": "warning",
@@ -1300,39 +994,7 @@
     {
       "scope": "ui",
       "locale": "ckb",
-      "where": "guides:guides-heater-choice.s52",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "temperature: expected \"پلەی گەرمی\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
-      "where": "guides:guides-heater-choice.s55",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "temperature: expected \"پلەی گەرمی\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
-      "where": "guides:guides-heater-choice.s58",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "temperature: expected \"پلەی گەرمی\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
       "where": "guides:guides-heater-choice.s60",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "temperature: expected \"پلەی گەرمی\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
-      "where": "guides:guides-heater-choice.s63",
       "code": "glossary",
       "severity": "warning",
       "detail": "temperature: expected \"پلەی گەرمی\""
@@ -1348,26 +1010,10 @@
     {
       "scope": "ui",
       "locale": "ckb",
-      "where": "guides:guides-eco-friendly.s34",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "freshwater: expected \"ئاوی شیرین\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
       "where": "guides:guides-filter-choice.s18",
       "code": "glossary",
       "severity": "warning",
       "detail": "cleaning: expected \"پاککردنەوە\""
-    },
-    {
-      "scope": "ui",
-      "locale": "ckb",
-      "where": "guides:guides-filter-choice.s32",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "shrimp: expected \"میگۆ\""
     },
     {
       "scope": "ui",
@@ -1388,10 +1034,18 @@
     {
       "scope": "ui",
       "locale": "ckb",
-      "where": "guides:guides-algae-control.s24",
+      "where": "guides:guides-aquarium-salt.s15",
       "code": "glossary",
       "severity": "warning",
-      "detail": "shrimp: expected \"میگۆ\""
+      "detail": "shrimp: expected \"مەیگوو\""
+    },
+    {
+      "scope": "ui",
+      "locale": "ckb",
+      "where": "guides:guides-aquarium-salt.s16",
+      "code": "glossary",
+      "severity": "warning",
+      "detail": "shrimp: expected \"مەیگوو\""
     },
     {
       "scope": "ui",
@@ -1400,14 +1054,6 @@
       "code": "glossary",
       "severity": "warning",
       "detail": "natural: expected \"سروشتی\""
-    },
-    {
-      "scope": "content",
-      "locale": "en",
-      "where": "blog_posts/كيف-تتعامل-مع-حرارة-الصيف-في-أحواض-السمك-دليل-شامل-1789869961312",
-      "code": "missing",
-      "severity": "error",
-      "detail": ""
     },
     {
       "scope": "content",
@@ -1452,18 +1098,18 @@
     {
       "scope": "content",
       "locale": "ckb",
-      "where": "products/houyi-acrylic-pipe-clamp#description",
+      "where": "products/general-sponge-filter-xy180#name",
       "code": "glossary",
       "severity": "warning",
-      "detail": "login: expected \"چوونەژوورەوە\""
+      "detail": "shrimp: expected \"مەیگوو\""
     },
     {
       "scope": "content",
       "locale": "ckb",
-      "where": "products/houyi-acrylic-pipe-clamp#labelled.الاستخدام.value",
+      "where": "products/general-sponge-filter-xy180#description",
       "code": "glossary",
       "severity": "warning",
-      "detail": "login: expected \"چوونەژوورەوە\""
+      "detail": "shrimp: expected \"مەیگوو\""
     },
     {
       "scope": "content",
@@ -1484,6 +1130,14 @@
     {
       "scope": "content",
       "locale": "ckb",
+      "where": "products/general-sponge-filter-xy180#benefits[1]",
+      "code": "glossary",
+      "severity": "warning",
+      "detail": "shrimp: expected \"مەیگوو\""
+    },
+    {
+      "scope": "content",
+      "locale": "ckb",
       "where": "products/general-sponge-filter-xy180#benefits[3]",
       "code": "glossary",
       "severity": "warning",
@@ -1496,6 +1150,14 @@
       "code": "glossary",
       "severity": "warning",
       "detail": "suitable: expected \"گونجاو\""
+    },
+    {
+      "scope": "content",
+      "locale": "ckb",
+      "where": "products/general-sponge-filter-xy180#cardBenefit",
+      "code": "glossary",
+      "severity": "warning",
+      "detail": "shrimp: expected \"مەیگوو\""
     },
     {
       "scope": "content",
@@ -1524,22 +1186,6 @@
     {
       "scope": "content",
       "locale": "ckb",
-      "where": "products/houyi-blue-dragon-stone#labelled.الاستخدام.value",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "freshwater: expected \"ئاوی شیرین\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
-      "where": "products/houyi-river-sand#description",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "installation: expected \"دامەزراندن\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
       "where": "products/houyi-cleaning-towel#safetyWarnings[1]",
       "code": "glossary",
       "severity": "warning",
@@ -1556,14 +1202,6 @@
     {
       "scope": "content",
       "locale": "ckb",
-      "where": "products/houyi-nylon-fishing-net#safetyWarnings[3]",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "stone: expected \"بەرد\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
       "where": "products/houyi-wave-pump#usageInstructions[1]",
       "code": "glossary",
       "severity": "warning",
@@ -1572,10 +1210,10 @@
     {
       "scope": "content",
       "locale": "ckb",
-      "where": "products/houyi-gauze-isolation-net#safetyWarnings[0]",
+      "where": "products/houyi-terminalia-leaves#benefits[1]",
       "code": "glossary",
       "severity": "warning",
-      "detail": "stone: expected \"بەرد\""
+      "detail": "shrimp: expected \"مەیگوو\""
     },
     {
       "scope": "content",
@@ -1612,18 +1250,10 @@
     {
       "scope": "content",
       "locale": "ckb",
-      "where": "products/yan-804#description",
+      "where": "products/houyi-silicone-121#safetyWarnings[3]",
       "code": "glossary",
       "severity": "warning",
-      "detail": "freshwater: expected \"ئاوی شیرین\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
-      "where": "products/yan-804#labelled.التوافق.value",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "freshwater: expected \"ئاوی شیرین\""
+      "detail": "shrimp: expected \"مەیگوو\""
     },
     {
       "scope": "content",
@@ -1631,23 +1261,15 @@
       "where": "products/mzyl-thalb-600-ml#description",
       "code": "glossary",
       "severity": "warning",
-      "detail": "freshwater: expected \"ئاوی شیرین\""
+      "detail": "shrimp: expected \"مەیگوو\""
     },
     {
       "scope": "content",
       "locale": "ckb",
-      "where": "products/c3-1010#labelled.التوافق.value",
+      "where": "products/yyh-189#description",
       "code": "glossary",
       "severity": "warning",
-      "detail": "freshwater: expected \"ئاوی شیرین\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
-      "where": "products/yyh-039#labelled.التوافق.value",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "freshwater: expected \"ئاوی شیرین\""
+      "detail": "shrimp: expected \"مەیگوو\""
     },
     {
       "scope": "content",
@@ -1660,6 +1282,118 @@
     {
       "scope": "content",
       "locale": "ckb",
+      "where": "products/c1-1134#description",
+      "code": "glossary",
+      "severity": "warning",
+      "detail": "shrimp: expected \"مەیگوو\""
+    },
+    {
+      "scope": "content",
+      "locale": "ckb",
+      "where": "products/c1-1134#benefits[3]",
+      "code": "glossary",
+      "severity": "warning",
+      "detail": "shrimp: expected \"مەیگوو\""
+    },
+    {
+      "scope": "content",
+      "locale": "ckb",
+      "where": "products/c1-1134#labelled.المكونات الأساسية.value",
+      "code": "glossary",
+      "severity": "warning",
+      "detail": "shrimp: expected \"مەیگوو\""
+    },
+    {
+      "scope": "content",
+      "locale": "ckb",
+      "where": "products/c1-1066#name",
+      "code": "glossary",
+      "severity": "warning",
+      "detail": "shrimp: expected \"مەیگوو\""
+    },
+    {
+      "scope": "content",
+      "locale": "ckb",
+      "where": "products/c1-1066#description",
+      "code": "glossary",
+      "severity": "warning",
+      "detail": "shrimp: expected \"مەیگوو\""
+    },
+    {
+      "scope": "content",
+      "locale": "ckb",
+      "where": "products/c1-1066#subcategory",
+      "code": "glossary",
+      "severity": "warning",
+      "detail": "shrimp: expected \"مەیگوو\""
+    },
+    {
+      "scope": "content",
+      "locale": "ckb",
+      "where": "products/c1-1066#usageInstructions[1]",
+      "code": "glossary",
+      "severity": "warning",
+      "detail": "shrimp: expected \"مەیگوو\""
+    },
+    {
+      "scope": "content",
+      "locale": "ckb",
+      "where": "products/c1-1066#safetyWarnings[1]",
+      "code": "glossary",
+      "severity": "warning",
+      "detail": "shrimp: expected \"مەیگوو\""
+    },
+    {
+      "scope": "content",
+      "locale": "ckb",
+      "where": "products/c1-1066#cardBenefit",
+      "code": "glossary",
+      "severity": "warning",
+      "detail": "shrimp: expected \"مەیگوو\""
+    },
+    {
+      "scope": "content",
+      "locale": "ckb",
+      "where": "products/c1-1066#labelled.النوع.value",
+      "code": "glossary",
+      "severity": "warning",
+      "detail": "shrimp: expected \"مەیگوو\""
+    },
+    {
+      "scope": "content",
+      "locale": "ckb",
+      "where": "products/c1-1066#labelled.الروبيان المناسب.label",
+      "code": "glossary",
+      "severity": "warning",
+      "detail": "shrimp: expected \"مەیگوو\""
+    },
+    {
+      "scope": "content",
+      "locale": "ckb",
+      "where": "products/c1-1066#labelled.الروبيان المناسب.value",
+      "code": "glossary",
+      "severity": "warning",
+      "detail": "shrimp: expected \"مەیگوو\""
+    },
+    {
+      "scope": "content",
+      "locale": "ckb",
+      "where": "products/c5-1123#description",
+      "code": "glossary",
+      "severity": "warning",
+      "detail": "shrimp: expected \"مەیگوو\""
+    },
+    {
+      "scope": "content",
+      "locale": "ckb",
+      "where": "products/c5-1123#benefits[2]",
+      "code": "glossary",
+      "severity": "warning",
+      "detail": "shrimp: expected \"مەیگوو\""
+    },
+    {
+      "scope": "content",
+      "locale": "ckb",
       "where": "products/ylc-409#usageInstructions[3]",
       "code": "glossary",
       "severity": "warning",
@@ -1668,18 +1402,18 @@
     {
       "scope": "content",
       "locale": "ckb",
-      "where": "products/ykl-018#safetyWarnings[0]",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "stone: expected \"بەرد\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
       "where": "products/c4-1008#safetyWarnings[1]",
       "code": "glossary",
       "severity": "warning",
       "detail": "large: expected \"گەورە\""
+    },
+    {
+      "scope": "content",
+      "locale": "ckb",
+      "where": "products/yee-c5-1144-1a#safetyWarnings[2]",
+      "code": "glossary",
+      "severity": "warning",
+      "detail": "shrimp: expected \"مەیگوو\""
     },
     {
       "scope": "content",
@@ -1716,66 +1450,10 @@
     {
       "scope": "content",
       "locale": "ckb",
-      "where": "products/c4-1103#usageInstructions[3]",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "temperature: expected \"پلەی گەرمی\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
-      "where": "products/c4-1103#labelled.التوافق.value",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "freshwater: expected \"ئاوی شیرین\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
-      "where": "products/yee-3006#usageInstructions[3]",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "temperature: expected \"پلەی گەرمی\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
-      "where": "blog_posts/كيف-تتعامل-مع-حرارة-الصيف-في-أحواض-السمك-دليل-شامل-1789869961312",
-      "code": "missing",
-      "severity": "error",
-      "detail": ""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
       "where": "blog_posts/كيف-تتعامل-مع-حرارة-الصيف-في-أحواض-السمك؟-نصائح-مو-1789265156493#content",
       "code": "glossary",
       "severity": "warning",
       "detail": "week: expected \"هەفتە\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
-      "where": "blog_posts/كيف-تتعامل-مع-حرارة-الصيف-في-أحواض-السمك؟-نصائح-مو-1789265156493#content",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "warranty: expected \"گەرەنتی\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
-      "where": "blog_posts/choosing-healthy-fish-in-store#excerpt",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "stone: expected \"بەرد\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
-      "where": "blog_posts/choosing-healthy-fish-in-store#content",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "delivery: expected \"گەیاندن\""
     },
     {
       "scope": "content",
@@ -1788,10 +1466,18 @@
     {
       "scope": "content",
       "locale": "ckb",
-      "where": "blog_posts/fish-that-outgrow-home-tanks#content",
+      "where": "blog_posts/external-fish-parasites#content",
       "code": "glossary",
       "severity": "warning",
-      "detail": "freshwater: expected \"ئاوی شیرین\""
+      "detail": "shrimp: expected \"مەیگوو\""
+    },
+    {
+      "scope": "content",
+      "locale": "ckb",
+      "where": "blog_posts/fish-treatment-protocol#content",
+      "code": "glossary",
+      "severity": "warning",
+      "detail": "shrimp: expected \"مەیگوو\""
     },
     {
       "scope": "content",
@@ -1808,46 +1494,6 @@
       "code": "glossary",
       "severity": "warning",
       "detail": "warning: expected \"ئاگاداری\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
-      "where": "blog_posts/external-fish-parasites#content",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "login: expected \"چوونەژوورەوە\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
-      "where": "blog_posts/dwarf-cichlids-guide#content",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "stone: expected \"بەرد\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
-      "where": "blog_posts/dwarf-cichlids-guide#content",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "ph: expected \"pH\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
-      "where": "blog_posts/raising-fish-fry#content",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "login: expected \"چوونەژوورەوە\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
-      "where": "blog_posts/raising-fish-fry#content",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "livebearers: expected \"زیندووزاکان\""
     },
     {
       "scope": "content",
@@ -1871,15 +1517,23 @@
       "where": "blog_posts/fish-breeding-basics#content",
       "code": "glossary",
       "severity": "warning",
-      "detail": "freshwater: expected \"ئاوی شیرین\""
+      "detail": "livebearers: expected \"زیندووزاکان\""
     },
     {
       "scope": "content",
       "locale": "ckb",
-      "where": "blog_posts/fish-breeding-basics#content",
+      "where": "blog_posts/raising-fish-fry#content",
       "code": "glossary",
       "severity": "warning",
       "detail": "livebearers: expected \"زیندووزاکان\""
+    },
+    {
+      "scope": "content",
+      "locale": "ckb",
+      "where": "blog_posts/dwarf-cichlids-guide#content",
+      "code": "glossary",
+      "severity": "warning",
+      "detail": "ph: expected \"pH\""
     },
     {
       "scope": "content",
@@ -1916,23 +1570,23 @@
     {
       "scope": "content",
       "locale": "ckb",
-      "where": "blog_posts/aquarium-barbs-guide#content",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "login: expected \"چوونەژوورەوە\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
-      "where": "blog_posts/aquarium-barbs-guide#content",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "freshwater: expected \"ئاوی شیرین\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
       "where": "blog_posts/aquarium-snail-population-control#title",
+      "code": "glossary",
+      "severity": "warning",
+      "detail": "breeding: expected \"زاوزێ\""
+    },
+    {
+      "scope": "content",
+      "locale": "ckb",
+      "where": "blog_posts/aquarium-snail-population-control#excerpt",
+      "code": "glossary",
+      "severity": "warning",
+      "detail": "shrimp: expected \"مەیگوو\""
+    },
+    {
+      "scope": "content",
+      "locale": "ckb",
+      "where": "blog_posts/aquarium-snail-population-control#content",
       "code": "glossary",
       "severity": "warning",
       "detail": "breeding: expected \"زاوزێ\""
@@ -1943,7 +1597,7 @@
       "where": "blog_posts/aquarium-snail-population-control#content",
       "code": "glossary",
       "severity": "warning",
-      "detail": "breeding: expected \"زاوزێ\""
+      "detail": "shrimp: expected \"مەیگوو\""
     },
     {
       "scope": "content",
@@ -1956,26 +1610,10 @@
     {
       "scope": "content",
       "locale": "ckb",
-      "where": "blog_posts/transporting-fish-and-aquarium#content",
+      "where": "blog_posts/aquarium-plant-fertilizer-guide#content",
       "code": "glossary",
       "severity": "warning",
-      "detail": "stone: expected \"بەرد\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
-      "where": "blog_posts/transporting-fish-and-aquarium#content",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "installation: expected \"دامەزراندن\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
-      "where": "blog_posts/gourami-care-guide#content",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "installation: expected \"دامەزراندن\""
+      "detail": "shrimp: expected \"مەیگوو\""
     },
     {
       "scope": "content",
@@ -1988,10 +1626,42 @@
     {
       "scope": "content",
       "locale": "ckb",
+      "where": "blog_posts/aquarium-fish-feeding-guide#content",
+      "code": "glossary",
+      "severity": "warning",
+      "detail": "shrimp: expected \"مەیگوو\""
+    },
+    {
+      "scope": "content",
+      "locale": "ckb",
       "where": "blog_posts/fish-fungus-vs-columnaris#content",
       "code": "glossary",
       "severity": "warning",
       "detail": "cm: expected \"سم\""
+    },
+    {
+      "scope": "content",
+      "locale": "ckb",
+      "where": "blog_posts/aquarium-airborne-toxins#content",
+      "code": "glossary",
+      "severity": "warning",
+      "detail": "shrimp: expected \"مەیگوو\""
+    },
+    {
+      "scope": "content",
+      "locale": "ckb",
+      "where": "blog_posts/aquarium-shrimp-snails-guide#title",
+      "code": "glossary",
+      "severity": "warning",
+      "detail": "shrimp: expected \"مەیگوو\""
+    },
+    {
+      "scope": "content",
+      "locale": "ckb",
+      "where": "blog_posts/aquarium-shrimp-snails-guide#content",
+      "code": "glossary",
+      "severity": "warning",
+      "detail": "shrimp: expected \"مەیگوو\""
     },
     {
       "scope": "content",
@@ -2004,26 +1674,26 @@
     {
       "scope": "content",
       "locale": "ckb",
-      "where": "blog_posts/aquarium-salt-guide#excerpt",
+      "where": "blog_posts/gh-kh-water-hardness-guide#content",
       "code": "glossary",
       "severity": "warning",
-      "detail": "freshwater: expected \"ئاوی شیرین\""
+      "detail": "shrimp: expected \"مەیگوو\""
     },
     {
       "scope": "content",
       "locale": "ckb",
-      "where": "blog_posts/aquarium-salt-guide#content",
+      "where": "blog_posts/gh-kh-water-hardness-guide#content",
       "code": "glossary",
       "severity": "warning",
-      "detail": "stone: expected \"بەرد\""
+      "detail": "out-of-stock: expected \"بەردەست نییە لە کۆگا\""
     },
     {
       "scope": "content",
       "locale": "ckb",
-      "where": "blog_posts/aquarium-salt-guide#content",
+      "where": "blog_posts/gh-kh-water-hardness-guide#content",
       "code": "glossary",
       "severity": "warning",
-      "detail": "freshwater: expected \"ئاوی شیرین\""
+      "detail": "warning: expected \"ئاگاداری\""
     },
     {
       "scope": "content",
@@ -2040,22 +1710,6 @@
       "code": "glossary",
       "severity": "warning",
       "detail": "photo: expected \"وێنە\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
-      "where": "blog_posts/gh-kh-water-hardness-guide#content",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "out-of-stock: expected \"بەردەست نییە\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
-      "where": "blog_posts/gh-kh-water-hardness-guide#content",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "warning: expected \"ئاگاداری\""
     },
     {
       "scope": "content",
@@ -2084,22 +1738,6 @@
     {
       "scope": "content",
       "locale": "ckb",
-      "where": "blog_posts/quarantine-new-fish-guide#title",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "stone: expected \"بەرد\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
-      "where": "blog_posts/quarantine-new-fish-guide#excerpt",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "stone: expected \"بەرد\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
       "where": "blog_posts/aquarium-substrate-and-decor-guide#content",
       "code": "glossary",
       "severity": "warning",
@@ -2108,18 +1746,10 @@
     {
       "scope": "content",
       "locale": "ckb",
-      "where": "blog_posts/oscar-fish-care-guide-water-dog#title",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "freshwater: expected \"ئاوی شیرین\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
       "where": "blog_posts/oscar-fish-care-guide-water-dog#content",
       "code": "glossary",
       "severity": "warning",
-      "detail": "freshwater: expected \"ئاوی شیرین\""
+      "detail": "shrimp: expected \"مەیگوو\""
     },
     {
       "scope": "content",
@@ -2135,23 +1765,7 @@
       "where": "blog_posts/best-aquarium-cleaner-fish-pleco-corydoras#content",
       "code": "glossary",
       "severity": "warning",
-      "detail": "stone: expected \"بەرد\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
-      "where": "blog_posts/best-aquarium-cleaner-fish-pleco-corydoras#content",
-      "code": "glossary",
-      "severity": "warning",
       "detail": "breeding: expected \"زاوزێ\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
-      "where": "blog_posts/discus-fish-care-guide#title",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "freshwater: expected \"ئاوی شیرین\""
     },
     {
       "scope": "content",
@@ -2159,15 +1773,7 @@
       "where": "blog_posts/discus-fish-care-guide#content",
       "code": "glossary",
       "severity": "warning",
-      "detail": "freshwater: expected \"ئاوی شیرین\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
-      "where": "blog_posts/future-of-fish-keeping-iraq-2026-aquavo#excerpt",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "login: expected \"چوونەژوورەوە\""
+      "detail": "shrimp: expected \"مەیگوو\""
     },
     {
       "scope": "content",
@@ -2199,14 +1805,6 @@
       "where": "blog_posts/blackwater-extract-filter-bacteria-guide#content",
       "code": "glossary",
       "severity": "warning",
-      "detail": "warranty: expected \"گەرەنتی\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
-      "where": "blog_posts/blackwater-extract-filter-bacteria-guide#content",
-      "code": "glossary",
-      "severity": "warning",
       "detail": "large: expected \"گەورە\""
     },
     {
@@ -2220,46 +1818,6 @@
     {
       "scope": "content",
       "locale": "ckb",
-      "where": "blog_posts/freshwater-pufferfish-care-guide#title",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "freshwater: expected \"ئاوی شیرین\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
-      "where": "blog_posts/freshwater-pufferfish-care-guide#excerpt",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "freshwater: expected \"ئاوی شیرین\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
-      "where": "blog_posts/freshwater-pufferfish-care-guide#content",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "cart: expected \"سەبەتە\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
-      "where": "blog_posts/freshwater-pufferfish-care-guide#content",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "freshwater: expected \"ئاوی شیرین\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
-      "where": "blog_posts/neon-tetra-color-care-guide#content",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "warranty: expected \"گەرەنتی\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
       "where": "blog_posts/flowerhorn-breeding-nuchal-hump-secrets#content",
       "code": "glossary",
       "severity": "warning",
@@ -2268,18 +1826,10 @@
     {
       "scope": "content",
       "locale": "ckb",
-      "where": "blog_posts/flowerhorn-breeding-nuchal-hump-secrets#content",
+      "where": "blog_posts/tetra-food-vs-budget-brands-comparison#content",
       "code": "glossary",
       "severity": "warning",
-      "detail": "warranty: expected \"گەرەنتی\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
-      "where": "blog_posts/ornamental-fish-import-middle-east-origins#content",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "stone: expected \"بەرد\""
+      "detail": "shrimp: expected \"مەیگوو\""
     },
     {
       "scope": "content",
@@ -2292,34 +1842,10 @@
     {
       "scope": "content",
       "locale": "ckb",
-      "where": "blog_posts/protect-fish-iraqi-summer-50-degrees#excerpt",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "temperature: expected \"پلەی گەرمی\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
-      "where": "blog_posts/driftwood-preparation-yellow-water-fix#content",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "warranty: expected \"گەرەنتی\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
       "where": "blog_posts/black-beard-algae-removal-steps#content",
       "code": "glossary",
       "severity": "warning",
       "detail": "water-conditioner: expected \"ئامادەکەری ئاو\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
-      "where": "blog_posts/aquarium-soil-volcanic-substrate-secrets#content",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "warranty: expected \"گەرەنتی\""
     },
     {
       "scope": "content",
@@ -2352,22 +1878,6 @@
       "code": "glossary",
       "severity": "warning",
       "detail": "water-conditioner: expected \"ئامادەکەری ئاو\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
-      "where": "blog_posts/iwagumi-aquascape-step-by-step#content",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "installation: expected \"دامەزراندن\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
-      "where": "blog_posts/air-pumps-decoration-or-necessity#content",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "decor: expected \"دیکۆر\""
     },
     {
       "scope": "content",
@@ -2428,22 +1938,6 @@
     {
       "scope": "content",
       "locale": "ckb",
-      "where": "blog_posts/nitrogen-cycle-simple-arabic-explained#content",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "login: expected \"چوونەژوورەوە\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
-      "where": "blog_posts/nitrogen-cycle-simple-arabic-explained#content",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "freshwater: expected \"ئاوی شیرین\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
       "where": "blog_posts/calculate-aquarium-capacity-liters#content",
       "code": "glossary",
       "severity": "warning",
@@ -2456,14 +1950,6 @@
       "code": "glossary",
       "severity": "warning",
       "detail": "water-conditioner: expected \"ئامادەکەری ئاو\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
-      "where": "blog_posts/corydoras-types-best-cleaner-fish#content",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "warranty: expected \"گەرەنتی\""
     },
     {
       "scope": "content",
@@ -2492,34 +1978,10 @@
     {
       "scope": "content",
       "locale": "ckb",
-      "where": "blog_posts/fin-rot-treatment-guide#content",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "warranty: expected \"گەرەنتی\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
       "where": "blog_posts/why-fish-die-suddenly-rescue-guide#content",
       "code": "glossary",
       "severity": "warning",
       "detail": "delivery: expected \"گەیاندن\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
-      "where": "blog_posts/arowana-fish-care-guide-prices#content",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "warranty: expected \"گەرەنتی\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
-      "where": "blog_posts/fish-that-live-without-filter#content",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "installation: expected \"دامەزراندن\""
     },
     {
       "scope": "content",
@@ -2543,6 +2005,14 @@
       "where": "blog_posts/tank-mates-compatibility#content",
       "code": "glossary",
       "severity": "warning",
+      "detail": "shrimp: expected \"مەیگوو\""
+    },
+    {
+      "scope": "content",
+      "locale": "ckb",
+      "where": "blog_posts/tank-mates-compatibility#content",
+      "code": "glossary",
+      "severity": "warning",
       "detail": "livebearers: expected \"زیندووزاکان\""
     },
     {
@@ -2559,7 +2029,23 @@
       "where": "blog_posts/filter-types-guide#content",
       "code": "glossary",
       "severity": "warning",
+      "detail": "shrimp: expected \"مەیگوو\""
+    },
+    {
+      "scope": "content",
+      "locale": "ckb",
+      "where": "blog_posts/filter-types-guide#content",
+      "code": "glossary",
+      "severity": "warning",
       "detail": "upgrade-tier: expected \"بەرزبوونەوە\""
+    },
+    {
+      "scope": "content",
+      "locale": "ckb",
+      "where": "blog_posts/algae-war-guide#content",
+      "code": "glossary",
+      "severity": "warning",
+      "detail": "shrimp: expected \"مەیگوو\""
     }
   ]
 }
