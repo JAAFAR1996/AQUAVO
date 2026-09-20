@@ -7,6 +7,7 @@ import { CartItem } from "@/contexts/cart-context";
 import { formatIQD } from "@/lib/utils";
 import { addCsrfHeader } from "@/lib/csrf";
 import { getOrderIdempotencyKey } from "@/lib/order-idempotency";
+import { stockConflictMessage, validateCartStock } from "@/lib/cart-stock-validation";
 import { PaymentMethodCard } from "./payment-method-card";
 import { ArrowLeft, Loader2, Lock, LockKeyhole, RotateCcw, ShieldCheck, Truck } from "lucide-react";
 
@@ -73,6 +74,8 @@ export function ConfirmationView({
     const [onlineError, setOnlineError] = useState("");
     const [onlineAvailable, setOnlineAvailable] = useState<boolean | null>(null);
     const [preparedOrder, setPreparedOrder] = useState<Pick<OnlineStartResponse, "orderNumber" | "amount"> | null>(null);
+    const [stockChecking, setStockChecking] = useState(false);
+    const [stockError, setStockError] = useState("");
 
     useEffect(() => {
         let active = true;
@@ -99,10 +102,35 @@ export function ConfirmationView({
         (loyaltyData?.useCashback && loyaltyData.cashbackToUse > 0)
         || (loyaltyData?.usePoints && (loyaltyData.pointsToUse > 0 || pointsDiscount > 0)),
     );
-    const busy = isSubmitting || onlinePreparing;
+    const busy = isSubmitting || onlinePreparing || stockChecking;
 
-    const beginOnlinePayment = async () => {
+    const ensureStockAvailable = async (): Promise<boolean> => {
+        if (cartItems.length === 0) {
+            setStockError("السلة فارغة. أضف منتجاً قبل إكمال الطلب.");
+            return false;
+        }
+
+        setStockChecking(true);
+        setStockError("");
+        try {
+            const result = await validateCartStock(cartItems);
+            if (!result.ok) {
+                setStockError(stockConflictMessage(result.conflicts[0]));
+                return false;
+            }
+            return true;
+        } catch (error) {
+            setStockError(error instanceof Error ? error.message : "تعذر التحقق من المخزون حالياً. حاول مرة ثانية.");
+            return false;
+        } finally {
+            setStockChecking(false);
+        }
+    };
+
+    const beginOnlinePayment = async (stockAlreadyChecked = false) => {
         if (!agreed || busy || onlineBlockedByLoyalty || onlineAvailable === false) return;
+        if (!stockAlreadyChecked && !(await ensureStockAvailable())) return;
+
         setOnlinePreparing(true);
         setOnlineError("");
         setPreparedOrder(null);
@@ -173,9 +201,12 @@ export function ConfirmationView({
         }
     };
 
-    const submit = () => {
+    const submit = async () => {
+        if (!agreed || busy) return;
+        if (!(await ensureStockAvailable())) return;
+
         if (paymentMethod === "online") {
-            void beginOnlinePayment();
+            void beginOnlinePayment(true);
             return;
         }
         handleConfirmOrder();
@@ -280,8 +311,8 @@ export function ConfirmationView({
                     <p className="mt-1 text-xs text-muted-foreground">اختر الطريقة التي تناسبك لإكمال الطلب.</p>
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2" role="radiogroup" aria-label="طريقة الدفع">
-                    <PaymentMethodCard method="cod" selected={paymentMethod} onChange={(method) => { setPaymentMethod(method); setOnlineError(""); }} disabled={busy} />
-                    <PaymentMethodCard method="online" selected={paymentMethod} onChange={(method) => { setPaymentMethod(method); setOnlineError(""); }} disabled={busy || onlineBlockedByLoyalty || onlineAvailable === false} />
+                    <PaymentMethodCard method="cod" selected={paymentMethod} onChange={(method) => { setPaymentMethod(method); setOnlineError(""); setStockError(""); }} disabled={busy} />
+                    <PaymentMethodCard method="online" selected={paymentMethod} onChange={(method) => { setPaymentMethod(method); setOnlineError(""); setStockError(""); }} disabled={busy || onlineBlockedByLoyalty || onlineAvailable === false} />
                 </div>
                 {onlineAvailable === false && (
                     <p className="rounded-xl border border-border/70 bg-muted/35 px-3 py-2 text-xs leading-6 text-muted-foreground">
@@ -317,6 +348,13 @@ export function ConfirmationView({
                 )}
             </section>
 
+            {stockError && (
+                <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-3" role="alert">
+                    <p className="text-sm leading-6 text-destructive">{stockError}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">المخزون يُفحص مباشرة قبل إنشاء الطلب حتى لا يتم بيع منتج نافد.</p>
+                </div>
+            )}
+
             <div className="flex items-start gap-3 py-2">
                 <Checkbox id="agree" checked={agreed} onCheckedChange={(checked) => setAgreed(checked === true)} className="mt-0.5" disabled={busy} />
                 <label htmlFor="agree" className="text-sm cursor-pointer leading-relaxed text-muted-foreground">
@@ -327,18 +365,20 @@ export function ConfirmationView({
             <div className="flex flex-col gap-3 sm:flex-row">
                 <Button variant="outline" onClick={handleBack} className="order-2 h-11 w-full sm:order-1 sm:h-12 sm:flex-1" disabled={busy} aria-disabled={busy}>تعديل البيانات</Button>
                 <Button
-                    onClick={submit}
+                    onClick={() => void submit()}
                     className="order-1 h-12 w-full text-base font-semibold sm:order-2 sm:flex-1"
                     size="lg"
                     disabled={!agreed || busy || (paymentMethod === "online" && onlineBlockedByLoyalty)}
                     aria-disabled={!agreed || busy || (paymentMethod === "online" && onlineBlockedByLoyalty)}
                     aria-busy={busy}
                 >
-                    {isSubmitting
-                        ? "جاري المعالجة..."
-                        : paymentMethod === "online"
-                            ? `متابعة إلى الدفع الآمن — ${formatIQD(finalAmount)}`
-                            : "تأكيد الطلب"}
+                    {stockChecking
+                        ? "جاري التحقق من المخزون..."
+                        : isSubmitting
+                            ? "جاري المعالجة..."
+                            : paymentMethod === "online"
+                                ? `متابعة إلى الدفع الآمن — ${formatIQD(finalAmount)}`
+                                : "تأكيد الطلب"}
                 </Button>
             </div>
             <p className="sr-only" role="status" aria-live="polite">{busy ? "جاري معالجة طلبك، الرجاء الانتظار..." : ""}</p>
