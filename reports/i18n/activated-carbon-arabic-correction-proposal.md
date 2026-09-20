@@ -133,3 +133,20 @@ same article. The source contains the Persian/Sorani letters ی and ک in three 
 contradiction faithfully, which is the correct behaviour for a translation: fixing them first
 would silently fork the locales from their source, and the Arabic — the version most AQUAVO
 customers actually read — would keep the dangerous advice.
+
+---
+
+## 5. Amendment (2026-09-20) — one more occurrence than this proposal listed
+
+Section 2 above quotes block #6 but its "optional" note listed only two of the **three**
+occurrences of the broken verb `يامتص`. The third is the list lead-in in block #6 itself:
+
+```diff
+-الفحم النشط يمكن أن يامتص:
++الفحم النشط يمكن أن يمتص:
+```
+
+Applying this proposal as originally written leaves that one in place. The executable
+version, `TOOLS/i18n/fix-arabic-source-blockers.mjs --step=carbon`, carries **8** edits and
+has been verified offline to leave 0 occurrences of `يامتص`, 0 Persian/Sorani letters, and
+0 instances of the false ammonia claim, while keeping the correct statement in block #24.
