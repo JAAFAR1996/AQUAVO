@@ -266,3 +266,29 @@ They fall into three groups, none related to this work:
 
 2 Playwright skips and 7 vitest skips are environment-dependent: they are the checks that
 need a catalogue, and the local server runs without a database.
+
+---
+
+## 9. Addendum (2026-09-20, after the checkpoint) — how to run the i18n Playwright suite
+
+The suite needs the locale preview switch on the server:
+
+```
+VITE_I18N_PREVIEW_LOCALES=1 PORT=5199 npm run dev
+PLAYWRIGHT_BASE_URL=http://localhost:5199 npx playwright test -c e2e/i18n.config.ts
+```
+
+Without it, 28 of the 94 tests fail — every `locale ar` page test plus the three
+language-selector tests, on both projects — and the failure looks alarming but is a harness
+precondition, not a defect. `LanguageSwitcher` returns `null` when there is nothing to
+switch to, and with `ready=false` on both `en` and `ckb` an Arabic page offers only Arabic,
+so no switcher renders. `visibleSwitcher()` in `e2e/i18n-locales.spec.ts` then falls through
+to clicking `button[aria-controls="mobile-menu"]`, which is `md:hidden` on desktop, and
+spends the full 60s timeout on an element that will never be visible.
+
+Verified both ways at `740620d6` on the same server: flag off → the 12 `ar` desktop tests
+fail reproducibly, warm server included; flag on → the same 12 pass in 50s and the full
+suite is **92 passed / 2 skipped / 0 failed**.
+
+The helper is worth making fail loudly rather than silently degrading, but that is a change
+to `e2e/i18n-locales.spec.ts` and outside this pass.
