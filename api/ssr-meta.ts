@@ -18,6 +18,7 @@ import { articleWordCount } from "../shared/article-reading.js";
 import { articleDatePublished } from "../shared/article-dates.js";
 import { articleAuthorEntity } from "../shared/editorial-author.js";
 import { DEFAULT_LOCALE, splitLocaleFromPath, localizePath, type Locale } from "../shared/i18n/locales.js";
+import { isLocaleReleased } from "../shared/i18n/release.js";
 import {
   applyBlogPostTranslation,
   applyProductTranslation,
@@ -1382,6 +1383,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       // reviewed, current translation is a complete document in that locale.
       // Static pages count as translated once their UI bundle section is complete.
       if (meta.translationMissing || meta.translationUnreviewed || !isPageTranslated(locale, pathname)) meta.noIndex = true;
+
+      // An unreleased locale is never indexable, whatever its translation status.
+      //
+      // The three checks above all reason about the *translation* — missing,
+      // unreviewed, or not covering this page. None of them asks whether the
+      // locale has been released. That left a hole: the moment a locale's
+      // translations become reviewed and current, its pages become indexable
+      // even while shared/i18n/release.ts still has ready=false and is keeping
+      // it out of the selector, the sitemap and hreflang. Google would then be
+      // the only visitor who can find it.
+      //
+      // The release gate's contract is that an unreleased locale stays reachable
+      // by direct URL for QA and stays noindex; this is the line that makes the
+      // second half true.
+      if (!isLocaleReleased(locale)) meta.noIndex = true;
     }
     const localizedHtml = applyLocaleToHtml(injectMeta(template, meta), locale, pathname, pathname === "/products" ? search : "", {
       indexable: !meta.noIndex && !meta.notFound,
