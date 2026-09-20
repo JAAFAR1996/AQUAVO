@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
 import { useLocale } from "@/i18n/locale-context";
+import { isolateNumericRanges as bidi } from "@shared/i18n/bidi";
 
 interface Specification {
     label: string;
@@ -82,7 +83,7 @@ function getIcon(label: string): React.ElementType {
 // Convert various spec formats to unified format
 function normalizeSpecifications(specs: Specification[] | Record<string, any>): Specification[] {
     if (Array.isArray(specs)) {
-        return specs;
+        return specs.map((spec) => ({ ...spec, value: bidi(spec.value) }));
     }
 
     // Keys to exclude from technical specifications (shown elsewhere)
@@ -103,11 +104,14 @@ function normalizeSpecifications(specs: Specification[] | Record<string, any>): 
         })
         .map(([key, value]) => ({
             label: key,
+            // bidi(): spec values are where the ranges live — "نطاق درجة الحرارة: 18-30".
+            // Inside RTL the bidi algorithm reads that as 30-18, so each range is isolated
+            // on its way to the screen. The label is left alone: getIcon() matches on it.
             value: typeof value === 'boolean'
                 ? (value ? '__YES__' : '__NO__')
                 : typeof value === 'object'
                     ? JSON.stringify(value)
-                    : String(value),
+                    : bidi(String(value)),
         }));
 }
 

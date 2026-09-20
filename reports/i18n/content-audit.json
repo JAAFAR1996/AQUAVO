@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-20T03:01:20.752Z",
+  "generatedAt": "2026-09-20T12:27:00.195Z",
   "highRisk": [
     {
       "slug": "nitrogen-cycle-simple-arabic-explained",
@@ -1814,16 +1814,6 @@
       ]
     },
     {
-      "slug": "aquarium-water-flow",
-      "id": "83c73646-55c8-41e0-927b-30e6329e8254",
-      "score": 11,
-      "topics": [
-        "nitrogen cycle",
-        "temperature",
-        "toxicity / emergency"
-      ]
-    },
-    {
       "slug": "aquarium-placement-and-stand",
       "id": "639d458d-fb60-4142-8664-d504ea11639c",
       "score": 11,
@@ -1831,6 +1821,16 @@
         "temperature",
         "toxicity / emergency",
         "dosing / proportion"
+      ]
+    },
+    {
+      "slug": "aquarium-water-flow",
+      "id": "83c73646-55c8-41e0-927b-30e6329e8254",
+      "score": 11,
+      "topics": [
+        "nitrogen cycle",
+        "temperature",
+        "toxicity / emergency"
       ]
     },
     {
@@ -1892,6 +1892,15 @@
         "water conditioning",
         "temperature",
         "toxicity / emergency"
+      ]
+    },
+    {
+      "slug": "كيف-تتعامل-مع-حرارة-الصيف-في-أحواض-السمك-دليل-شامل-1789869961312",
+      "id": "auto-1789869961312",
+      "score": 10,
+      "topics": [
+        "temperature",
+        "water parameters"
       ]
     },
     {
@@ -2136,16 +2145,16 @@
     {
       "audit": "numbers",
       "locale": "en",
-      "where": "post/aquarium-barbs-guide",
+      "where": "post/small-schooling-fish-selection",
       "severity": "high",
-      "detail": "invented 50 | tgt: \"r Pumps Are a Necessity and Protecting Fish in the Iraqi Summer Heat (50°C) . Broken Lines of Sight. Plants, driftwood, and rocks\""
+      "detail": "invented 50 | tgt: \"e the biggest challenge, not hardness—refer to Protecting Fish in the 50-Degree Iraqi Summer . And If You Want a Larger School: Ra\""
     },
     {
       "audit": "numbers",
       "locale": "en",
-      "where": "post/small-schooling-fish-selection",
+      "where": "post/aquarium-barbs-guide",
       "severity": "high",
-      "detail": "invented 50 | tgt: \"e the biggest challenge, not hardness—refer to Protecting Fish in the 50-Degree Iraqi Summer . And If You Want a Larger School: Ra\""
+      "detail": "invented 50 | tgt: \"r Pumps Are a Necessity and Protecting Fish in the Iraqi Summer Heat (50°C) . Broken Lines of Sight. Plants, driftwood, and rocks\""
     },
     {
       "audit": "numbers",

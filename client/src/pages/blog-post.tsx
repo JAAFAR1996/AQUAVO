@@ -12,6 +12,7 @@ import { authorBylineText, authorProfilePath } from "@shared/editorial-author";
 import { articleReadingTimeLabel } from "@shared/article-reading";
 import { articleDatePublished } from "@shared/article-dates";
 import { useTranslation } from "react-i18next";
+import { isolateNumericRangesInHtml } from "@shared/i18n/bidi";
 
 
 export default function BlogPost() {
@@ -163,10 +164,14 @@ export default function BlogPost() {
                                 transition={{ delay: 0.3 }}
                                 className="aq-article mb-20"
                                 dangerouslySetInnerHTML={{
-                                    __html: DOMPurify.sanitize(post.content, {
+                                    // isolateNumericRangesInHtml: a hyphenated range inside RTL
+                                    // prose renders reversed ("50-150" read as "150-50"). Wrapping
+                                    // each one in <bdi dir="ltr"> fixes the reading order without
+                                    // changing a single stored character. See shared/i18n/bidi.ts.
+                                    __html: isolateNumericRangesInHtml(DOMPurify.sanitize(post.content, {
                                         ALLOWED_TAGS: ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'strong', 'em', 'a', 'br', 'blockquote', 'code', 'pre', 'img', 'div', 'span', 'section', 'article'],
                                         ALLOWED_ATTR: ['href', 'class', 'src', 'alt', 'title', 'target', 'rel', 'style']
-                                    })
+                                    }))
                                 }}
                             />
 

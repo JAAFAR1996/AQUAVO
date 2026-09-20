@@ -27,6 +27,10 @@ import { ProductVariantSelector } from "@/components/products/product-variant-se
 import { EmbeddedVariantSelector } from "@/components/products/embedded-variant-selector";
 import { MultiDimensionVariantSelector } from "@/components/products/multi-dimension-variant-selector";
 import { ProductSpecificationsTable } from "@/components/products/product-specifications-table";
+// bidi(): hyphenated ranges reverse inside RTL copy ("50-150" read as "150-50").
+// Applied to text on its way to the screen only — never to analytics, share text
+// or meta, which are machine-read. See shared/i18n/bidi.ts.
+import { isolateNumericRanges as bidi } from "@shared/i18n/bidi";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { Link } from "wouter";
 import { GuideLinksSection } from "@/components/seo/guide-links-section";
@@ -352,7 +356,7 @@ export default function ProductDetails() {
                 </BreadcrumbItem>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
-                  <BreadcrumbPage>{product.name}</BreadcrumbPage>
+                  <BreadcrumbPage>{bidi(product.name)}</BreadcrumbPage>
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
@@ -419,7 +423,7 @@ export default function ProductDetails() {
                   <DifficultyBadge level={product.difficulty} />
                 </div>
 
-                <h1 className="text-xl md:text-2xl font-bold mb-4">{product.name}</h1>
+                <h1 className="text-xl md:text-2xl font-bold mb-4">{bidi(product.name)}</h1>
 
                 {product3DMeta && (
                   <div className="mb-4 flex flex-wrap gap-2">
@@ -555,9 +559,11 @@ export default function ProductDetails() {
 
                 {/* Description — progressive disclosure for long text */}
                 <div className="text-muted-foreground text-sm leading-relaxed mb-6" style={{ whiteSpace: 'pre-line' }}>
-                  {(product.description?.length ?? 0) > 220 && !descriptionExpanded
-                    ? product.description?.slice(0, 220) + "..."
-                    : product.description}
+                  {bidi(
+                    (product.description?.length ?? 0) > 220 && !descriptionExpanded
+                      ? (product.description?.slice(0, 220) ?? "") + "..."
+                      : product.description ?? "",
+                  )}
                   {(product.description?.length ?? 0) > 220 && (
                     <button
                       onClick={() => setDescriptionExpanded((v) => !v)}
@@ -823,7 +829,7 @@ export default function ProductDetails() {
                             {product.specifications.benefits.map((benefit: string, index: number) => (
                               <li key={index} className="flex items-start gap-2 text-start">
                                 <div className="w-2 h-2 bg-primary rounded-full mt-1.5 flex-shrink-0"></div>
-                                <span>{benefit}</span>
+                                <span>{bidi(benefit)}</span>
                               </li>
                             ))}
                           </ul>
@@ -952,12 +958,12 @@ export default function ProductDetails() {
                       {Array.isArray(product.specifications?.usageInstructions) && product.specifications.usageInstructions.length > 0 ? (
                         <ul className="list-decimal list-inside space-y-1 text-muted-foreground text-start">
                           {product.specifications.usageInstructions.map((step: string, idx: number) => (
-                            <li key={idx}>{step}</li>
+                            <li key={idx}>{bidi(step)}</li>
                           ))}
                         </ul>
                       ) : product.specifications?.["طريقة الاستخدام"] ? (
                         <p className="text-muted-foreground text-sm leading-relaxed text-start" style={{ whiteSpace: 'pre-line' }}>
-                          {product.specifications["طريقة الاستخدام"]}
+                          {bidi(String(product.specifications["طريقة الاستخدام"]))}
                         </p>
                       ) : (
                         <ul className="list-decimal list-inside space-y-1 text-muted-foreground text-start">
@@ -973,12 +979,12 @@ export default function ProductDetails() {
                       {Array.isArray(product.specifications?.safetyWarnings) && product.specifications.safetyWarnings.length > 0 ? (
                         <ul className="list-disc list-inside space-y-1 text-muted-foreground text-start">
                           {product.specifications.safetyWarnings.map((warning: string, idx: number) => (
-                            <li key={idx}>{warning}</li>
+                            <li key={idx}>{bidi(warning)}</li>
                           ))}
                         </ul>
                       ) : product.specifications?.["تحذيرات"] ? (
                         <p className="text-muted-foreground text-sm leading-relaxed text-start" style={{ whiteSpace: 'pre-line' }}>
-                          {product.specifications["تحذيرات"]}
+                          {bidi(String(product.specifications["تحذيرات"]))}
                         </p>
                       ) : (
                         <ul className="list-disc list-inside space-y-1 text-muted-foreground text-start">

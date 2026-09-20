@@ -20,6 +20,7 @@
 import { expect, test } from "@playwright/test";
 import { readFileSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { NUMERIC_RANGE_SOURCE, hasReversibleRange, isolateNumericRanges, isolateNumericRangesInHtml } from "../shared/i18n/bidi";
 
 const NAMESPACES = ["common", "nav", "home", "products", "product", "cart", "checkout", "account", "orders", "search", "errors", "pages", "seo", "tools", "guides"];
 // "ar" is the control: it is the source language and already in production, so any
@@ -67,43 +68,76 @@ function collect(locale: string): Case[] {
 }
 
 /**
- * Documents the one real BiDi defect this suite found, by reading back the actual visual
- * left-to-right character order rather than inferring it.
+ * The defect, and its fix, read back from the browser rather than inferred.
  *
  * A hyphenated numeric range inside an RTL paragraph has its two numbers swapped by the
- * Unicode Bidi Algorithm: "(50-150 لتر)" is read by a user as 150-50. It affects the
- * Arabic source too — it is a pre-existing storefront rendering bug, not something the
- * translation work introduced — so the fix belongs in the rendering layer (wrap the range
- * in <bdi> or `unicode-bidi: isolate`), never in the translated strings.
+ * Unicode Bidi Algorithm: "(50-150 لتر)" is read by a user as 150-50. W2 turns both
+ * numbers into ARABIC NUMBERs because an Arabic letter precedes them, W4 therefore stops
+ * promoting the hyphen, and N1 resolves that hyphen to R between two numbers - leaving two
+ * left-to-right islands laid out right-to-left. It affects the Arabic source as much as the
+ * Kurdish translation, so the fix lives in the rendering layer (shared/i18n/bidi.ts) and no
+ * stored string changes.
+ *
+ * Both spellings of the fix are measured here: the isolate characters used for plain
+ * strings, and the <bdi dir="ltr"> markup used wherever we render HTML.
  */
-test("BiDi: hyphenated numeric ranges render swapped in RTL (known rendering defect)", async ({ page }) => {
+const RANGE_SAMPLES = ["متوسط (50-150 لتر)", "ناوەند (50-150 لیتر)", "تغذية 4-6 مرات يومياً"];
+
+/** Visual left-to-right character order of `html` rendered at `dir="rtl"`. */
+async function visualOrder(page: import("@playwright/test").Page, html: string[]): Promise<string[]> {
   await page.setContent('<!doctype html><meta charset="utf-8"><div id="rtl" dir="rtl" style="font-size:24px"></div>');
-  const samples = ["متوسط (50-150 لتر)", "ناوەند (50-150 لیتر)", "تغذية 4-6 مرات يومياً"];
-  const observed = await page.evaluate((texts: string[]) => {
+  return page.evaluate((items: string[]) => {
     const el = document.getElementById("rtl")!;
-    return texts.map((text) => {
-      el.textContent = text;
-      const node = el.firstChild!;
+    return items.map((item) => {
+      el.innerHTML = item;
       const chars: Array<{ ch: string; x: number }> = [];
-      for (let i = 0; i < text.length; i++) {
-        const r = document.createRange();
-        r.setStart(node, i); r.setEnd(node, i + 1);
-        const b = r.getBoundingClientRect();
-        if (b.width === 0) continue;
-        chars.push({ ch: text[i], x: b.left });
-      }
+      const walk = (n: Node) => {
+        if (n.nodeType === 3) {
+          const data = (n as Text).data;
+          for (let i = 0; i < data.length; i++) {
+            const r = document.createRange();
+            r.setStart(n, i); r.setEnd(n, i + 1);
+            const b = r.getBoundingClientRect();
+            if (b.width > 0) chars.push({ ch: data[i], x: b.left });
+          }
+        } else n.childNodes.forEach(walk);
+      };
+      walk(el);
       chars.sort((a, b) => a.x - b.x);
-      return { logical: text, visual: chars.map((c) => c.ch).join("") };
+      return chars.map((c) => c.ch).join("");
     });
-  }, samples);
+  }, html);
+}
 
+test("BiDi: an un-isolated hyphenated range still renders swapped (the defect this fixes)", async ({ page }) => {
+  const observed = await visualOrder(page, RANGE_SAMPLES);
   mkdirSync("reports/i18n", { recursive: true });
-  writeFileSync("reports/i18n/bidi-numeric-ranges.json", JSON.stringify(observed, null, 2));
-  for (const o of observed) console.log(`logical: ${o.logical}\nvisual : ${o.visual}\n`);
+  writeFileSync(
+    "reports/i18n/bidi-numeric-ranges.json",
+    JSON.stringify(RANGE_SAMPLES.map((logical, i) => ({ logical, visual: observed[i] })), null, 2),
+  );
+  expect(observed[0]).toContain("150-50");
+  expect(observed[1]).toContain("150-50");
+  expect(observed[2]).toContain("6-4");
+});
 
-  // The range digits appear in the reversed order in the visual string.
-  expect(observed[0].visual).toContain("150-50");
-  expect(observed[1].visual).toContain("150-50");
+test("BiDi: isolate characters put the range back in reading order", async ({ page }) => {
+  const observed = await visualOrder(page, RANGE_SAMPLES.map(isolateNumericRanges));
+  expect(observed[0]).toContain("50-150");
+  expect(observed[1]).toContain("50-150");
+  expect(observed[2]).toContain("4-6");
+  for (const v of observed) {
+    expect(v).not.toContain("150-50");
+    expect(v).not.toContain("6-4");
+  }
+});
+
+test("BiDi: <bdi dir=\"ltr\"> markup puts the range back in reading order", async ({ page }) => {
+  const html = RANGE_SAMPLES.map((s) => isolateNumericRangesInHtml(`<p>${s}</p>`));
+  const observed = await visualOrder(page, html);
+  expect(observed[0]).toContain("50-150");
+  expect(observed[1]).toContain("50-150");
+  expect(observed[2]).toContain("4-6");
 });
 
 /** Filled by the "ar" run and read by the "ckb" run; the two share a worker in file order. */
@@ -117,6 +151,48 @@ for (const locale of RTL_LOCALES) {
   test(`BiDi: no explicit bidi control characters in ${locale}`, () => {
     const bad = cases.filter((c) => BIDI_CONTROLS.test(c.text));
     expect(bad.map((b) => b.where)).toEqual([]);
+  });
+
+  test(`BiDi: every numeric range in ${locale} reads in order once isolated`, async ({ page }) => {
+    // The whole corpus, not a sample: each string that carries a range is rendered
+    // through the same isolateNumericRanges the storefront applies, and the range is
+    // measured first-character against last-character. Zero reversed is the gate.
+    const affected = cases.filter((c) => hasReversibleRange(c.text));
+    test.skip(affected.length === 0, "no numeric ranges in this locale");
+
+    await page.setContent(
+      `<!doctype html><html lang="${locale}" dir="rtl"><head><meta charset="utf-8">
+       <style>body{font-family:'Noto Sans Arabic','Segoe UI',sans-serif;font-size:18px}
+       div.case{white-space:nowrap}</style></head>
+       <body>${affected.map((_, i) => `<div class="case" id="r${i}"></div>`).join("")}</body></html>`
+    );
+    await page.evaluate((texts: string[]) => {
+      texts.forEach((t, i) => { document.getElementById(`r${i}`)!.textContent = t; });
+    }, affected.map((c) => isolateNumericRanges(c.text)));
+
+    const reversed = await page.evaluate(({ texts, rangeSrc }) => {
+      const re = new RegExp(rangeSrc, "g");
+      const bad: Array<{ i: number; run: string }> = [];
+      texts.forEach((text, i) => {
+        const node = document.getElementById(`r${i}`)!.firstChild;
+        if (!node) return;
+        re.lastIndex = 0;
+        let m: RegExpExecArray | null;
+        while ((m = re.exec(text))) {
+          const first = document.createRange();
+          first.setStart(node, m.index); first.setEnd(node, m.index + 1);
+          const last = document.createRange();
+          last.setStart(node, m.index + m[0].length - 1); last.setEnd(node, m.index + m[0].length);
+          if (last.getBoundingClientRect().left < first.getBoundingClientRect().left) bad.push({ i, run: m[0] });
+        }
+      });
+      return bad;
+    }, { texts: affected.map((c) => isolateNumericRanges(c.text)), rangeSrc: NUMERIC_RANGE_SOURCE });
+
+    expect(
+      reversed.map((r) => ({ where: affected[r.i].where, run: r.run, text: affected[r.i].text })),
+      `${affected.length} ${locale} strings carry a numeric range`,
+    ).toEqual([]);
   });
 
   test(`BiDi: Latin runs stay isolated and in order in ${locale} (${cases.length} mixed strings)`, async ({ page }, testInfo) => {

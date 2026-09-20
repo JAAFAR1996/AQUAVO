@@ -10,6 +10,7 @@ import { clientEnv } from "@/lib/config/env";
 import { DELIVERY_FEE, WHATSAPP_URL } from "@/lib/constants/shipping";
 import { WhatsAppLink } from "@/components/whatsapp-link";
 import { useTranslation } from "react-i18next";
+import { isolateNumericRanges as bidi, isolateNumericRangesInHtml } from "@shared/i18n/bidi";
 // Local item type — simpler than CartItem, works for order history too
 interface InvoiceItem {
   id: string;
@@ -93,9 +94,13 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
 
     // بناء HTML الفاتورة مباشرة — بدون أي خلفيات ملونة
     const itemsRows = orderData.items.map(item => {
-      const productName = item.variantLabel
-        ? t("invoice-dialog.s4", { v0: item.name, v1: item.variantLabel })
-        : item.name;
+      // The printed invoice is HTML, so the range is isolated as markup here rather
+      // than with the control characters used for plain strings.
+      const productName = isolateNumericRangesInHtml(
+        item.variantLabel
+          ? t("invoice-dialog.s4", { v0: item.name, v1: item.variantLabel })
+          : item.name,
+      );
       return (
       `<tr>
         <td style="padding:8px 10px;border-bottom:1px solid #e5e7eb;text-align:right;font-size:13px;">${productName}</td>
@@ -296,7 +301,7 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
                                 />
                               )}
                               <div className="min-w-0">
-                                <span className="block text-sm font-medium line-clamp-2">{item.name}</span>
+                                <span className="block text-sm font-medium line-clamp-2">{bidi(item.name)}</span>
                                 {item.variantLabel && (
                                   <span className="block text-xs text-muted-foreground mt-0.5">{t("invoice-dialog.s35")} {item.variantLabel}</span>
                                 )}

@@ -3,6 +3,7 @@ import { formatIQD } from "@/lib/utils";
 import { Truck, Info } from "lucide-react";
 import { CartItem } from "@/contexts/cart-context";
 import { useTranslation } from "react-i18next";
+import { isolateNumericRanges as bidi } from "@shared/i18n/bidi";
 
 interface OrderSummaryProps {
     cartTotal: number;
@@ -40,7 +41,7 @@ export function OrderSummary({ cartTotal, deliveryFee, discount, grandTotal, isF
                         {cartItems.map((item) => (
                             <div key={item.id} className="flex items-start justify-between gap-2 text-sm">
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-foreground truncate">{item.name}</p>
+                                    <p className="text-foreground truncate">{bidi(item.name)}</p>
                                     {item.variantLabel && (
                                         <p className="text-xs text-muted-foreground">{t("summary.variant", { variant: item.variantLabel })}</p>
                                     )}

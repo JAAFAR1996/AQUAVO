@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-20T03:01:20.220Z",
+  "generatedAt": "2026-09-20T12:26:30.881Z",
   "uiStats": {
     "en": {
       "total": 5458,
@@ -18,7 +18,7 @@
       "valid": 107
     },
     "en/blog_posts": {
-      "publicTotal": 117,
+      "publicTotal": 118,
       "present": 117,
       "complete": 117,
       "valid": 117
@@ -36,7 +36,7 @@
       "valid": 107
     },
     "ckb/blog_posts": {
-      "publicTotal": 117,
+      "publicTotal": 118,
       "present": 117,
       "complete": 117,
       "valid": 117
@@ -48,10 +48,12 @@
       "valid": 8
     }
   },
-  "errors": 0,
+  "errors": 2,
   "warnings": 311,
   "byCode": {
     "content/ckb/glossary": 143,
+    "content/ckb/missing": 1,
+    "content/en/missing": 1,
     "ui/ckb/glossary": 168
   },
   "findings": [
@@ -1401,6 +1403,14 @@
     },
     {
       "scope": "content",
+      "locale": "en",
+      "where": "blog_posts/كيف-تتعامل-مع-حرارة-الصيف-في-أحواض-السمك-دليل-شامل-1789869961312",
+      "code": "missing",
+      "severity": "error",
+      "detail": ""
+    },
+    {
+      "scope": "content",
       "locale": "ckb",
       "where": "products/aquavo-driftwood-collection#benefits[1]",
       "code": "glossary",
@@ -1730,6 +1740,14 @@
     {
       "scope": "content",
       "locale": "ckb",
+      "where": "blog_posts/كيف-تتعامل-مع-حرارة-الصيف-في-أحواض-السمك-دليل-شامل-1789869961312",
+      "code": "missing",
+      "severity": "error",
+      "detail": ""
+    },
+    {
+      "scope": "content",
+      "locale": "ckb",
       "where": "blog_posts/كيف-تتعامل-مع-حرارة-الصيف-في-أحواض-السمك؟-نصائح-مو-1789265156493#content",
       "code": "glossary",
       "severity": "warning",
@@ -1742,22 +1760,6 @@
       "code": "glossary",
       "severity": "warning",
       "detail": "warranty: expected \"گەرەنتی\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
-      "where": "blog_posts/fish-that-outgrow-home-tanks#content",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "account: expected \"هەژمار\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
-      "where": "blog_posts/fish-that-outgrow-home-tanks#content",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "freshwater: expected \"ئاوی شیرین\""
     },
     {
       "scope": "content",
@@ -1778,10 +1780,18 @@
     {
       "scope": "content",
       "locale": "ckb",
-      "where": "blog_posts/external-fish-parasites#content",
+      "where": "blog_posts/fish-that-outgrow-home-tanks#content",
       "code": "glossary",
       "severity": "warning",
-      "detail": "login: expected \"چوونەژوورەوە\""
+      "detail": "account: expected \"هەژمار\""
+    },
+    {
+      "scope": "content",
+      "locale": "ckb",
+      "where": "blog_posts/fish-that-outgrow-home-tanks#content",
+      "code": "glossary",
+      "severity": "warning",
+      "detail": "freshwater: expected \"ئاوی شیرین\""
     },
     {
       "scope": "content",
@@ -1798,6 +1808,46 @@
       "code": "glossary",
       "severity": "warning",
       "detail": "warning: expected \"ئاگاداری\""
+    },
+    {
+      "scope": "content",
+      "locale": "ckb",
+      "where": "blog_posts/external-fish-parasites#content",
+      "code": "glossary",
+      "severity": "warning",
+      "detail": "login: expected \"چوونەژوورەوە\""
+    },
+    {
+      "scope": "content",
+      "locale": "ckb",
+      "where": "blog_posts/dwarf-cichlids-guide#content",
+      "code": "glossary",
+      "severity": "warning",
+      "detail": "stone: expected \"بەرد\""
+    },
+    {
+      "scope": "content",
+      "locale": "ckb",
+      "where": "blog_posts/dwarf-cichlids-guide#content",
+      "code": "glossary",
+      "severity": "warning",
+      "detail": "ph: expected \"pH\""
+    },
+    {
+      "scope": "content",
+      "locale": "ckb",
+      "where": "blog_posts/raising-fish-fry#content",
+      "code": "glossary",
+      "severity": "warning",
+      "detail": "login: expected \"چوونەژوورەوە\""
+    },
+    {
+      "scope": "content",
+      "locale": "ckb",
+      "where": "blog_posts/raising-fish-fry#content",
+      "code": "glossary",
+      "severity": "warning",
+      "detail": "livebearers: expected \"زیندووزاکان\""
     },
     {
       "scope": "content",
@@ -1834,54 +1884,6 @@
     {
       "scope": "content",
       "locale": "ckb",
-      "where": "blog_posts/raising-fish-fry#content",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "login: expected \"چوونەژوورەوە\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
-      "where": "blog_posts/raising-fish-fry#content",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "livebearers: expected \"زیندووزاکان\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
-      "where": "blog_posts/dwarf-cichlids-guide#content",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "stone: expected \"بەرد\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
-      "where": "blog_posts/dwarf-cichlids-guide#content",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "ph: expected \"pH\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
-      "where": "blog_posts/aquarium-barbs-guide#content",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "login: expected \"چوونەژوورەوە\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
-      "where": "blog_posts/aquarium-barbs-guide#content",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "freshwater: expected \"ئاوی شیرین\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
       "where": "blog_posts/small-schooling-fish-selection#content",
       "code": "glossary",
       "severity": "warning",
@@ -1910,6 +1912,22 @@
       "code": "glossary",
       "severity": "warning",
       "detail": "breeding: expected \"زاوزێ\""
+    },
+    {
+      "scope": "content",
+      "locale": "ckb",
+      "where": "blog_posts/aquarium-barbs-guide#content",
+      "code": "glossary",
+      "severity": "warning",
+      "detail": "login: expected \"چوونەژوورەوە\""
+    },
+    {
+      "scope": "content",
+      "locale": "ckb",
+      "where": "blog_posts/aquarium-barbs-guide#content",
+      "code": "glossary",
+      "severity": "warning",
+      "detail": "freshwater: expected \"ئاوی شیرین\""
     },
     {
       "scope": "content",
@@ -2010,22 +2028,6 @@
     {
       "scope": "content",
       "locale": "ckb",
-      "where": "blog_posts/gh-kh-water-hardness-guide#content",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "out-of-stock: expected \"بەردەست نییە\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
-      "where": "blog_posts/gh-kh-water-hardness-guide#content",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "warning: expected \"ئاگاداری\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
       "where": "blog_posts/acclimating-new-fish#content",
       "code": "glossary",
       "severity": "warning",
@@ -2042,26 +2044,26 @@
     {
       "scope": "content",
       "locale": "ckb",
+      "where": "blog_posts/gh-kh-water-hardness-guide#content",
+      "code": "glossary",
+      "severity": "warning",
+      "detail": "out-of-stock: expected \"بەردەست نییە\""
+    },
+    {
+      "scope": "content",
+      "locale": "ckb",
+      "where": "blog_posts/gh-kh-water-hardness-guide#content",
+      "code": "glossary",
+      "severity": "warning",
+      "detail": "warning: expected \"ئاگاداری\""
+    },
+    {
+      "scope": "content",
+      "locale": "ckb",
       "where": "blog_posts/aquarium-test-kit-guide#content",
       "code": "glossary",
       "severity": "warning",
       "detail": "search: expected \"گەڕان\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
-      "where": "blog_posts/quarantine-new-fish-guide#title",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "stone: expected \"بەرد\""
-    },
-    {
-      "scope": "content",
-      "locale": "ckb",
-      "where": "blog_posts/quarantine-new-fish-guide#excerpt",
-      "code": "glossary",
-      "severity": "warning",
-      "detail": "stone: expected \"بەرد\""
     },
     {
       "scope": "content",
@@ -2078,6 +2080,22 @@
       "code": "glossary",
       "severity": "warning",
       "detail": "external-filter: expected \"فلتەری دەرەکی\""
+    },
+    {
+      "scope": "content",
+      "locale": "ckb",
+      "where": "blog_posts/quarantine-new-fish-guide#title",
+      "code": "glossary",
+      "severity": "warning",
+      "detail": "stone: expected \"بەرد\""
+    },
+    {
+      "scope": "content",
+      "locale": "ckb",
+      "where": "blog_posts/quarantine-new-fish-guide#excerpt",
+      "code": "glossary",
+      "severity": "warning",
+      "detail": "stone: expected \"بەرد\""
     },
     {
       "scope": "content",

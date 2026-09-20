@@ -10,6 +10,7 @@ import {
 import { articleAuthorEntity } from "@shared/editorial-author";
 import { DEFAULT_LOCALE, LOCALES, SUPPORTED_LOCALES, alternatesFor, localizePath, splitLocaleFromPath, type Locale } from "@shared/i18n/locales";
 import { RELEASED_LOCALES, releasedAlternatesFor } from "@shared/i18n/release";
+import { stripBidiControls } from "@shared/i18n/bidi";
 
 /** Locale of the page on screen, read from the URL prefix (the source of truth). */
 function currentLocale(): Locale {
@@ -45,7 +46,11 @@ function currentCanonicalUrl(): string {
 
 function sanitizeSchemaValue(value: unknown): unknown {
   if (typeof value === "string") {
-    return DOMPurify.sanitize(value, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
+    // stripBidiControls: the i18next post-processor wraps numeric ranges in bidi
+    // isolates so a reader sees "50-150" and not "150-50". Structured data is read
+    // by machines, which have no such rendering problem and would only see two
+    // invisible characters inside the value, so it leaves this boundary clean.
+    return DOMPurify.sanitize(stripBidiControls(value), { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
   }
   if (Array.isArray(value)) return value.map(sanitizeSchemaValue);
   if (value && typeof value === "object") {
@@ -103,7 +108,7 @@ export function MetaTags({
     const fullTitle = /\|\s*AQUAVO(?:\s|$)/i.test(title)
       ? title
       : `${title} | ${TITLE_SUFFIX[locale]}`;
-    document.title = fullTitle;
+    document.title = stripBidiControls(fullTitle);
 
     const setMetaTag = (name: string, content: string, property = false) => {
       const attr = property ? "property" : "name";
@@ -113,7 +118,7 @@ export function MetaTags({
         meta.setAttribute(attr, name);
         document.head.appendChild(meta);
       }
-      meta.setAttribute("content", content);
+      meta.setAttribute("content", stripBidiControls(content));
     };
 
     const removeMeta = (selector: string) => {

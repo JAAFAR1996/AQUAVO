@@ -1,4 +1,4 @@
-# Translation validation (2026-09-20T03:01:20.223Z)
+# Translation validation (2026-09-20T12:26:30.883Z)
 
 ## UI bundles
 
@@ -12,10 +12,10 @@
 | store | present / public | field-complete | passes all checks |
 |---|---|---|---|
 | en/products | 107 / 107 | 107 | 107 |
-| en/blog_posts | 117 / 117 | 117 | 117 |
+| en/blog_posts | 117 / 118 | 117 | 117 |
 | en/blog_categories | 8 / 8 | 8 | 8 |
 | ckb/products | 107 / 107 | 107 | 107 |
-| ckb/blog_posts | 117 / 117 | 117 | 117 |
+| ckb/blog_posts | 117 / 118 | 117 | 117 |
 | ckb/blog_categories | 8 / 8 | 8 | 8 |
 
 ## Findings by code
@@ -23,10 +23,14 @@
 | code | count |
 |---|---|
 | content/ckb/glossary | 143 |
+| content/ckb/missing | 1 |
+| content/en/missing | 1 |
 | ui/ckb/glossary | 168 |
 
 ## Error samples (first 60)
 
+- [en] blog_posts/كيف-تتعامل-مع-حرارة-الصيف-في-أحواض-السمك-دليل-شامل-1789869961312 — **missing** 
+- [ckb] blog_posts/كيف-تتعامل-مع-حرارة-الصيف-في-أحواض-السمك-دليل-شامل-1789869961312 — **missing** 
 
 ## Warning samples (first 40)
 

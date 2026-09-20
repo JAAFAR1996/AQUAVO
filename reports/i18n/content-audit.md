@@ -1,4 +1,4 @@
-# Pass-2 content audit (2026-09-20 03:01)
+# Pass-2 content audit (2026-09-20 12:27)
 
 Findings: 34 (high 34, medium 0, low 0)
 
@@ -8,7 +8,7 @@ Findings: 34 (high 34, medium 0, low 0)
 | numbers/ckb | 4 |
 | numbers/en | 13 |
 
-## High-risk articles (score >= 12): 83 of 117
+## High-risk articles (score >= 12): 83 of 118
 
 | article | score | topics |
 |---|---|---|
@@ -101,8 +101,8 @@ Findings: 34 (high 34, medium 0, low 0)
 ### high (34)
 
 - **[en] post/fish-that-outgrow-home-tanks** — numbers: invented 5 | tgt: "ot "I'll buy it and see." Refer to Choosing Healthy Fish in Store and 5 Hardy Fish for Beginners . You Already Have This Problem—W"
-- **[en] post/aquarium-barbs-guide** — numbers: invented 50 | tgt: "r Pumps Are a Necessity and Protecting Fish in the Iraqi Summer Heat (50°C) . Broken Lines of Sight. Plants, driftwood, and rocks"
 - **[en] post/small-schooling-fish-selection** — numbers: invented 50 | tgt: "e the biggest challenge, not hardness—refer to Protecting Fish in the 50-Degree Iraqi Summer . And If You Want a Larger School: Ra"
+- **[en] post/aquarium-barbs-guide** — numbers: invented 50 | tgt: "r Pumps Are a Necessity and Protecting Fish in the Iraqi Summer Heat (50°C) . Broken Lines of Sight. Plants, driftwood, and rocks"
 - **[en] post/gourami-care-guide** — numbers: invented 50 | tgt: "See Emergency Aquarium Tools and Protecting Fish in the Iraqi Summer (50 Degrees) . Behavior: What Surprises Beginners Behavior Ex"
 - **[en] post/fish-fungus-vs-columnaris** — numbers: invented 3 | tgt: "en Them by Appearance True Fungus Columnaris (Bacterial) Appearance A 3D cotton-like mass protruding from the body A flat patch ad"
 - **[en] post/aquarium-care-while-traveling** — numbers: invented 50 | tgt: "gas exchange if the weather is hot — Protecting Fish in Iraqi Summer (50 Degrees) . Explain to anyone checking on the house what t"

@@ -32,6 +32,7 @@ import { metaTrackPurchase } from "@/lib/meta-pixel";
 import { DELIVERY_DAYS } from "@/lib/constants/shipping";
 import { WhatsAppLink } from "@/components/whatsapp-link";
 import { useTranslation } from "react-i18next";
+import { isolateNumericRanges as bidi } from "@shared/i18n/bidi";
 import { i18next } from "@/i18n";
 
 interface OrderItem {
@@ -498,7 +499,7 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
                                                 </div>
                                                 <div className="min-w-0 flex-1">
                                                     <p className="text-sm font-semibold leading-6 text-foreground sm:text-base">
-                                                        {item.productName || item.productId}
+                                                        {bidi(item.productName || item.productId)}
                                                     </p>
                                                     <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-muted-foreground sm:text-sm">
                                                         {item.variantLabel && (

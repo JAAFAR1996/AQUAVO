@@ -9,9 +9,10 @@
  * pair is its own JSON chunk; a visitor downloads only their locale (plus the
  * small Arabic fallback).
  */
-import i18next, { type InitOptions } from "i18next";
+import i18next, { type InitOptions, type PostProcessorModule } from "i18next";
 import { initReactI18next } from "react-i18next";
 import { DEFAULT_LOCALE, LOCALES, SUPPORTED_LOCALES, type Locale } from "@shared/i18n/locales";
+import { isolateNumericRanges } from "@shared/i18n/bidi";
 import arCommon from "../locales/ar/common.json";
 import arNav from "../locales/ar/nav.json";
 import arHome from "../locales/ar/home.json";
@@ -68,8 +69,36 @@ const AR_RESOURCES: Record<Namespace, Record<string, unknown>> = {
 /** Static glob so Vite code-splits each locale/namespace pair. */
 const bundles = import.meta.glob<{ default: Record<string, unknown> }>("../locales/*/*.json");
 
+/**
+ * Numeric ranges reverse when the Unicode bidi algorithm resolves them next to
+ * Arabic letters: `تغذية 4-6 مرات` is read as `6-4`. See shared/i18n/bidi.ts for
+ * why, and e2e/i18n-bidi.spec.ts for the browser measurement.
+ *
+ * A post-processor is the only place that reaches every one of the ~3,000 `t()`
+ * call sites — guides, calculators, loyalty, order tracking — without touching
+ * any of them, and it runs on the value on its way out of i18next, so no stored
+ * translation changes. It adds the *isolate* pair (U+2066…U+2069), never an
+ * override, and only to a string that contains both a range and an RTL letter;
+ * every other string is returned by identity.
+ *
+ * Text destined for machines rather than readers strips the controls again at its
+ * own boundary — see `stripBidiControls` in components/seo/meta-tags.tsx.
+ */
+export const BIDI_ISOLATE_PROCESSOR = "bidi-isolate";
+
+const bidiIsolate: PostProcessorModule = {
+  type: "postProcessor",
+  name: BIDI_ISOLATE_PROCESSOR,
+  process(value) {
+    // Interpolated HTML blobs are isolated as markup instead (isolateNumericRangesInHtml),
+    // so that a `<bdi>` lands in the text rather than a control inside a tag.
+    if (typeof value !== "string" || value.includes("<")) return value;
+    return isolateNumericRanges(value);
+  },
+};
+
 if (!i18next.isInitialized) {
-  i18next.use(initReactI18next).init({
+  i18next.use(bidiIsolate).use(initReactI18next).init({
     lng: DEFAULT_LOCALE,
     fallbackLng: DEFAULT_LOCALE,
     supportedLngs: [...SUPPORTED_LOCALES],
@@ -77,6 +106,7 @@ if (!i18next.isInitialized) {
     defaultNS: "common",
     resources: { [DEFAULT_LOCALE]: AR_RESOURCES },
     interpolation: { escapeValue: false },
+    postProcess: [BIDI_ISOLATE_PROCESSOR],
     returnNull: false,
     initImmediate: false,
     react: { useSuspense: false },

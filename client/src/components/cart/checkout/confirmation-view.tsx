@@ -10,6 +10,7 @@ import { getOrderIdempotencyKey } from "@/lib/order-idempotency";
 import { PaymentMethodCard } from "./payment-method-card";
 import { ArrowLeft, Loader2, Lock, LockKeyhole, RotateCcw, ShieldCheck, Truck } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { isolateNumericRanges as bidi } from "@shared/i18n/bidi";
 
 const APPLIED_COUPON_STORAGE_KEY = "aquavo_applied_coupon_v1";
 
@@ -239,7 +240,7 @@ export function ConfirmationView({
                     {cartItems.map((item) => (
                         <div key={item.id} className="flex justify-between items-center text-sm">
                             <div className="min-w-0 flex-1">
-                                <span className="block truncate text-muted-foreground">{item.name} × {item.quantity}</span>
+                                <span className="block truncate text-muted-foreground">{bidi(item.name)} × {item.quantity}</span>
                                 {item.variantLabel && <span className="block truncate text-xs text-muted-foreground">{t("summary.variant", { variant: item.variantLabel })}</span>}
                             </div>
                             <span className="font-medium mr-2">{formatIQD(item.price * item.quantity)}</span>
