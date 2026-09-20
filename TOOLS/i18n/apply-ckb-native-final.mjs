@@ -34,25 +34,27 @@ const GLOSSARY = path.join(ROOT, "shared/i18n/glossary.json");
  *   split    for answers that carry two forms separated by " | "
  */
 const TARGETS = {
-  D01: { termId: null, label: "heater (aquarium)" },
+  D01: { termId: "heater", label: "heater (aquarium)" },
   D02: { termId: null, label: "thermostat" },
   D03: { termId: null, label: "aeration" },
   D04: { termId: null, label: "mechanical / biological filtration", split: true },
-  D05: { termId: null, label: "chloramine" },
-  D06: { termId: "water-conditioner", label: "dechlorinator / water conditioner" },
-  D07: { termId: null, label: "beneficial bacteria" },
-  D08: { termId: null, label: "aquarium cycling" },
+  D05: { termId: "chloramine", label: "chloramine" },
+  D06: { termId: "dechlorinator", label: "dechlorinator / water conditioner" },
+  D07: { termId: "beneficial-bacteria", label: "beneficial bacteria" },
+  D08: { termId: "nitrogen-cycle", label: "aquarium cycling" },
   D09: { termId: "algae", label: "algae" },
   D10: { termId: "livebearers", label: "livebearers" },
   D11: { termId: null, label: "dose / dosing" },
   D12: { termId: null, label: "fish gills" },
-  // "ئاست | بەرزکردنەوەی ئاست" is the tier noun and the upgrade verb phrase.
-  D13: { termId: "upgrade-tier", label: "loyalty tier", split: true },
-  D14: { termId: "customer-credit", label: "customer credit" },
+  // D13 and D18 each encode two distinct concepts; record the reviewed pair under
+  // $nativeDecisions and let the corpus-specific correction pass apply them without
+  // polluting one glossary term with the other concept.
+  D13: { termId: null, label: "loyalty tier", split: true },
+  D14: { termId: "balance", label: "customer credit" },
   D15: { termId: "force-majeure", label: "force majeure" },
   D16: { termId: "discount", label: "discount" },
   D17: { termId: "invoice", label: "invoice" },
-  D18: { termId: "thermometer", label: "temperature vs thermometer", split: true },
+  D18: { termId: null, label: "temperature vs thermometer", split: true },
 };
 
 // ── load and validate ────────────────────────────────────────────────────────
