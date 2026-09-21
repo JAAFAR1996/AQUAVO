@@ -29,7 +29,7 @@ jobs:
       - name: Translation validator
         run: |
           pnpm exec tsx TOOLS/i18n/validate-translations.ts
-          node -e "const r=require('./reports/i18n/validation-report.json'); const w=r.findings.filter(f=>f.severity==='warning'); const g={}; for(const f of w){const k=f.code==='glossary'?(f.detail.match(/^([^:]+):/)?.[1]||'glossary-other'):f.code; g[k]=(g[k]||0)+1} console.log('warning groups:',JSON.stringify(g)); console.log('warning findings:',JSON.stringify(w)); const e=r.findings.filter(f=>f.severity==='error'); if(e.length){console.error('translation errors:',JSON.stringify(e,null,2)); process.exit(1)}"
+          node -e "const r=require('./reports/i18n/validation-report.json'); const w=r.findings.filter(f=>f.severity==='warning'); const e=r.findings.filter(f=>f.severity==='error'); if(w.length) console.error('translation warnings:',JSON.stringify(w,null,2)); if(e.length) console.error('translation errors:',JSON.stringify(e,null,2)); if(e.length || w.length) process.exit(1); console.log('translation validation: 0 errors, 0 warnings')"
       - name: Internal link gate
         run: node TOOLS/i18n/check-links.mjs
       - name: HTML structure gate
