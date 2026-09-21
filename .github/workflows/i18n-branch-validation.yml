@@ -27,7 +27,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --prefer-offline
       - name: Translation validator
-        run: pnpm exec tsx TOOLS/i18n/validate-translations.ts
+        run: |
+          pnpm exec tsx TOOLS/i18n/validate-translations.ts
+          node -e "const r=require('./reports/i18n/validation-report.json'); const e=r.findings.filter(f=>f.severity==='error'); if(e.length){console.error(JSON.stringify(e,null,2)); process.exit(1)}"
       - name: Internal link gate
         run: node TOOLS/i18n/check-links.mjs
       - name: HTML structure gate
