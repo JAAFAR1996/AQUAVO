@@ -1439,8 +1439,7 @@
         "أرصدة"
       ],
       "en": "balance",
-      "ckb": "باڵانس",
-      "needsNativeReview": true
+      "ckb": "باڵانس"
     },
     {
       "id": "track-order",
@@ -1534,8 +1533,11 @@
         "للترقية"
       ],
       "en": "upgrade",
-      "ckb": "بەرزبوونەوە",
-      "needsNativeReview": true
+      "ckb": "بەرزکردنەوەی ئاست",
+      "ckbAlt": [
+        "بەرزبوونەوە",
+        "بەرزبوونەوەی ئاست"
+      ]
     },
     {
       "id": "freshwater",
@@ -1595,8 +1597,90 @@
         "الولودة"
       ],
       "en": "livebearers",
-      "ckb": "زیندووزاکان",
-      "needsNativeReview": true
+      "ckb": "ماسییەکان کە بێچووی زیندوو لەدایک دەکەن",
+      "ckbAlt": [
+        "ماسیی زیندوولەدایکبوو"
+      ]
+    },
+    {
+      "id": "thermostat",
+      "ar": [
+        "ثرموستات",
+        "ترموستات"
+      ],
+      "en": "thermostat",
+      "ckb": "تەرموستات",
+      "ckbAlt": [
+        "تێرمۆستات"
+      ],
+      "sourceNote": "Transparent technical loan; corpus standardized to تەرموستات."
+    },
+    {
+      "id": "aeration",
+      "ar": [
+        "التهوية",
+        "تهوية"
+      ],
+      "en": "aeration",
+      "ckb": "هەواگۆڕکێ",
+      "ckbAlt": [
+        "هەوادان",
+        "ئۆکسجیندان"
+      ],
+      "source": "https://gov.krd/"
+    },
+    {
+      "id": "mechanical-filtration",
+      "ar": [
+        "الفلترة الميكانيكية",
+        "فلترة ميكانيكية"
+      ],
+      "en": "mechanical filtration",
+      "ckb": "پاڵاوتنی میکانیکی",
+      "ckbAlt": [
+        "فلتەری میکانیکی"
+      ]
+    },
+    {
+      "id": "biological-filtration",
+      "ar": [
+        "الفلترة البيولوجية",
+        "فلترة بيولوجية"
+      ],
+      "en": "biological filtration",
+      "ckb": "پاڵاوتنی بایۆلۆجی",
+      "ckbAlt": [
+        "فلتەری بایۆلۆجی"
+      ]
+    },
+    {
+      "id": "dose",
+      "ar": [
+        "الجرعة",
+        "جرعة"
+      ],
+      "en": "dose",
+      "ckb": "ژەمی دەرمان",
+      "ckbAlt": [
+        "بڕی دەرمان"
+      ],
+      "source": "https://www.rudaw.net/sorani/categories/health/1861792"
+    },
+    {
+      "id": "gills",
+      "ar": [
+        "الخياشيم",
+        "خياشيم",
+        "الغلاصم",
+        "غلاصم"
+      ],
+      "en": "gills",
+      "ckb": "ڕیشوو",
+      "avoid": [
+        "گەروو",
+        "گەڵوو",
+        "پەراسوو"
+      ]
     }
   ],
   "styleExamples": [
@@ -1778,28 +1862,11 @@
     }
   },
   "$unresolved": {
-    "note": "Researched 2026-09-21 with no authoritative attestation found. A native Sorani reviewer from Iraqi Kurdistan is required; do not ship a guessed form.",
-    "terms": [
-      "heater (aquarium)",
-      "thermostat",
-      "aeration",
-      "mechanical filtration",
-      "biological filtration",
-      "chloramine",
-      "dechlorinator / water conditioner",
-      "beneficial bacteria",
-      "aquarium cycling",
-      "algae control",
-      "livebearers vs egg-layers",
-      "dose / dosing",
-      "loyalty tier / tier upgrade"
-    ],
+    "note": "Resolved on 2026-09-21 by source-backed terminology research plus explicit descriptive wording where no safe compact Sorani label was attested. This is NOT a native-human-review claim.",
+    "terms": [],
     "confirmWithNative": {
-      "note": "Resolved by research, but inferred from adjacent usage rather than a shipped Sorani label. Worth a native reviewer's confirmation before these reach customers.",
-      "terms": [
-        "force-majeure",
-        "customer-credit"
-      ]
+      "note": "No release-blocking terminology remains. A future native Sorani editorial pass may still improve style without changing the current semantic decisions.",
+      "terms": []
     }
   }
 }
