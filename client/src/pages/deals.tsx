@@ -15,6 +15,7 @@ import { addCsrfHeader } from "@/lib/csrf";
 import { BackToTop } from "@/components/back-to-top";
 import { Product } from "@/types";
 import { useTranslation } from "react-i18next";
+import { getProductDisplayIdentity } from "@/lib/product-display";
 
 export default function Deals() {
   const { t } = useTranslation("pages");
@@ -173,6 +174,7 @@ export default function Deals() {
                   Number(product.originalPrice),
                   Number(product.price)
                 );
+                const productDisplay = getProductDisplayIdentity(product);
 
                 return (
                   <Card
@@ -207,14 +209,14 @@ export default function Deals() {
 
                     <CardContent className="p-4 space-y-3">
                       {/* Brand */}
-                      <div className="text-xs text-muted-foreground font-medium">
-                        {product.brand}
+                      <div className="text-xs text-primary/75 font-bold uppercase tracking-[0.06em] min-h-4">
+                        {productDisplay.brand ? <bdi dir="ltr">{productDisplay.brand}</bdi> : "\u00a0"}
                       </div>
 
                       {/* Product Name */}
                       <Link href={`/products/${product.slug}`}>
                         <h3 className="font-semibold text-sm line-clamp-2 h-10 hover:text-primary transition-colors cursor-pointer">
-                          {product.name}
+                          {productDisplay.name}
                         </h3>
                       </Link>
 
