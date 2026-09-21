@@ -267,8 +267,9 @@ describe("trigger-point contracts", () => {
     expect(maintenance).toContain("await sendOrderNotification(data, { rethrow: true });");
   });
 
-  it("admin test orders notify only on explicit opt-in, directly and with the test prefix", () => {
-    expect(testRoute).toContain("if (req.body?.notifyTelegram === true) {");
+  it("admin test orders always notify directly and with the test prefix", () => {
+    expect(testRoute).toContain("const telegram = await sendOrderNotification({");
+    expect(testRoute).not.toContain("notifyTelegram");
     expect(testRoute).toMatch(/paymentMethod: "cod",[\s\S]{0,120}testOrder: true,/);
     expect(testRoute).toContain("total: order.roundedTotal ?? order.total,");
     expect(testRoute).not.toContain("enqueueMerchantNotificationOutbox");
