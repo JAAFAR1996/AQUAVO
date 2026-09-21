@@ -1,33 +1,22 @@
 /**
- * Which SPA pages have a complete UI translation for a locale.
+ * Runtime-safe page translation coverage for server-side metadata.
  *
- * Static pages (guides, legal pages, tools) render from the i18n bundles, so
- * a page is "translated" when every key of its Arabic bundle section exists in
- * the locale's bundle. ssr-meta uses this to decide whether an English /
- * Kurdish page URL is indexable or must stay noindex until its copy exists.
+ * Do not import the client locale JSON bundles here. api/ssr-meta.ts is a
+ * low-memory Vercel Function and those bundles are already validated at CI
+ * time by the strict i18n validator. Loading them again at function startup
+ * makes the SSR function needlessly large and can make cold-start invocation
+ * fail before the handler runs.
+ *
+ * Release invariant:
+ * - Arabic is always complete.
+ * - A non-Arabic locale may be marked released only after CI proves 100% UI
+ *   key coverage and the release gate is flipped manually.
+ * Therefore runtime page coverage can safely derive from the release gate.
  */
 import { DEFAULT_LOCALE, type Locale } from "../shared/i18n/locales.js";
-import arGuides from "../client/src/locales/ar/guides.json";
-import arPages from "../client/src/locales/ar/pages.json";
-import arTools from "../client/src/locales/ar/tools.json";
-import arAccount from "../client/src/locales/ar/account.json";
-import enGuides from "../client/src/locales/en/guides.json";
-import enPages from "../client/src/locales/en/pages.json";
-import enTools from "../client/src/locales/en/tools.json";
-import enAccount from "../client/src/locales/en/account.json";
-import ckbGuides from "../client/src/locales/ckb/guides.json";
-import ckbPages from "../client/src/locales/ckb/pages.json";
-import ckbTools from "../client/src/locales/ckb/tools.json";
-import ckbAccount from "../client/src/locales/ckb/account.json";
+import { isLocaleReleased } from "../shared/i18n/release.js";
 
-type Bundle = Record<string, Record<string, string> | string>;
-const BUNDLES: Record<Locale, Bundle[]> = {
-  ar: [arGuides, arPages, arTools, arAccount] as Bundle[],
-  en: [enGuides, enPages, enTools, enAccount] as Bundle[],
-  ckb: [ckbGuides, ckbPages, ckbTools, ckbAccount] as Bundle[],
-};
-
-/** Guide routes whose page file name differs from the URL slug. */
+/** Guide routes whose page file name differs from the URL slug. Kept for tooling/tests. */
 const ROUTE_TO_FILE: Record<string, string> = {
   "/guides/new-aquarium-setup-iraq": "guides-new-aquarium-setup",
   "/guides/aquarium-water-test-guide": "guides-water-test-guide",
@@ -45,26 +34,14 @@ export function pageFileSlug(logicalPath: string): string {
   return clean.slice(1);
 }
 
-function sectionKeys(locale: Locale, slug: string): Set<string> {
-  const keys = new Set<string>();
-  for (const bundle of BUNDLES[locale]) {
-    const section = bundle[slug];
-    if (section && typeof section === "object") for (const k of Object.keys(section)) keys.add(k);
-  }
-  return keys;
-}
-
 /**
- * True when the page's bundle section is fully present in the locale. Pages
- * with no Arabic section (localized by hand under other namespaces, or pure
- * dynamic pages) are considered translated.
+ * Runtime check used by ssr-meta.
+ *
+ * Detailed key-by-key completeness is enforced in CI, not inside the
+ * production function. This keeps the function small and removes client JSON
+ * parsing from the cold-start path.
  */
-export function isPageTranslated(locale: Locale, logicalPath: string): boolean {
+export function isPageTranslated(locale: Locale, _logicalPath: string): boolean {
   if (locale === DEFAULT_LOCALE) return true;
-  const slug = pageFileSlug(logicalPath);
-  const ar = sectionKeys(DEFAULT_LOCALE, slug);
-  if (ar.size === 0) return true;
-  const target = sectionKeys(locale, slug);
-  for (const k of ar) if (!target.has(k)) return false;
-  return true;
+  return isLocaleReleased(locale);
 }
