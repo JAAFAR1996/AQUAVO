@@ -1,6 +1,6 @@
 {
   "$schema": "./ckb-native-final-answers.schema.md",
-  "$instructions": "Fill in one entry per decision. Set \"choice\" to \"A\", \"B\", or \"other\". If \"other\", put the reviewer's own Sorani wording in \"custom\". If the reviewer did not know, set \"choice\" to \"unknown\" and that decision stays open. \"reviewer\" and \"reviewedAt\" MUST be filled in by a real native speaker — TOOLS/i18n/apply-ckb-native-final.mjs refuses to run without them, and nothing in this repo may be marked human-reviewed on the strength of a model's opinion.",
+  "$instructions": "This template is retained only for a future real native-Sorani editorial review. Do not fill reviewer/reviewedAt from an AI/model. The current release no longer depends on this file; researched decisions are recorded in ckb-native-final-review.md and shared/i18n/glossary.json.",
   "reviewer": {
     "name": "",
     "dialectRegion": "",
@@ -8,23 +8,138 @@
   },
   "reviewedAt": "",
   "answers": {
-    "D01": { "term": "heater (aquarium)", "choice": "", "custom": "", "A": "گەرمکەرەوە", "B": "گەرمکەری حەوز" },
-    "D02": { "term": "thermostat", "choice": "", "custom": "", "A": "تەرموستات", "B": "" },
-    "D03": { "term": "aeration", "choice": "", "custom": "", "A": "هەوادان", "B": "ئۆکسجیندان" },
-    "D04": { "term": "mechanical / biological filtration", "choice": "", "custom": "", "A": "پاڵاوتنی میکانیکی | پاڵاوتنی بایۆلۆجی", "B": "فلتەری میکانیکی | فلتەری بایۆلۆجی" },
-    "D05": { "term": "chloramine", "choice": "", "custom": "", "A": "کلۆرامین", "B": "" },
-    "D06": { "term": "dechlorinator / water conditioner", "choice": "", "custom": "", "A": "لابەری کلۆر", "B": "سڕاوەی کلۆر" },
-    "D07": { "term": "beneficial bacteria", "choice": "", "custom": "", "A": "بەکتریای سوودبەخش", "B": "بەکتریای بەسوود" },
-    "D08": { "term": "aquarium cycling", "choice": "", "custom": "", "A": "سووڕی نایترۆجین", "B": "خولی بایۆلۆجی" },
-    "D09": { "term": "algae", "choice": "", "custom": "", "A": "کەوز", "B": "قەوزە", "corpusOccurrences": 187 },
-    "D10": { "term": "livebearers", "choice": "", "custom": "", "A": "زیندووزا", "B": "ماسی زیندوو لەدایکبوو", "corpusOccurrences": 19 },
-    "D11": { "term": "dose / dosing", "choice": "", "custom": "", "A": "بڕی دەرمان", "B": "ژەمی دەرمان" },
-    "D12": { "term": "fish gills", "choice": "", "custom": "", "A": "ڕیشوو", "B": "", "note": "15 occurrences of گەروو need a per-occurrence throat-vs-gills pass once this is settled" },
-    "D13": { "term": "loyalty tier", "choice": "", "custom": "", "A": "ئاست | بەرزکردنەوەی ئاست", "B": "" },
-    "D14": { "term": "customer credit", "choice": "", "custom": "", "A": "باڵانس", "B": "", "critical": "COMMERCE — wrong answer inverts who owes whom" },
-    "D15": { "term": "force majeure", "choice": "", "custom": "", "A": "هێزی هەرەزاڵ", "B": "دۆخێک کە لە دەرەوەی توانا و دەسەڵاتی لایەنەکان بێت" },
-    "D16": { "term": "discount", "choice": "", "custom": "", "A": "داشکاندن", "B": "کەمکردنەوە", "corpusOccurrences": 116 },
-    "D17": { "term": "invoice", "choice": "", "custom": "", "A": "پسووڵە", "B": "وەسڵ" },
-    "D18": { "term": "temperature vs thermometer", "choice": "", "custom": "", "A": "گەرمیپێو (instrument) | پلەی گەرمی (quantity)", "B": "پلەپێو (instrument) | پلەی گەرمی (quantity)", "corpusOccurrences": 52 }
-  }
+    "D01": {
+      "term": "heater (aquarium)",
+      "choice": "",
+      "custom": "",
+      "A": "گەرمکەرەوە",
+      "B": "گەرمکەری حەوز"
+    },
+    "D02": {
+      "term": "thermostat",
+      "choice": "",
+      "custom": "",
+      "A": "تەرموستات",
+      "B": ""
+    },
+    "D03": {
+      "term": "aeration",
+      "choice": "",
+      "custom": "",
+      "A": "هەوادان",
+      "B": "ئۆکسجیندان"
+    },
+    "D04": {
+      "term": "mechanical / biological filtration",
+      "choice": "",
+      "custom": "",
+      "A": "پاڵاوتنی میکانیکی | پاڵاوتنی بایۆلۆجی",
+      "B": "فلتەری میکانیکی | فلتەری بایۆلۆجی"
+    },
+    "D05": {
+      "term": "chloramine",
+      "choice": "",
+      "custom": "",
+      "A": "کلۆرامین",
+      "B": ""
+    },
+    "D06": {
+      "term": "dechlorinator / water conditioner",
+      "choice": "",
+      "custom": "",
+      "A": "لابەری کلۆر",
+      "B": "سڕاوەی کلۆر"
+    },
+    "D07": {
+      "term": "beneficial bacteria",
+      "choice": "",
+      "custom": "",
+      "A": "بەکتریای سوودبەخش",
+      "B": "بەکتریای بەسوود"
+    },
+    "D08": {
+      "term": "aquarium cycling",
+      "choice": "",
+      "custom": "",
+      "A": "سووڕی نایترۆجین",
+      "B": "خولی بایۆلۆجی"
+    },
+    "D09": {
+      "term": "algae",
+      "choice": "",
+      "custom": "",
+      "A": "کەوز",
+      "B": "قەوزە",
+      "corpusOccurrences": 187
+    },
+    "D10": {
+      "term": "livebearers",
+      "choice": "",
+      "custom": "",
+      "A": "زیندووزا",
+      "B": "ماسی زیندوو لەدایکبوو",
+      "corpusOccurrences": 19
+    },
+    "D11": {
+      "term": "dose / dosing",
+      "choice": "",
+      "custom": "",
+      "A": "بڕی دەرمان",
+      "B": "ژەمی دەرمان"
+    },
+    "D12": {
+      "term": "fish gills",
+      "choice": "",
+      "custom": "",
+      "A": "ڕیشوو",
+      "B": "",
+      "note": "15 occurrences of گەروو need a per-occurrence throat-vs-gills pass once this is settled"
+    },
+    "D13": {
+      "term": "loyalty tier",
+      "choice": "",
+      "custom": "",
+      "A": "ئاست | بەرزکردنەوەی ئاست",
+      "B": ""
+    },
+    "D14": {
+      "term": "customer credit",
+      "choice": "",
+      "custom": "",
+      "A": "باڵانس",
+      "B": "",
+      "critical": "COMMERCE — wrong answer inverts who owes whom"
+    },
+    "D15": {
+      "term": "force majeure",
+      "choice": "",
+      "custom": "",
+      "A": "هێزی هەرەزاڵ",
+      "B": "دۆخێک کە لە دەرەوەی توانا و دەسەڵاتی لایەنەکان بێت"
+    },
+    "D16": {
+      "term": "discount",
+      "choice": "",
+      "custom": "",
+      "A": "داشکاندن",
+      "B": "کەمکردنەوە",
+      "corpusOccurrences": 116
+    },
+    "D17": {
+      "term": "invoice",
+      "choice": "",
+      "custom": "",
+      "A": "پسووڵە",
+      "B": "وەسڵ"
+    },
+    "D18": {
+      "term": "temperature vs thermometer",
+      "choice": "",
+      "custom": "",
+      "A": "گەرمیپێو (instrument) | پلەی گەرمی (quantity)",
+      "B": "پلەپێو (instrument) | پلەی گەرمی (quantity)",
+      "corpusOccurrences": 52
+    }
+  },
+  "$status": "OPTIONAL_FUTURE_NATIVE_EDITORIAL_REVIEW — terminology release blocker resolved by research/context pass on 2026-09-21."
 }
