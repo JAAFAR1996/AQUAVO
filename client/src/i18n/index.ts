@@ -78,13 +78,18 @@ const AR_RESOURCES: Record<Namespace, Record<string, unknown>> = {
  * exist on main, while `script/prerender-static-pages.ts` does and builds fine there.
  *
  * Vite still statically analyses the call inside the try, so code-splitting is
- * unchanged in the app bundle. Outside Vite the map is empty, which is harmless:
- * prerendering renders Arabic, and every Arabic namespace is statically imported
- * above rather than loaded through this map.
+ * unchanged in the app bundle. Arabic is explicitly excluded from the glob
+ * because every Arabic namespace is already statically imported above; matching
+ * it here as well creates ineffective dynamic-import warnings and duplicate
+ * import edges. Outside Vite the map is empty, which is harmless because
+ * prerendering renders Arabic from those static imports.
  */
 let bundles: Record<string, () => Promise<{ default: Record<string, unknown> }>>;
 try {
-  bundles = import.meta.glob<{ default: Record<string, unknown> }>("../locales/*/*.json");
+  bundles = import.meta.glob<{ default: Record<string, unknown> }>([
+    "../locales/*/*.json",
+    "!../locales/ar/*.json",
+  ]);
 } catch {
   bundles = {};
 }

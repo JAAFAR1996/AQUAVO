@@ -23,8 +23,8 @@ function offeredLocales(current: Locale): Locale[] {
 }
 
 interface LanguageSwitcherProps {
-  /** "icon" for the compact header button, "full" for the mobile drawer row. */
-  variant?: "icon" | "full";
+  /** "compact" is icon-only for the mobile header; "icon" and "full" keep the current labelled controls. */
+  variant?: "icon" | "full" | "compact";
   className?: string;
 }
 
@@ -39,6 +39,7 @@ export function LanguageSwitcher({ variant = "icon", className = "" }: LanguageS
   const { t } = useTranslation("common");
   const current = LOCALES[locale];
   const offered = offeredLocales(locale);
+  const compact = variant === "compact";
   // Nothing to switch to: no control at all rather than a one-item menu.
   if (offered.length < 2) return null;
 
@@ -47,16 +48,23 @@ export function LanguageSwitcher({ variant = "icon", className = "" }: LanguageS
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
-          size={variant === "icon" ? "sm" : "default"}
-          className={`gap-2 rounded-full border-2 border-primary/20 bg-primary/5 px-3 hover:border-primary/40 hover:bg-primary/10 ${className}`}
+          size={compact ? "icon" : variant === "icon" ? "sm" : "default"}
+          className={compact
+            ? `h-11 w-11 shrink-0 rounded-full border border-primary/25 bg-primary/5 p-0 text-primary hover:border-primary/45 hover:bg-primary/10 ${className}`
+            : `gap-2 rounded-full border-2 border-primary/20 bg-primary/5 px-3 hover:border-primary/40 hover:bg-primary/10 ${className}`}
           aria-label={t("language.change", { current: current.nativeName })}
           data-testid="language-switcher"
+          data-variant={variant}
         >
-          <Globe className="h-4 w-4" aria-hidden="true" />
-          <span lang={locale} className="text-sm font-medium">
-            {current.nativeName}
-          </span>
-          <span aria-hidden="true" className="text-xs opacity-70">▾</span>
+          <Globe className={compact ? "h-5 w-5" : "h-4 w-4"} aria-hidden="true" />
+          {!compact && (
+            <>
+              <span lang={locale} className="text-sm font-medium">
+                {current.nativeName}
+              </span>
+              <span aria-hidden="true" className="text-xs opacity-70">▾</span>
+            </>
+          )}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-[180px]" aria-label={t("language.menuLabel")}>

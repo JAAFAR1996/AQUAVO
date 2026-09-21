@@ -6,7 +6,7 @@ import { describe, expect, it, vi } from "vitest";
 import { SUPPORTED_LOCALES as _SUPPORTED_LOCALES } from "../../shared/i18n/locales.js";
 import { RELEASED_LOCALES, isLocaleReleased } from "../../shared/i18n/release.js";
 
-import pagesHandler from "../../api/sitemap-pages";
+import pagesHandler, { categoryPathsFromRows, renderPagesSitemap } from "../../api/sitemap-pages";
 import indexHandler from "../../api/sitemap-index";
 import {
   AQUAVO_BASE_URL,
@@ -45,63 +45,84 @@ const locsOf = (xml: string): string[] =>
 const urlBlocks = (xml: string): string[] =>
   [...xml.matchAll(/<url>[\s\S]*?<\/url>/g)].map((m) => m[0]);
 
-describe("sitemap-pages: the eleven category listings are advertised", () => {
-  it("lists every canonical category URL", async () => {
-    const locs = locsOf(await render(pagesHandler));
-    for (const category of AQUAVO_PRODUCT_CATEGORIES) {
-      const expected = `${AQUAVO_BASE_URL}${categoryProductsPath(category)}`;
-      expect(locs, `${category} is not in sitemap-pages.xml`).toContain(expected);
-    }
+describe("sitemap-pages: only live category listings are advertised", () => {
+  const liveCategories = AQUAVO_PRODUCT_CATEGORIES.slice(0, 3);
+  const emptyCategory = AQUAVO_PRODUCT_CATEGORIES[3];
+  const categoryPaths = categoryPathsFromRows([
+    ...liveCategories.map((category) => ({ category })),
+    { category: liveCategories[0] }, // DB/grouping or future query changes must not duplicate.
+    { category: "not-a-real-category" },
+    { category: null },
+  ]);
+  const xml = renderPagesSitemap(categoryPaths);
+
+  it("normalizes DB rows to canonical, unique category paths", () => {
+    expect(categoryPaths).toEqual(liveCategories.map(categoryProductsPath));
+    expect(categoryPaths).not.toContain(categoryProductsPath(emptyCategory));
   });
 
-  it("advertises exactly the static paths plus the eleven categories, once per locale", async () => {
-    // Every static page exists in ar, en and ckb (api/_static-meta-i18n.ts),
-    // but only RELEASED locales are listed (shared/i18n/release.ts): each
-    // logical URL appears once per released locale with reciprocal hreflang.
-    const xml = await render(pagesHandler);
+  it("lists live categories and omits an empty category", () => {
     const locs = locsOf(xml);
-    expect(locs).toHaveLength((PUBLIC_INDEXABLE_PATHS.length + AQUAVO_PRODUCT_CATEGORIES.length) * RELEASED_LOCALES.length);
+    for (const category of liveCategories) {
+      expect(locs).toContain(`${AQUAVO_BASE_URL}${categoryProductsPath(category)}`);
+    }
+    expect(locs).not.toContain(`${AQUAVO_BASE_URL}${categoryProductsPath(emptyCategory)}`);
+  });
+
+  it("advertises exactly the static paths plus live categories, once per released locale", () => {
+    const locs = locsOf(xml);
+    const expectedPerLocale = PUBLIC_INDEXABLE_PATHS.length + liveCategories.length;
+    expect(locs).toHaveLength(expectedPerLocale * RELEASED_LOCALES.length);
     const enCount = locs.filter((l) => l.startsWith(`${AQUAVO_BASE_URL}/en/`) || l === `${AQUAVO_BASE_URL}/en`).length;
-    expect(enCount).toBe(isLocaleReleased("en") ? PUBLIC_INDEXABLE_PATHS.length + AQUAVO_PRODUCT_CATEGORIES.length : 0);
+    expect(enCount).toBe(isLocaleReleased("en") ? expectedPerLocale : 0);
     expect(xml).toContain('hreflang="x-default"');
     expect(xml.includes('hreflang="ckb-IQ"')).toBe(isLocaleReleased("ckb"));
   });
 
-  it("emits no duplicate URL, in any encoding", async () => {
-    const locs = locsOf(await render(pagesHandler));
+  it("emits no duplicate URL, in any encoding", () => {
+    const locs = locsOf(xml);
     expect(new Set(locs).size, "a URL is listed twice").toBe(locs.length);
-    // Two spellings of the same resource (%20 vs +, encoded vs raw UTF-8) are
-    // distinct strings but one page. Compare on the decoded form too.
     const decoded = locs.map((loc) => decodeURIComponent(loc.replace(/\+/g, "%20")));
     expect(new Set(decoded).size, "two encodings of one URL are listed").toBe(decoded.length);
   });
 
-  it("uses one encoding form: percent-encoded UTF-8, %20 for spaces", async () => {
-    const categoryLocs = locsOf(await render(pagesHandler)).filter((loc) => loc.includes("?category="));
-    expect(categoryLocs).toHaveLength(AQUAVO_PRODUCT_CATEGORIES.length * RELEASED_LOCALES.length);
+  it("uses one encoding form: percent-encoded UTF-8, %20 for spaces", () => {
+    const categoryLocs = locsOf(xml).filter((loc) => loc.includes("?category="));
+    expect(categoryLocs).toHaveLength(liveCategories.length * RELEASED_LOCALES.length);
     for (const loc of categoryLocs) {
       expect(loc, `${loc} carries raw non-ASCII`).toMatch(/^[\x21-\x7e]+$/);
       expect(loc, `${loc} uses + for a space`).not.toContain("+");
       const value = loc.split("?category=")[1];
-      // Re-encoding the decoded value must reproduce it byte for byte, which is
-      // what makes the sitemap URL string-identical to the emitted canonical.
       expect(encodeURIComponent(decodeURIComponent(value))).toBe(value);
     }
   });
 
-  it("advertises the canonical Arabic value, never an English alias", async () => {
-    const locs = locsOf(await render(pagesHandler));
+  it("advertises the canonical Arabic value, never an English alias", () => {
+    const locs = locsOf(xml);
     for (const alias of ["filters", "heaters", "lighting", "food", "decor", "tanks"]) {
       expect(locs).not.toContain(`${AQUAVO_BASE_URL}/products?category=${alias}`);
     }
   });
 
-  it("gives every URL a lastmod in ISO form", async () => {
-    const blocks = urlBlocks(await render(pagesHandler));
+  it("gives every URL a lastmod in ISO form", () => {
+    const blocks = urlBlocks(xml);
     expect(blocks.length).toBeGreaterThan(0);
     for (const block of blocks) {
       const lastmod = block.match(/<lastmod>([^<]*)<\/lastmod>/)?.[1] ?? "";
       expect(lastmod, `${block} has no ISO lastmod`).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    }
+  });
+
+  it("falls back to static pages only when DATABASE_URL is unavailable", async () => {
+    const previous = process.env.DATABASE_URL;
+    delete process.env.DATABASE_URL;
+    try {
+      const locs = locsOf(await render(pagesHandler));
+      expect(locs).toHaveLength(PUBLIC_INDEXABLE_PATHS.length * RELEASED_LOCALES.length);
+      expect(locs.some((loc) => loc.includes("?category="))).toBe(false);
+    } finally {
+      if (previous === undefined) delete process.env.DATABASE_URL;
+      else process.env.DATABASE_URL = previous;
     }
   });
 });

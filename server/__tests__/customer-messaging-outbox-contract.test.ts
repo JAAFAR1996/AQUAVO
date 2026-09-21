@@ -72,6 +72,11 @@ const githubWorker = readFileSync(
   "utf8",
 );
 
+const githubOidcVerifier = readFileSync(
+  join(process.cwd(), "server/security/github-actions-oidc.ts"),
+  "utf8",
+);
+
 const rollout = readFileSync(
   join(process.cwd(), "docs/POST_DELIVERY_MESSAGING_ROLLOUT.md"),
   "utf8",
@@ -268,7 +273,17 @@ describe("post-delivery customer messaging contract", () => {
     expect(cronRoute).toContain("runResilientDeliveryCareAutoReplyRecovery(5)");
     expect(cronRoute).toContain("autoReplyRecoveryFailed");
     expect(githubWorker).toContain('cron: "2-57/5 * * * *"');
-    expect(githubWorker).toContain("secrets.CRON_SECRET");
+    expect(githubWorker).toContain("id-token: write");
+    expect(githubWorker).toContain("ACTIONS_ID_TOKEN_REQUEST_URL");
+    expect(githubWorker).toContain("audience=aquavo-customer-messaging");
+    expect(githubWorker).not.toContain("secrets.CRON_SECRET");
+    expect(githubOidcVerifier).toContain('GITHUB_OIDC_ISSUER = "https://token.actions.githubusercontent.com"');
+    expect(githubOidcVerifier).toContain('EXPECTED_REPOSITORY = "JAAFAR1996/AQUAVO"');
+    expect(githubOidcVerifier).toContain('EXPECTED_REPOSITORY_ID = "1107721882"');
+    expect(githubOidcVerifier).toContain('EXPECTED_REF = "refs/heads/main"');
+    expect(githubOidcVerifier).toContain("EXPECTED_WORKFLOW_REF");
+    expect(githubOidcVerifier).toContain("verifySignature");
+    expect(cronRoute).toContain("verifyGitHubActionsCronToken");
     expect(githubWorker).toContain("/api/cron/customer-messaging");
   });
 });

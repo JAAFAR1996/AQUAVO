@@ -2,13 +2,14 @@ name: Customer Messaging Retry Worker
 
 on:
   schedule:
-    # GitHub Actions supports a 5-minute minimum interval. Offset from :00 to
-    # reduce top-of-hour scheduler congestion.
+    # GitHub Actions supports a 5-minute minimum. Offset from :00 to reduce
+    # scheduler congestion while keeping retry latency bounded.
     - cron: "2-57/5 * * * *"
   workflow_dispatch:
 
 permissions:
   contents: read
+  id-token: write
 
 concurrency:
   group: customer-messaging-retry-worker
@@ -19,18 +20,25 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
-      - name: Validate scheduler secret
-        env:
-          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+      - name: Mint short-lived AQUAVO scheduler token
+        id: oidc
+        shell: bash
         run: |
-          if [ -z "$CRON_SECRET" ]; then
-            echo "CRON_SECRET repository secret is required"
+          set -euo pipefail
+          response="$(curl --silent --show-error --fail \
+            --header "Authorization: Bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=aquavo-customer-messaging")"
+          token="$(printf '%s' "$response" | jq -r '.value // empty')"
+          if [ -z "$token" ]; then
+            echo "GitHub OIDC token was not issued"
             exit 1
           fi
+          echo "::add-mask::$token"
+          echo "token=$token" >> "$GITHUB_OUTPUT"
 
       - name: Run protected AQUAVO messaging worker
         env:
-          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          AQUAVO_SCHEDULER_TOKEN: ${{ steps.oidc.outputs.token }}
         run: |
           curl \
             --silent \
@@ -40,5 +48,5 @@ jobs:
             --retry 1 \
             --retry-delay 10 \
             --retry-all-errors \
-            --header "Authorization: Bearer ${CRON_SECRET}" \
+            --header "Authorization: Bearer ${AQUAVO_SCHEDULER_TOKEN}" \
             "https://www.aquavoiq.com/api/cron/customer-messaging"

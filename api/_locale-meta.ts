@@ -63,7 +63,7 @@ export function ogLocaleTags(locale: Locale): string {
  *  - <html lang dir> and body/root dir attributes
  *  - the og:locale block (the template hard-codes ar_IQ)
  *  - hreflang links right after the canonical
- *  - the Kurdish font stylesheet (Cairo lacks five Sorani letters)
+ *  - the Kurdish font stylesheet (Cairo lacks Sorani glyph coverage)
  */
 export function applyLocaleToHtml(html: string, locale: Locale, logicalPath: string, search = "", options: { indexable?: boolean } = {}): string {
   const def = LOCALES[locale];
@@ -80,7 +80,7 @@ export function applyLocaleToHtml(html: string, locale: Locale, logicalPath: str
   if (locale === "ckb") {
     out = out.replace(
       /<\/head>/i,
-      `  <link id="aq-font-ckb" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700&display=swap" />\n</head>`,
+      `  <link id="aq-font-ckb" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap" />\n</head>`,
     );
   }
   return out;
@@ -114,9 +114,9 @@ export const SHELL_META: Record<
     productsName: "Products",
   },
   ckb: {
-    defaultTitle: "AQUAVO — کەرەستە و پێداویستییەکانی حەوزی ماسی لە عێراق | فلتەر، گەرمکەر، خۆراک",
+    defaultTitle: "AQUAVO — کەرەستە و پێداویستییەکانی حەوزی ماسی لە عێراق | فلتەر، گەرمکەرەوە، خۆراک",
     defaultDescription:
-      "AQUAVO فرۆشگایەکی عێراقییە بۆ کەرەستە و پێداویستییەکانی حەوزی ماسی: فلتەر، گەرمکەر، خۆراک، ڕازاندنەوە و چارەسەری ئاو، لەگەڵ گەیاندن بۆ هەموو عێراق و پارەدان لە کاتی وەرگرتن یان ئەلیکترۆنی.",
+      "AQUAVO فرۆشگایەکی عێراقییە بۆ کەرەستە و پێداویستییەکانی حەوزی ماسی: فلتەر، گەرمکەرەوە، خۆراک، ڕازاندنەوە و چارەسەری ئاو، لەگەڵ گەیاندن بۆ هەموو عێراق و پارەدان لە کاتی وەرگرتن یان ئەلیکترۆنی.",
     notFoundTitle: "لاپەڕەکە نەدۆزرایەوە | AQUAVO",
     notFoundDescription: "ئەو لینکەی کردتەوە بوونی نییە. بگەڕێوە بۆ لاپەڕەی سەرەکی یان کەرەستە و پێداویستییەکانی حەوزی ماسی AQUAVO ببینە.",
     blogSuffix: "بلۆگی AQUAVO",

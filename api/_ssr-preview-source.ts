@@ -50,6 +50,16 @@ import { authorBylineText } from "../shared/editorial-author.js";
 import { categoryContent } from "../shared/category-content.js";
 import { articleAuthorEntity } from "../shared/editorial-author.js";
 import { PRERENDERED_PAGES } from "./_prerendered-pages.js";
+import {
+  DEFAULT_LOCALE,
+  LOCALES,
+  localizePath,
+  splitLocaleFromPath,
+  type Locale,
+} from "../shared/i18n/locales.js";
+import { localizeCategoryName } from "../shared/i18n/categories.js";
+import { applyLocaleToHtml, SHELL_META } from "./_locale-meta.js";
+import { getLocalizedStaticMeta } from "./_static-meta-i18n.js";
 
 neonConfig.webSocketConstructor = ws;
 
@@ -72,6 +82,99 @@ type ResolvedPage = {
   meta: Meta;
   status: number;
 };
+
+function headingFromLocalizedTitle(title: string): string {
+  return title
+    .replace(/\s*\|\s*AQUAVO(?:\s+Iraq)?\s*$/i, "")
+    .replace(/^AQUAVO\s*[—-]\s*/i, "")
+    .trim() || title;
+}
+
+function localizedPageGraph(locale: Locale, logicalPath: string, title: string, description: string): object[] {
+  const canonicalPath = localizePath(logicalPath, locale);
+  const pageUrl = `${AQUAVO_BASE_URL}${canonicalPath}`;
+  const nodes: object[] = [
+    {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      name: headingFromLocalizedTitle(title),
+      description,
+      url: pageUrl,
+      inLanguage: LOCALES[locale].hreflang,
+      isPartOf: { "@id": `${AQUAVO_BASE_URL}/#website` },
+    },
+  ];
+  if (logicalPath !== "/") {
+    nodes.push({
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: SHELL_META[locale].homeName,
+          item: `${AQUAVO_BASE_URL}${localizePath("/", locale)}`,
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: headingFromLocalizedTitle(title),
+          item: pageUrl,
+        },
+      ],
+    });
+  }
+  return nodes;
+}
+
+/**
+ * Static/released locale pages need a crawler-visible localized H1 and metadata
+ * before React runs. Entity pages (product/blog) stay on ssr-meta, where the
+ * reviewed-vs-machine translation policy is enforced against the DB row.
+ */
+function localizedStaticPage(locale: Locale, pathname: string, rawCategory?: string): ResolvedPage | null {
+  if (locale === DEFAULT_LOCALE) return null;
+  if (!(PUBLIC_INDEXABLE_PATHS as readonly string[]).includes(pathname)) return null;
+
+  const localized = getLocalizedStaticMeta(locale, pathname);
+  if (!localized) return null;
+
+  let title = localized.title;
+  let description = localized.description;
+  let logicalCanonical = pathname;
+
+  if (pathname === "/products" && rawCategory) {
+    const category = canonicalProductCategory(rawCategory);
+    if (category) {
+      const displayCategory = localizeCategoryName(category, locale);
+      logicalCanonical = productListingSeo(category).canonicalPath;
+      if (locale === "en") {
+        title = `${displayCategory} Aquarium Products in Iraq | AQUAVO`;
+        description = `Browse AQUAVO products in ${displayCategory} with current prices, stock status and delivery across Iraq.`;
+      } else {
+        title = `بەرهەمەکانی ${displayCategory} بۆ حەوزی ماسی لە عێراق | AQUAVO`;
+        description = `بەرهەمەکانی AQUAVO لە بەشی ${displayCategory} ببینە، لەگەڵ نرخ، دۆخی کۆگا و گەیاندن بۆ هەموو عێراق.`;
+      }
+    }
+  }
+
+  const canonicalPath = localizePath(logicalCanonical, locale);
+  return {
+    page: {
+      kind: "static",
+      heading: headingFromLocalizedTitle(title),
+      summary: description,
+      path: canonicalPath,
+    },
+    meta: {
+      title,
+      description,
+      canonicalPath,
+      jsonLd: localizedPageGraph(locale, logicalCanonical, title, description),
+    },
+    status: 200,
+  };
+}
 
 // Exported so seo-footer-orphan-links.test.ts can pin every anchor label in
 // FOOTER_EXPLORE_LINKS to the heading of the page it points at. This module
@@ -971,10 +1074,64 @@ function setResponseHeaders(res: VercelResponse, robots: string, mode: string): 
 export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   const production = isProductionRequest(req);
   const requestUrl = new URL(req.url || "/", AQUAVO_BASE_URL);
-  const pathname = requestUrl.pathname.replace(/\/+$/, "") || "/";
+  const requestPath = requestUrl.pathname.replace(/\/+$/, "") || "/";
+  const { locale, path: pathname } = splitLocaleFromPath(requestPath);
   const acceptsMarkdown = (req.headers.accept || "").toLowerCase().includes("text/markdown");
 
+  res.setHeader("Content-Language", LOCALES[locale].hreflang);
+
   try {
+    const rawCategory = requestUrl.searchParams.get("category") || undefined;
+    const canonicalCategory = canonicalProductCategory(rawCategory);
+
+    // Released static locale pages are rendered semantically in their own
+    // language. This runs before the Arabic-only guide/product special cases.
+    const localizedStatic = localizedStaticPage(locale, pathname, rawCategory);
+    if (localizedStatic) {
+      if (pathname === "/products" && rawCategory && canonicalCategory && rawCategory !== canonicalCategory) {
+        const destination = localizePath(`/products?category=${encodeURIComponent(canonicalCategory)}`, locale);
+        res.setHeader("Cache-Control", "public, max-age=3600");
+        res.status(308).setHeader("Location", destination).end();
+        return;
+      }
+
+      const robots = robotsValue(production, localizedStatic.status, pathname);
+      setResponseHeaders(res, robots, "semantic-v3");
+      res.setHeader("Cache-Control", production ? "public, s-maxage=300, stale-while-revalidate=3600" : "private, no-store");
+
+      if (acceptsMarkdown) {
+        res.status(200).setHeader("Content-Type", "text/markdown; charset=utf-8");
+        res.send(markdown(localizedStatic.page, localizedStatic.meta));
+        return;
+      }
+
+      let html = injectDocument(
+        HTML_TEMPLATE,
+        localizedStatic.meta,
+        renderSeoPreviewShell(localizedStatic.page, locale),
+        robots,
+      );
+      html = applyLocaleToHtml(
+        html,
+        locale,
+        pathname,
+        requestUrl.search,
+        { indexable: robots.startsWith("index") },
+      );
+      res.status(200).setHeader("Content-Type", "text/html; charset=utf-8").send(html);
+      return;
+    }
+
+    // Dynamic/non-indexable locale routes are handled by the stable SSR path,
+    // which already loads product/blog translations and enforces the rule that
+    // machine or outdated translations stay noindex. Never turn them into a
+    // semantic 404 just because the URL has a language prefix.
+    if (locale !== DEFAULT_LOCALE) {
+      setResponseHeaders(res, robotsValue(false, 200, pathname), "localized-delegate-v3");
+      await Promise.resolve(originalSsrHandler(req, res));
+      return;
+    }
+
     if (pathname === "/guides") {
       const robots = robotsValue(production, 200, pathname);
       setResponseHeaders(res, robots, "guide-index-v3");
@@ -1016,8 +1173,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       return;
     }
 
-    const rawCategory = requestUrl.searchParams.get("category") || undefined;
-    const canonicalCategory = canonicalProductCategory(rawCategory);
     if (pathname === "/products" && rawCategory && canonicalCategory && rawCategory !== canonicalCategory) {
       const destination = `/products?category=${encodeURIComponent(canonicalCategory)}`;
       res.setHeader("Cache-Control", "public, max-age=3600");

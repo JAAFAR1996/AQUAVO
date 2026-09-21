@@ -17,6 +17,7 @@ import { GALLERY_ENTRY_TERMS, GALLERY_PRIZES } from "../shared/gallery-terms.js"
 import { GUIDE_LINKS_HEADING, guidesForCategory } from "../shared/guide-links.js";
 import { CATEGORY_CHECKS_HEADING, categoryContent } from "../shared/category-content.js";
 import { authorBylineText, authorProfilePath } from "../shared/editorial-author.js";
+import { DEFAULT_LOCALE, localizePath, type Locale } from "../shared/i18n/locales.js";
 
 export type SeoPreviewVariant = {
   id?: string;
@@ -221,13 +222,85 @@ function ProductLinks({ products, limit }: { products: SeoPreviewProduct[]; limi
   );
 }
 
-function SiteHeader() {
+const SSR_NAV_COPY: Record<Locale, {
+  home: string;
+  nav: string;
+  products: string;
+  guides: string;
+  blog: string;
+  faq: string;
+  about: string;
+  contact: string;
+  explore: string;
+  important: string;
+  footer: string;
+  shipping: string;
+  returns: string;
+  privacy: string;
+  terms: string;
+}> = {
+  ar: {
+    home: "AQUAVO الرئيسية",
+    nav: "التنقل الرئيسي",
+    products: "المنتجات",
+    guides: "الأدلة",
+    blog: "المدونة",
+    faq: "الأسئلة الشائعة",
+    about: "عن AQUAVO",
+    contact: "تواصل معنا",
+    explore: "استكشف AQUAVO",
+    important: "روابط مهمة",
+    footer: "AQUAVO — متجر إلكتروني عراقي متخصص في معدات ومستلزمات أحواض الزينة.",
+    shipping: "الشحن",
+    returns: "الاسترجاع",
+    privacy: "الخصوصية",
+    terms: "الشروط",
+  },
+  en: {
+    home: "AQUAVO home",
+    nav: "Main navigation",
+    products: "Products",
+    guides: "Guides",
+    blog: "Blog",
+    faq: "FAQ",
+    about: "About AQUAVO",
+    contact: "Contact",
+    explore: "Explore AQUAVO",
+    important: "Important links",
+    footer: "AQUAVO — an Iraqi online store specialised in aquarium equipment and supplies.",
+    shipping: "Shipping",
+    returns: "Returns",
+    privacy: "Privacy",
+    terms: "Terms",
+  },
+  ckb: {
+    home: "سەرەکی AQUAVO",
+    nav: "ڕێنیشاندانی سەرەکی",
+    products: "بەرهەمەکان",
+    guides: "ڕێنماییەکان",
+    blog: "بلۆگ",
+    faq: "پرسیارە باوەکان",
+    about: "دەربارەی AQUAVO",
+    contact: "پەیوەندی",
+    explore: "AQUAVO بگەڕێ",
+    important: "بەستەرە گرنگەکان",
+    footer: "AQUAVO — فرۆشگایەکی ئۆنلاینی عێراقی بۆ کەرەستە و پێداویستییەکانی حەوزی ماسی.",
+    shipping: "گەیاندن",
+    returns: "گەڕاندنەوە",
+    privacy: "تایبەتمەندی",
+    terms: "مەرجەکان",
+  },
+};
+
+function SiteHeader({ locale = DEFAULT_LOCALE }: { locale?: Locale }) {
+  const copy = SSR_NAV_COPY[locale];
+  const href = (path: string) => localizePath(path, locale);
   return (
     <header className="aq-ssr-header">
-      <a className="aq-ssr-brand" href="/" aria-label="AQUAVO الرئيسية">AQUAVO</a>
-      <nav aria-label="التنقل الرئيسي">
-        <a href="/products">المنتجات</a>
-        <a href="/guides">الأدلة</a>
+      <a className="aq-ssr-brand" href={href("/")} aria-label={copy.home}>AQUAVO</a>
+      <nav aria-label={copy.nav}>
+        <a href={href("/products")}>{copy.products}</a>
+        <a href={href("/guides")}>{copy.guides}</a>
         {/*
           Nothing on the site linked to /blog — not this nav, not this footer,
           not the client header or footer. All 81 posts and the index itself sat
@@ -236,10 +309,10 @@ function SiteHeader() {
           renders on every crawled page, so one entry here puts /blog at depth 1
           and every post at depth 2.
         */}
-        <a href="/blog">المدونة</a>
-        <a href="/faq">الأسئلة الشائعة</a>
-        <a href="/about">عن AQUAVO</a>
-        <a href="/contact">تواصل معنا</a>
+        <a href={href("/blog")}>{copy.blog}</a>
+        <a href={href("/faq")}>{copy.faq}</a>
+        <a href={href("/about")}>{copy.about}</a>
+        <a href={href("/contact")}>{copy.contact}</a>
       </nav>
     </header>
   );
@@ -282,20 +355,22 @@ export const FOOTER_EXPLORE_LINKS: ReadonlyArray<{ href: string; label: string }
   { href: "/community-gallery", label: "مجتمع أحواض الزينة" },
 ];
 
-function SiteFooter() {
+function SiteFooter({ locale = DEFAULT_LOCALE }: { locale?: Locale }) {
+  const copy = SSR_NAV_COPY[locale];
+  const href = (path: string) => localizePath(path, locale);
   return (
     <footer className="aq-ssr-footer">
-      <p>AQUAVO — متجر إلكتروني عراقي متخصص في معدات ومستلزمات أحواض الزينة.</p>
-      <nav aria-label="استكشف AQUAVO">
-        {FOOTER_EXPLORE_LINKS.map(({ href, label }) => (
-          <a key={href} href={href}>{label}</a>
+      <p>{copy.footer}</p>
+      <nav aria-label={copy.explore}>
+        {FOOTER_EXPLORE_LINKS.map(({ href: target, label }) => (
+          <a key={target} href={href(target)}>{locale === DEFAULT_LOCALE ? label : target.replace(/^\//, "").replace(/-/g, " ")}</a>
         ))}
       </nav>
-      <nav aria-label="روابط مهمة">
-        <a href="/shipping">الشحن</a>
-        <a href="/return-policy">الاسترجاع</a>
-        <a href="/privacy-policy">الخصوصية</a>
-        <a href="/terms">الشروط</a>
+      <nav aria-label={copy.important}>
+        <a href={href("/shipping")}>{copy.shipping}</a>
+        <a href={href("/return-policy")}>{copy.returns}</a>
+        <a href={href("/privacy-policy")}>{copy.privacy}</a>
+        <a href={href("/terms")}>{copy.terms}</a>
       </nav>
     </footer>
   );
@@ -619,10 +694,11 @@ function AboutPage({ prerendered }: { prerendered?: string }) {
   );
 }
 
-function StaticPage({ heading, summary, paragraphs = [], prerendered }: { heading: string; summary: string; path: string; paragraphs?: string[]; prerendered?: string }) {
+function StaticPage({ heading, summary, paragraphs = [], prerendered, locale = DEFAULT_LOCALE }: { heading: string; summary: string; path: string; paragraphs?: string[]; prerendered?: string; locale?: Locale }) {
+  const copy = SSR_NAV_COPY[locale];
   return (
     <main id="main-content">
-      <nav className="aq-ssr-breadcrumb" aria-label="مسار الصفحة"><a href="/">الرئيسية</a><span>/</span><span>{heading}</span></nav>
+      <nav className="aq-ssr-breadcrumb" aria-label={locale === "en" ? "Breadcrumb" : locale === "ckb" ? "ڕێڕەوی لاپەڕە" : "مسار الصفحة"}><a href={localizePath("/", locale)}>{locale === DEFAULT_LOCALE ? "الرئيسية" : copy.home.replace(/^AQUAVO\s*/i, "")}</a><span>/</span><span>{heading}</span></nav>
       <h1>{heading}</h1>
       <p>{summary}</p>
       {paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
@@ -886,11 +962,12 @@ function NotFoundPage() {
   );
 }
 
-function SeoPreviewShell({ page }: { page: SeoPreviewPage }) {
+function SeoPreviewShell({ page, locale = DEFAULT_LOCALE }: { page: SeoPreviewPage; locale?: Locale }) {
   return (
     <div className="aq-ssr-shell" data-aq-semantic-shell="true">
       <style>{`
         .aq-ssr-shell{min-height:100vh;background:#0B1E28;color:#f7fbfc;font-family:Cairo,Tahoma,sans-serif;line-height:1.75;padding:0 5vw 3rem}
+        html[lang="ckb"] .aq-ssr-shell{font-family:"Noto Sans Arabic","Vazirmatn",Cairo,Tahoma,sans-serif}
         .aq-ssr-shell *{box-sizing:border-box}.aq-ssr-shell a{color:#67d7e5;text-decoration:none}.aq-ssr-shell a:hover{text-decoration:underline}
         .aq-ssr-header,.aq-ssr-footer{display:flex;gap:1.25rem;align-items:center;justify-content:space-between;padding:1.25rem 0;border-bottom:1px solid rgba(255,255,255,.14)}
         .aq-ssr-header nav,.aq-ssr-footer nav{display:flex;gap:1rem;flex-wrap:wrap}.aq-ssr-brand{font:700 1.25rem Inter,sans-serif;letter-spacing:.08em}
@@ -911,13 +988,13 @@ function SeoPreviewShell({ page }: { page: SeoPreviewPage }) {
         .aq-ssr-article{max-width:820px}.aq-ssr-article img{max-width:100%;height:auto}.aq-ssr-article h2{margin-top:2.25rem}.aq-ssr-article h3{margin-top:1.75rem;font-size:1.15rem}.aq-ssr-article ul,.aq-ssr-article ol{padding-inline-start:1.4rem}
         @media(max-width:720px){.aq-ssr-header,.aq-ssr-footer{align-items:flex-start;flex-direction:column}.aq-ssr-shell{padding-inline:1.1rem}.aq-ssr-shell main{padding-top:2rem}}
       `}</style>
-      <SiteHeader />
+      <SiteHeader locale={locale} />
       {page.kind === "home" && <HomePage products={page.products} />}
       {page.kind === "products" && <ProductsPage products={page.products} category={page.category} />}
       {page.kind === "product" && <ProductPage product={page.product} related={page.related} reviews={page.reviews} />}
       {page.kind === "faq" && <FaqPage />}
       {page.kind === "about" && <AboutPage prerendered={page.prerendered} />}
-      {page.kind === "static" && <StaticPage heading={page.heading} summary={page.summary} path={page.path} paragraphs={page.paragraphs} prerendered={page.prerendered} />}
+      {page.kind === "static" && <StaticPage heading={page.heading} summary={page.summary} path={page.path} paragraphs={page.paragraphs} prerendered={page.prerendered} locale={locale} />}
       {page.kind === "fish-encyclopedia" && <FishEncyclopediaPage species={page.species} heading={page.heading} summary={page.summary} />}
       {page.kind === "deals" && <DealsPage products={page.products} heading={page.heading} summary={page.summary} />}
       {page.kind === "journey" && <JourneyPage heading={page.heading} summary={page.summary} />}
@@ -925,11 +1002,11 @@ function SeoPreviewShell({ page }: { page: SeoPreviewPage }) {
       {page.kind === "blog-index" && <BlogIndexPage posts={page.posts} heading={page.heading} summary={page.summary} />}
       {page.kind === "blog-post" && <BlogPostPage post={page.post} related={page.related} />}
       {page.kind === "not-found" && <NotFoundPage />}
-      <SiteFooter />
+      <SiteFooter locale={locale} />
     </div>
   );
 }
 
-export function renderSeoPreviewShell(page: SeoPreviewPage): string {
-  return renderToStaticMarkup(<SeoPreviewShell page={page} />);
+export function renderSeoPreviewShell(page: SeoPreviewPage, locale: Locale = DEFAULT_LOCALE): string {
+  return renderToStaticMarkup(<SeoPreviewShell page={page} locale={locale} />);
 }

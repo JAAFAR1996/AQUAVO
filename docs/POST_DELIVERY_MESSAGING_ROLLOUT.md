@@ -41,8 +41,17 @@ timestamp. After production goes live, treat it as immutable.
 ## External recovery scheduler
 
 `.github/workflows/customer-messaging-retry.yml` calls the protected production route
-`/api/cron/customer-messaging` every five minutes. The route uses `CRON_SECRET`, whose
-value must match between Vercel Production and the GitHub Actions repository secret.
+`/api/cron/customer-messaging` every five minutes. Vercel Hobby does not permit a
+sub-daily Cron schedule, so this recovery worker intentionally remains on GitHub Actions.
+
+The workflow has `id-token: write` permission only so it can mint a short-lived GitHub
+OIDC JWT with audience `aquavo-customer-messaging`. AQUAVO verifies the JWT signature
+against GitHub's published OIDC JWKS and then pins the claims to this exact repository,
+repository ID, workflow file, `refs/heads/main`, and the `schedule` / manual-dispatch
+events. No long-lived GitHub `CRON_SECRET` is required for this worker.
+
+The other Vercel Cron routes continue to use the deployment `CRON_SECRET`; that secret
+stays in Vercel and is not duplicated into GitHub Actions.
 
 The worker covers:
 
@@ -77,7 +86,7 @@ Keep these only in deployment/repository secret stores, never in Git:
 - `WHATSAPP_TEMPLATE_LANGUAGE=ar`
 - `WHATSAPP_WEBHOOK_VERIFY_TOKEN`
 - `META_APP_SECRET`
-- `CRON_SECRET`
+- `CRON_SECRET` (Vercel deployment only; used by Vercel Cron routes)
 - `POST_DELIVERY_REVIEW_AUTOMATION_ENABLED=false`
 
 Webhook callback URL:
@@ -256,7 +265,7 @@ from manual resend.
 3. Keep `WHATSAPP_CLOUD_ENABLED=false` and `WHATSAPP_DELIVERY_CARE_ACTIVATION_AT` unset.
 4. Confirm the real Meta number/system-user token and server secrets are configured.
 5. Confirm callback verification, target WABA app subscription, and the WhatsApp `messages` webhook field.
-6. Confirm matching `CRON_SECRET` in Vercel Production and GitHub Actions.
+6. Confirm `CRON_SECRET` exists in Vercel Production for Vercel-owned cron routes, and confirm the GitHub recovery workflow has `id-token: write`; the five-minute customer-messaging worker authenticates with short-lived GitHub OIDC and does not store `CRON_SECRET` in GitHub.
 7. Ensure migration 0079 is active on the target database.
 8. Apply migration 0082 before deploying/enabling the hardened Quick Reply code.
 9. Run the protected recovery worker while WhatsApp remains disabled; it must perform maintenance but send no outbound messages.

@@ -233,6 +233,10 @@ export default function Navbar() {
             />
           </Link>
 
+          <div className="shrink-0 lg:hidden" data-testid="header-language-switcher">
+            <LanguageSwitcher variant="compact" />
+          </div>
+
           <div className="hidden items-center gap-1 lg:flex">
             {primaryLinks.map((link, index) => {
               const active = location === link.href;

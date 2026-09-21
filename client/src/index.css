@@ -1253,20 +1253,26 @@ button:active, [role="button"]:active { transform: scale(.985); transition-durat
 }
 
 /* ── Locale typography & direction ─────────────────────────────────────────
-   Cairo (the brand face) lacks five Sorani letters (ڕ ڵ ۆ ێ ە), verified by
-   TOOLS/i18n/check-font-coverage.mjs. Kurdish pages therefore use Vazirmatn,
-   an OFL sans with full Central Kurdish coverage that sits well next to Cairo.
-   The stylesheet for it is only injected when the locale is ckb. */
+   Kurdish pages use one Central-Kurdish-capable family across body, headings
+   and interface controls. Keeping --font-interface in the same family avoids
+   the mixed-font effect that appeared in the header/cards on iOS. */
 html[lang="ckb"] {
-  --font-sans: "Vazirmatn", "Noto Sans Arabic", "Cairo", Tahoma, sans-serif;
-  --font-heading: "Vazirmatn", "Noto Sans Arabic", "Cairo", Tahoma, sans-serif;
-  --font-display: "Vazirmatn", "Changa", "Cairo", Tahoma, sans-serif;
+  --font-sans: "Noto Sans Arabic", "Vazirmatn", "Cairo", Tahoma, sans-serif;
+  --font-heading: "Noto Sans Arabic", "Vazirmatn", "Cairo", Tahoma, sans-serif;
+  --font-display: "Noto Sans Arabic", "Vazirmatn", "Cairo", Tahoma, sans-serif;
+  --font-interface: "Noto Sans Arabic", "Vazirmatn", "Segoe UI", Tahoma, sans-serif;
 }
 html[lang="ckb"] body,
 html[lang="ckb"] h1,
 html[lang="ckb"] h2,
 html[lang="ckb"] h3,
-html[lang="ckb"] h4 {
+html[lang="ckb"] h4,
+html[lang="ckb"] h5,
+html[lang="ckb"] h6,
+html[lang="ckb"] button,
+html[lang="ckb"] input,
+html[lang="ckb"] select,
+html[lang="ckb"] textarea {
   font-family: var(--font-sans);
 }
 
