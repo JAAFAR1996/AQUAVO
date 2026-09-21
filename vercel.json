@@ -267,7 +267,7 @@
         }
       ],
       "destination": "https://www.aquavoiq.com/$1",
-      "permanent": true
+      "statusCode": 308
     }
   ],
   "rewrites": [
