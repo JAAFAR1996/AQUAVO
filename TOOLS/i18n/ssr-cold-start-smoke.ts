@@ -1,3 +1,6 @@
+import { PUBLIC_INDEXABLE_CATEGORY_PATHS, PUBLIC_INDEXABLE_PATHS } from "../../shared/seo-contract.js";
+import { LOCALES, localizePath, type Locale } from "../../shared/i18n/locales.js";
+
 /**
  * Runtime smoke test for the low-memory Vercel SSR function.
  *
@@ -82,15 +85,19 @@ const afterRequests = process.memoryUsage().heapUsed;
 // the built production entry with DATABASE_URL absent: released static locale
 // pages must not need a DB just to avoid a semantic 404.
 const { default: crawlerHandler } = await import("../../api/ssr-preview.js");
-const crawlerCases = [
-  ["/en", "en", "ltr"],
-  ["/ckb", "ckb", "rtl"],
-  ["/en/products", "en", "ltr"],
-  ["/ckb/products", "ckb", "rtl"],
-  ["/en/guides", "en", "ltr"],
-  ["/ckb/about", "ckb", "rtl"],
-  ["/en/products?category=%D8%A3%D8%AD%D9%88%D8%A7%D8%B6", "en", "ltr"],
-] as const;
+const crawlerLocales = ["en", "ckb"] as const satisfies readonly Locale[];
+const localizedCrawlerPaths = [
+  ...PUBLIC_INDEXABLE_PATHS,
+  ...PUBLIC_INDEXABLE_CATEGORY_PATHS,
+] as readonly string[];
+
+const crawlerCases = crawlerLocales.flatMap((locale) =>
+  localizedCrawlerPaths.map((logicalPath) => [
+    localizePath(logicalPath, locale),
+    locale,
+    LOCALES[locale].dir,
+  ] as const),
+);
 
 for (const [url, locale, dir] of crawlerCases) {
   const req = {
@@ -123,9 +130,9 @@ for (const [url, locale, dir] of crawlerCases) {
   if (/semantic-404-v3|FUNCTION_INVOCATION_FAILED|Server Error/i.test(res.body)) {
     throw new Error(`${url}: crawler returned an error/404 marker`);
   }
-  const expectedPrefix = locale === "en" ? "https://www.aquavoiq.com/en" : "https://www.aquavoiq.com/ckb";
-  if (!res.body.includes('rel="canonical"') || !res.body.includes(expectedPrefix)) {
-    throw new Error(`${url}: crawler canonical was not locale-specific`);
+  const expectedCanonical = `https://www.aquavoiq.com${url}`;
+  if (!res.body.includes(`rel="canonical" href="${expectedCanonical}"`)) {
+    throw new Error(`${url}: crawler canonical mismatch; expected ${expectedCanonical}`);
   }
 }
 
