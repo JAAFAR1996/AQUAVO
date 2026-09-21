@@ -6,6 +6,9 @@ on:
       - feat/i18n-trilingual
       - 'fix/i18n-*'
       - 'fix/full-production-audit-*'
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 env:
