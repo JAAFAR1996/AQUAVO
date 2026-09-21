@@ -41,8 +41,17 @@ timestamp. After production goes live, treat it as immutable.
 ## External recovery scheduler
 
 `.github/workflows/customer-messaging-retry.yml` calls the protected production route
-`/api/cron/customer-messaging` every five minutes. The route uses `CRON_SECRET`, whose
-value must match between Vercel Production and the GitHub Actions repository secret.
+`/api/cron/customer-messaging` every five minutes. Vercel Hobby does not permit a
+sub-daily Cron schedule, so this recovery worker intentionally remains on GitHub Actions.
+
+The workflow has `id-token: write` permission only so it can mint a short-lived GitHub
+OIDC JWT with audience `aquavo-customer-messaging`. AQUAVO verifies the JWT signature
+against GitHub's published OIDC JWKS and then pins the claims to this exact repository,
+repository ID, workflow file, `refs/heads/main`, and the `schedule` / manual-dispatch
+events. No long-lived GitHub `CRON_SECRET` is required for this worker.
+
+The other Vercel Cron routes continue to use the deployment `CRON_SECRET`; that secret
+stays in Vercel and is not duplicated into GitHub Actions.
 
 The worker covers:
 
@@ -77,7 +86,7 @@ Keep these only in deployment/repository secret stores, never in Git:
 - `WHATSAPP_TEMPLATE_LANGUAGE=ar`
 - `WHATSAPP_WEBHOOK_VERIFY_TOKEN`
 - `META_APP_SECRET`
-- `CRON_SECRET`
+- `CRON_SECRET` (Vercel deployment only; used by Vercel Cron routes)
 - `POST_DELIVERY_REVIEW_AUTOMATION_ENABLED=false`
 
 Webhook callback URL:
