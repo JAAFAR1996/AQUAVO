@@ -10,6 +10,7 @@ import { fetchProducts } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import type { Product } from "@/types";
 import { useTranslation } from "react-i18next";
+import { getProductDisplayIdentity } from "@/lib/product-display";
 
 const RECENTLY_VIEWED_KEY = "aquavo_recently_viewed";
 const MAX_RECENTLY_VIEWED = 10;
@@ -49,6 +50,7 @@ export function useRecentlyViewed() {
 // Product Recommendation Card
 function RecommendationCard({ product }: { product: Product }) {
   const { t } = useTranslation("tools");
+  const productDisplay = getProductDisplayIdentity(product);
     return (
         <Link href={`/products/${product.slug}`}>
             <Card className="group h-full overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer border-transparent hover:border-primary/20">
@@ -67,8 +69,11 @@ function RecommendationCard({ product }: { product: Product }) {
                     )}
                 </div>
                 <CardContent className="p-3">
+                    <p className="min-h-4 truncate text-[10px] font-bold uppercase tracking-[0.06em] text-primary/75">
+                        {productDisplay.brand ? <bdi dir="ltr">{productDisplay.brand}</bdi> : "\u00a0"}
+                    </p>
                     <h4 className="font-medium text-sm line-clamp-2 min-h-[2.5rem] mb-1">
-                        {product.name}
+                        {productDisplay.name}
                     </h4>
                     <div className="flex items-center justify-between">
                         <span className="font-bold text-purple-500">{t("product-recommendations.s3")}</span>
