@@ -44,42 +44,34 @@ jobs:
       - name: Install current lockfile
         run: pnpm install --frozen-lockfile
 
-      - name: Remove unused and redundant dependencies
-        run: pnpm remove apify-client ts-node-dev @types/dompurify @types/uuid
-
-      - name: Update vulnerable production dependencies
+      # Do not use "latest" here. A previous broad remediation upgraded the
+      # test stack across a major boundary and broke 64 tests. Keep every
+      # security upgrade on a reviewed floor and let the full suite prove the
+      # resulting lockfile before it can be committed.
+      - name: Update vulnerable production dependencies on reviewed floors
         run: >-
-          pnpm update --latest
-          @aws-sdk/client-s3
-          @modelcontextprotocol/sdk
-          @sentry/node
-          @sentry/react
-          drizzle-orm
-          express-rate-limit
-          isomorphic-dompurify
-          jspdf
-          multer
-          nanoid
-          nodemailer
-          postcss
-          posthog-js
-          resend
-          uuid
-          ws
+          pnpm update
+          drizzle-orm@0.45.2
+          express-rate-limit@8.2.2
+          jspdf@4.2.1
+          multer@2.4.0
+          nanoid@5.1.16
+          nodemailer@9.1.1
+          postcss@8.5.23
+          uuid@13.0.1
+          ws@8.21.0
 
-      - name: Update vulnerable development dependencies
+      - name: Update vulnerable development dependencies on compatible floors
         run: >-
           pnpm add -D
-          @types/multer@latest
-          @vercel/node@latest
-          @vitest/ui@latest
-          dompurify@latest
-          happy-dom@latest
-          sharp@latest
-          vite@latest
-          vitest@latest
+          @vitest/ui@4.1.11
+          dompurify@3.4.13
+          happy-dom@20.8.9
+          sharp@0.35.4
+          vite@8.0.16
+          vitest@4.1.11
 
-      - name: Apply transitive security fixes
+      - name: Apply transitive security overrides
         run: pnpm audit --fix || true
 
       - name: Refresh lockfile
