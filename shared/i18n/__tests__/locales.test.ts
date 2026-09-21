@@ -15,7 +15,7 @@ describe("locale configuration", () => {
     expect(DEFAULT_LOCALE).toBe("ar");
     expect(LOCALES.ar).toMatchObject({ dir: "rtl", nativeName: "العربية", urlPrefix: "" });
     expect(LOCALES.en).toMatchObject({ dir: "ltr", nativeName: "English", urlPrefix: "/en" });
-    expect(LOCALES.ckb).toMatchObject({ dir: "rtl", nativeName: "کوردی", urlPrefix: "/ckb" });
+    expect(LOCALES.ckb).toMatchObject({ dir: "rtl", nativeName: "کوردی سۆرانی", urlPrefix: "/ckb" });
   });
 
   it("uses Intl locales that Node resolves natively with Latin digits", () => {
