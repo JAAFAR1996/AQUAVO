@@ -48,7 +48,13 @@ const beforeImport = process.memoryUsage().heapUsed;
 const { default: handler } = await import("../../api/ssr-meta.js");
 const afterImport = process.memoryUsage().heapUsed;
 
-const cases = [
+const requestedLocaleArg = process.argv.find((arg) => arg.startsWith("--locale="));
+const requestedLocale = requestedLocaleArg?.slice("--locale=".length) as Locale | undefined;
+if (requestedLocale && !["en", "ckb"].includes(requestedLocale)) {
+  throw new Error(`Unsupported --locale=${requestedLocale}; expected en or ckb`);
+}
+
+const allCases = [
   ["/", "ar"],
   ["/en", "en"],
   ["/ckb", "ckb"],
@@ -56,6 +62,10 @@ const cases = [
   ["/en/products", "en"],
   ["/ckb/products", "ckb"],
 ] as const;
+
+const cases = requestedLocale
+  ? allCases.filter(([, locale]) => locale === requestedLocale)
+  : allCases;
 
 for (const [url, locale] of cases) {
   const req = { url, headers: { accept: "text/html" } } as any;
@@ -85,7 +95,9 @@ const afterRequests = process.memoryUsage().heapUsed;
 // the built production entry with DATABASE_URL absent: released static locale
 // pages must not need a DB just to avoid a semantic 404.
 const { default: crawlerHandler } = await import("../../api/ssr-preview.js");
-const crawlerLocales = ["en", "ckb"] as const satisfies readonly Locale[];
+const crawlerLocales = (requestedLocale
+  ? [requestedLocale]
+  : ["en", "ckb"]) as readonly Locale[];
 const localizedCrawlerPaths = [
   ...PUBLIC_INDEXABLE_PATHS,
   ...PUBLIC_INDEXABLE_CATEGORY_PATHS,
@@ -137,6 +149,11 @@ for (const [url, locale, dir] of crawlerCases) {
 }
 
 const mb = (bytes: number) => (bytes / 1024 / 1024).toFixed(1);
+const localeLabel = requestedLocale
+  ? requestedLocale === "en"
+    ? "English (/en)"
+    : "Sorani Kurdish (/ckb)"
+  : "Arabic + English + Sorani Kurdish";
 console.log(
-  `SSR cold-start smoke passed: import heap ${mb(beforeImport)} -> ${mb(afterImport)} MiB; after locale requests ${mb(afterRequests)} MiB; localized crawler routes passed`,
+  `SSR cold-start smoke passed for ${localeLabel}: import heap ${mb(beforeImport)} -> ${mb(afterImport)} MiB; after locale requests ${mb(afterRequests)} MiB; localized crawler routes passed`,
 );
