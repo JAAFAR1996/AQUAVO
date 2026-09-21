@@ -1,5 +1,4 @@
 import { Download, ExternalLink } from "lucide-react";
-import { useTranslation } from "react-i18next";
 
 /*
   Sources — Researched May 2026:
@@ -13,7 +12,6 @@ const PDF_STATUS: "ready" | "draft" = "ready";
 const PDF_URL = "/assets/guides/aquavo-essential-tools-guide.pdf";
 
 export default function GuideEssentialTools() {
-  const { t } = useTranslation("guides");
   const pdfReady = PDF_STATUS === "ready";
   return (
     <div className="g-wrap">
@@ -29,7 +27,7 @@ export default function GuideEssentialTools() {
                 rel="noopener noreferrer"
                 className="flex items-center gap-1.5 text-[#E8EDF2] border border-primary/45 hover:bg-[#0B93A6]/10 text-xs sm:text-sm h-9 px-3 rounded-full font-bold transition-colors"
               >
-                <span className="hidden sm:inline">{t("guides-essential-tools.s1")}</span>
+                <span className="hidden sm:inline">فتح PDF</span>
                 <ExternalLink className="w-4 h-4" />
               </a>
               <a
@@ -37,12 +35,12 @@ export default function GuideEssentialTools() {
                 download="aquavo-essential-tools-guide.pdf"
                 className="flex items-center gap-1.5 bg-primary text-foreground hover:bg-[#0B93A6]/85 text-xs sm:text-sm h-9 px-3 sm:px-4 rounded-full font-bold transition-colors"
               >
-                <span>{t("guides-essential-tools.s2")}</span>
+                <span>تحميل PDF</span>
                 <Download className="w-4 h-4" />
               </a>
             </>
           ) : (
-            <span className="g-btn-off">{t("guides-essential-tools.s3")}</span>
+            <span className="g-btn-off">PDF قيد التجهيز</span>
           )}
         </div>
       </header>
@@ -51,54 +49,57 @@ export default function GuideEssentialTools() {
 
         {/* ── Hero ── */}
         <section className="g-hero">
-          <span className="g-badge">{t("guides-essential-tools.s4")}</span>
-          <h1>{t("guides-essential-tools.s5")}</h1>
-          <p className="g-sub">{t("guides-essential-tools.s6")}</p>
+          <span className="g-badge">دليل عملي — AQUAVO</span>
+          <h1>الأدوات الأساسية لكل صاحب حوض</h1>
+          <p className="g-sub">شنو تشتري أولاً، شنو تؤجله، وشنو لا تشتريه بالبداية</p>
           <p className="g-intro">
-            {t("guides-essential-tools.s7")}
+            دليل عملي مرتب حسب الأولوية — مو حسب السعر أو الشكل.
+            كل أداة مذكورة بسبب واضح: شنو تسوي وليش تحتاجها.
           </p>
           <div className="g-meta-row">
-            <span>{t("guides-essential-tools.s8")}</span>
-            <span>{t("guides-essential-tools.s9")}</span>
+            <span>لمن هذا: المبتدئ + من يريد يراجع معداته</span>
+            <span>وقت القراءة: 8–10 دقائق</span>
             <span className={`g-pdf-tag ${pdfReady ? "g-ready" : "g-draft"}`}>
-              PDF: {pdfReady ? t("guides-essential-tools.s10") : t("guides-essential-tools.s11")}
+              PDF: {pdfReady ? "متوفر للتحميل" : "قيد التجهيز"}
             </span>
           </div>
           <p className="g-disclaimer">
-            {t("guides-essential-tools.s12")}
+            هذا الدليل للتوعية العامة. للتشخيص الدقيق، أرسل صورة الحوض لـ AQUAVO.
           </p>
         </section>
 
         {/* ── شنو يعني أدوات أساسية ── */}
         <section className="g-section">
-          <h2 className="g-title">{t("guides-essential-tools.s13")}</h2>
+          <h2 className="g-title">شنو يعني "أساسية"؟</h2>
           <p className="g-section-intro">
-            {t("guides-essential-tools.s14")}
+            الأداة الأساسية هي اللي بدونها الحوض ما يستقر أو السمچ تعاني.
+            مو كل ما بيعه المحل ضروري — وليس كل ما يبدو جميل يفيد.
+            الترتيب هنا حسب الأثر الفعلي على السمچ، مو حسب السعر أو الشكل.
           </p>
           <div className="g-two-col">
             <div className="g-col-box g-warn-box">
-              <div className="g-col-label">{t("guides-essential-tools.s15")}</div>
+              <div className="g-col-label">الحوض بدونها يفشل:</div>
               <ul className="g-simple-list">
-                <li>{t("guides-essential-tools.s16")}</li>
-                <li>{t("guides-essential-tools.s17")}</li>
-                <li>{t("guides-essential-tools.s18")}</li>
-                <li>{t("guides-essential-tools.s19")}</li>
-                <li>{t("guides-essential-tools.s20")}</li>
+                <li>فلتر بيولوجي مناسب</li>
+                <li>هيتر (إذا السمچ استوائي)</li>
+                <li>مزيل كلور</li>
+                <li>كيت فحص المي</li>
+                <li>ثيرمومتر</li>
               </ul>
             </div>
             <div className="g-col-box g-safe-box">
-              <div className="g-col-label">{t("guides-essential-tools.s21")}</div>
+              <div className="g-col-label">مفيدة جداً — مو ضرورة:</div>
               <ul className="g-simple-list">
-                <li>{t("guides-essential-tools.s22")}</li>
-                <li>{t("guides-essential-tools.s23")}</li>
-                <li>{t("guides-essential-tools.s24")}</li>
-                <li>{t("guides-essential-tools.s25")}</li>
-                <li>{t("guides-essential-tools.s26")}</li>
+                <li>سيفون أو شبكة تنظيف القاع</li>
+                <li>إضاءة مناسبة</li>
+                <li>ميديا فلترة إضافية</li>
+                <li>طعام متنوع ومناسب للنوع</li>
+                <li>ديكور يوفر مخابئ</li>
               </ul>
             </div>
           </div>
           <div className="g-important-note">
-            {t("guides-essential-tools.s27")}
+            الحوض الصغير أصعب — مو أسهل. 60 لتر هو الحد الأدنى المريح للمبتدئ. أقل من ذلك يعني كيمياء تتقلب بسرعة ومتابعة أكثر.
           </div>
         </section>
 
@@ -106,44 +107,47 @@ export default function GuideEssentialTools() {
         <section className="g-section">
           <div className="g-cause-header">
             <span className="g-cause-num-big">01</span>
-            <h2 className="g-title g-title-inline">{t("guides-essential-tools.s28")}</h2>
+            <h2 className="g-title g-title-inline">الفلتر البيولوجي</h2>
           </div>
-          <div className="g-tool-priority g-priority-must">{t("guides-essential-tools.s29")}</div>
+          <div className="g-tool-priority g-priority-must">لازم — أهم أداة بالحوض</div>
           <div className="g-cause-block">
-            <h3 className="g-cause-sub">{t("guides-essential-tools.s30")}</h3>
+            <h3 className="g-cause-sub">ليش أهم أداة؟</h3>
             <p>
-              {t("guides-essential-tools.s31")}
+              الفلتر البيولوجي يستضيف البكتيريا النافعة اللي تحول الأمونيا الخطيرة
+              (فضلات السمچ) إلى نيتريت، ثم إلى نترات. بدون هذه البكتيريا، الأمونيا
+              ترتفع وتقتل السمچ خلال أيام.
             </p>
             <p style={{ marginTop: "10px" }}>
-              {t("guides-essential-tools.s32")}
+              البكتيريا تعيش على الأسطح داخل الفلتر — مو بالمي. لذلك مساحة السطح
+              داخل وسط الفلترة (البيومديا) هي ما يحدد قوة الفلتر — مو حجم الفلتر من الخارج.
             </p>
           </div>
           <div className="g-two-col">
             <div className="g-col-box g-safe-box">
-              <div className="g-col-label">{t("guides-essential-tools.s33")}</div>
+              <div className="g-col-label">أنواع الفلترة الثلاثة:</div>
               <ul className="g-simple-list">
-                <li>{t("guides-essential-tools.s34")}</li>
-                <li>{t("guides-essential-tools.s35")}</li>
-                <li>{t("guides-essential-tools.s36")}</li>
+                <li>ميكانيكية — يشبك الجسيمات الكبيرة (إسفنج)</li>
+                <li>بيولوجية — بكتيريا على أسطح الميديا (الأهم)</li>
+                <li>كيميائية — كربون نشط (اختياري، محدود الفترة)</li>
               </ul>
             </div>
             <div className="g-col-box g-warn-box">
-              <div className="g-col-label">{t("guides-essential-tools.s37")}</div>
+              <div className="g-col-label">شنو تتجنب:</div>
               <ul className="g-simple-list">
-                <li>{t("guides-essential-tools.s38")}</li>
-                <li>{t("guides-essential-tools.s39")}</li>
-                <li>{t("guides-essential-tools.s40")}</li>
-                <li>{t("guides-essential-tools.s41")}</li>
+                <li>لا تنظف الفلتر بمي الصنبور — يقتل البكتيريا</li>
+                <li>لا تغير كل الميديا مرة وحدة</li>
+                <li>لا تشغل فلتر صغير على حوض كبير</li>
+                <li>لا تطفي الفلتر حتى لفترة قصيرة — يموت البكتيريا</li>
               </ul>
             </div>
           </div>
           <div className="g-action-box">
-            <div className="g-action-label">{t("guides-essential-tools.s42")}</div>
+            <div className="g-action-label">كيف تختار الفلتر المناسب:</div>
             <ol className="g-numbered">
-              <li>{t("guides-essential-tools.s43")}</li>
-              <li>{t("guides-essential-tools.s44")}</li>
-              <li>{t("guides-essential-tools.s45")}</li>
-              <li>{t("guides-essential-tools.s46")}</li>
+              <li>حوض حتى 60 لتر: فلتر داخلي أو سبونج فلتر مع هواء</li>
+              <li>60–150 لتر: Hang-on-Back (HOB) أو داخلي قوي</li>
+              <li>أكثر من 150 لتر: Canister Filter أو Sump</li>
+              <li>الفلتر لازم يصفي حجم الحوض 4–8 مرات بالساعة</li>
             </ol>
           </div>
         </section>
@@ -152,32 +156,34 @@ export default function GuideEssentialTools() {
         <section className="g-section">
           <div className="g-cause-header">
             <span className="g-cause-num-big">02</span>
-            <h2 className="g-title g-title-inline">{t("guides-essential-tools.s47")}</h2>
+            <h2 className="g-title g-title-inline">الهيتر والثيرمومتر</h2>
           </div>
-          <div className="g-tool-priority g-priority-must">{t("guides-essential-tools.s48")}</div>
+          <div className="g-tool-priority g-priority-must">لازم — للسمچ الاستوائي</div>
           <div className="g-cause-block">
-            <h3 className="g-cause-sub">{t("guides-essential-tools.s49")}</h3>
+            <h3 className="g-cause-sub">ليش مهم؟</h3>
             <p>
-              {t("guides-essential-tools.s50")}
+              معظم السمچ الشائعة (بلاطي، غبي، أنجلفيش، بيتا) جاية من بيئات استوائية
+              تتراوح درجة حرارتها بين 24 و28 درجة مئوية. تذبذب الحرارة — حتى لو بقيت
+              ضمن النطاق — يضعف المناعة ويزيد قابلية الإصابة بالأمراض.
             </p>
           </div>
           <div className="g-two-col">
             <div className="g-col-box g-safe-box">
-              <div className="g-col-label">{t("guides-essential-tools.s51")}</div>
+              <div className="g-col-label">كيف تختار الهيتر:</div>
               <ul className="g-simple-list">
-                <li>{t("guides-essential-tools.s52")}</li>
-                <li>{t("guides-essential-tools.s53")}</li>
-                <li>{t("guides-essential-tools.s54")}</li>
-                <li>{t("guides-essential-tools.s55")}</li>
+                <li>1 واط لكل لتر — القاعدة العامة</li>
+                <li>حوض 60 لتر: 60–100 واط</li>
+                <li>حوض 100 لتر: 100–150 واط</li>
+                <li>اختر نوع submersible — أكثر دقة</li>
               </ul>
             </div>
             <div className="g-col-box g-warn-box">
-              <div className="g-col-label">{t("guides-essential-tools.s56")}</div>
+              <div className="g-col-label">الثيرمومتر — ضروري دايماً:</div>
               <ul className="g-simple-list">
-                <li>{t("guides-essential-tools.s57")}</li>
-                <li>{t("guides-essential-tools.s58")}</li>
-                <li>{t("guides-essential-tools.s59")}</li>
-                <li>{t("guides-essential-tools.s60")}</li>
+                <li>لا تعتمد على ضبط الهيتر وحده</li>
+                <li>الثيرمومتر الرقمي أدق من الزجاجي</li>
+                <li>افحص الحرارة يومياً في الأسبوع الأول</li>
+                <li>ضبط خاطئ بفارق 3 درجات يسبب مشاكل</li>
               </ul>
             </div>
           </div>
@@ -187,17 +193,19 @@ export default function GuideEssentialTools() {
         <section className="g-section">
           <div className="g-cause-header">
             <span className="g-cause-num-big">03</span>
-            <h2 className="g-title g-title-inline">{t("guides-essential-tools.s61")}</h2>
+            <h2 className="g-title g-title-inline">مزيل الكلور (Dechlorinator)</h2>
           </div>
-          <div className="g-tool-priority g-priority-must">{t("guides-essential-tools.s62")}</div>
+          <div className="g-tool-priority g-priority-must">لازم — قبل كل تغيير مي</div>
           <div className="g-cause-block">
-            <h3 className="g-cause-sub">{t("guides-essential-tools.s63")}</h3>
+            <h3 className="g-cause-sub">ليش ضروري؟</h3>
             <p>
-              {t("guides-essential-tools.s64")}
+              مي الصنبور فيها كلور وكلورامين — مضافة للقضاء على البكتيريا لسلامة
+              الشرب. هذه المواد تقتل بكتيريا الفلتر النافعة وتضر خياشيم السمچ.
+              مزيل الكلور يحول هذه المواد فوراً — نقطة واحدة تكفي لكل 10 لتر.
             </p>
           </div>
           <div className="g-info-note">
-            {t("guides-essential-tools.s65")}
+            استخدم مزيل الكلور قبل أو أثناء إضافة المي الجديدة للحوض — مو بعدها. المنتجات الشائعة: Seachem Prime، Tetra AquaSafe. Prime أقوى لأنه يتعامل مع الكلورامين أيضاً.
           </div>
         </section>
 
@@ -205,32 +213,35 @@ export default function GuideEssentialTools() {
         <section className="g-section">
           <div className="g-cause-header">
             <span className="g-cause-num-big">04</span>
-            <h2 className="g-title g-title-inline">{t("guides-essential-tools.s19")}</h2>
+            <h2 className="g-title g-title-inline">كيت فحص المي</h2>
           </div>
-          <div className="g-tool-priority g-priority-must">{t("guides-essential-tools.s66")}</div>
+          <div className="g-tool-priority g-priority-must">لازم — ما في بديل</div>
           <div className="g-cause-block">
-            <h3 className="g-cause-sub">{t("guides-essential-tools.s63")}</h3>
+            <h3 className="g-cause-sub">ليش ضروري؟</h3>
             <p>
-              {t("guides-essential-tools.s67")}
+              الأمونيا والنيتريت — أخطر ما يمكن أن يكون بالحوض — بلا لون وبلا رائحة.
+              بدون كيت فحص، لا تعرف إذا الحوض بخير أو إذا السمچ في خطر.
+              الشرائط (test strips) أسرع لكن أقل دقة — الكيت السائل (API Master) هو
+              المعيار الموصى به.
             </p>
           </div>
           <div className="g-two-col">
             <div className="g-col-box g-safe-box">
-              <div className="g-col-label">{t("guides-essential-tools.s68")}</div>
+              <div className="g-col-label">الأرقام الصحيحة:</div>
               <ul className="g-simple-list">
-                <li>{t("guides-essential-tools.s69")}</li>
-                <li>{t("guides-essential-tools.s70")}</li>
-                <li>{t("guides-essential-tools.s71")}</li>
-                <li>{t("guides-essential-tools.s72")}</li>
+                <li>أمونيا (NH3): 0 ppm</li>
+                <li>نيتريت (NO2): 0 ppm</li>
+                <li>نترات (NO3): أقل من 20 ppm</li>
+                <li>pH: 6.8–7.4 للأنواع الشائعة</li>
               </ul>
             </div>
             <div className="g-col-box g-warn-box">
-              <div className="g-col-label">{t("guides-essential-tools.s73")}</div>
+              <div className="g-col-label">متى تفحص:</div>
               <ul className="g-simple-list">
-                <li>{t("guides-essential-tools.s74")}</li>
-                <li>{t("guides-essential-tools.s75")}</li>
-                <li>{t("guides-essential-tools.s76")}</li>
-                <li>{t("guides-essential-tools.s77")}</li>
+                <li>يومياً — أول شهر من التأسيس</li>
+                <li>أسبوعياً — بعد استقرار الحوض</li>
+                <li>فوراً — عند أي سلوك غريب</li>
+                <li>بعد إضافة سمچ جديد</li>
               </ul>
             </div>
           </div>
@@ -240,22 +251,25 @@ export default function GuideEssentialTools() {
         <section className="g-section">
           <div className="g-cause-header">
             <span className="g-cause-num-big">05</span>
-            <h2 className="g-title g-title-inline">{t("guides-essential-tools.s78")}</h2>
+            <h2 className="g-title g-title-inline">شبكة وسيفون</h2>
           </div>
-          <div className="g-tool-priority g-priority-good">{t("guides-essential-tools.s79")}</div>
+          <div className="g-tool-priority g-priority-good">مهم — وتحتاجه بانتظام</div>
           <div className="g-cause-block">
-            <h3 className="g-cause-sub">{t("guides-essential-tools.s80")}</h3>
+            <h3 className="g-cause-sub">ليش تحتاجهم؟</h3>
             <p>
-              {t("guides-essential-tools.s81")}
+              السيفون (Gravel Vacuum) يسحب الفضلات من بين الحصى بدون إزالة الحصى.
+              هذا يمنع تراكم المواد العضوية اللي تحولها البكتيريا اللاهوائية إلى
+              كبريتيد الهيدروجين — السام والكريه الريحة.
+              الشبكة ضرورية للنقل أو العزل — ليس للملاحقة.
             </p>
           </div>
           <div className="g-action-box">
-            <div className="g-action-label">{t("guides-essential-tools.s82")}</div>
+            <div className="g-action-label">كيف تستخدم السيفون:</div>
             <ol className="g-numbered">
-              <li>{t("guides-essential-tools.s83")}</li>
-              <li>{t("guides-essential-tools.s84")}</li>
-              <li>{t("guides-essential-tools.s85")}</li>
-              <li>{t("guides-essential-tools.s86")}</li>
+              <li>استخدمه أثناء تغيير المي الأسبوعي</li>
+              <li>نظف ثلث القاع كل مرة — مو كله</li>
+              <li>لا تحرك الحصى بقوة — فقط مرره عليه</li>
+              <li>ما تحتاج تسيفون كل أسبوع إذا الحوض متوازن</li>
             </ol>
           </div>
         </section>
@@ -264,32 +278,34 @@ export default function GuideEssentialTools() {
         <section className="g-section">
           <div className="g-cause-header">
             <span className="g-cause-num-big">06</span>
-            <h2 className="g-title g-title-inline">{t("guides-essential-tools.s87")}</h2>
+            <h2 className="g-title g-title-inline">الإضاءة المناسبة</h2>
           </div>
-          <div className="g-tool-priority g-priority-good">{t("guides-essential-tools.s88")}</div>
+          <div className="g-tool-priority g-priority-good">مهم — حسب نوع الحوض</div>
           <div className="g-cause-block">
-            <h3 className="g-cause-sub">{t("guides-essential-tools.s89")}</h3>
+            <h3 className="g-cause-sub">مو كل ضوء مناسب:</h3>
             <p>
-              {t("guides-essential-tools.s90")}
+              الحوض العادي يحتاج 8–10 ساعات إضاءة يومياً. الحوض النباتي يحتاج 10–12 ساعة.
+              الإضاءة القوية جداً بدون نباتات كافية تسبب انفجار الطحالب.
+              الإضاءة الضعيفة أو غير المنتظمة تربك السمچ.
             </p>
           </div>
           <div className="g-two-col">
             <div className="g-col-box g-safe-box">
-              <div className="g-col-label">{t("guides-essential-tools.s91")}</div>
+              <div className="g-col-label">التوصية العملية:</div>
               <ul className="g-simple-list">
-                <li>{t("guides-essential-tools.s92")}</li>
-                <li>{t("guides-essential-tools.s93")}</li>
-                <li>{t("guides-essential-tools.s94")}</li>
-                <li>{t("guides-essential-tools.s95")}</li>
+                <li>استخدم تايمر — الانتظام أهم من الشدة</li>
+                <li>8 ساعات للحوض بدون نباتات</li>
+                <li>10–12 ساعة للحوض النباتي</li>
+                <li>LED أفضل — أقل حرارة وأطول عمر</li>
               </ul>
             </div>
             <div className="g-col-box g-warn-box">
-              <div className="g-col-label">{t("guides-essential-tools.s37")}</div>
+              <div className="g-col-label">شنو تتجنب:</div>
               <ul className="g-simple-list">
-                <li>{t("guides-essential-tools.s96")}</li>
-                <li>{t("guides-essential-tools.s97")}</li>
-                <li>{t("guides-essential-tools.s98")}</li>
-                <li>{t("guides-essential-tools.s99")}</li>
+                <li>لا تضع الحوض قرب نافذة — شمس مباشرة</li>
+                <li>لا تشغل أكثر من 12 ساعة — يشجع الطحالب</li>
+                <li>لا تطفي وتشغل الضوء بشكل متقطع</li>
+                <li>لا تستخدم ضوء بيضاء ساطع جداً للسمچ الخجولة</li>
               </ul>
             </div>
           </div>
@@ -299,30 +315,33 @@ export default function GuideEssentialTools() {
         <section className="g-section">
           <div className="g-cause-header">
             <span className="g-cause-num-big">07</span>
-            <h2 className="g-title g-title-inline">{t("guides-essential-tools.s100")}</h2>
+            <h2 className="g-title g-title-inline">الأكل المناسب</h2>
           </div>
-          <div className="g-tool-priority g-priority-must">{t("guides-essential-tools.s101")}</div>
+          <div className="g-tool-priority g-priority-must">لازم — الأكل الخاطئ يضر</div>
           <div className="g-cause-block">
-            <h3 className="g-cause-sub">{t("guides-essential-tools.s102")}</h3>
+            <h3 className="g-cause-sub">كلشي يأكل نفس الأكل؟ لا.</h3>
             <p>
-              {t("guides-essential-tools.s103")}
+              السمچ تنقسم إلى آكل نباتات (Herbivore)، آكل لحوم (Carnivore)، وآكل
+              كل شيء (Omnivore). الأكل الخاطئ — حتى لو أكلته السمچة — يسبب نقص
+              تغذوي على المدى البعيد. الزيادة في الأكل أخطر من النقص — تلوث المي
+              سريعاً وترتفع الأمونيا.
             </p>
           </div>
           <div className="g-action-box">
-            <div className="g-action-label">{t("guides-essential-tools.s104")}</div>
+            <div className="g-action-label">قواعد التغذية الأساسية:</div>
             <ol className="g-numbered">
-              <li>{t("guides-essential-tools.s105")}</li>
-              <li>{t("guides-essential-tools.s106")}</li>
-              <li>{t("guides-essential-tools.s107")}</li>
-              <li>{t("guides-essential-tools.s108")}</li>
+              <li>مرتين يومياً — كمية صغيرة تخلص خلال دقيقتين</li>
+              <li>الأكل المتبقي بعد 5 دقائق — أزله فوراً</li>
+              <li>تجويعة يوم أسبوعياً — يساعد الجهاز الهضمي</li>
+              <li>نوّع بين حبوب وفريز دراي وأكل حي حسب النوع</li>
             </ol>
           </div>
           <div className="g-dont-inline">
-            <div className="g-dont-label">{t("guides-essential-tools.s109")}</div>
+            <div className="g-dont-label">أخطاء شائعة بالتغذية:</div>
             <div className="g-dont-items">
-              <span className="g-dont-chip">{t("guides-essential-tools.s110")}</span>
-              <span className="g-dont-chip">{t("guides-essential-tools.s111")}</span>
-              <span className="g-dont-chip">{t("guides-essential-tools.s112")}</span>
+              <span className="g-dont-chip">الإفراط في الكمية</span>
+              <span className="g-dont-chip">أكل واحد طول العمر</span>
+              <span className="g-dont-chip">إطعام السمچ أكل الصنبور</span>
             </div>
           </div>
         </section>
@@ -331,81 +350,84 @@ export default function GuideEssentialTools() {
         <section className="g-section">
           <div className="g-cause-header">
             <span className="g-cause-num-big">08</span>
-            <h2 className="g-title g-title-inline">{t("guides-essential-tools.s113")}</h2>
+            <h2 className="g-title g-title-inline">ميديا الفلترة البيولوجية</h2>
           </div>
-          <div className="g-tool-priority g-priority-good">{t("guides-essential-tools.s114")}</div>
+          <div className="g-tool-priority g-priority-good">مهم — قلبها موجود بالفلتر</div>
           <div className="g-cause-block">
-            <h3 className="g-cause-sub">{t("guides-essential-tools.s115")}</h3>
+            <h3 className="g-cause-sub">شنو هي الميديا؟</h3>
             <p>
-              {t("guides-essential-tools.s116")}
+              الميديا البيولوجية هي المواد الإسفنجية أو الخزفية أو البلاستيكية داخل
+              الفلتر. مساحة السطح الكبيرة الخاصة بها هي ما تسمح للبكتيريا النافعة
+              بالنمو والتكاثر.
             </p>
             <p style={{ marginTop: "10px" }}>
-              {t("guides-essential-tools.s117")}
+              البيوفيلم (طبقة البكتيريا) ينمو على هذه الأسطح — لا تنظفها بالصنبور.
+              نظّفها فقط بمي الحوض نفسها في وعاء منفصل.
             </p>
           </div>
           <div className="g-info-note">
-            {t("guides-essential-tools.s118")}
+            أنواع الميديا: إسفنج (يمكن تنظيفه)، حبيبات خزف (Ceramic Rings — طويلة الأمد)، Bioball (للفلاتر الكبيرة). الكمية والجودة أهم من النوع.
           </div>
         </section>
 
         {/* ── شنو تشتري أولاً ── */}
         <section className="g-section">
-          <h2 className="g-title">{t("guides-essential-tools.s119")}</h2>
+          <h2 className="g-title">شنو تشتري أولاً؟ — ترتيب المبتدئ</h2>
           <p className="g-section-intro">
-            {t("guides-essential-tools.s120")}
+            إذا بدأت من الصفر، هذا هو الترتيب الأمثل لشراء المعدات:
           </p>
           <div className="g-mistakes">
             <div className="g-mistake g-check-item">
-              <div className="g-mistake-title g-check-title">{t("guides-essential-tools.s121")}</div>
-              <div className="g-mistake-why">{t("guides-essential-tools.s122")}</div>
+              <div className="g-mistake-title g-check-title">المرحلة الأولى — أساس الحوض</div>
+              <div className="g-mistake-why">حوض مناسب (60 لتر فأكثر) + فلتر + هيتر + ثيرمومتر + مزيل كلور + كيت فحص المي.</div>
             </div>
             <div className="g-mistake g-check-item">
-              <div className="g-mistake-title g-check-title">{t("guides-essential-tools.s123")}</div>
-              <div className="g-mistake-why">{t("guides-essential-tools.s124")}</div>
+              <div className="g-mistake-title g-check-title">المرحلة الثانية — قبل السمچ</div>
+              <div className="g-mistake-why">تأسيس الدورة البيولوجية أولاً (2–6 أسابيع). أضف بكتيريا من المحل أو انتظر حتى تصفر الأمونيا والنيتريت.</div>
             </div>
             <div className="g-mistake g-check-item">
-              <div className="g-mistake-title g-check-title">{t("guides-essential-tools.s125")}</div>
-              <div className="g-mistake-why">{t("guides-essential-tools.s126")}</div>
+              <div className="g-mistake-title g-check-title">المرحلة الثالثة — بعد الاستقرار</div>
+              <div className="g-mistake-why">ديكور + إضاءة مناسبة + سيفون + شبكة. هذه تزيد راحة السمچ وتسهّل الصيانة.</div>
             </div>
             <div className="g-mistake">
-              <div className="g-mistake-title">{t("guides-essential-tools.s127")}</div>
-              <div className="g-mistake-why">{t("guides-essential-tools.s128")}</div>
+              <div className="g-mistake-title">أجّل هذه لاحقاً:</div>
+              <div className="g-mistake-why">CO2 system، UV sterilizer، chiller، Dosing pump — هذه للحوض المتقدم. لا تشتريها في البداية.</div>
             </div>
           </div>
         </section>
 
         {/* ── Checklist ── */}
         <section className="g-section">
-          <h2 className="g-title">{t("guides-essential-tools.s129")}</h2>
+          <h2 className="g-title">Checklist المبتدئ — قبل إضافة أول سمچة</h2>
           <div className="g-send-grid">
             <div className="g-send-card g-send-visual">
-              <div className="g-send-card-title">{t("guides-essential-tools.s130")}</div>
+              <div className="g-send-card-title">المعدات موجودة؟</div>
               <ul className="g-send-list-inner">
-                <li>{t("guides-essential-tools.s131")}</li>
-                <li>{t("guides-essential-tools.s132")}</li>
-                <li>{t("guides-essential-tools.s133")}</li>
-                <li>{t("guides-essential-tools.s134")}</li>
-                <li>{t("guides-essential-tools.s135")}</li>
+                <li>فلتر يشتغل</li>
+                <li>هيتر مضبوط على 26°</li>
+                <li>ثيرمومتر يبين الصح</li>
+                <li>مزيل كلور عندك</li>
+                <li>كيت فحص مي عندك</li>
               </ul>
             </div>
             <div className="g-send-card g-send-info">
-              <div className="g-send-card-title">{t("guides-essential-tools.s136")}</div>
+              <div className="g-send-card-title">الأرقام صح؟</div>
               <ul className="g-send-list-inner">
-                <li>{t("guides-essential-tools.s137")}</li>
-                <li>{t("guides-essential-tools.s138")}</li>
-                <li>{t("guides-essential-tools.s139")}</li>
-                <li>{t("guides-essential-tools.s140")}</li>
-                <li>{t("guides-essential-tools.s141")}</li>
+                <li>أمونيا: 0 ppm</li>
+                <li>نيتريت: 0 ppm</li>
+                <li>نترات: أقل من 20 ppm</li>
+                <li>الحرارة: 24–28°</li>
+                <li>الفلتر شتغل أسبوعين على الأقل</li>
               </ul>
             </div>
             <div className="g-send-card g-send-behavior">
-              <div className="g-send-card-title">{t("guides-essential-tools.s142")}</div>
+              <div className="g-send-card-title">الحوض جاهز؟</div>
               <ul className="g-send-list-inner">
-                <li>{t("guides-essential-tools.s143")}</li>
-                <li>{t("guides-essential-tools.s144")}</li>
-                <li>{t("guides-essential-tools.s145")}</li>
-                <li>{t("guides-essential-tools.s146")}</li>
-                <li>{t("guides-essential-tools.s147")}</li>
+                <li>أكو مخابئ أو ديكور</li>
+                <li>الإضاءة مضبوطة 8–10 ساعات</li>
+                <li>عندك أكل مناسب للنوع</li>
+                <li>عندك شبكة للطوارئ</li>
+                <li>ما تزيد على سمچة كل 10 لتر</li>
               </ul>
             </div>
           </div>
@@ -413,9 +435,9 @@ export default function GuideEssentialTools() {
 
         {/* ── CTA ── */}
         <section className="g-cta">
-          <h2>{t("guides-essential-tools.s148")}</h2>
-          <p>{t("guides-essential-tools.s149")}</p>
-          <p>{t("guides-essential-tools.s150")}</p>
+          <h2>إذا تحتاج مساعدة أدق</h2>
+          <p>أرسل صورة الحوض ونوع الأدوات اللي عندك وحجم الحوض لـ AQUAVO.</p>
+          <p>نراجع الوضع بهدوء ونعطيك الخطوة الأنسب.</p>
         </section>
 
       </main>

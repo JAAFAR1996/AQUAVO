@@ -31,8 +31,6 @@ import {
 import { cn } from "@/lib/utils";
 import { WHATSAPP_URL } from "@/lib/constants/shipping";
 import { openWhatsApp } from "@/lib/whatsapp";
-import { useTranslation } from "react-i18next";
-import { i18next } from "@/i18n";
 
 interface Product {
     id: string;
@@ -138,7 +136,6 @@ const ChatProductCard = memo(function ChatProductCard({
     onView: () => void;
     onAddToCart: () => void;
 }) {
-  const { t } = useTranslation("tools");
     return (
         <div className="flex items-center gap-2 p-1.5 rounded-lg bg-background/50 border border-border/50 hover:border-primary/40 hover:bg-background/80 transition-all group">
             <img
@@ -159,7 +156,7 @@ const ChatProductCard = memo(function ChatProductCard({
                             {product.rating}
                         </span>
                     )}
-                    <span className="text-[11px] font-bold text-purple-500">{t("ai-chat-bot.s1")}</span>
+                    <span className="text-[11px] font-bold text-purple-500">قريباً</span>
                 </div>
             </div>
             {/* 🛒 Add to Cart — 2026 Conversational Commerce */}
@@ -168,7 +165,7 @@ const ChatProductCard = memo(function ChatProductCard({
                 variant="ghost"
                 className="h-7 w-7 flex-shrink-0 hover:bg-primary/20 hover:text-primary"
                 onClick={(e) => { e.stopPropagation(); onAddToCart(); }}
-                aria-label={t("ai-chat-bot.s2", { v0: product.name })}
+                aria-label={`أضف ${product.name} للسلة`}
             >
                 <ShoppingCart className="w-3.5 h-3.5" />
             </Button>
@@ -186,12 +183,11 @@ const FeedbackButtons = memo(function FeedbackButtons({
     feedback?: "up" | "down" | null;
     onFeedback: (type: "up" | "down") => void;
 }) {
-  const { t } = useTranslation("tools");
     if (feedback) {
         return (
             <div className="flex items-center gap-1 mt-1">
                 <span className="text-[10px] text-muted-foreground/60">
-                    {feedback === "up" ? t("ai-chat-bot.s3") : t("ai-chat-bot.s4")}
+                    {feedback === "up" ? "👍 شكراً!" : "👎 نتعلم ونتحسن"}
                 </span>
             </div>
         );
@@ -204,7 +200,7 @@ const FeedbackButtons = memo(function FeedbackButtons({
                 variant="ghost"
                 className="h-5 w-5 hover:bg-green-500/20 hover:text-green-400"
                 onClick={() => onFeedback("up")}
-                aria-label={t("ai-chat-bot.s5")}
+                aria-label="رد مفيد"
             >
                 <ThumbsUp className="w-3 h-3" />
             </Button>
@@ -213,7 +209,7 @@ const FeedbackButtons = memo(function FeedbackButtons({
                 variant="ghost"
                 className="h-5 w-5 hover:bg-red-500/20 hover:text-red-400"
                 onClick={() => onFeedback("down")}
-                aria-label={t("ai-chat-bot.s6")}
+                aria-label="رد غير مفيد"
             >
                 <ThumbsDown className="w-3 h-3" />
             </Button>
@@ -245,7 +241,7 @@ async function streamChatMessage(
     });
 
     if (!response.ok || !response.body) {
-        onError(i18next.t("tools:ai-chat-bot.s7"));
+        onError("فشل الاتصال 😔 حاول مرة ثانية");
         return;
     }
 
@@ -275,7 +271,7 @@ async function streamChatMessage(
                 } else if (event.type === "done") {
                     onDone(event.products || [], event.normalizedText);
                 } else if (event.type === "error") {
-                    onError(event.message || i18next.t("tools:ai-chat-bot.s8"));
+                    onError(event.message || "صار خطأ 😔");
                 }
             } catch {
                 // Ignore malformed events
@@ -330,7 +326,6 @@ function useProactiveChat(isOpen: boolean, setIsOpen: (v: boolean) => void, mess
 // Main Chat Component — 2026 Edition
 // ============================================================
 export function AIChatBot() {
-  const { t } = useTranslation("tools");
     const { user } = useAuth();
     const { addItem, refetchCart } = useCart();
     const { toast } = useToast();
@@ -351,8 +346,8 @@ export function AIChatBot() {
     // Personalized greeting
     useEffect(() => {
         const greeting = userName
-            ? t("ai-chat-bot.s9", { v0: userName })
-            : t("ai-chat-bot.s10");
+            ? `هلا ${userName}! 🦐 أنا شريمب، مساعدك الشخصي في AQUAVO.\n\nشلون اكدر اساعدك اليوم؟\n• أسئلة عن الأسماك\n• نصايح رعاية\n• توصيات منتجات`
+            : "هلا! 🦐 أنا شريمب، مساعد AQUAVO الذكي.\n\nشلون اكدر اساعدك اليوم؟\n• أسئلة عن الأسماك\n• نصايح رعاية\n• توصيات منتجات";
 
         setMessages([{
             role: "assistant",
@@ -446,8 +441,8 @@ export function AIChatBot() {
             (_productId, productName) => {
                 refetchCart();
                 toast({
-                    title: t("ai-chat-bot.s11"),
-                    description: t("ai-chat-bot.s12", { v0: productName }),
+                    title: "تمت الإضافة! 🛒",
+                    description: `${productName} انضاف للسلة`,
                 });
             }
         );
@@ -488,22 +483,22 @@ export function AIChatBot() {
     const handleAddToCart = useCallback((product: Product) => {
         addItem(product as any);
         toast({
-            title: t("ai-chat-bot.s11"),
-            description: t("ai-chat-bot.s12", { v0: product.name }),
+            title: "تمت الإضافة! 🛒",
+            description: `${product.name} انضاف للسلة`,
         });
     }, [addItem, toast]);
 
     // Handle contact support
     const handleContactSupport = useCallback(() => {
         // Open WhatsApp or Instagram
-        openWhatsApp({ source: "chatbot", message: t("ai-chat-bot.s13") });
+        openWhatsApp({ source: "chatbot", message: "مرحباً، أحتاج مساعدة من فريق AQUAVO" });
     }, []);
 
     // Quick questions
     const quickQuestions = [
-        t("ai-chat-bot.s14"),
-        t("ai-chat-bot.s15"),
-        t("ai-chat-bot.s16"),
+        "أحسن سمكة للمبتدئ؟",
+        "شلون أنظف الحوض؟",
+        "شنو حرارة الماء المناسبة؟",
     ];
 
     return (
@@ -525,10 +520,10 @@ export function AIChatBot() {
                             }}
                         >
                             <p className="text-xs text-foreground leading-relaxed">
-                                {t("ai-chat-bot.s17")}
+                                هلا! تحتاج مساعدة؟ اسألني عن أي شي — أسماك، أحواض، أو منتجات!
                             </p>
                             <div className="flex items-center gap-1 mt-1.5 text-primary">
-                                <span className="text-[10px] font-medium">{t("ai-chat-bot.s18")}</span>
+                                <span className="text-[10px] font-medium">ابدأ محادثة</span>
                                 <ChevronRight className="w-3 h-3" />
                             </div>
                         </div>
@@ -548,7 +543,7 @@ export function AIChatBot() {
                         <Button
                             onClick={() => { setIsOpen(true); setShowProactiveHint(false); }}
                             className="w-14 h-14 rounded-full shadow-2xl bg-gradient-to-br from-primary via-cyan-500 to-blue-600 hover:from-primary/90 hover:to-blue-700 p-0"
-                            aria-label={t("ai-chat-bot.s19")}
+                            aria-label="فتح مساعد AQUAVO الذكي"
                         >
                             <div className="relative">
                                 <MessageCircle className="w-6 h-6" aria-hidden="true" />
@@ -585,10 +580,10 @@ export function AIChatBot() {
                                             <Fish className="w-5 h-5" />
                                         </div>
                                         <div>
-                                            <CardTitle className="text-sm font-bold">{t("ai-chat-bot.s20")}</CardTitle>
+                                            <CardTitle className="text-sm font-bold">شريمب 🦐</CardTitle>
                                             <div className="flex items-center gap-1">
                                                 <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                                                <span className="text-xs opacity-80">{t("ai-chat-bot.s21")}</span>
+                                                <span className="text-xs opacity-80">متصل الآن</span>
                                             </div>
                                         </div>
                                     </div>
@@ -603,8 +598,8 @@ export function AIChatBot() {
                                             size="icon"
                                             className="h-7 w-7 text-white hover:bg-white/20"
                                             onClick={handleContactSupport}
-                                            aria-label={t("ai-chat-bot.s22")}
-                                            title={t("ai-chat-bot.s23")}
+                                            aria-label="تواصل مع الدعم البشري"
+                                            title="تواصل مع فريق الدعم"
                                         >
                                             <Headphones className="w-4 h-4" aria-hidden="true" />
                                         </Button>
@@ -613,7 +608,7 @@ export function AIChatBot() {
                                             size="icon"
                                             className="h-7 w-7 text-white hover:bg-white/20"
                                             onClick={() => setIsMinimized(!isMinimized)}
-                                            aria-label={t("ai-chat-bot.s24")}
+                                            aria-label="تصغير نافذة المحادثة"
                                         >
                                             <Minimize2 className="w-4 h-4" aria-hidden="true" />
                                         </Button>
@@ -622,7 +617,7 @@ export function AIChatBot() {
                                             size="icon"
                                             className="h-7 w-7 text-white hover:bg-white/20"
                                             onClick={() => setIsOpen(false)}
-                                            aria-label={t("ai-chat-bot.s25")}
+                                            aria-label="إغلاق المحادثة"
                                         >
                                             <X className="w-4 h-4" aria-hidden="true" />
                                         </Button>
@@ -721,7 +716,7 @@ export function AIChatBot() {
                                                                 <span className="w-1.5 h-1.5 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
                                                                 <span className="w-1.5 h-1.5 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
                                                             </div>
-                                                            <span className="text-[10px] text-muted-foreground">{t("ai-chat-bot.s26")}</span>
+                                                            <span className="text-[10px] text-muted-foreground">شريمب يكتب...</span>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -732,7 +727,7 @@ export function AIChatBot() {
                                     {/* Quick Questions */}
                                     {messages.length <= 1 && (
                                         <div className="p-3 border-t bg-muted/30 flex-shrink-0">
-                                            <p className="text-[10px] text-muted-foreground mb-2">{t("ai-chat-bot.s27")}</p>
+                                            <p className="text-[10px] text-muted-foreground mb-2">أسئلة سريعة:</p>
                                             <div className="flex flex-wrap gap-1.5">
                                                 {quickQuestions.map((q) => (
                                                     <Button
@@ -757,7 +752,7 @@ export function AIChatBot() {
                                                 className="w-full flex items-center justify-center gap-1.5 text-[10px] text-muted-foreground hover:text-primary transition-colors"
                                             >
                                                 <Headphones className="w-3 h-3" />
-                                                {t("ai-chat-bot.s28")}
+                                                تحتاج مساعدة بشرية؟ تواصل مع فريق الدعم
                                                 <ChevronRight className="w-3 h-3" />
                                             </button>
                                         </div>
@@ -770,7 +765,7 @@ export function AIChatBot() {
                                                 value={input}
                                                 onChange={(e) => setInput(e.target.value)}
                                                 onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                                                placeholder={t("ai-chat-bot.s29")}
+                                                placeholder="اكتب سؤالك..."
                                                 disabled={isStreaming}
                                                 className="flex-1 h-9 text-xs"
                                             />
@@ -779,7 +774,7 @@ export function AIChatBot() {
                                                 disabled={!input.trim() || isStreaming}
                                                 size="icon"
                                                 className="h-9 w-9"
-                                                aria-label={t("ai-chat-bot.s30")}
+                                                aria-label="إرسال الرسالة"
                                             >
                                                 {isStreaming ? (
                                                     <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />

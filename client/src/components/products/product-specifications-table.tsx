@@ -18,9 +18,6 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { useTranslation } from "react-i18next";
-import { useLocale } from "@/i18n/locale-context";
-import { isolateNumericRanges as bidi } from "@shared/i18n/bidi";
 
 interface Specification {
     label: string;
@@ -83,7 +80,7 @@ function getIcon(label: string): React.ElementType {
 // Convert various spec formats to unified format
 function normalizeSpecifications(specs: Specification[] | Record<string, any>): Specification[] {
     if (Array.isArray(specs)) {
-        return specs.map((spec) => ({ ...spec, value: bidi(spec.value) }));
+        return specs;
     }
 
     // Keys to exclude from technical specifications (shown elsewhere)
@@ -104,14 +101,11 @@ function normalizeSpecifications(specs: Specification[] | Record<string, any>): 
         })
         .map(([key, value]) => ({
             label: key,
-            // bidi(): spec values are where the ranges live — "نطاق درجة الحرارة: 18-30".
-            // Inside RTL the bidi algorithm reads that as 30-18, so each range is isolated
-            // on its way to the screen. The label is left alone: getIcon() matches on it.
             value: typeof value === 'boolean'
-                ? (value ? '__YES__' : '__NO__')
+                ? (value ? 'نعم ✓' : 'لا ✗')
                 : typeof value === 'object'
                     ? JSON.stringify(value)
-                    : bidi(String(value)),
+                    : String(value),
         }));
 }
 
@@ -120,25 +114,20 @@ export function ProductSpecificationsTable({
     category,
     className,
 }: ProductSpecificationsTableProps) {
-    const { t } = useTranslation("products");
-    const { dir } = useLocale();
-    const specs = normalizeSpecifications(specifications).map((spec) => ({
-        ...spec,
-        value: spec.value === "__YES__" ? t("specs.yes") : spec.value === "__NO__" ? t("specs.no") : spec.value,
-    }));
+    const specs = normalizeSpecifications(specifications);
 
     if (specs.length === 0) {
         return null;
     }
 
     return (
-        <Card className={cn("overflow-hidden", className)} dir={dir}>
+        <Card className={cn("overflow-hidden", className)} dir="rtl">
             <CardHeader className="bg-gradient-to-br from-primary/5 to-transparent pb-4">
                 <CardTitle className="flex items-center gap-2 text-lg">
                     <Settings className="w-5 h-5 text-primary" aria-hidden="true" />
-                    <span>{t("specs.title")}</span>
+                    <span>المواصفات التقنية</span>
                     {category && (
-                        <Badge variant="secondary" className="ms-2 text-xs">
+                        <Badge variant="secondary" className="mr-2 text-xs">
                             {category}
                         </Badge>
                     )}

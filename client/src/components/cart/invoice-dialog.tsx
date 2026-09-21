@@ -9,8 +9,6 @@ import { useToast } from "@/hooks/use-toast";
 import { clientEnv } from "@/lib/config/env";
 import { DELIVERY_FEE, WHATSAPP_URL } from "@/lib/constants/shipping";
 import { WhatsAppLink } from "@/components/whatsapp-link";
-import { useTranslation } from "react-i18next";
-import { isolateNumericRanges as bidi, isolateNumericRangesInHtml } from "@shared/i18n/bidi";
 // Local item type — simpler than CartItem, works for order history too
 interface InvoiceItem {
   id: string;
@@ -52,7 +50,6 @@ interface InvoiceDialogProps {
 }
 
 export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogProps) {
-  const { t } = useTranslation("orders");
   const invoiceRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -64,7 +61,7 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
   const cashbackEarned = orderData?.cashbackEarned ?? 0;
   const orderStatus = orderData?.status ?? 'pending';
   const isOnlinePayment = orderData?.paymentMethod === 'alqaseh' || orderData?.paymentMethod === 'wayl';
-  const paymentMethodLabel = isOnlinePayment ? t("invoice-dialog.s1") : t("invoice-dialog.s2");
+  const paymentMethodLabel = isOnlinePayment ? 'مدفوع إلكترونياً' : 'الدفع عند الاستلام';
 
   // ⚠️ roundedTotal من الباكند = ceil((grandTotal - cashbackUsed) / 250) * 250
   // لذلك الباقي = roundedTotal - (grandTotal - cashbackUsed)
@@ -88,19 +85,15 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
     if (!orderData) return;
     const printWindow = window.open('', '_blank', 'width=600,height=800');
     if (!printWindow) {
-      toast({ title: t("invoice-dialog.s3"), variant: "destructive" });
+      toast({ title: "تعذر فتح نافذة الطباعة", variant: "destructive" });
       return;
     }
 
     // بناء HTML الفاتورة مباشرة — بدون أي خلفيات ملونة
     const itemsRows = orderData.items.map(item => {
-      // The printed invoice is HTML, so the range is isolated as markup here rather
-      // than with the control characters used for plain strings.
-      const productName = isolateNumericRangesInHtml(
-        item.variantLabel
-          ? t("invoice-dialog.s4", { v0: item.name, v1: item.variantLabel })
-          : item.name,
-      );
+      const productName = item.variantLabel
+        ? `${item.name}<div style="font-size:11px;color:#64748b;margin-top:2px;">الخيار: ${item.variantLabel}</div>`
+        : item.name;
       return (
       `<tr>
         <td style="padding:8px 10px;border-bottom:1px solid #e5e7eb;text-align:right;font-size:13px;">${productName}</td>
@@ -115,38 +108,113 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
 
     let totalsHTML = '';
     // مجموع المنتجات
-    totalsHTML += t("invoice-dialog.s5", { v0: formatIQD(calculatedSubtotal) });
+    totalsHTML += `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;color:#64748b;"><span>مجموع المنتجات:</span><span>${formatIQD(calculatedSubtotal)}</span></div>`;
     // التوصيل
     if (deliveryFee > 0) {
-      totalsHTML += t("invoice-dialog.s6", { v0: formatIQD(deliveryFee) });
+      totalsHTML += `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;color:#64748b;"><span>🚚 التوصيل:</span><span>${formatIQD(deliveryFee)}</span></div>`;
     } else {
-      totalsHTML += t("invoice-dialog.s7", { v0: formatIQD(0) });
+      totalsHTML += `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;color:#64748b;"><span>التوصيل:</span><span>${formatIQD(0)}</span></div>`;
     }
     // الخصم
     if (discount > 0) {
-      totalsHTML += t("invoice-dialog.s8", { v0: formatIQD(discount) });
+      totalsHTML += `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;color:#16a34a;"><span>🎁 خصم الكوبون:</span><span>-${formatIQD(discount)}</span></div>`;
     }
     // الإجمالي (قبل الخصم والتقريب)
     totalsHTML += `<hr style="border:none;border-top:1px solid #e2e8f0;margin:6px 0;">`;
-    totalsHTML += t("invoice-dialog.s9", { v0: formatIQD(grandTotal) });
+    totalsHTML += `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:14px;font-weight:600;"><span>الإجمالي:</span><span>${formatIQD(grandTotal)}</span></div>`;
     // مدفوع من الباقي
     if (cashbackUsed > 0) {
-      totalsHTML += t("invoice-dialog.s10", { v0: formatIQD(cashbackUsed) });
+      totalsHTML += `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;color:#ea580c;"><span>💰 مدفوع من رصيد الباقي:</span><span>-${formatIQD(cashbackUsed)}</span></div>`;
     }
     // التقريب
     if (roundingDiff > 0) {
-      totalsHTML += t("invoice-dialog.s11", { v0: formatIQD(roundingDiff) });
+      totalsHTML += `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12px;color:#64748b;"><span>تقريب المبلغ:</span><span>+${formatIQD(roundingDiff)}</span></div>`;
     }
 
     // مكافآت مكتسبة
     let rewardsHTML = '';
     if (pointsEarned > 0 || cashbackEarned > 0) {
-      rewardsHTML = t("invoice-dialog.s12", { v0: pointsEarned > 0 ? `<div style="display:flex;justify-content:space-between;font-size:12px;color:#92400e;"><span>${t("invoice-dialog.s62")}</span><span style="font-weight:bold;">+${pointsEarned} ${t("invoice-dialog.s63")}</span></div>` : '', v1: cashbackEarned > 0 ? `<div style="display:flex;justify-content:space-between;font-size:12px;color:#92400e;"><span>${t("invoice-dialog.s64")}</span><span style="font-weight:bold;">+${formatIQD(cashbackEarned)}</span></div>` : '' });
+      rewardsHTML = `<div style="background:#fffbeb;padding:10px;border-radius:8px;border:1px solid #fde68a;margin-bottom:12px;">
+        <p style="font-size:12px;font-weight:600;color:#92400e;margin-bottom:4px;">🎉 مكافآتك من هذا الطلب</p>
+        ${pointsEarned > 0 ? `<div style="display:flex;justify-content:space-between;font-size:12px;color:#92400e;"><span>⭐ نقاط ولاء:</span><span style="font-weight:bold;">+${pointsEarned} نقطة</span></div>` : ''}
+        ${cashbackEarned > 0 ? `<div style="display:flex;justify-content:space-between;font-size:12px;color:#92400e;"><span>💰 باقي مضاف:</span><span style="font-weight:bold;">+${formatIQD(cashbackEarned)}</span></div>` : ''}
+      </div>`;
     }
 
     const shortNum = orderData.orderNumber.length > 20 ? orderData.orderNumber.slice(0, 8).toUpperCase() : orderData.orderNumber;
 
-    printWindow.document.write(t("invoice-dialog.s13", { v0: orderData.orderNumber, v1: shortNum, v2: formatDate(orderData.orderDate), v3: orderData.customerInfo.name ? `<p style="font-weight:600;">${orderData.customerInfo.name}</p>` : '', v4: orderData.customerInfo.phone ? `<p style="color:#64748b;direction:ltr;text-align:right;">📞 ${orderData.customerInfo.phone}</p>` : '', v5: orderData.customerInfo.address ? `<p style="color:#64748b;">📍 ${orderData.customerInfo.address}</p>` : '', v6: orderData.items.length, v7: itemsRows, v8: totalsHTML, v9: isOnlinePayment ? t("invoice-dialog.s65") : t("invoice-dialog.s66"), v10: formatIQD(actualPayAmount), v11: paymentMethodLabel, v12: rewardsHTML }));
+    printWindow.document.write(`<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>فاتورة AQUAVO - ${orderData.orderNumber}</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, sans-serif; direction: rtl; color: #1a1a1a; background: #fff; padding: 24px; font-size: 13px; }
+    @media print { body { padding: 12px; } @page { margin: 10mm; size: A4; } }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div style="border:2px solid #0ea5e9;border-radius:10px;padding:16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+    <div>
+      <h1 style="font-size:22px;font-weight:bold;color:#0ea5e9;">AQUAVO</h1>
+      <p style="font-size:11px;color:#64748b;">حلول أحواض ومستلزمات الأحواض المائية</p>
+    </div>
+    <div style="text-align:left;">
+      <p style="font-size:10px;color:#64748b;">رقم الطلب</p>
+      <p style="font-weight:bold;font-family:monospace;font-size:14px;">${shortNum}</p>
+      <p style="font-size:10px;color:#64748b;margin-top:4px;">${formatDate(orderData.orderDate)}</p>
+    </div>
+  </div>
+
+  <!-- Customer Info -->
+  <div style="display:flex;gap:12px;margin-bottom:16px;">
+    <div style="flex:1;background:#f8fafc;padding:12px;border-radius:8px;border:1px solid #e2e8f0;">
+      <p style="font-size:11px;color:#64748b;font-weight:600;margin-bottom:6px;">معلومات العميل</p>
+      ${orderData.customerInfo.name ? `<p style="font-weight:600;">${orderData.customerInfo.name}</p>` : ''}
+      ${orderData.customerInfo.phone ? `<p style="color:#64748b;direction:ltr;text-align:right;">📞 ${orderData.customerInfo.phone}</p>` : ''}
+      ${orderData.customerInfo.address ? `<p style="color:#64748b;">📍 ${orderData.customerInfo.address}</p>` : ''}
+    </div>
+  </div>
+
+  <!-- Products Table -->
+  <p style="font-weight:600;margin-bottom:8px;">${orderData.items.length} منتجات</p>
+  <table style="width:100%;border-collapse:collapse;margin-bottom:16px;">
+    <thead>
+      <tr style="background:#f1f5f9;">
+        <th style="padding:8px 10px;text-align:right;font-size:12px;font-weight:600;color:#475569;">المنتج</th>
+        <th style="padding:8px 10px;text-align:center;font-size:12px;font-weight:600;color:#475569;">الكمية</th>
+        <th style="padding:8px 10px;text-align:center;font-size:12px;font-weight:600;color:#475569;">السعر</th>
+        <th style="padding:8px 10px;text-align:left;font-size:12px;font-weight:600;color:#475569;">المجموع</th>
+      </tr>
+    </thead>
+    <tbody>${itemsRows}</tbody>
+  </table>
+
+  <!-- Totals -->
+  <div style="background:#f8fafc;padding:14px;border-radius:8px;border:1px solid #e2e8f0;margin-bottom:12px;">
+    ${totalsHTML}
+    <hr style="border:none;border-top:2px solid #0ea5e9;margin:8px 0;">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:16px;font-weight:bold;">${isOnlinePayment ? "✅ مدفوع إلكترونياً:" : "💵 تدفع نقداً:"}</span>
+      <div style="text-align:left;">
+        <p style="font-size:22px;font-weight:bold;color:#0ea5e9;">${formatIQD(actualPayAmount)}</p>
+        <p style="font-size:10px;color:#64748b;">${paymentMethodLabel}</p>
+      </div>
+    </div>
+  </div>
+
+  ${rewardsHTML}
+
+  <!-- Footer -->
+  <div style="text-align:center;padding:10px;background:#f0f9ff;border-radius:8px;border:1px solid #bae6fd;">
+    <p style="font-size:12px;color:#64748b;">للاستفسار عن طلبك تواصل معنا</p>
+    <p style="font-weight:600;color:#0ea5e9;direction:ltr;">📞 +964 774 788 0673</p>
+  </div>
+  <p style="text-align:center;font-size:10px;color:#94a3b8;margin-top:12px;">شكراً لتسوقكم من AQUAVO — www.aquavoiq.com</p>
+</body>
+</html>`);
 
     printWindow.document.close();
     setTimeout(() => {
@@ -159,7 +227,12 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
   if (!orderData) return null;
 
   const handleShare = async () => {
-    const shareText = t("invoice-dialog.s14", { v0: orderData.orderNumber, v1: formatIQD(grandTotal), v2: orderData.customerInfo.name, v3: formatShortDate(orderData.orderDate), v4: clientEnv.siteUrl ? `${t("invoice-dialog.s67")} ${clientEnv.siteUrl}` : "" }).trim();
+    const shareText = `فاتورة AQUAVO
+رقم الطلب: ${orderData.orderNumber}
+المجموع: ${formatIQD(grandTotal)}
+العميل: ${orderData.customerInfo.name}
+التاريخ: ${formatShortDate(orderData.orderDate)}
+${clientEnv.siteUrl ? `الرابط: ${clientEnv.siteUrl}` : ""}`.trim();
 
     if (navigator.share) {
       try {
@@ -169,16 +242,16 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
           url: clientEnv.siteUrl || undefined,
         });
       } catch {
-        toast({ title: t("invoice-dialog.s15"), description: t("invoice-dialog.s16") });
+        toast({ title: "تم إلغاء المشاركة", description: "لم نتمكن من مشاركة هذه الفاتورة." });
       }
     } else {
       try {
         await navigator.clipboard.writeText(shareText);
-        toast({ title: t("invoice-dialog.s17"), description: t("invoice-dialog.s18") });
+        toast({ title: "تم النسخ", description: "تم نسخ تفاصيل الفاتورة للحافظة." });
       } catch {
         toast({
-          title: t("invoice-dialog.s19"),
-          description: t("invoice-dialog.s20"),
+          title: "المشاركة غير متاحة",
+          description: "النسخ للحافظة غير متاح في هذا المتصفح.",
           variant: "destructive",
         });
       }
@@ -193,8 +266,8 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[95vh] overflow-y-auto p-0" aria-describedby="invoice-description">
         <VisuallyHidden>
-          <DialogTitle>{t("invoice-dialog.s21")}</DialogTitle>
-          <DialogDescription id="invoice-description">{t("invoice-dialog.s22")}</DialogDescription>
+          <DialogTitle>فاتورة الطلب</DialogTitle>
+          <DialogDescription id="invoice-description">تفاصيل الفاتورة والطلب</DialogDescription>
         </VisuallyHidden>
         <div ref={invoiceRef}>
           {/* Header */}
@@ -206,12 +279,12 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
                 </div>
                 <div>
                   <h1 className="text-2xl font-bold">AQUAVO</h1>
-                  <p className="text-sm opacity-80">{t("invoice-dialog.s23")}</p>
+                  <p className="text-sm opacity-80">حلول أحواض ومستلزمات الأحواض المائية</p>
                 </div>
               </div>
               <div className="text-left">
                 <div className="invoice-number-box bg-card/20 backdrop-blur-sm rounded-lg px-4 py-2">
-                  <p className="text-xs opacity-80">{t("invoice-dialog.s24")}</p>
+                  <p className="text-xs opacity-80">رقم الطلب</p>
                   <p className="font-mono font-bold text-sm">{shortOrderNumber}</p>
                 </div>
               </div>
@@ -222,14 +295,14 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
             {/* Success */}
             <div className="success-bar flex items-center justify-center gap-2 text-green-600 bg-green-50 dark:bg-green-950/30 rounded-lg py-3">
               <CheckCircle2 className="h-5 w-5" />
-              <span className="font-semibold">{t("invoice-dialog.s25")}</span>
+              <span className="font-semibold">تم استلام طلبك بنجاح!</span>
             </div>
 
             {/* Customer & Order Info */}
             <div className="info-grid grid sm:grid-cols-2 gap-4">
               <div className="info-box bg-muted/30 rounded-xl p-4 space-y-2">
                 <h3 className="font-semibold text-sm text-muted-foreground flex items-center gap-2">
-                  {t("invoice-dialog.s26")}
+                  معلومات العميل
                 </h3>
                 <div className="space-y-1.5 text-sm">
                   {orderData.customerInfo.name && (
@@ -253,7 +326,7 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
               <div className="info-box bg-muted/30 rounded-xl p-4 space-y-2">
                 <h3 className="font-semibold text-sm text-muted-foreground flex items-center gap-2">
                   <FileText className="h-4 w-4" />
-                  {t("invoice-dialog.s27")}
+                  تفاصيل الطلب
                 </h3>
                 <div className="space-y-1.5 text-sm">
                   <div className="flex items-center gap-2">
@@ -262,7 +335,7 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
                   </div>
                   <div>
                     <span className="status-badge inline-block bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 rounded-full px-3 py-0.5 text-xs font-medium">
-                      {t("invoice-dialog.s28")}
+                      قيد الانتظار
                     </span>
                   </div>
                 </div>
@@ -274,18 +347,18 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
               <div>
                 <h3 className="font-semibold mb-3 flex items-center gap-2">
                   <span className="bg-primary/10 text-primary rounded-full px-3 py-1 text-sm">
-                    {orderData.items.length} {t("invoice-dialog.s29")}
+                    {orderData.items.length} منتجات
                   </span>
                 </h3>
                 <div className="border rounded-xl overflow-hidden">
                   <table role="table" className="w-full">
-                    <caption className="sr-only">{t("invoice-dialog.s30")}</caption>
+                    <caption className="sr-only">قائمة منتجات الفاتورة</caption>
                     <thead className="bg-muted/50">
                       <tr>
-                        <th scope="col" className="text-right py-3 px-4 text-sm font-semibold">{t("invoice-dialog.s31")}</th>
-                        <th scope="col" className="text-center py-3 px-2 text-sm font-semibold">{t("invoice-dialog.s32")}</th>
-                        <th scope="col" className="text-center py-3 px-2 text-sm font-semibold">{t("invoice-dialog.s33")}</th>
-                        <th scope="col" className="text-left py-3 px-4 text-sm font-semibold">{t("invoice-dialog.s34")}</th>
+                        <th scope="col" className="text-right py-3 px-4 text-sm font-semibold">المنتج</th>
+                        <th scope="col" className="text-center py-3 px-2 text-sm font-semibold">الكمية</th>
+                        <th scope="col" className="text-center py-3 px-2 text-sm font-semibold">السعر</th>
+                        <th scope="col" className="text-left py-3 px-4 text-sm font-semibold">المجموع</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y">
@@ -301,9 +374,9 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
                                 />
                               )}
                               <div className="min-w-0">
-                                <span className="block text-sm font-medium line-clamp-2">{bidi(item.name)}</span>
+                                <span className="block text-sm font-medium line-clamp-2">{item.name}</span>
                                 {item.variantLabel && (
-                                  <span className="block text-xs text-muted-foreground mt-0.5">{t("invoice-dialog.s35")} {item.variantLabel}</span>
+                                  <span className="block text-xs text-muted-foreground mt-0.5">الخيار: {item.variantLabel}</span>
                                 )}
                               </div>
                             </div>
@@ -324,32 +397,32 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
             {/* ── تفاصيل الدفع ── */}
             <div className="totals-box bg-gradient-to-br from-muted/50 to-muted/30 rounded-xl p-5">
               <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                {t("invoice-dialog.s36")}
+                💳 تفاصيل الدفع
               </h4>
               <div className="space-y-2">
                 {/* المجموع الفرعي */}
                 <div className="total-row flex justify-between text-sm">
-                  <span className="text-muted-foreground">{t("invoice-dialog.s37")}</span>
+                  <span className="text-muted-foreground">مجموع المنتجات:</span>
                   <span>{formatIQD(calculatedSubtotal)}</span>
                 </div>
 
                 {/* الشحن */}
                 {deliveryFee > 0 ? (
                   <div className="total-row flex justify-between text-sm">
-                    <span className="text-muted-foreground">{t("invoice-dialog.s38")}</span>
+                    <span className="text-muted-foreground">🚚 التوصيل:</span>
                     <span>{formatIQD(deliveryFee)}</span>
                   </div>
                 ) : (
                   <div className="total-row flex justify-between text-sm">
-                    <span className="text-green-600">{t("invoice-dialog.s39")}</span>
-                    <span className="text-green-600 font-medium">{t("invoice-dialog.s40")}</span>
+                    <span className="text-green-600">التوصيل:</span>
+                    <span className="text-green-600 font-medium">مجاني</span>
                   </div>
                 )}
 
                 {/* الخصم (كوبون) */}
                 {discount > 0 && (
                   <div className="total-row flex justify-between text-sm">
-                    <span className="text-green-600">{t("invoice-dialog.s41")}</span>
+                    <span className="text-green-600">🎁 خصم الكوبون:</span>
                     <span className="text-green-600">-{formatIQD(discount)}</span>
                   </div>
                 )}
@@ -358,14 +431,14 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
 
                 {/* الإجمالي (قبل الخصم والتقريب) */}
                 <div className="total-row flex justify-between text-sm font-medium">
-                  <span>{t("invoice-dialog.s42")}</span>
+                  <span>الإجمالي:</span>
                   <span>{formatIQD(grandTotal)}</span>
                 </div>
 
                 {/* مدفوع من الباقي */}
                 {cashbackUsed > 0 && (
                   <div className="total-row flex justify-between text-sm">
-                    <span className="text-orange-600">{t("invoice-dialog.s43")}</span>
+                    <span className="text-orange-600">💰 مدفوع من رصيد الباقي:</span>
                     <span className="text-orange-600">-{formatIQD(cashbackUsed)}</span>
                   </div>
                 )}
@@ -373,7 +446,7 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
                 {/* التقريب */}
                 {roundingDiff > 0 && (
                   <div className="total-row flex justify-between text-xs">
-                    <span className="text-muted-foreground">{t("invoice-dialog.s44")}</span>
+                    <span className="text-muted-foreground">تقريب المبلغ:</span>
                     <span className="text-muted-foreground">+{formatIQD(roundingDiff)}</span>
                   </div>
                 )}
@@ -382,7 +455,7 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
 
                 {/* حالة وطريقة الدفع الفعلية */}
                 <div className="total-row grand flex justify-between items-center">
-                  <span className="text-lg font-semibold">{isOnlinePayment ? t("invoice-dialog.s45") : t("invoice-dialog.s46")}</span>
+                  <span className="text-lg font-semibold">{isOnlinePayment ? "✅ مدفوع إلكترونياً:" : "💵 تدفع نقداً:"}</span>
                   <div className="text-left">
                     <p className="text-2xl font-bold text-primary">{formatIQD(actualPayAmount)}</p>
                     <p className="payment-method text-xs text-muted-foreground">{paymentMethodLabel}</p>
@@ -395,17 +468,17 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
             {(pointsEarned > 0 || cashbackEarned > 0) && (
               <div className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 border border-amber-200 dark:border-amber-800/50 rounded-xl p-4 space-y-2">
                 <h4 className="text-sm font-semibold flex items-center gap-2 text-amber-800 dark:text-amber-300">
-                  {t("invoice-dialog.s47")}
+                  🎉 مكافآتك من هذا الطلب
                 </h4>
                 {pointsEarned > 0 && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-amber-700 dark:text-amber-400">{t("invoice-dialog.s48")}</span>
-                    <span className="font-bold text-amber-700 dark:text-amber-300">+{pointsEarned} {t("invoice-dialog.s49")}</span>
+                    <span className="text-amber-700 dark:text-amber-400">⭐ نقاط ولاء مكتسبة:</span>
+                    <span className="font-bold text-amber-700 dark:text-amber-300">+{pointsEarned} نقطة</span>
                   </div>
                 )}
                 {cashbackEarned > 0 && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-amber-700 dark:text-amber-400">{t("invoice-dialog.s50")}</span>
+                    <span className="text-amber-700 dark:text-amber-400">💰 باقي مضاف لرصيدك:</span>
                     <span className="font-bold text-amber-700 dark:text-amber-300">+{formatIQD(cashbackEarned)}</span>
                   </div>
                 )}
@@ -415,7 +488,7 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
             {/* Notes */}
             {orderData.customerInfo.notes && (
               <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
-                <p className="text-sm font-medium text-amber-800 dark:text-amber-200">{t("invoice-dialog.s51")}</p>
+                <p className="text-sm font-medium text-amber-800 dark:text-amber-200">ملاحظات الطلب:</p>
                 <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">{orderData.customerInfo.notes}</p>
               </div>
             )}
@@ -423,10 +496,10 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
             {/* Footer — dynamic based on status */}
             <div className="footer-contact bg-primary/5 rounded-xl p-4 text-center space-y-2">
               <p className="text-sm text-muted-foreground">
-                {orderStatus === 'delivered' ? t("invoice-dialog.s52") :
-                 orderStatus === 'shipped' ? t("invoice-dialog.s53") :
-                 orderStatus === 'cancelled' ? t("invoice-dialog.s54") :
-                 t("invoice-dialog.s55")}
+                {orderStatus === 'delivered' ? 'شكراً لك! تم توصيل طلبك بنجاح 🎉' :
+                 orderStatus === 'shipped' ? 'طلبك بالطريق إليك! 🚚' :
+                 orderStatus === 'cancelled' ? 'تم إلغاء هذا الطلب' :
+                 'للاستفسار عن طلبك تواصل معنا'}
               </p>
               <div className="flex items-center justify-center gap-2 text-primary">
                 <Phone className="h-4 w-4" />
@@ -438,32 +511,32 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
             <WhatsAppLink
               source="invoice"
               orderNumber={shortOrderNumber}
-              message={t("invoice-dialog.s56", { v0: shortOrderNumber })}
+              message={`مرحباً، أحتاج مساعدة بخصوص طلبي رقم ${shortOrderNumber}`}
               className="flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-background px-6 py-3 text-base font-semibold text-foreground transition-colors hover:bg-muted no-print print:hidden"
             >
               <MessageCircle className="h-5 w-5" />
-              {t("invoice-dialog.s57")}
+              تحتاج مساعدة؟ احچي ويانه
             </WhatsAppLink>
 
             {/* Action Buttons - hidden in print */}
             <div className="flex gap-3 no-print print:hidden">
               <Button variant="outline" onClick={handlePrint} className="flex-1">
                 <Printer className="h-4 w-4 ml-2" />
-                {t("invoice-dialog.s58")}
+                طباعة
               </Button>
               <Button variant="outline" onClick={handleShare} className="flex-1">
                 <Share2 className="h-4 w-4 ml-2" />
-                {t("invoice-dialog.s59")}
+                مشاركة
               </Button>
               <Button onClick={() => onOpenChange(false)} className="flex-1">
                 <CheckCircle2 className="h-4 w-4 ml-2" />
-                {t("invoice-dialog.s60")}
+                تم
               </Button>
             </div>
 
             {/* Brand Footer */}
             <div className="brand-footer text-center text-xs text-muted-foreground pt-4 border-t">
-              <p>{t("invoice-dialog.s61")}</p>
+              <p>شكراً لتسوقكم من AQUAVO</p>
               <p className="mt-1">www.aquavoiq.com</p>
             </div>
           </div>

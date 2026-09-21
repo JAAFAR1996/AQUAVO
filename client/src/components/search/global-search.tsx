@@ -32,7 +32,6 @@ import {
   POPULAR_SEARCH_LINKS,
   type SiteSearchResult,
 } from "@/lib/site-search";
-import { useTranslation } from "react-i18next";
 
 interface GlobalSearchProps {
   open: boolean;
@@ -67,7 +66,6 @@ function saveRecentSearches(values: string[]): void {
 }
 
 export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
-  const { t } = useTranslation("search");
   const [, setLocation] = useLocation();
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
@@ -220,9 +218,9 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-[680px]" dir="rtl">
-        <DialogTitle className="sr-only">{t("global-search.s1")}</DialogTitle>
+        <DialogTitle className="sr-only">بحث AQUAVO</DialogTitle>
         <DialogDescription className="sr-only">
-          {t("global-search.s2")}
+          ابحث بنفس النظام عن المنتجات والأقسام وصفحات المساعدة.
         </DialogDescription>
 
         <div className="flex min-h-16 items-center gap-3 border-b border-border px-4">
@@ -232,13 +230,13 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder={t("global-search.s3")}
-            aria-label={t("global-search.s1")}
+            placeholder="اكتب اسم المنتج أو احتياج الحوض..."
+            aria-label="بحث AQUAVO"
             className="h-12 border-0 bg-transparent px-0 text-base shadow-none focus-visible:ring-0"
           />
-          {showSearching && <Sparkles className="h-4 w-4 animate-pulse text-primary motion-reduce:animate-none" aria-label={t("global-search.s4")} />}
+          {showSearching && <Sparkles className="h-4 w-4 animate-pulse text-primary motion-reduce:animate-none" aria-label="جاري البحث الذكي" />}
           {query && (
-            <Button type="button" variant="ghost" size="icon" onClick={() => setQuery("")} aria-label={t("global-search.s5")}>
+            <Button type="button" variant="ghost" size="icon" onClick={() => setQuery("")} aria-label="مسح البحث">
               <X className="h-4 w-4" aria-hidden="true" />
             </Button>
           )}
@@ -248,23 +246,23 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
           {query.trim() ? (
             <div className="p-3">
               <div className="flex items-center justify-between px-2 py-2 text-xs text-muted-foreground">
-                <span>{results.length > 0 ? t("global-search.s6", { v0: results.length }) : t("global-search.s7")}</span>
+                <span>{results.length > 0 ? `${results.length} نتيجة مرتبة حسب الصلة والتوفر` : "نتائج البحث"}</span>
                 {smartData?.semantic && (
                   <span className="inline-flex items-center gap-1 text-primary">
                     <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
-                    {t("global-search.s8")}
+                    بحث ذكي
                   </span>
                 )}
               </div>
 
               {showLoading ? (
-                <div className="space-y-2 p-2" role="status" aria-label={t("global-search.s9")}>
+                <div className="space-y-2 p-2" role="status" aria-label="جاري تحميل نتائج البحث">
                   {Array.from({ length: 5 }).map((_, index) => (
                     <Skeleton key={index} className="h-16 w-full rounded-xl" />
                   ))}
                 </div>
               ) : results.length > 0 ? (
-                <div className="space-y-1" role="listbox" aria-label={t("global-search.s7")}>
+                <div className="space-y-1" role="listbox" aria-label="نتائج البحث">
                   {results.map((result, index) => {
                     const isSelected = index === selectedIndex;
                     return (
@@ -315,7 +313,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
                           )}
                           {result.type === "product" && (
                             <p className={`mt-1 text-[11px] ${(result.stock ?? 0) > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"}`}>
-                              {(result.stock ?? 0) > 0 ? t("global-search.s10") : t("global-search.s11")}
+                              {(result.stock ?? 0) > 0 ? "متوفر" : "غير متوفر حالياً"}
                             </p>
                           )}
                           {result.type === "page" && <ArrowLeft className="h-4 w-4 text-primary" aria-hidden="true" />}
@@ -327,9 +325,9 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
               ) : (
                 <div className="flex flex-col items-center px-6 py-14 text-center">
                   <SearchIcon className="h-9 w-9 text-muted-foreground" aria-hidden="true" />
-                  <h3 className="mt-4 font-bold">{t("global-search.s12")}</h3>
+                  <h3 className="mt-4 font-bold">ما لكينا نتيجة مطابقة</h3>
                   <p className="mt-2 max-w-sm text-sm leading-6 text-muted-foreground">
-                    {t("global-search.s13")}
+                    جرّب اسم أقصر، اسم البراند، أو اكتب احتياج مثل فلتر أو سخان.
                   </p>
                   <Button
                     type="button"
@@ -341,7 +339,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
                       setLocation(`/search?q=${encodeURIComponent(query.trim())}`);
                     }}
                   >
-                    {t("global-search.s14")}
+                    افتح صفحة البحث الكاملة
                   </Button>
                 </div>
               )}
@@ -356,7 +354,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
                   }}
                   className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-border text-sm font-bold text-primary hover:border-primary/45 hover:bg-primary/5"
                 >
-                  {t("global-search.s15")}
+                  شوف النتائج بصفحة كاملة
                   <ArrowLeft className="h-4 w-4" aria-hidden="true" />
                 </button>
               )}
@@ -368,11 +366,11 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
                   <div className="flex items-center justify-between">
                     <h3 id="recent-searches-title" className="flex items-center gap-2 text-sm font-bold">
                       <Clock3 className="h-4 w-4 text-primary" aria-hidden="true" />
-                      {t("global-search.s16")}
+                      آخر عمليات البحث
                     </h3>
                     <button type="button" onClick={clearRecentSearches} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive">
                       <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
-                      {t("global-search.s17")}
+                      مسح
                     </button>
                   </div>
                   <div className="mt-3 flex flex-wrap gap-2">
@@ -391,7 +389,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
               )}
 
               <section aria-labelledby="popular-searches-title">
-                <h3 id="popular-searches-title" className="text-sm font-bold">{t("global-search.s18")}</h3>
+                <h3 id="popular-searches-title" className="text-sm font-bold">روح مباشرة للقسم</h3>
                 <div className="mt-3 grid gap-2 sm:grid-cols-2">
                   {POPULAR_SEARCH_LINKS.map((link) => (
                     <button

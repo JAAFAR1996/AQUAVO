@@ -8,8 +8,6 @@ import { embeddingGenerator } from "../services/embedding-generator.js";
 import { analyticsTracker } from "../services/analytics-tracker.js";
 import * as Sentry from "@sentry/node";
 import { toPublicProduct, toPublicProducts } from "../../shared/public-product.js";
-import { localizeJsonResponses } from "../middleware/localize-response.js";
-import { DEFAULT_LOCALE } from "../../shared/i18n/locales.js";
 import { fitCatalogue } from "../../shared/tank-compatibility.js";
 
 // ─── Server-side in-memory cache ──────────────────────────────
@@ -71,10 +69,6 @@ export function createProductRouter(): RouterType {
     const router = Router();
 
     // Get all products
-    // Every JSON payload leaving this router is merged with the request
-    // locale's translations (no-op for Arabic). See middleware/localize-response.ts.
-    router.use(localizeJsonResponses);
-
     router.get("/", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const query = req.query as Record<string, string | string[] | undefined>;
@@ -92,8 +86,6 @@ export function createProductRouter(): RouterType {
                 offset: query.offset ? Number(query.offset) : undefined,
                 sortBy: query.sortBy as any,
                 sortOrder: query.sortOrder as 'asc' | 'desc',
-                // Search must also match translated names for the request locale.
-                locale: req.locale ?? DEFAULT_LOCALE,
             };
 
             // Admin panel sends ?fresh=1 to bypass all caching and read straight

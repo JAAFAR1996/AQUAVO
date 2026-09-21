@@ -64,11 +64,6 @@ describe("SEO production safety invariants", () => {
       read("client/src/pages/shipping.tsx"),
       read("client/src/pages/why-aquavo.tsx"),
       read("client/src/components/footer.tsx"),
-      // Storefront copy now lives in the Arabic i18n bundles (client/src/locales/ar).
-      read("client/src/locales/ar/nav.json"),
-      read("client/src/locales/ar/home.json"),
-      read("client/src/locales/ar/checkout.json"),
-      read("client/src/locales/ar/pages.json"),
       read("client/public/llms.txt"),
       read("client/public/llms-full.txt"),
     ].join("\n");

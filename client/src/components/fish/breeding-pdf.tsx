@@ -1,7 +1,6 @@
 /* eslint-disable jsx-a11y/alt-text */
 import { Document, Page, Text, View, StyleSheet, Font } from "@react-pdf/renderer";
 import type { BreedingSpecies } from "@/data/breeding-data";
-import { i18next } from "@/i18n";
 
 // Register fonts with better error handling and multiple fallbacks
 let fontLoaded = false;
@@ -186,7 +185,7 @@ export const BreedingPlanPDF = ({ species, timeline, inputData }: BreedingPlanPD
         <Page size="A4" style={styles.page}>
             {/* Header */}
             <View style={styles.header}>
-                <Text style={styles.title}>{i18next.t("tools:breeding-pdf.s1")}</Text>
+                <Text style={styles.title}>خطة التكاثر - AQUAVO</Text>
             </View>
 
             {/* Species Info */}
@@ -195,48 +194,48 @@ export const BreedingPlanPDF = ({ species, timeline, inputData }: BreedingPlanPD
                 <Text style={styles.speciesSubTitle}>{species.name}</Text>
 
                 <View style={styles.row}>
-                    <Text style={styles.value}>{species.minTankSize} {i18next.t("tools:breeding-pdf.s2")}</Text>
-                    <Text style={styles.label}>{i18next.t("tools:breeding-pdf.s3")}</Text>
+                    <Text style={styles.value}>{species.minTankSize} لتر</Text>
+                    <Text style={styles.label}>:أقل حجم حوض</Text>
                 </View>
                 <View style={styles.row}>
                     <Text style={styles.value}>{species.optimalTemp.min} - {species.optimalTemp.max} °C</Text>
-                    <Text style={styles.label}>{i18next.t("tools:breeding-pdf.s4")}</Text>
+                    <Text style={styles.label}>:الحرارة المثالية</Text>
                 </View>
                 <View style={styles.row}>
                     <Text style={styles.value}>{species.optimalPH.min} - {species.optimalPH.max}</Text>
-                    <Text style={styles.label}>{i18next.t("tools:breeding-pdf.s5")}</Text>
+                    <Text style={styles.label}>:الرقم الهيدروجيني</Text>
                 </View>
                 <View style={styles.row}>
                     <Text style={styles.value}>
-                        {species.difficulty === "easy" ? i18next.t("tools:breeding-pdf.s6") :
-                            species.difficulty === "moderate" ? i18next.t("tools:breeding-pdf.s7") : i18next.t("tools:breeding-pdf.s8")}
+                        {species.difficulty === "easy" ? "سهل" :
+                            species.difficulty === "moderate" ? "متوسط" : "صعب"}
                     </Text>
-                    <Text style={styles.label}>{i18next.t("tools:breeding-pdf.s9")}</Text>
+                    <Text style={styles.label}>:الصعوبة</Text>
                 </View>
                 <View style={styles.row}>
                     <Text style={styles.value}>{species.avgFryCount.min} - {species.avgFryCount.max}</Text>
-                    <Text style={styles.label}>{i18next.t("tools:breeding-pdf.s10")}</Text>
+                    <Text style={styles.label}>:صغار لكل دورة</Text>
                 </View>
             </View>
 
             {/* User Inputs */}
             <View style={{ marginBottom: 20 }}>
-                <Text style={{ fontSize: 14, marginBottom: 5, textAlign: "right", color: "#374151" }}>{i18next.t("tools:breeding-pdf.s11")}</Text>
+                <Text style={{ fontSize: 14, marginBottom: 5, textAlign: "right", color: "#374151" }}>:مدخلاتك</Text>
                 <View style={{ flexDirection: "row-reverse", flexWrap: "wrap", gap: 10 }}>
                     <View style={{ backgroundColor: "#eff6ff", padding: 8, borderRadius: 4 }}>
-                        <Text style={{ fontSize: 10, color: "#1e40af", textAlign: "center" }}>{i18next.t("tools:breeding-pdf.s12")}</Text>
+                        <Text style={{ fontSize: 10, color: "#1e40af", textAlign: "center" }}>تاريخ البدء</Text>
                         <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{inputData.startDate}</Text>
                     </View>
                     <View style={{ backgroundColor: "#eff6ff", padding: 8, borderRadius: 4 }}>
-                        <Text style={{ fontSize: 10, color: "#1e40af", textAlign: "center" }}>{i18next.t("tools:breeding-pdf.s13")}</Text>
+                        <Text style={{ fontSize: 10, color: "#1e40af", textAlign: "center" }}>عدد الأزواج</Text>
                         <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{inputData.pairs}</Text>
                     </View>
                     <View style={{ backgroundColor: "#eff6ff", padding: 8, borderRadius: 4 }}>
-                        <Text style={{ fontSize: 10, color: "#1e40af", textAlign: "center" }}>{i18next.t("tools:breeding-pdf.s14")}</Text>
+                        <Text style={{ fontSize: 10, color: "#1e40af", textAlign: "center" }}>الحرارة الحالية</Text>
                         <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{inputData.temp}°C</Text>
                     </View>
                     <View style={{ backgroundColor: "#eff6ff", padding: 8, borderRadius: 4 }}>
-                        <Text style={{ fontSize: 10, color: "#1e40af", textAlign: "center" }}>{i18next.t("tools:breeding-pdf.s15")}</Text>
+                        <Text style={{ fontSize: 10, color: "#1e40af", textAlign: "center" }}>pH الحالي</Text>
                         <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{inputData.ph}</Text>
                     </View>
                 </View>
@@ -244,7 +243,7 @@ export const BreedingPlanPDF = ({ species, timeline, inputData }: BreedingPlanPD
 
             {/* Timeline */}
             <View style={styles.timelineContainer}>
-                <Text style={styles.timelineHeader}>{i18next.t("tools:breeding-pdf.s16")}</Text>
+                <Text style={styles.timelineHeader}>الجدول الزمني المتوقع</Text>
                 {timeline.map((event) => (
                     <View key={event.eventAr} style={styles.timelineItem}>
                         <View style={styles.timelineDate}>
@@ -260,8 +259,8 @@ export const BreedingPlanPDF = ({ species, timeline, inputData }: BreedingPlanPD
 
             {/* Footer */}
             <View style={styles.footer}>
-                <Text>{i18next.t("tools:breeding-pdf.s17")} {new Date().toLocaleDateString()}</Text>
-                <Text>{i18next.t("tools:breeding-pdf.s18")}</Text>
+                <Text>تم الإنشاء بواسطة AQUAVO - {new Date().toLocaleDateString()}</Text>
+                <Text>نتمنى لك تكاثراً ناجحاً!</Text>
             </View>
         </Page>
     </Document>

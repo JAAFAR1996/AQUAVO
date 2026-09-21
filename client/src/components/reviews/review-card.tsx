@@ -7,7 +7,6 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { RatingStars } from "./rating-stars";
 import { cn } from "@/lib/utils";
 import { addCsrfHeader } from "@/lib/csrf";
-import { useTranslation } from "react-i18next";
 
 interface ReviewProps {
     id: string;
@@ -35,7 +34,6 @@ export function ReviewCard({
     isHelpfulLoading,
     className,
 }: ReviewCardProps) {
-  const { t } = useTranslation("pages");
     const handleHelpfulClick = async () => {
         if (onHelpfulClick) {
             onHelpfulClick(review.id);
@@ -82,7 +80,7 @@ export function ReviewCard({
                                         className="text-[10px] h-5 gap-1 px-1.5 bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400"
                                     >
                                         <ShieldCheck className="w-3 h-3" />
-                                        {t("review-card.s1")}
+                                        شراء مؤكد
                                     </Badge>
                                 )}
                             </div>
@@ -118,7 +116,7 @@ export function ReviewCard({
                                         <div className="relative w-20 h-20 rounded-lg overflow-hidden cursor-pointer group">
                                             <img
                                                 src={img.url}
-                                                alt={t("review-card.s2")}
+                                                alt="صورة المراجعة"
                                                 className="object-cover w-full h-full transition-transform group-hover:scale-110"
                                             />
                                             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
@@ -127,7 +125,7 @@ export function ReviewCard({
                                     <DialogContent className="max-w-3xl border-none bg-transparent shadow-none p-0">
                                         <img
                                             src={img.url}
-                                            alt={t("review-card.s2")}
+                                            alt="صورة المراجعة"
                                             className="rounded-lg w-full h-auto max-h-[80vh] object-contain"
                                         />
                                     </DialogContent>
@@ -150,7 +148,7 @@ export function ReviewCard({
                         )}
                     >
                         <ThumbsUp className="w-3.5 h-3.5" />
-                        <span>{t("review-card.s3")}</span>
+                        <span>مفيد</span>
                         {(review.helpfulCount ?? 0) > 0 && (
                             <span className="bg-muted px-1.5 py-0.5 rounded-full text-[10px]">
                                 {review.helpfulCount}

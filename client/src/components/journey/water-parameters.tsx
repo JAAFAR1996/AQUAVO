@@ -4,7 +4,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
 import { Droplets, Thermometer, TestTube, Package, AlertCircle } from "lucide-react";
 import { WizardData } from "@/types/journey";
-import { useTranslation } from "react-i18next";
 
 interface WaterParametersProps {
     wizardData: WizardData;
@@ -12,43 +11,42 @@ interface WaterParametersProps {
 }
 
 export function WaterParameters({ wizardData, updateData }: WaterParametersProps) {
-  const { t } = useTranslation("tools");
     return (
         <Card className="border-2">
             <CardContent className="p-6 md:p-8 space-y-8">
                 <div className="space-y-2">
                     <h2 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-2">
                         <Droplets className="h-7 w-7 text-primary" />
-                        {t("water-parameters.s1")}
+                        إعداد المياه
                     </h2>
                     <p className="text-muted-foreground text-lg">
-                        {t("water-parameters.s2")}
+                        جودة المياه هي أهم عامل لصحة الأسماك
                     </p>
                 </div>
 
                 {/* Water Source */}
                 <div className="space-y-4">
-                    <Label className="text-lg font-bold">{t("water-parameters.s3")}</Label>
+                    <Label className="text-lg font-bold">مصدر المياه</Label>
                     <RadioGroup value={wizardData.waterSource} onValueChange={(val) => updateData("waterSource", val)}>
                         <div className="grid grid-cols-1 gap-4">
                             {[
                                 {
                                     value: "tap",
-                                    label: t("water-parameters.s4"),
-                                    desc: t("water-parameters.s5"),
-                                    note: t("water-parameters.s6")
+                                    label: "ماء الصنبور",
+                                    desc: "الأكثر شيوعاً - يحتاج معالج كلور",
+                                    note: "سهل ومتوفر"
                                 },
                                 {
                                     value: "ro",
-                                    label: t("water-parameters.s7"),
-                                    desc: t("water-parameters.s8"),
-                                    note: t("water-parameters.s9")
+                                    label: "ماء RO (التناضح العكسي)",
+                                    desc: "نقي جداً - مثالي للأسماك الحساسة",
+                                    note: "يحتاج إعادة معادن"
                                 },
                                 {
                                     value: "well",
-                                    label: t("water-parameters.s10"),
-                                    desc: t("water-parameters.s11"),
-                                    note: t("water-parameters.s12")
+                                    label: "ماء البئر",
+                                    desc: "يحتاج اختبار للمعادن الثقيلة",
+                                    note: "افحص الجودة أولاً"
                                 }
                             ].map((option) => (
                                 <div key={option.value}>
@@ -76,28 +74,28 @@ export function WaterParameters({ wizardData, updateData }: WaterParametersProps
                     <div className="bg-muted/30 rounded-xl p-4 space-y-2">
                         <div className="font-bold text-sm flex items-center gap-2">
                             <TestTube className="h-4 w-4 text-primary" />
-                            {t("water-parameters.s13")}
+                            pH المثالي
                         </div>
                         <div className="text-2xl font-bold text-primary">6.5-7.5</div>
-                        <div className="text-xs text-muted-foreground">{t("water-parameters.s14")}</div>
+                        <div className="text-xs text-muted-foreground">للأسماك الاستوائية</div>
                     </div>
 
                     <div className="bg-muted/30 rounded-xl p-4 space-y-2">
                         <div className="font-bold text-sm flex items-center gap-2">
                             <Thermometer className="h-4 w-4 text-primary" />
-                            {t("water-parameters.s15")}
+                            درجة الحرارة
                         </div>
                         <div className="text-2xl font-bold text-primary">24-26°C</div>
-                        <div className="text-xs text-muted-foreground">{t("water-parameters.s16")}</div>
+                        <div className="text-xs text-muted-foreground">نطاق آمن</div>
                     </div>
 
                     <div className="bg-muted/30 rounded-xl p-4 space-y-2">
                         <div className="font-bold text-sm flex items-center gap-2">
                             <Droplets className="h-4 w-4 text-primary" />
-                            {t("water-parameters.s17")}
+                            تغيير الماء
                         </div>
                         <div className="text-2xl font-bold text-primary">25%</div>
-                        <div className="text-xs text-muted-foreground">{t("water-parameters.s18")}</div>
+                        <div className="text-xs text-muted-foreground">كل أسبوع</div>
                     </div>
                 </div>
 
@@ -105,13 +103,13 @@ export function WaterParameters({ wizardData, updateData }: WaterParametersProps
                 <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4">
                     <div className="flex items-center gap-2 mb-3">
                         <Package className="h-5 w-5 text-amber-500" />
-                        <div className="font-bold text-foreground">{t("water-parameters.s19")}</div>
+                        <div className="font-bold text-foreground">منتجات أساسية للمياه</div>
                     </div>
                     <ul className="text-sm text-muted-foreground space-y-2 list-disc list-inside">
-                        <li><strong>{t("water-parameters.s20")}</strong> {t("water-parameters.s21")}</li>
-                        <li><strong>{t("water-parameters.s22")}</strong> {t("water-parameters.s23")}</li>
-                        <li><strong>{t("water-parameters.s24")}</strong> {t("water-parameters.s25")}</li>
-                        <li><strong>{t("water-parameters.s26")}</strong> {t("water-parameters.s27")}</li>
+                        <li><strong>معالج الكلور:</strong> ضروري لماء الصنبور (مثل Seachem Prime)</li>
+                        <li><strong>بكتيريا مفيدة:</strong> تسريع دورة النيتروجين</li>
+                        <li><strong>اختبار المياه:</strong> لقياس الأمونيا والنيترات والنيتريت</li>
+                        <li><strong>منظم pH:</strong> إذا كان الماء حمضي/قلوي جداً</li>
                     </ul>
                 </div>
 
@@ -119,9 +117,10 @@ export function WaterParameters({ wizardData, updateData }: WaterParametersProps
                 <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 flex gap-3">
                     <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-1" />
                     <div>
-                        <div className="font-bold text-foreground mb-1 text-right">{t("water-parameters.s28")}</div>
+                        <div className="font-bold text-foreground mb-1 text-right">تحذير حيوي</div>
                         <p className="text-sm text-muted-foreground text-right">
-                            <strong>{t("water-parameters.s29")}</strong> {t("water-parameters.s30")}
+                            <strong>لا تضف الأسماك مباشرة.</strong> يجب أن يكتمل تدوير الحوض أولاً (الخطوة التالية).
+                            إضافة الأسماك بدون تدوير كامل قد تسبب تسممها بالأمونيا.
                         </p>
                     </div>
                 </div>

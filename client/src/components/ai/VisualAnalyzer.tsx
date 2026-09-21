@@ -11,8 +11,6 @@ import {
   Activity,
   Settings,
 } from "lucide-react";
-import { useTranslation } from "react-i18next";
-import { i18next } from "@/i18n";
 
 interface AnalysisResult {
   id: string;
@@ -30,36 +28,35 @@ interface AnalysisResult {
 const analysisTypes = [
   {
     value: "fish",
-    label: i18next.t("tools:VisualAnalyzer.s1"),
+    label: "تحليل الأسماك",
     icon: Fish,
-    description: i18next.t("tools:VisualAnalyzer.s2"),
+    description: "تعرف على أنواع الأسماك وحالتها الصحية",
     color: "text-blue-500",
   },
   {
     value: "tank",
-    label: i18next.t("tools:VisualAnalyzer.s3"),
+    label: "تحليل الحوض",
     icon: Droplets,
-    description: i18next.t("tools:VisualAnalyzer.s4"),
+    description: "تقييم جودة الحوض والإضاءة والفلترة",
     color: "text-cyan-500",
   },
   {
     value: "problem",
-    label: i18next.t("tools:VisualAnalyzer.s5"),
+    label: "كشف المشاكل",
     icon: AlertCircle,
-    description: i18next.t("tools:VisualAnalyzer.s6"),
+    description: "اكتشف مشاكل الماء والطحالب والأمراض",
     color: "text-yellow-500",
   },
   {
     value: "health",
-    label: i18next.t("tools:VisualAnalyzer.s7"),
+    label: "الفحص الصحي",
     icon: Activity,
-    description: i18next.t("tools:VisualAnalyzer.s8"),
+    description: "تشخيص الأمراض والعلاج المقترح",
     color: "text-red-500",
   },
 ];
 
 export default function VisualAnalyzer() {
-  const { t } = useTranslation("tools");
   const [selectedType, setSelectedType] = useState<string>("fish");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -78,7 +75,7 @@ export default function VisualAnalyzer() {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || t("VisualAnalyzer.s9"));
+        throw new Error(error.error || "فشل التحليل");
       }
 
       return response.json();
@@ -99,7 +96,7 @@ export default function VisualAnalyzer() {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || t("VisualAnalyzer.s9"));
+        throw new Error(error.error || "فشل التحليل");
       }
 
       return response.json();
@@ -144,10 +141,10 @@ export default function VisualAnalyzer() {
       {/* Header */}
       <div className="text-center">
         <h1 className="text-4xl font-bold text-gray-900 mb-4">
-          {t("VisualAnalyzer.s10")}
+          🔍 محلل الصور الذكي
         </h1>
         <p className="text-lg text-gray-600">
-          {t("VisualAnalyzer.s11")}
+          استخدم الذكاء الاصطناعي لتحليل صور أسماكك وأحواضك واكتشاف المشاكل
         </p>
       </div>
 
@@ -182,14 +179,14 @@ export default function VisualAnalyzer() {
             onClick={() => setUseUrl(!useUrl)}
             className="text-sm font-medium text-blue-600 hover:text-blue-700"
           >
-            {useUrl ? t("VisualAnalyzer.s12") : t("VisualAnalyzer.s13")}
+            {useUrl ? "استخدام رفع ملف" : "استخدام رابط URL"}
           </button>
         </div>
 
         {useUrl ? (
           <div className="space-y-4">
             <label className="block text-sm font-medium text-gray-700">
-              {t("VisualAnalyzer.s14")}
+              رابط الصورة
             </label>
             <input
               type="url"
@@ -236,10 +233,10 @@ export default function VisualAnalyzer() {
               >
                 <Upload className="w-12 h-12 text-gray-400 mb-4" />
                 <p className="text-lg font-medium text-gray-700">
-                  {t("VisualAnalyzer.s15")}
+                  انقر لرفع صورة
                 </p>
                 <p className="text-sm text-gray-500 mt-2">
-                  {t("VisualAnalyzer.s16")}
+                  PNG, JPG, GIF حتى 5MB
                 </p>
               </button>
             )}
@@ -256,12 +253,12 @@ export default function VisualAnalyzer() {
           {isAnalyzing ? (
             <>
               <Loader2 className="w-5 h-5 animate-spin" />
-              {t("VisualAnalyzer.s17")}
+              جاري التحليل...
             </>
           ) : (
             <>
               <Settings className="w-5 h-5" />
-              {t("VisualAnalyzer.s18")}
+              تحليل الصورة
             </>
           )}
         </button>
@@ -274,10 +271,10 @@ export default function VisualAnalyzer() {
             <AlertCircle className="w-6 h-6 text-red-600 flex-shrink-0 mt-1" />
             <div>
               <h3 className="text-lg font-semibold text-red-900 mb-2">
-                {t("VisualAnalyzer.s9")}
+                فشل التحليل
               </h3>
               <p className="text-red-700">
-                {error.message || t("VisualAnalyzer.s19")}
+                {error.message || "حدث خطأ أثناء التحليل"}
               </p>
             </div>
           </div>
@@ -290,7 +287,7 @@ export default function VisualAnalyzer() {
           <div className="flex items-center gap-3 mb-6">
             <CheckCircle2 className="w-8 h-8 text-green-600" />
             <h2 className="text-2xl font-bold text-gray-900">
-              {t("VisualAnalyzer.s20")}
+              نتائج التحليل
             </h2>
             <span className="text-sm text-gray-500 mr-auto">
               {analysisResult.processingTimeMs}ms
@@ -300,7 +297,7 @@ export default function VisualAnalyzer() {
           {/* Detected Items */}
           <div>
             <h3 className="font-semibold text-lg text-gray-900 mb-3">
-              {t("VisualAnalyzer.s21")}
+              تم اكتشاف:
             </h3>
             <div className="flex flex-wrap gap-2">
               {analysisResult.analysis.detected.map((item: string, idx: number) => (
@@ -317,7 +314,7 @@ export default function VisualAnalyzer() {
           {/* Confidence */}
           <div>
             <h3 className="font-semibold text-lg text-gray-900 mb-3">
-              {t("VisualAnalyzer.s22")}
+              مستوى الثقة:
             </h3>
             <div className="w-full bg-gray-200 rounded-full h-4">
               <div
@@ -335,7 +332,7 @@ export default function VisualAnalyzer() {
           {/* Suggestions */}
           <div>
             <h3 className="font-semibold text-lg text-gray-900 mb-3">
-              {t("VisualAnalyzer.s23")}
+              الاقتراحات:
             </h3>
             <ul className="space-y-2">
               {analysisResult.analysis.suggestions.map((suggestion: string, idx: number) => (
@@ -354,7 +351,7 @@ export default function VisualAnalyzer() {
           {analysisResult.analysis.details && (
             <div>
               <h3 className="font-semibold text-lg text-gray-900 mb-3">
-                {t("VisualAnalyzer.s24")}
+                تفاصيل إضافية:
               </h3>
               <div className="bg-gray-50 rounded-lg p-4">
                 <pre className="text-sm text-gray-800 whitespace-pre-wrap font-arabic">
@@ -368,7 +365,7 @@ export default function VisualAnalyzer() {
           {analysisResult.recommendedProducts && analysisResult.recommendedProducts.length > 0 && (
             <div>
               <h3 className="font-semibold text-lg text-gray-900 mb-4">
-                {t("VisualAnalyzer.s25")}
+                منتجات موصى بها:
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
                 {analysisResult.recommendedProducts.map((product: any) => (
@@ -387,7 +384,7 @@ export default function VisualAnalyzer() {
                       {product.name}
                     </h4>
                     <p className="text-blue-600 font-semibold">
-                      {product.price} {t("VisualAnalyzer.s26")}
+                      {product.price} د.ع
                     </p>
                   </div>
                 ))}

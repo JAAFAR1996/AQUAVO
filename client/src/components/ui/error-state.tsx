@@ -2,8 +2,6 @@ import { AlertCircle, RefreshCw, Home, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "wouter";
-import { useTranslation } from "react-i18next";
-import { i18next } from "@/i18n";
 
 interface ErrorStateProps {
     title?: string;
@@ -15,16 +13,13 @@ interface ErrorStateProps {
 }
 
 export function ErrorState({
-    title,
-    description,
+    title = "حدث خطأ غير متوقع",
+    description = "نعتذر عن هذا الخطأ. يرجى المحاولة مرة أخرى.",
     showRetry = true,
     showHome = true,
     onRetry,
     children,
 }: ErrorStateProps) {
-    const { t } = useTranslation("errors");
-    title ??= t("state.title");
-    description ??= t("state.description");
     return (
         <Card className="border-destructive/30 bg-destructive/5">
             <CardContent className="p-8 text-center">
@@ -40,14 +35,14 @@ export function ErrorState({
                     {showRetry && onRetry && (
                         <Button onClick={onRetry} className="gap-2">
                             <RefreshCw className="w-4 h-4" />
-                            {t("state.retry")}
+                            إعادة المحاولة
                         </Button>
                     )}
                     {showHome && (
                         <Link href="/">
                             <Button variant="outline" className="gap-2">
                                 <Home className="w-4 h-4" />
-                                {t("state.home")}
+                                العودة للرئيسية
                             </Button>
                         </Link>
                     )}
@@ -59,24 +54,45 @@ export function ErrorState({
     );
 }
 
-// Specific error messages, resolved in the language on screen. Getters keep
-// the historical `errorMessages.notFound.title` call shape used across pages.
-const ERROR_KEYS = ["network", "notFound", "productNotFound", "orderNotFound", "server", "unauthorized", "payment", "emptyCart", "outOfStock"] as const;
-type ErrorKey = (typeof ERROR_KEYS)[number];
-type ErrorMessage = { readonly title: string; readonly description: string };
-export const errorMessages: Record<ErrorKey, ErrorMessage> = Object.fromEntries(
-    ERROR_KEYS.map((key) => [
-        key,
-        {
-            get title() {
-                return i18next.t(`errors:${key}.title`);
-            },
-            get description() {
-                return i18next.t(`errors:${key}.description`);
-            },
-        },
-    ]),
-) as Record<ErrorKey, ErrorMessage>;
+// Specific error messages
+export const errorMessages = {
+    network: {
+        title: "مشكلة في الاتصال",
+        description: "تعذر الاتصال بالخادم. تأكد من اتصالك بالإنترنت وحاول مرة أخرى.",
+    },
+    notFound: {
+        title: "الصفحة غير موجودة",
+        description: "لم نتمكن من العثور على الصفحة المطلوبة. ربما تم نقلها أو حذفها.",
+    },
+    productNotFound: {
+        title: "المنتج غير متوفر",
+        description: "لم نتمكن من العثور على هذا المنتج. ربما تم إزالته أو أن الرابط غير صحيح.",
+    },
+    orderNotFound: {
+        title: "الطلب غير موجود",
+        description: "لم نتمكن من العثور على هذا الطلب. تأكد من رقم الطلب المدخل.",
+    },
+    serverError: {
+        title: "خطأ في الخادم",
+        description: "حدث خطأ أثناء معالجة طلبك. فريقنا التقني يعمل على إصلاحه.",
+    },
+    unauthorized: {
+        title: "غير مصرح",
+        description: "يجب تسجيل الدخول للوصول إلى هذه الصفحة.",
+    },
+    paymentFailed: {
+        title: "فشل الدفع",
+        description: "لم تتم عملية الدفع. يرجى التحقق من بيانات الدفع والمحاولة مرة أخرى.",
+    },
+    cartEmpty: {
+        title: "سلة التسوق فارغة",
+        description: "أضف بعض المنتجات إلى سلتك للمتابعة.",
+    },
+    outOfStock: {
+        title: "نفدت الكمية",
+        description: "للأسف هذا المنتج غير متوفر حالياً. يمكنك الاشتراك للإشعار عند توفره.",
+    },
+};
 
 // Hook for handling errors
 export function useErrorMessage(errorType: keyof typeof errorMessages) {

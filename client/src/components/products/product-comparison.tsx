@@ -68,7 +68,7 @@ function getCompareSpecs(p: Product): Record<string, string> {
         if (Array.isArray(value)) continue;
         if (value === null || value === undefined || value === "") continue;
         out[key] = typeof value === "boolean"
-            ? (value ? i18next.t("pages:product-comparison.s1") : i18next.t("pages:product-comparison.s2"))
+            ? (value ? "نعم ✓" : "لا ✗")
             : typeof value === "object"
                 ? JSON.stringify(value)
                 : String(value);
@@ -79,8 +79,6 @@ function getCompareSpecs(p: Product): Record<string, string> {
 // Re-export useComparison from context for backward compatibility
 export { useComparison } from "@/contexts/comparison-context";
 import { useComparison } from "@/contexts/comparison-context";
-import { useTranslation } from "react-i18next";
-import { i18next } from "@/i18n";
 
 const MAX_COMPARE = 4;
 
@@ -96,7 +94,6 @@ export function CompareButton({
     variant = "icon",
     className,
 }: CompareButtonProps) {
-  const { t: tr } = useTranslation("pages");
     const { addToCompare, removeFromCompare, isInCompare, canAdd } =
         useComparison();
     const { toast } = useToast();
@@ -113,8 +110,8 @@ export function CompareButton({
         } else {
             if (!canAdd) {
                 toast({
-                    title: tr("product-comparison.s3"),
-                    description: tr("product-comparison.s4", { v0: MAX_COMPARE }),
+                    title: "الحد الأقصى للمقارنة",
+                    description: `يمكنك مقارنة ${MAX_COMPARE} منتجات كحد أقصى`,
                     variant: "destructive",
                 });
                 return;
@@ -151,9 +148,9 @@ export function CompareButton({
                 size="icon"
                 className={cn("h-9 w-9 transition-all", inCompare && "bg-primary scale-110", className)}
                 onClick={handleToggle}
-                aria-label={inCompare ? tr("product-comparison.s5") : tr("product-comparison.s6")}
+                aria-label={inCompare ? "إزالة من المقارنة" : "إضافة للمقارنة"}
                 aria-pressed={inCompare}
-                title={inCompare ? tr("product-comparison.s5") : tr("product-comparison.s6")}
+                title={inCompare ? "إزالة من المقارنة" : "إضافة للمقارنة"}
             >
                 <Scale className="w-4 h-4" aria-hidden="true" />
             </Button>
@@ -170,12 +167,12 @@ export function CompareButton({
             {inCompare ? (
                 <>
                     <Check className="w-4 h-4" />
-                    {tr("product-comparison.s7")}
+                    في المقارنة
                 </>
             ) : (
                 <>
                     <Scale className="w-4 h-4" />
-                    {tr("product-comparison.s8")}
+                    قارن
                 </>
             )}
         </Button>
@@ -193,7 +190,6 @@ interface ComparisonDrawerProps {
 }
 
 export function ComparisonDrawer({ products }: ComparisonDrawerProps) {
-  const { t: tr } = useTranslation("pages");
     const { compareIds, removeFromCompare, clearCompare } = useComparison();
     const [expanded, setExpanded] = useState(false);
     const reduceMotion = useReducedMotion();
@@ -254,18 +250,18 @@ export function ComparisonDrawer({ products }: ComparisonDrawerProps) {
                                 <div className="flex items-center justify-between px-4 pt-3 pb-2">
                                     <span className="text-sm font-bold flex items-center gap-2">
                                         <Scale className="w-4 h-4 text-primary" />
-                                        {tr("product-comparison.s9")}{count}/{MAX_COMPARE})
+                                        المقارنة ({count}/{MAX_COMPARE})
                                     </span>
                                     <div className="flex items-center gap-1">
                                         <Button variant="ghost" size="sm" className="text-xs h-8" onClick={clearCompare}>
-                                            {tr("product-comparison.s10")}
+                                            مسح الكل
                                         </Button>
                                         <Button
                                             variant="ghost"
                                             size="icon"
                                             className="h-8 w-8"
                                             onClick={() => setExpanded(false)}
-                                            aria-label={tr("product-comparison.s11")}
+                                            aria-label="تصغير"
                                         >
                                             <X className="w-4 h-4" />
                                         </Button>
@@ -294,7 +290,7 @@ export function ComparisonDrawer({ products }: ComparisonDrawerProps) {
                                                 <button
                                                     onClick={() => removeFromCompare(product.id)}
                                                     className="absolute -top-1.5 -right-1.5 w-6 h-6 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center shadow-md active:scale-90 transition-transform"
-                                                    aria-label={tr("product-comparison.s12", { v0: product.name })}
+                                                    aria-label={`إزالة ${product.name}`}
                                                 >
                                                     <X className="w-3.5 h-3.5" />
                                                 </button>
@@ -311,7 +307,7 @@ export function ComparisonDrawer({ products }: ComparisonDrawerProps) {
                                 <div className="px-4 pb-4">
                                     <Link href="/compare">
                                         <Button className="w-full gap-2 h-12 rounded-2xl text-base font-bold shadow-lg shadow-primary/20">
-                                            {tr("product-comparison.s13")}
+                                            عرض المقارنة
                                             <ArrowRight className="w-5 h-5" />
                                         </Button>
                                     </Link>
@@ -323,7 +319,7 @@ export function ComparisonDrawer({ products }: ComparisonDrawerProps) {
                                 layout
                                 onClick={() => setExpanded(true)}
                                 className="mx-auto flex items-center gap-3 rounded-full border border-primary/25 bg-card/95 backdrop-blur-xl shadow-2xl shadow-primary/15 ps-2 pe-4 py-2 active:scale-[0.97] transition-transform"
-                                aria-label={tr("product-comparison.s14", { v0: count })}
+                                aria-label={`فتح المقارنة (${count})`}
                             >
                                 {/* Stacked thumbnails */}
                                 <span className="flex items-center">
@@ -342,7 +338,7 @@ export function ComparisonDrawer({ products }: ComparisonDrawerProps) {
                                 </span>
                                 <span className="flex items-center gap-1.5 text-sm font-bold">
                                     <Scale className="w-4 h-4 text-primary" />
-                                    {tr("product-comparison.s8")}
+                                    قارن
                                     <span className="inline-flex items-center justify-center min-w-5 h-5 px-1 rounded-full bg-primary text-primary-foreground text-xs">
                                         {count}
                                     </span>
@@ -367,7 +363,6 @@ export function ProductComparisonTable({
     products,
     onRemove,
 }: ProductComparisonTableProps) {
-  const { t: tr } = useTranslation("pages");
     const { addItem } = useCart();
     const { toast } = useToast();
 
@@ -375,7 +370,7 @@ export function ProductComparisonTable({
         const ok = await addItem(product);
         if (!ok) return;
         toast({
-            title: tr("product-comparison.s15"),
+            title: "تمت الإضافة للسلة",
             description: product.name,
         });
     };
@@ -385,12 +380,12 @@ export function ProductComparisonTable({
             <Card className="text-center py-12">
                 <CardContent>
                     <Scale className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-                    <h3 className="text-lg font-medium mb-2">{tr("product-comparison.s16")}</h3>
+                    <h3 className="text-lg font-medium mb-2">لا توجد منتجات للمقارنة</h3>
                     <p className="text-muted-foreground mb-4">
-                        {tr("product-comparison.s17")}
+                        أضف منتجات من صفحة المنتجات للمقارنة بينها
                     </p>
                     <Link href="/products">
-                        <Button>{tr("product-comparison.s18")}</Button>
+                        <Button>تصفح المنتجات</Button>
                     </Link>
                 </CardContent>
             </Card>
@@ -402,10 +397,10 @@ export function ProductComparisonTable({
     const allSpecKeys = Array.from(new Set(specMaps.flatMap((m) => Object.keys(m))));
 
     const difficultyLabels: Record<string, string> = {
-        easy: tr("product-comparison.s19"),
-        medium: tr("product-comparison.s20"),
-        hard: tr("product-comparison.s21"),
-        expert: tr("product-comparison.s22"),
+        easy: "سهل",
+        medium: "متوسط",
+        hard: "صعب",
+        expert: "خبير",
     };
 
     return (
@@ -413,7 +408,7 @@ export function ProductComparisonTable({
             <Table>
                 <TableHeader>
                     <TableRow>
-                        <TableHead className="w-40">{tr("product-comparison.s23")}</TableHead>
+                        <TableHead className="w-40">المنتج</TableHead>
                         {products.map((product) => (
                             <TableHead key={product.id} className="min-w-[200px]">
                                 <div className="relative">
@@ -449,7 +444,7 @@ export function ProductComparisonTable({
                 <TableBody>
                     {/* Price Row — real prices, with discount + "starting from" for variants */}
                     <TableRow>
-                        <TableCell className="font-medium">{tr("product-comparison.s24")}</TableCell>
+                        <TableCell className="font-medium">السعر</TableCell>
                         {products.map((product) => {
                             const { price, original, fromVariant } = getComparePrice(product);
                             return (
@@ -457,7 +452,7 @@ export function ProductComparisonTable({
                                     {price > 0 ? (
                                         <div className="flex flex-col items-center">
                                             {fromVariant && (
-                                                <span className="text-[10px] text-muted-foreground">{tr("product-comparison.s25")}</span>
+                                                <span className="text-[10px] text-muted-foreground">يبدأ من</span>
                                             )}
                                             <span className="font-bold text-lg text-primary">{formatPrice(price)}</span>
                                             {original && (
@@ -476,7 +471,7 @@ export function ProductComparisonTable({
 
                     {/* Rating Row */}
                     <TableRow>
-                        <TableCell className="font-medium">{tr("product-comparison.s26")}</TableCell>
+                        <TableCell className="font-medium">التقييم</TableCell>
                         {products.map((product) => (
                             <TableCell key={product.id} className="text-center">
                                 {(product.reviewCount ?? 0) > 0 ? (
@@ -488,7 +483,7 @@ export function ProductComparisonTable({
                                         </span>
                                     </div>
                                 ) : (
-                                    <span className="text-muted-foreground text-sm">{tr("product-comparison.s27")}</span>
+                                    <span className="text-muted-foreground text-sm">لا توجد تقييمات</span>
                                 )}
                             </TableCell>
                         ))}
@@ -496,7 +491,7 @@ export function ProductComparisonTable({
 
                     {/* Brand Row */}
                     <TableRow>
-                        <TableCell className="font-medium">{tr("product-comparison.s28")}</TableCell>
+                        <TableCell className="font-medium">العلامة التجارية</TableCell>
                         {products.map((product) => (
                             <TableCell key={product.id} className="text-center">
                                 {product.brand || "-"}
@@ -506,7 +501,7 @@ export function ProductComparisonTable({
 
                     {/* Category Row */}
                     <TableRow>
-                        <TableCell className="font-medium">{tr("product-comparison.s29")}</TableCell>
+                        <TableCell className="font-medium">الفئة</TableCell>
                         {products.map((product) => (
                             <TableCell key={product.id} className="text-center">
                                 <div className="flex flex-col items-center gap-1">
@@ -521,7 +516,7 @@ export function ProductComparisonTable({
 
                     {/* Stock Row */}
                     <TableRow>
-                        <TableCell className="font-medium">{tr("product-comparison.s30")}</TableCell>
+                        <TableCell className="font-medium">التوفر</TableCell>
                         {products.map((product) => {
                             const stock = product.hasVariants && product.variants?.length
                                 ? product.variants.reduce((sum, v) => sum + (v.stock ?? 0), 0)
@@ -529,9 +524,9 @@ export function ProductComparisonTable({
                             return (
                                 <TableCell key={product.id} className="text-center">
                                     {stock > 0 ? (
-                                        <Badge className="bg-green-500">{tr("product-comparison.s31")}{stock <= 5 ? ` (${stock})` : ""}</Badge>
+                                        <Badge className="bg-green-500">متوفر{stock <= 5 ? ` (${stock})` : ""}</Badge>
                                     ) : (
-                                        <Badge variant="destructive">{tr("product-comparison.s32")}</Badge>
+                                        <Badge variant="destructive">غير متوفر</Badge>
                                     )}
                                 </TableCell>
                             );
@@ -541,7 +536,7 @@ export function ProductComparisonTable({
                     {/* Difficulty Row — only when at least one product has it */}
                     {products.some((p) => p.difficulty) && (
                         <TableRow>
-                            <TableCell className="font-medium">{tr("product-comparison.s33")}</TableCell>
+                            <TableCell className="font-medium">مستوى الصعوبة</TableCell>
                             {products.map((product) => (
                                 <TableCell key={product.id} className="text-center">
                                     {product.difficulty
@@ -567,7 +562,7 @@ export function ProductComparisonTable({
                     {/* Description Row */}
                     {products.some((p) => p.description) && (
                         <TableRow>
-                            <TableCell className="font-medium align-top">{tr("product-comparison.s34")}</TableCell>
+                            <TableCell className="font-medium align-top">الوصف</TableCell>
                             {products.map((product) => (
                                 <TableCell key={product.id} className="text-sm text-muted-foreground align-top text-right">
                                     {product.description
@@ -580,18 +575,18 @@ export function ProductComparisonTable({
 
                     {/* Badges Row */}
                     <TableRow>
-                        <TableCell className="font-medium">{tr("product-comparison.s35")}</TableCell>
+                        <TableCell className="font-medium">مميزات</TableCell>
                         {products.map((product) => (
                             <TableCell key={product.id} className="text-center">
                                 <div className="flex flex-wrap gap-1 justify-center">
                                     {product.isNew && (
-                                        <Badge className="bg-blue-500">{tr("product-comparison.s36")}</Badge>
+                                        <Badge className="bg-blue-500">جديد</Badge>
                                     )}
                                     {product.isBestSeller && (
-                                        <Badge className="bg-amber-500">{tr("product-comparison.s37")}</Badge>
+                                        <Badge className="bg-amber-500">الأكثر مبيعاً</Badge>
                                     )}
                                     {product.ecoFriendly && (
-                                        <Badge className="bg-green-600">{tr("product-comparison.s38")}</Badge>
+                                        <Badge className="bg-green-600">صديق للبيئة</Badge>
                                     )}
                                     {!product.isNew && !product.isBestSeller && !product.ecoFriendly && (
                                         <span className="text-muted-foreground">-</span>
@@ -603,7 +598,7 @@ export function ProductComparisonTable({
 
                     {/* Add to Cart Row */}
                     <TableRow>
-                        <TableCell className="font-medium">{tr("product-comparison.s39")}</TableCell>
+                        <TableCell className="font-medium">الإجراء</TableCell>
                         {products.map((product) => {
                             const stock = product.hasVariants && product.variants?.length
                                 ? product.variants.reduce((sum, v) => sum + (v.stock ?? 0), 0)
@@ -615,7 +610,7 @@ export function ProductComparisonTable({
                                         <Link href={`/products/${product.slug}`}>
                                             <Button variant="outline" className="gap-2" disabled={stock <= 0}>
                                                 <ArrowRight className="w-4 h-4" />
-                                                {tr("product-comparison.s40")}
+                                                اختر الخيار
                                             </Button>
                                         </Link>
                                     </TableCell>
@@ -629,7 +624,7 @@ export function ProductComparisonTable({
                                         disabled={stock <= 0}
                                     >
                                         <ShoppingCart className="w-4 h-4" />
-                                        {tr("product-comparison.s41")}
+                                        أضف للسلة
                                     </Button>
                                 </TableCell>
                             );

@@ -31,9 +31,6 @@ import { phTrackPurchase } from "@/lib/posthog";
 import { metaTrackPurchase } from "@/lib/meta-pixel";
 import { DELIVERY_DAYS } from "@/lib/constants/shipping";
 import { WhatsAppLink } from "@/components/whatsapp-link";
-import { useTranslation } from "react-i18next";
-import { isolateNumericRanges as bidi } from "@shared/i18n/bidi";
-import { i18next } from "@/i18n";
 
 interface OrderItem {
     productId: string;
@@ -71,17 +68,17 @@ interface OrderData {
 }
 
 const ORDER_STATUS_LABELS: Record<string, string> = {
-    pending: i18next.t("orders:order-confirmation.s1"),
-    confirmed: i18next.t("orders:order-confirmation.s2"),
-    processing: i18next.t("orders:order-confirmation.s3"),
-    shipped: i18next.t("orders:order-confirmation.s4"),
-    delivered: i18next.t("orders:order-confirmation.s5"),
-    cancelled: i18next.t("orders:order-confirmation.s6"),
-    rejected: i18next.t("orders:order-confirmation.s7"),
-    rejected_carrier: i18next.t("orders:order-confirmation.s8"),
-    rejected_returned: i18next.t("orders:order-confirmation.s9"),
-    returned: i18next.t("orders:order-confirmation.s10"),
-    refunded: i18next.t("orders:order-confirmation.s11"),
+    pending: "قيد الانتظار",
+    confirmed: "تم التأكيد",
+    processing: "جاري التجهيز",
+    shipped: "تم الشحن",
+    delivered: "تم التوصيل",
+    cancelled: "ملغي",
+    rejected: "مرفوض",
+    rejected_carrier: "تعذر التوصيل",
+    rejected_returned: "رجع من شركة التوصيل",
+    returned: "تم إرجاع الطلب",
+    refunded: "تم رد المبلغ",
 };
 
 const INTERRUPTED_STATUSES = new Set([
@@ -93,7 +90,7 @@ const INTERRUPTED_STATUSES = new Set([
     "refunded",
 ]);
 
-const getDeliveryEstimate = () => i18next.t("orders:order-confirmation.s12", { v0: DELIVERY_DAYS });
+const getDeliveryEstimate = () => `خلال ${DELIVERY_DAYS}`;
 
 function getOrderStage(status?: string): number {
     switch (status) {
@@ -110,24 +107,23 @@ function getOrderStage(status?: string): number {
 }
 
 function getPaymentLabel(orderData: OrderData | null): string {
-    if (orderData?.paymentMethod !== "alqaseh" && orderData?.paymentMethod !== "wayl") return i18next.t("orders:order-confirmation.s13");
+    if (orderData?.paymentMethod !== "alqaseh" && orderData?.paymentMethod !== "wayl") return "الدفع عند الاستلام";
 
     switch (orderData.paymentStatus) {
         case "paid":
-            return i18next.t("orders:order-confirmation.s14");
+            return "مدفوع إلكترونياً";
         case "failed":
         case "cancelled":
         case "expired":
-            return i18next.t("orders:order-confirmation.s15");
+            return "الدفع الإلكتروني غير مكتمل";
         case "refunded":
-            return i18next.t("orders:order-confirmation.s11");
+            return "تم رد المبلغ";
         default:
-            return i18next.t("orders:order-confirmation.s16");
+            return "الدفع الإلكتروني قيد التحقق";
     }
 }
 
 export default function OrderConfirmation() {
-  const { t } = useTranslation("orders");
     const [, params] = useRoute("/order-confirmation/:id");
     const orderId = params?.id;
 
@@ -175,7 +171,7 @@ export default function OrderConfirmation() {
         return (
             <div className="flex-1 bg-background">
                 <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8" dir="rtl">
-                    <div role="status" aria-live="polite" aria-label={t("order-confirmation.s17")} className="space-y-6">
+                    <div role="status" aria-live="polite" aria-label="جار تحميل تفاصيل الطلب" className="space-y-6">
                         <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
                             <div className="h-1.5 w-full bg-primary" />
                             <div className="p-5 sm:p-7 lg:p-8">
@@ -214,24 +210,24 @@ export default function OrderConfirmation() {
         return (
             <div className="flex-1 flex flex-col bg-background">
                 <MetaTags
-                    title={t("order-confirmation.s18")}
-                    description={t("order-confirmation.s19")}
+                    title="تحقق من حالة الطلب"
+                    description="لخصوصيتك، استخدم رقم الطلب وآخر أربعة أرقام من الهاتف للتحقق من الحالة."
                     noIndex
                 />
                 <main className="flex flex-1 items-center justify-center px-4 py-12">
                     <Card className="w-full max-w-lg border-t-4 border-t-primary">
                         <CardHeader className="text-center">
-                            <CardTitle role="heading" aria-level={1}>{t("order-confirmation.s20")}</CardTitle>
+                            <CardTitle role="heading" aria-level={1}>نحتاج نتحقق من الطلب</CardTitle>
                             <CardDescription>
-                                {t("order-confirmation.s21")}
+                                إذا فتحت الرابط بجهاز ثاني، استخدم رقم الطلب وآخر 4 أرقام من الهاتف حتى نحافظ على معلوماتك.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="flex flex-col gap-3">
                             <Button asChild className="min-h-11">
-                                <Link href="/order-tracking">{t("order-confirmation.s22")}</Link>
+                                <Link href="/order-tracking">روح لتتبع الطلب الآمن</Link>
                             </Button>
                             <Button asChild variant="outline" className="min-h-11">
-                                <Link href="/products">{t("order-confirmation.s23")}</Link>
+                                <Link href="/products">ارجع للمنتجات</Link>
                             </Button>
                         </CardContent>
                     </Card>
@@ -249,7 +245,6 @@ export default function OrderConfirmation() {
 }
 
 function ConfirmationContent({ orderId, orderData }: { orderId: string; orderData: OrderData | null }) {
-  const { t } = useTranslation("orders");
     const [copied, setCopied] = useState(false);
     const [invoiceOpen, setInvoiceOpen] = useState(false);
 
@@ -261,7 +256,7 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
     const items = orderData?.items || [];
     const loyalty = orderData?.loyalty;
     const status = orderData?.status || "pending";
-    const statusLabel = ORDER_STATUS_LABELS[status] || t("order-confirmation.s24");
+    const statusLabel = ORDER_STATUS_LABELS[status] || "حالة الطلب";
     const statusInterrupted = INTERRUPTED_STATUSES.has(status);
     const progressStage = getOrderStage(status);
     const paymentLabel = getPaymentLabel(orderData);
@@ -323,9 +318,9 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
         })
         .join("\n");
     const whatsappText =
-        t("order-confirmation.s25", { v0: displayNumber }) +
+        `مرحباً، أحتاج مساعدة بخصوص طلبي رقم ${displayNumber}\n` +
         (itemsText ? `\n${itemsText}\n` : "") +
-        (total > 0 ? t("order-confirmation.s26", { v0: formatIQD(total), v1: paymentLabel }) : "");
+        (total > 0 ? `\nالمبلغ الكلي: ${formatIQD(total)} (${paymentLabel})` : "");
 
     const pageRef = useRef<HTMLDivElement>(null);
     const heroRef = useRef<HTMLDivElement>(null);
@@ -375,18 +370,18 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
 
     const flowSteps = [
         {
-            title: t("order-confirmation.s27"),
-            description: t("order-confirmation.s28"),
+            title: "استلمنا الطلب",
+            description: "طلبك مسجّل عندنا",
             icon: CheckCircle2,
         },
         {
-            title: t("order-confirmation.s29"),
-            description: t("order-confirmation.s30"),
+            title: "التأكيد والتجهيز",
+            description: "نراجع التفاصيل ونجهز الطلب",
             icon: Package,
         },
         {
-            title: t("order-confirmation.s31"),
-            description: t("order-confirmation.s32", { v0: getDeliveryEstimate() }),
+            title: "التوصيل",
+            description: `يوصلك ${getDeliveryEstimate()}`,
             icon: Truck,
         },
     ];
@@ -394,8 +389,8 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
     return (
         <div className="flex-1 bg-background font-sans">
             <MetaTags
-                title={t("order-confirmation.s33")}
-                description={t("order-confirmation.s34")}
+                title="تم استلام طلبك"
+                description="تم تسجيل طلبك بنجاح في AQUAVO"
                 noIndex={true}
             />
 
@@ -418,20 +413,20 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
                                             {statusLabel}
                                         </div>
                                         <h1 id="order-confirmation-title" className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-                                            {t("order-confirmation.s33")}
+                                            تم استلام طلبك
                                         </h1>
                                         <p className="mt-2 max-w-xl text-sm leading-7 text-muted-foreground sm:text-base">
-                                            {t("order-confirmation.s35")}
+                                            طلبك صار ويانه. نراجعه ونجهزه، وإذا احتجنا أي توضيح نتواصل وياك مباشرة.
                                         </p>
                                         <p className="mt-1 text-xs leading-6 text-muted-foreground sm:text-sm">
-                                            {t("order-confirmation.s36")}
+                                            خلي رقم الطلب عندك؛ من زر التتبع تگدر تشوف آخر تحديث بدون ما تعيد الطلب.
                                         </p>
                                     </div>
                                 </div>
 
                                 <div className="grid gap-3 sm:grid-cols-2 lg:w-[520px] lg:shrink-0">
                                     <div className="rounded-2xl border border-border bg-muted/35 p-4">
-                                        <p className="text-xs font-medium text-muted-foreground">{t("order-confirmation.s37")}</p>
+                                        <p className="text-xs font-medium text-muted-foreground">رقم الطلب</p>
                                         <div className="mt-1.5 flex items-center justify-between gap-3">
                                             <bdi className="min-w-0 truncate font-mono text-base font-bold tracking-wide text-foreground sm:text-lg" dir="ltr">
                                                 #{displayNumber}
@@ -439,7 +434,7 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
                                             <button
                                                 type="button"
                                                 onClick={copyOrderNumber}
-                                                aria-label={copied ? t("order-confirmation.s38") : t("order-confirmation.s39")}
+                                                aria-label={copied ? "تم نسخ رقم الطلب" : "نسخ رقم الطلب"}
                                                 className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-border bg-background text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                                             >
                                                 {copied ? <Check className="h-4 w-4 text-primary" /> : <Copy className="h-4 w-4" />}
@@ -453,9 +448,9 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
                                                 <Clock className="h-5 w-5" aria-hidden="true" />
                                             </span>
                                             <div>
-                                                <p className="text-xs font-medium text-muted-foreground">{t("order-confirmation.s40")}</p>
+                                                <p className="text-xs font-medium text-muted-foreground">التوصيل المتوقع</p>
                                                 <p className="mt-0.5 text-base font-bold text-foreground">{getDeliveryEstimate()}</p>
-                                                {createdAtLabel && <p className="mt-0.5 text-xs text-muted-foreground">{t("order-confirmation.s41")} {createdAtLabel}</p>}
+                                                {createdAtLabel && <p className="mt-0.5 text-xs text-muted-foreground">سُجّل {createdAtLabel}</p>}
                                             </div>
                                         </div>
                                     </div>
@@ -470,11 +465,11 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
                                 <section aria-labelledby="order-items-title" className="rounded-3xl border border-border bg-card p-5 shadow-sm sm:p-6">
                                     <div className="mb-4 flex items-center justify-between gap-4">
                                         <div>
-                                            <h2 id="order-items-title" className="text-lg font-bold text-foreground sm:text-xl">{t("order-confirmation.s42")}</h2>
-                                            <p className="mt-1 text-sm text-muted-foreground">{t("order-confirmation.s43")}</p>
+                                            <h2 id="order-items-title" className="text-lg font-bold text-foreground sm:text-xl">تفاصيل الطلب</h2>
+                                            <p className="mt-1 text-sm text-muted-foreground">المنتجات المسجلة ضمن هذا الطلب</p>
                                         </div>
                                         <span className="shrink-0 rounded-full bg-muted px-3 py-1.5 text-xs font-semibold text-muted-foreground">
-                                            {items.length} {items.length === 1 ? t("order-confirmation.s44") : t("order-confirmation.s45")}
+                                            {items.length} {items.length === 1 ? "منتج" : "منتجات"}
                                         </span>
                                     </div>
 
@@ -489,7 +484,7 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
                                                     {item.image ? (
                                                         <img
                                                             src={item.image}
-                                                            alt={item.productName || t("order-confirmation.s46")}
+                                                            alt={item.productName || "صورة المنتج"}
                                                             className="h-full w-full object-cover"
                                                             loading="lazy"
                                                         />
@@ -499,13 +494,13 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
                                                 </div>
                                                 <div className="min-w-0 flex-1">
                                                     <p className="text-sm font-semibold leading-6 text-foreground sm:text-base">
-                                                        {bidi(item.productName || item.productId)}
+                                                        {item.productName || item.productId}
                                                     </p>
                                                     <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-muted-foreground sm:text-sm">
                                                         {item.variantLabel && (
                                                             <span className="rounded-lg border border-border bg-background px-2 py-1">{item.variantLabel}</span>
                                                         )}
-                                                        <span>{t("order-confirmation.s47")} {item.quantity}</span>
+                                                        <span>الكمية: {item.quantity}</span>
                                                     </div>
                                                 </div>
                                                 {item.priceAtPurchase != null && (
@@ -521,31 +516,31 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
 
                             <section ref={factsRef} aria-labelledby="delivery-details-title" className="rounded-3xl border border-border bg-card p-5 shadow-sm sm:p-6">
                                 <div className="mb-4">
-                                    <h2 id="delivery-details-title" className="text-lg font-bold text-foreground sm:text-xl">{t("order-confirmation.s48")}</h2>
-                                    <p className="mt-1 text-sm text-muted-foreground">{t("order-confirmation.s49")}</p>
+                                    <h2 id="delivery-details-title" className="text-lg font-bold text-foreground sm:text-xl">التوصيل والاستلام</h2>
+                                    <p className="mt-1 text-sm text-muted-foreground">راجع المعلومات الأساسية قبل ما يطلع الطلب للتوصيل</p>
                                 </div>
                                 <div className="grid gap-3 sm:grid-cols-2">
-                                    <Fact icon={<Wallet className="h-5 w-5" />} label={t("order-confirmation.s50")} value={paymentLabel} />
-                                    <Fact icon={<Clock className="h-5 w-5" />} label={t("order-confirmation.s40")} value={getDeliveryEstimate()} />
-                                    {customerName && <Fact icon={<User className="h-5 w-5" />} label={t("order-confirmation.s51")} value={customerName} sensitive />}
-                                    {customerPhone && <Fact icon={<Phone className="h-5 w-5" />} label={t("order-confirmation.s52")} value={customerPhone} ltr sensitive />}
-                                    {address && <Fact icon={<MapPin className="h-5 w-5" />} label={t("order-confirmation.s53")} value={address} full sensitive />}
+                                    <Fact icon={<Wallet className="h-5 w-5" />} label="طريقة الدفع" value={paymentLabel} />
+                                    <Fact icon={<Clock className="h-5 w-5" />} label="التوصيل المتوقع" value={getDeliveryEstimate()} />
+                                    {customerName && <Fact icon={<User className="h-5 w-5" />} label="المستلم" value={customerName} sensitive />}
+                                    {customerPhone && <Fact icon={<Phone className="h-5 w-5" />} label="رقم الهاتف" value={customerPhone} ltr sensitive />}
+                                    {address && <Fact icon={<MapPin className="h-5 w-5" />} label="عنوان التوصيل" value={address} full sensitive />}
                                 </div>
                             </section>
 
                             <section aria-labelledby="next-steps-title" className="rounded-3xl border border-border bg-card p-5 shadow-sm sm:p-6">
                                 <div className="mb-4">
-                                    <h2 id="next-steps-title" className="text-lg font-bold text-foreground sm:text-xl">{t("order-confirmation.s54")}</h2>
+                                    <h2 id="next-steps-title" className="text-lg font-bold text-foreground sm:text-xl">شنو يصير هسه؟</h2>
                                     <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                                        {t("order-confirmation.s55")}
+                                        نحدث حالة الطلب كلما ينتقل للمرحلة التالية، وتگدر ترجع لصفحة التتبع بأي وقت.
                                     </p>
                                 </div>
 
                                 {statusInterrupted ? (
                                     <div className="rounded-2xl border border-destructive/20 bg-destructive/5 p-4">
-                                        <p className="font-semibold text-foreground">{t("order-confirmation.s56")} {statusLabel}</p>
+                                        <p className="font-semibold text-foreground">حالة الطلب الحالية: {statusLabel}</p>
                                         <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                                            {t("order-confirmation.s57")}
+                                            إذا تحتاج تفاصيل أكثر عن هذه الحالة، تواصل ويانه من زر المساعدة الموجود بالصفحة.
                                         </p>
                                     </div>
                                 ) : (
@@ -580,8 +575,8 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
                                             <Gift className="h-5 w-5" aria-hidden="true" />
                                         </span>
                                         <div>
-                                            <h2 id="order-rewards-title" className="font-bold text-foreground">{t("order-confirmation.s58")}</h2>
-                                            <p className="text-xs text-muted-foreground">{t("order-confirmation.s59")}</p>
+                                            <h2 id="order-rewards-title" className="font-bold text-foreground">مكافآت هذا الطلب</h2>
+                                            <p className="text-xs text-muted-foreground">تنضاف لحسابك حسب نظام الولاء</p>
                                         </div>
                                     </div>
                                     <div className="grid grid-cols-2 gap-3">
@@ -589,21 +584,21 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
                                             <div className="rounded-2xl border border-border bg-card p-4 text-center">
                                                 <Star className="mx-auto mb-1 h-5 w-5 text-yellow-500 dark:text-yellow-400" aria-hidden="true" />
                                                 <p className="text-xl font-bold text-primary">+{loyalty.pointsEarned}</p>
-                                                <p className="text-xs text-muted-foreground">{t("order-confirmation.s60")}</p>
+                                                <p className="text-xs text-muted-foreground">نقطة ولاء</p>
                                             </div>
                                         )}
                                         {loyalty.cashbackEarned > 0 && (
                                             <div className="rounded-2xl border border-border bg-card p-4 text-center">
                                                 <Crown className="mx-auto mb-1 h-5 w-5 text-purple-500 dark:text-purple-300" aria-hidden="true" />
                                                 <p className="text-xl font-bold text-purple-600 dark:text-purple-300">+{loyalty.cashbackEarned}</p>
-                                                <p className="text-xs text-muted-foreground">{t("order-confirmation.s61")}</p>
+                                                <p className="text-xs text-muted-foreground">نقطة باقي</p>
                                             </div>
                                         )}
                                     </div>
                                     {loyalty.tierUpgraded && (
                                         <div className="mt-3 rounded-xl border border-yellow-400/30 bg-yellow-400/10 p-3 text-center">
                                             <p className="text-sm font-bold text-yellow-700 dark:text-yellow-300">
-                                                {t("order-confirmation.s62")} {loyalty.tier === "diamond" ? t("order-confirmation.s63") : loyalty.tier === "gold" ? t("order-confirmation.s64") : loyalty.tier === "silver" ? t("order-confirmation.s65") : t("order-confirmation.s66")}!
+                                                تهانينا! ترقيت للمستوى {loyalty.tier === "diamond" ? "الماسي" : loyalty.tier === "gold" ? "الذهبي" : loyalty.tier === "silver" ? "الفضي" : "البرونزي"}!
                                             </p>
                                         </div>
                                     )}
@@ -616,8 +611,8 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
                                 <div className="p-5 sm:p-6">
                                     <div className="flex items-center justify-between gap-3">
                                         <div>
-                                            <h2 className="text-lg font-bold text-foreground">{t("order-confirmation.s67")}</h2>
-                                            <p className="mt-1 text-xs text-muted-foreground">{t("order-confirmation.s68")}</p>
+                                            <h2 className="text-lg font-bold text-foreground">ملخص الدفع</h2>
+                                            <p className="mt-1 text-xs text-muted-foreground">المبلغ المسجل على الطلب</p>
                                         </div>
                                         <span className="grid h-10 w-10 place-items-center rounded-xl bg-primary/10 text-primary">
                                             <Wallet className="h-5 w-5" aria-hidden="true" />
@@ -628,37 +623,37 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
                                         <div className="mt-5 space-y-3 text-sm">
                                             {subtotal > 0 && (
                                                 <div className="flex items-center justify-between gap-4 text-muted-foreground">
-                                                    <span>{t("order-confirmation.s69")}</span>
+                                                    <span>المجموع الفرعي</span>
                                                     <bdi className="font-medium text-foreground">{formatIQD(subtotal)}</bdi>
                                                 </div>
                                             )}
                                             {shippingCost > 0 && (
                                                 <div className="flex items-center justify-between gap-4 text-muted-foreground">
-                                                    <span>{t("order-confirmation.s31")}</span>
+                                                    <span>التوصيل</span>
                                                     <bdi className="font-medium text-foreground">{formatIQD(shippingCost)}</bdi>
                                                 </div>
                                             )}
                                             {shippingCost === 0 && subtotal > 0 && (
                                                 <div className="flex items-center justify-between gap-4 text-muted-foreground">
-                                                    <span>{t("order-confirmation.s31")}</span>
-                                                    <span className="font-semibold text-primary">{t("order-confirmation.s70")}</span>
+                                                    <span>التوصيل</span>
+                                                    <span className="font-semibold text-primary">مجاني</span>
                                                 </div>
                                             )}
                                             {discountAmount > 0 && (
                                                 <div className="flex items-center justify-between gap-4 text-muted-foreground">
-                                                    <span>{t("order-confirmation.s71")}</span>
+                                                    <span>الخصم</span>
                                                     <bdi className="font-semibold text-primary">-{formatIQD(discountAmount)}</bdi>
                                                 </div>
                                             )}
                                             <div className="flex items-center justify-between gap-4 border-t border-border pt-4">
-                                                <span className="font-bold text-foreground">{t("order-confirmation.s72")}</span>
+                                                <span className="font-bold text-foreground">المبلغ الكلي</span>
                                                 <bdi className="text-2xl font-bold text-primary">{formatIQD(total)}</bdi>
                                             </div>
                                         </div>
                                     )}
 
                                     <div className="mt-5 rounded-2xl bg-muted/35 p-3.5">
-                                        <p className="text-xs text-muted-foreground">{t("order-confirmation.s50")}</p>
+                                        <p className="text-xs text-muted-foreground">طريقة الدفع</p>
                                         <p className="mt-1 text-sm font-semibold text-foreground">{paymentLabel}</p>
                                     </div>
                                 </div>
@@ -668,7 +663,7 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
                                         <Button asChild className="min-h-12 w-full text-sm font-bold">
                                             <Link href="/order-tracking">
                                                 <Truck className="ml-2 h-4 w-4" aria-hidden="true" />
-                                                {t("order-confirmation.s73")}
+                                                تتبع طلبك
                                             </Link>
                                         </Button>
                                         <Button
@@ -677,7 +672,7 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
                                             onClick={() => setInvoiceOpen(true)}
                                         >
                                             <Printer className="ml-2 h-4 w-4" aria-hidden="true" />
-                                            {t("order-confirmation.s74")}
+                                            طباعة الفاتورة
                                         </Button>
                                         <WhatsAppLink
                                             source="order_confirmation"
@@ -686,12 +681,12 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
                                             className="flex min-h-12 w-full items-center justify-center gap-2 rounded-md border border-border bg-background px-4 text-sm font-semibold text-foreground transition-colors hover:border-primary/45 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                                         >
                                             <MessageCircle className="h-4 w-4 text-primary" aria-hidden="true" />
-                                            {t("order-confirmation.s75")}
+                                            تحتاج مساعدة؟ احچي ويانه
                                         </WhatsAppLink>
                                         <Button asChild className="min-h-11 w-full text-muted-foreground hover:bg-muted hover:text-foreground" variant="ghost">
                                             <Link href="/">
                                                 <Home className="ml-2 h-4 w-4" aria-hidden="true" />
-                                                {t("order-confirmation.s76")}
+                                                العودة للرئيسية
                                             </Link>
                                         </Button>
                                     </div>

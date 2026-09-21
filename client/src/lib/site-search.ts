@@ -130,14 +130,6 @@ export function normalizeSearchText(value: unknown): string {
     .replace(/ؤ/g, "و")
     .replace(/ئ/g, "ي")
     .replace(/ة/g, "ه")
-    // Sorani writes ی (U+06CC) and ک (U+06A9) where Arabic writes ي (U+064A) and ك
-    // (U+0643). Without folding them together, a shopper on an Arabic keyboard — the
-    // common input method in Iraq — cannot reach the Kurdish catalogue: 91 of 107
-    // product names were unmatchable before this. Folding is safe in both directions
-    // because it only ever applies to the search index and the query, never to
-    // anything displayed.
-    .replace(/ی/g, "ي")
-    .replace(/ک/g, "ك")
     .replace(SEARCH_SEPARATORS, " ")
     .trim()
     .replace(/\s+/g, " ");

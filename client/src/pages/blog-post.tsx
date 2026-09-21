@@ -11,12 +11,9 @@ import { blogHeroImage, blogThumbImage } from "@/lib/cloudinary";
 import { authorBylineText, authorProfilePath } from "@shared/editorial-author";
 import { articleReadingTimeLabel } from "@shared/article-reading";
 import { articleDatePublished } from "@shared/article-dates";
-import { useTranslation } from "react-i18next";
-import { isolateNumericRangesInHtml } from "@shared/i18n/bidi";
 
 
 export default function BlogPost() {
-  const { t } = useTranslation("pages");
     const [match, params] = useRoute("/blog/:id");
     const slug = params?.id;
 
@@ -40,9 +37,9 @@ export default function BlogPost() {
     if (!match || !post || error) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center">
-                <h1 className="text-2xl font-bold mb-4">{t("blog-post.s1")}</h1>
+                <h1 className="text-2xl font-bold mb-4">المقال غير موجود</h1>
                 <Link href="/blog">
-                    <Button>{t("blog-post.s2")}</Button>
+                    <Button>العودة للمدونة</Button>
                 </Link>
             </div>
         );
@@ -164,19 +161,15 @@ export default function BlogPost() {
                                 transition={{ delay: 0.3 }}
                                 className="aq-article mb-20"
                                 dangerouslySetInnerHTML={{
-                                    // isolateNumericRangesInHtml: a hyphenated range inside RTL
-                                    // prose renders reversed ("50-150" read as "150-50"). Wrapping
-                                    // each one in <bdi dir="ltr"> fixes the reading order without
-                                    // changing a single stored character. See shared/i18n/bidi.ts.
-                                    __html: isolateNumericRangesInHtml(DOMPurify.sanitize(post.content, {
+                                    __html: DOMPurify.sanitize(post.content, {
                                         ALLOWED_TAGS: ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'strong', 'em', 'a', 'br', 'blockquote', 'code', 'pre', 'img', 'div', 'span', 'section', 'article'],
                                         ALLOWED_ATTR: ['href', 'class', 'src', 'alt', 'title', 'target', 'rel', 'style']
-                                    }))
+                                    })
                                 }}
                             />
 
                             <div className="mt-12 pt-8 border-t flex justify-between items-center">
-                                <h3 className="font-bold text-xl">{t("blog-post.s3")}</h3>
+                                <h3 className="font-bold text-xl">شارك المقال</h3>
                                 <div className="flex gap-2">
                                     <Button variant="outline" size="icon" className="rounded-full">
                                         <Share2 className="w-4 h-4" />
@@ -188,7 +181,7 @@ export default function BlogPost() {
                         {/* Sidebar */}
                         <div className="lg:col-span-4 space-y-8">
                             <div className="bg-muted/30 p-6 rounded-2xl border sticky top-24">
-                                <h3 className="font-bold text-lg mb-4">{t("blog-post.s4")}</h3>
+                                <h3 className="font-bold text-lg mb-4">مقالات أخرى قد تهمك</h3>
                                 <div className="space-y-4">
                                     {allPosts && allPosts.filter(p => p.id !== post.id).slice(0, 3).map(related => (
                                         <Link key={related.id} href={`/blog/${related.slug}`}>

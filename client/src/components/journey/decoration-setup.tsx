@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Mountain, Leaf } from "lucide-react";
 import { WizardData } from "@/types/journey";
-import { useTranslation } from "react-i18next";
 
 interface DecorationSetupProps {
     wizardData: WizardData;
@@ -14,46 +13,45 @@ interface DecorationSetupProps {
 }
 
 export function DecorationSetup({ wizardData, updateData }: DecorationSetupProps) {
-  const { t } = useTranslation("tools");
     return (
         <Card className="border-2">
             <CardContent className="p-6 md:p-8 space-y-8">
                 <div className="space-y-2">
                     <h2 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-2">
                         <Mountain className="h-7 w-7 text-primary" />
-                        {t("decoration-setup.s1")}
+                        الديكور والركيزة
                     </h2>
                     <p className="text-muted-foreground text-lg">
-                        {t("decoration-setup.s2")}
+                        أنشئ بيئة طبيعية وجميلة لأسماكك
                     </p>
                 </div>
 
                 {/* Substrate */}
                 <div className="space-y-4">
-                    <Label className="text-lg font-bold">{t("decoration-setup.s3")}</Label>
+                    <Label className="text-lg font-bold">نوع الركيزة (القاع)</Label>
                     <RadioGroup value={wizardData.substrateType} onValueChange={(val) => updateData("substrateType", val)}>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {[
                                 {
                                     value: "gravel",
-                                    label: t("decoration-setup.s4"),
-                                    desc: t("decoration-setup.s5")
+                                    label: "حصى عادي",
+                                    desc: "سهل التنظيف، متعدد الألوان"
                                 },
                                 {
                                     value: "sand",
-                                    label: t("decoration-setup.s6"),
-                                    desc: t("decoration-setup.s7")
+                                    label: "رمل",
+                                    desc: "طبيعي، رائع للأسماك القاعية"
                                 },
                                 {
                                     value: "planted-substrate",
-                                    label: t("decoration-setup.s8"),
-                                    desc: t("decoration-setup.s9"),
+                                    label: "تربة للنباتات",
+                                    desc: "غنية بالمغذيات للنباتات الحية",
                                     recommended: wizardData.tankType === "planted"
                                 },
                                 {
                                     value: "mixed",
-                                    label: t("decoration-setup.s10"),
-                                    desc: t("decoration-setup.s11")
+                                    label: "مختلط",
+                                    desc: "رمل + حصى أو رمل + تربة"
                                 }
                             ].map((option) => (
                                 <div key={option.value} className="relative">
@@ -67,7 +65,7 @@ export function DecorationSetup({ wizardData, updateData }: DecorationSetupProps
                                         )}
                                     >
                                         {option.recommended && (
-                                            <Badge className="absolute -top-2 -right-2 bg-primary">{t("decoration-setup.s12")}</Badge>
+                                            <Badge className="absolute -top-2 -right-2 bg-primary">مُوصى به</Badge>
                                         )}
                                         <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
                                             <Mountain className="w-5 h-5 text-primary" />
@@ -85,15 +83,15 @@ export function DecorationSetup({ wizardData, updateData }: DecorationSetupProps
 
                 {/* Decorations */}
                 <div className="space-y-4">
-                    <Label className="text-lg font-bold">{t("decoration-setup.s13")}</Label>
+                    <Label className="text-lg font-bold">عناصر الديكور (اختر ما تريد)</Label>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {[
-                            { value: "live-plants", label: t("decoration-setup.s14"), benefit: t("decoration-setup.s15") },
-                            { value: "driftwood", label: t("decoration-setup.s16"), benefit: t("decoration-setup.s17") },
-                            { value: "rocks", label: t("decoration-setup.s18"), benefit: t("decoration-setup.s19") },
-                            { value: "caves", label: t("decoration-setup.s20"), benefit: t("decoration-setup.s21") },
-                            { value: "artificial-plants", label: t("decoration-setup.s22"), benefit: t("decoration-setup.s23") },
-                            { value: "background", label: t("decoration-setup.s24"), benefit: t("decoration-setup.s25") }
+                            { value: "live-plants", label: "نباتات حية", benefit: "تنقي الماء" },
+                            { value: "driftwood", label: "خشب طبيعي", benefit: "مظهر طبيعي" },
+                            { value: "rocks", label: "صخور وأحجار", benefit: "أماكن اختباء" },
+                            { value: "caves", label: "كهوف", benefit: "ملاجئ آمنة" },
+                            { value: "artificial-plants", label: "نباتات صناعية", benefit: "بدون صيانة" },
+                            { value: "background", label: "خلفية", benefit: "عمق بصري" }
                         ].map((option) => (
                             <div key={option.value} className="flex items-start space-x-3 space-x-reverse">
                                 <Checkbox
@@ -130,12 +128,12 @@ export function DecorationSetup({ wizardData, updateData }: DecorationSetupProps
                 <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 flex gap-3">
                     <Leaf className="h-5 w-5 text-primary flex-shrink-0 mt-1" />
                     <div>
-                        <div className="font-bold text-foreground mb-1 text-right">{t("decoration-setup.s26")}</div>
+                        <div className="font-bold text-foreground mb-1 text-right">نصائح التصميم</div>
                         <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside text-right">
-                            <li>{t("decoration-setup.s27")}</li>
-                            <li>{t("decoration-setup.s28")}</li>
-                            <li>{t("decoration-setup.s29")}</li>
-                            <li>{t("decoration-setup.s30")}</li>
+                            <li>اترك مساحة سباحة مفتوحة في المقدمة</li>
+                            <li>ضع النباتات والديكورات الطويلة في الخلف</li>
+                            <li>استخدم قاعدة الثلث - لا تملأ أكثر من ثلثي القاع</li>
+                            <li>النباتات الحية تساعد في تنقية الماء بشكل طبيعي</li>
                         </ul>
                     </div>
                 </div>

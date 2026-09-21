@@ -6,10 +6,8 @@
 import { Link } from 'wouter';
 import { motion } from 'framer-motion';
 import { Home } from 'lucide-react';
-import { useTranslation } from "react-i18next";
 
 export default function NotFound() {
-  const { t } = useTranslation("pages");
   // Simple floating animation
   const floatAnim = {
     y: [0, -20, 0],
@@ -44,8 +42,8 @@ export default function NotFound() {
         </motion.div>
 
         <div className="space-y-2">
-          <h2 className="text-3xl md:text-4xl font-bold text-white">{t("not-found.s1")}</h2>
-          <p className="text-lg text-gray-300">{t("not-found.s2")}</p>
+          <h2 className="text-3xl md:text-4xl font-bold text-white">الرابط ضاع... الصفحة غير موجودة!</h2>
+          <p className="text-lg text-gray-300">الصفحة اللي تدور عليها مو موجودة أو انحذفت</p>
         </div>
 
         <motion.div
@@ -59,7 +57,7 @@ export default function NotFound() {
             className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-card text-black font-bold rounded-lg hover:bg-gray-100 transition-colors shadow-lg hover:shadow-white/25"
           >
             <Home className="w-5 h-5" />
-            <span>{t("not-found.s3")}</span>
+            <span>العودة للرئيسية</span>
           </Link>
         </motion.div>
       </div>

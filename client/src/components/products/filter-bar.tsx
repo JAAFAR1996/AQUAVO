@@ -10,8 +10,6 @@ import { SlidersHorizontal, ChevronDown, Sparkles, TrendingUp, Leaf, DollarSign 
 import { DualRangeSlider } from "@/components/ui/dual-range-slider";
 import { cn } from "@/lib/utils";
 import { FilterState } from "./filter-modal";
-import { useTranslation } from "react-i18next";
-import { PRODUCT_TAG_VALUES } from "@/lib/product-filter-values";
 
 interface FilterBarProps {
     filters: FilterState;
@@ -60,7 +58,6 @@ export function FilterBar({
     maxPrice,
     minPrice = 0,
 }: FilterBarProps) {
-    const { t } = useTranslation("products");
     const [priceDropdownOpen, setPriceDropdownOpen] = useState(false);
     const [tempPriceRange, setTempPriceRange] = useState<[number, number]>(filters.priceRange);
 
@@ -99,7 +96,7 @@ export function FilterBar({
                 )}
             >
                 <SlidersHorizontal className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
-                <span className="whitespace-nowrap">{t("filters.button")}</span>
+                <span className="whitespace-nowrap">الفلاتر</span>
                 {activeFiltersCount > 0 && (
                     <Badge className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-primary p-0 text-xs font-bold text-primary-foreground">
                         {activeFiltersCount}
@@ -117,7 +114,7 @@ export function FilterBar({
                         )}
                     >
                         <DollarSign className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
-                        <span className="whitespace-nowrap">{t("filters.price")}</span>
+                        <span className="whitespace-nowrap">السعر</span>
                         <ChevronDown
                             className={cn(
                                 "h-4 w-4 flex-shrink-0 transition-transform",
@@ -129,14 +126,14 @@ export function FilterBar({
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="w-80 p-4">
                     <div className="space-y-4">
-                        <h4 className="text-sm font-semibold">{t("filters.priceRange")}</h4>
+                        <h4 className="text-sm font-semibold">نطاق السعر</h4>
                         <DualRangeSlider
                             min={minPrice}
                             max={maxPrice}
                             step={Math.ceil(maxPrice / 50)}
                             value={tempPriceRange}
                             onValueChange={setTempPriceRange}
-                            formatValue={(v) => formatPrice(v)}
+                            formatValue={(v) => `${formatPrice(v)} د.ع`}
                             showValues={true}
                         />
                         <div className="flex gap-2 pt-2">
@@ -150,10 +147,10 @@ export function FilterBar({
                                     setPriceDropdownOpen(false);
                                 }}
                             >
-                                {t("filters.clear")}
+                                مسح
                             </Button>
                             <Button size="sm" className="flex-1" onClick={handlePriceApply}>
-                                {t("filters.apply")}
+                                تطبيق
                             </Button>
                         </div>
                     </div>
@@ -163,22 +160,22 @@ export function FilterBar({
             <div className="mx-1 h-8 w-px flex-shrink-0 bg-border" aria-hidden="true" />
 
             <QuickFilterChip
-                label={t("tags.new")}
+                label="جديد"
                 icon={Sparkles}
-                selected={filters.tags.includes(PRODUCT_TAG_VALUES.new)}
-                onClick={() => toggleTag(PRODUCT_TAG_VALUES.new)}
+                selected={filters.tags.includes("جديد")}
+                onClick={() => toggleTag("جديد")}
             />
             <QuickFilterChip
-                label={t("tags.bestSeller")}
+                label="الأكثر مبيعاً"
                 icon={TrendingUp}
-                selected={filters.tags.includes(PRODUCT_TAG_VALUES.bestSeller)}
-                onClick={() => toggleTag(PRODUCT_TAG_VALUES.bestSeller)}
+                selected={filters.tags.includes("الأكثر مبيعاً")}
+                onClick={() => toggleTag("الأكثر مبيعاً")}
             />
             <QuickFilterChip
-                label={t("tags.eco")}
+                label="صديق للبيئة"
                 icon={Leaf}
-                selected={filters.tags.includes(PRODUCT_TAG_VALUES.eco)}
-                onClick={() => toggleTag(PRODUCT_TAG_VALUES.eco)}
+                selected={filters.tags.includes("صديق للبيئة")}
+                onClick={() => toggleTag("صديق للبيئة")}
             />
         </div>
     );

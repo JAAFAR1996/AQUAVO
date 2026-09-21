@@ -5,10 +5,8 @@ import { motion } from "framer-motion";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useTranslation } from "react-i18next";
 
 export default function EcoFriendlyGuide() {
-  const { t } = useTranslation("guides");
   const fadeIn = {
     initial: { opacity: 0, y: 20 },
     animate: { opacity: 1, y: 0 },
@@ -29,13 +27,14 @@ export default function EcoFriendlyGuide() {
             >
               <div className="inline-flex items-center gap-2 bg-teal-500/10 border border-teal-500/30 rounded-full px-4 py-1.5 mb-6 backdrop-blur-md">
                 <Leaf className="w-4 h-4 text-teal-400" />
-                <span className="text-teal-200 text-sm font-medium">{t("guides-eco-friendly.s1")}</span>
+                <span className="text-teal-200 text-sm font-medium">الدليل الشامل</span>
               </div>
               <h1 className="text-4xl md:text-7xl font-black mb-6 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-teal-200 to-white">
-                {t("guides-eco-friendly.s2")}
+                فن العناية بالحوض
               </h1>
               <p className="text-xl text-muted-foreground dark:text-slate-300 max-w-2xl mx-auto leading-relaxed">
-                {t("guides-eco-friendly.s3")}
+                دليلك المتكامل لتحويل حوضك من مجرد زجاج وماء إلى نظام بيئي مزدهر ومستدام.
+                نغطي الأساسيات، الصيانة، وحل المشاكل.
               </p>
             </motion.div>
           </div>
@@ -45,10 +44,10 @@ export default function EcoFriendlyGuide() {
         <section className="py-12 -mt-10 container mx-auto px-4 relative z-20">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { icon: Activity, label: t("guides-eco-friendly.s4"), color: "text-blue-500", bg: "bg-blue-500/10" },
-              { icon: Thermometer, label: t("guides-eco-friendly.s5"), color: "text-rose-500", bg: "bg-rose-500/10" },
-              { icon: Calendar, label: t("guides-eco-friendly.s6"), color: "text-amber-500", bg: "bg-amber-500/10" },
-              { icon: Recycle, label: t("guides-eco-friendly.s7"), color: "text-green-500", bg: "bg-green-500/10" },
+              { icon: Activity, label: "دورة النيتروجين", color: "text-blue-500", bg: "bg-blue-500/10" },
+              { icon: Thermometer, label: "معايير المياه", color: "text-rose-500", bg: "bg-rose-500/10" },
+              { icon: Calendar, label: "جدول الصيانة", color: "text-amber-500", bg: "bg-amber-500/10" },
+              { icon: Recycle, label: "الاستدامة", color: "text-green-500", bg: "bg-green-500/10" },
             ].map((item, i) => (
               <motion.div
                 key={item.label}
@@ -70,10 +69,10 @@ export default function EcoFriendlyGuide() {
         <section className="py-16 container mx-auto px-4">
           <Tabs defaultValue="basics" className="w-full">
             <TabsList className="w-full justify-center gap-4 bg-transparent mb-12 flex-wrap h-auto p-0">
-              <TabsTrigger value="basics" className="px-6 py-3 rounded-full border border-slate-200 data-[state=active]:bg-teal-600 data-[state=active]:text-white data-[state=active]:border-teal-600 transition-all">{t("guides-eco-friendly.s8")}</TabsTrigger>
-              <TabsTrigger value="maintenance" className="px-6 py-3 rounded-full border border-slate-200 data-[state=active]:bg-teal-600 data-[state=active]:text-white data-[state=active]:border-teal-600 transition-all">{t("guides-eco-friendly.s6")}</TabsTrigger>
-              <TabsTrigger value="parameters" className="px-6 py-3 rounded-full border border-slate-200 data-[state=active]:bg-teal-600 data-[state=active]:text-white data-[state=active]:border-teal-600 transition-all">{t("guides-eco-friendly.s5")}</TabsTrigger>
-              <TabsTrigger value="eco" className="px-6 py-3 rounded-full border border-slate-200 data-[state=active]:bg-green-600 data-[state=active]:text-white data-[state=active]:border-green-600 transition-all">{t("guides-eco-friendly.s9")}</TabsTrigger>
+              <TabsTrigger value="basics" className="px-6 py-3 rounded-full border border-slate-200 data-[state=active]:bg-teal-600 data-[state=active]:text-white data-[state=active]:border-teal-600 transition-all">الأساسيات ودورة النيتروجين</TabsTrigger>
+              <TabsTrigger value="maintenance" className="px-6 py-3 rounded-full border border-slate-200 data-[state=active]:bg-teal-600 data-[state=active]:text-white data-[state=active]:border-teal-600 transition-all">جدول الصيانة</TabsTrigger>
+              <TabsTrigger value="parameters" className="px-6 py-3 rounded-full border border-slate-200 data-[state=active]:bg-teal-600 data-[state=active]:text-white data-[state=active]:border-teal-600 transition-all">معايير المياه</TabsTrigger>
+              <TabsTrigger value="eco" className="px-6 py-3 rounded-full border border-slate-200 data-[state=active]:bg-green-600 data-[state=active]:text-white data-[state=active]:border-green-600 transition-all">نصائح خضراء</TabsTrigger>
             </TabsList>
 
             {/* Basics Tab */}
@@ -82,34 +81,34 @@ export default function EcoFriendlyGuide() {
                 <div className="space-y-6">
                   <h2 className="text-3xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
                     <Activity className="w-8 h-8 text-teal-500" />
-                    {t("guides-eco-friendly.s10")}
+                    دورة النيتروجين: قلب الحوض
                   </h2>
                   <p className="text-lg text-slate-600 dark:text-slate-400 leading-relaxed">
-                    {t("guides-eco-friendly.s11")} <strong>{t("guides-eco-friendly.s12")}</strong><br />
-                    {t("guides-eco-friendly.s13")}
+                    أهم معلومة للمبتدئين: <strong>لا تضع السمك فوراً!</strong><br />
+                    الحوض يحتاج "تدوير" (Cycling) لبناء بكتيريا نافعة تعالج فضلات الأسماك السامة. بدون هذه الدورة، قد يموت السمك بسبب التسمم بالأمونيا.
                   </p>
                   <div className="bg-slate-100 dark:bg-slate-800 p-6 rounded-2xl space-y-4">
                     <div className="flex items-center gap-4">
                       <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/50 flex items-center justify-center font-bold text-red-600">1</div>
                       <div>
-                        <h4 className="font-bold">{t("guides-eco-friendly.s14")}</h4>
-                        <p className="text-sm text-slate-500">{t("guides-eco-friendly.s15")}</p>
+                        <h4 className="font-bold">الأمونيا (NH3)</h4>
+                        <p className="text-sm text-slate-500">فضلات الأسماك (سام جداً)</p>
                       </div>
                     </div>
                     <div className="w-0.5 h-6 bg-slate-300 mx-5" />
                     <div className="flex items-center gap-4">
                       <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/50 flex items-center justify-center font-bold text-orange-600">2</div>
                       <div>
-                        <h4 className="font-bold">{t("guides-eco-friendly.s16")}</h4>
-                        <p className="text-sm text-slate-500">{t("guides-eco-friendly.s17")}</p>
+                        <h4 className="font-bold">النيتريت (NO2)</h4>
+                        <p className="text-sm text-slate-500">بكتيريا تحول الأمونيا (سام)</p>
                       </div>
                     </div>
                     <div className="w-0.5 h-6 bg-slate-300 mx-5" />
                     <div className="flex items-center gap-4">
                       <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center font-bold text-green-600">3</div>
                       <div>
-                        <h4 className="font-bold">{t("guides-eco-friendly.s18")}</h4>
-                        <p className="text-sm text-slate-500">{t("guides-eco-friendly.s19")}</p>
+                        <h4 className="font-bold">النيترات (NO3)</h4>
+                        <p className="text-sm text-slate-500">الناتج النهائي (آمن بنسب قليلة)</p>
                       </div>
                     </div>
                   </div>
@@ -128,20 +127,20 @@ export default function EcoFriendlyGuide() {
                   <CardContent className="pt-6">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg"><Calendar className="w-5 h-5 text-blue-600" /></div>
-                      <h3 className="font-bold text-xl">{t("guides-eco-friendly.s20")}</h3>
+                      <h3 className="font-bold text-xl">يومياً</h3>
                     </div>
                     <ul className="space-y-3">
                       <li className="flex items-start gap-2 text-slate-600 dark:text-slate-400">
                         <CheckCircle2 className="w-4 h-4 mt-1 text-green-500 shrink-0" />
-                        <span>{t("guides-eco-friendly.s21")}</span>
+                        <span>تأكد من عمل الفلتر والمضخة</span>
                       </li>
                       <li className="flex items-start gap-2 text-slate-600 dark:text-slate-400">
                         <CheckCircle2 className="w-4 h-4 mt-1 text-green-500 shrink-0" />
-                        <span>{t("guides-eco-friendly.s22")}</span>
+                        <span>راقب صحة الأسماك وسلوكها</span>
                       </li>
                       <li className="flex items-start gap-2 text-slate-600 dark:text-slate-400">
                         <CheckCircle2 className="w-4 h-4 mt-1 text-green-500 shrink-0" />
-                        <span>{t("guides-eco-friendly.s23")}</span>
+                        <span>إطعام بكمية مناسبة (تؤكل في دقيقتين)</span>
                       </li>
                     </ul>
                   </CardContent>
@@ -151,20 +150,20 @@ export default function EcoFriendlyGuide() {
                   <CardContent className="pt-6">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="p-2 bg-teal-100 dark:bg-teal-900/30 rounded-lg"><Calendar className="w-5 h-5 text-teal-600" /></div>
-                      <h3 className="font-bold text-xl">{t("guides-eco-friendly.s24")}</h3>
+                      <h3 className="font-bold text-xl">أسبوعياً</h3>
                     </div>
                     <ul className="space-y-3">
                       <li className="flex items-start gap-2 text-slate-600 dark:text-slate-400">
                         <CheckCircle2 className="w-4 h-4 mt-1 text-teal-500 shrink-0" />
-                        <span>{t("guides-eco-friendly.s25")}</span>
+                        <span>تغيير 10-20% من الماء</span>
                       </li>
                       <li className="flex items-start gap-2 text-slate-600 dark:text-slate-400">
                         <CheckCircle2 className="w-4 h-4 mt-1 text-teal-500 shrink-0" />
-                        <span>{t("guides-eco-friendly.s26")}</span>
+                        <span>تنظيف زجاج الحوض من الداخل</span>
                       </li>
                       <li className="flex items-start gap-2 text-slate-600 dark:text-slate-400">
                         <CheckCircle2 className="w-4 h-4 mt-1 text-teal-500 shrink-0" />
-                        <span>{t("guides-eco-friendly.s27")}</span>
+                        <span>فحص معايير المياه (pH, Ammonia)</span>
                       </li>
                     </ul>
                   </CardContent>
@@ -174,20 +173,20 @@ export default function EcoFriendlyGuide() {
                   <CardContent className="pt-6">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg"><Calendar className="w-5 h-5 text-purple-600" /></div>
-                      <h3 className="font-bold text-xl">{t("guides-eco-friendly.s28")}</h3>
+                      <h3 className="font-bold text-xl">شهرياً</h3>
                     </div>
                     <ul className="space-y-3">
                       <li className="flex items-start gap-2 text-slate-600 dark:text-slate-400">
                         <CheckCircle2 className="w-4 h-4 mt-1 text-purple-500 shrink-0" />
-                        <span>{t("guides-eco-friendly.s29")}</span>
+                        <span>غسل اسفنج الفلتر (بماء الحوض حصراً)</span>
                       </li>
                       <li className="flex items-start gap-2 text-slate-600 dark:text-slate-400">
                         <CheckCircle2 className="w-4 h-4 mt-1 text-purple-500 shrink-0" />
-                        <span>{t("guides-eco-friendly.s30")}</span>
+                        <span>تقليم النباتات الطبيعية</span>
                       </li>
                       <li className="flex items-start gap-2 text-slate-600 dark:text-slate-400">
                         <CheckCircle2 className="w-4 h-4 mt-1 text-purple-500 shrink-0" />
-                        <span>{t("guides-eco-friendly.s31")}</span>
+                        <span>فحص وتضيف الإضاءة</span>
                       </li>
                     </ul>
                   </CardContent>
@@ -201,39 +200,39 @@ export default function EcoFriendlyGuide() {
                 <CardContent className="p-0 overflow-hidden">
                   <div className="overflow-x-auto">
                     <table role="table" className="w-full text-right">
-                      <caption className="sr-only">{t("guides-eco-friendly.s32")}</caption>
+                      <caption className="sr-only">معايير المياه المثالية للأحواض</caption>
                       <thead className="bg-slate-100 dark:bg-slate-900">
                         <tr>
-                          <th scope="col" className="p-4 font-bold">{t("guides-eco-friendly.s33")}</th>
-                          <th scope="col" className="p-4 font-bold">{t("guides-eco-friendly.s34")}</th>
-                          <th scope="col" className="p-4 font-bold">{t("guides-eco-friendly.s35")}</th>
+                          <th scope="col" className="p-4 font-bold">المعيار</th>
+                          <th scope="col" className="p-4 font-bold">القيمة المثالية (مياه عذبة)</th>
+                          <th scope="col" className="p-4 font-bold">الخطر</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
                         <tr>
-                          <td className="p-4 font-medium">{t("guides-eco-friendly.s36")}</td>
-                          <td className="p-4 text-slate-600 dark:text-slate-400">{t("guides-eco-friendly.s37")}</td>
-                          <td className="p-4 text-red-500 text-sm">{t("guides-eco-friendly.s38")}</td>
+                          <td className="p-4 font-medium">الأس الهيدروجيني (pH)</td>
+                          <td className="p-4 text-slate-600 dark:text-slate-400">6.5 - 7.5 (معظم الأسماك)</td>
+                          <td className="p-4 text-red-500 text-sm">أقل من 6 أو أكثر من 8 يسبب إجهاداً</td>
                         </tr>
                         <tr>
-                          <td className="p-4 font-medium">{t("guides-eco-friendly.s39")}</td>
+                          <td className="p-4 font-medium">الأمونيا</td>
                           <td className="p-4 text-green-600 font-bold">0 ppm</td>
-                          <td className="p-4 text-red-500 text-sm">{t("guides-eco-friendly.s40")}</td>
+                          <td className="p-4 text-red-500 text-sm">أي نسبة أعلى من صفر سامة وتقاتلة</td>
                         </tr>
                         <tr>
-                          <td className="p-4 font-medium">{t("guides-eco-friendly.s41")}</td>
+                          <td className="p-4 font-medium">النيتريت</td>
                           <td className="p-4 text-green-600 font-bold">0 ppm</td>
-                          <td className="p-4 text-red-500 text-sm">{t("guides-eco-friendly.s42")}</td>
+                          <td className="p-4 text-red-500 text-sm">يمنع الدم من حمل الأكسجين</td>
                         </tr>
                         <tr>
-                          <td className="p-4 font-medium">{t("guides-eco-friendly.s43")}</td>
-                          <td className="p-4 text-slate-600 dark:text-slate-400">{t("guides-eco-friendly.s44")}</td>
-                          <td className="p-4 text-orange-500 text-sm">{t("guides-eco-friendly.s45")}</td>
+                          <td className="p-4 font-medium">النيترات</td>
+                          <td className="p-4 text-slate-600 dark:text-slate-400">أقل من 40 ppm</td>
+                          <td className="p-4 text-orange-500 text-sm">النسب العالية تسبب نمو الطحالب وضعف المناعة</td>
                         </tr>
                         <tr>
-                          <td className="p-4 font-medium">{t("guides-eco-friendly.s46")}</td>
-                          <td className="p-4 text-slate-600 dark:text-slate-400">{t("guides-eco-friendly.s47")}</td>
-                          <td className="p-4 text-red-500 text-sm">{t("guides-eco-friendly.s48")}</td>
+                          <td className="p-4 font-medium">درجة الحرارة</td>
+                          <td className="p-4 text-slate-600 dark:text-slate-400">24°C - 27°C (استوائي)</td>
+                          <td className="p-4 text-red-500 text-sm">التذبذب السريع يسبب مرض (النقطة البيضاء)</td>
                         </tr>
                       </tbody>
                     </table>
@@ -248,37 +247,37 @@ export default function EcoFriendlyGuide() {
                 <div className="space-y-6">
                   <h3 className="text-2xl font-bold flex items-center gap-2">
                     <Leaf className="text-green-500" />
-                    {t("guides-eco-friendly.s49")}
+                    كيف تكون صديقاً للبيئة؟
                   </h3>
                   <Accordion type="single" collapsible className="w-full">
                     <AccordionItem value="item-1">
-                      <AccordionTrigger>{t("guides-eco-friendly.s50")}</AccordionTrigger>
+                      <AccordionTrigger>أعد استخدام المياه</AccordionTrigger>
                       <AccordionContent>
-                        {t("guides-eco-friendly.s51")}
+                        مياه الحوض القديمة غنية بالنترات والفوسفات. بدلاً من رميها، اسقِ بها نباتاتك المنزلية؛ فهي سماد طبيعي ممتاز ومجاني!
                       </AccordionContent>
                     </AccordionItem>
                     <AccordionItem value="item-2">
-                      <AccordionTrigger>{t("guides-eco-friendly.s52")}</AccordionTrigger>
+                      <AccordionTrigger>إضاءة LED الذكية</AccordionTrigger>
                       <AccordionContent>
-                        {t("guides-eco-friendly.s53")}
+                        استخدم إضاءة LED مع مؤقت (Timer). هي تستهلك طاقة أقل بنسبة 80%، وتقلل من نمو الطحالب غير المرغوب فيها بسبب الإضاءة المفرطة.
                       </AccordionContent>
                     </AccordionItem>
                     <AccordionItem value="item-3">
-                      <AccordionTrigger>{t("guides-eco-friendly.s54")}</AccordionTrigger>
+                      <AccordionTrigger>النباتات الطبيعية</AccordionTrigger>
                       <AccordionContent>
-                        {t("guides-eco-friendly.s55")}
+                        النباتات ليست زينة فقط. هي "رئة" الحوض، تمتص النيترات وتنتج الأكسجين، مما يقلل حاجتك لتغيير المياه وستخدام المواد الكيميائية.
                       </AccordionContent>
                     </AccordionItem>
                   </Accordion>
                 </div>
                 <div className="bg-green-50 dark:bg-green-950/20 p-8 rounded-3xl flex flex-col justify-center items-center text-center">
                   <Recycle className="w-16 h-16 text-green-600 mb-4" />
-                  <h4 className="text-xl font-bold mb-2">{t("guides-eco-friendly.s56")}</h4>
+                  <h4 className="text-xl font-bold mb-2">تسوق بمسؤولية</h4>
                   <p className="text-slate-600 dark:text-slate-400 mb-6">
-                    {t("guides-eco-friendly.s57")}
+                    نحن نوفر قسماً خاصاً للمنتجات المستدامة والصديقة للبيئة.
                   </p>
                   <Link href="/products?eco=true">
-                    <Button className="bg-green-600 hover:bg-green-700 text-foreground dark:text-white w-full">{t("guides-eco-friendly.s58")}</Button>
+                    <Button className="bg-green-600 hover:bg-green-700 text-foreground dark:text-white w-full">تصفح المنتجات الخضراء</Button>
                   </Link>
                 </div>
               </div>
@@ -289,16 +288,16 @@ export default function EcoFriendlyGuide() {
         {/* Final CTA */}
         <section className="py-20 bg-background dark:bg-slate-900 text-foreground dark:text-white text-center">
           <div className="container mx-auto px-4">
-            <h2 className="text-3xl font-bold mb-6">{t("guides-eco-friendly.s59")}</h2>
+            <h2 className="text-3xl font-bold mb-6">تحتاج مساعدة إضافية؟</h2>
             <p className="text-muted-foreground dark:text-slate-300 max-w-2xl mx-auto mb-8">
-              {t("guides-eco-friendly.s60")}
+              فريقنا من الخبراء جاهز للإجابة على جميع استفساراتك حول العناية بالحوض.
             </p>
             <div className="flex justify-center gap-4">
               <Link href="/faq">
-                <Button variant="outline" className="border-border dark:border-slate-700 hover:bg-slate-800">{t("guides-eco-friendly.s61")}</Button>
+                <Button variant="outline" className="border-border dark:border-slate-700 hover:bg-slate-800">الأسئلة الشائعة</Button>
               </Link>
               <Link href="/faq">
-                <Button className="bg-teal-600 hover:bg-teal-700">{t("guides-eco-friendly.s62")}</Button>
+                <Button className="bg-teal-600 hover:bg-teal-700">تواصل معنا</Button>
               </Link>
             </div>
           </div>

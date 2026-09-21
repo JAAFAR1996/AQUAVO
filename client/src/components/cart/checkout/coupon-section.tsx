@@ -3,7 +3,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Tag, AlertCircle, CheckCircle2, ChevronDown } from "lucide-react";
-import { useTranslation } from "react-i18next";
 
 const APPLIED_COUPON_STORAGE_KEY = "aquavo_applied_coupon_v1";
 
@@ -17,7 +16,6 @@ interface CouponSectionProps {
 }
 
 export function CouponSection({ couponCode, setCouponCode, applyCoupon, couponError, couponSuccess, isApplying = false }: CouponSectionProps) {
-    const { t } = useTranslation("checkout");
     const [isExpanded, setIsExpanded] = useState(false);
     const pendingAppliedCode = useRef("");
     const messageId = couponError ? "coupon-error" : couponSuccess ? "coupon-success" : undefined;
@@ -50,19 +48,19 @@ export function CouponSection({ couponCode, setCouponCode, applyCoupon, couponEr
             >
                 <span className="flex items-center gap-2">
                     <Tag className="h-4 w-4" />
-                    {t("coupon.prompt")}
+                    عندك كود خصم؟
                 </span>
                 <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
             </button>
 
             {isExpanded && (
                 <div className="px-4 pb-3 space-y-2">
-                    <Label htmlFor="coupon-code" className="sr-only">{t("coupon.label")}</Label>
+                    <Label htmlFor="coupon-code" className="sr-only">كود الخصم</Label>
                     <div className="flex gap-2">
                         <Input
                             id="coupon-code"
                             data-clarity-mask="True"
-                            placeholder={t("coupon.placeholder")}
+                            placeholder="أدخل الكود..."
                             autoComplete="off"
                             value={couponCode}
                             onChange={(e) => setCouponCode(e.target.value)}
@@ -82,7 +80,7 @@ export function CouponSection({ couponCode, setCouponCode, applyCoupon, couponEr
                             aria-busy={isApplying}
                             aria-disabled={isApplying}
                         >
-                            {isApplying ? t("coupon.checking") : t("coupon.apply")}
+                            {isApplying ? "جاري التحقق..." : "تطبيق"}
                         </Button>
                     </div>
                     {couponError && (

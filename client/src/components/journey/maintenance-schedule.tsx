@@ -5,7 +5,6 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Calendar, Clock, Package, CheckCircle2, Lightbulb } from "lucide-react";
 import { WizardData } from "@/types/journey";
-import { useTranslation } from "react-i18next";
 
 interface MaintenanceScheduleProps {
     wizardData: WizardData;
@@ -13,43 +12,42 @@ interface MaintenanceScheduleProps {
 }
 
 export function MaintenanceSchedule({ wizardData, updateData }: MaintenanceScheduleProps) {
-  const { t } = useTranslation("tools");
     return (
         <Card className="border-2">
             <CardContent className="p-6 md:p-8 space-y-8">
                 <div className="space-y-2">
                     <h2 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-2">
                         <Calendar className="h-7 w-7 text-primary" />
-                        {t("maintenance-schedule.s1")}
+                        جدول الصيانة
                     </h2>
                     <p className="text-muted-foreground text-lg">
-                        {t("maintenance-schedule.s2")}
+                        الصيانة المنتظمة = حوض صحي ومزدهر
                     </p>
                 </div>
 
                 {/* Maintenance Preference */}
                 <div className="space-y-4">
-                    <Label className="text-lg font-bold">{t("maintenance-schedule.s3")}</Label>
+                    <Label className="text-lg font-bold">كم من الوقت يمكنك تخصيصه للصيانة؟</Label>
                     <RadioGroup value={wizardData.maintenancePreference} onValueChange={(val) => updateData("maintenancePreference", val)}>
                         <div className="grid grid-cols-1 gap-4">
                             {[
                                 {
                                     value: "minimal",
-                                    label: t("maintenance-schedule.s4"),
-                                    desc: t("maintenance-schedule.s5"),
-                                    tasks: t("maintenance-schedule.s6")
+                                    label: "صيانة قليلة (15 دقيقة/أسبوع)",
+                                    desc: "نظام بسيط، نباتات قليلة، أسماك قليلة",
+                                    tasks: "تغيير ماء، تغذية، فحص بصري"
                                 },
                                 {
                                     value: "moderate",
-                                    label: t("maintenance-schedule.s7"),
-                                    desc: t("maintenance-schedule.s8"),
-                                    tasks: t("maintenance-schedule.s9")
+                                    label: "صيانة معتدلة (30-45 دقيقة/أسبوع)",
+                                    desc: "التوازن المثالي لمعظم الناس",
+                                    tasks: "تغيير ماء، تنظيف فلتر شهري، تقليم نباتات"
                                 },
                                 {
                                     value: "intensive",
-                                    label: t("maintenance-schedule.s10"),
-                                    desc: t("maintenance-schedule.s11"),
-                                    tasks: t("maintenance-schedule.s12")
+                                    label: "صيانة مكثفة (ساعة+/أسبوع)",
+                                    desc: "حوض نباتي غني، كثافة سمكية عالية",
+                                    tasks: "تغيير ماء متكرر، تسميد، تقليم، اختبارات"
                                 }
                             ].map((option) => (
                                 <div key={option.value}>
@@ -64,7 +62,7 @@ export function MaintenanceSchedule({ wizardData, updateData }: MaintenanceSched
                                     >
                                         <div className="font-bold text-foreground mb-1">{option.label}</div>
                                         <div className="text-sm text-muted-foreground mb-2">{option.desc}</div>
-                                        <div className="text-xs text-primary">{t("maintenance-schedule.s13")} {option.tasks}</div>
+                                        <div className="text-xs text-primary">المهام: {option.tasks}</div>
                                     </Label>
                                 </div>
                             ))}
@@ -76,59 +74,59 @@ export function MaintenanceSchedule({ wizardData, updateData }: MaintenanceSched
                 <div className="space-y-4">
                     <h3 className="font-bold text-foreground flex items-center gap-2">
                         <Clock className="h-5 w-5 text-primary" />
-                        {t("maintenance-schedule.s14")}
+                        جدول الصيانة الموصى به
                     </h3>
 
                     {/* Daily */}
                     <div className="border-r-4 border-blue-500 bg-blue-500/5 rounded-lg p-4">
                         <div className="font-bold text-foreground mb-2 flex items-center gap-2">
-                            <Badge className="bg-blue-500">{t("maintenance-schedule.s15")}</Badge>
+                            <Badge className="bg-blue-500">يومي</Badge>
                         </div>
                         <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-                            <li>{t("maintenance-schedule.s16")}</li>
-                            <li>{t("maintenance-schedule.s17")}</li>
-                            <li>{t("maintenance-schedule.s18")}</li>
-                            <li>{t("maintenance-schedule.s19")}</li>
+                            <li>إطعام الأسماك (1-2 مرة، كمية تؤكل في 2-3 دقائق)</li>
+                            <li>فحص بصري للأسماك (سلوك غريب، علامات مرض)</li>
+                            <li>فحص درجة الحرارة</li>
+                            <li>تأكد من عمل جميع المعدات</li>
                         </ul>
                     </div>
 
                     {/* Weekly */}
                     <div className="border-r-4 border-green-500 bg-green-500/5 rounded-lg p-4">
                         <div className="font-bold text-foreground mb-2 flex items-center gap-2">
-                            <Badge className="bg-green-500">{t("maintenance-schedule.s20")}</Badge>
+                            <Badge className="bg-green-500">أسبوعي</Badge>
                         </div>
                         <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-                            <li>{t("maintenance-schedule.s21")}</li>
-                            <li>{t("maintenance-schedule.s22")}</li>
-                            <li>{t("maintenance-schedule.s23")}</li>
-                            <li>{t("maintenance-schedule.s24")}</li>
-                            <li>{t("maintenance-schedule.s25")}</li>
+                            <li>تغيير 20-30% من الماء</li>
+                            <li>تنظيف زجاج الحوض من الطحالب</li>
+                            <li>شفط الحصى (Gravel Vacuum)</li>
+                            <li>اختبار معايير المياه (pH، أمونيا، نيتريت، نترات)</li>
+                            <li>تقليم النباتات الزائدة</li>
                         </ul>
                     </div>
 
                     {/* Monthly */}
                     <div className="border-r-4 border-amber-500 bg-amber-500/5 rounded-lg p-4">
                         <div className="font-bold text-foreground mb-2 flex items-center gap-2">
-                            <Badge className="bg-amber-500">{t("maintenance-schedule.s26")}</Badge>
+                            <Badge className="bg-amber-500">شهري</Badge>
                         </div>
                         <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-                            <li>{t("maintenance-schedule.s27")}</li>
-                            <li>{t("maintenance-schedule.s28")}</li>
-                            <li>{t("maintenance-schedule.s29")}</li>
-                            <li>{t("maintenance-schedule.s30")}</li>
+                            <li>تنظيف/استبدال وسائط الفلتر</li>
+                            <li>فحص وتنظيف السخان</li>
+                            <li>فحص الأنابيب والخراطيم</li>
+                            <li>تنظيف الإضاءة</li>
                         </ul>
                     </div>
 
                     {/* Quarterly */}
                     <div className="border-r-4 border-purple-500 bg-purple-500/5 rounded-lg p-4">
                         <div className="font-bold text-foreground mb-2 flex items-center gap-2">
-                            <Badge className="bg-purple-500">{t("maintenance-schedule.s31")}</Badge>
+                            <Badge className="bg-purple-500">كل 3 أشهر</Badge>
                         </div>
                         <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-                            <li>{t("maintenance-schedule.s32")}</li>
-                            <li>{t("maintenance-schedule.s33")}</li>
-                            <li>{t("maintenance-schedule.s34")}</li>
-                            <li>{t("maintenance-schedule.s35")}</li>
+                            <li>تنظيف عميق للفلتر</li>
+                            <li>استبدال الكربون المنشط</li>
+                            <li>فحص جميع المعدات الكهربائية</li>
+                            <li>إعادة ترتيب الديكور حسب الحاجة</li>
                         </ul>
                     </div>
                 </div>
@@ -137,18 +135,18 @@ export function MaintenanceSchedule({ wizardData, updateData }: MaintenanceSched
                 <div className="bg-muted/30 rounded-xl p-6">
                     <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
                         <Package className="h-5 w-5 text-primary" />
-                        {t("maintenance-schedule.s36")}
+                        أدوات الصيانة الأساسية
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                         {[
-                            t("maintenance-schedule.s37"),
-                            t("maintenance-schedule.s38"),
-                            t("maintenance-schedule.s39"),
-                            t("maintenance-schedule.s40"),
-                            t("maintenance-schedule.s41"),
-                            t("maintenance-schedule.s42"),
-                            t("maintenance-schedule.s43"),
-                            t("maintenance-schedule.s44")
+                            "سطل مخصص للحوض (5-10 لتر)",
+                            "خرطوم للسحب (Siphon)",
+                            "مكشطة طحالب",
+                            "شبكة لالتقاط الأسماك",
+                            "طقم اختبار المياه",
+                            "ملقط طويل (للنباتات)",
+                            "مقص للتقليم",
+                            "معالج ماء (Seachem Prime)"
                         ].map((tool) => (
                             <div key={tool} className="flex items-center gap-2">
                                 <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
@@ -162,9 +160,10 @@ export function MaintenanceSchedule({ wizardData, updateData }: MaintenanceSched
                 <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 flex gap-3">
                     <Lightbulb className="h-5 w-5 text-primary flex-shrink-0 mt-1" />
                     <div>
-                        <div className="font-bold text-foreground mb-1 text-right">{t("maintenance-schedule.s45")}</div>
+                        <div className="font-bold text-foreground mb-1 text-right">نصيحة الخبراء</div>
                         <p className="text-sm text-muted-foreground text-right">
-                            {t("maintenance-schedule.s46")}
+                            حدد يوماً ثابتاً في الأسبوع لتغيير الماء - اجعله روتيناً! الانتظام أهم من الكمال.
+                            تغيير ماء صغير منتظم أفضل بكثير من تغيير ماء كبير نادر. استخدم منبهاً على هاتفك لتذكيرك.
                         </p>
                     </div>
                 </div>

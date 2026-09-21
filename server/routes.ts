@@ -33,7 +33,6 @@ import { createBirthdayRouter } from "./routes/birthday.js";
 import { createNewsletterRouter } from "./routes/newsletter.js";
 import { createReferralRouter } from "./routes/referral.js";
 import { createSecurityRouter } from "./routes/security.js";
-import { createAdminTranslationsRouter } from "./routes/admin-translations.js";
 import { createLoyaltyRouter } from "./routes/loyalty.js";
 import { createAccountingEvidenceUploadV2Router } from "./routes/accounting-evidence-upload-v2.js";
 import { createUploadRouter } from "./routes/upload.js";
@@ -113,7 +112,6 @@ export async function registerRoutes(httpServer: Server, app: express.Applicatio
   app.use("/api/admin", createCustomerMessagingAdminRouter());
   app.use("/api/admin", createAdminRouter());
   app.use("/api/admin/security", createSecurityRouter());
-  app.use("/api/admin/translations", createAdminTranslationsRouter());
   app.use("/api/admin/analytics", createAccurateAdminAnalyticsRouter());
 
   app.use("/api/analytics", async (req, res, next) => {

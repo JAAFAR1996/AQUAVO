@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import "./loaders.css";
 import "../../styles/flow-gate-copy.css";
-import { i18next } from "@/i18n";
 
 /**
  * Suspense fallback for lazy routes. The marker is present from the first
@@ -24,7 +23,7 @@ export function PageLoader() {
       className="aqv-loader"
       role="status"
       aria-live="polite"
-      aria-label={i18next.t("errors:loader.page")}
+      aria-label="جارٍ تحميل الصفحة"
     >
       <div className="aqv-loader__progress" aria-hidden="true" />
       <div className="aqv-loader__stage" aria-hidden="true">
@@ -36,7 +35,7 @@ export function PageLoader() {
           className="aqv-loader__logo"
         />
       </div>
-      <p className="aqv-loader__text" aria-hidden="true">{i18next.t("errors:loader.text")}</p>
+      <p className="aqv-loader__text" aria-hidden="true">العمق يتشكّل…</p>
     </div>
   );
 }
@@ -62,11 +61,11 @@ export function AppInitLoader({ onDone }: AppInitLoaderProps) {
   if (hidden) return null;
 
   return (
-    <div dir={i18next.dir()} className="aqv-loader" data-visible="true" role="status" aria-label={i18next.t("errors:loader.app")}>
+    <div dir="rtl" className="aqv-loader" data-visible="true" role="status" aria-label="جارٍ تحميل التطبيق">
       <div className="aqv-loader__stage" aria-hidden="true">
         <img src="/brand/aquavo-v2-icon.svg" alt="" width={48} height={48} className="aqv-loader__logo" />
       </div>
-      <p className="aqv-loader__text" aria-hidden="true">{i18next.t("errors:loader.text")}</p>
+      <p className="aqv-loader__text" aria-hidden="true">العمق يتشكّل…</p>
     </div>
   );
 }

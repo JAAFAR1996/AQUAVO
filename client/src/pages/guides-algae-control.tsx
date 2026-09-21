@@ -1,6 +1,4 @@
-import { useTranslation } from "react-i18next";
 export default function GuideAlgaeControl() {
-  const { t } = useTranslation("guides");
   return (
     <div className="alg-wrap">
 
@@ -12,7 +10,7 @@ export default function GuideAlgaeControl() {
 
         {/* ── Hero ── */}
         <section className="alg-hero">
-          <span className="alg-badge">{t("guides-algae-control.s1")}</span>
+          <span className="alg-badge">دليل الطحالب — AQUAVO</span>
 
           {/* Glass pane with algae creep — CSS only */}
           <div className="alg-glass" aria-hidden="true">
@@ -24,47 +22,48 @@ export default function GuideAlgaeControl() {
             </div>
           </div>
 
-          <h1>{t("guides-algae-control.s2")}</h1>
-          <p className="alg-sub">{t("guides-algae-control.s3")}</p>
+          <h1>الظل الأخضر</h1>
+          <p className="alg-sub">الطحالب ما هي عدوك — هي عَرَض، مو سبب</p>
           <p className="alg-intro">
-            {t("guides-algae-control.s4")}
+            كل حوض يكون فيه طحالب. السؤال الصح: ليش تكثر؟ إذا عرفت السبب،
+            توقفها بدون كيماويات وبدون ما تمحيها يومياً.
           </p>
           <div className="alg-meta">
-            <span>{t("guides-algae-control.s5")}</span>
-            <span>{t("guides-algae-control.s6")}</span>
+            <span>للمبتدئين والمتوسطين</span>
+            <span>وقت القراءة: 5 دقائق</span>
           </div>
         </section>
 
         {/* ── أنواع الطحالب ── */}
         <section className="alg-section">
-          <h2 className="alg-title">{t("guides-algae-control.s7")}</h2>
+          <h2 className="alg-title">٤ أنواع شائعة — كل نوع له سبب</h2>
           <div className="alg-type-list">
             <div className="alg-type">
               <div className="alg-type-color" style={{background:'#4ADE80'}}></div>
               <div>
-                <strong>{t("guides-algae-control.s8")}</strong>
-                <p>{t("guides-algae-control.s9")}</p>
+                <strong>الطحالب الخضراء (على الزجاج)</strong>
+                <p>ضوء زيادة أو نترات عالية. اكشط الزجاج + قلل ساعات الإضاءة.</p>
               </div>
             </div>
             <div className="alg-type">
               <div className="alg-type-color" style={{background:'#78350F'}}></div>
               <div>
-                <strong>{t("guides-algae-control.s10")}</strong>
-                <p>{t("guides-algae-control.s11")}</p>
+                <strong>الطحالب البنية (على الحصى والديكور)</strong>
+                <p>ضوء ضعيف + سيليكات في المي. شائعة في الأحواض الجديدة — تختفي وحدها.</p>
               </div>
             </div>
             <div className="alg-type">
               <div className="alg-type-color" style={{background:'#1F2937'}}></div>
               <div>
-                <strong>{t("guides-algae-control.s12")}</strong>
-                <p>{t("guides-algae-control.s13")}</p>
+                <strong>الطحالب السوداء / الأزرق-خضراء</strong>
+                <p>نترات وفوسفات عالية جداً + تدفق ضعيف. تحتاج تدخل: غسل وتحسين تدوير الماء.</p>
               </div>
             </div>
             <div className="alg-type">
               <div className="alg-type-color" style={{background:'#86EFAC'}}></div>
               <div>
-                <strong>{t("guides-algae-control.s14")}</strong>
-                <p>{t("guides-algae-control.s15")}</p>
+                <strong>المي الأخضر (عوالق)</strong>
+                <p>بكتيريا خضراء عائمة. سببها ضوء شمس مباشر أو تغذية زيادة. تحتاج UV أو تغطية.</p>
               </div>
             </div>
           </div>
@@ -72,54 +71,54 @@ export default function GuideAlgaeControl() {
 
         {/* ── خطة الوقاية ── */}
         <section className="alg-section">
-          <h2 className="alg-title">{t("guides-algae-control.s16")}</h2>
+          <h2 className="alg-title">خطة الوقاية — ٤ محاور</h2>
           <div className="alg-plan-grid">
             <div className="alg-plan-card">
               <div className="alg-plan-icon">◑</div>
-              <h3>{t("guides-algae-control.s17")}</h3>
-              <p>{t("guides-algae-control.s18")}</p>
+              <h3>الإضاءة</h3>
+              <p>٨–١٠ ساعات بالنهار فقط. تايمر يضمن الانتظام. لا تشغل الضوء ليل النهار.</p>
             </div>
             <div className="alg-plan-card">
               <div className="alg-plan-icon">⬡</div>
-              <h3>{t("guides-algae-control.s19")}</h3>
-              <p>{t("guides-algae-control.s20")}</p>
+              <h3>التغذية</h3>
+              <p>دقيقتان تكفي. ما يُكل يصبح نترات — وقود الطحالب الرئيسي.</p>
             </div>
             <div className="alg-plan-card">
               <div className="alg-plan-icon">↺</div>
-              <h3>{t("guides-algae-control.s21")}</h3>
-              <p>{t("guides-algae-control.s22")}</p>
+              <h3>تغيير المي</h3>
+              <p>٢٠–٣٠٪ أسبوعياً يسحب النترات قبل تراكمها. هذا أفضل علاج وقائي.</p>
             </div>
             <div className="alg-plan-card">
               <div className="alg-plan-icon">⬢</div>
-              <h3>{t("guides-algae-control.s23")}</h3>
-              <p>{t("guides-algae-control.s24")}</p>
+              <h3>الكائنات المساعدة</h3>
+              <p>حلزون نيريت، أوتوسينكلوس، جمبري أمانو — يأكلون الطحالب طبيعياً دون كيماويات.</p>
             </div>
           </div>
         </section>
 
         {/* ── جدول الفحص ── */}
         <section className="alg-section">
-          <h2 className="alg-title">{t("guides-algae-control.s25")}</h2>
+          <h2 className="alg-title">متى تقلق؟ — مقياس السيطرة</h2>
           <div className="alg-scale">
             <div className="alg-scale-row alg-ok">
-              <span className="alg-scale-label">{t("guides-algae-control.s26")}</span>
+              <span className="alg-scale-label">طبيعي</span>
               <div>
-                <strong>{t("guides-algae-control.s27")}</strong>
-                <p>{t("guides-algae-control.s28")}</p>
+                <strong>طبقة خفيفة على الزجاج بعد أسبوع</strong>
+                <p>اكشطها وتابع الروتين — مو مشكلة.</p>
               </div>
             </div>
             <div className="alg-scale-row alg-watch">
-              <span className="alg-scale-label">{t("guides-algae-control.s29")}</span>
+              <span className="alg-scale-label">راقب</span>
               <div>
-                <strong>{t("guides-algae-control.s30")}</strong>
-                <p>{t("guides-algae-control.s31")}</p>
+                <strong>تعود سريع خلال يومين</strong>
+                <p>قلل الإضاءة ١ ساعة، راجع التغذية.</p>
               </div>
             </div>
             <div className="alg-scale-row alg-act">
-              <span className="alg-scale-label">{t("guides-algae-control.s32")}</span>
+              <span className="alg-scale-label">تصرف</span>
               <div>
-                <strong>{t("guides-algae-control.s33")}</strong>
-                <p>{t("guides-algae-control.s34")}</p>
+                <strong>تغطي الديكور والنباتات</strong>
+                <p>فحص فوري للنترات والفوسفات + تغيير مي ٤٠٪.</p>
               </div>
             </div>
           </div>
@@ -129,7 +128,8 @@ export default function GuideAlgaeControl() {
         <section className="alg-section">
           <div className="alg-note-box">
             <p className="alg-note-text">
-              {t("guides-algae-control.s35")}
+              ⚠ منتجات قتل الطحالب الكيميائية تقتل البكتيريا النافعة في الفلتر وتضر بعض الأسماك.
+              استخدمها فقط كآخر حل، وبعدها أعد بناء الدورة البيولوجية.
             </p>
           </div>
         </section>
@@ -137,9 +137,9 @@ export default function GuideAlgaeControl() {
         {/* ── CTA ── */}
         <section className="alg-cta-section">
           <div className="alg-cta-box">
-            <h2 className="alg-cta-title">{t("guides-algae-control.s36")}</h2>
+            <h2 className="alg-cta-title">طحالبك ما تشبه أي نوع فوق؟</h2>
             <p className="alg-cta-body">
-              {t("guides-algae-control.s37")}
+              أرسل صورة للحوض — نحدد النوع ونعطيك الخطوة الأولى الصح.
             </p>
             <a
               href="https://www.instagram.com/aquavo_iq/"
@@ -147,7 +147,7 @@ export default function GuideAlgaeControl() {
               rel="noopener noreferrer"
               className="alg-cta-btn"
             >
-              {t("guides-algae-control.s38")}
+              راسلنا على إنستغرام
             </a>
           </div>
         </section>

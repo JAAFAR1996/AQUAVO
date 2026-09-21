@@ -1,20 +1,15 @@
 import { useLocation } from "wouter";
 import { ErrorState, errorMessages } from "@/components/ui/error-state";
 import { MetaTags } from "@/components/seo/meta-tags";
-import { useTranslation } from "react-i18next";
-import { useLocale } from "@/i18n/locale-context";
 
 export default function NotFound() {
   const [, setLocation] = useLocation();
-  const { t } = useTranslation("errors");
-  const { t: tc } = useTranslation("common");
-  const { dir } = useLocale();
 
   return (
     <div className="flex-1 flex flex-col bg-background">
       <MetaTags
-        title={tc("notFound.metaTitle")}
-        description={tc("notFound.description")}
+        title="الصفحة غير موجودة | AQUAVO"
+        description="الرابط الذي فتحته غير موجود. تقدر ترجع للرئيسية أو تتصفح معدات ومستلزمات أحواض الزينة المتوفرة لدى AQUAVO."
         noIndex
         notFound
       />
@@ -25,14 +20,14 @@ export default function NotFound() {
             description={errorMessages.notFound.description}
             showRetry={false}
           >
-            <div className="pt-12 space-y-4" dir={dir}>
-              <p className="text-sm text-muted-foreground text-center">{t("page404.suggestions")}</p>
+            <div className="pt-12 space-y-4" dir="rtl">
+              <p className="text-sm text-muted-foreground text-center">ربما تبحث عن:</p>
               <div className="flex flex-wrap gap-3 justify-center">
                 {[
-                  { label: t("page404.encyclopedia"), path: "/fish-encyclopedia" },
-                  { label: t("page404.journey"), path: "/journey" },
-                  { label: t("page404.home"), path: "/" },
-                  { label: t("page404.products"), path: "/products" },
+                  { label: "موسوعة الأسماك", path: "/fish-encyclopedia" },
+                  { label: "بدء رحلتك", path: "/journey" },
+                  { label: "الرئيسية", path: "/" },
+                  { label: "المنتجات", path: "/products" },
                 ].map((link) => (
                   <button
                     key={link.path}
@@ -48,7 +43,7 @@ export default function NotFound() {
             {/* Animated 404 */}
             <div className="relative mt-8 flex flex-col items-center justify-center space-y-4">
               <h1 className="text-9xl font-black text-center select-none text-primary/20">404</h1>
-              <p className="text-lg font-medium text-muted-foreground">{t("page404.hint")}</p>
+              <p className="text-lg font-medium text-muted-foreground">هذه الصفحة غير موجودة — جرب الروابط أعلاه</p>
             </div>
           </ErrorState>
         </div>

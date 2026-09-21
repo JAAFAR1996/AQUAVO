@@ -31,10 +31,7 @@ describe("AQUAVO discoverability contract", () => {
     // client schemas with truthful online-store contract"). What this contract
     // protects is the *scoping*: a brand + country suffix, never a blanket
     // authenticity or superlative claim applied to every page in the store.
-    // Since the trilingual release the suffix is per locale (TITLE_SUFFIX):
-    // Arabic keeps "AQUAVO العراق", English "AQUAVO Iraq", Kurdish "AQUAVO عێراق".
-    expect(meta).toContain('ar: "AQUAVO العراق"');
-    expect(meta).toContain('en: "AQUAVO Iraq"');
+    expect(meta).toContain("| AQUAVO العراق");
     expect(meta).not.toContain("أصلية");
     expect(meta).not.toContain("معدات أحواض أصلية | العراق");
     expect(meta).not.toContain("أكبر متجر إلكتروني");
@@ -241,10 +238,7 @@ describe("canonical URL contract", () => {
     const metaTags = read("client/src/components/seo/meta-tags.tsx");
     // Comments are allowed to name the anti-pattern; executable code is not.
     const code = metaTags.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
-    // Canonical is built from the logical (locale-free) path through the
-    // seo-contract helper, then prefixed for the active locale.
-    expect(code).toContain("localizedCanonical(logicalPath)");
-    expect(code).toContain("canonicalUrlFor(logicalPath)");
+    expect(code).toContain("canonicalUrlFor(currentPath)");
     expect(code).not.toContain('currentPath === "/" ? "" : currentPath');
     expect(code).not.toContain("window.location.href");
   });

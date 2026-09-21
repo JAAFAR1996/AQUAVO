@@ -6,7 +6,6 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useTranslation } from "react-i18next";
 
 /**
  * Font Size Controller Component
@@ -16,7 +15,6 @@ import { useTranslation } from "react-i18next";
  */
 
 export function FontSizeController() {
-  const { t } = useTranslation("common");
   const [fontSize, setFontSize] = useState(90); // Default: 90% actual = 100% display
 
   // Load saved preference on mount
@@ -55,14 +53,14 @@ export function FontSizeController() {
     <div
       className="flex items-center gap-2 p-2 rounded-lg bg-background/80 backdrop-blur-sm border border-border"
       role="group"
-      aria-label={t("font-size-controller.s1")}
+      aria-label="التحكم في حجم الخط"
     >
       <Button
         variant="outline"
         size="sm"
         onClick={decreaseFontSize}
         disabled={fontSize <= 70}
-        aria-label={t("font-size-controller.s2")}
+        aria-label="تصغير حجم الخط"
         className="h-8 w-8 p-0"
       >
         <Minus className="h-4 w-4" aria-hidden="true" />
@@ -81,7 +79,7 @@ export function FontSizeController() {
         size="sm"
         onClick={increaseFontSize}
         disabled={fontSize >= 190}
-        aria-label={t("font-size-controller.s3")}
+        aria-label="تكبير حجم الخط"
         className="h-8 w-8 p-0"
       >
         <Plus className="h-4 w-4" aria-hidden="true" />
@@ -91,9 +89,9 @@ export function FontSizeController() {
         variant="ghost"
         size="sm"
         onClick={resetFontSize}
-        aria-label={t("font-size-controller.s4")}
+        aria-label="إعادة تعيين حجم الخط"
         className="h-8 w-8 p-0"
-        title={t("font-size-controller.s5")}
+        title="إعادة تعيين"
       >
         <RotateCcw className="h-4 w-4" aria-hidden="true" />
       </Button>
@@ -106,7 +104,6 @@ export function FontSizeController() {
  * Note: Internal values are shifted -10% from display (display 100% = actual 90%)
  */
 export function FontSizeControllerCompact() {
-  const { t } = useTranslation("common");
   const [fontSize, setFontSize] = useState(90); // Default: 90% actual = 100% display
 
   useEffect(() => {
@@ -146,7 +143,7 @@ export function FontSizeControllerCompact() {
           variant="ghost"
           size="icon"
           className="rounded-full border-2 border-primary/20 bg-primary/5 hover:bg-primary/10 hover:border-primary/40 transition-all"
-          aria-label={t("font-size-controller.s6")}
+          aria-label="التحكم بحجم الخط"
         >
           <Type className="h-5 w-5" />
         </Button>
@@ -155,14 +152,14 @@ export function FontSizeControllerCompact() {
         <div
           className="flex items-center gap-2"
           role="group"
-          aria-label={t("font-size-controller.s1")}
+          aria-label="التحكم في حجم الخط"
         >
           <Button
             variant="outline"
             size="sm"
             onClick={decreaseFontSize}
             disabled={fontSize <= 70}
-            aria-label={t("font-size-controller.s2")}
+            aria-label="تصغير حجم الخط"
             className="h-8 w-8 p-0"
           >
             <Minus className="h-4 w-4" />
@@ -181,7 +178,7 @@ export function FontSizeControllerCompact() {
             size="sm"
             onClick={increaseFontSize}
             disabled={fontSize >= 190}
-            aria-label={t("font-size-controller.s3")}
+            aria-label="تكبير حجم الخط"
             className="h-8 w-8 p-0"
           >
             <Plus className="h-4 w-4" />
@@ -192,9 +189,9 @@ export function FontSizeControllerCompact() {
             size="icon"
             onClick={resetFontSize}
             disabled={fontSize === 90}
-            aria-label={t("font-size-controller.s4")}
+            aria-label="إعادة تعيين حجم الخط"
             className="h-8 w-8"
-            title={t("font-size-controller.s5")}
+            title="إعادة تعيين"
           >
             <RotateCcw className="h-4 w-4" />
           </Button>

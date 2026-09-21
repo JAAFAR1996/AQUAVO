@@ -1,11 +1,8 @@
 import React, { useRef, useCallback, KeyboardEvent, cloneElement } from "react";
 import { cn } from "@/lib/utils";
-import { useTranslation } from "react-i18next";
-import { i18next } from "@/i18n";
 
 // Skip to main content link
 export function SkipToContent({ targetId = "main-content" }: { targetId?: string }) {
-  const { t } = useTranslation("pages");
     const handleClick = () => {
         const target = document.getElementById(targetId);
         if (target) {
@@ -28,7 +25,7 @@ export function SkipToContent({ targetId = "main-content" }: { targetId?: string
                 "transition-all"
             )}
         >
-            {t("a11y-components.s1")}
+            انتقل إلى المحتوى الرئيسي
         </a>
     );
 }
@@ -185,12 +182,11 @@ interface AccessibleButtonProps extends React.ButtonHTMLAttributes<HTMLButtonEle
 
 export function AccessibleButton({
     isLoading,
-    loadingText = i18next.t("pages:a11y-components.s2"),
+    loadingText = "جاري التحميل...",
     children,
     disabled,
     ...props
 }: AccessibleButtonProps) {
-  const { t } = useTranslation("pages");
     return (
         <button
             {...props}
@@ -228,7 +224,6 @@ export function AccessibleField({
     description,
     children,
 }: AccessibleFieldProps) {
-  const { t } = useTranslation("pages");
     const errorId = `${id}-error`;
     const descriptionId = `${id}-description`;
     const hasDescription = !!description;
@@ -248,7 +243,7 @@ export function AccessibleField({
                         *
                     </span>
                 )}
-                {required && <span className="sr-only">{t("a11y-components.s3")}</span>}
+                {required && <span className="sr-only">(مطلوب)</span>}
             </label>
 
             {hasDescription && (

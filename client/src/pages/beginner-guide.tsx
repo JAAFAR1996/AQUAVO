@@ -49,18 +49,16 @@ import confetti from "canvas-confetti";
 import { WHATSAPP_URL } from "@/lib/constants/shipping";
 import { MetaTags } from "@/components/seo/meta-tags";
 import { openWhatsApp } from "@/lib/whatsapp";
-import { useTranslation } from "react-i18next";
-import { i18next } from "@/i18n";
 
 // ─────────────────────────────────────────────────
 // DATA
 // ─────────────────────────────────────────────────
 const SCENES = [
-  { id: 0, image: "/guide-images/1-1-1-1-1.png", label: i18next.t("guides:beginner-guide.s1"),    step: "01", rgb: "10,100,120",  freq: 180 },
-  { id: 1, image: "/guide-images/2-2-2-2-2.png", label: i18next.t("guides:beginner-guide.s2"), step: "02", rgb: "8,70,145",    freq: 220 },
-  { id: 2, image: "/guide-images/3-3-3-3-3.png", label: i18next.t("guides:beginner-guide.s3"),step: "03", rgb: "20,90,40",    freq: 260 },
-  { id: 3, image: "/guide-images/4-4-4-4-4.png", label: i18next.t("guides:beginner-guide.s4"),step: "04", rgb: "0,140,190",   freq: 140 },
-  { id: 4, image: "/guide-images/5-5-5-5-5.png", label: i18next.t("guides:beginner-guide.s5"), step: "05", rgb: "90,200,20",   freq: 440 },
+  { id: 0, image: "/guide-images/1-1-1-1-1.png", label: "إعداد الحوض",    step: "01", rgb: "10,100,120",  freq: 180 },
+  { id: 1, image: "/guide-images/2-2-2-2-2.png", label: "التجهيز المائي", step: "02", rgb: "8,70,145",    freq: 220 },
+  { id: 2, image: "/guide-images/3-3-3-3-3.png", label: "الديكور والأساس",step: "03", rgb: "20,90,40",    freq: 260 },
+  { id: 3, image: "/guide-images/4-4-4-4-4.png", label: "إكسير البكتيريا",step: "04", rgb: "0,140,190",   freq: 140 },
+  { id: 4, image: "/guide-images/5-5-5-5-5.png", label: "الحوض يحيا! 🌊", step: "05", rgb: "90,200,20",   freq: 440 },
 ] as const;
 
 // ─────────────────────────────────────────────────
@@ -348,7 +346,6 @@ function Scene({
 // ⑥ BACTERIA STICKY ZONE — magnetic + lock
 // ─────────────────────────────────────────────────
 function BacteriaZone({ onComplete }: { onComplete: () => void }) {
-  const { t: tr } = useTranslation("guides");
   const [done, setDone]       = useState(false);
   const [near, setNear]       = useState(false);
   const [fail, setFail]       = useState(false);
@@ -472,7 +469,7 @@ function BacteriaZone({ onComplete }: { onComplete: () => void }) {
                   className="flex items-center gap-2 rounded-full px-4 py-2 text-xs font-bold tracking-widest uppercase"
                   style={{ background:"rgba(251,191,36,0.1)", border:"1px solid rgba(251,191,36,0.3)", color:"rgb(251,191,36)" }}>
                   <Lock size={11} />
-                  <span>{tr("beginner-guide.s6")}</span>
+                  <span>التمرير محجوب — أكمل التفاعل</span>
                 </motion.div>
 
                 {/* Instruction — Liquid Glass */}
@@ -481,7 +478,7 @@ function BacteriaZone({ onComplete }: { onComplete: () => void }) {
                     <motion.div animate={{ rotate:[0,18,-18,0] }} transition={{ duration:2.2, repeat:Infinity, delay:0.4 }}>
                       <Sparkles size={15} className="text-cyan-400" />
                     </motion.div>
-                    <span>{tr("beginner-guide.s7")}</span>
+                    <span>اسحب العلبة للأعلى وارميها بالماي!</span>
                   </div>
                 </Glass>
 
@@ -518,7 +515,7 @@ function BacteriaZone({ onComplete }: { onComplete: () => void }) {
                   </motion.span>
                   <span className="text-[10px] font-black mt-1.5 tracking-[0.22em] uppercase"
                     style={{ color:`rgb(${s.rgb})` }}>
-                    {tr("beginner-guide.s8")}
+                    بكتيريا
                   </span>
                 </motion.div>
 
@@ -546,12 +543,12 @@ function BacteriaZone({ onComplete }: { onComplete: () => void }) {
                       <CheckCircle2 size={34} className="text-green-400" />
                     </motion.div>
                     <h3 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-cyan-300">
-                      {tr("beginner-guide.s9")}
+                      الماي صار حي! 🌊
                     </h3>
-                    <p className="text-sm text-muted-foreground dark:text-gray-300 mt-2 font-medium leading-relaxed">{tr("beginner-guide.s10")}</p>
+                    <p className="text-sm text-muted-foreground dark:text-gray-300 mt-2 font-medium leading-relaxed">النظام البيولوجي يعمل الآن</p>
                     <motion.p initial={{ opacity:0 }} animate={{ opacity:1 }} transition={{ delay:0.9 }}
                       className="text-xs mt-1.5 font-medium" style={{ color:`rgba(${SCENES[4].rgb},0.8)` }}>
-                      {tr("beginner-guide.s11")}
+                      يتم فتح الخطوة الأخيرة…
                     </motion.p>
                   </div>
                 </Glass>
@@ -568,7 +565,6 @@ function BacteriaZone({ onComplete }: { onComplete: () => void }) {
 // FINAL SCENE
 // ─────────────────────────────────────────────────
 function FinalScene() {
-  const { t: tr } = useTranslation("guides");
   const ref = useRef<HTMLDivElement>(null);
   const ok  = useInView(ref, { once: true, margin: "-80px" });
   const s   = SCENES[4];
@@ -613,9 +609,9 @@ function FinalScene() {
                 backgroundImage:`linear-gradient(135deg, rgb(${SCENES[3].rgb}), rgb(${s.rgb}), rgb(${SCENES[3].rgb}))`,
                 backgroundSize:"200%",
               }}>
-              {tr("beginner-guide.s12")}
+              مبروك! حوضك جاهز 🎉
             </motion.div>
-            <p className="text-sm text-muted-foreground dark:text-gray-400 font-medium">{tr("beginner-guide.s13")}</p>
+            <p className="text-sm text-muted-foreground dark:text-gray-400 font-medium">حوضك الآن يعيش — تسوق الباقي من AQUAVO</p>
           </Glass>
         </motion.div>
 
@@ -630,7 +626,7 @@ function FinalScene() {
                 border:`1px solid rgba(${SCENES[3].rgb},0.5)`,
               }}>
               <ShoppingBag size={21} />
-              <span>{tr("beginner-guide.s14")}</span>
+              <span>تسوق مستهلكات الحوض</span>
             </button>
           </Link>
         </motion.div>
@@ -645,13 +641,13 @@ function FinalScene() {
               boxShadow:"inset 0 1px 0 rgba(255,255,255,0.1)",
             }}>
             <PhoneCall size={21} className="text-green-400" />
-            <span>{tr("beginner-guide.s15")}</span>
+            <span>تواصل مع الخبراء</span>
           </button>
         </motion.div>
 
         <motion.p {...fadeUp(5)}
           className="text-center text-foreground dark:text-white/12 text-xs pt-3 font-medium tracking-widest uppercase">
-          {tr("beginner-guide.s16")}
+          AQUAVO — أول تجربة حوض بالذكاء الاصطناعي في العراق
         </motion.p>
       </div>
     </section>
@@ -662,7 +658,6 @@ function FinalScene() {
 // HERO
 // ─────────────────────────────────────────────────
 function Hero() {
-  const { t: tr } = useTranslation("guides");
   return (
     <section className="relative min-h-[52vh] flex flex-col items-center justify-center px-6 pt-16 pb-6 overflow-hidden">
       {/* SVG Water Wave — ⑦ animated */}
@@ -691,30 +686,30 @@ function Hero() {
             transition={{ duration:2, repeat:Infinity }}
             className="w-1.5 h-1.5 rounded-full bg-cyan-400"
             style={{ boxShadow:"0 0 8px rgba(0,220,255,0.9)" }} />
-          <span className="text-cyan-300 text-xs font-bold tracking-widest uppercase">{tr("beginner-guide.s17")}</span>
+          <span className="text-cyan-300 text-xs font-bold tracking-widest uppercase">دليل المبتدئين</span>
           <span className="text-cyan-300/35 text-xs">· AQUAVO 2026</span>
         </motion.div>
 
         <h1 className="text-4xl font-black text-foreground dark:text-white mb-3 leading-[1.1] tracking-tight">
-          {tr("beginner-guide.s18")}{" "}
+          من{" "}
           <span className="relative inline-block">
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-cyan-400">{tr("beginner-guide.s19")}</span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-cyan-400">الصفر</span>
             <motion.div className="absolute -bottom-1 left-0 right-0 h-[2.5px] rounded-full bg-cyan-400"
               initial={{ scaleX:0 }} animate={{ scaleX:1 }}
               transition={{ duration:0.8, delay:0.75 }} style={{ originX:0, boxShadow:"0 0 8px rgba(0,220,255,0.7)" }} />
           </span>
-          {" "}{tr("beginner-guide.s20")}{" "}
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#7FFF00] to-cyan-300">{tr("beginner-guide.s21")}</span>
+          {" "}لحوض{" "}
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#7FFF00] to-cyan-300">يحيا</span>
         </h1>
 
         <p className="text-muted-foreground dark:text-gray-400 text-sm font-medium max-w-[255px] mx-auto leading-relaxed">
-          {tr("beginner-guide.s22")}
+          5 خطوات تفاعلية — نزّل للأسفل واتبع الرحلة
         </p>
       </motion.div>
 
       <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} transition={{ delay:1.5 }}
         className="mt-12 flex flex-col items-center gap-1.5 text-foreground dark:text-white/20 relative z-10">
-        <span className="text-[10px] tracking-widest uppercase font-semibold">{tr("beginner-guide.s23")}</span>
+        <span className="text-[10px] tracking-widest uppercase font-semibold">نزّل للبدء</span>
         <motion.div animate={{ y:[0,8,0] }} transition={{ duration:1.9, repeat:Infinity, ease:"easeInOut" }}>
           <ChevronDown size={20} />
         </motion.div>
@@ -727,7 +722,6 @@ function Hero() {
 // MAIN
 // ─────────────────────────────────────────────────
 export default function BeginnerGuide() {
-  const { t: tr } = useTranslation("guides");
   const [activeIdx, setActiveIdx] = useState(0);
   const [bacteriaDone, setBacteriaDone] = useState(false);
   const { blur: warpBlur, scale: warpScale } = useScrollWarp();
@@ -743,9 +737,9 @@ export default function BeginnerGuide() {
     <>
       {/* ─── SEO / GEO / AEO 2026 ─── */}
       <MetaTags
-        title={tr("beginner-guide.s24")}
-        description={tr("beginner-guide.s25")}
-        keywords={[tr("beginner-guide.s26"), tr("beginner-guide.s17"), tr("beginner-guide.s27"), tr("beginner-guide.s28"), "AQUAVO", tr("beginner-guide.s29")]}
+        title="دليل المبتدئين — كيف تبدأ حوض أسماك من الصفر"
+        description="دليل خطوة بخطوة لإعداد حوض أسماك احترافي من الصفر — 5 خطوات تفاعلية: اختيار الحوض، التجهيز المائي، الديكور، البكتيريا، والتشغيل. من AQUAVO العراق."
+        keywords={["كيفية إعداد حوض أسماك", "دليل المبتدئين", "حوض أسماك للمبتدئين", "تجهيز حوض أسماك", "AQUAVO", "أحواض أسماك العراق"]}
         url="https://www.aquavoiq.com/beginner-guide"
         canonicalUrl="https://www.aquavoiq.com/beginner-guide"
       />

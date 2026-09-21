@@ -1,7 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useTranslation } from "react-i18next";
 
 interface FishCompatibilityBadgeProps {
   status: "compatible" | "caution" | "incompatible";
@@ -16,20 +15,19 @@ export function FishCompatibilityBadge({
   showIcon = true,
   className,
 }: FishCompatibilityBadgeProps) {
-  const { t } = useTranslation("tools");
   const config = {
     compatible: {
-      label: t("fish-compatibility-badge.s1"),
+      label: "متوافق تماماً",
       icon: CheckCircle2,
       className: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 border-green-200 dark:border-green-800",
     },
     caution: {
-      label: t("fish-compatibility-badge.s2"),
+      label: "يحتاج حذر",
       icon: AlertTriangle,
       className: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800",
     },
     incompatible: {
-      label: t("fish-compatibility-badge.s3"),
+      label: "غير متوافق",
       icon: XCircle,
       className: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border-red-200 dark:border-red-800",
     },

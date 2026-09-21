@@ -4,10 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Loader2, Ticket } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { useTranslation } from "react-i18next";
 
 export function ProfileCoupons() {
-  const { t } = useTranslation("account");
     const { toast } = useToast();
     const { data: coupons, isLoading } = useQuery({
         queryKey: ["/api/coupons/my-coupons"],
@@ -23,8 +21,8 @@ export function ProfileCoupons() {
     const copyCoupon = (code: string) => {
         navigator.clipboard.writeText(code);
         toast({
-            title: t("profile-coupons.s1"),
-            description: t("profile-coupons.s2"),
+            title: "تم نسخ الكود",
+            description: "يمكنك استخدام الكود الآن عند الدفع",
         });
     };
 
@@ -42,13 +40,13 @@ export function ProfileCoupons() {
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <Ticket className="w-5 h-5" />
-                        {t("profile-coupons.s3")}
+                        كوبوناتي
                     </CardTitle>
-                    <CardDescription>{t("profile-coupons.s4")}</CardDescription>
+                    <CardDescription>جميع الكوبونات والخصومات الخاصة بك</CardDescription>
                 </CardHeader>
                 <CardContent className="text-center py-12 text-muted-foreground">
                     <Ticket className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                    <p>{t("profile-coupons.s5")}</p>
+                    <p>لا توجد كوبونات متاحة حالياً</p>
                 </CardContent>
             </Card>
         );
@@ -59,9 +57,9 @@ export function ProfileCoupons() {
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                     <Ticket className="w-5 h-5" />
-                    {t("profile-coupons.s3")}
+                    كوبوناتي
                 </CardTitle>
-                <CardDescription>{t("profile-coupons.s4")}</CardDescription>
+                <CardDescription>جميع الكوبونات والخصومات الخاصة بك</CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="grid md:grid-cols-2 gap-4">
@@ -77,16 +75,16 @@ export function ProfileCoupons() {
                                     <p className="text-sm text-muted-foreground">{coupon.description}</p>
                                 </div>
                                 <Button size="sm" variant="secondary" onClick={() => copyCoupon(coupon.code)}>
-                                    {t("profile-coupons.s6")}
+                                    نسخ
                                 </Button>
                             </div>
                             <div className="my-2 border-t border-dashed border-primary/20" />
                             <div className="flex justify-between text-xs text-muted-foreground">
-                                <span>{coupon.type === 'percentage' ? t("profile-coupons.s7", { v0: coupon.value }) : t("profile-coupons.s8", { v0: coupon.value })}</span>
+                                <span>{coupon.type === 'percentage' ? `خصم ${coupon.value}%` : `خصم ${coupon.value} د.ع`}</span>
                                 {coupon.usedCount > 0 ? (
-                                    <span className="text-destructive">{t("profile-coupons.s9")}</span>
+                                    <span className="text-destructive">تم الاستخدام</span>
                                 ) : (
-                                    <span className="text-green-600">{t("profile-coupons.s10")}</span>
+                                    <span className="text-green-600">نشط</span>
                                 )}
                             </div>
                         </div>

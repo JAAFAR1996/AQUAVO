@@ -6,7 +6,6 @@ import { Label } from "@/components/ui/label";
 import { Edit, Save, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { UserProfileExtra } from "@/lib/types";
-import { useTranslation } from "react-i18next";
 
 // Type for auth user
 interface AuthUser {
@@ -34,7 +33,6 @@ export function ProfileInfo({
     onPhoneChange,
     onBirthDateChange,
 }: ProfileInfoProps) {
-  const { t } = useTranslation("account");
     const { toast } = useToast();
     const [isChangingPassword, setIsChangingPassword] = useState(false);
     const [currentPassword, setCurrentPassword] = useState("");
@@ -44,11 +42,11 @@ export function ProfileInfo({
 
     const handlePasswordChange = async () => {
         if (newPassword.length < 8) {
-            toast({ title: t("profile-info.s1"), description: t("profile-info.s2"), variant: "destructive" });
+            toast({ title: "خطأ", description: "كلمة المرور يجب أن تكون 8 أحرف على الأقل", variant: "destructive" });
             return;
         }
         if (newPassword !== confirmPassword) {
-            toast({ title: t("profile-info.s1"), description: t("profile-info.s3"), variant: "destructive" });
+            toast({ title: "خطأ", description: "كلمتا المرور غير متطابقتين", variant: "destructive" });
             return;
         }
         setIsSavingPassword(true);
@@ -61,16 +59,16 @@ export function ProfileInfo({
             });
             if (!res.ok) {
                 const data = await res.json();
-                toast({ title: t("profile-info.s1"), description: data.message || t("profile-info.s4"), variant: "destructive" });
+                toast({ title: "خطأ", description: data.message || "فشل تغيير كلمة المرور", variant: "destructive" });
                 return;
             }
-            toast({ title: t("profile-info.s5"), description: t("profile-info.s6") });
+            toast({ title: "تم بنجاح", description: "تم تغيير كلمة المرور بنجاح" });
             setIsChangingPassword(false);
             setCurrentPassword("");
             setNewPassword("");
             setConfirmPassword("");
         } catch {
-            toast({ title: t("profile-info.s1"), description: t("profile-info.s7"), variant: "destructive" });
+            toast({ title: "خطأ", description: "حدث خطأ، يرجى المحاولة مرة أخرى", variant: "destructive" });
         } finally {
             setIsSavingPassword(false);
         }
@@ -81,8 +79,8 @@ export function ProfileInfo({
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                     <div>
-                        <CardTitle>{t("profile-info.s8")}</CardTitle>
-                        <CardDescription>{t("profile-info.s9")}</CardDescription>
+                        <CardTitle>المعلومات الشخصية</CardTitle>
+                        <CardDescription>إدارة بياناتك الشخصية</CardDescription>
                     </div>
                     <Button
                         variant={isEditing ? "default" : "outline"}
@@ -93,12 +91,12 @@ export function ProfileInfo({
                         {isEditing ? (
                             <>
                                 <Save className="w-4 h-4" />
-                                {t("profile-info.s10")}
+                                حفظ
                             </>
                         ) : (
                             <>
                                 <Edit className="w-4 h-4" />
-                                {t("profile-info.s11")}
+                                تعديل
                             </>
                         )}
                     </Button>
@@ -106,14 +104,14 @@ export function ProfileInfo({
                 <CardContent className="space-y-6">
                     <div className="grid md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <Label>{t("profile-info.s12")}</Label>
+                            <Label>الاسم الكامل</Label>
                             <Input
                                 value={user.fullName || ""}
                                 disabled
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label>{t("profile-info.s13")}</Label>
+                            <Label>البريد الإلكتروني</Label>
                             <Input
                                 type="email"
                                 value={user.email}
@@ -122,7 +120,7 @@ export function ProfileInfo({
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label>{t("profile-info.s14")}</Label>
+                            <Label>رقم الهاتف</Label>
                             <Input
                                 type="tel"
                                 value={extraData.phone || ""}
@@ -132,7 +130,7 @@ export function ProfileInfo({
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label>{t("profile-info.s15")}</Label>
+                            <Label>تاريخ الميلاد</Label>
                             <Input
                                 type="date"
                                 value={extraData.birthDate || ""}
@@ -145,7 +143,7 @@ export function ProfileInfo({
                     {isEditing && (
                         <div className="pt-4 border-t">
                             <Button variant="outline" className="text-destructive" onClick={() => setIsEditing(false)}>
-                                {t("profile-info.s16")}
+                                إلغاء
                             </Button>
                         </div>
                     )}
@@ -158,22 +156,22 @@ export function ProfileInfo({
                     <div>
                         <CardTitle className="flex items-center gap-2">
                             <Lock className="w-5 h-5" />
-                            {t("profile-info.s17")}
+                            كلمة المرور
                         </CardTitle>
-                        <CardDescription>{t("profile-info.s18")}</CardDescription>
+                        <CardDescription>تغيير كلمة مرور حسابك</CardDescription>
                     </div>
                     <Button
                         variant="outline"
                         size="sm"
                         onClick={() => setIsChangingPassword(!isChangingPassword)}
                     >
-                        {isChangingPassword ? t("profile-info.s16") : t("profile-info.s19")}
+                        {isChangingPassword ? "إلغاء" : "تغيير"}
                     </Button>
                 </CardHeader>
                 {isChangingPassword && (
                     <CardContent className="space-y-4">
                         <div className="space-y-2">
-                            <Label>{t("profile-info.s20")}</Label>
+                            <Label>كلمة المرور الحالية</Label>
                             <Input
                                 type="password"
                                 value={currentPassword}
@@ -183,28 +181,28 @@ export function ProfileInfo({
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label>{t("profile-info.s21")}</Label>
+                            <Label>كلمة المرور الجديدة</Label>
                             <Input
                                 type="password"
                                 value={newPassword}
                                 onChange={(e) => setNewPassword(e.target.value)}
                                 dir="ltr"
-                                placeholder={t("profile-info.s22")}
+                                placeholder="8 أحرف على الأقل"
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label>{t("profile-info.s23")}</Label>
+                            <Label>تأكيد كلمة المرور</Label>
                             <Input
                                 type="password"
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
                                 dir="ltr"
-                                placeholder={t("profile-info.s24")}
+                                placeholder="أعد كتابة كلمة المرور الجديدة"
                             />
                         </div>
                         <Button onClick={handlePasswordChange} disabled={isSavingPassword} className="gap-2">
                             <Save className="w-4 h-4" />
-                            {isSavingPassword ? t("profile-info.s25") : t("profile-info.s26")}
+                            {isSavingPassword ? "جاري الحفظ..." : "حفظ كلمة المرور"}
                         </Button>
                     </CardContent>
                 )}

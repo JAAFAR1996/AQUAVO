@@ -1,5 +1,4 @@
 import { Banknote, CheckCircle2, LockKeyhole, ShieldCheck } from "lucide-react";
-import { useTranslation } from "react-i18next";
 
 interface PaymentMethodCardProps {
   method: "cod" | "online";
@@ -9,7 +8,6 @@ interface PaymentMethodCardProps {
 }
 
 export function PaymentMethodCard({ method, selected, onChange, disabled = false }: PaymentMethodCardProps) {
-  const { t } = useTranslation("checkout");
   const online = method === "online";
   const isSelected = selected === method;
 
@@ -38,10 +36,10 @@ export function PaymentMethodCard({ method, selected, onChange, disabled = false
           </span>
           <div className="min-w-0">
             <span className="block text-[15px] font-bold leading-6 text-foreground">
-              {online ? t("paymentCard.onlineTitle") : t("paymentCard.codTitle")}
+              {online ? "الدفع الإلكتروني الآمن" : "الدفع عند الاستلام"}
             </span>
             <span className="mt-0.5 block text-xs font-medium text-muted-foreground">
-              {online ? t("paymentCard.onlineSubtitle") : t("paymentCard.codSubtitle")}
+              {online ? "عبر بوابة Wayl" : "نقداً عند وصول الطلب"}
             </span>
           </div>
         </div>
@@ -54,16 +52,16 @@ export function PaymentMethodCard({ method, selected, onChange, disabled = false
 
       <p className="mt-3 text-sm leading-6 text-muted-foreground">
         {online
-          ? t("paymentCard.onlineDetail")
-          : t("paymentCard.codDetail")}
+          ? "سيتم تحويلك إلى صفحة دفع مستضافة وآمنة لإدخال بيانات البطاقة ثم إعادتك تلقائياً إلى AQUAVO."
+          : "أكمل الطلب الآن وادفع المبلغ نقداً عند الاستلام."}
       </p>
 
       {online && (
         <div className="mt-3 flex flex-wrap gap-1.5 text-[11px] font-medium text-muted-foreground">
           <span className="inline-flex items-center gap-1 rounded-full border border-border/70 bg-background/80 px-2 py-1">
-            <LockKeyhole className="h-3 w-3" /> {t("paymentCard.secure")}
+            <LockKeyhole className="h-3 w-3" /> اتصال آمن
           </span>
-          <span className="rounded-full border border-border/70 bg-background/80 px-2 py-1">{t("paymentCard.noStore")}</span>
+          <span className="rounded-full border border-border/70 bg-background/80 px-2 py-1">لا نخزن بيانات البطاقة</span>
         </div>
       )}
     </button>

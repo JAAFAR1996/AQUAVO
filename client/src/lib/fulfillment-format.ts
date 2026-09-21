@@ -1,4 +1,3 @@
-import { i18next } from "@/i18n";
 // ─────────────────────────────────────────────────────────────────────────────
 // Presentation helpers for the fulfillment admin UX.
 //
@@ -9,13 +8,13 @@ import { i18next } from "@/i18n";
 // ─────────────────────────────────────────────────────────────────────────────
 
 /** What the UI shows in place of an amount the system does not know. */
-export const UNKNOWN_LABEL = i18next.t("orders:fulfillment-format.s1");
+export const UNKNOWN_LABEL = "غير معروف";
 
 const numberFormatter = new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 });
 
 /** Format a KNOWN amount. Callers must handle null via {@link formatAmount}. */
 export function formatIqd(value: number): string {
-  return i18next.t("orders:fulfillment-format.s2", { v0: numberFormatter.format(value) });
+  return `${numberFormatter.format(value)} د.ع`;
 }
 
 /**
@@ -31,7 +30,7 @@ export function formatAmount(value: number | null | undefined): string {
 export function formatVariance(value: number | null | undefined): string {
   if (value == null) return UNKNOWN_LABEL;
   const sign = value > 0 ? "+" : "";
-  return i18next.t("orders:fulfillment-format.s3", { v0: sign, v1: numberFormatter.format(value) });
+  return `${sign}${numberFormatter.format(value)} د.ع`;
 }
 
 /** Quantities are counts, not money — plain number formatting with an optional unit. */
@@ -64,9 +63,9 @@ export function formatDateTime(iso: string | null | undefined): string {
 export type CostStatusValue = "exact" | "estimated" | "incomplete" | "unknown";
 
 export const COST_STATUS_LABELS: Record<CostStatusValue, string> = {
-  exact: i18next.t("orders:fulfillment-format.s4"),
-  estimated: i18next.t("orders:fulfillment-format.s5"),
-  incomplete: i18next.t("orders:fulfillment-format.s6"),
+  exact: "دقيق",
+  estimated: "تقديري",
+  incomplete: "ناقص",
   unknown: UNKNOWN_LABEL,
 };
 
@@ -89,11 +88,11 @@ export function costStatusClass(status: string | null | undefined): string {
 }
 
 export const EVENT_TYPE_LABELS: Record<string, string> = {
-  original: i18next.t("orders:fulfillment-format.s7"),
-  reshipment: i18next.t("orders:fulfillment-format.s8"),
-  return_handling: i18next.t("orders:fulfillment-format.s9"),
-  replacement: i18next.t("orders:fulfillment-format.s10"),
-  adjustment: i18next.t("orders:fulfillment-format.s11"),
+  original: "الشحنة الأصلية",
+  reshipment: "إعادة إرسال",
+  return_handling: "معالجة إرجاع",
+  replacement: "استبدال",
+  adjustment: "تعديل",
 };
 
 export function eventTypeLabel(type: string): string {
@@ -101,10 +100,10 @@ export function eventTypeLabel(type: string): string {
 }
 
 export const WORKFLOW_STATE_LABELS: Record<string, string> = {
-  confirmed: i18next.t("orders:fulfillment-format.s12"),
-  reversed: i18next.t("orders:fulfillment-format.s13"),
-  reversal: i18next.t("orders:fulfillment-format.s14"),
-  draft: i18next.t("orders:fulfillment-format.s15"),
+  confirmed: "مؤكد",
+  reversed: "معكوس",
+  reversal: "قيد عكسي",
+  draft: "مسودة",
 };
 
 export function workflowStateLabel(state: string): string {
@@ -112,11 +111,11 @@ export function workflowStateLabel(state: string): string {
 }
 
 export const DRAFT_STATE_LABELS: Record<string, string> = {
-  suggested: i18next.t("orders:fulfillment-format.s16"),
-  editing: i18next.t("orders:fulfillment-format.s17"),
-  awaiting_confirmation: i18next.t("orders:fulfillment-format.s18"),
-  consumed: i18next.t("orders:fulfillment-format.s12"),
-  discarded: i18next.t("orders:fulfillment-format.s19"),
+  suggested: "مقترح",
+  editing: "قيد التعديل",
+  awaiting_confirmation: "بانتظار التأكيد",
+  consumed: "مؤكد",
+  discarded: "ملغى",
 };
 
 export function draftStateLabel(state: string): string {

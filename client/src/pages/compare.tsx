@@ -6,10 +6,8 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Scale, Trash2 } from "lucide-react";
 import { Link } from "wouter";
 import type { Product } from "@/types";
-import { useTranslation } from "react-i18next";
 
 export default function ComparePage() {
-  const { t } = useTranslation("tools");
     const { compareIds, clearCompare, removeFromCompare } = useComparison();
 
     // Fetch all products
@@ -30,9 +28,9 @@ export default function ComparePage() {
     return (
         <div className="flex-1 flex flex-col bg-background">
             <MetaTags
-                title={t("compare.s1")}
-                description={t("compare.s2")}
-                keywords={[t("compare.s3"), t("compare.s4"), "AQUAVO"]}
+                title="مقارنة المنتجات"
+                description="قارن بين منتجات أحواض الأسماك واختر الأنسب لك - مقارنة شاملة للمواصفات والأسعار في AQUAVO"
+                keywords={["مقارنة أحواض الأسماك", "مقارنة منتجات المياه", "AQUAVO"]}
             />
             <main className="flex-1 container mx-auto px-4 py-8 pt-24">
                 {/* Header */}
@@ -43,8 +41,8 @@ export default function ComparePage() {
                                 <Scale className="w-6 h-6 text-white" />
                             </div>
                             <div>
-                                <h1 className="text-3xl font-bold">{t("compare.s1")}</h1>
-                                <p className="text-muted-foreground">{t("compare.s5")}</p>
+                                <h1 className="text-3xl font-bold">مقارنة المنتجات</h1>
+                                <p className="text-muted-foreground">قارن بين المنتجات المختارة</p>
                             </div>
                         </div>
                     </div>
@@ -53,13 +51,13 @@ export default function ComparePage() {
                         <Link href="/products">
                             <Button variant="outline" className="gap-2">
                                 <ArrowRight className="w-4 h-4" />
-                                {t("compare.s6")}
+                                العودة للمنتجات
                             </Button>
                         </Link>
                         {comparedProducts.length > 0 && (
                             <Button variant="destructive" onClick={clearCompare} className="gap-2">
                                 <Trash2 className="w-4 h-4" />
-                                {t("compare.s7")}
+                                مسح المقارنة
                             </Button>
                         )}
                     </div>

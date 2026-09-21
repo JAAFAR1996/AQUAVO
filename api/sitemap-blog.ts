@@ -3,7 +3,6 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { Pool, neonConfig } from "@neondatabase/serverless";
 import ws from "ws";
 import { AQUAVO_BASE_URL } from "../shared/seo-contract.js";
-import { XHTML_NS, localizedUrlEntries, translatedLocalesByEntity } from "./_sitemap-i18n.js";
 
 neonConfig.webSocketConstructor = ws;
 
@@ -61,7 +60,7 @@ function effectiveLastmod(
 export default async function handler(_req: VercelRequest, res: VercelResponse): Promise<void> {
   try {
     const { rows } = await getPool().query(
-      `SELECT id, slug,
+      `SELECT slug,
               title,
               image_url AS "imageUrl",
               published_at AS "publishedAt",
@@ -75,7 +74,6 @@ export default async function handler(_req: VercelRequest, res: VercelResponse):
         LIMIT 50000`,
     );
 
-    const localesById = await translatedLocalesByEntity(getPool(), "blog_post", rows.map((r) => String(r.id)));
     const entries = rows
       .filter((post) => typeof post.slug === "string" && post.slug.trim().length > 0 && !post.slug.includes("/"))
       .map((post) => {
@@ -95,12 +93,12 @@ export default async function handler(_req: VercelRequest, res: VercelResponse):
             )}</image:title></image:image>
   `
           : "";
-        return localizedUrlEntries(`/blog/${slug}`, localesById.get(String(post.id)) ?? ["ar"], `${lastmodXml}${imageXml}`);
+        return `  <url><loc>${escapeXml(`${AQUAVO_BASE_URL}/blog/${slug}`)}</loc>${lastmodXml}${imageXml}</url>`;
       })
       .join("\n");
 
     const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
- xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" ${XHTML_NS}>\n${entries}\n</urlset>`;
+ xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n${entries}\n</urlset>`;
 
     res.setHeader("Content-Type", "application/xml; charset=utf-8");
     res.setHeader("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");

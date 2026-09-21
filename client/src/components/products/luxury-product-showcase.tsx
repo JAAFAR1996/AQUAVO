@@ -3,14 +3,12 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { Product } from "@/types";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import { useTranslation } from "react-i18next";
 
 interface LuxuryProductShowcaseProps {
   product: Product;
 }
 
 export function LuxuryProductShowcase({ product }: LuxuryProductShowcaseProps) {
-  const { t } = useTranslation("pages");
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -43,14 +41,14 @@ export function LuxuryProductShowcase({ product }: LuxuryProductShowcaseProps) {
             </span>
           </h1>
           <p className="text-xl text-muted-foreground max-w-md leading-relaxed">
-            {t("luxury-product-showcase.s1")}
+            تجربة استثنائية تجمع بين التصميم الفاخر والأداء الفائق. صمم ليكون تحفة فنية في منزلك.
           </p>
 
           <div className="flex items-center gap-6 pt-4">
             <Button size="lg" className="rounded-full px-8 h-14 text-lg">
-              {t("luxury-product-showcase.s2")}
+              اكتشف المزيد
             </Button>
-            <Button variant="outline" size="icon" className="rounded-full w-14 h-14 border-2" aria-label={t("luxury-product-showcase.s3")}>
+            <Button variant="outline" size="icon" className="rounded-full w-14 h-14 border-2" aria-label="التالي">
               <ArrowLeft className="w-6 h-6" />
             </Button>
           </div>
@@ -76,7 +74,7 @@ export function LuxuryProductShowcase({ product }: LuxuryProductShowcaseProps) {
             className="absolute -right-12 top-1/4 bg-card/80 backdrop-blur-md p-6 rounded-2xl border border-white/10 shadow-xl max-w-[200px]"
           >
             <div className="text-3xl font-bold text-primary mb-1">{product.rating}</div>
-            <div className="text-sm text-muted-foreground">{t("luxury-product-showcase.s4")}</div>
+            <div className="text-sm text-muted-foreground">تقييم المستخدمين</div>
           </motion.div>
 
           <motion.div
@@ -85,7 +83,7 @@ export function LuxuryProductShowcase({ product }: LuxuryProductShowcaseProps) {
             transition={{ delay: 0.7 }}
             className="absolute -left-12 bottom-1/4 bg-card/80 backdrop-blur-md p-6 rounded-2xl border border-white/10 shadow-xl max-w-[200px]"
           >
-            <div className="text-2xl font-bold text-purple-500">{t("luxury-product-showcase.s5")}</div>
+            <div className="text-2xl font-bold text-purple-500">قريباً جداً</div>
           </motion.div>
         </motion.div>
       </div>

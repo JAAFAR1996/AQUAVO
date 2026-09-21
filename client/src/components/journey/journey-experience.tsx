@@ -10,14 +10,11 @@ import {
 } from "@/components/ui/dialog";
 import { getSpeciesById, type FishSpeciesInfo } from "@/components/journey/fish-species-data";
 import type { WizardData } from "@/types/journey";
-import { useTranslation } from "react-i18next";
-import { i18next } from "@/i18n";
 
 const JOURNEY_INTRO_KEY = "aquavo_journey_intro_seen_v3";
 const LEGACY_JOURNEY_TOUR_KEY = "aquavo_tour_seen_journey";
 
 export function JourneyFirstVisitIntro() {
-  const { t } = useTranslation("tools");
   const [eligible, setEligible] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -55,14 +52,14 @@ export function JourneyFirstVisitIntro() {
         <div className="space-y-5 px-6 pb-6 pt-2 text-right">
           <DialogHeader className="text-right sm:text-right">
             <DialogTitle className="text-2xl font-black text-primary">
-              {t("journey-experience.s1")}
+              كل اختيار يبني حوضك
             </DialogTitle>
             <DialogDescription className="mt-2 text-base leading-7">
-              {t("journey-experience.s2")}
+              من الحجم والموقع للمعدات والديكور والأسماك — المعاينة راح تتغيّر قدامك خطوة بخطوة وتبقى مطابقة لاختياراتك.
             </DialogDescription>
           </DialogHeader>
           <Button className="h-12 w-full font-bold aqv-press" onClick={() => setOpen(false)}>
-            {t("journey-experience.s3")}
+            ابدأ بناء الحوض
           </Button>
         </div>
       </DialogContent>
@@ -78,29 +75,29 @@ interface JourneyTankVisualizerProps {
 }
 
 const FILTER_LABELS: Record<string, string> = {
-  hob: i18next.t("tools:journey-experience.s4"),
-  canister: i18next.t("tools:journey-experience.s5"),
-  sponge: i18next.t("tools:journey-experience.s6"),
-  internal: i18next.t("tools:journey-experience.s7"),
+  hob: "فلتر HOB",
+  canister: "فلتر كانستر",
+  sponge: "فلتر إسفنجي",
+  internal: "فلتر داخلي",
 };
 
 const SUBSTRATE_LABELS: Record<string, string> = {
-  gravel: i18next.t("tools:journey-experience.s8"),
-  sand: i18next.t("tools:journey-experience.s9"),
-  "planted-substrate": i18next.t("tools:journey-experience.s10"),
-  mixed: i18next.t("tools:journey-experience.s11"),
+  gravel: "حصى",
+  sand: "رمل",
+  "planted-substrate": "تربة نباتية",
+  mixed: "ركيزة مختلطة",
 };
 
 const TANK_TYPE_LABELS: Record<string, string> = {
-  "freshwater-community": i18next.t("tools:journey-experience.s12"),
-  planted: i18next.t("tools:journey-experience.s13"),
-  "species-specific": i18next.t("tools:journey-experience.s14"),
+  "freshwater-community": "مجتمع مياه عذبة",
+  planted: "حوض نباتي",
+  "species-specific": "نوع محدد",
 };
 
 const MAINTENANCE_LABELS: Record<string, string> = {
-  minimal: i18next.t("tools:journey-experience.s15"),
-  moderate: i18next.t("tools:journey-experience.s16"),
-  intensive: i18next.t("tools:journey-experience.s17"),
+  minimal: "15 دقيقة أسبوعياً",
+  moderate: "30–45 دقيقة أسبوعياً",
+  intensive: "ساعة أو أكثر أسبوعياً",
 };
 
 const FISH_COLORS: Record<string, string> = {
@@ -157,8 +154,8 @@ type PreviewFish = Pick<FishSpeciesInfo, "id" | "category" | "nameAr">;
 function buildFish(species: FishSpeciesInfo[], stockingLevel: string, cyclingMethod: string): PreviewFish[] {
   if (species.length === 0 && cyclingMethod === "with-hardy-fish") {
     return [
-      { id: "hardy-preview-1", category: "community", nameAr: i18next.t("tools:journey-experience.s18") },
-      { id: "hardy-preview-2", category: "community", nameAr: i18next.t("tools:journey-experience.s18") },
+      { id: "hardy-preview-1", category: "community", nameAr: "سمكة قوية" },
+      { id: "hardy-preview-2", category: "community", nameAr: "سمكة قوية" },
     ];
   }
   if (species.length === 0) return [];
@@ -298,7 +295,6 @@ function FishVisual({ fish, index }: { fish: PreviewFish; index: number }) {
 }
 
 export function JourneyTankVisualizer({ data, currentStep, total, label }: JourneyTankVisualizerProps) {
-  const { t } = useTranslation("tools");
   const species = useMemo(() => getSpeciesById(data.selectedSpecies || []), [data.selectedSpecies]);
   const fish = useMemo(
     () => buildFish(species, data.stockingLevel, data.cyclingMethod),
@@ -322,7 +318,7 @@ export function JourneyTankVisualizer({ data, currentStep, total, label }: Journ
   } as CSSProperties;
 
   const selectedLabels = [
-    litres > 0 ? t("journey-experience.s19", { v0: litres }) : TANK_TYPE_LABELS[data.tankType],
+    litres > 0 ? `${litres} لتر` : TANK_TYPE_LABELS[data.tankType],
     FILTER_LABELS[data.filterType],
     SUBSTRATE_LABELS[data.substrateType],
     species.length > 0 ? species.map((item) => item.nameAr).join("، ") : undefined,
@@ -354,9 +350,9 @@ export function JourneyTankVisualizer({ data, currentStep, total, label }: Journ
 
         <div className="aqv-jtank__viewport">
           <svg viewBox="0 0 400 260" role="img" aria-labelledby="aqv-tank-title aqv-tank-desc">
-            <title id="aqv-tank-title">{t("journey-experience.s20")}</title>
+            <title id="aqv-tank-title">معاينة حوضك المختار</title>
             <desc id="aqv-tank-desc">
-              {t("journey-experience.s21")}
+              معاينة بصرية تتغير حسب الحجم والموقع والمعدات والديكور والماء والأسماك التي اخترتها.
             </desc>
             <defs>
               <linearGradient id="aqv-water-gradient" x1="0" y1="0" x2="0" y2="1">
@@ -390,7 +386,7 @@ export function JourneyTankVisualizer({ data, currentStep, total, label }: Journ
               <FilterVisual type={data.filterType} />
 
               {data.heaterWattage > 0 && (
-                <g className="aqv-jtank__equipment" aria-label={t("journey-experience.s22", { v0: data.heaterWattage })}>
+                <g className="aqv-jtank__equipment" aria-label={`سخان ${data.heaterWattage} واط`}>
                   <rect x="345" y="105" width="8" height="67" rx="4" fill="#344B55" />
                   <rect x="347" y="132" width="4" height="31" rx="2" fill="#E46A5D" />
                 </g>
@@ -432,7 +428,7 @@ export function JourneyTankVisualizer({ data, currentStep, total, label }: Journ
             )}
 
             {data.cyclingMethod === "bottled-bacteria" && (
-              <g transform="translate(342 218)" aria-label={t("journey-experience.s23")}>
+              <g transform="translate(342 218)" aria-label="بكتيريا معبأة">
                 <rect x="0" y="0" width="24" height="31" rx="5" fill="#0B93A6" />
                 <rect x="6" y="-6" width="12" height="8" rx="2" fill="#17333D" />
                 <path d="M8 15 C11 9 15 9 17 15 C17 20 8 20 8 15" fill="#D9FBFF" />
@@ -445,13 +441,13 @@ export function JourneyTankVisualizer({ data, currentStep, total, label }: Journ
       <div className="aqv-journey-preview__status">
         <div>
           <strong>{label}</strong>
-          <span>{completion}{t("journey-experience.s24")}</span>
+          <span>{completion}% مكتمل</span>
         </div>
-        <div className="aqv-journey-preview__chips" aria-label={t("journey-experience.s25")}>
+        <div className="aqv-journey-preview__chips" aria-label="اختيارات مطبقة على المعاينة">
           {selectedLabels.slice(0, 5).map((item) => <span key={item}>{item}</span>)}
         </div>
         {fish.length > 0 && (
-          <small>{t("journey-experience.s26")}</small>
+          <small>الأسماك داخل المعاينة تمثيل بصري للأنواع والكثافة المختارة، مو عدداً نهائياً.</small>
         )}
       </div>
     </section>

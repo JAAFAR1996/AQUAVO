@@ -30,8 +30,6 @@ import {
     type FishCategory,
     type FishSpeciesInfo,
 } from "./fish-species-data";
-import { useTranslation } from "react-i18next";
-import { i18next } from "@/i18n";
 
 interface FishSelectionProps {
     wizardData: WizardData;
@@ -39,7 +37,6 @@ interface FishSelectionProps {
 }
 
 export function FishSelection({ wizardData, updateData }: FishSelectionProps) {
-  const { t } = useTranslation("tools");
     const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
     const [showFeedingFor, setShowFeedingFor] = useState<string | null>(null);
 
@@ -93,10 +90,10 @@ export function FishSelection({ wizardData, updateData }: FishSelectionProps) {
                         <Fish className="h-8 w-8 text-primary" />
                     </div>
                     <h2 className="text-2xl md:text-3xl font-black text-foreground">
-                        {t("fish-selection.s1")}
+                        اختيار الأسماك
                     </h2>
                     <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-                        {t("fish-selection.s2")}
+                        اختر الأنواع المحددة لنعطيك توصيات الأكل والمنتجات المناسبة تماماً
                     </p>
                 </div>
 
@@ -107,7 +104,7 @@ export function FishSelection({ wizardData, updateData }: FishSelectionProps) {
                             <div className="flex items-center gap-2">
                                 <Check className="h-5 w-5 text-primary" />
                                 <span className="font-bold text-foreground">
-                                    {t("fish-selection.s3")} {selectedSpeciesData.length} {t("fish-selection.s4")}
+                                    تم اختيار {selectedSpeciesData.length} نوع
                                 </span>
                             </div>
                             {compatibility && (
@@ -118,7 +115,7 @@ export function FishSelection({ wizardData, updateData }: FishSelectionProps) {
                                     </span>
                                     <span className="flex items-center gap-1 text-muted-foreground">
                                         <Droplets className="h-3 w-3" />
-                                        {t("fish-selection.s5")} {compatibility.minTankSize} {t("fish-selection.s6")}
+                                        حد أدنى {compatibility.minTankSize} لتر
                                     </span>
                                 </div>
                             )}
@@ -160,7 +157,7 @@ export function FishSelection({ wizardData, updateData }: FishSelectionProps) {
                 <div className="space-y-4">
                     <Label className="text-lg font-bold flex items-center gap-2">
                         <Calculator className="h-5 w-5 text-primary" />
-                        {t("fish-selection.s7")}
+                        مستوى الكثافة السمكية
                     </Label>
                     <RadioGroup
                         value={wizardData.stockingLevel}
@@ -170,23 +167,23 @@ export function FishSelection({ wizardData, updateData }: FishSelectionProps) {
                             {[
                                 {
                                     value: "light",
-                                    label: t("fish-selection.s8"),
-                                    desc: t("fish-selection.s9"),
-                                    badge: t("fish-selection.s10"),
+                                    label: "خفيف",
+                                    desc: "~1 سم لكل 2 لتر",
+                                    badge: "مُوصى به",
                                     badgeColor: "bg-green-500/10 text-green-500",
                                 },
                                 {
                                     value: "moderate",
-                                    label: t("fish-selection.s11"),
-                                    desc: t("fish-selection.s12"),
-                                    badge: t("fish-selection.s13"),
+                                    label: "معتدل",
+                                    desc: "~1 سم لكل 1.5 لتر",
+                                    badge: "متوازن",
                                     badgeColor: "bg-amber-500/10 text-amber-500",
                                 },
                                 {
                                     value: "heavy",
-                                    label: t("fish-selection.s14"),
-                                    desc: t("fish-selection.s15"),
-                                    badge: t("fish-selection.s16"),
+                                    label: "كثيف",
+                                    desc: "~1 سم لكل 1 لتر",
+                                    badge: "خبراء فقط",
                                     badgeColor: "bg-red-500/10 text-red-500",
                                 },
                             ].map((option) => (
@@ -229,39 +226,39 @@ export function FishSelection({ wizardData, updateData }: FishSelectionProps) {
                         <div className="flex items-center gap-2 mb-4">
                             <Calculator className="h-5 w-5 text-primary" />
                             <h3 className="font-bold text-foreground">
-                                {t("fish-selection.s17")}
+                                حاسبة الكثافة التقريبية
                             </h3>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="bg-background rounded-xl p-4 text-center">
-                                <div className="text-xs text-muted-foreground mb-2">{t("fish-selection.s18")}</div>
+                                <div className="text-xs text-muted-foreground mb-2">حوضك</div>
                                 <div className="text-xl font-black text-primary">
                                     {wizardData.tankLiters > 0
-                                        ? t("fish-selection.s19", { v0: wizardData.tankLiters })
+                                        ? `${wizardData.tankLiters} لتر`
                                         : <>
-                                            {wizardData.tankSize === "small" && t("fish-selection.s20")}
-                                            {wizardData.tankSize === "medium" && t("fish-selection.s21")}
-                                            {wizardData.tankSize === "large" && t("fish-selection.s22")}
-                                            {wizardData.tankSize === "xlarge" && t("fish-selection.s23")}
+                                            {wizardData.tankSize === "small" && "~40 لتر"}
+                                            {wizardData.tankSize === "medium" && "~100 لتر"}
+                                            {wizardData.tankSize === "large" && "~200 لتر"}
+                                            {wizardData.tankSize === "xlarge" && "~400 لتر"}
                                         </>
                                     }
                                 </div>
                             </div>
                             <div className="bg-background rounded-xl p-4 text-center">
                                 <div className="text-xs text-muted-foreground mb-2">
-                                    {t("fish-selection.s24")}
+                                    يمكنك إضافة
                                 </div>
                                 <div className="text-xl font-black text-primary">
-                                    {wizardData.tankSize === "small" && wizardData.stockingLevel === "light" && t("fish-selection.s25")}
-                                    {wizardData.tankSize === "small" && wizardData.stockingLevel === "moderate" && t("fish-selection.s26")}
-                                    {wizardData.tankSize === "small" && wizardData.stockingLevel === "heavy" && t("fish-selection.s27")}
-                                    {wizardData.tankSize === "medium" && wizardData.stockingLevel === "light" && t("fish-selection.s28")}
-                                    {wizardData.tankSize === "medium" && wizardData.stockingLevel === "moderate" && t("fish-selection.s29")}
-                                    {wizardData.tankSize === "medium" && wizardData.stockingLevel === "heavy" && t("fish-selection.s30")}
-                                    {wizardData.tankSize === "large" && wizardData.stockingLevel === "light" && t("fish-selection.s31")}
-                                    {wizardData.tankSize === "large" && wizardData.stockingLevel === "moderate" && t("fish-selection.s32")}
-                                    {wizardData.tankSize === "large" && wizardData.stockingLevel === "heavy" && t("fish-selection.s33")}
-                                    {wizardData.tankSize === "xlarge" && t("fish-selection.s34")}
+                                    {wizardData.tankSize === "small" && wizardData.stockingLevel === "light" && "~10-15 سمكة صغيرة"}
+                                    {wizardData.tankSize === "small" && wizardData.stockingLevel === "moderate" && "~15-20 سمكة صغيرة"}
+                                    {wizardData.tankSize === "small" && wizardData.stockingLevel === "heavy" && "~20-25 سمكة صغيرة"}
+                                    {wizardData.tankSize === "medium" && wizardData.stockingLevel === "light" && "~20-30 سمكة صغيرة"}
+                                    {wizardData.tankSize === "medium" && wizardData.stockingLevel === "moderate" && "~30-40 سمكة صغيرة"}
+                                    {wizardData.tankSize === "medium" && wizardData.stockingLevel === "heavy" && "~40-50 سمكة صغيرة"}
+                                    {wizardData.tankSize === "large" && wizardData.stockingLevel === "light" && "~40-60 سمكة صغيرة"}
+                                    {wizardData.tankSize === "large" && wizardData.stockingLevel === "moderate" && "~60-80 سمكة صغيرة"}
+                                    {wizardData.tankSize === "large" && wizardData.stockingLevel === "heavy" && "~80-100 سمكة صغيرة"}
+                                    {wizardData.tankSize === "xlarge" && "أكثر من 100 سمكة صغيرة"}
                                 </div>
                             </div>
                         </div>
@@ -269,24 +266,24 @@ export function FishSelection({ wizardData, updateData }: FishSelectionProps) {
                             <div className="mt-4 bg-background rounded-xl p-4">
                                 <div className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
                                     <Info className="h-3 w-3" />
-                                    {t("fish-selection.s35")}
+                                    بناءً على اختياراتك
                                 </div>
                                 {compatibility.minTankSize > (wizardData.tankLiters || 0) && wizardData.tankLiters > 0 && (
                                     <div className="text-sm text-destructive font-bold flex items-center gap-1">
                                         <AlertCircle className="h-4 w-4" />
-                                        {t("fish-selection.s36")}{compatibility.minTankSize} {t("fish-selection.s37")}
+                                        بعض الأسماك المختارة تحتاج حوض أكبر ({compatibility.minTankSize} لتر على الأقل)
                                     </div>
                                 )}
                                 {compatibility.minTemp > compatibility.maxTemp && (
                                     <div className="text-sm text-destructive font-bold flex items-center gap-1">
                                         <AlertCircle className="h-4 w-4" />
-                                        {t("fish-selection.s38")}
+                                        بعض الأسماك المختارة غير متوافقة في درجة الحرارة
                                     </div>
                                 )}
                             </div>
                         )}
                         <p className="text-xs text-muted-foreground mt-3">
-                            {t("fish-selection.s39")}
+                            * هذه أرقام تقريبية للأسماك الصغيرة (2-3 سم). الأسماك الكبيرة تحتاج مساحة أكثر.
                         </p>
                     </div>
                 )}
@@ -296,13 +293,13 @@ export function FishSelection({ wizardData, updateData }: FishSelectionProps) {
                     <AlertCircle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-1" />
                     <div>
                         <div className="font-bold text-foreground mb-2 text-right">
-                            {t("fish-selection.s40")}
+                            التوافق مهم جداً
                         </div>
                         <ul className="text-sm text-muted-foreground space-y-1.5 list-disc list-inside text-right">
-                            <li>{t("fish-selection.s41")}</li>
-                            <li>{t("fish-selection.s42")}</li>
-                            <li>{t("fish-selection.s43")}</li>
-                            <li>{t("fish-selection.s44")}</li>
+                            <li>لا تخلط أسماك عدوانية مع أسماك سلمية</li>
+                            <li>تأكد من توافق متطلبات المياه (pH، درجة الحرارة)</li>
+                            <li>بعض الأسماك تأكل الجمبري الصغير</li>
+                            <li>أضف الأسماك تدريجياً: 3-5 كل أسبوعين</li>
                         </ul>
                     </div>
                 </div>
@@ -312,10 +309,12 @@ export function FishSelection({ wizardData, updateData }: FishSelectionProps) {
                     <Lightbulb className="h-5 w-5 text-primary flex-shrink-0 mt-1" />
                     <div>
                         <div className="font-bold text-foreground mb-1 text-right">
-                            {t("fish-selection.s45")}
+                            نصيحة الخبراء
                         </div>
                         <p className="text-sm text-muted-foreground text-right">
-                            {t("fish-selection.s46")}
+                            لا تضف كل الأسماك دفعة واحدة، حتى لو كان حوضك مدوّراً.
+                            ابدأ بالأنواع الأقوى (مثل Guppy وPlaty)، ثم أضف الأنواع الحساسة
+                            (مثل Neon Tetra) بعد شهر.
                         </p>
                     </div>
                 </div>
@@ -348,7 +347,6 @@ function CategoryCard({
     onShowFeeding,
     tankLiters,
 }: CategoryCardProps) {
-  const { t } = useTranslation("tools");
     const selectedInCategory = category.species.filter((s) =>
         selectedSpecies.includes(s.id)
     );
@@ -389,11 +387,11 @@ function CategoryCard({
                 <div className="flex items-center gap-3">
                     {selectedInCategory.length > 0 && (
                         <Badge variant="default" className="text-xs">
-                            {selectedInCategory.length} {t("fish-selection.s47")}
+                            {selectedInCategory.length} مختار
                         </Badge>
                     )}
                     <span className="text-sm text-muted-foreground">
-                        {category.species.length} {t("fish-selection.s48")}
+                        {category.species.length} أنواع
                     </span>
                     {isExpanded ? (
                         <ChevronUp className="h-5 w-5 text-muted-foreground" />
@@ -449,7 +447,6 @@ function SpeciesCard({
     onToggleFeeding,
     tankLiters,
 }: SpeciesCardProps) {
-  const { t } = useTranslation("tools");
     const tooSmallTank = tankLiters > 0 && tankLiters < species.tankMinLiters;
 
     return (
@@ -506,11 +503,11 @@ function SpeciesCard({
                             : "bg-muted/50 text-muted-foreground"
                     )}>
                         <Droplets className="h-2.5 w-2.5" />
-                        {species.tankMinLiters}{t("fish-selection.s49")}
+                        {species.tankMinLiters}+ لتر
                     </span>
                     <span className="text-[11px] text-muted-foreground flex items-center gap-1 bg-muted/50 px-2 py-0.5 rounded-full">
                         <Ruler className="h-2.5 w-2.5" />
-                        {species.maxSizeCm} {t("fish-selection.s50")}
+                        {species.maxSizeCm} سم
                     </span>
                     <span className="text-[11px] text-muted-foreground flex items-center gap-1 bg-muted/50 px-2 py-0.5 rounded-full">
                         <Clock className="h-2.5 w-2.5" />
@@ -519,7 +516,7 @@ function SpeciesCard({
                     {species.schooling && species.minGroupSize && (
                         <span className="text-[11px] text-muted-foreground flex items-center gap-1 bg-muted/50 px-2 py-0.5 rounded-full">
                             <Users className="h-2.5 w-2.5" />
-                            {species.minGroupSize}{t("fish-selection.s51")}
+                            {species.minGroupSize}+ سمكة
                         </span>
                     )}
                 </div>
@@ -537,7 +534,7 @@ function SpeciesCard({
                     >
                         <span className="flex items-center gap-2 font-bold text-primary">
                             <Utensils className="h-4 w-4" />
-                            {t("fish-selection.s52")}
+                            نظام التغذية والأكل المناسب
                         </span>
                         {showFeeding ? (
                             <ChevronUp className="h-4 w-4 text-primary" />
@@ -553,7 +550,7 @@ function SpeciesCard({
                                 {/* Food Types */}
                                 <div>
                                     <div className="text-xs font-bold text-foreground mb-1.5">
-                                        {t("fish-selection.s53")}
+                                        أنواع الأكل المناسبة:
                                     </div>
                                     <div className="flex flex-wrap gap-1.5">
                                         {species.feedingInfo.foodTypes.map((type) => (
@@ -573,8 +570,8 @@ function SpeciesCard({
                                     <Clock className="h-3.5 w-3.5 text-primary flex-shrink-0" />
                                     <span className="text-xs text-muted-foreground">
                                         {species.feedingInfo.frequencyPerDay === 0
-                                            ? t("fish-selection.s54")
-                                            : t("fish-selection.s55", { v0: species.feedingInfo.frequencyPerDay, v1: species.feedingInfo.frequencyPerDay > 2 ? t("fish-selection.timesMany") : t("fish-selection.timesTwo") })
+                                            ? "لا يحتاج أكل إضافي (يأكل طحالب)"
+                                            : `${species.feedingInfo.frequencyPerDay} ${species.feedingInfo.frequencyPerDay > 2 ? "مرات" : "مرتين"} يومياً`
                                         }
                                     </span>
                                 </div>
@@ -608,13 +605,13 @@ function SpeciesCard({
 // ============================================================
 function getFoodTypeLabel(type: string): string {
     const labels: Record<string, string> = {
-        flakes: i18next.t("tools:fish-selection.s56"),
-        pellets: i18next.t("tools:fish-selection.s57"),
-        frozen: i18next.t("tools:fish-selection.s58"),
-        live: i18next.t("tools:fish-selection.s59"),
-        algae: i18next.t("tools:fish-selection.s60"),
-        vegetables: i18next.t("tools:fish-selection.s61"),
-        spirulina: i18next.t("tools:fish-selection.s62"),
+        flakes: "فليكس (رقائق)",
+        pellets: "بيليتس (حبيبات)",
+        frozen: "أكل مجمد",
+        live: "أكل حي",
+        algae: "طحالب",
+        vegetables: "خضروات",
+        spirulina: "سبيرولينا",
     };
     return labels[type] || type;
 }

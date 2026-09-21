@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Clock3 } from "lucide-react";
-import { useTranslation } from "react-i18next";
 
 import type { Product } from "@/types";
 
@@ -9,14 +8,12 @@ const WOOD_MONTH_END_SALE_END_MS = new Date(WOOD_MONTH_END_SALE_END_AT).getTime(
 
 type SaleProduct = Pick<Product, "subcategory" | "price" | "originalPrice">;
 
-const WOOD_SUBCATEGORIES = new Set(["أخشاب طبيعية", "Natural Wood", "داری سروشتی"]);
-
 export function isWoodMonthEndSale(product: SaleProduct): boolean {
   const currentPrice = Number(product.price ?? 0);
   const originalPrice = Number(product.originalPrice ?? 0);
 
   return (
-    WOOD_SUBCATEGORIES.has(product.subcategory ?? "") &&
+    product.subcategory === "أخشاب طبيعية" &&
     originalPrice > 10_000 &&
     originalPrice > currentPrice &&
     Date.now() <= WOOD_MONTH_END_SALE_END_MS
@@ -65,7 +62,6 @@ function CountdownUnit({
 }
 
 export function WoodSaleCountdown({ compact = false }: { compact?: boolean }) {
-  const { t } = useTranslation("product");
   const [remaining, setRemaining] = useState(getRemainingTime);
 
   useEffect(() => {
@@ -82,37 +78,33 @@ export function WoodSaleCountdown({ compact = false }: { compact?: boolean }) {
           ? "inline-flex max-w-full items-center gap-1.5 rounded-lg border border-[#d8d0c3] bg-white/70 px-2 py-1 text-[10px] font-semibold text-[#365158]"
           : "inline-flex flex-wrap items-center gap-2 rounded-xl border border-[#d8d0c3] bg-[#fbfaf7] px-3 py-2 text-sm font-semibold text-[#365158] shadow-sm"
       }
-      aria-label={t("sale.aria", {
-        days: remaining.days,
-        hours: remaining.hours,
-        minutes: remaining.minutes,
-        seconds: remaining.seconds,
-      })}
+      aria-label={`ينتهي عرض نهاية الشهر خلال ${remaining.days} يوم و${remaining.hours} ساعة و${remaining.minutes} دقيقة و${remaining.seconds} ثانية`}
+      dir="rtl"
     >
       <Clock3 className={compact ? "h-3 w-3 shrink-0" : "h-4 w-4 shrink-0"} aria-hidden="true" />
 
       {compact ? (
         <>
-          <span className="whitespace-nowrap text-[9px] font-medium text-[#607278]">{t("sale.remaining")}</span>
-          <CountdownUnit value={remaining.days} label={t("sale.day")} compact />
+          <span className="whitespace-nowrap text-[9px] font-medium text-[#607278]">باقي</span>
+          <CountdownUnit value={remaining.days} label="يوم" compact />
           <span className="text-[#b2aaa0]" aria-hidden="true">•</span>
-          <CountdownUnit value={remaining.hours} label={t("sale.hour")} compact />
+          <CountdownUnit value={remaining.hours} label="ساعة" compact />
           <span className="text-[#b2aaa0]" aria-hidden="true">•</span>
-          <CountdownUnit value={remaining.minutes} label={t("sale.minute")} compact />
+          <CountdownUnit value={remaining.minutes} label="دقيقة" compact />
           <span className="text-[#b2aaa0]" aria-hidden="true">•</span>
-          <CountdownUnit value={remaining.seconds} label={t("sale.second")} compact />
+          <CountdownUnit value={remaining.seconds} label="ثانية" compact />
         </>
       ) : (
         <>
-          <span className="ml-1 whitespace-nowrap text-xs font-medium text-[#607278]">{t("sale.remaining")}</span>
+          <span className="ml-1 whitespace-nowrap text-xs font-medium text-[#607278]">باقي</span>
           <div className="flex items-center gap-2">
-            <CountdownUnit value={remaining.days} label={t("sale.day")} compact={false} />
+            <CountdownUnit value={remaining.days} label="يوم" compact={false} />
             <span className="text-[#d0c8bc]" aria-hidden="true">:</span>
-            <CountdownUnit value={remaining.hours} label={t("sale.hour")} compact={false} />
+            <CountdownUnit value={remaining.hours} label="ساعة" compact={false} />
             <span className="text-[#d0c8bc]" aria-hidden="true">:</span>
-            <CountdownUnit value={remaining.minutes} label={t("sale.minute")} compact={false} />
+            <CountdownUnit value={remaining.minutes} label="دقيقة" compact={false} />
             <span className="text-[#d0c8bc]" aria-hidden="true">:</span>
-            <CountdownUnit value={remaining.seconds} label={t("sale.second")} compact={false} />
+            <CountdownUnit value={remaining.seconds} label="ثانية" compact={false} />
           </div>
         </>
       )}

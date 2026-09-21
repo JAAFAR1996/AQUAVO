@@ -15,7 +15,6 @@ import {
     HeadsetIcon
 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
-import { useTranslation } from "react-i18next";
 
 interface ChatMessage {
     id: string;
@@ -26,7 +25,6 @@ interface ChatMessage {
 }
 
 export function LiveChatWidget() {
-  const { t } = useTranslation("tools");
     const { user } = useAuth();
     const [isOpen, setIsOpen] = useState(false);
     const [isMinimized, setIsMinimized] = useState(false);
@@ -125,7 +123,7 @@ export function LiveChatWidget() {
             setTimeout(() => {
                 setMessages([{
                     id: "welcome",
-                    content: t("live-chat-widget.s1"),
+                    content: "مرحباً بك! 👋 كيف يمكننا مساعدتك اليوم؟",
                     sender: "support",
                     timestamp: new Date(),
                 }]);
@@ -169,7 +167,7 @@ export function LiveChatWidget() {
             // Fallback if disconnected
             setMessages(prev => [...prev, {
                 id: `err-${Date.now()}`,
-                content: t("live-chat-widget.s2"),
+                content: "عذراً، فقدنا الاتصال بالخادم. حاول مرة أخرى لاحقاً.",
                 sender: "support",
                 timestamp: new Date(),
             }]);
@@ -197,7 +195,7 @@ export function LiveChatWidget() {
                 onClick={handleOpen}
                 className="fixed bottom-6 left-6 z-50 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all bg-gradient-to-r from-primary to-cyan-500 hover:from-primary/90 hover:to-cyan-500/90"
                 size="icon"
-                aria-label={t("live-chat-widget.s3")}
+                aria-label="فتح محادثة الدعم المباشر"
             >
                 <MessageCircle className="h-6 w-6" aria-hidden="true" />
                 {unreadCount > 0 && (
@@ -219,7 +217,7 @@ export function LiveChatWidget() {
                 <CardHeader className="p-3 flex flex-row items-center justify-between bg-gradient-to-r from-primary to-cyan-500 text-white rounded-t-lg">
                     <div className="flex items-center gap-2">
                         <HeadsetIcon className="h-5 w-5" />
-                        <span className="font-medium">{t("live-chat-widget.s4")}</span>
+                        <span className="font-medium">الدعم المباشر</span>
                         {unreadCount > 0 && (
                             <Badge variant="secondary" className="h-5 px-1.5">
                                 {unreadCount}
@@ -227,10 +225,10 @@ export function LiveChatWidget() {
                         )}
                     </div>
                     <div className="flex gap-1">
-                        <Button size="icon" variant="ghost" className="h-7 w-7 text-white hover:bg-white/20" onClick={(e) => { e.stopPropagation(); handleMinimize(); }} aria-label={t("live-chat-widget.s5")}>
+                        <Button size="icon" variant="ghost" className="h-7 w-7 text-white hover:bg-white/20" onClick={(e) => { e.stopPropagation(); handleMinimize(); }} aria-label="تكبير نافذة الدردشة">
                             <Maximize2 className="h-4 w-4" aria-hidden="true" />
                         </Button>
-                        <Button size="icon" variant="ghost" className="h-7 w-7 text-white hover:bg-white/20" onClick={(e) => { e.stopPropagation(); handleClose(); }} aria-label={t("live-chat-widget.s6")}>
+                        <Button size="icon" variant="ghost" className="h-7 w-7 text-white hover:bg-white/20" onClick={(e) => { e.stopPropagation(); handleClose(); }} aria-label="إغلاق الدردشة">
                             <X className="h-4 w-4" aria-hidden="true" />
                         </Button>
                     </div>
@@ -250,17 +248,17 @@ export function LiveChatWidget() {
                         <span className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white ${isConnected ? "bg-green-400" : "bg-yellow-400"}`} />
                     </div>
                     <div>
-                        <CardTitle className="text-sm font-medium">{t("live-chat-widget.s4")}</CardTitle>
+                        <CardTitle className="text-sm font-medium">الدعم المباشر</CardTitle>
                         <p className="text-xs opacity-90">
-                            {isConnected ? t("live-chat-widget.s7") : t("live-chat-widget.s8")}
+                            {isConnected ? "متصل الآن" : "جاري الاتصال..."}
                         </p>
                     </div>
                 </div>
                 <div className="flex gap-1">
-                    <Button size="icon" variant="ghost" className="h-7 w-7 text-white hover:bg-white/20" onClick={handleMinimize} aria-label={t("live-chat-widget.s9")}>
+                    <Button size="icon" variant="ghost" className="h-7 w-7 text-white hover:bg-white/20" onClick={handleMinimize} aria-label="تصغير نافذة الدردشة">
                         <Minimize2 className="h-4 w-4" aria-hidden="true" />
                     </Button>
-                    <Button size="icon" variant="ghost" className="h-7 w-7 text-white hover:bg-white/20" onClick={handleClose} aria-label={t("live-chat-widget.s6")}>
+                    <Button size="icon" variant="ghost" className="h-7 w-7 text-white hover:bg-white/20" onClick={handleClose} aria-label="إغلاق الدردشة">
                         <X className="h-4 w-4" aria-hidden="true" />
                     </Button>
                 </div>
@@ -329,7 +327,7 @@ export function LiveChatWidget() {
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
                         onKeyDown={handleKeyPress}
-                        placeholder={t("live-chat-widget.s10")}
+                        placeholder="اكتب رسالتك..."
                         className="flex-1"
                         dir="rtl"
                     />
@@ -338,14 +336,14 @@ export function LiveChatWidget() {
                         size="icon"
                         disabled={!inputValue.trim()}
                         className="shrink-0"
-                        aria-label={t("live-chat-widget.s11")}
+                        aria-label="إرسال الرسالة"
                     >
                         <Send className="h-4 w-4" aria-hidden="true" />
                     </Button>
                 </div>
                 {user && (
                     <p className="text-xs text-muted-foreground mt-2 text-center">
-                        {t("live-chat-widget.s12")} {user.email}
+                        متصل كـ {user.email}
                     </p>
                 )}
             </div>

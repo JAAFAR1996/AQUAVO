@@ -1,5 +1,4 @@
 import { Download, ExternalLink } from "lucide-react";
-import { useTranslation } from "react-i18next";
 
 /*
   Sources — Researched May 2026:
@@ -13,7 +12,6 @@ const PDF_STATUS: "ready" | "draft" = "ready";
 const PDF_URL = "/assets/guides/aquavo-water-myths-guide.pdf";
 
 export default function GuideWaterMyths() {
-  const { t } = useTranslation("guides");
   const pdfReady = PDF_STATUS === "ready";
   return (
     <div className="g-wrap">
@@ -29,7 +27,7 @@ export default function GuideWaterMyths() {
                 rel="noopener noreferrer"
                 className="flex items-center gap-1.5 text-[#E8EDF2] border border-primary/45 hover:bg-[#0B93A6]/10 text-xs sm:text-sm h-9 px-3 rounded-full font-bold transition-colors"
               >
-                <span className="hidden sm:inline">{t("guides-water-myths.s1")}</span>
+                <span className="hidden sm:inline">فتح PDF</span>
                 <ExternalLink className="w-4 h-4" />
               </a>
               <a
@@ -37,12 +35,12 @@ export default function GuideWaterMyths() {
                 download="aquavo-water-myths-guide.pdf"
                 className="flex items-center gap-1.5 bg-primary text-foreground hover:bg-[#0B93A6]/85 text-xs sm:text-sm h-9 px-3 sm:px-4 rounded-full font-bold transition-colors"
               >
-                <span>{t("guides-water-myths.s2")}</span>
+                <span>تحميل PDF</span>
                 <Download className="w-4 h-4" />
               </a>
             </>
           ) : (
-            <span className="g-btn-off">{t("guides-water-myths.s3")}</span>
+            <span className="g-btn-off">PDF قيد التجهيز</span>
           )}
         </div>
       </header>
@@ -51,49 +49,52 @@ export default function GuideWaterMyths() {
 
         {/* ── Hero ── */}
         <section className="g-hero">
-          <span className="g-badge">{t("guides-water-myths.s4")}</span>
-          <h1>{t("guides-water-myths.s5")}</h1>
-          <p className="g-sub">{t("guides-water-myths.s6")}</p>
+          <span className="g-badge">دليل عملي — AQUAVO</span>
+          <h1>خرافات عن مي الحوض</h1>
+          <p className="g-sub">المي الصافية مو دليل على كلشي تمام — وهذا مجرد مثال</p>
           <p className="g-intro">
-            {t("guides-water-myths.s7")}
+            ست خرافات شائعة عن مي الحوض — موثقة، مع الحقيقة العلمية وراء كل واحدة.
+            كل خرافة منها ممكن تضر السمچ من حيث ما تدري.
           </p>
           <div className="g-meta-row">
-            <span>{t("guides-water-myths.s8")}</span>
-            <span>{t("guides-water-myths.s9")}</span>
+            <span>لمن هذا: كل صاحب حوض — مبتدئ أو متقدم</span>
+            <span>وقت القراءة: 7–9 دقائق</span>
             <span className={`g-pdf-tag ${pdfReady ? "g-ready" : "g-draft"}`}>
-              PDF: {pdfReady ? t("guides-water-myths.s10") : t("guides-water-myths.s11")}
+              PDF: {pdfReady ? "متوفر للتحميل" : "قيد التجهيز"}
             </span>
           </div>
           <p className="g-disclaimer">
-            {t("guides-water-myths.s12")}
+            هذا الدليل للتوعية العامة. للتشخيص الدقيق، أرسل صورة الحوض لـ AQUAVO.
           </p>
         </section>
 
         {/* ── Section: ليش الخرافات خطرة ── */}
         <section className="g-section">
-          <h2 className="g-title">{t("guides-water-myths.s13")}</h2>
+          <h2 className="g-title">ليش خرافات المي خطرة؟</h2>
           <p className="g-section-intro">
-            {t("guides-water-myths.s14")}
+            المشكلة مو بس إن المعلومة خاطئة — المشكلة إن الإنسان يتصرف بناءً عليها.
+            لما تعتقد إن المي الصافية = سليمة، ما تفحص. لما تفكر إن تغيير كل المي حل،
+            تدمر البكتيريا النافعة. الخرافة تعطيك ثقة زائفة — وهذا هو الخطر الحقيقي.
           </p>
           <div className="g-two-col">
             <div className="g-col-box g-warn-box">
-              <div className="g-col-label">{t("guides-water-myths.s15")}</div>
+              <div className="g-col-label">ما يسببه التصديق بالخرافات:</div>
               <ul className="g-simple-list">
-                <li>{t("guides-water-myths.s16")}</li>
-                <li>{t("guides-water-myths.s17")}</li>
-                <li>{t("guides-water-myths.s18")}</li>
-                <li>{t("guides-water-myths.s19")}</li>
-                <li>{t("guides-water-myths.s20")}</li>
+                <li>لا تفحص المي لأنك تظن إنها تبين بعينك</li>
+                <li>تضيف منتجات بدون فهم ما تسويه</li>
+                <li>تدمر الدورة البيولوجية وما تدري</li>
+                <li>تتأخر في التدخل لأنك ما تلاحظ المشكلة</li>
+                <li>تنفق فلوس على حلول لا تناسب المشكلة</li>
               </ul>
             </div>
             <div className="g-col-box g-safe-box">
-              <div className="g-col-label">{t("guides-water-myths.s21")}</div>
+              <div className="g-col-label">الأساس الصحيح:</div>
               <ul className="g-simple-list">
-                <li>{t("guides-water-myths.s22")}</li>
-                <li>{t("guides-water-myths.s23")}</li>
-                <li>{t("guides-water-myths.s24")}</li>
-                <li>{t("guides-water-myths.s25")}</li>
-                <li>{t("guides-water-myths.s26")}</li>
+                <li>المي الصافية لا تعني المي الآمنة</li>
+                <li>الكيمياء تحكمها الأرقام، مو المظهر</li>
+                <li>البكتيريا النافعة هي اللي تحمي السمچ</li>
+                <li>التغيير الجزئي المنتظم أفضل من الكامل</li>
+                <li>الفهم أهم من المنتج</li>
               </ul>
             </div>
           </div>
@@ -103,39 +104,41 @@ export default function GuideWaterMyths() {
         <section className="g-section">
           <div className="g-cause-header">
             <span className="g-cause-num-big">01</span>
-            <h2 className="g-title g-title-inline">{t("guides-water-myths.s27")}</h2>
+            <h2 className="g-title g-title-inline">المي الصافية = كلشي تمام</h2>
           </div>
-          <div className="g-myth-badge g-myth-false">{t("guides-water-myths.s28")}</div>
+          <div className="g-myth-badge g-myth-false">خرافة — مثبتة علمياً</div>
           <div className="g-cause-block">
-            <h3 className="g-cause-sub">{t("guides-water-myths.s29")}</h3>
+            <h3 className="g-cause-sub">الحقيقة:</h3>
             <p>
-              {t("guides-water-myths.s30")}
+              الأمونيا والنيتريت — أخطر المواد في حوض السمچ — بلا لون وبلا رائحة.
+              المي ممكن تكون شفافة تماماً وفيها أمونيا بمستوى يقتل السمچ خلال ساعات.
+              الصفاء يدل على غياب الجسيمات المعلقة فقط — مو على غياب السموم الكيميائية.
             </p>
           </div>
           <div className="g-two-col">
             <div className="g-col-box g-warn-box">
-              <div className="g-col-label">{t("guides-water-myths.s31")}</div>
+              <div className="g-col-label">ما لا تبينه العين:</div>
               <ul className="g-simple-list">
-                <li>{t("guides-water-myths.s32")}</li>
-                <li>{t("guides-water-myths.s33")}</li>
-                <li>{t("guides-water-myths.s34")}</li>
-                <li>{t("guides-water-myths.s35")}</li>
-                <li>{t("guides-water-myths.s36")}</li>
+                <li>أمونيا (NH3) — سامة من أول ارتفاع</li>
+                <li>نيتريت (NO2) — يمنع حمل الأكسجين بالدم</li>
+                <li>نترات عالية (NO3 أكثر من 20 ppm)</li>
+                <li>pH خاطئ أو متقلب</li>
+                <li>صلابة المي (GH/KH) خارج النطاق</li>
               </ul>
             </div>
             <div className="g-col-box g-safe-box">
-              <div className="g-col-label">{t("guides-water-myths.s37")}</div>
+              <div className="g-col-label">شنو تعتمد عليه:</div>
               <ul className="g-simple-list">
-                <li>{t("guides-water-myths.s38")}</li>
-                <li>{t("guides-water-myths.s39")}</li>
-                <li>{t("guides-water-myths.s40")}</li>
-                <li>{t("guides-water-myths.s41")}</li>
-                <li>{t("guides-water-myths.s42")}</li>
+                <li>كيت اختبار المي (API Master Test Kit)</li>
+                <li>شرائط الفحص — للمتابعة السريعة</li>
+                <li>فحص أسبوعي كحد أدنى</li>
+                <li>يومي في أول شهر من تأسيس الحوض</li>
+                <li>فوري إذا لاحظت تغيير بسلوك السمچ</li>
               </ul>
             </div>
           </div>
           <div className="g-important-note">
-            {t("guides-water-myths.s43")}
+            أمونيا = 0. نيتريت = 0. نترات = أقل من 20 ppm. هذه هي الأرقام الصحيحة — مو لون المي.
           </div>
         </section>
 
@@ -143,34 +146,37 @@ export default function GuideWaterMyths() {
         <section className="g-section">
           <div className="g-cause-header">
             <span className="g-cause-num-big">02</span>
-            <h2 className="g-title g-title-inline">{t("guides-water-myths.s44")}</h2>
+            <h2 className="g-title g-title-inline">تغيير كل المي أحسن حل</h2>
           </div>
-          <div className="g-myth-badge g-myth-false">{t("guides-water-myths.s45")}</div>
+          <div className="g-myth-badge g-myth-false">خرافة — وخطيرة على الحوض</div>
           <div className="g-cause-block">
-            <h3 className="g-cause-sub">{t("guides-water-myths.s29")}</h3>
+            <h3 className="g-cause-sub">الحقيقة:</h3>
             <p>
-              {t("guides-water-myths.s46")}
+              تغيير 100% من المي يسبب صدمة حرارية مفاجئة، تغيير مفاجئ بالـ pH، وضغطاً شديداً على السمچ.
+              الأخطر: البكتيريا النافعة تعيش على أسطح الحصى والفلتر — مو بالمي نفسها.
+              تغيير كل المي لا يدمر الدورة البيولوجية لكنه يصدم السمچ بكل هذه التغييرات المفاجئة.
             </p>
             <p style={{ marginTop: "10px" }}>
-              {t("guides-water-myths.s47")}
+              تغيير كل المي كذلك لا يزيل المرض أو الطفيليات — هذه تبقى على جسم السمچ وعلى
+              أسطح الحوض. الفكرة إن "تنظيف كل شيء" يحل المشكلة هي واحدة من أكثر الخرافات ضرراً.
             </p>
           </div>
           <div className="g-action-box">
-            <div className="g-action-label">{t("guides-water-myths.s48")}</div>
+            <div className="g-action-label">النسبة الصحيحة والوقت:</div>
             <ol className="g-numbered">
-              <li>{t("guides-water-myths.s49")}</li>
-              <li>{t("guides-water-myths.s50")}</li>
-              <li>{t("guides-water-myths.s51")}</li>
-              <li>{t("guides-water-myths.s52")}</li>
-              <li>{t("guides-water-myths.s53")}</li>
+              <li>غيّر 25% إلى 30% من المي أسبوعياً — هذا المعدل الموصى به</li>
+              <li>استخدم مزيل كلور قبل إضافة المي الجديدة</li>
+              <li>تأكد من تقريب درجة حرارة المي الجديدة من حرارة الحوض</li>
+              <li>لا تنظف الحصى والفلتر بنفس يوم تغيير المي</li>
+              <li>إذا الأمونيا ارتفعت جداً، غيّر 50% على مرتين بفارق ساعات</li>
             </ol>
           </div>
           <div className="g-dont-inline">
-            <div className="g-dont-label">{t("guides-water-myths.s54")}</div>
+            <div className="g-dont-label">شنو لا تسوي أبداً:</div>
             <div className="g-dont-items">
-              <span className="g-dont-chip">{t("guides-water-myths.s55")}</span>
-              <span className="g-dont-chip">{t("guides-water-myths.s56")}</span>
-              <span className="g-dont-chip">{t("guides-water-myths.s57")}</span>
+              <span className="g-dont-chip">لا تغير 100% من المي</span>
+              <span className="g-dont-chip">لا تنظف الفلتر بمي الصنبور</span>
+              <span className="g-dont-chip">لا تغير المي وتنظف الحصى بنفس اليوم</span>
             </div>
           </div>
         </section>
@@ -179,35 +185,37 @@ export default function GuideWaterMyths() {
         <section className="g-section">
           <div className="g-cause-header">
             <span className="g-cause-num-big">03</span>
-            <h2 className="g-title g-title-inline">{t("guides-water-myths.s58")}</h2>
+            <h2 className="g-title g-title-inline">الفلتر وحده يكفي — المي ما تحتاج تغيير</h2>
           </div>
-          <div className="g-myth-badge g-myth-false">{t("guides-water-myths.s59")}</div>
+          <div className="g-myth-badge g-myth-false">خرافة — ناقصة المعلومة</div>
           <div className="g-cause-block">
-            <h3 className="g-cause-sub">{t("guides-water-myths.s29")}</h3>
+            <h3 className="g-cause-sub">الحقيقة:</h3>
             <p>
-              {t("guides-water-myths.s60")}
+              الفلتر يحول الأمونيا إلى نيتريت، والنيتريت إلى نترات — بس لا يزيل النترات.
+              النترات تتراكم وتسبب ضغطاً على السمچ ومشاكل صحية على المدى البعيد. الطريقة الوحيدة
+              لإزالة النترات من الحوض المغلق هي تغيير الماء بانتظام أو نباتات حية كثيفة.
             </p>
           </div>
           <div className="g-info-note">
-            {t("guides-water-myths.s61")}
+            الدورة البيولوجية: أمونيا (NH3) ← بكتيريا نيتروسوموناس ← نيتريت (NO2) ← بكتيريا نيتروباكتر ← نترات (NO3). الفلتر يدير الدورة — لكنه لا ينهيها. تغيير المي هو "الخروج" الوحيد للنترات.
           </div>
           <div className="g-two-col">
             <div className="g-col-box g-warn-box">
-              <div className="g-col-label">{t("guides-water-myths.s62")}</div>
+              <div className="g-col-label">ما يسببه الاعتماد الكلي على الفلتر:</div>
               <ul className="g-simple-list">
-                <li>{t("guides-water-myths.s63")}</li>
-                <li>{t("guides-water-myths.s64")}</li>
-                <li>{t("guides-water-myths.s65")}</li>
-                <li>{t("guides-water-myths.s66")}</li>
+                <li>تراكم النترات تدريجياً — بدون أعراض واضحة أولاً</li>
+                <li>السمچ تبدو بخير لأشهر ثم تبدأ مشاكل مزمنة</li>
+                <li>نمو الطحالب يزيد بسبب النترات العالية</li>
+                <li>السمچ تصبح أقل مقاومة للأمراض</li>
               </ul>
             </div>
             <div className="g-col-box g-safe-box">
-              <div className="g-col-label">{t("guides-water-myths.s67")}</div>
+              <div className="g-col-label">الروتين الصحيح:</div>
               <ul className="g-simple-list">
-                <li>{t("guides-water-myths.s68")}</li>
-                <li>{t("guides-water-myths.s69")}</li>
-                <li>{t("guides-water-myths.s70")}</li>
-                <li>{t("guides-water-myths.s71")}</li>
+                <li>فلتر جيد + تغيير أسبوعي 25%</li>
+                <li>راقب النترات — لا تتجاوز 20 ppm</li>
+                <li>نباتات حية تساعد لكنها لا تكفي وحدها</li>
+                <li>لا تعتمد على تبخر المي كـ"تغيير" طبيعي</li>
               </ul>
             </div>
           </div>
@@ -217,34 +225,37 @@ export default function GuideWaterMyths() {
         <section className="g-section">
           <div className="g-cause-header">
             <span className="g-cause-num-big">04</span>
-            <h2 className="g-title g-title-inline">{t("guides-water-myths.s72")}</h2>
+            <h2 className="g-title g-title-inline">إضافة منتج تعديل المي تحل كل شيء</h2>
           </div>
-          <div className="g-myth-badge g-myth-partial">{t("guides-water-myths.s73")}</div>
+          <div className="g-myth-badge g-myth-partial">نصف حقيقة — يحتاج فهم</div>
           <div className="g-cause-block">
-            <h3 className="g-cause-sub">{t("guides-water-myths.s29")}</h3>
+            <h3 className="g-cause-sub">الحقيقة:</h3>
             <p>
-              {t("guides-water-myths.s74")}
+              المنتجات مثل مزيل الكلور، معدّلات الـ pH، ومنتجات الأمونيا — كل واحد منها له
+              وظيفة محددة وشروط محددة. استخدامها بدون فهم السبب ممكن يخلط كيمياء المي أو يخفي
+              مشكلة بدل ما يحلها.
             </p>
             <p style={{ marginTop: "10px" }}>
-              {t("guides-water-myths.s75")}
+              مثال: بعض منتجات "detoxifier" تحول الأمونيا لشكل أقل سمية مؤقتاً — الكيت يبين
+              صفر لكنها ما زالت موجودة. السمچة بخير ظاهرياً — المشكلة ما انحلت.
             </p>
           </div>
           <div className="g-two-col">
             <div className="g-col-box g-safe-box">
-              <div className="g-col-label">{t("guides-water-myths.s76")}</div>
+              <div className="g-col-label">منتجات تستخدمها بثقة:</div>
               <ul className="g-simple-list">
-                <li>{t("guides-water-myths.s77")}</li>
-                <li>{t("guides-water-myths.s78")}</li>
-                <li>{t("guides-water-myths.s79")}</li>
+                <li>مزيل الكلور — ضروري مع كل تغيير مي</li>
+                <li>بكتيريا بيولوجية — لتأسيس حوض جديد</li>
+                <li>ملح للحوض العذب — بكميات دقيقة فقط إذا لزم</li>
               </ul>
             </div>
             <div className="g-col-box g-warn-box">
-              <div className="g-col-label">{t("guides-water-myths.s80")}</div>
+              <div className="g-col-label">منتجات تحتاج حذر:</div>
               <ul className="g-simple-list">
-                <li>{t("guides-water-myths.s81")}</li>
-                <li>{t("guides-water-myths.s82")}</li>
-                <li>{t("guides-water-myths.s83")}</li>
-                <li>{t("guides-water-myths.s84")}</li>
+                <li>معدّلات pH — سبب المشكلة أهم من العلاج</li>
+                <li>Ammonia detoxifiers — حل مؤقت فقط</li>
+                <li>أي علاج بدون تشخيص واضح للمشكلة</li>
+                <li>تركيبات "كل شيء" — نادراً ما تفيد</li>
               </ul>
             </div>
           </div>
@@ -254,42 +265,44 @@ export default function GuideWaterMyths() {
         <section className="g-section">
           <div className="g-cause-header">
             <span className="g-cause-num-big">05</span>
-            <h2 className="g-title g-title-inline">{t("guides-water-myths.s85")}</h2>
+            <h2 className="g-title g-title-inline">الريحة من الحوض شيء طبيعي</h2>
           </div>
-          <div className="g-myth-badge g-myth-false">{t("guides-water-myths.s86")}</div>
+          <div className="g-myth-badge g-myth-false">خرافة — علامة تحتاج تدخل</div>
           <div className="g-cause-block">
-            <h3 className="g-cause-sub">{t("guides-water-myths.s29")}</h3>
+            <h3 className="g-cause-sub">الحقيقة:</h3>
             <p>
-              {t("guides-water-myths.s87")}
+              الحوض الصحي يكاد ما يكون عنده ريحة — أو ريحة خفيفة طبيعية من التربة والنباتات.
+              أي ريحة كريهة أو قوية هي إنذار حقيقي. الريحة الأكثر شيوعاً هي ريحة الكبريت
+              (البيض المسروق) — وهذه تعني أكسجين ناقص بالقاع أو مواد عضوية متحللة.
             </p>
           </div>
           <div className="g-diag-grid">
             <div className="g-diag g-safe">
-              <div className="g-diag-label">{t("guides-water-myths.s88")}</div>
+              <div className="g-diag-label">ريحة طبيعية:</div>
               <ul className="g-diag-list">
-                <li>{t("guides-water-myths.s89")}</li>
-                <li>{t("guides-water-myths.s90")}</li>
-                <li>{t("guides-water-myths.s91")}</li>
+                <li>ريحة ترابية خفيفة من الحصى أو التربة</li>
+                <li>ريحة نباتية هادية</li>
+                <li>ما في ريحة واضحة — هذا الأفضل</li>
               </ul>
             </div>
             <div className="g-diag g-warn">
-              <div className="g-diag-label">{t("guides-water-myths.s92")}</div>
+              <div className="g-diag-label">ريحة تحتاج تدخل:</div>
               <ul className="g-diag-list">
-                <li>{t("guides-water-myths.s93")}</li>
-                <li>{t("guides-water-myths.s94")}</li>
-                <li>{t("guides-water-myths.s95")}</li>
-                <li>{t("guides-water-myths.s96")}</li>
+                <li>ريحة كبريت — قاع بدون أكسجين</li>
+                <li>ريحة تعفن — مواد عضوية متراكمة</li>
+                <li>ريحة أمونيا حادة — الحوض في أزمة</li>
+                <li>ريحة كيميائية — تلوث خارجي</li>
               </ul>
             </div>
           </div>
           <div className="g-action-box">
-            <div className="g-action-label">{t("guides-water-myths.s97")}</div>
+            <div className="g-action-label">شنو تسوي عند وجود ريحة:</div>
             <ol className="g-numbered">
-              <li>{t("guides-water-myths.s98")}</li>
-              <li>{t("guides-water-myths.s99")}</li>
-              <li>{t("guides-water-myths.s100")}</li>
-              <li>{t("guides-water-myths.s101")}</li>
-              <li>{t("guides-water-myths.s102")}</li>
+              <li>افحص الأمونيا والنيتريت فوراً</li>
+              <li>تفقد القاع — أكو مواد متعفنة؟</li>
+              <li>افحص الفلتر — ما يشتغل صح؟</li>
+              <li>نظف القاع بالسيفون لكن بدون مبالغة</li>
+              <li>غيّر 25% من المي إذا القراءات سيئة</li>
             </ol>
           </div>
         </section>
@@ -298,33 +311,35 @@ export default function GuideWaterMyths() {
         <section className="g-section">
           <div className="g-cause-header">
             <span className="g-cause-num-big">06</span>
-            <h2 className="g-title g-title-inline">{t("guides-water-myths.s103")}</h2>
+            <h2 className="g-title g-title-inline">الحوض الصغير أسهل للمبتدئ</h2>
           </div>
-          <div className="g-myth-badge g-myth-false">{t("guides-water-myths.s104")}</div>
+          <div className="g-myth-badge g-myth-false">خرافة — العكس صحيح</div>
           <div className="g-cause-block">
-            <h3 className="g-cause-sub">{t("guides-water-myths.s29")}</h3>
+            <h3 className="g-cause-sub">الحقيقة:</h3>
             <p>
-              {t("guides-water-myths.s105")}
+              الحوض الصغير أصعب — مو أسهل. الحوض الكبير فيه عازل طبيعي (buffer) ضد التغييرات
+              المفاجئة في الكيمياء. لو ارتفعت الأمونيا قليلاً بحوض 200 لتر، التأثير بطيء.
+              بحوض 20 لتر، نفس الكمية من الطعام الزائد تضاعف تركيز الأمونيا فوراً.
             </p>
           </div>
           <div className="g-two-col">
             <div className="g-col-box g-warn-box">
-              <div className="g-col-label">{t("guides-water-myths.s106")}</div>
+              <div className="g-col-label">مشاكل الحوض الصغير:</div>
               <ul className="g-simple-list">
-                <li>{t("guides-water-myths.s107")}</li>
-                <li>{t("guides-water-myths.s108")}</li>
-                <li>{t("guides-water-myths.s109")}</li>
-                <li>{t("guides-water-myths.s110")}</li>
-                <li>{t("guides-water-myths.s111")}</li>
+                <li>الكيمياء تتغير بسرعة — خطأ صغير يتضاعف</li>
+                <li>الحرارة تتذبذب أسرع مع تغيير درجة الغرفة</li>
+                <li>الدورة البيولوجية أقل استقراراً</li>
+                <li>عدد السمچ المسموح به محدود جداً</li>
+                <li>يحتاج متابعة أكثر — مو أقل</li>
               </ul>
             </div>
             <div className="g-col-box g-safe-box">
-              <div className="g-col-label">{t("guides-water-myths.s112")}</div>
+              <div className="g-col-label">التوصية للمبتدئ:</div>
               <ul className="g-simple-list">
-                <li>{t("guides-water-myths.s113")}</li>
-                <li>{t("guides-water-myths.s114")}</li>
-                <li>{t("guides-water-myths.s115")}</li>
-                <li>{t("guides-water-myths.s116")}</li>
+                <li>60 لتر هو الحد الأدنى المريح للبداية</li>
+                <li>100 لتر أفضل بكثير للمبتدئ</li>
+                <li>السمچ الأسهل: البلاطي، الغبي، الجولدفيش</li>
+                <li>ابدأ بعدد قليل — أضف تدريجياً بعد شهر</li>
               </ul>
             </div>
           </div>
@@ -332,36 +347,36 @@ export default function GuideWaterMyths() {
 
         {/* ── شنو تراقب فعلياً ── */}
         <section className="g-section">
-          <h2 className="g-title">{t("guides-water-myths.s117")}</h2>
+          <h2 className="g-title">شنو تراقب فعلياً؟</h2>
           <p className="g-section-intro">
-            {t("guides-water-myths.s118")}
+            بدل ما تراقب المظهر — راقب الأرقام. هذه هي المؤشرات الحقيقية لصحة الحوض:
           </p>
           <div className="g-send-grid">
             <div className="g-send-card g-send-visual">
-              <div className="g-send-card-title">{t("guides-water-myths.s119")}</div>
+              <div className="g-send-card-title">أسبوعياً</div>
               <ul className="g-send-list-inner">
-                <li>{t("guides-water-myths.s120")}</li>
-                <li>{t("guides-water-myths.s121")}</li>
-                <li>{t("guides-water-myths.s122")}</li>
-                <li>{t("guides-water-myths.s123")}</li>
+                <li>أمونيا: 0 ppm</li>
+                <li>نيتريت: 0 ppm</li>
+                <li>نترات: أقل من 20 ppm</li>
+                <li>pH: ثابت حسب نوع السمچ</li>
               </ul>
             </div>
             <div className="g-send-card g-send-info">
-              <div className="g-send-card-title">{t("guides-water-myths.s124")}</div>
+              <div className="g-send-card-title">شهرياً</div>
               <ul className="g-send-list-inner">
-                <li>{t("guides-water-myths.s125")}</li>
-                <li>{t("guides-water-myths.s126")}</li>
-                <li>{t("guides-water-myths.s127")}</li>
-                <li>{t("guides-water-myths.s128")}</li>
+                <li>صلابة المي (GH/KH)</li>
+                <li>سلوك السمچ — تغذية وحركة</li>
+                <li>حالة الفلتر — تدفق ثابت؟</li>
+                <li>نمو الطحالب — أكثر من المعتاد؟</li>
               </ul>
             </div>
             <div className="g-send-card g-send-behavior">
-              <div className="g-send-card-title">{t("guides-water-myths.s129")}</div>
+              <div className="g-send-card-title">فوراً عند:</div>
               <ul className="g-send-list-inner">
-                <li>{t("guides-water-myths.s130")}</li>
-                <li>{t("guides-water-myths.s131")}</li>
-                <li>{t("guides-water-myths.s132")}</li>
-                <li>{t("guides-water-myths.s133")}</li>
+                <li>سمچة ميتة — افحص الأمونيا</li>
+                <li>سلوك غريب أو خمول</li>
+                <li>ريحة غير طبيعية</li>
+                <li>مي عكرة فجأة</li>
               </ul>
             </div>
           </div>
@@ -369,39 +384,39 @@ export default function GuideWaterMyths() {
 
         {/* ── Checklist عملي ── */}
         <section className="g-section">
-          <h2 className="g-title">{t("guides-water-myths.s134")}</h2>
+          <h2 className="g-title">Checklist عملي — قبل أي تغيير كبير</h2>
           <p className="g-section-intro">
-            {t("guides-water-myths.s135")}
+            قبل ما تغير أي شيء بالحوض — اتبع هذا الترتيب:
           </p>
           <div className="g-mistakes">
             <div className="g-mistake g-check-item">
-              <div className="g-mistake-title g-check-title">{t("guides-water-myths.s136")}</div>
-              <div className="g-mistake-why">{t("guides-water-myths.s137")}</div>
+              <div className="g-mistake-title g-check-title">افحص المي أولاً</div>
+              <div className="g-mistake-why">قبل أي تدخل — أمونيا، نيتريت، نترات. الأرقام تحدد الخطوة التالية.</div>
             </div>
             <div className="g-mistake g-check-item">
-              <div className="g-mistake-title g-check-title">{t("guides-water-myths.s138")}</div>
-              <div className="g-mistake-why">{t("guides-water-myths.s139")}</div>
+              <div className="g-mistake-title g-check-title">حدد المشكلة بوضوح</div>
+              <div className="g-mistake-why">السمچة مريضة؟ المي عكرة؟ الأرقام سيئة؟ كل مشكلة لها حل مختلف.</div>
             </div>
             <div className="g-mistake g-check-item">
-              <div className="g-mistake-title g-check-title">{t("guides-water-myths.s140")}</div>
-              <div className="g-mistake-why">{t("guides-water-myths.s141")}</div>
+              <div className="g-mistake-title g-check-title">غيّر شيء واحد فقط</div>
+              <div className="g-mistake-why">تغيير متعدد بنفس اليوم يجعلك لا تعرف ما الذي نجح وما الذي ضر.</div>
             </div>
             <div className="g-mistake g-check-item">
-              <div className="g-mistake-title g-check-title">{t("guides-water-myths.s142")}</div>
-              <div className="g-mistake-why">{t("guides-water-myths.s143")}</div>
+              <div className="g-mistake-title g-check-title">راقب 24–48 ساعة</div>
+              <div className="g-mistake-why">أعط الحوض وقتاً للاستجابة قبل ما تحكم أو تضيف شيء آخر.</div>
             </div>
             <div className="g-mistake g-check-item">
-              <div className="g-mistake-title g-check-title">{t("guides-water-myths.s144")}</div>
-              <div className="g-mistake-why">{t("guides-water-myths.s145")}</div>
+              <div className="g-mistake-title g-check-title">وثّق ما سويته</div>
+              <div className="g-mistake-why">سجّل التاريخ، ما غيرت، والنتيجة. يساعدك تفهم نمط حوضك مع الوقت.</div>
             </div>
           </div>
         </section>
 
         {/* ── CTA ── */}
         <section className="g-cta">
-          <h2>{t("guides-water-myths.s146")}</h2>
-          <p>{t("guides-water-myths.s147")}</p>
-          <p>{t("guides-water-myths.s148")}</p>
+          <h2>إذا تحتاج مساعدة أدق</h2>
+          <p>أرسل صورة الحوض وقراءات المي وحجم الحوض لـ AQUAVO.</p>
+          <p>نراجع الحالة بهدوء ونعطيك الخطوة الأنسب.</p>
         </section>
 
       </main>

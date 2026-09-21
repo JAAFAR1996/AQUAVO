@@ -5,7 +5,6 @@ import { CustomerInfo, GOVERNORATES } from "./types";
 import { Link } from "wouter";
 import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { useTranslation } from "react-i18next";
 
 interface CustomerInfoFormProps {
     customerInfo: CustomerInfo;
@@ -15,8 +14,6 @@ interface CustomerInfoFormProps {
 }
 
 export function CustomerInfoForm({ customerInfo, setCustomerInfo, errors, isGuest }: CustomerInfoFormProps) {
-    const { t } = useTranslation("checkout");
-    const govLabel = (value: string, fallback: string) => t(`governorates.${value}` as "governorates.baghdad", { defaultValue: fallback });
     const [govOpen, setGovOpen] = useState(false);
     const [govSearch, setGovSearch] = useState("");
     const [activeIndex, setActiveIndex] = useState(0);
@@ -24,11 +21,10 @@ export function CustomerInfoForm({ customerInfo, setCustomerInfo, errors, isGues
     const triggerRef = useRef<HTMLButtonElement>(null);
 
     const filteredGovs = GOVERNORATES.filter(gov =>
-        gov.label.includes(govSearch) || govLabel(gov.value, gov.label).toLowerCase().includes(govSearch.toLowerCase()) || gov.value.toLowerCase().includes(govSearch.toLowerCase())
+        gov.label.includes(govSearch) || gov.value.toLowerCase().includes(govSearch.toLowerCase())
     );
 
-    const selectedGov = GOVERNORATES.find(g => g.value === customerInfo.governorate);
-    const selectedLabel = selectedGov ? govLabel(selectedGov.value, selectedGov.label) : undefined;
+    const selectedLabel = GOVERNORATES.find(g => g.value === customerInfo.governorate)?.label;
 
     const selectGov = (value: string) => {
         setCustomerInfo({ ...customerInfo, governorate: value });
@@ -84,9 +80,9 @@ export function CustomerInfoForm({ customerInfo, setCustomerInfo, errors, isGues
                 <div className="rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-sm">
                     <p>
                         <Link href="/login">
-                            <span className="text-primary font-semibold hover:underline cursor-pointer">{t("form.login")}</span>
+                            <span className="text-primary font-semibold hover:underline cursor-pointer">سجل دخولك</span>
                         </Link>
-                        {t("form.guestNote")}
+                        {" "}إذا عندك حساب، أو كمل معلومات التوصيل كضيف.
                     </p>
                 </div>
             )}
@@ -94,12 +90,12 @@ export function CustomerInfoForm({ customerInfo, setCustomerInfo, errors, isGues
             <div className="space-y-2">
                 <Label htmlFor="name" className="flex items-center gap-2">
                     <User className="h-4 w-4" />
-                    {t("form.name")}
+                    الاسم الكامل
                 </Label>
                 <Input
                     id="name"
                     data-clarity-mask="True"
-                    placeholder={t("form.namePlaceholder")}
+                    placeholder="أدخل اسمك الكامل"
                     autoComplete="name"
                     value={customerInfo.name}
                     onChange={(e) => setCustomerInfo({ ...customerInfo, name: e.target.value })}
@@ -119,7 +115,7 @@ export function CustomerInfoForm({ customerInfo, setCustomerInfo, errors, isGues
             <div className="space-y-2">
                 <Label htmlFor="phone" className="flex items-center gap-2">
                     <Phone className="h-4 w-4" />
-                    {t("form.phone")}
+                    رقم الهاتف
                 </Label>
                 <Input
                     id="phone"
@@ -137,7 +133,7 @@ export function CustomerInfoForm({ customerInfo, setCustomerInfo, errors, isGues
                     aria-describedby={errors.phone ? "phone-help phone-error" : "phone-help"}
                 />
                 <p id="phone-help" className="text-xs leading-5 text-muted-foreground">
-                    {t("form.phoneHelp")}
+                    نحتاجه حتى نتواصل وياك بخصوص تأكيد الطلب والتوصيل.
                 </p>
                 {errors.phone && (
                     <p id="phone-error" role="alert" className="text-sm text-red-500 flex items-center gap-1">
@@ -151,7 +147,7 @@ export function CustomerInfoForm({ customerInfo, setCustomerInfo, errors, isGues
             <div className="space-y-2">
                 <Label htmlFor="governorate" className="flex items-center gap-2">
                     <MapPin className="h-4 w-4" />
-                    {t("form.governorate")}
+                    المحافظة
                 </Label>
                 <div className="relative" ref={dropdownRef}>
                     {/* Trigger button */}
@@ -181,7 +177,7 @@ export function CustomerInfoForm({ customerInfo, setCustomerInfo, errors, isGues
                             !customerInfo.governorate && "text-muted-foreground"
                         )}
                     >
-                        <span>{selectedLabel || t("form.governoratePlaceholder")}</span>
+                        <span>{selectedLabel || "اختر المحافظة"}</span>
                         <ChevronDown className={cn("h-4 w-4 opacity-50 transition-transform duration-200", govOpen && "rotate-180")} />
                     </button>
 
@@ -199,8 +195,8 @@ export function CustomerInfoForm({ customerInfo, setCustomerInfo, errors, isGues
                                     aria-controls="governorate-listbox"
                                     aria-autocomplete="list"
                                     aria-activedescendant={filteredGovs[activeIndex] ? `gov-opt-${filteredGovs[activeIndex].value}` : undefined}
-                                    aria-label={t("form.governorateSearch")}
-                                    placeholder={t("form.governorateSearchPlaceholder")}
+                                    aria-label="ابحث عن المحافظة"
+                                    placeholder="ابحث... (مثال: بغ)"
                                     value={govSearch}
                                     onChange={(e) => setGovSearch(e.target.value)}
                                     onKeyDown={handleSearchKeyDown}
@@ -209,9 +205,9 @@ export function CustomerInfoForm({ customerInfo, setCustomerInfo, errors, isGues
                                 />
                             </div>
                             {/* Options list */}
-                            <ul id="governorate-listbox" role="listbox" aria-label={t("form.governorate")} className="max-h-[200px] overflow-y-auto py-1">
+                            <ul id="governorate-listbox" role="listbox" aria-label="المحافظة" className="max-h-[200px] overflow-y-auto py-1">
                                 {filteredGovs.length === 0 ? (
-                                    <li className="px-3 py-2 text-sm text-muted-foreground text-center">{t("form.noResults")}</li>
+                                    <li className="px-3 py-2 text-sm text-muted-foreground text-center">لا توجد نتائج</li>
                                 ) : filteredGovs.map((gov, idx) => (
                                     <li
                                         key={gov.value}
@@ -247,12 +243,12 @@ export function CustomerInfoForm({ customerInfo, setCustomerInfo, errors, isGues
             <div className="space-y-2">
                 <Label htmlFor="address" className="flex items-center gap-2">
                     <MapPin className="h-4 w-4" />
-                    {t("form.address")}
+                    العنوان
                 </Label>
                 <Input
                     id="address"
                     data-clarity-mask="True"
-                    placeholder={t("form.addressPlaceholder")}
+                    placeholder="المنطقة، الشارع، أقرب نقطة دالة..."
                     autoComplete="street-address"
                     value={customerInfo.address}
                     onChange={(e) => setCustomerInfo({ ...customerInfo, address: e.target.value })}
@@ -270,11 +266,11 @@ export function CustomerInfoForm({ customerInfo, setCustomerInfo, errors, isGues
             </div>
 
             <div className="space-y-2">
-                <Label htmlFor="notes">{t("form.notes")}</Label>
+                <Label htmlFor="notes">ملاحظات إضافية (اختياري)</Label>
                 <Input
                     id="notes"
                     data-clarity-mask="True"
-                    placeholder={t("form.notesPlaceholder")}
+                    placeholder="أي ملاحظات للتوصيل..."
                     autoComplete="off"
                     value={customerInfo.notes}
                     onChange={(e) => setCustomerInfo({ ...customerInfo, notes: e.target.value })}

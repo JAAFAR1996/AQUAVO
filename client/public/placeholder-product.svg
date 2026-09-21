@@ -6,5 +6,6 @@
     <circle cx="-15" cy="-5" r="4" fill="#1e293b"/>
     <path d="M35,0 L55,-15 L55,15 Z" fill="#94a3b8" opacity="0.7"/>
   </g>
+  <text x="200" y="260" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" fill="#64748b">لا توجد صورة</text>
   <text x="200" y="285" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#94a3b8">No Image</text>
 </svg>

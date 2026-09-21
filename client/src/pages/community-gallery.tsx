@@ -16,7 +16,6 @@ import { GALLERY_ENTRY_TERMS, GALLERY_PRIZES } from "@shared/gallery-terms";
 const PRIZE_ICONS = ["🏆", "⭐", "📱", "👑"];
 import { Link } from "wouter";
 import { addCsrfHeader } from "@/lib/csrf";
-import { useTranslation } from "react-i18next";
 
 interface GallerySubmission {
   id: string;
@@ -34,7 +33,6 @@ interface GallerySubmission {
 }
 
 export default function CommunityGallery() {
-  const { t } = useTranslation("tools");
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [formData, setFormData] = useState({
     customerName: "",
@@ -105,8 +103,8 @@ export default function CommunityGallery() {
     },
     onSuccess: () => {
       toast({
-        title: t("community-gallery.s1"),
-        description: t("community-gallery.s2"),
+        title: "تم الإرسال بنجاح",
+        description: "صورتك قيد المراجعة. سيتم عرضها بعد الموافقة من الإدارة.",
       });
       setIsUploadOpen(false);
       setFormData({
@@ -122,8 +120,8 @@ export default function CommunityGallery() {
     onError: (error) => {
       console.error("Gallery Upload Error:", error);
       toast({
-        title: t("community-gallery.s3"),
-        description: error instanceof Error ? error.message : t("community-gallery.s4"),
+        title: "خطأ",
+        description: error instanceof Error ? error.message : "حدث خطأ أثناء إرسال الصورة. حاول مرة أخرى.",
         variant: "destructive"
       });
     }
@@ -135,8 +133,8 @@ export default function CommunityGallery() {
 
     if (!file.type.startsWith("image/") || file.type === "image/svg+xml") {
       toast({
-        title: t("community-gallery.s5"),
-        description: t("community-gallery.s6"),
+        title: "نوع الملف غير مدعوم",
+        description: "الرجاء رفع ملف صورة (JPG, PNG, WebP, GIF).",
         variant: "destructive",
       });
       return;
@@ -144,8 +142,8 @@ export default function CommunityGallery() {
 
     if (file.size > 5 * 1024 * 1024) {
       toast({
-        title: t("community-gallery.s7"),
-        description: t("community-gallery.s8"),
+        title: "الملف كبير جداً",
+        description: "الحد الأقصى لحجم الصورة 5 ميغابايت.",
         variant: "destructive",
       });
       return;
@@ -160,8 +158,8 @@ export default function CommunityGallery() {
 
     if (!formData.customerName || !formData.customerPhone || !imageFile) {
       toast({
-        title: t("community-gallery.s9"),
-        description: t("community-gallery.s10"),
+        title: "معلومات ناقصة",
+        description: "يرجى ملء الاسم ورقم الهاتف ورفع صورة",
         variant: "destructive",
       });
       return;
@@ -180,13 +178,13 @@ export default function CommunityGallery() {
         <div className="text-center space-y-4 mb-12">
           <div className="inline-flex items-center gap-2 bg-primary/10 px-6 py-2 rounded-full text-primary font-bold">
             <Camera className="h-5 w-5" />
-            <span>{t("community-gallery.s11")}</span>
+            <span>ألبوم العائلة</span>
           </div>
           <h1 className="text-4xl md:text-5xl font-bold">
-            {t("community-gallery.s12")}
+            شاركنا إبداعك في ألبوم العائلة! 📸
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            {t("community-gallery.s13")}
+            اعرض حوض أسماكك الرائع، احصل على إعجابات، وتنافس للفوز بجوائز شهرية من AQUAVO!
           </p>
 
           {/* Upload Button - Conditional */}
@@ -195,7 +193,7 @@ export default function CommunityGallery() {
               <DialogTrigger asChild>
                 <Button size="lg" className="gap-2" data-tour="gallery-upload">
                   <Upload className="h-5 w-5" />
-                  {t("community-gallery.s14")}
+                  أضف صورة للألبوم
                 </Button>
               </DialogTrigger>
               <DialogContent
@@ -204,13 +202,13 @@ export default function CommunityGallery() {
                 onInteractOutside={(e) => { if (imageFile || formData.customerName) e.preventDefault(); }}
               >
                 <DialogHeader>
-                  <DialogTitle className="text-2xl">{t("community-gallery.s15")}</DialogTitle>
+                  <DialogTitle className="text-2xl">شارك حوض أسماكك في ألبوم العائلة</DialogTitle>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                   {/* Image Upload */}
                   <div>
-                    <Label>{t("community-gallery.s16")}</Label>
+                    <Label>صورة الحوض *</Label>
                     <div className="mt-2">
                       {imagePreview ? (
                         <div className="relative">
@@ -232,13 +230,13 @@ export default function CommunityGallery() {
                               setImageFile(null);
                             }}
                           >
-                            {t("community-gallery.s17")}
+                            إزالة
                           </Button>
                         </div>
                       ) : (
                         <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
                           <Upload className="h-12 w-12 text-muted-foreground mb-2" />
-                          <span className="text-sm text-muted-foreground">{t("community-gallery.s18")}</span>
+                          <span className="text-sm text-muted-foreground">اضغط لرفع صورة (حتى 5MB)</span>
                           <input
                             type="file"
                             accept="image/*"
@@ -252,19 +250,19 @@ export default function CommunityGallery() {
 
                   {/* Name */}
                   <div>
-                    <Label htmlFor="name">{t("community-gallery.s19")}</Label>
+                    <Label htmlFor="name">اسمك *</Label>
                     <Input
                       id="name"
                       value={formData.customerName}
                       onChange={(e) => setFormData(prev => ({ ...prev, customerName: e.target.value }))}
-                      placeholder={t("community-gallery.s20")}
+                      placeholder="محمد أحمد"
                       required
                     />
                   </div>
 
                   {/* Phone — optional */}
                   <div>
-                    <Label htmlFor="phone">{t("community-gallery.s21")}</Label>
+                    <Label htmlFor="phone">رقم الهاتف *</Label>
                     <Input
                       id="phone"
                       type="tel"
@@ -277,38 +275,38 @@ export default function CommunityGallery() {
 
                   {/* Tank Size */}
                   <div>
-                    <Label htmlFor="tankSize">{t("community-gallery.s22")}</Label>
+                    <Label htmlFor="tankSize">حجم الحوض</Label>
                     <Input
                       id="tankSize"
                       value={formData.tankSize}
                       onChange={(e) => setFormData(prev => ({ ...prev, tankSize: e.target.value }))}
-                      placeholder={t("community-gallery.s23")}
+                      placeholder="مثال: 200 لتر"
                     />
                   </div>
 
                   {/* Description */}
                   <div>
-                    <Label htmlFor="description">{t("community-gallery.s24")}</Label>
+                    <Label htmlFor="description">وصف الحوض</Label>
                     <Textarea
                       id="description"
                       value={formData.description}
                       onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                      placeholder={t("community-gallery.s25")}
+                      placeholder="أخبرنا عن حوضك: الأسماك، النباتات، المعدات..."
                       rows={4}
                     />
                   </div>
 
                   <Button type="submit" className="w-full" disabled={submitMutation.isPending}>
-                    {submitMutation.isPending ? t("community-gallery.s26") : t("community-gallery.s27")}
+                    {submitMutation.isPending ? "جاري الإرسال..." : "إرسال"}
                   </Button>
                 </form>
               </DialogContent>
             </Dialog>
           ) : (
             <div className="flex flex-col items-center gap-4">
-              <p className="text-muted-foreground">{t("community-gallery.s28")}</p>
+              <p className="text-muted-foreground">سجل دخولك لتتمكن من مشاركة صور حوضك مع العائلة</p>
               <Link href="/login">
-                <Button variant="outline" size="lg" data-tour="gallery-upload">{t("community-gallery.s29")}</Button>
+                <Button variant="outline" size="lg" data-tour="gallery-upload">تسجيل الدخول للمشاركة</Button>
               </Link>
             </div>
           )}
@@ -325,7 +323,7 @@ export default function CommunityGallery() {
               <div className="grid md:grid-cols-2 gap-6 items-center">
                 <img
                   src={winner.imageUrl}
-                  alt={t("community-gallery.s30", { v0: winner.customerName })}
+                  alt={`حوض ${winner.customerName}`}
                   loading="lazy"
                   decoding="async"
                   className="w-full h-80 object-cover rounded-xl shadow-2xl"
@@ -334,7 +332,7 @@ export default function CommunityGallery() {
                 <div className="space-y-4">
                   <Badge className="bg-yellow-500 text-white text-lg px-4 py-2">
                     <Trophy className="h-5 w-5 mr-2" />
-                    {t("community-gallery.s31")} {winner.winnerMonth}
+                    الفائز لشهر {winner.winnerMonth}
                   </Badge>
 
                   <h2 className="text-3xl font-bold">
@@ -343,7 +341,7 @@ export default function CommunityGallery() {
 
                   {winner.tankSize && (
                     <p className="text-muted-foreground">
-                      {t("community-gallery.s32")} <span className="font-bold text-foreground">{winner.tankSize}</span>
+                      حجم الحوض: <span className="font-bold text-foreground">{winner.tankSize}</span>
                     </p>
                   )}
 
@@ -357,7 +355,7 @@ export default function CommunityGallery() {
                     <div className="bg-primary/10 border border-primary/30 rounded-lg p-4">
                       <div className="flex items-center gap-2 mb-2">
                         <Award className="h-5 w-5 text-primary" />
-                        <span className="font-bold">{t("community-gallery.s33")}</span>
+                        <span className="font-bold">الجائزة:</span>
                       </div>
                       <p className="text-lg font-bold text-primary">{winner.prize}</p>
                     </div>
@@ -377,7 +375,7 @@ export default function CommunityGallery() {
 
         {/* Gallery Grid */}
         <div data-tour="gallery-grid">
-          <h2 className="text-2xl font-bold mb-6">{t("community-gallery.s34")}</h2>
+          <h2 className="text-2xl font-bold mb-6">معرض الأحواض</h2>
 
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -394,10 +392,10 @@ export default function CommunityGallery() {
           ) : approvedSubmissions.length === 0 ? (
             <Card className="p-12 text-center">
               <Camera className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-xl font-bold mb-2">{t("community-gallery.s35")}</h3>
-              <p className="text-muted-foreground mb-4">{t("community-gallery.s36")}</p>
+              <h3 className="text-xl font-bold mb-2">لا توجد صور بعد</h3>
+              <p className="text-muted-foreground mb-4">كن أول من يشارك حوضه الرائع!</p>
               <Button onClick={() => setIsUploadOpen(true)}>
-                {t("community-gallery.s37")}
+                ارفع أول صورة
               </Button>
             </Card>
           ) : (
@@ -407,7 +405,7 @@ export default function CommunityGallery() {
                   <div className="relative h-64 overflow-hidden">
                     <img
                       src={submission.imageUrl}
-                      alt={t("community-gallery.s30", { v0: submission.customerName })}
+                      alt={`حوض ${submission.customerName}`}
                       loading="lazy"
                       decoding="async"
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
@@ -419,7 +417,7 @@ export default function CommunityGallery() {
                     <h3 className="font-bold text-lg mb-1">{submission.customerName}</h3>
                     {submission.tankSize && (
                       <p className="text-sm text-muted-foreground mb-2">
-                        {t("community-gallery.s38")} {submission.tankSize}
+                        الحجم: {submission.tankSize}
                       </p>
                     )}
                     {submission.description && (
@@ -453,12 +451,12 @@ export default function CommunityGallery() {
         <div className="mt-16 bg-muted/30 rounded-2xl p-8">
           <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
             <Star className="h-6 w-6 text-primary" />
-            {t("community-gallery.s39")}
+            شروط المسابقة والجوائز
           </h2>
 
           <div className="grid md:grid-cols-2 gap-6">
             <div>
-              <h3 className="font-bold mb-3">{t("community-gallery.s40")}</h3>
+              <h3 className="font-bold mb-3">📋 الشروط:</h3>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 {GALLERY_ENTRY_TERMS.map((term) => (
                   <li key={term} className="flex items-start gap-2">
@@ -470,7 +468,7 @@ export default function CommunityGallery() {
             </div>
 
             <div>
-              <h3 className="font-bold mb-3">{t("community-gallery.s41")}</h3>
+              <h3 className="font-bold mb-3">🎁 الجوائز:</h3>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 {GALLERY_PRIZES.map((prize, index) => (
                   <li key={prize} className="flex items-start gap-2">

@@ -5,9 +5,6 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { ProductVariant } from "@/types";
 import { extractVariantDimensions, isMultiDimensionVariantSet } from "@/lib/variant-dimensions";
-import { useTranslation } from "react-i18next";
-import { formatIQD } from "@/lib/utils";
-import { useLocale } from "@/i18n/locale-context";
 
 interface EmbeddedVariantSelectorProps {
   variants: ProductVariant[];
@@ -43,7 +40,6 @@ export function EmbeddedVariantSelector({
   onVariantSelect,
   title,
 }: EmbeddedVariantSelectorProps) {
-  const { t } = useTranslation("product");
   const dimensions = useMemo(() => extractVariantDimensions(variants), [variants]);
   const sortedVariants = useMemo(
     () => [...variants].sort((a, b) => Number(a.price) - Number(b.price)),
@@ -55,7 +51,7 @@ export function EmbeddedVariantSelector({
   const selectedVariant = sortedVariants.find((variant) => variant.id === selectedVariantId) ?? sortedVariants[0];
   const selectedModel = cleanSpecificationValue(selectedVariant.specifications?.الموديل);
   const customerFacingDimensionKey = dimensions.length === 1 ? dimensions[0].key : undefined;
-  const detectedTitle = dimensions[0]?.label ? t("variants.choose", { label: dimensions[0].label }) : t("variants.chooseOption");
+  const detectedTitle = dimensions[0]?.label ? `اختار ${dimensions[0].label}` : "اختار الخيار";
 
   return (
     <div className="space-y-3 rounded-xl border border-border bg-card p-4" dir="rtl">
@@ -77,7 +73,7 @@ export function EmbeddedVariantSelector({
               onClick={() => onVariantSelect(variant)}
               disabled={!inStock}
               aria-pressed={selected}
-              aria-label={!inStock ? t("variants.unavailableAria", { label: choiceLabel }) : choiceLabel}
+              aria-label={!inStock ? `${choiceLabel}، غير متوفر` : choiceLabel}
               className={cn(
                 "min-h-11 rounded-full border-2 px-4 py-2 text-sm font-medium transition-colors",
                 selected
@@ -96,36 +92,36 @@ export function EmbeddedVariantSelector({
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-border pt-3 text-sm" aria-live="polite">
         {selectedModel && (
           <span className="inline-flex items-center gap-2">
-            <span className="text-muted-foreground">{t("variants.model")}</span>
+            <span className="text-muted-foreground">الموديل:</span>
             <span className="font-bold text-foreground">{selectedModel}</span>
           </span>
         )}
 
         <span className="inline-flex items-center gap-2">
           <Tag className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
-          <span className="text-muted-foreground">{t("variants.price")}</span>
-          <span className="font-bold text-primary">{formatIQD(Number(selectedVariant.price))}</span>
+          <span className="text-muted-foreground">السعر:</span>
+          <span className="font-bold text-primary">{Number(selectedVariant.price).toLocaleString("en-US")} د.ع</span>
         </span>
 
         {selectedVariant.originalPrice && selectedVariant.originalPrice > selectedVariant.price && (
           <>
             <span className="text-sm text-muted-foreground line-through">
-              {formatIQD(Number(selectedVariant.originalPrice))}
+              {Number(selectedVariant.originalPrice).toLocaleString("en-US")} د.ع
             </span>
             <Badge variant="destructive" className="text-[10px]">
-              {t("variants.discount", { percent: Math.round(((selectedVariant.originalPrice - selectedVariant.price) / selectedVariant.originalPrice) * 100) })}
+              خصم {Math.round(((selectedVariant.originalPrice - selectedVariant.price) / selectedVariant.originalPrice) * 100)}%
             </Badge>
           </>
         )}
 
-        <span className="basis-full text-xs sm:ms-auto sm:basis-auto">
+        <span className="basis-full text-xs sm:mr-auto sm:basis-auto">
           {selectedVariant.stock > 0 ? (
             <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
               <Check className="h-3.5 w-3.5" aria-hidden="true" />
-              {t("variants.available", { count: selectedVariant.stock })}
+              متوفر ({selectedVariant.stock} قطعة)
             </span>
           ) : (
-            <span className="text-destructive">{t("variants.unavailable")}</span>
+            <span className="text-destructive">غير متوفر حالياً</span>
           )}
         </span>
       </div>
@@ -138,15 +134,13 @@ export function EmbeddedVariantSelectorCompact({
   selectedVariantId,
   onVariantSelect,
 }: Omit<EmbeddedVariantSelectorProps, "title" | "productCategory">) {
-  const { t } = useTranslation("product");
-  const { dir } = useLocale();
   const dimensions = useMemo(() => extractVariantDimensions(variants), [variants]);
   const customerFacingDimensionKey = dimensions.length === 1 ? dimensions[0].key : undefined;
 
   if (!variants || variants.length <= 1) return null;
 
   return (
-    <div className="flex flex-wrap gap-2" dir={dir} role="group" aria-label={t("variants.options")}>
+    <div className="flex flex-wrap gap-2" dir="rtl" role="group" aria-label="خيارات المنتج">
       {variants.map((variant) => {
         const selected = variant.id === selectedVariantId;
         const choiceLabel = getVariantChoiceLabel(variant, customerFacingDimensionKey);
@@ -158,7 +152,7 @@ export function EmbeddedVariantSelectorCompact({
             onClick={() => onVariantSelect(variant)}
             disabled={variant.stock <= 0}
             aria-pressed={selected}
-            aria-label={variant.stock <= 0 ? t("variants.unavailableAria", { label: choiceLabel }) : choiceLabel}
+            aria-label={variant.stock <= 0 ? `${choiceLabel}، غير متوفر` : choiceLabel}
             className={cn(
               "min-h-11 rounded-full px-3 py-1.5 text-sm font-medium transition-colors",
               selected

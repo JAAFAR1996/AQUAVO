@@ -10,8 +10,6 @@ import {
 import { ReviewWithImages } from "./review-with-images";
 import { RatingBreakdown } from "./rating-breakdown";
 import { cn } from "@/lib/utils";
-import { useTranslation } from "react-i18next";
-import { i18next } from "@/i18n";
 
 interface Review {
     id: string;
@@ -35,15 +33,14 @@ interface ReviewListProps {
 type SortOption = "newest" | "oldest" | "highest" | "lowest" | "helpful";
 
 const sortLabels: Record<SortOption, string> = {
-    newest: i18next.t("pages:review-list.s1"),
-    oldest: i18next.t("pages:review-list.s2"),
-    highest: i18next.t("pages:review-list.s3"),
-    lowest: i18next.t("pages:review-list.s4"),
-    helpful: i18next.t("pages:review-list.s5"),
+    newest: "الأحدث",
+    oldest: "الأقدم",
+    highest: "الأعلى تقييماً",
+    lowest: "الأقل تقييماً",
+    helpful: "الأكثر فائدة",
 };
 
 export function ReviewList({ productId, className }: ReviewListProps) {
-  const { t } = useTranslation("pages");
     const [reviews, setReviews] = useState<Review[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -60,7 +57,7 @@ export function ReviewList({ productId, className }: ReviewListProps) {
             try {
                 const response = await fetch(`/api/reviews/${productId}`);
                 if (!response.ok) {
-                    throw new Error(t("review-list.s6"));
+                    throw new Error("فشل في جلب المراجعات");
                 }
                 const data = await response.json();
                 // Transform data to match our interface
@@ -79,7 +76,7 @@ export function ReviewList({ productId, className }: ReviewListProps) {
                 }
                 const transformedReviews = data.map((review: ServerReview) => ({
                     id: review.id,
-                    author: review.author || t("review-list.s7"),
+                    author: review.author || "زائر",
                     authorTier: review.authorTier || "bronze",
                     avatar: review.avatar,
                     rating: review.rating,
@@ -95,7 +92,7 @@ export function ReviewList({ productId, className }: ReviewListProps) {
                 }));
                 setReviews(transformedReviews);
             } catch (err: unknown) {
-                const message = err instanceof Error ? err.message : t("review-list.s8");
+                const message = err instanceof Error ? err.message : "حدث خطأ";
                 setError(message);
             } finally {
                 setIsLoading(false);
@@ -199,7 +196,7 @@ export function ReviewList({ productId, className }: ReviewListProps) {
                     className="mt-4"
                     onClick={() => window.location.reload()}
                 >
-                    {t("review-list.s9")}
+                    إعادة المحاولة
                 </Button>
             </div>
         );
@@ -223,8 +220,8 @@ export function ReviewList({ productId, className }: ReviewListProps) {
                 <div className="flex items-center justify-between border-b pb-4">
                     <div className="text-sm text-muted-foreground">
                         {filterRating
-                            ? t("review-list.s10", { v0: processedReviews.length, v1: filterRating })
-                            : t("review-list.s11", { v0: reviews.length })}
+                            ? `عرض ${processedReviews.length} مراجعة بتقييم ${filterRating} نجوم`
+                            : `${reviews.length} مراجعة`}
                     </div>
 
                     <DropdownMenu>
@@ -276,8 +273,8 @@ export function ReviewList({ productId, className }: ReviewListProps) {
             ) : (
                 <div className="text-center py-12 text-muted-foreground">
                     {filterRating
-                        ? t("review-list.s12", { v0: filterRating })
-                        : t("review-list.s13")}
+                        ? `لا توجد مراجعات بتقييم ${filterRating} نجوم`
+                        : "لا توجد مراجعات بعد. كن أول من يضيف مراجعة!"}
                 </div>
             )}
 
@@ -290,7 +287,7 @@ export function ReviewList({ productId, className }: ReviewListProps) {
                         disabled={page === 1}
                         onClick={() => setPage((p) => p - 1)}
                     >
-                        {t("review-list.s14")}
+                        السابق
                     </Button>
 
                     <div className="flex items-center gap-1">
@@ -334,7 +331,7 @@ export function ReviewList({ productId, className }: ReviewListProps) {
                         disabled={page === totalPages}
                         onClick={() => setPage((p) => p + 1)}
                     >
-                        {t("review-list.s15")}
+                        التالي
                     </Button>
                 </div>
             )}

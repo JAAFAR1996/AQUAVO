@@ -2,8 +2,6 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, HelpCircle, PackageSearch } from "lucide-react";
-import { useTranslation } from "react-i18next";
-import { i18next } from "@/i18n";
 
 /**
  * What AQUAVO actually stocks for the tank the customer just described.
@@ -39,10 +37,9 @@ type Group = {
   noSizeEvidence: Candidate[];
 };
 
-const fmtPrice = (p: number | null) => (typeof p === "number" && p > 0 ? i18next.t("tools:tank-fit.s1", { v0: p.toLocaleString("en-US") }) : null);
+const fmtPrice = (p: number | null) => (typeof p === "number" && p > 0 ? `${p.toLocaleString("en-US")} د.ع` : null);
 
 function ProductLine({ c, tone }: { c: Candidate; tone: "fit" | "unknown" }) {
-  const { t } = useTranslation("tools");
   const href = c.slug ? `/products/${c.slug}` : `/products/${c.productId}`;
   // wouter v3 renders the anchor itself — nesting an <a> here would emit invalid <a><a>.
   return (
@@ -57,15 +54,15 @@ function ProductLine({ c, tone }: { c: Candidate; tone: "fit" | "unknown" }) {
         </span>
         {/* The exact catalogue sentence the match came from. A shopper can check our work. */}
         <span className="mt-0.5 block text-xs text-muted-foreground">
-          {c.evidence ?? t("tank-fit.s2")}
+          {c.evidence ?? "المواصفات ما تذكر حجم حوض مناسب"}
         </span>
       </span>
       <span className="shrink-0 text-left">
         {fmtPrice(c.price) ? <span className="block text-xs font-bold text-foreground">{fmtPrice(c.price)}</span> : null}
         {tone === "fit" ? (
-          <Badge className="mt-1 bg-primary/15 text-primary hover:bg-primary/15">{t("tank-fit.s3")}</Badge>
+          <Badge className="mt-1 bg-primary/15 text-primary hover:bg-primary/15">مناسب</Badge>
         ) : (
-          <Badge variant="outline" className="mt-1">{t("tank-fit.s4")}</Badge>
+          <Badge variant="outline" className="mt-1">غير محدد</Badge>
         )}
       </span>
     </Link>
@@ -73,7 +70,6 @@ function ProductLine({ c, tone }: { c: Candidate; tone: "fit" | "unknown" }) {
 }
 
 export function TankFit({ litres }: { litres: number }) {
-  const { t } = useTranslation("tools");
   const enabled = Number.isFinite(litres) && litres >= 10 && litres <= 2000;
 
   const { data, isLoading, isError } = useQuery<{ litres: number; groups: Group[]; limitation: string }>({
@@ -91,7 +87,7 @@ export function TankFit({ litres }: { litres: number }) {
   if (!enabled) {
     return (
       <div className="rounded-xl border border-dashed border-border p-4 text-right text-sm text-muted-foreground">
-        {t("tank-fit.s5")}
+        اكتب حجم حوضك باللتر بالخطوة السابقة، وننطيك المنتجات المناسبة من مخزوننا.
       </div>
     );
   }
@@ -100,12 +96,12 @@ export function TankFit({ litres }: { litres: number }) {
   if (isError) {
     return (
       <div className="rounded-xl border border-border p-4 text-right text-sm text-muted-foreground">
-        {t("tank-fit.s6")}
+        ما كدرنا نجيب التوصيات هسه. جرّب مرة ثانية أو تصفح المنتجات.
       </div>
     );
   }
   if (isLoading || !data) {
-    return <div className="rounded-xl border border-border p-4 text-right text-sm text-muted-foreground">{t("tank-fit.s7")}</div>;
+    return <div className="rounded-xl border border-border p-4 text-right text-sm text-muted-foreground">دنكلّب المخزون…</div>;
   }
 
   const groups = (data.groups ?? []).filter((g) => g.fits.length > 0 || g.noSizeEvidence.length > 0);
@@ -115,12 +111,12 @@ export function TankFit({ litres }: { litres: number }) {
     <div className="space-y-4">
       <div className="flex items-center gap-2 text-right">
         <PackageSearch className="h-5 w-5 text-primary" />
-        <div className="font-bold text-foreground">{t("tank-fit.s8")} {litres} {t("tank-fit.s9")}</div>
+        <div className="font-bold text-foreground">شنو يناسب حوض {litres} لتر من مخزون AQUAVO؟</div>
       </div>
 
       {!anyFit && (
         <div className="rounded-xl border border-border bg-muted/30 p-4 text-right text-sm text-muted-foreground">
-          {t("tank-fit.s10")} {litres} {t("tank-fit.s11")}
+          ما عدنا منتج مواصفاته تذكر إنه يناسب حوض {litres} لتر. ما راح نوصّيك بشي مو متأكدين منه.
         </div>
       )}
 
@@ -139,7 +135,7 @@ export function TankFit({ litres }: { litres: number }) {
           {g.fits.length === 0 && g.noSizeEvidence.length > 0 && (
             <div className="flex items-start gap-2 rounded-lg bg-muted/30 p-3 text-right text-xs text-muted-foreground">
               <HelpCircle className="mt-0.5 h-4 w-4 shrink-0" />
-              <span>{t("tank-fit.s12")}</span>
+              <span>ما عدنا بهذا القسم منتج مواصفاته تحدد حجم الحوض. المنتجات أدناه ممكن تناسب، بس المواصفات ما تأكد.</span>
             </div>
           )}
 
@@ -147,7 +143,7 @@ export function TankFit({ litres }: { litres: number }) {
           {g.noSizeEvidence.length > 0 && (
             <details className="rounded-lg border border-border/60 p-2">
               <summary className="cursor-pointer text-right text-xs text-muted-foreground">
-                {t("tank-fit.s13")}{g.noSizeEvidence.length}{t("tank-fit.s14")}
+                منتجات ثانية بهذا القسم ({g.noSizeEvidence.length}) — الحجم غير مذكور بالمواصفات
               </summary>
               <div className="mt-2 space-y-2">
                 {g.noSizeEvidence.slice(0, 6).map((c) => (

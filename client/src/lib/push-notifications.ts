@@ -1,4 +1,3 @@
-import { i18next } from "@/i18n";
 /**
  * Push Notifications utility for AQUAVO
  */
@@ -77,13 +76,13 @@ async function getVapidPublicKey(): Promise<string> {
 export async function subscribeToPush(): Promise<PushSubscription> {
     // Step 1: Check support
     if (!isPushSupported()) {
-        throw new Error(i18next.t("pages:push-notifications.s1"));
+        throw new Error('STEP1_NOT_SUPPORTED: المتصفح لا يدعم الإشعارات');
     }
 
     // Step 2: Request permission
     const permission = await requestNotificationPermission();
     if (permission !== 'granted') {
-        throw new Error(i18next.t("pages:push-notifications.s2", { v0: permission }));
+        throw new Error(`STEP2_PERMISSION: صلاحية الإشعارات: ${permission}`);
     }
 
     // Step 3: Get VAPID key
@@ -91,7 +90,7 @@ export async function subscribeToPush(): Promise<PushSubscription> {
     try {
         vapidKey = await getVapidPublicKey();
     } catch (e) {
-        throw new Error(i18next.t("pages:push-notifications.s3", { v0: e instanceof Error ? e.message : e }));
+        throw new Error(`STEP3_VAPID: فشل جلب مفتاح VAPID - ${e instanceof Error ? e.message : e}`);
     }
 
     // Step 4: Register service worker
@@ -99,7 +98,7 @@ export async function subscribeToPush(): Promise<PushSubscription> {
     try {
         registration = await navigator.serviceWorker.register('/sw-push.js');
     } catch (e) {
-        throw new Error(i18next.t("pages:push-notifications.s4", { v0: e instanceof Error ? e.message : e }));
+        throw new Error(`STEP4_SW_REGISTER: فشل تسجيل Service Worker - ${e instanceof Error ? e.message : e}`);
     }
 
     // Step 5: Wait for SW to be ready
@@ -131,7 +130,7 @@ export async function subscribeToPush(): Promise<PushSubscription> {
             });
         }
     } catch (e) {
-        throw new Error(i18next.t("pages:push-notifications.s5", { v0: e instanceof Error ? e.message : e }));
+        throw new Error(`STEP5_SW_ACTIVATE: Service Worker لم يتفعل - ${e instanceof Error ? e.message : e}`);
     }
 
     // Step 6: Subscribe to push manager
@@ -148,7 +147,7 @@ export async function subscribeToPush(): Promise<PushSubscription> {
             });
         }
     } catch (e) {
-        throw new Error(i18next.t("pages:push-notifications.s6", { v0: e instanceof Error ? e.message : e }));
+        throw new Error(`STEP6_PUSH_SUBSCRIBE: فشل الاشتراك - ${e instanceof Error ? e.message : e}`);
     }
 
     // Step 7: Save to server
@@ -165,7 +164,7 @@ export async function subscribeToPush(): Promise<PushSubscription> {
             throw new Error(`Server ${response.status}: ${text.slice(0, 100)}`);
         }
     } catch (e) {
-        throw new Error(i18next.t("pages:push-notifications.s7", { v0: e instanceof Error ? e.message : e }));
+        throw new Error(`STEP7_SAVE: فشل حفظ الاشتراك - ${e instanceof Error ? e.message : e}`);
     }
 
     return subscription;

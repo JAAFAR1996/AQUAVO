@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import { Smile, Meh, Frown, TrendingUp, TrendingDown, Minus } from "lucide-react";
-import { useTranslation } from "react-i18next";
 
 interface SentimentData {
   averageScore: number;
@@ -25,7 +24,6 @@ export default function SentimentIndicator({
   days = 30,
   compact = false,
 }: SentimentIndicatorProps) {
-  const { t } = useTranslation("tools");
   const { data, isLoading } = useQuery({
     queryKey: ["sentiment-average", userId, days],
     queryFn: async () => {
@@ -36,7 +34,7 @@ export default function SentimentIndicator({
       );
 
       if (!response.ok) {
-        throw new Error(t("SentimentIndicator.s1"));
+        throw new Error("فشل جلب بيانات المشاعر");
       }
 
       const result = await response.json();
@@ -64,11 +62,11 @@ export default function SentimentIndicator({
   };
 
   const getSentimentLabel = (score: number) => {
-    if (score > 0.5) return t("SentimentIndicator.s2");
-    if (score > 0.2) return t("SentimentIndicator.s3");
-    if (score > -0.2) return t("SentimentIndicator.s4");
-    if (score > -0.5) return t("SentimentIndicator.s5");
-    return t("SentimentIndicator.s6");
+    if (score > 0.5) return "ممتاز جداً";
+    if (score > 0.2) return "جيد";
+    if (score > -0.2) return "محايد";
+    if (score > -0.5) return "سلبي قليلاً";
+    return "يحتاج دعم";
   };
 
   const getSentimentColor = (score: number) => {
@@ -93,7 +91,7 @@ export default function SentimentIndicator({
     <div className="bg-card rounded-lg shadow-md p-6 space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-gray-900">
-          {t("SentimentIndicator.s7")}
+          تحليل المشاعر
         </h3>
         <div
           className={`px-3 py-1 rounded-full border ${getSentimentColor(data.averageScore)}`}
@@ -110,7 +108,7 @@ export default function SentimentIndicator({
       {/* Score Bar */}
       <div className="space-y-2">
         <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-600">{t("SentimentIndicator.s8")}</span>
+          <span className="text-gray-600">درجة المشاعر</span>
           <span className="font-semibold">
             {(data.averageScore * 100).toFixed(0)}%
           </span>
@@ -130,9 +128,9 @@ export default function SentimentIndicator({
           />
         </div>
         <div className="flex justify-between text-xs text-gray-500">
-          <span>{t("SentimentIndicator.s9")}</span>
-          <span>{t("SentimentIndicator.s4")}</span>
-          <span>{t("SentimentIndicator.s10")}</span>
+          <span>سلبي</span>
+          <span>محايد</span>
+          <span>إيجابي</span>
         </div>
       </div>
 
@@ -142,19 +140,19 @@ export default function SentimentIndicator({
           <div className="text-2xl font-bold text-green-600">
             {data.sentimentBreakdown.positive}
           </div>
-          <div className="text-xs text-gray-600 mt-1">{t("SentimentIndicator.s11")}</div>
+          <div className="text-xs text-gray-600 mt-1">إيجابية</div>
         </div>
         <div className="text-center">
           <div className="text-2xl font-bold text-yellow-600">
             {data.sentimentBreakdown.neutral}
           </div>
-          <div className="text-xs text-gray-600 mt-1">{t("SentimentIndicator.s12")}</div>
+          <div className="text-xs text-gray-600 mt-1">محايدة</div>
         </div>
         <div className="text-center">
           <div className="text-2xl font-bold text-red-600">
             {data.sentimentBreakdown.negative}
           </div>
-          <div className="text-xs text-gray-600 mt-1">{t("SentimentIndicator.s13")}</div>
+          <div className="text-xs text-gray-600 mt-1">سلبية</div>
         </div>
       </div>
 
@@ -163,10 +161,10 @@ export default function SentimentIndicator({
         {getTrendIcon(data.trend)}
         <span className="text-sm text-gray-700">
           {data.trend === "improving"
-            ? t("SentimentIndicator.s14")
+            ? "📈 الاتجاه في تحسن"
             : data.trend === "declining"
-              ? t("SentimentIndicator.s15")
-              : t("SentimentIndicator.s16")}
+              ? "📉 الاتجاه في تراجع"
+              : "➡️ الاتجاه مستقر"}
         </span>
       </div>
 
@@ -174,7 +172,7 @@ export default function SentimentIndicator({
       {data.recentEmotions && data.recentEmotions.length > 0 && (
         <div className="pt-4 border-t border-gray-200">
           <h4 className="text-sm font-medium text-gray-700 mb-3">
-            {t("SentimentIndicator.s17")}
+            المشاعر الأخيرة
           </h4>
           <div className="flex flex-wrap gap-2">
             {data.recentEmotions.map((emotion, idx) => (
@@ -191,7 +189,7 @@ export default function SentimentIndicator({
 
       {/* Total Messages */}
       <div className="text-center text-xs text-gray-500 pt-2">
-        {t("SentimentIndicator.s18")} {data.totalMessages} {t("SentimentIndicator.s19")} {days} {t("SentimentIndicator.s20")}
+        بناءً على {data.totalMessages} رسالة خلال {days} يوم الماضية
       </div>
     </div>
   );

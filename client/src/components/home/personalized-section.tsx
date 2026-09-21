@@ -8,12 +8,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Clock, ShoppingCart, TrendingUp } from "lucide-react";
 import type { Product } from "@/types";
-import { useTranslation } from "react-i18next";
 
 function PredictedNeedCard({ prediction }: {
   prediction: { product: Product; probability: number; reason: string; predictedDate: string | null };
 }) {
-  const { t: tr } = useTranslation("pages");
   const { addItem } = useCart();
 
   const probabilityColor =
@@ -49,7 +47,7 @@ function PredictedNeedCard({ prediction }: {
         variant="outline"
         className="shrink-0 h-8 w-8 p-0"
         onClick={() => addItem(prediction.product)}
-        aria-label={tr("personalized-section.s1", { v0: prediction.product.name })}
+        aria-label={`أضف ${prediction.product.name} للسلة`}
       >
         <ShoppingCart className="h-3.5 w-3.5" />
       </Button>
@@ -58,7 +56,6 @@ function PredictedNeedCard({ prediction }: {
 }
 
 export function PersonalizedSection() {
-  const { t: tr } = useTranslation("pages");
   const { user } = useAuth();
   const isLoggedIn = !!user;
 
@@ -101,15 +98,15 @@ export function PersonalizedSection() {
           <h2 className="text-2xl md:text-3xl font-bold flex items-center gap-2 text-right">
             {isPersonalized ? (
               <>
-                {tr("personalized-section.s2")} <Sparkles className="w-6 h-6 text-primary" />
+                مختار لك <Sparkles className="w-6 h-6 text-primary" />
               </>
             ) : hasRealTrending ? (
               <>
-                {tr("personalized-section.s3")} <TrendingUp className="w-6 h-6 text-primary" />
+                الأكثر رواجاً <TrendingUp className="w-6 h-6 text-primary" />
               </>
             ) : (
               <>
-                {tr("personalized-section.s4")} <TrendingUp className="w-6 h-6 text-primary" />
+                اكتشف منتجاتنا <TrendingUp className="w-6 h-6 text-primary" />
               </>
             )}
           </h2>
@@ -142,7 +139,7 @@ export function PersonalizedSection() {
           <div className="flex items-center justify-between mb-6">
             <div />
             <h2 className="text-2xl md:text-3xl font-bold flex items-center gap-2 text-right">
-              {tr("personalized-section.s5")} <Clock className="w-6 h-6 text-accent" />
+              قد تحتاج قريباً <Clock className="w-6 h-6 text-accent" />
             </h2>
           </div>
 

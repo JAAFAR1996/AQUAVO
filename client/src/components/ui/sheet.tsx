@@ -6,7 +6,6 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
-import { i18next } from "@/i18n";
 
 const Sheet = SheetPrimitive.Root
 
@@ -68,9 +67,9 @@ const SheetContent = React.forwardRef<
       <SheetPrimitive.Close className={cn(
         "absolute top-4 rounded-full w-10 h-10 flex items-center justify-center bg-background border-2 border-border hover:border-primary/50 hover:bg-accent transition-all opacity-90 hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none shadow-sm hover:shadow-md z-50",
         side === "left" ? "left-4" : "right-4"
-      )} aria-label={i18next.t("common:sheet.s1")}>
+      )} aria-label="إغلاق">
         <X className="h-5 w-5" />
-        <span className="sr-only">{i18next.t("common:sheet.s1")}</span>
+        <span className="sr-only">إغلاق</span>
       </SheetPrimitive.Close>
       {children}
     </SheetPrimitive.Content>

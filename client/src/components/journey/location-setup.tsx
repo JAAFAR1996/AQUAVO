@@ -3,7 +3,6 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { MapPin, CheckCircle2, AlertCircle, Calculator } from "lucide-react";
 import { WizardData } from "@/types/journey";
-import { useTranslation } from "react-i18next";
 
 interface LocationSetupProps {
     wizardData: WizardData;
@@ -11,58 +10,57 @@ interface LocationSetupProps {
 }
 
 export function LocationSetup({ wizardData, updateData }: LocationSetupProps) {
-  const { t } = useTranslation("tools");
     return (
         <Card className="border-2">
             <CardContent className="p-6 md:p-8 space-y-8">
                 <div className="space-y-2">
                     <h2 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-2">
                         <MapPin className="h-7 w-7 text-primary" />
-                        {t("location-setup.s1")}
+                        موقع ومكان الحوض
                     </h2>
                     <p className="text-muted-foreground text-lg">
-                        {t("location-setup.s2")}
+                        الموقع الصحيح يمنع الكثير من المشاكل المستقبلية
                     </p>
                 </div>
 
                 <div className="space-y-4">
-                    <Label className="text-lg font-bold">{t("location-setup.s3")}</Label>
+                    <Label className="text-lg font-bold">اختر مواصفات الموقع (يمكنك اختيار أكثر من خيار)</Label>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {[
                             {
                                 value: "away-from-sunlight",
-                                label: t("location-setup.s4"),
-                                desc: t("location-setup.s5"),
+                                label: "بعيد عن أشعة الشمس المباشرة",
+                                desc: "يمنع نمو الطحالب الزائد",
                                 good: true
                             },
                             {
                                 value: "stable-surface",
-                                label: t("location-setup.s6"),
-                                desc: t("location-setup.s7"),
+                                label: "سطح مستقر ومتين",
+                                desc: "يتحمل وزن الحوض المملوء",
                                 good: true
                             },
                             {
                                 value: "near-power",
-                                label: t("location-setup.s8"),
-                                desc: t("location-setup.s9"),
+                                label: "قريب من مصدر كهرباء",
+                                desc: "للفلتر والسخان والإضاءة",
                                 good: true
                             },
                             {
                                 value: "quiet-area",
-                                label: t("location-setup.s10"),
-                                desc: t("location-setup.s11"),
+                                label: "منطقة هادئة",
+                                desc: "بعيداً عن الضوضاء",
                                 good: true
                             },
                             {
                                 value: "easy-access",
-                                label: t("location-setup.s12"),
-                                desc: t("location-setup.s13"),
+                                label: "سهل الوصول",
+                                desc: "للصيانة الدورية",
                                 good: true
                             },
                             {
                                 value: "away-from-hvac",
-                                label: t("location-setup.s14"),
-                                desc: t("location-setup.s15"),
+                                label: "بعيد عن التكييف والتهوية",
+                                desc: "لاستقرار درجة الحرارة",
                                 good: true
                             }
                         ].map((option) => (
@@ -97,9 +95,10 @@ export function LocationSetup({ wizardData, updateData }: LocationSetupProps) {
                 <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 flex gap-3">
                     <AlertCircle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-1" />
                     <div>
-                        <div className="font-bold text-foreground mb-1 text-right">{t("location-setup.s16")}</div>
+                        <div className="font-bold text-foreground mb-1 text-right">تحذير مهم</div>
                         <p className="text-sm text-muted-foreground text-right">
-                            {t("location-setup.s17")}
+                            تأكد من أن السطح يتحمل الوزن! حوض 100 لتر يزن حوالي 120 كجم عند امتلائه بالماء والحصى والديكور.
+                            استخدم حاملاً مخصصاً للأحواض أو طاولة قوية جداً.
                         </p>
                     </div>
                 </div>
@@ -108,20 +107,20 @@ export function LocationSetup({ wizardData, updateData }: LocationSetupProps) {
                 <div className="bg-muted/30 rounded-xl p-6">
                     <div className="flex items-center gap-2 mb-4">
                         <Calculator className="h-5 w-5 text-primary" />
-                        <h3 className="font-bold text-foreground">{t("location-setup.s18")}</h3>
+                        <h3 className="font-bold text-foreground">حاسبة الوزن</h3>
                     </div>
                     <div className="space-y-3 text-sm">
                         <div className="flex justify-between">
-                            <span className="text-muted-foreground">{t("location-setup.s19")}</span>
-                            <span className="font-bold">{t("location-setup.s20")}</span>
+                            <span className="text-muted-foreground">حوض 60 لتر:</span>
+                            <span className="font-bold">~75 كجم</span>
                         </div>
                         <div className="flex justify-between">
-                            <span className="text-muted-foreground">{t("location-setup.s21")}</span>
-                            <span className="font-bold">{t("location-setup.s22")}</span>
+                            <span className="text-muted-foreground">حوض 100 لتر:</span>
+                            <span className="font-bold">~120 كجم</span>
                         </div>
                         <div className="flex justify-between">
-                            <span className="text-muted-foreground">{t("location-setup.s23")}</span>
-                            <span className="font-bold">{t("location-setup.s24")}</span>
+                            <span className="text-muted-foreground">حوض 200 لتر:</span>
+                            <span className="font-bold">~240 كجم</span>
                         </div>
                     </div>
                 </div>

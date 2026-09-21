@@ -1,6 +1,4 @@
-import { useTranslation } from "react-i18next";
 export default function GuideTreatmentBasics() {
-  const { t } = useTranslation("guides");
   return (
     <div className="trt-wrap">
 
@@ -12,7 +10,7 @@ export default function GuideTreatmentBasics() {
 
         {/* ── Hero ── */}
         <section className="trt-hero">
-          <span className="trt-badge">{t("guides-treatment-basics.s1")}</span>
+          <span className="trt-badge">دليل العلاج — AQUAVO</span>
 
           {/* 4-step decision path — CSS only */}
           <div className="trt-path" aria-hidden="true">
@@ -25,70 +23,76 @@ export default function GuideTreatmentBasics() {
             <div className="trt-step trt-s4"><span>✓</span></div>
           </div>
 
-          <h1>{t("guides-treatment-basics.s2")}</h1>
-          <p className="trt-sub">{t("guides-treatment-basics.s3")}</p>
+          <h1>قبل الدواء</h1>
+          <p className="trt-sub">الدواء الخاطئ يقتل أسرع من المرض نفسه</p>
           <p className="trt-intro">
-            {t("guides-treatment-basics.s4")}
+            معظم حالات فشل العلاج سببها دواء بدون تشخيص صحيح، أو جرعة خاطئة، أو إهمال المي.
+            الخطوات الأربع هذه تحمي السمچ قبل ما تفتح أي علبة.
           </p>
           <div className="trt-meta">
-            <span>{t("guides-treatment-basics.s5")}</span>
-            <span>{t("guides-treatment-basics.s6")}</span>
+            <span>اقرأ قبل أي علاج</span>
+            <span>وقت القراءة: 5 دقائق</span>
           </div>
         </section>
 
         {/* ── شجرة القرار ── */}
         <section className="trt-section">
-          <h2 className="trt-title">{t("guides-treatment-basics.s7")}</h2>
+          <h2 className="trt-title">الخطوات الأربع — بالترتيب</h2>
 
           <div className="trt-steps">
             <div className="trt-card trt-card-1">
-              <div className="trt-card-num">{t("guides-treatment-basics.s8")}</div>
+              <div className="trt-card-num">١</div>
               <div className="trt-card-body">
-                <h3>{t("guides-treatment-basics.s9")}</h3>
+                <h3>شخّص قبل ما تعالج</h3>
                 <p>
-                  {t("guides-treatment-basics.s10")}
+                  الأعراض الخارجية (بقع، لون، سلوك) تحدد نوع المشكلة.
+                  بكتيري؟ فطري؟ طفيلي؟ كل نوع له دواء مختلف.
+                  الدواء الخاطئ يجهد الكبد ويضعف الدفاع الطبيعي للسمچ.
                 </p>
                 <div className="trt-card-tip">
-                  {t("guides-treatment-basics.s11")}
+                  أرسل صورة واضحة — التشخيص البصري أدق من التخمين.
                 </div>
               </div>
             </div>
 
             <div className="trt-card trt-card-2">
-              <div className="trt-card-num">{t("guides-treatment-basics.s12")}</div>
+              <div className="trt-card-num">٢</div>
               <div className="trt-card-body">
-                <h3>{t("guides-treatment-basics.s13")}</h3>
+                <h3>عزل السمچة المريضة أولاً</h3>
                 <p>
-                  {t("guides-treatment-basics.s14")}
+                  قبل إضافة أي دواء للحوض الرئيسي — عزل السمچة المريضة يحمي الباقين
+                  ويعطيك تحكم أفضل في الجرعة والمدة.
                 </p>
                 <div className="trt-card-tip">
-                  {t("guides-treatment-basics.s15")}
+                  الاستثناء: مرض ايچ أو طفيليات انتشرت — الحوض كله يحتاج علاج.
                 </div>
               </div>
             </div>
 
             <div className="trt-card trt-card-3">
-              <div className="trt-card-num">{t("guides-treatment-basics.s16")}</div>
+              <div className="trt-card-num">٣</div>
               <div className="trt-card-body">
-                <h3>{t("guides-treatment-basics.s17")}</h3>
+                <h3>اقرأ التعليمات كاملة — مو الملخص</h3>
                 <p>
-                  {t("guides-treatment-basics.s18")}
+                  الجرعة بالنسبة لحجم الحوض. المدة الكاملة (ما تقف لو تحسن السمچ).
+                  تأثير الدواء على الفلتر البيولوجي والأكسجين.
                 </p>
                 <div className="trt-card-tip">
-                  {t("guides-treatment-basics.s19")}
+                  بعض الأدوية تحتاج إزالة الكربون النشط وتخفيف الإضاءة.
                 </div>
               </div>
             </div>
 
             <div className="trt-card trt-card-4">
-              <div className="trt-card-num">{t("guides-treatment-basics.s20")}</div>
+              <div className="trt-card-num">٤</div>
               <div className="trt-card-body">
-                <h3>{t("guides-treatment-basics.s21")}</h3>
+                <h3>تغيير المي بعد العلاج</h3>
                 <p>
-                  {t("guides-treatment-basics.s22")}
+                  بعد انتهاء مدة العلاج — تغيير ٣٠٪ من المي يزيل بقايا الدواء.
+                  أعد الكربون النشط لأسبوع إضافي لضمان إزالة آثار الدواء.
                 </p>
                 <div className="trt-card-tip">
-                  {t("guides-treatment-basics.s23")}
+                  راقب السمچة ٤٨ ساعة بعد العلاج قبل إعادتها للحوض الرئيسي.
                 </div>
               </div>
             </div>
@@ -97,34 +101,34 @@ export default function GuideTreatmentBasics() {
 
         {/* ── أخطاء شائعة ── */}
         <section className="trt-section">
-          <h2 className="trt-title">{t("guides-treatment-basics.s24")}</h2>
+          <h2 className="trt-title">أخطاء تقتل السمچ أثناء العلاج</h2>
           <div className="trt-err-list">
             <div className="trt-err">
               <span className="trt-err-x">✗</span>
               <div>
-                <strong>{t("guides-treatment-basics.s25")}</strong>
-                <p>{t("guides-treatment-basics.s26")}</p>
+                <strong>الزيادة في الجرعة "لتسريع العلاج"</strong>
+                <p>جرعة ضعف التوصية تسمم الكبد والكلى — تقتل السمچ بدل ما تعالجه</p>
               </div>
             </div>
             <div className="trt-err">
               <span className="trt-err-x">✗</span>
               <div>
-                <strong>{t("guides-treatment-basics.s27")}</strong>
-                <p>{t("guides-treatment-basics.s28")}</p>
+                <strong>إيقاف العلاج مبكراً لأن السمچ "تحسن"</strong>
+                <p>الأعراض تختفي قبل القضاء على المرض — إيقاف مبكر يصنع مقاومة</p>
               </div>
             </div>
             <div className="trt-err">
               <span className="trt-err-x">✗</span>
               <div>
-                <strong>{t("guides-treatment-basics.s29")}</strong>
-                <p>{t("guides-treatment-basics.s30")}</p>
+                <strong>خلط أدوية مختلفة في نفس الوقت</strong>
+                <p>تفاعلات كيميائية غير متوقعة — وأحياناً نتائج مميتة</p>
               </div>
             </div>
             <div className="trt-err">
               <span className="trt-err-x">✗</span>
               <div>
-                <strong>{t("guides-treatment-basics.s31")}</strong>
-                <p>{t("guides-treatment-basics.s32")}</p>
+                <strong>علاج السمچ بدون فحص جودة المي</strong>
+                <p>أمونيا عالية تضعف الجهاز المناعي — أي علاج سيفشل معها</p>
               </div>
             </div>
           </div>
@@ -133,9 +137,9 @@ export default function GuideTreatmentBasics() {
         {/* ── CTA ── */}
         <section className="trt-cta-section">
           <div className="trt-cta-box">
-            <h2 className="trt-cta-title">{t("guides-treatment-basics.s33")}</h2>
+            <h2 className="trt-cta-title">مو متأكد من التشخيص الصح؟</h2>
             <p className="trt-cta-body">
-              {t("guides-treatment-basics.s34")}
+              أرسل صورة أو فيديو للسمچة وأعراضها — نساعدك تحدد المشكلة قبل الدواء.
             </p>
             <a
               href="https://www.instagram.com/aquavo_iq/"
@@ -143,7 +147,7 @@ export default function GuideTreatmentBasics() {
               rel="noopener noreferrer"
               className="trt-cta-btn"
             >
-              {t("guides-treatment-basics.s35")}
+              راسلنا على إنستغرام
             </a>
           </div>
         </section>

@@ -16,8 +16,6 @@ import {
   Truck,
 } from "lucide-react";
 import { useState } from "react";
-import { useTranslation } from "react-i18next";
-import { i18next } from "@/i18n";
 
 interface CarrierTracking {
   carrier: string;
@@ -56,48 +54,48 @@ interface OrderDetails {
 
 const STATUS_COPY: Record<string, { label: string; description: string }> = {
   pending: {
-    label: i18next.t("orders:order-tracking.s1"),
-    description: i18next.t("orders:order-tracking.s2"),
+    label: "قيد الانتظار",
+    description: "استلمنا طلبك وهو بانتظار بدء التجهيز",
   },
   confirmed: {
-    label: i18next.t("orders:order-tracking.s3"),
-    description: i18next.t("orders:order-tracking.s4"),
+    label: "تم التأكيد",
+    description: "تم تأكيد طلبك",
   },
   processing: {
-    label: i18next.t("orders:order-tracking.s5"),
-    description: i18next.t("orders:order-tracking.s6"),
+    label: "جاري التجهيز",
+    description: "نقوم بتحضير وتغليف طلبك",
   },
   shipped: {
-    label: i18next.t("orders:order-tracking.s7"),
-    description: i18next.t("orders:order-tracking.s8"),
+    label: "تم الشحن",
+    description: "تم تسليم طلبك لشركة التوصيل",
   },
   delivered: {
-    label: i18next.t("orders:order-tracking.s9"),
-    description: i18next.t("orders:order-tracking.s10"),
+    label: "تم التوصيل",
+    description: "تم تسليم طلبك بنجاح",
   },
   cancelled: {
-    label: i18next.t("orders:order-tracking.s11"),
-    description: i18next.t("orders:order-tracking.s12"),
+    label: "ملغي",
+    description: "تم إلغاء الطلب",
   },
   rejected: {
-    label: i18next.t("orders:order-tracking.s13"),
-    description: i18next.t("orders:order-tracking.s14"),
+    label: "مرفوض",
+    description: "تعذر إكمال الطلب وتم إيقاف مسار التوصيل",
   },
   rejected_carrier: {
-    label: i18next.t("orders:order-tracking.s15"),
-    description: i18next.t("orders:order-tracking.s16"),
+    label: "تعذر التوصيل",
+    description: "شركة التوصيل سجلت تعذر تسليم الطلب وبدأ مسار الإرجاع",
   },
   rejected_returned: {
-    label: i18next.t("orders:order-tracking.s17"),
-    description: i18next.t("orders:order-tracking.s18"),
+    label: "رجع من شركة التوصيل",
+    description: "تم استلام الطلب الراجع من شركة التوصيل",
   },
   returned: {
-    label: i18next.t("orders:order-tracking.s19"),
-    description: i18next.t("orders:order-tracking.s20"),
+    label: "تم إرجاع الطلب",
+    description: "اكتملت معالجة إرجاع الطلب",
   },
   refunded: {
-    label: i18next.t("orders:order-tracking.s21"),
-    description: i18next.t("orders:order-tracking.s22"),
+    label: "تم رد المبلغ",
+    description: "اكتملت معالجة الاسترجاع المالي للطلب",
   },
 };
 
@@ -113,7 +111,7 @@ const TERMINAL_LOCAL_STATUSES = new Set([
 
 function formatOrderDate(value: string): string {
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return i18next.t("orders:order-tracking.s23");
+  if (Number.isNaN(date.getTime())) return "غير متوفر";
   return date.toLocaleDateString("ar-IQ", {
     year: "numeric",
     month: "2-digit",
@@ -136,8 +134,8 @@ function formatEventTime(value: string | null | undefined): string | null {
 
 function getStatusCopy(status: string) {
   return STATUS_COPY[status] ?? {
-    label: i18next.t("orders:order-tracking.s24"),
-    description: i18next.t("orders:order-tracking.s25"),
+    label: "حالة الطلب",
+    description: "تم تحديث حالة طلبك",
   };
 }
 
@@ -148,8 +146,8 @@ function buildTimeline(data: TrackingApiResponse): TimelineItem[] {
   const items: TimelineItem[] = [
     {
       id: "aquavo-received",
-      title: i18next.t("orders:order-tracking.s26"),
-      description: i18next.t("orders:order-tracking.s27"),
+      title: "تم استلام الطلب",
+      description: "طلبك مسجل لدى AQUAVO",
       time: receivedTime,
       completed: data.status !== "pending" || Boolean(data.shipping),
       current: data.status === "pending" && !data.shipping,
@@ -162,7 +160,7 @@ function buildTimeline(data: TrackingApiResponse): TimelineItem[] {
     items.push({
       id: "carrier-live",
       title: data.shipping.status,
-      description: i18next.t("orders:order-tracking.s28", { v0: data.shipping.carrier }),
+      description: `آخر حالة مسجلة لدى ${data.shipping.carrier}`,
       time: formatEventTime(data.shipping.providerUpdatedAt ?? data.shipping.lastSyncedAt),
       completed: false,
       current: true,
@@ -194,7 +192,7 @@ function currentDisplay(details: OrderDetails) {
     return {
       label: details.shipping.status,
       title: details.shipping.status,
-      helper: i18next.t("orders:order-tracking.s29", { v0: details.shipping.carrier }),
+      helper: `هذه آخر حالة مستلمة من ${details.shipping.carrier}`,
     };
   }
   const copy = getStatusCopy(details.localStatus);
@@ -202,13 +200,12 @@ function currentDisplay(details: OrderDetails) {
     label: copy.label,
     title: copy.label,
     helper: details.localStatus === "shipped"
-      ? i18next.t("orders:order-tracking.s30")
+      ? "معلومات شركة التوصيل قيد المزامنة"
       : copy.description,
   };
 }
 
 export default function OrderTracking() {
-  const { t } = useTranslation("orders");
   const [orderNumber, setOrderNumber] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [orderDetails, setOrderDetails] = useState<OrderDetails | null>(null);
@@ -221,7 +218,7 @@ export default function OrderTracking() {
 
     const normalizedOrderNumber = orderNumber.trim();
     if (!normalizedOrderNumber) {
-      setError(t("order-tracking.s31"));
+      setError("أدخل رقم الطلب");
       return;
     }
 
@@ -232,7 +229,7 @@ export default function OrderTracking() {
         credentials: "include",
       });
       if (!response.ok) {
-        throw new Error(t("order-tracking.s32"));
+        throw new Error("تعذر العثور على الطلب. تأكد من رقم الطلب وحاول مرة ثانية.");
       }
 
       const data = (await response.json()) as TrackingApiResponse;
@@ -244,7 +241,7 @@ export default function OrderTracking() {
         timeline: buildTimeline(data),
       });
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : t("order-tracking.s33"));
+      setError(err instanceof Error ? err.message : "حدث خطأ");
     } finally {
       setIsSearching(false);
     }
@@ -270,11 +267,11 @@ export default function OrderTracking() {
           >
             <Badge variant="outline" className="mb-4 border-primary/30 bg-primary/[0.07] px-4 py-1.5 text-sm text-primary">
               <Package className="ml-2 h-4 w-4" aria-hidden="true" />
-              {t("order-tracking.s34")}
+              تتبع الشحنات
             </Badge>
-            <h1 className="mb-3 text-3xl font-bold tracking-tight md:text-4xl">{t("order-tracking.s35")}</h1>
+            <h1 className="mb-3 text-3xl font-bold tracking-tight md:text-4xl">تتبع طلبك</h1>
             <p className="max-w-xl text-base leading-7 text-muted-foreground md:text-lg">
-              {t("order-tracking.s36")}
+              أدخل رقم الطلب لمعرفة آخر تحديث على طلبك
             </p>
           </motion.div>
         </div>
@@ -291,13 +288,13 @@ export default function OrderTracking() {
               <CardContent className="p-5 md:p-7">
                 <form onSubmit={handleSearch} className="space-y-5">
                   <div className="space-y-2">
-                    <label htmlFor="order-number" className="text-sm font-semibold text-foreground/85">{t("order-tracking.s37")}</label>
+                    <label htmlFor="order-number" className="text-sm font-semibold text-foreground/85">رقم الطلب</label>
                     <div className="relative">
                       <Package className="absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
                       <Input
                         id="order-number"
                         type="text"
-                        placeholder={t("order-tracking.s38")}
+                        placeholder="مثال: FH-260816-13180F34"
                         value={orderNumber}
                         onChange={(e) => setOrderNumber(e.target.value)}
                         className="h-12 border-border/80 pr-12 text-base shadow-none focus-visible:border-primary"
@@ -324,12 +321,12 @@ export default function OrderTracking() {
                     {isSearching ? (
                       <>
                         <span className="ml-2 h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" aria-hidden="true" />
-                        {t("order-tracking.s39")}
+                        جاري تحديث حالة الطلب...
                       </>
                     ) : (
                       <>
                         <Search className="ml-2 h-5 w-5" aria-hidden="true" />
-                        {t("order-tracking.s40")}
+                        تتبع الطلب
                       </>
                     )}
                   </Button>
@@ -337,7 +334,7 @@ export default function OrderTracking() {
 
                 <div className="mt-5 border-t pt-5">
                   <p className="text-center text-sm leading-6 text-muted-foreground">
-                    {t("order-tracking.s41")}
+                    ستجد رقم الطلب في رسالة التأكيد التي وصلتك عبر واتساب
                   </p>
                 </div>
               </CardContent>
@@ -357,12 +354,12 @@ export default function OrderTracking() {
                     <div className="border-b bg-muted/[0.18] p-5 md:p-7">
                       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                         <div className="min-w-0">
-                          <p className="mb-1 text-sm text-muted-foreground">{t("order-tracking.s37")}</p>
+                          <p className="mb-1 text-sm text-muted-foreground">رقم الطلب</p>
                           <h2 className="break-all text-xl font-bold tracking-tight md:text-2xl" dir="ltr">
                             {orderDetails.orderNumber}
                           </h2>
                           <p className="mt-2 text-sm text-muted-foreground">
-                            {t("order-tracking.s42")} <span dir="ltr">{orderDetails.orderDate}</span>
+                            تاريخ الطلب: <span dir="ltr">{orderDetails.orderDate}</span>
                           </p>
                         </div>
                         <Badge className="w-fit max-w-full border-0 bg-primary/10 px-3.5 py-2 text-sm font-bold text-primary hover:bg-primary/10">
@@ -373,7 +370,7 @@ export default function OrderTracking() {
                     </div>
 
                     <div className="p-5 md:p-7">
-                      <h3 className="mb-6 text-lg font-bold">{t("order-tracking.s43")}</h3>
+                      <h3 className="mb-6 text-lg font-bold">آخر تحديثات الطلب</h3>
                       <div className="relative space-y-1">
                         <div className="absolute bottom-6 right-5 top-6 w-px bg-border" aria-hidden="true" />
                         {orderDetails.timeline.map((status) => (
@@ -407,25 +404,25 @@ export default function OrderTracking() {
                   <CardContent className="p-5 md:p-6">
                     <h3 className="mb-5 flex items-center gap-2 text-lg font-bold">
                       <Truck className="h-5 w-5 text-primary" aria-hidden="true" />
-                      {t("order-tracking.s44")}
+                      معلومات التوصيل
                     </h3>
 
                     <div className="space-y-3">
                       <div className="rounded-xl border border-primary/10 bg-primary/[0.045] p-4">
-                        <p className="mb-1 text-xs font-medium text-muted-foreground">{t("order-tracking.s45")}</p>
+                        <p className="mb-1 text-xs font-medium text-muted-foreground">الحالة الحالية</p>
                         <p className="font-bold leading-6 text-primary">{display.title}</p>
                         <p className="mt-1.5 text-xs leading-5 text-muted-foreground">{display.helper}</p>
                       </div>
 
                       <div className="rounded-xl border border-border/70 bg-muted/[0.18] p-4">
-                        <p className="mb-1 text-xs text-muted-foreground">{t("order-tracking.s46")}</p>
-                        <p className="font-semibold">{orderDetails.shipping?.carrier ?? t("order-tracking.s47")}</p>
+                        <p className="mb-1 text-xs text-muted-foreground">شركة التوصيل</p>
+                        <p className="font-semibold">{orderDetails.shipping?.carrier ?? "تظهر بعد ربط الشحنة"}</p>
                       </div>
 
                       {orderDetails.shipping && (
                         <div className="rounded-xl border border-border/70 bg-muted/[0.18] p-4">
-                          <p className="mb-1 text-xs text-muted-foreground">{t("order-tracking.s48")}</p>
-                          <p className="font-semibold">{formatEventTime(orderDetails.shipping.lastSyncedAt) ?? t("order-tracking.s49")}</p>
+                          <p className="mb-1 text-xs text-muted-foreground">آخر مزامنة</p>
+                          <p className="font-semibold">{formatEventTime(orderDetails.shipping.lastSyncedAt) ?? "الآن"}</p>
                         </div>
                       )}
 
@@ -433,7 +430,7 @@ export default function OrderTracking() {
                         <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900">
                           <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" aria-hidden="true" />
                           <p className="text-sm leading-6">
-                            {t("order-tracking.s50")}
+                            يوجد تحديث يحتاج انتباهك بخصوص التوصيل. خليك متابع لهاتفك، وإذا تحتاج مساعدة تواصل ويانا.
                           </p>
                         </div>
                       )}
@@ -453,14 +450,14 @@ export default function OrderTracking() {
             >
               <h2 className="mb-7 flex items-center justify-center gap-2 text-center text-xl font-bold md:text-2xl">
                 <ChevronLeft className="h-5 w-5 text-primary" aria-hidden="true" />
-                {t("order-tracking.s51")}
+                كيف يعمل تتبع الطلب؟
               </h2>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {[
-                  { icon: ShoppingBag, title: t("order-tracking.s52"), desc: t("order-tracking.s53") },
-                  { icon: PackageCheck, title: t("order-tracking.s5"), desc: t("order-tracking.s54") },
-                  { icon: Truck, title: t("order-tracking.s46"), desc: t("order-tracking.s55") },
-                  { icon: Home, title: t("order-tracking.s56"), desc: t("order-tracking.s57") },
+                  { icon: ShoppingBag, title: "تم الطلب", desc: "نسجل طلبك لدى AQUAVO" },
+                  { icon: PackageCheck, title: "جاري التجهيز", desc: "نحضّر ونغلف المنتجات" },
+                  { icon: Truck, title: "شركة التوصيل", desc: "تظهر حالتها الفعلية بعد ربط الشحنة" },
+                  { icon: Home, title: "التسليم", desc: "تشوف آخر تحديث مسجل على شحنتك" },
                 ].map((step) => (
                   <Card key={step.title} className="border-border/60 shadow-none">
                     <CardContent className="p-5 text-center">

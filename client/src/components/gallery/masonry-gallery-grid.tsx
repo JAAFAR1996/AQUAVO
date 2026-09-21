@@ -11,10 +11,8 @@ import { fetchGallerySubmissions, voteGallerySubmission } from "@/lib/api";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { GallerySubmission } from "@/types";
-import { useTranslation } from "react-i18next";
 
 export function MasonryGalleryGrid() {
-  const { t } = useTranslation("tools");
   const [activeItem, setActiveItem] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
@@ -27,10 +25,10 @@ export function MasonryGalleryGrid() {
     mutationFn: voteGallerySubmission,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["gallery"] });
-      toast.success(t("masonry-gallery-grid.s1"));
+      toast.success("تم تسجيل إعجابك!");
     },
     onError: (err) => {
-      toast.error(t("masonry-gallery-grid.s2"));
+      toast.error("لقد قمت بالإعجاب بهذا بالفعل");
     }
   });
 
@@ -57,7 +55,7 @@ export function MasonryGalleryGrid() {
   // Helper to get default tags for gallery submissions
   const getTags = (item: GallerySubmission) => {
     // Default tags for gallery submissions
-    return [t("masonry-gallery-grid.s3"), t("masonry-gallery-grid.s4"), t("masonry-gallery-grid.s5")];
+    return ["حوض سمك", "تصميم", "معرض"];
   };
 
   return (
@@ -76,13 +74,13 @@ export function MasonryGalleryGrid() {
               <div
                 className="cursor-pointer relative"
                 role="button"
-                aria-label={t("masonry-gallery-grid.s6", { v0: item.userName || t("masonry-gallery-grid.anonymous") })}
+                aria-label={`عرض ${item.userName || 'مستخدم'}`}
                 onClick={() => setActiveItem(item.id)}
               >
                 <div className="relative overflow-hidden rounded-2xl">
                   <OptimizedImage
                     src={item.imageUrl}
-                    alt={item.userName || t("masonry-gallery-grid.s7")}
+                    alt={item.userName || 'معرض العملاء'}
                     className="w-full h-auto transition-transform duration-700 group-hover:scale-105"
                     sizes="(max-width: 700px) 100vw, (max-width: 1100px) 50vw, 33vw"
                   />
@@ -93,7 +91,7 @@ export function MasonryGalleryGrid() {
                   >
                     <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 bg-card/10 backdrop-blur-md px-6 py-3 rounded-full border border-white/20 text-white font-medium flex items-center gap-2">
                       <Info className="w-5 h-5" />
-                      <span>{t("masonry-gallery-grid.s8")}</span>
+                      <span>عرض التفاصيل</span>
                     </div>
                   </div>
                 </div>
@@ -101,8 +99,8 @@ export function MasonryGalleryGrid() {
                 <div className="p-4 bg-card border-t border-border/50">
                   <div className="flex justify-between items-start">
                     <div>
-                      <h3 className="font-bold text-lg leading-none mb-2 group-hover:text-primary transition-colors">{item.userName || t("masonry-gallery-grid.s9")}</h3>
-                      <p className="text-sm text-muted-foreground line-clamp-1">{item.description || t("masonry-gallery-grid.s10")}</p>
+                      <h3 className="font-bold text-lg leading-none mb-2 group-hover:text-primary transition-colors">{item.userName || 'مستخدم'}</h3>
+                      <p className="text-sm text-muted-foreground line-clamp-1">{item.description || 'حوض أسماك رائع'}</p>
                     </div>
                     <Button
                       variant="ghost"
@@ -124,7 +122,7 @@ export function MasonryGalleryGrid() {
               <div className="relative w-full md:w-2/3 bg-black/5 dark:bg-black/40 flex items-center justify-center p-4 md:p-8 h-[40vh] md:h-full">
                 <OptimizedImage
                   src={item.imageUrl}
-                  alt={item.userName || t("masonry-gallery-grid.s7")}
+                  alt={item.userName || 'معرض العملاء'}
                   className="w-full h-full object-contain rounded-lg shadow-lg"
                   priority={true}
                 />
@@ -137,10 +135,10 @@ export function MasonryGalleryGrid() {
                     {/* Header */}
                     <div>
                       <h2 className="text-3xl font-extrabold text-foreground mb-2 flex items-center gap-2">
-                        {item.userName || t("masonry-gallery-grid.s9")}
-                        <Badge variant="secondary" className="text-xs font-normal px-2 bg-primary/10 text-primary border-primary/20">{t("masonry-gallery-grid.s11")}</Badge>
+                        {item.userName || 'مستخدم'}
+                        <Badge variant="secondary" className="text-xs font-normal px-2 bg-primary/10 text-primary border-primary/20">رائج</Badge>
                       </h2>
-                      <p className="text-muted-foreground text-lg font-medium">{t("masonry-gallery-grid.s12")}</p>
+                      <p className="text-muted-foreground text-lg font-medium">حوض أسماك</p>
                     </div>
 
                     {/* Tags */}
@@ -153,7 +151,7 @@ export function MasonryGalleryGrid() {
                     {/* Detailed Description */}
                     <div className="bg-muted/30 p-4 rounded-xl border border-border/50">
                       <p className="text-foreground/90 leading-relaxed text-sm md:text-base whitespace-pre-line">
-                        {item.description || t("masonry-gallery-grid.s13")}
+                        {item.description || 'حوض أسماك جميل من معرض العملاء'}
                       </p>
                     </div>
 
@@ -161,11 +159,11 @@ export function MasonryGalleryGrid() {
                     <div className="grid grid-cols-2 gap-4">
                       <div className="bg-muted/20 p-3 rounded-lg text-center border border-border/50">
                         <span className="block text-2xl font-bold text-foreground">{item.likes}</span>
-                        <span className="text-xs text-muted-foreground uppercase tracking-wider">{t("masonry-gallery-grid.s14")}</span>
+                        <span className="text-xs text-muted-foreground uppercase tracking-wider">إعجاب</span>
                       </div>
                       <div className="bg-muted/20 p-3 rounded-lg text-center border border-border/50">
                         <span className="block text-2xl font-bold text-foreground">5.0</span>
-                        <span className="text-xs text-muted-foreground uppercase tracking-wider">{t("masonry-gallery-grid.s15")}</span>
+                        <span className="text-xs text-muted-foreground uppercase tracking-wider">تقييم</span>
                       </div>
                     </div>
 
@@ -180,12 +178,12 @@ export function MasonryGalleryGrid() {
                       onClick={(e) => handleLike(item.id, e)}
                       disabled={likeMutation.isPending}
                     >
-                      <Heart className={`w-4 h-4 mr-2 ${likeMutation.isPending ? 'animate-spin' : ''}`} /> {t("masonry-gallery-grid.s14")}
+                      <Heart className={`w-4 h-4 mr-2 ${likeMutation.isPending ? 'animate-spin' : ''}`} /> إعجاب
                     </Button>
-                    <Button variant="outline" size="icon" className="shrink-0 text-muted-foreground hover:text-foreground" aria-label={t("masonry-gallery-grid.s16")}>
+                    <Button variant="outline" size="icon" className="shrink-0 text-muted-foreground hover:text-foreground" aria-label="حفظ الصورة">
                       <Bookmark className="w-4 h-4" />
                     </Button>
-                    <Button variant="outline" size="icon" className="shrink-0 text-muted-foreground hover:text-foreground" aria-label={t("masonry-gallery-grid.s17")}>
+                    <Button variant="outline" size="icon" className="shrink-0 text-muted-foreground hover:text-foreground" aria-label="مشاركة الصورة">
                       <Share2 className="w-4 h-4" />
                     </Button>
                   </div>

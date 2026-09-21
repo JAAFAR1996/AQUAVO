@@ -18,7 +18,6 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { openWhatsApp } from "@/lib/whatsapp";
-import { useTranslation } from "react-i18next";
 
 interface ReferralStats {
     referralCode: string | null;
@@ -35,7 +34,6 @@ interface ReferralStats {
 }
 
 export function ProfileReferral() {
-  const { t } = useTranslation("account");
     const { toast } = useToast();
     const [copiedCode, setCopiedCode] = useState(false);
     const [copiedLink, setCopiedLink] = useState(false);
@@ -47,7 +45,7 @@ export function ProfileReferral() {
             const response = await fetch("/api/referral/stats", {
                 credentials: "include",
             });
-            if (!response.ok) throw new Error(t("profile-referral.s1"));
+            if (!response.ok) throw new Error("فشل في جلب بيانات الإحالة");
             const data = await response.json();
             // Auto-generate referral code if user doesn't have one yet
             if (!data.referralCode) {
@@ -72,13 +70,13 @@ export function ProfileReferral() {
                 setTimeout(() => setCopiedLink(false), 2000);
             }
             toast({
-                title: t("profile-referral.s2"),
-                description: type === 'code' ? t("profile-referral.s3") : t("profile-referral.s4"),
+                title: "تم النسخ!",
+                description: type === 'code' ? "تم نسخ الكود" : "تم نسخ الرابط",
             });
         } catch (err) {
             toast({
-                title: t("profile-referral.s5"),
-                description: t("profile-referral.s6"),
+                title: "خطأ",
+                description: "فشل في النسخ",
                 variant: "destructive",
             });
         }
@@ -87,7 +85,7 @@ export function ProfileReferral() {
     const shareViaWhatsApp = () => {
         if (!stats?.referralLink) return;
         const message = encodeURIComponent(
-            t("profile-referral.s7", { v0: stats.referralLink, v1: stats.referralCode })
+            `🎁 سجّل في AQUAVO واحصل على خصم 5%!\n\nاستخدم رابط الدعوة:\n${stats.referralLink}\n\nأو الكود: ${stats.referralCode}`
         );
         openWhatsApp({ source: "referral" }, "https://wa.me/");
     };
@@ -96,8 +94,8 @@ export function ProfileReferral() {
         if (!stats?.referralLink || !navigator.share) return;
         try {
             await navigator.share({
-                title: t("profile-referral.s8"),
-                text: t("profile-referral.s9", { v0: stats.referralCode }),
+                title: "دعوة للانضمام إلى AQUAVO",
+                text: `سجّل في AQUAVO واحصل على خصم 5%! استخدم الكود: ${stats.referralCode}`,
                 url: stats.referralLink,
             });
         } catch (err) {
@@ -123,7 +121,7 @@ export function ProfileReferral() {
         return (
             <Card>
                 <CardContent className="p-8 text-center">
-                    <p className="text-destructive">{t("profile-referral.s10")}</p>
+                    <p className="text-destructive">حدث خطأ في تحميل بيانات الإحالة</p>
                 </CardContent>
             </Card>
         );
@@ -134,9 +132,9 @@ export function ProfileReferral() {
             <CardHeader className="bg-gradient-to-br from-cyan-500/10 via-primary/10 to-blue-500/10 border-b">
                 <CardTitle className="flex items-center gap-2">
                     <Users className="w-5 h-5 text-primary" />
-                    {t("profile-referral.s11")}
+                    دعوة الأصدقاء
                 </CardTitle>
-                <CardDescription>{t("profile-referral.s12")}</CardDescription>
+                <CardDescription>شارك رابط الدعوة واكسب نقاط مع كل صديق يسجل!</CardDescription>
             </CardHeader>
 
             <CardContent className="space-y-6 pt-6">
@@ -147,9 +145,9 @@ export function ProfileReferral() {
                             <Gift className="w-6 h-6 text-primary" />
                         </div>
                         <div>
-                            <p className="font-semibold text-sm mb-1">{t("profile-referral.s13")}</p>
-                            <p className="text-2xl font-bold text-primary">{t("profile-referral.s14")}</p>
-                            <p className="text-xs text-muted-foreground">{t("profile-referral.s15")}</p>
+                            <p className="font-semibold text-sm mb-1">لك عند التسجيل</p>
+                            <p className="text-2xl font-bold text-primary">+50 نقطة</p>
+                            <p className="text-xs text-muted-foreground">لكل صديق يسجل حساب جديد</p>
                         </div>
                     </div>
 
@@ -158,9 +156,9 @@ export function ProfileReferral() {
                             <Star className="w-6 h-6 text-green-500" />
                         </div>
                         <div>
-                            <p className="font-semibold text-sm mb-1">{t("profile-referral.s16")}</p>
-                            <p className="text-2xl font-bold text-green-600">{t("profile-referral.s17")}</p>
-                            <p className="text-xs text-muted-foreground">{t("profile-referral.s18")}</p>
+                            <p className="font-semibold text-sm mb-1">لصديقك</p>
+                            <p className="text-2xl font-bold text-green-600">خصم 5%</p>
+                            <p className="text-xs text-muted-foreground">بعد أول عملية شراء</p>
                         </div>
                     </div>
                 </div>
@@ -172,7 +170,7 @@ export function ProfileReferral() {
                         <div className="space-y-2">
                             <label className="text-sm font-medium flex items-center gap-2">
                                 <Crown className="w-4 h-4 text-yellow-500" />
-                                {t("profile-referral.s19")}
+                                كود الدعوة الخاص بك
                             </label>
                             <div className="flex gap-2">
                                 <Input
@@ -200,7 +198,7 @@ export function ProfileReferral() {
                             <div className="space-y-2">
                                 <label className="text-sm font-medium flex items-center gap-2">
                                     <LinkIcon className="w-4 h-4 text-blue-500" />
-                                    {t("profile-referral.s20")}
+                                    رابط الدعوة
                                 </label>
                                 <div className="flex gap-2">
                                     <Input
@@ -231,7 +229,7 @@ export function ProfileReferral() {
                                 className="flex-1 bg-green-500 hover:bg-green-600"
                             >
                                 <MessageCircle className="w-4 h-4 ml-2" />
-                                {t("profile-referral.s21")}
+                                مشاركة عبر واتساب
                             </Button>
 
                             {typeof navigator.share !== 'undefined' && (
@@ -241,7 +239,7 @@ export function ProfileReferral() {
                                     className="flex-1"
                                 >
                                     <Share2 className="w-4 h-4 ml-2" />
-                                    {t("profile-referral.s22")}
+                                    مشاركة
                                 </Button>
                             )}
                         </div>
@@ -255,7 +253,7 @@ export function ProfileReferral() {
                             <Users className="w-5 h-5 text-primary" />
                         </div>
                         <p className="text-3xl font-bold text-primary">{stats?.totalReferrals || 0}</p>
-                        <p className="text-sm text-muted-foreground">{t("profile-referral.s23")}</p>
+                        <p className="text-sm text-muted-foreground">صديق مُسجّل</p>
                     </div>
 
                     <div className="text-center p-4 bg-muted/50 rounded-xl">
@@ -263,7 +261,7 @@ export function ProfileReferral() {
                             <TrendingUp className="w-5 h-5 text-green-500" />
                         </div>
                         <p className="text-3xl font-bold text-green-600">{stats?.totalPointsEarned || 0}</p>
-                        <p className="text-sm text-muted-foreground">{t("profile-referral.s24")}</p>
+                        <p className="text-sm text-muted-foreground">نقطة مكتسبة</p>
                     </div>
                 </div>
 
@@ -272,7 +270,7 @@ export function ProfileReferral() {
                     <div className="pt-4 border-t">
                         <h4 className="font-semibold mb-3 flex items-center gap-2">
                             <Users className="w-4 h-4" />
-                            {t("profile-referral.s25")}
+                            آخر الدعوات
                         </h4>
                         <div className="space-y-2">
                             {stats.recentReferrals.map((referral) => (
@@ -285,11 +283,11 @@ export function ProfileReferral() {
                                             <Users className="w-4 h-4 text-primary" />
                                         </div>
                                         <div>
-                                            <p className="text-sm font-medium">{t("profile-referral.s26")}</p>
+                                            <p className="text-sm font-medium">صديق جديد</p>
                                             <p className="text-xs text-muted-foreground">
                                                 {referral.signupDate
                                                     ? new Date(referral.signupDate).toLocaleDateString("ar-IQ")
-                                                    : t("profile-referral.s27")}
+                                                    : "قريباً"}
                                             </p>
                                         </div>
                                     </div>
@@ -304,14 +302,14 @@ export function ProfileReferral() {
                                             }
                                         >
                                             {referral.status === "first_purchase"
-                                                ? t("profile-referral.s28")
+                                                ? "أكمل الشراء"
                                                 : referral.status === "registered"
-                                                    ? t("profile-referral.s29")
-                                                    : t("profile-referral.s30")}
+                                                    ? "مُسجّل"
+                                                    : "معلق"}
                                         </Badge>
                                         {referral.pointsAwarded > 0 && (
                                             <p className="text-xs text-green-600 mt-1">
-                                                +{referral.pointsAwarded} {t("profile-referral.s31")}
+                                                +{referral.pointsAwarded} نقطة
                                             </p>
                                         )}
                                     </div>

@@ -1,118 +1,115 @@
 import { Link } from "wouter";
 import { MetaTags, FAQSchema, BreadcrumbSchema } from "@/components/seo/meta-tags";
-import { useTranslation } from "react-i18next";
-import { i18next } from "@/i18n";
 
 const BASE_URL = "https://www.aquavoiq.com";
 
 const FAQ_ITEMS = [
   {
-    question: i18next.t("guides:guides-decor-stones.s1"),
+    question: "شنو الأحجار الآمنة لحوض السمك؟",
     answer:
-      i18next.t("guides:guides-decor-stones.s2"),
+      "الأحجار الآمنة هي الأحجار الخاملة التي لا تغير كيمياء الماء: حجر البازلت، الكوارتز، الصخر الرملي الداكن، الأردواز (Slate)، والأحجار النهرية المصقولة. تجنب الأحجار الكلسية مثل الرخام والحجر الجيري التي ترفع pH والصلابة.",
   },
   {
-    question: i18next.t("guides:guides-decor-stones.s3"),
+    question: "هل الحجر يغير pH الماء؟",
     answer:
-      i18next.t("guides:guides-decor-stones.s4"),
+      "نعم، الأحجار الكلسية (رخام، حجر جيري، مرجان) ترفع pH وتزيد صلابة الماء. الأحجار الجرانيتية والبازلتية والصخور النهرية المصقولة خاملة ولا تؤثر على pH.",
   },
   {
-    question: i18next.t("guides:guides-decor-stones.s5"),
+    question: "كيف أعرف إذا الحجر كلسي؟",
     answer:
-      i18next.t("guides:guides-decor-stones.s6"),
+      "اختبار بسيط: ضع قطرة خل أبيض على الحجر. إذا فقع أو صدر فوران — الحجر كلسي وغير مناسب لأحواض المياه العذبة المحايدة. بدون فوران = غالباً آمن.",
   },
   {
-    question: i18next.t("guides:guides-decor-stones.s7"),
+    question: "هل لازم أغسل الحجر قبل الاستخدام؟",
     answer:
-      i18next.t("guides:guides-decor-stones.s8"),
+      "نعم دائماً. اغسل كل ديكور (أحجار، خشب، رمل، زجاج) بماء نظيف دافئ بدون صابون. الصابون والمنظفات يقتلون البكتيريا النافعة ويسممون الماء. بعض الأحجار تحتاج نقعاً يوم أو يومين لإزالة الغبار.",
   },
   {
-    question: i18next.t("guides:guides-decor-stones.s9"),
+    question: "هل خشب الحوض يغير لون الماء؟",
     answer:
-      i18next.t("guides:guides-decor-stones.s10"),
+      "نعم، خشب الحوض الطبيعي (مثل الـ Driftwood) يفرز تانينات تحول الماء للون الشاي الأصفر أو البني الخفيف. هذا طبيعي وغير ضار — بل يفيد بعض الأسماك الاستوائية. لإزالة الصبغة: نقع الخشب في ماء ساخن أسبوعاً قبل وضعه في الحوض.",
   },
   {
-    question: i18next.t("guides:guides-decor-stones.s11"),
+    question: "شنو الفرق بين الديكور الطبيعي والصناعي؟",
     answer:
-      i18next.t("guides:guides-decor-stones.s12"),
+      "الديكور الطبيعي (أحجار، خشب، رمل) يعطي مظهراً واقعياً لكن يحتاج تحضيراً وقد يؤثر على كيمياء الماء. الديكور الصناعي (راتنج، بلاستيك، خزف) أسهل في التنظيف وآمن للماء إذا كان مصنوع لأحواض السمك، لكن يبدو أقل واقعية.",
   },
   {
-    question: i18next.t("guides:guides-decor-stones.s13"),
+    question: "شنو المسافة الآمنة بين الديكور وفوهة الفلتر؟",
     answer:
-      i18next.t("guides:guides-decor-stones.s14"),
+      "اترك على الأقل 5-10 سم بين الديكور وفوهة الفلتر حتى لا تقلل تدفق الماء. الفلتر المحجوب جزئياً يقل كفاءته وترتفع الأمونيا في الحوض.",
   },
   {
-    question: i18next.t("guides:guides-decor-stones.s15"),
+    question: "كيف أنظف الأحجار والديكور؟",
     answer:
-      i18next.t("guides:guides-decor-stones.s16"),
+      "للتنظيف الدوري: افركها بفرشاة قديمة تحت ماء الحوض (لا ماء الصنبور) للحفاظ على البكتيريا النافعة. للتنظيف العميق: ماء ساخن فقط بدون صابون، ثم اتركها تجف قبل العودة للحوض.",
   },
 ];
 
 const DECOR_TYPES = [
   {
-    type: i18next.t("guides:guides-decor-stones.type1"),
+    type: "أحجار بازلتية وجرانيتية",
     safe: true,
-    phEffect: i18next.t("guides:guides-decor-stones.s17"),
-    notes: i18next.t("guides:guides-decor-stones.s18"),
+    phEffect: "لا",
+    notes: "خاملة تماماً، لا تغير كيمياء الماء، مظهر طبيعي رائع",
   },
   {
-    type: i18next.t("guides:guides-decor-stones.type2"),
+    type: "صخر رملي (Sandstone) داكن",
     safe: true,
-    phEffect: i18next.t("guides:guides-decor-stones.s17"),
-    notes: i18next.t("guides:guides-decor-stones.s19"),
+    phEffect: "لا",
+    notes: "آمن في الغالب — تحقق بالخل. الألوان الفاتحة قد تكون كلسية",
   },
   {
-    type: i18next.t("guides:guides-decor-stones.type3"),
+    type: "أردواز (Slate)",
     safe: true,
-    phEffect: i18next.t("guides:guides-decor-stones.s17"),
-    notes: i18next.t("guides:guides-decor-stones.s20"),
+    phEffect: "لا",
+    notes: "من أفضل الخيارات — يمكن تكسيره وترتيبه بأشكال جميلة",
   },
   {
-    type: i18next.t("guides:guides-decor-stones.type4"),
+    type: "الرخام والحجر الجيري",
     safe: false,
-    phEffect: i18next.t("guides:guides-decor-stones.s21"),
-    notes: i18next.t("guides:guides-decor-stones.s22"),
+    phEffect: "يرفع pH",
+    notes: "كلسي — يرفع pH والصلابة. غير مناسب لأسماك المياه العذبة المحايدة",
   },
   {
-    type: i18next.t("guides:guides-decor-stones.type5"),
+    type: "المرجان والشعاب",
     safe: false,
-    phEffect: i18next.t("guides:guides-decor-stones.s23"),
-    notes: i18next.t("guides:guides-decor-stones.s24"),
+    phEffect: "يرفع pH بقوة",
+    notes: "مناسب فقط لأحواض البحرية. يرفع pH لأكثر من 8.2",
   },
   {
-    type: i18next.t("guides:guides-decor-stones.type6"),
+    type: "خشب الحوض الطبيعي",
     safe: true,
-    phEffect: i18next.t("guides:guides-decor-stones.s25"),
-    notes: i18next.t("guides:guides-decor-stones.s26"),
+    phEffect: "يخفض pH قليلاً",
+    notes: "يفرز تانينات تلون الماء بالأصفر — آمن وطبيعي للأسماك الاستوائية",
   },
   {
-    type: i18next.t("guides:guides-decor-stones.type7"),
+    type: "ديكور راتنج/خزف",
     safe: true,
-    phEffect: i18next.t("guides:guides-decor-stones.s17"),
-    notes: i18next.t("guides:guides-decor-stones.s27"),
+    phEffect: "لا",
+    notes: "آمن إذا كان مصنوع خصيصاً للأحواض — تحقق من علامة aquarium safe",
   },
   {
-    type: i18next.t("guides:guides-decor-stones.type8"),
+    type: "رمل حوض (Silica Sand)",
     safe: true,
-    phEffect: i18next.t("guides:guides-decor-stones.s17"),
-    notes: i18next.t("guides:guides-decor-stones.s28"),
+    phEffect: "لا",
+    notes: "الأفضل لأسماك القاع مثل الكوري. لا تستخدم رمل البناء",
   },
 ];
 
 export default function GuideDecorStonesGuide() {
-  const { t: tr } = useTranslation("guides");
   return (
     <>
       <MetaTags
-        title={tr("guides-decor-stones.s29")}
-        description={tr("guides-decor-stones.s30")}
+        title="ديكور وأحجار حوض السمك — الآمن وغير الآمن"
+        description="دليل كامل لديكور وأحجار أحواض الزينة: شنو الأحجار الآمنة؟ هل الحجر يغير pH؟ كيف تغسل الديكور؟ فرق الطبيعي والصناعي. AQUAVO متجر عراقي يوصل لكل العراق."
         keywords={[
-          tr("guides-decor-stones.s31"),
-          tr("guides-decor-stones.s32"),
-          tr("guides-decor-stones.s33"),
-          tr("guides-decor-stones.s34"),
-          tr("guides-decor-stones.s35"),
-          tr("guides-decor-stones.s36"),
+          "ديكور حوض السمك",
+          "أحجار آمنة لحوض السمك",
+          "خشب حوض السمك",
+          "مستلزمات أحواض الزينة العراق",
+          "حصى حوض سمك",
+          "ديكور أحواض الزينة",
         ]}
         url={`${BASE_URL}/guides/aquarium-decor-stones-guide`}
         canonicalUrl={`${BASE_URL}/guides/aquarium-decor-stones-guide`}
@@ -121,9 +118,9 @@ export default function GuideDecorStonesGuide() {
 
       <BreadcrumbSchema
         items={[
-          { name: tr("guides-decor-stones.s37"), url: BASE_URL },
-          { name: tr("guides-decor-stones.s38"), url: `${BASE_URL}/guides` },
-          { name: tr("guides-decor-stones.s39"), url: `${BASE_URL}/guides/aquarium-decor-stones-guide` },
+          { name: "الرئيسية", url: BASE_URL },
+          { name: "الأدلة", url: `${BASE_URL}/guides` },
+          { name: "ديكور وأحجار حوض السمك", url: `${BASE_URL}/guides/aquarium-decor-stones-guide` },
         ]}
       />
 
@@ -133,80 +130,80 @@ export default function GuideDecorStonesGuide() {
         <header className="dc-bar">
           <Link href="/" className="dc-brand">AQUAVO</Link>
           <nav className="dc-nav">
-            <a href="/guides/new-aquarium-setup-iraq" className="dc-nav-link">{tr("guides-decor-stones.s40")}</a>
-            <a href="/guides/aquarium-water-test-guide" className="dc-nav-link">{tr("guides-decor-stones.s41")}</a>
-            <Link href="/guides/heater-choice" className="dc-nav-link">{tr("guides-decor-stones.s42")}</Link>
+            <a href="/guides/new-aquarium-setup-iraq" className="dc-nav-link">تجهيز الحوض</a>
+            <a href="/guides/aquarium-water-test-guide" className="dc-nav-link">فحص الماء</a>
+            <Link href="/guides/heater-choice" className="dc-nav-link">السخانات</Link>
           </nav>
         </header>
 
         <main className="dc-main" id="main-content">
 
-          <nav className="dc-breadcrumb" aria-label={tr("guides-decor-stones.s43")}>
-            <Link href="/">{tr("guides-decor-stones.s37")}</Link>
+          <nav className="dc-breadcrumb" aria-label="مسار التنقل">
+            <Link href="/">الرئيسية</Link>
             <span> / </span>
-            <a href="/guides">{tr("guides-decor-stones.s38")}</a>
+            <a href="/guides">الأدلة</a>
             <span> / </span>
-            <span>{tr("guides-decor-stones.s44")}</span>
+            <span>ديكور وأحجار الحوض</span>
           </nav>
 
           {/* Hero */}
           <section className="dc-hero" id="hero-headline">
-            <span className="dc-badge">{tr("guides-decor-stones.s45")}</span>
-            <h1 className="dc-h1">{tr("guides-decor-stones.s46")}</h1>
+            <span className="dc-badge">دليل الديكور — AQUAVO</span>
+            <h1 className="dc-h1">ديكور وأحجار حوض السمك — شنو آمن وشنو يغير الماء</h1>
 
             {/* AEO Answer Block */}
             <div className="dc-answer-block" id="quick-answer">
               <p className="dc-answer-text">
-                {tr("guides-decor-stones.s47")}
+                الأحجار الآمنة لحوض السمك هي الأحجار الخاملة التي لا تغير كيمياء الماء: البازلت، الكوارتز، الأردواز، والأحجار النهرية المصقولة. تجنب الرخام والحجر الجيري لأنهما يرفعان pH. اغسل كل ديكور بماء نظيف بدون صابون قبل وضعه في الحوض. خشب الحوض آمن لكن قد يلون الماء بالأصفر من التانينات — وهذا طبيعي. AQUAVO يوفر ديكور أحواض الزينة مع توصيل لكل العراق ودفع عند الاستلام أو إلكترونياً.
               </p>
             </div>
 
             <div className="dc-meta">
-              <span>{tr("guides-decor-stones.s48")}</span>
+              <span>وقت القراءة: 6 دقائق</span>
               <span>•</span>
-              <span>{tr("guides-decor-stones.s49")}</span>
+              <span>آخر تحديث: 2026</span>
             </div>
           </section>
 
           {/* AQUAVO Identity */}
           <div className="dc-store-note">
-            <strong>AQUAVO</strong> {tr("guides-decor-stones.s50")}
-            <Link href="/products" className="dc-store-link"> {tr("guides-decor-stones.s51")}</Link>
+            <strong>AQUAVO</strong> متجر عراقي متخصص في مستلزمات أحواض الزينة. حصى، ديكور، خشب حوض، رمل، وإكسسوارات — كلها متوفرة مع توصيل لكل محافظات العراق. الدفع عند الاستلام أو إلكترونياً.
+            <Link href="/products" className="dc-store-link"> تصفح المنتجات ←</Link>
           </div>
 
           {/* Vinegar Test */}
           <section className="dc-section">
-            <h2 className="dc-title">{tr("guides-decor-stones.s52")}</h2>
+            <h2 className="dc-title">اختبار الخل — اعرف إذا الحجر آمن في ثانية</h2>
             <p className="dc-body">
-              {tr("guides-decor-stones.s53")}
+              قبل ما تضع أي حجر في الحوض، اعمل هذا الاختبار البسيط:
             </p>
             <div className="dc-test-steps">
               <div className="dc-test-step">
-                <span className="dc-step-num">{tr("guides-decor-stones.s54")}</span>
-                <span>{tr("guides-decor-stones.s55")}</span>
+                <span className="dc-step-num">١</span>
+                <span>خذ قطرة خل أبيض (حامض الخليك)</span>
               </div>
               <div className="dc-test-step">
-                <span className="dc-step-num">{tr("guides-decor-stones.s56")}</span>
-                <span>{tr("guides-decor-stones.s57")}</span>
+                <span className="dc-step-num">٢</span>
+                <span>ضعها مباشرة على سطح الحجر</span>
               </div>
               <div className="dc-test-step">
-                <span className="dc-step-num">{tr("guides-decor-stones.s58")}</span>
-                <span>{tr("guides-decor-stones.s59")}</span>
+                <span className="dc-step-num">٣</span>
+                <span>انتظر 30 ثانية</span>
               </div>
             </div>
             <div className="dc-results">
               <div className="dc-result-safe">
                 <span className="dc-result-icon">✓</span>
                 <div>
-                  <strong>{tr("guides-decor-stones.s60")}</strong>
-                  <p>{tr("guides-decor-stones.s61")}</p>
+                  <strong>لا فوران / لا فقاعات</strong>
+                  <p>الحجر خامل — آمن للحوض</p>
                 </div>
               </div>
               <div className="dc-result-danger">
                 <span className="dc-result-icon">✗</span>
                 <div>
-                  <strong>{tr("guides-decor-stones.s62")}</strong>
-                  <p>{tr("guides-decor-stones.s63")}</p>
+                  <strong>فوران أو فقاعات ظاهرة</strong>
+                  <p>الحجر كلسي — يرفع pH — لا تستخدمه</p>
                 </div>
               </div>
             </div>
@@ -214,22 +211,22 @@ export default function GuideDecorStonesGuide() {
 
           {/* Types Table */}
           <section className="dc-section" id="decor-types">
-            <h2 className="dc-title">{tr("guides-decor-stones.s64")}</h2>
+            <h2 className="dc-title">أنواع الديكور — الآمن وغير الآمن</h2>
             <div className="dc-table-wrap">
               <table className="dc-table">
                 <thead>
                   <tr>
-                    <th>{tr("guides-decor-stones.s65")}</th>
-                    <th>{tr("guides-decor-stones.s66")}</th>
-                    <th>{tr("guides-decor-stones.s67")}</th>
-                    <th>{tr("guides-decor-stones.s68")}</th>
+                    <th>النوع</th>
+                    <th>آمن؟</th>
+                    <th>يغير pH؟</th>
+                    <th>ملاحظات</th>
                   </tr>
                 </thead>
                 <tbody>
                   {DECOR_TYPES.map((d, i) => (
                     <tr key={i}>
                       <td><strong>{d.type}</strong></td>
-                      <td className={d.safe ? "dc-safe" : "dc-unsafe"}>{d.safe ? tr("guides-decor-stones.s69") : tr("guides-decor-stones.s70")}</td>
+                      <td className={d.safe ? "dc-safe" : "dc-unsafe"}>{d.safe ? "✓ آمن" : "✗ غير آمن"}</td>
                       <td>{d.phEffect}</td>
                       <td>{d.notes}</td>
                     </tr>
@@ -241,16 +238,16 @@ export default function GuideDecorStonesGuide() {
 
           {/* Driftwood */}
           <section className="dc-section">
-            <h2 className="dc-title">{tr("guides-decor-stones.s71")}</h2>
+            <h2 className="dc-title">خشب الحوض — الجمال مع التحضير</h2>
             <p className="dc-body">
-              {tr("guides-decor-stones.s72")}
+              خشب الحوض الطبيعي (Driftwood) يعطي مظهراً طبيعياً رائعاً ويوفر مخابئ للسمك. لكنه يحتاج تحضيراً قبل الاستخدام:
             </p>
             <div className="dc-wood-steps">
               {[
-                { step: tr("guides-decor-stones.s73"), detail: tr("guides-decor-stones.s74") },
-                { step: tr("guides-decor-stones.s75"), detail: tr("guides-decor-stones.s76") },
-                { step: tr("guides-decor-stones.s77"), detail: tr("guides-decor-stones.s78") },
-                { step: tr("guides-decor-stones.s79"), detail: tr("guides-decor-stones.s80") },
+                { step: "انقع الخشب", detail: "في ماء ساخن لمدة 3-7 أيام، غيّر الماء يومياً حتى يقل الصبغ" },
+                { step: "اغسله بالفرشاة", detail: "ازل الغبار والملوثات بفرشاة صلبة تحت الماء الجاري" },
+                { step: "اغليه اختيارياً", detail: "الغليان لمدة ساعة يعقمه ويسرع إزالة التانينات" },
+                { step: "ضعه في الحوض", detail: "قد يظل الماء أصفر خفيف — طبيعي، يزول بتغيير الماء تدريجياً" },
               ].map((s, i) => (
                 <div key={i} className="dc-wood-step">
                   <div className="dc-wood-num">{i + 1}</div>
@@ -262,32 +259,32 @@ export default function GuideDecorStonesGuide() {
               ))}
             </div>
             <div className="dc-tip">
-              {tr("guides-decor-stones.s81")}
+              اللون الأصفر للماء من التانينات طبيعي ومفيد لبعض الأسماك الاستوائية مثل التتراس والديسكس. لو ما تريده، استخدم كربون مُشط في الفلتر.
             </div>
           </section>
 
           {/* Natural vs Artificial */}
           <section className="dc-section">
-            <h2 className="dc-title">{tr("guides-decor-stones.s82")}</h2>
+            <h2 className="dc-title">الديكور الطبيعي مقابل الصناعي</h2>
             <div className="dc-compare">
               <div className="dc-compare-col dc-natural">
-                <div className="dc-compare-title">{tr("guides-decor-stones.s83")}</div>
+                <div className="dc-compare-title">طبيعي (حجر، خشب، رمل)</div>
                 <ul className="dc-compare-list">
-                  <li>{tr("guides-decor-stones.s84")}</li>
-                  <li>{tr("guides-decor-stones.s85")}</li>
-                  <li>{tr("guides-decor-stones.s86")}</li>
-                  <li>{tr("guides-decor-stones.s87")}</li>
-                  <li>{tr("guides-decor-stones.s88")}</li>
+                  <li>مظهر واقعي وجمالي</li>
+                  <li>يوفر بيئة طبيعية للسمك</li>
+                  <li>يحتاج تحضير وغسل مسبق</li>
+                  <li>قد يؤثر على كيمياء الماء</li>
+                  <li>ثقيل — احسب وزن الحوض</li>
                 </ul>
               </div>
               <div className="dc-compare-col dc-artificial">
-                <div className="dc-compare-title">{tr("guides-decor-stones.s89")}</div>
+                <div className="dc-compare-title">صناعي (راتنج، بلاستيك)</div>
                 <ul className="dc-compare-list">
-                  <li>{tr("guides-decor-stones.s90")}</li>
-                  <li>{tr("guides-decor-stones.s91")}</li>
-                  <li>{tr("guides-decor-stones.s92")}</li>
-                  <li>{tr("guides-decor-stones.s93")}</li>
-                  <li>{tr("guides-decor-stones.s94")}</li>
+                  <li>آمن 100% إذا مصنوع للأحواض</li>
+                  <li>سهل التنظيف</li>
+                  <li>لا يؤثر على كيمياء الماء</li>
+                  <li>أخف وزناً</li>
+                  <li>مظهر أقل واقعية</li>
                 </ul>
               </div>
             </div>
@@ -295,15 +292,15 @@ export default function GuideDecorStonesGuide() {
 
           {/* Placement Tips */}
           <section className="dc-section">
-            <h2 className="dc-title">{tr("guides-decor-stones.s95")}</h2>
+            <h2 className="dc-title">نصائح ترتيب الديكور</h2>
             <div className="dc-tips-grid">
               {[
-                { icon: "⚙️", tip: tr("guides-decor-stones.s96") },
-                { icon: "🔱", tip: tr("guides-decor-stones.s97") },
-                { icon: "🏠", tip: tr("guides-decor-stones.s98") },
-                { icon: "📐", tip: tr("guides-decor-stones.s99") },
-                { icon: "🌡️", tip: tr("guides-decor-stones.s100") },
-                { icon: "💡", tip: tr("guides-decor-stones.s101") },
+                { icon: "⚙️", tip: "اترك 5-10 سم حول فوهة الفلتر حتى لا تعيق تدفق الماء" },
+                { icon: "🔱", tip: "ضع الديكور الثقيل أولاً قبل إضافة الماء" },
+                { icon: "🏠", tip: "أنشئ مخابئ ومناطق خصوصية للسمك — يقلل الإجهاد" },
+                { icon: "📐", tip: "اترك منطقة مفتوحة في المقدمة للسمك يسبح فيها" },
+                { icon: "🌡️", tip: "لا تضع الديكور الكثيف حول السخان — يحتاج تدفق ماء" },
+                { icon: "💡", tip: "الديكور الفاتح يعكس الضوء — يجعل الحوض يبدو أكبر" },
               ].map((t, i) => (
                 <div key={i} className="dc-tip-card">
                   <span className="dc-tip-icon">{t.icon}</span>
@@ -315,42 +312,42 @@ export default function GuideDecorStonesGuide() {
 
           {/* AQUAVO Products */}
           <section className="dc-section dc-aquavo-cta">
-            <h2 className="dc-title">{tr("guides-decor-stones.s102")}</h2>
+            <h2 className="dc-title">ديكور الأحواض المتوفر في AQUAVO</h2>
             <p className="dc-body">
-              {tr("guides-decor-stones.s103")}
+              AQUAVO متجر عراقي متخصص في مستلزمات أحواض الزينة — يوفر حصى ألوان، رمل طبيعي، وخيارات ديكور مناسبة للأحواض العراقية.
             </p>
             <div className="dc-prod-list">
               <div className="dc-prod-item">
                 <span className="dc-prod-icon">⚪</span>
                 <div>
-                  <strong>{tr("guides-decor-stones.s104")}</strong>
-                  <p>{tr("guides-decor-stones.s105")}</p>
+                  <strong>حصى ألوان للأحواض</strong>
+                  <p>حصى مغسول ومعالج جاهز للاستخدام بدون غسل إضافي</p>
                 </div>
               </div>
               <div className="dc-prod-item">
                 <span className="dc-prod-icon">🟤</span>
                 <div>
-                  <strong>{tr("guides-decor-stones.s106")}</strong>
-                  <p>{tr("guides-decor-stones.s107")}</p>
+                  <strong>رمل حوض طبيعي</strong>
+                  <p>مناسب لأسماك القاع والنباتات المائية</p>
                 </div>
               </div>
               <div className="dc-prod-item">
                 <span className="dc-prod-icon">🏺</span>
                 <div>
-                  <strong>{tr("guides-decor-stones.s108")}</strong>
-                  <p>{tr("guides-decor-stones.s109")}</p>
+                  <strong>ديكور خزف وراتنج</strong>
+                  <p>مغارات، صخور زخرفية، وشخصيات — آمنة 100% للأحواض</p>
                 </div>
               </div>
             </div>
             <Link href="/products" className="dc-cta-btn" id="decor-cta">
-              {tr("guides-decor-stones.s110")}
+              تصفح ديكور الأحواض
             </Link>
-            <p className="dc-cta-note">{tr("guides-decor-stones.s111")}</p>
+            <p className="dc-cta-note">توصيل لكل العراق — دفع عند الاستلام أو إلكترونياً</p>
           </section>
 
           {/* FAQ */}
           <section className="dc-section" id="faq">
-            <h2 className="dc-title">{tr("guides-decor-stones.s112")}</h2>
+            <h2 className="dc-title">أسئلة شائعة — ديكور وأحجار الحوض</h2>
             <div className="dc-faq-list">
               {FAQ_ITEMS.map((item, i) => (
                 <details key={i} className="dc-faq-item">
@@ -363,34 +360,34 @@ export default function GuideDecorStonesGuide() {
 
           {/* Related Guides */}
           <section className="dc-section">
-            <h2 className="dc-title">{tr("guides-decor-stones.s113")}</h2>
+            <h2 className="dc-title">أدلة ذات صلة</h2>
             <div className="dc-related-grid">
               <a href="/guides/new-aquarium-setup-iraq" className="dc-related-card">
                 <span className="dc-related-icon">🐠</span>
                 <div>
-                  <div className="dc-related-title">{tr("guides-decor-stones.s114")}</div>
-                  <div className="dc-related-desc">{tr("guides-decor-stones.s115")}</div>
+                  <div className="dc-related-title">دليل تجهيز حوض سمك جديد</div>
+                  <div className="dc-related-desc">كل خطوات البداية الصحيحة</div>
                 </div>
               </a>
               <a href="/guides/aquarium-water-test-guide" className="dc-related-card">
                 <span className="dc-related-icon">🧪</span>
                 <div>
-                  <div className="dc-related-title">{tr("guides-decor-stones.s116")}</div>
-                  <div className="dc-related-desc">{tr("guides-decor-stones.s117")}</div>
+                  <div className="dc-related-title">فحص ماء الحوض</div>
+                  <div className="dc-related-desc">تفسير القراءات والتصرف الصحيح</div>
                 </div>
               </a>
               <Link href="/guides/heater-choice" className="dc-related-card">
                 <span className="dc-related-icon">🌡️</span>
                 <div>
-                  <div className="dc-related-title">{tr("guides-decor-stones.s118")}</div>
-                  <div className="dc-related-desc">{tr("guides-decor-stones.s119")}</div>
+                  <div className="dc-related-title">دليل اختيار السخان</div>
+                  <div className="dc-related-desc">الواط المناسب لكل حجم حوض</div>
                 </div>
               </Link>
               <Link href="/guides/filter-choice" className="dc-related-card">
                 <span className="dc-related-icon">⚙️</span>
                 <div>
-                  <div className="dc-related-title">{tr("guides-decor-stones.s120")}</div>
-                  <div className="dc-related-desc">{tr("guides-decor-stones.s121")}</div>
+                  <div className="dc-related-title">اختيار الفلتر</div>
+                  <div className="dc-related-desc">أنواع الفلاتر ومتى تختار كل نوع</div>
                 </div>
               </Link>
             </div>

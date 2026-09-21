@@ -10,10 +10,8 @@ import {
   subscribeToPush,
   unsubscribeFromPush,
 } from "@/lib/push-notifications";
-import { useTranslation } from "react-i18next";
 
 export function ProfileNotifications() {
-  const { t } = useTranslation("account");
   const { toast } = useToast();
   const [supported, setSupported] = useState(false);
   const [subscribed, setSubscribed] = useState(false);
@@ -38,14 +36,14 @@ export function ProfileNotifications() {
       await subscribeToPush();
       await refresh();
       toast({
-        title: t("profile-notifications.s1"),
-        description: t("profile-notifications.s2"),
+        title: "تم تفعيل الإشعارات",
+        description: "راح توصلك التنبيهات المهمة من AQUAVO على هذا الجهاز.",
       });
     } catch (error) {
       await refresh();
-      const message = error instanceof Error ? error.message : t("profile-notifications.s3");
+      const message = error instanceof Error ? error.message : "تعذر تفعيل الإشعارات";
       toast({
-        title: t("profile-notifications.s3"),
+        title: "تعذر تفعيل الإشعارات",
         description: message,
         variant: "destructive",
       });
@@ -60,21 +58,21 @@ export function ProfileNotifications() {
     await refresh();
     setLoading(false);
     toast({
-      title: ok ? t("profile-notifications.s4") : t("profile-notifications.s5"),
+      title: ok ? "تم إيقاف الإشعارات" : "تعذر إيقاف الإشعارات",
       description: ok
-        ? t("profile-notifications.s6")
-        : t("profile-notifications.s7"),
+        ? "ما راح نرسل Push لهذا الجهاز بعد الآن."
+        : "حاول مرة ثانية من هذا الجهاز.",
       variant: ok ? "default" : "destructive",
     });
   };
 
   const statusText = !supported
-    ? t("profile-notifications.s8")
+    ? "هذا المتصفح ما يدعم Push Notifications."
     : permission === "denied"
-      ? t("profile-notifications.s9")
+      ? "الإشعارات محظورة من إعدادات المتصفح. اسمح بها للموقع أولاً ثم ارجع جرّب."
       : subscribed
-        ? t("profile-notifications.s10")
-        : t("profile-notifications.s11");
+        ? "الإشعارات مفعّلة على هذا الجهاز."
+        : "الإشعارات غير مفعّلة على هذا الجهاز.";
 
   return (
     <Card className="mt-6 border-border/70 shadow-sm">
@@ -84,10 +82,10 @@ export function ProfileNotifications() {
             {subscribed ? <Bell className="h-5 w-5" /> : <BellOff className="h-5 w-5" />}
           </div>
           <div>
-            <h3 className="font-bold">{t("profile-notifications.s12")}</h3>
+            <h3 className="font-bold">إشعارات المتصفح</h3>
             <p className="mt-1 max-w-xl text-sm leading-6 text-muted-foreground">{statusText}</p>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
-              {t("profile-notifications.s13")}
+              التفعيل اختياري وتكدر توقفه بأي وقت من هنا أو من إعدادات المتصفح.
             </p>
           </div>
         </div>
@@ -101,7 +99,7 @@ export function ProfileNotifications() {
             className="min-w-36"
           >
             {loading && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
-            {subscribed ? t("profile-notifications.s14") : t("profile-notifications.s15")}
+            {subscribed ? "إيقاف الإشعارات" : "تفعيل الإشعارات"}
           </Button>
         )}
       </CardContent>

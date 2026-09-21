@@ -8,8 +8,6 @@ import { useCart } from "@/contexts/cart-context";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { thumbImage } from "@/lib/cloudinary";
-import { useTranslation } from "react-i18next";
-import { formatIQD } from "@/lib/utils";
 
 interface Product {
     id: string;
@@ -32,7 +30,6 @@ export function FrequentlyBoughtTogether({
     relatedProducts,
     className,
 }: FrequentlyBoughtTogetherProps) {
-    const { t } = useTranslation("products");
     const [selectedIds, setSelectedIds] = useState<Set<string>>(
         new Set([currentProduct.id, ...relatedProducts.slice(0, 2).map(p => p.id)])
     );
@@ -73,8 +70,8 @@ export function FrequentlyBoughtTogether({
         });
 
         toast({
-            title: t("fbt.addedTitle"),
-            description: t("fbt.addedDetail", { count: selectedProducts.length }),
+            title: "تمت الإضافة للسلة",
+            description: `تم إضافة ${selectedProducts.length} منتجات إلى السلة`,
         });
     };
 
@@ -87,7 +84,7 @@ export function FrequentlyBoughtTogether({
             <CardHeader className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 pb-4">
                 <CardTitle className="flex items-center gap-2 text-lg">
                     <Package className="w-5 h-5 text-amber-600" />
-                    {t("fbt.title")}
+                    اشترِ معاً واوفر
                 </CardTitle>
             </CardHeader>
             <CardContent className="pt-6">
@@ -127,7 +124,7 @@ export function FrequentlyBoughtTogether({
                                             variant="secondary"
                                             className="absolute top-2 left-2 text-[10px] px-1.5"
                                         >
-                                            {t("fbt.thisProduct")}
+                                            هذا المنتج
                                         </Badge>
                                     )}
 
@@ -154,10 +151,10 @@ export function FrequentlyBoughtTogether({
                                     <div className="text-center">
                                         {product.price > 0 ? (
                                             <span className="text-sm font-bold text-primary">
-                                                {formatIQD(product.price)}
+                                                {product.price.toLocaleString()} د.ع
                                             </span>
                                         ) : (
-                                            <span className="text-xs text-muted-foreground">{t("fbt.soon")}</span>
+                                            <span className="text-xs text-muted-foreground">قريباً</span>
                                         )}
                                     </div>
                                 </div>
@@ -175,21 +172,21 @@ export function FrequentlyBoughtTogether({
 
                 {/* Total and Add All Button */}
                 <div className="mt-6 pt-4 border-t flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div className="text-center sm:text-start">
+                    <div className="text-center sm:text-right">
                         <div className="text-sm text-muted-foreground">
-                            {t("fbt.total", { count: selectedProducts.length })}
+                            المجموع ({selectedProducts.length} منتجات):
                         </div>
                         <div className="flex items-baseline gap-2">
                             {totalPrice > 0 ? (
                                 <span className="text-2xl font-bold text-primary">
-                                    {formatIQD(totalPrice)}
+                                    {totalPrice.toLocaleString()} د.ع
                                 </span>
                             ) : (
-                                <span className="text-lg font-bold text-muted-foreground">{t("fbt.unavailable")}</span>
+                                <span className="text-lg font-bold text-muted-foreground">غير متاح حالياً</span>
                             )}
                             {savings > 0 && (
                                 <span className="text-sm text-green-600 line-through">
-                                    {formatIQD(totalOriginalPrice)}
+                                    {totalOriginalPrice.toLocaleString()} د.ع
                                 </span>
                             )}
                         </div>
@@ -202,7 +199,7 @@ export function FrequentlyBoughtTogether({
                         disabled={selectedProducts.filter(p => p.price > 0).length === 0}
                     >
                         <ShoppingCart className="w-5 h-5" />
-                        {t("fbt.addAll")}
+                        إضافة الكل للسلة
                     </Button>
                 </div>
             </CardContent>

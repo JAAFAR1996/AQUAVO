@@ -8,8 +8,6 @@ import { cn } from "@/lib/utils";
 import { type FishSpecies } from "@/data/freshwater-fish";
 import { useFishData } from "@/hooks/use-fish-data";
 import { cardImage } from "@/lib/cloudinary";
-import { useTranslation } from "react-i18next";
-import { i18next } from "@/i18n";
 
 interface SearchResult {
     id: string;
@@ -43,10 +41,9 @@ function useDebounce<T>(value: T, delay: number): T {
 
 export function SearchAutocomplete({
     className,
-    placeholder = i18next.t("search:search-autocomplete.s1"),
+    placeholder = "ابحث عن المنتجات...",
     onSearch,
 }: SearchAutocompleteProps) {
-  const { t } = useTranslation("search");
     const [query, setQuery] = useState("");
     const [isOpen, setIsOpen] = useState(false);
     const [results, setResults] = useState<SearchResult[]>([]);
@@ -221,13 +218,13 @@ export function SearchAutocomplete({
                             <div className="flex items-center justify-between px-2 pb-2">
                                 <span className="text-xs font-medium text-muted-foreground flex items-center gap-1">
                                     <Clock className="w-3 h-3" />
-                                    {t("search-autocomplete.s2")}
+                                    البحوث الأخيرة
                                 </span>
                                 <button
                                     onClick={clearRecentSearches}
                                     className="text-xs text-muted-foreground hover:text-destructive transition-colors"
                                 >
-                                    {t("search-autocomplete.s3")}
+                                    مسح الكل
                                 </button>
                             </div>
                             {recentSearches.map((search) => (
@@ -248,7 +245,7 @@ export function SearchAutocomplete({
                             <div className="px-2 pb-2">
                                 <span className="text-xs font-medium text-muted-foreground flex items-center gap-1">
                                     <Fish className="w-3 h-3" />
-                                    {t("search-autocomplete.s4")}
+                                    الموسوعة المائية
                                 </span>
                             </div>
                             {fishResults.map((fish) => (
@@ -274,7 +271,7 @@ export function SearchAutocomplete({
                                         <p className="text-xs text-muted-foreground italic">{fish.scientificName}</p>
                                     </div>
                                     <Badge variant="secondary" className="text-[10px] px-1.5 bg-primary/10 text-primary">
-                                        {t("search-autocomplete.s5")}
+                                        موسوعة
                                     </Badge>
                                 </button>
                             ))}
@@ -287,7 +284,7 @@ export function SearchAutocomplete({
                             <div className="px-2 pb-2">
                                 <span className="text-xs font-medium text-muted-foreground flex items-center gap-1">
                                     <TrendingUp className="w-3 h-3" />
-                                    {t("search-autocomplete.s6")}
+                                    نتائج البحث
                                 </span>
                             </div>
                             {results.map((result) => (
@@ -313,7 +310,7 @@ export function SearchAutocomplete({
                                             <Badge variant="secondary" className="text-[10px] px-1.5">
                                                 {result.category}
                                             </Badge>
-                                            <span>{Number(result.price).toLocaleString('en-US')} {t("search-autocomplete.s7")}</span>
+                                            <span>{Number(result.price).toLocaleString('en-US')} د.ع</span>
                                         </div>
                                     </div>
                                 </button>
@@ -325,7 +322,7 @@ export function SearchAutocomplete({
                                 className="w-full mt-2 text-sm"
                                 onClick={handleSubmit}
                             >
-                                {t("search-autocomplete.s8")}{query}"
+                                عرض جميع النتائج لـ "{query}"
                             </Button>
                         </div>
                     )}
@@ -333,7 +330,7 @@ export function SearchAutocomplete({
                     {/* No results */}
                     {query.trim() && !isLoading && results.length === 0 && fishResults.length === 0 && (
                         <div className="p-4 text-center text-sm text-muted-foreground">
-                            {t("search-autocomplete.s9")}{query}"
+                            لا توجد نتائج لـ "{query}"
                         </div>
                     )}
 

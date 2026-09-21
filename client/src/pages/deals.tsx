@@ -14,10 +14,8 @@ import { addCsrfHeader } from "@/lib/csrf";
 
 import { BackToTop } from "@/components/back-to-top";
 import { Product } from "@/types";
-import { useTranslation } from "react-i18next";
 
 export default function Deals() {
-  const { t } = useTranslation("pages");
   const { data, isLoading } = useQuery<{ products: Product[] }>({
     queryKey: ["products"],
     queryFn: () => fetchProducts(),
@@ -54,17 +52,17 @@ export default function Deals() {
     if (!ok) return;
 
     toast({
-      title: t("deals.s1"),
-      description: t("deals.s2", { v0: product.name }),
+      title: "تمت الإضافة للسلة",
+      description: `تم إضافة ${product.name} إلى سلة التسوق`,
     });
   };
 
   return (
     <div className="flex-1 flex flex-col bg-background font-sans transition-colors duration-300">
       <MetaTags
-        title={t("deals.s3")}
-        description={t("deals.s4")}
-        keywords={[t("deals.s5"), t("deals.s6"), t("deals.s7"), t("deals.s8")]}
+        title="العروض والخصومات"
+        description="اكتشف أفضل عروض وخصومات منتجات أحواض الأسماك في AQUAVO - وفر أكثر مع خصوماتنا الحصرية"
+        keywords={["عروض أحواض الأسماك", "خصومات معدات المياه", "تخفيضات AQUAVO", "أسعار مخفضة"]}
       />
       <main id="main-content" className="flex-1 container mx-auto px-4 py-12" dir="rtl">
         {/* Hero Section */}
@@ -73,12 +71,12 @@ export default function Deals() {
           <div className="relative z-10">
             <div className="flex items-center justify-center gap-3 mb-4">
               <h1 className="text-5xl font-bold">
-                {t("deals.s3")}
+                العروض والخصومات
               </h1>
               <Sparkles className="h-8 w-8 animate-pulse" />
             </div>
             <p className="text-xl text-white/90 max-w-2xl mx-auto">
-              {t("deals.s9")}
+              اغتنم الفرصة! خصومات هائلة على منتجات مختارة لفترة محدودة
             </p>
           </div>
         </div>
@@ -93,7 +91,7 @@ export default function Deals() {
                 </div>
                 <div>
                   <p className="text-3xl font-bold text-foreground">{dealsProducts.length}</p>
-                  <p className="text-sm text-muted-foreground">{t("deals.s10")}</p>
+                  <p className="text-sm text-muted-foreground">منتج بخصم</p>
                 </div>
               </div>
             </CardContent>
@@ -107,7 +105,7 @@ export default function Deals() {
                 </div>
                 <div>
                   <p className="text-3xl font-bold text-foreground">{maxDiscount > 0 ? `${maxDiscount}%` : '0%'}</p>
-                  <p className="text-sm text-muted-foreground">{t("deals.s11")}</p>
+                  <p className="text-sm text-muted-foreground">خصم يصل إلى</p>
                 </div>
               </div>
             </CardContent>
@@ -120,8 +118,8 @@ export default function Deals() {
                   <Timer className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <p className="text-3xl font-bold text-foreground">{t("deals.s12")}</p>
-                  <p className="text-sm text-muted-foreground">{t("deals.s13")}</p>
+                  <p className="text-3xl font-bold text-foreground">محدودة</p>
+                  <p className="text-sm text-muted-foreground">عروض لفترة</p>
                 </div>
               </div>
             </CardContent>
@@ -148,13 +146,13 @@ export default function Deals() {
               <div className="w-24 h-24 mx-auto bg-muted rounded-full flex items-center justify-center">
                 <Percent className="w-12 h-12 text-muted-foreground" />
               </div>
-              <h3 className="text-2xl font-bold text-foreground">{t("deals.s14")}</h3>
+              <h3 className="text-2xl font-bold text-foreground">لا توجد عروض حالياً</h3>
               <p className="text-muted-foreground">
-                {t("deals.s15")}
+                تابعنا على وسائل التواصل الاجتماعي للحصول على آخر العروض والخصومات
               </p>
               <Link href="/products">
                 <Button size="lg" className="mt-4">
-                  {t("deals.s16")}
+                  تصفح جميع المنتجات
                 </Button>
               </Link>
             </div>
@@ -163,7 +161,7 @@ export default function Deals() {
           <>
             <div className="mb-6 flex items-center justify-between">
               <h2 className="text-2xl font-bold text-foreground">
-                {t("deals.s17")}{dealsProducts.length})
+                المنتجات المخفضة ({dealsProducts.length})
               </h2>
             </div>
 
@@ -199,7 +197,7 @@ export default function Deals() {
                         />
                         {product.isNew && (
                           <Badge className="absolute top-4 left-4 bg-blue-500">
-                            {t("deals.s18")}
+                            جديد
                           </Badge>
                         )}
                       </div>
@@ -238,7 +236,7 @@ export default function Deals() {
 
                       {/* Price */}
                       <div className="space-y-1">
-                        <span className="text-2xl font-bold text-purple-500">{t("deals.s19")}</span>
+                        <span className="text-2xl font-bold text-purple-500">قريباً جداً</span>
                       </div>
 
                       {/* Add to Cart Button */}
@@ -247,7 +245,7 @@ export default function Deals() {
                         onClick={() => handleAddToCart(product)}
                       >
                         <ShoppingCart className="w-4 h-4" />
-                        {t("deals.s20")}
+                        أضف للسلة
                       </Button>
                     </CardContent>
                   </Card>
@@ -261,10 +259,10 @@ export default function Deals() {
         <Card className="mt-16 bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20">
           <CardContent className="p-12 text-center">
             <h2 className="text-3xl font-bold mb-4 text-foreground">
-              {t("deals.s21")}
+              لا تفوت عروضنا القادمة!
             </h2>
             <p className="text-lg text-muted-foreground mb-6 max-w-2xl mx-auto">
-              {t("deals.s22")}
+              اشترك في نشرتنا البريدية واحصل على إشعارات فورية عند إضافة عروض جديدة
             </p>
             <form className="max-w-md mx-auto flex gap-3" onSubmit={async (e) => {
               e.preventDefault();
@@ -280,23 +278,23 @@ export default function Deals() {
                 });
                 if (res.ok) {
                   emailInput.value = "";
-                  toast({ title: t("deals.s23"), description: t("deals.s24") });
+                  toast({ title: "شكراً لك!", description: "تم الاشتراك بنجاح في النشرة البريدية" });
                 } else {
                   const data = await res.json();
-                  toast({ title: t("deals.s25"), description: data.message || t("deals.s26"), variant: "destructive" });
+                  toast({ title: "خطأ", description: data.message || "حدث خطأ أثناء الاشتراك", variant: "destructive" });
                 }
               } catch {
-                toast({ title: t("deals.s25"), description: t("deals.s26"), variant: "destructive" });
+                toast({ title: "خطأ", description: "حدث خطأ أثناء الاشتراك", variant: "destructive" });
               }
             }}>
               <input
                 type="email"
-                placeholder={t("deals.s27")}
+                placeholder="بريدك الإلكتروني"
                 className="flex-1 px-4 py-2 rounded-lg border border-input bg-background"
                 required
               />
               <Button type="submit" size="lg">
-                {t("deals.s28")}
+                اشترك الآن
               </Button>
             </form>
           </CardContent>

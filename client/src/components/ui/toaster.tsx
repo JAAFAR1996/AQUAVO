@@ -8,10 +8,8 @@ import {
   ToastTitle,
   ToastViewport,
 } from "@/components/ui/toast"
-import { useTranslation } from "react-i18next";
 
 export function Toaster() {
-  const { t } = useTranslation("common");
   const { toasts, dismiss } = useToast()
 
   const openCart = (toastId: string) => {
@@ -38,11 +36,11 @@ export function Toaster() {
             {action}
             {!action && cartAction ? (
               <ToastAction
-                altText={t("toaster.s1")}
+                altText="عرض السلة"
                 className="border-primary/40 text-primary hover:bg-primary/10"
                 onClick={() => openCart(id)}
               >
-                {t("toaster.s1")}
+                عرض السلة
               </ToastAction>
             ) : null}
             <ToastClose />

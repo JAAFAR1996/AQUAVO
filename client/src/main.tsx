@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { createRoot } from "react-dom/client";
-import { bootstrapI18n } from "./i18n";
-import { splitLocaleFromPath } from "@shared/i18n/locales";
+import App from "./App";
 import "./index.css";
 import "./styles/aquavo-ui-fixes.css";
 import "./styles/mobile-product-cleanup.css";
@@ -96,20 +95,14 @@ try {
   // Storage can be unavailable in private/sandboxed contexts.
 }
 
-// The URL locale's bundles must be in place before any application module
-// evaluates: module-level copy resolves through i18next.t at import time.
-void bootstrapI18n(splitLocaleFromPath(window.location.pathname).locale)
-  .then(() => import("./App"))
-  .then(({ default: App }) => {
-    createRoot(document.getElementById("root")!).render(
+createRoot(document.getElementById("root")!).render(
   <>
     <App />
     <SemanticShellCleanup />
     <FirstDiveIntro />
     <DisplacementRuntime />
   </>,
-    );
-  });
+);
 
 // WebMCP: Register site tools for AI agents
 if (typeof navigator !== "undefined" && "modelContext" in navigator) {

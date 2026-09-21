@@ -21,10 +21,8 @@ import { Link } from "wouter";
 
 
 import { BackToTop } from "@/components/back-to-top";
-import { useTranslation } from "react-i18next";
 
 export default function FishEncyclopedia() {
-  const { t } = useTranslation("tools");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedCareLevel, setSelectedCareLevel] = useState<string>("all");
@@ -108,7 +106,7 @@ export default function FishEncyclopedia() {
   if (error) {
     return (
       <div className="flex h-screen items-center justify-center text-red-500">
-        {t("fish-encyclopedia.s1")}
+        فشل في تحميل البيانات
       </div>
     );
   }
@@ -134,9 +132,9 @@ export default function FishEncyclopedia() {
 
   return (
     <div className="flex-1 flex flex-col bg-background">      <MetaTags
-        title={t("fish-encyclopedia.s2")}
-        description={t("fish-encyclopedia.s3")}
-        keywords={[t("fish-encyclopedia.s4"), t("fish-encyclopedia.s5"), t("fish-encyclopedia.s6"), t("fish-encyclopedia.s7"), t("fish-encyclopedia.s8")]}
+        title="موسوعة الأسماك"
+        description="موسوعة شاملة لأنواع أسماك المياه العذبة مع معلومات تفصيلية عن الرعاية والتغذية والتكاثر"
+        keywords={["أسماك", "موسوعة", "أحواض", "رعاية الأسماك", "أسماك المياه العذبة"]}
       />
 
       {/* Hero Section */}
@@ -146,18 +144,19 @@ export default function FishEncyclopedia() {
           <div className="max-w-3xl mx-auto text-center text-white">
             <div className="inline-flex items-center gap-2 bg-card/20 backdrop-blur-md border border-white/30 px-6 py-2 rounded-full mb-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
               <BookOpen className="h-5 w-5" />
-              <span className="font-bold">{t("fish-encyclopedia.s9")}</span>
+              <span className="font-bold">موسوعة الأسماك الشاملة</span>
             </div>
             <h1 className="text-5xl md:text-6xl font-extrabold mb-6 animate-in fade-in slide-in-from-bottom-6 duration-700 delay-100">
-              {t("fish-encyclopedia.s10")}
+              اكتشف عالم الأسماك
             </h1>
             <p className="text-xl md:text-2xl text-blue-100 mb-8 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
-              {t("fish-encyclopedia.s11")} {freshwaterFish.length} {t("fish-encyclopedia.s12")}
+              موسوعة متكاملة لأكثر من {freshwaterFish.length} نوع من أسماك المياه العذبة
+              بمعلومات تفصيلية ونصائح خبراء
             </p>
             <Link href="/fish-compatibility">
               <Button size="lg" variant="secondary" className="gap-2 animate-in fade-in slide-in-from-bottom-10 duration-700 delay-300">
                 <CheckCircle2 className="w-5 h-5" />
-                {t("fish-encyclopedia.s13")}
+                كاشف توافقية الأسماك
               </Button>
             </Link>
           </div>
@@ -174,7 +173,7 @@ export default function FishEncyclopedia() {
                 <Search className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                   type="text"
-                  placeholder={t("fish-encyclopedia.s14")}
+                  placeholder="ابحث بالاسم العربي، الإنجليزي، أو العلمي..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pr-12 h-14 text-lg text-right"
@@ -197,61 +196,61 @@ export default function FishEncyclopedia() {
               <div className="flex items-center gap-2 flex-wrap flex-1" data-tour="encyclopedia-filters">
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <SlidersHorizontal className="h-4 w-4" />
-                  <span className="font-medium text-sm">{t("fish-encyclopedia.s15")}</span>
+                  <span className="font-medium text-sm">تصفية:</span>
                 </div>
 
                 <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                   <SelectTrigger className="w-[180px] text-right" dir="rtl">
-                    <SelectValue placeholder={t("fish-encyclopedia.s16")} />
+                    <SelectValue placeholder="الفئة" />
                   </SelectTrigger>
                   <SelectContent dir="rtl">
-                    <SelectItem value="all" className="text-right">{t("fish-encyclopedia.s17")}</SelectItem>
-                    <SelectItem value="community">{t("fish-encyclopedia.s18")}</SelectItem>
-                    <SelectItem value="cichlid">{t("fish-encyclopedia.s19")}</SelectItem>
-                    <SelectItem value="catfish">{t("fish-encyclopedia.s20")}</SelectItem>
-                    <SelectItem value="tetra">{t("fish-encyclopedia.s21")}</SelectItem>
-                    <SelectItem value="livebearer">{t("fish-encyclopedia.s22")}</SelectItem>
-                    <SelectItem value="betta">{t("fish-encyclopedia.s23")}</SelectItem>
-                    <SelectItem value="gourami">{t("fish-encyclopedia.s24")}</SelectItem>
-                    <SelectItem value="goldfish">{t("fish-encyclopedia.s25")}</SelectItem>
-                    <SelectItem value="other">{t("fish-encyclopedia.s26")}</SelectItem>
+                    <SelectItem value="all" className="text-right">كل الفئات</SelectItem>
+                    <SelectItem value="community">مجتمع</SelectItem>
+                    <SelectItem value="cichlid">سيكلد</SelectItem>
+                    <SelectItem value="catfish">سمك القراميط</SelectItem>
+                    <SelectItem value="tetra">تترا</SelectItem>
+                    <SelectItem value="livebearer">ولود</SelectItem>
+                    <SelectItem value="betta">بيتا</SelectItem>
+                    <SelectItem value="gourami">جورامي</SelectItem>
+                    <SelectItem value="goldfish">ذهبية</SelectItem>
+                    <SelectItem value="other">أخرى</SelectItem>
                   </SelectContent>
                 </Select>
 
                 <Select value={selectedCareLevel} onValueChange={setSelectedCareLevel}>
                   <SelectTrigger className="w-[180px] text-right" dir="rtl">
-                    <SelectValue placeholder={t("fish-encyclopedia.s27")} />
+                    <SelectValue placeholder="مستوى الرعاية" />
                   </SelectTrigger>
                   <SelectContent dir="rtl">
-                    <SelectItem value="all" className="text-right">{t("fish-encyclopedia.s28")}</SelectItem>
-                    <SelectItem value="beginner">{t("fish-encyclopedia.s29")}</SelectItem>
-                    <SelectItem value="intermediate">{t("fish-encyclopedia.s30")}</SelectItem>
-                    <SelectItem value="advanced">{t("fish-encyclopedia.s31")}</SelectItem>
+                    <SelectItem value="all" className="text-right">كل المستويات</SelectItem>
+                    <SelectItem value="beginner">مبتدئ</SelectItem>
+                    <SelectItem value="intermediate">متوسط</SelectItem>
+                    <SelectItem value="advanced">متقدم</SelectItem>
                   </SelectContent>
                 </Select>
 
                 <Select value={selectedTemperament} onValueChange={setSelectedTemperament}>
                   <SelectTrigger className="w-[180px] text-right" dir="rtl">
-                    <SelectValue placeholder={t("fish-encyclopedia.s32")} />
+                    <SelectValue placeholder="الطباع" />
                   </SelectTrigger>
                   <SelectContent dir="rtl">
-                    <SelectItem value="all" className="text-right">{t("fish-encyclopedia.s33")}</SelectItem>
-                    <SelectItem value="peaceful">{t("fish-encyclopedia.s34")}</SelectItem>
-                    <SelectItem value="semi-aggressive">{t("fish-encyclopedia.s35")}</SelectItem>
-                    <SelectItem value="aggressive">{t("fish-encyclopedia.s36")}</SelectItem>
+                    <SelectItem value="all" className="text-right">كل الطباع</SelectItem>
+                    <SelectItem value="peaceful">سلمي</SelectItem>
+                    <SelectItem value="semi-aggressive">شبه عدواني</SelectItem>
+                    <SelectItem value="aggressive">عدواني</SelectItem>
                   </SelectContent>
                 </Select>
 
                 <Select value={selectedTankSize} onValueChange={setSelectedTankSize}>
                   <SelectTrigger className="w-[180px] text-right" dir="rtl">
-                    <SelectValue placeholder={t("fish-encyclopedia.s37")} />
+                    <SelectValue placeholder="حجم الحوض" />
                   </SelectTrigger>
                   <SelectContent dir="rtl">
-                    <SelectItem value="all" className="text-right">{t("fish-encyclopedia.s38")}</SelectItem>
-                    <SelectItem value="40">{t("fish-encyclopedia.s39")}</SelectItem>
-                    <SelectItem value="80">{t("fish-encyclopedia.s40")}</SelectItem>
-                    <SelectItem value="150">{t("fish-encyclopedia.s41")}</SelectItem>
-                    <SelectItem value="200">{t("fish-encyclopedia.s42")}</SelectItem>
+                    <SelectItem value="all" className="text-right">كل الأحجام</SelectItem>
+                    <SelectItem value="40">حتى 40 لتر</SelectItem>
+                    <SelectItem value="80">حتى 80 لتر</SelectItem>
+                    <SelectItem value="150">حتى 150 لتر</SelectItem>
+                    <SelectItem value="200">حتى 200 لتر</SelectItem>
                   </SelectContent>
                 </Select>
 
@@ -263,24 +262,24 @@ export default function FishEncyclopedia() {
                     className="text-red-600 hover:text-red-700 hover:bg-red-50"
                   >
                     <X className="h-4 w-4 ml-1" />
-                    {t("fish-encyclopedia.s43")}
+                    مسح الكل
                   </Button>
                 )}
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">{t("fish-encyclopedia.s44")}</span>
+                <span className="text-sm text-muted-foreground">ترتيب:</span>
                 <Select value={sortBy} onValueChange={setSortBy}>
                   <SelectTrigger className="w-[180px] text-right" dir="rtl">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent dir="rtl">
-                    <SelectItem value="name" className="text-right">{t("fish-encyclopedia.s45")}</SelectItem>
-                    <SelectItem value="size">{t("fish-encyclopedia.s46")}</SelectItem>
-                    <SelectItem value="care-easy">{t("fish-encyclopedia.s47")}</SelectItem>
-                    <SelectItem value="care-hard">{t("fish-encyclopedia.s48")}</SelectItem>
-                    <SelectItem value="tank-small">{t("fish-encyclopedia.s49")}</SelectItem>
-                    <SelectItem value="tank-large">{t("fish-encyclopedia.s50")}</SelectItem>
+                    <SelectItem value="name" className="text-right">الاسم (أ-ي)</SelectItem>
+                    <SelectItem value="size">الحجم (صغير-كبير)</SelectItem>
+                    <SelectItem value="care-easy">الأسهل رعاية</SelectItem>
+                    <SelectItem value="care-hard">الأصعب رعاية</SelectItem>
+                    <SelectItem value="tank-small">حوض صغير أولاً</SelectItem>
+                    <SelectItem value="tank-large">حوض كبير أولاً</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -289,14 +288,14 @@ export default function FishEncyclopedia() {
             {/* Results count */}
             <div className="mt-4 flex items-center justify-between">
               <p className="text-sm text-muted-foreground">
-                {t("fish-encyclopedia.s51")} <span className="font-bold text-foreground">{filteredAndSortedFish.length}</span> {t("fish-encyclopedia.s52")}
-                {hasActiveFilters && t("fish-encyclopedia.s53", { v0: freshwaterFish.length })}
+                عرض <span className="font-bold text-foreground">{filteredAndSortedFish.length}</span> نوع
+                {hasActiveFilters && ` من أصل ${freshwaterFish.length}`}
               </p>
               {hasActiveFilters && (
                 <div className="flex flex-wrap gap-2">
                   {selectedCategory !== "all" && (
                     <Badge variant="secondary" className="gap-1">
-                      {t("fish-encyclopedia.s54")} {selectedCategory}
+                      فئة: {selectedCategory}
                       <X
                         className="h-3 w-3 cursor-pointer"
                         onClick={() => setSelectedCategory("all")}
@@ -305,7 +304,7 @@ export default function FishEncyclopedia() {
                   )}
                   {selectedCareLevel !== "all" && (
                     <Badge variant="secondary" className="gap-1">
-                      {t("fish-encyclopedia.s55")} {selectedCareLevel}
+                      رعاية: {selectedCareLevel}
                       <X
                         className="h-3 w-3 cursor-pointer"
                         onClick={() => setSelectedCareLevel("all")}
@@ -314,7 +313,7 @@ export default function FishEncyclopedia() {
                   )}
                   {selectedTemperament !== "all" && (
                     <Badge variant="secondary" className="gap-1">
-                      {t("fish-encyclopedia.s56")} {selectedTemperament}
+                      طباع: {selectedTemperament}
                       <X
                         className="h-3 w-3 cursor-pointer"
                         onClick={() => setSelectedTemperament("all")}
@@ -323,7 +322,7 @@ export default function FishEncyclopedia() {
                   )}
                   {selectedTankSize !== "all" && (
                     <Badge variant="secondary" className="gap-1">
-                      {t("fish-encyclopedia.s57")} {selectedTankSize}{t("fish-encyclopedia.s58")}
+                      حوض: حتى {selectedTankSize}ل
                       <X
                         className="h-3 w-3 cursor-pointer"
                         onClick={() => setSelectedTankSize("all")}
@@ -350,11 +349,11 @@ export default function FishEncyclopedia() {
           {filteredAndSortedFish.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">
               <Fish className="h-24 w-24 text-muted-foreground/20 mb-6" />
-              <h3 className="text-2xl font-bold mb-2">{t("fish-encyclopedia.s59")}</h3>
+              <h3 className="text-2xl font-bold mb-2">لم يتم العثور على نتائج</h3>
               <p className="text-muted-foreground mb-6">
-                {t("fish-encyclopedia.s60")}
+                جرب تغيير معايير البحث أو الفلاتر
               </p>
-              <Button onClick={clearFilters}>{t("fish-encyclopedia.s61")}</Button>
+              <Button onClick={clearFilters}>مسح الفلاتر</Button>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" data-tour="encyclopedia-grid">

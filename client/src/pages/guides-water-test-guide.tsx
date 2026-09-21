@@ -1,105 +1,102 @@
 import { Link } from "wouter";
 import { MetaTags, FAQSchema, BreadcrumbSchema } from "@/components/seo/meta-tags";
-import { useTranslation } from "react-i18next";
-import { i18next } from "@/i18n";
 
 const BASE_URL = "https://www.aquavoiq.com";
 
 const FAQ_ITEMS = [
   {
-    question: i18next.t("guides:guides-water-test-guide.s1"),
+    question: "شنو تفحص شرائط ماء الحوض؟",
     answer:
-      i18next.t("guides:guides-water-test-guide.s2"),
+      "شرائط ماء الحوض تقيس: الأمونيا (NH3)، النتريت (NO2)، النترات (NO3)، درجة الحموضة (pH)، وأحياناً الكلور والصلابة. هذي هي المؤشرات الأساسية لصحة ماء الحوض.",
   },
   {
-    question: i18next.t("guides:guides-water-test-guide.s3"),
+    question: "شنو معنى الأمونيا ولتى تكون خطيرة؟",
     answer:
-      i18next.t("guides:guides-water-test-guide.s4"),
+      "الأمونيا ناتجة من فضلات السمك وبقايا الطعام. حتى 0.25 ppm تسبب إجهاداً للسمك. فوق 1 ppm خطر حقيقي. القراءة الآمنة هي صفر ppm في حوض ناضج.",
   },
   {
-    question: i18next.t("guides:guides-water-test-guide.s5"),
+    question: "شنو الفرق بين النتريت والنترات؟",
     answer:
-      i18next.t("guides:guides-water-test-guide.s6"),
+      "النتريت (NO2) أخطر بكثير من النترات (NO3). النتريت يمنع الدم من حمل الأوكسجين ويقتل السمك بسرعة. النترات أقل خطراً ويُخفَّض بتغيير الماء بانتظام.",
   },
   {
-    question: i18next.t("guides:guides-water-test-guide.s7"),
+    question: "شنو pH الصحيح لحوض السمك؟",
     answer:
-      i18next.t("guides:guides-water-test-guide.s8"),
+      "معظم أسماك المياه العذبة تحتاج pH بين 6.8-7.5. الأسماك الاستوائية مثل الغوبي والتتراس تفضل 7.0-7.2. تغيير مفاجئ في pH بأكثر من 0.5 يسبب صدمة للسمك.",
   },
   {
-    question: i18next.t("guides:guides-water-test-guide.s9"),
+    question: "شنو أسوي إذا الأمونيا ارتفعت؟",
     answer:
-      i18next.t("guides:guides-water-test-guide.s10"),
+      "فوراً: غيّر 25-30% من الماء. أوقف الأكل يوم أو يومين. افحص الفلتر وتأكد من شغله. أضف مزيل أمونيا طارئ مؤقت. افحص الماء مرة ثانية بعد 24 ساعة.",
   },
   {
-    question: i18next.t("guides:guides-water-test-guide.s11"),
+    question: "هل الشرائط مناسبة للمبتدئين أو أحتاج مقياس؟",
     answer:
-      i18next.t("guides:guides-water-test-guide.s12"),
+      "الشرائط مناسبة جداً للمبتدئين وكافية للاستخدام اليومي. المقاييس الرقمية أدق للـ pH والتوصيلية، لكن الشرائط تعطي نتائج كافية لمعرفة إذا الوضع خطير أو آمن.",
   },
   {
-    question: i18next.t("guides:guides-water-test-guide.s13"),
+    question: "كم مرة أفحص ماء الحوض؟",
     answer:
-      i18next.t("guides:guides-water-test-guide.s14"),
+      "في الأشهر الأولى: أسبوعياً على الأقل. بعد استقرار الحوض: كل أسبوعين. عند إضافة سمك جديد أو ملاحظة تصرف غريب: مباشرة. افحص دائماً بعد تغيير الماء بيوم.",
   },
   {
-    question: i18next.t("guides:guides-water-test-guide.s15"),
+    question: "شنو الكلور في ماء الحوض ومتى يظهر؟",
     answer:
-      i18next.t("guides:guides-water-test-guide.s16"),
+      "الكلور يظهر عند تغيير الماء بدون استخدام مزيل كلور. ماء الإسالة في العراق يحتوي كلور وكلورامين — لازم تضيف مزيل الكلور في كل تغيير جزئي للماء.",
   },
 ];
 
 const WATER_PARAMS = [
   {
-    name: i18next.t("guides:guides-water-test-guide.s17"),
-    meaning: i18next.t("guides:guides-water-test-guide.s18"),
-    danger: i18next.t("guides:guides-water-test-guide.s19"),
-    action: i18next.t("guides:guides-water-test-guide.s20"),
+    name: "الأمونيا (NH3/NH4)",
+    meaning: "فضلات السمك والطعام الزايد",
+    danger: "أكثر من 0.5 ppm",
+    action: "غيّر 25% من الماء فوراً + أوقف الأكل يومين",
     safe: "0 ppm",
   },
   {
-    name: i18next.t("guides:guides-water-test-guide.s21"),
-    meaning: i18next.t("guides:guides-water-test-guide.s22"),
-    danger: i18next.t("guides:guides-water-test-guide.s23"),
-    action: i18next.t("guides:guides-water-test-guide.s24"),
+    name: "النتريت (NO2)",
+    meaning: "مرحلة وسطى في الدورة البايولوجية",
+    danger: "أكثر من 0.2 ppm",
+    action: "غيّر 30% من الماء + أضف ملح جدول طبيعي (يساعد مؤقتاً)",
     safe: "0 ppm",
   },
   {
-    name: i18next.t("guides:guides-water-test-guide.s25"),
-    meaning: i18next.t("guides:guides-water-test-guide.s26"),
-    danger: i18next.t("guides:guides-water-test-guide.s27"),
-    action: i18next.t("guides:guides-water-test-guide.s28"),
-    safe: i18next.t("guides:guides-water-test-guide.s29"),
+    name: "النترات (NO3)",
+    meaning: "نهاية الدورة البايولوجية — أقل خطراً",
+    danger: "أكثر من 40 ppm",
+    action: "تغيير منتظم 20-25% أسبوعياً",
+    safe: "أقل من 20 ppm",
   },
   {
-    name: i18next.t("guides:guides-water-test-guide.s30"),
-    meaning: i18next.t("guides:guides-water-test-guide.s31"),
-    danger: i18next.t("guides:guides-water-test-guide.s32"),
-    action: i18next.t("guides:guides-water-test-guide.s33"),
+    name: "درجة الحموضة (pH)",
+    meaning: "حموضة وقلوية الماء",
+    danger: "أقل من 6.5 أو أكثر من 8.0",
+    action: "استخدم منظمات pH أو افحص مصدر الماء",
     safe: "6.8 – 7.5",
   },
   {
-    name: i18next.t("guides:guides-water-test-guide.s34"),
-    meaning: i18next.t("guides:guides-water-test-guide.s35"),
-    danger: i18next.t("guides:guides-water-test-guide.s36"),
-    action: i18next.t("guides:guides-water-test-guide.s37"),
+    name: "الكلور",
+    meaning: "مادة تعقيم موجودة في ماء الإسالة",
+    danger: "أي تركيز — حتى الطفيف يقتل البكتيريا",
+    action: "أضف مزيل كلور فوراً عند كل تغيير ماء",
     safe: "0 ppm",
   },
 ];
 
 export default function GuideWaterTestGuide() {
-  const { t } = useTranslation("guides");
   return (
     <>
       <MetaTags
-        title={t("guides-water-test-guide.s38")}
-        description={t("guides-water-test-guide.s39")}
+        title="شرائط فحص ماء الحوض — دليل كامل لقراءة النتائج"
+        description="شرح كامل لشرائط فحص ماء الحوض: الأمونيا، النتريت، النترات، pH، والكلور. شنو معنى كل قراءة؟ متى تكون خطيرة؟ وشنو تسوي؟ دليل AQUAVO العراق."
         keywords={[
-          t("guides-water-test-guide.s40"),
-          t("guides-water-test-guide.s41"),
-          t("guides-water-test-guide.s42"),
-          t("guides-water-test-guide.s43"),
-          t("guides-water-test-guide.s44"),
-          t("guides-water-test-guide.s45"),
+          "شرائط فحص ماء الحوض",
+          "فحص ماء حوض السمك",
+          "اختبار ماء الحوض",
+          "الأمونيا في الحوض",
+          "pH حوض السمك",
+          "مستلزمات أحواض الزينة العراق",
         ]}
         url={`${BASE_URL}/guides/aquarium-water-test-guide`}
         canonicalUrl={`${BASE_URL}/guides/aquarium-water-test-guide`}
@@ -108,9 +105,9 @@ export default function GuideWaterTestGuide() {
 
       <BreadcrumbSchema
         items={[
-          { name: t("guides-water-test-guide.s46"), url: BASE_URL },
-          { name: t("guides-water-test-guide.s47"), url: `${BASE_URL}/guides` },
-          { name: t("guides-water-test-guide.s48"), url: `${BASE_URL}/guides/aquarium-water-test-guide` },
+          { name: "الرئيسية", url: BASE_URL },
+          { name: "الأدلة", url: `${BASE_URL}/guides` },
+          { name: "دليل فحص ماء الحوض", url: `${BASE_URL}/guides/aquarium-water-test-guide` },
         ]}
       />
 
@@ -120,73 +117,73 @@ export default function GuideWaterTestGuide() {
         <header className="wt-bar">
           <Link href="/" className="wt-brand">AQUAVO</Link>
           <nav className="wt-nav">
-            <a href="/guides/new-aquarium-setup-iraq" className="wt-nav-link">{t("guides-water-test-guide.s49")}</a>
-            <Link href="/guides/heater-choice" className="wt-nav-link">{t("guides-water-test-guide.s50")}</Link>
-            <a href="/guides/aquarium-decor-stones-guide" className="wt-nav-link">{t("guides-water-test-guide.s51")}</a>
+            <a href="/guides/new-aquarium-setup-iraq" className="wt-nav-link">تجهيز الحوض</a>
+            <Link href="/guides/heater-choice" className="wt-nav-link">السخانات</Link>
+            <a href="/guides/aquarium-decor-stones-guide" className="wt-nav-link">الديكور</a>
           </nav>
         </header>
 
         <main className="wt-main" id="main-content">
 
-          <nav className="wt-breadcrumb" aria-label={t("guides-water-test-guide.s52")}>
-            <Link href="/">{t("guides-water-test-guide.s46")}</Link>
+          <nav className="wt-breadcrumb" aria-label="مسار التنقل">
+            <Link href="/">الرئيسية</Link>
             <span> / </span>
-            <a href="/guides">{t("guides-water-test-guide.s47")}</a>
+            <a href="/guides">الأدلة</a>
             <span> / </span>
-            <span>{t("guides-water-test-guide.s53")}</span>
+            <span>فحص ماء الحوض</span>
           </nav>
 
           {/* Hero */}
           <section className="wt-hero" id="hero-headline">
-            <span className="wt-badge">{t("guides-water-test-guide.s54")}</span>
-            <h1 className="wt-h1">{t("guides-water-test-guide.s55")}</h1>
+            <span className="wt-badge">دليل جودة الماء — AQUAVO</span>
+            <h1 className="wt-h1">شرائط فحص ماء الحوض — كيف تقرأ النتائج وشنو تسوي</h1>
 
             {/* AEO Answer Block */}
             <div className="wt-answer-block" id="quick-answer">
               <p className="wt-answer-text">
-                {t("guides-water-test-guide.s56")}
+                شرائط فحص ماء الحوض تقيس الأمونيا والنتريت والنترات وpH والكلور. القراءة الآمنة: الأمونيا والنتريت = صفر، النترات أقل من 40 ppm، pH بين 6.8-7.5. إذا ارتفعت قيم الأمونيا أو النتريت — غيّر 25-30% من الماء فوراً وأوقف الأكل يومين. AQUAVO متجر عراقي يوفر شرائط الفحص مع توصيل لكل العراق ودفع عند الاستلام أو إلكترونياً.
               </p>
             </div>
 
             <div className="wt-meta">
-              <span>{t("guides-water-test-guide.s57")}</span>
+              <span>وقت القراءة: 6 دقائق</span>
               <span>•</span>
-              <span>{t("guides-water-test-guide.s58")}</span>
+              <span>آخر تحديث: 2026</span>
             </div>
           </section>
 
           {/* AQUAVO Identity */}
           <div className="wt-store-note">
-            <strong>AQUAVO</strong> {t("guides-water-test-guide.s59")}
-            <Link href="/products" className="wt-store-link"> {t("guides-water-test-guide.s60")}</Link>
+            <strong>AQUAVO</strong> متجر عراقي متخصص في مستلزمات أحواض الزينة. شرائط فحص الماء، مزيل الكلور، الفلاتر، السخانات — كلها متوفرة مع توصيل لكل محافظات العراق. الدفع عند الاستلام أو إلكترونياً.
+            <Link href="/products" className="wt-store-link"> تصفح المنتجات ←</Link>
           </div>
 
           {/* Why Test */}
           <section className="wt-section">
-            <h2 className="wt-title">{t("guides-water-test-guide.s61")}</h2>
+            <h2 className="wt-title">ليش فحص الماء ضروري؟</h2>
             <p className="wt-body">
-              {t("guides-water-test-guide.s62")}
+              مشاكل الماء هي السبب الأول لموت السمك — وغالباً الماء يبدو نظيف وصافي حتى لما تكون مستوياته خطيرة. الفحص الدوري يخليك تكشف المشكلة قبل ما تتفاقم.
             </p>
             <ul className="wt-list">
-              <li>{t("guides-water-test-guide.s63")}</li>
-              <li>{t("guides-water-test-guide.s64")}</li>
-              <li>{t("guides-water-test-guide.s65")}</li>
-              <li>{t("guides-water-test-guide.s66")}</li>
+              <li>الأمونيا ما لها لون أو رائحة تحس فيها</li>
+              <li>النتريت ما يظهر بصرياً</li>
+              <li>انخفاض pH يحصل تدريجياً بدون تغيير واضح</li>
+              <li>السمك اللي يحتك بالزجاج أو يسبح بشكل غريب — غالباً جودة الماء هي السبب</li>
             </ul>
           </section>
 
           {/* Main Table */}
           <section className="wt-section" id="water-params-table">
-            <h2 className="wt-title">{t("guides-water-test-guide.s67")}</h2>
+            <h2 className="wt-title">جدول مؤشرات ماء الحوض — القراءات والتصرف</h2>
             <div className="wt-table-wrap">
               <table className="wt-table">
                 <thead>
                   <tr>
-                    <th>{t("guides-water-test-guide.s68")}</th>
-                    <th>{t("guides-water-test-guide.s69")}</th>
-                    <th>{t("guides-water-test-guide.s70")}</th>
-                    <th>{t("guides-water-test-guide.s71")}</th>
-                    <th>{t("guides-water-test-guide.s72")}</th>
+                    <th>المؤشر</th>
+                    <th>شنو يعني</th>
+                    <th>القراءة الآمنة</th>
+                    <th>متى يصير خطر</th>
+                    <th>شنو التصرف الأول</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -206,16 +203,16 @@ export default function GuideWaterTestGuide() {
 
           {/* Ammonia Deep Dive */}
           <section className="wt-section">
-            <h2 className="wt-title">{t("guides-water-test-guide.s73")}</h2>
+            <h2 className="wt-title">الأمونيا — أخطر مؤشر في الحوض</h2>
             <p className="wt-body">
-              {t("guides-water-test-guide.s74")}
+              الأمونيا تنتج من: فضلات السمك، بقايا الطعام، نباتات ميتة، وأي مادة عضوية تتحلل في الماء. البكتيريا النافعة في الفلتر تحولها إلى نتريت ثم نترات — وهذا هو معنى الدورة البايولوجية.
             </p>
             <div className="wt-scale">
               {[
-                { range: "0 ppm", label: t("guides-water-test-guide.s75"), cls: "wt-scale-safe" },
-                { range: "0.25 ppm", label: t("guides-water-test-guide.s76"), cls: "wt-scale-warn" },
-                { range: "0.5 ppm", label: t("guides-water-test-guide.s77"), cls: "wt-scale-danger" },
-                { range: "1+ ppm", label: t("guides-water-test-guide.s78"), cls: "wt-scale-critical" },
+                { range: "0 ppm", label: "آمن تماماً", cls: "wt-scale-safe" },
+                { range: "0.25 ppm", label: "إجهاد خفيف — راقب", cls: "wt-scale-warn" },
+                { range: "0.5 ppm", label: "خطر — غيّر الماء", cls: "wt-scale-danger" },
+                { range: "1+ ppm", label: "خطر حاد — تصرف الحين", cls: "wt-scale-critical" },
               ].map((s, i) => (
                 <div key={i} className={`wt-scale-row ${s.cls}`}>
                   <span className="wt-scale-range">{s.range}</span>
@@ -227,30 +224,30 @@ export default function GuideWaterTestGuide() {
 
           {/* How to Use Strips */}
           <section className="wt-section">
-            <h2 className="wt-title">{t("guides-water-test-guide.s79")}</h2>
+            <h2 className="wt-title">كيف تستخدم شرائط الفحص بشكل صحيح</h2>
             <ol className="wt-steps">
-              <li>{t("guides-water-test-guide.s80")}</li>
-              <li>{t("guides-water-test-guide.s81")}</li>
-              <li>{t("guides-water-test-guide.s82")}</li>
-              <li>{t("guides-water-test-guide.s83")}</li>
-              <li>{t("guides-water-test-guide.s84")}</li>
+              <li>غمس الشريط في ماء الحوض لمدة ثانية واحدة فقط</li>
+              <li>ارفعه وهزه مرة واحدة لإزالة الماء الزايد</li>
+              <li>انتظر 60 ثانية بالضبط قبل مقارنة الألوان</li>
+              <li>قارن الألوان بضوء طبيعي — لا ضوء أصفر</li>
+              <li>سجّل النتيجة مع التاريخ وعدد السمكات الحالي</li>
             </ol>
             <div className="wt-tip">
-              {t("guides-water-test-guide.s85")}
+              لا تلمس الأجزاء الملونة من الشريط بأصابعك — الزيوت الطبيعية تؤثر على الدقة.
             </div>
           </section>
 
           {/* When To Test */}
           <section className="wt-section">
-            <h2 className="wt-title">{t("guides-water-test-guide.s86")}</h2>
+            <h2 className="wt-title">متى تفحص؟</h2>
             <div className="wt-when-grid">
               {[
-                { time: t("guides-water-test-guide.s87"), reason: t("guides-water-test-guide.s88") },
-                { time: t("guides-water-test-guide.s89"), reason: t("guides-water-test-guide.s90") },
-                { time: t("guides-water-test-guide.s91"), reason: t("guides-water-test-guide.s92") },
-                { time: t("guides-water-test-guide.s93"), reason: t("guides-water-test-guide.s94") },
-                { time: t("guides-water-test-guide.s95"), reason: t("guides-water-test-guide.s96") },
-                { time: t("guides-water-test-guide.s97"), reason: t("guides-water-test-guide.s98") },
+                { time: "أسبوعياً", reason: "روتين أساسي في الأشهر الأولى" },
+                { time: "بعد تغيير الماء بيوم", reason: "تأكيد أن الماء الجديد لا يغيّر التوازن" },
+                { time: "عند إضافة سمك جديد", reason: "الحمل البيولوجي يزيد — الأمونيا قد ترتفع" },
+                { time: "عند ملاحظة تصرف غريب", reason: "سمك فوق السطح أو سباحة غير طبيعية" },
+                { time: "بعد علاج مرض", reason: "بعض الأدوية تقتل البكتيريا النافعة" },
+                { time: "عند انقطاع الكهرباء لساعات", reason: "الفلتر يتوقف — الأمونيا قد ترتفع" },
               ].map((w, i) => (
                 <div key={i} className="wt-when-card">
                   <div className="wt-when-time">{w.time}</div>
@@ -263,15 +260,15 @@ export default function GuideWaterTestGuide() {
           {/* CTA */}
           <section className="wt-cta-section">
             <div className="wt-cta-box">
-              <h2 className="wt-cta-title">{t("guides-water-test-guide.s99")}</h2>
-              <p className="wt-cta-body">{t("guides-water-test-guide.s100")}</p>
-              <Link href="/products" className="wt-cta-btn" id="water-test-cta">{t("guides-water-test-guide.s101")}</Link>
+              <h2 className="wt-cta-title">محتاج شرائط فحص ماء الحوض؟</h2>
+              <p className="wt-cta-body">AQUAVO يوفر شرائط الفحص ومزيل الكلور وكل مستلزمات الأحواض — توصيل لكل العراق، دفع عند الاستلام أو إلكترونياً.</p>
+              <Link href="/products" className="wt-cta-btn" id="water-test-cta">تصفح المنتجات</Link>
             </div>
           </section>
 
           {/* FAQ */}
           <section className="wt-section" id="faq">
-            <h2 className="wt-title">{t("guides-water-test-guide.s102")}</h2>
+            <h2 className="wt-title">أسئلة شائعة — فحص ماء الحوض</h2>
             <div className="wt-faq-list">
               {FAQ_ITEMS.map((item, i) => (
                 <details key={i} className="wt-faq-item">
@@ -284,34 +281,34 @@ export default function GuideWaterTestGuide() {
 
           {/* Related Guides */}
           <section className="wt-section">
-            <h2 className="wt-title">{t("guides-water-test-guide.s103")}</h2>
+            <h2 className="wt-title">أدلة ذات صلة</h2>
             <div className="wt-related-grid">
               <a href="/guides/new-aquarium-setup-iraq" className="wt-related-card">
                 <span className="wt-related-icon">🐠</span>
                 <div>
-                  <div className="wt-related-title">{t("guides-water-test-guide.s104")}</div>
-                  <div className="wt-related-desc">{t("guides-water-test-guide.s105")}</div>
+                  <div className="wt-related-title">دليل تجهيز حوض سمك جديد</div>
+                  <div className="wt-related-desc">كل خطوات البداية الصحيحة</div>
                 </div>
               </a>
               <Link href="/guides/water-change-schedule" className="wt-related-card">
                 <span className="wt-related-icon">💧</span>
                 <div>
-                  <div className="wt-related-title">{t("guides-water-test-guide.s106")}</div>
-                  <div className="wt-related-desc">{t("guides-water-test-guide.s107")}</div>
+                  <div className="wt-related-title">جدول تغيير الماء</div>
+                  <div className="wt-related-desc">كم مرة وكم نسبة التغيير</div>
                 </div>
               </Link>
               <Link href="/guides/algae-control" className="wt-related-card">
                 <span className="wt-related-icon">🌿</span>
                 <div>
-                  <div className="wt-related-title">{t("guides-water-test-guide.s108")}</div>
-                  <div className="wt-related-desc">{t("guides-water-test-guide.s109")}</div>
+                  <div className="wt-related-title">مكافحة الطحالب</div>
+                  <div className="wt-related-desc">الأسباب والحلول</div>
                 </div>
               </Link>
               <Link href="/guides/filter-choice" className="wt-related-card">
                 <span className="wt-related-icon">⚙️</span>
                 <div>
-                  <div className="wt-related-title">{t("guides-water-test-guide.s110")}</div>
-                  <div className="wt-related-desc">{t("guides-water-test-guide.s111")}</div>
+                  <div className="wt-related-title">اختيار الفلتر المناسب</div>
+                  <div className="wt-related-desc">أنواع الفلاتر لكل حجم</div>
                 </div>
               </Link>
             </div>

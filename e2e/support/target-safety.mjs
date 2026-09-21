@@ -40,9 +40,6 @@ export const PRODUCTION_WEB_HOSTS = [
  *                              accounting cutover verification
  */
 export const ALLOWED_DB_ENDPOINT_PREFIXES = [
-    // i18n-content-translations-verify-20260919 (br-green-lake-a4j5pmgk),
-    // verified through Neon as a non-production child of production.
-    'ep-morning-cake-a4s0f90n',
     'ep-rapid-breeze-a46glg7f',
     'ep-rough-smoke-a4umy5in',
     'ep-ancient-shape-a4k5kxrh',

@@ -1,5 +1,3 @@
-import { currencyLabel, formatLocalizedNumber } from "@/i18n/format";
-import { currentDocumentLocale } from "@/i18n/document-locale";
 /**
  * Format numbers with thousands separators
  * @param value - The number to format
@@ -12,7 +10,7 @@ export function formatNumber(value: number | string): string {
         return '0';
     }
 
-    return formatLocalizedNumber(num, currentDocumentLocale());
+    return num.toLocaleString('en-US');
 }
 
 /**
@@ -21,6 +19,6 @@ export function formatNumber(value: number | string): string {
  * @param currency - Currency symbol (default: 'د.ع')
  * @returns Formatted price string (e.g., "1,000 д.ع")
  */
-export function formatPrice(value: number | string, currency?: string): string {
-    return `${formatNumber(value)} ${currency ?? currencyLabel(currentDocumentLocale())}`;
+export function formatPrice(value: number | string, currency: string = 'د.ع'): string {
+    return `${formatNumber(value)} ${currency}`;
 }

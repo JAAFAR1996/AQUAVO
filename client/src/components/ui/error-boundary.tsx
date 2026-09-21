@@ -1,7 +1,6 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
 import { Button } from './button';
 import { AlertTriangle, RefreshCw, Home, PackageCheck } from 'lucide-react';
-import { i18next } from "@/i18n";
 
 interface ErrorBoundaryProps {
     children: ReactNode;
@@ -143,17 +142,17 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                             <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
                                 <PackageCheck className="w-8 h-8 text-primary" />
                             </div>
-                            <h2 className="text-xl font-bold">{i18next.t("common:error-boundary.s1")}</h2>
+                            <h2 className="text-xl font-bold">طلبك مسجّل بنجاح</h2>
                             <p className="text-muted-foreground text-sm leading-6">
-                                {i18next.t("common:error-boundary.s2")}
+                                صار خلل مؤقت بعرض تفاصيل التأكيد فقط. طلبك محفوظ عند AQUAVO، فلا تعيد إرسال الطلب مرة ثانية.
                             </p>
                             <div className="flex flex-col sm:flex-row gap-2 justify-center">
                                 <Button variant="outline" onClick={this.handleTrackOrder} className="gap-2">
-                                    {i18next.t("common:error-boundary.s3")}
+                                    تتبع الطلب
                                 </Button>
                                 <Button onClick={this.handleRetry} className="gap-2">
                                     <RefreshCw className="w-4 h-4" />
-                                    {i18next.t("common:error-boundary.s4")}
+                                    إعادة تحميل التأكيد
                                 </Button>
                             </div>
                         </div>
@@ -167,14 +166,14 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                         <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto">
                             <AlertTriangle className="w-8 h-8 text-destructive" />
                         </div>
-                        <h2 className="text-xl font-bold">{i18next.t("common:error-boundary.s5")}</h2>
+                        <h2 className="text-xl font-bold">حدث خطأ غير متوقع</h2>
                         <p className="text-muted-foreground text-sm">
-                            {i18next.t("common:error-boundary.s6")}
+                            عذراً، حدث خطأ أثناء تحميل هذا القسم. يرجى المحاولة مرة أخرى.
                         </p>
                         {import.meta.env.DEV && this.state.error && (
                             <details className="text-xs text-left bg-muted p-3 rounded-lg overflow-auto max-h-48">
                                 <summary className="cursor-pointer font-semibold mb-2">
-                                    {i18next.t("common:error-boundary.s7")}
+                                    تفاصيل الخطأ (وضع التطوير)
                                 </summary>
                                 <pre className="whitespace-pre-wrap">
                                     <strong>{this.state.error.toString()}</strong>
@@ -190,11 +189,11 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                         <div className="flex gap-2 justify-center">
                             <Button variant="outline" onClick={this.handleGoHome} className="gap-2">
                                 <Home className="w-4 h-4" />
-                                {i18next.t("common:error-boundary.s8")}
+                                الصفحة الرئيسية
                             </Button>
                             <Button onClick={this.handleRetry} className="gap-2">
                                 <RefreshCw className="w-4 h-4" />
-                                {i18next.t("common:error-boundary.s9")}
+                                إعادة المحاولة
                             </Button>
                         </div>
                     </div>

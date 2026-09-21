@@ -1,7 +1,6 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 import { addCsrfHeader } from "@/lib/csrf";
 import { normalizeCustomerOrderResponse } from "@/lib/shipping-address";
-import { i18next } from "@/i18n";
 
 // Default timeout for API requests (30 seconds)
 const DEFAULT_TIMEOUT_MS = 30000;
@@ -62,7 +61,7 @@ export async function apiRequest(
     return res;
   } catch (e: unknown) {
     if (e instanceof Error && e.name === 'AbortError') {
-      throw new Error(i18next.t("errors:timeout"));
+      throw new Error("انتهت مهلة الطلب - يرجى المحاولة مرة أخرى");
     }
     throw e;
   }
@@ -89,7 +88,7 @@ export function getQueryFn<T>(options: {
       return normalizeCustomerOrderResponse(url, payload) as T;
     } catch (e: unknown) {
       if (e instanceof Error && e.name === 'AbortError') {
-        throw new Error(i18next.t("errors:timeout"));
+        throw new Error("انتهت مهلة الطلب - يرجى المحاولة مرة أخرى");
       }
       throw e;
     }

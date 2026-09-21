@@ -17,23 +17,6 @@ import { displayAuthorName } from "../shared/author-name.js";
 import { articleWordCount } from "../shared/article-reading.js";
 import { articleDatePublished } from "../shared/article-dates.js";
 import { articleAuthorEntity } from "../shared/editorial-author.js";
-import { DEFAULT_LOCALE, splitLocaleFromPath, localizePath, type Locale } from "../shared/i18n/locales.js";
-import { isLocaleReleased } from "../shared/i18n/release.js";
-import {
-  applyBlogPostTranslation,
-  applyProductTranslation,
-  blogPostSourceFields,
-  coverageOf,
-  isIndexableCoverage,
-  productSourceFields,
-  sourceHash,
-  type BlogPostTranslationData,
-  type ProductTranslationData,
-  type TranslationRecord,
-} from "../shared/i18n/content.js";
-import { applyLocaleToHtml, SHELL_META } from "./_locale-meta.js";
-import { getLocalizedStaticMeta } from "./_static-meta-i18n.js";
-import { isPageTranslated } from "./_page-i18n.js";
 
 // ─── DB Setup (lightweight, no Drizzle overhead) ────────────────────────────
 neonConfig.webSocketConstructor = ws;
@@ -42,26 +25,6 @@ function getPool(): Pool | null {
   if (!process.env.DATABASE_URL) return null;
   if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
   return pool;
-}
-
-/** One translated record for an entity, or null (Arabic requests never query). */
-async function loadTranslation<T>(entityType: TranslationRecord["entityType"], entityId: string, locale: Locale): Promise<TranslationRecord<T> | null> {
-  if (locale === DEFAULT_LOCALE) return null;
-  const db = getPool();
-  if (!db) return null;
-  try {
-    const { rows } = await db.query(
-      `SELECT data, status, source_hash AS "sourceHash" FROM content_translations WHERE entity_type = $1 AND entity_id = $2 AND locale = $3 LIMIT 1`,
-      [entityType, entityId, locale],
-    );
-    if (!rows.length) return null;
-    return { entityType, entityId, locale, data: rows[0].data as T, status: rows[0].status === "reviewed" ? "reviewed" : "machine", sourceHash: rows[0].sourceHash ?? null };
-  } catch (err) {
-    // The table is created by migrations/add_content_translations.sql; until
-    // it exists every locale falls back to Arabic and is marked as such.
-    console.error("SSR meta: translation query error", err);
-    return null;
-  }
 }
 
 // ─── HTML template (imported from build-generated file) ─────────────────────
@@ -93,15 +56,6 @@ export interface PageMeta {
    * `toPublicProduct` boundary, so it can carry no cost fields.
    */
   embeddedProduct?: EmbeddedProduct;
-  /** Non-Arabic locale requested but no translation exists: page is served in Arabic and kept out of the index. */
-  translationMissing?: boolean;
-  /**
-   * Non-Arabic locale served from a translation that is machine output or
-   * outdated against the Arabic source. The copy is shown but the URL stays
-   * noindex until an editor marks it reviewed (rule: presence of a record is
-   * not completeness).
-   */
-  translationUnreviewed?: boolean;
 }
 
 /**
@@ -608,7 +562,7 @@ export function buildProductMetaTitle(name: string, brand?: string | null): stri
   return `${productTitle} | AQUAVO`;
 }
 
-async function getProductMeta(slug: string, locale: Locale = DEFAULT_LOCALE): Promise<(PageMeta & { productImage?: string }) | null> {
+async function getProductMeta(slug: string): Promise<(PageMeta & { productImage?: string }) | null> {
   const db = getPool();
   if (!db) return null;
   try {
@@ -637,11 +591,7 @@ async function getProductMeta(slug: string, locale: Locale = DEFAULT_LOCALE): Pr
       [slug]
     );
     if (rows.length === 0) return null;
-    const translation = await loadTranslation<ProductTranslationData>("product", String(rows[0].id), locale);
-    const productSource = productSourceFields(rows[0] as { name: string; description: string; subcategory?: string | null; specifications?: Record<string, unknown> | null; variants?: Array<{ id: string; label: string }> | null });
-    const productCoverage = locale === DEFAULT_LOCALE ? undefined : coverageOf(translation, sourceHash(productSource), productSource);
-    const localized = applyProductTranslation(rows[0] as Record<string, unknown>, productCoverage === "partial" ? undefined : translation?.data, locale);
-    const p = localized.value as typeof rows[0];
+    const p = rows[0];
     // The `variants` jsonb carries costPrice/costStatus/costBasis/costEvidence, written by
     // migrations/0073_accounting_final_hardening.sql and absent from the ProductVariant type. Nothing
     // below renders them today — but this function feeds HTML that is served to crawlers, and a single
@@ -667,13 +617,9 @@ async function getProductMeta(slug: string, locale: Locale = DEFAULT_LOCALE): Pr
     return {
       title: buildProductMetaTitle(p.name, p.brand),
       description: desc,
-      keywords: locale === "en"
-        ? `${p.name}, ${p.brand || "AQUAVO"}, buy online Iraq, aquarium supplies`
-        : `${p.name}، ${p.category || "مستلزمات احواض"}، ${p.brand || "AQUAVO"}، شراء اونلاين العراق`,
+      keywords: `${p.name}، ${p.category || "مستلزمات احواض"}، ${p.brand || "AQUAVO"}، شراء اونلاين العراق`,
       ogType: "product",
       productImage: primaryImage,
-      translationMissing: localized.translationMissing,
-      translationUnreviewed: productCoverage !== undefined && !isIndexableCoverage(productCoverage),
       embeddedProduct: publicProduct
         ? { slug: String(p.slug), renderedAt: Date.now(), product: publicProduct }
         : undefined,
@@ -718,7 +664,7 @@ async function getProductMeta(slug: string, locale: Locale = DEFAULT_LOCALE): Pr
   }
 }
 
-async function getBlogMeta(slug: string, locale: Locale = DEFAULT_LOCALE): Promise<PageMeta | null> {
+async function getBlogMeta(slug: string): Promise<PageMeta | null> {
   const db = getPool();
   if (!db) return null;
   try {
@@ -727,20 +673,13 @@ async function getBlogMeta(slug: string, locale: Locale = DEFAULT_LOCALE): Promi
       // is_published. This query threw 42703 on every blog request that reached
       // the stable handler, which is how a blog post lost its title and Article
       // schema entirely whenever the semantic renderer fell back to here.
-      `SELECT id, title, excerpt, image_url AS "imageUrl", author,
+      `SELECT title, excerpt, image_url AS "imageUrl", author,
               published_at AS "publishedAt", created_at AS "createdAt", content
          FROM blog_posts WHERE slug = $1 AND is_published = TRUE LIMIT 1`,
       [slug]
     );
     if (rows.length === 0) return null;
-    const translation = await loadTranslation<BlogPostTranslationData>("blog_post", String(rows[0].id), locale);
-    const postSource = blogPostSourceFields(rows[0] as { title: string; excerpt: string; content: string; category?: string | null });
-    const postCoverage = locale === DEFAULT_LOCALE ? undefined : coverageOf(translation, sourceHash(postSource), postSource);
-    const localizedPost = applyBlogPostTranslation(rows[0] as Record<string, unknown>, postCoverage === "partial" ? undefined : translation?.data, locale);
-    const post = localizedPost.value as typeof rows[0];
-    const shell = SHELL_META[locale];
-    const blogBase = `${BASE}${localizePath("/blog", locale)}`;
-    const postUrl = `${BASE}${localizePath(`/blog/${slug}`, locale)}`;
+    const post = rows[0];
     // Words in the article, not tokens in its markup: splitting the raw HTML
     // counted every tag as a word and overstated the length of every post.
     const wordCount = articleWordCount(post.content) || undefined;
@@ -749,11 +688,9 @@ async function getBlogMeta(slug: string, locale: Locale = DEFAULT_LOCALE): Promi
     // modification date is published at all. See shared/article-dates.ts.
     const datePublished = articleDatePublished(post);
     return {
-      title: `${post.title} | ${shell.blogSuffix}`,
+      title: `${post.title} | مدونة AQUAVO`,
       description: post.excerpt || post.title,
       ogType: "article",
-      translationMissing: localizedPost.translationMissing,
-      translationUnreviewed: postCoverage !== undefined && !isIndexableCoverage(postCoverage),
       jsonLd: [
         {
           "@context": "https://schema.org",
@@ -765,17 +702,17 @@ async function getBlogMeta(slug: string, locale: Locale = DEFAULT_LOCALE): Promi
           publisher: { "@type": "Organization", name: "AQUAVO", logo: { "@type": "ImageObject", url: DEFAULT_IMAGE } },
           datePublished,
           wordCount,
-          inLanguage: localizedPost.contentLocale,
-          mainEntityOfPage: { "@type": "WebPage", "@id": postUrl },
+          inLanguage: "ar",
+          mainEntityOfPage: { "@type": "WebPage", "@id": `${BASE}/blog/${slug}` },
           isPartOf: { "@id": `${BASE}/#website` },
         },
         {
           "@context": "https://schema.org",
           "@type": "BreadcrumbList",
           itemListElement: [
-            { "@type": "ListItem", position: 1, name: shell.homeName, item: locale === DEFAULT_LOCALE ? BASE : `${BASE}${localizePath("/", locale)}` },
-            { "@type": "ListItem", position: 2, name: shell.blogName, item: blogBase },
-            { "@type": "ListItem", position: 3, name: post.title, item: postUrl },
+            { "@type": "ListItem", position: 1, name: "الرئيسية", item: BASE },
+            { "@type": "ListItem", position: 2, name: "المدونة", item: `${BASE}/blog` },
+            { "@type": "ListItem", position: 3, name: post.title, item: `${BASE}/blog/${slug}` },
           ],
         },
       ],
@@ -871,19 +808,15 @@ function withStaticPageGraph(path: string, meta: PageMeta): object[] {
   return hasCrumb || !wantsCrumb ? own : [...own, breadcrumbFor(path, staticPageName(meta))];
 }
 
-async function resolveMetadata(pathname: string, notFound = false, locale: Locale = DEFAULT_LOCALE): Promise<PageMeta & { url: string; image: string }> {
+async function resolveMetadata(pathname: string, notFound = false): Promise<PageMeta & { url: string; image: string }> {
   const cleanPath = pathname.replace(/\/+$/, "") || "/";
   const seoOverride = getSeoMetaOverride(cleanPath);
   const noIndex = isNoindexPath(cleanPath);
-  const shell = SHELL_META[locale];
-  // English / Kurdish static copy replaces the Arabic title+description; the
-  // structured data builders below still run on the logical path.
-  const localizedStatic = locale === DEFAULT_LOCALE ? undefined : getLocalizedStaticMeta(locale, cleanPath);
 
   if (notFound) {
     return {
-      title: shell.notFoundTitle,
-      description: shell.notFoundDescription,
+      title: "الصفحة غير موجودة | AQUAVO",
+      description: "الرابط الذي فتحته غير موجود. تقدر ترجع للرئيسية أو تتصفح معدات ومستلزمات أحواض الزينة المتوفرة لدى AQUAVO.",
       url: canonicalUrlFor(cleanPath),
       noIndex,
       image: DEFAULT_IMAGE,
@@ -894,7 +827,7 @@ async function resolveMetadata(pathname: string, notFound = false, locale: Local
   // Static pages
   if (STATIC_PAGES[cleanPath]) {
     const meta = STATIC_PAGES[cleanPath];
-    const resolved = { ...meta, ...(seoOverride ?? {}), ...(localizedStatic ?? {}) };
+    const resolved = { ...meta, ...(seoOverride ?? {}) };
     return {
       ...resolved,
       // A page that builds its own graph keeps it; only the ones that defined
@@ -911,7 +844,7 @@ async function resolveMetadata(pathname: string, notFound = false, locale: Local
   // Product detail: /products/:slug
   const productMatch = cleanPath.match(/^\/products\/([^/]+)$/);
   if (productMatch) {
-    const meta = await getProductMeta(productMatch[1], locale);
+    const meta = await getProductMeta(productMatch[1]);
     if (meta) {
       return {
         ...meta,
@@ -926,7 +859,7 @@ async function resolveMetadata(pathname: string, notFound = false, locale: Local
   // Blog post: /blog/:slug
   const blogMatch = cleanPath.match(/^\/blog\/([^/]+)$/);
   if (blogMatch) {
-    const meta = await getBlogMeta(blogMatch[1], locale);
+    const meta = await getBlogMeta(blogMatch[1]);
     if (meta) {
       return {
         ...meta,
@@ -940,9 +873,9 @@ async function resolveMetadata(pathname: string, notFound = false, locale: Local
 
   // Fallback
   return {
-    title: localizedStatic?.title || seoOverride?.title || (locale === DEFAULT_LOCALE ? DEFAULT_TITLE : shell.defaultTitle),
-    description: localizedStatic?.description || seoOverride?.description || (locale === DEFAULT_LOCALE ? DEFAULT_DESC : shell.defaultDescription),
-    keywords: localizedStatic?.keywords || seoOverride?.keywords || DEFAULT_KEYWORDS,
+    title: seoOverride?.title || DEFAULT_TITLE,
+    description: seoOverride?.description || DEFAULT_DESC,
+    keywords: seoOverride?.keywords || DEFAULT_KEYWORDS,
     url: canonicalUrlFor(cleanPath),
     noIndex,
     image: DEFAULT_IMAGE,
@@ -1294,25 +1227,18 @@ function generateMarkdown(meta: PageMeta & { url: string; image: string }, pathn
 // ─── Handler ────────────────────────────────────────────────────────────────
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
-    const rawUrl = req.url || "/";
-    const requestPath = rawUrl.split("?")[0];
-    const search = rawUrl.includes("?") ? `?${rawUrl.split("?").slice(1).join("?")}` : "";
+    const pathname = (req.url || "/").split("?")[0];
 
     // Skip for actual static files (shouldn't reach here, but safety)
-    if (/\.(js|css|png|jpg|jpeg|gif|svg|webp|ico|woff2?|ttf|json|xml|txt|map|gz|br)$/i.test(requestPath)) {
+    if (/\.(js|css|png|jpg|jpeg|gif|svg|webp|ico|woff2?|ttf|json|xml|txt|map|gz|br)$/i.test(pathname)) {
       return res.status(404).end();
     }
-
-    // The locale lives in the URL prefix (/en, /ckb); Arabic is unprefixed.
-    // Everything below works on the logical, locale-free path.
-    const { locale, path: pathname } = splitLocaleFromPath(requestPath);
-    res.setHeader("Content-Language", locale);
 
     // Fully server-rendered educational content pages (visible in View Source,
     // quotable by AI engines). Served as complete HTML, bypassing the SPA shell.
     const guidePath = pathname.replace(/\/+$/, "") || "/";
     const acceptMd = (req.headers.accept || "").toLowerCase().includes("text/markdown");
-    if (guidePath === "/guides" && locale === DEFAULT_LOCALE) {
+    if (guidePath === "/guides") {
       res.setHeader("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
       if (acceptMd) {
         res.setHeader("Content-Type", "text/markdown; charset=utf-8");
@@ -1350,9 +1276,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // halves.
     const resolvedGuide = resolveGuidePage(guidePath);
     const isSpaBackedGuide = resolvedGuide !== null && resolvedGuide.canonicalPath in SPA_GUIDE_PAGES;
-    // Only Arabic guides are server-rendered from the Arabic registry. Other
-    // locales get the SPA shell; translated guide bodies come from the app.
-    if (resolvedGuide && !isSpaBackedGuide && locale === DEFAULT_LOCALE) {
+    if (resolvedGuide && !isSpaBackedGuide) {
       const acceptHeader = (req.headers.accept || "").toLowerCase();
       res.setHeader("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
       if (acceptHeader.includes("text/markdown")) {
@@ -1369,40 +1293,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const template = getTemplate();
     const status = isKnownSitePath(pathname, Object.keys(GUIDE_CONTENT_PAGES)) ? 200 : 404;
-    const meta = await resolveMetadata(pathname, status === 404, locale);
-    // Canonical is per locale: each translated page is its own indexable document.
-    if (locale !== DEFAULT_LOCALE) {
-      try {
-        const u = new URL(meta.url);
-        meta.url = `${u.origin}${localizePath(u.pathname, locale)}${u.search}`;
-      } catch {
-        /* keep the Arabic canonical */
-      }
-      // A page that fell back to Arabic must not be indexed as English/Kurdish,
-      // and neither may one served from machine or outdated copy: only a
-      // reviewed, current translation is a complete document in that locale.
-      // Static pages count as translated once their UI bundle section is complete.
-      if (meta.translationMissing || meta.translationUnreviewed || !isPageTranslated(locale, pathname)) meta.noIndex = true;
-
-      // An unreleased locale is never indexable, whatever its translation status.
-      //
-      // The three checks above all reason about the *translation* — missing,
-      // unreviewed, or not covering this page. None of them asks whether the
-      // locale has been released. That left a hole: the moment a locale's
-      // translations become reviewed and current, its pages become indexable
-      // even while shared/i18n/release.ts still has ready=false and is keeping
-      // it out of the selector, the sitemap and hreflang. Google would then be
-      // the only visitor who can find it.
-      //
-      // The release gate's contract is that an unreleased locale stays reachable
-      // by direct URL for QA and stays noindex; this is the line that makes the
-      // second half true.
-      if (!isLocaleReleased(locale)) meta.noIndex = true;
-    }
-    const localizedHtml = applyLocaleToHtml(injectMeta(template, meta), locale, pathname, pathname === "/products" ? search : "", {
-      indexable: !meta.noIndex && !meta.notFound,
-    });
-    const html = injectHomeHero(localizedHtml, pathname);
+    const meta = await resolveMetadata(pathname, status === 404);
+    const html = injectHomeHero(injectMeta(template, meta), pathname);
 
     // Markdown for Agents: If Accept: text/markdown, return markdown version
     const acceptHeader = (req.headers.accept || "").toLowerCase();

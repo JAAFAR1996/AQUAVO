@@ -1,7 +1,6 @@
 import { flushSync } from "react-dom";
 import { prefersReducedMotion } from "./reduced-motion";
 import type { FlowDirection } from "./flow-gate-routes";
-import { i18next } from "@/i18n";
 
 /**
  * AQUAVO Flow Gate — Light Version.
@@ -178,7 +177,7 @@ export async function runFlowGate(opts: FlowGateOptions): Promise<void> {
   veil.appendChild(frame);
 
   const holdLabel = document.createElement("div");
-  holdLabel.textContent = i18next.t("pages:flow-gate.s1");
+  holdLabel.textContent = "جاري تجهيز الصفحة";
   Object.assign(holdLabel.style, {
     position: "absolute",
     left: "0",

@@ -17,10 +17,8 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import { addCsrfHeader } from "@/lib/csrf";
-import { useTranslation } from "react-i18next";
 
 export default function ForgotPassword() {
-  const { t } = useTranslation("account");
     const { toast } = useToast();
     const [email, setEmail] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -43,13 +41,13 @@ export default function ForgotPassword() {
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.message || t("forgot-password.s1"));
+                throw new Error(data.message || "حدث خطأ ما");
             }
 
             setIsSubmitted(true);
             toast({
-                title: t("forgot-password.s2"),
-                description: t("forgot-password.s3"),
+                title: "تم إرسال الرابط",
+                description: "تحقق من بريدك الإلكتروني",
             });
         } catch (err: unknown) {
             // For security, always show success even if email doesn't exist
@@ -73,12 +71,12 @@ export default function ForgotPassword() {
                                 <Fish className="w-8 h-8 text-white" />
                             </div>
                             <CardTitle className="text-2xl">
-                                {isSubmitted ? t("forgot-password.s4") : t("forgot-password.s5")}
+                                {isSubmitted ? "تحقق من بريدك" : "نسيت كلمة المرور؟"}
                             </CardTitle>
                             <CardDescription>
                                 {isSubmitted
-                                    ? t("forgot-password.s6")
-                                    : t("forgot-password.s7")
+                                    ? "إذا كان البريد الإلكتروني مسجلاً، ستصلك رسالة تحتوي على رابط إعادة التعيين"
+                                    : "أدخل بريدك الإلكتروني وسنرسل لك رابط إعادة التعيين"
                                 }
                             </CardDescription>
                         </CardHeader>
@@ -92,7 +90,7 @@ export default function ForgotPassword() {
 
                                     <div className="space-y-2">
                                         <p className="text-muted-foreground">
-                                            {t("forgot-password.s8")}
+                                            أرسلنا رابط إعادة تعيين كلمة المرور إلى:
                                         </p>
                                         <p className="font-semibold text-primary" dir="ltr">
                                             {email}
@@ -102,7 +100,7 @@ export default function ForgotPassword() {
                                     <Alert className="bg-primary/5 border-primary/20">
                                         <AlertCircle className="h-4 w-4 text-primary" />
                                         <AlertDescription className="text-sm">
-                                            {t("forgot-password.s9")}
+                                            لم تستلم الرسالة؟ تحقق من مجلد الرسائل غير المرغوب فيها (Spam)
                                         </AlertDescription>
                                     </Alert>
 
@@ -115,13 +113,13 @@ export default function ForgotPassword() {
                                                 setEmail("");
                                             }}
                                         >
-                                            {t("forgot-password.s10")}
+                                            إرسال مرة أخرى
                                         </Button>
 
                                         <Link href="/login">
                                             <Button className="w-full gap-2">
                                                 <ArrowRight className="w-4 h-4" />
-                                                {t("forgot-password.s11")}
+                                                العودة لتسجيل الدخول
                                             </Button>
                                         </Link>
                                     </div>
@@ -137,7 +135,7 @@ export default function ForgotPassword() {
 
                                     <form onSubmit={handleSubmit} className="space-y-4">
                                         <div className="space-y-2">
-                                            <Label htmlFor="email">{t("forgot-password.s12")}</Label>
+                                            <Label htmlFor="email">البريد الإلكتروني</Label>
                                             <div className="relative">
                                                 <Mail className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                                                 <Input
@@ -157,10 +155,10 @@ export default function ForgotPassword() {
                                             {isLoading ? (
                                                 <span className="flex items-center gap-2">
                                                     <Loader2 className="w-5 h-5 animate-spin" />
-                                                    {t("forgot-password.s13")}
+                                                    جاري الإرسال...
                                                 </span>
                                             ) : (
-                                                t("forgot-password.s14")
+                                                "إرسال رابط إعادة التعيين"
                                             )}
                                         </Button>
                                     </form>
@@ -169,7 +167,7 @@ export default function ForgotPassword() {
                                         <Link href="/login">
                                             <span className="text-primary font-semibold hover:underline cursor-pointer flex items-center justify-center gap-2">
                                                 <ArrowRight className="w-4 h-4" />
-                                                {t("forgot-password.s11")}
+                                                العودة لتسجيل الدخول
                                             </span>
                                         </Link>
                                     </div>

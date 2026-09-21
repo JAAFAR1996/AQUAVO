@@ -9,17 +9,15 @@ import { Order } from "@/lib/types";
 import { formatIQD, formatDate } from "@/lib/utils";
 import { InvoiceDialog } from "@/components/cart/invoice-dialog";
 import { useQuery } from "@tanstack/react-query";
-import { useTranslation } from "react-i18next";
-import { i18next } from "@/i18n";
 
 // Match admin dashboard status labels exactly
 const statusLabels: Record<string, { label: string; color: string }> = {
-    pending: { label: i18next.t("account:profile-orders.s1"), color: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300" },
-    confirmed: { label: i18next.t("account:profile-orders.s2"), color: "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300" },
-    processing: { label: i18next.t("account:profile-orders.s3"), color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300" },
-    shipped: { label: i18next.t("account:profile-orders.s4"), color: "bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300" },
-    delivered: { label: i18next.t("account:profile-orders.s5"), color: "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300" },
-    cancelled: { label: i18next.t("account:profile-orders.s6"), color: "bg-gray-100 text-gray-800 dark:bg-gray-900/40 dark:text-gray-300" },
+    pending: { label: "قيد الانتظار", color: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300" },
+    confirmed: { label: "تم التأكيد", color: "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300" },
+    processing: { label: "جاري التجهيز", color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300" },
+    shipped: { label: "تم التسليم للنقل", color: "bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300" },
+    delivered: { label: "تم التوصيل", color: "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300" },
+    cancelled: { label: "ملغي", color: "bg-gray-100 text-gray-800 dark:bg-gray-900/40 dark:text-gray-300" },
 };
 
 // Status step order for progress display
@@ -31,7 +29,6 @@ interface ProfileOrdersProps {
 }
 
 export function ProfileOrders({ orders, isLoading }: ProfileOrdersProps) {
-  const { t } = useTranslation("account");
     const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
     const [invoiceOrder, setInvoiceOrder] = useState<Order | null>(null);
 
@@ -57,7 +54,7 @@ export function ProfileOrders({ orders, isLoading }: ProfileOrdersProps) {
             },
             items: items.map((item: any) => ({
                 id: item.productId || item.id || "",
-                name: item.productName || item.name || item.productId || t("profile-orders.s7"),
+                name: item.productName || item.name || item.productId || "منتج",
                 quantity: item.quantity || 1,
                 price: Number(item.priceAtPurchase || item.price || 0),
                 image: item.image || "",
@@ -83,20 +80,20 @@ export function ProfileOrders({ orders, isLoading }: ProfileOrdersProps) {
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <ShoppingBag className="w-5 h-5" />
-                        {t("profile-orders.s8")}
+                        طلباتي الأخيرة
                     </CardTitle>
-                    <CardDescription>{t("profile-orders.s9")}</CardDescription>
+                    <CardDescription>عرض وتتبع جميع طلباتك</CardDescription>
                 </CardHeader>
                 <CardContent>
                     {isLoading ? (
                         <div className="text-center py-8">
                             <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
-                            <p className="mt-2 text-muted-foreground">{t("profile-orders.s10")}</p>
+                            <p className="mt-2 text-muted-foreground">جاري تحميل الطلبات...</p>
                         </div>
                     ) : !orders || (Array.isArray(orders) && orders.length === 0) ? (
                         <div className="text-center py-8 text-muted-foreground">
                             <Package className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                            <p>{t("profile-orders.s11")}</p>
+                            <p>لا توجد طلبات سابقة</p>
                         </div>
                     ) : (
                         <div className="space-y-3">
@@ -126,14 +123,14 @@ export function ProfileOrders({ orders, isLoading }: ProfileOrdersProps) {
                                                         #{(order as any).orderNumber || order.id.slice(0, 8)}
                                                     </p>
                                                     <p className="text-xs text-muted-foreground">
-                                                        {new Date(order.createdAt).toLocaleDateString("ar-IQ")} • {items.length} {t("profile-orders.s7")}
+                                                        {new Date(order.createdAt).toLocaleDateString("ar-IQ")} • {items.length} منتج
                                                     </p>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-3">
                                                 <div className="text-left">
                                                     <p className="font-bold text-primary text-sm">
-                                                        {Number(order.total).toLocaleString()} {t("profile-orders.s12")}
+                                                        {Number(order.total).toLocaleString()} د.ع
                                                     </p>
                                                     <Badge className={`${status.color} text-[10px] px-2 py-0`}>
                                                         {status.label}
@@ -178,7 +175,7 @@ export function ProfileOrders({ orders, isLoading }: ProfileOrdersProps) {
 
                                                 {isCancelled && (
                                                     <div className="text-center py-2 text-red-500 text-sm font-medium">
-                                                        {t("profile-orders.s13")}
+                                                        تم إلغاء هذا الطلب
                                                     </div>
                                                 )}
 
@@ -186,7 +183,7 @@ export function ProfileOrders({ orders, isLoading }: ProfileOrdersProps) {
 
                                                 {/* Products List */}
                                                 <div className="space-y-2">
-                                                    <h4 className="text-xs font-semibold text-muted-foreground">{t("profile-orders.s14")}</h4>
+                                                    <h4 className="text-xs font-semibold text-muted-foreground">المنتجات</h4>
                                                     {items.map((item: any, idx: number) => (
                                                         <div key={idx} className="flex items-center justify-between text-sm py-1.5">
                                                             <div className="flex items-center gap-2 flex-1">
@@ -199,7 +196,7 @@ export function ProfileOrders({ orders, isLoading }: ProfileOrdersProps) {
                                                             </div>
                                                             {item.priceAtPurchase && (
                                                                 <span className="text-muted-foreground text-xs mr-2">
-                                                                    {Number(item.priceAtPurchase).toLocaleString()} {t("profile-orders.s12")}
+                                                                    {Number(item.priceAtPurchase).toLocaleString()} د.ع
                                                                 </span>
                                                             )}
                                                         </div>
@@ -221,9 +218,9 @@ export function ProfileOrders({ orders, isLoading }: ProfileOrdersProps) {
                                                 <Separator />
                                                 <div className="flex items-center justify-between">
                                                     <div className="text-sm">
-                                                        <span className="text-muted-foreground">{t("profile-orders.s15")} </span>
+                                                        <span className="text-muted-foreground">الإجمالي: </span>
                                                         <span className="font-bold text-primary">
-                                                            {Number(order.total).toLocaleString()} {t("profile-orders.s12")}
+                                                            {Number(order.total).toLocaleString()} د.ع
                                                         </span>
                                                     </div>
                                                     <Button
@@ -236,7 +233,7 @@ export function ProfileOrders({ orders, isLoading }: ProfileOrdersProps) {
                                                         }}
                                                     >
                                                         <FileText className="w-3.5 h-3.5 ml-1" />
-                                                        {t("profile-orders.s16")}
+                                                        عرض الفاتورة
                                                     </Button>
                                                 </div>
                                             </div>
@@ -251,7 +248,7 @@ export function ProfileOrders({ orders, isLoading }: ProfileOrdersProps) {
                         <Link href="/order-tracking">
                             <Button variant="outline" className="gap-2">
                                 <Truck className="w-4 h-4" />
-                                {t("profile-orders.s17")}
+                                تتبع طلب معين
                             </Button>
                         </Link>
                     </div>

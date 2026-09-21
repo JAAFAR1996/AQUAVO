@@ -1,6 +1,4 @@
-import { useTranslation } from "react-i18next";
 export default function GuideFeedingTable() {
-  const { t } = useTranslation("guides");
   return (
     <div className="fd-wrap">
 
@@ -12,7 +10,7 @@ export default function GuideFeedingTable() {
 
         {/* ── Hero ── */}
         <section className="fd-hero">
-          <span className="fd-badge">{t("guides-feeding-table.s1")}</span>
+          <span className="fd-badge">جدول التغذية — AQUAVO</span>
 
           {/* Two-minute visual timer */}
           <div className="fd-timer" aria-hidden="true">
@@ -24,77 +22,78 @@ export default function GuideFeedingTable() {
                 transform="rotate(-90 60 60)"/>
             </svg>
             <div className="fd-timer-inner">
-              <span className="fd-timer-num">{t("guides-feeding-table.s2")}</span>
-              <span className="fd-timer-lbl">{t("guides-feeding-table.s3")}</span>
+              <span className="fd-timer-num">٢</span>
+              <span className="fd-timer-lbl">دقيقة</span>
             </div>
           </div>
 
-          <h1>{t("guides-feeding-table.s4")}</h1>
-          <p className="fd-sub">{t("guides-feeding-table.s5")}</p>
+          <h1>دقيقتين تكفي</h1>
+          <p className="fd-sub">الإفراط في الأكل يعكر المي أسرع من أي شي ثاني</p>
           <p className="fd-intro">
-            {t("guides-feeding-table.s6")}
+            القاعدة الذهبية: ما يأكله السمچ خلال دقيقتين — هذا هو الحد. كل ما يبقى
+            بالمي يتحلل ويرفع الأمونيا ويدمر الدورة البيولوجية.
           </p>
           <div className="fd-meta">
-            <span>{t("guides-feeding-table.s7")}</span>
-            <span>{t("guides-feeding-table.s8")}</span>
+            <span>لكل أصحاب الأحواض</span>
+            <span>وقت القراءة: 5 دقائق</span>
           </div>
         </section>
 
         {/* ── الكمية الصحيحة ── */}
         <section className="fd-section">
-          <h2 className="fd-title">{t("guides-feeding-table.s9")}</h2>
+          <h2 className="fd-title">الكمية الصحيحة حسب حجم السمچ</h2>
           <p className="fd-body">
-            {t("guides-feeding-table.s10")}
+            ما فيه كمية ثابتة بالغرام — القاعدة هي دقيقتين. لكن حجم السمچ يحدد كم حبة تبدأ بيها.
           </p>
 
           <div className="fd-size-grid">
             <div className="fd-size-card">
               <div className="fd-size-icon">◉</div>
-              <div className="fd-size-name">{t("guides-feeding-table.s11")}</div>
-              <div className="fd-size-sub">{t("guides-feeding-table.s12")}</div>
-              <div className="fd-size-rule">{t("guides-feeding-table.s13")}<br/>{t("guides-feeding-table.s14")}</div>
-              <div className="fd-size-note">{t("guides-feeding-table.s15")}</div>
+              <div className="fd-size-name">سمچ صغير</div>
+              <div className="fd-size-sub">أقل من 3 سم</div>
+              <div className="fd-size-rule">٣–٤ حبات<br/>مرتين بالنهار</div>
+              <div className="fd-size-note">الحبات الصغيرة أو الغبار — حجم الفم</div>
             </div>
             <div className="fd-size-card">
               <div className="fd-size-icon">◎</div>
-              <div className="fd-size-name">{t("guides-feeding-table.s16")}</div>
-              <div className="fd-size-sub">{t("guides-feeding-table.s17")}</div>
-              <div className="fd-size-rule">{t("guides-feeding-table.s18")}<br/>{t("guides-feeding-table.s14")}</div>
-              <div className="fd-size-note">{t("guides-feeding-table.s19")}</div>
+              <div className="fd-size-name">سمچ متوسط</div>
+              <div className="fd-size-sub">٣–٨ سم</div>
+              <div className="fd-size-rule">٥–٧ حبات<br/>مرتين بالنهار</div>
+              <div className="fd-size-note">حبات أكبر مناسبة لحجم الفم</div>
             </div>
             <div className="fd-size-card">
               <div className="fd-size-icon">○</div>
-              <div className="fd-size-name">{t("guides-feeding-table.s20")}</div>
-              <div className="fd-size-sub">{t("guides-feeding-table.s21")}</div>
-              <div className="fd-size-rule">{t("guides-feeding-table.s22")}<br/>{t("guides-feeding-table.s23")}</div>
-              <div className="fd-size-note">{t("guides-feeding-table.s24")}</div>
+              <div className="fd-size-name">سمچ كبير</div>
+              <div className="fd-size-sub">فوق 8 سم</div>
+              <div className="fd-size-rule">٨–١٢ حبة<br/>مرة أو مرتين</div>
+              <div className="fd-size-note">راقب خلال دقيقتين — ما يبقى = ما يأكله</div>
             </div>
           </div>
         </section>
 
         {/* ── التوقيت ── */}
         <section className="fd-section">
-          <h2 className="fd-title">{t("guides-feeding-table.s25")}</h2>
+          <h2 className="fd-title">التوقيت الصح — متى تطعم؟</h2>
           <div className="fd-timing-list">
             <div className="fd-timing-row">
-              <div className="fd-timing-time">{t("guides-feeding-table.s26")}</div>
+              <div className="fd-timing-time">صباح</div>
               <div className="fd-timing-desc">
-                <strong>{t("guides-feeding-table.s27")}</strong>
-                <p>{t("guides-feeding-table.s28")}</p>
+                <strong>الوجبة الأولى</strong>
+                <p>بعد ساعة من تشغيل الإضاءة — السمچ أنشط وأكثر استعداداً</p>
               </div>
             </div>
             <div className="fd-timing-row">
-              <div className="fd-timing-time">{t("guides-feeding-table.s29")}</div>
+              <div className="fd-timing-time">مساء</div>
               <div className="fd-timing-desc">
-                <strong>{t("guides-feeding-table.s30")}</strong>
-                <p>{t("guides-feeding-table.s31")}</p>
+                <strong>الوجبة الثانية</strong>
+                <p>قبل ساعتين من إطفاء الإضاءة — وقت كافٍ للهضم قبل النوم</p>
               </div>
             </div>
             <div className="fd-timing-row fd-timing-never">
-              <div className="fd-timing-time">{t("guides-feeding-table.s32")}</div>
+              <div className="fd-timing-time">ليل</div>
               <div className="fd-timing-desc">
-                <strong>{t("guides-feeding-table.s33")}</strong>
-                <p>{t("guides-feeding-table.s34")}</p>
+                <strong>لا تطعم بالليل</strong>
+                <p>السمچ نائم والأكل يتحلل بالمي طول الليل — ضرر بدون فائدة</p>
               </div>
             </div>
           </div>
@@ -102,42 +101,42 @@ export default function GuideFeedingTable() {
 
         {/* ── علامات الإفراط ── */}
         <section className="fd-section">
-          <h2 className="fd-title">{t("guides-feeding-table.s35")}</h2>
-          <p className="fd-body">{t("guides-feeding-table.s36")}</p>
+          <h2 className="fd-title">كيف تعرف أنك تطعم كثير؟</h2>
+          <p className="fd-body">هاي العلامات تظهر قبل ما ترى أي سمچة تتأثر:</p>
           <div className="fd-warning-list">
             <div className="fd-warning">
               <span className="fd-w-dot"></span>
               <div>
-                <strong>{t("guides-feeding-table.s37")}</strong>
-                <p>{t("guides-feeding-table.s38")}</p>
+                <strong>المي يبين ضبابي أو أبيض</strong>
+                <p>تكاثر بكتيري بسبب بقايا الأكل — علامة واضحة على إفراط</p>
               </div>
             </div>
             <div className="fd-warning">
               <span className="fd-w-dot"></span>
               <div>
-                <strong>{t("guides-feeding-table.s39")}</strong>
-                <p>{t("guides-feeding-table.s40")}</p>
+                <strong>رائحة من الحوض</strong>
+                <p>الأكل يتعفن على قاع الحوض أو في الحصى</p>
               </div>
             </div>
             <div className="fd-warning">
               <span className="fd-w-dot"></span>
               <div>
-                <strong>{t("guides-feeding-table.s41")}</strong>
-                <p>{t("guides-feeding-table.s42")}</p>
+                <strong>طحالب تنمو سريع</strong>
+                <p>بقايا الأكل ترفع النترات — وقود الطحالب</p>
               </div>
             </div>
             <div className="fd-warning">
               <span className="fd-w-dot"></span>
               <div>
-                <strong>{t("guides-feeding-table.s43")}</strong>
-                <p>{t("guides-feeding-table.s44")}</p>
+                <strong>السمچ يوقف الأكل بسرعة</strong>
+                <p>معدة ممتلئة من الوجبة السابقة — خفف الكمية</p>
               </div>
             </div>
             <div className="fd-warning">
               <span className="fd-w-dot"></span>
               <div>
-                <strong>{t("guides-feeding-table.s45")}</strong>
-                <p>{t("guides-feeding-table.s46")}</p>
+                <strong>بقايا أكل على القاع</strong>
+                <p>تشيلها مباشرة بالسايفون وتوقف التغذية يوماً</p>
               </div>
             </div>
           </div>
@@ -145,18 +144,19 @@ export default function GuideFeedingTable() {
 
         {/* ── يوم الصيام ── */}
         <section className="fd-section">
-          <h2 className="fd-title">{t("guides-feeding-table.s47")}</h2>
+          <h2 className="fd-title">يوم الصيام — مرة بالأسبوع</h2>
           <p className="fd-body">
-            {t("guides-feeding-table.s48")}
+            يوم بدون أكل مرة بالأسبوع يفيد الحوض: يعطي الفلتر وقت يستعيد، ويقلل بقايا الأكل
+            المتراكمة في الحصى. السمچ الصحي يتحمله بدون مشكلة.
           </p>
         </section>
 
         {/* ── CTA ── */}
         <section className="fd-cta-section">
           <div className="fd-cta-box">
-            <h2 className="fd-cta-title">{t("guides-feeding-table.s49")}</h2>
+            <h2 className="fd-cta-title">تريد جدول مناسب لسمچك تحديداً؟</h2>
             <p className="fd-cta-body">
-              {t("guides-feeding-table.s50")}
+              أرسل نوع السمچ وحجمه وعدده — ونرتبلك جدول تغذية مناسب.
             </p>
             <a
               href="https://www.instagram.com/aquavo_iq/"
@@ -164,7 +164,7 @@ export default function GuideFeedingTable() {
               rel="noopener noreferrer"
               className="fd-cta-btn"
             >
-              {t("guides-feeding-table.s51")}
+              راسلنا على إنستغرام
             </a>
           </div>
         </section>

@@ -3,29 +3,26 @@ import { Link } from "wouter";
 
 import { BackToTop } from "@/components/back-to-top";
 import { BreadcrumbSchema, MetaTags, OrganizationSchema } from "@/components/seo/meta-tags";
-import { useTranslation } from "react-i18next";
-import { i18next } from "@/i18n";
 
 const reasons = [
-  { icon: PackageCheck, title: i18next.t("pages:why-aquavo.s1"), text: i18next.t("pages:why-aquavo.s2") },
-  { icon: BookOpen, title: i18next.t("pages:why-aquavo.s3"), text: i18next.t("pages:why-aquavo.s4") },
-  { icon: Truck, title: i18next.t("pages:why-aquavo.s5"), text: i18next.t("pages:why-aquavo.s6") },
-  { icon: Banknote, title: i18next.t("pages:why-aquavo.s7"), text: i18next.t("pages:why-aquavo.s8") },
-  { icon: Headphones, title: i18next.t("pages:why-aquavo.s9"), text: i18next.t("pages:why-aquavo.s10") },
+  { icon: PackageCheck, title: "اختيار على أساس واضح", text: "مواصفات وصور وحالة توفر تساعدك تقارن قبل القرار." },
+  { icon: BookOpen, title: "المعلومة قبل القطعة", text: "أدلة عملية حتى تعرف شتحتاج وليش تحتاجه." },
+  { icon: Truck, title: "توصيل لكل العراق", text: "خلال 24 ساعة بأجرة ثابتة 5,000 د.ع." },
+  { icon: Banknote, title: "دفع مرن", text: "عند الاستلام أو إلكترونياً من صفحة إكمال الطلب." },
+  { icon: Headphones, title: "دعم 24/7", text: "دز حجم الحوض أو تفاصيل المشكلة ونرتبلك الجواب." },
 ];
 
 export default function WhyAquavo() {
-  const { t } = useTranslation("pages");
   return (
     <div className="flex-1 bg-background text-foreground" dir="rtl">
-      <MetaTags title={t("why-aquavo.s11")} description={t("why-aquavo.s12")} />
+      <MetaTags title="ليش AQUAVO؟" description="AQUAVO براند عراقي لمعدات الأحواض البريميوم: معلومات واضحة، توصيل لكل العراق، دفع عند الاستلام أو إلكترونياً، ودعم 24/7." />
       <OrganizationSchema />
-      <BreadcrumbSchema items={[{ name: t("why-aquavo.s13"), url: "https://www.aquavoiq.com" }, { name: t("why-aquavo.s11"), url: "https://www.aquavoiq.com/why-aquavo" }]} />
+      <BreadcrumbSchema items={[{ name: "الرئيسية", url: "https://www.aquavoiq.com" }, { name: "ليش AQUAVO؟", url: "https://www.aquavoiq.com/why-aquavo" }]} />
       <main id="main-content" className="mx-auto max-w-6xl px-4 pb-20 pt-28 sm:px-6 sm:pt-32">
         <header className="max-w-3xl">
-          <p className="text-sm font-bold text-primary">{t("why-aquavo.s14")}</p>
-          <h1 className="mt-3 text-4xl font-bold sm:text-5xl">{t("why-aquavo.s11")}</h1>
-          <p className="mt-5 text-lg leading-8 text-muted-foreground">{t("why-aquavo.s15")}</p>
+          <p className="text-sm font-bold text-primary">براند عراقي بمواصفات عالمية لمعدات الأحواض البريميوم</p>
+          <h1 className="mt-3 text-4xl font-bold sm:text-5xl">ليش AQUAVO؟</h1>
+          <p className="mt-5 text-lg leading-8 text-muted-foreground">لأن اختيار معدات الحوض يحتاج وضوح، مو ضجيج بيع. AQUAVO يرتب المنتج والمعلومة والخدمة حول احتياج الحوض.</p>
         </header>
         <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {reasons.map(({ icon: Icon, title, text }) => (
@@ -37,9 +34,9 @@ export default function WhyAquavo() {
           ))}
         </div>
         <section className="mt-10 rounded-2xl border border-primary/20 bg-[#071821] p-7 text-white sm:p-10">
-          <h2 className="text-2xl font-bold">{t("why-aquavo.s16")}</h2>
-          <p className="mt-3 max-w-3xl leading-7 text-white/65">{t("why-aquavo.s17")}</p>
-          <div className="mt-6 flex flex-wrap gap-3"><Link href="/products" className="inline-flex min-h-11 items-center rounded-full bg-primary px-6 text-sm font-bold text-white">{t("why-aquavo.s18")}</Link><a href="/guides" className="inline-flex min-h-11 items-center rounded-full border border-white/20 px-6 text-sm font-bold">{t("why-aquavo.s19")}</a></div>
+          <h2 className="text-2xl font-bold">الثقة مرتبطة بالدليل</h2>
+          <p className="mt-3 max-w-3xl leading-7 text-white/65">وثيقة YEE تبقى خاصة بما تثبته لمنتجات YEE. وأي ضمان محدود يظهر فقط للمنتج المعتمد. ما نعمم وثيقة أو ضمان على كل المتجر.</p>
+          <div className="mt-6 flex flex-wrap gap-3"><Link href="/products" className="inline-flex min-h-11 items-center rounded-full bg-primary px-6 text-sm font-bold text-white">شوف المنتجات</Link><a href="/guides" className="inline-flex min-h-11 items-center rounded-full border border-white/20 px-6 text-sm font-bold">شوف الأدلة</a></div>
         </section>
       </main>
       <BackToTop />

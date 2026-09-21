@@ -176,6 +176,3 @@ reports/screenshots/
 # Written by TOOLS/submit-indexnow.mjs; carried between CI runs by the
 # workflow cache, never committed.
 .indexnow-ledger.json
-
-# Generated Playwright/E2E artifacts
-e2e-artifacts/

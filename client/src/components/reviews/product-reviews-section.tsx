@@ -12,7 +12,6 @@ import {
 import { ReviewForm } from "./review-form";
 import { ReviewList } from "./review-list";
 import { cn } from "@/lib/utils";
-import { useTranslation } from "react-i18next";
 
 interface ProductReviewsSectionProps {
     productId: string;
@@ -25,7 +24,6 @@ export function ProductReviewsSection({
     productName,
     className,
 }: ProductReviewsSectionProps) {
-  const { t } = useTranslation("pages");
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [refreshKey, setRefreshKey] = useState(0);
 
@@ -38,19 +36,19 @@ export function ProductReviewsSection({
     return (
         <section className={cn("py-8", className)}>
             <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold">{t("product-reviews-section.s1")}</h2>
+                <h2 className="text-2xl font-bold">تقييمات العملاء</h2>
 
                 <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
                     <DialogTrigger asChild>
                         <Button className="gap-2">
                             <MessageSquarePlus className="w-4 h-4" />
-                            {t("product-reviews-section.s2")}
+                            أضف مراجعتك
                         </Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-lg">
                         <DialogHeader>
                             <DialogTitle className="text-right">
-                                {t("product-reviews-section.s3")} {productName && t("product-reviews-section.s4", { v0: productName })}
+                                أضف مراجعة {productName && `لـ ${productName}`}
                             </DialogTitle>
                         </DialogHeader>
                         <ReviewForm

@@ -1,15 +1,16 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
-import { formatLocalizedPrice } from "@/i18n/format";
-import { currentDocumentLocale } from "@/i18n/document-locale";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-/** IQD price in the language on screen ("12,500 د.ع" / "12,500 IQD"). Digits stay Latin in every locale. */
 export function formatIQD(amount: number): string {
-  return formatLocalizedPrice(amount, currentDocumentLocale());
+  return new Intl.NumberFormat('en-US', {
+    style: 'decimal',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount) + ' د.ع';
 }
 
 /**

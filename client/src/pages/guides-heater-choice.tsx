@@ -1,6 +1,4 @@
-import { useTranslation } from "react-i18next";
 export default function GuideHeaterChoice() {
-  const { t } = useTranslation("guides");
   return (
     <div className="htr-wrap">
 
@@ -12,7 +10,7 @@ export default function GuideHeaterChoice() {
 
         {/* ── Hero ── */}
         <section className="htr-hero">
-          <span className="htr-badge">{t("guides-heater-choice.s1")}</span>
+          <span className="htr-badge">دليل الهيتر — AQUAVO</span>
 
           {/* Wattage gauge — CSS only */}
           <div className="htr-gauge-wrap" aria-hidden="true">
@@ -22,49 +20,52 @@ export default function GuideHeaterChoice() {
               <div className="htr-gauge-center"></div>
             </div>
             <div className="htr-gauge-labels">
-              <span>{t("guides-heater-choice.s2")}</span>
-              <span className="htr-gauge-safe">{t("guides-heater-choice.s3")}</span>
-              <span>{t("guides-heater-choice.s4")}</span>
+              <span>ضعيف</span>
+              <span className="htr-gauge-safe">آمن</span>
+              <span>زيادة</span>
             </div>
           </div>
 
-          <h1>{t("guides-heater-choice.s5")}</h1>
-          <p className="htr-sub">{t("guides-heater-choice.s6")}</p>
+          <h1>واط مو تخمين</h1>
+          <p className="htr-sub">هيتر صغير جداً يُجهد السمچ — هيتر كبير جداً يحرق الحوض</p>
           <p className="htr-intro">
-            {t("guides-heater-choice.s7")}
+            قاعدة الواط لكل لتر هي الخطوة الأولى، لكن عوامل أخرى تحدد الاختيار الصح.
+            هذا الدليل يعطيك الحساب الدقيق بدون تخمين.
           </p>
           <div className="htr-meta">
-            <span>{t("guides-heater-choice.s8")}</span>
-            <span>{t("guides-heater-choice.s9")}</span>
+            <span>قبل كل شراء جديد</span>
+            <span>وقت القراءة: 5 دقائق</span>
           </div>
         </section>
 
         {/* ── تحذير: هيتر بدون ثرموستات ── */}
         <section className="htr-section">
-          <h2 className="htr-title">{t("guides-heater-choice.s10")}</h2>
+          <h2 className="htr-title">تحذير مهم: الهيترات بدون ثرموستات</h2>
           <div className="htr-thermo-warn">
-            <div className="htr-thermo-badge">{t("guides-heater-choice.s11")}</div>
+            <div className="htr-thermo-badge">⚠ خطر حقيقي</div>
             <p className="htr-thermo-text">
-              {t("guides-heater-choice.s12")}
+              الهيتر بدون ثرموستات يسخن بدون توقف — لا يوقف نفسه حين تصل الحرارة للدرجة المطلوبة.
+              الحوض يصل لـ ٤٠°C ويقتل السمچ خلال ساعات.
+              الهيترات الرخيصة جداً (أقل من ألف دينار) غالباً بدون ثرموستات أو بثرموستات لا يعمل.
             </p>
           </div>
           <div className="htr-thermo-compare">
             <div className="htr-tc-bad">
-              <div className="htr-tc-label htr-tc-label-bad">{t("guides-heater-choice.s13")}</div>
+              <div className="htr-tc-label htr-tc-label-bad">بدون ثرموستات — لا تشتريه</div>
               <ul className="htr-tc-ul">
-                <li>{t("guides-heater-choice.s14")}</li>
-                <li>{t("guides-heater-choice.s15")}</li>
-                <li>{t("guides-heater-choice.s16")}</li>
-                <li>{t("guides-heater-choice.s17")}</li>
+                <li>يسخن باستمرار بدون إيقاف تلقائي</li>
+                <li>الحرارة ترتفع حتى تطبخ السمچ</li>
+                <li>يحتاج مراقبة يدوية مستمرة</li>
+                <li>رخيص الثمن — غالي الثمن على السمچ</li>
               </ul>
             </div>
             <div className="htr-tc-good">
-              <div className="htr-tc-label htr-tc-label-good">{t("guides-heater-choice.s18")}</div>
+              <div className="htr-tc-label htr-tc-label-good">بثرموستات — الاختيار الصحيح</div>
               <ul className="htr-tc-ul">
-                <li>{t("guides-heater-choice.s19")}</li>
-                <li>{t("guides-heater-choice.s20")}</li>
-                <li>{t("guides-heater-choice.s21")}</li>
-                <li>{t("guides-heater-choice.s22")}</li>
+                <li>يوقف التسخين تلقائياً عند الدرجة المضبوطة</li>
+                <li>يحافظ على حرارة ثابتة طول اليوم</li>
+                <li>آمن بدون مراقبة مستمرة</li>
+                <li>موجود بكل الأسعار — مو رفاهية</li>
               </ul>
             </div>
           </div>
@@ -72,72 +73,73 @@ export default function GuideHeaterChoice() {
 
         {/* ── حساب الواط ── */}
         <section className="htr-section">
-          <h2 className="htr-title">{t("guides-heater-choice.s23")}</h2>
+          <h2 className="htr-title">حساب واط الهيتر المناسب</h2>
           <p className="htr-body">
-            {t("guides-heater-choice.s24")} <strong className="htr-hl">{t("guides-heater-choice.s25")}</strong> {t("guides-heater-choice.s26")}
+            القاعدة الأساسية: <strong className="htr-hl">١ واط لكل لتر</strong> كحد أدنى.
+            لكن هذا فقط نقطة البداية.
           </p>
           <div className="htr-calc-table">
             <div className="htr-calc-row htr-calc-head">
-              <span>{t("guides-heater-choice.s27")}</span>
-              <span>{t("guides-heater-choice.s28")}</span>
-              <span>{t("guides-heater-choice.s29")}</span>
+              <span>حجم الحوض</span>
+              <span>واط أدنى</span>
+              <span>واط موصى</span>
             </div>
             <div className="htr-calc-row">
-              <span>{t("guides-heater-choice.s30")}</span>
-              <span>{t("guides-heater-choice.s31")}</span>
-              <span>{t("guides-heater-choice.s32")}</span>
+              <span>٢٠–٣٠ لتر</span>
+              <span>٢٠–٣٠ واط</span>
+              <span>٥٠ واط</span>
             </div>
             <div className="htr-calc-row">
-              <span>{t("guides-heater-choice.s33")}</span>
-              <span>{t("guides-heater-choice.s34")}</span>
-              <span>{t("guides-heater-choice.s35")}</span>
+              <span>٤٠–٦٠ لتر</span>
+              <span>٤٠–٦٠ واط</span>
+              <span>١٠٠ واط</span>
             </div>
             <div className="htr-calc-row">
-              <span>{t("guides-heater-choice.s36")}</span>
-              <span>{t("guides-heater-choice.s37")}</span>
-              <span>{t("guides-heater-choice.s38")}</span>
+              <span>٨٠–١٢٠ لتر</span>
+              <span>٨٠–١٢٠ واط</span>
+              <span>٢٠٠ واط</span>
             </div>
             <div className="htr-calc-row">
-              <span>{t("guides-heater-choice.s39")}</span>
-              <span>{t("guides-heater-choice.s40")}</span>
-              <span>{t("guides-heater-choice.s41")}</span>
+              <span>١٥٠–٢٠٠ لتر</span>
+              <span>١٥٠–٢٠٠ واط</span>
+              <span>٣٠٠ واط</span>
             </div>
           </div>
           <p className="htr-note">
-            {t("guides-heater-choice.s42")}
+            ⚠ إذا الجو بارد جداً في الغرفة أو الحوض بالقرب من مكيف — زد ٢٠–٣٠٪ إضافية.
           </p>
         </section>
 
         {/* ── عوامل الاختيار ── */}
         <section className="htr-section">
-          <h2 className="htr-title">{t("guides-heater-choice.s43")}</h2>
+          <h2 className="htr-title">٤ عوامل تؤثر على الاختيار</h2>
           <div className="htr-factors">
             <div className="htr-factor">
-              <div className="htr-factor-num">{t("guides-heater-choice.s44")}</div>
+              <div className="htr-factor-num">١</div>
               <div>
-                <strong>{t("guides-heater-choice.s45")}</strong>
-                <p>{t("guides-heater-choice.s46")}</p>
+                <strong>فرق درجة الحرارة</strong>
+                <p>كلما كان الفرق بين الغرفة ودرجة الحوض المطلوبة أكبر، كلما تحتاج واط أعلى.</p>
               </div>
             </div>
             <div className="htr-factor">
-              <div className="htr-factor-num">{t("guides-heater-choice.s47")}</div>
+              <div className="htr-factor-num">٢</div>
               <div>
-                <strong>{t("guides-heater-choice.s48")}</strong>
-                <p>{t("guides-heater-choice.s49")}</p>
+                <strong>نوع الهيتر (داخلي / خارجي / inline)</strong>
+                <p>الهيتر الخارجي وinline أكثر كفاءة. الداخلي مناسب للأحواض الصغيرة.</p>
               </div>
             </div>
             <div className="htr-factor">
-              <div className="htr-factor-num">{t("guides-heater-choice.s50")}</div>
+              <div className="htr-factor-num">٣</div>
               <div>
-                <strong>{t("guides-heater-choice.s51")}</strong>
-                <p>{t("guides-heater-choice.s52")}</p>
+                <strong>موقع الهيتر في الحوض</strong>
+                <p>ضعه بالقرب من مصدر تدفق الماء — يوزع الحرارة بشكل أفضل.</p>
               </div>
             </div>
             <div className="htr-factor">
-              <div className="htr-factor-num">{t("guides-heater-choice.s53")}</div>
+              <div className="htr-factor-num">٤</div>
               <div>
-                <strong>{t("guides-heater-choice.s54")}</strong>
-                <p>{t("guides-heater-choice.s55")}</p>
+                <strong>ثرموستات مستقل أو مدمج</strong>
+                <p>الثرموستات المستقل يعطي تحكم أدق ويحمي من ارتفاع درجة الحرارة المفاجئ.</p>
               </div>
             </div>
           </div>
@@ -145,27 +147,27 @@ export default function GuideHeaterChoice() {
 
         {/* ── علامات الهيتر الخاطئ ── */}
         <section className="htr-section">
-          <h2 className="htr-title">{t("guides-heater-choice.s56")}</h2>
+          <h2 className="htr-title">علامات الهيتر غير المناسب</h2>
           <div className="htr-warn-list">
             <div className="htr-warn htr-warn-low">
-              <span className="htr-warn-tag">{t("guides-heater-choice.s57")}</span>
+              <span className="htr-warn-tag">واط قليل</span>
               <div>
-                <strong>{t("guides-heater-choice.s58")}</strong>
-                <p>{t("guides-heater-choice.s59")}</p>
+                <strong>الحوض ما يوصل لدرجة الحرارة المطلوبة</strong>
+                <p>الهيتر يشتغل بلا توقف ويستهلك — ويفشل بسرعة</p>
               </div>
             </div>
             <div className="htr-warn htr-warn-low">
-              <span className="htr-warn-tag">{t("guides-heater-choice.s57")}</span>
+              <span className="htr-warn-tag">واط قليل</span>
               <div>
-                <strong>{t("guides-heater-choice.s60")}</strong>
-                <p>{t("guides-heater-choice.s61")}</p>
+                <strong>درجة الحرارة تتذبذب مع تغيرات الغرفة</strong>
+                <p>تذبذب يومي يسبب إجهاد مزمن للسمچ</p>
               </div>
             </div>
             <div className="htr-warn htr-warn-high">
-              <span className="htr-warn-tag htr-tag-high">{t("guides-heater-choice.s62")}</span>
+              <span className="htr-warn-tag htr-tag-high">واط زيادة</span>
               <div>
-                <strong>{t("guides-heater-choice.s63")}</strong>
-                <p>{t("guides-heater-choice.s64")}</p>
+                <strong>درجة الحرارة ترتفع بسرعة لو الثرموستات فشل</strong>
+                <p>هيتر ٣٠٠ واط في حوض ٢٠ لتر = خطر حقيقي</p>
               </div>
             </div>
           </div>
@@ -174,9 +176,9 @@ export default function GuideHeaterChoice() {
         {/* ── CTA ── */}
         <section className="htr-cta-section">
           <div className="htr-cta-box">
-            <h2 className="htr-cta-title">{t("guides-heater-choice.s65")}</h2>
+            <h2 className="htr-cta-title">غير متأكد من الواط المناسب لحوضك؟</h2>
             <p className="htr-cta-body">
-              {t("guides-heater-choice.s66")}
+              أرسل حجم الحوض وموقعه (داخلي/خارجي) ودرجة الحرارة المطلوبة — نحسبها معك.
             </p>
             <a
               href="https://www.instagram.com/aquavo_iq/"
@@ -184,7 +186,7 @@ export default function GuideHeaterChoice() {
               rel="noopener noreferrer"
               className="htr-cta-btn"
             >
-              {t("guides-heater-choice.s67")}
+              راسلنا على إنستغرام
             </a>
           </div>
         </section>

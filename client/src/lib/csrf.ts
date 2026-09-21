@@ -39,9 +39,6 @@ export function addCsrfHeader(headers: HeadersInit = {}): HeadersInit {
   return {
     ...headers,
     [CSRF_HEADER_NAME]: token,
-    // Every API call carries the storefront language so localized content
-    // (products, articles, error messages) comes back in the language on screen.
-    "x-locale": typeof document !== "undefined" ? document.documentElement.getAttribute("lang") || "ar" : "ar",
   };
 }
 

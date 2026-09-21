@@ -40,8 +40,6 @@ import {
   XCircle,
   ChevronRight,
 } from "lucide-react";
-import { useTranslation } from "react-i18next";
-import { i18next } from "@/i18n";
 
 // ═══════════════════════════════════════════════════════
 // Types — matches the new backend schema
@@ -126,12 +124,12 @@ interface DiagnosisResult {
 // ═══════════════════════════════════════════════════════
 
 const analysisSteps = [
-  { id: 1, label: i18next.t("tools:fish-health-diagnosis.s1"), icon: Droplets, duration: 500 },
-  { id: 2, label: i18next.t("tools:fish-health-diagnosis.s2"), icon: Eye, duration: 2500 },
-  { id: 3, label: i18next.t("tools:fish-health-diagnosis.s3"), icon: Microscope, duration: 3000 },
-  { id: 4, label: i18next.t("tools:fish-health-diagnosis.s4"), icon: Shield, duration: 2500 },
-  { id: 5, label: i18next.t("tools:fish-health-diagnosis.s5"), icon: Syringe, duration: 2500 },
-  { id: 6, label: i18next.t("tools:fish-health-diagnosis.s6"), icon: TrendingUp, duration: 500 },
+  { id: 1, label: "فحص بيانات الماء (Rule Engine)", icon: Droplets, duration: 500 },
+  { id: 2, label: "الوكيل البصري — وصف الصورة", icon: Eye, duration: 2500 },
+  { id: 3, label: "وكيل التشخيص — تحليل الأعراض", icon: Microscope, duration: 3000 },
+  { id: 4, label: "وكيل المراجعة — فحص الاستثناءات", icon: Shield, duration: 2500 },
+  { id: 5, label: "وكيل العلاج — خطة العلاج", icon: Syringe, duration: 2500 },
+  { id: 6, label: "تجميع النتائج النهائية", icon: TrendingUp, duration: 500 },
 ];
 
 // ═══════════════════════════════════════════════════════
@@ -145,10 +143,10 @@ const diseaseCategories = [
     icon: Bug,
     color: "from-red-500 to-orange-500",
     diseases: [
-      { name: i18next.t("tools:fish-health-diagnosis.s7"), urgency: "high" as const },
-      { name: i18next.t("tools:fish-health-diagnosis.s8"), urgency: "high" as const },
-      { name: i18next.t("tools:fish-health-diagnosis.s9"), urgency: "high" as const },
-      { name: i18next.t("tools:fish-health-diagnosis.s10"), urgency: "high" as const },
+      { name: "مرض النقط البيضاء (Ich)", urgency: "high" as const },
+      { name: "المخملية (Velvet)", urgency: "high" as const },
+      { name: "ديدان الخياشيم / الجلد", urgency: "high" as const },
+      { name: "ثقب الرأس (Hexamita)", urgency: "high" as const },
     ]
   },
   {
@@ -157,10 +155,10 @@ const diseaseCategories = [
     icon: Microscope,
     color: "from-purple-500 to-pink-500",
     diseases: [
-      { name: i18next.t("tools:fish-health-diagnosis.s11"), urgency: "medium" as const },
-      { name: i18next.t("tools:fish-health-diagnosis.s12"), urgency: "high" as const },
-      { name: i18next.t("tools:fish-health-diagnosis.s13"), urgency: "critical" as const },
-      { name: i18next.t("tools:fish-health-diagnosis.s14"), urgency: "high" as const },
+      { name: "تعفن الزعانف (Fin Rot)", urgency: "medium" as const },
+      { name: "القطنية (Columnaris)", urgency: "high" as const },
+      { name: "الاستسقاء (Dropsy)", urgency: "critical" as const },
+      { name: "القرح البكتيرية", urgency: "high" as const },
     ]
   },
   {
@@ -169,10 +167,10 @@ const diseaseCategories = [
     icon: ShieldAlert,
     color: "from-teal-500 to-cyan-500",
     diseases: [
-      { name: i18next.t("tools:fish-health-diagnosis.s15"), urgency: "medium" as const },
-      { name: i18next.t("tools:fish-health-diagnosis.s16"), urgency: "low" as const },
-      { name: i18next.t("tools:fish-health-diagnosis.s17"), urgency: "critical" as const },
-      { name: i18next.t("tools:fish-health-diagnosis.s18"), urgency: "critical" as const },
+      { name: "فطريات الماء (Saprolegnia)", urgency: "medium" as const },
+      { name: "الأورام اللمفاوية (Lymphocystis)", urgency: "low" as const },
+      { name: "فطر الخياشيم", urgency: "critical" as const },
+      { name: "فيروس الكوي (KHV)", urgency: "critical" as const },
     ]
   },
   {
@@ -181,10 +179,10 @@ const diseaseCategories = [
     icon: Droplets,
     color: "from-amber-500 to-yellow-500",
     diseases: [
-      { name: i18next.t("tools:fish-health-diagnosis.s19"), urgency: "critical" as const },
-      { name: i18next.t("tools:fish-health-diagnosis.s20"), urgency: "high" as const },
-      { name: i18next.t("tools:fish-health-diagnosis.s21"), urgency: "high" as const },
-      { name: i18next.t("tools:fish-health-diagnosis.s22"), urgency: "medium" as const },
+      { name: "تسمم الأمونيا", urgency: "critical" as const },
+      { name: "تسمم النيتريت", urgency: "high" as const },
+      { name: "صدمة pH / الحرارة", urgency: "high" as const },
+      { name: "اضطراب المثانة الهوائية", urgency: "medium" as const },
     ]
   },
 ];
@@ -194,7 +192,6 @@ const diseaseCategories = [
 // ═══════════════════════════════════════════════════════
 
 export default function FishHealthDiagnosis() {
-  const { t } = useTranslation("tools");
   const [, navigate] = useLocation();
   const [image, setImage] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -330,7 +327,7 @@ export default function FishHealthDiagnosis() {
     if (file) {
       // Validate file size (5MB max)
       if (file.size > 5 * 1024 * 1024) {
-        setError(t("fish-health-diagnosis.s23"));
+        setError("حجم الصورة كبير جداً. الحد الأقصى 5 ميجابايت.");
         return;
       }
       setImageFile(file);
@@ -384,10 +381,10 @@ export default function FishHealthDiagnosis() {
 
       if (!response.ok) {
         if (response.status === 401) {
-          throw new Error(t("fish-health-diagnosis.s24"));
+          throw new Error('يجب تسجيل الدخول أولاً لاستخدام التشخيص الذكي');
         }
         const errorData = await response.json().catch(() => null);
-        throw new Error(errorData?.error || errorData?.message || t("fish-health-diagnosis.s25"));
+        throw new Error(errorData?.error || errorData?.message || 'فشل تحليل الصورة. حاول مرة أخرى.');
       }
 
       const result = await response.json();
@@ -397,8 +394,8 @@ export default function FishHealthDiagnosis() {
       await stepsPromise;
 
       const diagnosisResult: DiagnosisResult = {
-        disease: details.disease || t("fish-health-diagnosis.s26"),
-        arabicName: details.arabicName || t("fish-health-diagnosis.s26"),
+        disease: details.disease || 'غير محدد',
+        arabicName: details.arabicName || 'غير محدد',
         confidence: Math.round((result.data?.analysis?.confidence || 0.7) * 100),
         category: details.category || 'unknown',
         pathogen: details.pathogen,
@@ -428,7 +425,7 @@ export default function FishHealthDiagnosis() {
         resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 300);
     } catch (err) {
-      const message = err instanceof Error ? err.message : t("fish-health-diagnosis.s27");
+      const message = err instanceof Error ? err.message : 'حدث خطأ أثناء التحليل';
       setError(message);
       // Still wait for steps to finish to avoid state leaks
       await stepsPromise.catch(() => {});
@@ -472,9 +469,9 @@ export default function FishHealthDiagnosis() {
       });
       const json = await res.json();
       if (json.success) setThousandResult(json.data);
-      else setThousandError(json.error || t("fish-health-diagnosis.s28"));
+      else setThousandError(json.error || "فشلت المحاكاة");
     } catch {
-      setThousandError(t("fish-health-diagnosis.s29"));
+      setThousandError("تعذّر الاتصال بالخادم");
     } finally {
       setThousandLoading(false);
     }
@@ -485,50 +482,50 @@ export default function FishHealthDiagnosis() {
   }, []);
 
   const urgencyConfig = {
-    low: { color: 'bg-green-500', gradient: 'from-green-500 to-emerald-600', text: t("fish-health-diagnosis.s30"), textColor: 'text-green-700 dark:text-green-400', bgLight: 'bg-green-50 dark:bg-green-950', icon: CheckCircle, border: 'border-green-200 dark:border-green-800' },
-    medium: { color: 'bg-yellow-500', gradient: 'from-yellow-500 to-amber-600', text: t("fish-health-diagnosis.s31"), textColor: 'text-yellow-700 dark:text-yellow-400', bgLight: 'bg-yellow-50 dark:bg-yellow-950', icon: Info, border: 'border-yellow-200 dark:border-yellow-800' },
-    high: { color: 'bg-orange-500', gradient: 'from-orange-500 to-red-500', text: t("fish-health-diagnosis.s32"), textColor: 'text-orange-700 dark:text-orange-400', bgLight: 'bg-orange-50 dark:bg-orange-950', icon: AlertCircle, border: 'border-orange-200 dark:border-orange-800' },
-    critical: { color: 'bg-red-600', gradient: 'from-red-600 to-red-800', text: t("fish-health-diagnosis.s33"), textColor: 'text-red-700 dark:text-red-400', bgLight: 'bg-red-50 dark:bg-red-950', icon: AlertTriangle, border: 'border-red-200 dark:border-red-800' },
+    low: { color: 'bg-green-500', gradient: 'from-green-500 to-emerald-600', text: 'منخفضة', textColor: 'text-green-700 dark:text-green-400', bgLight: 'bg-green-50 dark:bg-green-950', icon: CheckCircle, border: 'border-green-200 dark:border-green-800' },
+    medium: { color: 'bg-yellow-500', gradient: 'from-yellow-500 to-amber-600', text: 'متوسطة', textColor: 'text-yellow-700 dark:text-yellow-400', bgLight: 'bg-yellow-50 dark:bg-yellow-950', icon: Info, border: 'border-yellow-200 dark:border-yellow-800' },
+    high: { color: 'bg-orange-500', gradient: 'from-orange-500 to-red-500', text: 'عالية', textColor: 'text-orange-700 dark:text-orange-400', bgLight: 'bg-orange-50 dark:bg-orange-950', icon: AlertCircle, border: 'border-orange-200 dark:border-orange-800' },
+    critical: { color: 'bg-red-600', gradient: 'from-red-600 to-red-800', text: 'حرجة!', textColor: 'text-red-700 dark:text-red-400', bgLight: 'bg-red-50 dark:bg-red-950', icon: AlertTriangle, border: 'border-red-200 dark:border-red-800' },
   };
 
   const categoryLabels: Record<string, { label: string; icon: typeof Bug }> = {
-    parasitic: { label: t("fish-health-diagnosis.s34"), icon: Bug },
-    bacterial: { label: t("fish-health-diagnosis.s35"), icon: Microscope },
-    fungal: { label: t("fish-health-diagnosis.s36"), icon: ShieldAlert },
-    viral: { label: t("fish-health-diagnosis.s37"), icon: ShieldAlert },
-    environmental: { label: t("fish-health-diagnosis.s38"), icon: Droplets },
-    nutritional: { label: t("fish-health-diagnosis.s39"), icon: Heart },
-    physical: { label: t("fish-health-diagnosis.s40"), icon: Zap },
-    healthy: { label: t("fish-health-diagnosis.s41"), icon: CheckCircle },
+    parasitic: { label: "طفيلي", icon: Bug },
+    bacterial: { label: "بكتيري", icon: Microscope },
+    fungal: { label: "فطري", icon: ShieldAlert },
+    viral: { label: "فيروسي", icon: ShieldAlert },
+    environmental: { label: "بيئي", icon: Droplets },
+    nutritional: { label: "تغذوي", icon: Heart },
+    physical: { label: "إصابة فيزيائية", icon: Zap },
+    healthy: { label: "سليم", icon: CheckCircle },
   };
 
   return (
     <div className="flex-1 flex flex-col bg-background">
       <MetaTags
-        title={t("fish-health-diagnosis.s42")}
-        description={t("fish-health-diagnosis.s43")}
+        title="طبيب الأسماك — تشخيص الأمراض بالذكاء الاصطناعي"
+        description="أداة تعليمية تساعدك تراجع أعراض أسماك الزينة وتفكر بخطوات فحص الماء والعزل والمعالجة المناسبة حسب الحالة."
       />
       <main id="main-content" className="flex-1 container mx-auto px-4 py-12">
         {/* ═══════════ Header ═══════════ */}
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 bg-gradient-to-r from-red-100 to-orange-100 dark:from-red-950 dark:to-orange-950 px-6 py-2 rounded-full mb-4 shadow-sm">
             <Stethoscope className="h-5 w-5 text-red-600 animate-pulse" />
-            <span className="font-bold text-red-700 dark:text-red-400">{t("fish-health-diagnosis.s44")}</span>
+            <span className="font-bold text-red-700 dark:text-red-400">Dr. AQUAVO — تشخيص ذكي بالـ AI</span>
           </div>
           <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-red-600 via-orange-500 to-amber-500 bg-clip-text text-transparent">
-            {t("fish-health-diagnosis.s45")}
+            تشخيص أمراض الأسماك
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            {t("fish-health-diagnosis.s46")}
+            التقط صورة لسمكتك واحصل على تشخيص فوري مع خطة علاج مفصلة
           </p>
           <p className="text-sm text-muted-foreground mt-2 max-w-3xl mx-auto">
-            {t("fish-health-diagnosis.s47")}
+            مدرّب على أهم المراجع البيطرية العالمية • قاعدة بيانات 40+ مرض • تشخيص تفاضلي متعدد المراحل
           </p>
 
           <Alert className="mt-6 max-w-2xl mx-auto bg-blue-50 dark:bg-blue-950 border-blue-200">
             <Info className="h-4 w-4 text-blue-600" />
             <AlertDescription className="text-sm">
-              <strong>{t("fish-health-diagnosis.s48")}</strong> {t("fish-health-diagnosis.s49")}
+              <strong>ملاحظة:</strong> هذا التشخيص تقديري يعتمد على الذكاء الاصطناعي. للحالات الحرجة، استشر طبيب بيطري متخصص.
             </AlertDescription>
           </Alert>
         </div>
@@ -539,10 +536,10 @@ export default function FishHealthDiagnosis() {
             <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10">
               <CardTitle className="flex items-center gap-2">
                 <Camera className="h-5 w-5" />
-                {t("fish-health-diagnosis.s50")}
+                ارفع صورة السمكة
               </CardTitle>
               <CardDescription>
-                {t("fish-health-diagnosis.s51")}
+                صورة واضحة للسمكة من الجانب للحصول على أفضل تشخيص
               </CardDescription>
             </CardHeader>
             <CardContent className="pt-6">
@@ -551,9 +548,9 @@ export default function FishHealthDiagnosis() {
                   <div className="w-24 h-24 bg-gradient-to-br from-primary/20 to-primary/5 rounded-full flex items-center justify-center mb-4 shadow-lg">
                     <Camera className="h-12 w-12 text-primary" />
                   </div>
-                  <h3 className="text-xl font-bold">{t("fish-health-diagnosis.s52")}</h3>
+                  <h3 className="text-xl font-bold">التقط أو ارفع صورة سمكتك</h3>
                   <p className="text-muted-foreground max-w-md text-sm">
-                    {t("fish-health-diagnosis.s53")}
+                    صورة واضحة من الجانب تساعد الذكاء الاصطناعي على تشخيص المرض بدقة أعلى
                   </p>
                   <div className="flex flex-col sm:flex-row gap-3 mt-4">
                     <input
@@ -573,21 +570,21 @@ export default function FishHealthDiagnosis() {
                     />
                     <Button onClick={() => fileInputRef.current?.click()} className="gap-2 shadow-md">
                       <Upload className="h-4 w-4" />
-                      {t("fish-health-diagnosis.s54")}
+                      رفع صورة
                     </Button>
                     <Button variant="outline" onClick={() => cameraInputRef.current?.click()} className="gap-2">
                       <Camera className="h-4 w-4" />
-                      {t("fish-health-diagnosis.s55")}
+                      التقاط صورة
                     </Button>
                   </div>
 
                   {/* Tips */}
                   <div className="mt-6 text-xs text-muted-foreground space-y-1 text-right w-full max-w-sm">
-                    <p className="font-semibold mb-2">{t("fish-health-diagnosis.s56")}</p>
-                    <p>{t("fish-health-diagnosis.s57")}</p>
-                    <p>{t("fish-health-diagnosis.s58")}</p>
-                    <p>{t("fish-health-diagnosis.s59")}</p>
-                    <p>{t("fish-health-diagnosis.s60")}</p>
+                    <p className="font-semibold mb-2">💡 نصائح لأفضل نتيجة:</p>
+                    <p>• التقط الصورة من الجانب وليس من الأعلى</p>
+                    <p>• تأكد أن الإضاءة كافية ووضحة</p>
+                    <p>• حاول تصوير المنطقة المصابة عن قرب</p>
+                    <p>• الحد الأقصى لحجم الصورة: 5 ميجابايت</p>
                   </div>
 
                   {error && (
@@ -608,7 +605,7 @@ export default function FishHealthDiagnosis() {
                     {diagnosis?.imageQuality && (
                       <div className="absolute top-3 left-3">
                         <Badge className={`${diagnosis.imageQuality.score >= 7 ? 'bg-green-500' : diagnosis.imageQuality.score >= 4 ? 'bg-yellow-500' : 'bg-red-500'} text-foreground dark:text-white shadow-lg`}>
-                          {t("fish-health-diagnosis.s61")} {diagnosis.imageQuality.score}/10
+                          جودة الصورة: {diagnosis.imageQuality.score}/10
                         </Badge>
                       </div>
                     )}
@@ -616,39 +613,39 @@ export default function FishHealthDiagnosis() {
 
                   {/* Context Gathering Form (Pre-prompting) */}
                   <div className="bg-muted/30 p-4 rounded-lg border border-border/50 text-right space-y-3">
-                    <p className="text-sm font-semibold mb-2">{t("fish-health-diagnosis.s62")}</p>
+                    <p className="text-sm font-semibold mb-2">💡 ساعد الذكاء الاصطناعي لنتائج أدق (اختياري)</p>
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2">
                       <div>
-                        <label className="text-xs text-muted-foreground font-medium mb-1 block">{t("fish-health-diagnosis.s63")}</label>
+                        <label className="text-xs text-muted-foreground font-medium mb-1 block">شنو نوع السمكة؟ (مثال: جولد فيش، ديسكس)</label>
                         <input 
                           type="text" 
-                          placeholder={t("fish-health-diagnosis.s64")}
+                          placeholder="النوع..."
                           value={userContextSpecies}
                           onChange={(e) => setUserContextSpecies(e.target.value)}
                           className="w-full text-sm p-2 rounded-md border border-input bg-background focus:outline-none focus:ring-1 focus:ring-primary"
                         />
                       </div>
                       <div>
-                        <label className="text-xs text-muted-foreground font-medium mb-1 block">{t("fish-health-diagnosis.s65")}</label>
+                        <label className="text-xs text-muted-foreground font-medium mb-1 block">هل السمكة تأكل بصورة طبيعية؟</label>
                         <select 
                           value={userContextEating}
                           onChange={(e) => setUserContextEating(e.target.value)}
                           className="w-full text-sm p-2 rounded-md border border-input bg-background text-right focus:outline-none focus:ring-1 focus:ring-primary"
                         >
-                          <option value="">{t("fish-health-diagnosis.s66")}</option>
-                          <option value="تأكل بشهية ممتازة">{t("fish-health-diagnosis.s67")}</option>
-                          <option value="تأكل بصعوبة أو قليل">{t("fish-health-diagnosis.s68")}</option>
-                          <option value="لا تأكل أبداً وتقذف الطعام">{t("fish-health-diagnosis.s69")}</option>
+                          <option value="">اختر...</option>
+                          <option value="تأكل بشهية ممتازة">تأكل بصورة ممتازة</option>
+                          <option value="تأكل بصعوبة أو قليل">قليل جداً / بصعوبة</option>
+                          <option value="لا تأكل أبداً وتقذف الطعام">لا تأكل أبداً</option>
                         </select>
                       </div>
                     </div>
 
                     <div>
-                      <label className="text-xs text-muted-foreground font-medium mb-1 block">{t("fish-health-diagnosis.s70")}</label>
+                      <label className="text-xs text-muted-foreground font-medium mb-1 block">هل تلاحظ أي أعراض؟ (مثل: حكة، خمول، بقع)</label>
                       <input 
                         type="text" 
-                        placeholder={t("fish-health-diagnosis.s71")}
+                        placeholder="الأعراض..."
                         value={userContextSymptoms}
                         onChange={(e) => setUserContextSymptoms(e.target.value)}
                         className="w-full text-sm p-2 rounded-md border border-input bg-background focus:outline-none focus:ring-1 focus:ring-primary"
@@ -667,17 +664,17 @@ export default function FishHealthDiagnosis() {
                      >
                        <span className="flex items-center gap-2">
                          <Droplets className="h-4 w-4 text-cyan-400" />
-                         {t("fish-health-diagnosis.s72")}
+                         🧪 فحوصات الماء (يرفع الدقة بنسبة كبيرة)
                        </span>
                        {showWaterParams ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                      </button>
                      {showWaterParams && (
                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-3">
                          <div>
-                           <label className="text-xs text-muted-foreground font-medium mb-1 block">{t("fish-health-diagnosis.s73")}</label>
+                           <label className="text-xs text-muted-foreground font-medium mb-1 block">🌡️ الحرارة (°م)</label>
                            <input
                              type="text"
-                             placeholder={t("fish-health-diagnosis.s74")}
+                             placeholder="مثال: 28"
                              value={waterTemperature}
                              onChange={(e) => setWaterTemperature(e.target.value)}
                              className="w-full text-sm p-2 rounded-md border border-input bg-background focus:outline-none focus:ring-1 focus:ring-cyan-500"
@@ -687,37 +684,37 @@ export default function FishHealthDiagnosis() {
                            <label className="text-xs text-muted-foreground font-medium mb-1 block">⚗️ pH</label>
                            <input
                              type="text"
-                             placeholder={t("fish-health-diagnosis.s75")}
+                             placeholder="مثال: 7.2"
                              value={waterPh}
                              onChange={(e) => setWaterPh(e.target.value)}
                              className="w-full text-sm p-2 rounded-md border border-input bg-background focus:outline-none focus:ring-1 focus:ring-cyan-500"
                            />
                          </div>
                          <div>
-                           <label className="text-xs text-red-400 font-medium mb-1 block">{t("fish-health-diagnosis.s76")}</label>
+                           <label className="text-xs text-red-400 font-medium mb-1 block">⚠️ أمونيا (ppm)</label>
                            <input
                              type="text"
-                             placeholder={t("fish-health-diagnosis.s77")}
+                             placeholder="مثال: 0"
                              value={waterAmmonia}
                              onChange={(e) => setWaterAmmonia(e.target.value)}
                              className="w-full text-sm p-2 rounded-md border border-input bg-background focus:outline-none focus:ring-1 focus:ring-red-500"
                            />
                          </div>
                          <div>
-                           <label className="text-xs text-orange-400 font-medium mb-1 block">{t("fish-health-diagnosis.s78")}</label>
+                           <label className="text-xs text-orange-400 font-medium mb-1 block">⚠️ نيتريت (ppm)</label>
                            <input
                              type="text"
-                             placeholder={t("fish-health-diagnosis.s77")}
+                             placeholder="مثال: 0"
                              value={waterNitrite}
                              onChange={(e) => setWaterNitrite(e.target.value)}
                              className="w-full text-sm p-2 rounded-md border border-input bg-background focus:outline-none focus:ring-1 focus:ring-orange-500"
                            />
                          </div>
                          <div>
-                           <label className="text-xs text-muted-foreground font-medium mb-1 block">{t("fish-health-diagnosis.s79")}</label>
+                           <label className="text-xs text-muted-foreground font-medium mb-1 block">نيترات (ppm)</label>
                            <input
                              type="text"
-                             placeholder={t("fish-health-diagnosis.s80")}
+                             placeholder="مثال: 20"
                              value={waterNitrate}
                              onChange={(e) => setWaterNitrate(e.target.value)}
                              className="w-full text-sm p-2 rounded-md border border-input bg-background focus:outline-none focus:ring-1 focus:ring-cyan-500"
@@ -729,7 +726,7 @@ export default function FishHealthDiagnosis() {
 
                   {isAnalyzing && (
                     <div className="space-y-3 p-4 bg-gradient-to-br from-primary/5 to-primary/10 rounded-lg border">
-                      <p className="font-semibold text-sm text-center mb-3">{t("fish-health-diagnosis.s81")}</p>
+                      <p className="font-semibold text-sm text-center mb-3">🔬 Dr. AQUAVO يحلل صورتك...</p>
                       {analysisSteps.map((step, index) => {
                         const StepIcon = step.icon;
                         const isActive = currentStep === step.id;
@@ -758,7 +755,7 @@ export default function FishHealthDiagnosis() {
                       disabled={isAnalyzing}
                     >
                       <RefreshCw className="h-4 w-4" />
-                      {t("fish-health-diagnosis.s82")}
+                      صورة أخرى
                     </Button>
                     <Button
                       onClick={analyzeFish}
@@ -768,12 +765,12 @@ export default function FishHealthDiagnosis() {
                       {isAnalyzing ? (
                         <>
                           <Activity className="h-4 w-4 animate-spin" />
-                          {t("fish-health-diagnosis.s83")}
+                          جاري التحليل...
                         </>
                       ) : (
                         <>
                           <Sparkles className="h-4 w-4" />
-                          {t("fish-health-diagnosis.s84")}
+                          تشخيص الآن
                         </>
                       )}
                     </Button>
@@ -796,10 +793,10 @@ export default function FishHealthDiagnosis() {
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center gap-2">
                     <FileText className="h-5 w-5" />
-                    {t("fish-health-diagnosis.s85")}
+                    نتيجة التشخيص
                   </CardTitle>
                   {diagnosis && (
-                    <Button variant="ghost" size="sm" onClick={printDiagnosis} title={t("fish-health-diagnosis.s86")}>
+                    <Button variant="ghost" size="sm" onClick={printDiagnosis} title="طباعة التقرير">
                       <FileText className="h-4 w-4" />
                     </Button>
                   )}
@@ -809,8 +806,8 @@ export default function FishHealthDiagnosis() {
                 {!diagnosis ? (
                   <div className="h-64 flex flex-col items-center justify-center text-center text-muted-foreground">
                     <Stethoscope className="h-16 w-16 mb-4 opacity-20" />
-                    <p>{t("fish-health-diagnosis.s87")}</p>
-                    <p className="text-xs mt-2 opacity-60">{t("fish-health-diagnosis.s88")}</p>
+                    <p>ارفع صورة للحصول على التشخيص</p>
+                    <p className="text-xs mt-2 opacity-60">Dr. AQUAVO مدرب على 40+ مرض من أسماك الزينة</p>
                   </div>
                 ) : (
                   <div className="space-y-5 print:space-y-3">
@@ -820,7 +817,7 @@ export default function FishHealthDiagnosis() {
                       <Alert className="bg-amber-500/10 border-amber-400/30 backdrop-blur-sm">
                         <AlertTriangle className="h-5 w-5 text-amber-400" />
                         <AlertDescription className="text-base font-medium text-amber-200">
-                          <strong className="text-amber-300">{t("fish-health-diagnosis.s89")}</strong> {diagnosis.imageQuality.feedback}
+                          <strong className="text-amber-300">جودة الصورة غير كافية:</strong> {diagnosis.imageQuality.feedback}
                         </AlertDescription>
                       </Alert>
                     )}
@@ -831,10 +828,10 @@ export default function FishHealthDiagnosis() {
                         <div className="flex items-center justify-between mb-4 border-b border-border dark:border-slate-600/30 pb-3">
                           <div className="flex items-center gap-2">
                             <Fish className="h-5 w-5 text-cyan-400" />
-                            <span className="font-bold text-base text-foreground dark:text-slate-200">{t("fish-health-diagnosis.s90")}</span>
+                            <span className="font-bold text-base text-foreground dark:text-slate-200">نوع السمكة</span>
                           </div>
                           <Badge variant="outline" className="text-sm font-bold bg-cyan-500/10 text-cyan-300 border-cyan-500/30 px-3 py-1">
-                            {t("fish-health-diagnosis.s91")} {Math.round(diagnosis.speciesIdentification.confidence * 100)}%
+                            ثقة {Math.round(diagnosis.speciesIdentification.confidence * 100)}%
                           </Badge>
                         </div>
                         <div className="text-center space-y-2 mb-4">
@@ -847,7 +844,7 @@ export default function FishHealthDiagnosis() {
                         </div>
                         {diagnosis.speciesIdentification.knownVulnerabilities?.length > 0 && (
                           <p className="text-sm text-amber-400/90 mt-3 text-center">
-                            {t("fish-health-diagnosis.s92")} {diagnosis.speciesIdentification.knownVulnerabilities.join("، ")}
+                            ⚠️ عرضة لـ: {diagnosis.speciesIdentification.knownVulnerabilities.join("، ")}
                           </p>
                         )}
                       </div>
@@ -876,7 +873,7 @@ export default function FishHealthDiagnosis() {
                       </div>
                       {/* Confidence bar */}
                       <div className="flex items-center gap-3 mt-4 max-w-md mx-auto">
-                        <span className="text-base text-muted-foreground dark:text-slate-400 shrink-0 font-medium">{t("fish-health-diagnosis.s93")}</span>
+                        <span className="text-base text-muted-foreground dark:text-slate-400 shrink-0 font-medium">الدقة:</span>
                         <div className="flex-1 bg-muted dark:bg-slate-700/50 rounded-full h-3.5 overflow-hidden">
                           <div
                             className={`h-full rounded-full bg-gradient-to-r ${urgencyConfig[diagnosis.urgency].gradient} transition-all duration-1000`}
@@ -894,7 +891,7 @@ export default function FishHealthDiagnosis() {
                         <div className={`p-5 rounded-2xl shadow-lg bg-gradient-to-br from-slate-800/60 to-slate-900/60 border border-border dark:border-slate-600/30`}>
                           <h4 className="font-black mb-4 flex items-center gap-2 text-lg text-foreground dark:text-white">
                             <Target className="h-5 w-5 text-cyan-400" />
-                            {t("fish-health-diagnosis.s94")}
+                            تفسير التشخيص:
                           </h4>
                           <p className="text-base leading-9 text-foreground dark:text-slate-200 font-medium text-justify">{diagnosis.diagnosis}</p>
                         </div>
@@ -907,7 +904,7 @@ export default function FishHealthDiagnosis() {
                     <div>
                       <h4 className="font-black mb-4 flex items-center gap-2 text-lg text-foreground dark:text-white">
                         <Activity className="h-5 w-5 text-red-400" />
-                        {t("fish-health-diagnosis.s95")}
+                        الأعراض المكتشفة:
                       </h4>
                       <ul className="space-y-2.5">
                         {diagnosis.symptoms.map((symptom, i) => (
@@ -930,7 +927,7 @@ export default function FishHealthDiagnosis() {
                           >
                             <span className="flex items-center gap-2">
                               <Microscope className="h-4 w-4 text-purple-500" />
-                              {t("fish-health-diagnosis.s96")}
+                              التشخيص التفاضلي:
                             </span>
                             {expandedSections.differential ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                           </button>
@@ -966,7 +963,7 @@ export default function FishHealthDiagnosis() {
                     <div>
                       <h4 className="font-black mb-4 flex items-center gap-2 text-lg text-foreground dark:text-white">
                         <Pill className="h-5 w-5 text-emerald-400" />
-                        {t("fish-health-diagnosis.s97")}
+                        العلاج:
                       </h4>
                       <ol className="space-y-3">
                         {diagnosis.treatment.map((step, i) => (
@@ -989,7 +986,7 @@ export default function FishHealthDiagnosis() {
                           >
                             <span className="flex items-center gap-2">
                               <Clock className="h-4 w-4 text-blue-500" />
-                              {t("fish-health-diagnosis.s98")}
+                              الجدول الزمني للعلاج:
                             </span>
                             {expandedSections.timeline ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                           </button>
@@ -1029,7 +1026,7 @@ export default function FishHealthDiagnosis() {
                         <Alert className="bg-amber-50 dark:bg-amber-950 border-amber-200 dark:border-amber-800">
                           <AlertTriangle className="h-4 w-4 text-amber-600" />
                           <AlertDescription>
-                            <p className="font-bold text-sm mb-2">{t("fish-health-diagnosis.s99")}</p>
+                            <p className="font-bold text-sm mb-2">⚠️ تحذيرات الأدوية:</p>
                             <ul className="space-y-1">
                               {diagnosis.medicationWarnings.map((warning, i) => (
                                 <li key={i} className="text-xs flex gap-1">
@@ -1054,19 +1051,19 @@ export default function FishHealthDiagnosis() {
                           >
                             <span className="flex items-center gap-2">
                               <Shield className="h-4 w-4 text-red-500" />
-                              {t("fish-health-diagnosis.s100")}
+                              بروتوكول الحجر الصحي:
                             </span>
                             {expandedSections.quarantine ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                           </button>
                           {expandedSections.quarantine && (
                             <div className="p-3 bg-red-50 dark:bg-red-950 rounded-lg border border-red-200 dark:border-red-800 space-y-2">
                               <div className="flex gap-4 text-sm">
-                                <span className="text-muted-foreground">{t("fish-health-diagnosis.s101")}</span>
+                                <span className="text-muted-foreground">المدة:</span>
                                 <span className="font-semibold">{diagnosis.quarantineProtocol.duration}</span>
                               </div>
                               {diagnosis.quarantineProtocol.tankSetup && (
                                 <div className="text-sm">
-                                  <span className="text-muted-foreground">{t("fish-health-diagnosis.s102")} </span>
+                                  <span className="text-muted-foreground">إعداد الحوض: </span>
                                   <span>{diagnosis.quarantineProtocol.tankSetup}</span>
                                 </div>
                               )}
@@ -1091,12 +1088,12 @@ export default function FishHealthDiagnosis() {
                         <div>
                           <h4 className="font-bold mb-3 flex items-center gap-2">
                             <Droplets className="h-4 w-4 text-blue-500" />
-                            {t("fish-health-diagnosis.s103")}
+                            معايير المياه الموصى بها:
                           </h4>
                           <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 text-sm">
                             <div className="p-2 bg-blue-50 dark:bg-blue-950 rounded-lg text-center">
                               <Thermometer className="h-4 w-4 text-blue-600 mx-auto mb-1" />
-                              <div className="font-semibold text-[10px] mb-0.5">{t("fish-health-diagnosis.s104")}</div>
+                              <div className="font-semibold text-[10px] mb-0.5">الحرارة</div>
                               <div className="font-bold text-xs text-blue-600">{diagnosis.waterParameters.temperature}</div>
                             </div>
                             <div className="p-2 bg-purple-50 dark:bg-purple-950 rounded-lg text-center">
@@ -1104,18 +1101,18 @@ export default function FishHealthDiagnosis() {
                               <div className="font-bold text-xs text-purple-600">{diagnosis.waterParameters.ph}</div>
                             </div>
                             <div className="p-2 bg-amber-50 dark:bg-amber-950 rounded-lg text-center">
-                              <div className="font-semibold text-[10px] mb-0.5">{t("fish-health-diagnosis.s105")}</div>
+                              <div className="font-semibold text-[10px] mb-0.5">أمونيا</div>
                               <div className="font-bold text-xs text-amber-600">{diagnosis.waterParameters.ammonia}</div>
                             </div>
                             {diagnosis.waterParameters.nitrite && (
                               <div className="p-2 bg-red-50 dark:bg-red-950 rounded-lg text-center">
-                                <div className="font-semibold text-[10px] mb-0.5">{t("fish-health-diagnosis.s106")}</div>
+                                <div className="font-semibold text-[10px] mb-0.5">نيتريت</div>
                                 <div className="font-bold text-xs text-red-600">{diagnosis.waterParameters.nitrite}</div>
                               </div>
                             )}
                             {diagnosis.waterParameters.nitrate && (
                               <div className="p-2 bg-green-50 dark:bg-green-950 rounded-lg text-center">
-                                <div className="font-semibold text-[10px] mb-0.5">{t("fish-health-diagnosis.s107")}</div>
+                                <div className="font-semibold text-[10px] mb-0.5">نيترات</div>
                                 <div className="font-bold text-xs text-green-600">{diagnosis.waterParameters.nitrate}</div>
                               </div>
                             )}
@@ -1135,7 +1132,7 @@ export default function FishHealthDiagnosis() {
                           >
                             <span className="flex items-center gap-2">
                               <TrendingUp className="h-4 w-4 text-indigo-500" />
-                              {t("fish-health-diagnosis.s108")}
+                              التوقعات والمتابعة:
                             </span>
                             {expandedSections.prognosis ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                           </button>
@@ -1143,18 +1140,18 @@ export default function FishHealthDiagnosis() {
                             <div className="space-y-3">
                               <div className="grid grid-cols-2 gap-3">
                                 <div className="p-4 bg-indigo-500/10 rounded-xl border border-indigo-500/20">
-                                  <p className="text-sm text-indigo-300 mb-1">{t("fish-health-diagnosis.s109")}</p>
+                                  <p className="text-sm text-indigo-300 mb-1">احتمال الشفاء</p>
                                   <p className="font-black text-xl text-indigo-200">{diagnosis.prognosis.recoveryChance}</p>
                                 </div>
                                 <div className="p-4 bg-indigo-500/10 rounded-xl border border-indigo-500/20">
-                                  <p className="text-sm text-indigo-300 mb-1">{t("fish-health-diagnosis.s110")}</p>
+                                  <p className="text-sm text-indigo-300 mb-1">مدة العلاج</p>
                                   <p className="font-black text-xl text-indigo-200">{diagnosis.prognosis.expectedDuration}</p>
                                 </div>
                               </div>
 
                               {diagnosis.prognosis.signsOfImprovement?.length > 0 && (
                                 <div className="p-3 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
-                                  <p className="font-semibold text-xs text-green-700 dark:text-green-400 mb-1">{t("fish-health-diagnosis.s111")}</p>
+                                  <p className="font-semibold text-xs text-green-700 dark:text-green-400 mb-1">✅ علامات التحسن المتوقعة:</p>
                                   <ul className="space-y-1">
                                     {diagnosis.prognosis.signsOfImprovement.map((sign, i) => (
                                       <li key={i} className="text-xs flex gap-1">
@@ -1168,7 +1165,7 @@ export default function FishHealthDiagnosis() {
 
                               {diagnosis.prognosis.signsOfDeterioration?.length > 0 && (
                                 <div className="p-3 bg-red-50 dark:bg-red-950 rounded-lg border border-red-200 dark:border-red-800">
-                                  <p className="font-semibold text-xs text-red-700 dark:text-red-400 mb-1">{t("fish-health-diagnosis.s112")}</p>
+                                  <p className="font-semibold text-xs text-red-700 dark:text-red-400 mb-1">🚨 علامات تستوجب تدخل فوري:</p>
                                   <ul className="space-y-1">
                                     {diagnosis.prognosis.signsOfDeterioration.map((sign, i) => (
                                       <li key={i} className="text-xs flex gap-1">
@@ -1183,7 +1180,7 @@ export default function FishHealthDiagnosis() {
                               {diagnosis.prognosis.followUpDate && (
                                 <div className="p-4 bg-cyan-500/10 rounded-xl border border-cyan-500/20 mt-2">
                                   <p className="text-base font-bold text-cyan-300">
-                                    {t("fish-health-diagnosis.s113")} <span className="text-foreground dark:text-white">{diagnosis.prognosis.followUpDate}</span>
+                                    📅 موعد إعادة التقييم: <span className="text-foreground dark:text-white">{diagnosis.prognosis.followUpDate}</span>
                                   </p>
                                   {diagnosis.followUpReminder && (
                                     <p className="text-sm text-cyan-200/80 mt-2 leading-relaxed">{diagnosis.followUpReminder}</p>
@@ -1203,7 +1200,7 @@ export default function FishHealthDiagnosis() {
                         <div>
                           <h4 className="font-black mb-4 flex items-center gap-2 text-lg text-foreground dark:text-white">
                             <Shield className="h-5 w-5 text-teal-400" />
-                            {t("fish-health-diagnosis.s114")}
+                            الوقاية:
                           </h4>
                           <ul className="space-y-2.5">
                             {diagnosis.prevention.map((tip, i) => (
@@ -1223,10 +1220,10 @@ export default function FishHealthDiagnosis() {
                         <Separator className="opacity-30" />
                         <div className="p-5 bg-gradient-to-br from-cyan-500/10 to-purple-500/10 rounded-2xl border border-cyan-500/20 shadow-lg">
                           <h4 className="font-black mb-3 flex items-center gap-2 text-lg text-foreground dark:text-white">
-                            {t("fish-health-diagnosis.s115")}
+                            📊 هل التشخيص صحيح؟
                           </h4>
                           <p className="text-sm text-muted-foreground dark:text-slate-300 mb-4">
-                            {t("fish-health-diagnosis.s116")}
+                            ملاحظاتك تساعد Dr. AQUAVO يصير أذكى مع كل حالة
                           </p>
                           <div className="flex gap-2 mb-4">
                             <Button
@@ -1244,7 +1241,7 @@ export default function FishHealthDiagnosis() {
                               }}
                               className="bg-emerald-600 hover:bg-emerald-700 text-foreground dark:text-white gap-1.5 text-sm"
                             >
-                              <CheckCircle className="h-4 w-4" /> {t("fish-health-diagnosis.s117")}
+                              <CheckCircle className="h-4 w-4" /> ✅ صحيح
                             </Button>
                             <Button
                               size="sm"
@@ -1252,7 +1249,7 @@ export default function FishHealthDiagnosis() {
                               onClick={() => setExpandedSections(prev => ({ ...prev, correction: !prev.correction }))}
                               className="border-red-400/50 text-red-400 hover:bg-red-500/10 gap-1.5 text-sm"
                             >
-                              <XCircle className="h-4 w-4" /> {t("fish-health-diagnosis.s118")}
+                              <XCircle className="h-4 w-4" /> ❌ غير دقيق
                             </Button>
                           </div>
 
@@ -1260,15 +1257,15 @@ export default function FishHealthDiagnosis() {
                           {expandedSections.correction && (
                             <div className="space-y-4 p-4 bg-card dark:bg-slate-800/40 rounded-xl border border-border dark:border-slate-600/30 mt-2">
                               <h5 className="text-base font-bold text-foreground dark:text-white flex items-center gap-2">
-                                {t("fish-health-diagnosis.s119")}
+                                ✏️ ساعدنا نصحح:
                               </h5>
 
                               {/* Correct Disease */}
                               <div>
-                                <label className="text-sm text-muted-foreground dark:text-slate-300 mb-1.5 block">{t("fish-health-diagnosis.s120")}</label>
+                                <label className="text-sm text-muted-foreground dark:text-slate-300 mb-1.5 block">التشخيص الصحيح (اختياري):</label>
                                 <input
                                   type="text"
-                                  placeholder={t("fish-health-diagnosis.s121")}
+                                  placeholder="مثال: حمل، استسقاء، فطريات..."
                                   className="w-full bg-muted dark:bg-slate-700/50 border border-border dark:border-slate-600/40 rounded-lg px-3 py-2.5 text-sm text-foreground dark:text-white placeholder:text-slate-500 focus:border-cyan-500/50 focus:outline-none focus:ring-1 focus:ring-cyan-500/30"
                                   id="correction-disease"
                                 />
@@ -1276,9 +1273,9 @@ export default function FishHealthDiagnosis() {
 
                               {/* Notes */}
                               <div>
-                                <label className="text-sm text-muted-foreground dark:text-slate-300 mb-1.5 block">{t("fish-health-diagnosis.s122")}</label>
+                                <label className="text-sm text-muted-foreground dark:text-slate-300 mb-1.5 block">ملاحظاتك (اختياري):</label>
                                 <textarea
-                                  placeholder={t("fish-health-diagnosis.s123")}
+                                  placeholder="شنو اللي غلط بالتشخيص؟ شنو لاحظت انت؟"
                                   rows={3}
                                   className="w-full bg-muted dark:bg-slate-700/50 border border-border dark:border-slate-600/40 rounded-lg px-3 py-2.5 text-sm text-foreground dark:text-white placeholder:text-slate-500 focus:border-cyan-500/50 focus:outline-none focus:ring-1 focus:ring-cyan-500/30 resize-none"
                                   id="correction-notes"
@@ -1287,7 +1284,7 @@ export default function FishHealthDiagnosis() {
 
                               {/* Treatment Effectiveness */}
                               <div>
-                                <label className="text-sm text-muted-foreground dark:text-slate-300 mb-2 block">{t("fish-health-diagnosis.s124")}</label>
+                                <label className="text-sm text-muted-foreground dark:text-slate-300 mb-2 block">هل العلاج المقترح نفع؟</label>
                                 <div className="flex gap-2">
                                   <Button
                                     size="sm"
@@ -1299,7 +1296,7 @@ export default function FishHealthDiagnosis() {
                                     }}
                                     className="text-sm border-border dark:border-slate-600/40 text-muted-foreground dark:text-slate-300 hover:bg-emerald-500/20"
                                   >
-                                    {t("fish-health-diagnosis.s125")}
+                                    ✅ نعم نفع
                                   </Button>
                                   <Button
                                     size="sm"
@@ -1311,21 +1308,21 @@ export default function FishHealthDiagnosis() {
                                     }}
                                     className="text-sm border-border dark:border-slate-600/40 text-muted-foreground dark:text-slate-300 hover:bg-red-500/10"
                                   >
-                                    {t("fish-health-diagnosis.s126")}
+                                    ❌ ما نفع
                                   </Button>
                                   <Button
                                     size="sm"
                                     variant="outline"
                                     className="text-sm border-border dark:border-slate-600/40 text-muted-foreground dark:text-slate-400 hover:bg-slate-700/50"
                                   >
-                                    {t("fish-health-diagnosis.s127")}
+                                    🤷 ما جربت
                                   </Button>
                                 </div>
                               </div>
 
                               {/* Rating */}
                               <div>
-                                <label className="text-sm text-muted-foreground dark:text-slate-300 mb-2 block">{t("fish-health-diagnosis.s128")}</label>
+                                <label className="text-sm text-muted-foreground dark:text-slate-300 mb-2 block">تقييمك العام لتجربة التشخيص:</label>
                                 <div className="flex gap-1.5" id="rating-stars">
                                   {[1, 2, 3, 4, 5].map(star => (
                                     <button
@@ -1378,7 +1375,7 @@ export default function FishHealthDiagnosis() {
                                   } catch { /* ignore */ }
                                 }}
                               >
-                                {t("fish-health-diagnosis.s129")}
+                                📤 أرسل التصحيح
                               </Button>
                             </div>
                           )}
@@ -1390,10 +1387,10 @@ export default function FishHealthDiagnosis() {
                         <Separator className="opacity-30" />
                         <div className="p-4 bg-emerald-500/10 rounded-xl border border-emerald-500/20 text-center">
                           <p className="text-base font-bold text-emerald-300">
-                            {t("fish-health-diagnosis.s130")}
+                            ✅ شكراً لملاحظتك!
                           </p>
                           <p className="text-sm text-emerald-200/70 mt-1">
-                            {t("fish-health-diagnosis.s131")}
+                            Dr. AQUAVO يتعلم من كل حالة — تصحيحك يساعد سمك الناس!
                           </p>
                         </div>
                       </>
@@ -1412,13 +1409,13 @@ export default function FishHealthDiagnosis() {
               /* ── Success message ── */
               <div className="p-6 rounded-2xl bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 border border-emerald-500/20 text-center">
                 <CheckCircle className="w-12 h-12 text-emerald-400 mx-auto mb-3" />
-                <h3 className="text-lg font-bold text-emerald-300 mb-1">{t("fish-health-diagnosis.s132")}{savedToFish}"!</h3>
-                <p className="text-sm text-muted-foreground dark:text-slate-400">{t("fish-health-diagnosis.s133")}</p>
+                <h3 className="text-lg font-bold text-emerald-300 mb-1">✅ تم حفظ التشخيص بسجل "{savedToFish}"!</h3>
+                <p className="text-sm text-muted-foreground dark:text-slate-400">Dr. AQUAVO سوف يذكرك بموعد المتابعة 📅</p>
                 <Button
                   className="mt-4 bg-cyan-600 hover:bg-cyan-500 text-foreground dark:text-white gap-2"
                   onClick={() => navigate('/fish-patients')}
                 >
-                  <Fish className="w-4 h-4" /> {t("fish-health-diagnosis.s134")}
+                  <Fish className="w-4 h-4" /> شوف السجل الطبي
                 </Button>
               </div>
             ) : showSaveToFish ? (
@@ -1426,7 +1423,7 @@ export default function FishHealthDiagnosis() {
               <div className="p-6 rounded-2xl bg-gradient-to-br from-cyan-500/10 via-slate-800/50 to-teal-500/10 border border-cyan-500/20">
                 <h3 className="text-lg font-bold text-foreground dark:text-white mb-4 flex items-center gap-2">
                   <Fish className="w-5 h-5 text-cyan-400" />
-                  {t("fish-health-diagnosis.s135")}
+                  احفظ التشخيص لأي سمكة؟
                 </h3>
 
                 {myFish.length > 0 && (
@@ -1454,7 +1451,7 @@ export default function FishHealthDiagnosis() {
                 {/* New fish inline */}
                 <div className="flex gap-2 items-center">
                   <input
-                    placeholder={t("fish-health-diagnosis.s136")}
+                    placeholder="أو سجّل سمكة جديدة..."
                     value={newFishName}
                     onChange={e => setNewFishName(e.target.value)}
                     className="flex-1 bg-muted dark:bg-slate-700/50 border border-border dark:border-slate-600/40 rounded-lg px-3 py-2.5 text-sm text-foreground dark:text-white placeholder:text-slate-500 focus:border-cyan-500/50 focus:outline-none"
@@ -1464,7 +1461,7 @@ export default function FishHealthDiagnosis() {
                     className="bg-cyan-600 hover:bg-cyan-500 text-foreground dark:text-white text-sm"
                     onClick={registerAndSave}
                   >
-                    {savingToFish ? "⏳" : t("fish-health-diagnosis.s137")}
+                    {savingToFish ? "⏳" : "✅ سجّل واحفظ"}
                   </Button>
                 </div>
 
@@ -1472,7 +1469,7 @@ export default function FishHealthDiagnosis() {
                   className="mt-3 text-xs text-slate-500 hover:text-slate-300 transition-colors"
                   onClick={() => setShowSaveToFish(false)}
                 >
-                  {t("fish-health-diagnosis.s138")}
+                  إلغاء
                 </button>
               </div>
             ) : (
@@ -1491,10 +1488,10 @@ export default function FishHealthDiagnosis() {
                     </div>
                     <div>
                       <h3 className="text-lg font-bold text-foreground dark:text-white group-hover:text-cyan-300 transition-colors">
-                        {t("fish-health-diagnosis.s139")}
+                        📋 احفظ التشخيص بسجل سمكتك!
                       </h3>
                       <p className="text-sm text-muted-foreground dark:text-slate-400">
-                        {t("fish-health-diagnosis.s140")}
+                        سجّل سمكتك — Dr. AQUAVO يتذكر التاريخ الطبي ويذكرك بالمتابعة!
                       </p>
                     </div>
                   </div>
@@ -1520,10 +1517,10 @@ export default function FishHealthDiagnosis() {
                     </div>
                     <div>
                       <h3 className="text-lg font-bold text-foreground dark:text-white group-hover:text-purple-300 transition-colors">
-                        {t("fish-health-diagnosis.s141")}
+                        ⚗️ محكمة الألف سيناريو
                       </h3>
                       <p className="text-sm text-muted-foreground dark:text-slate-400">
-                        {t("fish-health-diagnosis.s142")}
+                        1000 محاكاة موازية — شوف نسبة نجاح كل طريقة علاج بالأرقام
                       </p>
                     </div>
                   </div>
@@ -1535,11 +1532,11 @@ export default function FishHealthDiagnosis() {
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-bold text-foreground dark:text-white flex items-center gap-2">
                     <Zap className="h-5 w-5 text-purple-400" />
-                    {t("fish-health-diagnosis.s143")}
+                    محكمة الألف سيناريو
                   </h3>
                   {!thousandLoading && (
                     <button onClick={runThousandScenarios} className="text-xs text-purple-400 hover:text-purple-300 flex items-center gap-1">
-                      <RefreshCw className="h-3 w-3" /> {t("fish-health-diagnosis.s144")}
+                      <RefreshCw className="h-3 w-3" /> إعادة تشغيل
                     </button>
                   )}
                 </div>
@@ -1553,8 +1550,8 @@ export default function FishHealthDiagnosis() {
                       </div>
                     </div>
                     <div>
-                      <p className="text-purple-300 font-bold animate-pulse">{t("fish-health-diagnosis.s145")}</p>
-                      <p className="text-xs text-muted-foreground dark:text-slate-400 mt-1">{t("fish-health-diagnosis.s146")}</p>
+                      <p className="text-purple-300 font-bold animate-pulse">جاري تشغيل 1000 سيناريو...</p>
+                      <p className="text-xs text-muted-foreground dark:text-slate-400 mt-1">الذكاء الاصطناعي يحاكي كل طريقة علاج على سمكتك</p>
                     </div>
                   </div>
                 )}
@@ -1570,11 +1567,11 @@ export default function FishHealthDiagnosis() {
                     {/* Header */}
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-purple-300 font-semibold">{t("fish-health-diagnosis.s147")} {thousandResult.totalSimulations?.toLocaleString() || "1,000"} {t("fish-health-diagnosis.s148")}</p>
+                        <p className="text-sm text-purple-300 font-semibold">نتائج {thousandResult.totalSimulations?.toLocaleString() || "1,000"} سيناريو</p>
                         <p className="text-xs text-muted-foreground dark:text-slate-400 mt-0.5">{thousandResult.patientProfile}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-xs text-muted-foreground dark:text-slate-400">{t("fish-health-diagnosis.s149")}</p>
+                        <p className="text-xs text-muted-foreground dark:text-slate-400">الاستعجالية</p>
                         <p className="text-sm font-bold text-amber-300">{thousandResult.recommendation?.urgency}</p>
                       </div>
                     </div>
@@ -1597,7 +1594,7 @@ export default function FishHealthDiagnosis() {
                               <p className={`text-lg font-black ${t.successRate >= 70 ? "text-emerald-400" : t.successRate >= 50 ? "text-amber-400" : "text-red-400"}`}>
                                 {t.successRate}%
                               </p>
-                              <p className="text-[10px] text-slate-500">{t("fish-health-diagnosis.s150")}</p>
+                              <p className="text-[10px] text-slate-500">نجاح</p>
                             </div>
                           </div>
 
@@ -1611,17 +1608,17 @@ export default function FishHealthDiagnosis() {
 
                           <div className="grid grid-cols-3 gap-2 text-xs mb-3">
                             <div className="text-center">
-                              <p className="text-muted-foreground dark:text-slate-400">{t("fish-health-diagnosis.s151")}</p>
-                              <p className="font-bold text-foreground dark:text-slate-200">{t.avgRecoveryDays} {t("fish-health-diagnosis.s152")}</p>
+                              <p className="text-muted-foreground dark:text-slate-400">الشفاء</p>
+                              <p className="font-bold text-foreground dark:text-slate-200">{t.avgRecoveryDays} يوم</p>
                             </div>
                             <div className="text-center">
-                              <p className="text-muted-foreground dark:text-slate-400">{t("fish-health-diagnosis.s153")}</p>
+                              <p className="text-muted-foreground dark:text-slate-400">الخطورة</p>
                               <p className={`font-bold ${t.riskLevel === "low" ? "text-emerald-400" : t.riskLevel === "medium" ? "text-amber-400" : "text-red-400"}`}>
-                                {t.riskLevel === "low" ? t("fish-health-diagnosis.s30") : t.riskLevel === "medium" ? t("fish-health-diagnosis.s31") : t("fish-health-diagnosis.s32")}
+                                {t.riskLevel === "low" ? "منخفضة" : t.riskLevel === "medium" ? "متوسطة" : "عالية"}
                               </p>
                             </div>
                             <div className="text-center">
-                              <p className="text-muted-foreground dark:text-slate-400">{t("fish-health-diagnosis.s154")}</p>
+                              <p className="text-muted-foreground dark:text-slate-400">التكلفة</p>
                               <p className="font-bold text-foreground dark:text-slate-200">{t.costRangeIQD}</p>
                             </div>
                           </div>
@@ -1638,7 +1635,7 @@ export default function FishHealthDiagnosis() {
 
                           {thousandResult.recommendation?.primaryTreatmentId === t.id && (
                             <div className="mt-3 pt-2 border-t border-purple-500/20">
-                              <p className="text-xs text-purple-300 font-semibold">{t("fish-health-diagnosis.s155")} {thousandResult.recommendation?.reasoning}</p>
+                              <p className="text-xs text-purple-300 font-semibold">✅ التوصية: {thousandResult.recommendation?.reasoning}</p>
                             </div>
                           )}
                         </div>
@@ -1660,8 +1657,8 @@ export default function FishHealthDiagnosis() {
         {/* ═══════════ Disease Categories Reference ═══════════ */}
         <div className="mt-16">
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold mb-2">{t("fish-health-diagnosis.s156")}</h2>
-            <p className="text-muted-foreground">{t("fish-health-diagnosis.s157")}</p>
+            <h2 className="text-3xl font-bold mb-2">قاعدة بيانات الأمراض</h2>
+            <p className="text-muted-foreground">40+ مرض مصنف حسب النوع — Dr. AQUAVO يعرفها جميعاً</p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">

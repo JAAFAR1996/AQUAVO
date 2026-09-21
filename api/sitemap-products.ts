@@ -6,7 +6,6 @@ import {
   AQUAVO_BASE_URL,
   AQUAVO_SEO_RELEASE_LASTMOD,
 } from "../shared/seo-contract.js";
-import { XHTML_NS, localizedUrlEntries, translatedLocalesByEntity } from "./_sitemap-i18n.js";
 
 neonConfig.webSocketConstructor = ws;
 
@@ -78,7 +77,7 @@ function effectiveLastmod(updatedAtValue: unknown): string {
 export default async function handler(_req: VercelRequest, res: VercelResponse): Promise<void> {
   try {
     const { rows } = await getPool().query(
-      `SELECT id, slug, name, images, thumbnail, updated_at AS "updatedAt"
+      `SELECT slug, name, images, thumbnail, updated_at AS "updatedAt"
          FROM products
         WHERE deleted_at IS NULL
           AND slug IS NOT NULL
@@ -87,9 +86,6 @@ export default async function handler(_req: VercelRequest, res: VercelResponse):
         LIMIT 50000`,
     );
 
-    // English / Kurdish product URLs are listed only where a translation
-    // exists; the rest are served in Arabic with noindex and stay unlisted.
-    const localesById = await translatedLocalesByEntity(getPool(), "product", rows.map((r) => String(r.id)));
     const entries = rows
       .filter((product) => typeof product.slug === "string" && /^[a-z0-9]+(?:-[a-z0-9]+)*$/i.test(product.slug))
       .map((product) => {
@@ -105,13 +101,13 @@ export default async function handler(_req: VercelRequest, res: VercelResponse):
               `\n    <image:image><image:loc>${escapeXml(imageUrl)}</image:loc><image:title>${title}</image:title></image:image>`,
           )
           .join("");
-        return localizedUrlEntries(`/products/${product.slug}`, localesById.get(String(product.id)) ?? ["ar"], `<lastmod>${lastmod}</lastmod>${image}\n  `);
+        return `  <url><loc>${escapeXml(`${AQUAVO_BASE_URL}/products/${product.slug}`)}</loc><lastmod>${lastmod}</lastmod>${image}\n  </url>`;
       })
       .join("\n");
 
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
- xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" ${XHTML_NS}>
+ xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 ${entries}
 </urlset>`;
 

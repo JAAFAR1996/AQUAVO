@@ -1,15 +1,13 @@
 import { MetaTags } from "@/components/seo/meta-tags";
-import { useTranslation } from "react-i18next";
 
 export default function GuideFilterChoice() {
-  const { t } = useTranslation("guides");
   return (
     <>
       {/* SEO / GEO / AEO 2026 */}
       <MetaTags
-        title={t("guides-filter-choice.s1")}
-        description={t("guides-filter-choice.s2")}
-        keywords={[t("guides-filter-choice.s3"), t("guides-filter-choice.s4"), t("guides-filter-choice.s5"), t("guides-filter-choice.s6"), t("guides-filter-choice.s7"), "AQUAVO"]}
+        title="كيف تختار فلتر الحوض المناسب — دليل شامل"
+        description="دليل اختيار فلتر حوض الأسماك المناسب: الفرق بين الفلتر الداخلي والخارجي والإسفنجي، وكيف تحسب القدرة المطلوبة حسب حجم حوضك. من AQUAVO العراق."
+        keywords={["فلتر حوض أسماك", "كيفية اختيار فلتر", "فلتر داخلي", "فلتر خارجي", "فلتر إسفنجي", "AQUAVO"]}
         url="https://www.aquavoiq.com/guides-filter-choice"
         canonicalUrl="https://www.aquavoiq.com/guides-filter-choice"
       />
@@ -23,7 +21,7 @@ export default function GuideFilterChoice() {
 
         {/* ── Hero ── */}
         <section className="fltr-hero">
-          <span className="fltr-badge">{t("guides-filter-choice.s8")}</span>
+          <span className="fltr-badge">دليل الفلتر — AQUAVO</span>
 
           {/* Engine-room pump visual */}
           <div className="fltr-engine" aria-hidden="true">
@@ -35,38 +33,39 @@ export default function GuideFilterChoice() {
             </div>
           </div>
 
-          <h1>{t("guides-filter-choice.s9")}</h1>
-          <p className="fltr-sub">{t("guides-filter-choice.s10")}</p>
+          <h1>قلب الحوض</h1>
+          <p className="fltr-sub">الفلتر الغلط يتعب السمچ قبل ما تلاحظ</p>
           <p className="fltr-intro">
-            {t("guides-filter-choice.s11")}
+            الفلتر مو مجرد جهاز — هو النظام اللي يبقي الحوض حياً. اختيار غير مناسب
+            يعني فلترة ناقصة حتى لو الجهاز يشتغل. هذا الدليل يوضحلك شنو يناسب حوضك.
           </p>
           <div className="fltr-meta">
-            <span>{t("guides-filter-choice.s12")}</span>
-            <span>{t("guides-filter-choice.s13")}</span>
+            <span>للمبتدئين وأصحاب الأحواض الحالية</span>
+            <span>وقت القراءة: 7 دقائق</span>
           </div>
         </section>
 
         {/* ── أنواع الفلاتر ── */}
         <section className="fltr-section">
-          <h2 className="fltr-title">{t("guides-filter-choice.s14")}</h2>
-          <p className="fltr-body">{t("guides-filter-choice.s15")}</p>
+          <h2 className="fltr-title">أنواع الفلاتر — شنو يختلف؟</h2>
+          <p className="fltr-body">أربعة أنواع رئيسية — كل نوع له مكانه الصح:</p>
 
           <div className="fltr-types">
             <div className="fltr-type-card">
               <div className="fltr-type-header">
-                <span className="fltr-type-label">{t("guides-filter-choice.s16")}</span>
-                <span className="fltr-type-tag">{t("guides-filter-choice.s17")}</span>
+                <span className="fltr-type-label">داخلي</span>
+                <span className="fltr-type-tag">للأحواض الصغيرة</span>
               </div>
               <div className="fltr-type-body">
-                <p>{t("guides-filter-choice.s18")}</p>
+                <p>يتركب داخل الحوض مباشرة. سهل التركيب والتنظيف. مناسب للأحواض أقل من 80 لتر.</p>
                 <div className="fltr-pros-cons">
                   <div className="fltr-pros">
-                    <span>{t("guides-filter-choice.s19")}</span>
-                    <span>{t("guides-filter-choice.s20")}</span>
+                    <span>✓ رخيص وسهل</span>
+                    <span>✓ مناسب للمبتدئين</span>
                   </div>
                   <div className="fltr-cons">
-                    <span>{t("guides-filter-choice.s21")}</span>
-                    <span>{t("guides-filter-choice.s22")}</span>
+                    <span>✗ طاقة فلترة محدودة</span>
+                    <span>✗ يأخذ مساحة داخل الحوض</span>
                   </div>
                 </div>
               </div>
@@ -74,19 +73,19 @@ export default function GuideFilterChoice() {
 
             <div className="fltr-type-card fltr-type-featured">
               <div className="fltr-type-header">
-                <span className="fltr-type-label">{t("guides-filter-choice.s23")}</span>
-                <span className="fltr-type-tag fltr-tag-best">{t("guides-filter-choice.s24")}</span>
+                <span className="fltr-type-label">خارجي (كانستر)</span>
+                <span className="fltr-type-tag fltr-tag-best">الأقوى</span>
               </div>
               <div className="fltr-type-body">
-                <p>{t("guides-filter-choice.s25")}</p>
+                <p>خارج الحوض، سعة عالية للميديا. مناسب للأحواض فوق 80 لتر أو الأحواض المكتظة.</p>
                 <div className="fltr-pros-cons">
                   <div className="fltr-pros">
-                    <span>{t("guides-filter-choice.s26")}</span>
-                    <span>{t("guides-filter-choice.s27")}</span>
+                    <span>✓ فلترة قوية ومتكاملة</span>
+                    <span>✓ هادي وما يأثر على المظهر</span>
                   </div>
                   <div className="fltr-cons">
-                    <span>{t("guides-filter-choice.s28")}</span>
-                    <span>{t("guides-filter-choice.s29")}</span>
+                    <span>✗ أغلى سعراً</span>
+                    <span>✗ تنظيفه أطول</span>
                   </div>
                 </div>
               </div>
@@ -94,18 +93,18 @@ export default function GuideFilterChoice() {
 
             <div className="fltr-type-card">
               <div className="fltr-type-header">
-                <span className="fltr-type-label">{t("guides-filter-choice.s30")}</span>
-                <span className="fltr-type-tag">{t("guides-filter-choice.s31")}</span>
+                <span className="fltr-type-label">إسفنج / سبونج</span>
+                <span className="fltr-type-tag">للأحواض الخاصة</span>
               </div>
               <div className="fltr-type-body">
-                <p>{t("guides-filter-choice.s32")}</p>
+                <p>فلترة بيولوجية فقط. مثالي لأحواض العزل والأحواض اللي فيها صغار أو جمبري.</p>
                 <div className="fltr-pros-cons">
                   <div className="fltr-pros">
-                    <span>{t("guides-filter-choice.s33")}</span>
-                    <span>{t("guides-filter-choice.s34")}</span>
+                    <span>✓ آمن للصغار</span>
+                    <span>✓ فلترة بيولوجية قوية</span>
                   </div>
                   <div className="fltr-cons">
-                    <span>{t("guides-filter-choice.s35")}</span>
+                    <span>✗ ما يشيل الشوائب الصلبة كافي</span>
                   </div>
                 </div>
               </div>
@@ -113,19 +112,19 @@ export default function GuideFilterChoice() {
 
             <div className="fltr-type-card">
               <div className="fltr-type-header">
-                <span className="fltr-type-label">{t("guides-filter-choice.s36")}</span>
-                <span className="fltr-type-tag">{t("guides-filter-choice.s37")}</span>
+                <span className="fltr-type-label">HMF / جانبي</span>
+                <span className="fltr-type-tag">للأحواض الكبيرة</span>
               </div>
               <div className="fltr-type-body">
-                <p>{t("guides-filter-choice.s38")}</p>
+                <p>جدار إسفنج جانبي مدمج في الحوض. تدفق مائي طبيعي وفلترة بيولوجية ممتازة.</p>
                 <div className="fltr-pros-cons">
                   <div className="fltr-pros">
-                    <span>{t("guides-filter-choice.s39")}</span>
-                    <span>{t("guides-filter-choice.s40")}</span>
+                    <span>✓ مساحة بيولوجية كبيرة</span>
+                    <span>✓ تدفق طبيعي</span>
                   </div>
                   <div className="fltr-cons">
-                    <span>{t("guides-filter-choice.s41")}</span>
-                    <span>{t("guides-filter-choice.s42")}</span>
+                    <span>✗ يأخذ مساحة جانبية</span>
+                    <span>✗ يحتاج تركيب مبكر</span>
                   </div>
                 </div>
               </div>
@@ -135,58 +134,59 @@ export default function GuideFilterChoice() {
 
         {/* ── دليل الحجم ── */}
         <section className="fltr-section">
-          <h2 className="fltr-title">{t("guides-filter-choice.s43")}</h2>
+          <h2 className="fltr-title">شنو يناسب حجم حوضك؟</h2>
           <p className="fltr-body">
-            {t("guides-filter-choice.s44")}
+            قاعدة أساسية: الفلتر يضخ حجم الحوض كامل ٣–٤ مرات بالساعة.
+            حوض 100 لتر → محرك 300–400 L/h على الأقل.
           </p>
           <div className="fltr-size-table">
             <div className="fltr-size-row fltr-size-header">
-              <span>{t("guides-filter-choice.s45")}</span>
-              <span>{t("guides-filter-choice.s46")}</span>
-              <span>{t("guides-filter-choice.s47")}</span>
+              <span>حجم الحوض</span>
+              <span>الفلو المطلوب</span>
+              <span>النوع المناسب</span>
             </div>
             <div className="fltr-size-row">
-              <span>{t("guides-filter-choice.s48")}</span>
+              <span>أقل من 40L</span>
               <span>120–160 L/h</span>
-              <span>{t("guides-filter-choice.s49")}</span>
+              <span>داخلي صغير</span>
             </div>
             <div className="fltr-size-row">
               <span>40–80L</span>
               <span>160–320 L/h</span>
-              <span>{t("guides-filter-choice.s50")}</span>
+              <span>داخلي متوسط</span>
             </div>
             <div className="fltr-size-row">
               <span>80–200L</span>
               <span>320–800 L/h</span>
-              <span>{t("guides-filter-choice.s51")}</span>
+              <span>خارجي / داخلي قوي</span>
             </div>
             <div className="fltr-size-row">
-              <span>{t("guides-filter-choice.s52")}</span>
+              <span>فوق 200L</span>
               <span>600–1000+ L/h</span>
-              <span>{t("guides-filter-choice.s53")}</span>
+              <span>خارجي أو HMF</span>
             </div>
           </div>
         </section>
 
         {/* ── جدول الصيانة ── */}
         <section className="fltr-section">
-          <h2 className="fltr-title">{t("guides-filter-choice.s54")}</h2>
+          <h2 className="fltr-title">جدول صيانة الفلتر</h2>
           <div className="fltr-maint-list">
             <div className="fltr-maint-row">
-              <div className="fltr-maint-period">{t("guides-filter-choice.s55")}</div>
-              <p>{t("guides-filter-choice.s56")}</p>
+              <div className="fltr-maint-period">أسبوعياً</div>
+              <p>تحقق من تدفق الماء — لو قل، الإسفنج يحتاج تنظيف</p>
             </div>
             <div className="fltr-maint-row">
-              <div className="fltr-maint-period">{t("guides-filter-choice.s57")}</div>
-              <p>{t("guides-filter-choice.s58")}</p>
+              <div className="fltr-maint-period">شهرياً</div>
+              <p>نظّف الإسفنج بماء الحوض مو بالبوري — حتى ما تقتل البكتيريا النافعة</p>
             </div>
             <div className="fltr-maint-row">
-              <div className="fltr-maint-period">{t("guides-filter-choice.s59")}</div>
-              <p>{t("guides-filter-choice.s60")}</p>
+              <div className="fltr-maint-period">3–4 أشهر</div>
+              <p>راجع المحرك والمراوح — تنظيف عميق للفلتر الخارجي</p>
             </div>
             <div className="fltr-maint-row fltr-maint-warn">
-              <div className="fltr-maint-period">{t("guides-filter-choice.s61")}</div>
-              <p>{t("guides-filter-choice.s62")}</p>
+              <div className="fltr-maint-period">مهم!</div>
+              <p>لا تنظف الفلتر وتغير المي في نفس اليوم — صدمة للبكتيريا النافعة</p>
             </div>
           </div>
         </section>
@@ -194,9 +194,9 @@ export default function GuideFilterChoice() {
         {/* ── CTA ── */}
         <section className="fltr-cta-section">
           <div className="fltr-cta-box">
-            <h2 className="fltr-cta-title">{t("guides-filter-choice.s63")}</h2>
+            <h2 className="fltr-cta-title">مو عارف أي فلتر يناسب حوضك؟</h2>
             <p className="fltr-cta-body">
-              {t("guides-filter-choice.s64")}
+              أرسل حجم الحوض وعدد السمچ — ونرشدك لأنسب خيار بميزانيتك.
             </p>
             <a
               href="https://www.instagram.com/aquavo_iq/"
@@ -204,7 +204,7 @@ export default function GuideFilterChoice() {
               rel="noopener noreferrer"
               className="fltr-cta-btn"
             >
-              {t("guides-filter-choice.s65")}
+              راسلنا على إنستغرام
             </a>
           </div>
         </section>

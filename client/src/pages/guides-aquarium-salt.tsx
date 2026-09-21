@@ -1,6 +1,4 @@
-import { useTranslation } from "react-i18next";
 export default function GuideAquariumSalt() {
-  const { t } = useTranslation("guides");
   return (
     <div className="slt-wrap">
 
@@ -12,7 +10,7 @@ export default function GuideAquariumSalt() {
 
         {/* ── Hero ── */}
         <section className="slt-hero">
-          <span className="slt-badge">{t("guides-aquarium-salt.s1")}</span>
+          <span className="slt-badge">دليل الملح — AQUAVO</span>
 
           {/* Salt crystal — CSS only */}
           <div className="slt-crystal-wrap" aria-hidden="true">
@@ -24,40 +22,41 @@ export default function GuideAquariumSalt() {
             <div className="slt-crystal-glow"></div>
           </div>
 
-          <h1>{t("guides-aquarium-salt.s2")}</h1>
-          <p className="slt-sub">{t("guides-aquarium-salt.s3")}</p>
+          <h1>حبة ملح… بس بحساب</h1>
+          <p className="slt-sub">الملح ما هو دواء شامل — له وقته الصح وكميته الصحيحة</p>
           <p className="slt-intro">
-            {t("guides-aquarium-salt.s4")}
+            ملح الأحواض أداة محدودة الاستخدام. يفيد في حالات معينة ويضر في حالات أخرى.
+            هذا الدليل يوضحلك متى تستخدمه، متى تتجنبه، وكيف تحسب الكمية.
           </p>
           <div className="slt-meta">
-            <span>{t("guides-aquarium-salt.s5")}</span>
-            <span>{t("guides-aquarium-salt.s6")}</span>
+            <span>مهم — اقرأ قبل أي استخدام</span>
+            <span>وقت القراءة: 5 دقائق</span>
           </div>
         </section>
 
         {/* ── متى تستخدم ── */}
         <section className="slt-section">
-          <h2 className="slt-title slt-title-yes">{t("guides-aquarium-salt.s7")}</h2>
+          <h2 className="slt-title slt-title-yes">متى يفيد الملح؟</h2>
           <div className="slt-card-list">
             <div className="slt-card slt-card-yes">
               <div className="slt-card-icon">✓</div>
               <div>
-                <strong>{t("guides-aquarium-salt.s8")}</strong>
-                <p>{t("guides-aquarium-salt.s9")}</p>
+                <strong>إجهاد السمچ بعد نقله أو تغيير المي المفاجئ</strong>
+                <p>جرعة خفيفة تساعد على استقرار الأملاح الطبيعية وتقليل الإجهاد.</p>
               </div>
             </div>
             <div className="slt-card slt-card-yes">
               <div className="slt-card-icon">✓</div>
               <div>
-                <strong>{t("guides-aquarium-salt.s10")}</strong>
-                <p>{t("guides-aquarium-salt.s11")}</p>
+                <strong>الوقاية من بعض الطفيليات الخارجية</strong>
+                <p>الملح بتركيز خفيف يرفع مستوى الأملاح ويقلل من قدرة بعض الطفيليات على البقاء.</p>
               </div>
             </div>
             <div className="slt-card slt-card-yes">
               <div className="slt-card-icon">✓</div>
               <div>
-                <strong>{t("guides-aquarium-salt.s12")}</strong>
-                <p>{t("guides-aquarium-salt.s13")}</p>
+                <strong>دعم إصابات الزعانف والجروح الخفيفة</strong>
+                <p>يساعد على تقليل العدوى البكتيرية في الجروح السطحية مع عدم الإفراط.</p>
               </div>
             </div>
           </div>
@@ -65,34 +64,34 @@ export default function GuideAquariumSalt() {
 
         {/* ── متى لا تستخدم ── */}
         <section className="slt-section">
-          <h2 className="slt-title slt-title-no">{t("guides-aquarium-salt.s14")}</h2>
+          <h2 className="slt-title slt-title-no">متى تتجنب الملح؟</h2>
           <div className="slt-card-list">
             <div className="slt-card slt-card-no">
               <div className="slt-card-icon">✗</div>
               <div>
-                <strong>{t("guides-aquarium-salt.s15")}</strong>
-                <p>{t("guides-aquarium-salt.s16")}</p>
+                <strong>أحواض الجمبري وسرطان المي العذب</strong>
+                <p>الجمبري لا يتحمل حتى الجرعات الخفيفة — أي كمية قد تقتله.</p>
               </div>
             </div>
             <div className="slt-card slt-card-no">
               <div className="slt-card-icon">✗</div>
               <div>
-                <strong>{t("guides-aquarium-salt.s17")}</strong>
-                <p>{t("guides-aquarium-salt.s18")}</p>
+                <strong>أحواض النباتات المائية</strong>
+                <p>الملح المستمر يضر الجذور ويوقف النمو تدريجياً.</p>
               </div>
             </div>
             <div className="slt-card slt-card-no">
               <div className="slt-card-icon">✗</div>
               <div>
-                <strong>{t("guides-aquarium-salt.s19")}</strong>
-                <p>{t("guides-aquarium-salt.s20")}</p>
+                <strong>السمچ الحساس للملوحة (كالكوريدوراس)</strong>
+                <p>بعض الأنواع أكثر حساسية من غيرها — تحقق من متطلبات نوعك أولاً.</p>
               </div>
             </div>
             <div className="slt-card slt-card-no">
               <div className="slt-card-icon">✗</div>
               <div>
-                <strong>{t("guides-aquarium-salt.s21")}</strong>
-                <p>{t("guides-aquarium-salt.s22")}</p>
+                <strong>كبديل للعلاج الحقيقي</strong>
+                <p>الملح لا يعالج الأمراض البكتيرية أو الفطرية الداخلية — أرسل صورة للتشخيص.</p>
               </div>
             </div>
           </div>
@@ -100,43 +99,44 @@ export default function GuideAquariumSalt() {
 
         {/* ── الجرعة ── */}
         <section className="slt-section">
-          <h2 className="slt-title">{t("guides-aquarium-salt.s23")}</h2>
+          <h2 className="slt-title">الجرعة الصحيحة</h2>
           <p className="slt-body">
-            {t("guides-aquarium-salt.s24")}
+            استخدم ملح الطعام النقي (بدون يود) أو ملح الأحواض المخصص.
+            لا تستخدم ملح البحر أو ملح المائدة المعالج بمضادات التكتل.
           </p>
           <div className="slt-dose-table">
             <div className="slt-dose-row slt-dose-header">
-              <span>{t("guides-aquarium-salt.s25")}</span>
-              <span>{t("guides-aquarium-salt.s26")}</span>
-              <span>{t("guides-aquarium-salt.s27")}</span>
+              <span>الغرض</span>
+              <span>الجرعة لكل 10L</span>
+              <span>المدة</span>
             </div>
             <div className="slt-dose-row">
-              <span>{t("guides-aquarium-salt.s28")}</span>
-              <span>{t("guides-aquarium-salt.s29")}</span>
-              <span>{t("guides-aquarium-salt.s30")}</span>
+              <span>تقليل الإجهاد</span>
+              <span>1 غرام</span>
+              <span>مع كل تغيير مي</span>
             </div>
             <div className="slt-dose-row">
-              <span>{t("guides-aquarium-salt.s31")}</span>
-              <span>{t("guides-aquarium-salt.s32")}</span>
-              <span>{t("guides-aquarium-salt.s33")}</span>
+              <span>دعم الجروح السطحية</span>
+              <span>1–2 غرام</span>
+              <span>3–5 أيام</span>
             </div>
             <div className="slt-dose-row">
-              <span>{t("guides-aquarium-salt.s34")}</span>
-              <span>{t("guides-aquarium-salt.s35")}</span>
-              <span>{t("guides-aquarium-salt.s36")}</span>
+              <span>مكافحة طفيليات خارجية</span>
+              <span>3 غرام</span>
+              <span>لا تتجاوز أسبوعاً</span>
             </div>
           </div>
           <p className="slt-note">
-            {t("guides-aquarium-salt.s37")}
+            ⚠ الملح لا يتبخر مع المي — يتراكم. عند كل تغيير مي، أضف الكمية فقط على النسبة المغيّرة مو الحوض كله.
           </p>
         </section>
 
         {/* ── CTA ── */}
         <section className="slt-cta-section">
           <div className="slt-cta-box">
-            <h2 className="slt-cta-title">{t("guides-aquarium-salt.s38")}</h2>
+            <h2 className="slt-cta-title">مو واثق من الكمية المناسبة لحوضك؟</h2>
             <p className="slt-cta-body">
-              {t("guides-aquarium-salt.s39")}
+              أرسل حجم حوضك ونوع السمچ — نحسبها لك بدقة.
             </p>
             <a
               href="https://www.instagram.com/aquavo_iq/"
@@ -144,7 +144,7 @@ export default function GuideAquariumSalt() {
               rel="noopener noreferrer"
               className="slt-cta-btn"
             >
-              {t("guides-aquarium-salt.s40")}
+              راسلنا على إنستغرام
             </a>
           </div>
         </section>

@@ -1,4 +1,3 @@
-import './client/src/i18n/test-setup';
 import '@testing-library/jest-dom/vitest';
 import { expect, beforeEach, afterEach, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';

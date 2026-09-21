@@ -20,7 +20,6 @@ import {
     processPaymentOutboxForOrder,
 } from "../services/payment-maintenance.js";
 import { toPublicOrderItem } from "../../shared/public-product.js";
-import { apiMessage } from "../i18n/messages.js";
 import { payments } from "../../shared/schema.js";
 
 const referralStorage = new ReferralStorage();
@@ -147,7 +146,7 @@ export function createOrderRouter(): RouterType {
                     `);
                     if (banResult.rows && banResult.rows.length > 0) {
                         res.status(403).json({
-                            ...apiMessage(req, "deviceBlocked"),
+                            message: "تم حظر هذا الجهاز من الشراء بسبب رفض استلام طلبات سابقة. تواصل مع الدعم.",
                         });
                         return;
                     }
@@ -161,7 +160,7 @@ export function createOrderRouter(): RouterType {
             const validationResult = createOrderSchema.safeParse(req.body);
             if (!validationResult.success) {
                 res.status(400).json({
-                    ...apiMessage(req, "invalidOrder"),
+                    message: "بيانات الطلب غير صالحة",
                     errors: validationResult.error.errors.map(e => ({
                         field: e.path.join('.'),
                         message: e.message
@@ -218,17 +217,6 @@ export function createOrderRouter(): RouterType {
                     `);
                 } catch (ipErr) {
                     console.error("[AQUAVO] Failed to store client IP:", ipErr);
-                }
-            }
-
-            // Remember the storefront language for customer-facing follow-ups.
-            // The column is added by migrations/add_content_translations.sql; a
-            // missing column must never fail the order.
-            if (db) {
-                try {
-                    await db.execute(sql`UPDATE orders SET locale = ${req.locale ?? "ar"} WHERE id = ${order.id}`);
-                } catch (localeErr) {
-                    console.warn("[AQUAVO] orders.locale not stored (migration pending?)", (localeErr as Error).message);
                 }
             }
 
