@@ -56,41 +56,71 @@ jobs:
           @sentry/node@10.75.0
           @sentry/react@10.75.0
           apify-client@2.25.0
+          autoprefixer@10.6.1
           cloudinary@2.11.0
+          csv-parse@7.0.2
           drizzle-orm@0.45.2
-          express-rate-limit@8.2.2
+          express-rate-limit@8.7.0
+          groq-sdk@1.6.0
           jspdf@4.2.1
           multer@2.4.0
           nanoid@5.1.16
-          nodemailer@9.1.1
+          nodemailer@10.0.10
           postcss@8.5.23
           posthog-js@1.430.3
+          resend@6.28.1
           uuid@13.0.1
           ws@8.21.0
 
       - name: Update vulnerable development dependencies on compatible floors
         run: >-
           pnpm add -D
-          @vercel/node@5.10.2
+          @vercel/node@13.0.1
           @vitest/ui@4.1.11
           dompurify@3.4.13
+          drizzle-kit@0.31.10
           happy-dom@20.8.9
           sharp@0.35.4
           vite@8.0.16
           vitest@4.1.11
 
-      # Never run `pnpm audit --fix` here. In a prior repair attempt it added
-      # 91 global overrides and replaced Express 4's path-to-regexp contract,
-      # producing "pathRegexp is not a function" across dozens of server tests.
-      # Residual advisories are handled by upgrading their parent package or by
-      # a narrowly-scoped, same-major override that is reviewed separately.
-      - name: Confirm no automatic audit overrides were introduced
+      # Nodemailer 10 ships its own TypeScript declarations. Keeping the old
+      # @types package also pulls an obsolete SES/AWS dependency tree.
+      - name: Remove obsolete Nodemailer community types
+        run: pnpm remove -D @types/nodemailer
+
+      # Never run `pnpm audit --fix` here. The only permitted overrides are
+      # narrow parent>child patches within the dependency line expected by that
+      # exact parent. This prevents a repeat of the 91 broad overrides that
+      # replaced Express 4's path-to-regexp API.
+      - name: Apply reviewed transitive patches
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync, writeFileSync } from "node:fs";
+          const pkg = JSON.parse(readFileSync("package.json", "utf8"));
+          pkg.pnpm = pkg.pnpm || {};
+          pkg.pnpm.overrides = {
+            "express@4.22.1>path-to-regexp": "0.1.13",
+            "body-parser@1.20.4>qs": "6.16.0",
+            "recharts@2.15.4>lodash": "4.18.0",
+            "web-push@3.6.7>bn.js": "4.12.3"
+          };
+          writeFileSync("package.json", JSON.stringify(pkg, null, 2) + "\n");
+          NODE
+
+      - name: Verify override allowlist
         run: |
           node --input-type=module <<'NODE'
           import { readFileSync } from "node:fs";
+          const expected = {
+            "express@4.22.1>path-to-regexp": "0.1.13",
+            "body-parser@1.20.4>qs": "6.16.0",
+            "recharts@2.15.4>lodash": "4.18.0",
+            "web-push@3.6.7>bn.js": "4.12.3"
+          };
           const pkg = JSON.parse(readFileSync("package.json", "utf8"));
-          if (pkg.pnpm?.overrides && Object.keys(pkg.pnpm.overrides).length > 0) {
-            console.error("Unexpected pnpm.overrides present; refuse broad security overrides.");
+          if (JSON.stringify(pkg.pnpm?.overrides || {}) !== JSON.stringify(expected)) {
+            console.error("Dependency overrides differ from the reviewed allowlist.");
             process.exit(1);
           }
           NODE
@@ -104,6 +134,17 @@ jobs:
         run: |
           set +e
           pnpm run check 2>&1 | tee remediation-types.log
+          code=${PIPESTATUS[0]}
+          set -e
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+
+      - name: Build and generate SSR artifacts
+        id: build
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          pnpm run build 2>&1 | tee remediation-build.log
           code=${PIPESTATUS[0]}
           set -e
           echo "exit_code=$code" >> "$GITHUB_OUTPUT"
@@ -129,17 +170,6 @@ jobs:
           else
             echo "No test log was produced"
           fi
-
-      - name: Build
-        id: build
-        if: always()
-        shell: bash
-        run: |
-          set +e
-          pnpm run build 2>&1 | tee remediation-build.log
-          code=${PIPESTATUS[0]}
-          set -e
-          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
 
       - name: Final security audit
         id: audit
