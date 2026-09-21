@@ -233,7 +233,7 @@ jobs:
           if-no-files-found: warn
           retention-days: 3
 
-      - name: Commit verified dependency repair
+      # Once the lockfile is already verified, keep this step a no-op so the caller-authored PR SHA remains the downstream CI target.\n      - name: Commit verified dependency repair
         if: steps.types.outputs.exit_code == '0' && steps.tests.outputs.exit_code == '0' && steps.build.outputs.exit_code == '0' && steps.audit.outputs.exit_code == '0'
         shell: bash
         run: |
