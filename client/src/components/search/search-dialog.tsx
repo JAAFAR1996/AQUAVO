@@ -8,6 +8,7 @@ import { Product } from '@/types';
 import { SearchIcon } from 'lucide-react';
 import { cardImage } from '@/lib/cloudinary';
 import { useTranslation } from "react-i18next";
+import { getProductDisplayIdentity } from "@/lib/product-display";
 
 interface SearchDialogProps {
   open: boolean;
@@ -58,17 +59,25 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
             <p className="text-center text-muted-foreground py-8">{t("search-dialog.s3")}</p>
           )}
           <div className="space-y-2">
-            {filteredProducts.map(product => (
-              <Link key={product.id} href={`/products/${product.slug}`} onClick={() => onOpenChange(false)}>
-                <div className="flex items-center gap-4 p-2 rounded-lg hover:bg-muted cursor-pointer">
-                  <img src={cardImage(product.image) || "/brand/aquavo-v2-icon.svg"} alt={product.name} loading="lazy" decoding="async" width={64} height={64} className="w-16 h-16 object-contain rounded-md bg-card" />
-                  <div>
-                    <h4 className="font-semibold">{product.name}</h4>
-                    <p className="text-sm font-bold text-purple-500">{t("search-dialog.s4")}</p>
+            {filteredProducts.map(product => {
+              const productDisplay = getProductDisplayIdentity(product);
+              return (
+                <Link key={product.id} href={`/products/${product.slug}`} onClick={() => onOpenChange(false)}>
+                  <div className="flex items-center gap-4 p-2 rounded-lg hover:bg-muted cursor-pointer">
+                    <img src={cardImage(product.image) || "/brand/aquavo-v2-icon.svg"} alt={product.name} loading="lazy" decoding="async" width={64} height={64} className="w-16 h-16 object-contain rounded-md bg-card" />
+                    <div className="min-w-0">
+                      {productDisplay.brand ? (
+                        <p className="text-[10px] font-bold uppercase tracking-[0.06em] text-primary/75">
+                          <bdi dir="ltr">{productDisplay.brand}</bdi>
+                        </p>
+                      ) : null}
+                      <h4 className="font-semibold line-clamp-2">{productDisplay.name}</h4>
+                      <p className="text-sm font-bold text-purple-500">{t("search-dialog.s4")}</p>
+                    </div>
                   </div>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              );
+            })}
           </div>
         </div>
       </DialogContent>
