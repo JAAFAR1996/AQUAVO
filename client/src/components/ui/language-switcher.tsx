@@ -1,4 +1,4 @@
-import { Check, Globe } from "lucide-react";
+import { Check } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,8 +22,14 @@ function offeredLocales(current: Locale): Locale[] {
   return SUPPORTED_LOCALES.filter((l) => l === current || isLocaleReleased(l));
 }
 
+const LOCALE_SHORT_LABELS: Readonly<Record<Locale, string>> = Object.freeze({
+  ar: "ع",
+  en: "EN",
+  ckb: "KU",
+});
+
 interface LanguageSwitcherProps {
-  /** "compact" is icon-only for the mobile header; "icon" and "full" keep the current labelled controls. */
+  /** "compact" is the short-code mobile control; other variants keep the same short-code trigger with more spacing. */
   variant?: "icon" | "full" | "compact";
   className?: string;
 }
@@ -56,18 +62,23 @@ export function LanguageSwitcher({ variant = "icon", className = "" }: LanguageS
           data-testid="language-switcher"
           data-variant={variant}
         >
-          <Globe className={compact ? "h-5 w-5" : "h-4 w-4"} aria-hidden="true" />
-          {!compact && (
-            <>
-              <span lang={locale} className="text-sm font-medium">
-                {current.nativeName}
-              </span>
-              <span aria-hidden="true" className="text-xs opacity-70">▾</span>
-            </>
-          )}
+          <span
+            lang={locale}
+            dir="ltr"
+            className={compact ? "text-sm font-bold leading-none" : "text-sm font-semibold leading-none"}
+            aria-hidden="true"
+          >
+            {LOCALE_SHORT_LABELS[locale]}
+          </span>
+          {!compact && <span aria-hidden="true" className="text-xs opacity-70">▾</span>}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="min-w-[180px]" aria-label={t("language.menuLabel")}>
+      <DropdownMenuContent
+        align="end"
+        dir="ltr"
+        className="grid min-w-[168px] grid-cols-3 gap-1 p-1"
+        aria-label={t("language.menuLabel")}
+      >
         {offered.map((code: Locale) => {
           const def = LOCALES[code];
           const active = code === locale;
@@ -75,14 +86,16 @@ export function LanguageSwitcher({ variant = "icon", className = "" }: LanguageS
             <DropdownMenuItem
               key={code}
               onClick={() => setLocale(code)}
-              className="min-h-11 cursor-pointer justify-between gap-3"
+              className={`relative min-h-10 min-w-0 cursor-pointer justify-center rounded-md px-2 text-center ${active ? "bg-primary/10 text-primary" : ""}`}
               aria-current={active ? "true" : undefined}
+              aria-label={def.nativeName}
+              title={def.nativeName}
               data-testid={`language-option-${code}`}
               lang={code}
-              dir={def.dir}
+              dir="ltr"
             >
-              <span className={active ? "font-semibold text-primary" : ""}>{def.nativeName}</span>
-              {active && <Check className="h-4 w-4 text-primary" aria-hidden="true" />}
+              <span className="text-sm font-semibold leading-none">{LOCALE_SHORT_LABELS[code]}</span>
+              {active && <Check className="absolute end-1 top-1 h-3 w-3 text-primary" aria-hidden="true" />}
             </DropdownMenuItem>
           );
         })}
