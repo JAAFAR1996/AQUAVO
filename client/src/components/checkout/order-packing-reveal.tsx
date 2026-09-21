@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef } from "react";
 import { prefersReducedMotion } from "@/lib/motion/reduced-motion";
+import { useTranslation } from "react-i18next";
 
 /**
  * Order "Pack–Seal–Confirm" reveal, shown once on the real successful-order
@@ -50,6 +51,7 @@ function preload(src: string): Promise<void> {
 }
 
 export function OrderPackingReveal({ items, onComplete }: { items: PackItem[]; onComplete: () => void }) {
+  const { t } = useTranslation("pages");
   const boxRef = useRef<HTMLDivElement>(null);
   const lidRef = useRef<HTMLDivElement>(null);
   const tapeRef = useRef<HTMLDivElement>(null);
@@ -156,12 +158,12 @@ export function OrderPackingReveal({ items, onComplete }: { items: PackItem[]; o
           <div ref={tapeRef} className="absolute left-1/2 top-0 h-full w-6 -translate-x-1/2 origin-top bg-[#C9852F]/60" style={{ transform: "scaleY(0)", opacity: 0 }} />
           <div ref={sealRef} className="absolute left-1/2 top-1/2 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full border-2 border-primary bg-card text-primary shadow" style={{ transform: "scale(0) rotate(-20deg)", opacity: 0 }}>
             <span className="text-[8px] font-bold tracking-wide">AQUAVO</span>
-            <span className="text-[11px] font-black leading-tight">مُغَلَّف</span>
-            <span className="text-[11px] font-black leading-tight">بعناية</span>
+            <span className="text-[11px] font-black leading-tight">{t("order-packing-reveal.s1")}</span>
+            <span className="text-[11px] font-black leading-tight">{t("order-packing-reveal.s2")}</span>
           </div>
         </div>
       </div>
-      <p className="mt-2 text-sm font-bold text-muted-foreground">نجهّز طلبك…</p>
+      <p className="mt-2 text-sm font-bold text-muted-foreground">{t("order-packing-reveal.s3")}</p>
     </div>
   );
 }

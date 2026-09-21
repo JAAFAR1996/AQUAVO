@@ -1,0 +1,17 @@
+{
+  "capturedAt": "2026-09-20T19:20:45.041Z",
+  "step": "unpublish",
+  "target": "production · host=ep-quiet-moon-a4h7tdze-pooler.us-east-1.aws.neon.tech · db=neondb · endpoint=ep-quiet-moon-a4h7tdze",
+  "rows": [
+    {
+      "id": "auto-1789869961312",
+      "slug": "كيف-تتعامل-مع-حرارة-الصيف-في-أحواض-السمك-دليل-شامل-1789869961312",
+      "before": {
+        "is_published": true
+      },
+      "after": {
+        "is_published": false
+      }
+    }
+  ]
+}

@@ -14,6 +14,7 @@ import { cardImage, cardImageSrcSet } from "@/lib/cloudinary";
 import { formatPrice } from "@/lib/format";
 import { trackSelectItem } from "@/lib/analytics";
 import { flyProductToCart } from "@/lib/motion/fly-to-cart";
+import { isolateNumericRanges as bidi } from "@shared/i18n/bidi";
 import {
   navigateCardToProduct,
   prefetchProductDestination,
@@ -21,6 +22,7 @@ import {
 } from "@/lib/motion/card-transition";
 import { prefersReducedMotion } from "@/lib/motion/reduced-motion";
 import type { Product } from "@/types";
+import { useTranslation } from "react-i18next";
 
 interface ProductCardProps {
   product: Product;
@@ -34,6 +36,8 @@ export const ProductCard = memo(function ProductCard({
   product,
   priority = false,
 }: ProductCardProps) {
+  const { t } = useTranslation("products");
+  const { t: tProduct } = useTranslation("product");
   const { addItem } = useCart();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
@@ -59,7 +63,10 @@ export const ProductCard = memo(function ProductCard({
     typeof product.specifications?.__cardBenefit === "string"
       ? product.specifications.__cardBenefit.trim()
       : "";
-  const supportingLine = cardBenefit || product.specs || product.description || "";
+  // bidi(): a hyphenated range inside an RTL name or benefit line renders reversed
+  // ("50-150" read as "150-50"). See shared/i18n/bidi.ts.
+  const displayName = bidi(product.name);
+  const supportingLine = bidi(cardBenefit || product.specs || product.description || "");
   const woodSaleActive = isWoodMonthEndSale(product);
 
   const handlePrimaryAction = async (event: MouseEvent<HTMLButtonElement>) => {
@@ -76,8 +83,8 @@ export const ProductCard = memo(function ProductCard({
     if (motionActive) flyProductToCart(imgRef.current);
 
     toast({
-      title: "تمت الإضافة",
-      description: `${product.name} انضاف للسلة.`,
+      title: t("card.added"),
+      description: t("card.addedDetail", { name: product.name }),
     });
   };
 
@@ -108,23 +115,23 @@ export const ProductCard = memo(function ProductCard({
   const imageSrcSet = cardImageSrcSet(rawImage);
 
   const primaryActionLabel = !hasPrice
-    ? "قريباً"
+    ? t("card.soon")
     : isOutOfStock
-      ? "نفدت الكمية"
+      ? t("card.outOfStock")
       : requiresVariantChoice
-        ? "اختار الخيار"
-        : "أضف للسلة";
+        ? t("card.chooseOption")
+        : t("card.addToCart");
 
   const primaryActionAriaLabel = !hasPrice
-    ? `${product.name} قريباً`
+    ? t("card.soonAria", { name: product.name })
     : isOutOfStock
-      ? `${product.name}، نفدت الكمية`
+      ? t("card.outOfStockAria", { name: product.name })
       : requiresVariantChoice
-        ? `اختار خيار ${product.name}`
-        : `أضف ${product.name} إلى سلة المشتريات`;
+        ? t("card.chooseOptionAria", { name: product.name })
+        : t("card.addToCartAria", { name: product.name });
 
   return (
-    <Card className="group relative flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-[#ddd9d2] bg-[#f7f4ef] text-right shadow-[0_4px_14px_rgba(35,42,43,0.07)] transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-[#d2ccc3] hover:shadow-[0_10px_26px_rgba(35,42,43,0.11)]">
+    <Card className="group relative flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-[#ddd9d2] bg-[#f7f4ef] text-start shadow-[0_4px_14px_rgba(35,42,43,0.07)] transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-[#d2ccc3] hover:shadow-[0_10px_26px_rgba(35,42,43,0.11)]">
       <div className="pointer-events-none absolute inset-x-3 top-3 z-30 flex items-start justify-between gap-2">
         <div className="pointer-events-auto">
           <WishlistButton
@@ -138,16 +145,16 @@ export const ProductCard = memo(function ProductCard({
         <div className="flex flex-col items-end gap-1">
           {woodSaleActive ? (
             <Badge className="border border-[#173a43]/10 bg-[#173a43] text-white shadow-sm hover:bg-[#173a43]">
-              خصم 30%
+              {tProduct("sale.discount30")}
             </Badge>
           ) : null}
-          {product.isNew ? <Badge className="bg-primary text-primary-foreground">جديد</Badge> : null}
-          {product.isBestSeller ? <Badge variant="secondary">الأكثر مبيعاً</Badge> : null}
+          {product.isNew ? <Badge className="bg-primary text-primary-foreground">{t("tags.new")}</Badge> : null}
+          {product.isBestSeller ? <Badge variant="secondary">{t("tags.bestSeller")}</Badge> : null}
           {product.difficulty ? <DifficultyBadge level={product.difficulty} className="shrink-0 bg-[#f7f4ef]/88 backdrop-blur-md" /> : null}
           {product.ecoFriendly ? (
             <Badge variant="outline" className="gap-1 border-primary/25 bg-[#f7f4ef]/88 text-primary backdrop-blur-md">
               <Leaf className="h-3 w-3" aria-hidden="true" />
-              صديق للبيئة
+              {t("tags.eco")}
             </Badge>
           ) : null}
         </div>
@@ -159,7 +166,7 @@ export const ProductCard = memo(function ProductCard({
         onPointerEnter={prefetchDestination}
         onPointerDown={prefetchDestination}
         onFocus={prefetchDestination}
-        aria-label={`عرض تفاصيل ${product.name}`}
+        aria-label={t("card.viewDetails", { name: product.name })}
         className="flex min-w-0 flex-1 flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
       >
         <div className="relative aspect-square w-full shrink-0 overflow-hidden bg-[#f7f4ef]" data-protected="true">
@@ -169,7 +176,7 @@ export const ProductCard = memo(function ProductCard({
             src={imageSrc}
             srcSet={imageSrcSet}
             sizes={imageSrcSet ? "(max-width: 639px) 50vw, (max-width: 1023px) 33vw, (max-width: 1279px) 25vw, 20vw" : undefined}
-            alt={`صورة منتج ${product.name}`}
+            alt={t("card.imageAlt", { name: product.name })}
             className={`h-full w-full select-none object-cover object-center transition-[opacity,transform] duration-300 ${imgLoaded ? "opacity-100" : "opacity-0"} group-hover:scale-[1.01]`}
             loading={priority ? "eager" : "lazy"}
             fetchPriority={priority ? "high" : "auto"}
@@ -196,7 +203,7 @@ export const ProductCard = memo(function ProductCard({
 
         <CardHeader className="-mt-px space-y-1 bg-[#f7f4ef] px-3 pb-1 pt-2.5 sm:px-4 sm:pb-1 sm:pt-3">
           <h3 className="line-clamp-2 min-h-10 text-sm font-bold leading-5 tracking-[-0.01em] text-foreground transition-colors group-hover:text-primary sm:min-h-12 sm:text-[15px] sm:leading-6">
-            {product.name}
+            {displayName}
           </h3>
 
           <p className="line-clamp-2 min-h-10 text-xs leading-5 text-muted-foreground sm:text-[12.5px] sm:leading-5">
@@ -210,7 +217,7 @@ export const ProductCard = memo(function ProductCard({
               {hasPrice ? (
                 <>
                   {requiresVariantChoice && variantMinPrice !== undefined ? (
-                    <span className="text-[11px] text-muted-foreground">من</span>
+                    <span className="text-[11px] text-muted-foreground">{t("card.from")}</span>
                   ) : null}
                   <span className="whitespace-nowrap text-base font-bold text-primary sm:text-lg">
                     {requiresVariantChoice && variantMinPrice !== undefined
@@ -224,11 +231,11 @@ export const ProductCard = memo(function ProductCard({
                   ) : null}
                 </>
               ) : (
-                <span className="text-sm font-medium text-muted-foreground">قريباً</span>
+                <span className="text-sm font-medium text-muted-foreground">{t("card.soon")}</span>
               )}
             </div>
 
-            <div className="flex shrink-0 items-center gap-1 text-xs" aria-label={(product.reviewCount ?? 0) > 0 ? `التقييم: ${product.rating} من 5 نجوم` : undefined}>
+            <div className="flex shrink-0 items-center gap-1 text-xs" aria-label={(product.reviewCount ?? 0) > 0 ? t("card.rating", { rating: product.rating }) : undefined}>
               {(product.reviewCount ?? 0) > 0 ? (
                 <>
                   <span className="text-amber-400" aria-hidden="true">★</span>

@@ -5,6 +5,8 @@ import { X, SlidersHorizontal, Sparkles, Tag, Layers, Star, Leaf, Zap, DollarSig
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { DualRangeSlider } from "@/components/ui/dual-range-slider";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
+import { PRODUCT_DIFFICULTY_VALUES, PRODUCT_TAG_VALUES } from "@/lib/product-filter-values";
 
 export interface FilterState {
   priceRange: [number, number];
@@ -121,6 +123,7 @@ function FilterSection({
   children: React.ReactNode;
   badge?: number;
 }) {
+  const { t } = useTranslation("products");
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
@@ -134,7 +137,7 @@ function FilterSection({
         </div>
         {badge !== undefined && badge > 0 && (
           <Badge variant="outline" className="text-[10px] px-2">
-            {badge} مختار
+            {t("filters.selected", { count: badge })}
           </Badge>
         )}
       </div>
@@ -159,6 +162,7 @@ function AppliedFiltersBar({
   onRemoveTag: (tag: string) => void;
   onClearAll: () => void;
 }) {
+  const { t } = useTranslation("products");
   const allFilters = [
     ...filters.categories.map(c => ({ type: 'category', value: c, label: c })),
     ...filters.brands.map(b => ({ type: 'brand', value: b, label: b })),
@@ -184,7 +188,7 @@ function AppliedFiltersBar({
           <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center animate-pulse">
             <Zap className="w-3.5 h-3.5 text-primary" />
           </div>
-          <span className="text-sm font-medium text-primary">{allFilters.length} فلتر نشط</span>
+          <span className="text-sm font-medium text-primary">{t("filters.active", { count: allFilters.length })}</span>
         </div>
         <Button
           variant="ghost"
@@ -192,8 +196,8 @@ function AppliedFiltersBar({
           onClick={onClearAll}
           className="text-xs text-muted-foreground hover:text-destructive h-7 px-2"
         >
-          <X className="w-3 h-3 ml-1" />
-          مسح الكل
+          <X className="w-3 h-3 me-1" />
+          {t("filters.clearAll")}
         </Button>
       </div>
       <div className="flex flex-wrap gap-1.5">
@@ -223,6 +227,7 @@ export function ProductFilters({
   categoryCounts = [],
   brandCounts = [],
 }: ProductFiltersProps) {
+  const { t } = useTranslation("products");
   const [localFilters, setLocalFilters] = useState<FilterState>(filters);
 
   useEffect(() => {
@@ -243,15 +248,15 @@ export function ProductFilters({
   }, [brandCounts]);
 
   const difficulties = [
-    { label: "مبتدئ", value: "مبتدئ", color: "green" as const },
-    { label: "متوسط", value: "متوسط", color: "orange" as const },
-    { label: "متقدم", value: "متقدم", color: "purple" as const },
+    { label: t("difficulty.beginner"), value: PRODUCT_DIFFICULTY_VALUES.beginner, color: "green" as const },
+    { label: t("difficulty.intermediate"), value: PRODUCT_DIFFICULTY_VALUES.intermediate, color: "orange" as const },
+    { label: t("difficulty.advanced"), value: PRODUCT_DIFFICULTY_VALUES.advanced, color: "purple" as const },
   ];
 
   const tags = [
-    { label: "جديد", value: "جديد", icon: Sparkles, color: "cyan" as const },
-    { label: "الأكثر مبيعاً", value: "الأكثر مبيعاً", icon: TrendingUp, color: "orange" as const },
-    { label: "صديق للبيئة", value: "صديق للبيئة", icon: Leaf, color: "green" as const },
+    { label: t("tags.new"), value: PRODUCT_TAG_VALUES.new, icon: Sparkles, color: "cyan" as const },
+    { label: t("tags.bestSeller"), value: PRODUCT_TAG_VALUES.bestSeller, icon: TrendingUp, color: "orange" as const },
+    { label: t("tags.eco"), value: PRODUCT_TAG_VALUES.eco, icon: Leaf, color: "green" as const },
   ];
 
   const handlePriceChange = (value: [number, number]) => {
@@ -311,7 +316,7 @@ export function ProductFilters({
       />
 
       {/* Price Range - Dual Slider */}
-      <FilterSection title="نطاق السعر" icon={DollarSign}>
+      <FilterSection title={t("filters.priceRange")} icon={DollarSign}>
         <div className="px-1">
           <DualRangeSlider
             min={0}
@@ -319,14 +324,14 @@ export function ProductFilters({
             step={Math.ceil(maxPrice / 100)}
             value={localFilters.priceRange}
             onValueChange={handlePriceChange}
-            formatValue={(v) => `${formatPrice(v)} د.ع`}
+            formatValue={(v) => formatPrice(v)}
             showValues={true}
           />
         </div>
       </FilterSection>
 
       {/* Quick Tags */}
-      <FilterSection title="تصفية سريعة" icon={Sparkles} badge={localFilters.tags.length}>
+      <FilterSection title={t("filters.quick")} icon={Sparkles} badge={localFilters.tags.length}>
         <div className="flex flex-wrap gap-2">
           {tags.map((tag) => (
             <FilterChip
@@ -343,7 +348,7 @@ export function ProductFilters({
 
       {/* Categories with Counts */}
       {availableCategories.length > 0 && (
-        <FilterSection title="الفئات" icon={Layers} badge={localFilters.categories.length}>
+        <FilterSection title={t("filters.categories")} icon={Layers} badge={localFilters.categories.length}>
           <div className="flex flex-wrap gap-2">
             {availableCategories.map((category) => (
               <FilterChip
@@ -360,7 +365,7 @@ export function ProductFilters({
 
       {/* Brands with Counts */}
       {availableBrands.length > 0 && (
-        <FilterSection title="العلامات التجارية" icon={Tag} badge={localFilters.brands.length}>
+        <FilterSection title={t("filters.brands")} icon={Tag} badge={localFilters.brands.length}>
           <div className="flex flex-wrap gap-2 max-h-[180px] overflow-y-auto custom-scrollbar p-1">
             {availableBrands.map((brand) => (
               <FilterChip
@@ -376,7 +381,7 @@ export function ProductFilters({
       )}
 
       {/* Difficulty */}
-      <FilterSection title="مستوى الخبرة" icon={Star} badge={localFilters.difficulties.length}>
+      <FilterSection title={t("filters.experience")} icon={Star} badge={localFilters.difficulties.length}>
         <div className="flex flex-wrap gap-2">
           {difficulties.map((diff) => (
             <FilterChip
@@ -404,8 +409,8 @@ export function ProductFilters({
                 <SlidersHorizontal className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h2 className="font-bold text-lg">تصفية المنتجات</h2>
-                <p className="text-xs text-muted-foreground">اختر ما يناسبك</p>
+                <h2 className="font-bold text-lg">{t("filters.title")}</h2>
+                <p className="text-xs text-muted-foreground">{t("filters.subtitle")}</p>
               </div>
             </div>
           </div>
@@ -421,8 +426,8 @@ export function ProductFilters({
               size="lg"
               className="shadow-2xl shadow-primary/30 rounded-full px-6 bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-all hover:scale-105"
             >
-              <SlidersHorizontal className="w-5 h-5 ml-2" />
-              الفلاتر
+              <SlidersHorizontal className="w-5 h-5 me-2" />
+              {t("filters.button")}
               {activeFiltersCount > 0 && (
                 <Badge className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0 flex items-center justify-center bg-card text-primary border-2 border-primary font-bold animate-bounce">
                   {activeFiltersCount}
@@ -437,7 +442,7 @@ export function ProductFilters({
                   <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center">
                     <SlidersHorizontal className="w-4 h-4 text-white" />
                   </div>
-                  تصفية المنتجات
+                  {t("filters.title")}
                 </SheetTitle>
                 <SheetClose asChild>
                   <Button variant="ghost" size="sm" className="rounded-full">

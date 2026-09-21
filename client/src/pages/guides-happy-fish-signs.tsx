@@ -1,4 +1,6 @@
+import { useTranslation } from "react-i18next";
 export default function GuideHappyFishSigns() {
+  const { t } = useTranslation("guides");
   return (
     <div className="hfs-wrap">
 
@@ -10,7 +12,7 @@ export default function GuideHappyFishSigns() {
 
         {/* ── Hero ── */}
         <section className="hfs-hero">
-          <span className="hfs-badge">دليل المراقبة — AQUAVO</span>
+          <span className="hfs-badge">{t("guides-happy-fish-signs.s1")}</span>
 
           {/* Porthole — observation window */}
           <div className="hfs-porthole" aria-hidden="true">
@@ -23,70 +25,63 @@ export default function GuideHappyFishSigns() {
             <div className="hfs-porthole-ring"></div>
           </div>
 
-          <h1>إشارات الهدوء</h1>
-          <p className="hfs-sub">السمچ الصحي يقولك بجسمه — لو تعرف كيف تسمع</p>
+          <h1>{t("guides-happy-fish-signs.s2")}</h1>
+          <p className="hfs-sub">{t("guides-happy-fish-signs.s3")}</p>
           <p className="hfs-intro">
-            ما تحتاج مختبر تعرف وضع السمچ. دقيقتين يومياً تراقب فيها الحركة والسلوك
-            تكفي تكشف أي مشكلة قبل ما تتحول لأزمة.
+            {t("guides-happy-fish-signs.s4")}
           </p>
           <div className="hfs-meta">
-            <span>للمتابعة اليومية</span>
-            <span>وقت القراءة: 5 دقائق</span>
+            <span>{t("guides-happy-fish-signs.s5")}</span>
+            <span>{t("guides-happy-fish-signs.s6")}</span>
           </div>
         </section>
 
         {/* ── العلامات الست ── */}
         <section className="hfs-section">
-          <h2 className="hfs-title">٦ علامات تقول السمچ بخير</h2>
-          <p className="hfs-body">هذه الإشارات تعني الحوض يسير صح وما يحتاج تدخل:</p>
+          <h2 className="hfs-title">{t("guides-happy-fish-signs.s7")}</h2>
+          <p className="hfs-body">{t("guides-happy-fish-signs.s8")}</p>
 
           <div className="hfs-signs-grid">
             <div className="hfs-sign-card">
-              <div className="hfs-sign-num">١</div>
-              <h3>السباحة بنشاط وتوازن</h3>
+              <div className="hfs-sign-num">{t("guides-happy-fish-signs.s9")}</div>
+              <h3>{t("guides-happy-fish-signs.s10")}</h3>
               <p>
-                السمچ الصحي يسبح بخط مستقيم دون انحراف أو تأرجح.
-                إذا تحرك بشكل طبيعي دون جهد — جيد.
+                {t("guides-happy-fish-signs.s11")}
               </p>
             </div>
             <div className="hfs-sign-card">
-              <div className="hfs-sign-num">٢</div>
-              <h3>يأكل بشهية عند التغذية</h3>
+              <div className="hfs-sign-num">{t("guides-happy-fish-signs.s12")}</div>
+              <h3>{t("guides-happy-fish-signs.s13")}</h3>
               <p>
-                السمچ يجي للأعلى أو يسبح نحو الأكل بسرعة.
-                الرفض المتكرر للأكل إشارة مبكرة لمشكلة.
+                {t("guides-happy-fish-signs.s14")}
               </p>
             </div>
             <div className="hfs-sign-card">
-              <div className="hfs-sign-num">٣</div>
-              <h3>ألوانه واضحة وثابتة</h3>
+              <div className="hfs-sign-num">{t("guides-happy-fish-signs.s15")}</div>
+              <h3>{t("guides-happy-fish-signs.s16")}</h3>
               <p>
-                شحوب الألوان أو ظهور بقع بيضاء أو داكنة
-                يحتاج مراجعة. الألوان الطبيعية = صحة طبيعية.
+                {t("guides-happy-fish-signs.s17")}
               </p>
             </div>
             <div className="hfs-sign-card">
-              <div className="hfs-sign-num">٤</div>
-              <h3>الزعانف مفتوحة ومتحركة</h3>
+              <div className="hfs-sign-num">{t("guides-happy-fish-signs.s18")}</div>
+              <h3>{t("guides-happy-fish-signs.s19")}</h3>
               <p>
-                زعانف مطوية أو ملصقة بالجسم تعني إجهاد أو مرض.
-                الزعانف المفتوحة = راحة واستقرار.
+                {t("guides-happy-fish-signs.s20")}
               </p>
             </div>
             <div className="hfs-sign-card">
-              <div className="hfs-sign-num">٥</div>
-              <h3>يستكشف ولا يختبي باستمرار</h3>
+              <div className="hfs-sign-num">{t("guides-happy-fish-signs.s21")}</div>
+              <h3>{t("guides-happy-fish-signs.s22")}</h3>
               <p>
-                السمچ الصحي فضولي ويتحرك في الحوض.
-                الاختباء المستمر أو التجمع في زاوية يحتاج انتباه.
+                {t("guides-happy-fish-signs.s23")}
               </p>
             </div>
             <div className="hfs-sign-card">
-              <div className="hfs-sign-num">٦</div>
-              <h3>تنفسه هادي ومنتظم</h3>
+              <div className="hfs-sign-num">{t("guides-happy-fish-signs.s24")}</div>
+              <h3>{t("guides-happy-fish-signs.s25")}</h3>
               <p>
-                حركة الخياشيم سريعة جداً تعني نقص أكسجين أو إجهاد.
-                التنفس الهادي والمنتظم = مؤشر صحة جيد.
+                {t("guides-happy-fish-signs.s26")}
               </p>
             </div>
           </div>
@@ -94,27 +89,27 @@ export default function GuideHappyFishSigns() {
 
         {/* ── الروتين اليومي ── */}
         <section className="hfs-section">
-          <h2 className="hfs-title">روتين المراقبة اليومي — دقيقتان</h2>
+          <h2 className="hfs-title">{t("guides-happy-fish-signs.s27")}</h2>
           <div className="hfs-routine">
             <div className="hfs-routine-step">
-              <span className="hfs-r-time">صباح</span>
+              <span className="hfs-r-time">{t("guides-happy-fish-signs.s28")}</span>
               <div>
-                <strong>قبل التغذية</strong>
-                <p>شوف كل سمچة تسبح. لاحظ أي حركة غريبة أو بقعة جديدة.</p>
+                <strong>{t("guides-happy-fish-signs.s29")}</strong>
+                <p>{t("guides-happy-fish-signs.s30")}</p>
               </div>
             </div>
             <div className="hfs-routine-step">
-              <span className="hfs-r-time">أثناء الأكل</span>
+              <span className="hfs-r-time">{t("guides-happy-fish-signs.s31")}</span>
               <div>
-                <strong>راقب الشهية</strong>
-                <p>من ما أكل أو ما جاء للسطح؟ هذا أول مؤشر على مشكلة صحية.</p>
+                <strong>{t("guides-happy-fish-signs.s32")}</strong>
+                <p>{t("guides-happy-fish-signs.s33")}</p>
               </div>
             </div>
             <div className="hfs-routine-step">
-              <span className="hfs-r-time">مساء</span>
+              <span className="hfs-r-time">{t("guides-happy-fish-signs.s34")}</span>
               <div>
-                <strong>تفقد الزجاج والقاع</strong>
-                <p>أي بقع بيضاء، طحالب جديدة، أو سمچة على القاع بدون حراك.</p>
+                <strong>{t("guides-happy-fish-signs.s35")}</strong>
+                <p>{t("guides-happy-fish-signs.s36")}</p>
               </div>
             </div>
           </div>
@@ -122,34 +117,34 @@ export default function GuideHappyFishSigns() {
 
         {/* ── علامات التحذير ── */}
         <section className="hfs-section">
-          <h2 className="hfs-title">متى تقلق؟ — علامات التحذير</h2>
+          <h2 className="hfs-title">{t("guides-happy-fish-signs.s37")}</h2>
           <div className="hfs-warn-list">
             <div className="hfs-warn">
               <span className="hfs-warn-dot"></span>
               <div>
-                <strong>السمچ على السطح يشرب الهواء</strong>
-                <p>نقص أكسجين — راجع التهوية والحرارة فوراً</p>
+                <strong>{t("guides-happy-fish-signs.s38")}</strong>
+                <p>{t("guides-happy-fish-signs.s39")}</p>
               </div>
             </div>
             <div className="hfs-warn">
               <span className="hfs-warn-dot"></span>
               <div>
-                <strong>حك على الحصى أو الزجاج</strong>
-                <p>علامة لطفيليات خارجية — عزل وفحص</p>
+                <strong>{t("guides-happy-fish-signs.s40")}</strong>
+                <p>{t("guides-happy-fish-signs.s41")}</p>
               </div>
             </div>
             <div className="hfs-warn">
               <span className="hfs-warn-dot"></span>
               <div>
-                <strong>انتفاخ في الجسم أو البطن</strong>
-                <p>احتمال إمساك أو عدوى داخلية — يحتاج تشخيص</p>
+                <strong>{t("guides-happy-fish-signs.s42")}</strong>
+                <p>{t("guides-happy-fish-signs.s43")}</p>
               </div>
             </div>
             <div className="hfs-warn">
               <span className="hfs-warn-dot"></span>
               <div>
-                <strong>بقع بيضاء صغيرة كالملح على الجسم</strong>
-                <p>ايچ — طفيلي شائع يحتاج علاج سريع</p>
+                <strong>{t("guides-happy-fish-signs.s44")}</strong>
+                <p>{t("guides-happy-fish-signs.s45")}</p>
               </div>
             </div>
           </div>
@@ -158,9 +153,9 @@ export default function GuideHappyFishSigns() {
         {/* ── CTA ── */}
         <section className="hfs-cta-section">
           <div className="hfs-cta-box">
-            <h2 className="hfs-cta-title">لاحظت شي مو طبيعي؟</h2>
+            <h2 className="hfs-cta-title">{t("guides-happy-fish-signs.s46")}</h2>
             <p className="hfs-cta-body">
-              أرسل صورة أو فيديو للسمچة — نساعدك تشخص الموضوع بشكل أدق.
+              {t("guides-happy-fish-signs.s47")}
             </p>
             <a
               href="https://www.instagram.com/aquavo_iq/"
@@ -168,7 +163,7 @@ export default function GuideHappyFishSigns() {
               rel="noopener noreferrer"
               className="hfs-cta-btn"
             >
-              راسلنا على إنستغرام
+              {t("guides-happy-fish-signs.s48")}
             </a>
           </div>
         </section>

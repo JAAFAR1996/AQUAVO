@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/compone
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { detailImage, detailImageSrcSet, thumbImage, lightboxImage } from "@/lib/cloudinary";
+import { useTranslation } from "react-i18next";
 
 interface ProductImageGalleryProps {
     images: string[];
@@ -41,6 +42,7 @@ export function ProductImageGallery({
     className,
     heroTransitionName,
 }: ProductImageGalleryProps) {
+    const { t } = useTranslation("product");
     const [selectedIndex, setSelectedIndex] = useState(0);
     const [imageFailed, setImageFailed] = useState(false);
     const [isZoomed, setIsZoomed] = useState(false);
@@ -92,8 +94,8 @@ export function ProductImageGallery({
             onKeyDown={handleKeyDown}
             tabIndex={0}
             role="group"
-            aria-roledescription="معرض صور"
-            aria-label={`معرض صور ${productName} — استخدم مفاتيح الأسهم للتنقل و Enter للتكبير`}
+            aria-roledescription={t("gallery.roleDescription")}
+            aria-label={t("gallery.label", { name: productName })}
         >
             <div className="relative group" data-protected="true">
                 <div
@@ -108,7 +110,7 @@ export function ProductImageGallery({
                 >
                     {galleryImages.length === 0 || imageFailed ? (
                         <div className="w-full h-full min-h-[260px] sm:min-h-[350px] flex flex-col items-center justify-center bg-card dark:bg-[#0B1E28]/40 border border-white/5 rounded-lg p-6 text-center select-none">
-                            <span className="text-sm text-muted-foreground/80 font-medium font-cairo">الصورة غير متوفرة</span>
+                            <span className="text-sm text-muted-foreground/80 font-medium font-cairo">{t("gallery.unavailable")}</span>
                         </div>
                     ) : (
                         <>
@@ -116,7 +118,7 @@ export function ProductImageGallery({
                                 src={mainImageSrc}
                                 srcSet={mainImageSrcSet}
                                 sizes="(max-width: 512px) 100vw, 512px"
-                                alt={`${productName} - صورة ${selectedIndex + 1}`}
+                                alt={t("gallery.imageAlt", { name: productName, index: selectedIndex + 1 })}
                                 className={cn(
                                     "w-full h-full object-contain transition-transform duration-300 p-3 sm:p-4 select-none",
                                     isZoomed && "scale-110"
@@ -147,7 +149,7 @@ export function ProductImageGallery({
                                 isZoomed ? "opacity-0" : "opacity-100"
                             )}>
                                 <ZoomIn className="w-3.5 h-3.5" aria-hidden="true" />
-                                <span>اضغط للتكبير</span>
+                                <span>{t("gallery.zoom")}</span>
                             </div>
                         </>
                     )}
@@ -159,7 +161,7 @@ export function ProductImageGallery({
                                 size="icon"
                                 className="absolute right-2 top-1/2 -translate-y-1/2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity shadow-lg h-11 w-11"
                                 onClick={(e) => { e.stopPropagation(); handlePrevious(); }}
-                                aria-label="الصورة السابقة"
+                                aria-label={t("gallery.prev")}
                             >
                                 <ChevronRight className="w-5 h-5" aria-hidden="true" />
                             </Button>
@@ -168,7 +170,7 @@ export function ProductImageGallery({
                                 size="icon"
                                 className="absolute left-2 top-1/2 -translate-y-1/2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity shadow-lg h-11 w-11"
                                 onClick={(e) => { e.stopPropagation(); handleNext(); }}
-                                aria-label="الصورة التالية"
+                                aria-label={t("gallery.next")}
                             >
                                 <ChevronLeft className="w-5 h-5" aria-hidden="true" />
                             </Button>
@@ -181,14 +183,14 @@ export function ProductImageGallery({
             </div>
 
             {galleryImages.length > 1 && (
-                <div className="flex gap-2 overflow-x-auto pb-1 sm:pb-2 scrollbar-thin" role="group" aria-label={`صور مصغرة لـ ${productName}`}>
+                <div className="flex gap-2 overflow-x-auto pb-1 sm:pb-2 scrollbar-thin" role="group" aria-label={t("gallery.thumbs", { name: productName })}>
                     {galleryImages.map((image, index) => (
                         <button
                             key={`${image}-${index}`}
                             type="button"
                             onClick={() => { setImageFailed(false); setSelectedIndex(index); }}
                             aria-pressed={selectedIndex === index}
-                            aria-label={`عرض الصورة ${index + 1}`}
+                            aria-label={t("gallery.showImage", { index: index + 1 })}
                             className={cn(
                                 "relative flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-lg overflow-hidden border-2 transition-all",
                                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
@@ -197,7 +199,7 @@ export function ProductImageGallery({
                         >
                             <img
                                 src={thumbImage(image)}
-                                alt={`${productName} - صورة مصغرة ${index + 1}`}
+                                alt={t("gallery.thumbAlt", { name: productName, index: index + 1 })}
                                 className="w-full h-full object-contain bg-transparent p-1"
                                 loading="lazy"
                                 onError={(e) => {
@@ -218,9 +220,9 @@ export function ProductImageGallery({
 
             <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
                 <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 bg-black/95 border-none">
-                    <DialogTitle className="sr-only">{`صورة ${productName}`}</DialogTitle>
+                    <DialogTitle className="sr-only">{t("gallery.dialogTitle", { name: productName })}</DialogTitle>
                     <DialogDescription className="sr-only">
-                        عرض مكبّر لصور {productName}، استخدم الأسهم للتنقل بين الصور و Escape للإغلاق
+                        {t("gallery.dialogDescription", { name: productName })}
                     </DialogDescription>
                     <div className="relative w-full h-full min-h-[70vh] flex items-center justify-center">
                         <Button
@@ -228,14 +230,14 @@ export function ProductImageGallery({
                             size="icon"
                             className="absolute top-4 right-4 z-50 text-foreground dark:text-white hover:bg-white/20 h-11 w-11"
                             onClick={() => setLightboxOpen(false)}
-                            aria-label="إغلاق معرض الصور"
+                            aria-label={t("gallery.close")}
                         >
                             <X className="w-6 h-6" aria-hidden="true" />
                         </Button>
 
                         {imageFailed || galleryImages.length === 0 ? (
                             <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center select-none text-foreground dark:text-white">
-                                <span className="text-lg font-medium font-cairo">الصورة غير متوفرة</span>
+                                <span className="text-lg font-medium font-cairo">{t("gallery.unavailable")}</span>
                             </div>
                         ) : (
                             <img
@@ -255,7 +257,7 @@ export function ProductImageGallery({
                                     size="icon"
                                     className="absolute right-4 top-1/2 -translate-y-1/2 text-foreground dark:text-white hover:bg-white/20 w-12 h-12"
                                     onClick={handlePrevious}
-                                    aria-label="الصورة السابقة"
+                                    aria-label={t("gallery.prev")}
                                 >
                                     <ChevronRight className="w-8 h-8" aria-hidden="true" />
                                 </Button>
@@ -264,7 +266,7 @@ export function ProductImageGallery({
                                     size="icon"
                                     className="absolute left-4 top-1/2 -translate-y-1/2 text-foreground dark:text-white hover:bg-white/20 w-12 h-12"
                                     onClick={handleNext}
-                                    aria-label="الصورة التالية"
+                                    aria-label={t("gallery.next")}
                                 >
                                     <ChevronLeft className="w-8 h-8" aria-hidden="true" />
                                 </Button>
@@ -272,14 +274,14 @@ export function ProductImageGallery({
                         )}
 
                         {galleryImages.length > 1 && (
-                            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 bg-black/50 p-2 rounded-lg max-w-[80vw] overflow-x-auto" role="group" aria-label={`صور مصغرة لـ ${productName}`}>
+                            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 bg-black/50 p-2 rounded-lg max-w-[80vw] overflow-x-auto" role="group" aria-label={t("gallery.thumbnailsFor", { name: productName })}>
                                 {galleryImages.map((image, index) => (
                                     <button
                                         key={`lightbox-${image}-${index}`}
                                         type="button"
                                         onClick={() => { setImageFailed(false); setSelectedIndex(index); }}
                                         aria-pressed={selectedIndex === index}
-                                        aria-label={`عرض الصورة ${index + 1}`}
+                                        aria-label={t("gallery.showImage", { index: index + 1 })}
                                         className={cn(
                                             "w-12 h-12 flex-shrink-0 rounded overflow-hidden border-2 transition-all",
                                             selectedIndex === index ? "border-white" : "border-transparent opacity-60 hover:opacity-100"
@@ -287,7 +289,7 @@ export function ProductImageGallery({
                                     >
                                         <img
                                             src={thumbImage(image)}
-                                            alt={`صورة ${index + 1}`}
+                                            alt={t("gallery.plainAlt", { index: index + 1 })}
                                             className="w-full h-full object-contain bg-transparent"
                                             onError={(e) => {
                                                 const target = e.target as HTMLImageElement;

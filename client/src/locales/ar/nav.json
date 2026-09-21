@@ -1,0 +1,111 @@
+{
+  "mainNav": "التنقل الرئيسي",
+  "openMenu": "فتح القائمة الرئيسية",
+  "menuTitle": "القائمة الرئيسية",
+  "menuDescription": "روابط المتجر والأدلة وحسابك وخيارات العرض.",
+  "siteLinks": "روابط الموقع",
+  "more": "المزيد",
+  "moreLinks": "روابط إضافية",
+  "homeLink": "الصفحة الرئيسية - AQUAVO",
+  "links": {
+    "home": "الرئيسية",
+    "shop": "المتجر",
+    "journey": "اختار حسب حوضك",
+    "guides": "أدلة AQUAVO",
+    "orderTracking": "تتبع طلبك",
+    "about": "منو AQUAVO",
+    "wishlist": "المفضلة",
+    "contact": "تواصل ويانا",
+    "blog": "المدونة",
+    "deals": "العروض المتوفرة",
+    "allProducts": "كل المنتجات",
+    "allGuides": "كل الأدلة"
+  },
+  "search": {
+    "button": "البحث عن منتج (Ctrl+K)",
+    "placeholder": "ابحث عن منتج...",
+    "short": "بحث",
+    "open": "البحث"
+  },
+  "account": {
+    "menu": "قائمة الحساب الشخصي",
+    "profile": "الملف الشخصي",
+    "orders": "طلباتي",
+    "logout": "تسجيل الخروج",
+    "login": "تسجيل الدخول"
+  },
+  "wishlist": {
+    "label": "المفضلة",
+    "withCount": "المفضلة - {{count}} منتج",
+    "empty": "المفضلة - فارغة"
+  },
+  "cart": {
+    "label": "سلة المشتريات",
+    "withCount": "سلة المشتريات - {{count}} منتج",
+    "empty": "سلة المشتريات - فارغة",
+    "title": "سلة التسوق",
+    "description": "راجع المنتجات والكميات والمجموع، وبعدها كمل معلومات التوصيل.",
+    "emptyTitle": "السلة فارغة",
+    "emptyHint": "شوف المنتجات واختار القطعة حسب حجم حوضك.",
+    "itemsList": "المنتجات في السلة",
+    "itemSummary": "{{name}}{{variant}}، الكمية {{quantity}}، السعر {{price}}",
+    "variantSuffix": "، الخيار {{variant}}",
+    "variant": "الخيار: {{variant}}",
+    "quantityGroup": "كمية {{name}}",
+    "decrease": "تقليل كمية {{name}}",
+    "increase": "زيادة كمية {{name}}",
+    "remove": "إزالة {{name}} من السلة",
+    "total": "المجموع",
+    "checkout": "كمل معلومات التوصيل"
+  },
+  "deliveryNote": "توصيل خلال 24 ساعة لكل العراق",
+  "paymentNote": "الدفع عند الاستلام أو إلكترونياً — التوصيل 5,000 د.ع",
+  "footer": {
+    "serviceInfo": "معلومات الخدمة",
+    "trust": {
+      "delivery": "توصيل خلال 24 ساعة",
+      "deliveryDetail": "لكل العراق",
+      "payment": "طرق دفع مرنة",
+      "paymentDetail": "عند الاستلام أو إلكترونياً",
+      "packing": "نفحص ونعبّي الطلب",
+      "packingDetail": "بنفس معيار العناية",
+      "support": "الدعم متوفر 24/7",
+      "supportDetail": "للمساعدة قبل وبعد الطلب"
+    },
+    "aboutTitle": "عن AQUAVO",
+    "aboutText": "براند عراقي لمعدات ومستلزمات أحواض الزينة. نرتّب الاختيار بشكل عملي، ونخلي تفاصيل المنتج والتوصيل واضحة قبل ما تقرر.",
+    "legalText": "AQUAVO هي العلامة التجارية الموجهة للزبون التابعة إلى محل المنبع — AL NABEA SHOP.",
+    "socialLabel": "حسابات AQUAVO الرسمية",
+    "facebook": "AQUAVO على فيسبوك",
+    "instagram": "AQUAVO على إنستغرام",
+    "tiktok": "AQUAVO على تيك توك",
+    "whatsapp": "تواصل مع AQUAVO على واتساب",
+    "shopTitle": "المتجر",
+    "learnTitle": "تعلم قبل ما تختار",
+    "learn": {
+      "newTank": "تجهيز حوض جديد",
+      "filterChoice": "اختيار الفلتر",
+      "waterTest": "فحص ماء الحوض"
+    },
+    "supportTitle": "الدعم والسياسات",
+    "policies": {
+      "shipping": "التوصيل والدفع",
+      "returns": "الإرجاع والاستبدال",
+      "privacy": "الخصوصية",
+      "terms": "الشروط والأحكام",
+      "faq": "الأسئلة الشائعة"
+    },
+    "certificate": "وثيقة YEE",
+    "certificateHint": "شوف وثيقة المصدر بصفحة مستقلة",
+    "contactTitle": "تواصل ويانا",
+    "newsletterTitle": "تحديثات المنتجات والأدلة",
+    "newsletterHint": "رسائل قليلة ومفيدة. تگدر تلغي الاشتراك بأي وقت.",
+    "emailPlaceholder": "بريدك الإلكتروني",
+    "subscribe": "اشترك",
+    "subscribeSuccess": "تم الاشتراك بنجاح.",
+    "subscribeError": "ما تم الاشتراك. جرّب مرة ثانية.",
+    "subscribeNetworkError": "تعذر الاشتراك هسه. جرّب مرة ثانية بعد شوي.",
+    "copyright": "© {{year}} AQUAVO / محل المنبع — AL NABEA SHOP",
+    "paymentMethods": "طرق الدفع المتوفرة: عند الاستلام أو إلكترونياً"
+  }
+}

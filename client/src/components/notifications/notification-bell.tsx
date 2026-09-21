@@ -27,6 +27,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/auth-context";
 import { cn } from "@/lib/utils";
 import { phTrackNotificationClicked } from "@/lib/posthog";
+import { useTranslation } from "react-i18next";
+import { i18next } from "@/i18n";
 
 interface Notification {
   id: string;
@@ -65,13 +67,13 @@ const TYPE_CONFIG: Record<string, { icon: React.ComponentType<{ className?: stri
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "الآن";
-  if (mins < 60) return `${mins} د`;
+  if (mins < 1) return i18next.t("account:notification-bell.s1");
+  if (mins < 60) return i18next.t("account:notification-bell.s2", { v0: mins });
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours} س`;
+  if (hours < 24) return i18next.t("account:notification-bell.s3", { v0: hours });
   const days = Math.floor(hours / 24);
-  if (days < 7) return `${days} ي`;
-  return `${Math.floor(days / 7)} أ`;
+  if (days < 7) return i18next.t("account:notification-bell.s4", { v0: days });
+  return i18next.t("account:notification-bell.s5", { v0: Math.floor(days / 7) });
 }
 
 /** Resolve the best destination URL for a notification */
@@ -153,6 +155,7 @@ function resolveNotifUrl(notif: Notification): string | null {
 }
 
 export function NotificationBell() {
+  const { t } = useTranslation("account");
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
@@ -238,7 +241,7 @@ export function NotificationBell() {
             variant="ghost"
             size="icon"
             className="relative"
-            aria-label={`الإشعارات${unreadCount > 0 ? ` - ${unreadCount} جديد` : ""}`}
+            aria-label={t("notification-bell.s6", { v0: unreadCount > 0 ? t("notification-bell.newCount", { n: unreadCount }) : "" })}
           >
             {unreadCount > 0 ? (
               <BellRing className="h-5 w-5 text-primary animate-pulse" aria-hidden="true" />
@@ -257,7 +260,7 @@ export function NotificationBell() {
           <div className="flex items-center justify-between p-3 border-b">
             <h3 className="font-semibold text-sm flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-primary" />
-              إشعارات AQUAVO
+              {t("notification-bell.s7")}
             </h3>
             {unreadCount > 0 && (
               <Button
@@ -267,7 +270,7 @@ export function NotificationBell() {
                 onClick={handleMarkAllRead}
               >
                 <CheckCheck className="h-3 w-3" />
-                قراءة الكل
+                {t("notification-bell.s8")}
               </Button>
             )}
           </div>
@@ -276,14 +279,14 @@ export function NotificationBell() {
           <div className="max-h-[360px] overflow-y-auto">
             {isLoading ? (
               <div className="py-8 text-center text-muted-foreground text-sm">
-                جاري التحميل...
+                {t("notification-bell.s9")}
               </div>
             ) : notifications.length === 0 ? (
               <div className="py-10 text-center">
                 <Bell className="h-10 w-10 mx-auto mb-2 text-muted-foreground/20" />
-                <p className="text-sm text-muted-foreground">لا توجد إشعارات حالياً</p>
+                <p className="text-sm text-muted-foreground">{t("notification-bell.s10")}</p>
                 <p className="text-xs text-muted-foreground/60 mt-1">
-                  ستصلك إشعارات ذكية من AI
+                  {t("notification-bell.s11")}
                 </p>
               </div>
             ) : (

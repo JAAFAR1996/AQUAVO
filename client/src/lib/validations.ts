@@ -4,6 +4,7 @@
  */
 
 import { z } from 'zod';
+import { i18next } from "@/i18n";
 
 // =================================
 // Common Validation Rules
@@ -12,35 +13,35 @@ import { z } from 'zod';
 // Email validation with comprehensive pattern
 const emailSchema = z
   .string()
-  .min(1, 'البريد الإلكتروني مطلوب')
-  .email('البريد الإلكتروني غير صحيح')
-  .max(255, 'البريد الإلكتروني طويل جداً')
+  .min(1, i18next.t("common:validations.s1"))
+  .email(i18next.t("common:validations.s2"))
+  .max(255, i18next.t("common:validations.s3"))
   .toLowerCase()
   .trim();
 
 // Password validation - minimum 12 chars with complexity requirements
 const passwordSchema = z
   .string()
-  .min(12, 'كلمة المرور يجب أن تكون 12 حرفاً على الأقل')
-  .max(128, 'كلمة المرور طويلة جداً')
-  .regex(/[A-Z]/, 'يجب أن تحتوي على حرف كبير واحد على الأقل')
-  .regex(/[a-z]/, 'يجب أن تحتوي على حرف صغير واحد على الأقل')
-  .regex(/[0-9]/, 'يجب أن تحتوي على رقم واحد على الأقل')
-  .regex(/[!@#$%^&*(),.?":{}|<>]/, 'يجب أن تحتوي على رمز خاص واحد على الأقل');
+  .min(12, i18next.t("common:validations.s4"))
+  .max(128, i18next.t("common:validations.s5"))
+  .regex(/[A-Z]/, i18next.t("common:validations.s6"))
+  .regex(/[a-z]/, i18next.t("common:validations.s7"))
+  .regex(/[0-9]/, i18next.t("common:validations.s8"))
+  .regex(/[!@#$%^&*(),.?":{}|<>]/, i18next.t("common:validations.s9"));
 
 // Phone validation (Iraqi format)
 const phoneSchema = z
   .string()
-  .min(1, 'رقم الهاتف مطلوب')
-  .regex(/^(\+964|0)?7[3-9]\d{8}$/, 'رقم الهاتف غير صحيح (يجب أن يكون رقم عراقي)')
+  .min(1, i18next.t("common:validations.s10"))
+  .regex(/^(\+964|0)?7[3-9]\d{8}$/, i18next.t("common:validations.s11"))
   .trim();
 
 // Name validation - Arabic and English letters only
 const nameSchema = z
   .string()
-  .min(2, 'الاسم قصير جداً')
-  .max(100, 'الاسم طويل جداً')
-  .regex(/^[\u0600-\u06FFa-zA-Z\s]+$/, 'الاسم يجب أن يحتوي على حروف فقط')
+  .min(2, i18next.t("common:validations.s12"))
+  .max(100, i18next.t("common:validations.s13"))
+  .regex(/^[\u0600-\u06FFa-zA-Z\s]+$/, i18next.t("common:validations.s14"))
   .trim();
 
 // =================================
@@ -49,7 +50,7 @@ const nameSchema = z
 
 export const loginSchema = z.object({
   email: emailSchema,
-  password: z.string().min(1, 'كلمة المرور مطلوبة'),
+  password: z.string().min(1, i18next.t("common:validations.s15")),
   rememberMe: z.boolean().optional(),
 });
 
@@ -61,11 +62,11 @@ export const registerSchema = z
     confirmPassword: z.string(),
     phone: phoneSchema,
     acceptTerms: z.boolean().refine((val) => val === true, {
-      message: 'يجب الموافقة على الشروط والأحكام',
+      message: i18next.t("common:validations.s16"),
     }),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: 'كلمات المرور غير متطابقة',
+    message: i18next.t("common:validations.s17"),
     path: ['confirmPassword'],
   });
 
@@ -79,7 +80,7 @@ export const resetPasswordSchema = z
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: 'كلمات المرور غير متطابقة',
+    message: i18next.t("common:validations.s17"),
     path: ['confirmPassword'],
   });
 
@@ -96,26 +97,26 @@ export const checkoutSchema = z.object({
   // Shipping Address
   address: z
     .string()
-    .min(10, 'العنوان قصير جداً (10 أحرف على الأقل)')
-    .max(500, 'العنوان طويل جداً')
+    .min(10, i18next.t("common:validations.s18"))
+    .max(500, i18next.t("common:validations.s19"))
     .trim(),
   city: z
     .string()
-    .min(2, 'المدينة مطلوبة')
-    .max(100, 'المدينة طويلة جداً')
+    .min(2, i18next.t("common:validations.s20"))
+    .max(100, i18next.t("common:validations.s21"))
     .trim(),
   postalCode: z
     .string()
-    .regex(/^\d{5}$/, 'الرمز البريدي يجب أن يكون 5 أرقام')
+    .regex(/^\d{5}$/, i18next.t("common:validations.s22"))
     .optional(),
 
   // Payment
   paymentMethod: z.enum(['cod', 'online'], {
-    errorMap: () => ({ message: 'طريقة الدفع غير صحيحة' }),
+    errorMap: () => ({ message: i18next.t("common:validations.s23") }),
   }),
 
   // Notes
-  notes: z.string().max(1000, 'الملاحظات طويلة جداً').optional(),
+  notes: z.string().max(1000, i18next.t("common:validations.s24")).optional(),
 });
 
 // =================================
@@ -123,13 +124,13 @@ export const checkoutSchema = z.object({
 // =================================
 
 export const reviewSchema = z.object({
-  productId: z.string().min(1, 'معرف المنتج مطلوب'),
-  rating: z.number().int().min(1, 'التقييم مطلوب').max(5, 'التقييم يجب أن يكون من 1 إلى 5'),
-  title: z.string().max(200, 'العنوان طويل جداً').optional(),
+  productId: z.string().min(1, i18next.t("common:validations.s25")),
+  rating: z.number().int().min(1, i18next.t("common:validations.s26")).max(5, i18next.t("common:validations.s27")),
+  title: z.string().max(200, i18next.t("common:validations.s19")).optional(),
   comment: z
     .string()
-    .min(10, 'التعليق قصير جداً (10 أحرف على الأقل)')
-    .max(2000, 'التعليق طويل جداً')
+    .min(10, i18next.t("common:validations.s28"))
+    .max(2000, i18next.t("common:validations.s29"))
     .optional(),
 });
 
@@ -144,11 +145,11 @@ export const newsletterSchema = z.object({
 export const contactSchema = z.object({
   name: nameSchema,
   email: emailSchema,
-  subject: z.string().min(5, 'الموضوع قصير جداً').max(200, 'الموضوع طويل جداً').trim(),
+  subject: z.string().min(5, i18next.t("common:validations.s30")).max(200, i18next.t("common:validations.s31")).trim(),
   message: z
     .string()
-    .min(20, 'الرسالة قصيرة جداً (20 حرف على الأقل)')
-    .max(5000, 'الرسالة طويلة جداً')
+    .min(20, i18next.t("common:validations.s32"))
+    .max(5000, i18next.t("common:validations.s33"))
     .trim(),
 });
 
@@ -159,13 +160,13 @@ export const contactSchema = z.object({
 export const gallerySubmissionSchema = z.object({
   customerName: nameSchema,
   customerPhone: phoneSchema,
-  tankSize: z.string().min(1, 'حجم الحوض مطلوب').max(100, 'حجم الحوض طويل جداً'),
+  tankSize: z.string().min(1, i18next.t("common:validations.s34")).max(100, i18next.t("common:validations.s35")),
   description: z
     .string()
-    .min(10, 'الوصف قصير جداً (10 أحرف على الأقل)')
-    .max(1000, 'الوصف طويل جداً')
+    .min(10, i18next.t("common:validations.s36"))
+    .max(1000, i18next.t("common:validations.s37"))
     .trim(),
-  imageUrl: z.string().url('رابط الصورة غير صحيح').or(z.string().startsWith('data:image/')),
+  imageUrl: z.string().url(i18next.t("common:validations.s38")).or(z.string().startsWith('data:image/')),
 });
 
 // =================================
@@ -175,18 +176,18 @@ export const gallerySubmissionSchema = z.object({
 export const couponSchema = z.object({
   code: z
     .string()
-    .min(3, 'كود الكوبون قصير جداً')
-    .max(50, 'كود الكوبون طويل جداً')
-    .regex(/^[A-Z0-9_-]+$/, 'كود الكوبون يجب أن يحتوي على أحرف كبيرة وأرقام فقط')
+    .min(3, i18next.t("common:validations.s39"))
+    .max(50, i18next.t("common:validations.s40"))
+    .regex(/^[A-Z0-9_-]+$/, i18next.t("common:validations.s41"))
     .trim()
     .toUpperCase(),
   type: z.enum(['percentage', 'fixed', 'free_shipping'], {
-    errorMap: () => ({ message: 'نوع الكوبون غير صحيح' }),
+    errorMap: () => ({ message: i18next.t("common:validations.s42") }),
   }),
-  value: z.number().positive('القيمة يجب أن تكون موجبة'),
-  minOrderAmount: z.number().nonnegative('الحد الأدنى يجب أن يكون صفر أو أكثر').optional(),
-  maxUses: z.number().int().positive('عدد الاستخدامات يجب أن يكون موجب').optional(),
-  maxUsesPerUser: z.number().int().positive('عدد الاستخدامات لكل مستخدم يجب أن يكون موجب').optional(),
+  value: z.number().positive(i18next.t("common:validations.s43")),
+  minOrderAmount: z.number().nonnegative(i18next.t("common:validations.s44")).optional(),
+  maxUses: z.number().int().positive(i18next.t("common:validations.s45")).optional(),
+  maxUsesPerUser: z.number().int().positive(i18next.t("common:validations.s46")).optional(),
   startDate: z.date().optional(),
   endDate: z.date().optional(),
   isActive: z.boolean(),

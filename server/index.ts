@@ -74,6 +74,7 @@ import { registerRoutes } from "./routes.js";
 import { serveStatic } from "./static.js";
 import { createSessionStore, buildSessionSecret } from "./session-config.js";
 import { corsConfig, sanitizeBody, securityLogger, securityHeaders } from "./middleware/security.js";
+import { localeMiddleware } from "./middleware/locale.js";
 import { errorHandler } from "./middleware/error-handler.js";
 import { verifyEmailConnection } from "./utils/email.js";
 import { getDb } from "./db.js";
@@ -182,6 +183,7 @@ app.use(oauthOnly(express.urlencoded({ extended: false, limit: '1mb' })));
 
 // Security: Request body sanitization (must be AFTER parsing)
 app.use(apiOnly(sanitizeBody));
+app.use(localeMiddleware);
 
 // Security: Log suspicious activity
 app.use(apiOnly(securityLogger));

@@ -48,9 +48,11 @@ import {
 import { breedingSpecies, type BreedingSpecies, type FryGrowthStage } from "@/data/breeding-data";
 import { toast } from "sonner";
 import { addCsrfHeader } from "@/lib/csrf";
+import { useTranslation } from "react-i18next";
 // PDF generator lazy-loaded on demand (jspdf + html-to-image are ~200KB)
 
 export default function FishBreedingCalculator() {
+  const { t } = useTranslation("tools");
   const [, setLocation] = useLocation();
   const [selectedSpecies, setSelectedSpecies] = useState<string>("");
   const [numberOfPairs, setNumberOfPairs] = useState<number>(1);
@@ -81,8 +83,8 @@ export default function FishBreedingCalculator() {
     timeline.push({
       date: maturityDate,
       event: "Sexual Maturity Reached",
-      eventAr: "نضج جنسي",
-      description: "الكائنات جاهزة للتكاثر",
+      eventAr: t("fish-breeding-calculator.s1"),
+      description: t("fish-breeding-calculator.s2"),
       icon: Heart,
       color: "text-pink-500"
     });
@@ -93,8 +95,8 @@ export default function FishBreedingCalculator() {
     timeline.push({
       date: firstSpawn,
       event: species.method === "live-bearer" ? "First Mating Expected" : "First Spawn Expected",
-      eventAr: species.method === "live-bearer" ? "التزاوج الأول المتوقع" : "أول وضع بيض متوقع",
-      description: species.method === "live-bearer" ? "بداية فترة الحمل" : "وضع البيض",
+      eventAr: species.method === "live-bearer" ? t("fish-breeding-calculator.s3") : t("fish-breeding-calculator.s4"),
+      description: species.method === "live-bearer" ? t("fish-breeding-calculator.s5") : t("fish-breeding-calculator.s6"),
       icon: Fish,
       color: "text-blue-500"
     });
@@ -106,8 +108,8 @@ export default function FishBreedingCalculator() {
       timeline.push({
         date: birthDate,
         event: "First Fry Birth",
-        eventAr: "ولادة أول صغار",
-        description: `متوقع ${species.avgFryCount.min}-${species.avgFryCount.max} صغير`,
+        eventAr: t("fish-breeding-calculator.s7"),
+        description: t("fish-breeding-calculator.s8", { v0: species.avgFryCount.min, v1: species.avgFryCount.max }),
         icon: Baby,
         color: "text-green-500"
       });
@@ -116,8 +118,8 @@ export default function FishBreedingCalculator() {
       timeline.push({
         date: birthDate,
         event: "Eggs Hatch",
-        eventAr: "فقس البيض",
-        description: `متوقع ${species.avgFryCount.min}-${species.avgFryCount.max} يرقة`,
+        eventAr: t("fish-breeding-calculator.s9"),
+        description: t("fish-breeding-calculator.s10", { v0: species.avgFryCount.min, v1: species.avgFryCount.max }),
         icon: Baby,
         color: "text-green-500"
       });
@@ -130,8 +132,8 @@ export default function FishBreedingCalculator() {
       timeline.push({
         date: secondSpawn,
         event: "Second Spawn/Mating",
-        eventAr: "التكاثر الثاني",
-        description: "دورة تكاثر جديدة",
+        eventAr: t("fish-breeding-calculator.s11"),
+        description: t("fish-breeding-calculator.s12"),
         icon: Heart,
         color: "text-purple-500"
       });
@@ -145,12 +147,12 @@ export default function FishBreedingCalculator() {
   // Handle PDF download using jspdf + html2canvas (React 19 compatible)
   const handleDownloadPDF = async () => {
     if (!species || !timeline) {
-      toast.error("الرجاء اختيار النوع أولاً");
+      toast.error(t("fish-breeding-calculator.s13"));
       return;
     }
 
     setIsGeneratingPDF(true);
-    const loadingToast = toast.loading("جاري تحضير ملف PDF...");
+    const loadingToast = toast.loading(t("fish-breeding-calculator.s14"));
 
     try {
       const fileName = `breeding-plan-${species.name.toLowerCase().replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf`;
@@ -160,20 +162,20 @@ export default function FishBreedingCalculator() {
       await generateBreedingPDF('pdf-export-container', fileName);
 
       toast.dismiss(loadingToast);
-      toast.success("✓ تم تحميل الخطة بنجاح!");
+      toast.success(t("fish-breeding-calculator.s15"));
 
     } catch (error) {
       console.error('[PDF] Generation error:', error);
       toast.dismiss(loadingToast);
 
-      let errorMessage = "خطأ غير معروف";
+      let errorMessage = t("fish-breeding-calculator.s16");
       if (error instanceof Error) {
         errorMessage = error.message;
       }
 
-      toast.error(`فشل في إنشاء PDF: ${errorMessage}`, {
+      toast.error(t("fish-breeding-calculator.s17", { v0: errorMessage }), {
         duration: 5000,
-        description: "تأكد من اختيار النوع وإدخال جميع البيانات"
+        description: t("fish-breeding-calculator.s18")
       });
     } finally {
       setIsGeneratingPDF(false);
@@ -225,12 +227,12 @@ export default function FishBreedingCalculator() {
 
       if (!response.ok) throw new Error('Failed to send email');
 
-      toast.success("تم إرسال الخطة إلى بريدك الإلكتروني بنجاح!");
+      toast.success(t("fish-breeding-calculator.s19"));
       setEmailOpen(false);
       setEmailAddress("");
     } catch (error) {
       console.error(error);
-      toast.error("حدث خطأ أثناء إرسال البريد الإلكتروني.");
+      toast.error(t("fish-breeding-calculator.s20"));
     } finally {
       setIsSendingEmail(false);
     }
@@ -253,29 +255,29 @@ export default function FishBreedingCalculator() {
         {
           week: 0,
           stage: "Eggs",
-          stageAr: "بيض",
+          stageAr: t("fish-breeding-calculator.s21"),
           size: "1-2mm",
           food: "N/A",
-          foodAr: "لا شيء",
-          tips: "تحتاج رطوبة عالية، لا تغمر بالماء (لحلزون التفاح)"
+          foodAr: t("fish-breeding-calculator.s22"),
+          tips: t("fish-breeding-calculator.s23")
         },
         {
           week: 2,
           stage: "Hatchlings",
-          stageAr: "فقس جديد",
+          stageAr: t("fish-breeding-calculator.s24"),
           size: "2-3mm",
           food: "Soft algae, powdered food",
-          foodAr: "طحالب ناعمة، طعام مطحون",
-          tips: "تأكد من وجود كالسيوم في الماء"
+          foodAr: t("fish-breeding-calculator.s25"),
+          tips: t("fish-breeding-calculator.s26")
         },
         {
           week: 8,
           stage: "Juvenile",
-          stageAr: "يافعة",
+          stageAr: t("fish-breeding-calculator.s27"),
           size: "10mm",
           food: "Vegetables, pellets",
-          foodAr: "خضروات، حبيبات",
-          tips: "جاهزة للبيع"
+          foodAr: t("fish-breeding-calculator.s28"),
+          tips: t("fish-breeding-calculator.s29")
         }
       ];
     } else if (species.method === "live-bearer") {
@@ -283,38 +285,38 @@ export default function FishBreedingCalculator() {
         {
           week: 0,
           stage: "Newborn Fry",
-          stageAr: "صغار حديثة الولادة",
+          stageAr: t("fish-breeding-calculator.s30"),
           size: "3-5mm",
           food: "Infusoria, liquid fry food",
-          foodAr: "إنفوزوريا، طعام سائل للصغار",
-          tips: "تغذية 4-6 مرات يومياً"
+          foodAr: t("fish-breeding-calculator.s31"),
+          tips: t("fish-breeding-calculator.s32")
         },
         {
           week: 1,
           stage: "Early Fry",
-          stageAr: "صغار مبكرة",
+          stageAr: t("fish-breeding-calculator.s33"),
           size: "5-8mm",
           food: "Baby brine shrimp, micro worms",
-          foodAr: "روبيان ملحي صغير، ديدان ميكرو",
-          tips: "تغيير 20% من الماء يومياً"
+          foodAr: t("fish-breeding-calculator.s34"),
+          tips: t("fish-breeding-calculator.s35")
         },
         {
           week: 4,
           stage: "Juvenile",
-          stageAr: "يافعة",
+          stageAr: t("fish-breeding-calculator.s27"),
           size: "12-20mm",
           food: "Small pellets, flakes",
-          foodAr: "حبيبات صغيرة، رقائق",
-          tips: "يمكن دمجها مع البالغين تدريجياً"
+          foodAr: t("fish-breeding-calculator.s36"),
+          tips: t("fish-breeding-calculator.s37")
         },
         {
           week: species.sexualMaturityWeeks,
           stage: "Adult",
-          stageAr: "بالغة",
+          stageAr: t("fish-breeding-calculator.s38"),
           size: "30-40mm+",
           food: "Standard diet",
-          foodAr: "نظام غذائي قياسي",
-          tips: "جاهزة للتكاثر"
+          foodAr: t("fish-breeding-calculator.s39"),
+          tips: t("fish-breeding-calculator.s40")
         }
       ];
     } else {
@@ -322,38 +324,38 @@ export default function FishBreedingCalculator() {
         {
           week: 0,
           stage: "Eggs",
-          stageAr: "بيض",
+          stageAr: t("fish-breeding-calculator.s21"),
           size: "1-2mm",
           food: "N/A",
-          foodAr: "لا شيء",
-          tips: "حافظ على درجة حرارة ثابتة"
+          foodAr: t("fish-breeding-calculator.s22"),
+          tips: t("fish-breeding-calculator.s41")
         },
         {
           week: 1,
           stage: "Free Swimming",
-          stageAr: "سباحة حرة",
+          stageAr: t("fish-breeding-calculator.s42"),
           size: "4-6mm",
           food: "Infusoria, liquid fry food",
-          foodAr: "إنفوزوريا، طعام سائل",
-          tips: "تغذية 5-6 مرات يومياً"
+          foodAr: t("fish-breeding-calculator.s43"),
+          tips: t("fish-breeding-calculator.s44")
         },
         {
           week: 4,
           stage: "Juvenile",
-          stageAr: "يافعة",
+          stageAr: t("fish-breeding-calculator.s27"),
           size: "10-20mm",
           food: "Crushed flakes, small pellets",
-          foodAr: "رقائق مطحونة، حبيبات صغيرة",
-          tips: "تغذية 3-4 مرات يومياً"
+          foodAr: t("fish-breeding-calculator.s45"),
+          tips: t("fish-breeding-calculator.s46")
         },
         {
           week: species.sexualMaturityWeeks,
           stage: "Adult",
-          stageAr: "بالغة",
+          stageAr: t("fish-breeding-calculator.s38"),
           size: "Full size",
           food: "Standard diet",
-          foodAr: "نظام غذائي قياسي",
-          tips: "جاهزة للتكاثر"
+          foodAr: t("fish-breeding-calculator.s39"),
+          tips: t("fish-breeding-calculator.s40")
         }
       ];
     }
@@ -392,14 +394,14 @@ export default function FishBreedingCalculator() {
           <div className="container mx-auto px-4 text-center">
             <div className="inline-flex items-center gap-2 bg-pink-500/20 px-6 py-2 rounded-full mb-6">
               <Heart className="h-5 w-5 text-pink-600" />
-              <span className="font-bold text-pink-700 dark:text-pink-400">آلة حساب تكاثر الكائنات المائية</span>
+              <span className="font-bold text-pink-700 dark:text-pink-400">{t("fish-breeding-calculator.s47")}</span>
             </div>
 
             <h1 className="text-4xl md:text-6xl font-bold mb-6">
-              خطط لمشروع التكاثر بدقة
+              {t("fish-breeding-calculator.s48")}
             </h1>
             <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto">
-              احسب الجدول الزمني، الاحتياجات، والإنتاج المتوقع لتكاثر الأسماك والحلزونات
+              {t("fish-breeding-calculator.s49")}
             </p>
           </div>
         </section>
@@ -411,22 +413,22 @@ export default function FishBreedingCalculator() {
               <CardHeader>
                 <CardTitle className="text-2xl flex items-center gap-2">
                   <Fish className="h-6 w-6" />
-                  معلومات التكاثر الأساسية
+                  {t("fish-breeding-calculator.s50")}
                 </CardTitle>
-                <CardDescription>أدخل تفاصيل مشروع التكاثر</CardDescription>
+                <CardDescription>{t("fish-breeding-calculator.s51")}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label>النوع</Label>
+                    <Label>{t("fish-breeding-calculator.s52")}</Label>
                     <Select value={selectedSpecies} onValueChange={setSelectedSpecies}>
                       <SelectTrigger>
-                        <SelectValue placeholder="اختر النوع (سمكة / حلزون / جمبري)" />
+                        <SelectValue placeholder={t("fish-breeding-calculator.s53")} />
                       </SelectTrigger>
                       <SelectContent className="max-h-[300px] overflow-y-auto">
                         {breedingSpecies.map((s) => (
                           <SelectItem key={s.id} value={s.id}>
-                            {s.arabicName} ({s.name}) [{s.type === 'snail' ? 'حلزون' : s.type === 'shrimp' ? 'جمبري' : 'سمكة'}]
+                            {s.arabicName} ({s.name}) [{s.type === 'snail' ? t("fish-breeding-calculator.s54") : s.type === 'shrimp' ? t("fish-breeding-calculator.s55") : t("fish-breeding-calculator.s56")}]
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -434,7 +436,7 @@ export default function FishBreedingCalculator() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>عدد الأزواج</Label>
+                    <Label>{t("fish-breeding-calculator.s57")}</Label>
                     <Input
                       type="number"
                       min="1"
@@ -445,7 +447,7 @@ export default function FishBreedingCalculator() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>تاريخ البدء</Label>
+                    <Label>{t("fish-breeding-calculator.s58")}</Label>
                     <Input
                       type="date"
                       value={startDate}
@@ -454,7 +456,7 @@ export default function FishBreedingCalculator() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>درجة الحرارة الحالية (°C)</Label>
+                    <Label>{t("fish-breeding-calculator.s59")}</Label>
                     <Input
                       type="number"
                       step="0.1"
@@ -466,7 +468,7 @@ export default function FishBreedingCalculator() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>الـ pH الحالي</Label>
+                    <Label>{t("fish-breeding-calculator.s60")}</Label>
                     <Input
                       type="number"
                       step="0.1"
@@ -488,41 +490,41 @@ export default function FishBreedingCalculator() {
                     <CardHeader>
                       <CardTitle className="text-lg flex items-center gap-2">
                         <Scale className="h-5 w-5 text-blue-500" />
-                        معلومات النوع
+                        {t("fish-breeding-calculator.s61")}
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">التصنيف:</span>
+                        <span className="text-muted-foreground">{t("fish-breeding-calculator.s62")}</span>
                         <Badge variant="secondary">
-                          {species.type === 'snail' ? 'حلزون' : species.type === 'shrimp' ? 'روبيان' : 'سمكة'}
+                          {species.type === 'snail' ? t("fish-breeding-calculator.s54") : species.type === 'shrimp' ? t("fish-breeding-calculator.s63") : t("fish-breeding-calculator.s56")}
                         </Badge>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">طريقة التكاثر:</span>
+                        <span className="text-muted-foreground">{t("fish-breeding-calculator.s64")}</span>
                         <Badge variant="outline">
-                          {species.method === "live-bearer" && "ولّاد"}
-                          {species.method === "egg-layer" && "بيّاض"}
-                          {species.method === "egg-clutch" && "كتلة بيض"}
-                          {species.method === "bubble-nest" && "عش فقاعات"}
-                          {species.method === "mouth-brooder" && "حاضن فموي"}
+                          {species.method === "live-bearer" && t("fish-breeding-calculator.s65")}
+                          {species.method === "egg-layer" && t("fish-breeding-calculator.s66")}
+                          {species.method === "egg-clutch" && t("fish-breeding-calculator.s67")}
+                          {species.method === "bubble-nest" && t("fish-breeding-calculator.s68")}
+                          {species.method === "mouth-brooder" && t("fish-breeding-calculator.s69")}
                         </Badge>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">الصعوبة:</span>
+                        <span className="text-muted-foreground">{t("fish-breeding-calculator.s70")}</span>
                         <Badge className={
                           species.difficulty === "easy" ? "bg-green-500" :
                             species.difficulty === "moderate" ? "bg-yellow-500" :
                               "bg-red-500"
                         }>
-                          {species.difficulty === "easy" && "سهل"}
-                          {species.difficulty === "moderate" && "متوسط"}
-                          {species.difficulty === "difficult" && "صعب"}
+                          {species.difficulty === "easy" && t("fish-breeding-calculator.s71")}
+                          {species.difficulty === "moderate" && t("fish-breeding-calculator.s72")}
+                          {species.difficulty === "difficult" && t("fish-breeding-calculator.s73")}
                         </Badge>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">أقل حجم حوض:</span>
-                        <span className="font-bold">{species.minTankSize} لتر</span>
+                        <span className="text-muted-foreground">{t("fish-breeding-calculator.s74")}</span>
+                        <span className="font-bold">{species.minTankSize} {t("fish-breeding-calculator.s75")}</span>
                       </div>
                     </CardContent>
                   </Card>
@@ -531,13 +533,13 @@ export default function FishBreedingCalculator() {
                     <CardHeader>
                       <CardTitle className="text-lg flex items-center gap-2">
                         <Thermometer className="h-5 w-5 text-orange-500" />
-                        ظروف الماء
+                        {t("fish-breeding-calculator.s76")}
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
                       <div>
                         <div className="flex justify-between mb-1">
-                          <span className="text-muted-foreground">الحرارة المثلى:</span>
+                          <span className="text-muted-foreground">{t("fish-breeding-calculator.s77")}</span>
                           <span className="font-bold">
                             {species.optimalTemp.min}-{species.optimalTemp.max}°C
                           </span>
@@ -546,19 +548,19 @@ export default function FishBreedingCalculator() {
                           {waterStatus.temp === "optimal" && (
                             <Badge className="bg-green-500">
                               <CheckCircle2 className="h-3 w-3 mr-1" />
-                              مثالي
+                              {t("fish-breeding-calculator.s78")}
                             </Badge>
                           )}
                           {waterStatus.temp === "warning" && (
                             <Badge className="bg-yellow-500">
                               <AlertCircle className="h-3 w-3 mr-1" />
-                              تحذير
+                              {t("fish-breeding-calculator.s79")}
                             </Badge>
                           )}
                           {waterStatus.temp === "critical" && (
                             <Badge className="bg-red-500">
                               <AlertCircle className="h-3 w-3 mr-1" />
-                              حرج
+                              {t("fish-breeding-calculator.s80")}
                             </Badge>
                           )}
                         </div>
@@ -566,7 +568,7 @@ export default function FishBreedingCalculator() {
 
                       <div>
                         <div className="flex justify-between mb-1">
-                          <span className="text-muted-foreground">الـ pH المثالي:</span>
+                          <span className="text-muted-foreground">{t("fish-breeding-calculator.s81")}</span>
                           <span className="font-bold">
                             {species.optimalPH.min}-{species.optimalPH.max}
                           </span>
@@ -575,19 +577,19 @@ export default function FishBreedingCalculator() {
                           {waterStatus.ph === "optimal" && (
                             <Badge className="bg-green-500">
                               <CheckCircle2 className="h-3 w-3 mr-1" />
-                              مثالي
+                              {t("fish-breeding-calculator.s78")}
                             </Badge>
                           )}
                           {waterStatus.ph === "warning" && (
                             <Badge className="bg-yellow-500">
                               <AlertCircle className="h-3 w-3 mr-1" />
-                              تحذير
+                              {t("fish-breeding-calculator.s79")}
                             </Badge>
                           )}
                           {waterStatus.ph === "critical" && (
                             <Badge className="bg-red-500">
                               <AlertCircle className="h-3 w-3 mr-1" />
-                              حرج
+                              {t("fish-breeding-calculator.s80")}
                             </Badge>
                           )}
                         </div>
@@ -599,24 +601,24 @@ export default function FishBreedingCalculator() {
                     <CardHeader>
                       <CardTitle className="text-lg flex items-center gap-2">
                         <TrendingUp className="h-5 w-5 text-green-500" />
-                        الإنتاج المتوقع
+                        {t("fish-breeding-calculator.s82")}
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">صغار لكل دورة:</span>
+                        <span className="text-muted-foreground">{t("fish-breeding-calculator.s83")}</span>
                         <span className="font-bold">
                           {species.avgFryCount.min}-{species.avgFryCount.max}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">دورات سنوياً:</span>
+                        <span className="text-muted-foreground">{t("fish-breeding-calculator.s84")}</span>
                         <span className="font-bold">
                           {species.breedingInterval > 0 ? `~${Math.floor(365 / species.breedingInterval)}` : '0'}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">إجمالي سنوي:</span>
+                        <span className="text-muted-foreground">{t("fish-breeding-calculator.s85")}</span>
                         <span className="font-bold text-green-600 text-lg">
                           ~{calculateYearlyProduction().toLocaleString('en-US')}
                         </span>
@@ -632,28 +634,28 @@ export default function FishBreedingCalculator() {
                     className="gap-2"
                   >
                     <Download className="w-4 h-4" />
-                    {isGeneratingPDF ? 'جاري التجهيز...' : 'حفظ كملف PDF'}
+                    {isGeneratingPDF ? t("fish-breeding-calculator.s86") : t("fish-breeding-calculator.s87")}
                   </Button>
 
                   <Dialog open={emailOpen} onOpenChange={setEmailOpen}>
                     <DialogTrigger asChild>
                       <Button variant="outline" className="gap-2">
                         <Mail className="w-4 h-4" />
-                        إرسال عبر البريد
+                        {t("fish-breeding-calculator.s88")}
                       </Button>
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
-                        <DialogTitle>إرسال الخطة</DialogTitle>
+                        <DialogTitle>{t("fish-breeding-calculator.s89")}</DialogTitle>
                         <DialogDescription>
-                          أدخل بريدك الإلكتروني لاستلام نسخة كاملة من خطة التكاثر.
+                          {t("fish-breeding-calculator.s90")}
                         </DialogDescription>
                       </DialogHeader>
                       <div className="space-y-4 py-4">
                         <div className="space-y-2">
-                          <Label>البريد الإلكتروني</Label>
+                          <Label>{t("fish-breeding-calculator.s91")}</Label>
                           <Input
-                            placeholder="البريد الإلكتروني"
+                            placeholder={t("fish-breeding-calculator.s91")}
                             type="email"
                             value={emailAddress}
                             onChange={(e) => setEmailAddress(e.target.value)}
@@ -665,7 +667,7 @@ export default function FishBreedingCalculator() {
                           onClick={handleSendEmail}
                           disabled={isSendingEmail || !emailAddress}
                         >
-                          {isSendingEmail ? "جاري الإرسال..." : "إرسال"}
+                          {isSendingEmail ? t("fish-breeding-calculator.s92") : t("fish-breeding-calculator.s93")}
                         </Button>
                       </DialogFooter>
                     </DialogContent>
@@ -676,24 +678,24 @@ export default function FishBreedingCalculator() {
                   <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="timeline">
                       <Calendar className="h-4 w-4 mr-2" />
-                      الجدول الزمني
+                      {t("fish-breeding-calculator.s94")}
                     </TabsTrigger>
                     <TabsTrigger value="growth">
                       <Baby className="h-4 w-4 mr-2" />
-                      مراحل النمو
+                      {t("fish-breeding-calculator.s95")}
                     </TabsTrigger>
                     <TabsTrigger value="supplies">
                       <Package className="h-4 w-4 mr-2" />
-                      المستلزمات
+                      {t("fish-breeding-calculator.s96")}
                     </TabsTrigger>
                   </TabsList>
 
                   <TabsContent value="timeline" className="space-y-4">
                     <Card>
                       <CardHeader>
-                        <CardTitle>الجدول الزمني للتكاثر</CardTitle>
+                        <CardTitle>{t("fish-breeding-calculator.s97")}</CardTitle>
                         <CardDescription>
-                          الأحداث المتوقعة بناءً على تاريخ البدء
+                          {t("fish-breeding-calculator.s98")}
                         </CardDescription>
                       </CardHeader>
                       <CardContent>
@@ -723,7 +725,7 @@ export default function FishBreedingCalculator() {
                                     {event.description}
                                   </p>
                                   <p className="text-xs text-muted-foreground mt-1">
-                                    ({Math.ceil((event.date.getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24))} يوم من البداية)
+                                    ({Math.ceil((event.date.getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24))} {t("fish-breeding-calculator.s99")}
                                   </p>
                                 </div>
                               </div>
@@ -737,9 +739,9 @@ export default function FishBreedingCalculator() {
                   <TabsContent value="growth" className="space-y-4">
                     <Card>
                       <CardHeader>
-                        <CardTitle>مراحل نمو الصغار</CardTitle>
+                        <CardTitle>{t("fish-breeding-calculator.s100")}</CardTitle>
                         <CardDescription>
-                          دليل التغذية والعناية لكل مرحلة
+                          {t("fish-breeding-calculator.s101")}
                         </CardDescription>
                       </CardHeader>
                       <CardContent>
@@ -752,7 +754,7 @@ export default function FishBreedingCalculator() {
                               <div className="flex flex-col items-center min-w-[60px]">
                                 <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
                                   <span className="font-bold text-primary">
-                                    {stage.week === 0 ? "الآن" : "أ" + stage.week}
+                                    {stage.week === 0 ? t("fish-breeding-calculator.s102") : t("fish-breeding-calculator.s103") + stage.week}
                                   </span>
                                 </div>
                                 <Badge variant="outline" className="text-xs">
@@ -766,7 +768,7 @@ export default function FishBreedingCalculator() {
                                 <div className="flex items-start gap-2 mb-2">
                                   <Beaker className="h-4 w-4 text-blue-500 mt-0.5" />
                                   <div>
-                                    <span className="text-sm font-semibold">الطعام: </span>
+                                    <span className="text-sm font-semibold">{t("fish-breeding-calculator.s104")} </span>
                                     <span className="text-sm text-muted-foreground">
                                       {stage.foodAr}
                                     </span>
@@ -790,9 +792,9 @@ export default function FishBreedingCalculator() {
                   <TabsContent value="supplies" className="space-y-4">
                     <Card>
                       <CardHeader>
-                        <CardTitle>مستلزمات التكاثر الموصى بها</CardTitle>
+                        <CardTitle>{t("fish-breeding-calculator.s105")}</CardTitle>
                         <CardDescription>
-                          قائمة بالأدوات والمعدات الأساسية لنجاح عملية تكاثر {species.arabicName}
+                          {t("fish-breeding-calculator.s106")} {species.arabicName}
                         </CardDescription>
                       </CardHeader>
                       <CardContent>
@@ -813,9 +815,9 @@ export default function FishBreedingCalculator() {
                                 <div className="flex-1">
                                   <div className="flex items-center justify-between mb-1">
                                     <h4 className="font-bold">{item.nameAr}</h4>
-                                    {item.priority === 'essential' && <Badge variant="destructive" className="text-[10px] h-5 px-1.5">ضروري</Badge>}
-                                    {item.priority === 'recommended' && <Badge variant="secondary" className="text-[10px] h-5 px-1.5 bg-blue-500/10 text-blue-500 hover:bg-blue-500/20">موصى به</Badge>}
-                                    {item.priority === 'optional' && <Badge variant="outline" className="text-[10px] h-5 px-1.5 text-green-500 border-green-500/30">اختياري</Badge>}
+                                    {item.priority === 'essential' && <Badge variant="destructive" className="text-[10px] h-5 px-1.5">{t("fish-breeding-calculator.s107")}</Badge>}
+                                    {item.priority === 'recommended' && <Badge variant="secondary" className="text-[10px] h-5 px-1.5 bg-blue-500/10 text-blue-500 hover:bg-blue-500/20">{t("fish-breeding-calculator.s108")}</Badge>}
+                                    {item.priority === 'optional' && <Badge variant="outline" className="text-[10px] h-5 px-1.5 text-green-500 border-green-500/30">{t("fish-breeding-calculator.s109")}</Badge>}
                                   </div>
                                   <p className="text-sm text-muted-foreground text-left font-sans mb-2" dir="ltr">{item.name}</p>
 
@@ -823,7 +825,7 @@ export default function FishBreedingCalculator() {
                                     <div
                                       className="mt-3 bg-secondary/30 p-2.5 rounded-md border border-border flex items-center justify-between group hover:border-primary hover:bg-secondary/50 transition-all">
                                       <div className="flex flex-col gap-0.5">
-                                        <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">نرشح لك (من منتجاتنا)</span>
+                                        <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">{t("fish-breeding-calculator.s110")}</span>
                                         <div className="flex items-center gap-2">
                                           <span className="text-sm font-bold text-foreground leading-tight" dir="ltr">{item.productName}</span>
                                           {item.productCode && <span className="text-[10px] text-muted-foreground font-mono bg-background/50 px-1 py-0.5 rounded border border-border/50">{item.productCode}</span>}
@@ -835,7 +837,7 @@ export default function FishBreedingCalculator() {
                                         rel="noopener noreferrer"
                                         className="h-8 w-8 rounded-full p-0 z-10 relative cursor-pointer shadow-md hover:scale-105 transition-transform bg-primary text-primary-foreground flex items-center justify-center"
                                         onClick={() => {
-                                          toast.success(`جاري فتح صفحة المنتج...`);
+                                          toast.success(t("fish-breeding-calculator.s111"));
                                         }}
                                       >
                                         <ShoppingCart className="w-4 h-4" />
@@ -848,7 +850,7 @@ export default function FishBreedingCalculator() {
                           </div>
                         ) : (
                           <div className="text-center py-8 text-muted-foreground">
-                            لا توجد مستلزمات محددة لهذا النوع حالياً.
+                            {t("fish-breeding-calculator.s112")}
                           </div>
                         )}
                       </CardContent>
@@ -881,12 +883,12 @@ export default function FishBreedingCalculator() {
             {/* Header */}
             <div className="flex items-center justify-between border-b-2 border-slate-900 pb-6">
               <div className="text-right">
-                <h1 className="text-3xl font-extrabold text-slate-950 mb-2">خطة تكاثر: {species.arabicName} ({species.name})</h1>
-                <p className="text-lg text-slate-700 font-medium">تم الإنشاء بتاريخ: {new Date().toLocaleDateString('ar-IQ')}</p>
+                <h1 className="text-3xl font-extrabold text-slate-950 mb-2">{t("fish-breeding-calculator.s113")} {species.arabicName} ({species.name})</h1>
+                <p className="text-lg text-slate-700 font-medium">{t("fish-breeding-calculator.s114")} {new Date().toLocaleDateString('ar-IQ')}</p>
                 <div className="flex gap-4 mt-2 text-sm font-semibold text-slate-600">
-                  <span>عدد الأزواج: {numberOfPairs}</span>
+                  <span>{t("fish-breeding-calculator.s115")} {numberOfPairs}</span>
                   <span>|</span>
-                  <span>تاريخ البدء: {new Date(startDate).toLocaleDateString('ar-IQ')}</span>
+                  <span>{t("fish-breeding-calculator.s116")} {new Date(startDate).toLocaleDateString('ar-IQ')}</span>
                 </div>
               </div>
               <img
@@ -901,20 +903,20 @@ export default function FishBreedingCalculator() {
               {/* Species Info */}
               <div className="p-5 bg-slate-50 rounded-xl border-2 border-slate-200">
                 <h3 className="text-base font-bold text-slate-900 mb-3 flex items-center gap-2">
-                  <Scale className="w-5 h-5 text-blue-700" /> معلومات النوع
+                  <Scale className="w-5 h-5 text-blue-700" /> {t("fish-breeding-calculator.s61")}
                 </h3>
                 <div className="space-y-2 text-right text-sm">
                   <div className="flex justify-between border-b border-slate-200 pb-1">
-                    <span className="text-slate-700 font-medium">التصنيف:</span>
-                    <span className="font-bold text-slate-900">{species.type === 'snail' ? 'حلزون' : species.type === 'shrimp' ? 'روبيان' : 'سمكة'}</span>
+                    <span className="text-slate-700 font-medium">{t("fish-breeding-calculator.s62")}</span>
+                    <span className="font-bold text-slate-900">{species.type === 'snail' ? t("fish-breeding-calculator.s54") : species.type === 'shrimp' ? t("fish-breeding-calculator.s63") : t("fish-breeding-calculator.s56")}</span>
                   </div>
                   <div className="flex justify-between border-b border-slate-200 pb-1">
-                    <span className="text-slate-700 font-medium">التكاثر:</span>
-                    <span className="font-bold text-slate-900">{species.method === "live-bearer" && "ولّاد"}{species.method === "egg-layer" && "بائض"}{species.method === "bubble-nest" && "عش فقاعي"}{species.method === "egg-clutch" && "عنقود بيض"}</span>
+                    <span className="text-slate-700 font-medium">{t("fish-breeding-calculator.s117")}</span>
+                    <span className="font-bold text-slate-900">{species.method === "live-bearer" && t("fish-breeding-calculator.s65")}{species.method === "egg-layer" && t("fish-breeding-calculator.s118")}{species.method === "bubble-nest" && t("fish-breeding-calculator.s119")}{species.method === "egg-clutch" && t("fish-breeding-calculator.s120")}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-700 font-medium">حجم الحوض:</span>
-                    <span className="font-bold text-slate-900">{species.minTankSize} لتر</span>
+                    <span className="text-slate-700 font-medium">{t("fish-breeding-calculator.s121")}</span>
+                    <span className="font-bold text-slate-900">{species.minTankSize} {t("fish-breeding-calculator.s75")}</span>
                   </div>
                 </div>
               </div>
@@ -922,15 +924,15 @@ export default function FishBreedingCalculator() {
               {/* Water Parameters */}
               <div className="p-5 bg-slate-50 rounded-xl border-2 border-slate-200">
                 <h3 className="text-base font-bold text-slate-900 mb-3 flex items-center gap-2">
-                  <Thermometer className="w-5 h-5 text-orange-600" /> ظروف الماء
+                  <Thermometer className="w-5 h-5 text-orange-600" /> {t("fish-breeding-calculator.s76")}
                 </h3>
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-700 font-medium">الحرارة:</span>
+                    <span className="text-slate-700 font-medium">{t("fish-breeding-calculator.s122")}</span>
                     <span className="text-lg font-black text-slate-900" dir="ltr">{species.optimalTemp.min}-{species.optimalTemp.max}°C</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-700 font-medium">الـ pH:</span>
+                    <span className="text-slate-700 font-medium">{t("fish-breeding-calculator.s123")}</span>
                     <span className="text-lg font-black text-slate-900" dir="ltr">{species.optimalPH.min}-{species.optimalPH.max}</span>
                   </div>
                 </div>
@@ -939,21 +941,21 @@ export default function FishBreedingCalculator() {
               {/* Production */}
               <div className="p-5 bg-slate-50 rounded-xl border-2 border-slate-200">
                 <h3 className="text-base font-bold text-slate-900 mb-3 flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-green-700" /> الإنتاج المتوقع
+                  <TrendingUp className="w-5 h-5 text-green-700" /> {t("fish-breeding-calculator.s82")}
                 </h3>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-slate-700 font-medium">العدد (للدورة):</span>
+                    <span className="text-slate-700 font-medium">{t("fish-breeding-calculator.s124")}</span>
                     <span className="font-bold text-slate-900" dir="ltr">{species.avgFryCount.min}-{species.avgFryCount.max}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-700 font-medium">مدة الدورة:</span>
-                    <span className="font-bold text-slate-900" dir="ltr">{species.breedingInterval} يوم</span>
+                    <span className="text-slate-700 font-medium">{t("fish-breeding-calculator.s125")}</span>
+                    <span className="font-bold text-slate-900" dir="ltr">{species.breedingInterval} {t("fish-breeding-calculator.s126")}</span>
                   </div>
                   <div className="flex justify-between border-t border-slate-200 pt-2 mt-1">
-                    <span className="text-slate-700 font-medium">سنوي (تقريبي):</span>
+                    <span className="text-slate-700 font-medium">{t("fish-breeding-calculator.s127")}</span>
                     <span className="font-black text-green-800 text-base" dir="ltr">
-                      {species.breedingInterval > 0 ? Math.floor(365 / species.breedingInterval * species.avgFryCount.max * numberOfPairs) : 'غير متاح'}+
+                      {species.breedingInterval > 0 ? Math.floor(365 / species.breedingInterval * species.avgFryCount.max * numberOfPairs) : t("fish-breeding-calculator.s128")}+
                     </span>
                   </div>
                 </div>
@@ -963,7 +965,7 @@ export default function FishBreedingCalculator() {
             {/* Timeline Section */}
             <div>
               <h2 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-2 border-b border-slate-200 pb-2">
-                <Calendar className="w-6 h-6 text-indigo-600" /> الجدول الزمني للتكاثر
+                <Calendar className="w-6 h-6 text-indigo-600" /> {t("fish-breeding-calculator.s97")}
               </h2>
               <div className="space-y-6 relative border-r-2 border-indigo-100 pr-8 mr-4">
                 {timeline.map((event, i) => {
@@ -984,7 +986,7 @@ export default function FishBreedingCalculator() {
                         </div>
                         <p className="text-slate-600">{event.description}</p>
                         <p className="text-xs text-slate-400 mt-2">
-                          ({Math.ceil((event.date.getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24))} يوم من البداية)
+                          ({Math.ceil((event.date.getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24))} {t("fish-breeding-calculator.s99")}
                         </p>
                       </div>
                     </div>
@@ -996,7 +998,7 @@ export default function FishBreedingCalculator() {
             {/* Growth Stages Section */}
             <div className="pt-8 page-break-inside-avoid">
               <h2 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-2 border-b border-slate-200 pb-2">
-                <Baby className="w-6 h-6 text-pink-500" /> مراحل نمو الصغار
+                <Baby className="w-6 h-6 text-pink-500" /> {t("fish-breeding-calculator.s100")}
               </h2>
               <div className="grid grid-cols-2 gap-6">
                 {growthStages.map((stage, i) => (
@@ -1012,11 +1014,11 @@ export default function FishBreedingCalculator() {
                     </div>
                     <div className="space-y-3 text-sm">
                       <div className="flex gap-2">
-                        <span className="font-bold text-slate-700 w-16">التغذية:</span>
+                        <span className="font-bold text-slate-700 w-16">{t("fish-breeding-calculator.s129")}</span>
                         <span className="text-slate-600 flex-1">{stage.foodAr}</span>
                       </div>
                       <div className="flex gap-2">
-                        <span className="font-bold text-slate-700 w-16">نصيحة:</span>
+                        <span className="font-bold text-slate-700 w-16">{t("fish-breeding-calculator.s130")}</span>
                         <span className="text-slate-600 flex-1">{stage.tips}</span>
                       </div>
                     </div>
@@ -1028,7 +1030,7 @@ export default function FishBreedingCalculator() {
             {/* Footer */}
             <div className="mt-12 pt-8 border-t border-slate-200 text-center text-slate-500 flex justify-between items-center">
               <span className="text-sm">www.aquavoiq.com</span>
-              <span className="text-sm font-bold">AQUAVO © {new Date().getFullYear()} - جميع الحقوق محفوظة</span>
+              <span className="text-sm font-bold">AQUAVO © {new Date().getFullYear()} {t("fish-breeding-calculator.s131")}</span>
             </div>
           </div>
         </div>

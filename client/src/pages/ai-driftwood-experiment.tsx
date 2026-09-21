@@ -1,10 +1,12 @@
 // صفحة تجريبية لعرض ديكورات الأخشاب الطبيعية بالذكاء الاصطناعي
 import { useEffect } from "react";
 import { Link } from "wouter";
+import { useTranslation } from "react-i18next";
 
 export default function AiDriftwoodExperiment() {
+  const { t } = useTranslation("tools");
   useEffect(() => {
-    document.title = "تجربة الأخشاب الطبيعية — AQUAVO";
+    document.title = t("ai-driftwood-experiment.s1");
   }, []);
 
   return (
@@ -24,10 +26,10 @@ export default function AiDriftwoodExperiment() {
       }}
     >
       <h1 style={{ fontSize: "2rem", color: "#0B93A6", textAlign: "center" }}>
-        تجربة الأخشاب الطبيعية
+        {t("ai-driftwood-experiment.s2")}
       </h1>
       <p style={{ fontSize: "1.1rem", opacity: 0.7, textAlign: "center", maxWidth: 480 }}>
-        هذه الصفحة التجريبية قيد التطوير. يمكنك تصفح ديكورات الأخشاب الطبيعية من صفحة المنتجات.
+        {t("ai-driftwood-experiment.s3")}
       </p>
       <Link
         href="/products?category=decorations"
@@ -41,7 +43,7 @@ export default function AiDriftwoodExperiment() {
           fontSize: "1rem",
         }}
       >
-        تصفح الديكورات
+        {t("ai-driftwood-experiment.s4")}
       </Link>
     </div>
   );

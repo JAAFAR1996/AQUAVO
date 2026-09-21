@@ -4,6 +4,9 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { type Product } from "@/types";
 import { Check, Ruler, Zap, Thermometer } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { useLocale } from "@/i18n/locale-context";
+import { formatLocalizedPrice } from "@/i18n/format";
 
 interface ProductVariantSelectorProps {
     /** المنتج الحالي المعروض */
@@ -23,8 +26,11 @@ interface ProductVariantSelectorProps {
 export function ProductVariantSelector({
     currentProduct,
     variants,
-    title = "اختر الحجم المناسب لحوضك",
+    title,
 }: ProductVariantSelectorProps) {
+    const { t } = useTranslation("product");
+    const { locale } = useLocale();
+    const heading = title ?? t("variantSelector.title");
     // لا تعرض المكون إذا لم يكن هناك متغيرات
     if (!variants || variants.length <= 1) {
         return null;
@@ -48,13 +54,13 @@ export function ProductVariantSelector({
         // Arabic wattage (18 واط)
         const wattMatchAr = product.name?.match(/(\d+)\s*واط/);
         if (wattMatchAr) {
-            return `${wattMatchAr[1]} واط`;
+            return t("variantSelector.watt", { n: wattMatchAr[1] });
         }
 
         // Flow rate (1200 لتر/ساعة)
         const flowMatch = product.name?.match(/(\d+)\s*لتر\/ساعة/);
         if (flowMatch) {
-            return `${flowMatch[1]} ل/س`;
+            return t("variantSelector.lph", { n: flowMatch[1] });
         }
 
         // Arabic size names
@@ -92,7 +98,7 @@ export function ProductVariantSelector({
             <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-lg">
                     <Icon className="w-5 h-5 text-primary" aria-hidden="true" />
-                    <span id="legacy-variant-title">{title}</span>
+                    <span id="legacy-variant-title">{heading}</span>
                 </CardTitle>
             </CardHeader>
             <CardContent>
@@ -115,7 +121,7 @@ export function ProductVariantSelector({
                                 key={variant.id}
                                 href={`/products/${variant.slug}`}
                                 aria-current={isSelected ? "page" : undefined}
-                                aria-label={`${label}${tankSize ? `، ${tankSize}` : ""}، ${price.toLocaleString()} د.ع${!inStock ? "، غير متوفر" : ""}`}
+                                aria-label={t("variantSelector.ariaOption", { label, tank: tankSize ? `، ${tankSize}` : "", price: formatLocalizedPrice(price, locale), stock: !inStock ? `، ${t("variantSelector.outOfStock")}` : "" })}
                                 className={cn(
                                     "block relative rounded-xl border-2 p-4 transition-all duration-200",
                                     "hover:border-primary/50 hover:shadow-md",
@@ -155,15 +161,14 @@ export function ProductVariantSelector({
                                 {/* السعر */}
                                 <div className="text-center">
                                     <span className="text-sm font-semibold">
-                                        {price.toLocaleString()}
+                                        {formatLocalizedPrice(price, locale)}
                                     </span>
-                                    <span className="text-xs text-muted-foreground mr-1">د.ع</span>
                                 </div>
 
                                 {/* حالة المخزون */}
                                 {!inStock && (
                                     <Badge variant="secondary" className="absolute bottom-2 left-1/2 -translate-x-1/2 text-[10px]" aria-hidden="true">
-                                        غير متوفر
+                                        {t("variantSelector.outOfStock")}
                                     </Badge>
                                 )}
                             </Link>
@@ -176,10 +181,8 @@ export function ProductVariantSelector({
                     <p className="text-sm text-blue-700 dark:text-blue-300 flex items-start gap-2">
                         <span className="text-lg">💡</span>
                         <span>
-                            <strong>نصيحة:</strong> اختر الحجم بناءً على طول حوضك.
-                            {isHeater
-                                ? " قوة السخان يجب أن تتناسب مع حجم الماء."
-                                : " الإضاءة الأقوى تناسب الأحواض الأكبر والنباتات."}
+                            <strong>{t("variantSelector.tipLabel")}</strong> {t("variantSelector.tip")}
+                            {" "}{isHeater ? t("variantSelector.tipHeater") : t("variantSelector.tipLight")}
                         </span>
                     </p>
                 </div>
@@ -195,6 +198,7 @@ export function ProductVariantSelectorCompact({
     currentProduct,
     variants,
 }: Omit<ProductVariantSelectorProps, "title">) {
+    const { t } = useTranslation("product");
     if (!variants || variants.length <= 1) {
         return null;
     }
@@ -205,10 +209,10 @@ export function ProductVariantSelectorCompact({
         if (wattMatchEn) return `${wattMatchEn[1]}W`;
         // Arabic wattage
         const wattMatchAr = product.name?.match(/(\d+)\s*واط/);
-        if (wattMatchAr) return `${wattMatchAr[1]} واط`;
+        if (wattMatchAr) return t("variantSelector.watt", { n: wattMatchAr[1] });
         // Flow rate
         const flowMatch = product.name?.match(/(\d+)\s*لتر\/ساعة/);
-        if (flowMatch) return `${flowMatch[1]} ل/س`;
+        if (flowMatch) return t("variantSelector.lph", { n: flowMatch[1] });
         // Size names
         const sizeMatch = product.name?.match(/-\s*(صغير|متوسط|كبير|كبير جداً)$/);
         if (sizeMatch) return sizeMatch[1];
@@ -216,7 +220,7 @@ export function ProductVariantSelectorCompact({
     };
 
     return (
-        <div className="flex flex-wrap gap-2" dir="rtl" role="group" aria-label="خيارات الحجم">
+        <div className="flex flex-wrap gap-2" role="group" aria-label={t("variantSelector.sizeOptions")}>
             {variants.map((variant) => {
                 const isSelected = variant.id === currentProduct.id;
                 const label = getVariantLabel(variant);

@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 type MascotMood = "happy" | "sad" | "thinking" | "excited" | "working" | "drinking" | "guardian" | "relaxed";
 
@@ -17,6 +18,7 @@ export function ShrimpMascot({
     animate = true,
     message
 }: ShrimpMascotProps) {
+  const { t } = useTranslation("tools");
 
     // Emoji mapping for different moods (until custom images are added)
     const getShrimpEmoji = (m: MascotMood) => {
@@ -37,14 +39,14 @@ export function ShrimpMascot({
         if (message) return message;
 
         switch (m) {
-            case "happy": return "يا هلا! 😊";
-            case "sad": return "زعلان شوية...";
-            case "thinking": return "خليني أفكر...";
-            case "excited": return "يا سلام! 🎊";
-            case "working": return "شغال عليها...";
-            case "drinking": return "بالعافية! 🥤";
-            case "guardian": return "ولا يهمك، الشرمب حارس عليه! 🛡️";
-            case "relaxed": return "ارتاح يا بطل ❤️";
+            case "happy": return t("shrimp-mascot.s1");
+            case "sad": return t("shrimp-mascot.s2");
+            case "thinking": return t("shrimp-mascot.s3");
+            case "excited": return t("shrimp-mascot.s4");
+            case "working": return t("shrimp-mascot.s5");
+            case "drinking": return t("shrimp-mascot.s6");
+            case "guardian": return t("shrimp-mascot.s7");
+            case "relaxed": return t("shrimp-mascot.s8");
             default: return "";
         }
     };

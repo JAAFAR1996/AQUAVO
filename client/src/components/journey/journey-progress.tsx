@@ -2,6 +2,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import { CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { JourneyStepDefinition } from "@/types/journey";
+import { useTranslation } from "react-i18next";
 
 interface JourneyProgressProps {
     steps: JourneyStepDefinition[];
@@ -10,6 +11,7 @@ interface JourneyProgressProps {
 }
 
 export function JourneyProgress({ steps, currentStep, setCurrentStep }: JourneyProgressProps) {
+  const { t } = useTranslation("tools");
     const reduceMotion = useReducedMotion();
     return (
         <div className="max-w-5xl mx-auto mb-12">
@@ -47,7 +49,7 @@ export function JourneyProgress({ steps, currentStep, setCurrentStep }: JourneyP
                                     onClick={() => setCurrentStep(index)}
                                     whileHover={reduceMotion ? undefined : { scale: 1.1 }}
                                     whileTap={reduceMotion ? undefined : { scale: 0.95 }}
-                                    aria-label={`الخطوة ${index + 1}: ${step.title}`}
+                                    aria-label={t("journey-progress.s1", { v0: index + 1, v1: step.title })}
                                 >
                                     {isCompleted ? (
                                         <CheckCircle2 className="w-5 h-5 md:w-6 md:h-6" />

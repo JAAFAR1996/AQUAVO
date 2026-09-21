@@ -18,8 +18,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useTranslation } from "react-i18next";
 
 export default function Wishlist() {
+  const { t } = useTranslation("account");
   const { items, removeItem, clearWishlist, totalItems } = useWishlist();
   const { addItem: addToCart } = useCart();
   const { toast } = useToast();
@@ -28,8 +30,8 @@ export default function Wishlist() {
   const handleRemoveFromWishlist = (id: string, name: string) => {
     removeItem(id);
     toast({
-      title: "تمت الإزالة",
-      description: `تم إزالة ${name} من قائمة المفضلة`,
+      title: t("wishlist.s1"),
+      description: t("wishlist.s2", { v0: name }),
     });
   };
 
@@ -49,8 +51,8 @@ export default function Wishlist() {
       category: item.category,
     });
     toast({
-      title: "تمت الإضافة للسلة ✓",
-      description: `تم إضافة ${item.name} إلى سلة المشتريات`,
+      title: t("wishlist.s3"),
+      description: t("wishlist.s4", { v0: item.name }),
     });
   };
 
@@ -58,16 +60,16 @@ export default function Wishlist() {
     clearWishlist();
     setShowClearDialog(false);
     toast({
-      title: "تم مسح القائمة",
-      description: "تم مسح جميع العناصر من قائمة المفضلة",
+      title: t("wishlist.s5"),
+      description: t("wishlist.s6"),
     });
   };
 
   return (
     <div className="flex-1 flex flex-col bg-background">
       <MetaTags
-        title="قائمة المفضلة"
-        description="منتجاتك المفضلة في AQUAVO - احفظ ما يعجبك وارجع إليه لاحقاً"
+        title={t("wishlist.s7")}
+        description={t("wishlist.s8")}
         noIndex={true}
       />
 
@@ -80,9 +82,9 @@ export default function Wishlist() {
                 <Heart className="h-6 w-6 text-red-500 fill-current" aria-hidden="true" />
               </div>
               <div>
-                <h1 className="text-3xl md:text-4xl font-bold">قائمة المفضلة</h1>
+                <h1 className="text-3xl md:text-4xl font-bold">{t("wishlist.s7")}</h1>
                 <p className="text-muted-foreground mt-1">
-                  {totalItems > 0 ? `لديك ${totalItems} منتج في المفضلة` : "قائمة المفضلة فارغة"}
+                  {totalItems > 0 ? t("wishlist.s9", { v0: totalItems }) : t("wishlist.s10")}
                 </p>
               </div>
             </div>
@@ -93,13 +95,13 @@ export default function Wishlist() {
                 onClick={() => setShowClearDialog(true)}
               >
                 <Trash2 className="h-4 w-4 ml-2" />
-                مسح الكل
+                {t("wishlist.s11")}
               </Button>
             )}
           </div>
           {totalItems > 0 && (
             <Badge variant="secondary" className="text-sm">
-              {totalItems} منتج
+              {totalItems} {t("wishlist.s12")}
             </Badge>
           )}
         </div>
@@ -110,13 +112,13 @@ export default function Wishlist() {
             <div className="bg-muted/30 p-8 rounded-full mb-6">
               <Heart className="h-24 w-24 text-muted-foreground/50" aria-hidden="true" />
             </div>
-            <h2 className="text-2xl font-bold mb-2">لا توجد منتجات في المفضلة</h2>
+            <h2 className="text-2xl font-bold mb-2">{t("wishlist.s13")}</h2>
             <p className="text-muted-foreground mb-6 max-w-md">
-              ابدأ بإضافة المنتجات التي تعجبك إلى قائمة المفضلة لتتمكن من العودة إليها لاحقاً
+              {t("wishlist.s14")}
             </p>
             <Link href="/products">
               <Button size="lg" className="gap-2">
-                تصفح المنتجات
+                {t("wishlist.s15")}
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Button>
             </Link>
@@ -136,7 +138,7 @@ export default function Wishlist() {
                   <div className="relative pt-[100%] bg-muted/20 overflow-hidden cursor-pointer">
                     <img
                       src={item.image}
-                      alt={`صورة منتج ${item.name}`}
+                      alt={t("wishlist.s16", { v0: item.name })}
                       className="absolute inset-0 w-full h-full object-contain p-6 transition-transform duration-500 group-hover:scale-110 mix-blend-multiply dark:mix-blend-normal"
                       loading="lazy"
                     />
@@ -159,7 +161,7 @@ export default function Wishlist() {
                     {item.price > 0 ? (
                       <>
                         <span className="text-xl font-bold text-primary">
-                          {item.price.toLocaleString("en-US")} د.ع
+                          {item.price.toLocaleString("en-US")} {t("wishlist.s17")}
                         </span>
                         {item.originalPrice && item.originalPrice > item.price && (
                           <span className="text-sm text-muted-foreground line-through">
@@ -168,7 +170,7 @@ export default function Wishlist() {
                         )}
                       </>
                     ) : (
-                      <span className="text-lg font-bold text-muted-foreground">السعر غير متوفر</span>
+                      <span className="text-lg font-bold text-muted-foreground">{t("wishlist.s18")}</span>
                     )}
                   </div>
 
@@ -183,17 +185,17 @@ export default function Wishlist() {
                   <Button
                     className="flex-1 gap-2"
                     onClick={() => handleAddToCart(item)}
-                    aria-label={`إضافة ${item.name} إلى سلة المشتريات`}
+                    aria-label={t("wishlist.s19", { v0: item.name })}
                   >
                     <ShoppingCart className="w-4 h-4" aria-hidden="true" />
-                    أضف للسلة
+                    {t("wishlist.s20")}
                   </Button>
                   <Button
                     variant="outline"
                     size="icon"
                     className="text-destructive hover:text-destructive hover:bg-destructive/10"
                     onClick={() => handleRemoveFromWishlist(item.id, item.name)}
-                    aria-label={`إزالة ${item.name} من المفضلة`}
+                    aria-label={t("wishlist.s21", { v0: item.name })}
                   >
                     <Trash2 className="w-4 h-4" aria-hidden="true" />
                   </Button>
@@ -207,19 +209,18 @@ export default function Wishlist() {
         <AlertDialog open={showClearDialog} onOpenChange={setShowClearDialog}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>هل أنت متأكد؟</AlertDialogTitle>
+              <AlertDialogTitle>{t("wishlist.s22")}</AlertDialogTitle>
               <AlertDialogDescription>
-                سيتم إزالة جميع المنتجات ({totalItems} منتج) من قائمة المفضلة. لا يمكن التراجع عن هذا
-                الإجراء.
+                {t("wishlist.s23")}{totalItems} {t("wishlist.s24")}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>إلغاء</AlertDialogCancel>
+              <AlertDialogCancel>{t("wishlist.s25")}</AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleClearWishlist}
                 className="bg-destructive hover:bg-destructive/90"
               >
-                مسح الكل
+                {t("wishlist.s11")}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

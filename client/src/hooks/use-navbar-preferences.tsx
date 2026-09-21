@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import { i18next } from "@/i18n";
 
 /**
  * Available navbar styles for 2025 design
@@ -131,12 +132,12 @@ export function useNavbarPreferences(): NavbarPreferencesContextType {
 }
 
 export const NAVBAR_STYLES: { value: NavbarStyle; label: string; labelAr: string; icon: string }[] = [
-    { value: 'glassmorphism', label: 'Glassmorphism', labelAr: 'زجاجي', icon: '🪟' },
-    { value: 'micro-interactions', label: 'Micro-interactions', labelAr: 'تفاعلي', icon: '✨' },
-    { value: 'ultra-minimal', label: 'Ultra-minimal', labelAr: 'بسيط', icon: '🔲' },
-    { value: 'ai-personalized', label: 'AI-Personalized', labelAr: 'ذكي', icon: '🤖' },
-    { value: 'device-adaptive', label: 'Device-Adaptive', labelAr: 'متكيف', icon: '📱' },
-    { value: 'immersive', label: 'Immersive', labelAr: 'غامر', icon: '🖥️' },
+    { value: 'glassmorphism', label: 'Glassmorphism', labelAr: i18next.t("pages:use-navbar-preferences.s1"), icon: '🪟' },
+    { value: 'micro-interactions', label: 'Micro-interactions', labelAr: i18next.t("pages:use-navbar-preferences.s2"), icon: '✨' },
+    { value: 'ultra-minimal', label: 'Ultra-minimal', labelAr: i18next.t("pages:use-navbar-preferences.s3"), icon: '🔲' },
+    { value: 'ai-personalized', label: 'AI-Personalized', labelAr: i18next.t("pages:use-navbar-preferences.s4"), icon: '🤖' },
+    { value: 'device-adaptive', label: 'Device-Adaptive', labelAr: i18next.t("pages:use-navbar-preferences.s5"), icon: '📱' },
+    { value: 'immersive', label: 'Immersive', labelAr: i18next.t("pages:use-navbar-preferences.s6"), icon: '🖥️' },
 ];
 
 export default useNavbarPreferences;

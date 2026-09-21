@@ -25,8 +25,10 @@ import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/auth-context";
 import { PasswordStrength, isPasswordStrong } from "@/components/auth/password-strength";
+import { useTranslation } from "react-i18next";
 
 export default function Register() {
+  const { t } = useTranslation("account");
     const [, setLocation] = useLocation();
     const { toast } = useToast();
     const { register } = useAuth();
@@ -73,17 +75,17 @@ export default function Register() {
 
         // Validation
         if (formData.password !== formData.confirmPassword) {
-            setError("كلمتا المرور غير متطابقتين");
+            setError(t("register.s1"));
             return;
         }
 
         if (!isPasswordStrong(formData.password)) {
-            setError("كلمة المرور ضعيفة جداً. يرجى اختيار كلمة مرور أقوى تتضمن حروف كبيرة وصغيرة وأرقام ورموز");
+            setError(t("register.s2"));
             return;
         }
 
         if (!acceptTerms) {
-            setError("يرجى الموافقة على الشروط والأحكام");
+            setError(t("register.s3"));
             return;
         }
 
@@ -92,12 +94,12 @@ export default function Register() {
         try {
             await register(formData.name, formData.email, formData.password, formData.phone, referralCode || undefined);
             toast({
-                title: "تم إنشاء الحساب بنجاح! 🎉",
-                description: "مرحباً بك في عائلة AQUAVO.",
+                title: t("register.s4"),
+                description: t("register.s5"),
             });
             setLocation("/");
         } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : "فشل إنشاء الحساب. يرجى المحاولة مرة أخرى.";
+            const message = err instanceof Error ? err.message : t("register.s6");
             setError(message);
         } finally {
             setIsLoading(false);
@@ -105,10 +107,10 @@ export default function Register() {
     };
 
     const benefits = [
-        "تتبع طلباتك بسهولة",
-        "حفظ عناوين التوصيل",
-        "عروض حصرية للأعضاء",
-        "جمع نقاط الولاء",
+        t("register.s7"),
+        t("register.s8"),
+        t("register.s9"),
+        t("register.s10"),
     ];
 
     return (
@@ -122,10 +124,10 @@ export default function Register() {
                         className="hidden md:flex flex-col justify-center"
                     >
                         <h2 className="text-3xl font-bold mb-6">
-                            انضم إلى <span className="text-primary">عائلة AQUAVO</span>
+                            {t("register.s11")} <span className="text-primary">{t("register.s12")}</span>
                         </h2>
                         <p className="text-muted-foreground mb-8 text-lg">
-                            أنشئ حساباً واستمتع بمزايا حصرية
+                            {t("register.s13")}
                         </p>
 
                         <div className="space-y-4">
@@ -148,7 +150,7 @@ export default function Register() {
                         <Alert className="mt-8 bg-primary/5 border-primary/20">
                             <Sparkles className="h-4 w-4 text-primary" />
                             <AlertDescription className="text-sm">
-                                احصل على <strong>خصم 3%</strong> على طلبك الأول عند التسجيل!
+                                {t("register.s14")} <strong>{t("register.s15")}</strong> {t("register.s16")}
                             </AlertDescription>
                         </Alert>
 
@@ -157,7 +159,7 @@ export default function Register() {
                             <Alert className="mt-4 bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
                                 <Gift className="h-4 w-4 text-green-600" />
                                 <AlertDescription className="text-sm text-green-700 dark:text-green-300">
-                                    🎉 تم استخدام كود دعوة! ستحصل على <strong>خصم 5%</strong> بعد أول عملية شراء.
+                                    {t("register.s17")} <strong>{t("register.s18")}</strong> {t("register.s19")}
                                 </AlertDescription>
                             </Alert>
                         )}
@@ -173,9 +175,9 @@ export default function Register() {
                                 <div className="w-16 h-16 bg-gradient-to-br from-primary to-cyan-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
                                     <Fish className="w-8 h-8 text-white" />
                                 </div>
-                                <CardTitle className="text-2xl">إنشاء حساب جديد</CardTitle>
+                                <CardTitle className="text-2xl">{t("register.s20")}</CardTitle>
                                 <CardDescription>
-                                    أدخل بياناتك للتسجيل
+                                    {t("register.s21")}
                                 </CardDescription>
                             </CardHeader>
 
@@ -189,13 +191,13 @@ export default function Register() {
 
                                 <form onSubmit={handleSubmit} className="space-y-4">
                                     <div className="space-y-2">
-                                        <Label htmlFor="name">الاسم الكامل</Label>
+                                        <Label htmlFor="name">{t("register.s22")}</Label>
                                         <div className="relative">
                                             <User className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                                             <Input
                                                 id="name"
                                                 name="name"
-                                                placeholder="أحمد محمد"
+                                                placeholder={t("register.s23")}
                                                 className="pr-10"
                                                 value={formData.name}
                                                 onChange={handleChange}
@@ -205,7 +207,7 @@ export default function Register() {
                                     </div>
 
                                     <div className="space-y-2">
-                                        <Label htmlFor="email">البريد الإلكتروني</Label>
+                                        <Label htmlFor="email">{t("register.s24")}</Label>
                                         <div className="relative">
                                             <Mail className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                                             <Input
@@ -223,7 +225,7 @@ export default function Register() {
                                     </div>
 
                                     <div className="space-y-2">
-                                        <Label htmlFor="phone">رقم الهاتف</Label>
+                                        <Label htmlFor="phone">{t("register.s25")}</Label>
                                         <div className="relative">
                                             <Phone className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                                             <Input
@@ -242,12 +244,12 @@ export default function Register() {
 
                                     {/* Referral Code Input */}
                                     <div className="space-y-2">
-                                        <Label htmlFor="referralCodeInput">كود الدعوة (اختياري)</Label>
+                                        <Label htmlFor="referralCodeInput">{t("register.s26")}</Label>
                                         <div className="relative">
                                             <Gift className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                                             <Input
                                                 id="referralCodeInput"
-                                                placeholder="أدخل كود الدعوة إن وجد"
+                                                placeholder={t("register.s27")}
                                                 className="pr-10"
                                                 value={referralCode || ""}
                                                 onChange={(e) => setReferralCode(e.target.value.toUpperCase() || null)}
@@ -257,20 +259,20 @@ export default function Register() {
                                         {referralCode && referralValid === true && (
                                             <p className="text-sm text-green-600 flex items-center gap-1">
                                                 <CheckCircle className="w-3 h-3" />
-                                                كود صالح! ستحصل على 5% خصم بعد أول شراء
+                                                {t("register.s28")}
                                             </p>
                                         )}
                                         {referralCode && referralValid === false && (
                                             <p className="text-sm text-red-500 flex items-center gap-1">
                                                 <AlertCircle className="w-3 h-3" />
-                                                كود غير صالح
+                                                {t("register.s29")}
                                             </p>
                                         )}
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-2">
-                                            <Label htmlFor="password">كلمة المرور</Label>
+                                            <Label htmlFor="password">{t("register.s30")}</Label>
                                             <div className="relative">
                                                 <Lock className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                                                 <Input
@@ -287,7 +289,7 @@ export default function Register() {
                                             </div>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="confirmPassword">تأكيد كلمة المرور</Label>
+                                            <Label htmlFor="confirmPassword">{t("register.s31")}</Label>
                                             <div className="relative">
                                                 <Input
                                                     id="confirmPassword"
@@ -316,7 +318,7 @@ export default function Register() {
                                     {formData.confirmPassword && formData.password !== formData.confirmPassword && (
                                         <p className="text-sm text-red-500 flex items-center gap-1">
                                             <AlertCircle className="w-3 h-3" />
-                                            كلمتا المرور غير متطابقتين
+                                            {t("register.s1")}
                                         </p>
                                     )}
 
@@ -328,10 +330,10 @@ export default function Register() {
                                             className="mt-1"
                                         />
                                         <Label htmlFor="terms" className="text-sm font-normal cursor-pointer leading-relaxed">
-                                            أوافق على{" "}
-                                            <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline" onClick={(e) => e.stopPropagation()}>الشروط والأحكام</a>{" "}
-                                            و{" "}
-                                            <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline" onClick={(e) => e.stopPropagation()}>سياسة الخصوصية</a>
+                                            {t("register.s32")}{" "}
+                                            <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline" onClick={(e) => e.stopPropagation()}>{t("register.s33")}</a>{" "}
+                                            {t("register.s34")}{" "}
+                                            <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline" onClick={(e) => e.stopPropagation()}>{t("register.s35")}</a>
                                         </Label>
                                     </div>
 
@@ -339,10 +341,10 @@ export default function Register() {
                                         {isLoading ? (
                                             <span className="flex items-center gap-2">
                                                 <span className="animate-spin">◌</span>
-                                                جاري إنشاء الحساب...
+                                                {t("register.s36")}
                                             </span>
                                         ) : (
-                                            "إنشاء الحساب"
+                                            t("register.s37")
                                         )}
                                     </Button>
                                 </form>
@@ -350,15 +352,15 @@ export default function Register() {
                                 <div className="relative">
                                     <Separator />
                                     <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-3 text-sm text-muted-foreground">
-                                        أو
+                                        {t("register.s38")}
                                     </span>
                                 </div>
 
                                 <p className="text-center text-sm text-muted-foreground">
-                                    لديك حساب بالفعل؟{" "}
+                                    {t("register.s39")}{" "}
                                     <Link href="/login">
                                         <span className="text-primary font-semibold hover:underline cursor-pointer">
-                                            تسجيل الدخول
+                                            {t("register.s40")}
                                         </span>
                                     </Link>
                                 </p>

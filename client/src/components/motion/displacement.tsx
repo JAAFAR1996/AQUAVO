@@ -8,6 +8,7 @@ import {
   setWaterLevel,
 } from "@/lib/motion/displacement";
 import { observeMembranes } from "@/lib/motion/membrane";
+import { useTranslation } from "react-i18next";
 
 export function Membrane({
   children,
@@ -54,6 +55,7 @@ export function TankProgress({
   cyclingStep?: number;
   label: string;
 }) {
+  const { t } = useTranslation("pages");
   const water = useRef<HTMLDivElement>(null);
   const haze = useRef<HTMLDivElement>(null);
   const tank = useRef<HTMLDivElement>(null);
@@ -143,13 +145,14 @@ export function TankProgress({
           textAlign: compact ? "start" : "center",
         }}
       >
-        {label} · {Math.round((step / Math.max(1, total - 1)) * 100)}% مكتمل
+        {label} · {Math.round((step / Math.max(1, total - 1)) * 100)}{t("displacement.s1")}
       </p>
     </div>
   );
 }
 
 export function SurfaceBreak({ confirmed, children }: { confirmed: boolean; children: ReactNode }) {
+  const { t } = useTranslation("pages");
   const stage = useRef<HTMLDivElement>(null);
   const water = useRef<HTMLDivElement>(null);
   const played = useRef(false);
@@ -204,7 +207,7 @@ export function SurfaceBreak({ confirmed, children }: { confirmed: boolean; chil
           }}
         >
           <span style={{ font: "700 13px Cairo,sans-serif", color: "rgba(255,255,255,.9)" }}>
-            نثبّت الطلب…
+            {t("displacement.s2")}
           </span>
         </div>
       )}

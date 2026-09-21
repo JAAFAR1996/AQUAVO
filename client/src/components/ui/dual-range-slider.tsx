@@ -1,6 +1,7 @@
 import * as React from "react";
 import * as SliderPrimitive from "@radix-ui/react-slider";
 import { cn } from "@/lib/utils";
+import { i18next } from "@/i18n";
 
 interface DualRangeSliderProps
     extends Omit<React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root>, 'value' | 'onValueChange'> {
@@ -75,7 +76,7 @@ const DualRangeSlider = React.forwardRef<
 
                     {/* Min Thumb */}
                     <SliderPrimitive.Thumb
-                        aria-label="الحد الأدنى للسعر"
+                        aria-label={i18next.t("common:dual-range-slider.s1")}
                         aria-valuetext={formatValue(value[0])}
                         className={cn(
                             "block h-6 w-6 rounded-full shadow-lg transition-all duration-200",
@@ -91,7 +92,7 @@ const DualRangeSlider = React.forwardRef<
 
                     {/* Max Thumb */}
                     <SliderPrimitive.Thumb
-                        aria-label="الحد الأقصى للسعر"
+                        aria-label={i18next.t("common:dual-range-slider.s2")}
                         aria-valuetext={formatValue(value[1])}
                         className={cn(
                             "block h-6 w-6 rounded-full shadow-lg transition-all duration-200",
@@ -111,12 +112,12 @@ const DualRangeSlider = React.forwardRef<
             {showValues && (
                 <div className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/20">
-                        <span className="text-xs text-muted-foreground">من</span>
+                        <span className="text-xs text-muted-foreground">{i18next.t("common:dual-range-slider.s3")}</span>
                         <span className="font-semibold text-primary">{formatValue(value[0])}</span>
                     </div>
                     <div className="flex-1 border-t border-dashed border-muted-foreground/30 mx-3" />
                     <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/20">
-                        <span className="text-xs text-muted-foreground">إلى</span>
+                        <span className="text-xs text-muted-foreground">{i18next.t("common:dual-range-slider.s4")}</span>
                         <span className="font-semibold text-primary">{formatValue(value[1])}</span>
                     </div>
                 </div>

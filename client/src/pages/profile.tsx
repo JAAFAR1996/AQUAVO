@@ -33,8 +33,10 @@ import { ProfileCoupons } from "@/components/profile/profile-coupons";
 import { ProfileReferral } from "@/components/profile/profile-referral";
 import { ProfileNotifications } from "@/components/profile/profile-notifications";
 import { Address, UserProfileExtra } from "@/lib/types";
+import { useTranslation } from "react-i18next";
 
 export default function Profile() {
+  const { t } = useTranslation("account");
     const { toast } = useToast();
     const { user, logout } = useAuth();
     const queryClient = useQueryClient();
@@ -76,7 +78,7 @@ export default function Profile() {
     // Format member since date from user's createdAt
     const memberSinceDate = user?.createdAt
         ? new Date(user.createdAt).toLocaleDateString("ar-IQ", { month: "long", year: "numeric" })
-        : "ديسمبر 2025";
+        : t("profile.s1");
 
     const [extraData, setExtraData] = useState<UserProfileExtra>({
         phone: user?.phone || "",
@@ -113,9 +115,9 @@ export default function Profile() {
             if (!res.ok) throw new Error("Failed to update profile");
             queryClient.invalidateQueries({ queryKey: ["/api/user"] });
             setIsEditing(false);
-            toast({ title: "تم حفظ التغييرات", description: "تم تحديث بياناتك بنجاح" });
+            toast({ title: t("profile.s2"), description: t("profile.s3") });
         } catch {
-            toast({ title: "خطأ", description: "فشل حفظ البيانات، يرجى المحاولة مرة أخرى", variant: "destructive" });
+            toast({ title: t("profile.s4"), description: t("profile.s5"), variant: "destructive" });
         }
     };
 
@@ -128,15 +130,15 @@ export default function Profile() {
                 body: JSON.stringify({
                     label: address.label,
                     addressLine1: address.address,
-                    city: "بغداد",
+                    city: t("profile.s6"),
                     isDefault: address.isDefault ?? false,
                 }),
             });
             if (!res.ok) throw new Error("Failed to add address");
             await refetchAddresses();
-            toast({ title: "تم إضافة العنوان", description: "تم حفظ عنوانك الجديد بنجاح" });
+            toast({ title: t("profile.s7"), description: t("profile.s8") });
         } catch {
-            toast({ title: "خطأ", description: "فشل إضافة العنوان", variant: "destructive" });
+            toast({ title: t("profile.s4"), description: t("profile.s9"), variant: "destructive" });
         }
     };
 
@@ -149,16 +151,16 @@ export default function Profile() {
                 body: JSON.stringify({
                     label: updatedAddress.label,
                     addressLine1: updatedAddress.address,
-                    city: "بغداد",
+                    city: t("profile.s6"),
                     phone: updatedAddress.phone,
                     isDefault: updatedAddress.isDefault,
                 }),
             });
             if (!res.ok) throw new Error("Failed to update address");
             await refetchAddresses();
-            toast({ title: "تم تحديث العنوان", description: "تم تحديث عنوانك بنجاح" });
+            toast({ title: t("profile.s10"), description: t("profile.s11") });
         } catch {
-            toast({ title: "خطأ", description: "فشل تحديث العنوان", variant: "destructive" });
+            toast({ title: t("profile.s4"), description: t("profile.s12"), variant: "destructive" });
         }
     };
 
@@ -170,9 +172,9 @@ export default function Profile() {
             });
             if (!res.ok) throw new Error("Failed to delete address");
             await refetchAddresses();
-            toast({ title: "تم حذف العنوان", description: "تم حذف العنوان بنجاح" });
+            toast({ title: t("profile.s13"), description: t("profile.s14") });
         } catch {
-            toast({ title: "خطأ", description: "فشل حذف العنوان", variant: "destructive" });
+            toast({ title: t("profile.s4"), description: t("profile.s15"), variant: "destructive" });
         }
     };
 
@@ -187,8 +189,8 @@ export default function Profile() {
     return (
         <div className="flex-1 flex flex-col bg-background">
             <MetaTags
-                title="حسابي"
-                description="إدارة حسابك الشخصي وطلباتك وعناوينك ونقاط الولاء في AQUAVO"
+                title={t("profile.s16")}
+                description={t("profile.s17")}
                 noIndex={true}
             />
 
@@ -211,17 +213,17 @@ export default function Profile() {
                                     </Avatar>
 
                                     <div className="flex-1 text-center md:text-right">
-                                        <h1 className="text-3xl font-bold mb-2">{user.fullName || "مستخدم جديد"}</h1>
-                                        <p className="text-muted-foreground mb-3">عضو منذ {extraData.memberSince}</p>
+                                        <h1 className="text-3xl font-bold mb-2">{user.fullName || t("profile.s18")}</h1>
+                                        <p className="text-muted-foreground mb-3">{t("profile.s19")} {extraData.memberSince}</p>
 
                                         <div className="flex flex-wrap gap-3 justify-center md:justify-start">
                                             <Badge className={`${tierLabels[loyaltyTier].color} gap-1`}>
                                                 {tierLabels[loyaltyTier].icon}
-                                                عضو {tierLabels[loyaltyTier].label}
+                                                {t("profile.s20")} {tierLabels[loyaltyTier].label}
                                             </Badge>
                                             <Badge variant="outline" className="gap-1">
                                                 <Gift className="w-3 h-3" />
-                                                {loyaltyPoints} نقطة
+                                                {loyaltyPoints} {t("profile.s21")}
                                             </Badge>
                                         </div>
                                     </div>
@@ -229,7 +231,7 @@ export default function Profile() {
                                     <div className="flex gap-2">
                                         <Button variant="ghost" size="sm" className="gap-2 text-destructive" onClick={() => logout()}>
                                             <LogOut className="w-4 h-4" />
-                                            تسجيل الخروج
+                                            {t("profile.s22")}
                                         </Button>
                                     </div>
                                 </div>
@@ -242,27 +244,27 @@ export default function Profile() {
                         <TabsList className="grid w-full grid-cols-6 h-auto p-1">
                             <TabsTrigger value="info" className="py-3 gap-2">
                                 <User className="w-4 h-4" />
-                                <span className="hidden sm:inline">المعلومات</span>
+                                <span className="hidden sm:inline">{t("profile.s23")}</span>
                             </TabsTrigger>
                             <TabsTrigger value="orders" className="py-3 gap-2">
                                 <Package className="w-4 h-4" />
-                                <span className="hidden sm:inline">طلباتي</span>
+                                <span className="hidden sm:inline">{t("profile.s24")}</span>
                             </TabsTrigger>
                             <TabsTrigger value="addresses" className="py-3 gap-2">
                                 <MapPin className="w-4 h-4" />
-                                <span className="hidden sm:inline">العناوين</span>
+                                <span className="hidden sm:inline">{t("profile.s25")}</span>
                             </TabsTrigger>
                             <TabsTrigger value="loyalty" className="py-3 gap-2">
                                 <Crown className="w-4 h-4" />
-                                <span className="hidden sm:inline">الولاء</span>
+                                <span className="hidden sm:inline">{t("profile.s26")}</span>
                             </TabsTrigger>
                             <TabsTrigger value="coupons" className="py-3 gap-2">
                                 <Ticket className="w-4 h-4" />
-                                <span className="hidden sm:inline">الكوبونات</span>
+                                <span className="hidden sm:inline">{t("profile.s27")}</span>
                             </TabsTrigger>
                             <TabsTrigger value="referral" className="py-3 gap-2">
                                 <Users className="w-4 h-4" />
-                                <span className="hidden sm:inline">الدعوة</span>
+                                <span className="hidden sm:inline">{t("profile.s28")}</span>
                             </TabsTrigger>
                         </TabsList>
 

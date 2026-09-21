@@ -11,6 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { Coins, Loader2, Info } from "lucide-react";
 import { formatIQD } from "@/lib/utils";
 import { useLoyaltyBalance, previewRedeem, type RedeemPreview } from "@/hooks/use-loyalty";
+import { useTranslation } from "react-i18next";
 
 interface CheckoutLoyaltySectionProps {
     cartTotal: number;
@@ -26,6 +27,7 @@ interface CheckoutLoyaltySectionProps {
 }
 
 export function CheckoutLoyaltySection({ cartTotal, onPointsChange }: CheckoutLoyaltySectionProps) {
+    const { t } = useTranslation("checkout");
     const { data: balance, isLoading } = useLoyaltyBalance();
     const [useCashback, setUseCashback] = useState(false);
     const [preview, setPreview] = useState<RedeemPreview | null>(null);
@@ -98,9 +100,9 @@ export function CheckoutLoyaltySection({ cartTotal, onPointsChange }: CheckoutLo
                         <Coins className="w-4 h-4 text-primary" />
                     </div>
                     <div>
-                        <p id="cashback-toggle-label" className="text-sm font-medium">استخدام رصيد الباقي</p>
+                        <p id="cashback-toggle-label" className="text-sm font-medium">{t("loyalty.useCashback")}</p>
                         <p id="cashback-toggle-desc" className="text-xs text-muted-foreground">
-                            {balance.cashbackBalance.toLocaleString()} نقطة = {formatIQD(balance.cashbackValueIQD)}
+                            {t("loyalty.balance", { points: balance.cashbackBalance.toLocaleString(), value: formatIQD(balance.cashbackValueIQD) })}
                         </p>
                     </div>
                 </div>
@@ -118,13 +120,13 @@ export function CheckoutLoyaltySection({ cartTotal, onPointsChange }: CheckoutLo
             {isLoadingPreview ? (
                 <div className="flex items-center justify-center py-2" role="status" aria-live="polite">
                     <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
-                    <span className="text-xs text-muted-foreground mr-2">جاري الحساب...</span>
+                    <span className="text-xs text-muted-foreground ms-2">{t("loyalty.calculating")}</span>
                 </div>
             ) : preview && useCashback ? (
                 <div className="space-y-1.5" role="status" aria-live="polite">
                     {preview.totalDiscount > 0 && (
                         <div className="flex justify-between text-sm">
-                            <span className="text-green-600 dark:text-green-400">خصم رصيد الباقي</span>
+                            <span className="text-green-600 dark:text-green-400">{t("loyalty.discount")}</span>
                             <span className="font-medium text-green-600 dark:text-green-400">
                                 -{formatIQD(preview.totalDiscount)}
                             </span>
@@ -133,7 +135,7 @@ export function CheckoutLoyaltySection({ cartTotal, onPointsChange }: CheckoutLo
                     {preview.rounding.cashbackEarned > 0 && (
                         <p className="text-xs text-muted-foreground flex items-center gap-1">
                             <Info className="w-3 h-3" />
-                            باقي تقريب يُضاف لرصيدك: +{preview.rounding.cashbackEarned} نقطة
+                            {t("loyalty.earned", { count: preview.rounding.cashbackEarned })}
                         </p>
                     )}
                 </div>
@@ -141,7 +143,7 @@ export function CheckoutLoyaltySection({ cartTotal, onPointsChange }: CheckoutLo
 
             {/* توضيح */}
             <p className="text-[11px] text-muted-foreground/70 text-center">
-                رصيد الباقي = فلوسك من فرق التقريب. تگدر تستخدمه كله كخصم
+                {t("loyalty.explain")}
             </p>
         </div>
     );

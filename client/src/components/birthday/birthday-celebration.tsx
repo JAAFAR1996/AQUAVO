@@ -5,6 +5,7 @@ import { X, Copy, Check, Cake } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
 import { springSnappy } from "@/lib/motion";
+import { useTranslation } from "react-i18next";
 
 interface BirthdayStatus {
   isBirthday: boolean;
@@ -18,6 +19,7 @@ const BALLOON_COLORS = ["#0B93A6", "#0B64A6", "#C97A2E", "#34d399", "#a78bfa"];
 // confetti + balloons and reveal their one-time 10% coupon. Shows once per year
 // (guarded by localStorage). Honours prefers-reduced-motion for the confetti.
 export function BirthdayCelebration() {
+  const { t: tr } = useTranslation("tools");
   const { user } = useAuth();
   const [status, setStatus] = useState<BirthdayStatus | null>(null);
   const [open, setOpen] = useState(false);
@@ -122,7 +124,7 @@ export function BirthdayCelebration() {
             dir="rtl"
             role="dialog"
             aria-modal="true"
-            aria-label="عيد ميلاد سعيد"
+            aria-label={tr("birthday-celebration.s1")}
             initial={{ scale: 0.8, y: 40, opacity: 0 }}
             animate={{ scale: 1, y: 0, opacity: 1 }}
             exit={{ scale: 0.85, opacity: 0 }}
@@ -132,7 +134,7 @@ export function BirthdayCelebration() {
             <button
               onClick={() => setOpen(false)}
               className="absolute top-4 left-4 text-foreground dark:text-white/40 hover:text-white/80 transition-colors press"
-              aria-label="إغلاق"
+              aria-label={tr("birthday-celebration.s2")}
             >
               <X className="w-5 h-5" />
             </button>
@@ -147,12 +149,11 @@ export function BirthdayCelebration() {
             </motion.div>
 
             <h2 className="mb-2 text-3xl font-extrabold text-foreground dark:text-white">
-              عيد ميلاد سعيد{firstName ? ` يا ${firstName}` : ""}! 🎉
+              {tr("birthday-celebration.s1")}{firstName ? tr("birthday-celebration.s3", { v0: firstName }) : ""}! 🎉
             </h2>
             <p className="mb-6 text-foreground dark:text-white/60 leading-relaxed">
-              من كل قلبنا بـ AQUAVO — هديتنا إلك خصم{" "}
-              <span className="font-bold text-primary">{discount}%</span> على طلبك،
-              صالح لمدة أسبوعين.
+              {tr("birthday-celebration.s4")}{" "}
+              <span className="font-bold text-primary">{discount}%</span> {tr("birthday-celebration.s5")}
             </p>
 
             {code && (
@@ -164,11 +165,11 @@ export function BirthdayCelebration() {
                 <span className="flex items-center gap-1.5 text-sm font-bold text-primary">
                   {copied ? (
                     <>
-                      <Check className="h-4 w-4" /> تم النسخ
+                      <Check className="h-4 w-4" /> {tr("birthday-celebration.s6")}
                     </>
                   ) : (
                     <>
-                      <Copy className="h-4 w-4" /> انسخ
+                      <Copy className="h-4 w-4" /> {tr("birthday-celebration.s7")}
                     </>
                   )}
                 </span>
@@ -179,7 +180,7 @@ export function BirthdayCelebration() {
               className="h-12 w-full rounded-2xl text-base font-bold shadow-lg shadow-primary/20"
               asChild
             >
-              <Link href="/products" onClick={() => setOpen(false)}>أبدأ التسوّق</Link>
+              <Link href="/products" onClick={() => setOpen(false)}>{tr("birthday-celebration.s8")}</Link>
             </Button>
           </motion.div>
         </motion.div>

@@ -32,6 +32,8 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { addCsrfHeader } from "@/lib/csrf";
+import { useTranslation } from "react-i18next";
+import { i18next } from "@/i18n";
 
 interface Review {
   id: string;
@@ -55,14 +57,15 @@ interface ProductReviewsProps {
 type SortOption = "newest" | "oldest" | "highest" | "lowest" | "helpful";
 
 const sortLabels: Record<SortOption, string> = {
-  newest: "الأحدث",
-  oldest: "الأقدم",
-  highest: "الأعلى تقييماً",
-  lowest: "الأقل تقييماً",
-  helpful: "الأكثر فائدة",
+  newest: i18next.t("pages:product-reviews.s1"),
+  oldest: i18next.t("pages:product-reviews.s2"),
+  highest: i18next.t("pages:product-reviews.s3"),
+  lowest: i18next.t("pages:product-reviews.s4"),
+  helpful: i18next.t("pages:product-reviews.s5"),
 };
 
 export function ProductReviews({ productId, productName }: ProductReviewsProps) {
+  const { t } = useTranslation("pages");
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [rating, setRating] = useState(0);
@@ -115,8 +118,8 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
     // Guests must provide a name
     if (!user && guestName.trim().length < 2) {
       toast({
-        title: "أدخل اسمك",
-        description: "يرجى كتابة اسمك لإضافة تقييم",
+        title: t("product-reviews.s6"),
+        description: t("product-reviews.s7"),
         variant: "destructive",
       });
       return;
@@ -124,8 +127,8 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
 
     if (rating === 0) {
       toast({
-        title: "اختر التقييم",
-        description: "يرجى اختيار تقييم من 1 إلى 5 نجوم",
+        title: t("product-reviews.s8"),
+        description: t("product-reviews.s9"),
         variant: "destructive",
       });
       return;
@@ -152,8 +155,8 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
 
       if (response.ok) {
         toast({
-          title: "تم نشر تقييمك ✅",
-          description: "شكراً لك! تقييمك ظاهر الآن على صفحة المنتج.",
+          title: t("product-reviews.s10"),
+          description: t("product-reviews.s11"),
         });
 
         // Reset form
@@ -167,16 +170,16 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
       } else {
         const error = await response.json();
         toast({
-          title: "خطأ",
-          description: error.message || "فشل إضافة التقييم",
+          title: t("product-reviews.s12"),
+          description: error.message || t("product-reviews.s13"),
           variant: "destructive",
         });
       }
     } catch (error) {
       console.error("Error submitting review:", error);
       toast({
-        title: "خطأ",
-        description: "حدث خطأ أثناء إضافة التقييم",
+        title: t("product-reviews.s12"),
+        description: t("product-reviews.s14"),
         variant: "destructive",
       });
     } finally {
@@ -195,15 +198,15 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
 
       if (response.ok) {
         toast({
-          title: "شكراً لك",
-          description: "تم تسجيل رأيك",
+          title: t("product-reviews.s15"),
+          description: t("product-reviews.s16"),
         });
         fetchReviews();
       } else {
         const error = await response.json();
         toast({
-          title: "تنبيه",
-          description: error.message || "لقد قيمت هذه المراجعة مسبقاً",
+          title: t("product-reviews.s17"),
+          description: error.message || t("product-reviews.s18"),
         });
       }
     } catch (error) {
@@ -344,7 +347,7 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
         <CardHeader className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30">
           <CardTitle className="flex items-center gap-2">
             <MessageSquare className="h-5 w-5" />
-            تقييمات العملاء
+            {t("product-reviews.s19")}
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-6">
@@ -359,7 +362,7 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
                   {renderStars(Math.round(averageRating), false, "sm")}
                 </div>
                 <div className="text-sm text-muted-foreground">
-                  {reviews.length} {reviews.length === 1 ? "تقييم" : "تقييمات"}
+                  {reviews.length} {reviews.length === 1 ? t("product-reviews.s20") : t("product-reviews.s21")}
                 </div>
               </div>
 
@@ -403,7 +406,7 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
             </div>
           ) : (
             <p className="text-muted-foreground text-center py-4">
-              لا توجد تقييمات بعد. كن أول من يقيّم هذا المنتج!
+              {t("product-reviews.s22")}
             </p>
           )}
 
@@ -414,7 +417,7 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
               className="mt-4 text-sm text-primary hover:underline flex items-center gap-1"
             >
               <X className="w-3 h-3" />
-              عرض جميع المراجعات
+              {t("product-reviews.s23")}
             </button>
           )}
         </CardContent>
@@ -423,8 +426,8 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
       {/* Add Review Form — open to ALL users (guests enter their name) */}
       <Card className="border-primary/20">
         <CardHeader>
-          <CardTitle className="text-lg">أضف تقييمك</CardTitle>
-          <CardDescription>شارك تجربتك مع {productName}</CardDescription>
+          <CardTitle className="text-lg">{t("product-reviews.s24")}</CardTitle>
+          <CardDescription>{t("product-reviews.s25")} {productName}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmitReview} className="space-y-4">
@@ -432,12 +435,12 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
             {/* Guest name field — only shown to visitors */}
             {!user && (
               <div className="space-y-2">
-                <Label htmlFor="guest-name">اسمك *</Label>
+                <Label htmlFor="guest-name">{t("product-reviews.s26")}</Label>
                 <Input
                   id="guest-name"
                   value={guestName}
                   onChange={(e) => setGuestName(e.target.value)}
-                  placeholder="مثال: أحمد علي"
+                  placeholder={t("product-reviews.s27")}
                   className="text-right"
                   dir="rtl"
                   maxLength={60}
@@ -448,7 +451,7 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
 
             {/* Rating */}
             <div className="space-y-2">
-              <Label>التقييم *</Label>
+              <Label>{t("product-reviews.s28")}</Label>
               <div className="flex gap-1" dir="ltr">
                 {renderStars(rating, true, "lg")}
               </div>
@@ -456,12 +459,12 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
 
             {/* Title */}
             <div className="space-y-2">
-              <Label htmlFor="review-title">عنوان المراجعة (اختياري)</Label>
+              <Label htmlFor="review-title">{t("product-reviews.s29")}</Label>
               <Input
                 id="review-title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="منتج رائع!"
+                placeholder={t("product-reviews.s30")}
                 className="text-right"
                 dir="rtl"
                 maxLength={100}
@@ -470,12 +473,12 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
 
             {/* Comment */}
             <div className="space-y-2">
-              <Label htmlFor="review-comment">تفاصيل المراجعة (اختياري)</Label>
+              <Label htmlFor="review-comment">{t("product-reviews.s31")}</Label>
               <Textarea
                 id="review-comment"
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
-                placeholder="شارك تجربتك مع هذا المنتج..."
+                placeholder={t("product-reviews.s32")}
                 rows={4}
                 className="resize-none text-right"
                 dir="rtl"
@@ -491,10 +494,10 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
               {submitting ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  جاري الإرسال...
+                  {t("product-reviews.s33")}
                 </>
               ) : (
-                "إرسال التقييم"
+                t("product-reviews.s34")
               )}
             </Button>
           </form>
@@ -508,8 +511,8 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold">
               {filterRating
-                ? `عرض ${processedReviews.length} مراجعة بتقييم ${filterRating} نجوم`
-                : `جميع التقييمات (${reviews.length})`}
+                ? t("product-reviews.s35", { v0: processedReviews.length, v1: filterRating })
+                : t("product-reviews.s36", { v0: reviews.length })}
             </h3>
 
             <DropdownMenu>
@@ -545,7 +548,7 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
                     <div className="flex items-start gap-4">
                       <Avatar className="h-10 w-10 border-2 border-background shadow-sm">
                         <AvatarFallback className="bg-primary/10 text-primary font-bold">
-                          {(review.author || review.userEmail?.split("@")[0] || "م")[0]}
+                          {(review.author || review.userEmail?.split("@")[0] || t("product-reviews.s37"))[0]}
                         </AvatarFallback>
                       </Avatar>
 
@@ -554,7 +557,7 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
                           <div>
                             <div className="flex items-center gap-2 flex-wrap">
                               <p className="font-semibold text-sm">
-                                {review.author || review.userEmail?.split("@")[0] || "مستخدم"}
+                                {review.author || review.userEmail?.split("@")[0] || t("product-reviews.s38")}
                               </p>
                               {/* Loyalty tier badge */}
                               {(review as any).authorTier && (
@@ -570,12 +573,12 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
                                 >
                                   {(review as any).authorTier === "guest" ? "👤" : "👑"}&nbsp;
                                   {{
-                                    diamond: "ماسي",
-                                    gold: "ذهبي",
-                                    silver: "فضي",
-                                    bronze: "برونزي",
-                                    guest: "زائر",
-                                  }[(review as any).authorTier as string] ?? "برونزي"}
+                                    diamond: t("product-reviews.s39"),
+                                    gold: t("product-reviews.s40"),
+                                    silver: t("product-reviews.s41"),
+                                    bronze: t("product-reviews.s42"),
+                                    guest: t("product-reviews.s43"),
+                                  }[(review as any).authorTier as string] ?? t("product-reviews.s42")}
                                 </span>
                               )}
                               {review.verifiedPurchase && (
@@ -584,7 +587,7 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
                                   className="text-[10px] h-5 gap-1 px-1.5 bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400"
                                 >
                                   <ShieldCheck className="w-3 h-3" />
-                                  شراء مؤكد
+                                  {t("product-reviews.s44")}
                                 </Badge>
                               )}
                             </div>
@@ -619,7 +622,7 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
                                     <div className="relative w-16 h-16 rounded-lg overflow-hidden cursor-pointer group">
                                       <img
                                         src={thumbImage(img)}
-                                        alt={`صورة المراجعة`}
+                                        alt={t("product-reviews.s45")}
                                         className="object-cover w-full h-full transition-transform group-hover:scale-110"
                                         loading="lazy"
                                         decoding="async"
@@ -629,7 +632,7 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
                                   <DialogContent className="max-w-3xl border-none bg-transparent shadow-none p-0">
                                     <img
                                       src={lightboxImage(img)}
-                                      alt={`صورة المراجعة`}
+                                      alt={t("product-reviews.s45")}
                                       className="rounded-lg w-full h-auto max-h-[80vh] object-contain"
                                       decoding="async"
                                     />
@@ -657,7 +660,7 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
                             ) : (
                               <ThumbsUp className="w-3.5 h-3.5" />
                             )}
-                            <span>مفيد</span>
+                            <span>{t("product-reviews.s46")}</span>
                             {(review.helpfulCount ?? 0) > 0 && (
                               <span className="bg-muted px-1.5 py-0.5 rounded-full text-[10px]">
                                 {review.helpfulCount}
@@ -673,7 +676,7 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
             </div>
           ) : (
             <div className="text-center py-8 text-muted-foreground">
-              لا توجد مراجعات بتقييم {filterRating} نجوم
+              {t("product-reviews.s47")} {filterRating} {t("product-reviews.s48")}
             </div>
           )}
 
@@ -686,7 +689,7 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
                 disabled={page === 1}
                 onClick={() => setPage((p) => p - 1)}
               >
-                السابق
+                {t("product-reviews.s49")}
               </Button>
 
               <div className="flex items-center gap-1">
@@ -728,7 +731,7 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
                 disabled={page === totalPages}
                 onClick={() => setPage((p) => p + 1)}
               >
-                التالي
+                {t("product-reviews.s50")}
               </Button>
             </div>
           )}

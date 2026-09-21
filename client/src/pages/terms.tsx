@@ -19,83 +19,85 @@ import {
 } from "lucide-react";
 import { WHATSAPP_NUMBER, WHATSAPP_URL } from "@/lib/constants/shipping";
 import { WhatsAppLink } from "@/components/whatsapp-link";
+import { useTranslation } from "react-i18next";
 
 export default function Terms() {
+  const { t } = useTranslation("pages");
   const sections = [
     {
       icon: ShoppingCart,
-      title: "الطلبات والشراء",
+      title: t("terms.s1"),
       content: [
-         "جميع الأسعار معروضة بالدينار العراقي (د.ع) وتشمل جميع الرسوم",
-         "الأسعار قابلة للتغيير ويُعتمد السعر المعروض وقت تأكيد الطلب",
-         "نحتفظ بالحق في رفض أو إلغاء أي طلب مع إبلاغ العميل بالسبب",
-         "تأكيد الطلب يتم عبر رسالة واتساب أو اتصال هاتفي",
-         "المنتجات تخضع للتوفر — في حال عدم التوفر يتم إبلاغك فوراً"
+         t("terms.s2"),
+         t("terms.s3"),
+         t("terms.s4"),
+         t("terms.s5"),
+         t("terms.s6")
       ]
     },
     {
       icon: CreditCard,
-      title: "الدفع",
+      title: t("terms.s7"),
       content: [
-         "يمكنك اختيار الدفع نقداً عند الاستلام (COD) أو الدفع الإلكتروني من صفحة إكمال الطلب",
-         "في الدفع الإلكتروني لا يُعتبر الطلب مدفوعاً إلا بعد تأكيد حالة العملية من بوابة الدفع على السيرفر",
-         "المبلغ يُقرّب لأقرب 250 د.ع — فرق التقريب يُحفظ كرصيد بحسابك",
-         "الفاتورة الإلكترونية تُرسل تلقائياً مع تأكيد الطلب",
-         "إذا اخترت الدفع عند الاستلام، يُرجى تحضير المبلغ المحدد لتسهيل عملية الاستلام",
-         "رفض استلام الطلب بدون سبب مشروع قد يؤثر على خدمتك المستقبلية"
+         t("terms.s8"),
+         t("terms.s9"),
+         t("terms.s10"),
+         t("terms.s11"),
+         t("terms.s12"),
+         t("terms.s13")
       ]
     },
     {
       icon: Truck,
-      title: "الشحن والتوصيل",
+      title: t("terms.s14"),
       content: [
-         "رسوم التوصيل 5,000 د.ع لبغداد وكل المحافظات العراقية",
-         "مدة التوصيل: خلال 24 ساعة لكل العراق",
-         "يجب فحص المنتجات عند الاستلام — أي ضرر واضح يُبلّغ فوراً",
-         "التأخير الناتج عن ظروف قاهرة لا يترتب عليه تعويض"
+         t("terms.s15"),
+         t("terms.s16"),
+         t("terms.s17"),
+         t("terms.s18")
       ]
     },
     {
       icon: Shield,
-      title: "الضمان",
+      title: t("terms.s19"),
       content: [
-         "الضمان المحدود لمدة 6 أشهر يخص فقط المنتج الكهربائي الذي تذكر صفحته بوضوح أنه مشمول",
-         "الضمان لا يشمل الأضرار الناتجة عن سوء الاستخدام أو التركيب الخاطئ",
-         "يجب الاحتفاظ بفاتورة الشراء للاستفادة من الضمان",
-         "المواد الاستهلاكية (أعلاف، مكملات) غير قابلة للاسترجاع بعد الفتح",
-         "خلال أول 7 أيام تقويمية يُستبدل المنتج المشمول بعد فحص يثبت عيب التصنيع؛ وبعدها يكون الإصلاح ثم الاستبدال حسب السياسة"
+         t("terms.s20"),
+         t("terms.s21"),
+         t("terms.s22"),
+         t("terms.s23"),
+         t("terms.s24")
       ]
     }
   ];
 
   const prohibitedActivities = [
-    "استخدام الموقع لأغراض غير قانونية",
-    "محاولة اختراق أو تعطيل الموقع",
-    "نسخ أو استنساخ محتوى الموقع بدون إذن",
-    "استخدام معلومات مزورة أو مضللة",
-    "إساءة استخدام العروض أو أكواد الخصم",
-    "التحايل على نظام الطلبات أو المراجعات"
+    t("terms.s25"),
+    t("terms.s26"),
+    t("terms.s27"),
+    t("terms.s28"),
+    t("terms.s29"),
+    t("terms.s30")
   ];
 
   const intellectualProperty = [
-    "جميع المحتويات محمية بحقوق الملكية الفكرية",
-    "الشعارات والعلامات التجارية ملك لأصحابها",
-    "الصور والنصوص لا يمكن استخدامها بدون إذن",
-    "المحتوى المقدم من المستخدمين يخضع لموافقتنا",
-    "نحتفظ بالحق في إزالة أي محتوى مخالف"
+    t("terms.s31"),
+    t("terms.s32"),
+    t("terms.s33"),
+    t("terms.s34"),
+    t("terms.s35")
   ];
 
   const limitations = [
-    "نحن غير مسؤولين عن أي أضرار غير مباشرة",
-    "مسؤوليتنا محدودة بقيمة المنتج المشترى",
-    "لا نضمن توفر الموقع 24/7 بدون انقطاع",
-    "المعلومات على الموقع قد تحتوي على أخطاء غير مقصودة",
-    "لا نتحمل مسؤولية المواقع الخارجية المرتبطة"
+    t("terms.s36"),
+    t("terms.s37"),
+    t("terms.s38"),
+    t("terms.s39"),
+    t("terms.s40")
   ];
 
   return (
     <div className="flex-1 flex flex-col bg-background font-sans" data-testid="terms-page">
-      <MetaTags title="الشروط والأحكام" description="شروط الطلب والدفع عند الاستلام أو إلكترونياً والتوصيل والضمان المحدود لدى AQUAVO / محل المنبع." />
+      <MetaTags title={t("terms.s41")} description={t("terms.s42")} />
 
       <section className="relative py-20 overflow-hidden bg-gradient-to-b from-primary/5 to-background">
         <div className="absolute inset-0 opacity-10">
@@ -111,16 +113,16 @@ export default function Terms() {
           >
             <Badge variant="outline" className="mb-4 border-primary/50 text-primary bg-primary/10 px-4 py-1 text-sm">
               <FileText className="w-4 h-4 ml-2" />
-              شروط الاستخدام
+              {t("terms.s43")}
             </Badge>
             <h1 className="text-4xl md:text-5xl font-bold mb-6" data-testid="text-page-title">
-              الشروط والأحكام
+              {t("terms.s41")}
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              يرجى قراءة هذه الشروط والأحكام بعناية قبل استخدام خدماتنا. استخدامك للموقع يعني موافقتك على هذه الشروط.
+              {t("terms.s44")}
             </p>
              <p className="text-sm text-muted-foreground mt-4">
-               آخر تحديث: 25 آب 2026
+               {t("terms.s45")}
             </p>
           </motion.div>
         </div>
@@ -141,10 +143,9 @@ export default function Terms() {
                     <AlertCircle className="w-6 h-6 text-primary" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold mb-3">قبول الشروط</h3>
+                    <h3 className="text-xl font-bold mb-3">{t("terms.s46")}</h3>
                     <p className="text-muted-foreground">
-                      بالوصول إلى هذا الموقع واستخدامه، فإنك توافق على الالتزام بهذه الشروط والأحكام وسياسة الخصوصية.
-                      إذا كنت لا توافق على أي من هذه الشروط، يُرجى عدم استخدام موقعنا.
+                      {t("terms.s47")}
                     </p>
                   </div>
                 </div>
@@ -153,7 +154,7 @@ export default function Terms() {
 
             <h2 className="text-3xl font-bold mb-8 flex items-center gap-3">
               <ChevronLeft className="w-6 h-6 text-primary" />
-              شروط الاستخدام الأساسية
+              {t("terms.s48")}
             </h2>
             <div className="grid md:grid-cols-2 gap-6">
               {sections.map((section) => (
@@ -187,7 +188,7 @@ export default function Terms() {
           >
             <h2 className="text-3xl font-bold mb-8 flex items-center gap-3">
               <ChevronLeft className="w-6 h-6 text-primary" />
-              الأنشطة المحظورة
+              {t("terms.s49")}
             </h2>
             <Card className="border-red-500/30 bg-red-500/5">
               <CardContent className="p-6">
@@ -196,7 +197,7 @@ export default function Terms() {
                     <UserX className="w-5 h-5 text-red-500" />
                   </div>
                   <p className="text-muted-foreground">
-                    يُحظر استخدام موقعنا أو خدماتنا للقيام بأي من الأنشطة التالية:
+                    {t("terms.s50")}
                   </p>
                 </div>
                 <ul className="grid md:grid-cols-2 gap-3">
@@ -219,7 +220,7 @@ export default function Terms() {
           >
             <h2 className="text-3xl font-bold mb-8 flex items-center gap-3">
               <ChevronLeft className="w-6 h-6 text-primary" />
-              حقوق الملكية الفكرية
+              {t("terms.s51")}
             </h2>
             <Card className="border-amber-500/30 bg-amber-500/5">
               <CardContent className="p-6">
@@ -228,9 +229,9 @@ export default function Terms() {
                     <Scale className="w-5 h-5 text-amber-500" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold mb-2 text-amber-600">حماية المحتوى</h3>
+                    <h3 className="text-xl font-bold mb-2 text-amber-600">{t("terms.s52")}</h3>
                     <p className="text-muted-foreground mb-4">
-                      جميع المحتويات على هذا الموقع، بما في ذلك النصوص والصور والشعارات، محمية بموجب قوانين حقوق النشر والملكية الفكرية.
+                      {t("terms.s53")}
                     </p>
                   </div>
                 </div>
@@ -254,7 +255,7 @@ export default function Terms() {
           >
             <h2 className="text-3xl font-bold mb-8 flex items-center gap-3">
               <ChevronLeft className="w-6 h-6 text-primary" />
-              حدود المسؤولية
+              {t("terms.s54")}
             </h2>
             <Card className="border-blue-500/30 bg-blue-500/5">
               <CardContent className="p-6">
@@ -268,8 +269,7 @@ export default function Terms() {
                 </ul>
                 <div className="mt-6 p-4 bg-background rounded-lg border border-blue-500/20">
                   <p className="text-sm text-muted-foreground">
-                    <strong className="text-foreground">ملاحظة مهمة:</strong> هذه الشروط تخضع لقوانين جمهورية العراق.
-                    أي نزاع يحل عبر المحاكم المختصة في بغداد.
+                    <strong className="text-foreground">{t("terms.s55")}</strong> {t("terms.s56")}
                   </p>
                 </div>
               </CardContent>
@@ -289,13 +289,12 @@ export default function Terms() {
                     <FileText className="w-6 h-6 text-green-500" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold mb-3">التعديلات على الشروط</h3>
+                    <h3 className="text-xl font-bold mb-3">{t("terms.s57")}</h3>
                     <p className="text-muted-foreground mb-4">
-                      نحتفظ بالحق في تعديل هذه الشروط في أي وقت. التعديلات تسري فوراً عند نشرها على الموقع.
-                      استمرارك في استخدام الموقع بعد التعديلات يعني موافقتك على الشروط الجديدة.
+                      {t("terms.s58")}
                     </p>
                     <p className="text-sm text-green-600 font-medium">
-                      ننصحك بمراجعة هذه الصفحة بشكل دوري للاطلاع على أي تحديثات.
+                      {t("terms.s59")}
                     </p>
                   </div>
                 </div>
@@ -311,9 +310,9 @@ export default function Terms() {
             <Card className="bg-gradient-to-l from-primary/10 to-blue-500/10 border-0">
               <CardContent className="p-8">
                 <div className="text-center mb-8">
-                  <h2 className="text-3xl font-bold mb-4">أسئلة حول الشروط؟</h2>
+                  <h2 className="text-3xl font-bold mb-4">{t("terms.s60")}</h2>
                   <p className="text-muted-foreground">
-                    إذا كان لديك أي استفسار حول هذه الشروط والأحكام، لا تتردد في التواصل معنا
+                    {t("terms.s61")}
                   </p>
                 </div>
                 <div className="grid md:grid-cols-3 gap-6">
@@ -325,7 +324,7 @@ export default function Terms() {
                       <Phone className="w-6 h-6 text-primary" />
                     </div>
                     <div>
-                      <p className="font-medium">اتصل بنا</p>
+                      <p className="font-medium">{t("terms.s62")}</p>
                       <p className="text-sm text-muted-foreground" dir="ltr">+964 774 788 0673</p>
                     </div>
                   </a>
@@ -337,8 +336,8 @@ export default function Terms() {
                       <MessageCircle className="w-6 h-6 text-green-500" />
                     </div>
                     <div>
-                      <p className="font-medium">واتساب</p>
-                      <p className="text-sm text-muted-foreground">رد سريع</p>
+                      <p className="font-medium">{t("terms.s63")}</p>
+                      <p className="text-sm text-muted-foreground">{t("terms.s64")}</p>
                     </div>
                   </WhatsAppLink>
                   <a
@@ -349,7 +348,7 @@ export default function Terms() {
                       <Mail className="w-6 h-6 text-blue-500" />
                     </div>
                     <div>
-                      <p className="font-medium">البريد الإلكتروني</p>
+                      <p className="font-medium">{t("terms.s65")}</p>
                       <p className="text-sm text-muted-foreground">info@aquavoiq.com</p>
                     </div>
                   </a>

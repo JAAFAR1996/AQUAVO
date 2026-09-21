@@ -1,6 +1,7 @@
 import { Star } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 interface RatingBreakdownProps {
     ratings: { [key: number]: number }; // { 5: 10, 4: 5, 3: 2, 2: 1, 1: 0 }
@@ -19,6 +20,7 @@ export function RatingBreakdown({
     selectedFilter,
     className,
 }: RatingBreakdownProps) {
+  const { t } = useTranslation("pages");
     const getPercentage = (count: number) => {
         if (totalReviews === 0) return 0;
         return Math.round((count / totalReviews) * 100);
@@ -53,7 +55,7 @@ export function RatingBreakdown({
                         ))}
                     </div>
                     <div className="text-xs text-muted-foreground mt-1">
-                        {totalReviews} مراجعة
+                        {totalReviews} {t("rating-breakdown.s1")}
                     </div>
                 </div>
 
@@ -102,7 +104,7 @@ export function RatingBreakdown({
                     onClick={() => onFilterChange(null)}
                     className="text-sm text-primary hover:underline"
                 >
-                    عرض جميع المراجعات
+                    {t("rating-breakdown.s2")}
                 </button>
             )}
         </div>

@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { CheckCircle, MapPin } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Address } from "@/lib/types";
+import { useTranslation } from "react-i18next";
 
 interface ProfileAddressesProps {
     addresses: Address[];
@@ -23,6 +24,7 @@ export function ProfileAddresses({
     onUpdateAddress,
     onDeleteAddress
 }: ProfileAddressesProps) {
+  const { t } = useTranslation("account");
     const { toast } = useToast();
     const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
     const [editingAddress, setEditingAddress] = useState<Address | null>(null);
@@ -43,8 +45,8 @@ export function ProfileAddresses({
     const handleSave = () => {
         if (!newAddress.label || !newAddress.address) {
             toast({
-                title: "خطأ",
-                description: "يرجى ملء جميع الحقول المطلوبة",
+                title: t("profile-addresses.s1"),
+                description: t("profile-addresses.s2"),
                 variant: "destructive",
             });
             return;
@@ -57,7 +59,7 @@ export function ProfileAddresses({
                 address: newAddress.address!,
                 phone: newAddress.phone,
             });
-            toast({ title: "تم تحديث العنوان", description: "تم تحديث عنوانك بنجاح" });
+            toast({ title: t("profile-addresses.s3"), description: t("profile-addresses.s4") });
         } else {
             onAddAddress({
                 id: Date.now().toString(),
@@ -66,7 +68,7 @@ export function ProfileAddresses({
                 phone: newAddress.phone,
                 isDefault: addresses.length === 0,
             });
-            toast({ title: "تم إضافة العنوان", description: "تم حفظ عنوانك الجديد بنجاح" });
+            toast({ title: t("profile-addresses.s5"), description: t("profile-addresses.s6") });
         }
         handleDialogClose();
     };
@@ -77,46 +79,46 @@ export function ProfileAddresses({
                 <div>
                     <CardTitle className="flex items-center gap-2">
                         <MapPin className="w-5 h-5" />
-                        عناوين التوصيل
+                        {t("profile-addresses.s7")}
                     </CardTitle>
-                    <CardDescription>إدارة عناوين التوصيل المحفوظة</CardDescription>
+                    <CardDescription>{t("profile-addresses.s8")}</CardDescription>
                 </div>
                 <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
                     <DialogTrigger asChild>
                         <Button size="sm" className="gap-2" onClick={handleDialogClose}>
                             <MapPin className="w-4 h-4" />
-                            إضافة عنوان
+                            {t("profile-addresses.s9")}
                         </Button>
                     </DialogTrigger>
                     <DialogContent>
                         <DialogHeader>
-                            <DialogTitle>{editingAddress ? "تعديل العنوان" : "إضافة عنوان جديد"}</DialogTitle>
+                            <DialogTitle>{editingAddress ? t("profile-addresses.s10") : t("profile-addresses.s11")}</DialogTitle>
                             <DialogDescription>
-                                أضف تفاصيل عنوان التوصيل الجديد
+                                {t("profile-addresses.s12")}
                             </DialogDescription>
                         </DialogHeader>
                         <div className="space-y-4 py-4">
                             <div className="space-y-2">
-                                <Label htmlFor="label">اسم العنوان *</Label>
+                                <Label htmlFor="label">{t("profile-addresses.s13")}</Label>
                                 <Input
                                     id="label"
-                                    placeholder="مثال: المنزل، العمل، العنوان الرئيسي"
+                                    placeholder={t("profile-addresses.s14")}
                                     value={newAddress.label}
                                     onChange={(e) => setNewAddress({ ...newAddress, label: e.target.value })}
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="address">العنوان التفصيلي *</Label>
+                                <Label htmlFor="address">{t("profile-addresses.s15")}</Label>
                                 <Textarea
                                     id="address"
-                                    placeholder="المدينة، المنطقة، الشارع، رقم البناية..."
+                                    placeholder={t("profile-addresses.s16")}
                                     value={newAddress.address}
                                     onChange={(e) => setNewAddress({ ...newAddress, address: e.target.value })}
                                     rows={3}
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="phone">رقم الهاتف</Label>
+                                <Label htmlFor="phone">{t("profile-addresses.s17")}</Label>
                                 <Input
                                     id="phone"
                                     type="tel"
@@ -129,10 +131,10 @@ export function ProfileAddresses({
                         </div>
                         <DialogFooter>
                             <Button variant="outline" onClick={handleDialogClose}>
-                                إلغاء
+                                {t("profile-addresses.s18")}
                             </Button>
                             <Button onClick={handleSave}>
-                                {editingAddress ? "تحديث" : "إضافة"}
+                                {editingAddress ? t("profile-addresses.s19") : t("profile-addresses.s20")}
                             </Button>
                         </DialogFooter>
                     </DialogContent>
@@ -142,8 +144,8 @@ export function ProfileAddresses({
                 {addresses.length === 0 ? (
                     <div className="text-center py-12 text-muted-foreground">
                         <MapPin className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                        <p>لا توجد عناوين محفوظة</p>
-                        <p className="text-sm mt-1">أضف عنوان توصيل للبدء</p>
+                        <p>{t("profile-addresses.s21")}</p>
+                        <p className="text-sm mt-1">{t("profile-addresses.s22")}</p>
                     </div>
                 ) : (
                     <div className="grid md:grid-cols-2 gap-4">
@@ -160,7 +162,7 @@ export function ProfileAddresses({
                                     {address.isDefault && (
                                         <Badge variant="secondary" className="gap-1">
                                             <CheckCircle className="w-3 h-3" />
-                                            الافتراضي
+                                            {t("profile-addresses.s23")}
                                         </Badge>
                                     )}
                                 </div>
@@ -170,7 +172,7 @@ export function ProfileAddresses({
                                 )}
                                 <div className="mt-3 flex gap-2">
                                     <Button variant="ghost" size="sm" onClick={() => handleEditClick(address)}>
-                                        تعديل
+                                        {t("profile-addresses.s24")}
                                     </Button>
                                     <Button
                                         variant="ghost"
@@ -178,7 +180,7 @@ export function ProfileAddresses({
                                         className="text-destructive"
                                         onClick={() => onDeleteAddress(address.id)}
                                     >
-                                        حذف
+                                        {t("profile-addresses.s25")}
                                     </Button>
                                 </div>
                             </div>

@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 interface ImageZoomProps {
     src: string;
@@ -24,6 +25,7 @@ export function ImageZoom({
     className,
     zoomScale = 2
 }: ImageZoomProps) {
+  const { t } = useTranslation("common");
     const [isZooming, setIsZooming] = useState(false);
     const [position, setPosition] = useState({ x: 50, y: 50 });
     const containerRef = useRef<HTMLDivElement>(null);
@@ -118,7 +120,7 @@ export function ImageZoom({
                             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7"
                         />
                     </svg>
-                    <span>حرّك للتكبير</span>
+                    <span>{t("image-zoom.s1")}</span>
                 </div>
             )}
         </div>
@@ -136,6 +138,7 @@ interface ImageZoomModalProps {
  * نافذة منبثقة لعرض الصورة المكبرة بالكامل
  */
 export function ImageZoomModal({ src, alt, isOpen, onClose }: ImageZoomModalProps) {
+  const { t } = useTranslation("common");
     const [scale, setScale] = useState(1);
     const [position, setPosition] = useState({ x: 0, y: 0 });
     const [isDragging, setIsDragging] = useState(false);
@@ -184,7 +187,7 @@ export function ImageZoomModal({ src, alt, isOpen, onClose }: ImageZoomModalProp
                 <button
                     onClick={(e) => { e.stopPropagation(); setScale(s => Math.min(5, s + 0.5)); }}
                     className="p-2 bg-card/20 hover:bg-white/30 rounded-full transition-colors"
-                    aria-label="تكبير"
+                    aria-label={t("image-zoom.s2")}
                 >
                     <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v12m6-6H6" />
@@ -193,7 +196,7 @@ export function ImageZoomModal({ src, alt, isOpen, onClose }: ImageZoomModalProp
                 <button
                     onClick={(e) => { e.stopPropagation(); setScale(s => Math.max(0.5, s - 0.5)); }}
                     className="p-2 bg-card/20 hover:bg-white/30 rounded-full transition-colors"
-                    aria-label="تصغير"
+                    aria-label={t("image-zoom.s3")}
                 >
                     <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 12H6" />
@@ -202,7 +205,7 @@ export function ImageZoomModal({ src, alt, isOpen, onClose }: ImageZoomModalProp
                 <button
                     onClick={(e) => { e.stopPropagation(); resetZoom(); }}
                     className="p-2 bg-card/20 hover:bg-white/30 rounded-full transition-colors"
-                    aria-label="إعادة تعيين"
+                    aria-label={t("image-zoom.s4")}
                 >
                     <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -211,7 +214,7 @@ export function ImageZoomModal({ src, alt, isOpen, onClose }: ImageZoomModalProp
                 <button
                     onClick={onClose}
                     className="p-2 bg-card/20 hover:bg-white/30 rounded-full transition-colors"
-                    aria-label="إغلاق"
+                    aria-label={t("image-zoom.s5")}
                 >
                     <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

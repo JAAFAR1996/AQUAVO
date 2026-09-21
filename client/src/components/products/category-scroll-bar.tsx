@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 interface CategoryScrollBarProps {
     categories: string[];
@@ -47,7 +48,7 @@ const HIDDEN_CATEGORY_NAMES = new Set([
 // Maps display group → actual product category values.
 const CATEGORY_CONFIG: Record<string, CategoryConfig> = {
     "سخانات": {
-        label: "سخانات",
+        label: "categoryBar.heaters",
         icon: Flame,
         includes: [
             "heaters", "heating", "التحكم بالحرارة",
@@ -56,7 +57,7 @@ const CATEGORY_CONFIG: Record<string, CategoryConfig> = {
         color: "text-rose-500",
     },
     "فلاتر": {
-        label: "فلاتر",
+        label: "categoryBar.filters",
         icon: Waves,
         includes: [
             "filters", "filtration", "الفلترة والتنقية",
@@ -65,7 +66,7 @@ const CATEGORY_CONFIG: Record<string, CategoryConfig> = {
         color: "text-sky-500",
     },
     "مضخات وهواء": {
-        label: "مضخات وهواء",
+        label: "categoryBar.pumps",
         icon: Wind,
         includes: [
             "التهوية والأكسجين", "مضخات الهواء", "مضخات",
@@ -74,7 +75,7 @@ const CATEGORY_CONFIG: Record<string, CategoryConfig> = {
         color: "text-teal-500",
     },
     "إضاءة": {
-        label: "إضاءة",
+        label: "categoryBar.lighting",
         icon: Sun,
         includes: [
             "lighting", "الإضاءة", "الإضاءة LED",
@@ -83,13 +84,13 @@ const CATEGORY_CONFIG: Record<string, CategoryConfig> = {
         color: "text-yellow-400",
     },
     "أحواض": {
-        label: "أحواض",
+        label: "categoryBar.tanks",
         icon: Box,
         includes: ["tanks", "أحواض", "aquariums", "tank", "حوض"],
         color: "text-blue-500",
     },
     "أكل": {
-        label: "أكل",
+        label: "categoryBar.food",
         icon: Droplets,
         includes: [
             "fish-food", "طعام الأسماك", "أغذية الأسماك",
@@ -98,7 +99,7 @@ const CATEGORY_CONFIG: Record<string, CategoryConfig> = {
         color: "text-amber-500",
     },
     "علاجات ومحسنات": {
-        label: "علاجات",
+        label: "categoryBar.treatments",
         icon: Gem,
         includes: [
             "water-treatment", "معالجة المياه", "معالجات المياه",
@@ -107,7 +108,7 @@ const CATEGORY_CONFIG: Record<string, CategoryConfig> = {
         color: "text-cyan-400",
     },
     "فحص المي": {
-        label: "فحص المي",
+        label: "categoryBar.testing",
         icon: Activity,
         includes: [
             "monitoring", "الفحص والمراقبة", "فحص المياه",
@@ -116,7 +117,7 @@ const CATEGORY_CONFIG: Record<string, CategoryConfig> = {
         color: "text-green-400",
     },
     "تنظيف": {
-        label: "تنظيف",
+        label: "categoryBar.cleaning",
         icon: Trash2,
         includes: [
             "maintenance", "الصيانة والتنظيف", "تنظيف",
@@ -125,13 +126,13 @@ const CATEGORY_CONFIG: Record<string, CategoryConfig> = {
         color: "text-muted-foreground dark:text-slate-400",
     },
     "تربة وديكور": {
-        label: "تربة وديكور",
+        label: "categoryBar.decor",
         icon: Gem,
         includes: ["تربة وديكور"],
         color: "text-amber-600",
     },
     "العزل والتفريخ": {
-        label: "العزل والتفريخ",
+        label: "categoryBar.breeding",
         icon: Settings,
         includes: ["العزل والتفريخ"],
         color: "text-violet-500",
@@ -158,6 +159,7 @@ export function CategoryScrollBar({
     onCategoryToggle,
     categoryCounts,
 }: CategoryScrollBarProps) {
+    const { t } = useTranslation("products");
     const scrollRef = useRef<HTMLDivElement>(null);
     const [showLeftArrow, setShowLeftArrow] = useState(false);
     const [showRightArrow, setShowRightArrow] = useState(false);
@@ -294,7 +296,7 @@ export function CategoryScrollBar({
                     )}
                 >
                     <LayoutGrid className="w-4 h-4" />
-                    <span className="text-[11px] font-medium leading-[1.4]">الكل</span>
+                    <span className="text-[11px] font-medium leading-[1.4]">{t("categoryBar.all")}</span>
                 </button>
 
                 {organizedCategories.map(({ key, config, rawCategories, totalCount }) => {
@@ -313,9 +315,9 @@ export function CategoryScrollBar({
                         >
                             <Icon className={cn("w-4 h-4", !isSelected && config.color)} />
                             <span className="text-[11px] font-medium leading-[1.4] whitespace-nowrap">
-                                {config.label}
+                                {t(config.label as "categoryBar.all")}
                                 {totalCount > 0 && !isSelected && (
-                                    <span className="mr-0.5 rounded-full bg-card dark:bg-[#0B1E28] px-1 py-px text-foreground dark:text-[#F6F4EF]">
+                                    <span className="ms-0.5 rounded-full bg-card dark:bg-[#0B1E28] px-1 py-px text-foreground dark:text-[#F6F4EF]">
                                         ({totalCount})
                                     </span>
                                 )}
@@ -332,7 +334,7 @@ export function CategoryScrollBar({
                         <Button
                             variant="ghost"
                             size="icon"
-                            aria-label="التمرير لعرض الفئات السابقة"
+                            aria-label={t("categoryBar.scrollPrev")}
                             className="relative h-8 w-8 rounded-full bg-background/90 shadow border border-border/50"
                             onClick={() => scroll("left")}
                         >
@@ -347,7 +349,7 @@ export function CategoryScrollBar({
                         <Button
                             variant="ghost"
                             size="icon"
-                            aria-label="التمرير لعرض الفئات التالية"
+                            aria-label={t("categoryBar.scrollNext")}
                             className="relative h-8 w-8 rounded-full bg-background/90 shadow border border-border/50"
                             onClick={() => scroll("right")}
                         >
@@ -371,7 +373,7 @@ export function CategoryScrollBar({
                         )}
                     >
                         <LayoutGrid className="w-3.5 h-3.5" />
-                        <span>الكل</span>
+                        <span>{t("categoryBar.all")}</span>
                     </button>
 
                     <div className="w-px h-6 bg-border/40 flex-shrink-0" />
@@ -394,7 +396,7 @@ export function CategoryScrollBar({
                                     "w-3.5 h-3.5",
                                     isSelected ? "text-foreground dark:text-white" : config.color,
                                 )} />
-                                <span>{config.label}</span>
+                                <span>{t(config.label as "categoryBar.all")}</span>
                                 {totalCount > 0 && (
                                     <span className={cn(
                                         "text-[11px] px-1.5 py-0.5 rounded-full font-medium",
