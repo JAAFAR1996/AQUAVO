@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - feat/i18n-trilingual
+      - 'fix/i18n-*'
   workflow_dispatch:
 
 env:
