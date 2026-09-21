@@ -50,6 +50,7 @@ import { useTranslation } from "react-i18next";
 import { useLocale } from "@/i18n/locale-context";
 import { localizeCategoryName } from "@shared/i18n/categories";
 import { formatIQD } from "@/lib/utils";
+import { getProductDisplayIdentity } from "@/lib/product-display";
 
 interface Product3DMeta {
   src: string;
@@ -324,6 +325,7 @@ export default function ProductDetails() {
     product.name.includes("كيلو") ||
     ["رمال", "أحجار", "حصى"].includes(product.subcategory ?? "") ||
     ["houyi-activated-carbon", "houyi-ceramic-ring", "houyi-breathing-ring-white"].includes(product.slug);
+  const productDisplay = getProductDisplayIdentity(product);
 
   return (
     <div className="flex-1 flex flex-col bg-background">
@@ -358,7 +360,7 @@ export default function ProductDetails() {
                 </BreadcrumbItem>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
-                  <BreadcrumbPage>{bidi(product.name)}</BreadcrumbPage>
+                  <BreadcrumbPage>{bidi(productDisplay.name)}</BreadcrumbPage>
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
@@ -421,11 +423,15 @@ export default function ProductDetails() {
               {/* Product Info */}
               <div className="flex flex-col">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-primary font-semibold text-sm">{product.brand}</span>
+                  {productDisplay.brand ? (
+                    <span className="text-primary font-semibold text-sm uppercase tracking-[0.06em]">
+                      <bdi dir="ltr">{productDisplay.brand}</bdi>
+                    </span>
+                  ) : null}
                   <DifficultyBadge level={product.difficulty} />
                 </div>
 
-                <h1 className="text-xl md:text-2xl font-bold mb-4">{bidi(product.name)}</h1>
+                <h1 className="text-xl md:text-2xl font-bold mb-4">{bidi(productDisplay.name)}</h1>
 
                 {product3DMeta && (
                   <div className="mb-4 flex flex-wrap gap-2">
@@ -1059,7 +1065,7 @@ export default function ProductDetails() {
         <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-background/95 backdrop-blur border-t border-border p-3 flex items-center gap-3 safe-bottom">
           <div className="flex-1 min-w-0">
             <p className="text-sm font-bold text-primary truncate">{formatPrice(displayPrice)}</p>
-            <p className="text-xs text-muted-foreground truncate">{product.name}</p>
+            <p className="text-xs text-muted-foreground truncate">{productDisplay.name}</p>
           </div>
           <Button
             size="sm"
