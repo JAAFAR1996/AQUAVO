@@ -39,6 +39,7 @@ import { BackToTop } from "@/components/back-to-top";
 import { MetaTags } from "@/components/seo/meta-tags";
 import { fetchFrequentlyBoughtTogether, fetchSimilarProducts, fetchTrendingProducts } from "@/lib/recommendations";
 import { ProductCard } from "@/components/products/product-card";
+import { isWoodMonthEndSale, WoodSaleCountdown } from "@/components/products/wood-sale-countdown";
 import { ttqViewContent } from "@/lib/tiktok-pixel";
 import { metaTrackViewContent } from "@/lib/meta-pixel";
 import { trackViewItem } from "@/lib/analytics";
@@ -179,6 +180,7 @@ export default function ProductDetails() {
   }, [product?.id, displayPrice, hasEmbeddedVariants, selectedVariant?.id]);
 
   const displayOriginalPrice = selectedVariant?.originalPrice ?? product?.originalPrice;
+  const woodSaleActive = product ? isWoodMonthEndSale(product) : false;
   const displayStock = selectedVariant?.stock ?? product?.stock ?? 0;
   const isOutOfStock = product?.stock === 0 || (hasEmbeddedVariants && selectedVariant?.stock === 0);
   const displayModel = selectedVariant?.specifications?.['الموديل'] ?? product?.specifications?.['الموديل'];
@@ -469,16 +471,26 @@ export default function ProductDetails() {
 
                 <div className="mb-4">
                   {hasPrice ? (
-                    <div className="flex items-baseline gap-3 flex-wrap">
-                      <span className="text-4xl font-bold text-primary">
-                        {formatPrice(displayPrice)}
-                      </span>
-                      {displayOriginalPrice && displayOriginalPrice > displayPrice && (
-                        <span className="text-xl text-muted-foreground line-through decoration-destructive decoration-2">
-                          {formatPrice(displayOriginalPrice)}
+                    <>
+                      <div className="flex items-baseline gap-3 flex-wrap">
+                        <span className="text-4xl font-bold text-primary">
+                          {formatPrice(displayPrice)}
                         </span>
-                      )}
-                    </div>
+                        {displayOriginalPrice && displayOriginalPrice > displayPrice && (
+                          <span className="text-xl text-muted-foreground line-through decoration-destructive decoration-2">
+                            {formatPrice(displayOriginalPrice)}
+                          </span>
+                        )}
+                      </div>
+                      {woodSaleActive ? (
+                        <div className="mt-3 flex flex-wrap items-center gap-2">
+                          <Badge className="border border-[#173a43]/10 bg-[#173a43] px-3 py-1.5 text-white shadow-sm hover:bg-[#173a43]">
+                            {t("sale.monthEnd")}
+                          </Badge>
+                          <WoodSaleCountdown />
+                        </div>
+                      ) : null}
+                    </>
                   ) : (
                     <div className="flex items-center gap-2">
                       <span className="text-2xl font-bold text-muted-foreground">{t("price.soon")}</span>

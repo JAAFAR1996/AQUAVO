@@ -223,5 +223,15 @@
     "tipLight": "الإضاءة الأقوى تناسب الأحواض الأكبر والنباتات.",
     "sizeOptions": "خيارات الحجم",
     "ariaOption": "{{label}}{{tank}}، {{price}}{{stock}}"
+  },
+  "sale": {
+    "discount30": "خصم 30%",
+    "monthEnd": "عرض نهاية الشهر • خصم 30%",
+    "remaining": "باقي",
+    "day": "يوم",
+    "hour": "ساعة",
+    "minute": "دقيقة",
+    "second": "ثانية",
+    "aria": "ينتهي عرض نهاية الشهر خلال {{days}} يوم و{{hours}} ساعة و{{minutes}} دقيقة و{{seconds}} ثانية"
   }
 }

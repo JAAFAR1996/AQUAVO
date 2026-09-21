@@ -93,26 +93,25 @@ checkout radio falls back to cash on delivery) and `/checkout` returns an error.
 live: set `WAYL_API_KEY` and `WAYL_ENV=live` in the production environment explicitly.
 On Vercel, environment variable changes apply only to the *next* deployment.
 
-### Availability is layered (2026-09-18)
+### Availability is layered (updated 2026-09-19)
 
-`checkWaylReadiness()` in `server/services/wayl-client.ts` answers the checkout radio in
-three steps and logs a stable reason code server-side (never returned to the browser):
+`checkWaylReadiness()` answers the checkout radio without creating disposable live
+payment links in production:
 
-| Step | Check | Failure reason codes |
+| Step | Production check | Failure reason codes |
 | --- | --- | --- |
 | 1 | local config (`getWaylConfig`) | `WAYL_API_KEY_MISSING`, `WAYL_ENV_MISSING`, `WAYL_ENV_INVALID`, `WAYL_ENV_NOT_LIVE_IN_PRODUCTION`, `UNKNOWN_CONFIG_ERROR` |
 | 2 | `GET /api/v1/verify-auth-key` | `WAYL_AUTH_FAILED` (401/403), `WAYL_RATE_LIMITED` (429), `WAYL_SERVICE_ERROR` (5xx), `WAYL_NETWORK_FAILED` |
-| 3 | minimal link probe (1000 IQD, `linkExpiresIn: "1m"`, invalidated at once) | `WAYL_ACCOUNT_NOT_LIVE_ENABLED` |
 
-Step 3 exists because Wayl exposes no read-only "store verified" endpoint: an
-authenticated but unverified store gets HTTP 403 `Store must be verified to create
-payment links…` from `POST /api/v1/links` in **both** `env=test` and `env=live`
-(observed 2026-09-18). Results are cached 15 minutes (success) / 2 minutes (provider
-failure) per process; `WAYL_READINESS_PROBE=off` skips step 3. Probe links appear in the
-Wayl dashboard as cancelled `aquavo-readiness-<uuid>` links.
+Wayl documents no read-only "store verified" endpoint. Production therefore treats a
+valid configuration + authenticated merchant key as sufficient to show online payment,
+then uses the customer's real `POST /api/v1/links` call as the authoritative merchant
+eligibility check. This follows Wayl's documented flow and avoids false negatives from
+pre-creating throwaway links.
 
-If a real checkout is refused with that 403, `/checkout` answers 503 with a Baghdadi
-message pointing to cash on delivery and hides the online option for 15 minutes.
+The optional 1000-IQD readiness link probe remains available outside production for
+diagnostics. A real checkout that receives Wayl's store-verification 403 still fails
+closed with a customer-safe 503 response and is never marked paid.
 
 ### Merchant-side activation
 

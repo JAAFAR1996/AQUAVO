@@ -52,8 +52,6 @@ export interface WaylCreateLinkInput {
   webhookUrl?: string;
   webhookSecret?: string;
   redirectionUrl?: string;
-  /** Documented: number + m/h/d, between 1m and 30d; Wayl defaults to "1h". */
-  linkExpiresIn?: string;
 }
 
 export interface WaylLink {
@@ -212,10 +210,15 @@ async function parseResponseBody(response: Response): Promise<unknown> {
   }
 }
 
-async function waylRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
+async function waylRequest<T>(
+  path: string,
+  init: RequestInit = {},
+  policy: { attempts?: number; timeoutMs?: number } = {},
+): Promise<T> {
   const config = getWaylConfig();
   const url = `${config.apiBaseUrl}${path.startsWith("/") ? path : `/${path}`}`;
-  const attempts = 3;
+  const attempts = Math.max(1, policy.attempts ?? 3);
+  const timeoutMs = Math.max(1_000, policy.timeoutMs ?? 10_000);
 
   for (let attempt = 0; attempt < attempts; attempt += 1) {
     try {
@@ -227,7 +230,7 @@ async function waylRequest<T>(path: string, init: RequestInit = {}): Promise<T> 
           ...(init.body ? { "Content-Type": "application/json" } : {}),
           ...(init.headers || {}),
         },
-        signal: AbortSignal.timeout(10_000),
+        signal: AbortSignal.timeout(timeoutMs),
       });
 
       const body = await parseResponseBody(response);
@@ -359,13 +362,45 @@ export async function createWaylLink(input: WaylCreateLinkInput): Promise<WaylLi
     ...(input.webhookUrl ? { webhookUrl: input.webhookUrl } : {}),
     ...(input.webhookSecret ? { webhookSecret: input.webhookSecret } : {}),
     ...(input.redirectionUrl ? { redirectionUrl: input.redirectionUrl } : {}),
-    ...(input.linkExpiresIn ? { linkExpiresIn: input.linkExpiresIn } : {}),
   };
 
-  const raw = await waylRequest<unknown>("/api/v1/links", {
-    method: "POST",
-    body: JSON.stringify(body),
-  });
+  let raw: unknown;
+  try {
+    // Creating a link is not idempotent at the provider. Never retry the POST
+    // automatically: one successful request whose response is lost must not be
+    // repeated. Wayl link creation can also take longer than the auth probe, so
+    // allow a longer provider timeout here.
+    raw = await waylRequest<unknown>("/api/v1/links", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }, { attempts: 1, timeoutMs: 30_000 });
+  } catch (error) {
+    // A timeout/network/5xx can leave the outcome uncertain: the provider may
+    // already have created the link. Recover by reading the exact referenceId
+    // instead of issuing a duplicate POST.
+    if (error instanceof WaylApiError && error.status >= 500) {
+      console.warn(`[AQUAVO Wayl] create-link outcome uncertain for ${input.referenceId}; checking existing link before failing`);
+      try {
+        const existingRaw = await waylRequest<unknown>(
+          `/api/v1/links/${encodeURIComponent(input.referenceId)}`,
+          { method: "GET" },
+          { attempts: 2, timeoutMs: 15_000 },
+        );
+        const existing = parseLinkResponse(existingRaw);
+        if (existing.referenceId === input.referenceId) {
+          console.log(`[AQUAVO Wayl] recovered existing link after uncertain create outcome for ${input.referenceId}`);
+          return existing;
+        }
+      } catch (recoveryError) {
+        console.warn(
+          `[AQUAVO Wayl] create-link recovery lookup failed for ${input.referenceId}:`,
+          recoveryError instanceof Error ? recoveryError.message : recoveryError,
+        );
+      }
+    }
+    throw error;
+  }
+
   const link = parseLinkResponse(raw);
   if (link.referenceId !== input.referenceId) {
     throw new WaylApiError("Wayl echoed a different referenceId than the one requested", 502);
@@ -422,14 +457,21 @@ export function noteWaylStoreVerificationFailure(now = Date.now()): void {
 }
 
 function probeEnabled(): boolean {
+  // In production, availability must not create disposable payment links just to
+  // decide whether to show the payment option. Wayl's documented flow is:
+  // validate authentication, then create the real link when the customer submits.
+  // The real checkout path already fails closed on an unverified merchant.
+  if (process.env.NODE_ENV === "production") return false;
+
   const raw = process.env.WAYL_READINESS_PROBE?.trim().toLowerCase();
   return !(raw === "off" || raw === "0" || raw === "false");
 }
 
 /**
  * The only way to learn whether Wayl will actually issue links for this merchant
- * is to ask for one. The probe is the smallest documented link (1000 IQD minimum,
- * 1-minute expiry), is invalidated immediately, and is never shown to a customer.
+ * is to ask for one. The probe is the smallest documented link (1000 IQD minimum),
+ * uses only fields present in Wayl's current create-link documentation, is
+ * invalidated immediately, and is never shown to a customer.
  */
 async function probeLinkCreation(): Promise<void> {
   const referenceId = `aquavo-readiness-${randomUUID()}`;
@@ -439,7 +481,6 @@ async function probeLinkCreation(): Promise<void> {
     currency: "IQD",
     customParameter: "AQUAVO readiness probe - not a customer order",
     lineItem: [{ label: "AQUAVO readiness probe", amount: 1000, type: "increase" }],
-    linkExpiresIn: "1m",
   });
   try {
     await waylRequest<unknown>(`/api/v1/links/${encodeURIComponent(referenceId)}/invalidate`, { method: "POST" });

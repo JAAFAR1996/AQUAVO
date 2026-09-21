@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { DifficultyBadge } from "@/components/ui/difficulty-badge";
 import { WishlistButton } from "@/components/wishlist/wishlist-button";
+import { isWoodMonthEndSale, WoodSaleCountdown } from "@/components/products/wood-sale-countdown";
 import { useCart } from "@/contexts/cart-context";
 import { useToast } from "@/hooks/use-toast";
 import { cardImage, cardImageSrcSet } from "@/lib/cloudinary";
@@ -36,6 +37,7 @@ export const ProductCard = memo(function ProductCard({
   priority = false,
 }: ProductCardProps) {
   const { t } = useTranslation("products");
+  const { t: tProduct } = useTranslation("product");
   const { addItem } = useCart();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
@@ -65,6 +67,7 @@ export const ProductCard = memo(function ProductCard({
   // ("50-150" read as "150-50"). See shared/i18n/bidi.ts.
   const displayName = bidi(product.name);
   const supportingLine = bidi(cardBenefit || product.specs || product.description || "");
+  const woodSaleActive = isWoodMonthEndSale(product);
 
   const handlePrimaryAction = async (event: MouseEvent<HTMLButtonElement>) => {
     if (isOutOfStock) return;
@@ -140,6 +143,11 @@ export const ProductCard = memo(function ProductCard({
         </div>
 
         <div className="flex flex-col items-end gap-1">
+          {woodSaleActive ? (
+            <Badge className="border border-[#173a43]/10 bg-[#173a43] text-white shadow-sm hover:bg-[#173a43]">
+              {tProduct("sale.discount30")}
+            </Badge>
+          ) : null}
           {product.isNew ? <Badge className="bg-primary text-primary-foreground">{t("tags.new")}</Badge> : null}
           {product.isBestSeller ? <Badge variant="secondary">{t("tags.bestSeller")}</Badge> : null}
           {product.difficulty ? <DifficultyBadge level={product.difficulty} className="shrink-0 bg-[#f7f4ef]/88 backdrop-blur-md" /> : null}
@@ -217,7 +225,7 @@ export const ProductCard = memo(function ProductCard({
                       : formatPrice(product.price ?? 0)}
                   </span>
                   {!requiresVariantChoice && (product.originalPrice ?? 0) > (product.price ?? 0) ? (
-                    <span className="hidden text-[11px] text-muted-foreground line-through sm:inline">
+                    <span className="text-[11px] text-muted-foreground line-through">
                       {formatPrice(product.originalPrice ?? 0)}
                     </span>
                   ) : null}
@@ -239,6 +247,11 @@ export const ProductCard = memo(function ProductCard({
               )}
             </div>
           </div>
+          {woodSaleActive ? (
+            <div className="mt-1.5">
+              <WoodSaleCountdown compact />
+            </div>
+          ) : null}
         </CardContent>
       </Link>
 

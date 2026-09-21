@@ -223,5 +223,15 @@
     "tipLight": "Stronger lighting suits larger, planted tanks.",
     "sizeOptions": "Size options",
     "ariaOption": "{{label}}{{tank}}, {{price}}{{stock}}"
+  },
+  "sale": {
+    "discount30": "30% off",
+    "monthEnd": "Month-end sale • 30% off",
+    "remaining": "Left",
+    "day": "day",
+    "hour": "hr",
+    "minute": "min",
+    "second": "sec",
+    "aria": "Month-end sale ends in {{days}} days, {{hours}} hours, {{minutes}} minutes and {{seconds}} seconds"
   }
 }

@@ -95,7 +95,9 @@ export default function CheckoutPage() {
     if (user) {
       setCustomerInfo((prev) => ({
         ...prev,
-        name: user.fullName || prev.name,
+        name: user.fullName?.trim().toLowerCase() === "system admin"
+          ? prev.name
+          : (user.fullName || prev.name),
         phone: user.phone || prev.phone,
       }));
       if (testMode && user.role !== "admin" && user.role !== "accounting_admin") {
