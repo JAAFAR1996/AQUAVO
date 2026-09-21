@@ -69,6 +69,7 @@ vi.mock("lucide-react", () => ({
   ReceiptText: () => <span>receipt</span>,
   RotateCcw: () => <span>rotate</span>,
   Trash2: () => <span>trash</span>,
+  XCircle: () => <span>x-circle</span>,
 }));
 
 vi.mock("@/hooks/use-toast", () => ({
