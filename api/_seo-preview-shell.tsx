@@ -967,6 +967,7 @@ function SeoPreviewShell({ page, locale = DEFAULT_LOCALE }: { page: SeoPreviewPa
     <div className="aq-ssr-shell" data-aq-semantic-shell="true">
       <style>{`
         .aq-ssr-shell{min-height:100vh;background:#0B1E28;color:#f7fbfc;font-family:Cairo,Tahoma,sans-serif;line-height:1.75;padding:0 5vw 3rem}
+        html[lang="ckb"] .aq-ssr-shell{font-family:"Noto Sans Arabic","Vazirmatn",Cairo,Tahoma,sans-serif}
         .aq-ssr-shell *{box-sizing:border-box}.aq-ssr-shell a{color:#67d7e5;text-decoration:none}.aq-ssr-shell a:hover{text-decoration:underline}
         .aq-ssr-header,.aq-ssr-footer{display:flex;gap:1.25rem;align-items:center;justify-content:space-between;padding:1.25rem 0;border-bottom:1px solid rgba(255,255,255,.14)}
         .aq-ssr-header nav,.aq-ssr-footer nav{display:flex;gap:1rem;flex-wrap:wrap}.aq-ssr-brand{font:700 1.25rem Inter,sans-serif;letter-spacing:.08em}
