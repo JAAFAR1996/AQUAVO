@@ -694,10 +694,11 @@ function AboutPage({ prerendered }: { prerendered?: string }) {
   );
 }
 
-function StaticPage({ heading, summary, paragraphs = [], prerendered }: { heading: string; summary: string; path: string; paragraphs?: string[]; prerendered?: string }) {
+function StaticPage({ heading, summary, paragraphs = [], prerendered, locale = DEFAULT_LOCALE }: { heading: string; summary: string; path: string; paragraphs?: string[]; prerendered?: string; locale?: Locale }) {
+  const copy = SSR_NAV_COPY[locale];
   return (
     <main id="main-content">
-      <nav className="aq-ssr-breadcrumb" aria-label="مسار الصفحة"><a href="/">الرئيسية</a><span>/</span><span>{heading}</span></nav>
+      <nav className="aq-ssr-breadcrumb" aria-label={locale === "en" ? "Breadcrumb" : locale === "ckb" ? "ڕێڕەوی لاپەڕە" : "مسار الصفحة"}><a href={localizePath("/", locale)}>{locale === DEFAULT_LOCALE ? "الرئيسية" : copy.home.replace(/^AQUAVO\s*/i, "")}</a><span>/</span><span>{heading}</span></nav>
       <h1>{heading}</h1>
       <p>{summary}</p>
       {paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
@@ -992,7 +993,7 @@ function SeoPreviewShell({ page, locale = DEFAULT_LOCALE }: { page: SeoPreviewPa
       {page.kind === "product" && <ProductPage product={page.product} related={page.related} reviews={page.reviews} />}
       {page.kind === "faq" && <FaqPage />}
       {page.kind === "about" && <AboutPage prerendered={page.prerendered} />}
-      {page.kind === "static" && <StaticPage heading={page.heading} summary={page.summary} path={page.path} paragraphs={page.paragraphs} prerendered={page.prerendered} />}
+      {page.kind === "static" && <StaticPage heading={page.heading} summary={page.summary} path={page.path} paragraphs={page.paragraphs} prerendered={page.prerendered} locale={locale} />}
       {page.kind === "fish-encyclopedia" && <FishEncyclopediaPage species={page.species} heading={page.heading} summary={page.summary} />}
       {page.kind === "deals" && <DealsPage products={page.products} heading={page.heading} summary={page.summary} />}
       {page.kind === "journey" && <JourneyPage heading={page.heading} summary={page.summary} />}
