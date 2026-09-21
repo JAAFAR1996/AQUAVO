@@ -33,7 +33,7 @@ export const LOCALE_RELEASE: Record<Exclude<Locale, typeof DEFAULT_LOCALE>, { re
   // yoghurt shipped as "fish" — and 18 terminology decisions have no
   // authoritative Sorani source. See reports/i18n/ckb-native-final-review.md;
   // the answers apply through TOOLS/i18n/apply-ckb-native-final.mjs.
-  ckb: { ready: false, note: "Blocked on native Sorani review: 18 open decisions (7 safety-critical) in reports/i18n/ckb-native-final-review.md" },
+  ckb: { ready: false, note: "Terminology decisions resolved by research/context review; final corpus QA, test classification, Production sync, and release verification remain. Not native-human reviewed." },
 };
 
 export function isLocaleReleased(locale: Locale): boolean {
