@@ -76,7 +76,60 @@ for (const [url, locale] of cases) {
 }
 
 const afterRequests = process.memoryUsage().heapUsed;
+
+// The crawler runtime is a separate Vercel function and used to treat /en and
+// /ckb as unknown paths even while the browser runtime returned 200. Exercise
+// the built production entry with DATABASE_URL absent: released static locale
+// pages must not need a DB just to avoid a semantic 404.
+const { default: crawlerHandler } = await import("../../api/ssr-preview.js");
+const crawlerCases = [
+  ["/en", "en", "ltr"],
+  ["/ckb", "ckb", "rtl"],
+  ["/en/products", "en", "ltr"],
+  ["/ckb/products", "ckb", "rtl"],
+  ["/en/guides", "en", "ltr"],
+  ["/ckb/about", "ckb", "rtl"],
+  ["/en/products?category=%D8%A3%D8%AD%D9%88%D8%A7%D8%B6", "en", "ltr"],
+] as const;
+
+for (const [url, locale, dir] of crawlerCases) {
+  const req = {
+    url,
+    headers: {
+      accept: "text/html",
+      host: "www.aquavoiq.com",
+      "user-agent": "SiteAuditBot/0.97",
+    },
+  } as any;
+  const res = mockResponse();
+  await crawlerHandler(req, res as any);
+
+  if (res.statusCode !== 200) {
+    throw new Error(`${url}: crawler expected HTTP 200, got ${res.statusCode}`);
+  }
+  if (res.headers["x-aquavo-ssr-mode"] !== "semantic-v3") {
+    throw new Error(
+      `${url}: crawler expected semantic-v3, got ${res.headers["x-aquavo-ssr-mode"] ?? "<missing>"}`,
+    );
+  }
+  if (res.headers["content-language"] !== (locale === "ckb" ? "ckb-IQ" : locale)) {
+    throw new Error(
+      `${url}: crawler Content-Language mismatch: ${res.headers["content-language"] ?? "<missing>"}`,
+    );
+  }
+  if (!res.body.includes(`<html lang="${locale}" dir="${dir}" data-locale="${locale}">`)) {
+    throw new Error(`${url}: crawler HTML lang/dir was not localized`);
+  }
+  if (/semantic-404-v3|FUNCTION_INVOCATION_FAILED|Server Error/i.test(res.body)) {
+    throw new Error(`${url}: crawler returned an error/404 marker`);
+  }
+  const expectedPrefix = locale === "en" ? "https://www.aquavoiq.com/en" : "https://www.aquavoiq.com/ckb";
+  if (!res.body.includes('rel="canonical"') || !res.body.includes(expectedPrefix)) {
+    throw new Error(`${url}: crawler canonical was not locale-specific`);
+  }
+}
+
 const mb = (bytes: number) => (bytes / 1024 / 1024).toFixed(1);
 console.log(
-  `SSR cold-start smoke passed: import heap ${mb(beforeImport)} -> ${mb(afterImport)} MiB; after locale requests ${mb(afterRequests)} MiB`,
+  `SSR cold-start smoke passed: import heap ${mb(beforeImport)} -> ${mb(afterImport)} MiB; after locale requests ${mb(afterRequests)} MiB; localized crawler routes passed`,
 );
