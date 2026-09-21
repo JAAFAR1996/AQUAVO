@@ -1,10 +1,9 @@
 name: Customer Messaging Retry Worker
 
 on:
-  schedule:
-    # GitHub Actions supports a 5-minute minimum interval. Offset from :00 to
-    # reduce top-of-hour scheduler congestion.
-    - cron: "2-57/5 * * * *"
+  # Production scheduling is owned by Vercel Cron (vercel.json). This manual
+  # workflow is retained only as an emergency fallback when the repository also
+  # has CRON_SECRET configured.
   workflow_dispatch:
 
 permissions:
