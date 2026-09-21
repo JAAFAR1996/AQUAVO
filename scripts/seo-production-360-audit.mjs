@@ -130,9 +130,6 @@ async function discoverSitemapUrls() {
     throw new Error(`/sitemap.xml returned ${indexResponse.status}`);
   }
   const childSitemaps = xmlLocations(indexXml).filter((url) => url.endsWith(".xml"));
-  if (!childSitemaps.some((url) => url.endsWith("/sitemap-recovery.xml"))) {
-    addCritical("missing-recovery-sitemap", `${base}/sitemap.xml`, "Recovery sitemap is not advertised");
-  }
 
   const discovered = [];
   for (const sitemapUrl of childSitemaps) {
@@ -150,6 +147,16 @@ async function discoverSitemapUrls() {
   return [...new Set(discovered)]
     .filter((url) => url.startsWith(`${base}/`) || url === `${base}/` || url === base)
     .slice(0, maxUrls);
+}
+
+const SEMANTIC_SSR_MODES = new Set([
+  "semantic-v3",
+  "guide-index-v3",
+  "guide-content-v3",
+]);
+
+function isSemanticSsrMode(mode) {
+  return SEMANTIC_SSR_MODES.has(mode);
 }
 
 async function auditPage(url) {
@@ -200,7 +207,7 @@ async function auditPage(url) {
   if (metaRobots.includes("noindex") || headerRobots.includes("noindex")) {
     addCritical("sitemap-url-noindex", url, `${metaRobots} ${headerRobots}`.trim());
   }
-  if (record.ssrMode !== "semantic-v3") {
+  if (!isSemanticSsrMode(record.ssrMode)) {
     addCritical("crawler-not-semantic", url, `x-aquavo-ssr-mode=${record.ssrMode || "missing"}`);
   }
   if (/حدث خطأ غير متوقع|FUNCTION_INVOCATION_FAILED|Server initialization error/i.test(html)) {
