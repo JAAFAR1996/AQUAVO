@@ -54,7 +54,7 @@ export const LOCALES: Readonly<Record<Locale, LocaleDefinition>> = Object.freeze
   }),
   ckb: Object.freeze({
     code: "ckb",
-    nativeName: "کوردی",
+    nativeName: "کوردی سۆرانی",
     englishName: "Central Kurdish (Sorani)",
     dir: "rtl",
     hreflang: "ckb-IQ",
