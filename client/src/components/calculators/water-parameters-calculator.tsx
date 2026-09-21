@@ -21,6 +21,8 @@ import {
     TrendingDown
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
+import { i18next } from "@/i18n";
 
 // Water parameter ranges for freshwater aquariums
 const FRESHWATER_RANGES = {
@@ -53,24 +55,24 @@ interface ParameterInput {
 }
 
 const FRESHWATER_PARAMS: ParameterInput[] = [
-    { name: "pH", nameAr: "الحموضة", key: "ph", icon: <Beaker className="w-4 h-4" /> },
-    { name: "Ammonia", nameAr: "الأمونيا", key: "ammonia", icon: <AlertTriangle className="w-4 h-4" /> },
-    { name: "Nitrite", nameAr: "النيتريت", key: "nitrite", icon: <AlertTriangle className="w-4 h-4" /> },
-    { name: "Nitrate", nameAr: "النيترات", key: "nitrate", icon: <Droplets className="w-4 h-4" /> },
-    { name: "KH", nameAr: "القلوية", key: "kh", icon: <Beaker className="w-4 h-4" /> },
-    { name: "GH", nameAr: "العسرة", key: "gh", icon: <Beaker className="w-4 h-4" /> },
-    { name: "Temperature", nameAr: "الحرارة", key: "temperature", icon: <Thermometer className="w-4 h-4" /> },
+    { name: "pH", nameAr: i18next.t("tools:water-parameters-calculator.s1"), key: "ph", icon: <Beaker className="w-4 h-4" /> },
+    { name: "Ammonia", nameAr: i18next.t("tools:water-parameters-calculator.s2"), key: "ammonia", icon: <AlertTriangle className="w-4 h-4" /> },
+    { name: "Nitrite", nameAr: i18next.t("tools:water-parameters-calculator.s3"), key: "nitrite", icon: <AlertTriangle className="w-4 h-4" /> },
+    { name: "Nitrate", nameAr: i18next.t("tools:water-parameters-calculator.s4"), key: "nitrate", icon: <Droplets className="w-4 h-4" /> },
+    { name: "KH", nameAr: i18next.t("tools:water-parameters-calculator.s5"), key: "kh", icon: <Beaker className="w-4 h-4" /> },
+    { name: "GH", nameAr: i18next.t("tools:water-parameters-calculator.s6"), key: "gh", icon: <Beaker className="w-4 h-4" /> },
+    { name: "Temperature", nameAr: i18next.t("tools:water-parameters-calculator.s7"), key: "temperature", icon: <Thermometer className="w-4 h-4" /> },
 ];
 
 const SALTWATER_PARAMS: ParameterInput[] = [
-    { name: "pH", nameAr: "الحموضة", key: "ph", icon: <Beaker className="w-4 h-4" /> },
-    { name: "Ammonia", nameAr: "الأمونيا", key: "ammonia", icon: <AlertTriangle className="w-4 h-4" /> },
-    { name: "Nitrite", nameAr: "النيتريت", key: "nitrite", icon: <AlertTriangle className="w-4 h-4" /> },
-    { name: "Nitrate", nameAr: "النيترات", key: "nitrate", icon: <Droplets className="w-4 h-4" /> },
-    { name: "Salinity", nameAr: "الملوحة", key: "salinity", icon: <Droplets className="w-4 h-4" /> },
-    { name: "Calcium", nameAr: "الكالسيوم", key: "calcium", icon: <Beaker className="w-4 h-4" /> },
-    { name: "Magnesium", nameAr: "المغنيسيوم", key: "magnesium", icon: <Beaker className="w-4 h-4" /> },
-    { name: "Temperature", nameAr: "الحرارة", key: "temperature", icon: <Thermometer className="w-4 h-4" /> },
+    { name: "pH", nameAr: i18next.t("tools:water-parameters-calculator.s1"), key: "ph", icon: <Beaker className="w-4 h-4" /> },
+    { name: "Ammonia", nameAr: i18next.t("tools:water-parameters-calculator.s2"), key: "ammonia", icon: <AlertTriangle className="w-4 h-4" /> },
+    { name: "Nitrite", nameAr: i18next.t("tools:water-parameters-calculator.s3"), key: "nitrite", icon: <AlertTriangle className="w-4 h-4" /> },
+    { name: "Nitrate", nameAr: i18next.t("tools:water-parameters-calculator.s4"), key: "nitrate", icon: <Droplets className="w-4 h-4" /> },
+    { name: "Salinity", nameAr: i18next.t("tools:water-parameters-calculator.s8"), key: "salinity", icon: <Droplets className="w-4 h-4" /> },
+    { name: "Calcium", nameAr: i18next.t("tools:water-parameters-calculator.s9"), key: "calcium", icon: <Beaker className="w-4 h-4" /> },
+    { name: "Magnesium", nameAr: i18next.t("tools:water-parameters-calculator.s10"), key: "magnesium", icon: <Beaker className="w-4 h-4" /> },
+    { name: "Temperature", nameAr: i18next.t("tools:water-parameters-calculator.s7"), key: "temperature", icon: <Thermometer className="w-4 h-4" /> },
 ];
 
 type ParameterStatus = "safe" | "warning" | "danger";
@@ -84,6 +86,7 @@ interface AnalysisResult {
 }
 
 export function WaterParametersCalculator() {
+  const { t } = useTranslation("tools");
     const [waterType, setWaterType] = useState<"freshwater" | "saltwater">("freshwater");
     const [values, setValues] = useState<Record<string, string>>({});
     const [results, setResults] = useState<AnalysisResult[]>([]);
@@ -114,23 +117,23 @@ export function WaterParametersCalculator() {
 
             if (value >= range.min && value <= range.max) {
                 status = "safe";
-                message = "ضمن النطاق المرجعي";
+                message = t("water-parameters-calculator.s11");
             } else if (value < range.danger_low || value > range.danger_high) {
                 status = "danger";
                 if (value < range.danger_low) {
-                    message = "🚨 منخفض بشكل خطير!";
+                    message = t("water-parameters-calculator.s12");
                     recommendation = getRecommendation(param.key, "low", waterType);
                 } else {
-                    message = "🚨 مرتفع بشكل خطير!";
+                    message = t("water-parameters-calculator.s13");
                     recommendation = getRecommendation(param.key, "high", waterType);
                 }
             } else {
                 status = "warning";
                 if (value < range.min) {
-                    message = "منخفض قليلاً";
+                    message = t("water-parameters-calculator.s14");
                     recommendation = getRecommendation(param.key, "low", waterType);
                 } else {
-                    message = "مرتفع قليلاً";
+                    message = t("water-parameters-calculator.s15");
                     recommendation = getRecommendation(param.key, "high", waterType);
                 }
             }
@@ -150,48 +153,48 @@ export function WaterParametersCalculator() {
     const getRecommendation = (key: string, direction: "low" | "high", type: "freshwater" | "saltwater"): string => {
         const recommendations: Record<string, Record<string, string>> = {
             ph: {
-                low: "أضف مواد رافعة للـ pH مثل Crushed Coral أو Baking Soda بحذر",
-                high: "أضف خشب طافي أو أوراق اللوز الهندي لخفض pH بشكل طبيعي"
+                low: t("water-parameters-calculator.s16"),
+                high: t("water-parameters-calculator.s17")
             },
             ammonia: {
-                low: "الوضع جيد! حافظ على التغييرات المنتظمة للمياه",
-                high: "قم بتغيير 25-50% من المياه فوراً! تحقق من الفلتر وتجنب الإفراط في التغذية"
+                low: t("water-parameters-calculator.s18"),
+                high: t("water-parameters-calculator.s19")
             },
             nitrite: {
-                low: "ممتاز! استمر في الصيانة الدورية",
-                high: "قم بتغيير المياه فوراً! أضف بكتيريا نافعة وقلل التغذية"
+                low: t("water-parameters-calculator.s20"),
+                high: t("water-parameters-calculator.s21")
             },
             nitrate: {
-                low: "الوضع ممتاز!",
-                high: "قم بتغييرات مياه أكثر تكراراً. أضف نباتات حية لامتصاص النيترات"
+                low: t("water-parameters-calculator.s22"),
+                high: t("water-parameters-calculator.s23")
             },
             temperature: {
-                low: "تأكد من عمل السخان. قد تحتاج سخان أقوى",
-                high: "أطفئ الإضاءة مؤقتاً وأضف مروحة تبريد أو ثلج معزول"
+                low: t("water-parameters-calculator.s24"),
+                high: t("water-parameters-calculator.s25")
             },
             kh: {
-                low: "أضف Baking Soda أو منتجات رفع القلوية",
-                high: "خفف بماء RO أو ماء مقطر"
+                low: t("water-parameters-calculator.s26"),
+                high: t("water-parameters-calculator.s27")
             },
             gh: {
-                low: "أضف أملاح معدنية أو صخور كلسية",
-                high: "استخدم ماء RO لتخفيف العسرة"
+                low: t("water-parameters-calculator.s28"),
+                high: t("water-parameters-calculator.s29")
             },
             salinity: {
-                low: "أضف ملح البحر ببطء مع التحريك",
-                high: "أضف ماء عذب معالج تدريجياً"
+                low: t("water-parameters-calculator.s30"),
+                high: t("water-parameters-calculator.s31")
             },
             calcium: {
-                low: "أضف مكملات الكالسيوم أو Kalkwasser",
-                high: "قلل الإضافات وتحقق من مستوى القلوية"
+                low: t("water-parameters-calculator.s32"),
+                high: t("water-parameters-calculator.s33")
             },
             magnesium: {
-                low: "أضف مكملات المغنيسيوم",
-                high: "قم بتغييرات مياه وقلل المكملات"
+                low: t("water-parameters-calculator.s34"),
+                high: t("water-parameters-calculator.s35")
             }
         };
 
-        return recommendations[key]?.[direction] || "استشر متخصص في أحواض السمك";
+        return recommendations[key]?.[direction] || t("water-parameters-calculator.s36");
     };
 
     const overallStatus = useMemo(() => {
@@ -229,11 +232,11 @@ export function WaterParametersCalculator() {
         <Card>
             <CardHeader>
                 <CardTitle className="flex items-center justify-end gap-2 text-xl">
-                    فحص معايير المياه
+                    {t("water-parameters-calculator.s37")}
                     <Beaker className="w-6 h-6 text-primary" />
                 </CardTitle>
                 <CardDescription className="text-right">
-                    أدخل قراءات اختبار المياه للحصول على تحليل شامل وتوصيات
+                    {t("water-parameters-calculator.s38")}
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -241,8 +244,8 @@ export function WaterParametersCalculator() {
                 <div className="flex justify-center">
                     <Tabs value={waterType} onValueChange={(v) => { setWaterType(v as "freshwater" | "saltwater"); setValues({}); setResults([]); }}>
                         <TabsList className="grid grid-cols-2 w-64">
-                            <TabsTrigger value="freshwater">مياه عذبة</TabsTrigger>
-                            <TabsTrigger value="saltwater">🐠 مياه مالحة</TabsTrigger>
+                            <TabsTrigger value="freshwater">{t("water-parameters-calculator.s39")}</TabsTrigger>
+                            <TabsTrigger value="saltwater">{t("water-parameters-calculator.s40")}</TabsTrigger>
                         </TabsList>
                     </Tabs>
                 </div>
@@ -266,7 +269,7 @@ export function WaterParametersCalculator() {
                                     className="text-right"
                                 />
                                 <p className="text-xs text-muted-foreground">
-                                    المثالي: {range?.min} - {range?.max} {range?.unit}
+                                    {t("water-parameters-calculator.s41")} {range?.min} - {range?.max} {range?.unit}
                                 </p>
                             </div>
                         );
@@ -277,11 +280,11 @@ export function WaterParametersCalculator() {
                 <div className="flex gap-4">
                     <Button onClick={analyze} className="flex-1 h-12 text-lg gap-2">
                         <Beaker className="w-5 h-5" />
-                        تحليل المعايير
+                        {t("water-parameters-calculator.s42")}
                     </Button>
                     <Button onClick={clearAll} variant="outline" className="h-12 gap-2">
                         <RefreshCw className="w-5 h-5" />
-                        مسح
+                        {t("water-parameters-calculator.s43")}
                     </Button>
                 </div>
 
@@ -302,9 +305,9 @@ export function WaterParametersCalculator() {
                                     {overallStatus === "danger" && <XCircle className="w-10 h-10 text-destructive" />}
                                 </div>
                                 <h3 className="text-xl font-bold">
-                                    {overallStatus === "safe" && "القيم ضمن النطاقات المرجعية المختارة"}
-                                    {overallStatus === "warning" && "بعض القيم تحتاج مراجعة"}
-                                    {overallStatus === "danger" && "🚨 تحذير! معايير خطيرة!"}
+                                    {overallStatus === "safe" && t("water-parameters-calculator.s44")}
+                                    {overallStatus === "warning" && t("water-parameters-calculator.s45")}
+                                    {overallStatus === "danger" && t("water-parameters-calculator.s46")}
                                 </h3>
                             </CardContent>
                         </Card>
@@ -345,8 +348,7 @@ export function WaterParametersCalculator() {
                     <Alert className="bg-primary/5 border-primary/20">
                         <Info className="h-4 w-4 text-primary" />
                         <AlertDescription className="text-right">
-                            <strong>نصيحة:</strong> قم بفحص معايير المياه أسبوعياً على الأقل.
-                            استخدم أدوات اختبار موثوقة مثل API Test Kit أو شرائط الاختبار.
+                            <strong>{t("water-parameters-calculator.s47")}</strong> {t("water-parameters-calculator.s48")}
                         </AlertDescription>
                     </Alert>
                 )}

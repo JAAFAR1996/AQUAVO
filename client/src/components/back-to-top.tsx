@@ -2,6 +2,7 @@ import { ChevronUp } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 interface BackToTopProps {
     showAfter?: number;
@@ -9,6 +10,7 @@ interface BackToTopProps {
 }
 
 export function BackToTop({ showAfter = 400, className }: BackToTopProps) {
+  const { t } = useTranslation("pages");
     const [isVisible, setIsVisible] = useState(false);
 
     useEffect(() => {
@@ -41,7 +43,7 @@ export function BackToTop({ showAfter = 400, className }: BackToTopProps) {
                 "animate-in fade-in slide-in-from-bottom-4",
                 className
             )}
-            aria-label="العودة للأعلى"
+            aria-label={t("back-to-top.s1")}
         >
             <ChevronUp className="w-5 h-5" />
         </Button>

@@ -1,97 +1,100 @@
 import { Link } from "wouter";
 import { MetaTags, FAQSchema, BreadcrumbSchema, HowToSchema } from "@/components/seo/meta-tags";
+import { useTranslation } from "react-i18next";
+import { i18next } from "@/i18n";
 
 const BASE_URL = "https://www.aquavoiq.com";
 
 const FAQ_ITEMS = [
   {
-    question: "شنو أحتاج حتى أجهز حوض سمك جديد؟",
+    question: i18next.t("guides:guides-new-aquarium-setup.s1"),
     answer:
-      "تحتاج: حوض بالحجم المناسب، فلتر، سخان (للأسماك الاستوائية)، حصى أو رمل، مزيل كلور، شرائط فحص ماء، وإضاءة. هذي هي المعدات الأساسية لأي حوض مبتدئ.",
+      i18next.t("guides:guides-new-aquarium-setup.s2"),
   },
   {
-    question: "هل أحتاج فلتر للحوض؟",
+    question: i18next.t("guides:guides-new-aquarium-setup.s3"),
     answer:
-      "نعم، الفلتر ضروري في كل حوض. يزيل الأمونيا والمواد الضارة ويحافظ على توازن الماء. بدون فلتر، الماء يتلوث بسرعة ويموت السمك.",
+      i18next.t("guides:guides-new-aquarium-setup.s4"),
   },
   {
-    question: "هل أحتاج سخان؟",
+    question: i18next.t("guides:guides-new-aquarium-setup.s5"),
     answer:
-      "يعتمد على نوع السمك. الأسماك الاستوائية (مثل الغوبي، المولي، الأنجيل) تحتاج حرارة ثابتة بين 24-28 درجة. الأسماك الباردة مثل الذهبية ما تحتاج سخان.",
+      i18next.t("guides:guides-new-aquarium-setup.s6"),
   },
   {
-    question: "ليش مزيل الكلور مهم؟",
+    question: i18next.t("guides:guides-new-aquarium-setup.s7"),
     answer:
-      "ماء الإسالة يحتوي على كلور وكلورامين يقتل السمك والبكتيريا النافعة. مزيل الكلور يحيّد هذه المواد فوراً ويجعل الماء آمناً للسمك.",
+      i18next.t("guides:guides-new-aquarium-setup.s8"),
   },
   {
-    question: "ليش شرائط الفحص مهمة؟",
+    question: i18next.t("guides:guides-new-aquarium-setup.s9"),
     answer:
-      "شرائط فحص الماء تقيس الأمونيا، النتريت، النترات، وpH. هذي المؤشرات تخليك تعرف إذا الحوض آمن قبل ما تضيف السمك أو بعدها. بدون فحص، ما تعرف إذا كاد خطر.",
+      i18next.t("guides:guides-new-aquarium-setup.s10"),
   },
   {
-    question: "شنو ترتيب تجهيز الحوض؟",
+    question: i18next.t("guides:guides-new-aquarium-setup.s11"),
     answer:
-      "١) نظف الحوض بماء فقط. ٢) ضع الحصى المغسول. ٣) ركب الفلتر والسخان. ٤) أملأ بالماء وأضف مزيل كلور. ٥) شغل الفلتر. ٦) انتظر 3-7 أيام للدورة البايولوجية. ٧) افحص الماء. ٨) أضف السمك تدريجياً.",
+      i18next.t("guides:guides-new-aquarium-setup.s12"),
   },
   {
-    question: "شنو الأخطاء الشائعة للمبتدئين؟",
+    question: i18next.t("guides:guides-new-aquarium-setup.s13"),
     answer:
-      "أكثر الأخطاء: إضافة السمك مباشرة بدون انتظار دورة البكتيريا، ما استخدام مزيل كلور، زيادة الأكل، شراء حوض صغير جداً، وعدم فحص الماء بانتظام.",
+      i18next.t("guides:guides-new-aquarium-setup.s14"),
   },
   {
-    question: "كم يوم أنتظر قبل ما أضيف السمك؟",
+    question: i18next.t("guides:guides-new-aquarium-setup.s15"),
     answer:
-      "الحد الأدنى 3 أيام لو استخدمت بكتيريا جاهزة، و7-14 يوم بدونها. الأحسن تفحص الماء أولاً: لما الأمونيا والنتريت يصيرون صفر، الحوض جاهز.",
+      i18next.t("guides:guides-new-aquarium-setup.s16"),
   },
 ];
 
 const HOW_TO_STEPS = [
   {
-    name: "نظف الحوض وحدد موقعه",
-    text: "انظف الحوض بماء فقط بدون صابون. اختر مكان بعيد عن أشعة الشمس المباشرة والتيارات الهوائية. الحوض الممتلئ ثقيل — تأكد من قاعدة متينة.",
+    name: i18next.t("guides:guides-new-aquarium-setup.s17"),
+    text: i18next.t("guides:guides-new-aquarium-setup.s18"),
     url: `${BASE_URL}/guides/new-aquarium-setup-iraq#step-1`,
   },
   {
-    name: "ضع الحصى وركب المعدات",
-    text: "اغسل الحصى جيداً بماء بارد حتى يصفو الماء. ضعه بسماكة 5-7 سم. ركب الفلتر على جانب الحوض والسخان قرب تدفق الماء.",
+    name: i18next.t("guides:guides-new-aquarium-setup.s19"),
+    text: i18next.t("guides:guides-new-aquarium-setup.s20"),
     url: `${BASE_URL}/guides/new-aquarium-setup-iraq#step-2`,
   },
   {
-    name: "أملأ بالماء وأضف مزيل الكلور",
-    text: "أملأ الحوض بماء الإسالة ببطء حتى لا تزعزع الحصى. أضف مزيل الكلور مباشرة حسب الجرعة المكتوبة على العبوة.",
+    name: i18next.t("guides:guides-new-aquarium-setup.s21"),
+    text: i18next.t("guides:guides-new-aquarium-setup.s22"),
     url: `${BASE_URL}/guides/new-aquarium-setup-iraq#step-3`,
   },
   {
-    name: "شغل الفلتر وانتظر الدورة البايولوجية",
-    text: "شغل الفلتر والسخان. يمكنك إضافة بكتيريا جاهزة لتسريع الدورة البايولوجية. انتظر 3-7 أيام على الأقل.",
+    name: i18next.t("guides:guides-new-aquarium-setup.s23"),
+    text: i18next.t("guides:guides-new-aquarium-setup.s24"),
     url: `${BASE_URL}/guides/new-aquarium-setup-iraq#step-4`,
   },
   {
-    name: "افحص الماء قبل إضافة السمك",
-    text: "استخدم شرائط فحص الماء للتأكد من قراءات الأمونيا والنتريت (يجب أن تكون صفر) والpH (6.8-7.5). لما القراءات سليمة، الحوض جاهز.",
+    name: i18next.t("guides:guides-new-aquarium-setup.s25"),
+    text: i18next.t("guides:guides-new-aquarium-setup.s26"),
     url: `${BASE_URL}/guides/new-aquarium-setup-iraq#step-5`,
   },
   {
-    name: "أضف السمك تدريجياً",
-    text: "أضف 2-3 سمكات فقط في البداية. طوّف الكيس في الحوض 15 دقيقة لمعادلة الحرارة قبل الإطلاق. انتظر أسبوع قبل إضافة المزيد.",
+    name: i18next.t("guides:guides-new-aquarium-setup.s27"),
+    text: i18next.t("guides:guides-new-aquarium-setup.s28"),
     url: `${BASE_URL}/guides/new-aquarium-setup-iraq#step-6`,
   },
 ];
 
 export default function GuideNewAquariumSetup() {
+  const { t } = useTranslation("guides");
   return (
     <>
       <MetaTags
-        title="كيف تجهز حوض سمك جديد — دليل المبتدئين"
-        description="دليل شامل خطوة بخطوة لتجهيز حوض سمك جديد في العراق: المعدات الأساسية، مزيل الكلور، الفلتر، السخان، وأسرار نجاح الحوض الأول. AQUAVO يوصل لكل العراق."
+        title={t("guides-new-aquarium-setup.s29")}
+        description={t("guides-new-aquarium-setup.s30")}
         keywords={[
-          "تجهيز حوض سمك جديد",
-          "حوض سمك للمبتدئين",
-          "معدات حوض السمك",
-          "مزيل كلور للحوض",
-          "فلتر حوض",
-          "مستلزمات أحواض الزينة العراق",
+          t("guides-new-aquarium-setup.s31"),
+          t("guides-new-aquarium-setup.s32"),
+          t("guides-new-aquarium-setup.s33"),
+          t("guides-new-aquarium-setup.s34"),
+          t("guides-new-aquarium-setup.s35"),
+          t("guides-new-aquarium-setup.s36"),
         ]}
         url={`${BASE_URL}/guides/new-aquarium-setup-iraq`}
         canonicalUrl={`${BASE_URL}/guides/new-aquarium-setup-iraq`}
@@ -100,23 +103,23 @@ export default function GuideNewAquariumSetup() {
 
       <BreadcrumbSchema
         items={[
-          { name: "الرئيسية", url: BASE_URL },
-          { name: "الأدلة", url: `${BASE_URL}/guides` },
-          { name: "تجهيز حوض سمك جديد", url: `${BASE_URL}/guides/new-aquarium-setup-iraq` },
+          { name: t("guides-new-aquarium-setup.s37"), url: BASE_URL },
+          { name: t("guides-new-aquarium-setup.s38"), url: `${BASE_URL}/guides` },
+          { name: t("guides-new-aquarium-setup.s31"), url: `${BASE_URL}/guides/new-aquarium-setup-iraq` },
         ]}
       />
 
       <HowToSchema
-        name="كيف تجهز حوض سمك جديد في العراق — خطوة بخطوة"
-        description="دليل كامل لتجهيز أول حوض سمك: من اختيار المعدات حتى إضافة السمك بأمان"
+        name={t("guides-new-aquarium-setup.howToName")}
+        description={t("guides-new-aquarium-setup.s39")}
         totalTime="PT7D"
         supply={[
-          "فلتر مائي",
-          "سخان حوض بثرموستات",
-          "مزيل كلور وكلورامين",
-          "شرائط فحص ماء",
-          "حصى أو رمل مغسول",
-          "إضاءة LED للحوض",
+          t("guides-new-aquarium-setup.s40"),
+          t("guides-new-aquarium-setup.s41"),
+          t("guides-new-aquarium-setup.s42"),
+          t("guides-new-aquarium-setup.s43"),
+          t("guides-new-aquarium-setup.s44"),
+          t("guides-new-aquarium-setup.s45"),
         ]}
         steps={HOW_TO_STEPS}
       />
@@ -128,153 +131,153 @@ export default function GuideNewAquariumSetup() {
         <header className="nas-bar">
           <Link href="/" className="nas-brand">AQUAVO</Link>
           <nav className="nas-nav">
-            <a href="/guides/aquarium-water-test-guide" className="nas-nav-link">فحص الماء</a>
-            <Link href="/guides/heater-choice" className="nas-nav-link">السخانات</Link>
-            <a href="/guides/aquarium-decor-stones-guide" className="nas-nav-link">الديكور</a>
+            <a href="/guides/aquarium-water-test-guide" className="nas-nav-link">{t("guides-new-aquarium-setup.s46")}</a>
+            <Link href="/guides/heater-choice" className="nas-nav-link">{t("guides-new-aquarium-setup.s47")}</Link>
+            <a href="/guides/aquarium-decor-stones-guide" className="nas-nav-link">{t("guides-new-aquarium-setup.s48")}</a>
           </nav>
         </header>
 
         <main className="nas-main" id="main-content">
 
           {/* Breadcrumb */}
-          <nav className="nas-breadcrumb" aria-label="مسار التنقل">
-            <Link href="/">الرئيسية</Link>
+          <nav className="nas-breadcrumb" aria-label={t("guides-new-aquarium-setup.s49")}>
+            <Link href="/">{t("guides-new-aquarium-setup.s37")}</Link>
             <span> / </span>
-            <a href="/guides">الأدلة</a>
+            <a href="/guides">{t("guides-new-aquarium-setup.s38")}</a>
             <span> / </span>
-            <span>تجهيز حوض سمك جديد</span>
+            <span>{t("guides-new-aquarium-setup.s31")}</span>
           </nav>
 
           {/* Hero */}
           <section className="nas-hero" id="hero-headline">
-            <span className="nas-badge">دليل المبتدئين — AQUAVO</span>
-            <h1 className="nas-h1">كيف تجهز حوض سمك جديد في العراق</h1>
+            <span className="nas-badge">{t("guides-new-aquarium-setup.s50")}</span>
+            <h1 className="nas-h1">{t("guides-new-aquarium-setup.s51")}</h1>
 
             {/* Answer Block — AEO snippet target */}
             <div className="nas-answer-block" id="quick-answer">
               <p className="nas-answer-text">
-                لتجهيز حوض سمك جديد تحتاج: حوض، فلتر مائي، سخان (للأسماك الاستوائية)، حصى مغسول، مزيل كلور، وشرائط فحص ماء. بعد تركيب المعدات وتشغيل الفلتر، انتظر 3-7 أيام للدورة البايولوجية، افحص الماء، ثم أضف السمك تدريجياً. AQUAVO متجر عراقي يوفر كل هذه المستلزمات مع توصيل لكل العراق ودفع عند الاستلام أو إلكترونياً.
+                {t("guides-new-aquarium-setup.s52")}
               </p>
             </div>
 
             <div className="nas-meta">
-              <span>وقت القراءة: 7 دقائق</span>
+              <span>{t("guides-new-aquarium-setup.s53")}</span>
               <span>•</span>
-              <span>آخر تحديث: 2026</span>
+              <span>{t("guides-new-aquarium-setup.s54")}</span>
             </div>
           </section>
 
           {/* AQUAVO Identity */}
           <div className="nas-store-note">
-            <strong>عن AQUAVO:</strong> متجر إلكتروني عراقي متخصص في مستلزمات أحواض الزينة — فلاتر، سخانات، مزيل كلور، شرائط فحص، حصى، وإضاءة. توصيل لكل محافظات العراق بـ 5,000 دينار. الدفع عند الاستلام أو إلكترونياً.
-            <Link href="/products" className="nas-store-link"> تصفح المنتجات ←</Link>
+            <strong>{t("guides-new-aquarium-setup.s55")}</strong> {t("guides-new-aquarium-setup.s56")}
+            <Link href="/products" className="nas-store-link"> {t("guides-new-aquarium-setup.s57")}</Link>
           </div>
 
           {/* Step by Step */}
           <section className="nas-section" id="step-1">
-            <h2 className="nas-title">الخطوة الأولى: اختر الحوض وحدد موقعه</h2>
+            <h2 className="nas-title">{t("guides-new-aquarium-setup.s58")}</h2>
             <p className="nas-body">
-              أول قرار: حجم الحوض. للمبتدئين، الأفضل حوض بين <strong>60-100 لتر</strong> — لا صغير جداً (الماء يتلوث بسرعة) ولا كبير جداً (صعب الإدارة). ضع الحوض على سطح متين، بعيد عن أشعة الشمس المباشرة والتيارات الهوائية.
+              {t("guides-new-aquarium-setup.s59")} <strong>{t("guides-new-aquarium-setup.s60")}</strong> {t("guides-new-aquarium-setup.s61")}
             </p>
             <div className="nas-tip">
-              الحوض الممتلئ بالماء يزن تقريباً 1 كيلوغرام لكل لتر — حوض 80 لتر = 80 كيلو زائد وزن الزجاج.
+              {t("guides-new-aquarium-setup.s62")}
             </div>
           </section>
 
           <section className="nas-section" id="step-2">
-            <h2 className="nas-title">الخطوة الثانية: اغسل الحصى وركب المعدات</h2>
+            <h2 className="nas-title">{t("guides-new-aquarium-setup.s63")}</h2>
             <p className="nas-body">
-              اغسل الحصى بماء بارد جاري في غربال حتى يصفو الماء تماماً — يأخذ من 5-10 دقائق. ضعه بسماكة 5-7 سم في قاع الحوض. ركب الفلتر حسب تعليمات المنتج، والسخان قرب مصدر تدفق الماء لتوزيع الحرارة بالتساوي.
+              {t("guides-new-aquarium-setup.s64")}
             </p>
             <div className="nas-related-links">
-              <Link href="/guides/filter-choice" className="nas-related-link">← دليل اختيار الفلتر المناسب</Link>
-              <Link href="/guides/heater-choice" className="nas-related-link">← دليل اختيار السخان بالواط الصحيح</Link>
+              <Link href="/guides/filter-choice" className="nas-related-link">{t("guides-new-aquarium-setup.s65")}</Link>
+              <Link href="/guides/heater-choice" className="nas-related-link">{t("guides-new-aquarium-setup.s66")}</Link>
             </div>
           </section>
 
           <section className="nas-section" id="step-3">
-            <h2 className="nas-title">الخطوة الثالثة: أملأ بالماء وأضف مزيل الكلور</h2>
+            <h2 className="nas-title">{t("guides-new-aquarium-setup.s67")}</h2>
             <p className="nas-body">
-              أملأ الحوض بماء الإسالة ببطء — ضع صحناً فوق الحصى حتى لا تتزعزع. بمجرد ملء الحوض، <strong>أضف مزيل الكلور فوراً</strong>. ماء الإسالة في العراق يحتوي على كلور وكلورامين — هذه المواد تقتل السمك والبكتيريا النافعة مباشرة.
+              {t("guides-new-aquarium-setup.s68")} <strong>{t("guides-new-aquarium-setup.s69")}</strong>{t("guides-new-aquarium-setup.s70")}
             </p>
             <div className="nas-warn-box">
-              لا تنتظر ولا دقيقة — أضف مزيل الكلور قبل أي شيء ثاني بعد الملء.
+              {t("guides-new-aquarium-setup.s71")}
             </div>
           </section>
 
           <section className="nas-section" id="step-4">
-            <h2 className="nas-title">الخطوة الرابعة: الدورة البايولوجية — الأهم</h2>
+            <h2 className="nas-title">{t("guides-new-aquarium-setup.s72")}</h2>
             <p className="nas-body">
-              بعد تشغيل الفلتر، الحوض يحتاج وقت لتكوين مستعمرات من البكتيريا النافعة (Nitrosomonas وNitrobacter) اللي تحول الأمونيا السامة إلى نترات أقل خطراً. هذه تسمى الدورة النيتروجينية أو الدورة البايولوجية.
+              {t("guides-new-aquarium-setup.s73")}
             </p>
             <ul className="nas-list">
-              <li>بدون بكتيريا: الدورة تأخذ 4-6 أسابيع</li>
-              <li>مع بكتيريا جاهزة من المتجر: تنتهي خلال 3-7 أيام</li>
-              <li>علامة الاكتمال: الأمونيا والنتريت = صفر في فحص الماء</li>
+              <li>{t("guides-new-aquarium-setup.s74")}</li>
+              <li>{t("guides-new-aquarium-setup.s75")}</li>
+              <li>{t("guides-new-aquarium-setup.s76")}</li>
             </ul>
           </section>
 
           <section className="nas-section" id="step-5">
-            <h2 className="nas-title">الخطوة الخامسة: فحص الماء قبل السمك</h2>
+            <h2 className="nas-title">{t("guides-new-aquarium-setup.s77")}</h2>
             <p className="nas-body">
-              قبل ما تضيف أي سمكة، افحص الماء بشرائط فحص الماء. القراءات الآمنة:
+              {t("guides-new-aquarium-setup.s78")}
             </p>
             <div className="nas-table-wrap">
               <table className="nas-table">
                 <thead>
                   <tr>
-                    <th>المؤشر</th>
-                    <th>القراءة الآمنة</th>
-                    <th>ليش مهم</th>
+                    <th>{t("guides-new-aquarium-setup.s79")}</th>
+                    <th>{t("guides-new-aquarium-setup.s80")}</th>
+                    <th>{t("guides-new-aquarium-setup.s81")}</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
-                    <td>الأمونيا (NH3)</td>
+                    <td>{t("guides-new-aquarium-setup.s82")}</td>
                     <td>0 ppm</td>
-                    <td>سام جداً للسمك حتى بتركيز منخفض</td>
+                    <td>{t("guides-new-aquarium-setup.s83")}</td>
                   </tr>
                   <tr>
-                    <td>النتريت (NO2)</td>
+                    <td>{t("guides-new-aquarium-setup.s84")}</td>
                     <td>0 ppm</td>
-                    <td>يمنع الدم من حمل الأوكسجين</td>
+                    <td>{t("guides-new-aquarium-setup.s85")}</td>
                   </tr>
                   <tr>
                     <td>pH</td>
                     <td>6.8 – 7.5</td>
-                    <td>حموضة مناسبة لمعظم الأسماك</td>
+                    <td>{t("guides-new-aquarium-setup.s86")}</td>
                   </tr>
                   <tr>
-                    <td>النترات (NO3)</td>
-                    <td>أقل من 40 ppm</td>
-                    <td>أقل خطراً — يُخفَّض بتغيير الماء</td>
+                    <td>{t("guides-new-aquarium-setup.s87")}</td>
+                    <td>{t("guides-new-aquarium-setup.s88")}</td>
+                    <td>{t("guides-new-aquarium-setup.s89")}</td>
                   </tr>
                 </tbody>
               </table>
             </div>
             <div className="nas-related-links">
-              <a href="/guides/aquarium-water-test-guide" className="nas-related-link">← دليل كامل: شرائط فحص ماء الحوض وتفسير القراءات</a>
+              <a href="/guides/aquarium-water-test-guide" className="nas-related-link">{t("guides-new-aquarium-setup.s90")}</a>
             </div>
           </section>
 
           <section className="nas-section" id="step-6">
-            <h2 className="nas-title">الخطوة السادسة: أضف السمك تدريجياً</h2>
+            <h2 className="nas-title">{t("guides-new-aquarium-setup.s91")}</h2>
             <p className="nas-body">
-              ابدأ بـ 2-3 سمكات صغيرة فقط. طوّف الكيس في الحوض 15 دقيقة لمعادلة الحرارة. بعد أسبوع وبعد فحص الماء من جديد، يمكنك إضافة المزيد.
+              {t("guides-new-aquarium-setup.s92")}
             </p>
           </section>
 
           {/* Common Mistakes */}
           <section className="nas-section">
-            <h2 className="nas-title">الأخطاء الشائعة للمبتدئين</h2>
+            <h2 className="nas-title">{t("guides-new-aquarium-setup.s93")}</h2>
             <div className="nas-mistakes-grid">
               {[
-                { x: "إضافة السمك فوراً بدون انتظار", fix: "انتظر 3-7 أيام مع الفلتر مشغّل" },
-                { x: "ما استخدام مزيل الكلور", fix: "ضروري مع أول ماء وعند كل تغيير جزئي" },
-                { x: "كثرة الأكل", fix: "أعطِ كمية تنتهي خلال دقيقتين فقط" },
-                { x: "حوض صغير جداً (أقل من 30 لتر)", fix: "الماء يتلوث بسرعة — الأفضل 60+ لتر للمبتدئ" },
-                { x: "عدم فحص الماء", fix: "افحص أسبوعياً خصوصاً في الأشهر الأولى" },
-                { x: "إضافة أسماك كثيرة دفعة واحدة", fix: "أضف تدريجياً حتى لا تتجاوز طاقة الفلتر" },
+                { x: t("guides-new-aquarium-setup.s94"), fix: t("guides-new-aquarium-setup.s95") },
+                { x: t("guides-new-aquarium-setup.s96"), fix: t("guides-new-aquarium-setup.s97") },
+                { x: t("guides-new-aquarium-setup.s98"), fix: t("guides-new-aquarium-setup.s99") },
+                { x: t("guides-new-aquarium-setup.s100"), fix: t("guides-new-aquarium-setup.s101") },
+                { x: t("guides-new-aquarium-setup.s102"), fix: t("guides-new-aquarium-setup.s103") },
+                { x: t("guides-new-aquarium-setup.s104"), fix: t("guides-new-aquarium-setup.s105") },
               ].map((m, i) => (
                 <div key={i} className="nas-mistake-card">
                   <div className="nas-mistake-x">✗ {m.x}</div>
@@ -286,26 +289,26 @@ export default function GuideNewAquariumSetup() {
 
           {/* Starter Pack */}
           <section className="nas-section nas-starter">
-            <h2 className="nas-title">بكج البداية المقترح من AQUAVO</h2>
+            <h2 className="nas-title">{t("guides-new-aquarium-setup.s106")}</h2>
             <p className="nas-body">
-              هذه هي المعدات الأساسية اللي تحتاجها لأول حوض — كلها متوفرة في AQUAVO مع توصيل لكل العراق:
+              {t("guides-new-aquarium-setup.s107")}
             </p>
             <ul className="nas-pack-list">
-              <li><span className="nas-pack-icon">🔵</span> <strong>فلتر مائي داخلي</strong> — مناسب لأحواض 20-60 لتر</li>
-              <li><span className="nas-pack-icon">🔴</span> <strong>سخان حوض بثرموستات</strong> — للأسماك الاستوائية (25-28 درجة)</li>
-              <li><span className="nas-pack-icon">🟢</span> <strong>مزيل كلور وكلورامين</strong> — ضروري مع أول ماء وعند التغيير</li>
-              <li><span className="nas-pack-icon">🟡</span> <strong>شرائط فحص الماء</strong> — تقيس الأمونيا، النتريت، النترات، pH</li>
-              <li><span className="nas-pack-icon">⚪</span> <strong>حصى أو رمل ديكور</strong> — قاع طبيعي للحوض</li>
+              <li><span className="nas-pack-icon">🔵</span> <strong>{t("guides-new-aquarium-setup.s108")}</strong> {t("guides-new-aquarium-setup.s109")}</li>
+              <li><span className="nas-pack-icon">🔴</span> <strong>{t("guides-new-aquarium-setup.s41")}</strong> {t("guides-new-aquarium-setup.s110")}</li>
+              <li><span className="nas-pack-icon">🟢</span> <strong>{t("guides-new-aquarium-setup.s42")}</strong> {t("guides-new-aquarium-setup.s111")}</li>
+              <li><span className="nas-pack-icon">🟡</span> <strong>{t("guides-new-aquarium-setup.s112")}</strong> {t("guides-new-aquarium-setup.s113")}</li>
+              <li><span className="nas-pack-icon">⚪</span> <strong>{t("guides-new-aquarium-setup.s114")}</strong> {t("guides-new-aquarium-setup.s115")}</li>
             </ul>
             <Link href="/products" className="nas-cta-btn" id="starter-pack-cta">
-              تصفح مستلزمات الأحواض في AQUAVO
+              {t("guides-new-aquarium-setup.s116")}
             </Link>
-            <p className="nas-cta-note">توصيل لكل العراق — دفع عند الاستلام أو إلكترونياً</p>
+            <p className="nas-cta-note">{t("guides-new-aquarium-setup.s117")}</p>
           </section>
 
           {/* FAQ */}
           <section className="nas-section" id="faq">
-            <h2 className="nas-title">أسئلة شائعة — تجهيز حوض سمك جديد</h2>
+            <h2 className="nas-title">{t("guides-new-aquarium-setup.s118")}</h2>
             <div className="nas-faq-list">
               {FAQ_ITEMS.map((item, i) => (
                 <details key={i} className="nas-faq-item">
@@ -318,34 +321,34 @@ export default function GuideNewAquariumSetup() {
 
           {/* Related Guides */}
           <section className="nas-section">
-            <h2 className="nas-title">أدلة ذات صلة</h2>
+            <h2 className="nas-title">{t("guides-new-aquarium-setup.s119")}</h2>
             <div className="nas-related-grid">
               <a href="/guides/aquarium-water-test-guide" className="nas-related-card">
                 <span className="nas-related-icon">🧪</span>
                 <div>
-                  <div className="nas-related-title">دليل شرائط فحص ماء الحوض</div>
-                  <div className="nas-related-desc">شنو تعني القراءات؟ ومتى تكون خطيرة؟</div>
+                  <div className="nas-related-title">{t("guides-new-aquarium-setup.s120")}</div>
+                  <div className="nas-related-desc">{t("guides-new-aquarium-setup.s121")}</div>
                 </div>
               </a>
               <Link href="/guides/heater-choice" className="nas-related-card">
                 <span className="nas-related-icon">🌡️</span>
                 <div>
-                  <div className="nas-related-title">دليل اختيار سخان الحوض</div>
-                  <div className="nas-related-desc">شلون تحسب الواط الصحيح لحوضك</div>
+                  <div className="nas-related-title">{t("guides-new-aquarium-setup.s122")}</div>
+                  <div className="nas-related-desc">{t("guides-new-aquarium-setup.s123")}</div>
                 </div>
               </Link>
               <Link href="/guides/filter-choice" className="nas-related-card">
                 <span className="nas-related-icon">💧</span>
                 <div>
-                  <div className="nas-related-title">دليل اختيار الفلتر</div>
-                  <div className="nas-related-desc">أنواع الفلاتر والفرق بينها</div>
+                  <div className="nas-related-title">{t("guides-new-aquarium-setup.s124")}</div>
+                  <div className="nas-related-desc">{t("guides-new-aquarium-setup.s125")}</div>
                 </div>
               </Link>
               <a href="/guides/aquarium-decor-stones-guide" className="nas-related-card">
                 <span className="nas-related-icon">🪨</span>
                 <div>
-                  <div className="nas-related-title">دليل الديكور والأحجار</div>
-                  <div className="nas-related-desc">شنو الأحجار الآمنة وكيف تختارها</div>
+                  <div className="nas-related-title">{t("guides-new-aquarium-setup.s126")}</div>
+                  <div className="nas-related-desc">{t("guides-new-aquarium-setup.s127")}</div>
                 </div>
               </a>
             </div>

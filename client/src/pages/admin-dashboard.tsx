@@ -56,6 +56,7 @@ import { AiMonitorPanel } from "@/components/admin/ai-monitor-panel";
 import { AiLearningsPanel } from "@/components/admin/ai-learnings-panel";
 import { ProductVariantsManager } from "@/components/admin/product-variants-manager";
 import InvoicesList from "@/components/admin/invoices-list";
+import { TranslationEditor } from "@/components/admin/translation-editor";
 import {
   Plus,
   Pencil,
@@ -801,6 +802,7 @@ export default function AdminDashboard() {
             <TabsTrigger value="analytics" className="min-h-[44px]">التحليلات</TabsTrigger>
             <TabsTrigger value="security" className="min-h-[44px]">الأمان</TabsTrigger>
             <TabsTrigger value="settings" className="min-h-[44px]">الإعدادات</TabsTrigger>
+            <TabsTrigger value="translations" className="min-h-[44px]">الترجمات</TabsTrigger>
           </TabsList>
         </div>
 
@@ -847,6 +849,10 @@ export default function AdminDashboard() {
 
         <TabsContent value="analytics" className="space-y-4">
           <AnalyticsDashboard />
+        </TabsContent>
+
+        <TabsContent value="translations" className="space-y-4">
+          <TranslationEditor />
         </TabsContent>
 
         <TabsContent value="products" className="space-y-4">

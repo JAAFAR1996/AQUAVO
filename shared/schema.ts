@@ -658,6 +658,30 @@ export const translations = pgTable("translations", {
   value: text("value").notNull(),
 });
 
+/**
+ * One translated record per (entity, locale). Arabic rows in products,
+ * blog_posts, categories and blog_categories stay the source of truth; this
+ * table only ever adds English and Central Kurdish text next to them.
+ * Shape of `data` per entityType is defined in shared/i18n/content.ts.
+ */
+export const contentTranslations = pgTable("content_translations", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  entityType: text("entity_type").notNull(), // product | blog_post | category | blog_category | guide
+  entityId: text("entity_id").notNull(),
+  locale: text("locale").notNull(), // en | ckb
+  data: jsonb("data").notNull().$type<Record<string, unknown>>().default({}),
+  status: text("status").notNull().default("machine"), // machine | reviewed
+  sourceHash: text("source_hash"),
+  translatedBy: text("translated_by"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  entityLocaleKey: uniqueIndex("content_translations_entity_locale_key").on(table.entityType, table.entityId, table.locale),
+  typeLocaleIdx: index("content_translations_type_locale_idx").on(table.entityType, table.locale),
+}));
+export type ContentTranslation = typeof contentTranslations.$inferSelect;
+export type InsertContentTranslation = typeof contentTranslations.$inferInsert;
+
 export const userAddresses = pgTable("user_addresses", {
   id: text("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: text("user_id").references(() => users.id).notNull(),

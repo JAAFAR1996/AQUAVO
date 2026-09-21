@@ -20,6 +20,7 @@ import {
     Trees,
     LucideIcon,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface CategoryCardProps {
     name: string;
@@ -104,13 +105,14 @@ export function CategoryCardsGrid({
     selectedCategories,
     onCategoryToggle,
 }: CategoryCardsGridProps) {
+  const { t } = useTranslation("pages");
     if (categories.length === 0) {
         return null;
     }
 
     return (
         <div className="mb-8">
-            <h2 className="text-xl font-bold mb-4 text-right">تصفح حسب الفئة</h2>
+            <h2 className="text-xl font-bold mb-4 text-right">{t("category-cards.s1")}</h2>
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-3">
                 {categories.map((category) => {
                     const { icon, color } = getCategoryConfig(category);
@@ -129,7 +131,7 @@ export function CategoryCardsGrid({
             </div>
             {selectedCategories.length > 0 && (
                 <div className="mt-4 text-sm text-muted-foreground text-right">
-                    الفئات المحددة: {selectedCategories.join(", ")}
+                    {t("category-cards.s2")} {selectedCategories.join(", ")}
                 </div>
             )}
         </div>

@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useNavbarPreferences, NAVBAR_STYLES, type NavbarStyle } from '@/hooks/use-navbar-preferences';
 import { cn } from '@/lib/utils';
+import { useTranslation } from "react-i18next";
 
 interface NavbarStyleSwitcherProps {
     className?: string;
@@ -21,6 +22,7 @@ interface NavbarStyleSwitcherProps {
  * Saves user preference to localStorage
  */
 export function NavbarStyleSwitcher({ className }: NavbarStyleSwitcherProps) {
+  const { t } = useTranslation("pages");
     const { style, setStyle } = useNavbarPreferences();
     const [isOpen, setIsOpen] = useState(false);
 
@@ -37,7 +39,7 @@ export function NavbarStyleSwitcher({ className }: NavbarStyleSwitcherProps) {
                         'hover:bg-primary/10 hover:scale-105',
                         className
                     )}
-                    aria-label="تغيير نمط شريط التنقل"
+                    aria-label={t("NavbarStyleSwitcher.s1")}
                 >
                     <Settings2
                         className={cn(
@@ -60,7 +62,7 @@ export function NavbarStyleSwitcher({ className }: NavbarStyleSwitcherProps) {
             >
                 <DropdownMenuLabel className="flex items-center gap-2 text-primary">
                     <Settings2 className="h-4 w-4" />
-                    <span>نمط الشريط</span>
+                    <span>{t("NavbarStyleSwitcher.s2")}</span>
                 </DropdownMenuLabel>
 
                 <DropdownMenuSeparator />
@@ -94,7 +96,7 @@ export function NavbarStyleSwitcher({ className }: NavbarStyleSwitcherProps) {
                 <DropdownMenuSeparator />
 
                 <div className="px-2 py-1.5 text-xs text-muted-foreground text-center">
-                    النمط الحالي: <span className="text-primary font-medium">{currentStyle?.labelAr}</span>
+                    {t("NavbarStyleSwitcher.s3")} <span className="text-primary font-medium">{currentStyle?.labelAr}</span>
                 </div>
             </DropdownMenuContent>
         </DropdownMenu>

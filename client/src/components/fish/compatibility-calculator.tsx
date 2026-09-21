@@ -20,6 +20,8 @@ import {
     Info
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
+import { i18next } from "@/i18n";
 
 // Fish species data with compatibility info
 interface FishSpecies {
@@ -42,7 +44,7 @@ interface FishSpecies {
 const FISH_SPECIES: FishSpecies[] = [
     {
         id: "goldfish",
-        name: "السمكة الذهبية",
+        name: i18next.t("tools:compatibility-calculator.s1"),
         nameEn: "Goldfish",
         temperament: "peaceful",
         minTemp: 18,
@@ -56,7 +58,7 @@ const FISH_SPECIES: FishSpecies[] = [
     },
     {
         id: "betta",
-        name: "بيتا (السيامي)",
+        name: i18next.t("tools:compatibility-calculator.s2"),
         nameEn: "Betta",
         temperament: "aggressive",
         minTemp: 24,
@@ -70,7 +72,7 @@ const FISH_SPECIES: FishSpecies[] = [
     },
     {
         id: "guppy",
-        name: "جوبي",
+        name: i18next.t("tools:compatibility-calculator.s3"),
         nameEn: "Guppy",
         temperament: "peaceful",
         minTemp: 22,
@@ -85,7 +87,7 @@ const FISH_SPECIES: FishSpecies[] = [
     },
     {
         id: "tetra",
-        name: "تيترا نيون",
+        name: i18next.t("tools:compatibility-calculator.s4"),
         nameEn: "Neon Tetra",
         temperament: "peaceful",
         minTemp: 20,
@@ -100,7 +102,7 @@ const FISH_SPECIES: FishSpecies[] = [
     },
     {
         id: "angelfish",
-        name: "ملاك",
+        name: i18next.t("tools:compatibility-calculator.s5"),
         nameEn: "Angelfish",
         temperament: "semi-aggressive",
         minTemp: 24,
@@ -114,7 +116,7 @@ const FISH_SPECIES: FishSpecies[] = [
     },
     {
         id: "cichlid",
-        name: "سيكليد أفريقي",
+        name: i18next.t("tools:compatibility-calculator.s6"),
         nameEn: "African Cichlid",
         temperament: "aggressive",
         minTemp: 24,
@@ -128,7 +130,7 @@ const FISH_SPECIES: FishSpecies[] = [
     },
     {
         id: "molly",
-        name: "مولي",
+        name: i18next.t("tools:compatibility-calculator.s7"),
         nameEn: "Molly",
         temperament: "peaceful",
         minTemp: 22,
@@ -143,7 +145,7 @@ const FISH_SPECIES: FishSpecies[] = [
     },
     {
         id: "pleco",
-        name: "بليكو (قاع)",
+        name: i18next.t("tools:compatibility-calculator.s8"),
         nameEn: "Pleco",
         temperament: "peaceful",
         minTemp: 22,
@@ -157,7 +159,7 @@ const FISH_SPECIES: FishSpecies[] = [
     },
     {
         id: "corydoras",
-        name: "كوريدوراس",
+        name: i18next.t("tools:compatibility-calculator.s9"),
         nameEn: "Corydoras",
         temperament: "peaceful",
         minTemp: 22,
@@ -172,7 +174,7 @@ const FISH_SPECIES: FishSpecies[] = [
     },
     {
         id: "discus",
-        name: "ديسكس",
+        name: i18next.t("tools:compatibility-calculator.s10"),
         nameEn: "Discus",
         temperament: "peaceful",
         minTemp: 26,
@@ -195,6 +197,7 @@ interface CompatibilityResult {
 }
 
 export function CompatibilityCalculator() {
+  const { t } = useTranslation("tools");
     const [selectedFish, setSelectedFish] = useState<string[]>([]);
     const [tankSize, setTankSize] = useState<number>(100);
     const [searchQuery, setSearchQuery] = useState("");
@@ -236,24 +239,24 @@ export function CompatibilityCalculator() {
 
                 // Check direct incompatibility
                 if (fish1.incompatibleWith.includes(fish2.id) || fish2.incompatibleWith.includes(fish1.id)) {
-                    issues.push(`${fish1.name} و${fish2.name} لا يتوافقان معاً!`);
+                    issues.push(t("compatibility-calculator.s11", { v0: fish1.name, v1: fish2.name }));
                 }
 
                 // Check temperature overlap
                 const tempOverlap = !(fish1.maxTemp < fish2.minTemp || fish2.maxTemp < fish1.minTemp);
                 if (!tempOverlap) {
-                    issues.push(`نطاق درجة الحرارة مختلف: ${fish1.name} (${fish1.minTemp}-${fish1.maxTemp}°C) vs ${fish2.name} (${fish2.minTemp}-${fish2.maxTemp}°C)`);
+                    issues.push(t("compatibility-calculator.s12", { v0: fish1.name, v1: fish1.minTemp, v2: fish1.maxTemp, v3: fish2.name, v4: fish2.minTemp, v5: fish2.maxTemp }));
                 }
 
                 // Check pH overlap
                 const phOverlap = !(fish1.maxPH < fish2.minPH || fish2.maxPH < fish1.minPH);
                 if (!phOverlap) {
-                    issues.push(`نطاق pH مختلف: ${fish1.name} (${fish1.minPH}-${fish1.maxPH}) vs ${fish2.name} (${fish2.minPH}-${fish2.maxPH})`);
+                    issues.push(t("compatibility-calculator.s13", { v0: fish1.name, v1: fish1.minPH, v2: fish1.maxPH, v3: fish2.name, v4: fish2.minPH, v5: fish2.maxPH }));
                 }
 
                 // Check size difference (big fish might eat small ones)
                 if (fish1.maxSize > fish2.minSize * 3 || fish2.maxSize > fish1.minSize * 3) {
-                    issues.push(`فرق الحجم كبير: قد يأكل الأكبر الأصغر`);
+                    issues.push(t("compatibility-calculator.s14"));
                 }
 
                 // Check temperament
@@ -261,7 +264,7 @@ export function CompatibilityCalculator() {
                     const aggressiveFish = fish1.temperament === "aggressive" ? fish1 : fish2;
                     const otherFish = fish1.temperament === "aggressive" ? fish2 : fish1;
                     if (otherFish.temperament === "peaceful") {
-                        issues.push(`${aggressiveFish.name} عدواني وقد يهاجم ${otherFish.name}`);
+                        issues.push(t("compatibility-calculator.s15", { v0: aggressiveFish.name, v1: otherFish.name }));
                     }
                 }
 
@@ -288,7 +291,7 @@ export function CompatibilityCalculator() {
             totalInches += avgSize;
 
             if (fish.schooling && fish.minSchoolSize) {
-                warnings.push(`${fish.name} يحتاج على الأقل ${fish.minSchoolSize} أفراد`);
+                warnings.push(t("compatibility-calculator.s16", { v0: fish.name, v1: fish.minSchoolSize }));
             }
         });
 
@@ -330,8 +333,8 @@ export function CompatibilityCalculator() {
                             <Fish className="w-8 h-8 text-blue-500" />
                         </div>
                         <div>
-                            <h1 className="text-2xl font-bold">كاشف توافقية الأسماك</h1>
-                            <p className="text-muted-foreground">اختر الأسماك للتحقق من توافقها معاً</p>
+                            <h1 className="text-2xl font-bold">{t("compatibility-calculator.s17")}</h1>
+                            <p className="text-muted-foreground">{t("compatibility-calculator.s18")}</p>
                         </div>
                     </div>
                 </CardContent>
@@ -345,19 +348,19 @@ export function CompatibilityCalculator() {
                             <CardTitle className="flex items-center justify-between">
                                 <span className="flex items-center gap-2">
                                     <Users className="w-5 h-5" />
-                                    اختر الأسماك
+                                    {t("compatibility-calculator.s19")}
                                 </span>
                                 {selectedFish.length > 0 && (
                                     <Button variant="ghost" size="sm" onClick={clearAll}>
                                         <Trash2 className="w-4 h-4 ml-1" />
-                                        مسح الكل
+                                        {t("compatibility-calculator.s20")}
                                     </Button>
                                 )}
                             </CardTitle>
                             <div className="relative">
                                 <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                                 <Input
-                                    placeholder="ابحث عن سمكة..."
+                                    placeholder={t("compatibility-calculator.s21")}
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     className="pr-10"
@@ -390,11 +393,11 @@ export function CompatibilityCalculator() {
                                             </div>
                                             <div className="flex items-center gap-2 mt-1">
                                                 <Badge variant="outline" className={cn("text-xs", getTemperamentColor(fish.temperament))}>
-                                                    {fish.temperament === "peaceful" ? "مسالم" :
-                                                        fish.temperament === "semi-aggressive" ? "شبه عدواني" : "عدواني"}
+                                                    {fish.temperament === "peaceful" ? t("compatibility-calculator.s22") :
+                                                        fish.temperament === "semi-aggressive" ? t("compatibility-calculator.s23") : t("compatibility-calculator.s24")}
                                                 </Badge>
                                                 <span className="text-xs text-muted-foreground">
-                                                    {fish.minSize}-{fish.maxSize} سم
+                                                    {fish.minSize}-{fish.maxSize} {t("compatibility-calculator.s25")}
                                                 </span>
                                             </div>
                                         </div>
@@ -409,7 +412,7 @@ export function CompatibilityCalculator() {
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <Droplets className="w-5 h-5" />
-                                حجم الحوض
+                                {t("compatibility-calculator.s26")}
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
@@ -422,7 +425,7 @@ export function CompatibilityCalculator() {
                                     max={1000}
                                     className="w-32"
                                 />
-                                <span className="text-muted-foreground">لتر</span>
+                                <span className="text-muted-foreground">{t("compatibility-calculator.s27")}</span>
                                 <div className="flex-1">
                                     <div className="h-3 bg-muted rounded-full overflow-hidden">
                                         <div
@@ -435,7 +438,7 @@ export function CompatibilityCalculator() {
                                         />
                                     </div>
                                     <p className="text-sm text-muted-foreground mt-1">
-                                        {tankCapacity.capacityUsed.toFixed(0)}% من السعة المستخدمة
+                                        {tankCapacity.capacityUsed.toFixed(0)}{t("compatibility-calculator.s28")}
                                     </p>
                                 </div>
                             </div>
@@ -465,9 +468,9 @@ export function CompatibilityCalculator() {
                                     {overallCompatibility === "incompatible" && <X className="w-8 h-8 text-red-600" />}
                                 </div>
                                 <h3 className="text-xl font-bold">
-                                    {overallCompatibility === "compatible" && "متوافقة تماماً! ✅"}
-                                    {overallCompatibility === "caution" && "توافق جزئي ⚠️"}
-                                    {overallCompatibility === "incompatible" && "غير متوافقة ❌"}
+                                    {overallCompatibility === "compatible" && t("compatibility-calculator.s29")}
+                                    {overallCompatibility === "caution" && t("compatibility-calculator.s30")}
+                                    {overallCompatibility === "incompatible" && t("compatibility-calculator.s31")}
                                 </h3>
                             </CardContent>
                         </Card>
@@ -479,7 +482,7 @@ export function CompatibilityCalculator() {
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-lg">
                                     <Info className="w-5 h-5" />
-                                    تفاصيل التوافقية
+                                    {t("compatibility-calculator.s32")}
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-3">
@@ -525,7 +528,7 @@ export function CompatibilityCalculator() {
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-lg text-amber-700 dark:text-amber-400">
                                     <AlertTriangle className="w-5 h-5" />
-                                    تنبيهات
+                                    {t("compatibility-calculator.s33")}
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
@@ -546,7 +549,7 @@ export function CompatibilityCalculator() {
                         <Card className="border-dashed">
                             <CardContent className="p-6 text-center text-muted-foreground">
                                 <Fish className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                                <p>اختر سمكتين على الأقل للتحقق من التوافق</p>
+                                <p>{t("compatibility-calculator.s34")}</p>
                             </CardContent>
                         </Card>
                     )}

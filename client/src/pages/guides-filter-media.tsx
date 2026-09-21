@@ -1,4 +1,6 @@
+import { useTranslation } from "react-i18next";
 export default function GuideFilterMedia() {
+  const { t } = useTranslation("guides");
   return (
     <div className="fmd-wrap">
 
@@ -10,49 +12,48 @@ export default function GuideFilterMedia() {
 
         {/* ── Hero ── */}
         <section className="fmd-hero">
-          <span className="fmd-badge">دليل الوسط — AQUAVO</span>
+          <span className="fmd-badge">{t("guides-filter-media.s1")}</span>
 
           {/* Stacked filter layers — CSS only */}
           <div className="fmd-layers" aria-hidden="true">
             <div className="fmd-layer fmd-layer-top">
-              <span className="fmd-layer-lbl">ميكانيكي</span>
+              <span className="fmd-layer-lbl">{t("guides-filter-media.s2")}</span>
             </div>
             <div className="fmd-layer fmd-layer-mid">
-              <span className="fmd-layer-lbl">بيولوجي</span>
+              <span className="fmd-layer-lbl">{t("guides-filter-media.s3")}</span>
             </div>
             <div className="fmd-layer fmd-layer-bot">
-              <span className="fmd-layer-lbl">كيميائي</span>
+              <span className="fmd-layer-lbl">{t("guides-filter-media.s4")}</span>
             </div>
           </div>
 
-          <h1>المدينة المخفية</h1>
-          <p className="fmd-sub">داخل الفلتر مدينة كاملة — كل طابق له وظيفة</p>
+          <h1>{t("guides-filter-media.s5")}</h1>
+          <p className="fmd-sub">{t("guides-filter-media.s6")}</p>
           <p className="fmd-intro">
-            الفلتر ما هو مجرد إسفنجة. داخله طبقات متخصصة كل واحدة تؤدي دور مختلف.
-            الترتيب الصح يعني فلتر يشتغل بكفاءة لأشهر دون مشاكل.
+            {t("guides-filter-media.s7")}
           </p>
           <div className="fmd-meta">
-            <span>للمتوسطين والمحترفين</span>
-            <span>وقت القراءة: 6 دقائق</span>
+            <span>{t("guides-filter-media.s8")}</span>
+            <span>{t("guides-filter-media.s9")}</span>
           </div>
         </section>
 
         {/* ── الطبقات الثلاث ── */}
         <section className="fmd-section">
-          <h2 className="fmd-title">الطبقات الثلاث — الترتيب مهم</h2>
+          <h2 className="fmd-title">{t("guides-filter-media.s10")}</h2>
           <p className="fmd-body">
-            المي يدخل من الأعلى وينزل للأسفل. الترتيب الخطأ يخلي الطبقات تتشبع بسرعة وتوقف الكفاءة.
+            {t("guides-filter-media.s11")}
           </p>
 
           <div className="fmd-stack">
             <div className="fmd-block fmd-mech">
-              <div className="fmd-block-num">١</div>
+              <div className="fmd-block-num">{t("guides-filter-media.s12")}</div>
               <div className="fmd-block-body">
-                <div className="fmd-block-tag">الطبقة الأولى — ميكانيكي</div>
-                <h3>يمسك الأوساخ الكبيرة</h3>
-                <p>إسفنج خشن أو وسائد ميكانيكية. يحجز بقايا الأكل والطحالب العائمة وجزيئات الحصى.</p>
+                <div className="fmd-block-tag">{t("guides-filter-media.s13")}</div>
+                <h3>{t("guides-filter-media.s14")}</h3>
+                <p>{t("guides-filter-media.s15")}</p>
                 <div className="fmd-block-note">
-                  <strong>صيانة:</strong> اغسله مرة بالأسبوع بمي الحوض نفسه — ما تستخدم مي الصنبور.
+                  <strong>{t("guides-filter-media.s16")}</strong> {t("guides-filter-media.s17")}
                 </div>
               </div>
             </div>
@@ -60,13 +61,13 @@ export default function GuideFilterMedia() {
             <div className="fmd-arrow">↓</div>
 
             <div className="fmd-block fmd-bio">
-              <div className="fmd-block-num">٢</div>
+              <div className="fmd-block-num">{t("guides-filter-media.s18")}</div>
               <div className="fmd-block-body">
-                <div className="fmd-block-tag">الطبقة الثانية — بيولوجي</div>
-                <h3>مستعمرة البكتيريا النافعة</h3>
-                <p>حجارة بيو، سيراميك، سبونج ناعم. هنا تسكن البكتيريا التي تحول الأمونيا → نترات آمنة.</p>
+                <div className="fmd-block-tag">{t("guides-filter-media.s19")}</div>
+                <h3>{t("guides-filter-media.s20")}</h3>
+                <p>{t("guides-filter-media.s21")}</p>
                 <div className="fmd-block-note">
-                  <strong>لا تغسله أبداً بمي الصنبور</strong> — البكتيريا تموت. غسلة خفيفة بمي الحوض كل ٣–٤ أشهر فقط.
+                  <strong>{t("guides-filter-media.s22")}</strong> {t("guides-filter-media.s23")}
                 </div>
               </div>
             </div>
@@ -74,13 +75,13 @@ export default function GuideFilterMedia() {
             <div className="fmd-arrow">↓</div>
 
             <div className="fmd-block fmd-chem">
-              <div className="fmd-block-num">٣</div>
+              <div className="fmd-block-num">{t("guides-filter-media.s24")}</div>
               <div className="fmd-block-body">
-                <div className="fmd-block-tag">الطبقة الثالثة — كيميائي (اختياري)</div>
-                <h3>يُعالج المشاكل الخاصة</h3>
-                <p>كربون نشط (يزيل الأدوية والروائح)، زيوليت (يمتص الأمونيا في الطوارئ)، فوسفات ريموفر.</p>
+                <div className="fmd-block-tag">{t("guides-filter-media.s25")}</div>
+                <h3>{t("guides-filter-media.s26")}</h3>
+                <p>{t("guides-filter-media.s27")}</p>
                 <div className="fmd-block-note">
-                  <strong>ليس دائماً:</strong> الكربون النشط يستنفد خلال ٤–٦ أسابيع. بعدها لا يفيد ويجب تبديله.
+                  <strong>{t("guides-filter-media.s28")}</strong> {t("guides-filter-media.s29")}
                 </div>
               </div>
             </div>
@@ -89,98 +90,97 @@ export default function GuideFilterMedia() {
 
         {/* ── جدول البيو ── */}
         <section className="fmd-section">
-          <h2 className="fmd-title">مقارنة وسائط البيولوجي</h2>
+          <h2 className="fmd-title">{t("guides-filter-media.s30")}</h2>
           <div className="fmd-table">
             <div className="fmd-trow fmd-thead">
-              <span>الوسيط</span>
-              <span>المساحة السطحية</span>
-              <span>العمر الافتراضي</span>
+              <span>{t("guides-filter-media.s31")}</span>
+              <span>{t("guides-filter-media.s32")}</span>
+              <span>{t("guides-filter-media.s33")}</span>
             </div>
             <div className="fmd-trow">
-              <span>سيراميك رينج</span>
-              <span>عالية جداً</span>
-              <span>سنوات</span>
+              <span>{t("guides-filter-media.s34")}</span>
+              <span>{t("guides-filter-media.s35")}</span>
+              <span>{t("guides-filter-media.s36")}</span>
             </div>
             <div className="fmd-trow">
-              <span>حجارة بيو بول</span>
-              <span>عالية جداً</span>
-              <span>دائم</span>
+              <span>{t("guides-filter-media.s37")}</span>
+              <span>{t("guides-filter-media.s35")}</span>
+              <span>{t("guides-filter-media.s38")}</span>
             </div>
             <div className="fmd-trow">
-              <span>إسفنج ناعم</span>
-              <span>متوسطة</span>
-              <span>١–٢ سنة</span>
+              <span>{t("guides-filter-media.s39")}</span>
+              <span>{t("guides-filter-media.s40")}</span>
+              <span>{t("guides-filter-media.s41")}</span>
             </div>
             <div className="fmd-trow">
-              <span>لافا روك</span>
-              <span>عالية (طبيعي)</span>
-              <span>دائم</span>
+              <span>{t("guides-filter-media.s42")}</span>
+              <span>{t("guides-filter-media.s43")}</span>
+              <span>{t("guides-filter-media.s38")}</span>
             </div>
           </div>
         </section>
 
         {/* ── لا تبدل كل شيء مرة ── */}
         <section className="fmd-section">
-          <h2 className="fmd-title">القاعدة الأهم: لا تبدّل كل الوسائط مرة وحدة</h2>
+          <h2 className="fmd-title">{t("guides-filter-media.s44")}</h2>
           <p className="fmd-body">
-            هذا الخطأ يهدم النظام البيولوجي كله دفعة وحدة — حتى لو الحوض عمره سنوات.
-            الشخص يظن يصون الفلتر والواقع يحذف البكتيريا النافعة كلها بيوم واحد.
+            {t("guides-filter-media.s45")}
           </p>
           <div className="fmd-rule-grid">
             <div className="fmd-rule-bad">
-              <div className="fmd-rule-tag fmd-tag-bad">✕ الخطأ الشائع</div>
+              <div className="fmd-rule-tag fmd-tag-bad">{t("guides-filter-media.s46")}</div>
               <ul className="fmd-rule-ul">
-                <li>تبديل الإسفنج والسيراميك والكربون كلهم نفس اليوم</li>
-                <li>غسيل كل شيء بمي الصنبور</li>
-                <li>تنظيف الفلتر كامل كل شهر بطريقة عميقة</li>
+                <li>{t("guides-filter-media.s47")}</li>
+                <li>{t("guides-filter-media.s48")}</li>
+                <li>{t("guides-filter-media.s49")}</li>
               </ul>
-              <div className="fmd-rule-result">النتيجة: أمونيا ترتفع خلال ٢٤–٤٨ ساعة. الدورة تبدأ من صفر.</div>
+              <div className="fmd-rule-result">{t("guides-filter-media.s50")}</div>
             </div>
             <div className="fmd-rule-good">
-              <div className="fmd-rule-tag fmd-tag-good">✓ الطريقة الصحيحة</div>
+              <div className="fmd-rule-tag fmd-tag-good">{t("guides-filter-media.s51")}</div>
               <ul className="fmd-rule-ul">
-                <li>نظّف أو بدّل وسيطة وحدة كل مرة</li>
-                <li>انتظر ٢–٤ أسابيع قبل الوسيطة الثانية</li>
-                <li>نظّف دائماً بمي الحوض — مو مي الصنبور</li>
-                <li>إذا لازم تبدل سيراميك قديم، أضف الجديد بجانبه أسبوعين أول</li>
+                <li>{t("guides-filter-media.s52")}</li>
+                <li>{t("guides-filter-media.s53")}</li>
+                <li>{t("guides-filter-media.s54")}</li>
+                <li>{t("guides-filter-media.s55")}</li>
               </ul>
             </div>
           </div>
           <div className="fmd-stagger-note">
-            السبب: البكتيريا النافعة تحتاج وقت لتتكاثر وتستقر على الوسائط الجديدة. إزالة كل الوسائط القديمة دفعة وحدة = لا بكتيريا = لا حماية للسمچ.
+            {t("guides-filter-media.s56")}
           </div>
         </section>
 
         {/* ── علامات التحذير ── */}
         <section className="fmd-section">
-          <h2 className="fmd-title">متى تعرف أن الوسط مشبع؟</h2>
+          <h2 className="fmd-title">{t("guides-filter-media.s57")}</h2>
           <div className="fmd-warn-list">
             <div className="fmd-warn">
               <span className="fmd-warn-dot"></span>
               <div>
-                <strong>ضعف تدفق الفلتر فجأة</strong>
-                <p>الوسط الميكانيكي مسدود — اغسله فوراً</p>
+                <strong>{t("guides-filter-media.s58")}</strong>
+                <p>{t("guides-filter-media.s59")}</p>
               </div>
             </div>
             <div className="fmd-warn">
               <span className="fmd-warn-dot"></span>
               <div>
-                <strong>ارتفاع الأمونيا رغم الفلتر الشغال</strong>
-                <p>البكتيريا ضعيفة — مشكلة في الوسط البيولوجي أو صدمة كيميائية</p>
+                <strong>{t("guides-filter-media.s60")}</strong>
+                <p>{t("guides-filter-media.s61")}</p>
               </div>
             </div>
             <div className="fmd-warn">
               <span className="fmd-warn-dot"></span>
               <div>
-                <strong>رائحة كبريت أو تعفن من الفلتر</strong>
-                <p>منطقة لاهوائية تتكون — نظف الوسط وزد التدفق</p>
+                <strong>{t("guides-filter-media.s62")}</strong>
+                <p>{t("guides-filter-media.s63")}</p>
               </div>
             </div>
             <div className="fmd-warn">
               <span className="fmd-warn-dot"></span>
               <div>
-                <strong>لون المي يميل للصفرة</strong>
-                <p>الكربون النشط استنفد — بدّله أو ابعده إذا ما تريد استبداله</p>
+                <strong>{t("guides-filter-media.s64")}</strong>
+                <p>{t("guides-filter-media.s65")}</p>
               </div>
             </div>
           </div>
@@ -189,9 +189,9 @@ export default function GuideFilterMedia() {
         {/* ── CTA ── */}
         <section className="fmd-cta-section">
           <div className="fmd-cta-box">
-            <h2 className="fmd-cta-title">مو متأكد من الوسط المناسب لفلترك؟</h2>
+            <h2 className="fmd-cta-title">{t("guides-filter-media.s66")}</h2>
             <p className="fmd-cta-body">
-              أرسل نوع الفلتر وحجم الحوض — ننصحك بالترتيب الأمثل.
+              {t("guides-filter-media.s67")}
             </p>
             <a
               href="https://www.instagram.com/aquavo_iq/"
@@ -199,7 +199,7 @@ export default function GuideFilterMedia() {
               rel="noopener noreferrer"
               className="fmd-cta-btn"
             >
-              راسلنا على إنستغرام
+              {t("guides-filter-media.s68")}
             </a>
           </div>
         </section>

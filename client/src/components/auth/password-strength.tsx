@@ -6,6 +6,7 @@ import {
     PASSWORD_MIN_LENGTH,
     validatePasswordPolicy,
 } from "@shared/password-policy";
+import { useTranslation } from "react-i18next";
 
 interface PasswordStrengthProps {
     password: string;
@@ -13,6 +14,7 @@ interface PasswordStrengthProps {
 }
 
 export function PasswordStrength({ password, showRequirements = true }: PasswordStrengthProps) {
+  const { t } = useTranslation("account");
     const { score, label, color, bgColor } = useMemo(() => {
         if (!password) {
             return { score: 0, label: "", color: "bg-muted", bgColor: "bg-muted" };
@@ -20,9 +22,9 @@ export function PasswordStrength({ password, showRequirements = true }: Password
 
         const ratio = Math.min(1, password.length / PASSWORD_MIN_LENGTH);
         const score = Math.round(ratio * 100);
-        if (score < 50) return { score, label: "قصيرة", color: "bg-red-500", bgColor: "bg-red-100" };
-        if (score < 100) return { score, label: "تحتاج طول أكثر", color: "bg-yellow-500", bgColor: "bg-yellow-100" };
-        return { score, label: "طول مناسب", color: "bg-green-500", bgColor: "bg-green-100" };
+        if (score < 50) return { score, label: t("password-strength.s1"), color: "bg-red-500", bgColor: "bg-red-100" };
+        if (score < 100) return { score, label: t("password-strength.s2"), color: "bg-yellow-500", bgColor: "bg-yellow-100" };
+        return { score, label: t("password-strength.s3"), color: "bg-green-500", bgColor: "bg-green-100" };
     }, [password]);
 
     if (!password) return null;
@@ -36,7 +38,7 @@ export function PasswordStrength({ password, showRequirements = true }: Password
         <div className="space-y-3">
             <div className="space-y-1">
                 <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">قوة كلمة المرور:</span>
+                    <span className="text-muted-foreground">{t("password-strength.s4")}</span>
                     <span className={cn(
                         "font-medium px-2 py-0.5 rounded-full text-xs",
                         bgColor,
@@ -57,15 +59,15 @@ export function PasswordStrength({ password, showRequirements = true }: Password
                 <div className="bg-muted/50 rounded-lg p-3 space-y-2">
                     <p className="text-xs font-medium text-muted-foreground flex items-center gap-1">
                         <AlertCircle className="w-3 h-3" />
-                        متطلبات كلمة المرور:
+                        {t("password-strength.s5")}
                     </p>
                     <ul className="grid grid-cols-1 gap-1">
-                        <Requirement ok={longEnough} text={`${PASSWORD_MIN_LENGTH} حرف على الأقل — العبارات الطويلة أفضل`} />
-                        <Requirement ok={withinMaximum} text={`بحد أقصى ${PASSWORD_MAX_LENGTH} حرف`} />
-                        <Requirement ok={notCommon} text="مو كلمة مرور شائعة أو سهلة التخمين" />
+                        <Requirement ok={longEnough} text={t("password-strength.s6", { v0: PASSWORD_MIN_LENGTH })} />
+                        <Requirement ok={withinMaximum} text={t("password-strength.s7", { v0: PASSWORD_MAX_LENGTH })} />
+                        <Requirement ok={notCommon} text={t("password-strength.s8")} />
                     </ul>
                     <p className="text-[11px] leading-5 text-muted-foreground">
-                        تكدر تستخدم مسافات وعربي وإنكليزي ورموز. ما نفرض خلط أنواع أحرف بشكل مصطنع.
+                        {t("password-strength.s9")}
                     </p>
                 </div>
             )}

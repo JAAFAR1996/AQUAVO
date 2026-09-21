@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { RefreshCw, Share2, Fish, Globe, Waves, Sparkles } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 // ─── Types ───────────────────────────────────────────────
 interface FishAgent {
@@ -88,6 +89,7 @@ function AnimatedFish({ fish, status, index }: { fish: FishAgent; status?: FishS
 
 // ─── Main Page ────────────────────────────────────────────
 export default function CulturalTwin() {
+  const { t } = useTranslation("tools");
   const [data, setData] = useState<CulturalTwinData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -100,9 +102,9 @@ export default function CulturalTwin() {
       const res = await fetch("/api/simulation/cultural-twin");
       const json = await res.json();
       if (json.success) setData(json.data);
-      else setError(json.error || "حدث خطأ");
+      else setError(json.error || t("cultural-twin.s1"));
     } catch {
-      setError("تعذّر الاتصال بالخادم");
+      setError(t("cultural-twin.s2"));
     } finally {
       setLoading(false);
     }
@@ -111,10 +113,10 @@ export default function CulturalTwin() {
   useEffect(() => { fetchTwin(); }, [fetchTwin]);
 
   const handleShare = async () => {
-    const text = data?.event?.shareText || "حوض AQUAVO الثقافي — مرآة المجتمع العراقي";
+    const text = data?.event?.shareText || t("cultural-twin.s3");
     const url = window.location.href;
     if (navigator.share) {
-      try { await navigator.share({ title: "التوأم الثقافي — AQUAVO", text, url }); } catch { /* user cancelled */ }
+      try { await navigator.share({ title: t("cultural-twin.s4"), text, url }); } catch { /* user cancelled */ }
     } else {
       await navigator.clipboard.writeText(`${text}\n${url}`);
       setCopied(true);
@@ -149,17 +151,17 @@ export default function CulturalTwin() {
           <div className="relative z-10 max-w-3xl mx-auto">
             <div className="inline-flex items-center gap-2 bg-cyan-500/20 border border-cyan-400/30 rounded-full px-5 py-2 mb-6">
               <Waves className="h-4 w-4 text-cyan-300" />
-              <span className="text-cyan-200 text-sm font-semibold">مبادرة AQUAVO الثقافية</span>
+              <span className="text-cyan-200 text-sm font-semibold">{t("cultural-twin.s5")}</span>
             </div>
 
             <h1 className="text-4xl md:text-6xl font-black text-white mb-4 leading-tight">
-              التوأم الثقافي
+              {t("cultural-twin.s6")}
             </h1>
             <p className="text-cyan-200 text-lg mb-2 font-medium">
-              حوض افتراضي يعكس روح المجتمع العراقي
+              {t("cultural-twin.s7")}
             </p>
             <p className="text-cyan-300/70 text-sm max-w-xl mx-auto">
-              كل سمكة تمثل شريحة من المجتمع. كل يوم قصة جديدة. المحرك: ذكاء اصطناعي يقرأ اليوم ويروي الحكاية.
+              {t("cultural-twin.s8")}
             </p>
 
             <div className="flex justify-center gap-3 mt-6">
@@ -170,11 +172,11 @@ export default function CulturalTwin() {
                 className="border-cyan-400/50 text-cyan-200 hover:bg-cyan-500/20 gap-2"
               >
                 <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-                تحديث الحوض
+                {t("cultural-twin.s9")}
               </Button>
               <Button onClick={handleShare} className="bg-cyan-600 hover:bg-cyan-500 text-white gap-2">
                 <Share2 className="h-4 w-4" />
-                {copied ? "تم النسخ!" : "شارك"}
+                {copied ? t("cultural-twin.s10") : t("cultural-twin.s11")}
               </Button>
             </div>
           </div>
@@ -189,7 +191,7 @@ export default function CulturalTwin() {
                 <div className="absolute inset-0 rounded-full border-4 border-cyan-200/20 border-t-cyan-400 animate-spin" />
                 <div className="absolute inset-3 rounded-full border-4 border-blue-200/20 border-b-blue-400 animate-spin" style={{ animationDirection: "reverse" }} />
               </div>
-              <p className="text-muted-foreground animate-pulse">الذكاء الاصطناعي يراقب الحوض...</p>
+              <p className="text-muted-foreground animate-pulse">{t("cultural-twin.s12")}</p>
             </div>
           )}
 
@@ -197,7 +199,7 @@ export default function CulturalTwin() {
             <div className="text-center py-12 text-red-400 bg-red-950/20 rounded-xl border border-red-800/30 max-w-md mx-auto">
               <p className="font-semibold">{error}</p>
               <Button onClick={fetchTwin} variant="outline" className="mt-4 border-red-700 text-red-400">
-                حاول مجدداً
+                {t("cultural-twin.s13")}
               </Button>
             </div>
           )}
@@ -240,7 +242,7 @@ export default function CulturalTwin() {
                   {event?.dailyEvent && (
                     <div className="mt-8 max-w-sm mx-auto">
                       <div className="flex justify-between text-xs text-cyan-300/70 mb-1">
-                        <span>توافق الحوض</span>
+                        <span>{t("cultural-twin.s14")}</span>
                         <span>{event.dailyEvent.harmonyPercent}%</span>
                       </div>
                       <div className="h-2 bg-card/10 rounded-full overflow-hidden">
@@ -281,7 +283,7 @@ export default function CulturalTwin() {
               <div>
                 <h3 className="text-2xl font-black text-center mb-6 flex items-center justify-center gap-2">
                   <Fish className="h-6 w-6 text-cyan-400" />
-                  خريطة المجتمع في الحوض
+                  {t("cultural-twin.s15")}
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   {fishMap.map((fish) => {
@@ -332,9 +334,9 @@ export default function CulturalTwin() {
               {/* ── About ── */}
               <Card className="border-dashed border-border/50">
                 <CardContent className="pt-6 pb-6 text-center">
-                  <h4 className="font-bold mb-2 text-muted-foreground">ما هو التوأم الثقافي؟</h4>
+                  <h4 className="font-bold mb-2 text-muted-foreground">{t("cultural-twin.s16")}</h4>
                   <p className="text-sm text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                    فكرة أصيلة من AQUAVO — نستخدم تقنية المحاكاة المتعددة الوكلاء (MiroFish Engine) لنحوّل كل شريحة من المجتمع العراقي إلى سمكة في حوض افتراضي. كل يوم، الذكاء الاصطناعي يقرأ اليوم ويروي قصة الحوض. إنه ليس ترفيهاً فقط — إنه مرآة.
+                    {t("cultural-twin.s17")}
                   </p>
                 </CardContent>
               </Card>

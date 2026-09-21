@@ -5,6 +5,7 @@
 
 import jsPDF from 'jspdf';
 import { toPng } from 'html-to-image';
+import { i18next } from "@/i18n";
 
 // Helper for development-only logging
 const debugLog = (...args: unknown[]) => {
@@ -68,7 +69,7 @@ export async function generateBreedingPDF(elementId: string, fileName: string): 
     const element = document.getElementById(elementId);
     if (!element) {
       console.error("[PDF Generator] Element not found with ID:", elementId);
-      throw new Error(`لم يتم العثور على العنصر: ${elementId}`);
+      throw new Error(i18next.t("pages:pdf-generator.s1", { v0: elementId }));
     }
 
     debugLog("Element found. Dimensions:", {
@@ -81,7 +82,7 @@ export async function generateBreedingPDF(elementId: string, fileName: string): 
     // Allow off-screen elements if they have dimensions defined
     if (element.offsetWidth === 0 || element.offsetHeight === 0) {
       console.warn("[PDF Generator] Element has zero dimensions!");
-      throw new Error("العنصر غير مرئي أو فارغ");
+      throw new Error(i18next.t("pages:pdf-generator.s2"));
     }
 
     // Create a hidden clone for PDF generation with safe colors
@@ -128,7 +129,7 @@ export async function generateBreedingPDF(elementId: string, fileName: string): 
     debugLog("Image captured successfully");
 
     if (!imgData || imgData.length < 100) {
-      throw new Error("فشل في تحويل الصورة");
+      throw new Error(i18next.t("pages:pdf-generator.s3"));
     }
 
     // Create PDF

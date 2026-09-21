@@ -1,0 +1,241 @@
+{
+  "ui": {
+    "en": {
+      "total": 5452,
+      "missing": [],
+      "arabicLeaks": []
+    },
+    "ckb": {
+      "total": 5452,
+      "missing": [],
+      "arabicLeaks": []
+    }
+  },
+  "staticMeta": {
+    "en": {
+      "covered": 23,
+      "total": 23,
+      "missing": []
+    },
+    "ckb": {
+      "covered": 23,
+      "total": 23,
+      "missing": []
+    }
+  },
+  "content": {
+    "products": {
+      "ar": {
+        "have": 107,
+        "total": 107
+      },
+      "en": {
+        "have": 107,
+        "total": 107,
+        "missingSlugs": []
+      },
+      "ckb": {
+        "have": 107,
+        "total": 107,
+        "missingSlugs": []
+      }
+    },
+    "blog_posts": {
+      "ar": {
+        "have": 117,
+        "total": 117
+      },
+      "en": {
+        "have": 117,
+        "total": 117,
+        "missingSlugs": []
+      },
+      "ckb": {
+        "have": 117,
+        "total": 117,
+        "missingSlugs": []
+      }
+    },
+    "blog_categories": {
+      "ar": {
+        "have": 8,
+        "total": 8
+      },
+      "en": {
+        "have": 8,
+        "total": 8
+      },
+      "ckb": {
+        "have": 8,
+        "total": 8
+      }
+    },
+    "categories": {
+      "ar": {
+        "have": 11,
+        "total": 11
+      },
+      "en": {
+        "have": 11,
+        "total": 11
+      },
+      "ckb": {
+        "have": 11,
+        "total": 11
+      }
+    }
+  },
+  "classified": {
+    "B": [
+      "client/src/components/cart/checkout/types.ts",
+      "client/src/components/home/home-hero.tsx",
+      "client/src/components/journey/fish-species-data.ts",
+      "client/src/components/products/category-scroll-bar.tsx",
+      "client/src/data/blog-articles.ts",
+      "client/src/data/breeding-data.ts",
+      "client/src/lib/accountant-pdf-v2.ts",
+      "client/src/lib/aquascape-data.ts",
+      "client/src/lib/site-search.ts",
+      "client/src/lib/variant-dimensions.ts"
+    ],
+    "C": [
+      "client/src/App.tsx",
+      "client/src/components/cart/checkout/order-summary.tsx",
+      "client/src/components/cart/checkout-dialog.tsx",
+      "client/src/components/journey/tank-fit.tsx",
+      "client/src/components/onboarding-tour.tsx",
+      "client/src/components/products/product-comparison.tsx",
+      "client/src/components/ui/image-zoom.tsx",
+      "client/src/hooks/use-loyalty.ts",
+      "client/src/hooks/use-packaging.ts",
+      "client/src/lib/format.ts",
+      "client/src/lib/fulfillment-format.ts",
+      "client/src/lib/meta-pixel.ts",
+      "client/src/lib/motion/caustics.ts",
+      "client/src/lib/motion/flow-gate.ts",
+      "client/src/lib/motion/membrane.ts",
+      "client/src/lib/utils.ts",
+      "client/src/pages/ai-driftwood-experiment.tsx",
+      "client/src/pages/beginner-guide.tsx",
+      "client/src/pages/guides-algae-control.tsx",
+      "client/src/pages/guides-aquarium-salt.tsx",
+      "client/src/pages/guides-essential-tools.tsx",
+      "client/src/pages/guides-feeding-table.tsx",
+      "client/src/pages/guides-filter-choice.tsx",
+      "client/src/pages/guides-filter-media.tsx",
+      "client/src/pages/guides-fish-hiding.tsx",
+      "client/src/pages/guides-happy-fish-signs.tsx",
+      "client/src/pages/guides-heater-choice.tsx",
+      "client/src/pages/guides-quarantine.tsx",
+      "client/src/pages/guides-tank-rescue-plan.tsx",
+      "client/src/pages/guides-temperature-guide.tsx",
+      "client/src/pages/guides-treatment-basics.tsx",
+      "client/src/pages/guides-water-change-schedule.tsx",
+      "client/src/pages/guides-water-myths.tsx",
+      "client/src/pages/guides-white-scale.tsx",
+      "client/src/pages/invoice-view.tsx",
+      "client/src/pages/links.tsx",
+      "client/src/pages/profile.tsx"
+    ],
+    "D": [
+      {
+        "file": "client/src/components/products/category-cards.tsx",
+        "lines": 20
+      },
+      {
+        "file": "client/src/pages/temperature-guide.tsx",
+        "lines": 15
+      },
+      {
+        "file": "client/src/components/products/product-specifications-table.tsx",
+        "lines": 14
+      },
+      {
+        "file": "client/src/components/seo/meta-tags.tsx",
+        "lines": 9
+      },
+      {
+        "file": "client/src/components/products/multi-dimension-variant-selector.tsx",
+        "lines": 8
+      },
+      {
+        "file": "client/src/components/products/product-variant-selector.tsx",
+        "lines": 8
+      },
+      {
+        "file": "client/src/pages/product-details.tsx",
+        "lines": 8
+      },
+      {
+        "file": "client/src/pages/fish-health-diagnosis.tsx",
+        "lines": 7
+      },
+      {
+        "file": "client/src/hooks/use-navbar-preferences.tsx",
+        "lines": 6
+      },
+      {
+        "file": "client/src/components/journey/utils.ts",
+        "lines": 5
+      },
+      {
+        "file": "client/src/pages/fish-patients.tsx",
+        "lines": 5
+      },
+      {
+        "file": "client/src/components/cart/invoice-dialog.tsx",
+        "lines": 3
+      },
+      {
+        "file": "client/src/components/products/product-image-gallery.tsx",
+        "lines": 3
+      },
+      {
+        "file": "client/src/pages/cultural-twin.tsx",
+        "lines": 3
+      },
+      {
+        "file": "client/src/components/home/aquascape-styles.tsx",
+        "lines": 2
+      },
+      {
+        "file": "client/src/components/notifications/notification-bell.tsx",
+        "lines": 2
+      },
+      {
+        "file": "client/src/components/cart/checkout/loyalty-section.tsx",
+        "lines": 1
+      },
+      {
+        "file": "client/src/components/chat/ai-chat-bot.tsx",
+        "lines": 1
+      },
+      {
+        "file": "client/src/components/products/embedded-variant-selector.tsx",
+        "lines": 1
+      },
+      {
+        "file": "client/src/hooks/use-toast.ts",
+        "lines": 1
+      },
+      {
+        "file": "client/src/test-utils.tsx",
+        "lines": 1
+      },
+      {
+        "file": "client/src/types/index.ts",
+        "lines": 1
+      }
+    ]
+  },
+  "eligibility": {
+    "en": {
+      "eligible": true,
+      "reasons": []
+    },
+    "ckb": {
+      "eligible": true,
+      "reasons": []
+    }
+  }
+}

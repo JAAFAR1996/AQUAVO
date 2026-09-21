@@ -8,6 +8,7 @@ import type { IncomingMessage, ServerResponse } from "http";
 import { registerRoutes } from "../server/routes.js";
 import { buildSessionSecret, createSessionStore } from "../server/session-config.js";
 import { corsConfig, sanitizeBody, securityHeaders } from "../server/middleware/security.js";
+import { localeMiddleware } from "../server/middleware/locale.js";
 import sitemapIndexHandler from "./sitemap-index.js";
 import sitemapPagesHandler from "./sitemap-pages.js";
 import sitemapProductsHandler from "./sitemap-products.js";
@@ -156,6 +157,7 @@ async function buildApp() {
 
   app.use(express.urlencoded({ limit: "10mb", extended: true }));
   app.use(sanitizeBody);
+  app.use(localeMiddleware);
   app.use(csrfOriginProtection);
 
   console.log("📦 Creating session store...");

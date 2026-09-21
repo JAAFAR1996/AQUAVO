@@ -22,8 +22,10 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/auth-context";
+import { useTranslation } from "react-i18next";
 
 export default function Login() {
+  const { t } = useTranslation("account");
     const [, setLocation] = useLocation();
     const { toast } = useToast();
     const { login, isLoading: authLoading } = useAuth();
@@ -64,12 +66,12 @@ export default function Login() {
         try {
             await login(email, password, rememberMe);
             toast({
-                title: "تم تسجيل الدخول بنجاح!",
-                description: "مرحباً بك في AQUAVO",
+                title: t("login.s1"),
+                description: t("login.s2"),
             });
             setLocation("/");
         } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : "فشل تسجيل الدخول. يرجى التحقق من البيانات.";
+            const message = err instanceof Error ? err.message : t("login.s3");
             setError(message);
             // Check for IP blocking countdown
             if (err && typeof err === 'object' && 'retryAfter' in err) {
@@ -87,7 +89,7 @@ export default function Login() {
                 <main className="flex-1 flex items-center justify-center py-12 px-4">
                     <div className="flex flex-col items-center gap-4">
                         <Loader2 className="w-12 h-12 animate-spin text-primary" />
-                        <p className="text-muted-foreground">جاري التحميل...</p>
+                        <p className="text-muted-foreground">{t("login.s4")}</p>
                     </div>
                 </main>
             </div>
@@ -97,8 +99,8 @@ export default function Login() {
     return (
         <div className="flex-1 flex flex-col bg-background" dir="rtl">
             <MetaTags
-                title="تسجيل الدخول"
-                description="سجّل دخولك إلى AQUAVO للوصول إلى طلباتك وعروضك الشخصية ونقاط الولاء"
+                title={t("login.s5")}
+                description={t("login.s6")}
                 noIndex={true}
             />
 
@@ -113,9 +115,9 @@ export default function Login() {
                             <div className="w-16 h-16 bg-gradient-to-br from-primary to-cyan-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
                                 <Fish className="w-8 h-8 text-white" />
                             </div>
-                            <CardTitle className="text-2xl">تسجيل الدخول</CardTitle>
+                            <CardTitle className="text-2xl">{t("login.s5")}</CardTitle>
                             <CardDescription className="text-lg text-primary/80 font-medium mt-2">
-                                أهلاً بك في عائلتك الثانية! اشتقنا لرؤيتك 💙
+                                {t("login.s7")}
                             </CardDescription>
                         </CardHeader>
 
@@ -127,7 +129,7 @@ export default function Login() {
                                         {error}
                                         {blockCountdown && blockCountdown > 0 && (
                                             <div className="mt-2 font-bold text-lg">
-                                                ⏳ يمكنك المحاولة مرة أخرى خلال {formatCountdown(blockCountdown)}
+                                                {t("login.s8")} {formatCountdown(blockCountdown)}
                                             </div>
                                         )}
                                     </AlertDescription>
@@ -136,7 +138,7 @@ export default function Login() {
 
                             <form onSubmit={handleSubmit} className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="email">البريد الإلكتروني</Label>
+                                    <Label htmlFor="email">{t("login.s9")}</Label>
                                     <div className="relative">
                                         <Mail className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                                         <Input
@@ -154,10 +156,10 @@ export default function Login() {
 
                                 <div className="space-y-2">
                                     <div className="flex items-center justify-between">
-                                        <Label htmlFor="password">كلمة المرور</Label>
+                                        <Label htmlFor="password">{t("login.s10")}</Label>
                                         <Link href="/forgot-password">
                                             <span className="text-sm text-primary hover:underline cursor-pointer">
-                                                نسيت كلمة المرور؟
+                                                {t("login.s11")}
                                             </span>
                                         </Link>
                                     </div>
@@ -190,7 +192,7 @@ export default function Login() {
                                         onCheckedChange={(checked) => setRememberMe(checked as boolean)}
                                     />
                                     <Label htmlFor="remember" className="text-sm font-normal cursor-pointer">
-                                        تذكرني
+                                        {t("login.s12")}
                                     </Label>
                                 </div>
 
@@ -198,10 +200,10 @@ export default function Login() {
                                     {isLoading ? (
                                         <span className="flex items-center gap-2">
                                             <Loader2 className="w-5 h-5 animate-spin" />
-                                            جاري تسجيل الدخول...
+                                            {t("login.s13")}
                                         </span>
                                     ) : (
-                                        "تسجيل الدخول"
+                                        t("login.s5")
                                     )}
                                 </Button>
                             </form>
@@ -209,22 +211,22 @@ export default function Login() {
                             <div className="relative">
                                 <Separator />
                                 <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-3 text-sm text-muted-foreground">
-                                    أو
+                                    {t("login.s14")}
                                 </span>
                             </div>
 
                             <div className="text-center space-y-4">
                                 <p className="text-sm text-muted-foreground">
-                                    ليس لديك حساب؟{" "}
+                                    {t("login.s15")}{" "}
                                     <Link href="/register" className="text-primary font-semibold hover:underline cursor-pointer inline-block">
-                                        إنشاء حساب جديد
+                                        {t("login.s16")}
                                     </Link>
                                 </p>
 
                                 <Alert className="bg-primary/5 border-primary/20">
                                     <Sparkles className="h-4 w-4 text-primary" />
                                     <AlertDescription className="text-sm">
-                                        أنشئ حساباً واحصل على <strong>خصم 3%</strong> على طلبك الأول!
+                                        {t("login.s17")} <strong>{t("login.s18")}</strong> {t("login.s19")}
                                     </AlertDescription>
                                 </Alert>
                             </div>

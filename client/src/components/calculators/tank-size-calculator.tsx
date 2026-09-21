@@ -6,8 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calculator, Info } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useTranslation } from "react-i18next";
 
 export function TankSizeCalculator() {
+  const { t } = useTranslation("tools");
     const [shape, setShape] = useState("rectangle");
     const [units, setUnits] = useState("cm");
 
@@ -61,40 +63,40 @@ export function TankSizeCalculator() {
         <Card>
             <CardHeader>
                 <CardTitle className="flex items-center justify-end gap-2 text-xl">
-                    أدخل أبعاد الحوض
+                    {t("tank-size-calculator.s1")}
                     <Calculator className="w-6 h-6 text-primary" />
                 </CardTitle>
                 <CardDescription className="text-right">
-                    اختر شكل الحوض ووحدة القياس للحصول على النتيجة
+                    {t("tank-size-calculator.s2")}
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
 
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2 text-right">
-                        <Label>وحدة القياس</Label>
+                        <Label>{t("tank-size-calculator.s3")}</Label>
                         <Select value={units} onValueChange={setUnits}>
                             <SelectTrigger className="text-right" dir="rtl">
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent dir="rtl">
-                                <SelectItem value="cm">سنتيمتر (cm)</SelectItem>
-                                <SelectItem value="inch">إنش (inch)</SelectItem>
+                                <SelectItem value="cm">{t("tank-size-calculator.s4")}</SelectItem>
+                                <SelectItem value="inch">{t("tank-size-calculator.s5")}</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
 
                     <div className="space-y-2 text-right">
-                        <Label>شكل الحوض</Label>
+                        <Label>{t("tank-size-calculator.s6")}</Label>
                         <Select value={shape} onValueChange={setShape}>
                             <SelectTrigger className="text-right" dir="rtl">
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent dir="rtl">
-                                <SelectItem value="rectangle">مستطيل (Rectangle)</SelectItem>
-                                <SelectItem value="cube">مكعب (Cube)</SelectItem>
-                                <SelectItem value="cylinder">أسطواني (Cylinder)</SelectItem>
-                                <SelectItem value="bowfront">مقدمة مقوسة (Bowfront)</SelectItem>
+                                <SelectItem value="rectangle">{t("tank-size-calculator.s7")}</SelectItem>
+                                <SelectItem value="cube">{t("tank-size-calculator.s8")}</SelectItem>
+                                <SelectItem value="cylinder">{t("tank-size-calculator.s9")}</SelectItem>
+                                <SelectItem value="bowfront">{t("tank-size-calculator.s10")}</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -104,15 +106,15 @@ export function TankSizeCalculator() {
                     {(shape === "rectangle" || shape === "bowfront") && (
                         <>
                             <div className="space-y-2 text-right">
-                                <Label>الطول ({units})</Label>
+                                <Label>{t("tank-size-calculator.s11")}{units})</Label>
                                 <Input type="number" value={length} onChange={(e) => setLength(e.target.value)} className="text-right" />
                             </div>
                             <div className="space-y-2 text-right">
-                                <Label>العرض ({units})</Label>
+                                <Label>{t("tank-size-calculator.s12")}{units})</Label>
                                 <Input type="number" value={width} onChange={(e) => setWidth(e.target.value)} className="text-right" />
                             </div>
                             <div className="space-y-2 text-right">
-                                <Label>الارتفاع ({units})</Label>
+                                <Label>{t("tank-size-calculator.s13")}{units})</Label>
                                 <Input type="number" value={height} onChange={(e) => setHeight(e.target.value)} className="text-right" />
                             </div>
                         </>
@@ -120,7 +122,7 @@ export function TankSizeCalculator() {
 
                     {shape === "cube" && (
                         <div className="space-y-2 text-right">
-                            <Label>طول الضلع ({units})</Label>
+                            <Label>{t("tank-size-calculator.s14")}{units})</Label>
                             <Input type="number" value={length} onChange={(e) => setLength(e.target.value)} className="text-right" />
                         </div>
                     )}
@@ -128,28 +130,28 @@ export function TankSizeCalculator() {
                     {shape === "cylinder" && (
                         <>
                             <div className="space-y-2 text-right">
-                                <Label>القطر ({units})</Label>
+                                <Label>{t("tank-size-calculator.s15")}{units})</Label>
                                 <Input type="number" value={diameter} onChange={(e) => setDiameter(e.target.value)} className="text-right" />
                             </div>
                             <div className="space-y-2 text-right">
-                                <Label>الارتفاع ({units})</Label>
+                                <Label>{t("tank-size-calculator.s13")}{units})</Label>
                                 <Input type="number" value={height} onChange={(e) => setHeight(e.target.value)} className="text-right" />
                             </div>
                         </>
                     )}
                 </div>
 
-                <Button onClick={calculate} className="w-full text-lg h-12">احسب الحجم</Button>
+                <Button onClick={calculate} className="w-full text-lg h-12">{t("tank-size-calculator.s16")}</Button>
 
                 {result && (
                     <div className="mt-8 p-6 bg-primary/5 rounded-xl text-center border-2 border-primary/10 animate-in fade-in zoom-in duration-300">
                         <div className="grid grid-cols-2 gap-8">
                             <div>
-                                <p className="text-muted-foreground mb-1">الحجم باللتر</p>
+                                <p className="text-muted-foreground mb-1">{t("tank-size-calculator.s17")}</p>
                                 <p className="text-4xl font-bold text-primary">{result.liters} L</p>
                             </div>
                             <div>
-                                <p className="text-muted-foreground mb-1">الحجم بالجالون</p>
+                                <p className="text-muted-foreground mb-1">{t("tank-size-calculator.s18")}</p>
                                 <p className="text-4xl font-bold text-accent">{result.gallons} Gal</p>
                             </div>
                         </div>
@@ -158,9 +160,9 @@ export function TankSizeCalculator() {
                             <Alert className="bg-primary/10 border-primary/20 mb-4">
                                 <Info className="h-4 w-4 text-primary" />
                                 <AlertDescription className="text-sm text-foreground text-right">
-                                    وزن الماء التقريبي: <strong>{result.liters} كجم</strong> (بدون احتساب الزجاج والديكور)
+                                    {t("tank-size-calculator.s19")} <strong>{result.liters} {t("tank-size-calculator.s20")}</strong> {t("tank-size-calculator.s21")}
                                     <br />
-                                    تأكد من أن الطاولة تتحمل هذا الوزن!
+                                    {t("tank-size-calculator.s22")}
                                 </AlertDescription>
                             </Alert>
                         </div>

@@ -8,6 +8,7 @@ import { metaTrackAddToCart } from "@/lib/meta-pixel";
 import { ttqAddToCart } from "@/lib/tiktok-pixel";
 import { trackAddToCart as gaTrackAddToCart } from "@/lib/analytics";
 import { phTrackAddToCart } from "@/lib/posthog";
+import { useTranslation } from "react-i18next";
 
 // Single source of truth for AddToCart tracking. Fires Meta Pixel (+CAPI),
 // TikTok, GA4 and PostHog — ONLY after a successful add. Centralizing here
@@ -149,6 +150,7 @@ const mapServerCartItem = (item: ServerCartItem): CartItem => {
 };
 
 export function CartProvider({ children }: { children: ReactNode }) {
+  const { t } = useTranslation("common");
   const { user } = useAuth();
   const [items, setItems] = useState<CartItem[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -205,8 +207,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
             syncStorage.removeItem(CART_STORAGE_KEY);
 
             toast({
-              title: "تم دمج سلتك",
-              description: `تمت إضافة ${localItems.length} منتج من سلتك السابقة`,
+              title: t("cart-context.s1"),
+              description: t("cart-context.s2", { v0: localItems.length }),
             });
           }
 
@@ -290,8 +292,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const productPrice = Number(product.price);
     if (!productPrice || productPrice <= 0) {
       toast({
-        title: "غير متوفر حالياً",
-        description: "هذا المنتج غير متوفر حالياً — سيتوفر قريباً.",
+        title: t("cart-context.s3"),
+        description: t("cart-context.s4"),
         variant: "destructive",
       });
       return false;
@@ -331,26 +333,26 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
         if (res.status === 401) {
           toast({
-            title: "جلسة منتهية",
-            description: "يرجى تسجيل الدخول مرة أخرى لإضافة المنتجات.",
+            title: t("cart-context.s5"),
+            description: t("cart-context.s6"),
             variant: "destructive",
           });
           return false;
         }
 
         // Out-of-stock / validation → surface the server's clean Arabic message.
-        let description = "الكمية المطلوبة غير متوفرة حالياً";
+        let description = t("cart-context.s7");
         try {
           const data = await res.json();
           if (data?.message && typeof data.message === "string") description = data.message;
         } catch { /* keep default Arabic message */ }
-        toast({ title: "غير متوفر", description, variant: "destructive" });
+        toast({ title: t("cart-context.s8"), description, variant: "destructive" });
         return false;
       } catch (err) {
         console.warn("Failed to add to server cart", err);
         toast({
-          title: "حدث خطأ",
-          description: "لم نتمكن من إضافة المنتج — حاول مرة ثانية.",
+          title: t("cart-context.s9"),
+          description: t("cart-context.s10"),
           variant: "destructive",
         });
         return false;
@@ -374,13 +376,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const currentQty = items.find((item) => item.id === cartItemId)?.quantity ?? 0;
 
     if (stockKnown && available <= 0) {
-      toast({ title: "غير متوفر", description: "نفدت الكمية", variant: "destructive" });
+      toast({ title: t("cart-context.s8"), description: t("cart-context.s11"), variant: "destructive" });
       return false;
     }
     if (currentQty + quantity > available) {
       toast({
-        title: "غير متوفر",
-        description: currentQty >= available ? "وصلت للكمية المتوفرة" : "الكمية المطلوبة غير متوفرة حالياً",
+        title: t("cart-context.s8"),
+        description: currentQty >= available ? t("cart-context.s12") : t("cart-context.s7"),
         variant: "destructive",
       });
       return false;
@@ -432,16 +434,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const purchasableProducts = products.filter(p => Number(p.price) > 0);
     if (purchasableProducts.length === 0) {
       toast({
-        title: "غير متوفرة حالياً",
-        description: "هذه المنتجات غير متوفرة حالياً.",
+        title: t("cart-context.s13"),
+        description: t("cart-context.s14"),
         variant: "destructive",
       });
       return;
     }
     if (purchasableProducts.length < products.length) {
       toast({
-        title: "تنبيه",
-        description: `تم إضافة ${purchasableProducts.length} منتج فقط — البقية قريباً.`,
+        title: t("cart-context.s15"),
+        description: t("cart-context.s16", { v0: purchasableProducts.length }),
       });
     }
     if (user) {
@@ -479,8 +481,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       } catch (err) {
         console.error("Failed to add items batch", err);
         toast({
-          title: "خطأ",
-          description: "حدث خطأ أثناء إضافة المنتجات",
+          title: t("cart-context.s17"),
+          description: t("cart-context.s18"),
           variant: "destructive"
         });
       }
@@ -551,15 +553,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
             }
           }
           toast({
-            title: "فشل حذف المنتج",
-            description: "يرجى المحاولة مرة أخرى",
+            title: t("cart-context.s19"),
+            description: t("cart-context.s20"),
             variant: "destructive",
           });
         }
       } catch (err) {
         console.warn("Failed to remove from server cart", err);
         toast({
-          title: "فشل حذف المنتج",
+          title: t("cart-context.s19"),
           variant: "destructive",
         });
       }
@@ -592,8 +594,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const knownStock = currentItem?.stock;
     if (knownStock != null && Number.isFinite(knownStock) && quantity > knownStock) {
       toast({
-        title: "غير متوفر",
-        description: knownStock <= 0 ? "نفدت الكمية" : "وصلت للكمية المتوفرة",
+        title: t("cart-context.s8"),
+        description: knownStock <= 0 ? t("cart-context.s11") : t("cart-context.s12"),
         variant: "destructive",
       });
       return;
@@ -626,7 +628,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
             item.id === id ? { ...item, quantity: oldQuantity } : item
           ));
           toast({
-            title: "فشل تحديث الكمية",
+            title: t("cart-context.s21"),
             variant: "destructive",
           });
         }
@@ -637,7 +639,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           item.id === id ? { ...item, quantity: oldQuantity } : item
         ));
         toast({
-          title: "فشل تحديث الكمية",
+          title: t("cart-context.s21"),
           variant: "destructive",
         });
       }

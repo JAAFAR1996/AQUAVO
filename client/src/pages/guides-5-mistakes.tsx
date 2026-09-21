@@ -1,4 +1,5 @@
 import { Download, ExternalLink } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const PDF_URL = "/assets/guides/aquavo-guide-5-mistakes.pdf";
 
@@ -15,6 +16,7 @@ const pages = [
 ];
 
 export default function Guide5Mistakes() {
+  const { t } = useTranslation("guides");
   return (
     <div className="min-h-screen bg-card dark:bg-[#0B1E28] text-foreground dark:text-white" dir="rtl">
       {/* Sticky top bar */}
@@ -33,7 +35,7 @@ export default function Guide5Mistakes() {
             rel="noopener noreferrer"
             className="flex items-center gap-1.5 text-[#E8EDF2] border border-primary/45 hover:bg-[#0B93A6]/10 text-xs sm:text-sm h-9 px-3 rounded-full font-bold transition-colors"
           >
-            <span className="hidden sm:inline">فتح PDF</span>
+            <span className="hidden sm:inline">{t("guides-5-mistakes.s1")}</span>
             <ExternalLink className="w-4 h-4" />
           </a>
 
@@ -42,7 +44,7 @@ export default function Guide5Mistakes() {
             download="aquavo-guide-5-mistakes.pdf"
             className="flex items-center gap-1.5 bg-primary text-foreground hover:bg-[#0B93A6]/85 text-xs sm:text-sm h-9 px-3 sm:px-4 rounded-full font-bold transition-colors"
           >
-            <span>تحميل PDF</span>
+            <span>{t("guides-5-mistakes.s2")}</span>
             <Download className="w-4 h-4" />
           </a>
         </div>
@@ -54,7 +56,7 @@ export default function Guide5Mistakes() {
           <img
             key={src}
             src={src}
-            alt={`صفحة ${index + 1} من دليل الأخطاء الخمسة`}
+            alt={t("guides-5-mistakes.s3", { v0: index + 1 })}
             loading={index === 0 ? "eager" : "lazy"}
             decoding="async"
             width={720}

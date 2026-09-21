@@ -1,0 +1,111 @@
+{
+  "mainNav": "Main navigation",
+  "openMenu": "Open main menu",
+  "menuTitle": "Main menu",
+  "menuDescription": "Store, guides, your account and display options.",
+  "siteLinks": "Site links",
+  "more": "More",
+  "moreLinks": "More links",
+  "homeLink": "Home - AQUAVO",
+  "links": {
+    "home": "Home",
+    "shop": "Shop",
+    "journey": "Shop by your tank",
+    "guides": "AQUAVO Guides",
+    "orderTracking": "Track your order",
+    "about": "About AQUAVO",
+    "wishlist": "Wishlist",
+    "contact": "Contact us",
+    "blog": "Blog",
+    "deals": "Current deals",
+    "allProducts": "All products",
+    "allGuides": "All guides"
+  },
+  "search": {
+    "button": "Search for a product (Ctrl+K)",
+    "placeholder": "Search for a product...",
+    "short": "Search",
+    "open": "Search"
+  },
+  "account": {
+    "menu": "Account menu",
+    "profile": "Profile",
+    "orders": "My orders",
+    "logout": "Log out",
+    "login": "Log in"
+  },
+  "wishlist": {
+    "label": "Wishlist",
+    "withCount": "Wishlist - {{count}} items",
+    "empty": "Wishlist - empty"
+  },
+  "cart": {
+    "label": "Shopping cart",
+    "withCount": "Shopping cart - {{count}} items",
+    "empty": "Shopping cart - empty",
+    "title": "Your cart",
+    "description": "Review items, quantities and the total, then continue to delivery details.",
+    "emptyTitle": "Your cart is empty",
+    "emptyHint": "Browse the products and pick what fits your tank size.",
+    "itemsList": "Items in cart",
+    "itemSummary": "{{name}}{{variant}}, quantity {{quantity}}, price {{price}}",
+    "variantSuffix": ", option {{variant}}",
+    "variant": "Option: {{variant}}",
+    "quantityGroup": "Quantity of {{name}}",
+    "decrease": "Decrease quantity of {{name}}",
+    "increase": "Increase quantity of {{name}}",
+    "remove": "Remove {{name}} from cart",
+    "total": "Total",
+    "checkout": "Continue to delivery details"
+  },
+  "deliveryNote": "Delivery within 24 hours across Iraq",
+  "paymentNote": "Cash on delivery or online payment. Delivery 5,000 IQD",
+  "footer": {
+    "serviceInfo": "Service information",
+    "trust": {
+      "delivery": "Delivery within 24 hours",
+      "deliveryDetail": "Across all of Iraq",
+      "payment": "Flexible payment",
+      "paymentDetail": "Cash on delivery or online",
+      "packing": "Every order checked and packed",
+      "packingDetail": "To the same standard of care",
+      "support": "Support available 24/7",
+      "supportDetail": "Help before and after your order"
+    },
+    "aboutTitle": "About AQUAVO",
+    "aboutText": "An Iraqi brand for aquarium equipment and supplies. We make choosing practical and keep product and delivery details clear before you decide.",
+    "legalText": "AQUAVO is the customer-facing brand of AL NABEA SHOP.",
+    "socialLabel": "Official AQUAVO accounts",
+    "facebook": "AQUAVO on Facebook",
+    "instagram": "AQUAVO on Instagram",
+    "tiktok": "AQUAVO on TikTok",
+    "whatsapp": "Contact AQUAVO on WhatsApp",
+    "shopTitle": "Shop",
+    "learnTitle": "Learn before you choose",
+    "learn": {
+      "newTank": "Setting up a new aquarium",
+      "filterChoice": "Choosing a filter",
+      "waterTest": "Testing aquarium water"
+    },
+    "supportTitle": "Support and policies",
+    "policies": {
+      "shipping": "Delivery and payment",
+      "returns": "Returns and exchanges",
+      "privacy": "Privacy",
+      "terms": "Terms and conditions",
+      "faq": "FAQ"
+    },
+    "certificate": "YEE certificate",
+    "certificateHint": "View the source document on its own page",
+    "contactTitle": "Contact us",
+    "newsletterTitle": "Product and guide updates",
+    "newsletterHint": "A few useful emails. Unsubscribe at any time.",
+    "emailPlaceholder": "Your email address",
+    "subscribe": "Subscribe",
+    "subscribeSuccess": "You are subscribed.",
+    "subscribeError": "Subscription failed. Please try again.",
+    "subscribeNetworkError": "Could not subscribe right now. Please try again shortly.",
+    "copyright": "© {{year}} AQUAVO / AL NABEA SHOP",
+    "paymentMethods": "Payment methods: cash on delivery or online"
+  }
+}

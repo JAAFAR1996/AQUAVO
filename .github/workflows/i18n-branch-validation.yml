@@ -1,0 +1,44 @@
+name: i18n branch validation
+
+on:
+  push:
+    branches:
+      - feat/i18n-trilingual
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: 20.19.0
+  PNPM_VERSION: 10.0.0
+  CI: true
+
+jobs:
+  i18n-gates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --prefer-offline
+      - name: Translation validator
+        run: |
+          pnpm exec tsx TOOLS/i18n/validate-translations.ts
+          node -e "const r=require('./reports/i18n/validation-report.json'); const w=r.findings.filter(f=>f.severity==='warning'); const e=r.findings.filter(f=>f.severity==='error'); if(w.length) console.error('translation warnings:',JSON.stringify(w,null,2)); if(e.length) console.error('translation errors:',JSON.stringify(e,null,2)); if(e.length || w.length) process.exit(1); console.log('translation validation: 0 errors, 0 warnings')"
+      - name: Internal link gate
+        run: node TOOLS/i18n/check-links.mjs
+      - name: HTML structure gate
+        run: node TOOLS/i18n/check-html-structure.mjs
+      - name: Commerce integrity gate
+        run: node TOOLS/i18n/check-commerce-integrity.mjs
+      - name: TypeScript
+        run: pnpm run check
+      - name: i18n unit tests
+        run: pnpm exec vitest run test/i18n
+      - name: Production build
+        run: pnpm run build

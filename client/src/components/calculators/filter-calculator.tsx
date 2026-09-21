@@ -7,8 +7,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Droplets, Info } from "lucide-react";
 import { Link } from "wouter";
+import { useTranslation } from "react-i18next";
 
 export function FilterCalculator() {
+  const { t } = useTranslation("tools");
     const [volume, setVolume] = useState("");
     const [fishType, setFishType] = useState("medium");
     const [result, setResult] = useState<{ min: number; max: number; recommended: number } | null>(null);
@@ -35,32 +37,32 @@ export function FilterCalculator() {
         <Card>
             <CardHeader>
                 <CardTitle className="flex items-center justify-end gap-2 text-right">
-                    حاسبة الفلترة
+                    {t("filter-calculator.s1")}
                     <Droplets className="h-6 w-6 text-primary" />
                 </CardTitle>
-                <CardDescription className="text-right">احسب معدل التدفق المناسب للفلتر بناءً على حجم الحوض ونوع الأسماك</CardDescription>
+                <CardDescription className="text-right">{t("filter-calculator.s2")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6 text-right">
                 <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                        <Label className="block text-right">حجم الحوض (لتر)</Label>
+                        <Label className="block text-right">{t("filter-calculator.s3")}</Label>
                         <Input
                             type="number"
-                            placeholder="مثال: 200"
+                            placeholder={t("filter-calculator.s4")}
                             value={volume}
                             onChange={(e) => setVolume(e.target.value)}
                         />
                     </div>
                     <div className="space-y-2">
-                        <Label className="block text-right">كثافة الأسماك (Bioload)</Label>
+                        <Label className="block text-right">{t("filter-calculator.s5")}</Label>
                         <Select value={fishType} onValueChange={setFishType}>
                             <SelectTrigger>
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent dir="rtl">
-                                <SelectItem value="light" className="text-right">خفيفة (أسماك صغيرة - نباتات كثيرة)</SelectItem>
-                                <SelectItem value="medium" className="text-right">متوسطة (حوض مجتمعي عادي)</SelectItem>
-                                <SelectItem value="heavy" className="text-right">كثيفة (أسماك كبيرة - حوض مزدحم)</SelectItem>
+                                <SelectItem value="light" className="text-right">{t("filter-calculator.s6")}</SelectItem>
+                                <SelectItem value="medium" className="text-right">{t("filter-calculator.s7")}</SelectItem>
+                                <SelectItem value="heavy" className="text-right">{t("filter-calculator.s8")}</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -69,41 +71,39 @@ export function FilterCalculator() {
                 <Alert className="bg-primary/10 border-primary/20">
                     <Info className="h-4 w-4 text-primary" />
                     <AlertDescription className="text-sm text-foreground text-right">
-                        <strong>نصيحة:</strong> الفلتر الجيد يجب أن يدور الماء 4-10 مرات في الساعة.
-                        للأسماك الكبيرة والمنتجة للفضلات، استخدم معدل أعلى.
+                        <strong>{t("filter-calculator.s9")}</strong> {t("filter-calculator.s10")}
                     </AlertDescription>
                 </Alert>
 
                 <Button onClick={calculate} className="w-full text-lg h-12">
-                    احسب النتيجة
+                    {t("filter-calculator.s11")}
                 </Button>
 
                 {result && (
                     <div className="mt-6 space-y-4 animate-in fade-in slide-in-from-top-2">
                         <div className="p-6 bg-primary/5 rounded-xl text-center border border-primary/20">
-                            <p className="text-muted-foreground mb-2">معدل التدفق الموصى به</p>
-                            <p className="text-4xl font-bold text-primary">{result.recommended} لتر/ساعة</p>
+                            <p className="text-muted-foreground mb-2">{t("filter-calculator.s12")}</p>
+                            <p className="text-4xl font-bold text-primary">{result.recommended} {t("filter-calculator.s13")}</p>
                         </div>
                         <div className="grid md:grid-cols-2 gap-4">
                             <div className="p-4 bg-muted/50 rounded-lg text-center">
-                                <p className="text-sm text-muted-foreground mb-1">الحد الأدنى</p>
-                                <p className="text-2xl font-semibold">{result.min} لتر/ساعة</p>
+                                <p className="text-sm text-muted-foreground mb-1">{t("filter-calculator.s14")}</p>
+                                <p className="text-2xl font-semibold">{result.min} {t("filter-calculator.s13")}</p>
                             </div>
                             <div className="p-4 bg-muted/50 rounded-lg text-center">
-                                <p className="text-sm text-muted-foreground mb-1">الحد الأقصى</p>
-                                <p className="text-2xl font-semibold">{result.max} لتر/ساعة</p>
+                                <p className="text-sm text-muted-foreground mb-1">{t("filter-calculator.s15")}</p>
+                                <p className="text-2xl font-semibold">{result.max} {t("filter-calculator.s13")}</p>
                             </div>
                         </div>
                         <Alert className="bg-primary/5 border-primary/10">
                             <Info className="h-4 w-4 text-primary" />
                             <AlertDescription className="text-sm text-muted-foreground text-right">
-                                اختر فلتر بمعدل تدفق {result.recommended} لتر/ساعة أو أعلى. إذا كان حوضك يحتوي على
-                                أسماك حساسة للتيار، يمكنك استخدام صمام تحكم في التدفق.
+                                {t("filter-calculator.s16")} {result.recommended} {t("filter-calculator.s17")}
                             </AlertDescription>
                         </Alert>
                         <Link href="/products?search=filter">
                             <Button className="w-full" variant="secondary">
-                                تسوق فلاتر مناسبة
+                                {t("filter-calculator.s18")}
                             </Button>
                         </Link>
                     </div>

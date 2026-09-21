@@ -12,6 +12,8 @@ import { Badge } from "@/components/ui/badge";
 import { X, RotateCcw, Check, DollarSign, Tag, Star, Sparkles, Leaf, TrendingUp } from "lucide-react";
 import { DualRangeSlider } from "@/components/ui/dual-range-slider";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
+import { PRODUCT_DIFFICULTY_VALUES, PRODUCT_TAG_VALUES } from "@/lib/product-filter-values";
 
 export interface FilterState {
     priceRange: [number, number];
@@ -129,6 +131,7 @@ export function FilterModal({
     brandCounts,
     resultCount = 0,
 }: FilterModalProps) {
+    const { t } = useTranslation("products");
     // Local state for pending changes
     const [localFilters, setLocalFilters] = useState<FilterState>(filters);
 
@@ -142,15 +145,15 @@ export function FilterModal({
     };
 
     const difficulties = [
-        { label: "مبتدئ", value: "مبتدئ", color: "green" as const },
-        { label: "متوسط", value: "متوسط", color: "orange" as const },
-        { label: "متقدم", value: "متقدم", color: "purple" as const },
+        { label: t("difficulty.beginner"), value: PRODUCT_DIFFICULTY_VALUES.beginner, color: "green" as const },
+        { label: t("difficulty.intermediate"), value: PRODUCT_DIFFICULTY_VALUES.intermediate, color: "orange" as const },
+        { label: t("difficulty.advanced"), value: PRODUCT_DIFFICULTY_VALUES.advanced, color: "purple" as const },
     ];
 
     const tags = [
-        { label: "جديد", value: "جديد", icon: Sparkles, color: "blue" as const },
-        { label: "الأكثر مبيعاً", value: "الأكثر مبيعاً", icon: TrendingUp, color: "orange" as const },
-        { label: "صديق للبيئة", value: "صديق للبيئة", icon: Leaf, color: "green" as const },
+        { label: t("tags.new"), value: PRODUCT_TAG_VALUES.new, icon: Sparkles, color: "blue" as const },
+        { label: t("tags.bestSeller"), value: PRODUCT_TAG_VALUES.bestSeller, icon: TrendingUp, color: "orange" as const },
+        { label: t("tags.eco"), value: PRODUCT_TAG_VALUES.eco, icon: Leaf, color: "green" as const },
     ];
 
     const handlePriceChange = (value: [number, number]) => {
@@ -207,11 +210,11 @@ export function FilterModal({
                 <DialogHeader className="px-6 py-4 border-b border-border flex-shrink-0">
                     <div className="flex items-center justify-between">
                         <DialogClose asChild>
-                            <Button variant="ghost" size="icon" className="rounded-full" aria-label="إغلاق الفلاتر">
+                            <Button variant="ghost" size="icon" className="rounded-full" aria-label={t("filters.close")}>
                                 <X className="w-5 h-5" />
                             </Button>
                         </DialogClose>
-                        <DialogTitle className="text-lg font-bold">الفلاتر</DialogTitle>
+                        <DialogTitle className="text-lg font-bold">{t("filters.button")}</DialogTitle>
                         <div className="w-10" /> {/* Spacer for alignment */}
                     </div>
                 </DialogHeader>
@@ -219,7 +222,7 @@ export function FilterModal({
                 {/* Content - Scrollable */}
                 <div className="flex-1 overflow-y-auto px-6">
                     {/* Price Range */}
-                    <FilterSection title="نطاق السعر" icon={DollarSign}>
+                    <FilterSection title={t("filters.priceRange")} icon={DollarSign}>
                         <div className="px-2">
                             <DualRangeSlider
                                 min={minPrice}
@@ -227,14 +230,14 @@ export function FilterModal({
                                 step={Math.ceil(maxPrice / 50)}
                                 value={localFilters.priceRange}
                                 onValueChange={handlePriceChange}
-                                formatValue={(v) => `${formatPrice(v)} د.ع`}
+                                formatValue={(v) => formatPrice(v)}
                                 showValues={true}
                             />
                         </div>
                     </FilterSection>
 
                     {/* Quick Tags */}
-                    <FilterSection title="نوع المنتج" icon={Sparkles}>
+                    <FilterSection title={t("filters.productType")} icon={Sparkles}>
                         <div className="flex flex-wrap gap-3">
                             {tags.map((tag) => (
                                 <FilterPill
@@ -251,7 +254,7 @@ export function FilterModal({
 
                     {/* Brands */}
                     {availableBrands.length > 0 && (
-                        <FilterSection title="العلامات التجارية" icon={Tag}>
+                        <FilterSection title={t("filters.brands")} icon={Tag}>
                             <div className="flex flex-wrap gap-2">
                                 {availableBrands.map((brand) => (
                                     <FilterPill
@@ -267,7 +270,7 @@ export function FilterModal({
                     )}
 
                     {/* Difficulty */}
-                    <FilterSection title="مستوى الخبرة" icon={Star}>
+                    <FilterSection title={t("filters.experience")} icon={Star}>
                         <div className="flex flex-wrap gap-3">
                             {difficulties.map((diff) => (
                                 <FilterPill
@@ -292,14 +295,14 @@ export function FilterModal({
                             disabled={activeFiltersCount === 0}
                         >
                             <RotateCcw className="w-4 h-4 ml-2" />
-                            مسح الكل
+                            {t("filters.clearAll")}
                         </Button>
                         <Button
                             onClick={handleApply}
                             size="lg"
                             className="px-8 rounded-xl bg-gradient-to-r from-primary to-accent hover:opacity-90"
                         >
-                            عرض {resultCount} منتج
+                            {t("filters.showResults", { count: resultCount })}
                         </Button>
                     </div>
                 </DialogFooter>

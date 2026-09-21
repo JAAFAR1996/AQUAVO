@@ -1,0 +1,27 @@
+{
+  "state": {
+    "title": "An unexpected error occurred",
+    "description": "We are sorry about this error. Please try again.",
+    "retry": "Try again",
+    "home": "Back to home"
+  },
+  "network": { "title": "Connection problem", "description": "Could not reach the server. Check your internet connection and try again." },
+  "notFound": { "title": "Page not found", "description": "We could not find the page you asked for. It may have been moved or removed." },
+  "productNotFound": { "title": "Product unavailable", "description": "We could not find this product. It may have been removed or the link is incorrect." },
+  "orderNotFound": { "title": "Order not found", "description": "We could not find this order. Check the order number you entered." },
+  "server": { "title": "Server error", "description": "Something went wrong while processing your request. Our technical team is working on it." },
+  "unauthorized": { "title": "Not authorised", "description": "You need to log in to access this page." },
+  "payment": { "title": "Payment failed", "description": "The payment did not go through. Please check your payment details and try again." },
+  "emptyCart": { "title": "Your cart is empty", "description": "Add some products to your cart to continue." },
+  "outOfStock": { "title": "Out of stock", "description": "Unfortunately this product is unavailable right now. You can subscribe to be notified when it is back." },
+  "timeout": "The request timed out. Please try again",
+  "page404": {
+    "suggestions": "You may be looking for:",
+    "encyclopedia": "Fish encyclopedia",
+    "journey": "Start your journey",
+    "home": "Home",
+    "products": "Products",
+    "hint": "This page does not exist. Try the links above"
+  },
+  "loader": { "page": "Loading the page", "app": "Loading the app", "text": "Taking shape…" }
+}

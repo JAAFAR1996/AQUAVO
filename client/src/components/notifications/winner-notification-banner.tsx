@@ -4,6 +4,7 @@ import { X, Copy, Check, Gift, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
 
 interface WinningSubmission {
     id: string;
@@ -15,6 +16,7 @@ interface WinningSubmission {
 }
 
 export function WinnerNotificationBanner() {
+  const { t } = useTranslation("account");
     const { toast } = useToast();
     const [isDismissed, setIsDismissed] = useState(false);
     const [copied, setCopied] = useState(false);
@@ -47,8 +49,8 @@ export function WinnerNotificationBanner() {
             navigator.clipboard.writeText(winningSubmission.couponCode);
             setCopied(true);
             toast({
-                title: "✅ تم نسخ الرمز!",
-                description: "استخدم هذا الرمز عند الدفع",
+                title: t("winner-notification-banner.s1"),
+                description: t("winner-notification-banner.s2"),
             });
             setTimeout(() => setCopied(false), 3000);
         }
@@ -82,10 +84,10 @@ export function WinnerNotificationBanner() {
                             </div>
                             <div className="min-w-0">
                                 <p className="font-bold text-sm md:text-base truncate">
-                                    🎉 مبروك! فزت في ألبوم العائلة!
+                                    {t("winner-notification-banner.s3")}
                                 </p>
                                 <p className="text-xs md:text-sm text-white/90 truncate">
-                                    شكراً لمشاركتك الرائعة - جائزتك: {winningSubmission.prize}
+                                    {t("winner-notification-banner.s4")} {winningSubmission.prize}
                                 </p>
                             </div>
                         </div>
@@ -117,7 +119,7 @@ export function WinnerNotificationBanner() {
                                 size="icon"
                                 onClick={handleDismiss}
                                 className="h-8 w-8 hover:bg-white/20 text-white flex-shrink-0"
-                                title="إخفاء"
+                                title={t("winner-notification-banner.s5")}
                             >
                                 <X className="w-4 h-4" />
                             </Button>

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Check, Palette, Ruler, Sparkles, Tag } from "lucide-react";
 
-import { cn } from "@/lib/utils";
+import { cn, formatIQD } from "@/lib/utils";
 import type { ProductVariant } from "@/types";
 import {
   chooseVariantForSelection,
@@ -9,6 +9,8 @@ import {
   isDimensionValueAvailable,
   selectionFromVariant,
 } from "@/lib/variant-dimensions";
+import { useTranslation } from "react-i18next";
+import { i18next } from "@/i18n";
 
 interface MultiDimensionVariantSelectorProps {
   variants: ProductVariant[];
@@ -17,12 +19,12 @@ interface MultiDimensionVariantSelectorProps {
 }
 
 const AQUARIUM_MEASUREMENTS_BY_MODEL: Record<string, string> = {
-  "YXL-003": "40 × 23 × 25 سم",
-  "YKK-50": "50 × 27 × 30 سم",
-  "YKK-60": "60 × 30 × 35 سم",
-  "YEE-1090": "35 × 35 × 35 سم",
-  "YCG-40": "40 × 40 × 40 سم",
-  "C5-1062": "60 × 40 × 40 سم",
+  "YXL-003": i18next.t("pages:multi-dimension-variant-selector.s1"),
+  "YKK-50": i18next.t("pages:multi-dimension-variant-selector.s2"),
+  "YKK-60": i18next.t("pages:multi-dimension-variant-selector.s3"),
+  "YEE-1090": i18next.t("pages:multi-dimension-variant-selector.s4"),
+  "YCG-40": i18next.t("pages:multi-dimension-variant-selector.s5"),
+  "C5-1062": i18next.t("pages:multi-dimension-variant-selector.s6"),
 };
 
 function cleanSpecificationValue(value: unknown): string | null {
@@ -82,6 +84,7 @@ export function MultiDimensionVariantSelector({
   selectedVariantId,
   onVariantSelect,
 }: MultiDimensionVariantSelectorProps) {
+  const { t } = useTranslation("product");
   const dimensions = useMemo(() => extractVariantDimensions(variants), [variants]);
   const selectedVariant = useMemo(
     () => variants.find((variant) => variant.id === selectedVariantId) ?? variants[0],
@@ -127,7 +130,7 @@ export function MultiDimensionVariantSelector({
     <div className="space-y-5 rounded-xl border border-border bg-card p-4" dir="rtl">
       <div className="flex items-center gap-2">
         <Sparkles className="h-4 w-4 text-primary" aria-hidden="true" />
-        <span className="text-sm font-bold">اختار مواصفات القطعة</span>
+        <span className="text-sm font-bold">{t("variants.chooseSpecs")}</span>
       </div>
 
       {aquariumMeasurementSet ? (
@@ -135,7 +138,7 @@ export function MultiDimensionVariantSelector({
           <fieldset className="space-y-2.5">
             <legend id="aquarium-measurements" className="flex items-center gap-2 text-sm font-medium">
               <Ruler className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
-              <span>القياسات</span>
+              <span>{t("variants.measurements")}</span>
               {selectedMeasurement && (
                 <span className="font-bold text-primary">: {selectedMeasurement}</span>
               )}
@@ -158,7 +161,7 @@ export function MultiDimensionVariantSelector({
                     onClick={() => available && onVariantSelect(variant)}
                     disabled={!available}
                     aria-pressed={selected}
-                    aria-label={!available ? `القياسات ${measurement}، مو متوفر هسه` : `القياسات ${measurement}`}
+                    aria-label={!available ? t("variants.measurementUnavailableAria", { value: measurement }) : t("variants.measurementAria", { value: measurement })}
                     className={cn(
                       "min-h-11 rounded-full border-2 px-4 py-2 text-sm font-medium transition-colors",
                       selected
@@ -177,7 +180,7 @@ export function MultiDimensionVariantSelector({
 
           {selectedCapacity && (
             <div className="flex items-center justify-between rounded-lg border border-border bg-background px-4 py-3 text-sm" aria-live="polite">
-              <span className="text-muted-foreground">السعة</span>
+              <span className="text-muted-foreground">{t("variants.capacity")}</span>
               <span className="font-bold text-primary">{selectedCapacity}</span>
             </div>
           )}
@@ -213,7 +216,7 @@ export function MultiDimensionVariantSelector({
                         onClick={() => selectValue(dimension.key, value)}
                         disabled={!available}
                         aria-pressed={selected}
-                        aria-label={!available ? `${dimension.label} ${value}، مو متوفر هسه` : `${dimension.label} ${value}`}
+                        aria-label={!available ? t("variants.dimensionUnavailableAria", { label: dimension.label, value }) : t("variants.dimensionAria", { label: dimension.label, value })}
                         className={cn(
                           "min-h-11 rounded-full border-2 px-4 py-2 text-sm font-medium transition-colors",
                           selected
@@ -234,7 +237,7 @@ export function MultiDimensionVariantSelector({
 
           {selectedModel && (
             <div className="flex items-center justify-between rounded-lg border border-border bg-background px-4 py-3 text-sm" aria-live="polite">
-              <span className="text-muted-foreground">الموديل</span>
+              <span className="text-muted-foreground">{t("variants.modelLabel")}</span>
               <span className="font-bold text-foreground">{selectedModel}</span>
             </div>
           )}
@@ -245,17 +248,17 @@ export function MultiDimensionVariantSelector({
         <div className="grid gap-2 border-t border-border pt-4 text-sm sm:grid-cols-2" aria-live="polite">
           <div className="flex items-center gap-2">
             <Tag className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
-            <span className="text-muted-foreground">السعر:</span>
-            <span className="font-bold text-primary">{Number(selectedVariant.price).toLocaleString("en-US")} د.ع</span>
+            <span className="text-muted-foreground">{t("variants.price")}</span>
+            <span className="font-bold text-primary">{formatIQD(Number(selectedVariant.price))}</span>
           </div>
           <div className="flex items-center gap-2 sm:justify-end">
             {selectedVariant.stock > 0 ? (
               <>
                 <Check className="h-4 w-4 text-emerald-500" aria-hidden="true" />
-                <span className="text-emerald-600 dark:text-emerald-400">متوفر ({selectedVariant.stock} قطعة)</span>
+                <span className="text-emerald-600 dark:text-emerald-400">{t("variants.available", { count: selectedVariant.stock })}</span>
               </>
             ) : (
-              <span className="text-destructive">هذا الخيار غير متوفر حالياً</span>
+              <span className="text-destructive">{t("variants.optionUnavailable")}</span>
             )}
           </div>
         </div>

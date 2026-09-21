@@ -14,6 +14,8 @@ export interface ProductFilters {
     isNew?: boolean;
     isBestSeller?: boolean;
     search?: string;
+    /** Request locale; when not Arabic, search also matches translated name/description. */
+    locale?: string;
     limit?: number;
     offset?: number;
     sortBy?: 'rating' | 'price' | 'createdAt' | 'reviewCount' | 'name';
@@ -109,9 +111,19 @@ export class ProductStorage {
 
         if (filters?.search) {
             const searchTerms = expandSearchTerms(filters.search);
+            const searchLocale = filters.locale && filters.locale !== "ar" ? filters.locale : null;
             const searchConditions = searchTerms.map(term => {
                 const likeTerm = `%${term}%`;
-                return sql`(${products.name} ILIKE ${likeTerm} OR ${products.description} ILIKE ${likeTerm})`;
+                if (!searchLocale) {
+                    return sql`(${products.name} ILIKE ${likeTerm} OR ${products.description} ILIKE ${likeTerm})`;
+                }
+                // English / Kurdish customers type the translated name; Arabic
+                // matching stays so model numbers and shared terms still hit.
+                return sql`(${products.name} ILIKE ${likeTerm} OR ${products.description} ILIKE ${likeTerm} OR EXISTS (
+                    SELECT 1 FROM content_translations ct
+                    WHERE ct.entity_type = 'product' AND ct.entity_id = ${products.id} AND ct.locale = ${searchLocale}
+                      AND (ct.data->>'name' ILIKE ${likeTerm} OR ct.data->>'description' ILIKE ${likeTerm})
+                ))`;
             });
             conditions.push(sql`(${sql.join(searchConditions, sql` OR `)})`);
         }

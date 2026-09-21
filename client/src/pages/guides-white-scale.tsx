@@ -1,4 +1,6 @@
+import { useTranslation } from "react-i18next";
 export default function GuideWhiteScale() {
+  const { t } = useTranslation("guides");
   return (
     <div className="whl-wrap">
 
@@ -10,7 +12,7 @@ export default function GuideWhiteScale() {
 
         {/* ── Hero ── */}
         <section className="whl-hero">
-          <span className="whl-badge">دليل الترسبات — AQUAVO</span>
+          <span className="whl-badge">{t("guides-white-scale.s1")}</span>
 
           {/* Glass pane with white scale lines — CSS only */}
           <div className="whl-glass-wrap" aria-hidden="true">
@@ -23,41 +25,40 @@ export default function GuideWhiteScale() {
             </div>
           </div>
 
-          <h1>الخط الأبيض</h1>
-          <p className="whl-sub">الطبشور على الزجاج مو وسخ — معدن من المي نفسه</p>
+          <h1>{t("guides-white-scale.s2")}</h1>
+          <p className="whl-sub">{t("guides-white-scale.s3")}</p>
           <p className="whl-intro">
-            الترسبات البيضاء على حواف الحوض وعند خط الماء هي كالسيوم وماغنيسيوم.
-            تظهر في كل حوض ولا تضر الأسماك — لكن يمكن إزالتها بسهولة بدون كيماويات.
+            {t("guides-white-scale.s4")}
           </p>
           <div className="whl-meta">
-            <span>صيانة دورية</span>
-            <span>وقت القراءة: 4 دقائق</span>
+            <span>{t("guides-white-scale.s5")}</span>
+            <span>{t("guides-white-scale.s6")}</span>
           </div>
         </section>
 
         {/* ── ليش تظهر ── */}
         <section className="whl-section">
-          <h2 className="whl-title">ليش تظهر الترسبات البيضاء؟</h2>
+          <h2 className="whl-title">{t("guides-white-scale.s7")}</h2>
           <div className="whl-reason-list">
             <div className="whl-reason">
-              <div className="whl-reason-num">١</div>
+              <div className="whl-reason-num">{t("guides-white-scale.s8")}</div>
               <div>
-                <strong>تبخر المي يترك المعادن خلفه</strong>
-                <p>عند خط الماء، المي يتبخر لكن الكالسيوم يبقى ويتراكم يوم بعد يوم.</p>
+                <strong>{t("guides-white-scale.s9")}</strong>
+                <p>{t("guides-white-scale.s10")}</p>
               </div>
             </div>
             <div className="whl-reason">
-              <div className="whl-reason-num">٢</div>
+              <div className="whl-reason-num">{t("guides-white-scale.s11")}</div>
               <div>
-                <strong>رذاذ الفلتر أو الهيتر</strong>
-                <p>كل قطرة ترش على الزجاج وتجف تترك أثر معدني. مع الوقت تصبح طبقة واضحة.</p>
+                <strong>{t("guides-white-scale.s12")}</strong>
+                <p>{t("guides-white-scale.s13")}</p>
               </div>
             </div>
             <div className="whl-reason">
-              <div className="whl-reason-num">٣</div>
+              <div className="whl-reason-num">{t("guides-white-scale.s14")}</div>
               <div>
-                <strong>صلابة المي العالية (GH)</strong>
-                <p>مي الصنبور في معظم المناطق صلب — كلما ارتفع GH، كلما زادت الترسبات.</p>
+                <strong>{t("guides-white-scale.s15")}</strong>
+                <p>{t("guides-white-scale.s16")}</p>
               </div>
             </div>
           </div>
@@ -65,60 +66,56 @@ export default function GuideWhiteScale() {
 
         {/* ── طريقة الإزالة ── */}
         <section className="whl-section">
-          <h2 className="whl-title">إزالتها — ٣ طرق بدون كيماويات</h2>
+          <h2 className="whl-title">{t("guides-white-scale.s17")}</h2>
           <div className="whl-method-list">
             <div className="whl-method whl-m-easy">
-              <div className="whl-method-tag">الأسهل</div>
-              <h3>الخل الأبيض</h3>
+              <div className="whl-method-tag">{t("guides-white-scale.s18")}</div>
+              <h3>{t("guides-white-scale.s19")}</h3>
               <p>
-                بلّل قطعة قماش بخل أبيض طبيعي. اتركها على المنطقة المتراكمة ٥–١٠ دقائق.
-                امسح بلطف.
+                {t("guides-white-scale.s20")}
               </p>
               <div className="whl-rinse-box">
-                <div className="whl-rinse-label">خطوة لازم تسويها قبل أي تلامس مع الماء:</div>
+                <div className="whl-rinse-label">{t("guides-white-scale.s21")}</div>
                 <p className="whl-rinse-text">
-                  بعد الانتهاء من الخل، امسح المنطقة بقطعة قماش مبللة بماء عادي نظيف —
-                  أو اشطف الزجاج من الخارج قبل إعادة الماء أو السمچ. الخل الحمضي يغيّر
-                  الـ pH لما يدخل الحوض حتى بكميات صغيرة.
+                  {t("guides-white-scale.s22")}
                 </p>
               </div>
-              <div className="whl-method-note">✓ آمن على الأسماك بعد الشطف الجيد</div>
+              <div className="whl-method-note">{t("guides-white-scale.s23")}</div>
             </div>
             <div className="whl-method whl-m-mid">
-              <div className="whl-method-tag">للطبقات السميكة</div>
-              <h3>ماء الليمون (حمض الليمون)</h3>
+              <div className="whl-method-tag">{t("guides-white-scale.s24")}</div>
+              <h3>{t("guides-white-scale.s25")}</h3>
               <p>
-                ملعقة صغيرة حمض ليمون بكوب مي دافئ. نفس طريقة الخل.
-                أقوى تأثير على الترسبات القديمة الصلبة.
+                {t("guides-white-scale.s26")}
               </p>
-              <div className="whl-method-note">✓ لا تتركه طويلاً على السيليكون</div>
+              <div className="whl-method-note">{t("guides-white-scale.s27")}</div>
             </div>
             <div className="whl-method whl-m-hard">
-              <div className="whl-method-tag">الأصعب</div>
-              <h3>المكشطة المغناطيسية</h3>
+              <div className="whl-method-tag">{t("guides-white-scale.s28")}</div>
+              <h3>{t("guides-white-scale.s29")}</h3>
               <p>
-                اكشط وأنت تعيد الملء التدريجي. لا تحاول إزالة طبقات جافة سميكة بالمكشطة — الخل أولاً.
+                {t("guides-white-scale.s30")}
               </p>
-              <div className="whl-method-note">⚠ لا تستخدم مكشطة على أحواض الأكريليك</div>
+              <div className="whl-method-note">{t("guides-white-scale.s31")}</div>
             </div>
           </div>
         </section>
 
         {/* ── الوقاية ── */}
         <section className="whl-section">
-          <h2 className="whl-title">تقليل الترسبات مستقبلاً</h2>
+          <h2 className="whl-title">{t("guides-white-scale.s32")}</h2>
           <div className="whl-tips">
             <div className="whl-tip">
               <span className="whl-tip-dot"></span>
-              <p>امسح خط الماء مرة بالأسبوع قبل ما تتراكم الطبقات</p>
+              <p>{t("guides-white-scale.s33")}</p>
             </div>
             <div className="whl-tip">
               <span className="whl-tip-dot"></span>
-              <p>لو GH عالي جداً، قلل صلابة المي بمزج مي الصنبور مع مي مقطر</p>
+              <p>{t("guides-white-scale.s34")}</p>
             </div>
             <div className="whl-tip">
               <span className="whl-tip-dot"></span>
-              <p>اضبط مخرج الفلتر بحيث الرذاذ يكون داخل الحوض مو على الزجاج</p>
+              <p>{t("guides-white-scale.s35")}</p>
             </div>
           </div>
         </section>
@@ -126,9 +123,9 @@ export default function GuideWhiteScale() {
         {/* ── CTA ── */}
         <section className="whl-cta-section">
           <div className="whl-cta-box">
-            <h2 className="whl-cta-title">الترسبات عندك مو بيضاء — بيج أو صفراء؟</h2>
+            <h2 className="whl-cta-title">{t("guides-white-scale.s36")}</h2>
             <p className="whl-cta-body">
-              الألوان الأخرى تدل على مشاكل مختلفة. أرسل صورة نشخصها لك.
+              {t("guides-white-scale.s37")}
             </p>
             <a
               href="https://www.instagram.com/aquavo_iq/"
@@ -136,7 +133,7 @@ export default function GuideWhiteScale() {
               rel="noopener noreferrer"
               className="whl-cta-btn"
             >
-              راسلنا على إنستغرام
+              {t("guides-white-scale.s38")}
             </a>
           </div>
         </section>

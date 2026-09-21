@@ -5,6 +5,7 @@ import { Link } from "wouter";
 import { AQUAVO_FAQ_GROUPS, AQUAVO_FAQ_ITEMS, type FaqGroup } from "@shared/faq-content";
 import { BreadcrumbSchema, FAQSchema, MetaTags } from "@/components/seo/meta-tags";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { useTranslation } from "react-i18next";
 
 // The questions themselves live in shared/faq-content.ts so the prerendered
 // /faq a crawler sees and the /faq a customer sees are the same FAQ. Icons are
@@ -19,15 +20,16 @@ const GROUP_ICONS: Record<FaqGroup["id"], LucideIcon> = {
 const questions = AQUAVO_FAQ_ITEMS.map((item) => ({ question: item.question, answer: item.answer }));
 
 export default function FAQ() {
+  const { t } = useTranslation("pages");
   return (
     <div className="flex-1 bg-background text-foreground" data-testid="faq-page" dir="rtl">
-      <MetaTags title="الأسئلة الشائعة" description="أجوبة واضحة عن منتجات AQUAVO، التوصيل خلال 24 ساعة، أجرة 5,000 د.ع، الدفع عند الاستلام أو إلكترونياً، ومشاكل الاستلام." />
+      <MetaTags title={t("faq.s1")} description={t("faq.s2")} />
       <FAQSchema questions={questions} />
-      <BreadcrumbSchema items={[{ name: "الرئيسية", url: "https://www.aquavoiq.com" }, { name: "الأسئلة الشائعة", url: "https://www.aquavoiq.com/faq" }]} />      <main id="main-content" className="mx-auto max-w-5xl px-4 pb-20 pt-28 sm:px-6 sm:pt-32">
+      <BreadcrumbSchema items={[{ name: t("faq.s3"), url: "https://www.aquavoiq.com" }, { name: t("faq.s1"), url: "https://www.aquavoiq.com/faq" }]} />      <main id="main-content" className="mx-auto max-w-5xl px-4 pb-20 pt-28 sm:px-6 sm:pt-32">
         <header className="max-w-3xl">
-          <p className="text-sm font-bold text-primary">قبل ما تطلب</p>
-          <h1 className="mt-3 text-4xl font-bold" data-testid="text-page-title">أسئلة واضحة، أجوبة مباشرة</h1>
-          <p className="mt-5 text-lg leading-8 text-muted-foreground">المعلومة اللي تهمك بدون وعود زايدة. وإذا حالتك خاصة، دز تفاصيل حوضك.</p>
+          <p className="text-sm font-bold text-primary">{t("faq.s4")}</p>
+          <h1 className="mt-3 text-4xl font-bold" data-testid="text-page-title">{t("faq.s5")}</h1>
+          <p className="mt-5 text-lg leading-8 text-muted-foreground">{t("faq.s6")}</p>
         </header>
         <div className="mt-10 grid gap-5 md:grid-cols-2">
           {AQUAVO_FAQ_GROUPS.map(({ id, title, items }) => {
@@ -47,7 +49,7 @@ export default function FAQ() {
             );
           })}
         </div>
-        <div className="mt-8 rounded-2xl border border-primary/20 bg-primary/5 p-5 text-sm">بعدك محتار؟ <Link href="/contact" className="font-bold text-primary hover:underline">تواصل ويانه</Link></div>
+        <div className="mt-8 rounded-2xl border border-primary/20 bg-primary/5 p-5 text-sm">{t("faq.s7")} <Link href="/contact" className="font-bold text-primary hover:underline">{t("faq.s8")}</Link></div>
       </main>    </div>
   );
 }

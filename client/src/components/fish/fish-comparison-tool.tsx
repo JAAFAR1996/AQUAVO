@@ -30,6 +30,8 @@ import {
     Heart,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
+import { i18next } from "@/i18n";
 
 interface FishComparisonToolProps {
     className?: string;
@@ -52,7 +54,7 @@ function checkCompatibility(fish1: FishSpecies, fish2: FishSpecies): Compatibili
         fish1.waterParameters.tempMax >= fish2.waterParameters.tempMin &&
         fish2.waterParameters.tempMax >= fish1.waterParameters.tempMin;
     if (!tempOverlap) {
-        reasons.push("درجات الحرارة المطلوبة غير متوافقة");
+        reasons.push(i18next.t("tools:fish-comparison-tool.s1"));
     } else {
         score += 2;
     }
@@ -62,7 +64,7 @@ function checkCompatibility(fish1: FishSpecies, fish2: FishSpecies): Compatibili
         fish1.waterParameters.phMax >= fish2.waterParameters.phMin &&
         fish2.waterParameters.phMax >= fish1.waterParameters.phMin;
     if (!phOverlap) {
-        reasons.push("نطاق الحموضة (pH) غير متوافق");
+        reasons.push(i18next.t("tools:fish-comparison-tool.s2"));
     } else {
         score += 2;
     }
@@ -70,10 +72,10 @@ function checkCompatibility(fish1: FishSpecies, fish2: FishSpecies): Compatibili
     // Temperament check
     if (fish1.temperament === "aggressive" || fish2.temperament === "aggressive") {
         if (fish1.temperament === "peaceful" || fish2.temperament === "peaceful") {
-            reasons.push("سمكة عدوانية مع سمكة سلمية - خطر!");
+            reasons.push(i18next.t("tools:fish-comparison-tool.s3"));
             score -= 3;
         } else {
-            reasons.push("الأسماك العدوانية قد تتشاجر");
+            reasons.push(i18next.t("tools:fish-comparison-tool.s4"));
             score -= 1;
         }
     } else if (fish1.temperament === "peaceful" && fish2.temperament === "peaceful") {
@@ -83,16 +85,16 @@ function checkCompatibility(fish1: FishSpecies, fish2: FishSpecies): Compatibili
     // Size difference check
     const sizeRatio = Math.max(fish1.maxSize, fish2.maxSize) / Math.min(fish1.maxSize, fish2.maxSize);
     if (sizeRatio > 4) {
-        reasons.push("فارق الحجم كبير جداً - السمكة الكبيرة قد تأكل الصغيرة");
+        reasons.push(i18next.t("tools:fish-comparison-tool.s5"));
         score -= 2;
     } else if (sizeRatio > 2.5) {
-        reasons.push("فارق الحجم ملحوظ - راقب السلوك");
+        reasons.push(i18next.t("tools:fish-comparison-tool.s6"));
         score -= 1;
     }
 
     // Water hardness
     if (fish1.waterParameters.hardness !== fish2.waterParameters.hardness) {
-        reasons.push("متطلبات صلابة المياه مختلفة");
+        reasons.push(i18next.t("tools:fish-comparison-tool.s7"));
         score -= 1;
     }
 
@@ -104,7 +106,7 @@ function checkCompatibility(fish1: FishSpecies, fish2: FishSpecies): Compatibili
         fish2.commonName.toLowerCase().includes(avoid) ||
         fish2.category.toLowerCase().includes(avoid)
     )) {
-        reasons.push(`${fish1.arabicName} لا يُنصح بوضعها مع ${fish2.arabicName}`);
+        reasons.push(i18next.t("tools:fish-comparison-tool.s8", { v0: fish1.arabicName, v1: fish2.arabicName }));
         score -= 2;
     }
 
@@ -112,21 +114,22 @@ function checkCompatibility(fish1: FishSpecies, fish2: FishSpecies): Compatibili
         fish1.commonName.toLowerCase().includes(avoid) ||
         fish1.category.toLowerCase().includes(avoid)
     )) {
-        reasons.push(`${fish2.arabicName} لا يُنصح بوضعها مع ${fish1.arabicName}`);
+        reasons.push(i18next.t("tools:fish-comparison-tool.s8", { v0: fish2.arabicName, v1: fish1.arabicName }));
         score -= 2;
     }
 
     // Determine level
     if (score >= 4) {
-        return { level: "compatible", reasons: reasons.length ? reasons : ["متوافقة تماماً!"] };
+        return { level: "compatible", reasons: reasons.length ? reasons : [i18next.t("tools:fish-comparison-tool.s9")] };
     } else if (score >= 0) {
-        return { level: "caution", reasons: reasons.length ? reasons : ["توافق جزئي"] };
+        return { level: "caution", reasons: reasons.length ? reasons : [i18next.t("tools:fish-comparison-tool.s10")] };
     } else {
         return { level: "incompatible", reasons };
     }
 }
 
 export function FishComparisonTool({ className }: FishComparisonToolProps) {
+  const { t } = useTranslation("tools");
     const [selectedFish, setSelectedFish] = useState<FishSpecies[]>([]);
     const [isSelectDialogOpen, setIsSelectDialogOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
@@ -192,28 +195,28 @@ export function FishComparisonTool({ className }: FishComparisonToolProps) {
     const getCompatibilityBadge = (level: CompatibilityLevel) => {
         switch (level) {
             case "compatible":
-                return <Badge className="bg-green-500 hover:bg-green-600">متوافقة ✓</Badge>;
+                return <Badge className="bg-green-500 hover:bg-green-600">{t("fish-comparison-tool.s11")}</Badge>;
             case "caution":
-                return <Badge className="bg-amber-500 hover:bg-amber-600">حذر ⚠</Badge>;
+                return <Badge className="bg-amber-500 hover:bg-amber-600">{t("fish-comparison-tool.s12")}</Badge>;
             case "incompatible":
-                return <Badge className="bg-red-500 hover:bg-red-600">غير متوافقة ✗</Badge>;
+                return <Badge className="bg-red-500 hover:bg-red-600">{t("fish-comparison-tool.s13")}</Badge>;
         }
     };
 
     const getCareLevelArabic = (level: string) => {
         switch (level) {
-            case "beginner": return "مبتدئ";
-            case "intermediate": return "متوسط";
-            case "advanced": return "متقدم";
+            case "beginner": return t("fish-comparison-tool.s14");
+            case "intermediate": return t("fish-comparison-tool.s15");
+            case "advanced": return t("fish-comparison-tool.s16");
             default: return level;
         }
     };
 
     const getTemperamentArabic = (temp: string) => {
         switch (temp) {
-            case "peaceful": return "سلمي";
-            case "semi-aggressive": return "شبه عدواني";
-            case "aggressive": return "عدواني";
+            case "peaceful": return t("fish-comparison-tool.s17");
+            case "semi-aggressive": return t("fish-comparison-tool.s18");
+            case "aggressive": return t("fish-comparison-tool.s19");
             default: return temp;
         }
     };
@@ -223,7 +226,7 @@ export function FishComparisonTool({ className }: FishComparisonToolProps) {
             <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-right">
                     <Scale className="h-5 w-5 text-primary" />
-                    أداة مقارنة الأسماك
+                    {t("fish-comparison-tool.s20")}
                 </CardTitle>
             </CardHeader>
             <CardContent>
@@ -254,17 +257,17 @@ export function FishComparisonTool({ className }: FishComparisonToolProps) {
                             <DialogTrigger asChild>
                                 <Button variant="outline" size="sm" className="rounded-full gap-1">
                                     <Plus className="h-4 w-4" />
-                                    إضافة سمكة
+                                    {t("fish-comparison-tool.s21")}
                                 </Button>
                             </DialogTrigger>
                             <DialogContent className="max-w-lg">
                                 <DialogHeader>
-                                    <DialogTitle className="text-right">اختر سمكة للمقارنة</DialogTitle>
+                                    <DialogTitle className="text-right">{t("fish-comparison-tool.s22")}</DialogTitle>
                                 </DialogHeader>
                                 <div className="relative mb-4">
                                     <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                     <Input
-                                        placeholder="ابحث عن سمكة..."
+                                        placeholder={t("fish-comparison-tool.s23")}
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
                                         className="pr-10 text-right"
@@ -313,7 +316,7 @@ export function FishComparisonTool({ className }: FishComparisonToolProps) {
                 {overallCompatibility && (
                     <div className="mb-6 p-4 rounded-xl bg-muted/30 border">
                         <div className="flex items-center justify-between mb-2">
-                            <span className="font-medium">التوافق الإجمالي:</span>
+                            <span className="font-medium">{t("fish-comparison-tool.s24")}</span>
                             {getCompatibilityBadge(overallCompatibility)}
                         </div>
                     </div>
@@ -322,7 +325,7 @@ export function FishComparisonTool({ className }: FishComparisonToolProps) {
                 {/* Compatibility Matrix */}
                 {selectedFish.length >= 2 && (
                     <div className="mb-6">
-                        <h4 className="font-medium mb-3 text-right">مصفوفة التوافق</h4>
+                        <h4 className="font-medium mb-3 text-right">{t("fish-comparison-tool.s25")}</h4>
                         <div className="space-y-3">
                             {Array.from(compatibilityMatrix.entries()).map(([key, result]) => {
                                 const [id1, id2] = key.split("-");
@@ -367,13 +370,13 @@ export function FishComparisonTool({ className }: FishComparisonToolProps) {
                 {selectedFish.length >= 1 && (
                     <>
                         <Separator className="my-6" />
-                        <h4 className="font-medium mb-4 text-right">جدول المقارنة</h4>
+                        <h4 className="font-medium mb-4 text-right">{t("fish-comparison-tool.s26")}</h4>
                         <div className="overflow-x-auto">
                             <table role="table" className="w-full text-sm">
-                                <caption className="sr-only">جدول مقارنة خصائص الأسماك</caption>
+                                <caption className="sr-only">{t("fish-comparison-tool.s27")}</caption>
                                 <thead>
                                     <tr className="border-b">
-                                        <th scope="col" className="text-right p-3 font-medium text-muted-foreground">الخاصية</th>
+                                        <th scope="col" className="text-right p-3 font-medium text-muted-foreground">{t("fish-comparison-tool.s28")}</th>
                                         {selectedFish.map((fish) => (
                                             <th key={fish.id} scope="col" className="p-3 text-center min-w-[120px]">
                                                 <div className="flex flex-col items-center gap-2">
@@ -392,7 +395,7 @@ export function FishComparisonTool({ className }: FishComparisonToolProps) {
                                     <tr className="border-b">
                                         <td className="p-3 text-right flex items-center gap-2">
                                             <Ruler className="h-4 w-4 text-muted-foreground" />
-                                            الحجم (سم)
+                                            {t("fish-comparison-tool.s29")}
                                         </td>
                                         {selectedFish.map((fish) => (
                                             <td key={fish.id} className="p-3 text-center">
@@ -403,7 +406,7 @@ export function FishComparisonTool({ className }: FishComparisonToolProps) {
                                     <tr className="border-b">
                                         <td className="p-3 text-right flex items-center gap-2">
                                             <Thermometer className="h-4 w-4 text-muted-foreground" />
-                                            الحرارة (°م)
+                                            {t("fish-comparison-tool.s30")}
                                         </td>
                                         {selectedFish.map((fish) => (
                                             <td key={fish.id} className="p-3 text-center">
@@ -414,7 +417,7 @@ export function FishComparisonTool({ className }: FishComparisonToolProps) {
                                     <tr className="border-b">
                                         <td className="p-3 text-right flex items-center gap-2">
                                             <Droplets className="h-4 w-4 text-muted-foreground" />
-                                            الحموضة (pH)
+                                            {t("fish-comparison-tool.s31")}
                                         </td>
                                         {selectedFish.map((fish) => (
                                             <td key={fish.id} className="p-3 text-center">
@@ -425,7 +428,7 @@ export function FishComparisonTool({ className }: FishComparisonToolProps) {
                                     <tr className="border-b">
                                         <td className="p-3 text-right flex items-center gap-2">
                                             <Fish className="h-4 w-4 text-muted-foreground" />
-                                            حجم الحوض (لتر)
+                                            {t("fish-comparison-tool.s32")}
                                         </td>
                                         {selectedFish.map((fish) => (
                                             <td key={fish.id} className="p-3 text-center">{fish.minTankSize}+</td>
@@ -434,7 +437,7 @@ export function FishComparisonTool({ className }: FishComparisonToolProps) {
                                     <tr className="border-b">
                                         <td className="p-3 text-right flex items-center gap-2">
                                             <Heart className="h-4 w-4 text-muted-foreground" />
-                                            مستوى الرعاية
+                                            {t("fish-comparison-tool.s33")}
                                         </td>
                                         {selectedFish.map((fish) => (
                                             <td key={fish.id} className="p-3 text-center">
@@ -445,7 +448,7 @@ export function FishComparisonTool({ className }: FishComparisonToolProps) {
                                     <tr className="border-b">
                                         <td className="p-3 text-right flex items-center gap-2">
                                             <Users className="h-4 w-4 text-muted-foreground" />
-                                            الطباع
+                                            {t("fish-comparison-tool.s34")}
                                         </td>
                                         {selectedFish.map((fish) => (
                                             <td key={fish.id} className="p-3 text-center">
@@ -463,7 +466,7 @@ export function FishComparisonTool({ className }: FishComparisonToolProps) {
                                         ))}
                                     </tr>
                                     <tr>
-                                        <td className="p-3 text-right">العمر (سنة)</td>
+                                        <td className="p-3 text-right">{t("fish-comparison-tool.s35")}</td>
                                         {selectedFish.map((fish) => (
                                             <td key={fish.id} className="p-3 text-center">{fish.lifespan}</td>
                                         ))}
@@ -477,7 +480,7 @@ export function FishComparisonTool({ className }: FishComparisonToolProps) {
                 {selectedFish.length === 0 && (
                     <div className="text-center py-8 text-muted-foreground">
                         <Scale className="h-12 w-12 mx-auto mb-4 opacity-30" />
-                        <p>أضف سمكتين أو أكثر لبدء المقارنة</p>
+                        <p>{t("fish-comparison-tool.s36")}</p>
                     </div>
                 )}
             </CardContent>

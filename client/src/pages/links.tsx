@@ -21,6 +21,8 @@ import {
 import { trackBioLinkClick } from '@/lib/analytics';
 import { WHATSAPP_URL } from '@/lib/constants/shipping';
 import { trackWhatsAppHandoff } from "@/lib/whatsapp";
+import { useTranslation } from "react-i18next";
+import { i18next } from "@/i18n";
 
 // ═══════════════════════════════════════════════
 // CONFIGURATION
@@ -28,14 +30,14 @@ import { trackWhatsAppHandoff } from "@/lib/whatsapp";
 const LINKS_CONFIG = {
   brand: {
     name: 'AQUAVO',
-    tagline: 'متجر أحواض السمك المتخصص بالعراق',
+    tagline: i18next.t("pages:links.s1"),
     logoUrl: '/assets/brand/AQUAVO-logo-full-color.svg',
   },
   links: [
     {
       id: 'shop',
-      label: 'تصفح المتجر',
-      sublabel: 'منتجات أحواض مائية فاخرة',
+      label: i18next.t("pages:links.s2"),
+      sublabel: i18next.t("pages:links.s3"),
       url: '/products',
       icon: 'shop',
       color: 'from-cyan-400 to-teal-500',
@@ -44,9 +46,9 @@ const LINKS_CONFIG = {
     },
     {
       id: 'whatsapp',
-      label: 'تواصل واتساب',
-      sublabel: 'رد فوري — اسألنا أي شي!',
-      url: `${WHATSAPP_URL}?text=${encodeURIComponent('مرحبا! جيت من QR Code الكتيب 🐟')}`,
+      label: i18next.t("pages:links.s4"),
+      sublabel: i18next.t("pages:links.s5"),
+      url: `${WHATSAPP_URL}?text=${encodeURIComponent(i18next.t("pages:links.s6"))}`,
       icon: 'whatsapp',
       color: 'from-emerald-400 to-emerald-600',
       glow: 'shadow-emerald-500/20',
@@ -54,8 +56,8 @@ const LINKS_CONFIG = {
     },
     {
       id: 'instagram',
-      label: 'انستغرام',
-      sublabel: '@aquavo_iq — صور وفيديوهات',
+      label: i18next.t("pages:links.s7"),
+      sublabel: i18next.t("pages:links.s8"),
       url: 'https://instagram.com/aquavo_iq',
       icon: 'instagram',
       color: 'from-pink-500 to-purple-600',
@@ -64,8 +66,8 @@ const LINKS_CONFIG = {
     },
     {
       id: 'tiktok',
-      label: 'تيك توك',
-      sublabel: '@aquavo.iq — محتوى فيرال 🔥',
+      label: i18next.t("pages:links.s9"),
+      sublabel: i18next.t("pages:links.s10"),
       url: 'https://tiktok.com/@aquavo.iq',
       icon: 'tiktok',
       color: 'from-slate-700 to-slate-900',
@@ -74,8 +76,8 @@ const LINKS_CONFIG = {
     },
     {
       id: 'facebook',
-      label: 'فيسبوك',
-      sublabel: 'مجتمع هواة الأحواض',
+      label: i18next.t("pages:links.s11"),
+      sublabel: i18next.t("pages:links.s12"),
       url: 'https://www.facebook.com/profile.php?id=61587249730248',
       icon: 'facebook',
       color: 'from-blue-500 to-blue-700',
@@ -84,7 +86,7 @@ const LINKS_CONFIG = {
     },
     {
       id: 'website',
-      label: 'الموقع الرسمي',
+      label: i18next.t("pages:links.s13"),
       sublabel: 'aquavoiq.com',
       url: '/',
       icon: 'globe',
@@ -301,9 +303,10 @@ function LinkCard({
 // MAIN PAGE COMPONENT
 // ═══════════════════════════════════════════════
 export default function LinksPage() {
+  const { t } = useTranslation("pages");
   // Setup headers
   useEffect(() => {
-    document.title = 'AQUAVO | الروابط الشاملة';
+    document.title = t("links.s14");
     const metaTheme = document.querySelector('meta[name="theme-color"]');
     if (metaTheme) metaTheme.setAttribute('content', '#071324');
   }, []);
@@ -370,7 +373,7 @@ export default function LinksPage() {
             transition={{ delay: 0.6 }}
             className="mt-1 text-slate-500 text-[13px] font-medium tracking-wide text-center"
           >
-            توصيل لكل العراق — الدفع عند الاستلام
+            {t("links.s15")}
           </motion.p>
         </motion.div>
 
@@ -389,7 +392,7 @@ export default function LinksPage() {
           className="mt-14 mb-6 text-center"
         >
           <div className="flex items-center justify-center gap-2 text-slate-500 text-[13px] font-medium tracking-wide">
-            <span>صُنع بحب في العراق</span>
+            <span>{t("links.s16")}</span>
             <Heart className="w-4 h-4 text-rose-500/70" fill="currentColor" />
           </div>
           <p className="text-slate-600/50 text-[11px] mt-2 font-mono tracking-widest">

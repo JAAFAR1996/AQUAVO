@@ -118,6 +118,7 @@ export const abTesting = new ABTestingManager();
 
 // React Hook for A/B Testing
 import { useState, useEffect } from 'react';
+import { i18next } from "@/i18n";
 
 export function useABTest(
   experimentName: string,
@@ -144,8 +145,8 @@ export const EXPERIMENTS = {
   ADD_TO_CART_BUTTON: {
     name: 'add_to_cart_button_text',
     variants: {
-      A: 'أضف للسلة',
-      B: 'اشتري الآن',
+      A: i18next.t("pages:ab-testing.s1"),
+      B: i18next.t("pages:ab-testing.s2"),
     },
   },
 

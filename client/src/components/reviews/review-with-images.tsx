@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { useTranslation } from "react-i18next";
+import { i18next } from "@/i18n";
 
 interface ReviewImage {
   id: string;
@@ -24,13 +26,14 @@ interface ReviewProps {
 }
 
 const tierBadgeConfig: Record<string, { label: string; className: string }> = {
-  bronze: { label: "برونزي", className: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400" },
-  silver: { label: "فضي", className: "bg-slate-100 text-slate-600 dark:bg-slate-900/30 dark:text-slate-400" },
-  gold: { label: "ذهبي", className: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400" },
-  diamond: { label: "ماسي", className: "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400" },
+  bronze: { label: i18next.t("pages:review-with-images.s1"), className: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400" },
+  silver: { label: i18next.t("pages:review-with-images.s2"), className: "bg-slate-100 text-slate-600 dark:bg-slate-900/30 dark:text-slate-400" },
+  gold: { label: i18next.t("pages:review-with-images.s3"), className: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400" },
+  diamond: { label: i18next.t("pages:review-with-images.s4"), className: "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400" },
 };
 
 export function ReviewWithImages({ review }: { review: ReviewProps }) {
+  const { t } = useTranslation("pages");
   const tier = tierBadgeConfig[review.authorTier || "bronze"] || tierBadgeConfig.bronze;
 
   return (
@@ -50,7 +53,7 @@ export function ReviewWithImages({ review }: { review: ReviewProps }) {
                 </Badge>
                 {review.verifiedPurchase && (
                   <Badge variant="secondary" className="text-[10px] h-5 gap-1 px-1.5 bg-green-100 text-green-700 hover:bg-green-200">
-                    <ShieldCheck className="w-3 h-3" /> شراء مؤكد
+                    <ShieldCheck className="w-3 h-3" /> {t("review-with-images.s5")}
                   </Badge>
                 )}
               </div>
@@ -102,7 +105,7 @@ export function ReviewWithImages({ review }: { review: ReviewProps }) {
 
         <div className="flex items-center gap-4 mt-4 text-xs text-muted-foreground">
           <button className="flex items-center gap-1 hover:text-primary transition-colors">
-            <ThumbsUp className="w-3 h-3" /> مفيد ({review.helpfulCount || 0})
+            <ThumbsUp className="w-3 h-3" /> {t("review-with-images.s6")}{review.helpfulCount || 0})
           </button>
         </div>
       </CardContent>
