@@ -3,6 +3,7 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { Pool, neonConfig } from "@neondatabase/serverless";
 import ws from "ws";
 import {
+  AQUAVO_PRODUCT_CATEGORIES,
   canonicalProductCategory,
   categoryProductsPath,
   PUBLIC_INDEXABLE_PATHS,
@@ -19,11 +20,16 @@ function getPool(): Pool | null {
   return pool;
 }
 
+const CANONICAL_PRODUCT_CATEGORIES = new Set<string>(AQUAVO_PRODUCT_CATEGORIES);
+
 export function categoryPathsFromRows(rows: Array<{ category?: unknown }>): string[] {
   const seen = new Set<string>();
   return rows
     .map((row) => canonicalProductCategory(String(row.category ?? "")))
-    .filter((value): value is string => Boolean(value))
+    .filter(
+      (value): value is string =>
+        Boolean(value) && CANONICAL_PRODUCT_CATEGORIES.has(value as string),
+    )
     .map(categoryProductsPath)
     .filter((path) => (seen.has(path) ? false : (seen.add(path), true)));
 }
