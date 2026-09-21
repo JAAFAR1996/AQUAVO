@@ -87,7 +87,7 @@ jobs:
       # Nodemailer 10 ships its own TypeScript declarations. Keeping the old
       # @types package also pulls an obsolete SES/AWS dependency tree.
       - name: Remove obsolete Nodemailer community types
-        run: pnpm remove -D @types/nodemailer
+        run: pnpm remove @types/nodemailer
 
       # Never run `pnpm audit --fix` here. The only permitted overrides are
       # narrow parent>child patches within the dependency line expected by that
