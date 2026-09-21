@@ -4,8 +4,10 @@
 // 3) internal hrefs must resolve to a real route / known dynamic prefix
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-const ROOT = "C:/Users/jaafa/Desktop/upload/wt-i18n";
+const HERE = path.dirname(fileURLToPath(import.meta.url));
+const ROOT = path.resolve(HERE, "../..");
 const rd = (p) => JSON.parse(fs.readFileSync(path.join(ROOT, p), "utf8"));
 
 const app = fs.readFileSync(path.join(ROOT, "client/src/App.tsx"), "utf8");
