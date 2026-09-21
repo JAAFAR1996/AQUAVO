@@ -126,13 +126,14 @@ function isNameOrCode(v: string): boolean {
  */
 const CLITICS = new Set(["و", "ال", "وال", "بال", "فال", "كال", "لل", "ولل", "بالل"]);
 function containsTerm(text: string, term: string): boolean {
+  const isArabicTokenChar = (char: string) => /\p{Script=Arabic}|\p{M}/u.test(char);
   let i = text.indexOf(term);
   while (i >= 0) {
     const after = text[i + term.length] ?? "";
-    if (!/\p{Script=Arabic}/u.test(after)) {
-      // Walk back over the Arabic letters glued to the front and check them as a whole.
+    if (!isArabicTokenChar(after)) {
+      // Walk back over Arabic letters and combining marks glued to the front.
       let start = i;
-      while (start > 0 && /\p{Script=Arabic}/u.test(text[start - 1])) start--;
+      while (start > 0 && isArabicTokenChar(text[start - 1])) start--;
       const prefix = text.slice(start, i);
       if (prefix === "" || CLITICS.has(prefix)) return true;
     }
