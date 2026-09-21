@@ -12,6 +12,7 @@ import { useCart } from "@/contexts/cart-context";
 import { useToast } from "@/hooks/use-toast";
 import { cardImage, cardImageSrcSet } from "@/lib/cloudinary";
 import { formatPrice } from "@/lib/format";
+import { getProductDisplayIdentity } from "@/lib/product-display";
 import { trackSelectItem } from "@/lib/analytics";
 import { flyProductToCart } from "@/lib/motion/fly-to-cart";
 import { isolateNumericRanges as bidi } from "@shared/i18n/bidi";
@@ -65,7 +66,8 @@ export const ProductCard = memo(function ProductCard({
       : "";
   // bidi(): a hyphenated range inside an RTL name or benefit line renders reversed
   // ("50-150" read as "150-50"). See shared/i18n/bidi.ts.
-  const displayName = bidi(product.name);
+  const productDisplay = getProductDisplayIdentity(product);
+  const displayName = bidi(productDisplay.name);
   const supportingLine = bidi(cardBenefit || product.specs || product.description || "");
   const woodSaleActive = isWoodMonthEndSale(product);
 
@@ -202,6 +204,9 @@ export const ProductCard = memo(function ProductCard({
         </div>
 
         <CardHeader className="-mt-px space-y-1 bg-[#f7f4ef] px-3 pb-1 pt-2.5 sm:px-4 sm:pb-1 sm:pt-3">
+          <p className="min-h-4 truncate text-start text-[10px] font-bold uppercase tracking-[0.08em] text-primary/75 sm:text-[11px]">
+            {productDisplay.brand ? <bdi dir="ltr">{productDisplay.brand}</bdi> : "\u00a0"}
+          </p>
           <h3 className="line-clamp-2 min-h-10 text-sm font-bold leading-5 tracking-[-0.01em] text-foreground transition-colors group-hover:text-primary sm:min-h-12 sm:text-[15px] sm:leading-6">
             {displayName}
           </h3>
