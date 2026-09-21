@@ -47,13 +47,13 @@ describe("applyLocaleToHtml", () => {
     expect(out).toContain('<div id="root" dir="ltr">');
     expect(out).toContain('hreflang="x-default"');
     expect(out).not.toContain("ar_IQ");
-    expect(out).not.toContain("Vazirmatn");
+    expect(out).not.toContain("Noto+Sans+Arabic");
   });
 
   it("keeps RTL for Kurdish and loads the Kurdish font", () => {
     const out = applyLocaleToHtml(TEMPLATE, "ckb", "/");
     expect(out).toContain('<html lang="ckb" dir="rtl" data-locale="ckb">');
-    expect(out).toContain("Vazirmatn");
+    expect(out).toContain("Noto+Sans+Arabic");
   });
 
   it("does not annotate alternates on pages kept out of the index", () => {
