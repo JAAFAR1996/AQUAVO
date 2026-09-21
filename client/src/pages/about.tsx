@@ -68,7 +68,7 @@ const CATEGORIES = [
 export default function About() {
   const { t } = useTranslation("pages");
   return (
-    <div className="flex-1 flex flex-col bg-background font-sans">
+    <div className="flex-1 flex flex-col bg-background">
       <MetaTags
         title={t("about.s27")}
         description={t("about.s28")}
