@@ -74,6 +74,7 @@ const FinancePage = lazy(() => import("@/pages/admin/finance"));
 const Wishlist = lazy(() => import("@/pages/wishlist"));
 const SearchResults = lazy(() => import("@/pages/search-results"));
 const Sustainability = lazy(() => import("@/pages/sustainability"));
+const GuidesIndex = lazy(() => import("@/pages/guides-index"));
 const EcoFriendlyGuide = lazy(() => import("@/pages/guides-eco-friendly"));
 const Guide5Mistakes = lazy(() => import("@/pages/guides-5-mistakes"));
 const GuideFishHiding = lazy(() => import("@/pages/guides-fish-hiding"));
@@ -308,6 +309,16 @@ function Router() {
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <PageTransition><ProductDetails /></PageTransition>
+            </Suspense>
+          </ErrorBoundary>
+        )}
+      </Route>
+
+      <Route path="/guides">
+        {() => (
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <PageTransition><GuidesIndex /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}
