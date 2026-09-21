@@ -10,35 +10,53 @@ import { cleanupWhatsAppProviderStatusEvents } from "../services/whatsapp-provid
 import { runResilientFinanceAudit } from "../services/groq-finance-audit-resilient.js";
 import { smartNotifications } from "../services/smart-notifications.js";
 import { runPaymentMaintenance } from "../services/payment-maintenance.js";
+import { verifyGitHubActionsCronToken } from "../security/github-actions-oidc.js";
 
 const router = Router();
 
-function getCronRequestSecret(req: Request): string | undefined {
+function getCronBearer(req: Request): string | undefined {
   const authHeader = req.get("authorization");
   if (authHeader?.startsWith("Bearer ")) return authHeader.slice("Bearer ".length);
   return req.get("x-cron-secret");
 }
-function authorizeCronRequest(req: Request, res: Response): boolean {
+
+async function authorizeCronRequest(req: Request, res: Response): Promise<boolean> {
+  const token = getCronBearer(req);
   const cronSecret = process.env.CRON_SECRET;
-  if (!cronSecret) {
-    if (process.env.NODE_ENV === "production") {
-      console.warn("[Cron] Unauthorized cron request blocked");
-      res.status(403).json({ error: "Forbidden" });
-      return false;
-    }
+
+  // Vercel Cron authenticates the daily/weekly jobs with the deployment
+  // CRON_SECRET. Keep that path unchanged.
+  if (cronSecret && token === cronSecret) return true;
+
+  // The five-minute customer-messaging worker cannot live on Vercel Hobby
+  // (sub-daily crons are rejected). GitHub Actions therefore calls only this
+  // route with a short-lived, signed OIDC token. The verifier pins the token
+  // to this repository, immutable repo id, workflow file, main ref and audience.
+  if (req.path === "/customer-messaging" && token) {
+    const oidc = await verifyGitHubActionsCronToken(token);
+    if (oidc.ok) return true;
+    console.warn(`[Cron] GitHub OIDC scheduler token rejected: ${oidc.reason}`);
+  }
+
+  if (!cronSecret && process.env.NODE_ENV !== "production") {
     console.warn("[Cron] CRON_SECRET is not set; allowing cron request in non-production");
     return true;
   }
-  if (getCronRequestSecret(req) !== cronSecret) {
-    console.warn("[Cron] Unauthorized cron request blocked");
-    res.status(401).json({ error: "Unauthorized" });
-    return false;
-  }
-  return true;
+
+  console.warn("[Cron] Unauthorized cron request blocked");
+  res.status(token ? 401 : 403).json({ error: token ? "Unauthorized" : "Forbidden" });
+  return false;
 }
+
 function requireCronAuth(req: Request, res: Response, next: NextFunction): void {
-  if (!authorizeCronRequest(req, res)) return;
-  next();
+  void authorizeCronRequest(req, res)
+    .then((authorized) => {
+      if (authorized) next();
+    })
+    .catch((error) => {
+      console.error("[Cron] Authorization verification failed", error);
+      if (!res.headersSent) res.status(403).json({ error: "Forbidden" });
+    });
 }
 router.use(requireCronAuth);
 
@@ -228,7 +246,7 @@ router.get("/customer-messaging", async (_req: Request, res: Response) => {
       details: {
         job: "customer_messaging_delivery_care",
         status: "completed",
-        source: "vercel_cron",
+        source: "github_actions_oidc",
         ...result,
         autoReplies,
         autoReplyRecoveryFailed,
@@ -251,7 +269,7 @@ router.get("/customer-messaging", async (_req: Request, res: Response) => {
     aiMonitor.logError(`Customer messaging retry worker failed: ${message}`, {}, {
       event: "cron_job",
       responseTimeMs: duration,
-      details: { job: "customer_messaging_delivery_care", status: "failed", source: "vercel_cron" },
+      details: { job: "customer_messaging_delivery_care", status: "failed", source: "github_actions_oidc" },
     } as any);
     return res.status(500).json({ success: false, error: "CUSTOMER_MESSAGING_WORKER_FAILED", duration });
   }
