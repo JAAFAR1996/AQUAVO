@@ -67,12 +67,12 @@ export function applyDocumentLocale(locale: Locale): void {
 }
 
 /**
- * Cairo, the brand font, lacks five Sorani letters (verified by
- * TOOLS/i18n/check-font-coverage.mjs). Kurdish pages load Vazirmatn on
- * demand; other locales never pay for it.
+ * Cairo does not cover the full Sorani alphabet. Kurdish pages load
+ * Noto Sans Arabic, which covers Central Kurdish cleanly, on demand;
+ * other locales never pay for the extra stylesheet.
  */
 const KURDISH_FONT_ID = "aq-font-ckb";
-const KURDISH_FONT_HREF = "https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700&display=swap";
+const KURDISH_FONT_HREF = "https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap";
 export function ensureLocaleFonts(locale: Locale): void {
   if (typeof document === "undefined" || locale !== "ckb") return;
   if (document.getElementById(KURDISH_FONT_ID)) return;
