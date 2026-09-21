@@ -138,7 +138,7 @@ export const ProductCard = memo(function ProductCard({
             product={product}
             variant="icon"
             size="icon"
-            className="h-10 w-10 border border-white/75 bg-[#f7f4ef]/80 shadow-sm backdrop-blur-md md:h-10 md:w-10"
+            className="h-11 w-11 border border-white/75 bg-[#f7f4ef]/80 shadow-sm backdrop-blur-md md:h-11 md:w-11"
           />
         </div>
 
