@@ -43,3 +43,5 @@ jobs:
         run: pnpm exec vitest run test/i18n
       - name: Production build
         run: pnpm run build
+      - name: SSR cold-start smoke (256 MB heap)
+        run: node --max-old-space-size=256 --import tsx TOOLS/i18n/ssr-cold-start-smoke.ts
