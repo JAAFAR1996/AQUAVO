@@ -78,11 +78,13 @@ describe("/about keeps its disclosures and gains its page", () => {
 
   it("now also carries the page a visitor reads", async () => {
     const { html } = await crawl("/about");
-    const source = readFileSync(resolve(process.cwd(), "client/src/pages/about.tsx"), "utf8");
-    // A sentence taken from the real component, so the assertion tracks the page
-    // rather than a copy of it.
-    const sentence = source.match(/>([^<>{}]{40,120})</)?.[1]?.trim();
-    expect(sentence, "expected a quotable sentence in about.tsx").toBeTruthy();
+    const arPages = JSON.parse(
+      readFileSync(resolve(process.cwd(), "client/src/locales/ar/pages.json"), "utf8"),
+    ) as { about?: Record<string, string> };
+    // The visible page copy now lives in i18n. Pin the crawler to the Arabic
+    // source bundle instead of looking for a hard-coded sentence in JSX.
+    const sentence = arPages.about?.s37;
+    expect(sentence, "expected the about lead copy in the Arabic i18n bundle").toBeTruthy();
     expect(html).toContain(sentence!);
   });
 
@@ -99,8 +101,8 @@ describe("/fish-compatibility has a heading for its readers", () => {
       "utf8",
     );
     // The visual is class-driven, so promoting the tag changes semantics only.
-    expect(source).toContain('<h1 className="text-2xl font-bold">كاشف توافقية الأسماك</h1>');
-    expect(source).not.toContain('<h2 className="text-2xl font-bold">كاشف توافقية الأسماك</h2>');
+    expect(source).toContain('<h1 className="text-2xl font-bold">{t("compatibility-calculator.s17")}</h1>');
+    expect(source).not.toContain('<h2 className="text-2xl font-bold">{t("compatibility-calculator.s17")}</h2>');
   });
 
   it("still gives the crawler exactly one h1", async () => {
