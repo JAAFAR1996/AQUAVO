@@ -228,7 +228,7 @@ router.get("/customer-messaging", async (_req: Request, res: Response) => {
       details: {
         job: "customer_messaging_delivery_care",
         status: "completed",
-        source: "external_scheduler",
+        source: "vercel_cron",
         ...result,
         autoReplies,
         autoReplyRecoveryFailed,
@@ -251,7 +251,7 @@ router.get("/customer-messaging", async (_req: Request, res: Response) => {
     aiMonitor.logError(`Customer messaging retry worker failed: ${message}`, {}, {
       event: "cron_job",
       responseTimeMs: duration,
-      details: { job: "customer_messaging_delivery_care", status: "failed", source: "external_scheduler" },
+      details: { job: "customer_messaging_delivery_care", status: "failed", source: "vercel_cron" },
     } as any);
     return res.status(500).json({ success: false, error: "CUSTOMER_MESSAGING_WORKER_FAILED", duration });
   }
