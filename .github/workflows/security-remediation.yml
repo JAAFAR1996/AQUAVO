@@ -101,9 +101,22 @@ jobs:
           pkg.pnpm = pkg.pnpm || {};
           pkg.pnpm.overrides = {
             "express@4.22.1>path-to-regexp": "0.1.13",
+            "express@4.22.1>qs": "6.16.0",
             "body-parser@1.20.4>qs": "6.16.0",
             "recharts@2.15.4>lodash": "4.18.0",
-            "web-push@3.6.7>bn.js": "4.12.3"
+            "asn1.js@5.4.1>bn.js": "4.12.3",
+            "@vercel/node@13.0.1>undici": "6.28.1",
+            "@vercel/nft@1.10.0>tar": "7.5.21",
+            "@vercel/nft@1.10.0>rollup": "4.59.0",
+            "@vercel/static-config@3.4.3>minimatch": "3.1.4",
+            "@vercel/static-config@3.4.3>picomatch": "2.3.2",
+            "@vercel/static-config@3.4.3>ajv": "8.18.0",
+            "minimatch@3.1.4>brace-expansion": "1.1.18",
+            "glob@13.0.0>minimatch": "10.2.5",
+            "minimatch@10.2.5>@isaacs/brace-expansion": "5.0.1",
+            "rollup-plugin-visualizer@6.0.5>picomatch": "4.0.4",
+            "@types/superagent@8.1.9>form-data": "4.0.6",
+            "drizzle-kit@0.31.10>esbuild": "0.25.12"
           };
           writeFileSync("package.json", JSON.stringify(pkg, null, 2) + "\n");
           NODE
@@ -114,9 +127,22 @@ jobs:
           import { readFileSync } from "node:fs";
           const expected = {
             "express@4.22.1>path-to-regexp": "0.1.13",
+            "express@4.22.1>qs": "6.16.0",
             "body-parser@1.20.4>qs": "6.16.0",
             "recharts@2.15.4>lodash": "4.18.0",
-            "web-push@3.6.7>bn.js": "4.12.3"
+            "asn1.js@5.4.1>bn.js": "4.12.3",
+            "@vercel/node@13.0.1>undici": "6.28.1",
+            "@vercel/nft@1.10.0>tar": "7.5.21",
+            "@vercel/nft@1.10.0>rollup": "4.59.0",
+            "@vercel/static-config@3.4.3>minimatch": "3.1.4",
+            "@vercel/static-config@3.4.3>picomatch": "2.3.2",
+            "@vercel/static-config@3.4.3>ajv": "8.18.0",
+            "minimatch@3.1.4>brace-expansion": "1.1.18",
+            "glob@13.0.0>minimatch": "10.2.5",
+            "minimatch@10.2.5>@isaacs/brace-expansion": "5.0.1",
+            "rollup-plugin-visualizer@6.0.5>picomatch": "4.0.4",
+            "@types/superagent@8.1.9>form-data": "4.0.6",
+            "drizzle-kit@0.31.10>esbuild": "0.25.12"
           };
           const pkg = JSON.parse(readFileSync("package.json", "utf8"));
           if (JSON.stringify(pkg.pnpm?.overrides || {}) !== JSON.stringify(expected)) {
