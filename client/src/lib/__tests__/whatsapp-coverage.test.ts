@@ -38,8 +38,8 @@ function walk(dir: string, acc: string[] = []): string[] {
   return acc;
 }
 
-/** A file "opens WhatsApp" if it references the URL constant or a wa.me link. */
-const OPENS_WHATSAPP = /WHATSAPP_URL|wa\.me/;
+/** A file "opens WhatsApp" if it references a raw destination or one of the sanctioned helpers. */
+const OPENS_WHATSAPP = /WHATSAPP_URL|wa\.me|WhatsAppLink|openWhatsApp|trackWhatsAppHandoff/;
 /** …and it is instrumented if it goes through one of the two sanctioned entry points. */
 const USES_HELPER = /WhatsAppLink|openWhatsApp|trackWhatsAppHandoff/;
 
