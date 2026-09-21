@@ -51,6 +51,12 @@ jobs:
       - name: Update vulnerable production dependencies on reviewed floors
         run: >-
           pnpm update
+          @aws-sdk/client-s3@3.1136.0
+          @modelcontextprotocol/sdk@1.30.0
+          @sentry/node@10.75.0
+          @sentry/react@10.75.0
+          apify-client@2.25.0
+          cloudinary@2.11.0
           drizzle-orm@0.45.2
           express-rate-limit@8.2.2
           jspdf@4.2.1
@@ -58,12 +64,14 @@ jobs:
           nanoid@5.1.16
           nodemailer@9.1.1
           postcss@8.5.23
+          posthog-js@1.430.3
           uuid@13.0.1
           ws@8.21.0
 
       - name: Update vulnerable development dependencies on compatible floors
         run: >-
           pnpm add -D
+          @vercel/node@5.10.2
           @vitest/ui@4.1.11
           dompurify@3.4.13
           happy-dom@20.8.9
@@ -71,8 +79,21 @@ jobs:
           vite@8.0.16
           vitest@4.1.11
 
-      - name: Apply transitive security overrides
-        run: pnpm audit --fix || true
+      # Never run `pnpm audit --fix` here. In a prior repair attempt it added
+      # 91 global overrides and replaced Express 4's path-to-regexp contract,
+      # producing "pathRegexp is not a function" across dozens of server tests.
+      # Residual advisories are handled by upgrading their parent package or by
+      # a narrowly-scoped, same-major override that is reviewed separately.
+      - name: Confirm no automatic audit overrides were introduced
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync } from "node:fs";
+          const pkg = JSON.parse(readFileSync("package.json", "utf8"));
+          if (pkg.pnpm?.overrides && Object.keys(pkg.pnpm.overrides).length > 0) {
+            console.error("Unexpected pnpm.overrides present; refuse broad security overrides.");
+            process.exit(1);
+          }
+          NODE
 
       - name: Refresh lockfile
         run: pnpm install --no-frozen-lockfile
