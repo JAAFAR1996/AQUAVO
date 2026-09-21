@@ -17,6 +17,7 @@ import { WishlistButton } from "@/components/wishlist/wishlist-button";
 import { Link } from "wouter";
 import { detailImage, thumbImage } from "@/lib/cloudinary";
 import { useTranslation } from "react-i18next";
+import { getProductDisplayIdentity } from "@/lib/product-display";
 
 interface QuickViewModalProps {
     product: Product | null;
@@ -34,6 +35,7 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
 
     const images = product.images?.length ? product.images : [product.thumbnail];
     const hasPrice = (product.price ?? 0) > 0;
+    const productDisplay = getProductDisplayIdentity(product);
 
     const handleAddToCart = async () => {
         if (!hasPrice) return;
@@ -119,10 +121,10 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
                     {/* Product Info Section */}
                     <div className="p-6 flex flex-col text-right">
                         {/* Brand */}
-                        <p className="text-sm text-muted-foreground mb-1">{product.brand}</p>
+                        <p className="text-sm text-primary/75 font-semibold uppercase tracking-[0.06em] mb-1">{productDisplay.brand ? <bdi dir="ltr">{productDisplay.brand}</bdi> : "\u00a0"}</p>
 
                         {/* Name */}
-                        <h2 className="text-2xl font-bold mb-3">{product.name}</h2>
+                        <h2 className="text-2xl font-bold mb-3">{productDisplay.name}</h2>
 
                         {/* Rating */}
                         <div className="flex items-center gap-2 justify-end mb-4">
