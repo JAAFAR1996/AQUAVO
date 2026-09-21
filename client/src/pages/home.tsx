@@ -32,6 +32,7 @@ import { PrecisionReveal } from "@/components/motion/precision-reveal";
 import { fetchTopSellingProducts } from "@/lib/api";
 import { cardImage, cardImageSrcSet } from "@/lib/cloudinary";
 import { SHOP_CATEGORY_LINKS } from "@/lib/product-category-links";
+import { getProductDisplayIdentity } from "@/lib/product-display";
 
 const serviceFacts = [
   { icon: Truck, title: "facts.delivery", detail: "facts.deliveryDetail" },
@@ -177,33 +178,39 @@ export default function Home() {
               </div>
             ) : hasStorePicks ? (
               <div className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
-                {storePicks.map((product) => (
-                  <Link
-                    key={product.id}
-                    href={`/products/${product.slug}`}
-                    className="aq-interactive-card overflow-hidden rounded-2xl border border-border bg-card hover:border-[#0B93A6]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                  >
-                    <div className="aspect-square bg-card p-3 sm:p-5">
-                      <img
-                        src={cardImage(product.images[0]) || "/brand/aquavo-v2-icon.svg"}
-                        srcSet={cardImageSrcSet(product.images[0])}
-                        sizes="(max-width: 1023px) 50vw, 25vw"
-                        alt={product.name}
-                        width={360}
-                        height={360}
-                        loading="lazy"
-                        decoding="async"
-                        className="aq-product-image h-full w-full object-contain"
-                      />
-                    </div>
-                    <div className="p-4">
-                      <h3 className="line-clamp-2 min-h-11 text-sm font-bold leading-6 text-foreground">{product.name}</h3>
-                      <p className="mt-2 text-sm font-bold text-primary">
-                        {(product.price ?? 0) > 0 ? formatLocalizedPrice(product.price ?? 0, locale) : t("picks.seeDetails")}
-                      </p>
-                    </div>
-                  </Link>
-                ))}
+                {storePicks.map((product) => {
+                  const productDisplay = getProductDisplayIdentity(product);
+                  return (
+                    <Link
+                      key={product.id}
+                      href={`/products/${product.slug}`}
+                      className="aq-interactive-card overflow-hidden rounded-2xl border border-border bg-card hover:border-[#0B93A6]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    >
+                      <div className="aspect-square bg-card p-3 sm:p-5">
+                        <img
+                          src={cardImage(product.images[0]) || "/brand/aquavo-v2-icon.svg"}
+                          srcSet={cardImageSrcSet(product.images[0])}
+                          sizes="(max-width: 1023px) 50vw, 25vw"
+                          alt={product.name}
+                          width={360}
+                          height={360}
+                          loading="lazy"
+                          decoding="async"
+                          className="aq-product-image h-full w-full object-contain"
+                        />
+                      </div>
+                      <div className="p-4">
+                        <p className="min-h-4 truncate text-[10px] font-bold uppercase tracking-[0.08em] text-primary/75">
+                          {productDisplay.brand ? <bdi dir="ltr">{productDisplay.brand}</bdi> : "\u00a0"}
+                        </p>
+                        <h3 className="line-clamp-2 min-h-11 text-sm font-bold leading-6 text-foreground">{productDisplay.name}</h3>
+                        <p className="mt-2 text-sm font-bold text-primary">
+                          {(product.price ?? 0) > 0 ? formatLocalizedPrice(product.price ?? 0, locale) : t("picks.seeDetails")}
+                        </p>
+                      </div>
+                    </Link>
+                  );
+                })}
               </div>
             ) : (
               <div className="mt-8 flex flex-col items-center gap-3 rounded-2xl border border-border bg-background px-6 py-12 text-center">
