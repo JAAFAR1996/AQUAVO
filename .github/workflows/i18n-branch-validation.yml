@@ -47,5 +47,33 @@ jobs:
         run: pnpm exec vitest run test/i18n
       - name: Production build
         run: pnpm run build
-      - name: SSR cold-start smoke (256 MB heap)
+      - name: SSR cold-start smoke (all locales, 256 MB heap)
         run: node --max-old-space-size=256 --import tsx TOOLS/i18n/ssr-cold-start-smoke.ts
+
+  locale-route-smoke:
+    name: 🌐 Locale SEO/SSR — ${{ matrix.label }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - locale: en
+            label: English (/en)
+          - locale: ckb
+            label: Sorani Kurdish (/ckb)
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --prefer-offline
+      - name: Production build
+        run: pnpm run build
+      - name: Verify ${{ matrix.label }} indexable SSR routes
+        run: node --max-old-space-size=256 --import tsx TOOLS/i18n/ssr-cold-start-smoke.ts --locale=${{ matrix.locale }}
