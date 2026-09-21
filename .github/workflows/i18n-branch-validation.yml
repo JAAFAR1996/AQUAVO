@@ -5,6 +5,7 @@ on:
     branches:
       - feat/i18n-trilingual
       - 'fix/i18n-*'
+      - 'fix/full-production-audit-*'
   workflow_dispatch:
 
 env:
