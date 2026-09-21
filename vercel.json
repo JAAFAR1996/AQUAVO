@@ -54,10 +54,6 @@
     {
       "path": "/api/cron/finance-audit",
       "schedule": "0 21 * * *"
-    },
-    {
-      "path": "/api/cron/customer-messaging",
-      "schedule": "*/5 * * * *"
     }
   ],
   "headers": [
