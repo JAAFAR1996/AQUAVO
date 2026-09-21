@@ -28,12 +28,13 @@ export const LOCALE_RELEASE: Record<Exclude<Locale, typeof DEFAULT_LOCALE>, { re
   // translationUnreviewed in api/ssr-meta.ts. Releasing the locale does not
   // make an unreviewed page indexable, and nothing here claims otherwise.
   en: { ready: true, note: "Released 2026-09-21; production synced, all rows machine-translated and unreviewed, so pages stay noindex until reviewed" },
-  // CKB stays closed. The corpus has P0 defects of a kind a model cannot settle
-  // — a reversed heater instruction, quarantine rendered "the upper cage",
-  // yoghurt shipped as "fish" — and 18 terminology decisions have no
-  // authoritative Sorani source. See reports/i18n/ckb-native-final-review.md;
-  // the answers apply through TOOLS/i18n/apply-ckb-native-final.mjs.
-  ckb: { ready: false, note: "Terminology decisions resolved by research/context review; final corpus QA, test classification, Production sync, and release verification remain. Not native-human reviewed." },
+  // Released 2026-09-21 after the Sorani corpus was synchronized to Production.
+  // Release gates at this commit: validator 0 errors / 0 warnings, internal links
+  // 0 defects, HTML structure 0 defects, commerce integrity 0 findings,
+  // TypeScript pass, i18n Vitest pass, and production build pass.
+  // All 232 Production ckb rows match the repository source_hash + data exactly.
+  // Rows remain status "machine"; this is not a claim of native-human review.
+  ckb: { ready: true, note: "Released 2026-09-21; Production synced 232/232, validator 0 errors/0 warnings, links/HTML/commerce/TypeScript/tests/build passed; machine-translated and not native-human reviewed." },
 };
 
 export function isLocaleReleased(locale: Locale): boolean {
