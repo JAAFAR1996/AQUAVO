@@ -112,7 +112,11 @@
         "مضخات هواء"
       ],
       "en": "air pump",
-      "ckb": "پەمپی هەوا"
+      "ckb": "پەمپی هەوا",
+      "ckbAlt": [
+        "پەمپەکانی هەوا",
+        "پەمپێکی هەوا"
+      ]
     },
     {
       "id": "water-pump",
@@ -573,7 +577,10 @@
         "مكافحة الطحالب"
       ],
       "en": "algae control",
-      "ckb": "کۆنترۆڵی کەوز"
+      "ckb": "کۆنترۆڵی کەوز",
+      "ckbAlt": [
+        "کۆنترۆڵی قەوزە"
+      ]
     },
     {
       "id": "white-spot",
@@ -744,7 +751,11 @@
         "سم"
       ],
       "en": "cm",
-      "ckb": "سم"
+      "ckb": "سم",
+      "ckbAlt": [
+        "cm",
+        "سەنتیمەتر"
+      ]
     },
     {
       "id": "celsius",
@@ -753,7 +764,11 @@
         "°م"
       ],
       "en": "°C",
-      "ckb": "پلەی سەدی"
+      "ckb": "پلەی سەدی",
+      "ckbAlt": [
+        "°C",
+        "°س"
+      ]
     },
     {
       "id": "week",
@@ -1650,7 +1665,10 @@
       "en": "biological filtration",
       "ckb": "پاڵاوتنی بایۆلۆجی",
       "ckbAlt": [
-        "فلتەری بایۆلۆجی"
+        "فلتەری بایۆلۆجی",
+        "فلتەرکردنی بایۆلۆژی",
+        "فلتەری بایۆلۆژی",
+        "فلتەرکردنی بایۆلۆجی"
       ]
     },
     {
@@ -1682,7 +1700,9 @@
         "گەروو",
         "گەڵوو",
         "پەراسوو"
-      ]
+      ],
+      "source": "https://ckb.wikipedia.org/wiki/ڕیشوو",
+      "sourceNote": "Attested anatomical usage: respiratory organ Gill; article cites grade 12 science. Retain explanatory context where useful; not human-reviewed."
     }
   ],
   "styleExamples": [
