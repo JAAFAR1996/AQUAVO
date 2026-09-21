@@ -1,4 +1,6 @@
+import { useTranslation } from "react-i18next";
 export default function GuideTemperatureGuide() {
+  const { t } = useTranslation("guides");
   return (
     <div className="tmp-wrap">
 
@@ -10,7 +12,7 @@ export default function GuideTemperatureGuide() {
 
         {/* ── Hero ── */}
         <section className="tmp-hero">
-          <span className="tmp-badge">دليل الحرارة — AQUAVO</span>
+          <span className="tmp-badge">{t("guides-temperature-guide.s1")}</span>
 
           {/* Thermal gradient bar */}
           <div className="tmp-gradient-bar" aria-hidden="true">
@@ -21,52 +23,51 @@ export default function GuideTemperatureGuide() {
             </div>
             <div className="tmp-bar-labels">
               <span>18°</span>
-              <span className="tmp-comfort-lbl">المنطقة الآمنة ✓</span>
+              <span className="tmp-comfort-lbl">{t("guides-temperature-guide.s2")}</span>
               <span>32°</span>
             </div>
           </div>
 
-          <h1>درجة وحدة تكفي</h1>
-          <p className="tmp-sub">الثبات أهم من الرقم الصحيح</p>
+          <h1>{t("guides-temperature-guide.s3")}</h1>
+          <p className="tmp-sub">{t("guides-temperature-guide.s4")}</p>
           <p className="tmp-intro">
-            السمچ يتحمل 24° أو 27°، لكن ما يتحمل 24° الصبح و28° المساء.
-            التذبذب اليومي — مو الرقم نفسه — هو اللي يضعف المناعة ويفتح باب الأمراض.
+            {t("guides-temperature-guide.s5")}
           </p>
           <div className="tmp-meta">
-            <span>لكل أصحاب الأحواض</span>
-            <span>وقت القراءة: 5 دقائق</span>
+            <span>{t("guides-temperature-guide.s6")}</span>
+            <span>{t("guides-temperature-guide.s7")}</span>
           </div>
         </section>
 
         {/* ── المناطق ── */}
         <section className="tmp-section">
-          <h2 className="tmp-title">مناطق الحرارة وتأثيرها</h2>
+          <h2 className="tmp-title">{t("guides-temperature-guide.s8")}</h2>
           <div className="tmp-zones">
             <div className="tmp-zone tmp-zone-cold">
-              <div className="tmp-zone-range">أقل من 22°</div>
-              <div className="tmp-zone-name">بارد</div>
+              <div className="tmp-zone-range">{t("guides-temperature-guide.s9")}</div>
+              <div className="tmp-zone-name">{t("guides-temperature-guide.s10")}</div>
               <ul className="tmp-zone-ul">
-                <li>بطء في الهضم والحركة</li>
-                <li>ضعف المناعة تدريجياً</li>
-                <li>مناسب فقط للسمچ البارد (الكوي، الذهبي)</li>
+                <li>{t("guides-temperature-guide.s11")}</li>
+                <li>{t("guides-temperature-guide.s12")}</li>
+                <li>{t("guides-temperature-guide.s13")}</li>
               </ul>
             </div>
             <div className="tmp-zone tmp-zone-safe">
               <div className="tmp-zone-range">24° – 28°</div>
-              <div className="tmp-zone-name">آمن ✓</div>
+              <div className="tmp-zone-name">{t("guides-temperature-guide.s14")}</div>
               <ul className="tmp-zone-ul">
-                <li>نشاط طبيعي وهضم جيد</li>
-                <li>دورة بيولوجية مثالية</li>
-                <li>مناسب لأغلب السمچ الاستوائي</li>
+                <li>{t("guides-temperature-guide.s15")}</li>
+                <li>{t("guides-temperature-guide.s16")}</li>
+                <li>{t("guides-temperature-guide.s17")}</li>
               </ul>
             </div>
             <div className="tmp-zone tmp-zone-hot">
-              <div className="tmp-zone-range">فوق 30°</div>
-              <div className="tmp-zone-name">خطر</div>
+              <div className="tmp-zone-range">{t("guides-temperature-guide.s18")}</div>
+              <div className="tmp-zone-name">{t("guides-temperature-guide.s19")}</div>
               <ul className="tmp-zone-ul">
-                <li>أكسجين المي ينخفض</li>
-                <li>تسريع دورة الأمراض</li>
-                <li>الإجهاد الحراري يؤدي للنفوق السريع</li>
+                <li>{t("guides-temperature-guide.s20")}</li>
+                <li>{t("guides-temperature-guide.s21")}</li>
+                <li>{t("guides-temperature-guide.s22")}</li>
               </ul>
             </div>
           </div>
@@ -74,34 +75,34 @@ export default function GuideTemperatureGuide() {
 
         {/* ── حسب نوع السمچ ── */}
         <section className="tmp-section">
-          <h2 className="tmp-title">الحرارة المناسبة حسب النوع</h2>
+          <h2 className="tmp-title">{t("guides-temperature-guide.s23")}</h2>
           <div className="tmp-fish-table">
             <div className="tmp-fish-row tmp-fish-header">
-              <span>النوع</span>
-              <span>المدى المثالي</span>
+              <span>{t("guides-temperature-guide.s24")}</span>
+              <span>{t("guides-temperature-guide.s25")}</span>
             </div>
             <div className="tmp-fish-row">
-              <span>نيون / كارديناله</span>
+              <span>{t("guides-temperature-guide.s26")}</span>
               <span>24° – 27°</span>
             </div>
             <div className="tmp-fish-row">
-              <span>جولدن فيش / كوي</span>
+              <span>{t("guides-temperature-guide.s27")}</span>
               <span>18° – 22°</span>
             </div>
             <div className="tmp-fish-row">
-              <span>بيتا / أوسكار</span>
+              <span>{t("guides-temperature-guide.s28")}</span>
               <span>26° – 30°</span>
             </div>
             <div className="tmp-fish-row">
-              <span>ديسكس</span>
+              <span>{t("guides-temperature-guide.s29")}</span>
               <span>28° – 31°</span>
             </div>
             <div className="tmp-fish-row">
-              <span>جمبري</span>
+              <span>{t("guides-temperature-guide.s30")}</span>
               <span>20° – 24°</span>
             </div>
             <div className="tmp-fish-row">
-              <span>الأحواض المختلطة (عامة)</span>
+              <span>{t("guides-temperature-guide.s31")}</span>
               <span>25° – 27°</span>
             </div>
           </div>
@@ -109,34 +110,34 @@ export default function GuideTemperatureGuide() {
 
         {/* ── علامات المشكلة ── */}
         <section className="tmp-section">
-          <h2 className="tmp-title">علامات مشكلة في الحرارة</h2>
+          <h2 className="tmp-title">{t("guides-temperature-guide.s32")}</h2>
           <div className="tmp-signs">
             <div className="tmp-sign">
               <span className="tmp-sign-dot tmp-dot-hot"></span>
               <div>
-                <strong>السمچ على السطح يشرب</strong>
-                <p>أكسجين منخفض — الحرارة مرتفعة أو التهوية ناقصة</p>
+                <strong>{t("guides-temperature-guide.s33")}</strong>
+                <p>{t("guides-temperature-guide.s34")}</p>
               </div>
             </div>
             <div className="tmp-sign">
               <span className="tmp-sign-dot tmp-dot-hot"></span>
               <div>
-                <strong>خمول مفاجئ وقلة الأكل</strong>
-                <p>تغيير مفاجئ بالحرارة — تحقق من الهيتر والمحرار</p>
+                <strong>{t("guides-temperature-guide.s35")}</strong>
+                <p>{t("guides-temperature-guide.s36")}</p>
               </div>
             </div>
             <div className="tmp-sign">
               <span className="tmp-sign-dot tmp-dot-cold"></span>
               <div>
-                <strong>تجمع السمچ في أسفل الحوض</strong>
-                <p>الحرارة منخفضة — فحص الهيتر فوراً</p>
+                <strong>{t("guides-temperature-guide.s37")}</strong>
+                <p>{t("guides-temperature-guide.s38")}</p>
               </div>
             </div>
             <div className="tmp-sign">
               <span className="tmp-sign-dot tmp-dot-cold"></span>
               <div>
-                <strong>بطء في السباحة وصعوبة التوازن</strong>
-                <p>إجهاد حراري — تغيير المي الجديد بنفس الدرجة</p>
+                <strong>{t("guides-temperature-guide.s39")}</strong>
+                <p>{t("guides-temperature-guide.s40")}</p>
               </div>
             </div>
           </div>
@@ -144,34 +145,34 @@ export default function GuideTemperatureGuide() {
 
         {/* ── نصائح الثبات ── */}
         <section className="tmp-section">
-          <h2 className="tmp-title">كيف تحافظ على الثبات؟</h2>
+          <h2 className="tmp-title">{t("guides-temperature-guide.s41")}</h2>
           <div className="tmp-tips">
             <div className="tmp-tip">
-              <span className="tmp-tip-num">١</span>
+              <span className="tmp-tip-num">{t("guides-temperature-guide.s42")}</span>
               <div>
-                <strong>اشتري هيتر بثرموستات — مو هيتر ثابت</strong>
-                <p>الهيتر الثابت يسخن بدون إيقاف — خطر على الحوض.</p>
+                <strong>{t("guides-temperature-guide.s43")}</strong>
+                <p>{t("guides-temperature-guide.s44")}</p>
               </div>
             </div>
             <div className="tmp-tip">
-              <span className="tmp-tip-num">٢</span>
+              <span className="tmp-tip-num">{t("guides-temperature-guide.s45")}</span>
               <div>
-                <strong>ضع المحرار بعيد عن الهيتر</strong>
-                <p>القراءة بجانب الهيتر مو دقيقة — الزاوية الثانية أصح.</p>
+                <strong>{t("guides-temperature-guide.s46")}</strong>
+                <p>{t("guides-temperature-guide.s47")}</p>
               </div>
             </div>
             <div className="tmp-tip">
-              <span className="tmp-tip-num">٣</span>
+              <span className="tmp-tip-num">{t("guides-temperature-guide.s48")}</span>
               <div>
-                <strong>سوّي ماء التغيير قبل الإضافة</strong>
-                <p>المي البارد مباشرة يصدم السمچ — سخّنه قبل لا تصبه.</p>
+                <strong>{t("guides-temperature-guide.s49")}</strong>
+                <p>{t("guides-temperature-guide.s50")}</p>
               </div>
             </div>
             <div className="tmp-tip">
-              <span className="tmp-tip-num">٤</span>
+              <span className="tmp-tip-num">{t("guides-temperature-guide.s51")}</span>
               <div>
-                <strong>ما تحط الحوض قرب النافذة أو المكيف</strong>
-                <p>التغيير اليومي بالحرارة يضر أكثر من الرقم نفسه.</p>
+                <strong>{t("guides-temperature-guide.s52")}</strong>
+                <p>{t("guides-temperature-guide.s53")}</p>
               </div>
             </div>
           </div>
@@ -179,74 +180,73 @@ export default function GuideTemperatureGuide() {
 
         {/* ── مشكلة الصيف العراقي ── */}
         <section className="tmp-section">
-          <h2 className="tmp-title">مشكلة الصيف العراقي — أهم قسم في هذا الدليل</h2>
+          <h2 className="tmp-title">{t("guides-temperature-guide.s54")}</h2>
           <p className="tmp-body">
-            درجة حرارة الغرفة بالصيف تتجاوز ٣٥–٤٢°C بشكل طبيعي. يعني الحوض بدون تبريد يوصل لـ ٣٢–٣٦°C.
-            عند هذه الدرجات الأكسجين ينخفض، الأمراض تتسارع، والسمچ يبدأ يتعرض لإجهاد حراري حقيقي.
+            {t("guides-temperature-guide.s55")}
           </p>
           <div className="tmp-iraq-grid">
             <div className="tmp-iraq-box tmp-iraq-warn">
-              <div className="tmp-iraq-label">علامات الحوض الساخن جداً:</div>
+              <div className="tmp-iraq-label">{t("guides-temperature-guide.s56")}</div>
               <ul className="tmp-iraq-ul">
-                <li>السمچ يلهث قرب السطح</li>
-                <li>تنفس سريع وخياشيم تتحرك بشكل ملحوظ</li>
-                <li>خمول وقلة الأكل</li>
-                <li>أمراض تنتشر فجأة بعد موجة حر</li>
+                <li>{t("guides-temperature-guide.s57")}</li>
+                <li>{t("guides-temperature-guide.s58")}</li>
+                <li>{t("guides-temperature-guide.s59")}</li>
+                <li>{t("guides-temperature-guide.s60")}</li>
               </ul>
             </div>
             <div className="tmp-iraq-box tmp-iraq-safe">
-              <div className="tmp-iraq-label">الهدف العملي بالعراق:</div>
+              <div className="tmp-iraq-label">{t("guides-temperature-guide.s61")}</div>
               <ul className="tmp-iraq-ul">
-                <li>أبقِ الحوض تحت ٣٠°C قدر المستطاع</li>
-                <li>الثبات أهم من مطاردة ٢٦°C</li>
-                <li>٢٨–٣٠°C ثابتة أفضل من ٢٦°C متقلبة</li>
-                <li>راقب مرتين يومياً — صباح ومساء — يكفي</li>
+                <li>{t("guides-temperature-guide.s62")}</li>
+                <li>{t("guides-temperature-guide.s63")}</li>
+                <li>{t("guides-temperature-guide.s64")}</li>
+                <li>{t("guides-temperature-guide.s65")}</li>
               </ul>
             </div>
           </div>
           <div className="tmp-cooling-list">
-            <div className="tmp-cooling-title">كيف تخفض حرارة الحوض بأمان:</div>
+            <div className="tmp-cooling-title">{t("guides-temperature-guide.s66")}</div>
             <div className="tmp-cooling-item">
-              <span className="tmp-cooling-num">١</span>
+              <span className="tmp-cooling-num">{t("guides-temperature-guide.s42")}</span>
               <div>
-                <strong>مروحة فوق الحوض</strong>
-                <p>مروحة صغيرة تنفخ على سطح الماء تخفض الحرارة ٢–٤°C بالتبخر. الأفضل عملياً ومو تسبب صدمة.</p>
+                <strong>{t("guides-temperature-guide.s67")}</strong>
+                <p>{t("guides-temperature-guide.s68")}</p>
               </div>
             </div>
             <div className="tmp-cooling-item">
-              <span className="tmp-cooling-num">٢</span>
+              <span className="tmp-cooling-num">{t("guides-temperature-guide.s45")}</span>
               <div>
-                <strong>تغيير جزء من المي بماء أبرد بـ ٢–٣°C</strong>
-                <p>١٥–٢٠٪ فقط. لا تستخدم ماء الثلاجة مباشرة — الفرق الكبير يصدم السمچ. الإضافة التدريجية أهم من الكمية.</p>
+                <strong>{t("guides-temperature-guide.s69")}</strong>
+                <p>{t("guides-temperature-guide.s70")}</p>
               </div>
             </div>
             <div className="tmp-cooling-item">
-              <span className="tmp-cooling-num">٣</span>
+              <span className="tmp-cooling-num">{t("guides-temperature-guide.s48")}</span>
               <div>
-                <strong>زجاجة ماء مجمد مغلقة داخل الحوض</strong>
-                <p>تخفض الحرارة ببطء تدريجي. راقب كل ٣٠ دقيقة.</p>
-                <div className="tmp-cooling-warn">⚠ لا تضع ثلج مباشرة في الحوض — يصدم السمچ بتغيير مفاجئ. زجاجة مغلقة فقط.</div>
+                <strong>{t("guides-temperature-guide.s71")}</strong>
+                <p>{t("guides-temperature-guide.s72")}</p>
+                <div className="tmp-cooling-warn">{t("guides-temperature-guide.s73")}</div>
               </div>
             </div>
             <div className="tmp-cooling-item">
-              <span className="tmp-cooling-num">٤</span>
+              <span className="tmp-cooling-num">{t("guides-temperature-guide.s51")}</span>
               <div>
-                <strong>تكييف الغرفة</strong>
-                <p>الحل الجذري على المدى البعيد. إذا الغرفة على ٢٦–٢٨°C، الحوض يثبت معها تلقائياً.</p>
+                <strong>{t("guides-temperature-guide.s74")}</strong>
+                <p>{t("guides-temperature-guide.s75")}</p>
               </div>
             </div>
           </div>
           <div className="tmp-iraq-note">
-            نصيحة عملية: بأشد أيام الصيف، قلل كمية الأكل للنصف. المي الدافئة تحلل الأكل الزائد أسرع وترفع الأمونيا.
+            {t("guides-temperature-guide.s76")}
           </div>
         </section>
 
         {/* ── CTA ── */}
         <section className="tmp-cta-section">
           <div className="tmp-cta-box">
-            <h2 className="tmp-cta-title">مشكلة بالحرارة وما تعرف السبب؟</h2>
+            <h2 className="tmp-cta-title">{t("guides-temperature-guide.s77")}</h2>
             <p className="tmp-cta-body">
-              أرسل درجة الحرارة الحالية ونوع السمچ — ونعطيك رأي واضح.
+              {t("guides-temperature-guide.s78")}
             </p>
             <a
               href="https://www.instagram.com/aquavo_iq/"
@@ -254,7 +254,7 @@ export default function GuideTemperatureGuide() {
               rel="noopener noreferrer"
               className="tmp-cta-btn"
             >
-              راسلنا على إنستغرام
+              {t("guides-temperature-guide.s79")}
             </a>
           </div>
         </section>

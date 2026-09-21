@@ -6,8 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight, Leaf } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
 
 export function AquascapeStyles() {
+  const { t } = useTranslation("pages");
     const [currentIndex, setCurrentIndex] = useState(0);
 
     const nextSlide = () => {
@@ -31,13 +33,13 @@ export function AquascapeStyles() {
             <div className="container mx-auto px-4 relative z-10">
                 <div className="text-center mb-12">
                     <Badge variant="outline" className="mb-4 px-4 py-1 border-primary/50 text-primary">
-                        دليلك للتصميم
+                        {t("aquascape-styles.s1")}
                     </Badge>
                     <h2 className="text-4xl md:text-5xl font-extrabold mb-4 font-heading text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">
-                        أفكار وتصاميم الأحواض
+                        {t("aquascape-styles.s2")}
                     </h2>
                     <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                        اكتشف أنماط الأكواسكيب العالمية واختر التصميم الذي يناسب ذوقك ومساحتك
+                        {t("aquascape-styles.s3")}
                     </p>
                 </div>
 
@@ -69,7 +71,7 @@ export function AquascapeStyles() {
                                         size="icon"
                                         className="rounded-full bg-black/50 text-white hover:bg-black/70 backdrop-blur-sm"
                                         onClick={(e) => { e.stopPropagation(); prevSlide(); }}
-                                        aria-label="الشريحة السابقة"
+                                        aria-label={t("aquascape-styles.s4")}
                                     >
                                         <ArrowRight className="h-6 w-6" aria-hidden="true" />
                                     </Button>
@@ -78,7 +80,7 @@ export function AquascapeStyles() {
                                         size="icon"
                                         className="rounded-full bg-black/50 text-white hover:bg-black/70 backdrop-blur-sm"
                                         onClick={(e) => { e.stopPropagation(); nextSlide(); }}
-                                        aria-label="الشريحة التالية"
+                                        aria-label={t("aquascape-styles.s5")}
                                     >
                                         <ArrowLeft className="h-6 w-6" aria-hidden="true" />
                                     </Button>
@@ -128,7 +130,7 @@ export function AquascapeStyles() {
 
                                 <div className="pt-4 flex gap-4">
                                     <Button onClick={nextSlide} className="w-full sm:w-auto min-w-[150px]">
-                                        التالي
+                                        {t("aquascape-styles.s6")}
                                         <ArrowLeft className="mr-2 h-4 w-4" />
                                     </Button>
 
@@ -139,7 +141,7 @@ export function AquascapeStyles() {
                                                 onClick={() => setCurrentIndex(idx)}
                                                 className={`w-3 h-3 rounded-full transition-all duration-300 ${idx === currentIndex ? "bg-primary w-8" : "bg-muted-foreground/30 hover:bg-primary/50"
                                                     }`}
-                                                aria-label={`الانتقال إلى الشريحة ${idx + 1}`}
+                                                aria-label={t("aquascape-styles.s7", { v0: idx + 1 })}
                                             />
                                         ))}
                                     </div>

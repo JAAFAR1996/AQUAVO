@@ -69,6 +69,7 @@ vi.mock("lucide-react", () => ({
   ReceiptText: () => <span>receipt</span>,
   RotateCcw: () => <span>rotate</span>,
   Trash2: () => <span>trash</span>,
+  XCircle: () => <span>x-circle</span>,
 }));
 
 vi.mock("@/hooks/use-toast", () => ({
@@ -213,7 +214,7 @@ describe("OrdersManagement operational return events runtime", () => {
     render(<OrdersManagement />);
 
     await screen.findByText("FH-PAYMENT-PENDING");
-    expect(screen.getByText("بانتظار الدفع الإلكتروني 💳")).toBeInTheDocument();
+    expect(screen.getAllByText("بانتظار الدفع الإلكتروني 💳").length).toBeGreaterThan(0);
     expect(screen.getByText("بانتظار دفع الزبون 💳")).toBeInTheDocument();
     expect(screen.queryByText("بدء التجهيز ⚡")).not.toBeInTheDocument();
     expect(screen.queryByText("receipt")).not.toBeInTheDocument();

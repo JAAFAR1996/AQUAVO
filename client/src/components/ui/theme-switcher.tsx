@@ -8,8 +8,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ThemeOption } from "@/types";
+import { useTranslation } from "react-i18next";
 
 export function ThemeSwitcher() {
+  const { t } = useTranslation("common");
   // First-time visitors default to Light; saved preferences still win.
   // Read synchronously so the dropdown label matches the theme the head bootstrap
   // script already applied, with no flicker/mismatch.
@@ -73,24 +75,24 @@ export function ThemeSwitcher() {
           variant="ghost"
           size="icon"
           className="rounded-full border-2 border-primary/20 bg-primary/5 hover:bg-primary/10 hover:border-primary/40 transition-all"
-          aria-label="تغيير السمة"
+          aria-label={t("theme-switcher.s1")}
         >
           {getIcon()}
-          <span className="sr-only">تغيير السمة</span>
+          <span className="sr-only">{t("theme-switcher.s1")}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-[160px]">
         <DropdownMenuItem onClick={() => changeTheme("light")} className="cursor-pointer">
           <Sun className="ml-2 h-4 w-4 text-yellow-500" />
-          <span>فاتح</span>
+          <span>{t("theme-switcher.s2")}</span>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => changeTheme("dark")} className="cursor-pointer">
           <Moon className="ml-2 h-4 w-4 text-slate-400" />
-          <span>داكن</span>
+          <span>{t("theme-switcher.s3")}</span>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => changeTheme("system")} className="cursor-pointer">
           <Monitor className="ml-2 h-4 w-4 text-blue-500" />
-          <span>النظام</span>
+          <span>{t("theme-switcher.s4")}</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

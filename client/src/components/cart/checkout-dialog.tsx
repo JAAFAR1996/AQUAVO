@@ -20,6 +20,7 @@ import { CouponSection } from "./checkout/coupon-section";
 import { OrderSummary } from "./checkout/order-summary";
 import { ConfirmationView } from "./checkout/confirmation-view";
 import { CheckoutLoyaltySection } from "./checkout/loyalty-section";
+import { useTranslation } from "react-i18next";
 
 interface CheckoutDialogProps {
   open: boolean;
@@ -79,6 +80,7 @@ const findMatchingCartItem = (cartItems: CartItem[], serverItem: ServerOrderItem
 };
 
 export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onCheckoutComplete }: CheckoutDialogProps) {
+  const { t } = useTranslation("orders");
   const { user } = useAuth();
   const { clearCart } = useCart();
   const { toast } = useToast();
@@ -171,7 +173,7 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; type: string; value: number } | null>(null);
 
   const getDeliveryEstimate = () => {
-    return "توصيل خلال 24 ساعة";
+    return t("checkout-dialog.s1");
   };
 
   const validatePhone = (phone: string): boolean => {
@@ -184,21 +186,21 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
     const newErrors: Record<string, string> = {};
 
     if (!customerInfo.name.trim()) {
-      newErrors.name = 'الاسم مطلوب';
+      newErrors.name = t("checkout-dialog.s2");
     }
 
     if (!customerInfo.phone.trim()) {
-      newErrors.phone = 'رقم الهاتف مطلوب';
+      newErrors.phone = t("checkout-dialog.s3");
     } else if (!validatePhone(customerInfo.phone)) {
-      newErrors.phone = 'رقم الهاتف غير صحيح (مثال: 07801234567)';
+      newErrors.phone = t("checkout-dialog.s4");
     }
 
     if (!customerInfo.governorate) {
-      newErrors.governorate = 'يرجى اختيار المحافظة';
+      newErrors.governorate = t("checkout-dialog.s5");
     }
 
     if (!customerInfo.address.trim()) {
-      newErrors.address = 'العنوان مطلوب';
+      newErrors.address = t("checkout-dialog.s6");
     }
 
     setErrors(newErrors);
@@ -270,7 +272,7 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "فشل في إنشاء الطلب");
+        throw new Error(errorData.message || t("checkout-dialog.s7"));
       }
 
       const orderData = await response.json();
@@ -363,9 +365,9 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
       } catch (_) { /* pixel error — ignore */ }
     } catch (error: unknown) {
       console.error("Checkout error:", error);
-      const message = error instanceof Error ? error.message : "حدث خطأ";
+      const message = error instanceof Error ? error.message : t("checkout-dialog.s8");
       toast({
-        title: "خطأ في الطلب",
+        title: t("checkout-dialog.s9"),
         description: message,
         variant: "destructive",
       });
@@ -402,7 +404,7 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
 
       if (!response.ok) {
         const error = await response.json();
-        setCouponError(error.message || "كود الخصم غير صالح");
+        setCouponError(error.message || t("checkout-dialog.s10"));
         return;
       }
 
@@ -411,18 +413,18 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
         setAppliedCoupon(coupon);
         const discountAmount = Math.round(cartTotal * (Number(coupon.value) / 100));
         setCouponDiscount(discountAmount);
-        setCouponSuccess(`تم تطبيق خصم ${coupon.value}% (${formatIQD(discountAmount)})`);
+        setCouponSuccess(t("checkout-dialog.s11", { v0: coupon.value, v1: formatIQD(discountAmount) }));
       } else if (coupon.type === "fixed") {
         setAppliedCoupon(coupon);
         const discountAmount = Number(coupon.value);
         setCouponDiscount(discountAmount);
-        setCouponSuccess(`تم تطبيق خصم بقيمة ${formatIQD(discountAmount)}`);
+        setCouponSuccess(t("checkout-dialog.s12", { v0: formatIQD(discountAmount) }));
       } else {
-        setCouponError("التوصيل ثابت 5,000 د.ع لبغداد وكل المحافظات خلال 24 ساعة");
+        setCouponError(t("checkout-dialog.s13"));
       }
     } catch (error) {
       console.error("Coupon error:", error);
-      setCouponError("حدث خطأ أثناء التحقق من الكوبون");
+      setCouponError(t("checkout-dialog.s14"));
     }
   };
 
@@ -431,12 +433,12 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
       <DialogContent className="sm:max-w-[480px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-lg font-semibold">
-            {step === 'info' ? 'إتمام الطلب' : 'تأكيد الطلب'}
+            {step === 'info' ? t("checkout-dialog.s15") : t("checkout-dialog.s16")}
           </DialogTitle>
           <DialogDescription className="text-sm">
             {step === 'info'
-              ? 'أدخل بيانات التوصيل لإكمال طلبك'
-              : 'راجع تفاصيل طلبك قبل التأكيد'
+              ? t("checkout-dialog.s17")
+              : t("checkout-dialog.s18")
             }
           </DialogDescription>
         </DialogHeader>
@@ -479,7 +481,7 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
             />
 
             <Button onClick={handleContinue} className="w-full h-12 text-base font-semibold" size="lg" disabled={isSubmitting}>
-              متابعة للتأكيد
+              {t("checkout-dialog.s19")}
             </Button>
           </div>
         ) : (

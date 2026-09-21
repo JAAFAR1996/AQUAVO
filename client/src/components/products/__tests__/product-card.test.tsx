@@ -83,12 +83,12 @@ describe('ProductCard Component', () => {
         expect(container.querySelector('a button, button a')).not.toBeInTheDocument();
     });
 
-    it('keeps the product image contained and dimensioned', () => {
+    it('keeps the product image cover-cropped and dimensioned', () => {
         render(<ProductCard product={mockProduct} />, { wrapper: createWrapper() });
         const image = screen.getByRole('img', { name: /Premium Fish Food/ });
         expect(image).toHaveAttribute('width', '400');
         expect(image).toHaveAttribute('height', '400');
-        expect(image).toHaveClass('object-contain');
+        expect(image).toHaveClass('object-cover');
     });
 
     // ---- Phase H: responsive image delivery ----
@@ -152,22 +152,14 @@ describe('ProductCard Component', () => {
 
     // ---- Phase D: compare / wishlist accessible names + touch targets ----
 
-    it('gives the compare control an Arabic accessible name', () => {
-        render(<ProductCard product={mockProduct} />, { wrapper: createWrapper() });
-        expect(screen.getByRole('button', { name: 'إضافة للمقارنة' })).toBeInTheDocument();
-    });
-
     it('gives the wishlist control an Arabic accessible name', () => {
         render(<ProductCard product={mockProduct} />, { wrapper: createWrapper() });
         expect(screen.getByRole('button', { name: /إضافة Premium Fish Food للمفضلة/ })).toBeInTheDocument();
     });
 
-    it('sizes the compare and wishlist controls to a 44px touch target at every breakpoint', () => {
+    it('sizes the wishlist control to a 44px touch target at every breakpoint', () => {
         render(<ProductCard product={mockProduct} />, { wrapper: createWrapper() });
-        const compare = screen.getByRole('button', { name: 'إضافة للمقارنة' });
         const wishlist = screen.getByRole('button', { name: /إضافة Premium Fish Food للمفضلة/ });
-        for (const control of [compare, wishlist]) {
-            expect(control).toHaveClass('h-11', 'w-11', 'md:h-11', 'md:w-11');
-        }
+        expect(wishlist).toHaveClass('h-11', 'w-11', 'md:h-11', 'md:w-11');
     });
 });

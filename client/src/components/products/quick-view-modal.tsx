@@ -7,7 +7,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { formatNumber } from "@/lib/format";
+import { formatNumber, formatPrice } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ShoppingCart, Heart, Star, ExternalLink, Package, Leaf, X } from "lucide-react";
@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { WishlistButton } from "@/components/wishlist/wishlist-button";
 import { Link } from "wouter";
 import { detailImage, thumbImage } from "@/lib/cloudinary";
+import { useTranslation } from "react-i18next";
 
 interface QuickViewModalProps {
     product: Product | null;
@@ -24,6 +25,7 @@ interface QuickViewModalProps {
 }
 
 export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps) {
+    const { t } = useTranslation("products");
     const [selectedImage, setSelectedImage] = useState(0);
     const { addItem } = useCart();
     const { toast } = useToast();
@@ -38,8 +40,8 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
         const ok = await addItem(product);
         if (!ok) return;
         toast({
-            title: "تمت الإضافة للسلة",
-            description: `تم إضافة ${product.name} إلى سلة المشتريات`,
+            title: t("quickView.addedTitle"),
+            description: t("quickView.addedDetail", { name: product.name }),
         });
     };
 
@@ -57,7 +59,7 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
                         <button
                             onClick={onClose}
                             className="absolute top-4 right-4 z-10 p-2 rounded-full bg-background/80 hover:bg-background shadow-md transition-colors"
-                            aria-label="إغلاق"
+                            aria-label={t("quickView.close")}
                         >
                             <X className="h-4 w-4" />
                         </button>
@@ -65,15 +67,15 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
                         {/* Badges */}
                         <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
                             {product.isNew && (
-                                <Badge className="bg-blue-500 hover:bg-blue-600">جديد</Badge>
+                                <Badge className="bg-blue-500 hover:bg-blue-600">{t("tags.new")}</Badge>
                             )}
                             {product.isBestSeller && (
-                                <Badge className="bg-amber-500 hover:bg-amber-600">الأكثر مبيعاً</Badge>
+                                <Badge className="bg-amber-500 hover:bg-amber-600">{t("tags.bestSeller")}</Badge>
                             )}
                             {product.ecoFriendly && (
                                 <Badge variant="secondary" className="bg-green-100 text-green-700">
                                     <Leaf className="w-3 h-3 ml-1" />
-                                    صديق للبيئة
+                                    {t("tags.eco")}
                                 </Badge>
                             )}
                         </div>
@@ -103,7 +105,7 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
                                     >
                                         <img
                                             src={thumbImage(img)}
-                                            alt={`${product.name} - صورة ${images.indexOf(img) + 1}`}
+                                            alt={t("quickView.imageAlt", { name: product.name, index: images.indexOf(img) + 1 })}
                                             className="w-full h-full object-contain"
                                             loading="lazy"
                                             decoding="async"
@@ -124,7 +126,7 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
 
                         {/* Rating */}
                         <div className="flex items-center gap-2 justify-end mb-4">
-                            <span className="text-muted-foreground">({product.reviewCount} تقييم)</span>
+                            <span className="text-muted-foreground">{t("card.reviews", { count: product.reviewCount })}</span>
                             <span className="font-medium">{product.rating}</span>
                             <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
                         </div>
@@ -134,16 +136,16 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
                             {hasPrice ? (
                                 <>
                                     <span className="text-3xl font-bold text-primary">
-                                        {formatNumber(product.price)} د.ع
+                                        {formatPrice(product.price)}
                                     </span>
                                     {product.originalPrice && product.originalPrice > product.price && (
                                         <span className="text-lg text-muted-foreground line-through">
-                                            {formatNumber(product.originalPrice)} د.ع
+                                            {formatPrice(product.originalPrice)}
                                         </span>
                                     )}
                                 </>
                             ) : (
-                                <span className="text-xl font-bold text-muted-foreground">قريباً جداً</span>
+                                <span className="text-xl font-bold text-muted-foreground">{t("quickView.comingSoon")}</span>
                             )}
                         </div>
 
@@ -153,7 +155,7 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
                         <div className="flex items-center gap-2 justify-end mb-4">
                             <Package className="h-4 w-4 text-green-500" />
                             <span className={`font-medium ${product.stock && product.stock > 0 ? "text-green-600" : "text-red-500"}`}>
-                                {product.stock && product.stock > 0 ? `متوفر (${product.stock})` : "غير متوفر"}
+                                {product.stock && product.stock > 0 ? t("quickView.available", { count: product.stock }) : t("quickView.unavailable")}
                             </span>
                         </div>
 
@@ -173,7 +175,7 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
                                 disabled={!hasPrice || !product.stock || product.stock <= 0}
                             >
                                 <ShoppingCart className="h-5 w-5" />
-                                {!hasPrice ? "قريباً جداً" : "أضف للسلة"}
+                                {!hasPrice ? t("quickView.comingSoon") : t("card.addToCart")}
                             </Button>
 
                             <div className="flex gap-3">
@@ -181,7 +183,7 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
                                 <Link href={`/products/${product.slug}`} className="flex-1">
                                     <Button variant="outline" size="lg" className="w-full gap-2">
                                         <ExternalLink className="h-4 w-4" />
-                                        التفاصيل الكاملة
+                                        {t("quickView.fullDetails")}
                                     </Button>
                                 </Link>
                             </div>

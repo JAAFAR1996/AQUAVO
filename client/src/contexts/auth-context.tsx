@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { addCsrfHeader } from "@/lib/csrf";
 import { ttqIdentify, ttqCompleteRegistration } from "@/lib/tiktok-pixel";
 import { metaTrackCompleteRegistration } from "@/lib/meta-pixel";
+import { useTranslation } from "react-i18next";
 
 interface User {
   id: string;
@@ -34,6 +35,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const { t } = useTranslation("common");
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [, setLocation] = useLocation();
@@ -82,13 +84,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const text = await response.text();
         console.error("Server returned non-JSON response:", text);
         // More user-friendly error message for production
-        throw new Error("حدث خطأ في الاتصال بالخادم. يرجى المحاولة مرة أخرى بعد قليل.");
+        throw new Error(t("auth-context.s1"));
       }
 
       if (!response.ok) {
         const error = await response.json();
         // Create enhanced error with retry info for IP blocking
-        const enhancedError = new Error(error.message || "فشل تسجيل الدخول. تحقق من البريد الإلكتروني وكلمة المرور.");
+        const enhancedError = new Error(error.message || t("auth-context.s2"));
         if (response.status === 429 && error.retryAfter) {
           (enhancedError as any).retryAfter = error.retryAfter;
           (enhancedError as any).expiresAt = error.expiresAt;
@@ -134,12 +136,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const text = await response.text();
         console.error("Server returned non-JSON response:", text);
         // More user-friendly error message for production
-        throw new Error("حدث خطأ في الاتصال بالخادم. يرجى المحاولة مرة أخرى بعد قليل.");
+        throw new Error(t("auth-context.s1"));
       }
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || "فشل إنشاء الحساب.");
+        throw new Error(error.message || t("auth-context.s3"));
       }
 
       if (import.meta.env.DEV) {

@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import {
   AlertTriangle,
-  ArrowLeft,
   Banknote,
   BookOpen,
   Boxes,
@@ -21,115 +20,67 @@ import {
   Utensils,
 } from "lucide-react";
 import { Link } from "wouter";
+import { useTranslation } from "react-i18next";
 
 import { BackToTop } from "@/components/back-to-top";
 import { MetaTags } from "@/components/seo/meta-tags";
-import { HomeHero } from "@/components/home/home-hero";
+import { HomeHero, type HomeHeroCopy } from "@/components/home/home-hero";
+import { ArrowForward, useForwardHoverClass } from "@/components/ui/directional-icons";
+import { useLocale } from "@/i18n/locale-context";
+import { formatLocalizedPrice } from "@/i18n/format";
 import { PrecisionReveal } from "@/components/motion/precision-reveal";
 import { fetchTopSellingProducts } from "@/lib/api";
 import { cardImage, cardImageSrcSet } from "@/lib/cloudinary";
-import { formatPrice } from "@/lib/format";
 import { SHOP_CATEGORY_LINKS } from "@/lib/product-category-links";
 
 const serviceFacts = [
-  { icon: Truck, title: "توصيل لكل العراق", detail: "خلال 24 ساعة" },
-  { icon: Banknote, title: "طرق دفع مرنة", detail: "عند الاستلام أو إلكترونياً" },
-  { icon: PackageCheck, title: "أجرة توصيل ثابتة", detail: "5,000 د.ع" },
-  { icon: Headphones, title: "دعم 24/7", detail: "نساعدك تختار المناسب" },
-];
+  { icon: Truck, title: "facts.delivery", detail: "facts.deliveryDetail" },
+  { icon: Banknote, title: "facts.payment", detail: "facts.paymentDetail" },
+  { icon: PackageCheck, title: "facts.fee", detail: "facts.feeDetail" },
+  { icon: Headphones, title: "facts.support", detail: "facts.supportDetail" },
+] as const;
 
 const categories = [
-  {
-    title: "الفلاتر",
-    description: "رتّب التنقية حسب حجم الحوض وطبيعة الاستخدام.",
-    href: SHOP_CATEGORY_LINKS.filters,
-    icon: CircleGauge,
-  },
-  {
-    title: "السخانات",
-    description: "خيارات تثبيت الحرارة بمقاسات واستخدامات مختلفة.",
-    href: SHOP_CATEGORY_LINKS.heaters,
-    icon: Heater,
-  },
-  {
-    title: "الإضاءة",
-    description: "إضاءة مرتبة للرؤية والعرض اليومي للحوض.",
-    href: SHOP_CATEGORY_LINKS.lighting,
-    icon: Lightbulb,
-  },
-  {
-    title: "معالجة المياه",
-    description: "مستلزمات تساعدك تدير مي الحوض بشكل أوضح.",
-    href: SHOP_CATEGORY_LINKS.waterTreatment,
-    icon: Droplets,
-  },
-  {
-    title: "الأغذية",
-    description: "اختار الغذاء حسب النوع والحجم، مو حسب شكل العلبة.",
-    href: SHOP_CATEGORY_LINKS.food,
-    icon: Utensils,
-  },
-  {
-    title: "الأحواض والمستلزمات",
-    description: "الأساسيات اللي تحتاجها حتى ترتب تجهيزك من البداية.",
-    href: "/products",
-    icon: Boxes,
-  },
-];
+  { title: "categories.filters", description: "categories.filtersDesc", href: SHOP_CATEGORY_LINKS.filters, icon: CircleGauge },
+  { title: "categories.heaters", description: "categories.heatersDesc", href: SHOP_CATEGORY_LINKS.heaters, icon: Heater },
+  { title: "categories.lighting", description: "categories.lightingDesc", href: SHOP_CATEGORY_LINKS.lighting, icon: Lightbulb },
+  { title: "categories.water", description: "categories.waterDesc", href: SHOP_CATEGORY_LINKS.waterTreatment, icon: Droplets },
+  { title: "categories.food", description: "categories.foodDesc", href: SHOP_CATEGORY_LINKS.food, icon: Utensils },
+  { title: "categories.tanks", description: "categories.tanksDesc", href: "/products", icon: Boxes },
+] as const;
 
 const valuePoints = [
-  {
-    icon: Target,
-    title: "تخصص فعلي، مو خلطة عامة",
-    description: "نشتغل بس على معدات ومستلزمات أحواض الزينة، حتى المعلومة والاختيار يكونون أدق.",
-  },
-  {
-    icon: LayoutGrid,
-    title: "تسوق مرتب حسب الاستخدام",
-    description: "الأقسام مبوبة حسب وظيفة القطعة، حتى ما تضيع وقتك بين خيارات مالها علاقة بحاجتك.",
-  },
-  {
-    icon: FileSearch,
-    title: "معلومة واضحة قبل القرار",
-    description: "كل قسم وياه شرح يفهمك شنو يسوي المنتج ومتى تحتاجه فعلاً.",
-  },
-  {
-    icon: ListChecks,
-    title: "اختيار أوضح بين البدائل",
-    description: "نرتّب البدائل المتقاربة حتى تقارن على أساس واضح، مو بس على الشكل أو السعر.",
-  },
-  {
-    icon: GraduationCap,
-    title: "دعم تعليمي مستمر",
-    description: "أدلة عملية عن حوض المياه العذبة بالعراق نحدثها باستمرار حسب الأسئلة الشائعة.",
-  },
-];
+  { icon: Target, title: "why.focus.title", description: "why.focus.description" },
+  { icon: LayoutGrid, title: "why.organized.title", description: "why.organized.description" },
+  { icon: FileSearch, title: "why.clarity.title", description: "why.clarity.description" },
+  { icon: ListChecks, title: "why.compare.title", description: "why.compare.description" },
+  { icon: GraduationCap, title: "why.learning.title", description: "why.learning.description" },
+] as const;
 
 const guides = [
-  {
-    eyebrow: "اختيار الفلتر",
-    title: "مو كل فلتر يناسب كل حوض",
-    description: "دليل عملي يوضح شنو تراجع قبل ما تختار نظام التنقية.",
-    href: "/guides/filter-choice",
-  },
-  {
-    eyebrow: "بداية مرتبة",
-    title: "تجهيز الحوض الجديد خطوة بخطوة",
-    description: "رتّب الأساسيات بدون شراء قطع ما تحتاجها.",
-    href: "/guides/new-aquarium-setup-iraq",
-  },
-  {
-    eyebrow: "ثبات الحرارة",
-    title: "شلون تختار السخان المناسب؟",
-    description: "افهم العوامل المهمة قبل اختيار قدرة السخان.",
-    href: "/guides/heater-choice",
-  },
-];
+  { key: "guides.filter", href: "/guides/filter-choice" },
+  { key: "guides.setup", href: "/guides/new-aquarium-setup-iraq" },
+  { key: "guides.heater", href: "/guides/heater-choice" },
+] as const;
 
 const linkButton =
   "inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-6 text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background";
 
 export default function Home() {
+  const { t } = useTranslation("home");
+  const { locale, dir, href } = useLocale();
+  const forwardHover = useForwardHoverClass();
+  const heroCopy: HomeHeroCopy = {
+    eyebrow: t("hero.eyebrow"),
+    title: t("hero.title"),
+    description: t("hero.description"),
+    browse: t("hero.browse"),
+    journey: t("hero.journey"),
+    help: t("hero.help"),
+    imageAlt: t("hero.imageAlt"),
+    methodLabel: t("hero.methodLabel"),
+    methodTitle: t("hero.methodTitle"),
+  };
   const { data: salesData, isLoading: isStorePicksLoading, isError: isStorePicksError } = useQuery({
     queryKey: ["products", "top-selling"],
     queryFn: fetchTopSellingProducts,
@@ -142,21 +93,18 @@ export default function Home() {
 
   return (
     <div className="flex-1 overflow-x-hidden bg-background text-foreground">
-      <MetaTags
-        title="معدات أحواض بريميوم بالعراق"
-        description="AQUAVO براند عراقي لمعدات الأحواض البريميوم. اختار الفلاتر والسخانات والإضاءة ومستلزمات العناية حسب احتياج حوضك، مع الدفع عند الاستلام أو إلكترونياً وتوصيل لكل العراق."
-      />
+      <MetaTags title={t("meta.title")} description={t("meta.description")} />
 
-      <main id="main-content" dir="rtl">
-        <HomeHero />
+      <main id="main-content" dir={dir}>
+        <HomeHero copy={heroCopy} dir={dir} />
 
-        <section aria-label="ضمانات المتجر" className="border-b border-border bg-background">
+        <section aria-label={t("guarantees")} className="border-b border-border bg-background">
           <PrecisionReveal stagger className="mx-auto grid max-w-7xl grid-cols-2 gap-px bg-border sm:grid-cols-4">
             {serviceFacts.map(({ icon: Icon, title, detail }) => (
               <div key={title} className="aq-trust-seal flex min-h-28 flex-col justify-center bg-background px-4 py-5 text-center sm:min-h-32">
                 <Icon className="mx-auto mb-3 h-5 w-5 text-primary" aria-hidden="true" />
-                <p className="text-sm font-bold text-foreground">{title}</p>
-                <p className="mt-1 text-xs leading-5 text-foreground/60">{detail}</p>
+                <p className="text-sm font-bold text-foreground">{t(title)}</p>
+                <p className="mt-1 text-xs leading-5 text-foreground/60">{t(detail)}</p>
               </div>
             ))}
           </PrecisionReveal>
@@ -165,9 +113,9 @@ export default function Home() {
         <section className="bg-background">
           <PrecisionReveal stagger className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
           <div className="max-w-2xl">
-            <p className="text-sm font-bold text-primary">اختيار أسرع، زحمة أقل</p>
-            <h2 className="mt-3 text-3xl font-bold leading-tight text-foreground sm:text-4xl">ابدأ من احتياج الحوض</h2>
-            <p className="mt-4 leading-7 text-muted-foreground">روح مباشرة للقسم اللي يحل مشكلتك، وبعدها قارن الخيارات بهدوء.</p>
+            <p className="text-sm font-bold text-primary">{t("categories.eyebrow")}</p>
+            <h2 className="mt-3 text-3xl font-bold leading-tight text-foreground sm:text-4xl">{t("categories.title")}</h2>
+            <p className="mt-4 leading-7 text-muted-foreground">{t("categories.description")}</p>
           </div>
 
           <div className="mt-9 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -182,10 +130,10 @@ export default function Home() {
                 </span>
                 <span>
                   <span className="flex items-center gap-2 text-lg font-bold text-foreground">
-                    {title}
-                    <ArrowLeft className="h-4 w-4 text-muted-foreground transition-transform group-hover:-translate-x-1 group-hover:text-[#0B93A6]" aria-hidden="true" />
+                    {t(title)}
+                    <ArrowForward className={`h-4 w-4 text-muted-foreground transition-transform ${forwardHover} group-hover:text-[#0B93A6]`} aria-hidden="true" />
                   </span>
-                  <span className="mt-2 block text-sm leading-6 text-muted-foreground">{description}</span>
+                  <span className="mt-2 block text-sm leading-6 text-muted-foreground">{t(description)}</span>
                 </span>
               </Link>
             ))}
@@ -197,14 +145,14 @@ export default function Home() {
           <PrecisionReveal stagger className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
-                <p className="text-sm font-bold text-primary">من المتجر</p>
-                <h2 className="mt-2 text-3xl font-bold text-foreground">اختيارات متوفرة هسه</h2>
+                <p className="text-sm font-bold text-primary">{t("picks.eyebrow")}</p>
+                <h2 className="mt-2 text-3xl font-bold text-foreground">{t("picks.title")}</h2>
               </div>
-              <Link href="/products" className="text-sm font-bold text-primary hover:underline">شوف كل المنتجات</Link>
+              <Link href="/products" className="text-sm font-bold text-primary hover:underline">{t("picks.viewAll")}</Link>
             </div>
 
             {isStorePicksLoading ? (
-              <div className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4" role="status" aria-label="جاري تحميل الاختيارات">
+              <div className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4" role="status" aria-label={t("picks.loading")}>
                 {Array.from({ length: 4 }).map((_, index) => (
                   <div key={index} className="overflow-hidden rounded-2xl border border-border bg-card">
                     <div className="aspect-square animate-pulse bg-muted motion-reduce:animate-none" />
@@ -214,17 +162,17 @@ export default function Home() {
                     </div>
                   </div>
                 ))}
-                <span className="sr-only">جاري تحميل الاختيارات المختارة</span>
+                <span className="sr-only">{t("picks.loadingDetail")}</span>
               </div>
             ) : isStorePicksError ? (
               <div className="mt-8 flex flex-col items-center gap-3 rounded-2xl border border-border bg-background px-6 py-12 text-center">
                 <AlertTriangle className="h-6 w-6 text-[#C97A2E]" aria-hidden="true" />
                 <p className="max-w-md text-sm leading-6 text-muted-foreground">
-                  تعذر علينا تحميل الاختيارات المختارة هسه. تكدر تشوف كل المنتجات مباشرة.
+                  {t("picks.error")}
                 </p>
                 <Link href="/products" className={`${linkButton} border border-primary/40 text-primary hover:bg-[#0B93A6]/10`}>
-                  شوف كل المنتجات
-                  <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+                  {t("picks.viewAll")}
+                  <ArrowForward className="h-4 w-4" aria-hidden="true" />
                 </Link>
               </div>
             ) : hasStorePicks ? (
@@ -251,7 +199,7 @@ export default function Home() {
                     <div className="p-4">
                       <h3 className="line-clamp-2 min-h-11 text-sm font-bold leading-6 text-foreground">{product.name}</h3>
                       <p className="mt-2 text-sm font-bold text-primary">
-                        {(product.price ?? 0) > 0 ? formatPrice(product.price ?? 0) : "شوف التفاصيل"}
+                        {(product.price ?? 0) > 0 ? formatLocalizedPrice(product.price ?? 0, locale) : t("picks.seeDetails")}
                       </p>
                     </div>
                   </Link>
@@ -261,11 +209,11 @@ export default function Home() {
               <div className="mt-8 flex flex-col items-center gap-3 rounded-2xl border border-border bg-background px-6 py-12 text-center">
                 <PackageSearch className="h-6 w-6 text-primary" aria-hidden="true" />
                 <p className="max-w-md text-sm leading-6 text-muted-foreground">
-                  الاختيارات المميزة مو متوفرة هسه. تكدر تتصفح كل المنتجات المتوفرة بالمتجر.
+                  {t("picks.empty")}
                 </p>
                 <Link href="/products" className={`${linkButton} border border-primary/40 text-primary hover:bg-[#0B93A6]/10`}>
-                  شوف كل المنتجات
-                  <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+                  {t("picks.viewAll")}
+                  <ArrowForward className="h-4 w-4" aria-hidden="true" />
                 </Link>
               </div>
             )}
@@ -278,14 +226,14 @@ export default function Home() {
               <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                 <BookOpen className="h-6 w-6" aria-hidden="true" />
               </span>
-              <p className="mt-6 text-sm font-bold text-primary">AQUAVO يوضحلك السبب</p>
-              <h2 className="mt-3 text-3xl font-bold leading-tight text-foreground sm:text-4xl">المعلومة قبل القطعة</h2>
+              <p className="mt-6 text-sm font-bold text-primary">{t("guides.eyebrow")}</p>
+              <h2 className="mt-3 text-3xl font-bold leading-tight text-foreground sm:text-4xl">{t("guides.title")}</h2>
               <p className="mt-4 max-w-xl leading-7 text-muted-foreground">
-                هدفنا تعرف شتحتاج وليش تحتاجه. الأدلة مرتبة حتى تقلل التخمين وتختار على أساس واضح.
+                {t("guides.description")}
               </p>
-              <a href="/guides" className={`${linkButton} mt-7 border border-primary/35 text-primary hover:bg-[#0B93A6]/10`}>
-                شوف أدلة AQUAVO
-                <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+              <a href={href("/guides")} className={`${linkButton} mt-7 border border-primary/35 text-primary hover:bg-[#0B93A6]/10`}>
+                {t("guides.viewAll")}
+                <ArrowForward className="h-4 w-4" aria-hidden="true" />
               </a>
             </div>
 
@@ -296,12 +244,12 @@ export default function Home() {
                   href={guide.href}
                   className="aq-interactive-card group flex min-h-56 flex-col rounded-2xl border border-border bg-card p-5 hover:border-[#0B93A6]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 >
-                  <span className="text-xs font-bold text-primary">{guide.eyebrow}</span>
-                  <h3 className="mt-4 text-lg font-bold leading-7 text-foreground">{guide.title}</h3>
-                  <p className="mt-3 text-sm leading-6 text-muted-foreground">{guide.description}</p>
+                  <span className="text-xs font-bold text-primary">{t(`${guide.key}.eyebrow`)}</span>
+                  <h3 className="mt-4 text-lg font-bold leading-7 text-foreground">{t(`${guide.key}.title`)}</h3>
+                  <p className="mt-3 text-sm leading-6 text-muted-foreground">{t(`${guide.key}.description`)}</p>
                   <span className="mt-auto flex items-center gap-2 pt-5 text-sm font-bold text-primary">
-                    افتح الدليل
-                    <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" aria-hidden="true" />
+                    {t("guides.open")}
+                    <ArrowForward className={`h-4 w-4 transition-transform ${forwardHover}`} aria-hidden="true" />
                   </span>
                 </Link>
               ))}
@@ -312,8 +260,8 @@ export default function Home() {
         <section className="border-t border-border bg-card">
           <PrecisionReveal stagger className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
             <div className="max-w-2xl">
-              <p className="text-sm font-bold text-primary">ليش AQUAVO</p>
-              <h2 className="mt-3 text-3xl font-bold leading-tight text-foreground sm:text-4xl">تسوق واضح من أول قسم للسلة</h2>
+              <p className="text-sm font-bold text-primary">{t("why.eyebrow")}</p>
+              <h2 className="mt-3 text-3xl font-bold leading-tight text-foreground sm:text-4xl">{t("why.title")}</h2>
             </div>
 
             <div className="mt-9 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -325,8 +273,8 @@ export default function Home() {
                   <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
                     <Icon className="h-5 w-5" aria-hidden="true" />
                   </span>
-                  <h3 className="mt-4 text-base font-bold leading-6 text-foreground">{title}</h3>
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">{description}</p>
+                  <h3 className="mt-4 text-base font-bold leading-6 text-foreground">{t(title)}</h3>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">{t(description)}</p>
                 </div>
               ))}
             </div>
@@ -336,13 +284,13 @@ export default function Home() {
         <section className="border-t border-border bg-muted text-foreground">
           <PrecisionReveal className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-12 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
             <div>
-              <p className="text-sm font-bold text-foreground/80">بعدك مو متأكد؟</p>
-              <h2 className="mt-2 text-2xl font-bold sm:text-3xl">دز حجم حوضك ونرتبلك المناسب</h2>
-              <p className="mt-3 text-sm leading-6 text-muted-foreground">استشارة عملية قبل ما تشتري، حتى تبدأ من القطعة الصح.</p>
+              <p className="text-sm font-bold text-foreground/80">{t("cta.eyebrow")}</p>
+              <h2 className="mt-2 text-2xl font-bold sm:text-3xl">{t("cta.title")}</h2>
+              <p className="mt-3 text-sm leading-6 text-muted-foreground">{t("cta.description")}</p>
             </div>
             <Link href="/contact" className={`${linkButton} shrink-0 bg-primary text-white hover:bg-primary/90`}>
-              احچي ويانه
-              <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+              {t("cta.button")}
+              <ArrowForward className="h-4 w-4" aria-hidden="true" />
             </Link>
           </PrecisionReveal>
         </section>

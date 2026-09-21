@@ -33,6 +33,7 @@ import {
 import { ttqSearch } from "@/lib/tiktok-pixel";
 import { metaTrackSearch } from "@/lib/meta-pixel";
 import type { FishSpecies } from "@/data/freshwater-fish";
+import { useTranslation } from "react-i18next";
 
 type FilterType = "all" | "products" | "fish" | "pages";
 type SortType = "relevance" | "price-asc" | "price-desc" | "rating";
@@ -59,6 +60,7 @@ function fishSearchScore(fish: FishSpecies, query: string): number {
 }
 
 export default function SearchResults() {
+  const { t } = useTranslation("search");
   const [location, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState(readQueryFromLocation);
   const [draftQuery, setDraftQuery] = useState(readQueryFromLocation);
@@ -190,18 +192,18 @@ export default function SearchResults() {
   return (
     <div className="flex flex-1 flex-col bg-background" dir="rtl">
       <MetaTags
-        title={searchQuery ? `نتائج البحث: ${searchQuery}` : "البحث"}
-        description={searchQuery ? `نتائج البحث عن ${searchQuery} في AQUAVO` : "ابحث في منتجات وأدلة AQUAVO"}
+        title={searchQuery ? t("search-results.s1", { v0: searchQuery }) : t("search-results.s2")}
+        description={searchQuery ? t("search-results.s3", { v0: searchQuery }) : t("search-results.s4")}
         noIndex
       />
 
       <main id="main-content" className="container mx-auto flex-1 px-4 py-8 sm:py-12">
         <div className="mx-auto max-w-6xl">
           <div className="max-w-3xl">
-            <p className="text-sm font-bold text-primary">بحث AQUAVO الموحد</p>
-            <h1 className="mt-2 text-3xl font-bold sm:text-4xl">المنتجات والمعلومات بمكان واحد</h1>
+            <p className="text-sm font-bold text-primary">{t("search-results.s5")}</p>
+            <h1 className="mt-2 text-3xl font-bold sm:text-4xl">{t("search-results.s6")}</h1>
             <p className="mt-3 leading-7 text-muted-foreground">
-              اكتب اسم المنتج، البراند، نوع القطعة أو احتياج الحوض. نفس النتائج تظهر بالبحث السريع وبهذه الصفحة.
+              {t("search-results.s7")}
             </p>
           </div>
 
@@ -212,27 +214,27 @@ export default function SearchResults() {
                 type="search"
                 value={draftQuery}
                 onChange={(event) => setDraftQuery(event.target.value)}
-                placeholder="مثال: فلتر لحوض 60 لتر"
-                aria-label="اكتب عبارة البحث"
+                placeholder={t("search-results.s8")}
+                aria-label={t("search-results.s9")}
                 className="h-12 pr-12 text-base"
               />
             </div>
             {draftQuery && (
-              <Button type="button" variant="outline" size="icon" className="h-12 w-12" onClick={clearSearch} aria-label="مسح البحث">
+              <Button type="button" variant="outline" size="icon" className="h-12 w-12" onClick={clearSearch} aria-label={t("search-results.s10")}>
                 <X className="h-4 w-4" aria-hidden="true" />
               </Button>
             )}
-            <Button type="submit" className="h-12 px-6">بحث</Button>
+            <Button type="submit" className="h-12 px-6">{t("search-results.s11")}</Button>
           </form>
 
           {searchQuery && (
             <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-y border-border py-4">
-              <div className="flex flex-wrap gap-2" aria-label="تصفية نتائج البحث">
+              <div className="flex flex-wrap gap-2" aria-label={t("search-results.s12")}>
                 {([
-                  ["all", "الكل", counts.all],
-                  ["products", "المنتجات", counts.products],
-                  ["fish", "الموسوعة", counts.fish],
-                  ["pages", "الصفحات", counts.pages],
+                  ["all", t("search-results.s13"), counts.all],
+                  ["products", t("search-results.s14"), counts.products],
+                  ["fish", t("search-results.s15"), counts.fish],
+                  ["pages", t("search-results.s16"), counts.pages],
                 ] as const).map(([value, label, count]) => (
                   <button
                     key={value}
@@ -252,13 +254,13 @@ export default function SearchResults() {
 
               <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortType)}>
                 <SelectTrigger className="h-11 w-full sm:w-[220px]">
-                  <SelectValue placeholder="الترتيب" />
+                  <SelectValue placeholder={t("search-results.s17")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="relevance">الأكثر صلة</SelectItem>
-                  <SelectItem value="price-asc">السعر: الأقل أولاً</SelectItem>
-                  <SelectItem value="price-desc">السعر: الأعلى أولاً</SelectItem>
-                  <SelectItem value="rating">الأعلى تقييماً</SelectItem>
+                  <SelectItem value="relevance">{t("search-results.s18")}</SelectItem>
+                  <SelectItem value="price-asc">{t("search-results.s19")}</SelectItem>
+                  <SelectItem value="price-desc">{t("search-results.s20")}</SelectItem>
+                  <SelectItem value="rating">{t("search-results.s21")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -268,20 +270,20 @@ export default function SearchResults() {
             <div className="mt-5 flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground">
               <p>
                 {allResults.length > 0
-                  ? <>لكينا <span className="font-bold text-foreground">{allResults.length}</span> نتيجة لـ «{searchQuery}»</>
-                  : <>ما لكينا نتيجة لـ «{searchQuery}»</>}
+                  ? <>{t("search-results.s22")} <span className="font-bold text-foreground">{allResults.length}</span> {t("search-results.s23")}{searchQuery}»</>
+                  : <>{t("search-results.s24")}{searchQuery}»</>}
               </p>
               {smartData?.semantic && (
                 <span className="inline-flex items-center gap-1 text-primary">
                   <Sparkles className={`h-4 w-4 ${smartLoading ? "animate-pulse motion-reduce:animate-none" : ""}`} aria-hidden="true" />
-                  تم استخدام البحث الذكي
+                  {t("search-results.s25")}
                 </span>
               )}
             </div>
           )}
 
           {isLoading ? (
-            <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-4" role="status" aria-label="جاري تحميل نتائج البحث">
+            <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-4" role="status" aria-label={t("search-results.s26")}>
               {Array.from({ length: 8 }).map((_, index) => (
                 <div key={index} className="space-y-3">
                   <Skeleton className="aspect-square w-full rounded-xl" />
@@ -293,21 +295,21 @@ export default function SearchResults() {
           ) : !searchQuery ? (
             <div className="mt-10 rounded-2xl border border-border bg-card px-6 py-14 text-center">
               <SearchIcon className="mx-auto h-10 w-10 text-primary" aria-hidden="true" />
-              <h2 className="mt-4 text-xl font-bold">ابدأ بكلمة واضحة</h2>
+              <h2 className="mt-4 text-xl font-bold">{t("search-results.s27")}</h2>
               <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">
-                اكتب اسم قطعة مثل فلتر، أو مشكلة مثل حرارة الحوض، أو اسم البراند.
+                {t("search-results.s28")}
               </p>
             </div>
           ) : paginatedResults.length === 0 ? (
             <div className="mt-10 rounded-2xl border border-border bg-card px-6 py-14 text-center">
               <SearchIcon className="mx-auto h-10 w-10 text-muted-foreground" aria-hidden="true" />
-              <h2 className="mt-4 text-xl font-bold">ماكو نتيجة مطابقة</h2>
+              <h2 className="mt-4 text-xl font-bold">{t("search-results.s29")}</h2>
               <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">
-                جرّب كلمة أقصر أو اختار «الكل» حتى تشوف المنتجات والصفحات والموسوعة سوية.
+                {t("search-results.s30")}
               </p>
               <div className="mt-5 flex flex-wrap justify-center gap-3">
-                <Button variant="outline" onClick={() => setFilterType("all")}>اعرض الكل</Button>
-                <Link href="/products"><Button>تصفح المنتجات</Button></Link>
+                <Button variant="outline" onClick={() => setFilterType("all")}>{t("search-results.s31")}</Button>
+                <Link href="/products"><Button>{t("search-results.s32")}</Button></Link>
               </div>
             </div>
           ) : (
@@ -338,7 +340,7 @@ export default function SearchResults() {
                         <h2 className="mt-5 text-lg font-bold group-hover:text-primary">{result.title}</h2>
                         <p className="mt-2 flex-1 text-sm leading-6 text-muted-foreground">{result.description}</p>
                         <span className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-primary">
-                          افتح الصفحة
+                          {t("search-results.s33")}
                           <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" aria-hidden="true" />
                         </span>
                       </article>
@@ -348,23 +350,23 @@ export default function SearchResults() {
               </div>
 
               {totalPages > 1 && (
-                <nav className="mt-10 flex items-center justify-center gap-2" aria-label="صفحات نتائج البحث">
+                <nav className="mt-10 flex items-center justify-center gap-2" aria-label={t("search-results.s34")}>
                   <Button
                     variant="outline"
                     onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
                     disabled={currentPage === 1}
                   >
-                    السابق
+                    {t("search-results.s35")}
                   </Button>
                   <span className="px-3 text-sm text-muted-foreground">
-                    صفحة {currentPage} من {totalPages}
+                    {t("search-results.s36")} {currentPage} {t("search-results.s37")} {totalPages}
                   </span>
                   <Button
                     variant="outline"
                     onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
                     disabled={currentPage === totalPages}
                   >
-                    التالي
+                    {t("search-results.s38")}
                   </Button>
                 </nav>
               )}

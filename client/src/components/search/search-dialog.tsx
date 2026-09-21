@@ -7,6 +7,7 @@ import { Link } from 'wouter';
 import { Product } from '@/types';
 import { SearchIcon } from 'lucide-react';
 import { cardImage } from '@/lib/cloudinary';
+import { useTranslation } from "react-i18next";
 
 interface SearchDialogProps {
   open: boolean;
@@ -14,6 +15,7 @@ interface SearchDialogProps {
 }
 
 export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
+  const { t } = useTranslation("search");
   const [query, setQuery] = useState('');
   const { data } = useQuery<{ products: Product[] }>({ queryKey: ['products'], queryFn: () => fetchProducts() });
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
@@ -39,13 +41,13 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <SearchIcon className="w-5 h-5" />
-            البحث عن المنتجات
+            {t("search-dialog.s1")}
           </DialogTitle>
         </DialogHeader>
         <div className="py-4">
           <Input
             type="search"
-            placeholder="ابحث عن فلتر، سخان، معدات..."
+            placeholder={t("search-dialog.s2")}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="text-lg"
@@ -53,7 +55,7 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
         </div>
         <div className="max-h-[60vh] overflow-y-auto">
           {query.trim() !== '' && filteredProducts.length === 0 && (
-            <p className="text-center text-muted-foreground py-8">لا توجد نتائج بحث.</p>
+            <p className="text-center text-muted-foreground py-8">{t("search-dialog.s3")}</p>
           )}
           <div className="space-y-2">
             {filteredProducts.map(product => (
@@ -62,7 +64,7 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
                   <img src={cardImage(product.image) || "/brand/aquavo-v2-icon.svg"} alt={product.name} loading="lazy" decoding="async" width={64} height={64} className="w-16 h-16 object-contain rounded-md bg-card" />
                   <div>
                     <h4 className="font-semibold">{product.name}</h4>
-                    <p className="text-sm font-bold text-purple-500">قريباً جداً</p>
+                    <p className="text-sm font-bold text-purple-500">{t("search-dialog.s4")}</p>
                   </div>
                 </div>
               </Link>

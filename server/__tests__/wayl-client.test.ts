@@ -222,13 +222,13 @@ describe("Wayl readiness (config → auth → live merchant)", () => {
     message: "Store must be verified to create payment links. Please complete the verification process before creating links.",
   };
 
-  function withProduction<T>(waylEnv: string | undefined, run: () => T): T {
+  async function withProduction<T>(waylEnv: string | undefined, run: () => Promise<T> | T): Promise<T> {
     const previousNodeEnv = process.env.NODE_ENV;
     process.env.NODE_ENV = "production";
     if (waylEnv === undefined) delete process.env.WAYL_ENV;
     else process.env.WAYL_ENV = waylEnv;
     try {
-      return run();
+      return await run();
     } finally {
       process.env.NODE_ENV = previousNodeEnv;
     }

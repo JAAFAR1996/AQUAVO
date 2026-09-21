@@ -14,7 +14,7 @@ describe("orders client IP schema contract", () => {
     expect(migration).toContain("ADD COLUMN IF NOT EXISTS client_ip text");
     expect(migration).toContain("0067_orders_client_ip_schema_drift");
     expect(orderRoute).toContain("UPDATE orders SET client_ip");
-    expect(adminRoute).toContain("SELECT id,order_number,status,user_id,client_ip,carrier,carrier_fee");
+    expect(adminRoute).toContain("SELECT id,order_number,status,payment_status,user_id,client_ip,carrier,carrier_fee");
   });
 
   it("blocks rollback after IP evidence has been captured", () => {

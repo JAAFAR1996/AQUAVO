@@ -4,6 +4,7 @@ import {
   PUBLIC_INDEXABLE_CATEGORY_PATHS,
   PUBLIC_INDEXABLE_PATHS,
 } from "../shared/seo-contract.js";
+import { ALL_LOCALES, XHTML_NS, localizedUrlEntries } from "./_sitemap-i18n.js";
 import { PAGES_SITEMAP_RELEASE_LASTMOD } from "./sitemap-index.js";
 
 function escapeXml(value: string): string {
@@ -26,14 +27,14 @@ export default function handler(_req: VercelRequest, res: VercelResponse): void 
   const seen = new Set<string>();
   const entries = [...PUBLIC_INDEXABLE_PATHS, ...PUBLIC_INDEXABLE_CATEGORY_PATHS]
     .filter((path) => (seen.has(path) ? false : (seen.add(path), true)))
-    .map((path) => {
-      const loc = path === "/" ? `${AQUAVO_BASE_URL}/` : `${AQUAVO_BASE_URL}${path}`;
-      return `  <url><loc>${escapeXml(loc)}</loc><lastmod>${PAGES_SITEMAP_RELEASE_LASTMOD}</lastmod></url>`;
-    })
+    // Every static page exists in all three languages (api/_static-meta-i18n.ts
+    // carries the copy), so each is listed once per locale with reciprocal
+    // hreflang annotations.
+    .map((path) => localizedUrlEntries(path, ALL_LOCALES, `<lastmod>${PAGES_SITEMAP_RELEASE_LASTMOD}</lastmod>`))
     .join("\n");
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" ${XHTML_NS}>
 ${entries}
 </urlset>`;
 

@@ -5,9 +5,11 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { usePWA } from "@/hooks/use-pwa";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 // Install Prompt Banner
 export function InstallPrompt({ className }: { className?: string }) {
+  const { t } = useTranslation("pages");
     const { isInstallable, promptInstall, isInstalled } = usePWA();
     const [dismissed, setDismissed] = useState(false);
 
@@ -35,16 +37,16 @@ export function InstallPrompt({ className }: { className?: string }) {
                     </div>
 
                     <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-sm">تثبيت التطبيق</h3>
+                        <h3 className="font-semibold text-sm">{t("pwa-components.s1")}</h3>
                         <p className="text-xs text-muted-foreground">
-                            أضف AQUAVO إلى شاشتك الرئيسية للوصول السريع
+                            {t("pwa-components.s2")}
                         </p>
                     </div>
 
                     <div className="flex items-center gap-2">
                         <Button size="sm" onClick={promptInstall} className="gap-1">
                             <Download className="w-4 h-4" />
-                            تثبيت
+                            {t("pwa-components.s3")}
                         </Button>
                         <Button size="icon" variant="ghost" className="h-8 w-8" onClick={handleDismiss}>
                             <X className="w-4 h-4" />
@@ -58,6 +60,7 @@ export function InstallPrompt({ className }: { className?: string }) {
 
 // Offline Status Indicator
 export function OfflineIndicator() {
+  const { t } = useTranslation("pages");
     const { isOnline } = usePWA();
     const [showBanner, setShowBanner] = useState(false);
 
@@ -85,12 +88,12 @@ export function OfflineIndicator() {
             {isOnline ? (
                 <>
                     <Wifi className="w-5 h-5" />
-                    <span className="font-medium">تم استعادة الاتصال</span>
+                    <span className="font-medium">{t("pwa-components.s4")}</span>
                 </>
             ) : (
                 <>
                     <WifiOff className="w-5 h-5" />
-                    <span className="font-medium">أنت غير متصل بالإنترنت</span>
+                    <span className="font-medium">{t("pwa-components.s5")}</span>
                 </>
             )}
         </div>
@@ -99,6 +102,7 @@ export function OfflineIndicator() {
 
 // Update Available Banner
 export function UpdateBanner() {
+  const { t } = useTranslation("pages");
     const { updateAvailable, updateApp } = usePWA();
     const [dismissed, setDismissed] = useState(false);
 
@@ -109,7 +113,7 @@ export function UpdateBanner() {
             <div className="container mx-auto flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <RefreshCw className="w-5 h-5" />
-                    <span className="font-medium">يوجد تحديث جديد متاح</span>
+                    <span className="font-medium">{t("pwa-components.s6")}</span>
                 </div>
                 <div className="flex items-center gap-2">
                     <Button
@@ -117,7 +121,7 @@ export function UpdateBanner() {
                         variant="secondary"
                         onClick={updateApp}
                     >
-                        تحديث الآن
+                        {t("pwa-components.s7")}
                     </Button>
                     <Button
                         size="icon"
@@ -135,6 +139,7 @@ export function UpdateBanner() {
 
 // Combined PWA Status for Footer or Settings
 export function PWAStatus({ className }: { className?: string }) {
+  const { t } = useTranslation("pages");
     const { isInstalled, isOnline } = usePWA();
 
     return (
@@ -142,7 +147,7 @@ export function PWAStatus({ className }: { className?: string }) {
             {isInstalled && (
                 <Badge variant="secondary" className="gap-1">
                     <Smartphone className="w-3 h-3" />
-                    تطبيق
+                    {t("pwa-components.s8")}
                 </Badge>
             )}
             <Badge
@@ -152,12 +157,12 @@ export function PWAStatus({ className }: { className?: string }) {
                 {isOnline ? (
                     <>
                         <Wifi className="w-3 h-3" />
-                        متصل
+                        {t("pwa-components.s9")}
                     </>
                 ) : (
                     <>
                         <WifiOff className="w-3 h-3" />
-                        غير متصل
+                        {t("pwa-components.s10")}
                     </>
                 )}
             </Badge>

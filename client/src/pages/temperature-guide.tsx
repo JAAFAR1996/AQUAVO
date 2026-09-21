@@ -12,6 +12,8 @@ import { Thermometer, Download, ChevronDown, Shield, ArrowLeft } from "lucide-re
 import { Link } from "wouter";
 import { WHATSAPP_URL } from "@/lib/constants/shipping";
 import { openWhatsApp } from "@/lib/whatsapp";
+import { useTranslation } from "react-i18next";
+import { i18next } from "@/i18n";
 
 // ─────────────────────────────────────────────────
 // DATA — Fish Temperature Chart
@@ -28,18 +30,18 @@ interface FishTemp {
 }
 
 const FISH_DATA: FishTemp[] = [
-  { name: "نيون تترا", nameEn: "Neon Tetra", min: 20, max: 26, ideal: 24, difficulty: "سهل", color: "#00d4ff", image: "/fish/neon-tetra.webp" },
-  { name: "جوبي", nameEn: "Guppy", min: 22, max: 28, ideal: 25, difficulty: "سهل", color: "#0B64A6", image: "/fish/guppy.webp" },
-  { name: "بيتا", nameEn: "Betta", min: 24, max: 30, ideal: 27, difficulty: "سهل", color: "#e63946", image: "/fish/betta-splendens.webp" },
-  { name: "أنجل فيش", nameEn: "Angelfish", min: 24, max: 30, ideal: 26, difficulty: "متوسط", color: "#ffd700", image: "/fish/angelfish.webp" },
-  { name: "مولي", nameEn: "Molly", min: 22, max: 28, ideal: 25, difficulty: "سهل", color: "#7FFF00", image: "/fish/molly.webp" },
-  { name: "بلاتي", nameEn: "Platy", min: 20, max: 26, ideal: 24, difficulty: "سهل", color: "#ff9a56", image: "/fish/platy.webp" },
-  { name: "كوري كات", nameEn: "Corydoras", min: 22, max: 26, ideal: 24, difficulty: "سهل", color: "#1abc9c", image: "/fish/corydoras-paleatus.webp" },
-  { name: "ديسكس", nameEn: "Discus", min: 28, max: 32, ideal: 30, difficulty: "متقدم", color: "#3498db", image: "/fish/discus.webp" },
-  { name: "تترا كاردينال", nameEn: "Cardinal Tetra", min: 23, max: 27, ideal: 25, difficulty: "متوسط", color: "#e74c3c", image: "/fish/cardinal-tetra.webp" },
-  { name: "سوردتيل", nameEn: "Swordtail", min: 22, max: 28, ideal: 25, difficulty: "سهل", color: "#2ecc71", image: "/fish/swordtail.webp" },
-  { name: "تايجر بارب", nameEn: "Tiger Barb", min: 22, max: 28, ideal: 25, difficulty: "متوسط", color: "#f39c12", image: "/fish/tiger-barb.webp" },
-  { name: "جولد فيش", nameEn: "Goldfish", min: 18, max: 24, ideal: 21, difficulty: "سهل", color: "#ffa500", image: "/fish/goldfish.webp" },
+  { name: i18next.t("guides:temperature-guide.s1"), nameEn: "Neon Tetra", min: 20, max: 26, ideal: 24, difficulty: "سهل", color: "#00d4ff", image: "/fish/neon-tetra.webp" },
+  { name: i18next.t("guides:temperature-guide.s3"), nameEn: "Guppy", min: 22, max: 28, ideal: 25, difficulty: "سهل", color: "#0B64A6", image: "/fish/guppy.webp" },
+  { name: i18next.t("guides:temperature-guide.s4"), nameEn: "Betta", min: 24, max: 30, ideal: 27, difficulty: "سهل", color: "#e63946", image: "/fish/betta-splendens.webp" },
+  { name: i18next.t("guides:temperature-guide.s5"), nameEn: "Angelfish", min: 24, max: 30, ideal: 26, difficulty: "متوسط", color: "#ffd700", image: "/fish/angelfish.webp" },
+  { name: i18next.t("guides:temperature-guide.s7"), nameEn: "Molly", min: 22, max: 28, ideal: 25, difficulty: "سهل", color: "#7FFF00", image: "/fish/molly.webp" },
+  { name: i18next.t("guides:temperature-guide.s8"), nameEn: "Platy", min: 20, max: 26, ideal: 24, difficulty: "سهل", color: "#ff9a56", image: "/fish/platy.webp" },
+  { name: i18next.t("guides:temperature-guide.s9"), nameEn: "Corydoras", min: 22, max: 26, ideal: 24, difficulty: "سهل", color: "#1abc9c", image: "/fish/corydoras-paleatus.webp" },
+  { name: i18next.t("guides:temperature-guide.s10"), nameEn: "Discus", min: 28, max: 32, ideal: 30, difficulty: "متقدم", color: "#3498db", image: "/fish/discus.webp" },
+  { name: i18next.t("guides:temperature-guide.s12"), nameEn: "Cardinal Tetra", min: 23, max: 27, ideal: 25, difficulty: "متوسط", color: "#e74c3c", image: "/fish/cardinal-tetra.webp" },
+  { name: i18next.t("guides:temperature-guide.s13"), nameEn: "Swordtail", min: 22, max: 28, ideal: 25, difficulty: "سهل", color: "#2ecc71", image: "/fish/swordtail.webp" },
+  { name: i18next.t("guides:temperature-guide.s14"), nameEn: "Tiger Barb", min: 22, max: 28, ideal: 25, difficulty: "متوسط", color: "#f39c12", image: "/fish/tiger-barb.webp" },
+  { name: i18next.t("guides:temperature-guide.s15"), nameEn: "Goldfish", min: 18, max: 24, ideal: 21, difficulty: "سهل", color: "#ffa500", image: "/fish/goldfish.webp" },
 ];
 
 // ─────────────────────────────────────────────────
@@ -81,6 +83,7 @@ function FloatingBubbles() {
 // Temperature Bar Component
 // ─────────────────────────────────────────────────
 function FishCard({ fish, index }: { fish: FishTemp; index: number }) {
+  const { t } = useTranslation("guides");
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-30px" });
 
@@ -122,23 +125,23 @@ function FishCard({ fish, index }: { fish: FishTemp; index: number }) {
             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0" style={{
               background: `${diffColor}15`, color: diffColor, border: `1px solid ${diffColor}30`,
             }}>
-              {fish.difficulty}
+              {t(fish.difficulty === "سهل" ? "temperature-guide.diffEasy" : fish.difficulty === "متوسط" ? "temperature-guide.diffMedium" : "temperature-guide.diffAdvanced")}
             </span>
           </div>
 
           {/* Temperature numbers */}
           <div className="flex items-center gap-2 mb-2">
             <div className="flex items-center gap-1">
-              <span className="text-[10px] text-blue-400/60">أدنى</span>
+              <span className="text-[10px] text-blue-400/60">{t("temperature-guide.s16")}</span>
               <span className="text-xs font-black text-blue-400">{fish.min}°</span>
             </div>
             <div className="flex items-center gap-1 px-2 py-0.5 rounded-md" style={{ background: `${fish.color}20` }}>
               <Thermometer size={10} style={{ color: fish.color }} />
-              <span className="text-[10px] font-medium" style={{ color: `${fish.color}99` }}>مثالي</span>
+              <span className="text-[10px] font-medium" style={{ color: `${fish.color}99` }}>{t("temperature-guide.s17")}</span>
               <span className="text-sm font-black" style={{ color: fish.color }}>{fish.ideal}°C</span>
             </div>
             <div className="flex items-center gap-1">
-              <span className="text-[10px] text-red-400/60">أقصى</span>
+              <span className="text-[10px] text-red-400/60">{t("temperature-guide.s18")}</span>
               <span className="text-xs font-black text-red-400">{fish.max}°</span>
             </div>
           </div>
@@ -183,6 +186,7 @@ function FishCard({ fish, index }: { fish: FishTemp; index: number }) {
 // MAIN EXPORT
 // ─────────────────────────────────────────────────
 export default function TemperatureGuide() {
+  const { t } = useTranslation("guides");
   const [downloaded, setDownloaded] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<HTMLDivElement>(null);
@@ -190,7 +194,7 @@ export default function TemperatureGuide() {
 
   // Track visit
   useEffect(() => {
-    document.title = "جدول درجات الحرارة المثالية لأسماك الزينة — AQUAVO";
+    document.title = t("temperature-guide.s19");
   }, []);
 
   const handleDownload = () => {
@@ -233,7 +237,7 @@ export default function TemperatureGuide() {
               className="w-1.5 h-1.5 rounded-full bg-cyan-400"
               style={{ boxShadow: "0 0 8px rgba(11,147,166,0.9)" }}
             />
-            <span className="text-cyan-300 text-xs font-bold tracking-widest uppercase">مجاناً</span>
+            <span className="text-cyan-300 text-xs font-bold tracking-widest uppercase">{t("temperature-guide.s20")}</span>
             <span className="text-cyan-300/35 text-xs">· AQUAVO 2026</span>
           </motion.div>
 
@@ -258,12 +262,12 @@ export default function TemperatureGuide() {
             transition={{ duration: 0.8, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
             className="text-3xl md:text-4xl font-black text-center leading-tight mb-4"
           >
-            جدول درجات الحرارة{" "}
+            {t("temperature-guide.s21")}{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-[#0B93A6]">
-              المثالية
+              {t("temperature-guide.s22")}
             </span>
             <br />
-            لكل نوع سمك
+            {t("temperature-guide.s23")}
           </motion.h1>
 
           <motion.p
@@ -271,7 +275,7 @@ export default function TemperatureGuide() {
             transition={{ delay: 0.6 }}
             className="text-muted-foreground dark:text-gray-400 text-sm font-medium text-center max-w-xs leading-relaxed mb-8"
           >
-            12 نوع سمك شائع بالعراق مع درجة الحرارة المثالية، الحد الأدنى والأقصى، ومستوى الصعوبة
+            {t("temperature-guide.s24")}
           </motion.p>
 
           {/* CTA Button */}
@@ -287,7 +291,7 @@ export default function TemperatureGuide() {
             }}
           >
             <Download size={20} />
-            <span>شوف الجدول الكامل</span>
+            <span>{t("temperature-guide.s25")}</span>
             <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
           </motion.button>
 
@@ -297,7 +301,7 @@ export default function TemperatureGuide() {
             transition={{ delay: 1.2 }}
             className="mt-12 flex flex-col items-center gap-1 text-foreground dark:text-white/15"
           >
-            <span className="text-[10px] tracking-widest uppercase font-semibold">نزّل لتشوف الجدول</span>
+            <span className="text-[10px] tracking-widest uppercase font-semibold">{t("temperature-guide.s26")}</span>
             <motion.div animate={{ y: [0, 6, 0] }} transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}>
               <ChevronDown size={18} />
             </motion.div>
@@ -324,7 +328,7 @@ export default function TemperatureGuide() {
                 style={{ background: "rgba(11,147,166,0.2)", border: "1px solid rgba(11,147,166,0.4)" }}>
                 <Thermometer size={16} className="text-cyan-400" />
               </div>
-              <h2 className="text-lg font-black text-foreground dark:text-white">جدول الحرارة التفاعلي</h2>
+              <h2 className="text-lg font-black text-foreground dark:text-white">{t("temperature-guide.s27")}</h2>
             </div>
 
             {/* Scale header */}
@@ -347,9 +351,9 @@ export default function TemperatureGuide() {
             {/* Legend */}
             <div className="mt-8 pt-4 border-t border-white/8 flex flex-wrap gap-4 justify-center">
               {[
-                { label: "سهل", color: "#22c55e" },
-                { label: "متوسط", color: "#eab308" },
-                { label: "متقدم", color: "#ef4444" },
+                { label: t("temperature-guide.s2"), color: "#22c55e" },
+                { label: t("temperature-guide.s6"), color: "#eab308" },
+                { label: t("temperature-guide.s11"), color: "#ef4444" },
               ].map(l => (
                 <div key={l.label} className="flex items-center gap-1.5">
                   <div className="w-2 h-2 rounded-full" style={{ background: l.color }} />
@@ -358,7 +362,7 @@ export default function TemperatureGuide() {
               ))}
               <div className="flex items-center gap-1.5">
                 <div className="w-3 h-0.5 rounded-full bg-cyan-400" />
-                <span className="text-xs text-foreground dark:text-white/40 font-medium">الدرجة المثالية</span>
+                <span className="text-xs text-foreground dark:text-white/40 font-medium">{t("temperature-guide.s28")}</span>
               </div>
             </div>
           </motion.div>
@@ -379,14 +383,14 @@ export default function TemperatureGuide() {
           >
             <h3 className="text-lg font-black text-foreground dark:text-white/90 mb-4 flex items-center gap-2">
               <Shield size={18} className="text-[#0B64A6]" />
-              نصائح ذهبية للحرارة
+              {t("temperature-guide.s29")}
             </h3>
             <div className="space-y-3 text-sm text-foreground dark:text-white/60 font-medium leading-relaxed">
-              <p>1. تذبذب الحرارة أخطر من الحرارة الثابتة — حتى لو كانت عالية شوية.</p>
-              <p>2. فرق 3 درجات بين الليل والنهار يكفي يقتل أسماكك.</p>
-              <p>3. السخان القزاز ممكن يطق بالصيف — استخدم ستيل.</p>
-              <p>4. ثيرموميتر رقمي أفضل من الشريط اللاصق — أدق بكثير.</p>
-              <p>5. بالصيف العراقي، المشكلة مو بس ارتفاع الحرارة — بل نقص الأوكسجين اللي يصاحبه.</p>
+              <p>{t("temperature-guide.s30")}</p>
+              <p>{t("temperature-guide.s31")}</p>
+              <p>{t("temperature-guide.s32")}</p>
+              <p>{t("temperature-guide.s33")}</p>
+              <p>{t("temperature-guide.s34")}</p>
             </div>
           </motion.div>
         </section>
@@ -409,7 +413,7 @@ export default function TemperatureGuide() {
                   border: "1px solid rgba(11,147,166,0.4)",
                 }}>
                 <Thermometer size={20} />
-                <span>تسوق سخانات ستيل — حماية دائمة</span>
+                <span>{t("temperature-guide.s35")}</span>
               </button>
             </Link>
 
@@ -423,12 +427,12 @@ export default function TemperatureGuide() {
               }}
             >
               <span className="text-green-400 text-lg">📱</span>
-              <span>تواصل مع الخبراء عبر واتساب</span>
+              <span>{t("temperature-guide.s36")}</span>
             </button>
 
             {/* Brand */}
             <p className="text-center text-foreground dark:text-white/10 text-xs pt-4 font-medium tracking-widest uppercase">
-              AQUAVO — خبراء أحواض السمك في العراق
+              {t("temperature-guide.s37")}
             </p>
           </motion.div>
         </section>

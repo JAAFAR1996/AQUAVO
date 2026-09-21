@@ -3,8 +3,10 @@ import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "wouter";
+import { useTranslation } from "react-i18next";
 
 export default function Sustainability() {
+  const { t } = useTranslation("pages");
   const fadeInUp = {
     initial: { opacity: 0, y: 60 },
     animate: { opacity: 1, y: 0 },
@@ -40,14 +42,14 @@ export default function Sustainability() {
             className="max-w-4xl mx-auto"
           >
             <Badge variant="outline" className="mb-6 border-teal-500/50 text-teal-400 bg-teal-500/10 backdrop-blur-md px-6 py-2 text-sm md:text-base uppercase tracking-[0.2em]">
-              رؤيتنا للمستقبل
+              {t("sustainability.s1")}
             </Badge>
             <h1 className="text-5xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-teal-200 via-cyan-100 to-white mb-8 leading-tight drop-shadow-2xl">
-              حُرّاس الأعماق
+              {t("sustainability.s2")}
             </h1>
             <p className="text-xl md:text-2xl text-muted-foreground dark:text-slate-300 max-w-2xl mx-auto leading-relaxed font-light">
-              لأن الحوض ليس مجرد زينة، بل هو قطعة حية من روح المحيط في منزلك.
-              <span className="block mt-2 text-teal-400 font-normal">مسؤوليتنا أن نحمي هذا الجمال للأبد.</span>
+              {t("sustainability.s3")}
+              <span className="block mt-2 text-teal-400 font-normal">{t("sustainability.s4")}</span>
             </p>
           </motion.div>
         </div>
@@ -59,7 +61,7 @@ export default function Sustainability() {
           transition={{ delay: 1.5, duration: 1 }}
           className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2"
         >
-          <span className="text-muted-foreground dark:text-slate-400 text-xs tracking-widest uppercase">اكتشف رحلتنا</span>
+          <span className="text-muted-foreground dark:text-slate-400 text-xs tracking-widest uppercase">{t("sustainability.s5")}</span>
           <div className="w-[1px] h-16 bg-gradient-to-b from-teal-500 to-transparent"></div>
         </motion.div>
       </section>
@@ -80,20 +82,18 @@ export default function Sustainability() {
               >
                 <div className="inline-flex items-center gap-3 text-teal-400 mb-2">
                   <Waves className="w-6 h-6" />
-                  <span className="text-sm font-bold tracking-wider uppercase">رسالتنا</span>
+                  <span className="text-sm font-bold tracking-wider uppercase">{t("sustainability.s6")}</span>
                 </div>
                 <h2 className="text-3xl md:text-5xl font-bold text-foreground dark:text-white leading-tight">
-                  نحن لا نبيع الأسماك،<br />
-                  <span className="text-slate-500">نحن نؤتمن على أرواح.</span>
+                  {t("sustainability.s7")}<br />
+                  <span className="text-slate-500">{t("sustainability.s8")}</span>
                 </h2>
                 <div className="space-y-6 text-lg text-muted-foreground dark:text-slate-400 leading-loose">
                   <p>
-                    عندما تنظر إلى حوضك، أنت لا تشاهد أسماكاً تسبح فحسب. أنت تشاهد نظاماً بيئياً دقيقاً،
-                    لوحة فنية صاغتها الطبيعة عبر ملايين السنين. كل سمكة هي سفيرة لعالم غامض وساحر.
+                    {t("sustainability.s9")}
                   </p>
                   <p className="border-r-2 border-teal-500/50 pr-6">
-                    في <span className="text-foreground dark:text-white font-bold">AQUAVO</span>، نؤمن أن هواية تربية الأسماك يجب أن تكون قوة للخير.
-                    قوة تحمي الشعاب المرجانية، لا تدمرها. قوة تحافظ على التنوع البيولوجي، لا تستنزفه.
+                    {t("sustainability.s10")} <span className="text-foreground dark:text-white font-bold">AQUAVO</span>{t("sustainability.s11")}
                   </p>
                 </div>
               </motion.div>
@@ -114,7 +114,7 @@ export default function Sustainability() {
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                   />
                   <div className="absolute bottom-6 right-6 z-20 max-w-xs">
-                    <p className="text-foreground dark:text-white font-serif italic text-lg">"الطبيعة ليست مكاناً نزوره، إنها بيتنا."</p>
+                    <p className="text-foreground dark:text-white font-serif italic text-lg">{t("sustainability.s12")}</p>
                   </div>
                 </div>
               </motion.div>
@@ -136,9 +136,9 @@ export default function Sustainability() {
               <div className="w-20 h-20 bg-gradient-to-br from-teal-500 to-emerald-600 rounded-2xl flex items-center justify-center text-foreground dark:text-white mb-8 mx-auto shadow-lg shadow-teal-900/20 rotate-3 hover:rotate-6 transition-transform">
                 <Globe className="w-10 h-10" />
               </div>
-              <h2 className="text-4xl md:text-5xl font-bold text-foreground dark:text-white mb-6">عهدنا للأرض</h2>
+              <h2 className="text-4xl md:text-5xl font-bold text-foreground dark:text-white mb-6">{t("sustainability.s13")}</h2>
               <p className="text-xl text-muted-foreground dark:text-slate-400">
-                الربح ليس هدفنا الوحيد. نحن ملتزمون برد الجميل للكوكب الذي يمنحنا كل هذا الجمال.
+                {t("sustainability.s14")}
               </p>
             </motion.div>
 
@@ -148,25 +148,25 @@ export default function Sustainability() {
                   icon: Heart,
                   color: "text-rose-400",
                   bg: "bg-rose-400/10",
-                  title: "التزامنا للبيئة",
-                  desc: "نسعى لدعم المبادرات البيئية وتخصيص جزء من أرباحنا لدعم المنظمات التي تحارب تلوث المحيطات.",
-                  stat: "هدف مستمر"
+                  title: t("sustainability.s15"),
+                  desc: t("sustainability.s16"),
+                  stat: t("sustainability.s17")
                 },
                 {
                   icon: ShieldCheck,
                   color: "text-emerald-400",
                   bg: "bg-emerald-400/10",
-                  title: "منتجات مسؤولة",
-                  desc: "نختار موردينا بعناية ونفضّل المنتجات الموفرة للطاقة والصديقة للبيئة المائية، لأن حوضك يستحق الأفضل.",
-                  stat: "أولوية ثابتة"
+                  title: t("sustainability.s18"),
+                  desc: t("sustainability.s19"),
+                  stat: t("sustainability.s20")
                 },
                 {
                   icon: Fish,
                   color: "text-blue-400",
                   bg: "bg-blue-400/10",
-                  title: "توعية وتثقيف",
-                  desc: "نوفر محتوى تعليمي مجاني لمساعدة هواة الأحواض على العناية بالبيئة المائية بشكل مستدام ومسؤول.",
-                  stat: "محتوى مجاني"
+                  title: t("sustainability.s21"),
+                  desc: t("sustainability.s22"),
+                  stat: t("sustainability.s23")
                 }
               ].map((item, i) => (
                 <motion.div
@@ -195,12 +195,12 @@ export default function Sustainability() {
         <section className="py-24 container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-end justify-between mb-16 gap-6">
             <div className="max-w-xl">
-              <h2 className="text-3xl md:text-5xl font-bold text-foreground dark:text-white mb-4">خطواتنا العملية</h2>
-              <p className="text-muted-foreground dark:text-slate-400 text-lg">الاستدامة ليست شعاراً، بل هي قرارات يومية صغيرة تصنع فرقاً كبيراً.</p>
+              <h2 className="text-3xl md:text-5xl font-bold text-foreground dark:text-white mb-4">{t("sustainability.s24")}</h2>
+              <p className="text-muted-foreground dark:text-slate-400 text-lg">{t("sustainability.s25")}</p>
             </div>
             <Link href="/products">
               <Button size="lg" className="bg-teal-600 hover:bg-teal-700 text-foreground dark:text-white rounded-full px-8">
-                تسوق المنتجات الصديقة للبيئة
+                {t("sustainability.s26")}
               </Button>
             </Link>
           </div>
@@ -212,9 +212,9 @@ export default function Sustainability() {
             >
               <div>
                 <Recycle className="w-12 h-12 text-teal-500 mb-6" />
-                <h3 className="text-2xl font-bold text-foreground dark:text-white mb-3">تغليف ذكي</h3>
+                <h3 className="text-2xl font-bold text-foreground dark:text-white mb-3">{t("sustainability.s27")}</h3>
                 <p className="text-muted-foreground dark:text-slate-400 leading-relaxed">
-                  تخلصنا من حشوات الستايروفوم الضارة. نستخدم الآن مواداً قابلة للتحلل وورقاً معاد تدويره لحماية مشترياتك والكوكب معاً.
+                  {t("sustainability.s28")}
                 </p>
               </div>
               <div className="mt-8">
@@ -222,8 +222,8 @@ export default function Sustainability() {
                   <div className="h-full bg-teal-500 w-[85%]" />
                 </div>
                 <div className="flex justify-between mt-2 text-xs text-slate-500 font-mono">
-                  <span>الهدف: 100%</span>
-                  <span>الحالي: 85%</span>
+                  <span>{t("sustainability.s29")}</span>
+                  <span>{t("sustainability.s30")}</span>
                 </div>
               </div>
             </motion.div>
@@ -234,14 +234,14 @@ export default function Sustainability() {
             >
               <div>
                 <Wind className="w-12 h-12 text-teal-500 mb-6" />
-                <h3 className="text-2xl font-bold text-foreground dark:text-white mb-3">طاقة نظيفة</h3>
+                <h3 className="text-2xl font-bold text-foreground dark:text-white mb-3">{t("sustainability.s31")}</h3>
                 <p className="text-muted-foreground dark:text-slate-400 leading-relaxed">
-                  نختار معداتنا بعناية. الفلاتر والإضاءة التي نبيعها تستهلك طاقة أقل بنسبة تصل إلى 50% مقارنة بالمعدات التقليدية، مما يقلل فاتورتك وانبعاثات الكربون.
+                  {t("sustainability.s32")}
                 </p>
               </div>
               <div className="mt-8 flex gap-4">
-                <Badge variant="secondary" className="bg-card dark:bg-slate-800 text-muted-foreground dark:text-slate-300">LED تكنولوجيا</Badge>
-                <Badge variant="secondary" className="bg-card dark:bg-slate-800 text-muted-foreground dark:text-slate-300">DC مضخات</Badge>
+                <Badge variant="secondary" className="bg-card dark:bg-slate-800 text-muted-foreground dark:text-slate-300">{t("sustainability.s33")}</Badge>
+                <Badge variant="secondary" className="bg-card dark:bg-slate-800 text-muted-foreground dark:text-slate-300">{t("sustainability.s34")}</Badge>
               </div>
             </motion.div>
           </div>
@@ -265,20 +265,19 @@ export default function Sustainability() {
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
             >
-              <h2 className="text-4xl md:text-6xl font-bold text-foreground dark:text-white mb-8">كن جزءاً من الحل</h2>
+              <h2 className="text-4xl md:text-6xl font-bold text-foreground dark:text-white mb-8">{t("sustainability.s35")}</h2>
               <p className="text-xl text-muted-foreground dark:text-slate-300 max-w-2xl mx-auto mb-12">
-                كل خيار تتخذه في هوايتك يترك أثراً. اختر أن يكون أثرك أخضراً.
-                انضم إلينا في رحلة لجعل أحواضنا واحات صغيرة للحياة، وليست مجرد زينة.
+                {t("sustainability.s36")}
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/guides/eco-friendly">
                   <Button size="lg" variant="outline" className="border-teal-500 text-teal-400 hover:bg-teal-500/10 text-lg px-8 py-6 rounded-full">
-                    اقرأ دليل الهواية المستدامة
+                    {t("sustainability.s37")}
                   </Button>
                 </Link>
                 <Link href="/products">
                   <Button size="lg" className="bg-teal-600 hover:bg-teal-500 text-foreground dark:text-white text-lg px-8 py-6 rounded-full shadow-lg shadow-teal-900/50">
-                    ابدأ رحلتك الآن
+                    {t("sustainability.s38")}
                   </Button>
                 </Link>
               </div>

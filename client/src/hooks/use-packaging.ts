@@ -11,6 +11,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { apiRequest } from "@/lib/queryClient";
+import { i18next } from "@/i18n";
 
 const BASE = "/api/admin/packaging";
 
@@ -18,9 +19,9 @@ export type CalculationBasis = "per_order" | "per_carton" | "per_product_unit";
 export type MatchConfidence = "exact" | "probable" | "ambiguous";
 
 export const CALCULATION_BASIS_LABEL: Record<CalculationBasis, string> = {
-  per_order: "مرة واحدة لكل طلب",
-  per_carton: "لكل كارتونة",
-  per_product_unit: "لكل قطعة منتج",
+  per_order: i18next.t("pages:use-packaging.s1"),
+  per_carton: i18next.t("pages:use-packaging.s2"),
+  per_product_unit: i18next.t("pages:use-packaging.s3"),
 };
 
 export interface PreparationCostView {
@@ -481,9 +482,9 @@ export function useConfirmPackingImport(draftId: string) {
 }
 
 export const MATCH_CONFIDENCE_LABEL: Record<MatchConfidence, string> = {
-  exact: "مطابقة أكيدة",
-  probable: "مطابقة محتملة — تحتاج تأكيد",
-  ambiguous: "غير محسومة — ما تنطبق",
+  exact: i18next.t("pages:use-packaging.s4"),
+  probable: i18next.t("pages:use-packaging.s5"),
+  ambiguous: i18next.t("pages:use-packaging.s6"),
 };
 
 export function useReceiveCartons(cartonId: string) {
@@ -619,12 +620,12 @@ export function useAcknowledgeAlert() {
 
 // ── presentation helpers (formatting only, never computation) ───────────────
 
-export const UNKNOWN_LABEL = "غير معروف";
+export const UNKNOWN_LABEL = i18next.t("pages:use-packaging.s7");
 
 /** Money. `null` is "غير معروف", never 0 د.ع. */
 export function formatIqd(value: number | null | undefined): string {
   if (value == null) return UNKNOWN_LABEL;
-  return `${Math.round(value).toLocaleString("en-US")} د.ع`;
+  return i18next.t("pages:use-packaging.s8", { v0: Math.round(value).toLocaleString("en-US") });
 }
 
 export function formatCm(mm: number | null | undefined): string {
@@ -635,7 +636,7 @@ export function formatCm(mm: number | null | undefined): string {
 
 export function formatKg(grams: number | null | undefined): string {
   if (grams == null) return UNKNOWN_LABEL;
-  return `${(grams / 1000).toFixed(2)} كغم`;
+  return i18next.t("pages:use-packaging.s9", { v0: (grams / 1000).toFixed(2) });
 }
 
 /** Basis points -> whole percent, for support ratios. */
@@ -652,12 +653,12 @@ export function cartonDimsLabel(c: {
   if (c.internalLengthCm == null || c.internalWidthCm == null || c.internalHeightCm == null) {
     return UNKNOWN_LABEL;
   }
-  return `${c.internalLengthCm}×${c.internalWidthCm}×${c.internalHeightCm} سم`;
+  return i18next.t("pages:use-packaging.s10", { v0: c.internalLengthCm, v1: c.internalWidthCm, v2: c.internalHeightCm });
 }
 
 export const MISSING_FIELD_LABEL: Record<string, string> = {
-  packed_height_cm: "الارتفاع بعد التغليف",
-  packed_width_cm: "العرض بعد التغليف",
-  packed_depth_cm: "السماكة/العمق بعد التغليف",
-  packed_weight_kg: "الوزن بعد التغليف",
+  packed_height_cm: i18next.t("pages:use-packaging.s11"),
+  packed_width_cm: i18next.t("pages:use-packaging.s12"),
+  packed_depth_cm: i18next.t("pages:use-packaging.s13"),
+  packed_weight_kg: i18next.t("pages:use-packaging.s14"),
 };
