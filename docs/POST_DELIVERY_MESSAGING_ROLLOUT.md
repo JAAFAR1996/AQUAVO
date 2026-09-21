@@ -265,7 +265,7 @@ from manual resend.
 3. Keep `WHATSAPP_CLOUD_ENABLED=false` and `WHATSAPP_DELIVERY_CARE_ACTIVATION_AT` unset.
 4. Confirm the real Meta number/system-user token and server secrets are configured.
 5. Confirm callback verification, target WABA app subscription, and the WhatsApp `messages` webhook field.
-6. Confirm matching `CRON_SECRET` in Vercel Production and GitHub Actions.
+6. Confirm `CRON_SECRET` exists in Vercel Production for Vercel-owned cron routes, and confirm the GitHub recovery workflow has `id-token: write`; the five-minute customer-messaging worker authenticates with short-lived GitHub OIDC and does not store `CRON_SECRET` in GitHub.
 7. Ensure migration 0079 is active on the target database.
 8. Apply migration 0082 before deploying/enabling the hardened Quick Reply code.
 9. Run the protected recovery worker while WhatsApp remains disabled; it must perform maintenance but send no outbound messages.
