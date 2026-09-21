@@ -1276,6 +1276,17 @@ html[lang="ckb"] textarea {
   font-family: var(--font-sans);
 }
 
+/* Tailwind's font utilities are compiled from @theme and can carry the Arabic
+   Cairo/Changa/Inter families directly onto an element. A direct class wins
+   over an inherited Kurdish body font, producing mixed glyphs whenever Cairo
+   falls back for Sorani-only letters. On ckb pages the locale font policy must
+   also win over those utilities. */
+html[lang="ckb"] .font-sans,
+html[lang="ckb"] .font-display,
+html[lang="ckb"] .font-interface {
+  font-family: var(--font-sans);
+}
+
 /* English is LTR: the base RTL rules above are keyed on [dir], so an LTR
    document gets the standard defaults. Only the list padding needs mirroring. */
 html[dir="ltr"] body {
