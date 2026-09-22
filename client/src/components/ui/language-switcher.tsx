@@ -52,6 +52,8 @@ export function LanguageSwitcher({ variant = "icon", className = "" }: LanguageS
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
+        {/* Visually a 32px pill; the outer 44px keeps the touch hit area.
+            The old filled 44px circle read as a primary action beside the logo. */}
         <Button
           variant="ghost"
           size={compact ? "icon" : variant === "icon" ? "sm" : "default"}
@@ -73,9 +75,10 @@ export function LanguageSwitcher({ variant = "icon", className = "" }: LanguageS
           {!compact && <span aria-hidden="true" className="text-xs opacity-70">▾</span>}
         </Button>
       </DropdownMenuTrigger>
+      {/* No `dir` here: the wrapper does not accept it (tsc TS2322) and every
+          item below already sets dir="ltr" on itself. */}
       <DropdownMenuContent
         align="end"
-        dir="ltr"
         className="grid min-w-[168px] grid-cols-3 gap-1 p-1"
         aria-label={t("language.menuLabel")}
       >
