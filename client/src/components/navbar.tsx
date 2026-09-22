@@ -10,6 +10,7 @@ import {
   MoreHorizontal,
   Package,
   Search,
+  ShieldCheck,
   ShoppingCart,
   Trash2,
   User,
@@ -25,9 +26,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { CartSuggestions } from "@/components/cart/cart-suggestions";
 import { ShippingProgress } from "@/components/cart/shipping-progress";
 import { ThemeSwitcher } from "@/components/ui/theme-switcher";
 import { LanguageSwitcher } from "@/components/ui/language-switcher";
@@ -408,17 +407,29 @@ export default function Navbar() {
                   )}
                 </Button>
               </SheetTrigger>
-              <SheetContent side={cartSide} className="w-full max-w-md border-border bg-background sm:w-[420px]">
-                <SheetHeader>
-                  <SheetTitle className="flex items-center gap-2">
+              <SheetContent
+                side={cartSide}
+                className="flex h-[100dvh] w-full max-w-[460px] flex-col overflow-hidden border-border bg-background p-0 sm:w-[460px] sm:max-w-[460px]"
+              >
+                <SheetHeader className="shrink-0 px-5 pb-3 pt-6 sm:px-6">
+                  <SheetTitle className="flex items-center gap-2 text-xl font-bold">
                     <ShoppingCart className="h-5 w-5" aria-hidden="true" />
-                    {t("cart.title")}
+                    <span>{t("cart.title")}</span>
+                    {totalItems > 0 && (
+                      <span
+                        className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-bold text-white"
+                        aria-hidden="true"
+                      >
+                        {totalItems}
+                      </span>
+                    )}
                   </SheetTitle>
                   <SheetDescription className="sr-only">{t("cart.description")}</SheetDescription>
                 </SheetHeader>
-                <div className="mt-6 flex h-[calc(100vh-180px)] flex-col" aria-live="polite" aria-atomic="false">
+
+                <div className="flex min-h-0 flex-1 flex-col" aria-live="polite" aria-atomic="false">
                   {cartItems.length === 0 ? (
-                    <div className="flex flex-1 flex-col items-center justify-center text-center text-muted-foreground" role="status">
+                    <div className="flex flex-1 flex-col items-center justify-center px-6 text-center text-muted-foreground" role="status">
                       <ShoppingCart className="mb-4 h-14 w-14 opacity-20" aria-hidden="true" />
                       <p className="text-lg font-medium text-foreground">{t("cart.emptyTitle")}</p>
                       <p className="mt-1 max-w-64 text-sm">{t("cart.emptyHint")}</p>
@@ -432,14 +443,18 @@ export default function Navbar() {
                     </div>
                   ) : (
                     <>
-                      <div className="mb-4">
+                      <div className="shrink-0 px-5 pb-2 pt-3 sm:px-6">
                         <ShippingProgress />
                       </div>
-                      <ul className="flex-1 space-y-3 overflow-auto pe-1" aria-label={t("cart.itemsList")}>
+
+                      <ul
+                        className="min-h-0 flex-1 divide-y divide-border/70 overflow-y-auto overflow-x-hidden px-5 sm:px-6"
+                        aria-label={t("cart.itemsList")}
+                      >
                         {cartItems.map((item) => (
                           <li
                             key={item.id}
-                            className="flex gap-3 rounded-lg border border-border bg-card p-3"
+                            className="flex gap-3 py-5"
                             aria-label={t("cart.itemSummary", {
                               name: item.name,
                               variant: item.variantLabel ? t("cart.variantSuffix", { variant: item.variantLabel }) : "",
@@ -447,23 +462,65 @@ export default function Navbar() {
                               price: price(item.price),
                             })}
                           >
-                            <img src={thumbImage(item.image) || "/brand/aquavo-v2-icon.svg"} alt="" aria-hidden="true" className="h-16 w-16 rounded-md bg-card object-contain p-1" loading="lazy" decoding="async" width={64} height={64} />
+                            <img
+                              src={thumbImage(item.image) || "/brand/aquavo-v2-icon.svg"}
+                              alt=""
+                              aria-hidden="true"
+                              className="h-[76px] w-[76px] shrink-0 rounded-xl bg-muted/30 object-contain p-2"
+                              loading="lazy"
+                              decoding="async"
+                              width={76}
+                              height={76}
+                            />
+
                             <div className="min-w-0 flex-1">
-                              <h4 className="truncate text-sm font-medium">{item.name}</h4>
-                              {item.variantLabel && <p className="truncate text-xs text-muted-foreground">{t("cart.variant", { variant: item.variantLabel })}</p>}
-                              <p className="mt-1 font-bold text-foreground">{price(item.price)}</p>
-                              <div className="mt-2 flex items-center justify-between">
-                                <div className="flex items-center gap-1" role="group" aria-label={t("cart.quantityGroup", { name: item.name })}>
-                                  <Button variant="outline" size="icon" className="h-11 w-11 md:h-11 md:w-11" onClick={() => updateQuantity(item.id, item.quantity - 1)} aria-label={t("cart.decrease", { name: item.name })}>
+                              <h4 className="line-clamp-2 text-sm font-semibold leading-6 text-foreground">
+                                {item.name}
+                              </h4>
+                              {item.variantLabel && (
+                                <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">
+                                  {t("cart.variant", { variant: item.variantLabel })}
+                                </p>
+                              )}
+                              <p className="mt-1.5 text-base font-bold text-foreground">{price(item.price)}</p>
+
+                              <div className="mt-3 flex items-center justify-between gap-3">
+                                <div
+                                  className="inline-flex items-center rounded-xl border border-border bg-background"
+                                  role="group"
+                                  aria-label={t("cart.quantityGroup", { name: item.name })}
+                                >
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-11 w-11 rounded-xl"
+                                    onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                    aria-label={t("cart.decrease", { name: item.name })}
+                                  >
                                     <span aria-hidden="true">−</span>
                                   </Button>
-                                  <span className="w-6 text-center text-sm font-semibold" aria-hidden="true">{item.quantity}</span>
+                                  <span className="w-8 text-center text-sm font-semibold" aria-hidden="true">
+                                    {item.quantity}
+                                  </span>
                                   <span className="sr-only">{tc("quantityValue", { count: item.quantity })}</span>
-                                  <Button variant="outline" size="icon" className="h-11 w-11 md:h-11 md:w-11" onClick={() => updateQuantity(item.id, item.quantity + 1)} aria-label={t("cart.increase", { name: item.name })}>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-11 w-11 rounded-xl"
+                                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                    aria-label={t("cart.increase", { name: item.name })}
+                                  >
                                     <span aria-hidden="true">+</span>
                                   </Button>
                                 </div>
-                                <Button variant="ghost" size="icon" className="h-11 w-11 md:h-11 md:w-11 text-destructive" onClick={() => removeItem(item.id)} aria-label={t("cart.remove", { name: item.name })}>
+
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-11 w-11 shrink-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                  onClick={() => removeItem(item.id)}
+                                  aria-label={t("cart.remove", { name: item.name })}
+                                >
                                   <Trash2 className="h-4 w-4" aria-hidden="true" />
                                 </Button>
                               </div>
@@ -471,16 +528,18 @@ export default function Navbar() {
                           </li>
                         ))}
                       </ul>
-                      <Separator className="my-4" />
-                      <CartSuggestions />
-                      <div className="space-y-3">
-                        <dl className="flex items-center justify-between">
-                          <dt className="font-medium">{t("cart.total")}</dt>
-                          <dd className="text-xl font-bold text-foreground" aria-live="polite">{price(totalPrice)}</dd>
+
+                      <div className="shrink-0 border-t border-border bg-background px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4 sm:px-6">
+                        <dl className="flex items-center justify-between gap-4">
+                          <dt className="text-base font-medium">{t("cart.total")}</dt>
+                          <dd className="text-xl font-bold text-foreground" aria-live="polite">
+                            {price(totalPrice)}
+                          </dd>
                         </dl>
+
                         <Button
                           type="button"
-                          className="w-full"
+                          className="mt-4 min-h-12 w-full text-base font-bold"
                           size="lg"
                           onClick={() => {
                             setIsCartOpen(false);
@@ -489,6 +548,11 @@ export default function Navbar() {
                         >
                           {t("cart.checkout")}
                         </Button>
+
+                        <p className="mt-3 flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                          <ShieldCheck className="h-4 w-4" aria-hidden="true" />
+                          <span>{t("cart.secure")}</span>
+                        </p>
                       </div>
                     </>
                   )}
