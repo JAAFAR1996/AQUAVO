@@ -218,7 +218,9 @@ export const ProductCard = memo(function ProductCard({
 
         <CardContent className="mt-auto bg-[#f7f4ef] px-3 pb-2 pt-1 sm:px-4 sm:pb-2 sm:pt-1">
           <div className="flex min-h-7 items-end justify-between gap-2">
-            <div className="flex min-w-0 items-baseline gap-x-1.5">
+            {/* flex-wrap + nowrap on each price: the struck price moves to its
+                own line as a unit instead of splitting "د.ع" off mid-number. */}
+            <div className="flex min-w-0 flex-wrap items-baseline gap-x-1.5">
               {hasPrice ? (
                 <>
                   {requiresVariantChoice && variantMinPrice !== undefined ? (
@@ -230,7 +232,7 @@ export const ProductCard = memo(function ProductCard({
                       : formatPrice(product.price ?? 0)}
                   </span>
                   {!requiresVariantChoice && (product.originalPrice ?? 0) > (product.price ?? 0) ? (
-                    <span className="text-[11px] text-muted-foreground line-through">
+                    <span className="whitespace-nowrap text-[11px] text-muted-foreground line-through">
                       {formatPrice(product.originalPrice ?? 0)}
                     </span>
                   ) : null}

@@ -35,7 +35,8 @@
     "count": "{{rating}} ({{count}} reviews)"
   },
   "price": {
-    "soon": "Coming soon"
+    "soon": "Coming soon",
+    "perKilo": " / kg"
   },
   "stock": {
     "available": "In stock ({{count}} pcs)",
@@ -70,7 +71,8 @@
   },
   "share": {
     "label": "Share product",
-    "text": "{{name}} - {{price}}"
+    "text": "{{name}} - {{price}}",
+    "short": "Share"
   },
   "whatsapp": {
     "message": "Hello, I have a question about {{name}} {{url}}",
@@ -147,9 +149,7 @@
   },
   "related": {
     "fbt": "Usually bought together",
-    "similar": "Similar products you may like",
-    "trending": "Trending now",
-    "live": "Live"
+    "similar": "Similar products you may like"
   },
   "gallery": {
     "roleDescription": "Image gallery",

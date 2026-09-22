@@ -37,7 +37,7 @@ import { GuideLinksSection } from "@/components/seo/guide-links-section";
 
 import { BackToTop } from "@/components/back-to-top";
 import { MetaTags } from "@/components/seo/meta-tags";
-import { fetchFrequentlyBoughtTogether, fetchSimilarProducts, fetchTrendingProducts } from "@/lib/recommendations";
+import { fetchFrequentlyBoughtTogether, fetchSimilarProducts } from "@/lib/recommendations";
 import { ProductCard } from "@/components/products/product-card";
 import { isWoodMonthEndSale, WoodSaleCountdown } from "@/components/products/wood-sale-countdown";
 import { ttqViewContent } from "@/lib/tiktok-pixel";
@@ -479,11 +479,17 @@ export default function ProductDetails() {
                   {hasPrice ? (
                     <>
                       <div className="flex items-baseline gap-3 flex-wrap">
-                        <span className="text-4xl font-bold text-primary">
+                        <span className="whitespace-nowrap text-4xl font-bold text-primary">
                           {formatPrice(displayPrice)}
+                          {/* Unit of sale sits on the price itself. Sand and
+                              stone are priced per kilo, and a shopper should
+                              not have to find that out from the quantity row. */}
+                          {isKilogramProduct && (
+                            <span className="ms-1 text-base font-medium text-muted-foreground">{t("price.perKilo")}</span>
+                          )}
                         </span>
                         {displayOriginalPrice && displayOriginalPrice > displayPrice && (
-                          <span className="text-xl text-muted-foreground line-through decoration-destructive decoration-2">
+                          <span className="whitespace-nowrap text-xl text-muted-foreground line-through decoration-destructive decoration-2">
                             {formatPrice(displayOriginalPrice)}
                           </span>
                         )}
@@ -651,19 +657,17 @@ export default function ProductDetails() {
 
                     {/* Action Buttons */}
                     {/*
-                      flex-wrap + min-w-0 are load-bearing for translated labels.
-                      These buttons are whitespace-nowrap, so their min-content
-                      width is the label width and flex-1 alone cannot shrink
-                      below it. Sorani labels run longer than the Arabic they
-                      were laid out against, which pushed the share button 32px
-                      off the left edge of the viewport (RTL) and produced real
-                      horizontal page scroll. Wrapping degrades gracefully in any
-                      language instead of assuming Arabic-length strings.
+                      One primary action above the fold. Wishlist, compare and
+                      share used to sit beside it as three more filled buttons
+                      and competed with it visually; they are now a quiet
+                      text-and-icon row underneath (Baymard: secondary actions
+                      belong in a lower visual tier, never level with add-to-cart).
+                      min-w-0 stays load-bearing for long Sorani labels.
                     */}
-                    <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3">
+                    <div className="flex flex-col gap-3">
                       <Button
                         size="lg"
-                        className={`flex-1 min-w-0 gap-2 text-lg h-12 transition-all duration-300 ${isAddedToCart ? 'bg-green-500 hover:bg-green-600' : ''
+                        className={`w-full min-w-0 gap-2 text-lg h-12 transition-all duration-300 ${isAddedToCart ? 'bg-green-500 hover:bg-green-600' : ''
                           }`}
                         onClick={handleAddToCart}
                         disabled={isAddingToCart}
@@ -687,20 +691,29 @@ export default function ProductDetails() {
                           </>
                         )}
                       </Button>
-                      <WishlistButton
-                        product={product}
-                        variant="default"
-                        size="lg"
-                        className="gap-2"
-                      />
-                      <CompareButton
-                        productId={product.id}
-                        variant="full"
-                        className="h-11 px-4"
-                      />
-                      <Button size="lg" variant="outline" onClick={handleShare} aria-label={t("share.label")}>
-                        <Share2 className="w-5 h-5" aria-hidden="true" />
-                      </Button>
+                      <div className="flex flex-wrap items-center justify-between gap-1 text-sm">
+                        <WishlistButton
+                          product={product}
+                          variant="default"
+                          size="sm"
+                          className="h-10 flex-1 min-w-0 gap-1.5 border-0 bg-transparent px-2 text-muted-foreground shadow-none hover:bg-muted hover:text-foreground"
+                        />
+                        <CompareButton
+                          productId={product.id}
+                          variant="full"
+                          className="h-10 flex-1 min-w-0 border-0 bg-transparent px-2 text-muted-foreground shadow-none hover:bg-muted hover:text-foreground"
+                        />
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-10 flex-1 min-w-0 gap-1.5 px-2 text-muted-foreground hover:text-foreground"
+                          onClick={handleShare}
+                          aria-label={t("share.label")}
+                        >
+                          <Share2 className="w-4 h-4" aria-hidden="true" />
+                          {t("share.short")}
+                        </Button>
+                      </div>
                     </div>
                     {/* WhatsApp CTA — secondary; also carries the 24/7 support trust signal */}
                     <WhatsAppLink
@@ -1037,17 +1050,14 @@ export default function ProductDetails() {
 
 
             {/* Similar Products (Real Data) */}
+            {/* No third "trending" rail here. Three stacked recommendation
+                rails pushed the mobile page past 11,000px, and a store-wide
+                bestseller list with a pulsing "live" badge is not relevant to
+                the product being viewed; the home page already has it. */}
             <RecommendationsSection
               productId={product.id}
               type="similar"
               title={t("related.similar")}
-            />
-
-            {/* Trending Products (Real Data) */}
-            <RecommendationsSection
-              productId={product.id}
-              type="trending"
-              title={t("related.trending")}
             />
 
             {/* The guides for this product's category. Same shared map the
@@ -1064,7 +1074,10 @@ export default function ProductDetails() {
       {product && hasPrice && !isOutOfStock && (
         <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-background/95 backdrop-blur border-t border-border p-3 flex items-center gap-3 safe-bottom">
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-primary truncate">{formatPrice(displayPrice)}</p>
+            <p className="text-sm font-bold text-primary truncate">
+              {formatPrice(displayPrice)}
+              {isKilogramProduct && <span className="text-xs font-medium text-muted-foreground">{t("price.perKilo")}</span>}
+            </p>
             <p className="text-xs text-muted-foreground truncate">{productDisplay.name}</p>
           </div>
           <Button
@@ -1083,15 +1096,13 @@ export default function ProductDetails() {
 
 // --- New Recommendations Component ---
 
-function RecommendationsSection({ productId, type, title }: { productId: string, type: 'frequently-bought-together' | 'similar' | 'trending', title: string }) {
-  const { t } = useTranslation("product");
+function RecommendationsSection({ productId, type, title }: { productId: string, type: 'frequently-bought-together' | 'similar', title: string }) {
   const { data: products, isLoading } = useQuery({
     queryKey: ['recommendations', type, productId],
-    queryFn: () => {
-      if (type === 'frequently-bought-together') return fetchFrequentlyBoughtTogether(productId);
-      if (type === 'similar') return fetchSimilarProducts(productId);
-      return fetchTrendingProducts();
-    },
+    queryFn: () =>
+      type === 'frequently-bought-together'
+        ? fetchFrequentlyBoughtTogether(productId)
+        : fetchSimilarProducts(productId),
     enabled: !!productId
   });
 
@@ -1100,12 +1111,11 @@ function RecommendationsSection({ productId, type, title }: { productId: string,
 
   return (
     <div className="mt-16">
-      <h2 className="text-3xl font-bold mb-8 flex items-center gap-2">
-        {title}
-        {type === 'trending' && <span className="text-sm font-normal text-red-500 bg-red-100 px-2 py-1 rounded-full animate-pulse">{t("related.live")}</span>}
-      </h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {products.map((product: Product) => (
+      <h2 className="text-3xl font-bold mb-8">{title}</h2>
+      {/* Two columns on phones, same as the products grid: four full-width
+          cards per rail is what made the page so long to scroll. Capped at 4. */}
+      <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-4">
+        {products.slice(0, 4).map((product: Product) => (
           <div key={product.id} className="h-full">
             <ProductCard product={product} />
           </div>
