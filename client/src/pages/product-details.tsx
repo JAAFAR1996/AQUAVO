@@ -696,7 +696,7 @@ export default function ProductDetails() {
                           product={product}
                           variant="default"
                           size="sm"
-                          className="h-10 flex-1 min-w-0 gap-1.5 bg-transparent px-2 text-muted-foreground shadow-none hover:bg-muted hover:text-foreground"
+                          className="h-10 flex-1 min-w-0 gap-1.5 border-0 bg-transparent px-2 text-muted-foreground shadow-none hover:bg-muted hover:text-foreground"
                         />
                         <CompareButton
                           productId={product.id}
