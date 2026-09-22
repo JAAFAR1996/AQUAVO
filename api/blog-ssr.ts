@@ -8,6 +8,8 @@ import { displayAuthorName } from "../shared/author-name.js";
 import { articleAuthorEntity } from "../shared/editorial-author.js";
 import { articleWordCount } from "../shared/article-reading.js";
 import { articleDatePublished } from "../shared/article-dates.js";
+import { directAnswer } from "../shared/article-answer.js";
+import { articleFaqSchema } from "../shared/article-faq.js";
 
 neonConfig.webSocketConstructor = ws;
 
@@ -131,6 +133,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
           },
           datePublished,
           wordCount,
+          // The visible "الجواب باختصار" passage, verbatim. See shared/article-answer.ts.
+          abstract: directAnswer(post.content) ?? undefined,
           inLanguage: "ar",
           mainEntityOfPage: { "@type": "WebPage", "@id": canonicalUrl },
           isPartOf: { "@id": `${CANONICAL_ORIGIN}/#website` },
@@ -144,6 +148,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
             { "@type": "ListItem", position: 3, name: post.title, item: canonicalUrl },
           ],
         },
+        // Only the question headings the body already shows. See shared/article-faq.ts.
+        ...(articleFaqSchema(post.content) ? [articleFaqSchema(post.content) as object] : []),
       ],
     };
 

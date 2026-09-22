@@ -15,7 +15,10 @@ import { primaryProductImage, productGalleryImages } from "./_seo-structured-dat
 import { JOURNEY_STEPS } from "../shared/journey-steps.js";
 import { GALLERY_ENTRY_TERMS, GALLERY_PRIZES } from "../shared/gallery-terms.js";
 import { GUIDE_LINKS_HEADING, guidesForCategory } from "../shared/guide-links.js";
+import { DIRECT_ANSWER_HEADING, directAnswer } from "../shared/article-answer.js";
+import { RELATED_PRODUCTS_HEADING, productCategoryForArticle } from "../shared/article-links.js";
 import { CATEGORY_CHECKS_HEADING, categoryContent } from "../shared/category-content.js";
+import { CATEGORY_FAQ_HEADING, categorySearch } from "../shared/category-search.js";
 import { authorBylineText, authorProfilePath } from "../shared/editorial-author.js";
 import { DEFAULT_LOCALE, localizePath, type Locale } from "../shared/i18n/locales.js";
 
@@ -95,7 +98,7 @@ export type SeoPreviewPage =
   | { kind: "community-gallery"; heading: string; summary: string }
   | { kind: "static"; heading: string; summary: string; path: string; paragraphs?: string[]; prerendered?: string }
   | { kind: "blog-index"; posts: SeoPreviewBlogPost[]; heading: string; summary: string }
-  | { kind: "blog-post"; post: SeoPreviewBlogPost; related: SeoPreviewBlogPost[] }
+  | { kind: "blog-post"; post: SeoPreviewBlogPost; related: SeoPreviewBlogPost[]; products?: SeoPreviewProduct[] }
   | { kind: "not-found"; path: string };
 
 /**
@@ -464,13 +467,27 @@ function CategoryIntro({ category }: { category?: string | null }) {
 }
 
 function ProductsPage({ products, category }: { products: SeoPreviewProduct[]; category?: string }) {
-  const heading = category ? `منتجات ${category}` : "جميع مستلزمات أحواض الزينة في العراق";
+  // The H1 is the buyer's vocabulary ("سخانات وموازين حرارة لحوض السمك"),
+  // not the catalogue's ("منتجات التحكم بالحرارة"). See shared/category-search.ts.
+  const search = categorySearch(category);
+  const heading = search?.heading ?? (category ? `منتجات ${category}` : "جميع مستلزمات أحواض الزينة في العراق");
   return (
     <main id="main-content">
       <nav className="aq-ssr-breadcrumb" aria-label="مسار الصفحة"><a href="/">الرئيسية</a><span>/</span><a href="/products">المنتجات</a>{category && <><span>/</span><span>{category}</span></>}</nav>
       <h1>{heading}</h1>
       <p>{category ? `المنتجات المسجلة ضمن فئة ${category} مع السعر والمخزون وروابط مباشرة.` : "تصفح منتجات AQUAVO حسب الفئة، ثم افتح صفحة المنتج للاطلاع على السعر والمخزون والمواصفات المتوفرة."}</p>
       <CategoryIntro category={category} />
+      {search && (
+        <section className="aq-ssr-category-faq" aria-labelledby="aq-category-faq-title">
+          <h2 id="aq-category-faq-title">{CATEGORY_FAQ_HEADING}</h2>
+          {search.faq.map((item) => (
+            <div key={item.question}>
+              <h3>{item.question}</h3>
+              <p>{item.answer}</p>
+            </div>
+          ))}
+        </section>
+      )}
       {!category && <Categories products={products} />}
       <section aria-labelledby="aq-all-products-title">
         <h2 id="aq-all-products-title">قائمة المنتجات</h2>
@@ -895,10 +912,16 @@ function BlogByline({ author }: { author: string }) {
   return <span itemProp="author">{name}</span>;
 }
 
-function BlogPostPage({ post, related }: { post: SeoPreviewBlogPost; related: SeoPreviewBlogPost[] }) {
+function BlogPostPage({ post, related, products = [] }: { post: SeoPreviewBlogPost; related: SeoPreviewBlogPost[]; products?: SeoPreviewProduct[] }) {
   // The stored article HTML is sanitized and its headings demoted, so the post
   // title below stays the only <h1> on the page.
   const body = renderArticleBodyHtml(post.content);
+  // The article's own opening, 40–90 words, shown under the title so an AI
+  // engine has one self-contained passage to cite. See shared/article-answer.ts.
+  const answer = directAnswer(post.content);
+  // Products and guides of the category the article is about; nothing when
+  // no category clearly leads. See shared/article-links.ts.
+  const productCategory = productCategoryForArticle(post);
   // Not post.publishedAt directly: ten posts carry a date from before the row
   // existed. See shared/article-dates.ts. No modification date is published.
   const published = articleDate(articleDatePublished(post));
@@ -913,6 +936,12 @@ function BlogPostPage({ post, related }: { post: SeoPreviewBlogPost; related: Se
         {post.category && <p className="aq-ssr-kicker">{post.category}</p>}
         <h1 itemProp="headline">{post.title}</h1>
         {post.excerpt && <p itemProp="description">{post.excerpt}</p>}
+        {answer && (
+          <section className="aq-ssr-answer" aria-labelledby="aq-answer-title">
+            <h2 id="aq-answer-title">{DIRECT_ANSWER_HEADING}</h2>
+            <p itemProp="abstract">{answer}</p>
+          </section>
+        )}
         <p className="aq-ssr-meta">
           {/* The byline links to the same page the Article author entity names,
               so a reader and a crawler resolve the byline to one identity. A
@@ -942,6 +971,13 @@ function BlogPostPage({ post, related }: { post: SeoPreviewBlogPost; related: Se
         )}
         <div className="aq-ssr-article" itemProp="articleBody" dangerouslySetInnerHTML={{ __html: body }} />
       </article>
+      {products.length > 0 && (
+        <section aria-labelledby="aq-article-products-title">
+          <h2 id="aq-article-products-title">{RELATED_PRODUCTS_HEADING}</h2>
+          <ProductLinks products={products} />
+        </section>
+      )}
+      <GuideLinks category={productCategory} />
       <section aria-labelledby="aq-blog-more-title">
         <h2 id="aq-blog-more-title">مقالات أخرى</h2>
         {related.length > 0
@@ -975,6 +1011,8 @@ function SeoPreviewShell({ page, locale = DEFAULT_LOCALE }: { page: SeoPreviewPa
         .aq-ssr-hero{padding:2.5rem 0 1rem}.aq-ssr-kicker{color:#67d7e5;font-weight:700}.aq-ssr-actions{display:flex;gap:1rem;flex-wrap:wrap;margin-top:1.5rem}.aq-ssr-actions a{border:1px solid #0B93A6;padding:.7rem 1rem;border-radius:.45rem}
         .aq-ssr-categories{display:flex;gap:.65rem;flex-wrap:wrap;list-style:none;padding:0}.aq-ssr-categories a{display:block;border:1px solid rgba(255,255,255,.18);padding:.55rem .85rem;border-radius:999px}
         .aq-ssr-products{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.85rem;list-style:none;padding:0}.aq-ssr-products a{display:grid;gap:.35rem;height:100%;padding:1rem;border:1px solid rgba(255,255,255,.14);border-radius:.6rem;background:rgba(255,255,255,.035)}
+        .aq-ssr-answer{margin:1rem 0 1.25rem;padding:1rem 1.25rem;border-inline-start:3px solid #67d7e5;border-radius:.5rem;background:rgba(103,215,229,.08)}
+        .aq-ssr-answer h2{margin:0 0 .5rem;font-size:1.05rem}.aq-ssr-answer p{margin:0}
         .aq-ssr-products span,.aq-ssr-products small{color:#d9e6e9}.aq-ssr-answer,.aq-ssr-facts,.aq-ssr-faq details{border:1px solid rgba(255,255,255,.14);border-radius:.6rem;padding:1rem;background:rgba(255,255,255,.035)}
         .aq-ssr-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem}.aq-ssr-facts div{display:grid;gap:.2rem}.aq-ssr-facts dt{color:#9fc5cc}.aq-ssr-facts dd{margin:0;font-weight:700}
         .aq-ssr-variants{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.75rem;list-style:none;padding:0}.aq-ssr-variants li{display:grid;gap:.25rem;border:1px solid rgba(255,255,255,.14);border-radius:.6rem;padding:.8rem;background:rgba(255,255,255,.035)}
@@ -1000,7 +1038,7 @@ function SeoPreviewShell({ page, locale = DEFAULT_LOCALE }: { page: SeoPreviewPa
       {page.kind === "journey" && <JourneyPage heading={page.heading} summary={page.summary} />}
       {page.kind === "community-gallery" && <CommunityGalleryPage heading={page.heading} summary={page.summary} />}
       {page.kind === "blog-index" && <BlogIndexPage posts={page.posts} heading={page.heading} summary={page.summary} />}
-      {page.kind === "blog-post" && <BlogPostPage post={page.post} related={page.related} />}
+      {page.kind === "blog-post" && <BlogPostPage post={page.post} related={page.related} products={page.products} />}
       {page.kind === "not-found" && <NotFoundPage />}
       <SiteFooter locale={locale} />
     </div>

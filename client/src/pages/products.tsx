@@ -11,6 +11,7 @@ import { CategoryScrollBar } from "@/components/products/category-scroll-bar";
 import { GuideLinksSection } from "@/components/seo/guide-links-section";
 import { CategoryIntro } from "@/components/seo/category-intro";
 import { categoryContent } from "@shared/category-content";
+import { categorySearch } from "@shared/category-search";
 import { FilterBar } from "@/components/products/filter-bar";
 import type { FilterState } from "@/components/products/filter-modal";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -423,7 +424,7 @@ export default function Products() {
   return (
     <div className="flex flex-1 flex-col bg-background font-sans transition-colors duration-300">
       <MetaTags
-        title={listingSeo.category ? (locale === "ar" ? listingSeo.title : `${localizeCategoryName(listingSeo.category, locale)} | AQUAVO`) : t("meta.title")}
+        title={listingSeo.category ? (locale === "ar" ? (categorySearch(listingSeo.category)?.title ?? listingSeo.title) : `${localizeCategoryName(listingSeo.category, locale)} | AQUAVO`) : t("meta.title")}
         description={
           // Each category has its own description. All eleven previously
           // shared this one sentence, so eleven indexable listings competed
@@ -442,7 +443,11 @@ export default function Products() {
       )}
       <main id="main-content" className="container mx-auto flex-1 px-3 pb-12 pt-24 sm:px-4 sm:pt-28" dir={dir}>
         <div className="mb-5 space-y-1 text-center sm:mb-6 sm:space-y-2">
-          <h1 className="text-2xl font-bold text-foreground sm:text-4xl">{t("header.title")}</h1>
+          {/* A single category shows its own heading, the same words the
+              crawler shell uses; the generic line stays for the full listing. */}
+          <h1 className="text-2xl font-bold text-foreground sm:text-4xl">
+            {(locale === "ar" && filters.categories.length === 1 && categorySearch(filters.categories[0])?.heading) || t("header.title")}
+          </h1>
           <p className="text-sm text-muted-foreground sm:text-base">{t("header.subtitle")}</p>
         </div>
 

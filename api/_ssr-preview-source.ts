@@ -28,8 +28,11 @@ import {
   buildProductStructuredData,
   withSiteEntities,
 } from "./_seo-structured-data.js";
+import { productCategoryForGuide } from "../shared/guide-links.js";
+import type { GuideProduct } from "./_guides-content.js";
 import {
   canonicalGuidePath,
+  guideProductsFromRows,
   renderCanonicalGuideHtml,
   renderCanonicalGuideMarkdown,
   renderCanonicalGuidesIndexHtml,
@@ -58,6 +61,10 @@ import {
   type Locale,
 } from "../shared/i18n/locales.js";
 import { localizeCategoryName } from "../shared/i18n/categories.js";
+import { directAnswer } from "../shared/article-answer.js";
+import { articleFaqSchema } from "../shared/article-faq.js";
+import { productCategoryForArticle, relatedProductsForArticle } from "../shared/article-links.js";
+import { categoryFaqSchema, categorySearch } from "../shared/category-search.js";
 import { applyLocaleToHtml, SHELL_META } from "./_locale-meta.js";
 import { getLocalizedStaticMeta } from "./_static-meta-i18n.js";
 
@@ -617,11 +624,15 @@ async function resolvePage(pathname: string, rawCategory?: string): Promise<Reso
     }
     const listingSeo = productListingSeo(category);
     const { canonicalPath } = listingSeo;
-    const name = category ? `منتجات ${category}` : "مستلزمات أحواض الزينة في العراق";
+    // Buyer vocabulary for the title and the collection name; the taxonomy
+    // name stays as the fallback for anything outside the eleven.
+    const search = categorySearch(category);
+    const name = search?.heading ?? (category ? `منتجات ${category}` : "مستلزمات أحواض الزينة في العراق");
+    const faq = categoryFaqSchema(category);
     return {
       page: { kind: "products", products, category },
       meta: {
-        title: listingSeo.title,
+        title: search?.title ?? listingSeo.title,
         // Each category carries its own description. All eleven previously
         // shared one templated sentence with the name substituted, so eleven
         // indexable listings went to Google with an identical snippet.
@@ -631,7 +642,7 @@ async function resolvePage(pathname: string, rawCategory?: string): Promise<Reso
             ? `تصفح منتجات ${category} المتوفرة من AQUAVO مع السعر وحالة المخزون.`
             : "تصفح مستلزمات أحواض الزينة المتوفرة من AQUAVO مع روابط مباشرة لكل منتج."),
         canonicalPath,
-        jsonLd: buildCollectionStructuredData(products, canonicalPath, name),
+        jsonLd: [...buildCollectionStructuredData(products, canonicalPath, name), ...(faq ? [faq] : [])],
       },
       status: 200,
     };
@@ -706,12 +717,19 @@ async function resolvePage(pathname: string, rawCategory?: string): Promise<Reso
       };
     }
     const related = (await loadBlogPosts(6, post.slug));
+    // Products of the category the article is about, in stock and priced,
+    // so the post links into the catalogue the way products link into the
+    // guides. One query only when a category clearly leads.
+    const productCategory = productCategoryForArticle(post);
+    const products = productCategory ? relatedProductsForArticle(post, await loadProducts(productCategory)) : [];
+    const abstract = directAnswer(post.content) ?? undefined;
+    const faq = articleFaqSchema(post.content);
     const blogPath = `/blog/${encodeURIComponent(post.slug)}`;
     const image = blogImage(post);
     const description = metaDescription(cleanText(post.excerpt, articlePlainText(post.content)));
     const published = articleDatePublished(post);
     return {
-      page: { kind: "blog-post", post, related },
+      page: { kind: "blog-post", post, related, products },
       meta: {
         title: `${post.title} | مدونة AQUAVO`,
         description,
@@ -734,6 +752,8 @@ async function resolvePage(pathname: string, rawCategory?: string): Promise<Reso
             datePublished: published,
             wordCount: articleWordCount(post.content) || undefined,
             articleSection: post.category || undefined,
+            // The visible "الجواب باختصار" passage, verbatim.
+            abstract,
             inLanguage: "ar-IQ",
             mainEntityOfPage: { "@type": "WebPage", "@id": `${AQUAVO_BASE_URL}${blogPath}` },
             isPartOf: { "@id": `${AQUAVO_BASE_URL}/#website` },
@@ -747,6 +767,8 @@ async function resolvePage(pathname: string, rawCategory?: string): Promise<Reso
               { "@type": "ListItem", position: 3, name: post.title, item: `${AQUAVO_BASE_URL}${blogPath}` },
             ],
           },
+          // Only the question headings the body already shows. See shared/article-faq.ts.
+          ...(faq ? [faq] : []),
         ],
       },
       status: 200,
@@ -1165,19 +1187,38 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       }
       const robots = robotsValue(production, 200, pathname);
       setResponseHeaders(res, robots, "guide-content-v3");
+      // Same three products the browser path shows under this guide. A guide
+      // never needed the database before; if it is unreachable the guide
+      // still renders in full, just without the block.
+      const guideCategory = productCategoryForGuide(resolvedGuide.canonicalPath);
+      let guideProducts: GuideProduct[] = [];
+      if (guideCategory) {
+        try {
+          guideProducts = guideProductsFromRows(await loadProducts(guideCategory));
+        } catch (err) {
+          console.error("[semantic-v3] guide products unavailable", err instanceof Error ? err.message : err);
+        }
+      }
       res.setHeader("Cache-Control", production ? "public, s-maxage=3600, stale-while-revalidate=86400" : "private, no-store");
       res.status(200).setHeader("Content-Type", acceptsMarkdown ? "text/markdown; charset=utf-8" : "text/html; charset=utf-8");
       res.send(acceptsMarkdown
-        ? renderCanonicalGuideMarkdown(resolvedGuide.canonicalPath, resolvedGuide.page, AQUAVO_BASE_URL)
-        : renderCanonicalGuideHtml(resolvedGuide.canonicalPath, resolvedGuide.page, AQUAVO_BASE_URL, AQUAVO_ENTITY.logoUrl));
+        ? renderCanonicalGuideMarkdown(resolvedGuide.canonicalPath, resolvedGuide.page, AQUAVO_BASE_URL, guideProducts)
+        : renderCanonicalGuideHtml(resolvedGuide.canonicalPath, resolvedGuide.page, AQUAVO_BASE_URL, AQUAVO_ENTITY.logoUrl, guideProducts));
       return;
     }
 
-    if (pathname === "/products" && rawCategory && canonicalCategory && rawCategory !== canonicalCategory) {
-      const destination = `/products?category=${encodeURIComponent(canonicalCategory)}`;
-      res.setHeader("Cache-Control", "public, max-age=3600");
-      res.status(308).setHeader("Location", destination).end();
-      return;
+    // One spelling per listing. An alias (?category=heaters) and a differently
+    // encoded query (the "+" that URLSearchParams.toString() produced in guide
+    // links) both reached Google as separate URLs; URL Inspection showed the
+    // "+" variant crawled and unindexed next to its canonical.
+    if (pathname === "/products" && rawCategory && canonicalCategory) {
+      const canonicalSearch = `?category=${encodeURIComponent(canonicalCategory)}`;
+      const onlyCategory = [...requestUrl.searchParams.keys()].every((key) => key === "category");
+      if (rawCategory !== canonicalCategory || (onlyCategory && requestUrl.search !== canonicalSearch)) {
+        res.setHeader("Cache-Control", "public, max-age=3600");
+        res.status(308).setHeader("Location", `/products${canonicalSearch}`).end();
+        return;
+      }
     }
 
     const resolved = await resolvePage(pathname, rawCategory);

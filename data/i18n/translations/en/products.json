@@ -2576,52 +2576,6 @@
       "variantLabels": {}
     }
   },
-  "houyi-tracheal-suction-cup": {
-    "entityId": "houyi-tracheal-suction-cup",
-    "slug": "houyi-tracheal-suction-cup",
-    "sourceHash": "5efaaf788d62e18a",
-    "translatedBy": "groq:openai/gpt-oss-120b",
-    "translatedAt": "2026-09-18T22:44:19.910Z",
-    "data": {
-      "name": "Houyi Air Tube Suction Cup — Classic Design",
-      "description": "A transparent suction cup securely holds an air tubing on aquarium glass, offering a low‑profile, tool‑free installation and easy tube routing.\n\nClean the installation area on the glass, moisten the suction cup and press it onto the glass, thread the tubing through the flexible opening, and check its hold periodically.\n\nVerify the tubing diameter matches the opening, clean the glass before installation, replace the suction cup when adhesion weakens, and do not pull the tubing forcefully while attached to the cup.",
-      "subcategory": "Accessories",
-      "seoTitle": "Houyi Air Tube Suction Cup – Classic Design | AQUAVO",
-      "seoDescription": "A transparent suction cup securely holds an air tubing on aquarium glass, offering a low‑profile, tool‑free installation and easy tube routing.",
-      "specifications": {
-        "benefits": [
-          "Secures the air tubing to the glass",
-          "Transparent and minimally visible inside the tank",
-          "Simple tool‑free installation",
-          "Helps organize the tubing path"
-        ],
-        "usageInstructions": [
-          "Clean the installation area on the glass",
-          "Moisten the suction cup and press it onto the glass",
-          "Thread the tubing through the flexible opening",
-          "Check its hold periodically"
-        ],
-        "safetyWarnings": [
-          "Verify the tubing diameter matches the opening",
-          "Clean the glass before installation",
-          "Replace the suction cup when adhesion weakens",
-          "Do not pull the tubing forcefully while attached to the cup"
-        ],
-        "__cardBenefit": "Secures the air tubing to glass with a simple, transparent installation",
-        "labelled": {
-          "النوع": {
-            "label": "Type",
-            "value": "Air tubing suction cup"
-          },
-          "الكمية": {
-            "label": "Quantity",
-            "value": "Sold per piece"
-          }
-        }
-      },
-      "variantLabels": {}
-    }
-  },
   "houyi-volcanic-stone-black": {
     "entityId": "houyi-volcanic-stone-black",
     "slug": "houyi-volcanic-stone-black",

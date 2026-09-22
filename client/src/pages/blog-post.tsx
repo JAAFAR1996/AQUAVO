@@ -13,6 +13,11 @@ import { articleReadingTimeLabel } from "@shared/article-reading";
 import { articleDatePublished } from "@shared/article-dates";
 import { useTranslation } from "react-i18next";
 import { isolateNumericRangesInHtml } from "@shared/i18n/bidi";
+import { DIRECT_ANSWER_HEADING, directAnswer } from "@shared/article-answer";
+import { RELATED_PRODUCTS_HEADING, productCategoryForArticle, relatedProductsForArticle } from "@shared/article-links";
+import { GuideLinksSection } from "@/components/seo/guide-links-section";
+import { ProductCard } from "@/components/products/product-card";
+import type { Product } from "@/types";
 
 
 export default function BlogPost() {
@@ -27,6 +32,20 @@ export default function BlogPost() {
 
     const { data: allPosts } = useQuery<BlogPost[]>({
         queryKey: ["/api/blog/posts"]
+    });
+
+    // Only fetched when the article is about a product category; the same
+    // function decides on the crawler path, so both renderings agree.
+    const productCategory = post ? productCategoryForArticle(post) : null;
+    const { data: categoryProducts = [] } = useQuery<Product[]>({
+        queryKey: ["/api/products", { category: productCategory }],
+        queryFn: async () => {
+            const res = await fetch(`/api/products?category=${encodeURIComponent(productCategory ?? "")}&limit=50`);
+            if (!res.ok) throw new Error("Failed to fetch products");
+            const data = await res.json();
+            return data.products || [];
+        },
+        enabled: !!productCategory,
     });
 
     if (isLoading) {
@@ -52,6 +71,10 @@ export default function BlogPost() {
     // two renderings of one article can no longer disagree.
     const publishedAt = articleDatePublished(post);
     const readingTime = articleReadingTimeLabel(post.content);
+    // The article's own opening (40–90 words) under the title, and the products
+    // of its category: both derived by the modules the crawler shell uses.
+    const answer = directAnswer(post.content);
+    const relatedProducts = relatedProductsForArticle(post, categoryProducts);
 
     return (
         <div className="flex-1 flex flex-col bg-background font-sans">
@@ -149,6 +172,15 @@ export default function BlogPost() {
                 <article className="container mx-auto px-4 mt-8">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
                         <div className="lg:col-span-8">
+                            {answer && (
+                                <section
+                                    className="mb-8 rounded-xl border-s-4 border-primary bg-primary/5 px-5 py-4"
+                                    aria-labelledby="article-answer-title"
+                                >
+                                    <h2 id="article-answer-title" className="mb-2 text-lg font-bold text-foreground">{DIRECT_ANSWER_HEADING}</h2>
+                                    <p className="text-base leading-8 text-foreground/90">{answer}</p>
+                                </section>
+                            )}
                             {/* aq-article, not prose. The 22 prose utilities that used
                                 to sit on this element applied nothing:
                                 @tailwindcss/typography is not a dependency of this
@@ -174,6 +206,18 @@ export default function BlogPost() {
                                     }))
                                 }}
                             />
+
+                            {relatedProducts.length > 0 && (
+                                <section className="mt-10" aria-labelledby="article-products-title">
+                                    <h2 id="article-products-title" className="mb-4 text-xl font-semibold">{RELATED_PRODUCTS_HEADING}</h2>
+                                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+                                        {relatedProducts.map((product) => (
+                                            <ProductCard key={product.id} product={product} />
+                                        ))}
+                                    </div>
+                                </section>
+                            )}
+                            <GuideLinksSection category={productCategory} />
 
                             <div className="mt-12 pt-8 border-t flex justify-between items-center">
                                 <h3 className="font-bold text-xl">{t("blog-post.s3")}</h3>

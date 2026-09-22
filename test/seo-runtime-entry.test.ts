@@ -94,7 +94,9 @@ describe("production SEO/AEO/GEO contract", () => {
       category: "الفلترة والتنقية",
     });
 
-    expect(html).toContain("<h1>منتجات الفلترة والتنقية</h1>");
+    // The H1 is the buyer's words, not the catalogue's ("منتجات الفلترة والتنقية").
+    // See shared/category-search.ts and server/__tests__/category-listing-canonical.test.ts.
+    expect(html).toContain("<h1>فلاتر حوض السمك ووسائط الفلترة</h1>");
     expect(html).toContain('href="/products/filter-pro"');
     expect(html).not.toContain("category=filters");
   });

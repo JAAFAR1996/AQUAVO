@@ -3,9 +3,10 @@ import {
   renderGuideHtml,
   renderGuideMarkdown,
   type GuidePage,
+  type GuideProduct,
 } from "./_guides-content.js";
 import { SPA_GUIDE_PAGES } from "./_guides-content-spa.js";
-import { canonicalProductCategory } from "../shared/seo-contract.js";
+import { canonicalProductCategory, categoryProductsPath } from "../shared/seo-contract.js";
 import { withSiteEntities } from "./_seo-structured-data.js";
 
 const GUIDE_ROUTE_ALIASES: Record<string, string> = {
@@ -240,6 +241,12 @@ function normalizeHref(href: string): string {
 
   const params = new URLSearchParams(query);
   const category = params.get("category");
+  // A category-only link must be the listing's one canonical spelling.
+  // URLSearchParams.toString() writes spaces as "+", which gave Google a
+  // second URL for every listing the guides point at.
+  if (category && [...params.keys()].every((key) => key === "category")) {
+    return canonicalPath === "/products" ? categoryProductsPath(category) : `${canonicalPath}?category=${encodeURIComponent(canonicalProductCategory(category) || category)}`;
+  }
   if (category) params.set("category", canonicalProductCategory(category) || category);
   const normalized = params.toString();
   return normalized ? `${canonicalPath}?${normalized}` : canonicalPath;
@@ -284,16 +291,38 @@ export function renderCanonicalGuideHtml(
   page: GuidePage,
   baseUrl: string,
   defaultImage: string,
+  products?: GuideProduct[],
 ): string {
-  return renderGuideHtml(canonicalPath, canonicalizePage(page, canonicalPath), baseUrl, defaultImage, withSiteEntities);
+  return renderGuideHtml(canonicalPath, canonicalizePage(page, canonicalPath), baseUrl, defaultImage, withSiteEntities, products);
 }
 
 export function renderCanonicalGuideMarkdown(
   canonicalPath: string,
   page: GuidePage,
   baseUrl: string,
+  products?: GuideProduct[],
 ): string {
-  return renderGuideMarkdown(canonicalPath, canonicalizePage(page, canonicalPath), baseUrl);
+  return renderGuideMarkdown(canonicalPath, canonicalizePage(page, canonicalPath), baseUrl, products);
+}
+
+/**
+ * Shape a product row for a guide: in-stock, priced, name and slug only.
+ * Shared by both handlers so a crawler and a reader see the same three.
+ */
+export function guideProductsFromRows(
+  rows: ReadonlyArray<{ slug?: string | null; name?: string | null; price?: string | number | null; stock?: string | number | null }>,
+  limit = 3,
+): GuideProduct[] {
+  return rows
+    .filter((r) => r.slug && r.name && Number(r.price ?? 0) > 0 && Number(r.stock ?? 0) > 0)
+    .slice(0, limit)
+    .map((r) => ({
+      slug: String(r.slug),
+      name: String(r.name),
+      // Latin digits with a comma, the same form the product cards show a
+      // reader ("17,999 د.ع"), so a guide and the listing it links to agree.
+      priceLabel: `${new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(Number(r.price))} د.ع`,
+    }));
 }
 
 function escapeHtml(value: string): string {
