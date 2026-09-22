@@ -5,7 +5,7 @@ import {
   type GuidePage,
 } from "./_guides-content.js";
 import { SPA_GUIDE_PAGES } from "./_guides-content-spa.js";
-import { canonicalProductCategory } from "../shared/seo-contract.js";
+import { canonicalProductCategory, categoryProductsPath } from "../shared/seo-contract.js";
 import { withSiteEntities } from "./_seo-structured-data.js";
 
 const GUIDE_ROUTE_ALIASES: Record<string, string> = {
@@ -240,6 +240,12 @@ function normalizeHref(href: string): string {
 
   const params = new URLSearchParams(query);
   const category = params.get("category");
+  // A category-only link must be the listing's one canonical spelling.
+  // URLSearchParams.toString() writes spaces as "+", which gave Google a
+  // second URL for every listing the guides point at.
+  if (category && [...params.keys()].every((key) => key === "category")) {
+    return canonicalPath === "/products" ? categoryProductsPath(category) : `${canonicalPath}?category=${encodeURIComponent(canonicalProductCategory(category) || category)}`;
+  }
   if (category) params.set("category", canonicalProductCategory(category) || category);
   const normalized = params.toString();
   return normalized ? `${canonicalPath}?${normalized}` : canonicalPath;

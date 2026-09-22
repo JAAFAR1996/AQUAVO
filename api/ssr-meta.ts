@@ -12,7 +12,9 @@ import { AQUAVO_FAQ_ITEMS } from "../shared/faq-content.js";
 import { toPublicProduct, toPublicVariant } from "../shared/public-product.js";
 import { buildProductStructuredData, withSiteEntities } from "./_seo-structured-data.js";
 import { isKnownSitePath } from "../shared/site-routes.js";
-import { AQUAVO_ENTITY, canonicalUrlFor, isNoindexPath } from "../shared/seo-contract.js";
+import { AQUAVO_ENTITY, AQUAVO_PRODUCT_CATEGORIES, canonicalProductCategory, canonicalUrlFor, categoryProductsPath, isNoindexPath, productListingSeo } from "../shared/seo-contract.js";
+import { categoryContent } from "../shared/category-content.js";
+import { categoryFaqSchema, categorySearch } from "../shared/category-search.js";
 import { displayAuthorName } from "../shared/author-name.js";
 import { articleWordCount } from "../shared/article-reading.js";
 import { directAnswer } from "../shared/article-answer.js";
@@ -125,19 +127,16 @@ export interface EmbeddedProduct {
 /** The id of the <script type="application/json"> block carrying the above. */
 export const EMBEDDED_PRODUCT_SCRIPT_ID = "__AQUAVO_PRODUCT__";
 
-const PRODUCT_CATEGORY_ITEMS = [
-  { "@type": "ListItem", position: 1, name: "أحواض زجاجية", url: `${BASE}/products?category=tanks` },
-  { "@type": "ListItem", position: 2, name: "فلاتر", url: `${BASE}/products?category=filters` },
-  { "@type": "ListItem", position: 3, name: "سخانات", url: `${BASE}/products?category=heaters` },
-  { "@type": "ListItem", position: 4, name: "إضاءة LED", url: `${BASE}/products?category=lighting` },
-  { "@type": "ListItem", position: 5, name: "أغذية أسماك", url: `${BASE}/products?category=food` },
-  { "@type": "ListItem", position: 6, name: "علاجات مياه", url: `${BASE}/products?category=treatments` },
-  { "@type": "ListItem", position: 7, name: "ديكورات", url: `${BASE}/products?category=decorations` },
-  { "@type": "ListItem", position: 8, name: "ركائز", url: `${BASE}/products?category=substrates` },
-  { "@type": "ListItem", position: 9, name: "مضخات هواء", url: `${BASE}/products?category=air-pumps` },
-  { "@type": "ListItem", position: 10, name: "مستلزمات الصيانة", url: `${BASE}/products?category=maintenance` },
-  { "@type": "ListItem", position: 11, name: "أطقم كاملة للمبتدئين", url: `${BASE}/products?category=starter-kits` },
-] as const;
+// The eleven real listings at their one canonical URL each. This list used
+// to point at English aliases (?category=heaters) and at "starter-kits",
+// which is not a category, so /products told Google about eleven URLs of
+// which none was a listing's canonical and one was a 404.
+const PRODUCT_CATEGORY_ITEMS = AQUAVO_PRODUCT_CATEGORIES.map((category, index) => ({
+  "@type": "ListItem",
+  position: index + 1,
+  name: categorySearch(category)?.heading ?? category,
+  url: `${BASE}${categoryProductsPath(category)}`,
+}));
 
 const STATIC_PAGES: Record<string, PageMeta> = {
   "/": {
@@ -877,11 +876,44 @@ function withStaticPageGraph(path: string, meta: PageMeta): object[] {
   return hasCrumb || !wantsCrumb ? own : [...own, breadcrumbFor(path, staticPageName(meta))];
 }
 
-async function resolveMetadata(pathname: string, notFound = false, locale: Locale = DEFAULT_LOCALE): Promise<PageMeta & { url: string; image: string }> {
+async function resolveMetadata(pathname: string, notFound = false, locale: Locale = DEFAULT_LOCALE, rawCategory?: string): Promise<PageMeta & { url: string; image: string }> {
   const cleanPath = pathname.replace(/\/+$/, "") || "/";
   const seoOverride = getSeoMetaOverride(cleanPath);
   const noIndex = isNoindexPath(cleanPath);
   const shell = SHELL_META[locale];
+
+  // A category listing is its own document. This path used to fall through
+  // to the STATIC_PAGES entry for "/products" and publish canonical=/products
+  // on every /products?category=… request from a browser, while the crawler
+  // path published the category's own canonical. Google resolved the
+  // conflict by folding three listings into /products (URL Inspection,
+  // 2026-09-22). Both paths now say the same thing.
+  const listingCategory = cleanPath === "/products" && !notFound ? canonicalProductCategory(rawCategory) : undefined;
+  const listingSearch = listingCategory ? categorySearch(listingCategory) : undefined;
+  if (listingCategory && listingSearch && locale === DEFAULT_LOCALE) {
+    const listing = productListingSeo(listingCategory);
+    const faq = categoryFaqSchema(listingCategory);
+    return {
+      title: listingSearch.title,
+      description: categoryContent(listingCategory)?.metaDescription ?? listing.title,
+      url: listing.canonicalUrl,
+      noIndex,
+      image: DEFAULT_IMAGE,
+      ogType: "website",
+      jsonLd: [
+        {
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "الرئيسية", item: BASE },
+            { "@type": "ListItem", position: 2, name: "المنتجات", item: `${BASE}/products` },
+            { "@type": "ListItem", position: 3, name: listingSearch.heading, item: listing.canonicalUrl },
+          ],
+        },
+        ...(faq ? [faq] : []),
+      ],
+    };
+  }
   // English / Kurdish static copy replaces the Arabic title+description; the
   // structured data builders below still run on the logical path.
   const localizedStatic = locale === DEFAULT_LOCALE ? undefined : getLocalizedStaticMeta(locale, cleanPath);
@@ -1373,9 +1405,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .send(renderCanonicalGuideHtml(resolvedGuide.canonicalPath, resolvedGuide.page, BASE, DEFAULT_IMAGE));
     }
 
+    // One spelling per listing on the browser path too: an alias or a
+    // differently encoded category query goes to the canonical URL.
+    const rawCategory = new URLSearchParams(search).get("category") ?? undefined;
+    if (pathname === "/products" && rawCategory) {
+      const canonicalCategory = canonicalProductCategory(rawCategory);
+      const params = new URLSearchParams(search);
+      const onlyCategory = [...params.keys()].every((key) => key === "category");
+      const canonicalSearch = canonicalCategory ? `?category=${encodeURIComponent(canonicalCategory)}` : "";
+      if (canonicalCategory && (rawCategory !== canonicalCategory || (onlyCategory && search !== canonicalSearch))) {
+        res.setHeader("Cache-Control", "public, max-age=3600");
+        return res.status(308).setHeader("Location", localizePath(`/products${canonicalSearch}`, locale)).end();
+      }
+    }
+
     const template = getTemplate();
     const status = isKnownSitePath(pathname, Object.keys(GUIDE_CONTENT_PAGES)) ? 200 : 404;
-    const meta = await resolveMetadata(pathname, status === 404, locale);
+    const meta = await resolveMetadata(pathname, status === 404, locale, rawCategory);
     // Canonical is per locale: each translated page is its own indexable document.
     if (locale !== DEFAULT_LOCALE) {
       try {

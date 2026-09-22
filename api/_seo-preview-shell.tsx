@@ -18,6 +18,7 @@ import { GUIDE_LINKS_HEADING, guidesForCategory } from "../shared/guide-links.js
 import { DIRECT_ANSWER_HEADING, directAnswer } from "../shared/article-answer.js";
 import { RELATED_PRODUCTS_HEADING, productCategoryForArticle } from "../shared/article-links.js";
 import { CATEGORY_CHECKS_HEADING, categoryContent } from "../shared/category-content.js";
+import { CATEGORY_FAQ_HEADING, categorySearch } from "../shared/category-search.js";
 import { authorBylineText, authorProfilePath } from "../shared/editorial-author.js";
 import { DEFAULT_LOCALE, localizePath, type Locale } from "../shared/i18n/locales.js";
 
@@ -466,13 +467,27 @@ function CategoryIntro({ category }: { category?: string | null }) {
 }
 
 function ProductsPage({ products, category }: { products: SeoPreviewProduct[]; category?: string }) {
-  const heading = category ? `منتجات ${category}` : "جميع مستلزمات أحواض الزينة في العراق";
+  // The H1 is the buyer's vocabulary ("سخانات وموازين حرارة لحوض السمك"),
+  // not the catalogue's ("منتجات التحكم بالحرارة"). See shared/category-search.ts.
+  const search = categorySearch(category);
+  const heading = search?.heading ?? (category ? `منتجات ${category}` : "جميع مستلزمات أحواض الزينة في العراق");
   return (
     <main id="main-content">
       <nav className="aq-ssr-breadcrumb" aria-label="مسار الصفحة"><a href="/">الرئيسية</a><span>/</span><a href="/products">المنتجات</a>{category && <><span>/</span><span>{category}</span></>}</nav>
       <h1>{heading}</h1>
       <p>{category ? `المنتجات المسجلة ضمن فئة ${category} مع السعر والمخزون وروابط مباشرة.` : "تصفح منتجات AQUAVO حسب الفئة، ثم افتح صفحة المنتج للاطلاع على السعر والمخزون والمواصفات المتوفرة."}</p>
       <CategoryIntro category={category} />
+      {search && (
+        <section className="aq-ssr-category-faq" aria-labelledby="aq-category-faq-title">
+          <h2 id="aq-category-faq-title">{CATEGORY_FAQ_HEADING}</h2>
+          {search.faq.map((item) => (
+            <div key={item.question}>
+              <h3>{item.question}</h3>
+              <p>{item.answer}</p>
+            </div>
+          ))}
+        </section>
+      )}
       {!category && <Categories products={products} />}
       <section aria-labelledby="aq-all-products-title">
         <h2 id="aq-all-products-title">قائمة المنتجات</h2>

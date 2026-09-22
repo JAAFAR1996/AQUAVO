@@ -1,15 +1,18 @@
 import { CATEGORY_CHECKS_HEADING, categoryContent } from "@shared/category-content";
+import { CATEGORY_FAQ_HEADING, categorySearch } from "@shared/category-search";
+import { FAQSchema } from "@/components/seo/meta-tags";
 
 /**
  * What a buyer needs to know about a category before choosing.
  *
- * Same shared module the crawler-visible markup in api/_seo-preview-shell.tsx
+ * Same shared modules the crawler-visible markup in api/_seo-preview-shell.tsx
  * reads, so a reader and Googlebot are shown the same words. Renders nothing
  * when the category is not one of the eleven: filler written for some other
  * category is worse than none.
  */
 export function CategoryIntro({ category }: { category?: string | null }) {
   const content = categoryContent(category);
+  const search = categorySearch(category);
   if (!content) return null;
 
   return (
@@ -30,6 +33,24 @@ export function CategoryIntro({ category }: { category?: string | null }) {
           </li>
         ))}
       </ul>
+      {search && (
+        <>
+          {/* The three questions are visible here, which is what makes the
+              FAQPage markup below legitimate. See shared/category-search.ts. */}
+          <h2 id="category-faq-title" className="mt-8 mb-3 text-right text-lg font-semibold text-foreground">
+            {CATEGORY_FAQ_HEADING}
+          </h2>
+          <dl className="space-y-4 text-right">
+            {search.faq.map((item) => (
+              <div key={item.question}>
+                <dt className="text-sm font-semibold text-foreground sm:text-base">{item.question}</dt>
+                <dd className="mt-1 text-sm leading-7 text-muted-foreground">{item.answer}</dd>
+              </div>
+            ))}
+          </dl>
+          <FAQSchema questions={search.faq.map((item) => ({ question: item.question, answer: item.answer }))} />
+        </>
+      )}
     </section>
   );
 }

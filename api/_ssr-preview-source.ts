@@ -61,6 +61,7 @@ import { localizeCategoryName } from "../shared/i18n/categories.js";
 import { directAnswer } from "../shared/article-answer.js";
 import { articleFaqSchema } from "../shared/article-faq.js";
 import { productCategoryForArticle, relatedProductsForArticle } from "../shared/article-links.js";
+import { categoryFaqSchema, categorySearch } from "../shared/category-search.js";
 import { applyLocaleToHtml, SHELL_META } from "./_locale-meta.js";
 import { getLocalizedStaticMeta } from "./_static-meta-i18n.js";
 
@@ -620,11 +621,15 @@ async function resolvePage(pathname: string, rawCategory?: string): Promise<Reso
     }
     const listingSeo = productListingSeo(category);
     const { canonicalPath } = listingSeo;
-    const name = category ? `منتجات ${category}` : "مستلزمات أحواض الزينة في العراق";
+    // Buyer vocabulary for the title and the collection name; the taxonomy
+    // name stays as the fallback for anything outside the eleven.
+    const search = categorySearch(category);
+    const name = search?.heading ?? (category ? `منتجات ${category}` : "مستلزمات أحواض الزينة في العراق");
+    const faq = categoryFaqSchema(category);
     return {
       page: { kind: "products", products, category },
       meta: {
-        title: listingSeo.title,
+        title: search?.title ?? listingSeo.title,
         // Each category carries its own description. All eleven previously
         // shared one templated sentence with the name substituted, so eleven
         // indexable listings went to Google with an identical snippet.
@@ -634,7 +639,7 @@ async function resolvePage(pathname: string, rawCategory?: string): Promise<Reso
             ? `تصفح منتجات ${category} المتوفرة من AQUAVO مع السعر وحالة المخزون.`
             : "تصفح مستلزمات أحواض الزينة المتوفرة من AQUAVO مع روابط مباشرة لكل منتج."),
         canonicalPath,
-        jsonLd: buildCollectionStructuredData(products, canonicalPath, name),
+        jsonLd: [...buildCollectionStructuredData(products, canonicalPath, name), ...(faq ? [faq] : [])],
       },
       status: 200,
     };
@@ -1187,11 +1192,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       return;
     }
 
-    if (pathname === "/products" && rawCategory && canonicalCategory && rawCategory !== canonicalCategory) {
-      const destination = `/products?category=${encodeURIComponent(canonicalCategory)}`;
-      res.setHeader("Cache-Control", "public, max-age=3600");
-      res.status(308).setHeader("Location", destination).end();
-      return;
+    // One spelling per listing. An alias (?category=heaters) and a differently
+    // encoded query (the "+" that URLSearchParams.toString() produced in guide
+    // links) both reached Google as separate URLs; URL Inspection showed the
+    // "+" variant crawled and unindexed next to its canonical.
+    if (pathname === "/products" && rawCategory && canonicalCategory) {
+      const canonicalSearch = `?category=${encodeURIComponent(canonicalCategory)}`;
+      const onlyCategory = [...requestUrl.searchParams.keys()].every((key) => key === "category");
+      if (rawCategory !== canonicalCategory || (onlyCategory && requestUrl.search !== canonicalSearch)) {
+        res.setHeader("Cache-Control", "public, max-age=3600");
+        res.status(308).setHeader("Location", `/products${canonicalSearch}`).end();
+        return;
+      }
     }
 
     const resolved = await resolvePage(pathname, rawCategory);
