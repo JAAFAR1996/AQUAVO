@@ -493,7 +493,7 @@ export default function Navbar() {
                                   <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="h-11 w-11 rounded-xl"
+                                    className="h-11 w-11 md:h-11 md:w-11 rounded-xl"
                                     onClick={() => updateQuantity(item.id, item.quantity - 1)}
                                     aria-label={t("cart.decrease", { name: item.name })}
                                   >
@@ -506,7 +506,7 @@ export default function Navbar() {
                                   <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="h-11 w-11 rounded-xl"
+                                    className="h-11 w-11 md:h-11 md:w-11 rounded-xl"
                                     onClick={() => updateQuantity(item.id, item.quantity + 1)}
                                     aria-label={t("cart.increase", { name: item.name })}
                                   >
@@ -517,7 +517,7 @@ export default function Navbar() {
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  className="h-11 w-11 shrink-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                  className="h-11 w-11 md:h-11 md:w-11 shrink-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
                                   onClick={() => removeItem(item.id)}
                                   aria-label={t("cart.remove", { name: item.name })}
                                 >
