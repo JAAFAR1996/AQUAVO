@@ -405,6 +405,10 @@ const STATIC_PAGES: Record<string, PageMeta> = {
     title: "سياسة الخصوصية - AQUAVO مستلزمات أحواض الزينة",
     description: "سياسة الخصوصية وحماية بيانات العملاء في متجر AQUAVO لمستلزمات احواض اسماك الزينة.",
   },
+  "/alexa-privacy": {
+    title: "AQUAVO Home AI — Alexa Privacy Notice | إشعار خصوصية Alexa",
+    description: "Privacy notice for the AQUAVO Home AI private Alexa Smart Home integration (single authorized household). | إشعار الخصوصية لتكامل AQUAVO Home AI الخاص مع Amazon Alexa لمنزل واحد مصرح له.",
+  },
   "/return-policy": {
     title: "سياسة الإرجاع والاستبدال - AQUAVO العراق",
     description: "سياسة إرجاع واستبدال المنتجات في متجر AQUAVO. ضمان رضا العملاء وحقوق المستهلك في العراق.",

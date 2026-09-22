@@ -27,7 +27,7 @@
 
 /** Static paths served by the SPA router. Mirrors client/src/App.tsx. */
 export const ROUTES: readonly string[] = [
-  "/", "/about", "/about-aquavo", "/ai-tools", "/aquarium-wizard", "/ar", "/auth",
+  "/", "/about", "/about-aquavo", "/ai-tools", "/alexa-privacy", "/aquarium-wizard", "/ar", "/auth",
   "/beginner-guide", "/blog", "/calculators", "/cart", "/checkout", "/community-gallery",
   "/compare", "/contact", "/cultural-twin", "/deals", "/encyclopedia", "/faq",
   "/fish-breeding-calculator", "/fish-compatibility", "/fish-doctor", "/fish-encyclopedia", "/guides",
