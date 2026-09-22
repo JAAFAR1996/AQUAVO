@@ -8,10 +8,11 @@ vi.mock("../tracking-environment", () => ({ isTrackingAllowed: () => true }));
 vi.stubEnv("VITE_META_PIXEL_ID", "123456");
 
 describe("iqdToAdValue", () => {
-  it("converts at the fixed CBI rate, rounded to cents", () => {
+  it("converts at the configured parallel-market rate, rounded to cents", () => {
+    expect(IQD_PER_USD).toBe(1600); // no VITE_META_IQD_PER_USD in the test env, so the fallback applies
     expect(iqdToAdValue(IQD_PER_USD)).toBe(1);
-    expect(iqdToAdValue(17999)).toBe(13.74);
-    expect(iqdToAdValue(23000)).toBe(17.56);
+    expect(iqdToAdValue(17999)).toBe(11.25);
+    expect(iqdToAdValue(23000)).toBe(14.38);
   });
 
   it("never emits NaN or a negative value", () => {
