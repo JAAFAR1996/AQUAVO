@@ -134,8 +134,11 @@ describe("AQUAVO discoverability contract", () => {
     expect(existsSync(resolve(process.cwd(), "client/public/.well-known/acp.json"))).toBe(false);
     expect(vercel).not.toContain('rel=\\"mcp-server-card\\"');
     expect(server).not.toContain('rel="mcp-server-card"');
-    expect(vercel).toContain("form-action 'self'");
-    expect(vercel).not.toContain("form-action 'self' https://");
+    // form-action stays closed to AI-assistant origins. The single exception
+    // is Meta's pixel form fallback (https://www.facebook.com/tr/), which
+    // analytics-csp.test.ts pins exactly.
+    expect(vercel).toContain("form-action 'self' https://www.facebook.com;");
+    expect(vercel).not.toMatch(/form-action [^;]*(claude\.ai|chatgpt\.com)/);
   });
 
   it("keeps minimal precision motion bounded and reduced-motion safe", () => {

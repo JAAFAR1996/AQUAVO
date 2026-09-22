@@ -55,9 +55,11 @@ export function LanguageSwitcher({ variant = "icon", className = "" }: LanguageS
         <Button
           variant="ghost"
           size={compact ? "icon" : variant === "icon" ? "sm" : "default"}
+          // Visually a 32px pill; the padding keeps a 44px hit area on touch.
+          // A filled 44px circle read as a primary action next to the logo.
           className={compact
-            ? `h-11 w-11 shrink-0 rounded-full border border-primary/25 bg-primary/5 p-0 text-primary hover:border-primary/45 hover:bg-primary/10 ${className}`
-            : `gap-2 rounded-full border-2 border-primary/20 bg-primary/5 px-3 hover:border-primary/40 hover:bg-primary/10 ${className}`}
+            ? `h-11 w-11 shrink-0 rounded-full p-0 text-primary hover:bg-primary/10 ${className}`
+            : `h-9 gap-1.5 rounded-full border border-primary/20 px-2.5 text-primary hover:border-primary/40 hover:bg-primary/10 ${className}`}
           aria-label={t("language.change", { current: current.nativeName })}
           data-testid="language-switcher"
           data-variant={variant}
@@ -65,7 +67,9 @@ export function LanguageSwitcher({ variant = "icon", className = "" }: LanguageS
           <span
             lang={locale}
             dir="ltr"
-            className={compact ? "text-sm font-bold leading-none" : "text-sm font-semibold leading-none"}
+            className={compact
+              ? "flex h-8 w-8 items-center justify-center rounded-full border border-primary/25 text-xs font-bold leading-none"
+              : "text-xs font-semibold leading-none"}
             aria-hidden="true"
           >
             {LOCALE_SHORT_LABELS[locale]}

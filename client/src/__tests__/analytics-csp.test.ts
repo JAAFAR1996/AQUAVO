@@ -14,4 +14,16 @@ describe("analytics CSP", () => {
     expect(connectSrc).toContain("https://www.google.com");
     expect(connectSrc.split(/\s+/)).not.toContain("*");
   });
+
+  it("lets the Meta Pixel fall back to a form POST without widening form-action further", () => {
+    // When a payload is too long for the image beacon, fbevents.js submits a
+    // form to https://www.facebook.com/tr/. Without this the event is blocked
+    // by CSP and silently lost.
+    const config = JSON.parse(readFileSync(resolve(process.cwd(), "vercel.json"), "utf8"));
+    const csp = config.headers
+      .flatMap((rule: { headers?: Array<{ key: string; value: string }> }) => rule.headers ?? [])
+      .find((header: { key: string }) => header.key === "Content-Security-Policy")?.value ?? "";
+    const formAction = (csp.match(/form-action ([^;]+);/)?.[1] ?? "").split(/\s+/);
+    expect(formAction).toEqual(["'self'", "https://www.facebook.com"]);
+  });
 });

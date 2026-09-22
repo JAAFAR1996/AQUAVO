@@ -2,6 +2,7 @@
 // AQUAVO — Meta Pixel + Conversions API client helper
 // Hybrid tracking: Browser Pixel + Server-side CAPI with event deduplication
 import { isTrackingAllowed } from "./tracking-environment";
+import { META_AD_CURRENCY, iqdToAdValue } from "./ad-currency";
 
 declare global {
   interface Window {
@@ -216,8 +217,8 @@ export function metaTrackViewContent(params: {
       content_name: params.productName,
       content_type: "product",
       content_category: params.category || "",
-      value: params.priceIQD,
-      currency: "IQD",
+      value: iqdToAdValue(params.priceIQD),
+      currency: META_AD_CURRENCY,
     }, { eventID: eventId });
   }
 
@@ -232,8 +233,8 @@ export function metaTrackViewContent(params: {
       content_name: params.productName,
       content_type: "product",
       content_category: params.category || "",
-      value: params.priceIQD,
-      currency: "IQD",
+      value: iqdToAdValue(params.priceIQD),
+      currency: META_AD_CURRENCY,
     },
   });
 }
@@ -254,8 +255,8 @@ export function metaTrackAddToCart(params: {
       content_ids: [params.productId],
       content_name: params.productName,
       content_type: "product",
-      value: params.priceIQD * params.quantity,
-      currency: "IQD",
+      value: iqdToAdValue(params.priceIQD * params.quantity),
+      currency: META_AD_CURRENCY,
       num_items: params.quantity,
     }, { eventID: eventId });
   }
@@ -268,8 +269,8 @@ export function metaTrackAddToCart(params: {
     custom_data: {
       content_ids: [params.productId],
       content_name: params.productName,
-      value: params.priceIQD * params.quantity,
-      currency: "IQD",
+      value: iqdToAdValue(params.priceIQD * params.quantity),
+      currency: META_AD_CURRENCY,
       num_items: params.quantity,
     },
   });
@@ -292,8 +293,8 @@ export function metaTrackInitiateCheckout(params: {
   if (isPixelReady()) {
     window.fbq("track", "InitiateCheckout", {
       content_ids: params.productIds,
-      value: params.totalIQD,
-      currency: "IQD",
+      value: iqdToAdValue(params.totalIQD),
+      currency: META_AD_CURRENCY,
       num_items: params.numItems,
     }, { eventID: eventId });
   }
@@ -305,8 +306,8 @@ export function metaTrackInitiateCheckout(params: {
     fbp,
     custom_data: {
       content_ids: params.productIds,
-      value: params.totalIQD,
-      currency: "IQD",
+      value: iqdToAdValue(params.totalIQD),
+      currency: META_AD_CURRENCY,
       num_items: params.numItems,
     },
   });
@@ -343,8 +344,8 @@ export function metaTrackPurchase(params: {
     window.fbq("track", "Purchase", {
       content_ids: params.productIds,
       content_type: "product",
-      value: params.totalIQD,
-      currency: "IQD",
+      value: iqdToAdValue(params.totalIQD),
+      currency: META_AD_CURRENCY,
       num_items: params.numItems,
       order_id: params.orderId,
     }, { eventID: eventId });
@@ -359,8 +360,8 @@ export function metaTrackPurchase(params: {
     custom_data: {
       content_ids: params.productIds,
       content_type: "product",
-      value: params.totalIQD,
-      currency: "IQD",
+      value: iqdToAdValue(params.totalIQD),
+      currency: META_AD_CURRENCY,
       num_items: params.numItems,
       order_id: params.orderId,
     },
@@ -418,8 +419,8 @@ export function metaTrackAddToWishlist(params: {
       content_ids: [params.productId],
       content_name: params.productName,
       content_type: "product",
-      value: params.priceIQD,
-      currency: "IQD",
+      value: iqdToAdValue(params.priceIQD),
+      currency: META_AD_CURRENCY,
     }, { eventID: eventId });
   }
 
@@ -432,8 +433,8 @@ export function metaTrackAddToWishlist(params: {
       content_ids: [params.productId],
       content_name: params.productName,
       content_type: "product",
-      value: params.priceIQD,
-      currency: "IQD",
+      value: iqdToAdValue(params.priceIQD),
+      currency: META_AD_CURRENCY,
     },
   });
 }

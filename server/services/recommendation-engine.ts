@@ -331,7 +331,10 @@ export class RecommendationEngine {
         return [];
       }
 
-      // العثور على المنتجات الأخرى في نفس الطلبات
+      // العثور على المنتجات الأخرى في نفس الطلبات.
+      // Scoped to those order IDs: without this filter the query counted every
+      // purchase in the store and "bought together" was just the global
+      // bestseller list, which is why a heater page suggested driftwood.
       const coPurchasedProducts = await this.db
         .select({
           productId: schema.productInteractions.productId,
@@ -342,7 +345,7 @@ export class RecommendationEngine {
           and(
             eq(schema.productInteractions.interactionType, 'purchase'),
             ne(schema.productInteractions.productId, productId),
-            // نحتاج للتحقق من orderId في metadata
+            inArray(sql`${schema.productInteractions.metadata}->>'orderId'`, orderIds)
           )
         )
         .groupBy(schema.productInteractions.productId)

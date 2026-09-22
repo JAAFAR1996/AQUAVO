@@ -35,7 +35,8 @@
     "count": "{{rating}} ({{count}} تقييم)"
   },
   "price": {
-    "soon": "قريباً"
+    "soon": "قريباً",
+    "perKilo": " / كيلو"
   },
   "stock": {
     "available": "متوفر ({{count}} قطعة)",
@@ -70,7 +71,8 @@
   },
   "share": {
     "label": "مشاركة المنتج",
-    "text": "{{name}} - {{price}}"
+    "text": "{{name}} - {{price}}",
+    "short": "مشاركة"
   },
   "whatsapp": {
     "message": "مرحباً، أسأل عن {{name}} {{url}}",
@@ -147,9 +149,7 @@
   },
   "related": {
     "fbt": "يتم شراؤها معاً عادةً",
-    "similar": "منتجات مشابهة قد تعجبك",
-    "trending": "الأكثر رواجاً الآن",
-    "live": "مباشر"
+    "similar": "منتجات مشابهة قد تعجبك"
   },
   "gallery": {
     "roleDescription": "معرض صور",
