@@ -15,6 +15,8 @@ import { isKnownSitePath } from "../shared/site-routes.js";
 import { AQUAVO_ENTITY, canonicalUrlFor, isNoindexPath } from "../shared/seo-contract.js";
 import { displayAuthorName } from "../shared/author-name.js";
 import { articleWordCount } from "../shared/article-reading.js";
+import { directAnswer } from "../shared/article-answer.js";
+import { articleFaqSchema } from "../shared/article-faq.js";
 import { articleDatePublished } from "../shared/article-dates.js";
 import { articleAuthorEntity } from "../shared/editorial-author.js";
 import { DEFAULT_LOCALE, splitLocaleFromPath, localizePath, type Locale } from "../shared/i18n/locales.js";
@@ -765,6 +767,8 @@ async function getBlogMeta(slug: string, locale: Locale = DEFAULT_LOCALE): Promi
           publisher: { "@type": "Organization", name: "AQUAVO", logo: { "@type": "ImageObject", url: DEFAULT_IMAGE } },
           datePublished,
           wordCount,
+          // The visible "الجواب باختصار" passage, verbatim. See shared/article-answer.ts.
+          abstract: directAnswer(post.content) ?? undefined,
           inLanguage: localizedPost.contentLocale,
           mainEntityOfPage: { "@type": "WebPage", "@id": postUrl },
           isPartOf: { "@id": `${BASE}/#website` },
@@ -778,6 +782,8 @@ async function getBlogMeta(slug: string, locale: Locale = DEFAULT_LOCALE): Promi
             { "@type": "ListItem", position: 3, name: post.title, item: postUrl },
           ],
         },
+        // Only the question headings the body already shows. See shared/article-faq.ts.
+        ...(articleFaqSchema(post.content) ? [articleFaqSchema(post.content) as object] : []),
       ],
     };
   } catch (err) {

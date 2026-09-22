@@ -87,6 +87,49 @@ describe('Blog Post Page', () => {
         });
     });
 
+    describe('Answer layer', () => {
+        // Same fixture shape as test/blog-answer-layer-shell.test.ts, so this
+        // pins that a reader and a crawler are shown the same blocks.
+        const words = (n: number) => Array.from({ length: n }, () => 'كلمة').join(' ');
+        const heaterPost = {
+            id: 'p1',
+            slug: 'test-post',
+            title: 'كيف تختار سخان مناسب لحوضك؟',
+            excerpt: 'السخان يثبت درجة الحرارة.',
+            content: `<p>السخان يحافظ على درجة الحرارة ثابتة في الحوض، والسخان المناسب يعتمد على حجم الماء. ${words(40)}.</p><p>${words(30)}.</p>`,
+            author: 'AQUAVO',
+            category: 'المعدات',
+            publishedAt: '2026-05-01',
+            createdAt: '2026-04-01',
+        };
+
+        const withPost = () => {
+            const queryClient = new QueryClient({
+                defaultOptions: { queries: { retry: false, queryFn: async () => [] } },
+            });
+            queryClient.setQueryData(['/api/blog/posts/test-post'], heaterPost);
+            queryClient.setQueryData(['/api/blog/posts'], []);
+            return ({ children }: { children: React.ReactNode }) => (
+                <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+            );
+        };
+
+        it("shows the article's own opening as a labelled answer under the title", () => {
+            render(<BlogPost />, { wrapper: withPost() });
+            const heading = screen.getByRole('heading', { name: 'الجواب باختصار' });
+            // The passage is the article's own opening, so it also appears in the
+            // body below; the answer block must carry it under its own heading.
+            expect(heading.parentElement?.textContent).toMatch(/السخان يحافظ على درجة الحرارة ثابتة/);
+            expect(screen.getAllByText(/السخان يحافظ على درجة الحرارة ثابتة/).length).toBe(2);
+        });
+
+        it('links to the guides of the category the article is about', () => {
+            render(<BlogPost />, { wrapper: withPost() });
+            expect(screen.getByRole('heading', { name: /أدلة مرتبطة/ })).toBeInTheDocument();
+            expect(screen.getByRole('link', { name: /سخان \(هيتر\)/ })).toHaveAttribute('href', '/guides/heater-choice');
+        });
+    });
+
     describe('Content', () => {
         it('should display article content area', () => {
             render(<BlogPost />, { wrapper: createWrapper() });
