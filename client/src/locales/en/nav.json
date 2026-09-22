@@ -56,7 +56,8 @@
     "increase": "Increase quantity of {{name}}",
     "remove": "Remove {{name}} from cart",
     "total": "Total",
-    "checkout": "Continue to delivery details"
+    "checkout": "Continue to delivery details",
+    "secure": "Secure payment and protected information"
   },
   "deliveryNote": "Delivery within 24 hours across Iraq",
   "paymentNote": "Cash on delivery or online payment. Delivery 5,000 IQD",
