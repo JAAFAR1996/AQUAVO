@@ -139,7 +139,8 @@ async function main() {
   };
 
   mkdirSync("reports/seo", { recursive: true });
-  const stamp = isoDate(new Date());
+  // Window length in the name, so a 28-day and a 90-day run on one day do not overwrite each other.
+  const stamp = `${isoDate(new Date())}-${days}d`;
   writeFileSync(`reports/seo/gsc-baseline-${stamp}.json`, JSON.stringify(report, null, 2));
 
   const seen = targetRows.filter((r) => r.position !== null);

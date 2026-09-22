@@ -1,0 +1,1769 @@
+{
+  "site": "sc-domain:aquavoiq.com",
+  "generatedAt": "2026-09-22T18:01:14.220Z",
+  "range": {
+    "startDate": "2026-08-23",
+    "endDate": "2026-09-19"
+  },
+  "totals": {
+    "clicks": 88,
+    "impressions": 3783,
+    "ctr": 0.023261961406291304,
+    "position": 6.922548242135871
+  },
+  "targets": [
+    {
+      "group": "brand",
+      "keyword": "aquavo",
+      "position": 1.8,
+      "impressions": 44,
+      "clicks": 31
+    },
+    {
+      "group": "brand",
+      "keyword": "اكوافو",
+      "position": null,
+      "impressions": 0,
+      "clicks": 0
+    },
+    {
+      "group": "brand",
+      "keyword": "aquavo iraq",
+      "position": null,
+      "impressions": 0,
+      "clicks": 0
+    },
+    {
+      "group": "brand",
+      "keyword": "aquavoiq",
+      "position": null,
+      "impressions": 0,
+      "clicks": 0
+    },
+    {
+      "group": "commercial",
+      "keyword": "مستلزمات احواض السمك",
+      "position": null,
+      "impressions": 0,
+      "clicks": 0
+    },
+    {
+      "group": "commercial",
+      "keyword": "مستلزمات احواض السمك العراق",
+      "position": null,
+      "impressions": 0,
+      "clicks": 0
+    },
+    {
+      "group": "commercial",
+      "keyword": "مستلزمات احواض السمك بغداد",
+      "position": null,
+      "impressions": 0,
+      "clicks": 0
+    },
+    {
+      "group": "commercial",
+      "keyword": "معدات احواض السمك",
+      "position": null,
+      "impressions": 0,
+      "clicks": 0
+    },
+    {
+      "group": "commercial",
+      "keyword": "متجر احواض سمك العراق",
+      "position": null,
+      "impressions": 0,
+      "clicks": 0
+    },
+    {
+      "group": "commercial",
+      "keyword": "احواض سمك للبيع بغداد",
+      "position": null,
+      "impressions": 0,
+      "clicks": 0
+    },
+    {
+      "group": "commercial",
+      "keyword": "فلتر حوض سمك",
+      "position": null,
+      "impressions": 0,
+      "clicks": 0
+    },
+    {
+      "group": "commercial",
+      "keyword": "فلتر حوض سمك بغداد",
+      "position": null,
+      "impressions": 0,
+      "clicks": 0
+    },
+    {
+      "group": "commercial",
+      "keyword": "فلتر خارجي حوض سمك",
+      "position": null,
+      "impressions": 0,
+      "clicks": 0
+    },
+    {
+      "group": "commercial",
+      "keyword": "فلتر اسفنجي",
+      "position": null,
+      "impressions": 0,
+      "clicks": 0
+    },
+    {
+      "group": "commercial",
+      "keyword": "سخان حوض سمك",
+      "position": null,
+      "impressions": 0,
+      "clicks": 0
+    },
+    {
+      "group": "commercial",
+      "keyword": "سخان حوض سمك 100 واط",
+      "position": null,
+      "impressions": 0,
+      "clicks": 0
+    },
+    {
+      "group": "commercial",
+      "keyword": "مضخة هواء حوض سمك",
+      "position": null,
+      "impressions": 0,
+      "clicks": 0
+    },
+    {
+      "group": "commercial",
+      "keyword": "حجر هواء حوض سمك",
+      "position": null,
+      "impressions": 0,
+      "clicks": 0
+    },
+    {
+      "group": "commercial",
+      "keyword": "اضاءة حوض سمك",
+      "position": null,
+      "impressions": 0,
+      "clicks": 0
+    },
+    {
+      "group": "commercial",
+      "keyword": "اضاءة نباتات حوض",
+      "position": null,
+      "impressions": 0,
+      "clicks": 0
+    },
+    {
+      "group": "commercial",
+      "keyword": "طعام سمك زينة",
+      "position": null,
+      "impressions": 0,
+      "clicks": 0
+    },
+    {
+      "group": "commercial",
+      "keyword": "طعام سمك جولد فيش",
+      "position": null,
+      "impressions": 0,
+      "clicks": 0
+    },
+    {
+      "group": "commercial",
+      "keyword": "طعام سمك فايتر",
+      "position": null,
+      "impressions": 0,
+      "clicks": 0
+    },
+    {
+      "group": "commercial",
+      "keyword": "مزيل كلور حوض سمك",
+      "position": null,
+      "impressions": 0,
+      "clicks": 0
+    },
+    {
+      "group": "commercial",
+      "keyword": "معالج مياه حوض سمك",
+      "position": null,
+      "impressions": 0,
+      "clicks": 0
+    },
+    {
+      "group": "commercial",
+      "keyword": "بكتيريا نافعة حوض سمك",
+      "position": null,
+      "impressions": 0,
+      "clicks": 0
+    },
+    {
+      "group": "commercial",
+      "keyword": "مزيل طحالب حوض",
+      "position": null,
+      "impressions": 0,
+      "clicks": 0
+    },
+    {
+      "group": "commercial",
+      "keyword": "رمل حوض سمك",
+      "position": null,
+      "impressions": 0,
+      "clicks": 0
+    },
+    {
+      "group": "commercial",
+      "keyword": "تربة اكواسكيب",
+      "position": null,
+      "impressions": 0,
+      "clicks": 0
+    },
+    {
+      "group": "commercial",
+      "keyword": "خشب طبيعي للاحواض",
+      "position": null,
+      "impressions": 0,
+      "clicks": 0
+    },
+    {
+      "group": "commercial",
+      "keyword": "حجر بركاني حوض سمك",
+      "position": null,
+      "impressions": 0,
+      "clicks": 0
+    },
+    {
+      "group": "commercial",
+      "keyword": "ميديا فلتر سيراميك",
+      "position": null,
+      "impressions": 0,
+      "clicks": 0
+    },
+    {
+      "group": "commercial",
+      "keyword": "ميزان حرارة حوض سمك",
+      "position": null,
+      "impressions": 0,
+      "clicks": 0
+    },
+    {
+      "group": "commercial",
+      "keyword": "حوض سمك الترا كلير",
+      "position": null,
+      "impressions": 0,
+      "clicks": 0
+    },
+    {
+      "group": "commercial",
+      "keyword": "ادوات تنظيف حوض السمك",
+      "position": null,
+      "impressions": 0,
+      "clicks": 0
+    },
+    {
+      "group": "informational",
+      "keyword": "تجهيز حوض سمك جديد",
+      "position": null,
+      "impressions": 0,
+      "clicks": 0
+    },
+    {
+      "group": "informational",
+      "keyword": "كيف اختار فلتر حوض السمك",
+      "position": null,
+      "impressions": 0,
+      "clicks": 0
+    },
+    {
+      "group": "informational",
+      "keyword": "افضل سخان حوض سمك",
+      "position": null,
+      "impressions": 0,
+      "clicks": 0
+    },
+    {
+      "group": "informational",
+      "keyword": "تنظيف حوض السمك",
+      "position": null,
+      "impressions": 0,
+      "clicks": 0
+    },
+    {
+      "group": "informational",
+      "keyword": "ماء الحوض عكر",
+      "position": null,
+      "impressions": 0,
+      "clicks": 0
+    },
+    {
+      "group": "informational",
+      "keyword": "دورة النيتروجين حوض السمك",
+      "position": null,
+      "impressions": 0,
+      "clicks": 0
+    },
+    {
+      "group": "informational",
+      "keyword": "اكواسكيب للمبتدئين",
+      "position": null,
+      "impressions": 0,
+      "clicks": 0
+    },
+    {
+      "group": "informational",
+      "keyword": "كم مرة اغير ماء الحوض",
+      "position": null,
+      "impressions": 0,
+      "clicks": 0
+    }
+  ],
+  "topQueriesIraq": [
+    {
+      "query": "aquavo",
+      "clicks": 30,
+      "impressions": 34,
+      "position": 1
+    },
+    {
+      "query": "متجر أسماك زينة",
+      "clicks": 1,
+      "impressions": 1,
+      "position": 8
+    },
+    {
+      "query": "مزيل كلور",
+      "clicks": 1,
+      "impressions": 4,
+      "position": 8
+    },
+    {
+      "query": "نبات امازون",
+      "clicks": 1,
+      "impressions": 5,
+      "position": 8
+    },
+    {
+      "query": "aqua iraq",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 6
+    },
+    {
+      "query": "احمر بركاني",
+      "clicks": 0,
+      "impressions": 8,
+      "position": 7.1
+    },
+    {
+      "query": "احواض السمك",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 9
+    },
+    {
+      "query": "اكوا عراق",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 7.5
+    },
+    {
+      "query": "السعر في العراق",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 5
+    },
+    {
+      "query": "انتي كلور",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 6
+    },
+    {
+      "query": "انواع فلتر حوض السمك",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 11
+    },
+    {
+      "query": "بفر فيش",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 8
+    },
+    {
+      "query": "تترا نئون",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 6
+    },
+    {
+      "query": "جم٩",
+      "clicks": 0,
+      "impressions": 4,
+      "position": 9
+    },
+    {
+      "query": "حجر بركاني احمر",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 4
+    },
+    {
+      "query": "خلفيات احواض سمك الزينه",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 6
+    },
+    {
+      "query": "رذاذ إزالة الترسبات",
+      "clicks": 0,
+      "impressions": 10,
+      "position": 10.9
+    },
+    {
+      "query": "رمل نهري",
+      "clicks": 0,
+      "impressions": 4,
+      "position": 5.3
+    },
+    {
+      "query": "روبيان زينه",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 10.5
+    },
+    {
+      "query": "سمك زينه بدون اكسجين",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 9.5
+    },
+    {
+      "query": "سمكة البفر",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 7
+    },
+    {
+      "query": "سمكه الاروانا",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 10
+    },
+    {
+      "query": "سيكلد افريقي",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 7.5
+    },
+    {
+      "query": "فلتر اسماك",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 7
+    },
+    {
+      "query": "فلتر تنظيف حوض السمك",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 9
+    },
+    {
+      "query": "كم اسعار السمك",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 4
+    },
+    {
+      "query": "كم مرة اطعم السمك في اليوم",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 10
+    },
+    {
+      "query": "كوريدوراس",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 6.3
+    },
+    {
+      "query": "كيف اعرف",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 3
+    },
+    {
+      "query": "مانع رجوع الماء",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 7.5
+    },
+    {
+      "query": "مزيل الكلور",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 6
+    },
+    {
+      "query": "مزيل الكلور لحوض السمك",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 10
+    },
+    {
+      "query": "مسواك هوت ديلز العراق",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 34
+    },
+    {
+      "query": "مياه أكوافينا رقم الهاتف العراق",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 4
+    },
+    {
+      "query": "نعم متاجر",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 27
+    },
+    {
+      "query": "نيون تترا",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 11
+    },
+    {
+      "query": "نيون تيترا",
+      "clicks": 0,
+      "impressions": 6,
+      "position": 7.5
+    },
+    {
+      "query": "هذا الفلتر",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 2
+    },
+    {
+      "query": "هل موجود في العراق",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 2
+    },
+    {
+      "query": "هل يوجد في العراق",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 2
+    },
+    {
+      "query": "وين ينباع بالعراق",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 5
+    }
+  ],
+  "topQueriesAll": [
+    {
+      "query": "aquavo",
+      "clicks": 31,
+      "impressions": 44,
+      "position": 1.8
+    },
+    {
+      "query": "الكوي",
+      "clicks": 1,
+      "impressions": 103,
+      "position": 9.2
+    },
+    {
+      "query": "رازبورا",
+      "clicks": 1,
+      "impressions": 3,
+      "position": 3
+    },
+    {
+      "query": "فلتر لحوض السمك",
+      "clicks": 1,
+      "impressions": 1,
+      "position": 2
+    },
+    {
+      "query": "متجر أسماك زينة",
+      "clicks": 1,
+      "impressions": 1,
+      "position": 8
+    },
+    {
+      "query": "مزيل كلور",
+      "clicks": 1,
+      "impressions": 26,
+      "position": 8.6
+    },
+    {
+      "query": "نبات امازون",
+      "clicks": 1,
+      "impressions": 5,
+      "position": 8
+    },
+    {
+      "query": "نعم",
+      "clicks": 1,
+      "impressions": 3,
+      "position": 3.7
+    },
+    {
+      "query": "aqua iraq",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 28.5
+    },
+    {
+      "query": "how to check nitrate levels in fish tank",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 7
+    },
+    {
+      "query": "אמוניה במים",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 90
+    },
+    {
+      "query": "احمر بركاني",
+      "clicks": 0,
+      "impressions": 8,
+      "position": 7.1
+    },
+    {
+      "query": "احواض السمك",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 9
+    },
+    {
+      "query": "ار او",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 10
+    },
+    {
+      "query": "اسعار فلتر حوض السمك",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 3
+    },
+    {
+      "query": "اسماك اوسكار",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 12
+    },
+    {
+      "query": "اسماك جولدن فيش",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 10
+    },
+    {
+      "query": "اكوا عراق",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 7.5
+    },
+    {
+      "query": "البارب",
+      "clicks": 0,
+      "impressions": 5,
+      "position": 9.8
+    },
+    {
+      "query": "البارحة",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 1
+    },
+    {
+      "query": "الديسكس",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 8.3
+    },
+    {
+      "query": "السامب",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 9
+    },
+    {
+      "query": "السعر في العراق",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 5
+    },
+    {
+      "query": "السمكة الزبالة",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 36
+    },
+    {
+      "query": "السورد",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 10
+    },
+    {
+      "query": "السيكلد الافريقي",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 7
+    },
+    {
+      "query": "السيكلد الامريكي",
+      "clicks": 0,
+      "impressions": 6,
+      "position": 9
+    },
+    {
+      "query": "الكلس الابيض",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 8
+    },
+    {
+      "query": "الكوريدوراس",
+      "clicks": 0,
+      "impressions": 7,
+      "position": 6.7
+    },
+    {
+      "query": "النيون تترا",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 9
+    },
+    {
+      "query": "انتي كلور",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 6
+    },
+    {
+      "query": "انجل فش",
+      "clicks": 0,
+      "impressions": 4,
+      "position": 9.5
+    },
+    {
+      "query": "انجل فيش",
+      "clicks": 0,
+      "impressions": 33,
+      "position": 8.9
+    },
+    {
+      "query": "انواع السيكلد الافريقي",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 8
+    },
+    {
+      "query": "انواع فلتر حوض السمك",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 11
+    },
+    {
+      "query": "انواع کوریدوراس",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 17
+    },
+    {
+      "query": "باور هيد",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 2
+    },
+    {
+      "query": "بفر فش",
+      "clicks": 0,
+      "impressions": 7,
+      "position": 7.4
+    },
+    {
+      "query": "بفر فيش",
+      "clicks": 0,
+      "impressions": 15,
+      "position": 8.4
+    },
+    {
+      "query": "تترا نئون",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 6
+    },
+    {
+      "query": "تربة بركانية",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 12
+    },
+    {
+      "query": "تيترا",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 11
+    },
+    {
+      "query": "جم٩",
+      "clicks": 0,
+      "impressions": 4,
+      "position": 9
+    },
+    {
+      "query": "حجر بركاني احمر",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 7
+    },
+    {
+      "query": "حيتر",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 9.5
+    },
+    {
+      "query": "خلفيات احواض سمك الزينه",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 6
+    },
+    {
+      "query": "خلفية حوض سمك 3d",
+      "clicks": 0,
+      "impressions": 6,
+      "position": 4.3
+    },
+    {
+      "query": "دراقون ستون",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 8
+    },
+    {
+      "query": "ربيان زينه",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 11
+    },
+    {
+      "query": "رذاذ إزالة الترسبات",
+      "clicks": 0,
+      "impressions": 11,
+      "position": 11.4
+    },
+    {
+      "query": "رمل نهري",
+      "clicks": 0,
+      "impressions": 5,
+      "position": 5
+    },
+    {
+      "query": "روابط",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 3
+    },
+    {
+      "query": "روبيان زينه",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 9.7
+    },
+    {
+      "query": "سبب موت السمك في الحوض",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 8
+    },
+    {
+      "query": "سخان هيتر",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 8
+    },
+    {
+      "query": "سرطان ناسك",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 11
+    },
+    {
+      "query": "سمك الزينه بدون اكسجين",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 9
+    },
+    {
+      "query": "سمك الكوريدوراس",
+      "clicks": 0,
+      "impressions": 4,
+      "position": 6.3
+    },
+    {
+      "query": "سمك زينه بدون اكسجين",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 9
+    },
+    {
+      "query": "سمك كوريدوراس",
+      "clicks": 0,
+      "impressions": 5,
+      "position": 7.8
+    },
+    {
+      "query": "سمك يعيش بدون فلتر",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 9
+    },
+    {
+      "query": "سمكة البفر",
+      "clicks": 0,
+      "impressions": 4,
+      "position": 7.5
+    },
+    {
+      "query": "سمكة الزبال",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 37
+    },
+    {
+      "query": "سمكة الزينة",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 11
+    },
+    {
+      "query": "سمكة الكوريدوراس",
+      "clicks": 0,
+      "impressions": 4,
+      "position": 8.5
+    },
+    {
+      "query": "سمكة النيون تترا",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 12
+    },
+    {
+      "query": "سمكة انجل فيش",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 11.3
+    },
+    {
+      "query": "سمكة نيون تترا",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 11
+    },
+    {
+      "query": "سمكه الاروانا",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 10
+    },
+    {
+      "query": "سمكه الديسكس",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 10
+    },
+    {
+      "query": "سيكلد افريقي",
+      "clicks": 0,
+      "impressions": 4,
+      "position": 8
+    },
+    {
+      "query": "سيكلد امريكي",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 11
+    },
+    {
+      "query": "عكورة",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 7
+    },
+    {
+      "query": "علاج تعفن الزعانف",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 9
+    },
+    {
+      "query": "فحص الماء",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 7.5
+    },
+    {
+      "query": "فحص المياه",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 11.5
+    },
+    {
+      "query": "فلتر",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 9
+    },
+    {
+      "query": "فلتر اسماك",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 7
+    },
+    {
+      "query": "فلتر السمك",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 11
+    },
+    {
+      "query": "فلتر تنظيف حوض السمك",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 9
+    },
+    {
+      "query": "فلتر حوض اسماك",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 10
+    },
+    {
+      "query": "فلتر حوض السمك",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 3
+    },
+    {
+      "query": "فلتر خارجي",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 1
+    },
+    {
+      "query": "فلتر خارجي لحوض السمك",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 4
+    },
+    {
+      "query": "قوة دفع",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 2
+    },
+    {
+      "query": "كلس ابيض",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 4
+    },
+    {
+      "query": "كم اسعار السمك",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 4
+    },
+    {
+      "query": "كم سمكه",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 9
+    },
+    {
+      "query": "كم مرة اطعم السمك في اليوم",
+      "clicks": 0,
+      "impressions": 12,
+      "position": 8.9
+    },
+    {
+      "query": "كم مرة ياكل السمك في الأسبوع",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 7.7
+    },
+    {
+      "query": "كم يجب ان يكون",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 3
+    },
+    {
+      "query": "كم يعيش سمك الزينة بدون فلتر",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 10
+    },
+    {
+      "query": "كوريدوراس",
+      "clicks": 0,
+      "impressions": 10,
+      "position": 6.2
+    },
+    {
+      "query": "كيف أعرف أن سمك الزينة جائع",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 7
+    },
+    {
+      "query": "كيف اعرف",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 3
+    },
+    {
+      "query": "لا ليس هناك",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 1
+    },
+    {
+      "query": "لماذا يموت السمك في الحوض",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 8
+    },
+    {
+      "query": "لوتش",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 11
+    },
+    {
+      "query": "ما هو المناسب",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 11
+    },
+    {
+      "query": "ما هو فلتر",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 7
+    }
+  ],
+  "topPages": [
+    {
+      "page": "https://www.aquavoiq.com/",
+      "clicks": 35,
+      "impressions": 83,
+      "position": 3.8
+    },
+    {
+      "page": "https://www.aquavoiq.com/guides/aquarium-water-test-guide",
+      "clicks": 6,
+      "impressions": 198,
+      "position": 7.5
+    },
+    {
+      "page": "https://www.aquavoiq.com/guides/filter-choice",
+      "clicks": 6,
+      "impressions": 783,
+      "position": 6.6
+    },
+    {
+      "page": "https://www.aquavoiq.com/fish-encyclopedia",
+      "clicks": 4,
+      "impressions": 53,
+      "position": 6
+    },
+    {
+      "page": "https://www.aquavoiq.com/guides/feeding-table",
+      "clicks": 4,
+      "impressions": 783,
+      "position": 6.1
+    },
+    {
+      "page": "https://www.aquavoiq.com/about",
+      "clicks": 3,
+      "impressions": 64,
+      "position": 3
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/amazon-sword-plant-care-propagation",
+      "clicks": 3,
+      "impressions": 33,
+      "position": 7
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/aquarium-fish-prices-iraq-2026",
+      "clicks": 3,
+      "impressions": 97,
+      "position": 7.5
+    },
+    {
+      "page": "https://www.aquavoiq.com/guides/water-conditioner-guide",
+      "clicks": 3,
+      "impressions": 198,
+      "position": 6.1
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/aquarium-water-change-guide",
+      "clicks": 2,
+      "impressions": 83,
+      "position": 5.4
+    },
+    {
+      "page": "https://aquavoiq.com/",
+      "clicks": 1,
+      "impressions": 3,
+      "position": 1
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/angelfish-care-guide",
+      "clicks": 1,
+      "impressions": 123,
+      "position": 7.5
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/best-aquarium-store-iraq-2026",
+      "clicks": 1,
+      "impressions": 7,
+      "position": 7.1
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/best-low-tech-aquarium-plants-beginners",
+      "clicks": 1,
+      "impressions": 2,
+      "position": 9.5
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/corydoras-types-best-cleaner-fish",
+      "clicks": 1,
+      "impressions": 50,
+      "position": 7.6
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/koi-fish-outdoor-pond-building-tips",
+      "clicks": 1,
+      "impressions": 104,
+      "position": 9.1
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/small-schooling-fish-selection",
+      "clicks": 1,
+      "impressions": 5,
+      "position": 5.8
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/turtles-with-aquarium-fish",
+      "clicks": 1,
+      "impressions": 17,
+      "position": 11.6
+    },
+    {
+      "page": "https://www.aquavoiq.com/guides/filter-maintenance",
+      "clicks": 1,
+      "impressions": 70,
+      "position": 7.5
+    },
+    {
+      "page": "https://www.aquavoiq.com/guides/white-scale",
+      "clicks": 1,
+      "impressions": 65,
+      "position": 6.6
+    },
+    {
+      "page": "https://www.aquavoiq.com/products",
+      "clicks": 1,
+      "impressions": 55,
+      "position": 5.5
+    },
+    {
+      "page": "https://www.aquavoiq.com/products/c1-1082",
+      "clicks": 1,
+      "impressions": 16,
+      "position": 4.4
+    },
+    {
+      "page": "https://www.aquavoiq.com/products/houyi-acrylic-tool-rack",
+      "clicks": 1,
+      "impressions": 4,
+      "position": 33
+    },
+    {
+      "page": "https://www.aquavoiq.com/products/houyi-gauze-isolation-net",
+      "clicks": 1,
+      "impressions": 8,
+      "position": 16.5
+    },
+    {
+      "page": "https://www.aquavoiq.com/products/houyi-terminalia-leaves",
+      "clicks": 1,
+      "impressions": 1,
+      "position": 3
+    },
+    {
+      "page": "https://www.aquavoiq.com/products/houyi-volcanic-stone-red",
+      "clicks": 1,
+      "impressions": 28,
+      "position": 9.1
+    },
+    {
+      "page": "https://www.aquavoiq.com/products/houyi-white-sand",
+      "clicks": 1,
+      "impressions": 6,
+      "position": 12.3
+    },
+    {
+      "page": "https://www.aquavoiq.com/products/yan-915",
+      "clicks": 1,
+      "impressions": 5,
+      "position": 13.6
+    },
+    {
+      "page": "https://www.aquavoiq.com/shipping",
+      "clicks": 1,
+      "impressions": 15,
+      "position": 5.3
+    },
+    {
+      "page": "https://www.aquavoiq.com/beginner-guide",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 6
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 12
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/5-hardy-fish-for-beginners",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 4
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/african-cichlids-best-types-colors",
+      "clicks": 0,
+      "impressions": 29,
+      "position": 7.8
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/algae-war-guide",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 63.5
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/amazon-biotope-aquarium-setup",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 5
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/american-vs-african-cichlids-differences",
+      "clicks": 0,
+      "impressions": 26,
+      "position": 7.8
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/ammonia-spike-emergency-treatment",
+      "clicks": 0,
+      "impressions": 4,
+      "position": 43.8
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/aquarium-barbs-guide",
+      "clicks": 0,
+      "impressions": 5,
+      "position": 9.8
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/aquarium-bedroom-feng-shui-sound-effect",
+      "clicks": 0,
+      "impressions": 8,
+      "position": 7.5
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/aquarium-fish-aggression",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 10
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/aquarium-fish-feeding-guide",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 20
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/aquarium-heater-winter-iraq",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 86
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/aquarium-loaches-guide",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 11
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/aquarium-photography-mobile-tips",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 92
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/aquarium-placement-and-stand",
+      "clicks": 0,
+      "impressions": 4,
+      "position": 8.8
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/aquarium-plant-fertilizer-guide",
+      "clicks": 0,
+      "impressions": 4,
+      "position": 8.3
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/aquarium-plant-trimming-propagation",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 9
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/aquarium-planted-led-lighting-guide",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 11
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/aquarium-shrimp-snails-guide",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 8.3
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/aquarium-snail-population-control",
+      "clicks": 0,
+      "impressions": 4,
+      "position": 8.5
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/aquarium-soil-volcanic-substrate-secrets",
+      "clicks": 0,
+      "impressions": 4,
+      "position": 10.3
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/aquarium-water-flow",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 1
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/aquatic-plant-root-rot-treatment",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 6
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/aquavo-vs-local-stores-baghdad",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 5.5
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/arowana-fish-care-guide-prices",
+      "clicks": 0,
+      "impressions": 9,
+      "position": 8
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/best-aquarium-cleaner-fish-pleco-corydoras",
+      "clicks": 0,
+      "impressions": 8,
+      "position": 14.5
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/best-aquarium-filters-iraq",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 49
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/betta-compatible-tank-mates",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 3
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/betta-fish-bowl-truth-iraq",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 3
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/black-beard-algae-removal-steps",
+      "clicks": 0,
+      "impressions": 4,
+      "position": 31.5
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/blackwater-extract-filter-bacteria-guide",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 8
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/budget-aquascaping",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 1
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/calculate-aquarium-capacity-liters",
+      "clicks": 0,
+      "impressions": 6,
+      "position": 8.3
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/choosing-healthy-fish-in-store",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 10
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/cloudy-aquarium-water-causes-fix",
+      "clicks": 0,
+      "impressions": 18,
+      "position": 8.1
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/cloudy-water-fix",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 69.5
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/common-fish-diseases-white-spot",
+      "clicks": 0,
+      "impressions": 6,
+      "position": 21.5
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/discus-fish-care-guide",
+      "clicks": 0,
+      "impressions": 6,
+      "position": 8.5
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/diy-3d-aquarium-background",
+      "clicks": 0,
+      "impressions": 13,
+      "position": 5.5
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/driftwood-preparation-yellow-water-fix",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 1
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/dwarf-cichlids-guide",
+      "clicks": 0,
+      "impressions": 11,
+      "position": 7.9
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/external-fish-parasites",
+      "clicks": 0,
+      "impressions": 4,
+      "position": 8.3
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/filter-types-guide",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 31
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/fin-rot-treatment-guide",
+      "clicks": 0,
+      "impressions": 5,
+      "position": 9.8
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/first-aquarium-setup-guide",
+      "clicks": 0,
+      "impressions": 6,
+      "position": 1
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/fish-eye-problems",
+      "clicks": 0,
+      "impressions": 4,
+      "position": 9.3
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/fish-fungus-vs-columnaris",
+      "clicks": 0,
+      "impressions": 11,
+      "position": 6
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/fish-that-live-without-filter",
+      "clicks": 0,
+      "impressions": 52,
+      "position": 9.1
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/fish-that-outgrow-home-tanks",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 11
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/flowerhorn-breeding-nuchal-hump-secrets",
+      "clicks": 0,
+      "impressions": 4,
+      "position": 5.3
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/freshwater-pufferfish-care-guide",
+      "clicks": 0,
+      "impressions": 48,
+      "position": 7.6
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/ghazal-market-baghdad-fish-buying-tips",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 8
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/goldfish-5-deadly-mistakes-beginners",
+      "clicks": 0,
+      "impressions": 4,
+      "position": 9.8
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/guppy-fish-care-breeding-guide",
+      "clicks": 0,
+      "impressions": 6,
+      "position": 8.8
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/how-many-fish-in-aquarium",
+      "clicks": 0,
+      "impressions": 6,
+      "position": 11.3
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/how-to-clean-aquarium-properly",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 3
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/how-to-get-rid-of-green-algae",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 8
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/how-to-treat-tap-water-for-fish-iraq",
+      "clicks": 0,
+      "impressions": 5,
+      "position": 5.8
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/human-medicine-dangers-for-fish",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 8.5
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/iraqi-summer-aquarium-cooling",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 96
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/molly-platy-breeding-save-fry",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 9
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/neon-tetra-color-care-guide",
+      "clicks": 0,
+      "impressions": 62,
+      "position": 8.6
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/nitrite-spike-aquarium",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 6
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/nitrogen-cycle-simple",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 61.5
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/nitrogen-cycle-simple-arabic-explained",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 5.5
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/ornamental-fish-import-middle-east-origins",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 10
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/oscar-fish-care-guide-water-dog",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 12
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/real-vs-fake-plants",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 87
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/real-vs-fake-plants-iraq",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 4
+    },
+    {
+      "page": "https://www.aquavoiq.com/blog/ro-water-vs-tap-water-aquarium",
+      "clicks": 0,
+      "impressions": 5,
+      "position": 7
+    }
+  ]
+}
