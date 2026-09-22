@@ -28,6 +28,7 @@ import { NavbarPreferencesProvider } from "@/hooks/use-navbar-preferences";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { LocaleProvider } from "@/i18n/locale-context";
 import { SkipToMainLink } from "@/components/ui/skip-to-main";
+import { GuideRelatedProducts } from "@/components/seo/guide-related-products";
 import { LanguageSwitcher } from "@/components/ui/language-switcher";
 import { PageTransition } from "@/components/ui/page-transition";
 
@@ -328,7 +329,7 @@ function Router() {
         {() => (
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <PageTransition><EcoFriendlyGuide /></PageTransition>
+              <PageTransition><EcoFriendlyGuide /><GuideRelatedProducts /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}
@@ -338,7 +339,7 @@ function Router() {
         {() => (
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <PageTransition><Guide5Mistakes /></PageTransition>
+              <PageTransition><Guide5Mistakes /><GuideRelatedProducts /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}
@@ -348,7 +349,7 @@ function Router() {
         {() => (
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <PageTransition><GuideFishHiding /></PageTransition>
+              <PageTransition><GuideFishHiding /><GuideRelatedProducts /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}
@@ -358,7 +359,7 @@ function Router() {
         {() => (
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <PageTransition><GuideWaterMyths /></PageTransition>
+              <PageTransition><GuideWaterMyths /><GuideRelatedProducts /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}
@@ -368,7 +369,7 @@ function Router() {
         {() => (
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <PageTransition><GuideEssentialTools /></PageTransition>
+              <PageTransition><GuideEssentialTools /><GuideRelatedProducts /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}
@@ -378,7 +379,7 @@ function Router() {
         {() => (
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <PageTransition><GuideWaterChangeSchedule /></PageTransition>
+              <PageTransition><GuideWaterChangeSchedule /><GuideRelatedProducts /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}
@@ -388,7 +389,7 @@ function Router() {
         {() => (
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <PageTransition><GuideTankRescuePlan /></PageTransition>
+              <PageTransition><GuideTankRescuePlan /><GuideRelatedProducts /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}
@@ -398,7 +399,7 @@ function Router() {
         {() => (
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <PageTransition><GuideFeedingTable /></PageTransition>
+              <PageTransition><GuideFeedingTable /><GuideRelatedProducts /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}
@@ -408,7 +409,7 @@ function Router() {
         {() => (
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <PageTransition><GuideFilterChoice /></PageTransition>
+              <PageTransition><GuideFilterChoice /><GuideRelatedProducts /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}
@@ -418,7 +419,7 @@ function Router() {
         {() => (
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <PageTransition><GuideTemperatureGuide /></PageTransition>
+              <PageTransition><GuideTemperatureGuide /><GuideRelatedProducts /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}
@@ -428,7 +429,7 @@ function Router() {
         {() => (
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <PageTransition><GuideHappyFishSigns /></PageTransition>
+              <PageTransition><GuideHappyFishSigns /><GuideRelatedProducts /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}
@@ -438,7 +439,7 @@ function Router() {
         {() => (
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <PageTransition><GuideAquariumSalt /></PageTransition>
+              <PageTransition><GuideAquariumSalt /><GuideRelatedProducts /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}
@@ -448,7 +449,7 @@ function Router() {
         {() => (
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <PageTransition><GuideFilterMedia /></PageTransition>
+              <PageTransition><GuideFilterMedia /><GuideRelatedProducts /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}
@@ -458,7 +459,7 @@ function Router() {
         {() => (
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <PageTransition><GuideAlgaeControl /></PageTransition>
+              <PageTransition><GuideAlgaeControl /><GuideRelatedProducts /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}
@@ -468,7 +469,7 @@ function Router() {
         {() => (
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <PageTransition><GuideWhiteScale /></PageTransition>
+              <PageTransition><GuideWhiteScale /><GuideRelatedProducts /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}
@@ -478,7 +479,7 @@ function Router() {
         {() => (
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <PageTransition><GuideQuarantine /></PageTransition>
+              <PageTransition><GuideQuarantine /><GuideRelatedProducts /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}
@@ -488,7 +489,7 @@ function Router() {
         {() => (
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <PageTransition><GuideHeaterChoice /></PageTransition>
+              <PageTransition><GuideHeaterChoice /><GuideRelatedProducts /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}
@@ -498,7 +499,7 @@ function Router() {
         {() => (
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <PageTransition><GuideTreatmentBasics /></PageTransition>
+              <PageTransition><GuideTreatmentBasics /><GuideRelatedProducts /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}
@@ -509,7 +510,7 @@ function Router() {
         {() => (
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <PageTransition><GuideNewAquariumSetup /></PageTransition>
+              <PageTransition><GuideNewAquariumSetup /><GuideRelatedProducts /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}
@@ -519,7 +520,7 @@ function Router() {
         {() => (
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <PageTransition><GuideWaterTestGuide /></PageTransition>
+              <PageTransition><GuideWaterTestGuide /><GuideRelatedProducts /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}
@@ -529,7 +530,7 @@ function Router() {
         {() => (
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <PageTransition><GuideDecorStones /></PageTransition>
+              <PageTransition><GuideDecorStones /><GuideRelatedProducts /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}

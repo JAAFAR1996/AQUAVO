@@ -4,7 +4,9 @@ import { Pool, neonConfig } from "@neondatabase/serverless";
 import ws from "ws";
 import { HTML_TEMPLATE } from "./_html-template.js";
 import { GUIDE_CONTENT_PAGES, renderGuidesIndexHtml, renderGuidesIndexMarkdown } from "./_guides-content.js";
-import { renderCanonicalGuideHtml, renderCanonicalGuideMarkdown, resolveGuidePage } from "./_canonical-guides.js";
+import { guideProductsFromRows, renderCanonicalGuideHtml, renderCanonicalGuideMarkdown, resolveGuidePage } from "./_canonical-guides.js";
+import type { GuideProduct } from "./_guides-content.js";
+import { productCategoryForGuide } from "../shared/guide-links.js";
 import { SPA_GUIDE_PAGES } from "./_guides-content-spa.js";
 import { HOME_HERO_HTML } from "./_home-hero-html.js";
 import { getSeoMetaOverride } from "./_seo-content.js";
@@ -719,6 +721,30 @@ async function getProductMeta(slug: string, locale: Locale = DEFAULT_LOCALE): Pr
   }
 }
 
+/**
+ * The products a guide shows: in-stock, priced, three of the guide's
+ * category. A missing pool or a query error yields none; the guide still
+ * renders. Never throws into the handler.
+ */
+async function loadGuideProducts(category: string | undefined): Promise<GuideProduct[]> {
+  const db = getPool();
+  if (!category || !db) return [];
+  try {
+    const { rows } = await db.query(
+      `SELECT slug, name, price, stock FROM products
+        WHERE deleted_at IS NULL AND category = $1 AND slug IS NOT NULL AND slug <> ''
+          AND stock > 0 AND price::numeric > 0
+        ORDER BY updated_at DESC NULLS LAST, name ASC
+        LIMIT 12`,
+      [category],
+    );
+    return guideProductsFromRows(rows as Array<{ slug: string; name: string; price: string; stock: number }>);
+  } catch (err) {
+    console.error("SSR meta: guide products query error", err);
+    return [];
+  }
+}
+
 async function getBlogMeta(slug: string, locale: Locale = DEFAULT_LOCALE): Promise<PageMeta | null> {
   const db = getPool();
   if (!db) return null;
@@ -1392,17 +1418,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // locales get the SPA shell; translated guide bodies come from the app.
     if (resolvedGuide && !isSpaBackedGuide && locale === DEFAULT_LOCALE) {
       const acceptHeader = (req.headers.accept || "").toLowerCase();
+      // Up to three in-stock products of the guide's category, so the reader
+      // who has just learned how to choose is shown something to choose from.
+      const guideProducts = await loadGuideProducts(productCategoryForGuide(resolvedGuide.canonicalPath));
       res.setHeader("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
       if (acceptHeader.includes("text/markdown")) {
         res.setHeader("Content-Type", "text/markdown; charset=utf-8");
         return res
           .status(200)
-          .send(renderCanonicalGuideMarkdown(resolvedGuide.canonicalPath, resolvedGuide.page, BASE));
+          .send(renderCanonicalGuideMarkdown(resolvedGuide.canonicalPath, resolvedGuide.page, BASE, guideProducts));
       }
       res.setHeader("Content-Type", "text/html; charset=utf-8");
       return res
         .status(200)
-        .send(renderCanonicalGuideHtml(resolvedGuide.canonicalPath, resolvedGuide.page, BASE, DEFAULT_IMAGE));
+        .send(renderCanonicalGuideHtml(resolvedGuide.canonicalPath, resolvedGuide.page, BASE, DEFAULT_IMAGE, guideProducts));
     }
 
     // One spelling per listing on the browser path too: an alias or a

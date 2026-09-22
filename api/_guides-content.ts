@@ -1,3 +1,4 @@
+import { GUIDE_PRODUCTS_HEADING } from "../shared/guide-links.js";
 // ─── Static, fully server-rendered educational pages (high Citability) ──────
 // These pages return complete HTML from the server so every word is visible in
 // View Source / to AI answer engines (ChatGPT, Claude, Perplexity) and no-JS
@@ -10,6 +11,14 @@ export type JsonLdDecorator = (nodes: object[]) => object[];
 export interface GuideLink {
   href: string;
   label: string;
+}
+
+/** A product shown on a guide: the link text is the product's own name. */
+export interface GuideProduct {
+  slug: string;
+  name: string;
+  /** Formatted for display, e.g. "17,999 د.ع"; the renderer never computes prices. */
+  priceLabel: string;
 }
 export interface GuideSection {
   h2: string;
@@ -868,7 +877,21 @@ function renderLinks(links: GuideLink[], base: string): string {
   );
 }
 
-export function renderGuideHtml(path: string, page: GuidePage, base: string, image: string, decorate?: JsonLdDecorator): string {
+/**
+ * The guide's related products, or nothing. Products are passed in by the
+ * handler that has database access; this renderer stays synchronous and
+ * never invents a product.
+ */
+function renderGuideProducts(products: GuideProduct[] | undefined): string {
+  if (!products || products.length === 0) return "";
+  return (
+    `<section class="products" aria-labelledby="guide-products-title"><h2 id="guide-products-title">${esc(GUIDE_PRODUCTS_HEADING)}</h2><ul class="links">` +
+    products.map((p) => `<li><a href="/products/${encodeURIComponent(p.slug)}">${esc(p.name)}</a> <span>${esc(p.priceLabel)}</span></li>`).join("") +
+    `</ul></section>`
+  );
+}
+
+export function renderGuideHtml(path: string, page: GuidePage, base: string, image: string, decorate?: JsonLdDecorator, products?: GuideProduct[]): string {
   const url = `${base}${path}`;
   const jsonLd = renderJsonLdScripts(buildGuideJsonLd(path, page, base, image), decorate);
   const crumb = page.breadcrumb
@@ -940,6 +963,7 @@ ${SITE_HEADER}
   ${sections}
   ${tables}
   ${faq}
+  ${renderGuideProducts(products)}
   <h2>روابط مفيدة</h2>
   ${renderLinks(page.links, base)}
   <div class="cta">
@@ -954,7 +978,7 @@ ${SITE_FOOTER}
 }
 
 // Plain-markdown variant for AI agents that request Accept: text/markdown.
-export function renderGuideMarkdown(path: string, page: GuidePage, base: string): string {
+export function renderGuideMarkdown(path: string, page: GuidePage, base: string, products?: GuideProduct[]): string {
   const lines: string[] = [];
   lines.push(`# ${page.h1}\n`);
   lines.push(`${page.answer}\n`);
@@ -973,6 +997,12 @@ export function renderGuideMarkdown(path: string, page: GuidePage, base: string)
   for (const f of page.faq) {
     lines.push(`### ${f.q}`);
     lines.push(`${f.a}\n`);
+  }
+  if (products && products.length > 0) {
+    lines.push(`## ${GUIDE_PRODUCTS_HEADING}
+`);
+    for (const p of products) lines.push(`- [${p.name}](${base}/products/${encodeURIComponent(p.slug)}) — ${p.priceLabel}`);
+    lines.push("");
   }
   lines.push(`## روابط مفيدة\n`);
   for (const l of page.links) lines.push(`- [${l.label}](${base}${l.href})`);

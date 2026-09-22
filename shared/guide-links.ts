@@ -143,3 +143,50 @@ export function guidesForCategory(category: string | null | undefined): GuideLin
 
 /** Heading used above the block, wherever it is rendered. */
 export const GUIDE_LINKS_HEADING = "أدلة مرتبطة";
+
+/**
+ * The one product category a guide is about, for the "منتجات مرتبطة" block
+ * on the guide itself.
+ *
+ * Search Console (90 days to 2026-09-19): guides earned 60% of the site's
+ * impressions and linked onward only to a category listing. A reader who
+ * has just learned how to choose a heater was shown no heater. This is the
+ * reverse of CATEGORY_GUIDE_LINKS, curated by hand because several guides
+ * belong to more than one category and the block should show the one the
+ * reader came to solve. A guide with no natural category (water myths,
+ * happy-fish signs) shows nothing rather than a guess.
+ */
+export const GUIDE_PRIMARY_CATEGORY: Readonly<Record<string, string>> = Object.freeze({
+  "/guides/filter-choice": "الفلترة والتنقية",
+  "/guides/filter-media": "الفلترة والتنقية",
+  "/guides/filter-maintenance": "الفلترة والتنقية",
+  "/guides/cloudy-water-causes": "الفلترة والتنقية",
+  "/guides/heater-choice": "التحكم بالحرارة",
+  "/guides/temperature-guide": "التحكم بالحرارة",
+  "/guides/algae-control": "الإضاءة",
+  "/guides/water-conditioner-guide": "معالجة المياه",
+  "/guides/treatment-basics": "معالجة المياه",
+  "/guides/aquarium-salt": "معالجة المياه",
+  "/guides/eco-friendly": "معالجة المياه",
+  "/guides/feeding-table": "طعام الأسماك",
+  "/guides/aquarium-decor-stones-guide": "تربة وديكور",
+  "/guides/fish-gasping-surface": "التهوية والأكسجين",
+  "/guides/aquarium-weekly-maintenance": "الصيانة والتنظيف",
+  "/guides/aquarium-maintenance-checklist": "الصيانة والتنظيف",
+  "/guides/water-change-schedule": "الصيانة والتنظيف",
+  "/guides/white-scale": "الصيانة والتنظيف",
+  "/guides/quarantine": "العزل والتفريخ",
+  "/guides/tank-rescue-plan": "العزل والتفريخ",
+  "/guides/aquarium-water-test-guide": "الفحص والمراقبة",
+  "/guides/new-aquarium-setup-iraq": "أحواض",
+  "/guides/essential-tools": "الصيانة والتنظيف",
+  "/guides/5-mistakes": "الفحص والمراقبة",
+});
+
+/** The product category for a guide path, or undefined when it has none. */
+export function productCategoryForGuide(path: string): string | undefined {
+  return GUIDE_PRIMARY_CATEGORY[path.replace(/\/+$/, "")];
+}
+
+/** Heading above the guide's product block, wherever it is rendered. */
+export const GUIDE_PRODUCTS_HEADING = "منتجات مرتبطة بهذا الدليل";

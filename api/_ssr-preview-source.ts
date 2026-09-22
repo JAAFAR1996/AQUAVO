@@ -28,8 +28,11 @@ import {
   buildProductStructuredData,
   withSiteEntities,
 } from "./_seo-structured-data.js";
+import { productCategoryForGuide } from "../shared/guide-links.js";
+import type { GuideProduct } from "./_guides-content.js";
 import {
   canonicalGuidePath,
+  guideProductsFromRows,
   renderCanonicalGuideHtml,
   renderCanonicalGuideMarkdown,
   renderCanonicalGuidesIndexHtml,
@@ -1184,11 +1187,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       }
       const robots = robotsValue(production, 200, pathname);
       setResponseHeaders(res, robots, "guide-content-v3");
+      // Same three products the browser path shows under this guide. A guide
+      // never needed the database before; if it is unreachable the guide
+      // still renders in full, just without the block.
+      const guideCategory = productCategoryForGuide(resolvedGuide.canonicalPath);
+      let guideProducts: GuideProduct[] = [];
+      if (guideCategory) {
+        try {
+          guideProducts = guideProductsFromRows(await loadProducts(guideCategory));
+        } catch (err) {
+          console.error("[semantic-v3] guide products unavailable", err instanceof Error ? err.message : err);
+        }
+      }
       res.setHeader("Cache-Control", production ? "public, s-maxage=3600, stale-while-revalidate=86400" : "private, no-store");
       res.status(200).setHeader("Content-Type", acceptsMarkdown ? "text/markdown; charset=utf-8" : "text/html; charset=utf-8");
       res.send(acceptsMarkdown
-        ? renderCanonicalGuideMarkdown(resolvedGuide.canonicalPath, resolvedGuide.page, AQUAVO_BASE_URL)
-        : renderCanonicalGuideHtml(resolvedGuide.canonicalPath, resolvedGuide.page, AQUAVO_BASE_URL, AQUAVO_ENTITY.logoUrl));
+        ? renderCanonicalGuideMarkdown(resolvedGuide.canonicalPath, resolvedGuide.page, AQUAVO_BASE_URL, guideProducts)
+        : renderCanonicalGuideHtml(resolvedGuide.canonicalPath, resolvedGuide.page, AQUAVO_BASE_URL, AQUAVO_ENTITY.logoUrl, guideProducts));
       return;
     }
 

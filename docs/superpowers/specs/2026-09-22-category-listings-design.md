@@ -46,6 +46,14 @@ crawler shell (`ProductsPage`) and the SPA (`products.tsx` H1,
 Content rules as in `shared/category-content.ts`: no product, price, spec or
 test claim. Where a number matters the answer points to the guide.
 
+### Guides link to products (`shared/guide-links.ts` → `GUIDE_PRIMARY_CATEGORY`)
+Guides take 60% of impressions and ended at a category link. Each guide now
+shows up to three in-stock products of one hand-curated category: on the
+server-rendered document (`renderGuideHtml` gets `products`, loaded by both
+handlers; a database failure leaves the guide intact) and on the React
+guides (`GuideRelatedProducts` mounted on all 21 `/guides/*` routes). Guides
+with no natural category show nothing.
+
 ## Testing
 - `server/__tests__/category-search-presentation.test.ts`: coverage,
   uniqueness, length bounds, no price/wattage/brand.
