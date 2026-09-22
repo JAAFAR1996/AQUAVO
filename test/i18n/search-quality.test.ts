@@ -20,6 +20,11 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fuzzySearchMatch, normalizeSearchText } from "../../client/src/lib/site-search";
 
+// The catalogue size comes from the same source cache the translations are
+// validated against, so a product deleted from the store (houyi-tracheal-
+// suction-cup, 2026-09-22) does not leave a hard-coded 107 behind.
+const SOURCE_PRODUCT_COUNT = (JSON.parse(readFileSync(resolve(process.cwd(), "reports/i18n/source-cache.json"), "utf8")) as { products: unknown[] }).products.length;
+
 type Rec = { slug?: string; data?: { name?: string } };
 
 function names(locale: string): Array<{ slug: string; name: string }> {
@@ -40,7 +45,7 @@ describe("search quality: English catalogue", () => {
   const items = names("en");
 
   it("has a translated name for every product", () => {
-    expect(items.length).toBe(107);
+    expect(items.length).toBe(SOURCE_PRODUCT_COUNT);
   });
 
   it("finds every product from the leading words of its own English name", () => {
@@ -58,7 +63,7 @@ describe("search quality: Kurdish catalogue", () => {
   const items = names("ckb");
 
   it("has a translated name for every product", () => {
-    expect(items.length).toBe(107);
+    expect(items.length).toBe(SOURCE_PRODUCT_COUNT);
   });
 
   it("finds every product from the leading words of its own Sorani name", () => {
@@ -72,7 +77,7 @@ describe("search quality: Kurdish catalogue", () => {
   // reached from an Arabic keyboard at all.
   it("is reachable from an Arabic keyboard (ی/ک folded onto ي/ك)", () => {
     const affected = items.filter((p) => /[یک]/.test(p.name));
-    expect(affected.length).toBe(107);
+    expect(affected.length).toBe(SOURCE_PRODUCT_COUNT);
     const broken = affected.filter((p) => !fuzzySearchMatch(p.name, AR_KEYBOARD(leadingQuery(p.name))));
     expect(broken.map((m) => `${m.slug}: ${m.name}`)).toEqual([]);
   });
