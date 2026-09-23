@@ -21,8 +21,14 @@ export interface LocaleDefinition {
   /** English name, used only in admin tooling and logs. */
   readonly englishName: string;
   readonly dir: TextDirection;
-  /** BCP 47 tag with region, for `hreflang` and `Content-Language`. */
+  /**
+   * Value for `<link rel="alternate" hreflang>`. Google accepts only ISO 639-1
+   * language codes here (plus an ISO 3166-1 region), so Sorani is advertised
+   * as `ku-IQ`; `ckb-IQ` was silently ignored.
+   */
   readonly hreflang: string;
+  /** Precise BCP 47 tag for `Content-Language` and schema.org `inLanguage`, where ISO 639-3 is valid. */
+  readonly languageTag: string;
   /** Locale string handed to `Intl.*`. Latin digits are forced everywhere so prices keep one appearance. */
   readonly intl: string;
   /** Open Graph locale. Facebook publishes no Sorani locale, so ckb has none. */
@@ -38,6 +44,7 @@ export const LOCALES: Readonly<Record<Locale, LocaleDefinition>> = Object.freeze
     englishName: "Arabic",
     dir: "rtl",
     hreflang: "ar-IQ",
+    languageTag: "ar-IQ",
     intl: "ar-IQ-u-nu-latn",
     ogLocale: "ar_AR",
     urlPrefix: "",
@@ -48,6 +55,7 @@ export const LOCALES: Readonly<Record<Locale, LocaleDefinition>> = Object.freeze
     englishName: "English",
     dir: "ltr",
     hreflang: "en",
+    languageTag: "en",
     intl: "en-US",
     ogLocale: "en_US",
     urlPrefix: "/en",
@@ -57,7 +65,11 @@ export const LOCALES: Readonly<Record<Locale, LocaleDefinition>> = Object.freeze
     nativeName: "کوردی سۆرانی",
     englishName: "Central Kurdish (Sorani)",
     dir: "rtl",
-    hreflang: "ckb-IQ",
+    // Google reads only ISO 639-1 language codes in hreflang; "ckb" is ISO 639-3 and
+    // was silently ignored. "ku" is the ISO 639-1 code for Kurdish. The URL prefix
+    // and <html lang> keep "ckb", which is the precise script/dialect tag.
+    hreflang: "ku-IQ",
+    languageTag: "ckb-IQ",
     intl: "ckb-IQ-u-nu-latn",
     ogLocale: null,
     urlPrefix: "/ckb",

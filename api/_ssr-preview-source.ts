@@ -60,7 +60,6 @@ import {
   splitLocaleFromPath,
   type Locale,
 } from "../shared/i18n/locales.js";
-import { localizeCategoryName } from "../shared/i18n/categories.js";
 import { directAnswer } from "../shared/article-answer.js";
 import { articleFaqSchema } from "../shared/article-faq.js";
 import { productCategoryForArticle, relatedProductsForArticle } from "../shared/article-links.js";
@@ -107,7 +106,7 @@ function localizedPageGraph(locale: Locale, logicalPath: string, title: string, 
       name: headingFromLocalizedTitle(title),
       description,
       url: pageUrl,
-      inLanguage: LOCALES[locale].hreflang,
+      inLanguage: LOCALES[locale].languageTag,
       isPartOf: { "@id": `${AQUAVO_BASE_URL}/#website` },
     },
   ];
@@ -139,31 +138,48 @@ function localizedPageGraph(locale: Locale, logicalPath: string, title: string, 
  * before React runs. Entity pages (product/blog) stay on ssr-meta, where the
  * reviewed-vs-machine translation policy is enforced against the DB row.
  */
-function localizedStaticPage(locale: Locale, pathname: string, rawCategory?: string): ResolvedPage | null {
+async function localizedStaticPage(locale: Locale, pathname: string, rawCategory?: string): Promise<ResolvedPage | null> {
   if (locale === DEFAULT_LOCALE) return null;
   if (!(PUBLIC_INDEXABLE_PATHS as readonly string[]).includes(pathname)) return null;
 
   const localized = getLocalizedStaticMeta(locale, pathname);
   if (!localized) return null;
 
-  let title = localized.title;
-  let description = localized.description;
-  let logicalCanonical = pathname;
-
+  // A category listing is the same document in every language: the buyer's
+  // heading, the three questions and the product links, from
+  // shared/category-search.ts. It used to be a templated title over an empty
+  // static shell here, which is the thin page Google folds into /products.
   if (pathname === "/products" && rawCategory) {
     const category = canonicalProductCategory(rawCategory);
-    if (category) {
-      const displayCategory = localizeCategoryName(category, locale);
-      logicalCanonical = productListingSeo(category).canonicalPath;
-      if (locale === "en") {
-        title = `${displayCategory} Aquarium Products in Iraq | AQUAVO`;
-        description = `Browse AQUAVO products in ${displayCategory} with current prices, stock status and delivery across Iraq.`;
-      } else {
-        title = `بەرهەمەکانی ${displayCategory} بۆ حەوزی ماسی لە عێراق | AQUAVO`;
-        description = `بەرهەمەکانی AQUAVO لە بەشی ${displayCategory} ببینە، لەگەڵ نرخ، دۆخی کۆگا و گەیاندن بۆ هەموو عێراق.`;
+    const search = category ? categorySearch(category, locale) : undefined;
+    if (category && search) {
+      const canonicalPath = localizePath(productListingSeo(category).canonicalPath, locale);
+      // A released static locale page must cold-start without the database
+      // (TOOLS/i18n/ssr-cold-start-smoke.ts): the heading, the questions and
+      // the canonical are the document; the product links are a bonus.
+      let products: SeoPreviewProduct[] = [];
+      try {
+        products = await loadProducts(category);
+      } catch (err) {
+        console.error("[semantic-v3] localized listing products unavailable", err instanceof Error ? err.message : err);
       }
+      const faq = categoryFaqSchema(category, locale);
+      return {
+        page: { kind: "products", products, category },
+        meta: {
+          title: search.title,
+          description: search.description ?? localized.description,
+          canonicalPath,
+          jsonLd: [...buildCollectionStructuredData(products, canonicalPath, search.heading), ...(faq ? [faq] : [])],
+        },
+        status: 200,
+      };
     }
   }
+
+  const title = localized.title;
+  const description = localized.description;
+  const logicalCanonical = pathname;
 
   const canonicalPath = localizePath(logicalCanonical, locale);
   return {
@@ -1100,15 +1116,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
   const { locale, path: pathname } = splitLocaleFromPath(requestPath);
   const acceptsMarkdown = (req.headers.accept || "").toLowerCase().includes("text/markdown");
 
-  res.setHeader("Content-Language", LOCALES[locale].hreflang);
+  res.setHeader("Content-Language", LOCALES[locale].languageTag);
 
   try {
     const rawCategory = requestUrl.searchParams.get("category") || undefined;
     const canonicalCategory = canonicalProductCategory(rawCategory);
+    // hreflang alternates name a listing by its canonical query only: a tracking
+    // parameter on the request must not be echoed into the alternates.
+    const hreflangSearch = pathname === "/products" && canonicalCategory ? `?category=${encodeURIComponent(canonicalCategory)}` : "";
 
     // Released static locale pages are rendered semantically in their own
     // language. This runs before the Arabic-only guide/product special cases.
-    const localizedStatic = localizedStaticPage(locale, pathname, rawCategory);
+    const localizedStatic = await localizedStaticPage(locale, pathname, rawCategory);
     if (localizedStatic) {
       if (pathname === "/products" && rawCategory && canonicalCategory && rawCategory !== canonicalCategory) {
         const destination = localizePath(`/products?category=${encodeURIComponent(canonicalCategory)}`, locale);
@@ -1137,7 +1156,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
         html,
         locale,
         pathname,
-        requestUrl.search,
+        hreflangSearch,
         { indexable: robots.startsWith("index") },
       );
       res.status(200).setHeader("Content-Type", "text/html; charset=utf-8").send(html);
@@ -1258,7 +1277,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       return;
     }
 
-    const html = injectDocument(HTML_TEMPLATE, resolved.meta, renderSeoPreviewShell(resolved.page), robots);
+    // Arabic pages carry the hreflang set too. Until 2026-09-23 only the
+    // localized branch above passed through applyLocaleToHtml, so Googlebot
+    // (which is routed here, unlike a browser) never saw the English and
+    // Kurdish alternates on any Arabic page: not the home, not a product, not
+    // a listing. The set has to be on every version to be reciprocal.
+    const html = applyLocaleToHtml(
+      injectDocument(HTML_TEMPLATE, resolved.meta, renderSeoPreviewShell(resolved.page), robots),
+      locale,
+      pathname,
+      hreflangSearch,
+      { indexable: robots.startsWith("index") },
+    );
     res.status(resolved.status).setHeader("Content-Type", "text/html; charset=utf-8");
     res.send(html);
   } catch (error) {

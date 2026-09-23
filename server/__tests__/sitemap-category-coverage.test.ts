@@ -76,7 +76,7 @@ describe("sitemap-pages: only live category listings are advertised", () => {
     const enCount = locs.filter((l) => l.startsWith(`${AQUAVO_BASE_URL}/en/`) || l === `${AQUAVO_BASE_URL}/en`).length;
     expect(enCount).toBe(isLocaleReleased("en") ? expectedPerLocale : 0);
     expect(xml).toContain('hreflang="x-default"');
-    expect(xml.includes('hreflang="ckb-IQ"')).toBe(isLocaleReleased("ckb"));
+    expect(xml.includes('hreflang="ku-IQ"')).toBe(isLocaleReleased("ckb"));
   });
 
   it("emits no duplicate URL, in any encoding", () => {

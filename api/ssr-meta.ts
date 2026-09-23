@@ -915,13 +915,21 @@ async function resolveMetadata(pathname: string, notFound = false, locale: Local
   // conflict by folding three listings into /products (URL Inspection,
   // 2026-09-22). Both paths now say the same thing.
   const listingCategory = cleanPath === "/products" && !notFound ? canonicalProductCategory(rawCategory) : undefined;
-  const listingSearch = listingCategory ? categorySearch(listingCategory) : undefined;
-  if (listingCategory && listingSearch && locale === DEFAULT_LOCALE) {
+  // All three locales: the English and Kurdish listings used to fall through to
+  // a templated catalogue title ("Filtration Aquarium Products in Iraq") with
+  // no questions, so they were the same thin document Google had already
+  // folded away in Arabic.
+  const listingSearch = listingCategory ? categorySearch(listingCategory, locale) : undefined;
+  if (listingCategory && listingSearch) {
     const listing = productListingSeo(listingCategory);
-    const faq = categoryFaqSchema(listingCategory);
+    const faq = categoryFaqSchema(listingCategory, locale);
+    const isArabic = locale === DEFAULT_LOCALE;
+    const homeItem = isArabic ? BASE : `${BASE}${localizePath("/", locale)}`;
+    const productsItem = isArabic ? `${BASE}/products` : `${BASE}${localizePath("/products", locale)}`;
+    const listingItem = isArabic ? listing.canonicalUrl : `${BASE}${localizePath(listing.canonicalPath, locale)}`;
     return {
       title: listingSearch.title,
-      description: categoryContent(listingCategory)?.metaDescription ?? listing.title,
+      description: listingSearch.description ?? categoryContent(listingCategory)?.metaDescription ?? listing.title,
       url: listing.canonicalUrl,
       noIndex,
       image: DEFAULT_IMAGE,
@@ -931,9 +939,9 @@ async function resolveMetadata(pathname: string, notFound = false, locale: Local
           "@context": "https://schema.org",
           "@type": "BreadcrumbList",
           itemListElement: [
-            { "@type": "ListItem", position: 1, name: "الرئيسية", item: BASE },
-            { "@type": "ListItem", position: 2, name: "المنتجات", item: `${BASE}/products` },
-            { "@type": "ListItem", position: 3, name: listingSearch.heading, item: listing.canonicalUrl },
+            { "@type": "ListItem", position: 1, name: isArabic ? "الرئيسية" : shell.homeName, item: homeItem },
+            { "@type": "ListItem", position: 2, name: isArabic ? "المنتجات" : shell.productsName, item: productsItem },
+            { "@type": "ListItem", position: 3, name: listingSearch.heading, item: listingItem },
           ],
         },
         ...(faq ? [faq] : []),
