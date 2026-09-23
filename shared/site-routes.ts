@@ -57,6 +57,7 @@ const STATIC_SITE_PATHS = new Set([
   "/why-aquavo",
   "/return-policy",
   "/privacy-policy",
+  "/alexa-privacy",
   "/terms",
   "/contact",
   "/faq",

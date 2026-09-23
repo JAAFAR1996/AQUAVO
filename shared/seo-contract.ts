@@ -128,6 +128,8 @@ export const NOINDEX_PUBLIC_PATHS = Object.freeze([
   "/order-tracking",
   "/returns",
   "/fish-patients",
+  // Private Alexa / Login with Amazon consent notice: reachable by direct URL only.
+  "/alexa-privacy",
 ] as const);
 
 /**
