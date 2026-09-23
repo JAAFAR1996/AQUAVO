@@ -134,11 +134,6 @@ export function createSystemRouter(): RouterType {
         .replace(/>/g, "&gt;")
         .replace(/\"/g, "&quot;")
         .replace(/'/g, "&apos;");
-    const publicSitemapPages = [
-        "/", "/products", "/guides", "/deals", "/blog", "/faq",
-        "/beginner-guide", "/about", "/why-aquavo", "/shipping",
-        "/return-policy", "/terms", "/privacy-policy", "/contact",
-    ];
     const publicGuidePages = [
         "/guides/filter-choice", "/guides/heater-choice", "/guides/water-change-schedule",
         "/guides/feeding-table", "/guides/quarantine", "/guides/algae-control",
@@ -164,9 +159,6 @@ export function createSystemRouter(): RouterType {
   <sitemap><loc>${sitemapBaseUrl}/sitemap-products.xml</loc><lastmod>${sitemapLastmod}</lastmod></sitemap>
   <sitemap><loc>${sitemapBaseUrl}/sitemap-guides.xml</loc><lastmod>${sitemapLastmod}</lastmod></sitemap>
 </sitemapindex>`);
-    });
-    router.get("/sitemap-pages.xml", (_req: Request, res: Response): void => {
-        sendUrlSet(res, publicSitemapPages.map((path) => `\n  <url><loc>${sitemapBaseUrl}${path}</loc><lastmod>${sitemapLastmod}</lastmod></url>`).join(""));
     });
     router.get("/sitemap-guides.xml", (_req: Request, res: Response): void => {
         sendUrlSet(res, publicGuidePages.map((path) => `\n  <url><loc>${sitemapBaseUrl}${path}</loc><lastmod>${sitemapLastmod}</lastmod></url>`).join(""));

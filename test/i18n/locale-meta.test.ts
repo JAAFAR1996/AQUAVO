@@ -20,7 +20,7 @@ describe("hreflangLinks", () => {
     expect(html).toContain('hreflang="x-default" href="https://www.aquavoiq.com/products/x"');
     // Unreleased locales are not advertised to crawlers (shared/i18n/release.ts).
     expect(html.includes('hreflang="en" href="https://www.aquavoiq.com/en/products/x"')).toBe(isLocaleReleased("en"));
-    expect(html.includes('hreflang="ckb-IQ" href="https://www.aquavoiq.com/ckb/products/x"')).toBe(isLocaleReleased("ckb"));
+    expect(html.includes('hreflang="ku-IQ" href="https://www.aquavoiq.com/ckb/products/x"')).toBe(isLocaleReleased("ckb"));
   });
 
   it("keeps the category query string that defines a listing page", () => {

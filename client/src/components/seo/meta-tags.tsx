@@ -410,7 +410,7 @@ export function WebsiteSchema() {
         name: AQUAVO_ENTITY.brandName,
         alternateName: AQUAVO_ENTITY.arabicName,
         url: AQUAVO_BASE_URL,
-        inLanguage: LOCALES[currentLocale()].hreflang,
+        inLanguage: LOCALES[currentLocale()].languageTag,
         publisher: { "@id": `${AQUAVO_BASE_URL}/#organization` },
         potentialAction: {
           "@type": "SearchAction",
@@ -458,7 +458,7 @@ export function ArticleSchema({
           "@type": "WebPage",
           "@id": currentCanonicalUrl(),
         },
-        inLanguage: LOCALES[currentLocale()].hreflang,
+        inLanguage: LOCALES[currentLocale()].languageTag,
       }}
     />
   );
@@ -494,7 +494,7 @@ export function VideoObjectSchema({
         duration,
         embedUrl,
         publisher: { "@id": `${AQUAVO_BASE_URL}/#organization` },
-        inLanguage: LOCALES[currentLocale()].hreflang,
+        inLanguage: LOCALES[currentLocale()].languageTag,
       }}
     />
   );
@@ -579,7 +579,7 @@ export function HowToSchema({
           url: step.url,
         })),
         publisher: { "@id": `${AQUAVO_BASE_URL}/#organization` },
-        inLanguage: LOCALES[currentLocale()].hreflang,
+        inLanguage: LOCALES[currentLocale()].languageTag,
       }}
     />
   );

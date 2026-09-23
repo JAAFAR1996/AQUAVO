@@ -18,7 +18,10 @@ export const BLOG_SITEMAP_RELEASE_LASTMOD = "2026-08-27";
 // page. Reusing AQUAVO_SEO_RELEASE_LASTMOD here would have restamped
 // sitemap-products.xml and sitemap-guides.xml too, claiming a change to files
 // this release does not touch, so pages gets its own stamp the way blog does.
-export const PAGES_SITEMAP_RELEASE_LASTMOD = "2026-08-29";
+// 2026-09-23: the file Vercel actually served was the Express copy (static paths
+// only, Arabic only); /sitemap-pages.xml now routes here, so the categories and
+// the English and Kurdish versions reach Google for the first time.
+export const PAGES_SITEMAP_RELEASE_LASTMOD = "2026-09-23";
 
 
 export default function handler(_req: VercelRequest, res: VercelResponse): void {

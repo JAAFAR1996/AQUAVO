@@ -18,7 +18,8 @@ import { GUIDE_LINKS_HEADING, guidesForCategory } from "../shared/guide-links.js
 import { DIRECT_ANSWER_HEADING, directAnswer } from "../shared/article-answer.js";
 import { RELATED_PRODUCTS_HEADING, productCategoryForArticle } from "../shared/article-links.js";
 import { CATEGORY_CHECKS_HEADING, categoryContent } from "../shared/category-content.js";
-import { CATEGORY_FAQ_HEADING, categorySearch } from "../shared/category-search.js";
+import { categoryFaqHeading, categorySearch } from "../shared/category-search.js";
+import { localizeCategoryName } from "../shared/i18n/categories.js";
 import { authorBylineText, authorProfilePath } from "../shared/editorial-author.js";
 import { DEFAULT_LOCALE, localizePath, type Locale } from "../shared/i18n/locales.js";
 
@@ -466,20 +467,61 @@ function CategoryIntro({ category }: { category?: string | null }) {
   );
 }
 
-function ProductsPage({ products, category }: { products: SeoPreviewProduct[]; category?: string }) {
-  // The H1 is the buyer's vocabulary ("سخانات وموازين حرارة لحوض السمك"),
-  // not the catalogue's ("منتجات التحكم بالحرارة"). See shared/category-search.ts.
-  const search = categorySearch(category);
-  const heading = search?.heading ?? (category ? `منتجات ${category}` : "جميع مستلزمات أحواض الزينة في العراق");
+const PRODUCTS_PAGE_COPY: Record<Locale, {
+  breadcrumb: string;
+  home: string;
+  products: string;
+  allHeading: string;
+  intro: (categoryName?: string) => string;
+  list: string;
+  empty: string;
+}> = {
+  ar: {
+    breadcrumb: "مسار الصفحة",
+    home: "الرئيسية",
+    products: "المنتجات",
+    allHeading: "جميع مستلزمات أحواض الزينة في العراق",
+    intro: (c) => (c ? `المنتجات المسجلة ضمن فئة ${c} مع السعر والمخزون وروابط مباشرة.` : "تصفح منتجات AQUAVO حسب الفئة، ثم افتح صفحة المنتج للاطلاع على السعر والمخزون والمواصفات المتوفرة."),
+    list: "قائمة المنتجات",
+    empty: "لا توجد منتجات منشورة ضمن هذه الفئة حالياً.",
+  },
+  en: {
+    breadcrumb: "Breadcrumb",
+    home: "Home",
+    products: "Products",
+    allHeading: "Aquarium Supplies in Iraq",
+    intro: (c) => (c ? `Products listed under ${c}, with price, stock and direct links.` : "Browse AQUAVO products by category, then open a product page for its price, stock and specifications."),
+    list: "Product list",
+    empty: "No products are published in this category right now.",
+  },
+  ckb: {
+    breadcrumb: "ڕێڕەوی لاپەڕە",
+    home: "سەرەکی",
+    products: "بەرهەمەکان",
+    allHeading: "پێداویستی ئاکواریۆم لە عێراق",
+    intro: (c) => (c ? `بەرهەمەکانی بەشی ${c} لەگەڵ نرخ، کۆگا و بەستەری ڕاستەوخۆ.` : "بەرهەمەکانی AQUAVO بەپێی بەش ببینە، پاشان لاپەڕەی بەرهەمەکە بکەرەوە بۆ نرخ، کۆگا و تایبەتمەندییەکان."),
+    list: "لیستی بەرهەمەکان",
+    empty: "لە ئێستادا هیچ بەرهەمێک لەم بەشەدا بڵاونەکراوەتەوە.",
+  },
+};
+
+function ProductsPage({ products, category, locale = DEFAULT_LOCALE }: { products: SeoPreviewProduct[]; category?: string; locale?: Locale }) {
+  // The H1 is the buyer's vocabulary ("سخانات وموازين حرارة لحوض السمك",
+  // "Aquarium Heaters & Thermometers"), not the catalogue's ("منتجات التحكم
+  // بالحرارة"). See shared/category-search.ts.
+  const copy = PRODUCTS_PAGE_COPY[locale];
+  const search = categorySearch(category, locale);
+  const categoryName = category ? localizeCategoryName(category, locale) : undefined;
+  const heading = search?.heading ?? (category ? (locale === DEFAULT_LOCALE ? `منتجات ${category}` : categoryName) : copy.allHeading);
   return (
     <main id="main-content">
-      <nav className="aq-ssr-breadcrumb" aria-label="مسار الصفحة"><a href="/">الرئيسية</a><span>/</span><a href="/products">المنتجات</a>{category && <><span>/</span><span>{category}</span></>}</nav>
+      <nav className="aq-ssr-breadcrumb" aria-label={copy.breadcrumb}><a href={localizePath("/", locale)}>{copy.home}</a><span>/</span><a href={localizePath("/products", locale)}>{copy.products}</a>{categoryName && <><span>/</span><span>{categoryName}</span></>}</nav>
       <h1>{heading}</h1>
-      <p>{category ? `المنتجات المسجلة ضمن فئة ${category} مع السعر والمخزون وروابط مباشرة.` : "تصفح منتجات AQUAVO حسب الفئة، ثم افتح صفحة المنتج للاطلاع على السعر والمخزون والمواصفات المتوفرة."}</p>
-      <CategoryIntro category={category} />
+      <p>{copy.intro(categoryName)}</p>
+      {locale === DEFAULT_LOCALE && <CategoryIntro category={category} />}
       {search && (
         <section className="aq-ssr-category-faq" aria-labelledby="aq-category-faq-title">
-          <h2 id="aq-category-faq-title">{CATEGORY_FAQ_HEADING}</h2>
+          <h2 id="aq-category-faq-title">{categoryFaqHeading(locale)}</h2>
           {search.faq.map((item) => (
             <div key={item.question}>
               <h3>{item.question}</h3>
@@ -488,12 +530,12 @@ function ProductsPage({ products, category }: { products: SeoPreviewProduct[]; c
           ))}
         </section>
       )}
-      {!category && <Categories products={products} />}
+      {!category && locale === DEFAULT_LOCALE && <Categories products={products} />}
       <section aria-labelledby="aq-all-products-title">
-        <h2 id="aq-all-products-title">قائمة المنتجات</h2>
-        {products.length > 0 ? <ProductLinks products={products} /> : <p>لا توجد منتجات منشورة ضمن هذه الفئة حالياً.</p>}
+        <h2 id="aq-all-products-title">{copy.list}</h2>
+        {products.length > 0 ? <ProductLinks products={products} /> : <p>{copy.empty}</p>}
       </section>
-      <GuideLinks category={category} />
+      {locale === DEFAULT_LOCALE && <GuideLinks category={category} />}
     </main>
   );
 }
@@ -1028,7 +1070,7 @@ function SeoPreviewShell({ page, locale = DEFAULT_LOCALE }: { page: SeoPreviewPa
       `}</style>
       <SiteHeader locale={locale} />
       {page.kind === "home" && <HomePage products={page.products} />}
-      {page.kind === "products" && <ProductsPage products={page.products} category={page.category} />}
+      {page.kind === "products" && <ProductsPage products={page.products} category={page.category} locale={locale} />}
       {page.kind === "product" && <ProductPage product={page.product} related={page.related} reviews={page.reviews} />}
       {page.kind === "faq" && <FaqPage />}
       {page.kind === "about" && <AboutPage prerendered={page.prerendered} />}

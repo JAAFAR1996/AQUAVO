@@ -424,11 +424,12 @@ export default function Products() {
   return (
     <div className="flex flex-1 flex-col bg-background font-sans transition-colors duration-300">
       <MetaTags
-        title={listingSeo.category ? (locale === "ar" ? (categorySearch(listingSeo.category)?.title ?? listingSeo.title) : `${localizeCategoryName(listingSeo.category, locale)} | AQUAVO`) : t("meta.title")}
+        title={listingSeo.category ? (categorySearch(listingSeo.category, locale)?.title ?? (locale === "ar" ? listingSeo.title : `${localizeCategoryName(listingSeo.category, locale)} | AQUAVO`)) : t("meta.title")}
         description={
           // Each category has its own description. All eleven previously
           // shared this one sentence, so eleven indexable listings competed
           // with an identical snippet.
+          categorySearch(listingSeo.category, locale)?.description ??
           (locale === "ar" ? categoryContent(listingSeo.category)?.metaDescription : undefined) ??
           t("meta.description")
         }
@@ -446,7 +447,7 @@ export default function Products() {
           {/* A single category shows its own heading, the same words the
               crawler shell uses; the generic line stays for the full listing. */}
           <h1 className="text-2xl font-bold text-foreground sm:text-4xl">
-            {(locale === "ar" && filters.categories.length === 1 && categorySearch(filters.categories[0])?.heading) || t("header.title")}
+            {(filters.categories.length === 1 && categorySearch(filters.categories[0], locale)?.heading) || t("header.title")}
           </h1>
           <p className="text-sm text-muted-foreground sm:text-base">{t("header.subtitle")}</p>
         </div>

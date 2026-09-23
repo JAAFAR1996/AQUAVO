@@ -64,7 +64,7 @@ describe("alternatesFor", () => {
     expect(alternates).toEqual([
       { locale: "ar", hreflang: "ar-IQ", path: "/blog/post" },
       { locale: "en", hreflang: "en", path: "/en/blog/post" },
-      { locale: "ckb", hreflang: "ckb-IQ", path: "/ckb/blog/post" },
+      { locale: "ckb", hreflang: "ku-IQ", path: "/ckb/blog/post" },
     ]);
     expect(xDefault).toBe("/blog/post");
   });

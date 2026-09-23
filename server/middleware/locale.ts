@@ -46,7 +46,7 @@ export function resolveRequestLocale(req: Pick<Request, "query" | "headers">): L
 
 export function localeMiddleware(req: Request, res: Response, next: NextFunction): void {
   req.locale = resolveRequestLocale(req);
-  res.setHeader("Content-Language", LOCALES[req.locale].hreflang);
+  res.setHeader("Content-Language", LOCALES[req.locale].languageTag);
   // API JSON is never CDN-cached today, but make the dependency explicit so a
   // future cache layer can never hand an English payload to an Arabic request.
   res.vary(LOCALE_HEADER_NAME);
