@@ -101,6 +101,7 @@ const About = lazy(() => import("@/pages/about"));
 const WhyAquavo = lazy(() => import("@/pages/why-aquavo"));
 const ReturnPolicy = lazy(() => import("@/pages/return-policy"));
 const PrivacyPolicy = lazy(() => import("@/pages/privacy-policy"));
+const AlexaPrivacy = lazy(() => import("@/pages/alexa-privacy"));
 const Terms = lazy(() => import("@/pages/terms"));
 const VerifyCertificate = lazy(() => import("@/pages/verify-certificate"));
 const OrderTracking = lazy(() => import("@/pages/order-tracking"));
@@ -725,6 +726,9 @@ function Router() {
       </Route>
       <Route path="/privacy-policy">
         {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><PageTransition><PrivacyPolicy /></PageTransition></Suspense></ErrorBoundary>)}
+      </Route>
+      <Route path="/alexa-privacy">
+        {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><PageTransition><AlexaPrivacy /></PageTransition></Suspense></ErrorBoundary>)}
       </Route>
       <Route path="/terms">
         {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><PageTransition><Terms /></PageTransition></Suspense></ErrorBoundary>)}

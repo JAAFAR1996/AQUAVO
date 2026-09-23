@@ -81,6 +81,7 @@ const STATIC_SITE_PATHS = new Set([
   "/admin/merge-products",
   "/admin/merge-product",
   "/admin/ai",
+  "/alexa-privacy",
   "/checkout",
   "/links",
   "/temperature-guide",
