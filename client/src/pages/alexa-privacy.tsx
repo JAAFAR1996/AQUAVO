@@ -1,6 +1,4 @@
 import { useEffect } from "react";
-import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -49,9 +47,7 @@ export default function AlexaPrivacy() {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-background font-sans" data-testid="alexa-privacy-page">
-      <Navbar />
-
+    <div className="min-h-screen flex flex-col bg-background font-sans" data-testid="alexa-privacy-page">
       <section className="relative py-20 overflow-hidden bg-gradient-to-b from-primary/5 to-background">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-20 right-20 w-64 h-64 bg-primary rounded-full blur-3xl" />
@@ -373,9 +369,6 @@ export default function AlexaPrivacy() {
             </Card>
           </motion.section>
         </div>
-      </main>
-
-      <Footer />
-    </div>
+      </main>    </div>
   );
 }
