@@ -1,5 +1,11 @@
 import { sql } from "drizzle-orm";
 import { getDb } from "../db.js";
+import {
+  ALWASEET_STATIC_EGRESS_INVALID,
+  ALWASEET_STATIC_EGRESS_NOT_CONFIGURED,
+  alWaseetStaticEgressConfigurationError,
+  requestAlWaseetJson,
+} from "./alwaseet-http.js";
 
 const PROVIDER = "alwaseet";
 const API_BASE = "https://api.alwaseet-iq.net/v1/merchant";
@@ -386,17 +392,24 @@ export function matchAlWaseetOrder(
   return analyzeAlWaseetMatch(local, providerOrders, claimedProviderIds).match;
 }
 
-function trackingEnabled(): boolean {
-  return process.env.ALWASEET_TRACKING_ENABLED?.trim().toLowerCase() === "true"
+function trackingConfigurationError(): string | null {
+  const credentialsReady = process.env.ALWASEET_TRACKING_ENABLED?.trim().toLowerCase() === "true"
     && Boolean(process.env.ALWASEET_USERNAME?.trim())
     && Boolean(process.env.ALWASEET_PASSWORD?.trim());
+  if (!credentialsReady) return "ALWASEET_NOT_CONFIGURED_OR_DISABLED";
+  return alWaseetStaticEgressConfigurationError();
 }
 
 function safeErrorCode(error: unknown): string {
   const message = error instanceof Error ? error.message : "";
   const known = message.match(/^(ALWASEET_(?:LOGIN_FAILED|API_FAILED)):(\w[\w.-]{0,40})$/);
   if (known) return `${known[1]}:${known[2]}`;
-  if (message === "ALWASEET_INVALID_JSON" || message === "ALWASEET_NOT_CONFIGURED") return message;
+  if (
+    message === "ALWASEET_INVALID_JSON"
+    || message === "ALWASEET_NOT_CONFIGURED"
+    || message === ALWASEET_STATIC_EGRESS_NOT_CONFIGURED
+    || message === ALWASEET_STATIC_EGRESS_INVALID
+  ) return message;
   const name = error instanceof Error ? error.name : "";
   if (name === "TimeoutError" || name === "AbortError") return "ALWASEET_TIMEOUT";
   return "ALWASEET_NETWORK_OR_UNKNOWN";
@@ -434,18 +447,7 @@ async function recordDiagnostic(input: DiagnosticInput): Promise<void> {
 }
 
 async function fetchEnvelope(url: URL, init?: RequestInit): Promise<{ httpStatus: number; body: ApiEnvelope }> {
-  const response = await fetch(url, {
-    ...init,
-    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-  });
-
-  let body: ApiEnvelope = {};
-  try {
-    body = await response.json() as ApiEnvelope;
-  } catch {
-    throw new Error("ALWASEET_INVALID_JSON");
-  }
-  return { httpStatus: response.status, body };
+  return requestAlWaseetJson<ApiEnvelope>(url, init, REQUEST_TIMEOUT_MS);
 }
 
 async function login(): Promise<string> {
@@ -718,10 +720,11 @@ export async function resolveAlWaseetTracking(order: AquavoTrackingOrder): Promi
   const db = getDb();
   if (!db) return null;
 
-  if (!trackingEnabled()) {
+  const configurationError = trackingConfigurationError();
+  if (configurationError) {
     await recordDiagnostic({
       status: "disabled",
-      code: "ALWASEET_NOT_CONFIGURED_OR_DISABLED",
+      code: configurationError,
       orderId: order.id,
     });
     return null;

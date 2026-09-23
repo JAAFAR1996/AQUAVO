@@ -9,6 +9,12 @@ import {
   type MatchResult,
   type PublicCarrierTracking,
 } from "./alwaseet-tracking.js";
+import {
+  ALWASEET_STATIC_EGRESS_INVALID,
+  ALWASEET_STATIC_EGRESS_NOT_CONFIGURED,
+  alWaseetStaticEgressConfigurationError,
+  requestAlWaseetJson,
+} from "./alwaseet-http.js";
 
 const PROVIDER = "alwaseet";
 const API_BASE = "https://api.alwaseet-iq.net/v1/merchant";
@@ -106,10 +112,12 @@ export function sanitizeAlWaseetProviderMessage(value: unknown): string {
   return message.slice(0, 180);
 }
 
-function trackingEnabled(): boolean {
-  return process.env.ALWASEET_TRACKING_ENABLED?.trim().toLowerCase() === "true"
+function trackingConfigurationError(): string | null {
+  const credentialsReady = process.env.ALWASEET_TRACKING_ENABLED?.trim().toLowerCase() === "true"
     && Boolean(process.env.ALWASEET_USERNAME?.trim())
     && Boolean(process.env.ALWASEET_PASSWORD?.trim());
+  if (!credentialsReady) return "ALWASEET_NOT_CONFIGURED_OR_DISABLED";
+  return alWaseetStaticEgressConfigurationError();
 }
 
 function safeErrorDetails(error: unknown): Pick<DiagnosticInput, "code" | "endpoint" | "httpStatus" | "providerMessage" | "authProbe"> {
@@ -124,7 +132,12 @@ function safeErrorDetails(error: unknown): Pick<DiagnosticInput, "code" | "endpo
   }
 
   const message = error instanceof Error ? error.message : "";
-  if (message === "ALWASEET_INVALID_JSON" || message === "ALWASEET_NOT_CONFIGURED") {
+  if (
+    message === "ALWASEET_INVALID_JSON"
+    || message === "ALWASEET_NOT_CONFIGURED"
+    || message === ALWASEET_STATIC_EGRESS_NOT_CONFIGURED
+    || message === ALWASEET_STATIC_EGRESS_INVALID
+  ) {
     return { code: message };
   }
   const name = error instanceof Error ? error.name : "";
@@ -166,20 +179,7 @@ async function recordDiagnostic(input: DiagnosticInput): Promise<void> {
 }
 
 async function fetchEnvelope(url: URL, init?: RequestInit): Promise<{ httpStatus: number; body: ApiEnvelope }> {
-  const headers = new Headers(init?.headers);
-  if (!headers.has("Accept")) headers.set("Accept", "application/json");
-
-  const response = await fetch(url, {
-    ...init,
-    headers,
-    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-  });
-
-  try {
-    return { httpStatus: response.status, body: await response.json() as ApiEnvelope };
-  } catch {
-    throw new Error("ALWASEET_INVALID_JSON");
-  }
+  return requestAlWaseetJson<ApiEnvelope>(url, init, REQUEST_TIMEOUT_MS);
 }
 
 async function login(forceFresh = false): Promise<string> {
@@ -505,10 +505,11 @@ export async function resolveAlWaseetTrackingRuntime(order: AquavoTrackingOrder)
   const db = getDb();
   if (!db) return null;
 
-  if (!trackingEnabled()) {
+  const configurationError = trackingConfigurationError();
+  if (configurationError) {
     await recordDiagnostic({
       status: "disabled",
-      code: "ALWASEET_NOT_CONFIGURED_OR_DISABLED",
+      code: configurationError,
       orderId: order.id,
     });
     return null;
