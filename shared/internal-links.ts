@@ -33,7 +33,7 @@ export const ROUTES: readonly string[] = [
   "/fish-breeding-calculator", "/fish-compatibility", "/fish-doctor", "/fish-encyclopedia", "/guides",
   "/fish-finder", "/fish-health", "/fish-health-diagnosis", "/fish-patients",
   "/forgot-password", "/invest", "/journey", "/links", "/login", "/order-tracking",
-  "/partners", "/privacy-policy", "/products", "/profile", "/register", "/return-policy",
+  "/alexa-privacy", "/partners", "/privacy-policy", "/products", "/profile", "/register", "/return-policy",
   "/returns", "/search", "/shipping", "/sustainability", "/tank-builder",
   "/temperature-guide", "/terms", "/verify-certificate", "/why-aquavo", "/wishlist",
   "/guides/5-mistakes", "/guides/algae-control", "/guides/aquarium-decor-stones-guide",
