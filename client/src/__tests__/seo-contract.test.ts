@@ -81,6 +81,11 @@ describe("AQUAVO discoverability contract", () => {
     expect(builder).not.toMatch(/legalName:\s*"/);
     expect(ssr).not.toContain('foundingDate: "2024"');
     expect(builder).not.toContain('foundingDate: "2024"');
+    expect(ssr).not.toContain("foundingLocation:");
+    expect(ssr).not.toContain("أحواض الزينة البريميوم");
+    expect(ssr).not.toContain("مستلزمات أحواض بريميوم");
+    expect(ssr).not.toContain("أغذية وعلاجات أصلية");
+    expect(ssr).toContain('mainEntity: { "@id": `${BASE}/#organization` }');
   });
 
   it("keeps the runtime sitemap truthful and free of noindex or nonexistent routes", () => {
