@@ -20,7 +20,7 @@ for (const viewport of viewports) {
     await expect(page.locator("#loading-shell")).toHaveCount(0);
     await expect(page.getByText("__JSON_LD__", { exact: true })).toHaveCount(0);
     await expect(page.locator("nav a button, nav button a, nav a a, nav button button")).toHaveCount(0);
-    await expect(page.getByRole("heading", { level: 1, name: "معدات حوضك، مرتبة على احتياجك" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "متجر مستلزمات أحواض الزينة في العراق" })).toBeVisible();
     await expect(page.locator("main").getByRole("link", { name: /شوف المنتجات/ })).toBeVisible();
     await expect(page.locator("main").getByRole("link", { name: /اختار حسب حوضك/ })).toBeVisible();
     await expect(page.getByRole("heading", { name: "ابدأ من احتياج الحوض" })).toBeVisible();
