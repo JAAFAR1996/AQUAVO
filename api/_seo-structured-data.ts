@@ -421,7 +421,44 @@ export function buildCollectionStructuredData(
  * WebPage that was part of nothing. Every page that references them now also
  * defines them.
  */
-export function buildEntityStructuredData(): object[] {
+export function buildEntityStructuredData(options: { includeMerchantPolicies?: boolean } = {}): object[] {
+  const merchantPolicies = options.includeMerchantPolicies
+    ? {
+        hasMerchantReturnPolicy: {
+          "@type": "MerchantReturnPolicy",
+          merchantReturnLink: AQUAVO_ENTITY.returnPolicyUrl,
+        },
+        hasShippingService: {
+          "@type": "ShippingService",
+          "@id": `${AQUAVO_BASE_URL}/#shipping-iraq`,
+          name: "توصيل AQUAVO داخل العراق",
+          description: `توصيل طلبات AQUAVO إلى جميع محافظات العراق بأجرة ثابتة ${AQUAVO_ENTITY.deliveryFee.toLocaleString("en-US")} د.ع.`,
+          fulfillmentType: "https://schema.org/FulfillmentTypeDelivery",
+          shippingConditions: {
+            "@type": "ShippingConditions",
+            shippingDestination: {
+              "@type": "DefinedRegion",
+              addressCountry: AQUAVO_ENTITY.countryCode,
+            },
+            shippingRate: {
+              "@type": "MonetaryAmount",
+              value: AQUAVO_ENTITY.deliveryFee,
+              currency: AQUAVO_ENTITY.currency,
+            },
+            transitTime: {
+              "@type": "ServicePeriod",
+              duration: {
+                "@type": "QuantitativeValue",
+                minValue: 0,
+                maxValue: AQUAVO_ENTITY.deliveryMaxDays,
+                unitCode: "DAY",
+              },
+            },
+          },
+        },
+      }
+    : {};
+
   return [
     {
       "@context": "https://schema.org",
@@ -445,38 +482,7 @@ export function buildEntityStructuredData(): object[] {
       },
       sameAs: [...AQUAVO_ENTITY.socialProfiles],
       knowsAbout: [...AQUAVO_ENTITY.knowsAbout],
-      hasMerchantReturnPolicy: {
-        "@type": "MerchantReturnPolicy",
-        merchantReturnLink: AQUAVO_ENTITY.returnPolicyUrl,
-      },
-      hasShippingService: {
-        "@type": "ShippingService",
-        "@id": `${AQUAVO_BASE_URL}/#shipping-iraq`,
-        name: "توصيل AQUAVO داخل العراق",
-        description: `توصيل طلبات AQUAVO إلى جميع محافظات العراق بأجرة ثابتة ${AQUAVO_ENTITY.deliveryFee.toLocaleString("en-US")} د.ع.`,
-        fulfillmentType: "https://schema.org/FulfillmentTypeDelivery",
-        shippingConditions: {
-          "@type": "ShippingConditions",
-          shippingDestination: {
-            "@type": "DefinedRegion",
-            addressCountry: AQUAVO_ENTITY.countryCode,
-          },
-          shippingRate: {
-            "@type": "MonetaryAmount",
-            value: AQUAVO_ENTITY.deliveryFee,
-            currency: AQUAVO_ENTITY.currency,
-          },
-          transitTime: {
-            "@type": "ServicePeriod",
-            duration: {
-              "@type": "QuantitativeValue",
-              minValue: 0,
-              maxValue: AQUAVO_ENTITY.deliveryMaxDays,
-              unitCode: "DAY",
-            },
-          },
-        },
-      },
+      ...merchantPolicies,
       contactPoint: {
         "@type": "ContactPoint",
         telephone: AQUAVO_ENTITY.telephone,
@@ -533,7 +539,7 @@ export function withSiteEntities(nodes: object[]): object[] {
 
 export function buildHomeStructuredData(products: SeoPreviewProduct[]): object[] {
   return [
-    ...buildEntityStructuredData(),
+    ...buildEntityStructuredData({ includeMerchantPolicies: true }),
     ...buildCollectionStructuredData(products.slice(0, 24), "/", "منتجات AQUAVO"),
   ];
 }
