@@ -624,24 +624,24 @@ function buildPages(payload: AnyRow): PageSpec[] {
   });
 
   pages.push({
-    section: "المقارنة الشهرية",
-    title: "مقارنة الشهر الحالي بالشهر السابق",
-    subtitle: "المقارنة تساعد على فهم الاتجاه؛ عدم وجود شهر سابق صالح لا يُستبدل بقيم مفترضة",
+    section: "02 / MOMENTUM",
+    title: "الشهر الحالي مقابل السابق",
+    subtitle: "بدل جدول جامد، كل مؤشر يبين الرقم الحالي والسابق واتجاه الحركة بسرعة",
     body: previous ? `
-      ${table(["المؤشر", "الشهر الحالي", "الشهر السابق", "التغير"], [
-        ["مبيعات المنتجات", iqd(summary.product_revenue), iqd(previous.product_revenue), esc(moneyDelta(summary.product_revenue, previous.product_revenue))],
-        ["عدد الطلبات", numberValue(summary.realized_orders), numberValue(previous.realized_orders), esc(countDelta(summary.realized_orders, previous.realized_orders))],
-        ["كلفة المنتجات", iqd(summary.cogs), iqd(previous.cogs), esc(moneyDelta(summary.cogs, previous.cogs))],
-        ["كلفة التجهيز", iqd(summary.fulfillment_cost), iqd(previous.fulfillment_cost), esc(moneyDelta(summary.fulfillment_cost, previous.fulfillment_cost))],
-        ["دعم التوصيل", iqd(summary.delivery_subsidy), iqd(previous.delivery_subsidy), esc(moneyDelta(summary.delivery_subsidy, previous.delivery_subsidy))],
-        ["الراجعات", iqd(summary.sales_returns), iqd(previous.sales_returns), esc(moneyDelta(summary.sales_returns, previous.sales_returns))],
-        ["المصاريف الموثقة", iqd(summary.verified_expenses), iqd(previous.verified_expenses), esc(moneyDelta(summary.verified_expenses, previous.verified_expenses))],
-        ["صافي النتيجة الإدارية", iqd(net), iqd(canonicalNetProfit(previous)), esc(moneyDelta(net, canonicalNetProfit(previous)))],
-      ])}
-      ${sectionTitle("تفسير المقارنة")}
-      ${notice("التغير بالنسبة المئوية يصف الحركة فقط ولا يفسر سببها. تفسير السبب يحتاج الرجوع إلى الطلبات، المصاريف، الراجعات والتسويات في الصفحات التالية.", "neutral")}
+      <div class="compare-grid">
+        ${comparisonTile("مبيعات المنتجات", summary.product_revenue, previous.product_revenue, iqd)}
+        ${comparisonTile("عدد الطلبات", summary.realized_orders, previous.realized_orders, numberValue)}
+        ${comparisonTile("كلفة المنتجات", summary.cogs, previous.cogs, iqd, true)}
+        ${comparisonTile("كلفة التجهيز", summary.fulfillment_cost, previous.fulfillment_cost, iqd, true)}
+        ${comparisonTile("دعم التوصيل", summary.delivery_subsidy, previous.delivery_subsidy, iqd, true)}
+        ${comparisonTile("المصاريف الموثقة", summary.verified_expenses, previous.verified_expenses, iqd, true)}
+        ${comparisonTile("الراجعات", summary.sales_returns, previous.sales_returns, iqd, true)}
+        ${comparisonTile("صافي النتيجة", net, canonicalNetProfit(previous), iqd)}
+      </div>
+      ${sectionTitle("كيف تقرأ الحركة؟", "الأخضر يعني اتجاه أفضل وفق طبيعة المؤشر، والأحمر يحتاج انتباه")}
+      ${notice("نسبة التغير تخبرك شنو تحرك، مو ليش تحرك. صفحات الربح والطلبات والمصاريف بعدها تفسر مصدر الحركة.", "neutral")}
     ` : `
-      ${notice("لا توجد فترة سابقة صالحة للمقارنة داخل Accounting V2 لهذه الحزمة. لذلك لم يتم اختراع مقارنة أو استخدام بيانات أرشيفية غير متجانسة.", "warn")}
+      <div class="insight-band"><div class="big">ماكو شهر سابق صالح للمقارنة.</div><div class="micro">حتى يبقى التقرير صادق، ما نخلط بيانات أرشيفية مختلفة ولا نخترع baseline وهمي. أول ما تتوفر فترة متجانسة، المقارنة تظهر تلقائياً هنا.</div></div>
     `,
   });
 
@@ -659,47 +659,51 @@ function buildPages(payload: AnyRow): PageSpec[] {
     ["صافي النتيجة الإدارية", iqd(net), `هامش ${percent(netMargin)}`],
   ];
   pages.push({
-    section: "الأداء المالي",
-    title: "جسر الربح والخسارة",
-    subtitle: "يوضح من أين بدأ الربح وأين انخفض، بدون خلط مصاريف مختلفة أو إخفائها داخل رقم واحد",
+    section: "03 / PROFIT",
+    title: "من المبيعات للربح — وين راحت الفلوس؟",
+    subtitle: "حركة بصرية تبين حجم كل كلفة بالنسبة لباقي البنود، بعدها الجدول يحفظ القراءة المحاسبية الدقيقة",
     body: `
-      ${cards([
-        ["مبيعات المنتجات", iqd(summary.product_revenue)],
-        ["الربح الإجمالي", iqd(gross), `مبيعات − COGS · هامش ${percent(grossMargin)}`],
-        ["صافي حق AQUAVO", iqd(summary.merchant_net), "مؤشر تحصيل/استحقاق تشغيلي"],
-        ["صافي النتيجة الإدارية", iqd(net), `هامش ${percent(netMargin)}`],
-      ], 4)}
-      ${table(["البند", "المبلغ", "كيف يقرأ"], pnlRows)}
-      <div class="formula">Net management result = product revenue + rounding adjustment − COGS − fulfillment − delivery subsidy − sales returns − actual return loss − verified expenses − FX net expense</div>
-      ${notice("هذا الجسر تقرير إدارة ومحاسبة داخلي. لا ندّعي أنه مجموعة قوائم مالية كاملة متوافقة مع IFRS؛ الهدف أن يكون قابلاً للفهم والتدقيق ويحتفظ بالمصادر والتفاصيل.", "neutral")}
+      <div class="insight-band">
+        <div class="big">من ${iqd(summary.product_revenue)} مبيعات، بقى <em>${iqd(net)}</em> كنتيجة إدارية.</div>
+        <div class="micro">الربح الإجمالي قبل التجهيز والتوصيل والمصاريف: ${iqd(gross)} · هامش إجمالي ${percent(grossMargin)} · هامش صافي ${percent(netMargin)}</div>
+      </div>
+      ${barRows([
+        { label: "كلفة المنتجات", value: summary.cogs, note: percent(ratio(summary.cogs, summary.product_revenue)), tone: "navy" },
+        { label: "كلفة التجهيز", value: summary.fulfillment_cost, note: percent(ratio(summary.fulfillment_cost, summary.product_revenue)), tone: "primary" },
+        { label: "دعم التوصيل", value: summary.delivery_subsidy, note: percent(ratio(summary.delivery_subsidy, summary.product_revenue)), tone: "muted" },
+        { label: "الراجعات + خسارتها", value: (finiteNumber(summary.sales_returns) ?? 0) + (finiteNumber(summary.actual_return_loss) ?? 0), note: "الأثر الكلي", tone: "warn" },
+        { label: "المصاريف الموثقة", value: summary.verified_expenses, note: percent(ratio(summary.verified_expenses, summary.product_revenue)), tone: "warn" },
+      ])}
+      ${sectionTitle("القراءة المحاسبية", "نفس القصة بأرقامها المرجعية")}
+      ${table(["البند", "المبلغ", "كيف يقرأ"], pnlRows, "compact")}
+      <div class="formula">Net result = product revenue + rounding − COGS − fulfillment − delivery subsidy − returns − verified expenses − FX</div>
     `,
   });
 
   const completedSettlements = settlements.filter((row) => ["reconciled", "closed"].includes(String(row.status ?? "").toLowerCase()));
   const pendingSettlements = settlements.length - completedSettlements.length;
   pages.push({
-    section: "السيولة والمراكز",
-    title: "لقطة الأرصدة والتحصيل",
-    subtitle: "الأرصدة الحية نقطة زمنية من دفتر الأستاذ؛ تسويات شركات التوصيل تعرض حركة التحصيل المسجلة خلال الفترة",
+    section: "04 / CASH",
+    title: "السيولة وين موجودة؟",
+    subtitle: "أكبر رصيد يطلع بصرياً أولاً، والباقي يبقى قريب حتى تعرف بسرعة شنو نقد وشنو بعهدة الغير وشنو مخزون",
     body: `
+      <div class="cash-focus">
+        <div class="cash-main"><small>COD لدى شركات التوصيل · 1100</small><strong>${iqd(balanceMap.get("1100"))}</strong><span>المبلغ المسلّم للناقل ولم يتحول بعد إلى نقد مستلم حسب دفتر الأستاذ.</span></div>
+        <div class="cash-mini"><small>الصندوق · 1000</small><strong>${iqd(balanceMap.get("1000"))}</strong></div>
+        <div class="cash-mini"><small>البنك · 1010</small><strong>${iqd(balanceMap.get("1010"))}</strong></div>
+        <div class="cash-mini"><small>مخزون المنتجات · 1200</small><strong>${iqd(balanceMap.get("1200"))}</strong></div>
+        <div class="cash-mini"><small>رأس المال · 3100</small><strong>${iqd(balanceMap.get("3100"))}</strong></div>
+      </div>
+      ${sectionTitle("تحصيلات شركات التوصيل", pendingSettlements ? `${pendingSettlements} تسوية بعد تحتاج إغلاق` : "السجلات الظاهرة مكتملة")}
       ${cards([
-        ["الصندوق (1000)", iqd(balanceMap.get("1000"))],
-        ["البنك (1010)", iqd(balanceMap.get("1010"))],
-        ["COD لدى شركات التوصيل (1100)", iqd(balanceMap.get("1100"))],
-        ["مخزون المنتجات (1200)", iqd(balanceMap.get("1200"))],
-        ["مخزون مواد التجهيز (1210)", iqd(balanceMap.get("1210"))],
-        ["رأس المال (3100)", iqd(balanceMap.get("3100"))],
-      ], 3)}
-      ${sectionTitle("تسويات التحصيل المنجزة في الشهر")}
-      ${cards([
-        ["عدد التسويات المنجزة", numberValue(completedSettlements.length)],
-        ["إجمالي COD بالتسويات", iqd(sumKnown(completedSettlements, "gross_amount"))],
+        ["التسويات المنجزة", numberValue(completedSettlements.length)],
+        ["إجمالي COD", iqd(sumKnown(completedSettlements, "gross_amount"))],
         ["أجور الشركات", iqd(sumKnown(completedSettlements, "fees_amount"))],
         ["الصافي المستلم", iqd(sumKnown(completedSettlements, "net_amount"))],
       ], 4)}
-      ${pendingSettlements ? notice(`يوجد ${pendingSettlements} سجل تسوية في الشهر بحالة غير reconciled/closed؛ راجع جدول التسويات التفصيلي.`, "warn") : notice("كل سجلات التسوية الظاهرة في الحزمة منتهية بحالة reconciled/closed.", "ok")}
-      ${sectionTitle("المراكز الشهرية المؤكدة")}
-      ${table(["النوع", "شركة التوصيل", "المبلغ", "الإجمالي", "الأجور", "استقطاع آخر"], monthlyPositions.slice(0, 10).map((row) => [
+      ${pendingSettlements ? notice(`يوجد ${pendingSettlements} سجل تسوية غير reconciled/closed. هذا رقم متابعة، مو اتهام بوجود خطأ.`, "warn") : notice("كل التسويات الظاهرة في الحزمة مغلقة أو مطابقة.", "ok")}
+      ${sectionTitle("آخر المراكز الشهرية المؤكدة")}
+      ${table(["النوع", "شركة التوصيل", "المبلغ", "الإجمالي", "الأجور", "استقطاع آخر"], monthlyPositions.slice(0, 9).map((row) => [
         esc(row.position_type), esc(row.delivery_company_name), iqd(row.amount), iqd(row.gross_amount), iqd(row.fee_amount), iqd(row.other_deduction_amount),
       ]), "compact")}
     `,
@@ -721,43 +725,60 @@ function buildPages(payload: AnyRow): PageSpec[] {
     ["كلفة معادة للمخزون من راجعات معتمدة", iqd(restockCogs), statusChip("تفسير COGS", "neutral")],
     ["كلفة التجهيز: الأستاذ مقابل طلبات مبيعات الشهر", iqd(fulfillmentDiff), fulfillmentDiff != null && Math.abs(fulfillmentDiff) < 0.5 ? statusChip("مطابق", "ok") : statusChip("قد يشمل تعديلات لطلبات أقدم", "warn")],
   ];
+  const reconciliationChecks = [
+    { label: "ميزان اليومية", value: iqd(summary.journal_difference), ok: Math.abs(finiteNumber(summary.journal_difference) ?? Infinity) < 0.5 },
+    { label: "عدد الطلبات", value: `${numberValue(summary.realized_orders)} / ${sales.length.toLocaleString("en-US")}`, ok: finiteNumber(summary.realized_orders) === sales.length },
+    { label: "إيراد المنتجات", value: iqd(revenueDiff), ok: revenueDiff != null && Math.abs(revenueDiff) < 0.5 },
+    { label: "COGS بعد الراجعات", value: iqd(cogsDiff), ok: cogsDiff != null && Math.abs(cogsDiff) < 0.5 },
+    { label: "كلفة التجهيز", value: iqd(fulfillmentDiff), ok: fulfillmentDiff != null && Math.abs(fulfillmentDiff) < 0.5 },
+  ];
   pages.push({
-    section: "الرقابة والمطابقة",
-    title: "هل أرقام الشهر مترابطة؟",
-    subtitle: "اختبارات ربط بين الملخص، الطلبات ودفتر اليومية؛ النتيجة لا تُخفى حتى لو كانت تحتاج مراجعة",
+    section: "05 / CONTROL",
+    title: "هل الأرقام تركب على بعضها؟",
+    subtitle: "صفحة فحص سريعة: الأخضر يعني المطابقة ضمن الهامش، والأحمر يحدد بالضبط وين تحتاج ترجع للتفاصيل",
     body: `
-      ${table(["اختبار المطابقة", "الفرق/القيمة", "النتيجة"], checkRows)}
-      ${sectionTitle("موانع الإغلاق", blockers.length ? `${blockers.length} نوع` : "لا توجد")}
-      ${table(["الفحص", "الوصف", "العدد"], blockers.map((row) => [esc(row.key), esc(row.label), numberValue(row.count)]))}
-      ${sectionTitle("مؤشرات جاهزية إضافية")}
-      ${table(["المؤشر", "القيمة"], [
-        ["طلبات بكلفة غير مكتملة", numberValue(summary.incomplete_cost_orders)],
-        ["طلبات بلا كلفة تجهيز مثبتة", numberValue(summary.missing_fulfillment_orders)],
-        ["طلبات بكلفة تجهيز غير مكتملة", numberValue(summary.incomplete_fulfillment_orders)],
-        ["أخطاء دليل الدفع", numberValue(summary.payment_evidence_errors)],
-        ["طلبات ناقل غير مسواة", numberValue(summary.unsettled_carrier_orders)],
-        ["راجعات غير موثقة بالكامل", numberValue(summary.unverified_returns)],
-        ["مصاريف غير موثقة", numberValue(summary.undocumented_expenses)],
+      <div class="check-list">
+        ${reconciliationChecks.map((check) => `<div class="check-item ${check.ok ? "ok" : "bad"}"><div class="check-icon">${check.ok ? "✓" : "!"}</div><div class="check-copy"><strong>${esc(check.label)}</strong><span>${esc(check.value)}</span></div><div>${statusChip(check.ok ? "مطابق" : "راجع", check.ok ? "ok" : "bad")}</div></div>`).join("")}
+      </div>
+      ${sectionTitle("موانع الإغلاق", blockers.length ? `${blockers.length} نوع يحتاج انتباه` : "ماكو موانع")}
+      ${blockers.length ? table(["الفحص", "الوصف", "العدد"], blockers.map((row) => [esc(row.key), esc(row.label), numberValue(row.count)]), "compact") : notice("الفترة ما بيها موانع إغلاق مسجلة حالياً.", "ok")}
+      ${sectionTitle("أشياء لازم ما تضيع بين الجداول")}
+      ${cards([
+        ["كلفة غير مكتملة", numberValue(summary.incomplete_cost_orders)],
+        ["تجهيز مفقود", numberValue(summary.missing_fulfillment_orders)],
+        ["دليل دفع ناقص", numberValue(summary.payment_evidence_errors)],
+        ["ناقل غير مسوّى", numberValue(summary.unsettled_carrier_orders)],
+        ["راجعات غير موثقة", numberValue(summary.unverified_returns)],
         ["فروقات مخزون", numberValue(summary.inventory_mismatches)],
-      ], "compact")}
+      ], 3)}
+      ${finiteNumber(restockCogs) && Number(restockCogs) > 0 ? notice(`COGS يتضمن معالجة راجعات أعيدت للمخزون بقيمة ${iqd(restockCogs)}؛ لذلك المطابقة تحسبها بشكل مستقل.`, "neutral") : ""}
     `,
   });
 
   const products = aggregateProducts(sales);
+  const topProductBars = products
+    .filter((row) => row.revenueKnown)
+    .slice(0, 7)
+    .map((row) => ({
+      label: `${row.productName}${row.variantLabel ? ` — ${row.variantLabel}` : ""}`,
+      value: Number(row.revenue ?? 0),
+      secondary: `${numberValue(row.quantity)} وحدة · ${numberValue(row.orderCount)} طلب`,
+    }));
   pages.push({
-    section: "تحليل المنتجات",
-    title: "شنو باع هذا الشهر؟",
-    subtitle: "ترتيب حسب إيراد بنود الطلبات المسجل وقت الشراء؛ يحافظ على اسم المنتج والخيار والكمية",
+    section: "06 / PRODUCTS",
+    title: "شنو باع أكثر؟",
+    subtitle: "الأعلى بالإيراد يطلع أولاً كترتيب بصري؛ الجدول تحت يحفظ بقية التفاصيل والمقارنة السريعة",
     body: `
-      ${cards([
-        ["عدد المنتجات/الخيارات المباعة", numberValue(products.length)],
-        ["إجمالي الوحدات", numberValue(products.reduce((s, row) => s + (finiteNumber(row.quantity) ?? 0), 0))],
-        ["أعلى منتج/خيار بالإيراد", products[0] ? esc(`${products[0].productName}${products[0].variantLabel ? ` — ${products[0].variantLabel}` : ""}`) : "لا توجد بيانات"],
-      ], 3)}
-      ${table(["المنتج", "الخيار", "الكمية", "عدد الطلبات", "إيراد البنود"], products.slice(0, 18).map((row) => [
+      <div class="insight-band">
+        <div class="big">${topProductBars[0] ? `الأول هذا الشهر: <em>${esc(topProductBars[0].label)}</em>` : "ماكو مبيعات منتجات قابلة للترتيب."}</div>
+        <div class="micro">منتجات/خيارات مباعة: ${numberValue(products.length)} · إجمالي الوحدات: ${numberValue(products.reduce((total, row) => total + (finiteNumber(row.quantity) ?? 0), 0))}</div>
+      </div>
+      ${topProductBars.length ? rankingBars(topProductBars) : notice("ماكو بنود مبيعات كافية لبناء ترتيب المنتجات.", "neutral")}
+      ${sectionTitle("بقية المنتجات", "للقراءة الدقيقة بعد الصورة السريعة")}
+      ${table(["المنتج", "الخيار", "الكمية", "عدد الطلبات", "إيراد البنود"], products.slice(7, 17).map((row) => [
         esc(row.productName), esc(row.variantLabel || "—"), numberValue(row.quantity), numberValue(row.orderCount), row.revenueKnown ? iqd(row.revenue) : "غير متوفر",
       ]), "compact")}
-      ${products.length > 18 ? notice(`يعرض هذا الملخص أعلى 18 منتج/خيار. جميع البنود تبقى موجودة داخل صفحات كل طلب.`, "neutral") : ""}
+      ${products.length > 17 ? notice(`التقرير البصري يعرض أعلى 17 منتج/خيار هنا؛ كل بند يبقى محفوظ داخل تفاصيل الطلبات لاحقاً.`, "neutral") : ""}
     `,
   });
 
