@@ -343,6 +343,30 @@ function aggregateProducts(sales: AnyRow[]): ProductAggregateView[] {
     .sort((a, b) => (b.revenueKnown ? b.revenue : -1) - (a.revenueKnown ? a.revenue : -1));
 }
 
+function verifiedRestockCogs(returns: AnyRow[]): number {
+  let total = 0;
+  for (const row of returns) {
+    if (String(row.status ?? "").toLowerCase() !== "verified") continue;
+    if (row.restocked !== true) continue;
+    if (String(row.type ?? "").toLowerCase() === "rejected_delivery") continue;
+    for (const item of safeArray(row.affected_items)) {
+      const qty = finiteNumber(item.qty) ?? 0;
+      const cogsAtTime = finiteNumber(item.cogsAtTime) ?? 0;
+      total += qty * cogsAtTime;
+    }
+  }
+  return total;
+}
+
+function orderPeriodContribution(order: AnyRow): number | null {
+  const revenue = finiteNumber(order.product_revenue);
+  const cogs = finiteNumber(order.cogs_amount);
+  const subsidy = finiteNumber(order.delivery_subsidy);
+  const fulfillment = finiteNumber(order.fulfillment_cost);
+  if (revenue == null || cogs == null || subsidy == null || fulfillment == null) return null;
+  return revenue - cogs - subsidy - fulfillment;
+}
+
 function orderItemRows(order: AnyRow, items: AnyRow[]): string[][] {
   return items.map((item) => {
     const qty = finiteNumber(item.quantity);
@@ -374,7 +398,7 @@ function buildOrderDetailPages(order: AnyRow): PageSpec[] {
     ["كلفة المنتجات", iqd(order.cogs_amount), esc(order.cost_status ?? "")],
     ["كلفة التجهيز", iqd(order.fulfillment_cost)],
     ["دعم التوصيل", iqd(order.delivery_subsidy)],
-    ["مساهمة الطلب", iqd(order.contribution_profit)],
+    ["مساهمة الطلب", iqd(orderPeriodContribution(order)), "ضمن فترة التقرير"],
   ];
 
   itemGroups.forEach((items, index) => {
@@ -588,15 +612,18 @@ function buildPages(payload: AnyRow): PageSpec[] {
   const orderRevenueTotal = sumKnown(sales, "product_revenue");
   const orderCogsTotal = sumKnown(sales, "cogs_amount");
   const orderFulfillmentTotal = sumKnown(sales, "fulfillment_cost");
+  const restockCogs = verifiedRestockCogs(returns);
+  const expectedPeriodCogs = orderCogsTotal == null ? null : orderCogsTotal - restockCogs;
   const revenueDiff = finiteNumber(summary.product_revenue) != null && orderRevenueTotal != null ? Number(summary.product_revenue) - orderRevenueTotal : null;
-  const cogsDiff = finiteNumber(summary.cogs) != null && orderCogsTotal != null ? Number(summary.cogs) - orderCogsTotal : null;
+  const cogsDiff = finiteNumber(summary.cogs) != null && expectedPeriodCogs != null ? Number(summary.cogs) - expectedPeriodCogs : null;
   const fulfillmentDiff = finiteNumber(summary.fulfillment_cost) != null && orderFulfillmentTotal != null ? Number(summary.fulfillment_cost) - orderFulfillmentTotal : null;
   const checkRows: string[][] = [
     ["ميزان اليومية", iqd(summary.journal_difference), Math.abs(finiteNumber(summary.journal_difference) ?? Infinity) < 0.5 ? statusChip("مطابق", "ok") : statusChip("يحتاج مراجعة", "bad")],
     ["عدد الطلبات: الملخص مقابل السجل", `${numberValue(summary.realized_orders)} / ${sales.length.toLocaleString("en-US")}`, finiteNumber(summary.realized_orders) === sales.length ? statusChip("مطابق", "ok") : statusChip("يحتاج مراجعة", "bad")],
-    ["إيراد المنتجات: الأستاذ مقابل الطلبات", iqd(revenueDiff), revenueDiff != null && Math.abs(revenueDiff) < 0.5 ? statusChip("مطابق", "ok") : statusChip("يحتاج مراجعة", "bad")],
-    ["COGS: الأستاذ مقابل الطلبات", iqd(cogsDiff), cogsDiff != null && Math.abs(cogsDiff) < 0.5 ? statusChip("مطابق", "ok") : statusChip("يحتاج مراجعة", "bad")],
-    ["كلفة التجهيز: الأستاذ مقابل الطلبات", iqd(fulfillmentDiff), fulfillmentDiff != null && Math.abs(fulfillmentDiff) < 0.5 ? statusChip("مطابق", "ok") : statusChip("يحتاج مراجعة", "bad")],
+    ["إيراد المنتجات: الأستاذ مقابل طلبات الشهر", iqd(revenueDiff), revenueDiff != null && Math.abs(revenueDiff) < 0.5 ? statusChip("مطابق", "ok") : statusChip("يحتاج مراجعة", "bad")],
+    ["COGS: المبيعات ناقص كلفة المعاد للمخزون", iqd(cogsDiff), cogsDiff != null && Math.abs(cogsDiff) < 0.5 ? statusChip("مطابق", "ok") : statusChip("يحتاج مراجعة", "bad")],
+    ["كلفة معادة للمخزون من راجعات معتمدة", iqd(restockCogs), statusChip("تفسير COGS", "neutral")],
+    ["كلفة التجهيز: الأستاذ مقابل طلبات مبيعات الشهر", iqd(fulfillmentDiff), fulfillmentDiff != null && Math.abs(fulfillmentDiff) < 0.5 ? statusChip("مطابق", "ok") : statusChip("قد يشمل تعديلات لطلبات أقدم", "warn")],
   ];
   pages.push({
     section: "الرقابة والمطابقة",
