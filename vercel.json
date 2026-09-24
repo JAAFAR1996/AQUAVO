@@ -337,6 +337,10 @@
       "destination": "/api/index"
     },
     {
+      "source": "/agent/auth/:path*",
+      "destination": "/api/index"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "/api/index"
     },
