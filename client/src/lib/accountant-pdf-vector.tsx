@@ -639,14 +639,15 @@ const styles = StyleSheet.create({
     textAlign: "right",
   },
   compareCurrent: {
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "AqArabic",
+    fontWeight: 700,
     fontSize: 12,
     color: C.navy,
     textAlign: "right",
     marginTop: 4,
   },
   comparePrevious: {
-    fontFamily: "Helvetica",
+    fontFamily: "AqArabic",
     fontSize: 7.5,
     color: C.subtle,
     textAlign: "right",
@@ -1378,7 +1379,7 @@ function WaterfallChart({ summary, net }: { summary: AnyRow; net: number | null 
         {items.map((item) => (
           <View key={item.label} style={{ width: 53, alignItems: "center" }}>
             <Text style={{ fontSize: 5.8, color: C.muted, textAlign: "center" }}>{item.label}</Text>
-            <Text style={{ fontFamily: "Helvetica-Bold", fontSize: 6.1, color: C.navy, marginTop: 2 }}>
+            <Text style={{ fontFamily: "AqArabic", fontWeight: 700, fontSize: 6.1, color: C.navy, marginTop: 2 }}>
               {compactMoney(item.end)}
             </Text>
           </View>
