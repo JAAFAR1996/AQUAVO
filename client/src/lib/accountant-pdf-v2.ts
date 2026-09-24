@@ -1,8 +1,9 @@
 import { jsPDF } from "jspdf";
-import { toPng } from "html-to-image";
+import { getFontEmbedCSS, toJpeg } from "html-to-image";
 
 type AnyRow = Record<string, any>;
 type PageSpec = { title: string; subtitle: string; body: string; section?: string };
+export type AccountantPdfProgress = { current: number; total: number; stage: "preparing" | "rendering" | "saving" };
 
 const BRAND = {
   primary: "#0B93A6",
@@ -165,7 +166,9 @@ function pageHtml(
     ${draft ? `<div class="watermark">مسودة</div>` : ""}
     <header>
       <div class="brand">
-        <img src="/brand/aquavo-v2-horizontal.svg" alt="AQUAVO">
+        ${meta.page === 1
+          ? '<img src="/brand/aquavo-v2-horizontal.svg" alt="AQUAVO">'
+          : '<div class="wordmark">AQUAVO</div>'}
         <div class="issuer">تقرير داخلي صادر عن ${esc(meta.legalName)} <span>— ${esc(meta.legalNameEn)}</span></div>
       </div>
       <div class="meta">
@@ -191,7 +194,7 @@ const STYLE = `
   *{box-sizing:border-box}
   .aqv-page{position:relative;width:794px;height:1123px;overflow:hidden;background:${BRAND.light};color:${BRAND.text};padding:32px 38px 34px;font-family:Cairo,Arial,sans-serif}
   header{display:flex;justify-content:space-between;align-items:flex-start;gap:24px}
-  .brand img{width:185px;height:50px;object-fit:contain;object-position:right center}
+  .brand img{width:185px;height:50px;object-fit:contain;object-position:right center}.wordmark{height:50px;display:flex;align-items:center;font:900 23px Inter,Arial,sans-serif;letter-spacing:-.8px;color:${BRAND.navy}}
   .issuer{font-size:10px;color:${BRAND.muted};margin-top:6px}
   .issuer span{font-family:Inter,Arial,sans-serif;direction:ltr;display:inline-block}
   .meta{text-align:left;display:grid;gap:3px;color:${BRAND.muted};font-family:Inter,Cairo,Arial,sans-serif}
@@ -224,8 +227,13 @@ const STYLE = `
   .chip.ok{background:${BRAND.okBg};color:#16624E}.chip.warn{background:${BRAND.warningBg};color:#8A4E13}.chip.bad{background:${BRAND.dangerBg};color:#8D2D2D}
   .story{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}.story-item{background:${BRAND.paper};border:1px solid ${BRAND.border};border-right:4px solid ${BRAND.primary};border-radius:8px;padding:9px 10px;line-height:1.7}.story-item strong{color:${BRAND.navy}}
   .formula{font-family:Inter,Cairo,Arial,sans-serif;direction:ltr;text-align:center;background:#F2F5F5;border:1px dashed ${BRAND.border};border-radius:7px;padding:7px;margin:7px 0 10px;color:#374151;font-size:8px}
-  .order-head{background:${BRAND.navy};color:white;border-radius:10px;padding:12px 14px;margin-bottom:10px;display:flex;justify-content:space-between;gap:12px}.order-head strong{font-size:17px}.order-head span{font-size:8.5px;color:#CFE3E5}
-  .order-meta{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:9px}.order-meta div{background:${BRAND.paper};border:1px solid ${BRAND.border};border-radius:7px;padding:7px}.order-meta small{display:block;color:${BRAND.muted};font-size:7.5px}.order-meta b{display:block;color:${BRAND.navy};font-size:9px;margin-top:2px}
+  .order-block{background:${BRAND.paper};border:1px solid ${BRAND.border};border-radius:9px;padding:8px 9px;margin-bottom:8px;break-inside:avoid}
+  .order-block:last-child{margin-bottom:0}.order-block .order-head{background:${BRAND.navy};color:white;border-radius:7px;padding:7px 9px;margin-bottom:6px;display:flex;justify-content:space-between;gap:10px}
+  .order-block .order-head strong{font-size:11px}.order-block .order-head span{font-size:7px;color:#CFE3E5}.order-block .order-customer{text-align:left}
+  .order-meta-line{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:5px}.order-meta-line div{background:#F7F7F4;border-radius:5px;padding:4px 5px}
+  .order-meta-line small{display:block;color:${BRAND.muted};font-size:6.7px}.order-meta-line b{display:block;color:${BRAND.navy};font-size:7.5px;margin-top:1px}
+  .order-financials{margin-bottom:5px}.order-financials td,.order-financials th{font-size:6.8px;padding:3px 4px}
+  .order-adjustments{font-size:6.8px;color:${BRAND.muted};margin-top:4px;line-height:1.45}
   .watermark{position:absolute;left:145px;top:450px;transform:rotate(-25deg);font:900 88px Cairo,Arial,sans-serif;color:rgba(201,122,46,.065);z-index:0;pointer-events:none}
   .aqv-page>*{position:relative;z-index:1}
   footer{position:absolute;right:38px;left:38px;bottom:18px;border-top:1px dashed ${BRAND.border};padding-top:6px;display:grid;gap:1px;text-align:center;color:${BRAND.muted};font-size:7px}
@@ -379,62 +387,88 @@ function orderItemRows(order: AnyRow, items: AnyRow[]): string[][] {
   });
 }
 
-function buildOrderDetailPages(order: AnyRow): PageSpec[] {
-  const pages: PageSpec[] = [];
-  const allItems = safeArray(order.items);
-  const itemGroups = chunks(allItems, 8);
-  const address = safeObject(order.shipping_address);
-  const financialCards: Array<[string, string, string?]> = [
-    ["مبيعات المنتجات", iqd(order.product_revenue)],
-    ["COD الإجمالي", iqd(order.gross_collected)],
-    ["توصيل الزبون", iqd(order.customer_delivery_fee)],
-    ["أجرة شركة التوصيل", iqd(order.carrier_fee)],
-    ["كلفة المنتجات", iqd(order.cogs_amount), esc(order.cost_status ?? "")],
-    ["كلفة التجهيز", iqd(order.fulfillment_cost)],
-    ["دعم التوصيل", iqd(order.delivery_subsidy)],
-    ["مساهمة الطلب", iqd(orderPeriodContribution(order)), "ضمن فترة التقرير"],
-  ];
+type OrderDetailPart = {
+  order: AnyRow;
+  items: AnyRow[];
+  partIndex: number;
+  partCount: number;
+  weight: number;
+};
 
-  itemGroups.forEach((items, index) => {
-    const first = index === 0;
-    pages.push({
-      section: "تفاصيل الطلبات",
-      title: first
-        ? `تفاصيل الطلب ${order.order_number ?? order.order_id ?? "—"}`
-        : `تفاصيل الطلب ${order.order_number ?? order.order_id ?? "—"} — تكملة`,
-      subtitle: first
-        ? "ملف تدقيق داخلي للطلب: الحالة، المبالغ، الكلفة، التسوية، والمواد المباعة"
-        : `تكملة بنود الطلب · الجزء ${index + 1} من ${itemGroups.length}`,
-      body: first ? `
-        <div class="order-head">
-          <div><strong>${esc(order.order_number ?? order.order_id ?? "—")}</strong><br><span>تحقق الإيراد: ${dateBaghdad(order.recognized_at)}</span></div>
-          <div style="text-align:left"><span>العميل</span><br><strong style="font-size:12px">${esc(order.customer_name ?? "غير مسجل")}</strong></div>
-        </div>
-        <div class="order-meta">
-          <div><small>مصدر الطلب</small><b>${esc(order.source ?? "—")}</b></div>
-          <div><small>حالة الطلب</small><b>${esc(order.status ?? "—")}</b></div>
-          <div><small>حالة الدفع</small><b>${esc(order.payment_status ?? "—")}</b></div>
-          <div><small>التسوية</small><b>${esc(order.settlement_status ?? "—")}</b></div>
-          <div><small>شركة التوصيل المحاسبية</small><b>${esc(order.accounting_carrier ?? order.operational_carrier ?? "—")}</b></div>
-          <div><small>المدينة</small><b>${esc(address.city ?? "—")}</b></div>
-          <div><small>إنشاء الطلب</small><b>${dateOnly(order.order_created_at)}</b></div>
-          <div><small>عدد البنود</small><b>${numberValue(allItems.length)}</b></div>
-        </div>
-        ${cards(financialCards, 4)}
-        ${sectionTitle("بنود الطلب", `${allItems.length} بند/خيار مسجل`)}
-        ${table(["المنتج", "الخيار", "الكمية", "سعر الوحدة", "إجمالي السطر", "كلفة المنتج/وحدة", "حالة الكلفة"], orderItemRows(order, items), "compact")}
-        ${sectionTitle("تعديلات الطلب")}
-        ${table(["الإجمالي عند الإنشاء", "بعد التقريب", "الخصم", "خصم النقاط", "نقاط مستخدمة", "Cashback مستخدم", "فرق/نقاط التقريب"], [[
-          iqd(order.order_total), iqd(order.rounded_total), iqd(order.discount_total), iqd(order.points_discount),
-          numberValue(order.points_used), numberValue(order.cashback_used), numberValue(order.rounding_cashback),
-        ]], "compact")}
-      ` : `
-        ${notice(`هذه الصفحة تكملة لبنود الطلب ${order.order_number ?? order.order_id ?? "—"} فقط؛ الأرقام المالية الإجمالية موجودة في الصفحة الأولى للطلب.`, "neutral")}
-        ${table(["المنتج", "الخيار", "الكمية", "سعر الوحدة", "إجمالي السطر", "كلفة المنتج/وحدة", "حالة الكلفة"], orderItemRows(order, items), "compact")}
-      `,
-    });
-  });
-  return pages;
+function splitOrderDetailParts(order: AnyRow): OrderDetailPart[] {
+  const allItems = safeArray(order.items);
+  const itemGroups = chunks(allItems, 6);
+  return itemGroups.map((items, partIndex) => ({
+    order,
+    items,
+    partIndex,
+    partCount: itemGroups.length,
+    weight: (partIndex === 0 ? 3.3 : 1.7) + Math.max(1, items.length) * 0.72,
+  }));
+}
+
+function orderDetailBlock(part: OrderDetailPart): string {
+  const { order, items, partIndex, partCount } = part;
+  const first = partIndex === 0;
+  const allItems = safeArray(order.items);
+  const address = safeObject(order.shipping_address);
+  const orderNo = order.order_number ?? order.order_id ?? "—";
+  const contribution = orderPeriodContribution(order);
+
+  return `<div class="order-block">
+    <div class="order-head">
+      <div><strong>${esc(orderNo)}${partCount > 1 ? ` · ${partIndex + 1}/${partCount}` : ""}</strong><br><span>تحقق الإيراد: ${dateBaghdad(order.recognized_at)}</span></div>
+      <div class="order-customer"><span>العميل</span><br><strong>${esc(order.customer_name ?? "غير مسجل")}</strong></div>
+    </div>
+    ${first ? `
+      <div class="order-meta-line">
+        <div><small>المصدر / الحالة</small><b>${esc(order.source ?? "—")} · ${esc(order.status ?? "—")}</b></div>
+        <div><small>الدفع / التسوية</small><b>${esc(order.payment_status ?? "—")} · ${esc(order.settlement_status ?? "—")}</b></div>
+        <div><small>الناقل / المدينة</small><b>${esc(order.accounting_carrier ?? order.operational_carrier ?? "—")} · ${esc(address.city ?? "—")}</b></div>
+        <div><small>تاريخ الطلب / البنود</small><b>${dateOnly(order.order_created_at)} · ${numberValue(allItems.length)}</b></div>
+      </div>
+      ${table(
+        ["مبيعات", "COD", "توصيل الزبون", "أجرة الناقل", "COGS", "تجهيز", "دعم توصيل", "مساهمة"],
+        [[
+          iqd(order.product_revenue), iqd(order.gross_collected), iqd(order.customer_delivery_fee), iqd(order.carrier_fee),
+          iqd(order.cogs_amount), iqd(order.fulfillment_cost), iqd(order.delivery_subsidy), iqd(contribution),
+        ]],
+        "compact order-financials",
+      )}
+    ` : ""}
+    ${table(
+      ["المنتج", "الخيار", "الكمية", "سعر الوحدة", "إجمالي السطر", "كلفة/وحدة", "حالة الكلفة"],
+      orderItemRows(order, items),
+      "compact",
+    )}
+    ${first ? `<div class="order-adjustments">الإجمالي عند الإنشاء: <b>${iqd(order.order_total)}</b> · بعد التقريب: <b>${iqd(order.rounded_total)}</b> · الخصم: <b>${iqd(order.discount_total)}</b> · خصم النقاط: <b>${iqd(order.points_discount)}</b> · نقاط مستخدمة: <b>${numberValue(order.points_used)}</b> · Cashback مستخدم: <b>${numberValue(order.cashback_used)}</b> · فرق/نقاط التقريب: <b>${numberValue(order.rounding_cashback)}</b></div>` : ""}
+  </div>`;
+}
+
+function buildPackedOrderDetailPages(sales: AnyRow[]): PageSpec[] {
+  const parts = sales.flatMap(splitOrderDetailParts);
+  const groups: OrderDetailPart[][] = [];
+  let current: OrderDetailPart[] = [];
+  let weight = 0;
+  const maxWeight = 10.4;
+
+  for (const part of parts) {
+    if (current.length && weight + part.weight > maxWeight) {
+      groups.push(current);
+      current = [];
+      weight = 0;
+    }
+    current.push(part);
+    weight += part.weight;
+  }
+  if (current.length) groups.push(current);
+
+  return groups.map((group, index) => ({
+    section: "تفاصيل الطلبات",
+    title: "تفاصيل الطلبات — سجل التدقيق",
+    subtitle: `الجزء ${index + 1} من ${groups.length} · تفاصيل كل طلب محفوظة، لكن عدة طلبات صغيرة تُجمع في الصفحة لتسريع التوليد`,
+    body: group.map(orderDetailBlock).join(""),
+  }));
 }
 
 function buildPages(payload: AnyRow): PageSpec[] {
@@ -671,11 +705,11 @@ function buildPages(payload: AnyRow): PageSpec[] {
     "الطلبات",
   );
 
-  for (const order of sales) pages.push(...buildOrderDetailPages(order));
+  pages.push(...buildPackedOrderDetailPages(sales));
 
   appendChunkPages(
     pages,
-    chunks(expenses, 16),
+    chunks(expenses, 20),
     "المصاريف",
     (index) => `الجزء ${index + 1} · الموثق والمعلق يظهران منفصلين بحالتهما الأصلية`,
     ["التاريخ", "الفئة", "الجهة", "الوصف", "المبلغ", "الحالة", "المعالجة الضريبية"],
@@ -688,7 +722,7 @@ function buildPages(payload: AnyRow): PageSpec[] {
 
   appendChunkPages(
     pages,
-    chunks(returns, 15),
+    chunks(returns, 18),
     "الراجعات والخسائر",
     (index) => `الجزء ${index + 1} · لا يتم دمج رد المبلغ مع شطب المنتج أو خسارة التغليف`,
     ["الطلب", "النوع", "الحالة", "رد المبلغ", "التغليف", "شطب المنتج", "أعيد للمخزون", "التحديث"],
@@ -701,7 +735,7 @@ function buildPages(payload: AnyRow): PageSpec[] {
 
   appendChunkPages(
     pages,
-    chunks(settlements, 14),
+    chunks(settlements, 18),
     "تسويات شركات التوصيل",
     (index) => `الجزء ${index + 1} · gross = fees + net في السجلات المحمية بقيود النظام`,
     ["رقم التسوية", "الشركة", "التاريخ", "الإجمالي", "الأجور", "الصافي", "الحالة"],
@@ -715,7 +749,7 @@ function buildPages(payload: AnyRow): PageSpec[] {
   const journalLines = flattenJournal(journal);
   appendChunkPages(
     pages,
-    chunks(journalLines, 18),
+    chunks(journalLines, 24),
     "دفتر اليومية التفصيلي",
     (index) => `الجزء ${index + 1} · كل سطر يوضح الحساب المدين/الدائن والمصدر`,
     ["القيد", "التاريخ", "المصدر", "الحساب", "البيان", "مدين", "دائن"],
@@ -728,7 +762,7 @@ function buildPages(payload: AnyRow): PageSpec[] {
 
   appendChunkPages(
     pages,
-    chunks(openingInventory, 18),
+    chunks(openingInventory, 24),
     "تفصيل المخزون الافتتاحي",
     (index) => `الجزء ${index + 1} · مرجع القطع المحاسبي 1 آب 2026`,
     ["المنتج", "المتغير", "الكمية", "كلفة الوحدة", "القيمة", "مصدر الكلفة"],
@@ -767,7 +801,7 @@ function buildPages(payload: AnyRow): PageSpec[] {
   if (evidenceIndex.length > 12) {
     appendChunkPages(
       pages,
-      chunks(evidenceIndex.slice(12), 18),
+      chunks(evidenceIndex.slice(12), 24),
       "فهرس الأدلة — تكملة",
       (index) => `الجزء ${index + 1}`,
       ["النوع", "الجهة", "رقم المستند", "التاريخ", "المبلغ", "المصدر"],
@@ -801,18 +835,30 @@ function buildPages(payload: AnyRow): PageSpec[] {
   return pages;
 }
 
-export async function downloadAccountantPdfV2(payload: AnyRow): Promise<void> {
+function yieldToBrowser(): Promise<void> {
+  return new Promise((resolve) => requestAnimationFrame(() => resolve()));
+}
+
+export async function downloadAccountantPdfV2(
+  payload: AnyRow,
+  onProgress?: (progress: AccountantPdfProgress) => void,
+): Promise<void> {
   validateAccountantPayload(payload);
   await document.fonts?.ready;
   const pages = buildPages(payload);
+  onProgress?.({ current: 0, total: pages.length, stage: "preparing" });
+
   const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4", compress: true });
   const host = document.createElement("div");
   host.style.cssText = "position:fixed;left:-10000px;top:0;width:794px;z-index:-1";
   document.body.appendChild(host);
+  let fontEmbedCSS: string | undefined;
 
   try {
     for (let index = 0; index < pages.length; index += 1) {
       const spec = pages[index];
+      onProgress?.({ current: index + 1, total: pages.length, stage: "rendering" });
+
       host.innerHTML = `<style>${STYLE}</style>${pageHtml(spec.title, spec.subtitle, spec.body, {
         period: String(payload.manifest?.periodKey ?? "—"),
         status: payload.manifest?.taxFinal ? "tax_final" : "draft",
@@ -822,17 +868,37 @@ export async function downloadAccountantPdfV2(payload: AnyRow): Promise<void> {
         legalNameEn: String(payload.manifest?.legalNameEn ?? "AL NABEA SHOP"),
         section: spec.section,
       })}`;
+
       const page = host.querySelector<HTMLElement>(".aqv-page");
       if (!page) throw new Error("تعذر تجهيز صفحة PDF");
+
       const images = Array.from(page.querySelectorAll("img"));
       await Promise.all(images.map((img) => img.complete ? Promise.resolve() : new Promise<void>((resolve) => {
         img.onload = () => resolve();
         img.onerror = () => resolve();
       })));
-      const dataUrl = await toPng(page, { pixelRatio: 1.7, backgroundColor: BRAND.light, cacheBust: true });
+
+      if (fontEmbedCSS == null) {
+        fontEmbedCSS = await getFontEmbedCSS(page);
+      }
+
+      const dataUrl = await toJpeg(page, {
+        quality: 0.9,
+        pixelRatio: 1.22,
+        backgroundColor: BRAND.light,
+        cacheBust: false,
+        preferredFontFormat: "woff2",
+        fontEmbedCSS,
+      });
+
       if (index > 0) pdf.addPage();
-      pdf.addImage(dataUrl, "PNG", 0, 0, 210, 297, undefined, "FAST");
+      pdf.addImage(dataUrl, "JPEG", 0, 0, 210, 297, undefined, "FAST");
+
+      // Keep the admin UI responsive and allow the progress label to repaint.
+      await yieldToBrowser();
     }
+
+    onProgress?.({ current: pages.length, total: pages.length, stage: "saving" });
     pdf.save(`AQUAVO-Accounting-${payload.manifest?.periodKey ?? "period"}.pdf`);
   } finally {
     host.remove();
