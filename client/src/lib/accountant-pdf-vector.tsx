@@ -1966,7 +1966,7 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
         <View style={styles.hero}>
           <View style={styles.heroCopy}>
             <Text style={styles.heroEyebrow}>AQUAVO MONTHLY FINANCIAL ANALYSIS</Text>
-            <Text style={styles.heroTitle}>شنو صار بهذا الشهر؟ من المبيعات إلى صافي النتيجة.</Text>
+            <Text style={styles.heroTitle}>ملخص الأداء المالي: من المبيعات إلى صافي النتيجة.</Text>
             <Text style={styles.heroNote}>
               تقرير بصري مبني على دفتر الأستاذ، حقائق الطلبات، التسويات والمصاريف الموثقة. الأرقام الناقصة تبقى ظاهرة ولا تتحول تلقائياً إلى صفر.
             </Text>
@@ -2178,7 +2178,7 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
       <ReportPage
         payload={payload}
         section="04 · السيولة والتحصيل"
-        title="وين موجودة السيولة حالياً؟"
+        title="السيولة والتحصيل — أين تتركز الأرصدة؟"
         subtitle="الأرصدة الحية من دفتر الأستاذ، مع فصل النقد والبنك وCOD والمخزون"
       >
         <View style={styles.twoCol}>
@@ -2259,7 +2259,7 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
       <ReportPage
         payload={payload}
         section="05 · المبيعات والمنتجات"
-        title="شنو باع أكثر؟ ومنين إجت الطلبات؟"
+        title="تحليل المبيعات والمنتجات ومصادر الطلبات"
         subtitle="ترتيب المنتجات حسب إيراد بنود الطلبات، مع توزيع مصادر الطلبات وحالة التسوية"
       >
         <View style={styles.twoCol}>
@@ -2383,7 +2383,7 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
           key={"order-detail-" + index}
           payload={payload}
           section="08 · تدقيق الطلبات"
-          title="من جوّه كل طلب — سجل التدقيق"
+          title="تفاصيل الطلبات — سجل التدقيق"
           subtitle={"جزء " + String(index + 1) + " من " + String(orderPartGroups.length) + " · السعر والكلفة والخصم وحالة التسوية محفوظة على مستوى الطلب"}
         >
           {group.map((part, partIndex) => <OrderCard key={String(partIndex) + String(part.order.order_id)} part={part} />)}
@@ -2393,7 +2393,7 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
       <AppendixTablePages
         payload={payload}
         section="09 · المصاريف"
-        title="المصاريف — وين صرفنا؟"
+        title="تحليل المصروفات"
         subtitle="الموثق والمعلق يظهران كل واحد بحالته الأصلية"
         pageSize={14}
         columns={[
@@ -2411,7 +2411,7 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
       <AppendixTablePages
         payload={payload}
         section="10 · الراجعات"
-        title="الراجعات — شنو رجع وشكد أثر؟"
+        title="المرتجعات وأثرها المالي"
         subtitle="رد المبلغ منفصل عن خسارة التغليف وشطب المنتج وإعادة المخزون"
         pageSize={15}
         columns={[
@@ -2430,7 +2430,7 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
       <AppendixTablePages
         payload={payload}
         section="11 · التحصيل"
-        title="تسويات شركات التوصيل — شنو دخل وشنو انخصم؟"
+        title="تسويات شركات التوصيل والتحصيل"
         subtitle="Gross وFees وNet تبقى منفصلة حتى يمكن مراجعة كل تسوية"
         pageSize={16}
         columns={[
