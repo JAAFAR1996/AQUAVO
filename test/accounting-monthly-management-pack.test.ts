@@ -31,41 +31,46 @@ describe("accounting monthly management pack", () => {
     expect(source).not.toContain("o.items");
   });
 
-  it("keeps PDF generation bounded enough for a large monthly pack", () => {
-    const pdf = read("client/src/lib/accountant-pdf-v2.ts");
+  it("uses a true-vector PDF renderer instead of rasterizing every page", () => {
+    const wrapper = read("client/src/lib/accountant-pdf-v2.ts");
+    const pdf = read("client/src/lib/accountant-pdf-vector.tsx");
     const ui = read("client/src/components/admin/finance-accounting-register-v2.tsx");
-    expect(pdf).toContain("buildPackedOrderDetailPages");
-    expect(pdf).toContain("getFontEmbedCSS");
-    expect(pdf).toContain("toJpeg");
-    expect(pdf).toContain("pixelRatio: 1.22");
-    expect(pdf).toContain("cacheBust: false");
-    expect(pdf).toContain("preferredFontFormat: \"woff2\"");
-    expect(pdf).not.toContain("for (const order of sales) pages.push(...buildOrderDetailPages(order))");
-    expect(ui).toContain("جاري بناء PDF");
-    expect(ui).toContain("pdfProgress.current");
-    expect(ui).toContain("pdfProgress.total");
+    expect(wrapper).toContain('from "./accountant-pdf-vector"');
+    expect(pdf).toContain('from "@react-pdf/renderer"');
+    expect(pdf).toContain("Svg");
+    expect(pdf).toContain("DonutChart");
+    expect(pdf).toContain("WaterfallChart");
+    expect(pdf).toContain("GanttTimeline");
+    expect(pdf).toContain("AccountingFlow");
+    expect(pdf).not.toContain("html-to-image");
+    expect(pdf).not.toContain("jsPDF");
+    expect(pdf).not.toContain("toJpeg");
+    expect(ui).toContain("جاري بناء التقرير المتجهي");
   });
 
-  it("presents summary, comparison, reconciliation, product and per-order detail", () => {
-    const pdf = read("client/src/lib/accountant-pdf-v2.ts");
+  it("presents full accountant analysis plus detailed audit appendices", () => {
+    const pdf = read("client/src/lib/accountant-pdf-vector.tsx");
     for (const phrase of [
-      "الشهر بنظرة وحدة",
-      "الشهر الحالي مقابل السابق",
-      "من المبيعات للربح — وين راحت الفلوس؟",
-      "هل الأرقام تركب على بعضها؟",
-      "شنو باع أكثر؟",
-      "كل الطلبات — خريطة الشهر",
-      "من جوّه كل طلب — سجل التدقيق",
+      "التحليل المالي الشهري",
+      "جسر الربحية",
+      "توزيع نتيجة الشهر وبنود التكلفة",
+      "قراءة الربح والتكاليف",
+      "هذا الشهر مقابل الشهر السابق",
+      "السيولة والتحصيل — أين تتركز الأرصدة؟",
+      "تحليل المبيعات والمنتجات ومصادر الطلبات",
+      "مسار الإقفال الشهري وفحوص المطابقة",
+      "Gantt",
+      "كل الطلبات المتحققة خلال الشهر",
+      "تفاصيل الطلبات — سجل التدقيق",
+      "تحليل المصروفات",
+      "المرتجعات وأثرها المالي",
       "دفتر اليومية — أثر كل حركة",
-      "شلون تنقري الأرقام؟",
-      "comparisonTile",
-      "barRows",
-      "rankingBars",
-      "motion-rail",
+      "فهرس المستندات والأدلة",
+      "منهجية الجودة",
     ]) expect(pdf).toContain(phrase);
-    expect(pdf).toContain("القيم المفقودة لا تُستبدل بأصفار");
-    expect(pdf).toContain("وليس بيان IFRS مستقل");
     expect(pdf).toContain("verifiedRestockCogs");
     expect(pdf).toContain("orderPeriodContribution");
+    expect(pdf).toContain("غير متوفر");
+    expect(pdf).toContain("غير مدقق");
   });
 });
