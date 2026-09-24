@@ -41,6 +41,57 @@ jobs:
           echo "Production agent_auth metadata did not become reachable." >&2
           exit 1
 
+      - name: Prove external A2A catalog works
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/a2a-smoke
+
+          curl -fsS --max-time 30 \
+            https://www.aquavoiq.com/.well-known/agent-card.json \
+            -o artifacts/a2a-smoke/agent-card.json
+
+          HTTP_CODE="$(curl -sS --max-time 30 \
+            -o artifacts/a2a-smoke/response.json \
+            -D artifacts/a2a-smoke/headers.txt \
+            -w '%{http_code}' \
+            -X POST https://www.aquavoiq.com/api/a2a/message:send \
+            -H 'Content-Type: application/json' \
+            -H 'Accept: application/json' \
+            --data '{"message":{"messageId":"github-a2a-smoke","role":"ROLE_USER","parts":[{"text":"Search for YEE"}]}}')"
+
+          echo "A2A HTTP status: $HTTP_CODE"
+          cat artifacts/a2a-smoke/response.json
+          test "$HTTP_CODE" = "200"
+
+          node <<'NODE'
+          const fs = require("node:fs");
+          const card = JSON.parse(fs.readFileSync("artifacts/a2a-smoke/agent-card.json", "utf8"));
+          const response = JSON.parse(fs.readFileSync("artifacts/a2a-smoke/response.json", "utf8"));
+          const headers = fs.readFileSync("artifacts/a2a-smoke/headers.txt", "utf8").toLowerCase();
+
+          if (card.name !== "AQUAVO Catalog Agent") throw new Error("Unexpected A2A Agent Card");
+          if (!Array.isArray(card.skills) || !card.skills.some((s) => s.id === "search-products")) {
+            throw new Error("search-products skill not advertised");
+          }
+          if (!headers.includes("a2a-version: 1.0")) throw new Error("Missing A2A-Version: 1.0");
+
+          const message = response.message;
+          if (!message || message.role !== "ROLE_AGENT" || !Array.isArray(message.parts)) {
+            throw new Error("Invalid A2A agent response");
+          }
+          const text = message.parts.map((p) => p?.text || "").join("\n");
+          if (!text.includes('AQUAVO public catalog matches for "YEE"')) {
+            throw new Error("A2A endpoint did not return live YEE catalog matches");
+          }
+          if (!text.includes("Data above comes from AQUAVO's sanitized public product boundary.")) {
+            throw new Error("A2A public-data boundary marker missing");
+          }
+
+          console.log("\nA2A EXTERNAL SMOKE TEST: PASS");
+          console.log(text);
+          NODE
+
       - name: Run official Agent Readiness scanner
         id: scan
         shell: bash
@@ -100,6 +151,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: aquavo-agent-readiness-${{ github.run_number }}
-          path: artifacts/agent-readiness/report.json
+          path: |
+            artifacts/agent-readiness/report.json
+            artifacts/a2a-smoke/
           if-no-files-found: warn
           retention-days: 30
