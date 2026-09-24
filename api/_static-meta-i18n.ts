@@ -103,7 +103,7 @@ const EN: Record<string, LocalizedStaticMeta> = {
   },
   "/about": {
     title: "About Us — AQUAVO Aquarium Supplies Store in Iraq",
-    description: "AQUAVO is an Iraqi online store specialising in aquarium equipment and supplies, with delivery across Iraq and cash on delivery or online payment.",
+    description: "AQUAVO is an Iraqi online store specialising in freshwater aquarium equipment and supplies, with delivery across Iraq and cash on delivery or online payment.",
   },
   "/about-aquavo": {
     title: "About Us — AQUAVO Aquarium Supplies Store in Iraq",
@@ -111,7 +111,7 @@ const EN: Record<string, LocalizedStaticMeta> = {
   },
   "/why-aquavo": {
     title: "Why AQUAVO — Aquarium Supplies Store in Iraq",
-    description: "Why do aquarium keepers in Iraq choose AQUAVO? Genuine products as available, delivery to every governorate, technical support and clear prices.",
+    description: "AQUAVO is an Iraqi online aquarium supplies store with clear product information, delivery to every governorate, technical support and clear prices.",
   },
   "/contact": {
     title: "Contact AQUAVO | AQUAVO",
@@ -123,7 +123,7 @@ const EN: Record<string, LocalizedStaticMeta> = {
   },
   "/sustainability": {
     title: "Sustainability at AQUAVO — Responsible Aquarium Keeping in Iraq",
-    description: "How AQUAVO approaches responsible aquarium keeping: efficient equipment, less waste and honest guidance.",
+    description: "How AQUAVO approaches responsible aquarium keeping through correct equipment sizing, regular maintenance, water testing and reducing unnecessary waste.",
   },
   "/ai-tools": {
     title: "AI Aquarium Tools | AQUAVO",
@@ -224,15 +224,15 @@ const CKB: Record<string, LocalizedStaticMeta> = {
   },
   "/about": {
     title: "ئێمە کێین — AQUAVO فرۆشگای پێداویستییەکانی حەوزی ماسی لە عێراق",
-    description: "AQUAVO براند و فرۆشگایەکی عێراقییە پسپۆڕ لە کەرەستە و پێداویستییە پرێمیەمەکانی حەوزی ماسی، لەگەڵ گەیاندن بۆ هەموو عێراق و پارەدان لە کاتی وەرگرتن.",
+    description: "AQUAVO فرۆشگایەکی ئۆنلاینی عێراقییە تایبەتمەند بە کەرەستە و پێداویستییەکانی حەوزی ئاوی شیرین، لەگەڵ گەیاندن بۆ هەموو عێراق و پارەدان لە کاتی وەرگرتن.",
   },
   "/about-aquavo": {
     title: "ئێمە کێین — AQUAVO فرۆشگای پێداویستییەکانی حەوزی ماسی لە عێراق",
     description: "AQUAVO براند و فرۆشگایەکی عێراقییە پسپۆڕ لە کەرەستە و پێداویستییە پرێمیەمەکانی حەوزی ماسی، لەگەڵ گەیاندن بۆ هەموو عێراق و پارەدان لە کاتی وەرگرتن.",
   },
   "/why-aquavo": {
-    title: "بۆچی AQUAVO — فرۆشگایەکی پرێمیەم بۆ پێداویستییەکانی حەوز لە عێراق",
-    description: "بۆچی خاوەن حەوزەکان لە عێراق AQUAVO هەڵدەبژێرن؟ بەرهەمی ڕەسەن بەپێی بەردەستی، گەیاندن بۆ هەموو پارێزگاکان، پشتگیری تەکنیکی و نرخی ڕوون.",
+    title: "بۆچی AQUAVO — فرۆشگای پێداویستییەکانی حەوز لە عێراق",
+    description: "AQUAVO فرۆشگایەکی ئۆنلاینی عێراقییە بۆ پێداویستییەکانی حەوز، بە زانیاری ڕوون، گەیاندن بۆ هەموو پارێزگاکان، پشتگیری تەکنیکی و نرخی ڕوون.",
   },
   "/contact": {
     title: "پەیوەندی بە AQUAVO | AQUAVO",
@@ -244,7 +244,7 @@ const CKB: Record<string, LocalizedStaticMeta> = {
   },
   "/sustainability": {
     title: "بەردەوامی لە AQUAVO — بەخێوکردنی بەرپرسیارانەی ماسی لە عێراق",
-    description: "چۆن AQUAVO لە بەخێوکردنی بەرپرسیارانەی ماسی دەڕوانێت: کەرەستەی کارا، پاشماوەی کەمتر و ڕێنمایی ڕاستگۆیانە.",
+    description: "چۆن AQUAVO چاودێری بەرپرسیارانەی حەوز دەبینێت: قەبارەی گونجاوی کەرەستە، چاودێری بەردەوام، پشکنینی ئاو و کەمکردنەوەی بەفیڕۆدانی ناپێویست.",
   },
   "/ai-tools": {
     title: "ئامرازە زیرەکەکانی حەوزی ماسی | AQUAVO",
