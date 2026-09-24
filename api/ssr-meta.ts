@@ -142,7 +142,7 @@ const PRODUCT_CATEGORY_ITEMS = AQUAVO_PRODUCT_CATEGORIES.map((category, index) =
 
 const STATIC_PAGES: Record<string, PageMeta> = {
   "/": {
-    title: "AQUAVO | متجر مستلزمات أحواض الزينة في العراق",
+    title: "متجر مستلزمات أحواض الزينة في العراق | AQUAVO",
     ogTitle: "AQUAVO Iraq — متجر مستلزمات أحواض الزينة",
     description: "AQUAVO متجر إلكتروني عراقي متخصص في معدات ومستلزمات أحواض الزينة والمياه العذبة: فلاتر، سخانات، أغذية، إضاءة، ديكور ومعالجة مياه، مع توصيل لجميع محافظات العراق.",
     keywords: "متجر احواض سمك العراق، مستلزمات احواض السمك العراق، معدات احواض السمك، فلاتر احواض بغداد، سخانات احواض، اغذية اسماك زينة، اكوافوا، AQUAVO Iraq",
