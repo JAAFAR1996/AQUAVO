@@ -16,7 +16,7 @@ export interface LocalizedStaticMeta {
 
 const EN: Record<string, LocalizedStaticMeta> = {
   "/": {
-    title: "AQUAVO — Aquarium Equipment & Supplies in Iraq | Filters, Heaters, Food",
+    title: "Online Aquarium Supplies Store in Iraq | AQUAVO",
     description:
       "AQUAVO is an Iraqi online store for aquarium equipment and supplies: filters, heaters, food, glass tanks, LED lighting, decor and water treatments. Delivery to every governorate, cash on delivery or online payment.",
     keywords: "aquarium supplies Iraq, aquarium filters Baghdad, aquarium heaters, YEE aquarium equipment Iraq, glass tanks Iraq, aquarium water treatment, fish food Iraq",
@@ -103,14 +103,14 @@ const EN: Record<string, LocalizedStaticMeta> = {
   },
   "/about": {
     title: "About Us — AQUAVO Aquarium Supplies Store in Iraq",
-    description: "AQUAVO is an Iraqi brand and store specialising in premium aquarium equipment and supplies, with delivery across Iraq and cash on delivery.",
+    description: "AQUAVO is an Iraqi online store specialising in aquarium equipment and supplies, with delivery across Iraq and cash on delivery or online payment.",
   },
   "/about-aquavo": {
     title: "About Us — AQUAVO Aquarium Supplies Store in Iraq",
-    description: "AQUAVO is an Iraqi brand and store specialising in premium aquarium equipment and supplies, with delivery across Iraq and cash on delivery.",
+    description: "AQUAVO is an Iraqi online store specialising in aquarium equipment and supplies, with delivery across Iraq and cash on delivery or online payment.",
   },
   "/why-aquavo": {
-    title: "Why AQUAVO — A Premium Aquarium Supplies Store in Iraq",
+    title: "Why AQUAVO — Aquarium Supplies Store in Iraq",
     description: "Why do aquarium keepers in Iraq choose AQUAVO? Genuine products as available, delivery to every governorate, technical support and clear prices.",
   },
   "/contact": {
@@ -137,7 +137,7 @@ const EN: Record<string, LocalizedStaticMeta> = {
 
 const CKB: Record<string, LocalizedStaticMeta> = {
   "/": {
-    title: "AQUAVO — کەرەستە و پێداویستییەکانی حەوزی ماسی لە عێراق | فلتەر، گەرمکەرەوە، خۆراک",
+    title: "فرۆشگای پێداویستییەکانی حەوزی ماسی لە عێراق | AQUAVO",
     description:
       "AQUAVO فرۆشگایەکی ئۆنلاینی عێراقییە بۆ کەرەستە و پێداویستییەکانی حەوزی ماسی: فلتەر، گەرمکەرەوە، خۆراک، حەوزی شووشەیی، ڕووناکی LED، ڕازاندنەوە و چارەسەری ئاو. گەیاندن بۆ هەموو پارێزگاکان، پارەدان لە کاتی وەرگرتن یان ئەلیکترۆنی.",
     keywords: "پێداویستی حەوزی ماسی عێراق، فلتەری حەوز بەغدا، گەرمکەرەوەی حەوز، کەرەستەی YEE عێراق، حەوزی شووشەیی، چارەسەری ئاوی حەوز، خۆراکی ماسی",

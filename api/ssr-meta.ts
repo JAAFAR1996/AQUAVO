@@ -12,7 +12,7 @@ import { HOME_HERO_HTML } from "./_home-hero-html.js";
 import { getSeoMetaOverride } from "./_seo-content.js";
 import { AQUAVO_FAQ_ITEMS } from "../shared/faq-content.js";
 import { toPublicProduct, toPublicVariant } from "../shared/public-product.js";
-import { buildProductStructuredData, withSiteEntities } from "./_seo-structured-data.js";
+import { buildEntityStructuredData, buildProductStructuredData, withSiteEntities } from "./_seo-structured-data.js";
 import { isKnownSitePath } from "../shared/site-routes.js";
 import { AQUAVO_ENTITY, AQUAVO_PRODUCT_CATEGORIES, canonicalProductCategory, canonicalUrlFor, categoryProductsPath, isNoindexPath, productListingSeo } from "../shared/seo-contract.js";
 import { categoryContent } from "../shared/category-content.js";
@@ -142,90 +142,15 @@ const PRODUCT_CATEGORY_ITEMS = AQUAVO_PRODUCT_CATEGORIES.map((category, index) =
 
 const STATIC_PAGES: Record<string, PageMeta> = {
   "/": {
-    title: "AQUAVO — مستلزمات أحواض الزينة في العراق | فلاتر، سخانات، أغذية",
-    ogTitle: "AQUAVO — معدات أحواض بريميوم في العراق",
-    description: "AQUAVO — متجر إلكتروني عراقي متخصص في مستلزمات أحواض الزينة في العراق. فلاتر، سخانات، أغذية، أحواض زجاجية، إضاءة LED، ديكورات ومعالجات مياه. توصيل لجميع المحافظات، دفع عند الاستلام أو إلكترونياً.",
-    keywords: "مستلزمات احواض الزينة العراق، فلاتر احواض بغداد، سخانات احواض، معدات الحوض YEE العراق، احواض زجاجية العراق، علاجات مياه احواض، اغذية احواض الزينة",
+    title: "متجر مستلزمات أحواض الزينة في العراق | AQUAVO",
+    ogTitle: "AQUAVO Iraq — متجر مستلزمات أحواض الزينة",
+    description: "AQUAVO متجر إلكتروني عراقي متخصص في معدات ومستلزمات أحواض الزينة والمياه العذبة: فلاتر، سخانات، أغذية، إضاءة، ديكور ومعالجة مياه، مع توصيل لجميع محافظات العراق.",
+    keywords: "متجر احواض سمك العراق، مستلزمات احواض السمك العراق، معدات احواض السمك، فلاتر احواض بغداد، سخانات احواض، اغذية اسماك زينة، اكوافوا، AQUAVO Iraq",
     ogType: "website",
-    jsonLd: [
-      {
-        "@context": "https://schema.org",
-        // OnlineStore, not Organization. This node and the one
-        // buildEntityStructuredData publishes share the @id #organization, so
-        // Google reads them as one entity — but this one said Organization
-        // while that one, the crawler path, and every other browser page said
-        // OnlineStore, leaving the homepage the single place the site called
-        // itself the less specific type. OnlineStore is a subtype of
-        // Organization, so this narrows the claim rather than widening it, and
-        // asserts nothing the site does not already assert everywhere else.
-        // withSiteEntities counts OnlineStore as a site entity too, so the
-        // homepage still supplies its own and gains no duplicate.
-        "@type": "OnlineStore",
-        "@id": `${BASE}/#organization`,
-        name: "AQUAVO",
-        // Identity comes from shared/seo-contract.ts, the same source the
-        // crawler-facing graph uses. Stated literally here, these had already
-        // drifted from it: the legal name separated by "/" where the contract
-        // uses an em dash, and the WebSite node below spelling the Arabic name
-        // "اكوافو" while this one spelled it "أكوافو" — one @id, two spellings.
-        legalName: AQUAVO_ENTITY.legalName,
-        alternateName: [AQUAVO_ENTITY.arabicName, "اكوافو", `${AQUAVO_ENTITY.brandName} Iraq`],
-        url: BASE,
-        logo: {
-          "@type": "ImageObject",
-          url: DEFAULT_IMAGE,
-          width: 512,
-          height: 512
-        },
-        description: "متجر إلكتروني عراقي متخصص في معدات ومستلزمات أحواض الزينة: فلاتر، سخانات، أغذية، ديكورات ومعالجات مياه. الدفع عند الاستلام أو إلكترونياً، وتوصيل لكل العراق برسوم 5,000 د.ع.",
-        knowsAbout: ["أحواض الزينة", "معدات الأحواض", "فلاتر المياه", "علاجات مياه الأحواض", "Aquascaping", "العناية بأسماك الزينة"],
-        areaServed: {
-          "@type": "Country",
-          name: "Iraq",
-          sameAs: "https://www.wikidata.org/wiki/Q796"
-        },
-        contactPoint: [
-          {
-            "@type": "ContactPoint",
-            telephone: "+964-774-788-0673",
-            contactType: "customer service",
-            availableLanguage: ["Arabic"],
-            areaServed: "IQ",
-            hoursAvailable: {
-              "@type": "OpeningHoursSpecification",
-              dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-              opens: "00:00",
-              closes: "23:59"
-            }
-          }
-        ],
-        sameAs: [
-          "https://www.facebook.com/profile.php?id=61587249730248",
-          "https://instagram.com/aquavo_iq",
-          "https://www.tiktok.com/@aquavo.iq"
-        ],
-        address: {
-          "@type": "PostalAddress",
-          addressLocality: "Baghdad",
-          addressRegion: "Baghdad",
-          addressCountry: "IQ"
-        }
-      },
-      {
-        "@context": "https://schema.org",
-        "@type": "WebSite",
-        "@id": `${BASE}/#website`,
-        name: "AQUAVO",
-        alternateName: [AQUAVO_ENTITY.arabicName, "اكوافو"],
-        url: BASE,
-        inLanguage: "ar",
-        potentialAction: {
-          "@type": "SearchAction",
-          target: `${BASE}/products?search={search_term_string}`,
-          "query-input": "required name=search_term_string",
-        },
-      },
-    ],
+    // One canonical entity graph for browsers, crawlers and product pages.
+    // Keeping this in the shared builder prevents the homepage from drifting
+    // into physical-store claims or retired SearchAction markup.
+    jsonLd: buildEntityStructuredData({ includeMerchantPolicies: true }),
   },
   "/products": {
     title: "مستلزمات أحواض الزينة في العراق — فلاتر، سخانات، أغذية | AQUAVO",

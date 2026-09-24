@@ -1,12 +1,12 @@
 {
   "meta": {
-    "title": "Premium Aquarium Equipment in Iraq",
-    "description": "AQUAVO is an Iraqi brand for premium aquarium equipment. Choose filters, heaters, lighting and care supplies by what your tank needs, with cash on delivery or online payment and delivery across Iraq."
+    "title": "Online Aquarium Supplies Store in Iraq | AQUAVO",
+    "description": "AQUAVO is an Iraqi online store for freshwater aquarium equipment and supplies: filters, heaters, lighting, fish food, water care, substrate and decor, with delivery across Iraq."
   },
   "hero": {
-    "eyebrow": "An Iraqi brand specialising in aquarium equipment and supplies",
-    "title": "Your tank's equipment, organised around what it needs",
-    "description": "We help you choose the filter, heater, lighting and the rest of the setup for your tank, with clear information before you buy.",
+    "eyebrow": "AQUAVO — Iraqi online aquarium supplies store",
+    "title": "Online aquarium supplies store for Iraq",
+    "description": "Shop filters, heaters, lighting, fish food, water care, substrate and decor with clear guidance to help you choose for your tank size and needs.",
     "browse": "Browse products",
     "journey": "Shop by your tank",
     "help": "Have a tank and not sure what fits? Send us its size and we will put the right setup together.",
@@ -58,18 +58,45 @@
     "description": "Our aim is that you know what you need and why. The guides are organised to cut guesswork so you choose on a clear basis.",
     "viewAll": "See the AQUAVO guides",
     "open": "Open the guide",
-    "filter": { "eyebrow": "Choosing a filter", "title": "Not every filter suits every tank", "description": "A practical guide to what to check before choosing a filtration system." },
-    "setup": { "eyebrow": "An orderly start", "title": "Setting up a new aquarium step by step", "description": "Sort out the basics without buying parts you do not need." },
-    "heater": { "eyebrow": "Stable temperature", "title": "How do you choose the right heater?", "description": "Understand what matters before picking a heater's wattage." }
+    "filter": {
+      "eyebrow": "Choosing a filter",
+      "title": "Not every filter suits every tank",
+      "description": "A practical guide to what to check before choosing a filtration system."
+    },
+    "setup": {
+      "eyebrow": "An orderly start",
+      "title": "Setting up a new aquarium step by step",
+      "description": "Sort out the basics without buying parts you do not need."
+    },
+    "heater": {
+      "eyebrow": "Stable temperature",
+      "title": "How do you choose the right heater?",
+      "description": "Understand what matters before picking a heater's wattage."
+    }
   },
   "why": {
     "eyebrow": "Why AQUAVO",
     "title": "Clear shopping from the first section to the cart",
-    "focus": { "title": "Real specialisation, not a general mix", "description": "We work only on aquarium equipment and supplies, so both the information and the selection are more precise." },
-    "organized": { "title": "Shopping organised by use", "description": "Sections are grouped by what a part does, so you do not waste time on options unrelated to your need." },
-    "clarity": { "title": "Clear information before the decision", "description": "Every section comes with an explanation of what the product does and when you actually need it." },
-    "compare": { "title": "Clearer choice between alternatives", "description": "We line up close alternatives so you compare on a clear basis, not just on looks or price." },
-    "learning": { "title": "Ongoing educational support", "description": "Practical guides on freshwater aquariums in Iraq, updated regularly based on common questions." }
+    "focus": {
+      "title": "Real specialisation, not a general mix",
+      "description": "We work only on aquarium equipment and supplies, so both the information and the selection are more precise."
+    },
+    "organized": {
+      "title": "Shopping organised by use",
+      "description": "Sections are grouped by what a part does, so you do not waste time on options unrelated to your need."
+    },
+    "clarity": {
+      "title": "Clear information before the decision",
+      "description": "Every section comes with an explanation of what the product does and when you actually need it."
+    },
+    "compare": {
+      "title": "Clearer choice between alternatives",
+      "description": "We line up close alternatives so you compare on a clear basis, not just on looks or price."
+    },
+    "learning": {
+      "title": "Ongoing educational support",
+      "description": "Practical guides on freshwater aquariums in Iraq, updated regularly based on common questions."
+    }
   },
   "cta": {
     "eyebrow": "Still not sure?",

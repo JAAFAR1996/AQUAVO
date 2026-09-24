@@ -79,7 +79,7 @@ describe('Home Page', () => {
         render(<Home />, { wrapper: createWrapper() });
         const headings = screen.getAllByRole('heading', { level: 1 });
         expect(headings).toHaveLength(1);
-        expect(headings[0]).toHaveTextContent('معدات حوضك، مرتبة على احتياجك');
+        expect(headings[0]).toHaveTextContent('متجر مستلزمات أحواض الزينة في العراق');
     });
 
     it('keeps the primary actions calm and useful', () => {

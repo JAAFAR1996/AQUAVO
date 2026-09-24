@@ -1,3 +1,5 @@
+import { buildEntityStructuredData } from "../api/_seo-structured-data.js";
+
 export function generateSsrMeta(requestPath: string): string {
   const BASE_URL = "https://www.aquavoiq.com";
   const LOGO_URL = `${BASE_URL}/brand/aquavo-v2-horizontal.png`;
@@ -6,71 +8,12 @@ export function generateSsrMeta(requestPath: string): string {
   // Helper to generate script tags
   const scriptTag = (data: any) => `<script type="application/ld+json">\n${JSON.stringify(data, null, 2)}\n</script>`;
 
-  // 1. Organization & Core Schemas
+  // 1. Canonical store + website identity.
+  // Reuse the same graph as production SSR so the local/static server cannot
+  // drift into a weaker Organization type, physical-store claim, or retired
+  // SearchAction markup.
   if (requestPath === "/" || requestPath === "/ar") {
-    jsonLdScripts.push({
-      "@context": "https://schema.org",
-      "@type": "Organization",
-      "@id": `${BASE_URL}/#organization`,
-      "name": "AQUAVO",
-      "alternateName": ["أكوافو", "AQUAVO Iraq"],
-      "url": BASE_URL,
-      "logo": {
-        "@type": "ImageObject",
-        "url": LOGO_URL,
-        "width": 512,
-        "height": 512
-      },
-      "description": "براند ومتجر عراقي متخصص في معدات ومستلزمات أحواض الزينة البريميوم. الدفع عند الاستلام أو إلكترونياً مع توصيل لكل العراق بـ 5,000 دينار.",
-      "slogan": "براند عراقي بمواصفات عالمية لمعدات الأحواض البريميوم",
-      "areaServed": [
-        {
-          "@type": "Country",
-          "name": "Iraq",
-          "sameAs": "https://www.wikidata.org/wiki/Q796"
-        }
-      ],
-      "knowsAbout": [
-        "مستلزمات أحواض الزينة",
-        "معدات أحواض الزينة",
-        "فلاتر الأحواض",
-        "سخانات الأحواض",
-        "معالجات المياه",
-        "طعام أسماك الزينة",
-        "ديكورات الأحواض"
-      ],
-      "contactPoint": [
-        {
-          "@type": "ContactPoint",
-          "telephone": "+964-774-788-0673",
-          "contactType": "customer support",
-          "availableLanguage": ["Arabic"],
-          "areaServed": "IQ"
-        }
-      ],
-      "sameAs": [
-        "https://www.facebook.com/profile.php?id=61587249730248",
-        "https://instagram.com/aquavo_iq",
-        "https://www.tiktok.com/@aquavo.iq"
-      ]
-    });
-
-    jsonLdScripts.push({
-      "@context": "https://schema.org",
-      "@type": "WebSite",
-      "@id": `${BASE_URL}/#website`,
-      "name": "AQUAVO",
-      "url": BASE_URL,
-      "potentialAction": {
-        "@type": "SearchAction",
-        "target": {
-          "@type": "EntryPoint",
-          "urlTemplate": `${BASE_URL}/products?q={search_term_string}`
-        },
-        "query-input": "required name=search_term_string"
-      }
-    });
-
+    jsonLdScripts.push(...buildEntityStructuredData({ includeMerchantPolicies: true }));
   }
 
   // 2. Beginner Guide Page

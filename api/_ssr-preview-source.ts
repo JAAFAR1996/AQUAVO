@@ -69,8 +69,8 @@ import { getLocalizedStaticMeta } from "./_static-meta-i18n.js";
 
 neonConfig.webSocketConstructor = ws;
 
-const DEFAULT_TITLE = "AQUAVO — مستلزمات أحواض الزينة في العراق";
-const DEFAULT_DESCRIPTION = "متجر إلكتروني عراقي متخصص في معدات ومستلزمات أحواض الزينة، مع أدلة اختيار وتوصيل لكل العراق.";
+const DEFAULT_TITLE = "متجر مستلزمات أحواض الزينة في العراق | AQUAVO";
+const DEFAULT_DESCRIPTION = "AQUAVO متجر إلكتروني عراقي متخصص في معدات ومستلزمات أحواض الزينة والمياه العذبة، مع أدلة اختيار وتوصيل لجميع محافظات العراق.";
 const DEFAULT_KEYWORDS = "مستلزمات أحواض الزينة العراق، AQUAVO، فلاتر، سخانات، أغذية، معالجة المياه";
 
 type Meta = {

@@ -98,7 +98,7 @@ describe("the homepage hero is in the initial HTML", () => {
     // Pulled from the component source, so the prerender cannot drift from the
     // page React renders without this failing.
     for (const copy of [
-      "معدات حوضك، مرتبة على احتياجك",
+      "متجر مستلزمات أحواض الزينة في العراق",
       "شوف المنتجات",
       "اختار حسب حوضك",
       "الحوض أولاً، القطعة بعدها",

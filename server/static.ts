@@ -110,8 +110,8 @@ function getPageMeta(requestPath: string): PageMeta {
   }
 
   return {
-    title: seoOverride?.title || "AQUAVO — مستلزمات أحواض الزينة في العراق | فلاتر، سخانات، أغذية",
-    description: seoOverride?.description || "AQUAVO متجر عراقي لمعدات ومستلزمات أحواض الزينة: فلاتر، سخانات، أغذية، ديكور ومعالجات مياه، مع توصيل لكل العراق ودفع عند الاستلام.",
+    title: seoOverride?.title || "متجر مستلزمات أحواض الزينة في العراق | AQUAVO",
+    description: seoOverride?.description || "AQUAVO متجر إلكتروني عراقي متخصص في معدات ومستلزمات أحواض الزينة والمياه العذبة، مع توصيل لجميع محافظات العراق ودفع عند الاستلام أو إلكترونياً.",
     url: `${BASE_SITE}${requestPath}`,
   };
 }

@@ -18,9 +18,9 @@ export interface HomeHeroCopy {
 
 /** Arabic source copy. The build-time prerender (script/prerender-home-hero.ts) uses exactly this. */
 export const HOME_HERO_COPY_AR: HomeHeroCopy = {
-  eyebrow: "براند عراقي متخصص بمعدات ومستلزمات أحواض الزينة",
-  title: "معدات حوضك، مرتبة على احتياجك",
-  description: "نساعدك تختار الفلتر والسخان والإضاءة وباقي التجهيز حسب حوضك، بمعلومات واضحة وبدون زحمة خيارات.",
+  eyebrow: "AQUAVO — متجر عراقي أونلاين متخصص بالأحواض",
+  title: "متجر مستلزمات أحواض الزينة في العراق",
+  description: "فلاتر، سخانات، إضاءة، أغذية، معالجة مياه، تربة وديكور للأحواض، مع معلومات واضحة تساعدك تختار حسب حجم حوضك واحتياجه.",
   browse: "شوف المنتجات",
   journey: "اختار حسب حوضك",
   help: "عندك حوض ومحتار؟ دز حجمه ونرتبلك المناسب.",

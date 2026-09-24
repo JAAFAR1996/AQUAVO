@@ -21,7 +21,7 @@ export const BLOG_SITEMAP_RELEASE_LASTMOD = "2026-08-27";
 // 2026-09-23: the file Vercel actually served was the Express copy (static paths
 // only, Arabic only); /sitemap-pages.xml now routes here, so the categories and
 // the English and Kurdish versions reach Google for the first time.
-export const PAGES_SITEMAP_RELEASE_LASTMOD = "2026-09-23";
+export const PAGES_SITEMAP_RELEASE_LASTMOD = "2026-09-24";
 
 
 export default function handler(_req: VercelRequest, res: VercelResponse): void {
@@ -42,6 +42,6 @@ export default function handler(_req: VercelRequest, res: VercelResponse): void 
 
   res.setHeader("Content-Type", "application/xml; charset=utf-8");
   res.setHeader("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
-  res.setHeader("Last-Modified", "Sat, 29 Aug 2026 00:00:00 GMT");
+  res.setHeader("Last-Modified", "Thu, 24 Sep 2026 00:00:00 GMT");
   res.status(200).send(xml);
 }

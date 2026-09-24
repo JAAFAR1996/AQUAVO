@@ -73,10 +73,14 @@ describe("AQUAVO discoverability contract", () => {
     // That the rendered output actually carries it is asserted against the
     // real handler in server/__tests__/ssr-schema-parity.test.ts.
     const ssr = read("api/ssr-meta.ts");
+    const builder = read("api/_seo-structured-data.ts");
     expect(AQUAVO_ENTITY.legalName).toBe("محل المنبع — AL NABEA SHOP");
-    expect(ssr).toContain("legalName: AQUAVO_ENTITY.legalName");
+    expect(ssr).toContain("buildEntityStructuredData");
+    expect(builder).toContain("legalName: AQUAVO_ENTITY.legalName");
     expect(ssr).not.toMatch(/legalName:\s*"/);
+    expect(builder).not.toMatch(/legalName:\s*"/);
     expect(ssr).not.toContain('foundingDate: "2024"');
+    expect(builder).not.toContain('foundingDate: "2024"');
   });
 
   it("keeps the runtime sitemap truthful and free of noindex or nonexistent routes", () => {

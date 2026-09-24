@@ -82,6 +82,26 @@ describe("production SEO/AEO/GEO contract", () => {
     // are implemented and verified server-side, so both belong here.
     expect(store.paymentAccepted).toBe("Cash on Delivery, Online Payment");
     expect(store.contactPoint.hoursAvailable.opens).toBe("00:00");
+
+    expect(store.alternateName).toEqual(
+      expect.arrayContaining(["أكوافو", "اكوافو", "AQUAVO Iraq", "AQUAVO IQ"]),
+    );
+    expect(store.hasMerchantReturnPolicy).toMatchObject({
+      "@type": "MerchantReturnPolicy",
+      merchantReturnLink: "https://www.aquavoiq.com/return-policy",
+    });
+    expect(store.hasShippingService.shippingConditions.shippingDestination).toMatchObject({
+      addressCountry: "IQ",
+    });
+    expect(store.hasShippingService.shippingConditions.shippingRate).toMatchObject({
+      value: 5000,
+      currency: "IQD",
+    });
+    expect(store.hasShippingService.shippingConditions.transitTime.duration.maxValue).toBe(1);
+
+    const website = schemas.find((node) => node["@type"] === "WebSite");
+    expect(website?.alternateName).toEqual(expect.arrayContaining(["AQUAVO Iraq", "aquavoiq.com"]));
+
     expect(serialized).not.toContain("GeoCoordinates");
     expect(serialized).not.toContain("hasMap");
     expect(serialized).not.toContain("LocalBusiness");
