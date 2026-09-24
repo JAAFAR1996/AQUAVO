@@ -1,11 +1,10 @@
 name: ChatGPT Export AQUAVO Product Prices
 
 on:
-  push:
+  pull_request:
     branches:
-      - chatgpt/export-meta-pricelist-20260924
-    paths:
-      - .github/workflows/chatgpt-export-products.yml
+      - main
+    types: [opened, synchronize, reopened]
 
 permissions:
   contents: read
