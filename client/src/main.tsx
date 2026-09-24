@@ -12,6 +12,10 @@ import { FirstDiveIntro } from "./components/effects/first-dive-intro";
 import { DisplacementRuntime } from "./components/motion/displacement-runtime";
 import { initializeClientEnvSideEffects } from "./lib/config/env";
 import { captureAttributionFromUrl } from "./lib/attribution";
+import { installChunkLoadRecovery, recoverFromDynamicImportError } from "./lib/chunk-recovery";
+
+// Recover automatically when an already-open tab references a hashed chunk removed by a newer deploy.
+installChunkLoadRecovery();
 
 // Production entry includes the merged immersive Journey and loading experience.
 initializeClientEnvSideEffects();
@@ -109,6 +113,11 @@ void bootstrapI18n(splitLocaleFromPath(window.location.pathname).locale)
     <DisplacementRuntime />
   </>,
     );
+  })
+  .catch((error) => {
+    if (!recoverFromDynamicImportError(error)) {
+      console.error("[Bootstrap] Failed to load application", error);
+    }
   });
 
 // WebMCP: Register site tools for AI agents
