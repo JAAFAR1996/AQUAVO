@@ -150,7 +150,7 @@ const STATIC_PAGES: Record<string, PageMeta> = {
     // One canonical entity graph for browsers, crawlers and product pages.
     // Keeping this in the shared builder prevents the homepage from drifting
     // into physical-store claims or retired SearchAction markup.
-    jsonLd: buildEntityStructuredData(),
+    jsonLd: buildEntityStructuredData({ includeMerchantPolicies: true }),
   },
   "/products": {
     title: "مستلزمات أحواض الزينة في العراق — فلاتر، سخانات، أغذية | AQUAVO",
