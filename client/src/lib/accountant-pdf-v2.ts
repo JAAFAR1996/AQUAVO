@@ -521,7 +521,7 @@ function buildPackedOrderDetailPages(sales: AnyRow[]): PageSpec[] {
 
   return groups.map((group, index) => ({
     section: "تفاصيل الطلبات",
-    title: "تفاصيل الطلبات — سجل التدقيق",
+    title: "من جوّه كل طلب — سجل التدقيق",
     subtitle: `الجزء ${index + 1} من ${groups.length} · تفاصيل كل طلب محفوظة، لكن عدة طلبات صغيرة تُجمع في الصفحة لتسريع التوليد`,
     body: group.map(orderDetailBlock).join(""),
   }));
@@ -777,7 +777,7 @@ function buildPages(payload: AnyRow): PageSpec[] {
   appendChunkPages(
     pages,
     chunks(sales, 14),
-    "فهرس الطلبات المتحققة",
+    "كل الطلبات — خريطة الشهر",
     (index) => `الجزء ${index + 1} · كل طلب له صفحة تفصيل لاحقاً`,
     ["الطلب", "التحقق", "المصدر", "مبيعات", "COGS", "تجهيز", "مساهمة", "التسوية"],
     (row) => [
@@ -793,8 +793,8 @@ function buildPages(payload: AnyRow): PageSpec[] {
   appendChunkPages(
     pages,
     chunks(expenses, 20),
-    "المصاريف",
-    (index) => `الجزء ${index + 1} · الموثق والمعلق يظهران منفصلين بحالتهما الأصلية`,
+    "المصاريف — وين صرفنا؟",
+    (index) => `الجزء ${index + 1} · الموثق والمعلق ظاهرين كل واحد بحالته`,
     ["التاريخ", "الفئة", "الجهة", "الوصف", "المبلغ", "الحالة", "المعالجة الضريبية"],
     (row) => [
       dateBaghdad(row.expense_occurred_at ?? row.expense_date), esc(row.category), esc(row.vendor_name),
@@ -806,8 +806,8 @@ function buildPages(payload: AnyRow): PageSpec[] {
   appendChunkPages(
     pages,
     chunks(returns, 18),
-    "الراجعات والخسائر",
-    (index) => `الجزء ${index + 1} · لا يتم دمج رد المبلغ مع شطب المنتج أو خسارة التغليف`,
+    "الراجعات — شنو رجع وشكد أثر؟",
+    (index) => `الجزء ${index + 1} · نفصل رد المبلغ عن شطب المنتج وخسارة التغليف`,
     ["الطلب", "النوع", "الحالة", "رد المبلغ", "التغليف", "شطب المنتج", "أعيد للمخزون", "التحديث"],
     (row) => [
       esc(row.order_id), esc(row.type), esc(row.status), iqd(row.refund_amount), iqd(row.packaging_loss),
@@ -819,8 +819,8 @@ function buildPages(payload: AnyRow): PageSpec[] {
   appendChunkPages(
     pages,
     chunks(settlements, 18),
-    "تسويات شركات التوصيل",
-    (index) => `الجزء ${index + 1} · gross = fees + net في السجلات المحمية بقيود النظام`,
+    "التحصيل — شنو دخل وشنو انخصم؟",
+    (index) => `الجزء ${index + 1} · Gross = Fees + Net حسب سجلات التسوية`,
     ["رقم التسوية", "الشركة", "التاريخ", "الإجمالي", "الأجور", "الصافي", "الحالة"],
     (row) => [
       esc(row.settlement_number ?? row.id), esc(row.carrier), dateBaghdad(row.received_at ?? row.updated_at),
@@ -833,8 +833,8 @@ function buildPages(payload: AnyRow): PageSpec[] {
   appendChunkPages(
     pages,
     chunks(journalLines, 24),
-    "دفتر اليومية التفصيلي",
-    (index) => `الجزء ${index + 1} · كل سطر يوضح الحساب المدين/الدائن والمصدر`,
+    "دفتر اليومية — أثر كل حركة",
+    (index) => `الجزء ${index + 1} · كل حركة مرتبطة بالحساب والمصدر والمدين والدائن`,
     ["القيد", "التاريخ", "المصدر", "الحساب", "البيان", "مدين", "دائن"],
     (row) => [
       esc(row.entry_number), dateBaghdad(row.entry_date), esc(`${row.source_type ?? "—"}/${row.event_kind ?? "—"}`),
@@ -846,7 +846,7 @@ function buildPages(payload: AnyRow): PageSpec[] {
   appendChunkPages(
     pages,
     chunks(openingInventory, 24),
-    "تفصيل المخزون الافتتاحي",
+    "المخزون — نقطة البداية",
     (index) => `الجزء ${index + 1} · مرجع القطع المحاسبي 1 آب 2026`,
     ["المنتج", "المتغير", "الكمية", "كلفة الوحدة", "القيمة", "مصدر الكلفة"],
     (row) => [
