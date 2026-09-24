@@ -246,12 +246,24 @@ export function createAccountingV2Router() {
             o.carrier AS operational_carrier,
             o.box_cost,
             COALESCE(
-              public.accounting_order_account_balance(va.order_id,'5100'),
+              (
+                SELECT SUM(l.debit-l.credit)
+                FROM public.journal_entries j
+                JOIN public.journal_lines l ON l.entry_id=j.id
+                WHERE j.status='posted'
+                  AND j.period_key=${periodKey}
+                  AND l.account_code='5100'
+                  AND (
+                    j.source_id=va.order_id
+                    OR j.evidence->>'order_id'=va.order_id
+                  )
+              ),
               (
                 SELECT SUM(e.actual_cost)
                 FROM public.order_fulfillment_events e
                 WHERE e.order_id=va.order_id
                   AND e.workflow_state='confirmed'
+                  AND to_char(e.recorded_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Baghdad','YYYY-MM')=${periodKey}
               ),
               CASE WHEN COALESCE(o.box_cost,0)>0 THEN o.box_cost ELSE 0 END
             ) AS fulfillment_cost,
