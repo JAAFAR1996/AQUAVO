@@ -60,8 +60,8 @@ describe("customer trust pages", () => {
   it("explains AQUAVO with evidence instead of competitor or import claims", () => {
     render(<WhyAquavo />);
     expect(screen.getByRole("heading", { level: 1, name: "ليش AQUAVO؟" })).toBeInTheDocument();
-    expect(screen.getByText(/براند عراقي بمواصفات عالمية لمعدات الأحواض البريميوم/)).toBeInTheDocument();
-    expect(screen.queryByText(/مستوردة من الشركات المصنعة مباشرة|ضمان الأصالة 100%/)).not.toBeInTheDocument();
+    expect(screen.getByText(/متجر عراقي أونلاين متخصص بمستلزمات أحواض الزينة/)).toBeInTheDocument();
+    expect(screen.queryByText(/بريميوم|مواصفات عالمية|مستوردة من الشركات المصنعة مباشرة|ضمان الأصالة 100%/)).not.toBeInTheDocument();
   });
 
   it("about page has no restrictive posted business hours and states 24/7 support instead", () => {

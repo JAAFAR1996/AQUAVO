@@ -79,7 +79,7 @@ describe("Accounting V3 external handoff hardening", () => {
   it("exports complete journal and opening-inventory accountant detail", () => {
     expect(accountingRoute).toContain("'accountCode',l.account_code");
     expect(accountingRoute).toContain("'accountName',a.name_ar");
-    expect(accountantPdf).toContain('دفتر اليومية التفصيلي');
+    expect(accountantPdf).toContain('دفتر اليومية — أثر كل حركة');
     expect(accountantPdf).toContain('accountCode');
     expect(accountantPdf).toContain('فهرس الأدلة');
     expect(accountantPdf).toContain('row.total_cost');

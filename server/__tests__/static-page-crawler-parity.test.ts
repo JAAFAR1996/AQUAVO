@@ -97,7 +97,7 @@ describe("static pages expose their real content to a crawler", () => {
       "/return-policy": "ضمان الأجهزة ما ينطبق إلا على منتج معتمد",
       "/privacy-policy": "هاي الصفحة تشرح شنو نجمع من بياناتك",
       "/terms": "بالوصول إلى هذا الموقع واستخدامه، فإنك توافق",
-      "/sustainability": "نؤتمن على أرواح",
+      "/sustainability": "AQUAVO لا يبيع كائنات حية",
       "/why-aquavo": "AQUAVO",
     };
     for (const [path, phrase] of Object.entries(proof)) {
