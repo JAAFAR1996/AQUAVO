@@ -13,7 +13,7 @@ export function generateSsrMeta(requestPath: string): string {
   // drift into a weaker Organization type, physical-store claim, or retired
   // SearchAction markup.
   if (requestPath === "/" || requestPath === "/ar") {
-    jsonLdScripts.push(...buildEntityStructuredData());
+    jsonLdScripts.push(...buildEntityStructuredData({ includeMerchantPolicies: true }));
   }
 
   // 2. Beginner Guide Page
