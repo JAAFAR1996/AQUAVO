@@ -162,47 +162,7 @@ export function createAccountingV2Router() {
       await assertV2Schema(db);
       const automaticClose = await runAutomaticPeriodClose(db!);
       const [ordersResult, readinessResult, balancesResult, closeResult] = await Promise.all([
-        db!.execute(sql`
-          SELECT
-            va.*,
-            o.created_at AS order_created_at,
-            o.updated_at AS order_updated_at,
-            o.customer_name,
-            o.total AS order_total,
-            o.rounded_total,
-            o.shipping_cost AS checkout_shipping_cost,
-            o.discount_total,
-            o.points_used,
-            o.cashback_used,
-            o.points_discount,
-            o.points_earned,
-            o.rounding_cashback,
-            o.items,
-            o.shipping_address,
-            o.carrier AS operational_carrier,
-            o.box_cost,
-            COALESCE(
-              public.accounting_order_account_balance(va.order_id,'5100'),
-              (
-                SELECT SUM(e.actual_cost)
-                FROM public.order_fulfillment_events e
-                WHERE e.order_id=va.order_id
-                  AND e.workflow_state='confirmed'
-              ),
-              CASE WHEN COALESCE(o.box_cost,0)>0 THEN o.box_cost ELSE 0 END
-            ) AS fulfillment_cost,
-            (
-              SELECT public.accounting_effective_carrier(f.id)
-              FROM public.order_accounting_facts f
-              WHERE f.order_id=va.order_id AND f.period_key=va.period_key
-              ORDER BY f.recognized_at DESC
-              LIMIT 1
-            ) AS accounting_carrier
-          FROM public.v_order_accounting va
-          JOIN public.orders o ON o.id=va.order_id
-          WHERE va.period_key=${periodKey}
-          ORDER BY va.recognized_at,va.order_number
-        `),
+        db!.execute(sql`SELECT * FROM public.v_order_accounting WHERE period_key=${periodKey} ORDER BY recognized_at,order_number`),
         db!.execute(sql`SELECT * FROM public.v_accounting_period_readiness WHERE period_key=${periodKey}`),
         db!.execute(sql`SELECT * FROM public.v_accounting_live_balances ORDER BY code`),
         db!.execute(sql`SELECT * FROM public.accounting_period_closes WHERE period_key=${periodKey} LIMIT 1`),
