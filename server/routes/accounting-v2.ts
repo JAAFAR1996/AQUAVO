@@ -11,7 +11,7 @@ const closeBodySchema = z.object({ periodKey: periodKeySchema }).strict();
 const reopenBodySchema = z.object({ reason: z.string().trim().min(5).max(500) }).strict();
 const LATEST_ACCOUNTING_MIGRATION = "0078_accounting_external_handoff_hardening";
 const ACTIVE_ACCOUNTING_POLICY = "v3_explicit_rounding_carrier_snapshot";
-const ACCOUNTANT_PACKAGE_VERSION = "2026-08-v3.0";
+const ACCOUNTANT_PACKAGE_VERSION = "2026-09-v4.0-management-pack";
 
 type DbRow = Record<string, unknown>;
 function rowsOf<T extends DbRow = DbRow>(result: unknown): T[] {
@@ -35,6 +35,7 @@ function normalize(row: DbRow): DbRow {
     "delivery_subsidy_total", "delivery_surplus_total", "fulfillment_cost_total",
     "debit", "credit", "balance", "total_debit", "total_credit", "amount", "unit_cost", "total_cost",
     "default_fee", "gross_amount", "fee_amount", "current_unit_cost", "quantity", "line_cost", "expected_cost",
+    "order_total", "rounded_total", "checkout_shipping_cost", "discount_total", "points_discount", "box_cost",
   ]);
   const nullableMoneyFields = new Set(["cogs_amount", "expected_cost"]);
   return Object.fromEntries(Object.entries(row).map(([key, value]) => {
@@ -212,12 +213,72 @@ export function createAccountingV2Router() {
       await assertV2Schema(db);
       const automaticClose = await runAutomaticPeriodClose(db!);
       const [
-        profile, readiness, sales, ledger, expenses, returns, settlements, opening,
+        profile, readiness, previousReadiness, sales, ledger, expenses, returns, settlements, opening,
         evidence, close, deliveryCompanies, monthlyPositions, fixedPreparationItems, liveBalances,
       ] = await Promise.all([
         db!.execute(sql`SELECT * FROM public.tax_profiles WHERE id='al-manba-aquavo'`),
         db!.execute(sql`SELECT * FROM public.v_accounting_period_readiness WHERE period_key=${periodKey}`),
-        db!.execute(sql`SELECT * FROM public.v_order_accounting WHERE period_key=${periodKey} ORDER BY recognized_at,order_number`),
+        db!.execute(sql`
+          SELECT *
+          FROM public.v_accounting_period_readiness
+          WHERE period_key=to_char(
+            to_date(${periodKey}||'-01','YYYY-MM-DD') - interval '1 month',
+            'YYYY-MM'
+          )
+        `),
+        db!.execute(sql`
+          SELECT
+            va.*,
+            o.created_at AS order_created_at,
+            o.updated_at AS order_updated_at,
+            o.customer_name,
+            o.total AS order_total,
+            o.rounded_total,
+            o.shipping_cost AS checkout_shipping_cost,
+            o.discount_total,
+            o.points_used,
+            o.cashback_used,
+            o.points_discount,
+            o.points_earned,
+            o.rounding_cashback,
+            o.items,
+            o.shipping_address,
+            o.carrier AS operational_carrier,
+            o.box_cost,
+            COALESCE(
+              (
+                SELECT SUM(l.debit-l.credit)
+                FROM public.journal_entries j
+                JOIN public.journal_lines l ON l.entry_id=j.id
+                WHERE j.status='posted'
+                  AND j.period_key=${periodKey}
+                  AND l.account_code='5100'
+                  AND (
+                    j.source_id=va.order_id
+                    OR j.evidence->>'order_id'=va.order_id
+                  )
+              ),
+              (
+                SELECT SUM(e.actual_cost)
+                FROM public.order_fulfillment_events e
+                WHERE e.order_id=va.order_id
+                  AND e.workflow_state='confirmed'
+                  AND to_char(e.recorded_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Baghdad','YYYY-MM')=${periodKey}
+              ),
+              CASE WHEN COALESCE(o.box_cost,0)>0 THEN o.box_cost ELSE 0 END
+            ) AS fulfillment_cost,
+            (
+              SELECT public.accounting_effective_carrier(f.id)
+              FROM public.order_accounting_facts f
+              WHERE f.order_id=va.order_id AND f.period_key=va.period_key
+              ORDER BY f.recognized_at DESC
+              LIMIT 1
+            ) AS accounting_carrier
+          FROM public.v_order_accounting va
+          JOIN public.orders o ON o.id=va.order_id
+          WHERE va.period_key=${periodKey}
+          ORDER BY va.recognized_at,va.order_number
+        `),
         db!.execute(sql`
           SELECT j.id,j.entry_number,j.entry_date,j.period_key,j.source_type,j.source_id,
                  j.event_kind,j.description,j.status,j.total_debit,j.total_credit,
@@ -277,6 +338,7 @@ export function createAccountingV2Router() {
         },
         profile: rowsOf(profile)[0] ?? null,
         readiness: readinessPayload(rowsOf(readiness)[0]),
+        previousReadiness: rowsOf(previousReadiness)[0] ? readinessPayload(rowsOf(previousReadiness)[0]) : null,
         close: closeRow ? normalize(closeRow) : null,
         automaticClose,
         liveBalances: rowsOf(liveBalances).map(normalize),
