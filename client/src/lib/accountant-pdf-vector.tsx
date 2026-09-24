@@ -1481,7 +1481,7 @@ function DataTable({
         ))}
       </View>
       {rows.length ? rows.map((row, rowIndex) => (
-        <View key={String(rowIndex)} style={[styles.tableRow, rowIndex % 2 ? styles.tableRowAlt : null]} wrap={false}>
+        <View key={String(rowIndex)} style={[styles.tableRow, rowIndex % 2 ? styles.tableRowAlt : {}]} wrap={false}>
           {columns.map((col, colIndex) => (
             <View key={col.label + colIndex} style={[styles.tableCell, { width: col.width + "%" }]}>
               <Text style={col.numeric ? styles.tableNumber : styles.tableText}>
