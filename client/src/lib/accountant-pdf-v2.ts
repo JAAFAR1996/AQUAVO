@@ -179,7 +179,7 @@ function pageHtml(
     <div class="heading"><h1>${esc(title)}</h1><p>${esc(subtitle)}</p></div>
     <main>${body}</main>
     <footer>
-      <strong>${draft ? "تقرير إدارة ومحاسبة داخلي — لا يُقدَّم كبيان IFRS أو إقرار ضريبي مستقل" : "TAX FINAL — وفق حالة الفترة داخل النظام"}</strong>
+      <strong>${draft ? "غير صالح للتقديم الضريبي النهائي — تقرير إدارة ومحاسبة داخلي، وليس بيان IFRS مستقل" : "TAX FINAL — وفق حالة الفترة داخل النظام"}</strong>
       <span>المصدر: دفتر الأستاذ المزدوج + حقائق الطلبات + التسويات + المصاريف الموثقة. القيم المفقودة لا تُستبدل بأصفار.</span>
       <span>المبالغ بالدينار العراقي ما لم يُذكر غير ذلك · توقيت Asia/Baghdad</span>
       <small>aquavoiq.com · 07747880673 · info@aquavoiq.com · instagram.com/aquavo_iq</small>
