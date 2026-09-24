@@ -18,6 +18,7 @@ describe("accounting monthly management pack", () => {
     expect(source).toContain("o.shipping_address");
     expect(source).toContain("accounting_carrier");
     expect(source).toContain("fulfillment_cost");
+    expect(source).toContain('j.period_key=${periodKey}');
   });
 
   it("keeps the normal accounting register lightweight", () => {
@@ -45,5 +46,7 @@ describe("accounting monthly management pack", () => {
     ]) expect(pdf).toContain(phrase);
     expect(pdf).toContain("القيم المفقودة لا تُستبدل بأصفار");
     expect(pdf).toContain("وليس بيان IFRS مستقل");
+    expect(pdf).toContain("verifiedRestockCogs");
+    expect(pdf).toContain("orderPeriodContribution");
   });
 });
