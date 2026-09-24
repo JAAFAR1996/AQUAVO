@@ -1375,7 +1375,7 @@ function WaterfallChart({ summary, net }: { summary: AnyRow; net: number | null 
           );
         })}
       </Svg>
-      <View style={{ flexDirection: "row-reverse", justifyContent: "space-between", paddingHorizontal: 3, marginTop: -8 }}>
+      <View style={{ flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 3, marginTop: -8 }}>
         {items.map((item) => (
           <View key={item.label} style={{ width: 53, alignItems: "center" }}>
             <Text style={{ fontSize: 5.8, color: C.muted, textAlign: "center" }}>{item.label}</Text>
