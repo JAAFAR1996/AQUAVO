@@ -91,6 +91,13 @@ function csrfOriginProtection(req: Request, res: Response, next: NextFunction) {
     return next();
   }
 
+  // A2A Send Message is a public, read-only server-to-server catalog query.
+  // A2A clients do not send browser Origin/Referer headers, and this route
+  // does not mutate user/account/order state or rely on cookies.
+  if (realRoute === "/api/a2a/message:send" || realRoute === "/api/a2a/message:send/") {
+    return next();
+  }
+
   // Meta sends WhatsApp webhooks server-to-server without a browser Origin.
   // This exact callback route authenticates POST bodies with X-Hub-Signature-256
   // and META_APP_SECRET, so browser-origin CSRF validation does not apply here.
