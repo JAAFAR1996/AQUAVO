@@ -51,14 +51,22 @@ jobs:
             https://www.aquavoiq.com/.well-known/agent-card.json \
             -o artifacts/a2a-smoke/agent-card.json
 
-          HTTP_CODE="$(curl -sS --max-time 30 \
-            -o artifacts/a2a-smoke/response.json \
-            -D artifacts/a2a-smoke/headers.txt \
-            -w '%{http_code}' \
-            -X POST https://www.aquavoiq.com/api/a2a/message:send \
-            -H 'Content-Type: application/json' \
-            -H 'Accept: application/json' \
-            --data '{"message":{"messageId":"github-a2a-smoke","role":"ROLE_USER","parts":[{"text":"Search for YEE"}]}}')"
+          HTTP_CODE="000"
+          for attempt in $(seq 1 45); do
+            HTTP_CODE="$(curl -sS --max-time 30 \
+              -o artifacts/a2a-smoke/response.json \
+              -D artifacts/a2a-smoke/headers.txt \
+              -w '%{http_code}' \
+              -X POST https://www.aquavoiq.com/api/a2a/message:send \
+              -H 'Content-Type: application/json' \
+              -H 'Accept: application/json' \
+              --data '{"message":{"messageId":"github-a2a-smoke","role":"ROLE_USER","parts":[{"text":"Search for YEE"}]}}' || true)"
+            if [ "$HTTP_CODE" = "200" ]; then
+              break
+            fi
+            echo "A2A not ready yet (HTTP $HTTP_CODE), waiting for production deployment..."
+            sleep 10
+          done
 
           echo "A2A HTTP status: $HTTP_CODE"
           cat artifacts/a2a-smoke/response.json
