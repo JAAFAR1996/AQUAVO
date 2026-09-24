@@ -1,0 +1,102 @@
+name: Agent Readiness Live Audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "server/routes/agent-discovery.ts"
+      - "server/routes/oauth.ts"
+      - "server/routes/mcp.ts"
+      - "client/public/robots.txt"
+      - "vercel.json"
+      - ".github/workflows/agent-readiness-live.yml"
+
+concurrency:
+  group: agent-readiness-live
+  cancel-in-progress: true
+
+jobs:
+  scan:
+    name: Scan aquavoiq.com
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+
+    steps:
+      - name: Wait for production endpoint
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 30); do
+            if curl -fsS --max-time 15 https://www.aquavoiq.com/health >/dev/null; then
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "Production health endpoint did not become reachable." >&2
+          exit 1
+
+      - name: Run official Agent Readiness scanner
+        id: scan
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/agent-readiness
+          HTTP_CODE="$(
+            curl -sS --max-time 180 \
+              -o artifacts/agent-readiness/report.json \
+              -w '%{http_code}' \
+              -X POST https://isitagentready.com/api/scan \
+              -H 'Content-Type: application/json' \
+              -H 'User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36' \
+              -H 'Referer: https://isitagentready.com/' \
+              -H 'Origin: https://isitagentready.com' \
+              --data '{"url":"https://www.aquavoiq.com/"}'
+          )"
+          echo "Scanner HTTP status: $HTTP_CODE"
+          cat artifacts/agent-readiness/report.json
+          test "$HTTP_CODE" -ge 200
+          test "$HTTP_CODE" -lt 300
+
+      - name: Summarize scan
+        if: always()
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require("node:fs");
+          const path = "artifacts/agent-readiness/report.json";
+          if (!fs.existsSync(path)) {
+            fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, "# Agent Readiness\n\nNo scanner report was produced.\n");
+            process.exit(0);
+          }
+          const raw = fs.readFileSync(path, "utf8");
+          let data;
+          try { data = JSON.parse(raw); } catch {
+            fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, "# Agent Readiness\n\nScanner response was not JSON.\n");
+            process.exit(0);
+          }
+          const score = data.score ?? data.overallScore ?? data.readinessScore ?? "unknown";
+          const level = data.level ?? "unknown";
+          const levelName = data.levelName ?? data.level_name ?? "";
+          const lines = [
+            "# AQUAVO Agent Readiness",
+            "",
+            "- Score: **" + score + "**",
+            "- Level: **" + level + (levelName ? " — " + levelName : "") + "**",
+            "- Scanned: **" + new Date().toISOString() + "**",
+            "",
+            "The complete scanner JSON is attached as a workflow artifact."
+          ];
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join("\n") + "\n");
+          NODE
+
+      - name: Upload scanner evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aquavo-agent-readiness-\${{ github.run_number }}
+          path: artifacts/agent-readiness/report.json
+          if-no-files-found: warn
+          retention-days: 30
