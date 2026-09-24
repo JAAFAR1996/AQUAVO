@@ -2364,7 +2364,7 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
         section="07 · خريطة الطلبات"
         title="كل الطلبات المتحققة خلال الشهر"
         subtitle="كل صف يمثل طلباً دخل المحاسبة عند تحقق الإيراد"
-        pageSize={17}
+        pageSize={15}
         columns={[
           { label: "الطلب", width: 16 },
           { label: "التحقق", width: 16 },
@@ -2395,7 +2395,7 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
         section="09 · المصاريف"
         title="المصاريف — وين صرفنا؟"
         subtitle="الموثق والمعلق يظهران كل واحد بحالته الأصلية"
-        pageSize={18}
+        pageSize={14}
         columns={[
           { label: "التاريخ", width: 14 },
           { label: "الفئة", width: 14 },
