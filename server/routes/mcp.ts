@@ -221,7 +221,7 @@ function mcpAuth(req: McpRequest, res: Response, next: NextFunction): void {
   // 401 with discovery header so Claude.ai can start OAuth flow
   res.setHeader(
     "WWW-Authenticate",
-    `Bearer resource_metadata="${BASE_URL}/.well-known/oauth-protected-resource", scope="mcp"`,
+    `Bearer resource_metadata="${BASE_URL}/.well-known/oauth-protected-resource/api/mcp", scope="mcp"`,
   );
   res.status(401).json({ error: "Unauthorized", hint: "Provide a valid Bearer token or complete OAuth flow" });
 }

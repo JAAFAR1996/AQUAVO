@@ -71,6 +71,7 @@ import preparationInventoryRouter from "./routes/preparation-inventory.js";
 import cartonOnboardingRouter from "./routes/carton-onboarding.js";
 import { createMcpRouter } from "./routes/mcp.js";
 import { createOAuthRouter } from "./routes/oauth.js";
+import { createAgentDiscoveryRouter } from "./routes/agent-discovery.js";
 import { storage } from "./storage/index.js";
 
 declare module "express-session" {
@@ -139,6 +140,9 @@ export async function registerRoutes(httpServer: Server, app: express.Applicatio
   app.use("/api/loyalty", createLoyaltyRouter());
 
   app.use("/", createOAuthRouter());
+  // Public discovery metadata must be mounted before the protected MCP router
+  // and before system.ts legacy 410 compatibility guards.
+  app.use("/", createAgentDiscoveryRouter());
   app.use("/api/mcp", createMcpRouter());
   const systemRouter = createSystemRouter();
   app.use("/api/system", systemRouter);
