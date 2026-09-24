@@ -922,12 +922,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#E8F0F2",
     borderBottomWidth: 0.7,
     borderBottomColor: C.border,
-    minHeight: 23,
+    minHeight: 25,
     alignItems: "center",
   },
   tableRow: {
     flexDirection: "row-reverse",
-    minHeight: 22,
+    minHeight: 24,
     alignItems: "stretch",
     borderBottomWidth: 0.5,
     borderBottomColor: C.grid,
@@ -943,20 +943,20 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   tableHeaderText: {
-    fontSize: 7.3,
+    fontSize: 8,
     fontWeight: 700,
     color: C.navy,
     textAlign: "right",
   },
   tableText: {
-    fontSize: 7.2,
+    fontSize: 7.8,
     color: C.text,
     lineHeight: 1.35,
     textAlign: "right",
   },
   tableNumber: {
     fontFamily: "AqArabic",
-    fontSize: 7.1,
+    fontSize: 7.7,
     color: C.text,
     textAlign: "right",
   },
@@ -2413,7 +2413,7 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
         section="10 · الراجعات"
         title="الراجعات — شنو رجع وشكد أثر؟"
         subtitle="رد المبلغ منفصل عن خسارة التغليف وشطب المنتج وإعادة المخزون"
-        pageSize={17}
+        pageSize={15}
         columns={[
           { label: "الطلب", width: 16 },
           { label: "النوع", width: 14 },
@@ -2432,7 +2432,7 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
         section="11 · التحصيل"
         title="تسويات شركات التوصيل — شنو دخل وشنو انخصم؟"
         subtitle="Gross وFees وNet تبقى منفصلة حتى يمكن مراجعة كل تسوية"
-        pageSize={18}
+        pageSize={16}
         columns={[
           { label: "التسوية", width: 18 },
           { label: "الشركة", width: 16 },
@@ -2450,7 +2450,7 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
         section="12 · اليومية"
         title="دفتر اليومية — أثر كل حركة"
         subtitle="كل سطر يوضح الحساب والمصدر والمدين والدائن بدون تحويل الصفحة إلى صورة"
-        pageSize={22}
+        pageSize={15}
         columns={[
           { label: "القيد", width: 11 },
           { label: "التاريخ", width: 15 },
@@ -2468,7 +2468,7 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
         section="13 · المخزون"
         title="المخزون الافتتاحي — نقطة البداية"
         subtitle="مرجع القطع المحاسبي مع الكمية والكلفة والقيمة ومصدر الكلفة"
-        pageSize={20}
+        pageSize={16}
         columns={[
           { label: "المنتج", width: 24 },
           { label: "المتغير", width: 17 },
@@ -2485,7 +2485,7 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
         section="14 · الأدلة"
         title="فهرس المستندات والأدلة"
         subtitle="المستندات تبقى قابلة للتتبع ولا يتم استبدالها بوصف عام"
-        pageSize={20}
+        pageSize={16}
         columns={[
           { label: "النوع", width: 18 },
           { label: "الجهة", width: 22 },
