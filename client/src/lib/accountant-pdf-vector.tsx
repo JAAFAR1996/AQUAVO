@@ -521,7 +521,8 @@ const styles = StyleSheet.create({
     textAlign: "right",
   },
   kpiValue: {
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "AqArabic",
+    fontWeight: 700,
     fontSize: 14,
     color: C.navy,
     marginTop: 5,
@@ -537,7 +538,8 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
   deltaText: {
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "AqArabic",
+    fontWeight: 700,
     fontSize: 6.5,
     marginRight: 3,
   },
@@ -664,7 +666,8 @@ const styles = StyleSheet.create({
     fontWeight: 700,
   },
   barValue: {
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "AqArabic",
+    fontWeight: 700,
     fontSize: 7.2,
     color: C.muted,
   },
@@ -719,7 +722,8 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   flowValue: {
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "AqArabic",
+    fontWeight: 700,
     fontSize: 11,
     color: C.navy,
     textAlign: "center",
@@ -738,7 +742,8 @@ const styles = StyleSheet.create({
     textAlign: "right",
   },
   balanceHeroValue: {
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "AqArabic",
+    fontWeight: 700,
     fontSize: 20,
     color: "#FFFFFF",
     textAlign: "right",
@@ -765,7 +770,8 @@ const styles = StyleSheet.create({
     textAlign: "right",
   },
   miniBalanceValue: {
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "AqArabic",
+    fontWeight: 700,
     fontSize: 11,
     color: C.navy,
     textAlign: "right",
@@ -814,7 +820,8 @@ const styles = StyleSheet.create({
   },
   rankValue: {
     width: 78,
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "AqArabic",
+    fontWeight: 700,
     fontSize: 7.5,
     color: C.navy,
     textAlign: "left",
@@ -855,7 +862,8 @@ const styles = StyleSheet.create({
     fontWeight: 700,
   },
   checkValue: {
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "AqArabic",
+    fontWeight: 700,
     fontSize: 9.5,
     color: C.text,
     textAlign: "right",
@@ -946,7 +954,7 @@ const styles = StyleSheet.create({
     textAlign: "right",
   },
   tableNumber: {
-    fontFamily: "Helvetica",
+    fontFamily: "AqArabic",
     fontSize: 7.1,
     color: C.text,
     textAlign: "right",
@@ -1020,7 +1028,8 @@ const styles = StyleSheet.create({
     textAlign: "right",
   },
   orderFinanceValue: {
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "AqArabic",
+    fontWeight: 700,
     fontSize: 7.4,
     color: C.navy,
     textAlign: "right",
@@ -1250,7 +1259,7 @@ function DonutChart({
           <Circle cx="60" cy="60" r="29" fill={C.paper} />
         </Svg>
         <View style={{ position: "absolute", top: 42, left: 18, width: 109, alignItems: "center" }}>
-          <Text style={{ fontFamily: "Helvetica-Bold", fontSize: 11, color: C.navy }}>{centerValue}</Text>
+          <Text style={{ fontFamily: "AqArabic", fontWeight: 700, fontSize: 11, color: C.navy }}>{centerValue}</Text>
           <Text style={{ fontSize: 6.5, color: C.muted, marginTop: 2 }}>{centerLabel}</Text>
         </View>
       </View>
