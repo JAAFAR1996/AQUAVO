@@ -717,14 +717,6 @@ function buildPages(payload: AnyRow): PageSpec[] {
   const revenueDiff = finiteNumber(summary.product_revenue) != null && orderRevenueTotal != null ? Number(summary.product_revenue) - orderRevenueTotal : null;
   const cogsDiff = finiteNumber(summary.cogs) != null && expectedPeriodCogs != null ? Number(summary.cogs) - expectedPeriodCogs : null;
   const fulfillmentDiff = finiteNumber(summary.fulfillment_cost) != null && orderFulfillmentTotal != null ? Number(summary.fulfillment_cost) - orderFulfillmentTotal : null;
-  const checkRows: string[][] = [
-    ["ميزان اليومية", iqd(summary.journal_difference), Math.abs(finiteNumber(summary.journal_difference) ?? Infinity) < 0.5 ? statusChip("مطابق", "ok") : statusChip("يحتاج مراجعة", "bad")],
-    ["عدد الطلبات: الملخص مقابل السجل", `${numberValue(summary.realized_orders)} / ${sales.length.toLocaleString("en-US")}`, finiteNumber(summary.realized_orders) === sales.length ? statusChip("مطابق", "ok") : statusChip("يحتاج مراجعة", "bad")],
-    ["إيراد المنتجات: الأستاذ مقابل طلبات الشهر", iqd(revenueDiff), revenueDiff != null && Math.abs(revenueDiff) < 0.5 ? statusChip("مطابق", "ok") : statusChip("يحتاج مراجعة", "bad")],
-    ["COGS: المبيعات ناقص كلفة المعاد للمخزون", iqd(cogsDiff), cogsDiff != null && Math.abs(cogsDiff) < 0.5 ? statusChip("مطابق", "ok") : statusChip("يحتاج مراجعة", "bad")],
-    ["كلفة معادة للمخزون من راجعات معتمدة", iqd(restockCogs), statusChip("تفسير COGS", "neutral")],
-    ["كلفة التجهيز: الأستاذ مقابل طلبات مبيعات الشهر", iqd(fulfillmentDiff), fulfillmentDiff != null && Math.abs(fulfillmentDiff) < 0.5 ? statusChip("مطابق", "ok") : statusChip("قد يشمل تعديلات لطلبات أقدم", "warn")],
-  ];
   const reconciliationChecks = [
     { label: "ميزان اليومية", value: iqd(summary.journal_difference), ok: Math.abs(finiteNumber(summary.journal_difference) ?? Infinity) < 0.5 },
     { label: "عدد الطلبات", value: `${numberValue(summary.realized_orders)} / ${sales.length.toLocaleString("en-US")}`, ok: finiteNumber(summary.realized_orders) === sales.length },
