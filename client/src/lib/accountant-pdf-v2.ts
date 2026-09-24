@@ -561,51 +561,65 @@ function buildPages(payload: AnyRow): PageSpec[] {
   const webOrders = sales.filter((row) => String(row.source ?? "").toLowerCase() === "website").length;
   const whatsappOrders = sales.filter((row) => String(row.source ?? "").toLowerCase() === "whatsapp").length;
 
+  const costDrivers = [
+    { label: "كلفة المنتجات", value: finiteNumber(summary.cogs) ?? 0 },
+    { label: "كلفة التجهيز", value: finiteNumber(summary.fulfillment_cost) ?? 0 },
+    { label: "دعم التوصيل", value: finiteNumber(summary.delivery_subsidy) ?? 0 },
+    { label: "الراجعات والخسائر", value: (finiteNumber(summary.sales_returns) ?? 0) + (finiteNumber(summary.actual_return_loss) ?? 0) },
+    { label: "المصاريف الموثقة", value: finiteNumber(summary.verified_expenses) ?? 0 },
+  ].sort((a, b) => b.value - a.value);
+  const biggestCost = costDrivers[0];
+  const salesDelta = previous ? deltaNumber(summary.product_revenue, previous.product_revenue) : null;
+
   const story: string[] = [];
   if (finiteNumber(summary.product_revenue) != null && orderCount != null) {
-    story.push(`تحققت مبيعات منتجات بقيمة ${iqd(summary.product_revenue)} من ${numberValue(orderCount)} طلباً محاسبياً، ومتوسط مبيعات المنتجات للطلب ${iqd(avgOrder)}.`);
+    story.push(`هذا الشهر سجل ${numberValue(orderCount)} طلباً متحققاً بقيمة ${iqd(summary.product_revenue)}، ومتوسط الطلب ${iqd(avgOrder)}.`);
   }
-  if (gross != null) {
-    story.push(`الربح الإجمالي بعد كلفة المنتجات بلغ ${iqd(gross)} بهامش ${percent(grossMargin)} قبل التجهيز والتوصيل والراجعات والمصاريف.`);
+  if (previous && salesDelta != null) {
+    story.push(`المبيعات ${salesDelta >= 0 ? "ارتفعت" : "انخفضت"} ${Math.abs(salesDelta).toFixed(1)}% مقارنة بالشهر السابق.`);
+  }
+  if (biggestCost?.value > 0) {
+    story.push(`أكبر بند ضغط على الربح كان ${biggestCost.label} بقيمة ${iqd(biggestCost.value)}.`);
   }
   if (net != null) {
-    story.push(`صافي النتيجة الإدارية بعد البنود المسجلة بلغ ${iqd(net)}، أي ${percent(netMargin)} من الإيراد المعدّل.`);
+    story.push(`بعد كل البنود المسجلة، صافي النتيجة الإدارية وصل إلى ${iqd(net)} بهامش ${percent(netMargin)}.`);
   }
   if (unsettledCount > 0) {
-    story.push(`يوجد ${unsettledCount.toLocaleString("en-US")} طلباً في سجل الشهر لم تظهر تسويته كمطابقة/مغلقة في الحزمة الحالية.`);
+    story.push(`هناك ${unsettledCount.toLocaleString("en-US")} طلباً يحتاج متابعة تسوية قبل اعتبار صورة الشهر مكتملة.`);
   }
   if (blockers.length) {
-    story.push(`الفترة فيها ${blockers.length.toLocaleString("en-US")} نوع من موانع الإغلاق، لذلك يجب مراجعتها قبل اعتبار الشهر مكتملاً.`);
+    story.push(`الإغلاق متوقف على ${blockers.length.toLocaleString("en-US")} نوع من الموانع؛ التفاصيل موجودة بصفحة المطابقة.`);
   }
 
   pages.push({
-    section: "الملخص التنفيذي",
-    title: "تقرير الإدارة والمحاسب الشهري",
-    subtitle: `الفترة ${payload.manifest?.periodKey ?? "—"} · توليد ${dateBaghdad(payload.manifest?.generatedAt)} · التقرير يفصل الملخص عن تفاصيل كل طلب ثم دفتر الأستاذ والأدلة`,
+    section: "01 / EXECUTIVE",
+    title: "الشهر بنظرة وحدة",
+    subtitle: `الفترة ${payload.manifest?.periodKey ?? "—"} · توليد ${dateBaghdad(payload.manifest?.generatedAt)}`,
     body: `
       <div class="executive-hero">
-        <div class="eyebrow">AQUAVO MONTHLY MANAGEMENT & ACCOUNTANT PACK</div>
-        <div class="headline">شنو صار بهذا الشهر؟ الأرقام الرئيسية أولاً، وبعدها كل طلب وسنده المحاسبي بالتفصيل.</div>
-        <div class="subline">لا يتم تعويض البيانات الناقصة بأصفار، وكل قيمة مهمة مرتبطة بمصدر محاسبي أو سجل تشغيلي داخل الحزمة.</div>
+        <div class="eyebrow">AQUAVO · MONTHLY BUSINESS STORY</div>
+        <div class="headline">من <em>المبيعات</em> إلى الربح — شنو صار فعلياً بهذا الشهر؟</div>
+        <div class="subline">ابدأ من الأرقام الكبيرة، بعدها اقرأ القصة، وبعدها انزل للتفاصيل. كل رقم مهم يرجع إلى طلب أو قيد أو مستند؛ والناقص يبقى واضح وما يتحول لصفر.</div>
       </div>
       <div class="hero-grid">
-        ${heroMetric("مبيعات المنتجات", iqd(summary.product_revenue), previous ? `مقارنة بالشهر السابق: ${moneyDelta(summary.product_revenue, previous.product_revenue)}` : "لا توجد مقارنة سابقة")}
-        ${heroMetric("الطلبات المتحققة", numberValue(summary.realized_orders), previous ? `مقارنة: ${countDelta(summary.realized_orders, previous.realized_orders)}` : "وفق تاريخ تحقق الإيراد")}
+        ${heroMetric("مبيعات المنتجات", iqd(summary.product_revenue), previous ? `مقارنة بالسابق: ${moneyDelta(summary.product_revenue, previous.product_revenue)}` : "أول فترة قابلة للمقارنة")}
+        ${heroMetric("الطلبات", numberValue(summary.realized_orders), `متوسط الطلب ${iqd(avgOrder)}`)}
         ${heroMetric("الربح الإجمالي", iqd(gross), `هامش ${percent(grossMargin)}`)}
-        ${heroMetric("صافي النتيجة الإدارية", iqd(net), `هامش ${percent(netMargin)}`)}
+        ${heroMetric("صافي النتيجة", iqd(net), `هامش ${percent(netMargin)}`)}
       </div>
-      ${sectionTitle("قراءة الشهر", "خلاصة وصفية مشتقة من الأرقام فقط")}
-      <div class="story">${story.slice(0, 6).map((text) => `<div class="story-item">${esc(text)}</div>`).join("")}</div>
-      ${sectionTitle("حالة الطلبات والقنوات")}
+      <div class="insight-band">
+        <div class="big">${salesDelta == null ? "هذه الصفحة هي نقطة البداية." : salesDelta >= 0 ? `المبيعات صاعدة <em>${Math.abs(salesDelta).toFixed(1)}%</em> عن الشهر السابق.` : `المبيعات نازلة <em>${Math.abs(salesDelta).toFixed(1)}%</em> عن الشهر السابق.`}</div>
+        <div class="micro">${biggestCost?.value > 0 ? `أكبر كلفة مسجلة: ${biggestCost.label} — ${iqd(biggestCost.value)}.` : "لا يوجد بند كلفة رئيسي مسجل."}<br>المسوّى: ${settledCount} طلب · يحتاج تسوية: ${unsettledCount} · موانع الإغلاق: ${blockers.length}</div>
+      </div>
+      ${sectionTitle("قصة الشهر بأربع جمل", "اقرأها أولاً ثم ارجع للجداول إذا احتجت")}
+      <div class="story">${story.slice(0, 4).map((text) => `<div class="story-item">${esc(text)}</div>`).join("")}</div>
+      ${sectionTitle("القنوات وحالة الطلبات")}
       ${cards([
-        ["متوسط مبيعات الطلب", iqd(avgOrder)],
-        ["طلبات الموقع", numberValue(webOrders)],
-        ["طلبات واتساب", numberValue(whatsappOrders)],
-        ["طلبات ظاهرة كمُسوّاة", numberValue(settledCount)],
-        ["طلبات غير مسوّاة", numberValue(unsettledCount)],
-        ["موانع الإغلاق", numberValue(blockers.length)],
-      ], 3)}
-      ${blockers.length ? notice("الشهر غير جاهز للإغلاق الكامل حسب فحوصات النظام؛ راجع صفحة المطابقة والموانع.", "warn") : notice("لا توجد موانع إغلاق مسجلة في جاهزية هذه الفترة.", "ok")}
+        ["طلبات الموقع", numberValue(webOrders), "Website"],
+        ["طلبات واتساب", numberValue(whatsappOrders), "WhatsApp"],
+        ["طلبات مسوّاة", numberValue(settledCount), "Matched / closed"],
+        ["تحتاج تسوية", numberValue(unsettledCount), "Follow-up"],
+      ], 4)}
     `,
   });
 
