@@ -240,6 +240,12 @@ app.use(apiOnly((req: Request, res: Response, next: NextFunction) => {
   // Security is enforced via PKCE + admin password on the consent screen.
   if (pathToCheck.startsWith("/oauth")) return next();
 
+  // A2A Send Message is intentionally public and read-only. Agent-to-agent
+  // callers are server-to-server and generally have no browser Origin/Referer.
+  // Exempt only this exact endpoint; admin/order/payment mutations stay protected.
+  const a2aRoute = pathToCheck.split("?", 1)[0];
+  if (a2aRoute === "/api/a2a/message:send" || a2aRoute === "/api/a2a/message:send/") return next();
+
   // Wayl calls the webhook server-to-server and therefore does not carry the
   // browser Origin/Referer CSRF signal. Exempt only this exact callback path.
   // The webhook payload itself is never trusted as proof of payment: the payment
