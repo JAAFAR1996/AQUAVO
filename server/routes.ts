@@ -73,6 +73,7 @@ import { createMcpRouter } from "./routes/mcp.js";
 import { createOAuthRouter } from "./routes/oauth.js";
 import { createAgentDiscoveryRouter } from "./routes/agent-discovery.js";
 import { createA2ARouter } from "./routes/a2a.js";
+import { createAgentAuthRouter } from "./routes/agent-auth.js";
 import { storage } from "./storage/index.js";
 
 declare module "express-session" {
@@ -145,6 +146,7 @@ export async function registerRoutes(httpServer: Server, app: express.Applicatio
   // and before system.ts legacy 410 compatibility guards.
   app.use("/", createAgentDiscoveryRouter());
   app.use("/", createA2ARouter());
+  app.use("/", createAgentAuthRouter());
   app.use("/api/mcp", createMcpRouter());
   const systemRouter = createSystemRouter();
   app.use("/api/system", systemRouter);
