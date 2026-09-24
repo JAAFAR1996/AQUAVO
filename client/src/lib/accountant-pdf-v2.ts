@@ -276,12 +276,6 @@ function canonicalNetProfit(summary: AnyRow): number | null {
     - Number(values.verified_expenses) - Number(values.fx_net_expense);
 }
 
-function adjustedRevenue(summary: AnyRow): number | null {
-  const revenue = finiteNumber(summary.product_revenue);
-  const rounding = finiteNumber(summary.rounding_adjustment);
-  return revenue == null || rounding == null ? null : revenue + rounding;
-}
-
 function grossProfit(summary: AnyRow): number | null {
   const revenue = finiteNumber(summary.product_revenue);
   const cogs = finiteNumber(summary.cogs);
@@ -465,7 +459,6 @@ function buildPages(payload: AnyRow): PageSpec[] {
   }
 
   const net = canonicalNetProfit(summary);
-  const adjusted = adjustedRevenue(summary);
   const gross = grossProfit(summary);
   const orderCount = finiteNumber(summary.realized_orders);
   const avgOrder = orderCount && orderCount > 0 && finiteNumber(summary.product_revenue) != null
