@@ -283,7 +283,7 @@ function adjustedRevenue(summary: AnyRow): number | null {
 }
 
 function grossProfit(summary: AnyRow): number | null {
-  const revenue = adjustedRevenue(summary);
+  const revenue = finiteNumber(summary.product_revenue);
   const cogs = finiteNumber(summary.cogs);
   return revenue == null || cogs == null ? null : revenue - cogs;
 }
@@ -471,8 +471,8 @@ function buildPages(payload: AnyRow): PageSpec[] {
   const avgOrder = orderCount && orderCount > 0 && finiteNumber(summary.product_revenue) != null
     ? Number(summary.product_revenue) / orderCount
     : null;
-  const grossMargin = ratio(gross, adjusted);
-  const netMargin = ratio(net, adjusted);
+  const grossMargin = ratio(gross, summary.product_revenue);
+  const netMargin = ratio(net, summary.product_revenue);
   const settledCount = sales.filter((row) => ["matched", "reconciled", "closed"].includes(String(row.settlement_status ?? "").toLowerCase())).length;
   const unsettledCount = sales.filter((row) => !["matched", "reconciled", "closed"].includes(String(row.settlement_status ?? "").toLowerCase())).length;
   const webOrders = sales.filter((row) => String(row.source ?? "").toLowerCase() === "website").length;
@@ -550,10 +550,9 @@ function buildPages(payload: AnyRow): PageSpec[] {
 
   const pnlRows = [
     ["مبيعات المنتجات (3000)", iqd(summary.product_revenue), "إيراد المنتجات المحقق"],
-    ["فرق التقريب (3050)", iqd(summary.rounding_adjustment), "زيادة/نقص مستقل"],
-    ["الإيراد المعدّل", iqd(adjusted), "مبيعات + فرق التقريب"],
-    ["كلفة المنتجات (4000)", iqd(summary.cogs), "تُطرح"],
-    ["الربح الإجمالي", iqd(gross), `هامش ${percent(grossMargin)}`],
+    ["كلفة المنتجات (4000)", iqd(summary.cogs), "تُطرح من مبيعات المنتجات"],
+    ["الربح الإجمالي", iqd(gross), `مبيعات المنتجات − COGS · هامش ${percent(grossMargin)}`],
+    ["فرق التقريب (3050)", iqd(summary.rounding_adjustment), "يؤثر في صافي النتيجة كحساب مستقل"],
     ["كلفة التجهيز (5100)", iqd(summary.fulfillment_cost), "تُطرح"],
     ["دعم التوصيل", iqd(summary.delivery_subsidy), "تُطرح"],
     ["مرتجعات المبيعات (4100)", iqd(summary.sales_returns), "تُطرح"],
@@ -568,8 +567,8 @@ function buildPages(payload: AnyRow): PageSpec[] {
     subtitle: "يوضح من أين بدأ الربح وأين انخفض، بدون خلط مصاريف مختلفة أو إخفائها داخل رقم واحد",
     body: `
       ${cards([
-        ["الإيراد المعدّل", iqd(adjusted)],
-        ["الربح الإجمالي", iqd(gross), `هامش ${percent(grossMargin)}`],
+        ["مبيعات المنتجات", iqd(summary.product_revenue)],
+        ["الربح الإجمالي", iqd(gross), `مبيعات − COGS · هامش ${percent(grossMargin)}`],
         ["صافي حق AQUAVO", iqd(summary.merchant_net), "مؤشر تحصيل/استحقاق تشغيلي"],
         ["صافي النتيجة الإدارية", iqd(net), `هامش ${percent(netMargin)}`],
       ], 4)}
