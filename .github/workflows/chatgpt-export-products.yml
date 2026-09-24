@@ -1,0 +1,231 @@
+name: ChatGPT Export AQUAVO Product Prices
+
+on:
+  push:
+    branches:
+      - chatgpt/export-meta-pricelist-20260924
+    paths:
+      - .github/workflows/chatgpt-export-products.yml
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install PostgreSQL client library
+        run: python -m pip install --quiet "psycopg[binary]>=3.2,<4"
+
+      - name: Export live product prices and stock
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          set -euo pipefail
+          test -n "$DATABASE_URL"
+          python - <<'PY'
+          import csv, json, os
+          from decimal import Decimal
+          from pathlib import Path
+          import psycopg
+          from psycopg.rows import dict_row
+
+          out = Path("product-export")
+          out.mkdir(exist_ok=True)
+
+          def n(v):
+              if v is None:
+                  return None
+              if isinstance(v, Decimal):
+                  return float(v)
+              return v
+
+          def money(v):
+              if v is None or v == "":
+                  return ""
+              try:
+                  d = Decimal(str(v))
+                  if d == d.to_integral():
+                      return int(d)
+                  return float(d)
+              except Exception:
+                  return v
+
+          with psycopg.connect(os.environ["DATABASE_URL"], row_factory=dict_row) as conn:
+              with conn.cursor() as cur:
+                  cur.execute("""
+                    SELECT
+                      id, slug, name, brand, category, subcategory,
+                      price, original_price, currency,
+                      stock, low_stock_threshold,
+                      has_variants, variants,
+                      deleted_at, created_at, updated_at
+                    FROM products
+                    ORDER BY (deleted_at IS NOT NULL), name, id
+                  """)
+                  rows = cur.fetchall()
+
+          base_rows = []
+          purchasable = []
+          hidden_rows = []
+
+          for r in rows:
+              variants = r.get("variants")
+              if isinstance(variants, str):
+                  try:
+                      variants = json.loads(variants)
+                  except Exception:
+                      variants = None
+              if not isinstance(variants, list):
+                  variants = []
+
+              is_deleted = r["deleted_at"] is not None
+              has_variants = bool(r["has_variants"]) and len(variants) > 0
+              variant_stock_total = sum(max(0, int(v.get("stock") or 0)) for v in variants) if has_variants else None
+              effective_stock = variant_stock_total if has_variants else int(r["stock"] or 0)
+              available = (not is_deleted) and effective_stock > 0
+
+              if is_deleted:
+                  product_status = "محذوف/مخفي"
+              elif available:
+                  product_status = "نشط"
+              else:
+                  product_status = "نشط"
+
+              if is_deleted:
+                  availability = "غير منشور"
+                  stock_status = "غير منشور"
+              elif effective_stock <= 0:
+                  availability = "منتهي"
+                  stock_status = "منتهي"
+              elif effective_stock <= int(r["low_stock_threshold"] or 0):
+                  availability = "متوفر"
+                  stock_status = "مخزون منخفض"
+              else:
+                  availability = "متوفر"
+                  stock_status = "متوفر"
+
+              base = {
+                  "product_id": r["id"],
+                  "slug": r["slug"],
+                  "name": r["name"],
+                  "brand": r["brand"],
+                  "category": r["category"],
+                  "subcategory": r["subcategory"],
+                  "base_price_iqd": money(r["price"]),
+                  "original_price_iqd": money(r["original_price"]),
+                  "currency": r["currency"],
+                  "base_stock": int(r["stock"] or 0),
+                  "low_stock_threshold": int(r["low_stock_threshold"] or 0),
+                  "has_variants": has_variants,
+                  "variant_count": len(variants),
+                  "variant_stock_total": variant_stock_total if variant_stock_total is not None else "",
+                  "effective_stock": effective_stock,
+                  "availability": availability,
+                  "stock_status": stock_status,
+                  "product_status": product_status,
+                  "product_url": f"https://www.aquavoiq.com/products/{r['slug']}",
+                  "updated_at": r["updated_at"].isoformat() if r["updated_at"] else "",
+                  "deleted_at": r["deleted_at"].isoformat() if r["deleted_at"] else "",
+                  "variants_json": json.dumps(variants, ensure_ascii=False),
+              }
+              base_rows.append(base)
+              if is_deleted:
+                  hidden_rows.append(base)
+
+              if is_deleted:
+                  continue
+
+              if has_variants:
+                  for v in variants:
+                      vstock = max(0, int(v.get("stock") or 0))
+                      vavail = "متوفر" if vstock > 0 else "منتهي"
+                      vstatus = "مخزون منخفض" if 0 < vstock <= int(r["low_stock_threshold"] or 0) else vavail
+                      sku = v.get("sku") or f"{r['slug']}-{v.get('id','')}".rstrip("-")
+                      purchasable.append({
+                          "item_id": f"{r['id']}::{v.get('id','')}",
+                          "product_id": r["id"],
+                          "slug": r["slug"],
+                          "name": r["name"],
+                          "variant_id": v.get("id") or "",
+                          "variant_label": v.get("label") or "",
+                          "sku": sku,
+                          "brand": r["brand"],
+                          "category": r["category"],
+                          "subcategory": r["subcategory"],
+                          "price_iqd": money(v.get("price")),
+                          "original_price_iqd": money(v.get("originalPrice")),
+                          "stock_qty": vstock,
+                          "availability": vavail,
+                          "stock_status": vstatus,
+                          "product_url": f"https://www.aquavoiq.com/products/{r['slug']}",
+                          "updated_at": r["updated_at"].isoformat() if r["updated_at"] else "",
+                      })
+              else:
+                  purchasable.append({
+                      "item_id": r["id"],
+                      "product_id": r["id"],
+                      "slug": r["slug"],
+                      "name": r["name"],
+                      "variant_id": "",
+                      "variant_label": "",
+                      "sku": r["slug"],
+                      "brand": r["brand"],
+                      "category": r["category"],
+                      "subcategory": r["subcategory"],
+                      "price_iqd": money(r["price"]),
+                      "original_price_iqd": money(r["original_price"]),
+                      "stock_qty": int(r["stock"] or 0),
+                      "availability": "متوفر" if int(r["stock"] or 0) > 0 else "منتهي",
+                      "stock_status": ("منتهي" if int(r["stock"] or 0) <= 0 else ("مخزون منخفض" if int(r["stock"] or 0) <= int(r["low_stock_threshold"] or 0) else "متوفر")),
+                      "product_url": f"https://www.aquavoiq.com/products/{r['slug']}",
+                      "updated_at": r["updated_at"].isoformat() if r["updated_at"] else "",
+                  })
+
+          def write_csv(path, data):
+              if not data:
+                  path.write_text("", encoding="utf-8-sig")
+                  return
+              with path.open("w", newline="", encoding="utf-8-sig") as f:
+                  w = csv.DictWriter(f, fieldnames=list(data[0].keys()))
+                  w.writeheader()
+                  w.writerows(data)
+
+          write_csv(out / "meta_price_list.csv", purchasable)
+          write_csv(out / "products_all.csv", base_rows)
+          write_csv(out / "products_hidden_deleted.csv", hidden_rows)
+
+          active_products = [x for x in base_rows if x["product_status"] == "نشط"]
+          summary = {
+              "exported_at_utc": __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat(),
+              "db_rows_total": len(base_rows),
+              "active_products": len(active_products),
+              "available_products": sum(1 for x in active_products if x["availability"] == "متوفر"),
+              "out_of_stock_products": sum(1 for x in active_products if x["availability"] == "منتهي"),
+              "low_stock_products": sum(1 for x in active_products if x["stock_status"] == "مخزون منخفض"),
+              "hidden_deleted_products": len(hidden_rows),
+              "purchasable_rows_including_variants": len(purchasable),
+              "available_purchasable_rows": sum(1 for x in purchasable if x["availability"] == "متوفر"),
+              "out_of_stock_purchasable_rows": sum(1 for x in purchasable if x["availability"] == "منتهي"),
+          }
+          (out / "summary.json").write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
+          print(json.dumps(summary, ensure_ascii=False))
+          PY
+
+      - name: Upload product export
+        uses: actions/upload-artifact@v4
+        with:
+          name: aquavo-live-product-export
+          path: product-export/
+          if-no-files-found: error
+          retention-days: 1
