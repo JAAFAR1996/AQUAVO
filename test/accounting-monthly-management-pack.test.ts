@@ -45,7 +45,7 @@ describe("accounting monthly management pack", () => {
     expect(pdf).not.toContain("html-to-image");
     expect(pdf).not.toContain("jsPDF");
     expect(pdf).not.toContain("toJpeg");
-    expect(ui).toContain("جاري بناء PDF");
+    expect(ui).toContain("جاري بناء التقرير المتجهي");
   });
 
   it("presents full accountant analysis plus detailed audit appendices", () => {
