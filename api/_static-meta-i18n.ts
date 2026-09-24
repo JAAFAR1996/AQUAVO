@@ -16,7 +16,7 @@ export interface LocalizedStaticMeta {
 
 const EN: Record<string, LocalizedStaticMeta> = {
   "/": {
-    title: "AQUAVO — Aquarium Equipment & Supplies in Iraq | Filters, Heaters, Food",
+    title: "Online Aquarium Supplies Store in Iraq | AQUAVO",
     description:
       "AQUAVO is an Iraqi online store for aquarium equipment and supplies: filters, heaters, food, glass tanks, LED lighting, decor and water treatments. Delivery to every governorate, cash on delivery or online payment.",
     keywords: "aquarium supplies Iraq, aquarium filters Baghdad, aquarium heaters, YEE aquarium equipment Iraq, glass tanks Iraq, aquarium water treatment, fish food Iraq",
@@ -137,7 +137,7 @@ const EN: Record<string, LocalizedStaticMeta> = {
 
 const CKB: Record<string, LocalizedStaticMeta> = {
   "/": {
-    title: "AQUAVO — کەرەستە و پێداویستییەکانی حەوزی ماسی لە عێراق | فلتەر، گەرمکەرەوە، خۆراک",
+    title: "فرۆشگای پێداویستییەکانی حەوزی ماسی لە عێراق | AQUAVO",
     description:
       "AQUAVO فرۆشگایەکی ئۆنلاینی عێراقییە بۆ کەرەستە و پێداویستییەکانی حەوزی ماسی: فلتەر، گەرمکەرەوە، خۆراک، حەوزی شووشەیی، ڕووناکی LED، ڕازاندنەوە و چارەسەری ئاو. گەیاندن بۆ هەموو پارێزگاکان، پارەدان لە کاتی وەرگرتن یان ئەلیکترۆنی.",
     keywords: "پێداویستی حەوزی ماسی عێراق، فلتەری حەوز بەغدا، گەرمکەرەوەی حەوز، کەرەستەی YEE عێراق، حەوزی شووشەیی، چارەسەری ئاوی حەوز، خۆراکی ماسی",
