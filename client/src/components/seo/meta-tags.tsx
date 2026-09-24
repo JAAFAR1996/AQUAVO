@@ -349,38 +349,6 @@ function onlineStoreSchema() {
     },
     sameAs: [...AQUAVO_ENTITY.socialProfiles],
     knowsAbout: [...AQUAVO_ENTITY.knowsAbout],
-    hasMerchantReturnPolicy: {
-      "@type": "MerchantReturnPolicy",
-      merchantReturnLink: AQUAVO_ENTITY.returnPolicyUrl,
-    },
-    hasShippingService: {
-      "@type": "ShippingService",
-      "@id": `${AQUAVO_BASE_URL}/#shipping-iraq`,
-      name: "توصيل AQUAVO داخل العراق",
-      description: `توصيل طلبات AQUAVO إلى جميع محافظات العراق بأجرة ثابتة ${AQUAVO_ENTITY.deliveryFee.toLocaleString("en-US")} د.ع.`,
-      fulfillmentType: "https://schema.org/FulfillmentTypeDelivery",
-      shippingConditions: {
-        "@type": "ShippingConditions",
-        shippingDestination: {
-          "@type": "DefinedRegion",
-          addressCountry: AQUAVO_ENTITY.countryCode,
-        },
-        shippingRate: {
-          "@type": "MonetaryAmount",
-          value: AQUAVO_ENTITY.deliveryFee,
-          currency: AQUAVO_ENTITY.currency,
-        },
-        transitTime: {
-          "@type": "ServicePeriod",
-          duration: {
-            "@type": "QuantitativeValue",
-            minValue: 0,
-            maxValue: AQUAVO_ENTITY.deliveryMaxDays,
-            unitCode: "DAY",
-          },
-        },
-      },
-    },
   };
 }
 
