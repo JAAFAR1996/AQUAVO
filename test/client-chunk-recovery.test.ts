@@ -18,7 +18,7 @@ describe("client stale chunk recovery", () => {
   it("bundles accountant PDF dependencies with the finance route instead of fetching them on click", () => {
     const pdf = read("client/src/lib/accountant-pdf-v2.ts");
     expect(pdf).toContain('import { jsPDF } from "jspdf";');
-    expect(pdf).toContain('import { toPng } from "html-to-image";');
+    expect(pdf).toContain('import { getFontEmbedCSS, toJpeg } from "html-to-image";');
     expect(pdf).not.toContain('import("jspdf")');
     expect(pdf).not.toContain('import("html-to-image")');
   });
