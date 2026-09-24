@@ -31,6 +31,21 @@ describe("accounting monthly management pack", () => {
     expect(source).not.toContain("o.items");
   });
 
+  it("keeps PDF generation bounded enough for a large monthly pack", () => {
+    const pdf = read("client/src/lib/accountant-pdf-v2.ts");
+    const ui = read("client/src/components/admin/finance-accounting-register-v2.tsx");
+    expect(pdf).toContain("buildPackedOrderDetailPages");
+    expect(pdf).toContain("getFontEmbedCSS");
+    expect(pdf).toContain("toJpeg");
+    expect(pdf).toContain("pixelRatio: 1.22");
+    expect(pdf).toContain("cacheBust: false");
+    expect(pdf).toContain("preferredFontFormat: \"woff2\"");
+    expect(pdf).not.toContain("for (const order of sales) pages.push(...buildOrderDetailPages(order))");
+    expect(ui).toContain("جاري بناء PDF");
+    expect(ui).toContain("pdfProgress.current");
+    expect(ui).toContain("pdfProgress.total");
+  });
+
   it("presents summary, comparison, reconciliation, product and per-order detail", () => {
     const pdf = read("client/src/lib/accountant-pdf-v2.ts");
     for (const phrase of [
