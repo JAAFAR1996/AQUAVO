@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { FinanceSmartCarrierCenterV2 } from "@/components/admin/finance-smart-carrier-center-v2";
 import { FinanceAccountingOperationsLiteV2 } from "@/components/admin/finance-accounting-operations-lite-v2";
-import { downloadAccountantPdfV2 } from "@/lib/accountant-pdf-v2";
+import { downloadAccountantPdfV2, type AccountantPdfProgress } from "@/lib/accountant-pdf-v2";
 
 const CUTOVER_MONTH = "2026-08";
 const REQUIRED_BALANCE_CODES = ["1000", "1010", "1100", "1200", "3100"] as const;
@@ -123,6 +123,7 @@ function archiveSummary(data: z.infer<typeof archiveSummarySchema>["data"]): Sum
 export function FinanceAccountingRegisterV2() {
   const [periodKey, setPeriodKey] = useState(baghdadMonth);
   const [pdfPending, setPdfPending] = useState(false);
+  const [pdfProgress, setPdfProgress] = useState<AccountantPdfProgress | null>(null);
   const [pdfError, setPdfError] = useState<string | null>(null);
   const currentPeriod = baghdadMonth();
   const isArchive = periodKey < CUTOVER_MONTH;
@@ -172,7 +173,7 @@ export function FinanceAccountingRegisterV2() {
       setPdfError(`لا يمكن إنشاء PDF: حسابات دفتر الأستاذ ناقصة (${missingBalanceCodes.join(", ")})`);
       return;
     }
-    setPdfPending(true); setPdfError(null);
+    setPdfPending(true); setPdfProgress({ current: 0, total: 0, stage: "preparing" }); setPdfError(null);
     try {
       if (isArchive) {
         await downloadAccountantPdfV2({
@@ -184,15 +185,16 @@ export function FinanceAccountingRegisterV2() {
           readiness: summary,
           liveBalances: [], sales: [], journal: [], expenses: [], returns: [], settlements: [],
           close: null,
-        });
+        }, setPdfProgress);
       } else {
         const response = await fetch(`/api/admin/accounting/v2/accountant-package?periodKey=${encodeURIComponent(periodKey)}`, { credentials: "include" });
-        await downloadAccountantPdfV2(await readJson(response) as Record<string, unknown>);
+        await downloadAccountantPdfV2(await readJson(response) as Record<string, unknown>, setPdfProgress);
       }
     } catch (error) {
       setPdfError(error instanceof Error ? error.message : "فشل إنشاء ملف PDF");
     } finally {
       setPdfPending(false);
+      setPdfProgress(null);
     }
   }
 
@@ -228,7 +230,13 @@ export function FinanceAccountingRegisterV2() {
               style={{ background: "#0d1f3c", color: "#fff", border: "1px solid #1e3a5f", borderRadius: 8, padding: "8px 10px" }} />
             <button onClick={() => void downloadPackagePdf()} disabled={!summary || pdfPending || (!isArchive && !balancesComplete)}
               style={{ background: "#0B64A6", color: "#fff", border: 0, borderRadius: 8, padding: "9px 12px", cursor: "pointer", fontWeight: 700, opacity: !summary || pdfPending || (!isArchive && !balancesComplete) ? 0.5 : 1 }}>
-              {pdfPending ? "جاري بناء PDF..." : "تنزيل ملف المحاسب PDF"}
+              {pdfPending
+                ? pdfProgress?.stage === "rendering" && pdfProgress.total > 0
+                  ? `جاري بناء PDF ${pdfProgress.current}/${pdfProgress.total}`
+                  : pdfProgress?.stage === "saving"
+                    ? "جاري حفظ PDF..."
+                    : "جاري تجهيز البيانات..."
+                : "تنزيل ملف المحاسب PDF"}
             </button>
           </div>
         </div>
