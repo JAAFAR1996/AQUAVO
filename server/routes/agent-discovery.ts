@@ -262,7 +262,15 @@ The response returns:
 - \`scope: "catalog:read"\`
 - \`resource: "${SITE}/api/agent/catalog"\`
 
-AQUAVO does not advertise identity-assertion or service-auth registration, and it does not advertise a claim ceremony for this anonymous catalog tier.
+AQUAVO does not advertise identity-assertion or service-auth registration.
+
+For compatibility with the scanner's auth.md dialect, the machine-readable metadata also publishes:
+- \`claim_uri: ${SITE}/agent/auth/claim\`
+- \`revocation_uri: ${SITE}/agent/auth/revoke\`
+
+The anonymous catalog tier has \`claim_supported: false\`. POSTing to the claim URI returns a machine-readable \`claim_not_supported\` response and does not upgrade permissions.
+
+To revoke a catalog credential, POST the token to \`${SITE}/agent/auth/revoke\` either as \`Authorization: Bearer <access_token>\` or as JSON \`{"token":"<access_token>"}\`. Revoked token identifiers are persisted in AQUAVO's settings database and are rejected across serverless instances until their original expiry.
 
 ## Use the anonymous credential
 
@@ -277,7 +285,7 @@ Optional query parameters are \`search\`, \`category\`, \`brand\`, and \`limit\`
 
 The credential can only access the sanitized public product boundary. It cannot access \`/api/mcp\`, customer data, orders, internal cost fields, admin routes, or write operations.
 
-Anonymous catalog access tokens are short-lived. When one expires, discard it and register again.
+Anonymous catalog access tokens are short-lived. When one expires, discard it and register again. If it is revoked earlier, the catalog endpoint returns HTTP 401.
 
 ## Operator MCP authentication
 
