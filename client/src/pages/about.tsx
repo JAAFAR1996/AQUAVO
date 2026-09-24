@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { BackToTop } from "@/components/back-to-top";
 import { 
   Fish, Truck, ShieldCheck, Phone, Award, Users, MapPin, 
-  Clock, Star, Heart, Droplets, Leaf, Package, Sparkles,
+  Clock, Heart, Droplets, Leaf, Package, Sparkles,
   Globe, Target, CheckCircle
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
