@@ -231,8 +231,8 @@ export function FinanceAccountingRegisterV2() {
             <button onClick={() => void downloadPackagePdf()} disabled={!summary || pdfPending || (!isArchive && !balancesComplete)}
               style={{ background: "#0B64A6", color: "#fff", border: 0, borderRadius: 8, padding: "9px 12px", cursor: "pointer", fontWeight: 700, opacity: !summary || pdfPending || (!isArchive && !balancesComplete) ? 0.5 : 1 }}>
               {pdfPending
-                ? pdfProgress?.stage === "rendering" && pdfProgress.total > 0
-                  ? `جاري بناء PDF ${pdfProgress.current}/${pdfProgress.total}`
+                ? pdfProgress?.stage === "rendering"
+                  ? "جاري بناء التقرير المتجهي..."
                   : pdfProgress?.stage === "saving"
                     ? "جاري حفظ PDF..."
                     : "جاري تجهيز البيانات..."
