@@ -313,14 +313,18 @@ export function createOAuthRouter(): RouterType {
   // RFC 9728 — Protected Resource Metadata.
   // The origin-level document identifies the site itself. The path-specific
   // document identifies the actual protected MCP resource.
-  const sendProtectedResourceMetadata = (resource: string, res: Response): void => {
+  const sendProtectedResourceMetadata = (
+    resource: string,
+    res: Response,
+    scopes: string[] = ["mcp", "mcp:read", "mcp:write"],
+  ): void => {
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Cache-Control", "public, max-age=3600");
     res.json({
       resource,
       authorization_servers: [ISSUER],
       bearer_methods_supported: ["header"],
-      scopes_supported: ["mcp", "mcp:read", "mcp:write"],
+      scopes_supported: scopes,
     });
   };
 
@@ -329,6 +333,9 @@ export function createOAuthRouter(): RouterType {
   });
   router.get("/.well-known/oauth-protected-resource/api/mcp", (_req: Request, res: Response) => {
     sendProtectedResourceMetadata(MCP_RESOURCE, res);
+  });
+  router.get("/.well-known/oauth-protected-resource/api/agent/catalog", (_req: Request, res: Response) => {
+    sendProtectedResourceMetadata(`${ISSUER}/api/agent/catalog`, res, ["catalog:read"]);
   });
 
   // RFC 8414 — Authorization Server Metadata
@@ -343,9 +350,19 @@ export function createOAuthRouter(): RouterType {
       grant_types_supported: ["authorization_code", "refresh_token"],
       code_challenge_methods_supported: ["S256"],
       token_endpoint_auth_methods_supported: ["none"],
-      scopes_supported: ["mcp", "mcp:read", "mcp:write"],
+      scopes_supported: ["catalog:read", "mcp", "mcp:read", "mcp:write"],
       authorization_response_iss_parameter_supported: true,
       service_documentation: `${ISSUER}/auth.md`,
+      agent_auth: {
+        skill: `${ISSUER}/auth.md`,
+        register_uri: `${ISSUER}/agent/auth/register`,
+        identity_types_supported: ["anonymous"],
+        credential_types_supported: ["access_token"],
+        registration_methods_supported: ["POST application/json"],
+        anonymous: {
+          credential_types_supported: ["access_token"],
+        },
+      },
     });
   });
 

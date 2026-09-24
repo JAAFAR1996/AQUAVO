@@ -219,62 +219,87 @@ const ardCatalog = {
 
 const authMarkdown = `# AQUAVO Auth.md — Agent Authentication
 
-AQUAVO protects its operational MCP server with OAuth 2.1-style Authorization Code + PKCE (S256) and Dynamic Client Registration. This document describes only the authentication mechanisms that AQUAVO actually implements.
+AQUAVO exposes two deliberately separate authentication surfaces:
+
+1. **Anonymous agent catalog access** — self-registration with the narrow \`catalog:read\` scope. It can read only AQUAVO's sanitized public product catalog.
+2. **Operator MCP access** — OAuth Authorization Code + PKCE with explicit human/admin approval. This is the only route to orders, customers, inventory operations, analytics, or writes.
+
+Never treat an anonymous catalog credential as an MCP/admin credential.
 
 ## Discover
 
-Protected resource:
-- ${MCP_RESOURCE}
+Protected Resource Metadata for the anonymous catalog:
+- ${SITE}/.well-known/oauth-protected-resource/api/agent/catalog
 
-Protected Resource Metadata (RFC 9728):
+Protected Resource Metadata for operator MCP:
 - ${MCP_RESOURCE_METADATA}
 
-Authorization Server Metadata (RFC 8414):
+Authorization Server Metadata:
 - ${SITE}/.well-known/oauth-authorization-server
 
-OpenID discovery alias:
-- ${SITE}/.well-known/openid-configuration
+The Authorization Server Metadata contains the machine-readable \`agent_auth\` block. AQUAVO currently advertises exactly one autonomous identity type: \`anonymous\`.
 
-## Pick a method
+## Anonymous agent registration
 
-For remote AI clients, use Authorization Code with PKCE S256. AQUAVO also supports a separately configured static bearer token for trusted local operator tooling; that token is not published here.
+Registration endpoint:
+- POST ${SITE}/agent/auth/register
 
-## Register
+Request:
 
-Use the registration_endpoint advertised by Authorization Server Metadata:
-- POST ${SITE}/oauth/register
+\`\`\`json
+{
+  "type": "anonymous",
+  "requested_credential_type": "access_token"
+}
+\`\`\`
 
-Supply redirect_uris and a client_name. The returned client_id is integrity protected by AQUAVO and is used in the authorization request.
+The response returns:
+- \`registration_id\`
+- \`registration_type: "anonymous"\`
+- \`access_token\`
+- \`token_type: "Bearer"\`
+- \`expires_in\`
+- \`scope: "catalog:read"\`
+- \`resource: "${SITE}/api/agent/catalog"\`
 
-## Claim
+AQUAVO does not advertise identity-assertion or service-auth registration, and it does not advertise a claim ceremony for this anonymous catalog tier.
 
-A separate agent-identity claim flow is not implemented. AQUAVO grants access through its own authorization consent page at:
-- GET ${SITE}/oauth/authorize
+## Use the anonymous credential
 
-Do not invent or call identity-assertion, claim, or service-auth endpoints that are not advertised by the server.
+Call:
 
-## Exchange
+\`\`\`http
+GET /api/agent/catalog?search=filter
+Authorization: Bearer <access_token>
+\`\`\`
 
-Exchange the authorization code at:
-- POST ${SITE}/oauth/token
+Optional query parameters are \`search\`, \`category\`, \`brand\`, and \`limit\`.
 
-Use the same redirect_uri and the PKCE code_verifier. Successful responses return a Bearer access token and may return a refresh token.
+The credential can only access the sanitized public product boundary. It cannot access \`/api/mcp\`, customer data, orders, internal cost fields, admin routes, or write operations.
 
-## Use the credential
+Anonymous catalog access tokens are short-lived. When one expires, discard it and register again.
 
-Send the access token to the MCP endpoint as:
-- Authorization: Bearer <access_token>
+## Operator MCP authentication
 
-Request only the scopes required by the task. Current advertised scopes are mcp, mcp:read, and mcp:write.
+For authorized store operations, use the separate OAuth flow:
+
+1. Dynamic Client Registration:
+   - POST ${SITE}/oauth/register
+2. Authorization Code + PKCE S256:
+   - GET/POST ${SITE}/oauth/authorize
+3. Token exchange:
+   - POST ${SITE}/oauth/token
+4. Protected MCP resource:
+   - ${MCP_RESOURCE}
+
+The MCP OAuth flow requires explicit human/admin approval. Request only the scopes needed for the task: \`mcp\`, \`mcp:read\`, or \`mcp:write\`.
 
 ## Errors
 
-A request to the protected MCP endpoint without valid authorization returns HTTP 401 and a WWW-Authenticate header pointing to the RFC 9728 protected-resource metadata document.
+Anonymous catalog requests without a valid credential return HTTP 401 with a Bearer challenge. Unsupported autonomous identity or credential types return HTTP 400 with the supported values.
 
-## Revocation and expiry
-
-Access tokens are time limited. The current authorization service does not advertise a token revocation endpoint. If access should be removed, stop using the credential and re-authorize only when access is required again.
-`;
+Operator MCP requests without valid authorization return HTTP 401 and a \`WWW-Authenticate\` header pointing to RFC 9728 Protected Resource Metadata.
+`
 
 function sendJson(res: Response, value: unknown, contentType = "application/json; charset=utf-8"): void {
   publicDocument(res, contentType);
