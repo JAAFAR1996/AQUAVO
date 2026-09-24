@@ -15,12 +15,14 @@ describe("client stale chunk recovery", () => {
     expect(isDynamicImportError(new Error("validation failed"))).toBe(false);
   });
 
-  it("bundles accountant PDF dependencies with the finance route instead of fetching them on click", () => {
-    const pdf = read("client/src/lib/accountant-pdf-v2.ts");
-    expect(pdf).toContain('import { jsPDF } from "jspdf";');
-    expect(pdf).toContain('import { getFontEmbedCSS, toJpeg } from "html-to-image";');
-    expect(pdf).not.toContain('import("jspdf")');
-    expect(pdf).not.toContain('import("html-to-image")');
+  it("uses a static vector accountant PDF module without stale dynamic image chunks", () => {
+    const wrapper = read("client/src/lib/accountant-pdf-v2.ts");
+    const vector = read("client/src/lib/accountant-pdf-vector.tsx");
+    expect(wrapper).toContain('from "./accountant-pdf-vector"');
+    expect(vector).toContain('from "@react-pdf/renderer"');
+    expect(vector).not.toContain("html-to-image");
+    expect(vector).not.toContain("jsPDF");
+    expect(vector).not.toContain('import("');
   });
 
   it("installs stale-chunk recovery before the app bootstrap import", () => {

@@ -86,16 +86,20 @@ describe("Accounting V2 automation", () => {
     expect(cron).toContain("runAutomaticPeriodClose");
   });
 
-  it("creates a branded PDF instead of downloading raw JSON", () => {
+  it("creates a branded vector PDF instead of downloading raw JSON", () => {
     const register = read("client/src/components/admin/finance-accounting-register-v2.tsx");
-    const pdf = read("client/src/lib/accountant-pdf-v2.ts");
+    const wrapper = read("client/src/lib/accountant-pdf-v2.ts");
+    const pdf = read("client/src/lib/accountant-pdf-vector.tsx");
     expect(register).toContain("downloadAccountantPdfV2");
     expect(register).toContain("تنزيل ملف المحاسب PDF");
     expect(register).not.toContain("application/json;charset=utf-8");
-    expect(pdf).toContain("/brand/aquavo-v2-horizontal.svg");
-    expect(pdf).toContain("محل المنبع");
-    expect(pdf).toContain("غير صالح للتقديم الضريبي النهائي");
+    expect(wrapper).toContain('from "./accountant-pdf-vector"');
+    expect(pdf).toContain("AQUAVO");
+    expect(pdf).toContain("تقرير إدارة ومحاسبة داخلي غير مدقق");
     expect(pdf).toContain("#0B93A6");
     expect(pdf).toContain("#F6F4EF");
+    expect(pdf).toContain('from "@react-pdf/renderer"');
+    expect(pdf).not.toContain("html-to-image");
+    expect(pdf).not.toContain("jsPDF");
   });
 });
