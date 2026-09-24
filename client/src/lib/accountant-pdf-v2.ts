@@ -155,6 +155,58 @@ function sectionTitle(title: string, note?: string): string {
 function notice(text: string, tone: "ok" | "warn" | "bad" | "neutral" = "neutral"): string {
   return `<div class="notice ${tone}">${esc(text)}</div>`;
 }
+
+function deltaNumber(current: unknown, previous: unknown): number | null {
+  const currentValue = finiteNumber(current);
+  const previousValue = finiteNumber(previous);
+  if (currentValue == null || previousValue == null || previousValue === 0) return null;
+  return ((currentValue - previousValue) / Math.abs(previousValue)) * 100;
+}
+function deltaBadge(current: unknown, previous: unknown, invert = false): string {
+  const delta = deltaNumber(current, previous);
+  if (delta == null) return '<span class="delta neutral">بدون مقارنة</span>';
+  const good = invert ? delta <= 0 : delta >= 0;
+  const direction = delta > 0 ? "↑" : delta < 0 ? "↓" : "→";
+  return `<span class="delta ${delta === 0 ? "neutral" : good ? "up" : "down"}">${direction} ${Math.abs(delta).toFixed(1)}%</span>`;
+}
+function comparisonTile(
+  label: string,
+  current: unknown,
+  previous: unknown,
+  formatter: (value: unknown) => string,
+  invert = false,
+): string {
+  return `<div class="compare-tile">
+    <div class="compare-top"><span>${esc(label)}</span>${deltaBadge(current, previous, invert)}</div>
+    <div class="compare-values">
+      <div><small>هذا الشهر</small><strong>${esc(formatter(current))}</strong></div>
+      <div class="previous"><small>السابق</small><strong>${esc(formatter(previous))}</strong></div>
+    </div>
+  </div>`;
+}
+function barRows(items: Array<{ label: string; value: unknown; note?: string; tone?: "primary" | "navy" | "warn" | "muted" }>): string {
+  const values = items.map((item) => Math.max(0, finiteNumber(item.value) ?? 0));
+  const max = Math.max(1, ...values);
+  return `<div class="bar-list">${items.map((item) => {
+    const raw = Math.max(0, finiteNumber(item.value) ?? 0);
+    const width = Math.max(raw > 0 ? 5 : 0, (raw / max) * 100);
+    return `<div class="bar-row">
+      <div class="bar-copy"><strong>${esc(item.label)}</strong><span>${esc(iqd(item.value))}${item.note ? ` · ${esc(item.note)}` : ""}</span></div>
+      <div class="bar-track"><div class="bar-fill ${item.tone ?? "primary"}" style="width:${width.toFixed(1)}%"></div></div>
+    </div>`;
+  }).join("")}</div>`;
+}
+function rankingBars(rows: Array<{ label: string; value: number; secondary?: string }>): string {
+  const max = Math.max(1, ...rows.map((row) => Math.max(0, row.value)));
+  return `<div class="ranking">${rows.map((row, index) => {
+    const width = Math.max(row.value > 0 ? 7 : 0, (Math.max(0, row.value) / max) * 100);
+    return `<div class="rank-row">
+      <div class="rank-no">${String(index + 1).padStart(2, "0")}</div>
+      <div class="rank-main"><div class="rank-copy"><strong>${esc(row.label)}</strong><span>${esc(row.secondary ?? "")}</span></div><div class="rank-track"><div style="width:${width.toFixed(1)}%"></div></div></div>
+      <div class="rank-value">${esc(iqd(row.value))}</div>
+    </div>`;
+  }).join("")}</div>`;
+}
 function pageHtml(
   title: string,
   subtitle: string,
@@ -162,7 +214,8 @@ function pageHtml(
   meta: { period: string; status: string; page: number; pages: number; legalName: string; legalNameEn: string; section?: string },
 ): string {
   const draft = meta.status !== "tax_final";
-  return `<section class="aqv-page" dir="rtl">
+  return `<section class="aqv-page ${meta.page === 1 ? "cover-page" : ""}" dir="rtl">
+    <div class="motion-rail"><i></i><i></i><i></i></div>
     ${draft ? `<div class="watermark">مسودة</div>` : ""}
     <header>
       <div class="brand">
@@ -179,7 +232,7 @@ function pageHtml(
       </div>
     </header>
     <div class="rule"></div>
-    <div class="heading"><h1>${esc(title)}</h1><p>${esc(subtitle)}</p></div>
+    <div class="heading"><div class="section-kicker">${esc(meta.section ?? "التقرير الشهري")}</div><h1>${esc(title)}</h1><p>${esc(subtitle)}</p></div>
     <main>${body}</main>
     <footer>
       <strong>${draft ? "غير صالح للتقديم الضريبي النهائي — تقرير إدارة ومحاسبة داخلي، وليس بيان IFRS مستقل" : "TAX FINAL — وفق حالة الفترة داخل النظام"}</strong>
