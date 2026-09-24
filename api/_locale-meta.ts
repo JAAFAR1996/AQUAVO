@@ -92,9 +92,9 @@ export const SHELL_META: Record<
   { defaultTitle: string; defaultDescription: string; notFoundTitle: string; notFoundDescription: string; blogSuffix: string; homeName: string; blogName: string; productsName: string }
 > = {
   ar: {
-    defaultTitle: "AQUAVO — مستلزمات أحواض الزينة في العراق | فلاتر، سخانات، أغذية",
+    defaultTitle: "متجر مستلزمات أحواض الزينة في العراق | AQUAVO",
     defaultDescription:
-      "AQUAVO متجر عراقي لمعدات ومستلزمات أحواض الزينة: فلاتر، سخانات، أغذية، ديكور ومعالجات مياه، مع توصيل لكل العراق ودفع عند الاستلام أو إلكترونياً.",
+      "AQUAVO متجر إلكتروني عراقي متخصص في معدات ومستلزمات أحواض الزينة والمياه العذبة، مع توصيل لجميع محافظات العراق ودفع عند الاستلام أو إلكترونياً.",
     notFoundTitle: "الصفحة غير موجودة | AQUAVO",
     notFoundDescription: "الرابط الذي فتحته غير موجود. تقدر ترجع للرئيسية أو تتصفح معدات ومستلزمات أحواض الزينة المتوفرة لدى AQUAVO.",
     blogSuffix: "مدونة AQUAVO",
@@ -103,9 +103,9 @@ export const SHELL_META: Record<
     productsName: "المنتجات",
   },
   en: {
-    defaultTitle: "AQUAVO — Aquarium Equipment & Supplies in Iraq | Filters, Heaters, Food",
+    defaultTitle: "Online Aquarium Supplies Store in Iraq | AQUAVO",
     defaultDescription:
-      "AQUAVO is an Iraqi store for aquarium equipment and supplies: filters, heaters, food, decor and water treatments, with delivery across Iraq and cash on delivery or online payment.",
+      "AQUAVO is an Iraqi online store for freshwater aquarium equipment and supplies, with delivery across Iraq and cash on delivery or online payment.",
     notFoundTitle: "Page not found | AQUAVO",
     notFoundDescription: "The link you opened does not exist. Go back to the home page or browse the aquarium equipment and supplies AQUAVO offers.",
     blogSuffix: "AQUAVO Blog",
@@ -114,7 +114,7 @@ export const SHELL_META: Record<
     productsName: "Products",
   },
   ckb: {
-    defaultTitle: "AQUAVO — کەرەستە و پێداویستییەکانی حەوزی ماسی لە عێراق | فلتەر، گەرمکەرەوە، خۆراک",
+    defaultTitle: "فرۆشگای پێداویستییەکانی حەوزی ماسی لە عێراق | AQUAVO",
     defaultDescription:
       "AQUAVO فرۆشگایەکی عێراقییە بۆ کەرەستە و پێداویستییەکانی حەوزی ماسی: فلتەر، گەرمکەرەوە، خۆراک، ڕازاندنەوە و چارەسەری ئاو، لەگەڵ گەیاندن بۆ هەموو عێراق و پارەدان لە کاتی وەرگرتن یان ئەلیکترۆنی.",
     notFoundTitle: "لاپەڕەکە نەدۆزرایەوە | AQUAVO",
