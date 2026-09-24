@@ -301,18 +301,29 @@ function flattenJournal(entries: AnyRow[]): AnyRow[] {
   return rows;
 }
 
-function aggregateProducts(sales: AnyRow[]): AnyRow[] {
-  const map = new Map<string, AnyRow>();
+type ProductAggregate = {
+  key: string;
+  productName: string;
+  variantLabel: string;
+  quantity: number;
+  revenue: number;
+  revenueKnown: boolean;
+  orders: Set<string>;
+};
+type ProductAggregateView = ProductAggregate & { orderCount: number };
+
+function aggregateProducts(sales: AnyRow[]): ProductAggregateView[] {
+  const map = new Map<string, ProductAggregate>();
   for (const order of sales) {
     for (const item of safeArray(order.items)) {
       const key = `${item.productId ?? "unknown"}::${item.variantId ?? ""}`;
       const quantity = finiteNumber(item.quantity) ?? 0;
       const unitPrice = finiteNumber(item.priceAtPurchase);
       const lineTotal = finiteNumber(item.lineTotal) ?? (unitPrice == null ? null : unitPrice * quantity);
-      const current = map.get(key) ?? {
+      const current: ProductAggregate = map.get(key) ?? {
         key,
-        productName: item.productName ?? item.productId ?? "منتج غير مسمى",
-        variantLabel: item.variantLabel ?? "",
+        productName: String(item.productName ?? item.productId ?? "منتج غير مسمى"),
+        variantLabel: String(item.variantLabel ?? ""),
         quantity: 0,
         revenue: 0,
         revenueKnown: false,
@@ -328,7 +339,7 @@ function aggregateProducts(sales: AnyRow[]): AnyRow[] {
     }
   }
   return Array.from(map.values())
-    .map((row) => ({ ...row, orderCount: row.orders.size }))
+    .map((row): ProductAggregateView => ({ ...row, orderCount: row.orders.size }))
     .sort((a, b) => (b.revenueKnown ? b.revenue : -1) - (a.revenueKnown ? a.revenue : -1));
 }
 
