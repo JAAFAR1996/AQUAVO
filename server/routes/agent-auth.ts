@@ -7,6 +7,7 @@ import { toPublicProducts } from "../../shared/public-product.js";
 const SITE = (process.env.AQUAVO_BASE_URL ?? "https://www.aquavoiq.com").replace(/\/$/, "");
 const RESOURCE = `${SITE}/api/agent/catalog`;
 const TOKEN_TTL_SECONDS = 60 * 60;
+const REVOKED_SETTING_KEY = "agent_auth_revoked_jtis_v1";
 const SECRET = (
   process.env.AQUAVO_AGENT_AUTH_SECRET ??
   process.env.AQUAVO_MCP_SECRET ??
@@ -23,6 +24,8 @@ type AgentTokenPayload = {
   exp: number;
   jti: string;
 };
+
+type RevokedTokens = Record<string, number>;
 
 const registrationWindows = new Map<string, { startedAt: number; count: number }>();
 const REGISTRATION_WINDOW_MS = 60 * 60 * 1000;
@@ -71,6 +74,34 @@ function verify(token: string): AgentTokenPayload | null {
   }
 }
 
+function parseRevoked(raw: string | null): RevokedTokens {
+  if (!raw) return {};
+  try {
+    const value = JSON.parse(raw);
+    if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+    const now = Math.floor(Date.now() / 1000);
+    const clean: RevokedTokens = {};
+    for (const [jti, exp] of Object.entries(value as Record<string, unknown>)) {
+      const numericExp = Number(exp);
+      if (jti && Number.isFinite(numericExp) && numericExp > now) clean[jti] = numericExp;
+    }
+    return clean;
+  } catch {
+    return {};
+  }
+}
+
+async function isRevoked(jti: string): Promise<boolean> {
+  const revoked = parseRevoked(await storage.getSetting(REVOKED_SETTING_KEY));
+  return Object.prototype.hasOwnProperty.call(revoked, jti);
+}
+
+async function revokeToken(payload: AgentTokenPayload): Promise<void> {
+  const revoked = parseRevoked(await storage.getSetting(REVOKED_SETTING_KEY));
+  revoked[payload.jti] = payload.exp;
+  await storage.updateSetting(REVOKED_SETTING_KEY, JSON.stringify(revoked));
+}
+
 function clientKey(req: Request): string {
   const forwarded = req.headers["x-forwarded-for"];
   const first = Array.isArray(forwarded) ? forwarded[0] : forwarded?.split(",")[0];
@@ -96,6 +127,13 @@ function cors(res: Response): void {
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
 }
 
+function bearerToken(req: Request): string {
+  const auth = String(req.headers.authorization ?? "");
+  if (auth.startsWith("Bearer ")) return auth.slice(7).trim();
+  const bodyToken = req.body && typeof req.body.token === "string" ? req.body.token.trim() : "";
+  return bodyToken;
+}
+
 function unauthorized(res: Response): void {
   cors(res);
   res.setHeader(
@@ -111,10 +149,13 @@ function unauthorized(res: Response): void {
 export function createAgentAuthRouter(): RouterType {
   const router = Router();
 
-  router.options(["/agent/auth/register", "/api/agent/catalog"], (_req, res) => {
-    cors(res);
-    res.sendStatus(204);
-  });
+  router.options(
+    ["/agent/auth/register", "/agent/auth/claim", "/agent/auth/revoke", "/api/agent/catalog"],
+    (_req, res) => {
+      cors(res);
+      res.sendStatus(204);
+    },
+  );
 
   router.post("/agent/auth/register", (req: Request, res: Response) => {
     cors(res);
@@ -173,6 +214,8 @@ export function createAgentAuthRouter(): RouterType {
       expires_in: TOKEN_TTL_SECONDS,
       scope: "catalog:read",
       resource: RESOURCE,
+      claim_supported: false,
+      revocation_uri: `${SITE}/agent/auth/revoke`,
       credential: {
         type: "access_token",
         access_token: accessToken,
@@ -183,15 +226,68 @@ export function createAgentAuthRouter(): RouterType {
     });
   });
 
+  // The scanner dialect expects a claim_uri. AQUAVO exposes it explicitly but
+  // does not pretend a human-claim upgrade exists for this public catalog tier.
+  // A client gets a machine-readable, non-404 answer and keeps catalog:read only.
+  router.post("/agent/auth/claim", (_req: Request, res: Response) => {
+    cors(res);
+    res.setHeader("Cache-Control", "no-store");
+    res.status(409).json({
+      error: "claim_not_supported",
+      claim_supported: false,
+      identity_types_supported: ["anonymous"],
+      scope: "catalog:read",
+      error_description:
+        "AQUAVO anonymous catalog credentials cannot be claimed or upgraded. Use the separate human-approved OAuth flow for operator MCP access.",
+    });
+  });
+
+  // Persist revoked JWT ids in the existing settings table so revocation works
+  // across Vercel cold starts and parallel serverless instances.
+  router.post("/agent/auth/revoke", async (req: Request, res: Response) => {
+    cors(res);
+    res.setHeader("Cache-Control", "no-store");
+
+    const token = bearerToken(req);
+    const payload = verify(token);
+
+    // RFC 7009-style non-enumerating behavior: unknown/already-invalid tokens
+    // get 200 as well. A valid token is persisted to the revocation set.
+    if (!payload) {
+      res.status(200).json({ revoked: true });
+      return;
+    }
+
+    try {
+      await revokeToken(payload);
+      res.status(200).json({ revoked: true });
+    } catch (error) {
+      console.error("Agent token revocation persistence failed:", error);
+      res.status(503).json({
+        error: "temporarily_unavailable",
+        error_description: "Token revocation could not be persisted.",
+      });
+    }
+  });
+
   router.get("/api/agent/catalog", async (req: Request, res: Response) => {
     cors(res);
     res.setHeader("Cache-Control", "private, no-store");
 
-    const auth = String(req.headers.authorization ?? "");
-    const token = auth.startsWith("Bearer ") ? auth.slice(7).trim() : "";
-    const payload = verify(token);
+    const payload = verify(bearerToken(req));
     if (!payload) {
       unauthorized(res);
+      return;
+    }
+
+    try {
+      if (await isRevoked(payload.jti)) {
+        unauthorized(res);
+        return;
+      }
+    } catch (error) {
+      console.error("Agent token revocation check failed:", error);
+      res.status(503).json({ error: "authorization_state_unavailable" });
       return;
     }
 

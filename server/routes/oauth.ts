@@ -354,13 +354,27 @@ export function createOAuthRouter(): RouterType {
       authorization_response_iss_parameter_supported: true,
       service_documentation: `${ISSUER}/auth.md`,
       agent_auth: {
+        // Scanner/Auth-md dialect
         skill: `${ISSUER}/auth.md`,
         register_uri: `${ISSUER}/agent/auth/register`,
+        claim_uri: `${ISSUER}/agent/auth/claim`,
+        revocation_uri: `${ISSUER}/agent/auth/revoke`,
+
+        // WorkOS-compatible registration alias. Claim is deliberately advertised
+        // as unsupported by the claim endpoint; there is no privilege upgrade.
+        identity_endpoint: `${ISSUER}/agent/auth/register`,
+        claim_endpoint: `${ISSUER}/agent/auth/claim`,
+
         identity_types_supported: ["anonymous"],
         credential_types_supported: ["access_token"],
         registration_methods_supported: ["POST application/json"],
+        claim_supported: false,
         anonymous: {
           credential_types_supported: ["access_token"],
+        },
+        identity_assertion: {
+          assertion_types_supported: [],
+          credential_types_supported: [],
         },
       },
     });
