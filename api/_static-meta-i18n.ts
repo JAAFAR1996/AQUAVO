@@ -103,14 +103,14 @@ const EN: Record<string, LocalizedStaticMeta> = {
   },
   "/about": {
     title: "About Us — AQUAVO Aquarium Supplies Store in Iraq",
-    description: "AQUAVO is an Iraqi brand and store specialising in premium aquarium equipment and supplies, with delivery across Iraq and cash on delivery.",
+    description: "AQUAVO is an Iraqi online store specialising in aquarium equipment and supplies, with delivery across Iraq and cash on delivery or online payment.",
   },
   "/about-aquavo": {
     title: "About Us — AQUAVO Aquarium Supplies Store in Iraq",
-    description: "AQUAVO is an Iraqi brand and store specialising in premium aquarium equipment and supplies, with delivery across Iraq and cash on delivery.",
+    description: "AQUAVO is an Iraqi online store specialising in aquarium equipment and supplies, with delivery across Iraq and cash on delivery or online payment.",
   },
   "/why-aquavo": {
-    title: "Why AQUAVO — A Premium Aquarium Supplies Store in Iraq",
+    title: "Why AQUAVO — Aquarium Supplies Store in Iraq",
     description: "Why do aquarium keepers in Iraq choose AQUAVO? Genuine products as available, delivery to every governorate, technical support and clear prices.",
   },
   "/contact": {
