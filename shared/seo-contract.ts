@@ -1,5 +1,5 @@
 export const AQUAVO_BASE_URL = "https://www.aquavoiq.com";
-export const AQUAVO_SEO_RELEASE_LASTMOD = "2026-09-24";
+export const AQUAVO_SEO_RELEASE_LASTMOD = "2026-08-25";
 
 export const AQUAVO_ENTITY = Object.freeze({
   brandName: "AQUAVO",
