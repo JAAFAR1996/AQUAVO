@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - "server/routes/agent-discovery.ts"
+      - "server/routes/a2a.ts"
       - "server/routes/oauth.ts"
       - "server/routes/mcp.ts"
       - "client/public/robots.txt"
@@ -96,7 +97,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: aquavo-agent-readiness-\${{ github.run_number }}
+          name: aquavo-agent-readiness-${{ github.run_number }}
           path: artifacts/agent-readiness/report.json
           if-no-files-found: warn
           retention-days: 30
