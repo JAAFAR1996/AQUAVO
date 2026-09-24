@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - "server/routes/agent-discovery.ts"
+      - "server/routes/agent-auth.ts"
       - "server/routes/a2a.ts"
       - "server/routes/oauth.ts"
       - "server/routes/mcp.ts"
@@ -26,17 +27,18 @@ jobs:
       contents: read
 
     steps:
-      - name: Wait for production endpoint
+      - name: Wait for production agent metadata
         shell: bash
         run: |
           set -euo pipefail
-          for attempt in $(seq 1 30); do
-            if curl -fsS --max-time 15 https://www.aquavoiq.com/health >/dev/null; then
+          for attempt in $(seq 1 45); do
+            BODY="$(curl -fsS --max-time 15 https://www.aquavoiq.com/.well-known/oauth-authorization-server || true)"
+            if printf '%s' "$BODY" | grep -q '"agent_auth"' && printf '%s' "$BODY" | grep -q '"register_uri"'; then
               exit 0
             fi
             sleep 10
           done
-          echo "Production health endpoint did not become reachable." >&2
+          echo "Production agent_auth metadata did not become reachable." >&2
           exit 1
 
       - name: Run official Agent Readiness scanner
