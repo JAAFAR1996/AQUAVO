@@ -1,20 +1,17 @@
-name: Temporary vector accounting PDF verification
+name: Security dependency remediation
 
 on:
-  push:
+  pull_request:
     branches:
-      - fix/vector-accounting-pdf-final-20260924
+      - main
     paths:
-      - client/src/lib/accountant-pdf-vector.tsx
-      - client/src/lib/accountant-pdf-v2.ts
-      - client/src/components/admin/finance-accounting-register-v2.tsx
-      - test/accounting-monthly-management-pack.test.ts
-      - test/client-chunk-recovery.test.ts
-      - server/__tests__/accounting-v2-automation-contract.test.ts
       - .github/workflows/security-remediation.yml
+      - package.json
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
 
 permissions:
-  contents: read
+  contents: write
 
 env:
   NODE_VERSION: 20.19.0
@@ -22,33 +19,244 @@ env:
   CI: true
 
 jobs:
-  verify:
+  remediate:
+    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repair branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 1
 
-      - uses: pnpm/action-setup@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
         with:
           version: ${{ env.PNPM_VERSION }}
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
 
-      - name: Install dependencies
+      - name: Install current lockfile
         run: pnpm install --frozen-lockfile
 
-      - name: Strict accounting typecheck
-        run: pnpm check:accounting
-
-      - name: Vector PDF and accounting contract tests
+      # Do not use "latest" here. A previous broad remediation upgraded the
+      # test stack across a major boundary and broke 64 tests. Keep every
+      # security upgrade on a reviewed floor and let the full suite prove the
+      # resulting lockfile before it can be committed.
+      - name: Update vulnerable production dependencies on reviewed floors
         run: >-
-          pnpm exec vitest run
-          test/accounting-monthly-management-pack.test.ts
-          test/client-chunk-recovery.test.ts
-          server/__tests__/accounting-v2-automation-contract.test.ts
+          pnpm update
+          @aws-sdk/client-s3@3.1136.0
+          @modelcontextprotocol/sdk@1.30.0
+          @sentry/node@10.75.0
+          @sentry/react@10.75.0
+          apify-client@2.25.0
+          autoprefixer@10.6.1
+          cloudinary@2.11.0
+          csv-parse@7.0.2
+          drizzle-orm@0.45.2
+          express-rate-limit@8.7.0
+          groq-sdk@1.6.0
+          jspdf@4.2.1
+          multer@2.4.0
+          nanoid@5.1.16
+          nodemailer@10.0.10
+          postcss@8.5.23
+          posthog-js@1.430.3
+          resend@6.28.1
+          uuid@13.0.1
+          ws@8.21.0
 
-      - name: Production build
-        run: pnpm build
+      - name: Update vulnerable development dependencies on compatible floors
+        run: >-
+          pnpm add -D
+          @vercel/node@13.0.1
+          @vitest/ui@4.1.11
+          dompurify@3.4.13
+          drizzle-kit@0.31.10
+          happy-dom@20.8.9
+          sharp@0.35.4
+          vite@8.0.16
+          vitest@4.1.11
+
+      # Nodemailer 10 ships its own TypeScript declarations. Keeping the old
+      # @types package also pulls an obsolete SES/AWS dependency tree.
+      - name: Remove obsolete Nodemailer community types
+        run: pnpm remove @types/nodemailer
+
+      # Never run `pnpm audit --fix` here. The only permitted overrides are
+      # narrow parent>child patches within the dependency line expected by that
+      # exact parent. This prevents a repeat of the 91 broad overrides that
+      # replaced Express 4's path-to-regexp API.
+      - name: Apply reviewed transitive patches
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync, writeFileSync } from "node:fs";
+          const pkg = JSON.parse(readFileSync("package.json", "utf8"));
+          pkg.pnpm = pkg.pnpm || {};
+          pkg.pnpm.overrides = {
+            "express@4.22.1>path-to-regexp": "0.1.13",
+            "express@4.22.1>qs": "6.16.0",
+            "body-parser@1.20.4>qs": "6.16.0",
+            "recharts@2.15.4>lodash": "4.18.0",
+            "asn1.js@5.4.1>bn.js": "4.12.3",
+            "@vercel/node@13.0.1>undici": "6.28.1",
+            "@mapbox/node-pre-gyp@2.0.3>tar": "7.5.21",
+            "@rollup/pluginutils@5.3.0>rollup": "4.59.0",
+            "rollup-plugin-visualizer@6.0.5>rollup": "4.59.0",
+            "@ts-morph/common@0.11.1>minimatch": "3.1.4",
+            "glob@7.2.3>minimatch": "3.1.4",
+            "micromatch@4.0.8>picomatch": "2.3.2",
+            "anymatch@3.1.3>picomatch": "2.3.2",
+            "readdirp@3.6.0>picomatch": "2.3.2",
+            "@vercel/static-config@3.4.3>ajv": "8.18.0",
+            "minimatch@3.1.4>brace-expansion": "1.1.18",
+            "glob@13.0.0>minimatch": "10.2.5",
+            "minimatch@10.2.5>@isaacs/brace-expansion": "5.0.1",
+            "rollup-plugin-visualizer@6.0.5>picomatch": "4.0.4",
+            "superagent@10.2.3>form-data": "4.0.6",
+            "@types/superagent@8.1.9>form-data": "4.0.6",
+            "superagent@10.2.3>qs": "6.16.0",
+            "@esbuild-kit/core-utils@3.3.2>esbuild": "0.25.12"
+          };
+          writeFileSync("package.json", JSON.stringify(pkg, null, 2) + "\n");
+          NODE
+
+      - name: Verify override allowlist
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync } from "node:fs";
+          const expected = {
+            "express@4.22.1>path-to-regexp": "0.1.13",
+            "express@4.22.1>qs": "6.16.0",
+            "body-parser@1.20.4>qs": "6.16.0",
+            "recharts@2.15.4>lodash": "4.18.0",
+            "asn1.js@5.4.1>bn.js": "4.12.3",
+            "@vercel/node@13.0.1>undici": "6.28.1",
+            "@mapbox/node-pre-gyp@2.0.3>tar": "7.5.21",
+            "@rollup/pluginutils@5.3.0>rollup": "4.59.0",
+            "rollup-plugin-visualizer@6.0.5>rollup": "4.59.0",
+            "@ts-morph/common@0.11.1>minimatch": "3.1.4",
+            "glob@7.2.3>minimatch": "3.1.4",
+            "micromatch@4.0.8>picomatch": "2.3.2",
+            "anymatch@3.1.3>picomatch": "2.3.2",
+            "readdirp@3.6.0>picomatch": "2.3.2",
+            "@vercel/static-config@3.4.3>ajv": "8.18.0",
+            "minimatch@3.1.4>brace-expansion": "1.1.18",
+            "glob@13.0.0>minimatch": "10.2.5",
+            "minimatch@10.2.5>@isaacs/brace-expansion": "5.0.1",
+            "rollup-plugin-visualizer@6.0.5>picomatch": "4.0.4",
+            "superagent@10.2.3>form-data": "4.0.6",
+            "@types/superagent@8.1.9>form-data": "4.0.6",
+            "superagent@10.2.3>qs": "6.16.0",
+            "@esbuild-kit/core-utils@3.3.2>esbuild": "0.25.12"
+          };
+          const pkg = JSON.parse(readFileSync("package.json", "utf8"));
+          if (JSON.stringify(pkg.pnpm?.overrides || {}) !== JSON.stringify(expected)) {
+            console.error("Dependency overrides differ from the reviewed allowlist.");
+            process.exit(1);
+          }
+          NODE
+
+      - name: Refresh lockfile
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Type check
+        id: types
+        shell: bash
+        run: |
+          set +e
+          pnpm run check 2>&1 | tee remediation-types.log
+          code=${PIPESTATUS[0]}
+          set -e
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+
+      - name: Build and generate SSR artifacts
+        id: build
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          pnpm run build 2>&1 | tee remediation-build.log
+          code=${PIPESTATUS[0]}
+          set -e
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+
+      - name: Unit tests
+        id: tests
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          pnpm run test --run 2>&1 | tee remediation-tests.log
+          code=${PIPESTATUS[0]}
+          set -e
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+
+      - name: Print concise test failure summary
+        if: always()
+        shell: bash
+        run: |
+          echo "===== concise test summary ====="
+          if [ -f remediation-tests.log ]; then
+            grep -E "(^|[[:space:]])(FAIL|Failed|failed|AssertionError|Error:|Test Files|Tests|Snapshots|Duration|×|❯)" remediation-tests.log | tail -n 250 || true
+          else
+            echo "No test log was produced"
+          fi
+
+      - name: Final security audit
+        id: audit
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          pnpm audit --audit-level=moderate 2>&1 | tee remediation-audit.log
+          code=${PIPESTATUS[0]}
+          set -e
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+
+      - name: Upload remediation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-remediation-evidence-${{ github.run_number }}
+          path: |
+            remediation-types.log
+            remediation-tests.log
+            remediation-build.log
+            remediation-audit.log
+          if-no-files-found: warn
+          retention-days: 3
+
+      # Once the lockfile is already verified, keep this step a no-op so the caller-authored PR SHA remains the downstream CI target.\n      - name: Commit verified dependency repair
+        if: steps.types.outputs.exit_code == '0' && steps.tests.outputs.exit_code == '0' && steps.build.outputs.exit_code == '0' && steps.audit.outputs.exit_code == '0'
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json pnpm-lock.yaml
+          if [ -f pnpm-workspace.yaml ]; then git add pnpm-workspace.yaml; fi
+          if git diff --cached --quiet; then
+            echo "No dependency changes to commit"
+          else
+            git commit -m "fix(security): update vulnerable dependencies"
+            git push origin HEAD:${{ github.event.pull_request.head.ref }}
+          fi
+
+      - name: Require verified remediation
+        if: always()
+        shell: bash
+        run: |
+          types="${{ steps.types.outputs.exit_code }}"
+          tests="${{ steps.tests.outputs.exit_code }}"
+          build="${{ steps.build.outputs.exit_code }}"
+          audit="${{ steps.audit.outputs.exit_code }}"
+          echo "types=$types tests=$tests build=$build audit=$audit"
+          if [ "$types" != "0" ] || [ "$tests" != "0" ] || [ "$build" != "0" ] || [ "$audit" != "0" ]; then
+            exit 1
+          fi
