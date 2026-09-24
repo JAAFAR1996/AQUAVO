@@ -217,14 +217,13 @@ export default function Sustainability() {
                   {t("sustainability.s28")}
                 </p>
               </div>
-              <div className="mt-8">
-                <div className="h-2 w-full bg-card dark:bg-slate-800 rounded-full overflow-hidden">
-                  <div className="h-full bg-teal-500 w-[85%]" />
-                </div>
-                <div className="flex justify-between mt-2 text-xs text-slate-500 font-mono">
-                  <span>{t("sustainability.s29")}</span>
-                  <span>{t("sustainability.s30")}</span>
-                </div>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Badge variant="secondary" className="bg-card dark:bg-slate-800 text-muted-foreground dark:text-slate-300">
+                  {t("sustainability.s29")}
+                </Badge>
+                <Badge variant="secondary" className="bg-card dark:bg-slate-800 text-muted-foreground dark:text-slate-300">
+                  {t("sustainability.s30")}
+                </Badge>
               </div>
             </motion.div>
 
