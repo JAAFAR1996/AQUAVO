@@ -1,3 +1,6 @@
+import { jsPDF } from "jspdf";
+import { toPng } from "html-to-image";
+
 type AnyRow = Record<string, any>;
 type PageSpec = { title: string; subtitle: string; body: string };
 
@@ -287,7 +290,6 @@ function buildPages(payload: AnyRow): PageSpec[] {
 
 export async function downloadAccountantPdfV2(payload: AnyRow): Promise<void> {
   validateAccountantPayload(payload);
-  const [{ jsPDF }, { toPng }] = await Promise.all([import("jspdf"), import("html-to-image")]);
   await document.fonts?.ready;
   const pages = buildPages(payload);
   const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4", compress: true });
