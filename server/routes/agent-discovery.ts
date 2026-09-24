@@ -203,10 +203,21 @@ const ardCatalog = {
         "Find equipment whose published specifications fit a 60 litre aquarium.",
       ],
     },
+    {
+      identifier: "urn:air:aquavoiq.com:a2a:catalog-agent",
+      displayName: "AQUAVO Catalog A2A Agent",
+      type: "application/json",
+      url: `${SITE}/.well-known/agent-card.json`,
+      description: "Read-only A2A 1.0 agent for public AQUAVO product discovery.",
+      representativeQueries: [
+        "Search AQUAVO for aquarium filters.",
+        "Find a named aquarium product in the AQUAVO catalog.",
+      ],
+    },
   ],
 };
 
-const authMarkdown = `# AQUAVO agent authentication
+const authMarkdown = `# AQUAVO Auth.md — Agent Authentication
 
 AQUAVO protects its operational MCP server with OAuth 2.1-style Authorization Code + PKCE (S256) and Dynamic Client Registration. This document describes only the authentication mechanisms that AQUAVO actually implements.
 
