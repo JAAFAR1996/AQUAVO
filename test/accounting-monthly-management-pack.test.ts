@@ -49,15 +49,19 @@ describe("accounting monthly management pack", () => {
   it("presents summary, comparison, reconciliation, product and per-order detail", () => {
     const pdf = read("client/src/lib/accountant-pdf-v2.ts");
     for (const phrase of [
-      "تقرير الإدارة والمحاسب الشهري",
-      "مقارنة الشهر الحالي بالشهر السابق",
-      "جسر الربح والخسارة",
-      "هل أرقام الشهر مترابطة؟",
-      "شنو باع هذا الشهر؟",
+      "الشهر بنظرة وحدة",
+      "الشهر الحالي مقابل السابق",
+      "من المبيعات للربح — وين راحت الفلوس؟",
+      "هل الأرقام تركب على بعضها؟",
+      "شنو باع أكثر؟",
       "فهرس الطلبات المتحققة",
-      "تفاصيل الطلب",
+      "تفاصيل الطلبات — سجل التدقيق",
       "دفتر اليومية التفصيلي",
       "شلون تنقري الأرقام؟",
+      "comparisonTile",
+      "barRows",
+      "rankingBars",
+      "motion-rail",
     ]) expect(pdf).toContain(phrase);
     expect(pdf).toContain("القيم المفقودة لا تُستبدل بأصفار");
     expect(pdf).toContain("وليس بيان IFRS مستقل");
