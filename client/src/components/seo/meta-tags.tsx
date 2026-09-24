@@ -323,14 +323,14 @@ function onlineStoreSchema() {
     "@type": "OnlineStore",
     "@id": `${AQUAVO_BASE_URL}/#organization`,
     name: AQUAVO_ENTITY.brandName,
-    alternateName: [AQUAVO_ENTITY.arabicName, "AQUAVO Iraq"],
+    alternateName: [...AQUAVO_ENTITY.alternateNames],
     legalName: AQUAVO_ENTITY.legalName,
     url: AQUAVO_BASE_URL,
     logo: { "@type": "ImageObject", url: LOGO_URL, width: 512, height: 512 },
     image: LOGO_URL,
     email: AQUAVO_ENTITY.email,
     telephone: AQUAVO_ENTITY.telephone,
-    description: "متجر إلكتروني عراقي متخصص في معدات ومستلزمات أحواض الزينة. لا يوجد محل لاستقبال الزبائن حالياً، ولا يبيع أسماكاً أو كائنات أو نباتات حية.",
+    description: AQUAVO_ENTITY.description,
     currenciesAccepted: AQUAVO_ENTITY.currency,
     paymentAccepted: AQUAVO_ENTITY.paymentMethod,
     areaServed: { "@type": "Country", name: AQUAVO_ENTITY.countryName },
@@ -348,13 +348,39 @@ function onlineStoreSchema() {
       },
     },
     sameAs: [...AQUAVO_ENTITY.socialProfiles],
-    knowsAbout: [
-      "مستلزمات أحواض الزينة",
-      "فلاتر الأحواض",
-      "سخانات الأحواض",
-      "معالجة مياه الأحواض",
-      "العناية بأحواض الزينة",
-    ],
+    knowsAbout: [...AQUAVO_ENTITY.knowsAbout],
+    hasMerchantReturnPolicy: {
+      "@type": "MerchantReturnPolicy",
+      merchantReturnLink: AQUAVO_ENTITY.returnPolicyUrl,
+    },
+    hasShippingService: {
+      "@type": "ShippingService",
+      "@id": `${AQUAVO_BASE_URL}/#shipping-iraq`,
+      name: "توصيل AQUAVO داخل العراق",
+      description: `توصيل طلبات AQUAVO إلى جميع محافظات العراق بأجرة ثابتة ${AQUAVO_ENTITY.deliveryFee.toLocaleString("en-US")} د.ع.`,
+      fulfillmentType: "https://schema.org/FulfillmentTypeDelivery",
+      shippingConditions: {
+        "@type": "ShippingConditions",
+        shippingDestination: {
+          "@type": "DefinedRegion",
+          addressCountry: AQUAVO_ENTITY.countryCode,
+        },
+        shippingRate: {
+          "@type": "MonetaryAmount",
+          value: AQUAVO_ENTITY.deliveryFee,
+          currency: AQUAVO_ENTITY.currency,
+        },
+        transitTime: {
+          "@type": "ServicePeriod",
+          duration: {
+            "@type": "QuantitativeValue",
+            minValue: 0,
+            maxValue: AQUAVO_ENTITY.deliveryMaxDays,
+            unitCode: "DAY",
+          },
+        },
+      },
+    },
   };
 }
 
@@ -408,15 +434,10 @@ export function WebsiteSchema() {
         "@type": "WebSite",
         "@id": `${AQUAVO_BASE_URL}/#website`,
         name: AQUAVO_ENTITY.brandName,
-        alternateName: AQUAVO_ENTITY.arabicName,
+        alternateName: [...AQUAVO_ENTITY.websiteAlternateNames],
         url: AQUAVO_BASE_URL,
         inLanguage: LOCALES[currentLocale()].languageTag,
         publisher: { "@id": `${AQUAVO_BASE_URL}/#organization` },
-        potentialAction: {
-          "@type": "SearchAction",
-          target: `${AQUAVO_BASE_URL}/products?search={search_term_string}`,
-          "query-input": "required name=search_term_string",
-        },
       }}
     />
   );
