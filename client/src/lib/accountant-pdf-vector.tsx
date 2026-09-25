@@ -39,8 +39,8 @@ const C = {
   greenSoft: "#EAF7F2",
   red: "#B23A48",
   redSoft: "#FDEEEF",
-  amber: "#9A5A1F",
-  amberSoft: "#FFF5E9",
+  amber: "#6B7280",
+  amberSoft: "#F4F6F7",
   blueSoft: "#EDF5FA",
   graySoft: "#F4F6F7",
 };
@@ -156,6 +156,19 @@ function periodLabel(periodKey: string): string {
   return new Intl.DateTimeFormat("ar-IQ", { month: "long", year: "numeric", timeZone: "UTC" }).format(d);
 }
 
+function generatedPeriod(value: unknown): string | null {
+  if (!value) return null;
+  const d = new Date(String(value));
+  if (Number.isNaN(d.getTime())) return null;
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Baghdad",
+    year: "numeric",
+    month: "2-digit",
+  }).formatToParts(d);
+  const map = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return map.year && map.month ? map.year + "-" + map.month : null;
+}
+
 function safeArray(value: unknown): AnyRow[] {
   if (Array.isArray(value)) return value as AnyRow[];
   if (typeof value === "string") {
@@ -195,7 +208,7 @@ function sumKnown(rows: AnyRow[], field: string): number | null {
 }
 
 function chunks<T>(items: T[], size: number): T[][] {
-  if (!items.length) return [[]];
+  if (!items.length) return [];
   const out: T[][] = [];
   for (let i = 0; i < items.length; i += size) out.push(items.slice(i, i + size));
   return out;
@@ -384,7 +397,7 @@ const styles = StyleSheet.create({
     textAlign: "left",
   },
   smallMuted: {
-    fontSize: 7.2,
+    fontSize: 7.7,
     color: C.muted,
   },
   topRule: {
@@ -413,7 +426,7 @@ const styles = StyleSheet.create({
     textAlign: "right",
   },
   pageSubtitle: {
-    fontSize: 7.8,
+    fontSize: 8.2,
     color: C.muted,
     textAlign: "right",
     marginTop: 3,
@@ -440,7 +453,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   footerText: {
-    fontSize: 6.3,
+    fontSize: 6.9,
     color: C.muted,
   },
   pageNumber: {
@@ -943,20 +956,20 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   tableHeaderText: {
-    fontSize: 8,
+    fontSize: 8.5,
     fontWeight: 700,
     color: C.navy,
     textAlign: "right",
   },
   tableText: {
-    fontSize: 7.8,
+    fontSize: 8.2,
     color: C.text,
-    lineHeight: 1.35,
+    lineHeight: 1.4,
     textAlign: "right",
   },
   tableNumber: {
     fontFamily: "AqArabic",
-    fontSize: 7.7,
+    fontSize: 8.1,
     color: C.text,
     textAlign: "right",
   },
@@ -1001,12 +1014,12 @@ const styles = StyleSheet.create({
     padding: 5,
   },
   orderMetaLabel: {
-    fontSize: 5.8,
+    fontSize: 6.4,
     color: C.muted,
     textAlign: "right",
   },
   orderMetaValue: {
-    fontSize: 6.8,
+    fontSize: 7.2,
     fontWeight: 700,
     color: C.navy,
     textAlign: "right",
@@ -1024,14 +1037,14 @@ const styles = StyleSheet.create({
     paddingRight: 5,
   },
   orderFinanceLabel: {
-    fontSize: 5.6,
+    fontSize: 6.2,
     color: C.muted,
     textAlign: "right",
   },
   orderFinanceValue: {
     fontFamily: "AqArabic",
     fontWeight: 700,
-    fontSize: 7.4,
+    fontSize: 7.9,
     color: C.navy,
     textAlign: "right",
     marginTop: 2,
@@ -1285,6 +1298,7 @@ type WaterfallItem = {
   label: string;
   start: number;
   end: number;
+  delta: number;
   color: string;
   total?: boolean;
 };
@@ -1302,19 +1316,19 @@ function buildWaterfall(summary: AnyRow, net: number | null): WaterfallItem[] {
 
   let cursor = revenue;
   const out: WaterfallItem[] = [
-    { label: "المبيعات", start: 0, end: revenue, color: C.navy, total: true },
+    { label: "المبيعات", start: 0, end: revenue, delta: revenue, color: C.navy, total: true },
   ];
   const push = (label: string, delta: number, color: string) => {
     const start = cursor;
     cursor += delta;
-    out.push({ label, start, end: cursor, color });
+    out.push({ label, start, end: cursor, delta, color });
   };
   push("COGS", -cogs, C.red);
   push("التجهيز", -fulfillment, "#D96B5F");
   push("دعم التوصيل", -delivery, "#E58A68");
   if (rounding !== 0) push("التقريب", rounding, rounding >= 0 ? C.teal2 : "#C47B68");
   if (returns !== 0) push("راجعات/مصاريف", -returns, "#B98670");
-  out.push({ label: "الصافي", start: 0, end: net ?? cursor, color: C.teal, total: true });
+  out.push({ label: "الصافي", start: 0, end: net ?? cursor, delta: net ?? cursor, color: C.teal, total: true });
   return out;
 }
 
@@ -1380,7 +1394,9 @@ function WaterfallChart({ summary, net }: { summary: AnyRow; net: number | null 
           <View key={item.label} style={{ width: 53, alignItems: "center" }}>
             <Text style={{ fontSize: 5.8, color: C.muted, textAlign: "center" }}>{item.label}</Text>
             <Text style={{ fontFamily: "AqArabic", fontWeight: 700, fontSize: 6.1, color: C.navy, marginTop: 2 }}>
-              {compactMoney(item.end)}
+              {item.total
+                ? compactMoney(item.end)
+                : (item.delta < 0 ? "−" : "+") + compactMoney(Math.abs(item.delta))}
             </Text>
           </View>
         ))}
@@ -1572,6 +1588,9 @@ type OrderPart = { order: AnyRow; items: AnyRow[]; partIndex: number; partCount:
 
 function splitOrder(order: AnyRow): OrderPart[] {
   const groups = chunks(safeArray(order.items), 5);
+  if (!groups.length) {
+    return [{ order, items: [], partIndex: 0, partCount: 1, weight: 3.4 }];
+  }
   return groups.map((items, index) => ({
     order,
     items,
@@ -1703,6 +1722,7 @@ function AppendixTablePages({
   rows: Array<Array<string | number | null | undefined>>;
   pageSize: number;
 }) {
+  if (!rows.length) return null;
   const groups = chunks(rows, pageSize);
   return (
     <>
@@ -1735,7 +1755,11 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
   const evidenceIndex: AnyRow[] = Array.isArray(payload.evidenceIndex) ? payload.evidenceIndex : [];
   const blockers: AnyRow[] = Array.isArray(summary.blockers) ? summary.blockers : [];
   const profile: AnyRow = payload.profile ?? {};
+  const close: AnyRow = payload.close ?? {};
   const periodKey = String(payload.manifest?.periodKey ?? "—");
+  const closeStatus = String(close.status ?? "").toLowerCase();
+  const currentOpenPeriod = generatedPeriod(payload.manifest?.generatedAt) === periodKey
+    && !["closed", "tax_final"].includes(closeStatus);
 
   const balanceMap = new Map<string, number>();
   for (const row of balances) {
@@ -1778,7 +1802,6 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
   ].sort((a, b) => b.value - a.value)[0];
 
   const costDistribution: DonutSegment[] = [
-    { label: "صافي النتيجة", value: Math.max(0, net ?? 0), color: C.teal },
     { label: "كلفة المنتجات", value: Math.max(0, finiteNumber(summary.cogs) ?? 0), color: C.navy },
     { label: "كلفة التجهيز", value: Math.max(0, finiteNumber(summary.fulfillment_cost) ?? 0), color: "#4E8CAD" },
     { label: "دعم التوصيل", value: Math.max(0, finiteNumber(summary.delivery_subsidy) ?? 0), color: "#9AB9C5" },
@@ -1954,7 +1977,7 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
     <Document
       title={"AQUAVO Monthly Accounting " + periodKey}
       author="AQUAVO"
-      subject="Monthly management and accounting report - VECTOR V5"
+      subject="Monthly professional management accounting report - VECTOR V6"
       keywords="AQUAVO, accounting, monthly report, finance"
     >
       <ReportPage
@@ -1965,7 +1988,7 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
       >
         <View style={styles.hero}>
           <View style={styles.heroCopy}>
-            <Text style={styles.heroEyebrow}>AQUAVO MONTHLY FINANCIAL ANALYSIS · VECTOR V5</Text>
+            <Text style={styles.heroEyebrow}>AQUAVO · MONTHLY MANAGEMENT ACCOUNTING · VECTOR V6</Text>
             <Text style={styles.heroTitle}>ملخص الأداء المالي: من المبيعات إلى صافي النتيجة.</Text>
             <Text style={styles.heroNote}>
               تقرير بصري مبني على دفتر الأستاذ، حقائق الطلبات، التسويات والمصاريف الموثقة. الأرقام الناقصة تبقى ظاهرة ولا تتحول تلقائياً إلى صفر.
@@ -2015,11 +2038,11 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
           </View>
           <View style={[styles.chartCard, { width: "40%" }]}>
             <Text style={styles.chartTitle}>توزيع نتيجة الشهر وبنود التكلفة</Text>
-            <Text style={styles.chartSubtitle}>النسب محسوبة من مجموع مكونات الرسم، وليس من رقم مفترض</Text>
+            <Text style={styles.chartSubtitle}>الدائرة توزع بنود التكلفة فقط؛ صافي النتيجة يظهر كمؤشر مستقل حتى لا تختلط الربحية بالمصروفات.</Text>
             <DonutChart
               segments={costDistribution}
-              centerLabel="صافي النتيجة"
-              centerValue={compactMoney(net)}
+              centerLabel="إجمالي التكلفة"
+              centerValue={compactMoney(costDistribution.reduce((sum, item) => sum + item.value, 0))}
             />
           </View>
         </View>
@@ -2127,8 +2150,15 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
         payload={payload}
         section="03 · المقارنة الشهرية"
         title="هذا الشهر مقابل الشهر السابق"
-        subtitle="المقارنة تظهر فقط عندما توجد فترة Accounting V2 متجانسة وقابلة للمقارنة"
+        subtitle="هذا الشهر مقابل الشهر السابق؛ المقارنة الاتجاهية لا تُعامل كفارق نهائي إذا كان الشهر الحالي ما زال مفتوحاً"
       >
+        {currentOpenPeriod && previous ? (
+          <View style={styles.noteBox}>
+            <Text style={styles.noteText}>
+              تنبيه مهني: الفترة الحالية ما زالت مفتوحة، بينما الفترة السابقة قد تمثل شهراً كاملاً. لذلك تُقرأ نسب التغير أدناه كمؤشرات اتجاهية فقط، لا كتحليل نمو نهائي أو مقارنة like-for-like.
+            </Text>
+          </View>
+        ) : null}
         {previous ? (
           <>
             <View style={styles.compareGrid}>
@@ -2177,9 +2207,9 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
 
       <ReportPage
         payload={payload}
-        section="04 · السيولة والتحصيل"
-        title="السيولة والتحصيل — أين تتركز الأرصدة؟"
-        subtitle="الأرصدة الحية من دفتر الأستاذ، مع فصل النقد والبنك وCOD والمخزون"
+        section="04 · التحصيل والأرصدة"
+        title="التحصيل والأرصدة التشغيلية — أين تتركز الأرصدة؟"
+        subtitle="السيولة والتحصيل — أين تتركز الأرصدة؟ قراءة للأرصدة الحية من دفتر الأستاذ، وليست قائمة تدفقات نقدية مكتملة"
       >
         <View style={styles.twoCol}>
           <View style={styles.balanceHero}>
@@ -2211,7 +2241,7 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
 
         <View style={[styles.twoCol, { marginTop: 9 }]}>
           <View style={[styles.chartCard, { width: "42%" }]}>
-            <Text style={styles.chartTitle}>تركيب السيولة القابلة للتحصيل</Text>
+            <Text style={styles.chartTitle}>تركيب أرصدة التحصيل والتوفر النقدي</Text>
             <DonutChart segments={liquidSegments} centerLabel="سيولة + COD" centerValue={compactMoney(
               (balanceMap.get("1000") ?? 0) + (balanceMap.get("1010") ?? 0) + (balanceMap.get("1100") ?? 0),
             )} />
@@ -2229,6 +2259,12 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
               سجلات منجزة: {numberValue(completedSettlements.length)} · سجلات تحتاج متابعة: {numberValue(pendingSettlements)}
             </Text>
           </View>
+        </View>
+
+        <View style={[styles.noteBox, { marginTop: 8 }]}>
+          <Text style={styles.noteText}>
+            هذا القسم لا يُسمّى Statement of Cash Flows وفق IAS 7؛ الحزمة الحالية لا تصنّف كل حركة نقدية إلى تشغيلية واستثمارية وتمويلية. لذلك نعرض النقد والبنك وCOD والتسويات كما هي، من دون اختراع قائمة تدفقات ناقصة.
+          </Text>
         </View>
 
         {monthlyPositions.length ? (
@@ -2467,7 +2503,7 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
         payload={payload}
         section="13 · المخزون"
         title="المخزون الافتتاحي — نقطة البداية"
-        subtitle="مرجع القطع المحاسبي مع الكمية والكلفة والقيمة ومصدر الكلفة"
+        subtitle="مرجع القطع المحاسبي مع الكمية والكلفة والقيمة ومصدر الكلفة؛ لا يمثل وحده اختبار صافي القيمة القابلة للتحقق للمخزون"
         pageSize={16}
         columns={[
           { label: "المنتج", width: 24 },
@@ -2523,6 +2559,7 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
             ["مساهمة الطلب", "مبيعات الطلب ناقص COGS ودعم التوصيل وكلفة التجهيز ضمن فترة التقرير."],
             ["COD لدى شركات التوصيل", "رصيد دفتر أستاذ للمبالغ التي ما زالت بعهدة شركات التوصيل."],
             ["صافي النتيجة الإدارية", "مقياس إدارة داخلي حسب المعادلة الموضحة في التقرير؛ وليس تسمية IFRS مستقلة."],
+            ["حدود IFRS", "هذا الملف تقرير إدارة ومراجعة داخلية غير مدقق. لا يصف نفسه كقوائم IFRS مكتملة، ولا كقائمة تدفقات نقدية IAS 7، ولا يثبت بمفرده اختبار IAS 2 لصافي القيمة القابلة للتحقق للمخزون."],
           ].map(([term, meaning]) => (
             <View key={term} style={styles.definitionRow}>
               <Text style={styles.definitionTerm}>{term}</Text>
@@ -2583,7 +2620,7 @@ export async function downloadAccountantPdfV2(
   try {
     const a = document.createElement("a");
     a.href = url;
-    a.download = "AQUAVO-Accounting-VECTOR-V5-" + String(payload.manifest?.periodKey ?? "period") + ".pdf";
+    a.download = "AQUAVO-Accounting-VECTOR-V6-" + String(payload.manifest?.periodKey ?? "period") + ".pdf";
     document.body.appendChild(a);
     a.click();
     a.remove();
