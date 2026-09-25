@@ -76,6 +76,7 @@ const STATIC_SITE_PATHS = new Set([
   "/forgot-password",
   "/admin/login",
   "/admin/finance",
+  "/admin/finance/report",
   "/admin/partners",
   "/admin",
   "/admin/merge-products",
