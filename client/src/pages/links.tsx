@@ -118,7 +118,7 @@ function CompactLinkCard({ item }: { item: LinkItem }) {
       </span>
       <span className="mt-3 min-w-0">
         <span className="block text-sm font-bold leading-5">{item.label}</span>
-        <span className="mt-0.5 block truncate text-[11px] leading-4 text-[#232323]/65">
+        <span className="mt-0.5 block truncate text-[11px] leading-4 text-[#232323]/[0.65]">
           {item.sublabel}
         </span>
       </span>
@@ -228,7 +228,7 @@ export default function LinksPage() {
               className="h-12 w-auto max-w-[190px]"
             />
 
-            <div className="mt-5 h-px w-16 bg-[#0B93A6]/55" aria-hidden />
+            <div className="mt-5 h-px w-16 bg-[#0B93A6]/[0.55]" aria-hidden />
 
             <p className="mt-5 text-sm font-semibold text-[#0B1E28]">{t("links.s1")}</p>
             <h1 className="mt-2 text-[26px] font-bold leading-[1.45] tracking-[-0.02em] text-[#232323]">
@@ -273,7 +273,7 @@ export default function LinksPage() {
                 </span>
                 <span className="min-w-0">
                   <span className="block text-sm font-bold">{t("links.s27")}</span>
-                  <span dir="ltr" className="mt-0.5 block text-xs text-[#232323]/65">+964 774 788 0673</span>
+                  <span dir="ltr" className="mt-0.5 block text-xs text-[#232323]/[0.65]">+964 774 788 0673</span>
                 </span>
               </a>
 
@@ -287,7 +287,7 @@ export default function LinksPage() {
                 </span>
                 <span className="min-w-0">
                   <span className="block text-sm font-bold">{t("links.s28")}</span>
-                  <span dir="ltr" className="mt-0.5 block truncate text-xs text-[#232323]/65">info@aquavoiq.com</span>
+                  <span dir="ltr" className="mt-0.5 block truncate text-xs text-[#232323]/[0.65]">info@aquavoiq.com</span>
                 </span>
               </a>
             </div>
@@ -303,8 +303,8 @@ export default function LinksPage() {
           </section>
 
           <footer className="mt-8 border-t border-[#0B93A6]/[0.16] pt-5 text-center">
-            <p className="text-xs leading-6 text-[#232323]/65">{t("links.s25")}</p>
-            <p className="mt-1 text-[11px] font-semibold text-[#0B1E28]/65">
+            <p className="text-xs leading-6 text-[#232323]/[0.65]">{t("links.s25")}</p>
+            <p className="mt-1 text-[11px] font-semibold text-[#0B1E28]/[0.65]">
               {t("links.s16")}
             </p>
           </footer>
