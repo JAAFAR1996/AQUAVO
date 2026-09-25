@@ -108,10 +108,17 @@ async function automaticCartonClassification(
 export async function syncAutomaticReturnLifecycle(
   tx: Tx,
   input: AutomaticReturnLifecycleInput,
-): Promise<{ eventId: string | null; action: "none" | "created" | "received"; cartonClassification: number }> {
+): Promise<{ eventId: string | null; action: "none" | "created" | "received" | "corrected"; cartonClassification: number }> {
   const rejectionStatuses = new Set(["rejected", "rejected_carrier"]);
   const receivedStatuses = new Set(["returned", "rejected_returned"]);
-  if (!rejectionStatuses.has(input.newStatus) && !receivedStatuses.has(input.newStatus)) {
+  const correctingRejectedToDelivered =
+    input.newStatus === "delivered" && rejectionStatuses.has(input.oldStatus);
+
+  if (
+    !rejectionStatuses.has(input.newStatus)
+    && !receivedStatuses.has(input.newStatus)
+    && !correctingRejectedToDelivered
+  ) {
     return { eventId: null, action: "none", cartonClassification: 0 };
   }
 
@@ -142,6 +149,47 @@ export async function syncAutomaticReturnLifecycle(
     FOR UPDATE
   `);
   const existing = rowsOf(existingResult)[0];
+
+  // Operational correction: the carrier/admin may have marked an order as
+  // rejected, then the customer confirms they actually received it. The
+  // automatic rejection event must be excluded atomically before the order is
+  // allowed to become delivered; otherwise finance would keep a false return
+  // record next to a realized sale.
+  if (correctingRejectedToDelivered) {
+    if (!existing) {
+      return { eventId: null, action: "corrected", cartonClassification: 0 };
+    }
+
+    if (Boolean(existing.restocked) || String(existing.status) === "verified") {
+      throw Object.assign(
+        new Error("RETURN_ALREADY_RECEIVED: هذا الطلب مسجل كراجع مستلم ومخزونه رجع فعلياً؛ صحح المخزون والراجع قبل تحويله إلى تم التوصيل"),
+        { statusCode: 409 },
+      );
+    }
+
+    const eventId = String(existing.id);
+    await tx.execute(sql`
+      UPDATE public.order_return_events
+      SET status='disputed',
+          note='تم استبعاد سجل رفض الاستلام تلقائياً بعد تأكيد أن الزبون استلم الطلب فعلياً.',
+          updated_at=clock_timestamp()
+      WHERE id=${eventId}
+    `);
+
+    await recordFinancialChange(tx as never, {
+      entityType: "return_event",
+      entityId: eventId,
+      action: "status_change",
+      fieldName: "status",
+      oldValue: { status: existing.status, orderStatus: input.oldStatus },
+      newValue: { status: "disputed", orderStatus: "delivered" },
+      reason: "تصحيح رفض الاستلام: الزبون استلم الطلب فعلياً",
+      performedBy: input.actorId ?? null,
+      performedByName: input.actorName ?? null,
+    });
+
+    return { eventId, action: "corrected", cartonClassification: 0 };
+  }
 
   if (rejectionStatuses.has(input.newStatus)) {
     if (existing) return { eventId: String(existing.id), action: "none", cartonClassification: 0 };
