@@ -1,4 +1,4 @@
-name: TEMP Remove Customer Approval FH-260924-B6A14716
+name: TEMP Restore Approval Button FH-260924-B6A14716
 on:
   push:
     branches: [ops/invoice-edit-260924-b6a14716-20260925b]
@@ -11,51 +11,34 @@ jobs:
     timeout-minutes: 5
     environment: production
     steps:
-      - name: Remove customer approval state and inspect final invoice
+      - name: Restore invoice to sent state for customer re-approval
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           set -euo pipefail
-
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 <<'SQL'
           BEGIN;
-
           DO $block$
           BEGIN
             UPDATE public.manual_invoices
-            SET status='draft',
+            SET status='sent',
                 confirmed_at=NULL,
+                rejected_at=NULL,
                 updated_at=clock_timestamp()
             WHERE invoice_no='FH-260924-B6A14716'
-              AND status='confirmed'
+              AND status='draft'
               AND order_id='d6f5c6e1-1153-4d2a-a892-6ab2417248fa';
-
             IF NOT FOUND THEN
-              RAISE EXCEPTION 'Target invoice not in expected confirmed state';
+              RAISE EXCEPTION 'Invoice not in expected draft state';
             END IF;
           END
           $block$;
-
           COMMIT;
           SQL
 
-          echo "=== TARGET ==="
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -Atqc "
             SELECT invoice_no || '|' || status || '|' || COALESCE(confirmed_at::text,'') || '|' ||
-                   COALESCE(sent_at::text,'') || '|' || COALESCE(order_id,'') || '|' || token || '|' ||
-                   subtotal::text || '|' || discount::text || '|' || delivery::text || '|' || total::text
+                   COALESCE(rejected_at::text,'') || '|' || COALESCE(order_id,'') || '|' || token
             FROM public.manual_invoices
             WHERE invoice_no='FH-260924-B6A14716';
-          "
-
-          echo "=== ITEMS ==="
-          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -Atqc "
-            SELECT ord::text || '|' || COALESCE(e->>'productId','') || '|' ||
-                   COALESCE(e->>'name','') || '|' || COALESCE(e->>'variantLabel','') || '|' ||
-                   COALESCE(e->>'quantity','') || '|' || COALESCE(e->>'unitPrice','') || '|' ||
-                   COALESCE(e->>'total','')
-            FROM public.manual_invoices mi
-            CROSS JOIN LATERAL jsonb_array_elements(mi.items) WITH ORDINALITY a(e,ord)
-            WHERE mi.invoice_no='FH-260924-B6A14716'
-            ORDER BY ord;
           "
