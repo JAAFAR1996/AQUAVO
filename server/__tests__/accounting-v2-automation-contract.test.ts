@@ -91,11 +91,12 @@ describe("Accounting V2 automation", () => {
     const wrapper = read("client/src/lib/accountant-pdf-v2.ts");
     const pdf = read("client/src/lib/accountant-pdf-vector.tsx");
     expect(register).toContain("downloadAccountantPdfV2");
-    expect(register).toContain("تنزيل التقرير المالي V6 · VECTOR");
+    expect(register).toContain("تنزيل التقرير المالي V7 · VECTOR");
     expect(register).not.toContain("application/json;charset=utf-8");
     expect(wrapper).toContain('from "./accountant-pdf-vector"');
     expect(pdf).toContain("AQUAVO");
-    expect(pdf).toContain("تقرير إدارة ومحاسبة داخلي غير مدقق");
+    expect(pdf).toContain("تقرير إدارة مالي غير مدقق");
+    expect(pdf).toContain("سري - للاستخدام الداخلي فقط");
     expect(pdf).toContain("#0B93A6");
     expect(pdf).toContain("#F6F4EF");
     expect(pdf).toContain('from "@react-pdf/renderer"');
