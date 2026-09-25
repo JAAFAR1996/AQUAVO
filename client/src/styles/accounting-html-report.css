@@ -1035,10 +1035,6 @@ body {
     border-color: #C8D2D7;
   }
 
-  .acct-html-cover {
-    break-after: page;
-  }
-
   .acct-html-section {
     break-before: page;
     padding: 9mm;
@@ -1105,6 +1101,10 @@ body {
   }
 
   .acct-html-audit-block {
+    break-before: auto;
+  }
+
+  .acct-html-audit-block + .acct-html-audit-block {
     break-before: page;
   }
 
