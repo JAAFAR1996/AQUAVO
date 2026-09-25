@@ -77,6 +77,8 @@ describe("accounting monthly management pack", () => {
     expect(pdf).toContain("Statement of Cash Flows وفق IAS 7");
     expect(pdf).toContain("صافي القيمة القابلة للتحقق");
     expect(pdf).toContain("like-for-like");
+    expect(pdf).toContain("https://fonts.gstatic.com/");
+    expect(pdf).not.toContain("cdn.jsdelivr.net/npm/@fontsource/noto-sans-arabic");
     expect(pdf).toContain("غير متوفر");
     expect(pdf).toContain("غير مدقق");
   });
