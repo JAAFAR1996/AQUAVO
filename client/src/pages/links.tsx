@@ -71,14 +71,14 @@ function ActionCard({ item }: { item: LinkItem }) {
       className={
         item.featured
           ? "group flex min-h-[76px] w-full items-center gap-3 rounded-2xl bg-[#0B93A6] px-4 py-3 text-[#0B1E28] shadow-[0_8px_24px_rgba(11,147,166,0.16)] transition hover:shadow-[0_10px_28px_rgba(11,147,166,0.22)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B1E28] focus-visible:ring-offset-2 focus-visible:ring-offset-[#F6F4EF]"
-          : "group flex min-h-[72px] w-full items-center gap-3 rounded-2xl border border-[#0B93A6]/20 bg-white/72 px-4 py-3 text-[#232323] transition hover:border-[#0B93A6]/45 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B93A6] focus-visible:ring-offset-2 focus-visible:ring-offset-[#F6F4EF]"
+          : "group flex min-h-[72px] w-full items-center gap-3 rounded-2xl border border-[#0B93A6]/20 bg-white/[0.72] px-4 py-3 text-[#232323] transition hover:border-[#0B93A6]/[0.45] hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B93A6] focus-visible:ring-offset-2 focus-visible:ring-offset-[#F6F4EF]"
       }
     >
       <span
         className={
           item.featured
-            ? "grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#F6F4EF]/55 text-[#0B1E28]"
-            : "grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#0B93A6]/9 text-[#0B93A6]"
+            ? "grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#F6F4EF]/[0.55] text-[#0B1E28]"
+            : "grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#0B93A6]/[0.09] text-[#0B93A6]"
         }
       >
         {isWhatsApp ? <WhatsAppIcon /> : <Icon className="h-5 w-5" aria-hidden />}
@@ -88,13 +88,13 @@ function ActionCard({ item }: { item: LinkItem }) {
         <span className={item.featured ? "block text-base font-bold leading-6" : "block text-sm font-bold leading-6"}>
           {item.label}
         </span>
-        <span className={item.featured ? "mt-0.5 block text-xs font-medium leading-5 text-[#0B1E28]/75" : "mt-0.5 block text-xs leading-5 text-[#232323]/70"}>
+        <span className={item.featured ? "mt-0.5 block text-xs font-medium leading-5 text-[#0B1E28]" : "mt-0.5 block text-xs leading-5 text-[#232323]/70"}>
           {item.sublabel}
         </span>
       </span>
 
       <ChevronLeft
-        className={item.featured ? "h-4 w-4 shrink-0 text-[#0B1E28]/75" : "h-4 w-4 shrink-0 text-[#0B93A6]"}
+        className={item.featured ? "h-4 w-4 shrink-0 text-[#0B1E28]" : "h-4 w-4 shrink-0 text-[#0B93A6]"}
         style={{ transform: dir === "ltr" ? "rotate(180deg)" : undefined }}
         aria-hidden
       />
@@ -111,9 +111,9 @@ function CompactLinkCard({ item }: { item: LinkItem }) {
       onClick={() => trackLinkClick(item)}
       target={item.external ? "_blank" : undefined}
       rel={item.external ? "noopener noreferrer" : undefined}
-      className="flex min-h-[92px] flex-col items-start justify-between rounded-2xl border border-[#0B93A6]/18 bg-white/62 p-3.5 text-[#232323] transition hover:border-[#0B93A6]/45 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B93A6] focus-visible:ring-offset-2 focus-visible:ring-offset-[#F6F4EF]"
+      className="flex min-h-[92px] flex-col items-start justify-between rounded-2xl border border-[#0B93A6]/[0.18] bg-white/[0.62] p-3.5 text-[#232323] transition hover:border-[#0B93A6]/[0.45] hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B93A6] focus-visible:ring-offset-2 focus-visible:ring-offset-[#F6F4EF]"
     >
-      <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#0B93A6]/9 text-[#0B93A6]">
+      <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#0B93A6]/[0.09] text-[#0B93A6]">
         <Icon className="h-[18px] w-[18px]" aria-hidden />
       </span>
       <span className="mt-3 min-w-0">
@@ -230,7 +230,7 @@ export default function LinksPage() {
 
             <div className="mt-5 h-px w-16 bg-[#0B93A6]/55" aria-hidden />
 
-            <p className="mt-5 text-sm font-semibold text-[#0B1E28]/75">{t("links.s1")}</p>
+            <p className="mt-5 text-sm font-semibold text-[#0B1E28]">{t("links.s1")}</p>
             <h1 className="mt-2 text-[26px] font-bold leading-[1.45] tracking-[-0.02em] text-[#232323]">
               {t("links.s17")}
             </h1>
@@ -238,7 +238,7 @@ export default function LinksPage() {
               {t("links.s18")}
             </p>
 
-            <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-[#0B93A6]/20 bg-white/65 px-3 py-2 text-xs font-semibold text-[#232323]/75">
+            <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-[#0B93A6]/20 bg-white/[0.65] px-3 py-2 text-xs font-semibold text-[#232323]/75">
               <ShieldCheck className="h-4 w-4 text-[#0B93A6]" aria-hidden />
               <span>{t("links.s15")}</span>
             </div>
@@ -252,12 +252,12 @@ export default function LinksPage() {
               {services.map((item) => <ActionCard key={item.id} item={item} />)}
             </div>
 
-            <p className="mt-3 border-s-2 border-[#0B93A6]/45 ps-3 text-xs leading-6 text-[#232323]/70">
+            <p className="mt-3 border-s-2 border-[#0B93A6]/[0.45] ps-3 text-xs leading-6 text-[#232323]/70">
               {t("links.s29")}
             </p>
           </section>
 
-          <details className="group mt-6 rounded-2xl border border-[#0B93A6]/18 bg-white/45">
+          <details className="group mt-6 rounded-2xl border border-[#0B93A6]/[0.18] bg-white/[0.45]">
             <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 rounded-2xl px-4 py-3 text-sm font-bold text-[#232323] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B93A6] [&::-webkit-details-marker]:hidden">
               <span>{t("links.s26")}</span>
               <ChevronDown className="h-4 w-4 shrink-0 text-[#0B93A6] transition-transform group-open:rotate-180" aria-hidden />
@@ -268,7 +268,7 @@ export default function LinksPage() {
                 onClick={() => trackBioLinkClick("phone")}
                 className="flex min-h-14 items-center gap-3 rounded-xl bg-white/75 px-3 py-2.5 text-[#232323] transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B93A6]"
               >
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-[#0B93A6]/9 text-[#0B93A6]">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-[#0B93A6]/[0.09] text-[#0B93A6]">
                   <Phone className="h-4 w-4" aria-hidden />
                 </span>
                 <span className="min-w-0">
@@ -282,7 +282,7 @@ export default function LinksPage() {
                 onClick={() => trackBioLinkClick("email")}
                 className="flex min-h-14 items-center gap-3 rounded-xl bg-white/75 px-3 py-2.5 text-[#232323] transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B93A6]"
               >
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-[#0B93A6]/9 text-[#0B93A6]">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-[#0B93A6]/[0.09] text-[#0B93A6]">
                   <Mail className="h-4 w-4" aria-hidden />
                 </span>
                 <span className="min-w-0">
@@ -302,7 +302,7 @@ export default function LinksPage() {
             </div>
           </section>
 
-          <footer className="mt-8 border-t border-[#0B93A6]/16 pt-5 text-center">
+          <footer className="mt-8 border-t border-[#0B93A6]/[0.16] pt-5 text-center">
             <p className="text-xs leading-6 text-[#232323]/65">{t("links.s25")}</p>
             <p className="mt-1 text-[11px] font-semibold text-[#0B1E28]/65">
               {t("links.s16")}
