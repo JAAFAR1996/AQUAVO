@@ -2384,7 +2384,7 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
           </View>
 
           <View style={[styles.chartCard, { width: "33%" }]}>
-            <Text style={styles.chartTitle}>مصدر الطلبات</Text>
+            <Text style={styles.chartTitle}>توزيع مصادر الطلبات</Text>
             <DonutChart segments={sourceSegments} centerLabel="إجمالي الطلبات" centerValue={numberValue(sales.length)} />
             <View style={[styles.callout, { marginTop: 7 }]}>
               <Text style={styles.calloutTitle}>تركيز المنتج الأول</Text>
@@ -2420,46 +2420,107 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
       <ReportPage
         payload={payload}
         section="06 · الإقفال والمطابقة"
-        title="مسار الإقفال الشهري وفحوص المطابقة"
-        subtitle="الـGantt يوضح مراحل العمل، والفحوص تحسم هل الأرقام مترابطة داخل النظام"
+        title="ضوابط الإقفال والمطابقة"
+        subtitle="هذه الصفحة تعرض حالة الفترة الفعلية والاستثناءات المسجلة؛ لا تستخدم جدولاً زمنياً افتراضياً أو مراحل غير مثبتة بالبيانات"
       >
-        <View style={[styles.chartCard, { marginBottom: 9 }]}>
-          <Text style={styles.chartTitle}>Gantt — إطار عمل الإقفال الشهري</Text>
-          <Text style={styles.chartSubtitle}>تقسيم إجرائي للفترة وليس ادعاءً بأن كل مرحلة اكتملت تلقائياً</Text>
-          <GanttTimeline periodKey={periodKey} />
+        <View style={styles.twoCol}>
+          <View style={[styles.chartCard, { width: "38%" }]}>
+            <Text style={styles.chartTitle}>حالة الفترة</Text>
+            <View style={styles.callout}>
+              <Text style={styles.calloutTitle}>وضع الإقفال</Text>
+              <Text style={styles.calloutText}>
+                {payload.manifest?.taxFinal
+                  ? "الفترة تحمل اعتماداً ضريبياً نهائياً في النظام."
+                  : closeStatus === "closed"
+                    ? "الفترة مغلقة إدارياً."
+                    : blockers.length
+                      ? "الفترة مفتوحة والإقفال معلّق لحين معالجة الاستثناءات."
+                      : "لا توجد موانع مسجلة، والفترة جاهزة للإقفال الإداري عند استيفاء توقيت الإقفال."}
+              </Text>
+            </View>
+            <View style={[styles.callout, { marginTop: 7 }]}>
+              <Text style={styles.calloutTitle}>الراجعات وإعادة المخزون</Text>
+              <Text style={styles.calloutText}>
+                كلفة البضاعة المعادة للمخزون من راجعات موثقة = {iqd(restockCogs)}. تدخل هذه القيمة في فحص COGS حتى لا تظهر كفرق وهمي.
+              </Text>
+            </View>
+          </View>
+          <View style={[styles.chartCard, { width: "60%" }]}>
+            <Text style={styles.chartTitle}>الإجراءات المفتوحة قبل الإقفال</Text>
+            <Text style={styles.chartSubtitle}>تعرض الاستثناءات الفعلية الواردة من جاهزية الفترة، وليس قائمة عامة ثابتة.</Text>
+            <DataTable
+              columns={[
+                { label: "الإجراء / الاستثناء", width: 78 },
+                { label: "العدد", width: 22, numeric: true },
+              ]}
+              rows={blockers.length
+                ? blockers.map((row) => [String(row.label ?? humanStatus(row.key)), numberValue(row.count)])
+                : [["لا توجد استثناءات مفتوحة مسجلة", "0"]]}
+            />
+          </View>
         </View>
 
-        <SectionHeader title="اختبارات المطابقة" note="فرق قريب من الصفر = مطابقة رقمية ضمن الهامش" />
+        <SectionHeader title="اختبارات المطابقة" note="القيمة المعروضة هي فرق المطابقة أو عدد السجلات، وليست قيمة البند المحاسبي نفسه" />
         <View style={styles.checkGrid}>
           {checks.map((check) => (
             <CheckCard key={check.label} label={check.label} value={check.value} ok={check.ok} />
           ))}
         </View>
+      </ReportPage>
+
+      <ReportPage
+        payload={payload}
+        section="07 · المخزون والرقابة"
+        title="مركز المخزون والربط مع دفتر الأستاذ"
+        subtitle="ملخص رقابي للمخزون الافتتاحي وقيمته ومصدر كلفته، مع مطابقة الرصيد الدفتري قبل عرض الجدول التفصيلي"
+      >
+        <View style={styles.kpiRow}>
+          <KpiCard label="قيمة لقطة المخزون" value={iqd(openingInventoryValue)} note="إجمالي سطور اللقطة الافتتاحية" />
+          <KpiCard label="رصيد المخزون الدفتري · 1200" value={iqd(balanceMap.get("1200"))} note="من دفتر الأستاذ" />
+          <KpiCard label="فرق المطابقة" value={iqd(inventoryLedgerDifference)} note={Math.abs(inventoryLedgerDifference ?? Infinity) < 0.5 ? "مطابق" : "يتطلب مراجعة"} />
+          <KpiCard label="إجمالي الوحدات" value={numberValue(openingInventoryUnits)} note={numberValue(openingInventory.length) + " سطر مخزون"} />
+          <KpiCard label="كلف غير محسومة" value={numberValue(inventoryUnresolved)} note="unknown / provisional" />
+          <KpiCard label="حالة القياس" value="كلفة دفترية" note="اختبار NRV منفصل عند الحاجة" />
+        </View>
 
         <View style={styles.twoCol}>
-          <View style={[styles.callout, { width: "48%" }]}>
-            <Text style={styles.calloutTitle}>موانع الإغلاق</Text>
-            <Text style={styles.calloutText}>
-              {blockers.length
-                ? "يوجد " + numberValue(blockers.length) + " نوع من الموانع. راجع الجدول التفصيلي في صفحات الملحقات قبل اعتبار الفترة مكتملة."
-                : "لا توجد موانع إغلاق مسجلة في جاهزية الفترة الحالية."}
-            </Text>
+          <View style={[styles.chartCard, { width: "66%" }]}>
+            <Text style={styles.chartTitle}>أعلى بنود المخزون بالقيمة الدفترية</Text>
+            <Text style={styles.chartSubtitle}>الترتيب حسب إجمالي كلفة السطر في اللقطة الافتتاحية</Text>
+            <SimpleBars
+              rows={topInventory.map((row) => ({
+                label: row.label,
+                value: Math.max(0, row.value),
+                valueLabel: iqd(row.value),
+                meta: numberValue(row.units) + " وحدة",
+                color: C.teal,
+              }))}
+            />
           </View>
-          <View style={[styles.callout, { width: "48%" }]}>
-            <Text style={styles.calloutTitle}>COGS والراجعات</Text>
-            <Text style={styles.calloutText}>
-              كلفة البضاعة المعادة للمخزون من راجعات موثقة = {iqd(restockCogs)}. هذه القيمة تدخل في فحص المطابقة حتى لا تُقرأ كفرق خاطئ.
-            </Text>
+          <View style={[styles.chartCard, { width: "32%" }]}>
+            <Text style={styles.chartTitle}>ملاحظة قياس</Text>
+            <View style={styles.callout}>
+              <Text style={styles.calloutTitle}>المطابقة مع الأستاذ</Text>
+              <Text style={styles.calloutText}>
+                فرق لقطة المخزون عن الحساب 1200 = {iqd(inventoryLedgerDifference)}. الفرق الصفري يعني تطابق نقطة القطع الدفترية، وليس بحد ذاته إثباتاً للقيمة القابلة للتحقق.
+              </Text>
+            </View>
+            <View style={[styles.callout, { marginTop: 7 }]}>
+              <Text style={styles.calloutTitle}>حدود القياس</Text>
+              <Text style={styles.calloutText}>
+                هذه الصفحة تعرض الكلفة الدفترية. تقييم صافي القيمة القابلة للتحقق للمخزون وفق IAS 2 يحتاج معلومات سعر بيع وتكاليف إتمام/بيع ولا يتم افتراضه داخل التقرير.
+              </Text>
+            </View>
           </View>
         </View>
       </ReportPage>
 
       <AppendixTablePages
         payload={payload}
-        section="07 · خريطة الطلبات"
+        section="08 · خريطة الطلبات"
         title="كل الطلبات المتحققة خلال الشهر"
         subtitle="كل صف يمثل طلباً دخل المحاسبة عند تحقق الإيراد"
-        pageSize={15}
+        pageSize={20}
         columns={[
           { label: "الطلب", width: 16 },
           { label: "التحقق", width: 16 },
@@ -2477,7 +2538,7 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
         <ReportPage
           key={"order-detail-" + index}
           payload={payload}
-          section="08 · تدقيق الطلبات"
+          section="09 · تدقيق الطلبات"
           title="تفاصيل الطلبات — سجل التدقيق"
           subtitle={"جزء " + String(index + 1) + " من " + String(orderPartGroups.length) + " · السعر والكلفة والخصم وحالة التسوية محفوظة على مستوى الطلب"}
         >
@@ -2487,10 +2548,10 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
 
       <AppendixTablePages
         payload={payload}
-        section="09 · المصاريف"
+        section="10 · المصاريف"
         title="تحليل المصروفات"
-        subtitle="الموثق والمعلق يظهران كل واحد بحالته الأصلية"
-        pageSize={14}
+        subtitle="كل مصروف يظهر بحالته المحاسبية الأصلية دون تحويل المعلّق إلى مصروف موثّق"
+        pageSize={18}
         columns={[
           { label: "التاريخ", width: 14 },
           { label: "الفئة", width: 14 },
@@ -2505,7 +2566,7 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
 
       <AppendixTablePages
         payload={payload}
-        section="10 · الراجعات"
+        section="11 · الراجعات"
         title="المرتجعات وأثرها المالي"
         subtitle="رد المبلغ منفصل عن خسارة التغليف وشطب المنتج وإعادة المخزون"
         pageSize={15}
@@ -2524,10 +2585,10 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
 
       <AppendixTablePages
         payload={payload}
-        section="11 · التحصيل"
+        section="12 · التحصيل"
         title="تسويات شركات التوصيل والتحصيل"
-        subtitle="Gross وFees وNet تبقى منفصلة حتى يمكن مراجعة كل تسوية"
-        pageSize={16}
+        subtitle="الإجمالي والأجور والصافي تبقى منفصلة حتى يمكن مراجعة كل تسوية"
+        pageSize={20}
         columns={[
           { label: "التسوية", width: 18 },
           { label: "الشركة", width: 16 },
@@ -2542,10 +2603,10 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
 
       <AppendixTablePages
         payload={payload}
-        section="12 · اليومية"
-        title="دفتر اليومية — أثر كل حركة"
+        section="13 · اليومية"
+        title="دفتر اليومية — القيود والحسابات"
         subtitle="كل سطر يوضح الحساب والمصدر والمدين والدائن بدون تحويل الصفحة إلى صورة"
-        pageSize={15}
+        pageSize={20}
         columns={[
           { label: "القيد", width: 11 },
           { label: "التاريخ", width: 15 },
@@ -2560,10 +2621,10 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
 
       <AppendixTablePages
         payload={payload}
-        section="13 · المخزون"
+        section="14 · المخزون"
         title="المخزون الافتتاحي — نقطة البداية"
         subtitle="مرجع القطع المحاسبي مع الكمية والكلفة والقيمة ومصدر الكلفة؛ لا يمثل وحده اختبار صافي القيمة القابلة للتحقق للمخزون"
-        pageSize={16}
+        pageSize={22}
         columns={[
           { label: "المنتج", width: 24 },
           { label: "المتغير", width: 17 },
@@ -2577,10 +2638,10 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
 
       <AppendixTablePages
         payload={payload}
-        section="14 · الأدلة"
+        section="15 · الأدلة"
         title="فهرس المستندات والأدلة"
         subtitle="المستندات تبقى قابلة للتتبع ولا يتم استبدالها بوصف عام"
-        pageSize={16}
+        pageSize={20}
         columns={[
           { label: "النوع", width: 18 },
           { label: "الجهة", width: 22 },
@@ -2594,7 +2655,7 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
 
       <ReportPage
         payload={payload}
-        section="15 · الاعتماد والمنهجية"
+        section="16 · الاعتماد والمنهجية"
         title="بيانات المنشأة، الاعتماد، وتعريفات التقرير"
         subtitle="الحقول الناقصة تبقى ناقصة صراحةً؛ ولا يتم اختراع رقم مكلف أو اعتماد محاسب"
       >
