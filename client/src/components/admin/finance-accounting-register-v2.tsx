@@ -228,7 +228,7 @@ export function FinanceAccountingRegisterV2() {
             <input aria-label="الشهر المحاسبي" type="month" max={currentPeriod} value={periodKey}
               onChange={(event) => setPeriodKey(event.target.value)}
               style={{ background: "#0d1f3c", color: "#fff", border: "1px solid #1e3a5f", borderRadius: 8, padding: "8px 10px" }} />
-            <button onClick={() => void downloadPackagePdf()} disabled={!summary || pdfPending || (!isArchive && !balancesComplete)}
+            <div style={{ display: "grid", gap: 4, justifyItems: "start" }}><span style={{ color: "#67e8f9", fontSize: 10, fontWeight: 800, letterSpacing: 0.4 }}>PDF ENGINE · VECTOR V5</span><button onClick={() => void downloadPackagePdf()} disabled={!summary || pdfPending || (!isArchive && !balancesComplete)}
               style={{ background: "#0B64A6", color: "#fff", border: 0, borderRadius: 8, padding: "9px 12px", cursor: "pointer", fontWeight: 700, opacity: !summary || pdfPending || (!isArchive && !balancesComplete) ? 0.5 : 1 }}>
               {pdfPending
                 ? pdfProgress?.stage === "rendering"
@@ -236,8 +236,8 @@ export function FinanceAccountingRegisterV2() {
                   : pdfProgress?.stage === "saving"
                     ? "جاري حفظ PDF..."
                     : "جاري تجهيز البيانات..."
-                : "تنزيل ملف المحاسب PDF"}
-            </button>
+                : "تنزيل التقرير المالي V5 · VECTOR"}
+            </button></div>
           </div>
         </div>
         <div style={{ marginTop: 11, color: isArchive ? "#fcd34d" : closeStatus ? "#a7f3d0" : "#bae6fd", fontSize: 12 }}>{periodStatus}</div>
