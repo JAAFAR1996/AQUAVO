@@ -209,7 +209,7 @@ export default function LinksPage() {
 
         <div className="mx-auto flex min-h-[calc(100vh-4px)] w-full max-w-md flex-col px-4 pb-8 pt-4 sm:px-5">
           <div className="flex min-h-11 items-center justify-end">
-            <LanguageSwitcher variant="icon" />
+            <LanguageSwitcher variant="compact" />
           </div>
 
           <header className="flex flex-col items-center px-3 pb-7 pt-2 text-center">
