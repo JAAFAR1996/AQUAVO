@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import "@/styles/accounting-html-report.css";
 
@@ -181,7 +181,7 @@ function Kpi({
 }: {
   label: string;
   value: string;
-  note?: React.ReactNode;
+  note?: ReactNode;
   tone?: "default" | "positive" | "warning";
 }) {
   return (
@@ -204,7 +204,7 @@ function Section({
   eyebrow: string;
   title: string;
   subtitle?: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <section id={id} className="acct-html-section">
@@ -226,7 +226,7 @@ function DataTable({
   empty = "لا توجد بيانات لهذه الفترة",
 }: {
   columns: Array<{ key: string; label: string; numeric?: boolean }>;
-  rows: Array<Record<string, React.ReactNode>>;
+  rows: Array<Record<string, ReactNode>>;
   empty?: string;
 }) {
   return (
@@ -378,7 +378,7 @@ function Waterfall({ summary, net }: { summary: Row; net: number | null }) {
   );
 }
 
-function deltaLabel(current: unknown, previous: unknown, invert = false): React.ReactNode {
+function deltaLabel(current: unknown, previous: unknown, invert = false): ReactNode {
   const value = delta(current, previous);
   if (value == null) return <span className="acct-html-delta acct-html-delta--neutral">لا توجد قاعدة مقارنة</span>;
   const good = invert ? value <= 0 : value >= 0;
@@ -554,7 +554,7 @@ export default function FinanceHtmlReportPage() {
     settlement: humanStatus(order.settlement_status),
   }));
 
-  const journalRows: Array<Record<string, React.ReactNode>> = [];
+  const journalRows: Array<Record<string, ReactNode>> = [];
   for (const entry of journal) {
     const lines = safeArray(entry.lines);
     if (!lines.length) {
