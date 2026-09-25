@@ -20,17 +20,21 @@ jobs:
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 <<'SQL'
           BEGIN;
 
-          UPDATE public.manual_invoices
-          SET status='draft',
-              confirmed_at=NULL,
-              updated_at=clock_timestamp()
-          WHERE invoice_no='FH-260924-B6A14716'
-            AND status='confirmed'
-            AND order_id='d6f5c6e1-1153-4d2a-a892-6ab2417248fa';
+          DO $block$
+          BEGIN
+            UPDATE public.manual_invoices
+            SET status='draft',
+                confirmed_at=NULL,
+                updated_at=clock_timestamp()
+            WHERE invoice_no='FH-260924-B6A14716'
+              AND status='confirmed'
+              AND order_id='d6f5c6e1-1153-4d2a-a892-6ab2417248fa';
 
-          IF NOT FOUND THEN
-            RAISE EXCEPTION 'Target invoice not in expected confirmed state';
-          END IF;
+            IF NOT FOUND THEN
+              RAISE EXCEPTION 'Target invoice not in expected confirmed state';
+            END IF;
+          END
+          $block$;
 
           COMMIT;
           SQL
