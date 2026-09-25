@@ -195,6 +195,32 @@ function safeObject(value: unknown): AnyRow {
   return {};
 }
 
+const STATUS_AR: Record<string, string> = {
+  matched: "مطابق",
+  reconciled: "مسوّى",
+  closed: "مغلق",
+  unsettled: "غير مسوّى",
+  pending: "قيد المتابعة",
+  paid: "مدفوع",
+  delivered: "مسلّم",
+  verified: "موثّق",
+  rejected_delivery: "رفض استلام",
+  website: "الموقع",
+  whatsapp: "واتساب",
+  known: "كلفة مثبتة",
+  provisional: "كلفة مؤقتة",
+  unknown: "كلفة غير محسومة",
+  exact: "مثبت",
+  draft: "مسودة",
+  tax_final: "اعتماد ضريبي نهائي",
+};
+
+function humanStatus(value: unknown): string {
+  if (value == null || value === "") return "غير متوفر";
+  const raw = String(value);
+  return STATUS_AR[raw.toLowerCase()] ?? raw.replaceAll("_", " ");
+}
+
 function sumKnown(rows: AnyRow[], field: string): number | null {
   let found = false;
   let total = 0;
@@ -1407,10 +1433,12 @@ function WaterfallChart({ summary, net }: { summary: AnyRow; net: number | null 
 
 function SimpleBars({
   rows,
+  maxValue,
 }: {
   rows: Array<{ label: string; value: number; valueLabel?: string; color?: string; meta?: string }>;
+  maxValue?: number;
 }) {
-  const max = Math.max(1, ...rows.map((r) => Math.max(0, r.value)));
+  const max = Math.max(1, maxValue ?? Math.max(...rows.map((r) => Math.max(0, r.value))));
   return (
     <View>
       {rows.map((r) => (
@@ -1420,7 +1448,7 @@ function SimpleBars({
             <Text style={styles.barValue}>{r.valueLabel ?? iqd(r.value)}{r.meta ? " · " + r.meta : ""}</Text>
           </View>
           <View style={styles.barTrack}>
-            <View style={[styles.barFill, { width: Math.max(r.value > 0 ? 4 : 0, (r.value / max) * 100) + "%", backgroundColor: r.color ?? C.teal }]} />
+            <View style={[styles.barFill, { width: Math.min(100, Math.max(r.value > 0 ? 1 : 0, (r.value / max) * 100)) + "%", backgroundColor: r.color ?? C.teal }]} />
           </View>
         </View>
       ))}
@@ -1606,7 +1634,7 @@ function groupOrderParts(sales: AnyRow[]): OrderPart[][] {
   let current: OrderPart[] = [];
   let weight = 0;
   for (const part of parts) {
-    if (current.length && (current.length >= 2 || weight + part.weight > 9.5)) {
+    if (current.length && (current.length >= 3 || weight + part.weight > 11.2)) {
       groups.push(current);
       current = [];
       weight = 0;
