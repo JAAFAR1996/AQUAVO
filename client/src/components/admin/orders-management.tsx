@@ -684,9 +684,14 @@ export function OrdersManagement() {
                             )}
 
                             {order.status === 'rejected' && (
-                              <Button size="sm" className="bg-purple-500 hover:bg-purple-600 text-white" onClick={() => handleStatusChange(order.id, 'returned')}>
-                                استلمت من الشركة 📦
-                              </Button>
+                              <>
+                                <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white" onClick={() => setDeliverOrderId(order.id)}>
+                                  الزبون استلم
+                                </Button>
+                                <Button size="sm" className="bg-purple-500 hover:bg-purple-600 text-white" onClick={() => handleStatusChange(order.id, 'returned')}>
+                                  استلمت من الشركة 📦
+                                </Button>
+                              </>
                             )}
 
                             {order.status === 'delivered' && (
