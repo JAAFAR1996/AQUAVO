@@ -104,6 +104,16 @@ function numberValue(value: unknown): string {
   return n == null ? "غير متوفر" : Math.round(n).toLocaleString("en-US");
 }
 
+function shortText(value: unknown, max = 84): string {
+  const text = String(value ?? "—").replace(/\s+/g, " ").trim();
+  return text.length <= max ? text : text.slice(0, Math.max(1, max - 1)).trimEnd() + "…";
+}
+
+function fieldValue(value: unknown): string {
+  if (value == null || String(value).trim() === "") return "غير مسجل في النظام";
+  return humanStatus(value);
+}
+
 function percent(value: unknown, digits = 1): string {
   const n = finiteNumber(value);
   return n == null ? "غير متوفر" : n.toFixed(digits) + "%";
@@ -1874,6 +1884,8 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
     ["reconciled", "closed"].includes(String(row.status ?? "").toLowerCase()),
   );
   const pendingSettlements = settlements.length - completedSettlements.length;
+  const journalDebitTotal = sumKnown(journal, "total_debit");
+  const journalCreditTotal = sumKnown(journal, "total_credit");
 
   const orderRevenueTotal = sumKnown(sales, "product_revenue");
   const orderCogsTotal = sumKnown(sales, "cogs_amount");
@@ -2338,7 +2350,7 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
                   <Text style={styles.rankNo}>{String(index + 1).padStart(2, "0")}</Text>
                   <View style={styles.rankMain}>
                     <View style={styles.rankLabelRow}>
-                      <Text style={styles.rankLabel}>{row.productName}{row.variantLabel ? " — " + row.variantLabel : ""}</Text>
+                      <Text style={styles.rankLabel}>{shortText(row.productName + (row.variantLabel ? " — " + row.variantLabel : ""), 92)}</Text>
                       <Text style={styles.rankMeta}>{numberValue(row.quantity)} وحدة · {numberValue(row.orderCount)} طلب</Text>
                     </View>
                     <View style={styles.rankTrack}>
@@ -2430,7 +2442,7 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
           </View>
         </View>
 
-        <SectionHeader title="اختبارات المطابقة" note="القيمة المعروضة هي فرق المطابقة أو عدد السجلات، وليست قيمة البند المحاسبي نفسه" />
+        <SectionHeader title="اختبارات المطابقة" note={"إجمالي مدين " + iqd(journalDebitTotal) + " · إجمالي دائن " + iqd(journalCreditTotal) + " · القيمة المعروضة أدناه هي فرق المطابقة أو عدد السجلات"} />
         <View style={styles.checkGrid}>
           {checks.map((check) => (
             <CheckCard key={check.label} label={check.label} value={check.value} ok={check.ok} />
@@ -2630,12 +2642,12 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
         subtitle="الحقول الناقصة تبقى ناقصة صراحةً؛ ولا يتم اختراع رقم مكلف أو اعتماد محاسب"
       >
         <View style={styles.kpiRow}>
-          <KpiCard label="حالة الملف" value={String(profile.status ?? "غير متوفر")} />
-          <KpiCard label="رقم المكلف" value={String(profile.taxpayer_number ?? "غير متوفر")} />
-          <KpiCard label="الفرع الضريبي" value={String(profile.tax_branch ?? "غير متوفر")} />
-          <KpiCard label="العنوان المسجل" value={String(profile.registered_address ?? "غير متوفر")} />
-          <KpiCard label="إجازة المحاسب" value={String(profile.accountant_license_number ?? "غير متوفر")} />
-          <KpiCard label="حالة التقرير" value={payload.manifest?.taxFinal ? "TAX FINAL" : "إدارة/مراجعة"} />
+          <KpiCard label="حالة الملف" value={fieldValue(profile.status)} />
+          <KpiCard label="رقم المكلف" value={fieldValue(profile.taxpayer_number)} />
+          <KpiCard label="الفرع الضريبي" value={fieldValue(profile.tax_branch)} />
+          <KpiCard label="العنوان المسجل" value={fieldValue(profile.registered_address)} />
+          <KpiCard label="إجازة المحاسب" value={fieldValue(profile.accountant_license_number)} />
+          <KpiCard label="حالة التقرير" value={payload.manifest?.taxFinal ? "اعتماد ضريبي نهائي" : "إدارة ومراجعة داخلية"} />
         </View>
 
         <SectionHeader title="تعريفات القراءة" />
