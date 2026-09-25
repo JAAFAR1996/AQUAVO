@@ -1,0 +1,101 @@
+name: TEMP Inspect Soil FH-260924-B6A14716
+
+on:
+  push:
+    branches: [ops/invoice-edit-260924-b6a14716-20260925b]
+    paths: [".github/workflows/tmp-add-soil-260924-b6a14716.yml"]
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: production
+    steps:
+      - name: Inspect soil product and current invoice state
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          set -euo pipefail
+          test -n "$DATABASE_URL"
+
+          echo "=== SOIL_PRODUCTS ==="
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -Atqc "
+            SELECT id || '|' || slug || '|' || name || '|' || price::text || '|' ||
+                   stock::text || '|' || COALESCE(variants::text,'null') || '|' ||
+                   COALESCE(cost_price::text,'') || '|' || COALESCE(packaging_cost::text,'') || '|' ||
+                   COALESCE(insert_cost::text,'') || '|' || COALESCE(thumbnail,'')
+            FROM public.products
+            WHERE deleted_at IS NULL
+              AND (
+                lower(slug) IN ('yff-049','yff-052')
+                OR lower(id) LIKE '%yff-049%'
+                OR lower(id) LIKE '%yff-052%'
+                OR name ILIKE '%تربة%نبات%'
+                OR name ILIKE '%aquascape%soil%'
+              )
+            ORDER BY id;
+          "
+
+          echo "=== SOIL_CANONICAL_STOCK ==="
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -Atqc "
+            WITH main AS (
+              SELECT id FROM public.inventory_locations
+              WHERE code='MAIN' AND is_active=true LIMIT 1
+            )
+            SELECT im.product_id || '|' || COALESCE(im.variant_id,'') || '|' ||
+                   SUM(im.quantity_delta)::text
+            FROM public.inventory_movements im
+            WHERE im.location_id=(SELECT id FROM main)
+              AND im.product_id IN (
+                SELECT id FROM public.products
+                WHERE deleted_at IS NULL
+                  AND (
+                    lower(slug) IN ('yff-049','yff-052')
+                    OR lower(id) LIKE '%yff-049%'
+                    OR lower(id) LIKE '%yff-052%'
+                    OR name ILIKE '%تربة%نبات%'
+                  )
+              )
+            GROUP BY im.product_id, im.variant_id
+            ORDER BY im.product_id, im.variant_id;
+          "
+
+          echo "=== CURRENT_ORDER ==="
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -Atqc "
+            SELECT id || '|' || order_number || '|' || status || '|' || total::text || '|' ||
+                   rounded_total::text || '|' || shipping_cost::text || '|' ||
+                   discount_total::text || '|' || items_subtotal_snapshot::text || '|' ||
+                   formula_total_snapshot::text || '|' || rounding_adjustment_snapshot::text
+            FROM public.orders
+            WHERE order_number='FH-260924-B6A14716';
+          "
+
+          echo "=== CURRENT_MANUAL ==="
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -Atqc "
+            SELECT id || '|' || invoice_no || '|' || status || '|' || subtotal::text || '|' ||
+                   discount::text || '|' || delivery::text || '|' || total::text || '|' || token
+            FROM public.manual_invoices
+            WHERE invoice_no='FH-260924-B6A14716';
+          "
+
+          echo "=== EXISTING_SOIL_LINES ==="
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -Atqc "
+            SELECT 'order|' || (e->>'productId') || '|' || COALESCE(e->>'variantId','') || '|' ||
+                   COALESCE(e->>'variantLabel','') || '|' || (e->>'quantity') || '|' ||
+                   (e->>'priceAtPurchase') || '|' || (e->>'lineTotal')
+            FROM public.orders o
+            CROSS JOIN LATERAL jsonb_array_elements(o.items) e
+            WHERE o.order_number='FH-260924-B6A14716'
+              AND ((e->>'productId') ILIKE '%yff%' OR (e->>'productName') ILIKE '%تربة%')
+            UNION ALL
+            SELECT 'manual|' || (e->>'productId') || '|' || COALESCE(e->>'variantId','') || '|' ||
+                   COALESCE(e->>'variantLabel','') || '|' || (e->>'quantity') || '|' ||
+                   (e->>'unitPrice') || '|' || (e->>'total')
+            FROM public.manual_invoices mi
+            CROSS JOIN LATERAL jsonb_array_elements(mi.items) e
+            WHERE mi.invoice_no='FH-260924-B6A14716'
+              AND ((e->>'productId') ILIKE '%yff%' OR (e->>'name') ILIKE '%تربة%');
+          "
