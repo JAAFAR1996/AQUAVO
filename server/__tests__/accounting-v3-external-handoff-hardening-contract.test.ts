@@ -11,7 +11,7 @@ const operationsRoute = source("server/routes/accounting-operations-v2.ts");
 const correctionRoute = source("server/routes/accounting-carrier-correction-v2.ts");
 const smartCarrierRoute = source("server/routes/accounting-smart-carrier-v2.ts");
 const financeUi = source("client/src/components/admin/finance-accounting-register-v2.tsx");
-const accountantPdf = source("client/src/lib/accountant-pdf-v2.ts");
+const accountantPdf = source("client/src/lib/accountant-pdf-vector.tsx");
 const migration78 = source("migrations/0078_accounting_external_handoff_hardening.sql");
 const rollback78 = source("migrations/0078_accounting_external_handoff_hardening_rollback.sql");
 
@@ -79,9 +79,9 @@ describe("Accounting V3 external handoff hardening", () => {
   it("exports complete journal and opening-inventory accountant detail", () => {
     expect(accountingRoute).toContain("'accountCode',l.account_code");
     expect(accountingRoute).toContain("'accountName',a.name_ar");
-    expect(accountantPdf).toContain('دفتر اليومية — أثر كل حركة');
+    expect(accountantPdf).toContain('دفتر اليومية — القيود والحسابات');
     expect(accountantPdf).toContain('accountCode');
-    expect(accountantPdf).toContain('فهرس الأدلة');
+    expect(accountantPdf).toContain('فهرس المستندات والأدلة');
     expect(accountantPdf).toContain('row.total_cost');
     expect(accountantPdf).toContain('row.cost_status');
   });
