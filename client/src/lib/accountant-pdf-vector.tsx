@@ -1818,6 +1818,30 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
   const totalItemRevenue = products.filter((row) => row.revenueKnown).reduce((sum, row) => sum + row.revenue, 0);
   const topProductShare = topProducts[0] && totalItemRevenue > 0 ? (topProducts[0].revenue / totalItemRevenue) * 100 : null;
 
+  const openingInventoryValue = openingInventory.reduce(
+    (sum, row) => sum + (finiteNumber(row.total_cost ?? row.value_iqd ?? row.total_value ?? row.inventory_value) ?? 0),
+    0,
+  );
+  const openingInventoryUnits = openingInventory.reduce(
+    (sum, row) => sum + (finiteNumber(row.quantity ?? row.stock) ?? 0),
+    0,
+  );
+  const inventoryUnresolved = openingInventory.filter((row) =>
+    ["unknown", "provisional"].includes(String(row.cost_status ?? row.cost_source ?? "").toLowerCase()),
+  ).length;
+  const inventoryLedgerDifference = balanceMap.has("1200")
+    ? Number(balanceMap.get("1200")) - openingInventoryValue
+    : null;
+  const topInventory = openingInventory
+    .map((row) => ({
+      label: String(row.product_name ?? row.product_slug ?? row.product_id ?? "منتج غير مسمى")
+        + (row.variant_id ? " · " + String(row.variant_id) : ""),
+      value: finiteNumber(row.total_cost ?? row.value_iqd ?? row.total_value ?? row.inventory_value) ?? 0,
+      units: finiteNumber(row.quantity ?? row.stock) ?? 0,
+    }))
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 8);
+
   const biggestCost = [
     { label: "كلفة المنتجات", value: finiteNumber(summary.cogs) ?? 0 },
     { label: "كلفة التجهيز", value: finiteNumber(summary.fulfillment_cost) ?? 0 },
@@ -1932,28 +1956,28 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
   const orderIndexRows = sales.map((row) => [
     String(row.order_number ?? row.order_id ?? "—"),
     dateBaghdad(row.recognized_at),
-    String(row.source ?? "—"),
+    humanStatus(row.source),
     iqd(row.product_revenue),
     iqd(row.cogs_amount),
     iqd(row.fulfillment_cost),
     iqd(orderPeriodContribution(row)),
-    String(row.settlement_status ?? "—"),
+    humanStatus(row.settlement_status),
   ]);
 
   const expenseRows = expenses.map((row) => [
     dateBaghdad(row.expense_occurred_at ?? row.expense_date),
-    String(row.category ?? "—"),
+    humanStatus(row.category),
     String(row.vendor_name ?? "—"),
     String(row.description ?? "—"),
     iqd(row.amount),
-    String(row.accounting_status ?? "—"),
-    String(row.tax_treatment ?? "pending"),
+    humanStatus(row.accounting_status),
+    humanStatus(row.tax_treatment ?? "pending"),
   ]);
 
   const returnRows = returns.map((row) => [
     String(row.order_id ?? "—"),
-    String(row.type ?? "—"),
-    String(row.status ?? "—"),
+    humanStatus(row.type),
+    humanStatus(row.status),
     iqd(row.refund_amount),
     iqd(row.packaging_loss),
     iqd(row.product_write_off_amount),
@@ -1968,7 +1992,7 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
     iqd(row.gross_amount),
     iqd(row.fees_amount),
     iqd(row.net_amount),
-    String(row.status ?? "—"),
+    humanStatus(row.status),
   ]);
 
   const journalRows = flattenJournal(journal).map((row) => [
@@ -1982,22 +2006,35 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
   ]);
 
   const inventoryRows = openingInventory.map((row) => [
-    String(row.product_id ?? "—"),
+    String(row.product_name ?? row.product_slug ?? row.product_id ?? "—"),
     String(row.variant_id ?? "—"),
     numberValue(row.quantity ?? row.stock),
     iqd(row.unit_cost_iqd ?? row.unit_cost ?? row.cost_price),
     iqd(row.value_iqd ?? row.total_cost ?? row.total_value ?? row.inventory_value),
-    String(row.cost_source ?? row.cost_status ?? row.source ?? "—"),
+    humanStatus(row.cost_source ?? row.cost_status ?? row.source),
   ]);
 
   const evidenceRows = evidenceIndex.map((row) => [
-    String(row.document_type ?? "—"),
+    humanStatus(row.document_type),
     String(row.issuer ?? "—"),
     String(row.document_number ?? "—"),
     String(row.document_date ?? "—"),
     iqd(row.amount),
-    String(row.storage_provider ?? "—"),
+    humanStatus(row.storage_provider),
   ]);
+
+  const managementStatementRows: Array<Array<string>> = [
+    ["مبيعات المنتجات", iqd(summary.product_revenue)],
+    ["فرق التقريب", iqd(summary.rounding_adjustment)],
+    ["كلفة المنتجات (COGS)", "− " + iqd(summary.cogs)],
+    ["الربح الإجمالي", iqd(gross)],
+    ["كلفة التجهيز", "− " + iqd(summary.fulfillment_cost)],
+    ["دعم التوصيل", "− " + iqd(summary.delivery_subsidy)],
+    ["المرتجعات والخسائر", "− " + iqd((finiteNumber(summary.sales_returns) ?? 0) + (finiteNumber(summary.actual_return_loss) ?? 0))],
+    ["المصاريف الموثقة", "− " + iqd(summary.verified_expenses)],
+    ["صافي فرق العملة", "− " + iqd(summary.fx_net_expense)],
+    ["صافي النتيجة الإدارية", iqd(net)],
+  ];
 
   const orderPartGroups = groupOrderParts(sales);
 
