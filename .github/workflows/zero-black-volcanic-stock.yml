@@ -1,0 +1,77 @@
+name: Zero Black Volcanic Stone Stock
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "migrations/20260925_owner_zero_black_volcanic_stock.sql"
+      - ".github/workflows/zero-black-volcanic-stock.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-owner-stock-reconciliation
+  cancel-in-progress: false
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: production
+    steps:
+      - name: Checkout release
+        uses: actions/checkout@v4
+
+      - name: Apply owner-confirmed stock reconciliation
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          set -euo pipefail
+          test -n "$DATABASE_URL"
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f migrations/20260925_owner_zero_black_volcanic_stock.sql
+
+      - name: Verify storefront and canonical ledger are zero
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          set -euo pipefail
+          test -n "$DATABASE_URL"
+
+          psql "$DATABASE_URL" -P pager=off -c "
+            WITH main AS (
+              SELECT id FROM public.inventory_locations
+              WHERE code='MAIN' AND is_active=true
+              LIMIT 1
+            ), ledger AS (
+              SELECT COALESCE(SUM(quantity_delta),0)::integer AS qty
+              FROM public.inventory_movements, main
+              WHERE product_id='houyi-volcanic-stone-black'
+                AND variant_id IS NULL
+                AND location_id=main.id
+            )
+            SELECT p.id,p.name,p.stock,ledger.qty AS canonical_qty
+            FROM public.products p,ledger
+            WHERE p.id='houyi-volcanic-stone-black';
+          "
+
+          test "$(psql "$DATABASE_URL" -Atqc "
+            WITH main AS (
+              SELECT id FROM public.inventory_locations
+              WHERE code='MAIN' AND is_active=true
+              LIMIT 1
+            )
+            SELECT CASE
+              WHEN p.stock=0
+               AND COALESCE((
+                 SELECT SUM(im.quantity_delta)
+                 FROM public.inventory_movements im,main
+                 WHERE im.product_id=p.id
+                   AND im.variant_id IS NULL
+                   AND im.location_id=main.id
+               ),0)=0
+              THEN 'ok' ELSE 'bad' END
+            FROM public.products p
+            WHERE p.id='houyi-volcanic-stone-black'
+              AND p.deleted_at IS NULL;
+          ")" = "ok"
