@@ -1,282 +1,32 @@
-name: TEMP Replace Dutch With River Sand FH-260924-B6A14716
-
+name: TEMP Inspect Invoice Status FH-260924-B6A14716
 on:
   push:
     branches: [ops/invoice-edit-260924-b6a14716-20260925b]
     paths: [".github/workflows/tmp-edit-invoice-260924-b6a14716.yml"]
-
 permissions:
   contents: read
-
 jobs:
-  apply:
+  inspect:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     environment: production
     steps:
-      - name: Replace Dutch sand with 5kg river sand 1-2mm
+      - name: Inspect manual invoice status constraints
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           set -euo pipefail
-
-          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 <<'SQL'
-          BEGIN;
-
-          DO $block$
-          DECLARE
-            v_order_id text := 'd6f5c6e1-1153-4d2a-a892-6ab2417248fa';
-            v_dutch_line text := '60023ddd-cb20-4681-a2bf-6f47664aa5db';
-            v_river_line text := gen_random_uuid()::text;
-            v_main_location text;
-            v_dutch_move text;
-            v_river_stock integer;
-          BEGIN
-            PERFORM 1
-            FROM public.orders
-            WHERE id=v_order_id
-              AND order_number='FH-260924-B6A14716'
-              AND status='pending'
-              AND total=211196
-              AND rounded_total=211250
-              AND shipping_cost=5000
-              AND discount_total=10000
-              AND items_subtotal_snapshot=216196
-              AND formula_total_snapshot=211196
-              AND rounding_adjustment_snapshot=54
-            FOR UPDATE;
-            IF NOT FOUND THEN RAISE EXCEPTION 'ABORT: unexpected order state'; END IF;
-
-            PERFORM 1
+          echo "=== CONSTRAINTS ==="
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -Atqc "
+            SELECT conname || '|' || pg_get_constraintdef(oid)
+            FROM pg_constraint
+            WHERE conrelid='public.manual_invoices'::regclass
+            ORDER BY conname;
+          "
+          echo "=== TARGET ==="
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -Atqc "
+            SELECT invoice_no || '|' || status || '|' || COALESCE(confirmed_at::text,'') || '|' ||
+                   COALESCE(sent_at::text,'') || '|' || COALESCE(order_id,'') || '|' || token
             FROM public.manual_invoices
-            WHERE invoice_no='FH-260924-B6A14716'
-              AND order_id=v_order_id
-              AND status='confirmed'
-              AND subtotal=216196
-              AND discount=10000
-              AND delivery=5000
-              AND total=211250
-            FOR UPDATE;
-            IF NOT FOUND THEN RAISE EXCEPTION 'ABORT: unexpected invoice state'; END IF;
-
-            PERFORM 1
-            FROM public.order_items_relational
-            WHERE id=v_dutch_line
-              AND order_id=v_order_id
-              AND product_id='houyi-dutch-sand'
-              AND quantity=1
-              AND price_at_purchase=3849
-              AND total_price=3849
-            FOR UPDATE;
-            IF NOT FOUND THEN RAISE EXCEPTION 'ABORT: Dutch sand line changed'; END IF;
-
-            IF EXISTS (
-              SELECT 1 FROM public.order_items_relational
-              WHERE order_id=v_order_id
-                AND product_id='houyi-river-sand'
-                AND quantity > 0
-            ) THEN
-              RAISE EXCEPTION 'ABORT: river sand already exists';
-            END IF;
-
-            PERFORM 1
-            FROM public.products
-            WHERE id='houyi-river-sand'
-              AND deleted_at IS NULL
-              AND price=3549
-              AND stock>=5
-              AND specifications->>'حجم الحبيبات'='1–2 ملم بحسب بيانات المنتج'
-              AND cost_price=734
-              AND cost_price_resolution='known'
-              AND packaging_cost=0
-              AND packaging_cost_resolution='verified_zero'
-              AND insert_cost=0
-              AND insert_cost_resolution='verified_zero'
-            FOR UPDATE;
-            IF NOT FOUND THEN
-              RAISE EXCEPTION 'ABORT: river sand product/cost/size/stock changed';
-            END IF;
-
-            SELECT id INTO STRICT v_main_location
-            FROM public.inventory_locations
-            WHERE code='MAIN' AND is_active=true
-            LIMIT 1;
-
-            SELECT COALESCE(SUM(quantity_delta),0)::integer
-              INTO v_river_stock
-            FROM public.inventory_movements
-            WHERE location_id=v_main_location
-              AND product_id='houyi-river-sand'
-              AND variant_id IS NULL;
-
-            IF v_river_stock < 5 THEN
-              RAISE EXCEPTION 'ABORT: canonical river sand stock insufficient: %', v_river_stock;
-            END IF;
-
-            SELECT id INTO STRICT v_dutch_move
-            FROM public.inventory_movements
-            WHERE idempotency_key='order_item:'||v_dutch_line
-              AND product_id='houyi-dutch-sand'
-              AND quantity_delta=-1
-              AND movement_type='sale';
-
-            IF EXISTS (
-              SELECT 1 FROM public.inventory_movements
-              WHERE idempotency_key='order_edit:'||v_order_id||':dutch-to-river-sand'
-            ) THEN
-              RAISE EXCEPTION 'ABORT: sand replacement already applied';
-            END IF;
-
-            UPDATE public.order_items_relational
-            SET quantity=0,
-                total_price=0,
-                metadata=COALESCE(metadata,'{}'::jsonb) ||
-                  jsonb_build_object(
-                    'removedBeforeDelivery',true,
-                    'replacementProductId','houyi-river-sand',
-                    'replacementQuantity',5,
-                    'replacementGrainSize','1–2 ملم',
-                    'removalReason','Owner replaced Dutch sand with natural river sand'
-                  )
-            WHERE id=v_dutch_line;
-
-            INSERT INTO public.inventory_movements(
-              product_id,variant_id,location_id,quantity_delta,
-              movement_type,source_type,source_id,idempotency_key,
-              unit_cost,currency,happened_at,created_by,metadata
-            ) VALUES (
-              'houyi-dutch-sand',NULL,v_main_location,1,
-              'manual_adjustment','order_edit',v_order_id,
-              'order_edit:'||v_order_id||':dutch-to-river-sand',
-              807,'IQD',clock_timestamp(),'owner_requested_chatgpt',
-              jsonb_build_object(
-                'invoice_no','FH-260924-B6A14716',
-                'order_item_id',v_dutch_line,
-                'original_sale_movement_id',v_dutch_move,
-                'reason','Restore Dutch sand removed before delivery'
-              )
-            );
-
-            INSERT INTO public.order_items_relational(
-              id,order_id,product_id,quantity,price_at_purchase,total_price,metadata,
-              unit_cost_price,unit_packaging_cost,unit_insert_cost,
-              cost_snapshot_source,cost_snapshot_status,cost_snapshot_version,
-              cost_snapshot_at,cost_snapshot_confidence,
-              unit_sale_price_snapshot,discount_snapshot,final_unit_sale_price_snapshot,
-              sale_price_source,sale_price_snapshot_at
-            ) VALUES (
-              v_river_line,v_order_id,'houyi-river-sand',5,3549,17745,
-              jsonb_build_object(
-                'variantId',NULL,
-                'productName','رمل نهري طبيعي للأحواض والأكواسكيب — 1–2 ملم',
-                'variantLabel','1–2 ملم',
-                'addedByOwnerEdit',true,
-                'replacesProductId','houyi-dutch-sand'
-              ),
-              734,0,0,
-              'product_current','exact',1,clock_timestamp(),'high',
-              3549,0,3549,'manual',clock_timestamp()
-            );
-
-            UPDATE public.orders o
-            SET items = (
-                  SELECT jsonb_agg(item ORDER BY ord)
-                  FROM (
-                    SELECT e AS item, ord
-                    FROM jsonb_array_elements(o.items) WITH ORDINALITY a(e,ord)
-                    WHERE e->>'productId' <> 'houyi-dutch-sand'
-                    UNION ALL
-                    SELECT jsonb_build_object(
-                      'quantity',5,
-                      'costPrice',734,
-                      'lineTotal',17745,
-                      'productId','houyi-river-sand',
-                      'variantId',NULL,
-                      'variantLabel','1–2 ملم',
-                      'costSource','product_current',
-                      'costStatus','exact',
-                      'insertCost',0,
-                      'productName','رمل نهري طبيعي للأحواض والأكواسكيب — 1–2 ملم',
-                      'packagingCost',0,
-                      'priceAtPurchase',3549
-                    ), 2000::bigint
-                  ) s
-                ),
-                total=225092,
-                rounded_total=225000,
-                items_subtotal_snapshot=230092,
-                formula_total_snapshot=225092,
-                rounding_adjustment_snapshot=-92,
-                updated_at=clock_timestamp()
-            WHERE o.id=v_order_id;
-
-            UPDATE public.manual_invoices mi
-            SET items = (
-                  SELECT jsonb_agg(item ORDER BY ord)
-                  FROM (
-                    SELECT e AS item, ord
-                    FROM jsonb_array_elements(mi.items) WITH ORDINALITY a(e,ord)
-                    WHERE e->>'productId' <> 'houyi-dutch-sand'
-                    UNION ALL
-                    SELECT jsonb_build_object(
-                      'name','رمل نهري طبيعي للأحواض والأكواسكيب — 1–2 ملم',
-                      'total',17745,
-                      'imageUrl','https://res.cloudinary.com/dyczh8ogv/image/upload/v1780947799/aquavo/products/houyi/houyi-river-sand/houyi-river-sand-2.webp',
-                      'quantity',5,
-                      'productId','houyi-river-sand',
-                      'variantId',NULL,
-                      'variantLabel','1–2 ملم',
-                      'unitPrice',3549
-                    ), 2000::bigint
-                  ) s
-                ),
-                subtotal=230092,
-                total=225000,
-                updated_at=clock_timestamp()
-            WHERE mi.invoice_no='FH-260924-B6A14716';
-          END
-          $block$;
-
-          COMMIT;
-          SQL
-
-          echo "=== VERIFY_ORDER ==="
-          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -Atqc "
-            SELECT order_number || '|' || total::text || '|' || rounded_total::text || '|' ||
-                   items_subtotal_snapshot::text || '|' || rounding_adjustment_snapshot::text
-            FROM public.orders WHERE order_number='FH-260924-B6A14716';
-          "
-
-          echo "=== VERIFY_SAND_LINES ==="
-          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -Atqc "
-            SELECT oi.product_id || '|' || oi.quantity::text || '|' ||
-                   oi.price_at_purchase::text || '|' || oi.total_price::text || '|' ||
-                   COALESCE(oi.metadata->>'variantLabel','')
-            FROM public.order_items_relational oi
-            JOIN public.orders o ON o.id=oi.order_id
-            WHERE o.order_number='FH-260924-B6A14716'
-              AND oi.product_id IN ('houyi-dutch-sand','houyi-river-sand')
-            ORDER BY oi.product_id;
-          "
-
-          echo "=== VERIFY_MANUAL ==="
-          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -Atqc "
-            SELECT invoice_no || '|' || subtotal::text || '|' || discount::text || '|' ||
-                   delivery::text || '|' || total::text || '|' || token
-            FROM public.manual_invoices WHERE invoice_no='FH-260924-B6A14716';
-          "
-
-          echo "=== VERIFY_STOCK ==="
-          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -Atqc "
-            WITH main AS (
-              SELECT id FROM public.inventory_locations
-              WHERE code='MAIN' AND is_active=true LIMIT 1
-            )
-            SELECT im.product_id || '|' || COALESCE(SUM(im.quantity_delta),0)::text
-            FROM public.inventory_movements im
-            WHERE im.location_id=(SELECT id FROM main)
-              AND im.product_id IN ('houyi-dutch-sand','houyi-river-sand')
-              AND im.variant_id IS NULL
-            GROUP BY im.product_id
-            ORDER BY im.product_id;
+            WHERE invoice_no='FH-260924-B6A14716';
           "
