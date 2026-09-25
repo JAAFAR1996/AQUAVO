@@ -1954,7 +1954,7 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
     <Document
       title={"AQUAVO Monthly Accounting " + periodKey}
       author="AQUAVO"
-      subject="Monthly management and accounting report"
+      subject="Monthly management and accounting report - VECTOR V5"
       keywords="AQUAVO, accounting, monthly report, finance"
     >
       <ReportPage
@@ -1965,7 +1965,7 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
       >
         <View style={styles.hero}>
           <View style={styles.heroCopy}>
-            <Text style={styles.heroEyebrow}>AQUAVO MONTHLY FINANCIAL ANALYSIS</Text>
+            <Text style={styles.heroEyebrow}>AQUAVO MONTHLY FINANCIAL ANALYSIS · VECTOR V5</Text>
             <Text style={styles.heroTitle}>ملخص الأداء المالي: من المبيعات إلى صافي النتيجة.</Text>
             <Text style={styles.heroNote}>
               تقرير بصري مبني على دفتر الأستاذ، حقائق الطلبات، التسويات والمصاريف الموثقة. الأرقام الناقصة تبقى ظاهرة ولا تتحول تلقائياً إلى صفر.
@@ -2583,7 +2583,7 @@ export async function downloadAccountantPdfV2(
   try {
     const a = document.createElement("a");
     a.href = url;
-    a.download = "AQUAVO-Accounting-" + String(payload.manifest?.periodKey ?? "period") + ".pdf";
+    a.download = "AQUAVO-Accounting-VECTOR-V5-" + String(payload.manifest?.periodKey ?? "period") + ".pdf";
     document.body.appendChild(a);
     a.click();
     a.remove();
