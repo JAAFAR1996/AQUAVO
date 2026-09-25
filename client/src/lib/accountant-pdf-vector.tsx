@@ -65,11 +65,11 @@ function registerFonts(): void {
     family: "AqArabic",
     fonts: [
       {
-        src: "https://fonts.gstatic.com/s/notosansarabic/v18/nwpxtLGrOAZMl5nJ_wfgRg3DrWFZWsnVBJ_sS6tlqHHFlhQ5l3sQWIHPqzCfyG2vu3CBFQLaig.woff2",
+        src: "/fonts/aquavo-noto-sans-arabic-400.woff",
         fontWeight: 400,
       },
       {
-        src: "https://fonts.gstatic.com/s/notosansarabic/v18/nwpxtLGrOAZMl5nJ_wfgRg3DrWFZWsnVBJ_sS6tlqHHFlhQ5l3sQWIHPqzCfyGyBu3CBFQLaig.woff2",
+        src: "/fonts/aquavo-noto-sans-arabic-700.woff",
         fontWeight: 700,
       },
     ],

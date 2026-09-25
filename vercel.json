@@ -62,6 +62,23 @@
   ],
   "headers": [
     {
+      "source": "/fonts/aquavo-noto-sans-arabic-:weight.woff",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        },
+        {
+          "key": "Content-Type",
+          "value": "font/woff"
+        },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        }
+      ]
+    },
+    {
       "source": "/alexa-privacy/callback",
       "headers": [
         {
@@ -325,6 +342,14 @@
     }
   ],
   "rewrites": [
+    {
+      "source": "/fonts/aquavo-noto-sans-arabic-400.woff",
+      "destination": "https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-arabic@5.0.13/files/noto-sans-arabic-arabic-400-normal.woff"
+    },
+    {
+      "source": "/fonts/aquavo-noto-sans-arabic-700.woff",
+      "destination": "https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-arabic@5.0.13/files/noto-sans-arabic-arabic-700-normal.woff"
+    },
     {
       "source": "/alexa-privacy/callback",
       "destination": "/alexa-privacy/callback.html"
