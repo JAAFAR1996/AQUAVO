@@ -46,6 +46,9 @@ describe("accounting monthly management pack", () => {
     expect(pdf).not.toContain("jsPDF");
     expect(pdf).not.toContain("toJpeg");
     expect(ui).toContain("جاري بناء التقرير المتجهي");
+    expect(ui).toContain("PDF ENGINE · VECTOR V5");
+    expect(ui).toContain("تنزيل التقرير المالي V5 · VECTOR");
+    expect(pdf).toContain("AQUAVO-Accounting-VECTOR-V5-");
   });
 
   it("presents full accountant analysis plus detailed audit appendices", () => {
