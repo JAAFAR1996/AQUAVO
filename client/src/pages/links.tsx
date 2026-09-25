@@ -46,19 +46,19 @@ function WhatsAppIcon({ className = "h-5 w-5" }: { className?: string }) {
   );
 }
 
+function trackLinkClick(item: LinkItem) {
+  trackBioLinkClick(item.id);
+  if (item.id === "whatsapp") trackWhatsAppHandoff({ source: "links" });
+}
+
 function ActionCard({ item }: { item: LinkItem }) {
   const Icon = item.icon;
   const isWhatsApp = item.id === "whatsapp";
 
-  const onClick = () => {
-    trackBioLinkClick(item.id);
-    if (isWhatsApp) trackWhatsAppHandoff({ source: "links" });
-  };
-
   return (
     <a
       href={item.url}
-      onClick={onClick}
+      onClick={() => trackLinkClick(item)}
       target={item.external ? "_blank" : undefined}
       rel={item.external ? "noopener noreferrer" : undefined}
       className={
@@ -88,6 +88,30 @@ function ActionCard({ item }: { item: LinkItem }) {
         className={item.featured ? "h-4 w-4 shrink-0 text-white/80" : "h-4 w-4 shrink-0 text-[#0B93A6]"}
         aria-hidden
       />
+    </a>
+  );
+}
+
+function CompactLinkCard({ item }: { item: LinkItem }) {
+  const Icon = item.icon;
+
+  return (
+    <a
+      href={item.url}
+      onClick={() => trackLinkClick(item)}
+      target={item.external ? "_blank" : undefined}
+      rel={item.external ? "noopener noreferrer" : undefined}
+      className="flex min-h-[88px] flex-col items-start justify-between rounded-2xl border border-[#0B93A6]/18 bg-white/60 p-3.5 text-[#232323] transition hover:border-[#0B93A6]/45 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B93A6] focus-visible:ring-offset-2 focus-visible:ring-offset-[#F6F4EF]"
+    >
+      <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#0B93A6]/9 text-[#0B93A6]">
+        <Icon className="h-[18px] w-[18px]" aria-hidden />
+      </span>
+      <span className="mt-3 min-w-0">
+        <span className="block text-sm font-bold leading-5">{item.label}</span>
+        <span className="mt-0.5 block truncate text-[11px] leading-4 text-[#232323]/55">
+          {item.sublabel}
+        </span>
+      </span>
     </a>
   );
 }
@@ -178,9 +202,8 @@ export default function LinksPage() {
     <>
       <MetaTags title={t("links.s14")} description={t("links.s18")} />
       <main
-        className="min-h-screen bg-[#F6F4EF] text-[#232323]"
+        className="min-h-screen bg-[#F6F4EF] font-sans text-[#232323]"
         dir={dir}
-        style={{ fontFamily: "Cairo, sans-serif" }}
       >
         <div className="h-1 w-full bg-[#0B93A6]" aria-hidden />
 
@@ -227,8 +250,8 @@ export default function LinksPage() {
             <h2 id="links-official-title" className="mb-3 px-1 text-xs font-bold uppercase tracking-[0.08em] text-[#232323]/50">
               {t("links.s24")}
             </h2>
-            <div className="space-y-2.5">
-              {officialLinks.map((item) => <ActionCard key={item.id} item={item} />)}
+            <div className="grid grid-cols-2 gap-2.5">
+              {officialLinks.map((item) => <CompactLinkCard key={item.id} item={item} />)}
             </div>
           </section>
 
