@@ -49,6 +49,7 @@
     "script/apply-accounting-v2-migrations.ts",
     "client/src/lib/accountant-pdf-v2.ts",
     "client/src/pages/admin/finance.tsx",
+    "client/src/pages/admin/finance-report.tsx",
     "client/src/components/admin/finance-automatic-returns-v2.tsx",
     "client/src/components/admin/finance-accounting-register-v2.tsx",
     "client/src/components/admin/finance-smart-carrier-center-v2.tsx",
