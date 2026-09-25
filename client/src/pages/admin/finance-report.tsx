@@ -181,7 +181,7 @@ function Kpi({
 }: {
   label: string;
   value: string;
-  note?: string;
+  note?: React.ReactNode;
   tone?: "default" | "positive" | "warning";
 }) {
   return (
@@ -283,10 +283,12 @@ function Donut({
   segments,
   center,
   subcenter,
+  formatter = iqd,
 }: {
   segments: Array<{ label: string; value: number; className: string }>;
   center: string;
   subcenter: string;
+  formatter?: (value: number) => string;
 }) {
   const positive = segments.filter((segment) => segment.value > 0);
   const total = positive.reduce((sum, segment) => sum + segment.value, 0);
@@ -317,7 +319,7 @@ function Donut({
       </svg>
       <div className="acct-html-legend">
         {segments.map((segment) => (
-          <div key={segment.label}><span className={`acct-html-legend__dot ${segment.className}`} />{segment.label}<strong>{iqd(segment.value)}</strong></div>
+          <div key={segment.label}><span className={`acct-html-legend__dot ${segment.className}`} />{segment.label}<strong>{formatter(segment.value)}</strong></div>
         ))}
       </div>
     </div>
@@ -640,7 +642,7 @@ export default function FinanceHtmlReportPage() {
         </header>
 
         <div className="acct-html-kpi-grid">
-          <Kpi label="مبيعات المنتجات" value={iqd(summary.product_revenue)} note={previous ? deltaLabel(summary.product_revenue, previous.product_revenue) as any : undefined} />
+          <Kpi label="مبيعات المنتجات" value={iqd(summary.product_revenue)} note={previous ? deltaLabel(summary.product_revenue, previous.product_revenue) : undefined} />
           <Kpi label="كلفة المنتجات" value={iqd(summary.cogs)} note={`${percent(ratio(summary.cogs, summary.product_revenue))} من المبيعات`} />
           <Kpi label="الربح الإجمالي" value={iqd(gross)} note={`هامش ${percent(grossMargin)}`} tone="positive" />
           <Kpi label="صافي النتيجة الإدارية" value={iqd(net)} note={`هامش ${percent(netMargin)}`} tone="positive" />
@@ -749,6 +751,7 @@ export default function FinanceHtmlReportPage() {
                 ]}
                 center={numberValue(sales.length)}
                 subcenter="طلب"
+                formatter={numberValue}
               />
             </div>
             <div className="acct-html-card acct-html-note-card">
