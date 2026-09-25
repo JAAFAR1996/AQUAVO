@@ -1,4 +1,4 @@
-name: TEMP Add Soil FH-260924-B6A14716
+name: TEMP Reduce Soil FH-260924-B6A14716
 
 on:
   push:
@@ -14,7 +14,7 @@ jobs:
     timeout-minutes: 5
     environment: production
     steps:
-      - name: Add six 1.5L aquascape soil bags atomically
+      - name: Reduce aquascape soil from 6 bags to 2
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
@@ -27,24 +27,22 @@ jobs:
           DO $block$
           DECLARE
             v_order_id text := 'd6f5c6e1-1153-4d2a-a892-6ab2417248fa';
-            v_soil_line_id text := gen_random_uuid()::text;
+            v_soil_line_id text;
             v_main_location text;
-            v_ledger_stock integer;
-            v_variant_stock integer;
-            v_variant_price numeric;
+            v_sale_move_id text;
           BEGIN
             PERFORM 1
             FROM public.orders
             WHERE id=v_order_id
               AND order_number='FH-260924-B6A14716'
               AND status='pending'
-              AND total=198200
-              AND rounded_total=198250
+              AND total=237188
+              AND rounded_total=237250
               AND shipping_cost=5000
               AND discount_total=10000
-              AND items_subtotal_snapshot=203200
-              AND formula_total_snapshot=198200
-              AND rounding_adjustment_snapshot=50
+              AND items_subtotal_snapshot=242188
+              AND formula_total_snapshot=237188
+              AND rounding_adjustment_snapshot=62
             FOR UPDATE;
             IF NOT FOUND THEN
               RAISE EXCEPTION 'ABORT: unexpected order state';
@@ -55,172 +53,116 @@ jobs:
             WHERE invoice_no='FH-260924-B6A14716'
               AND order_id=v_order_id
               AND status='confirmed'
-              AND subtotal=203200
+              AND subtotal=242188
               AND discount=10000
               AND delivery=5000
-              AND total=198250
+              AND total=237250
             FOR UPDATE;
             IF NOT FOUND THEN
               RAISE EXCEPTION 'ABORT: unexpected invoice state';
             END IF;
 
-            IF EXISTS (
-              SELECT 1
-              FROM public.order_items_relational
-              WHERE order_id=v_order_id AND product_id='yee-07509'
-            ) THEN
-              RAISE EXCEPTION 'ABORT: soil already exists in relational order items';
-            END IF;
-
-            IF EXISTS (
-              SELECT 1
-              FROM public.orders o
-              CROSS JOIN LATERAL jsonb_array_elements(o.items) AS x(e)
-              WHERE o.id=v_order_id AND x.e->>'productId'='yee-07509'
-            ) THEN
-              RAISE EXCEPTION 'ABORT: soil already exists in order JSON';
-            END IF;
-
-            IF EXISTS (
-              SELECT 1
-              FROM public.manual_invoices mi
-              CROSS JOIN LATERAL jsonb_array_elements(mi.items) AS x(e)
-              WHERE mi.invoice_no='FH-260924-B6A14716'
-                AND x.e->>'productId'='yee-07509'
-            ) THEN
-              RAISE EXCEPTION 'ABORT: soil already exists in invoice JSON';
-            END IF;
-
-            PERFORM 1
-            FROM public.products
-            WHERE id='yee-07509'
-              AND slug='yff-049'
-              AND deleted_at IS NULL
-              AND price=6498
-              AND stock>=6
+            SELECT id INTO STRICT v_soil_line_id
+            FROM public.order_items_relational
+            WHERE order_id=v_order_id
+              AND product_id='yee-07509'
+              AND quantity=6
+              AND price_at_purchase=6498
+              AND total_price=38988
+              AND metadata->>'variantId'='fine15'
             FOR UPDATE;
-            IF NOT FOUND THEN
-              RAISE EXCEPTION 'ABORT: YFF-049 1.5L product unavailable or changed';
-            END IF;
-
-            SELECT (v->>'stock')::integer, (v->>'price')::numeric
-              INTO STRICT v_variant_stock, v_variant_price
-            FROM public.products p
-            CROSS JOIN LATERAL jsonb_array_elements(p.variants) AS a(v)
-            WHERE p.id='yee-07509' AND v->>'id'='fine15';
-
-            IF v_variant_stock < 6 OR v_variant_price <> 6498 THEN
-              RAISE EXCEPTION 'ABORT: fine15 variant stock/price changed: stock %, price %',
-                v_variant_stock, v_variant_price;
-            END IF;
 
             SELECT id INTO STRICT v_main_location
             FROM public.inventory_locations
             WHERE code='MAIN' AND is_active=true
             LIMIT 1;
 
-            SELECT COALESCE(SUM(quantity_delta),0)::integer
-              INTO v_ledger_stock
+            SELECT id INTO STRICT v_sale_move_id
             FROM public.inventory_movements
-            WHERE location_id=v_main_location
+            WHERE idempotency_key='order_item:'||v_soil_line_id
               AND product_id='yee-07509'
-              AND variant_id='fine15';
+              AND variant_id='fine15'
+              AND quantity_delta=-6
+              AND movement_type='sale';
 
-            IF v_ledger_stock < 6 THEN
-              RAISE EXCEPTION 'ABORT: canonical fine15 stock insufficient: %', v_ledger_stock;
+            IF EXISTS (
+              SELECT 1 FROM public.inventory_movements
+              WHERE idempotency_key='order_edit:'||v_order_id||':soil-6-to-2'
+            ) THEN
+              RAISE EXCEPTION 'ABORT: soil reduction already applied';
             END IF;
 
-            INSERT INTO public.order_items_relational(
-              id,
-              order_id,
-              product_id,
-              quantity,
-              price_at_purchase,
-              total_price,
-              metadata,
-              unit_cost_price,
-              unit_packaging_cost,
-              unit_insert_cost,
-              cost_snapshot_source,
-              cost_snapshot_status,
-              cost_snapshot_version,
-              cost_snapshot_at,
-              cost_snapshot_confidence,
-              unit_sale_price_snapshot,
-              discount_snapshot,
-              final_unit_sale_price_snapshot,
-              sale_price_source,
-              sale_price_snapshot_at
+            UPDATE public.order_items_relational
+            SET quantity=2,
+                total_price=12996,
+                metadata=COALESCE(metadata,'{}'::jsonb) ||
+                  jsonb_build_object(
+                    'ownerAdjustedQuantity',true,
+                    'ownerAdjustedFrom',6,
+                    'ownerAdjustedTo',2,
+                    'adjustmentReason','Use soil only under planted zones beneath sand'
+                  )
+            WHERE id=v_soil_line_id;
+
+            INSERT INTO public.inventory_movements(
+              product_id,variant_id,location_id,quantity_delta,
+              movement_type,source_type,source_id,idempotency_key,
+              unit_cost,currency,happened_at,created_by,metadata
             ) VALUES (
-              v_soil_line_id,
-              v_order_id,
-              'yee-07509',
-              6,
-              6498,
-              38988,
+              'yee-07509','fine15',v_main_location,4,
+              'manual_adjustment','order_edit',v_order_id,
+              'order_edit:'||v_order_id||':soil-6-to-2',
+              1747,'IQD',clock_timestamp(),'owner_requested_chatgpt',
               jsonb_build_object(
-                'variantId','fine15',
-                'variantLabel','1.5 لتر',
-                'productName','تربة أكواسكيب للنباتات المائية — 1.5 أو 3 لتر — 1.5 لتر',
-                'addedByOwnerEdit',true
-              ),
-              1747,
-              0,
-              0,
-              'product_current',
-              'exact',
-              1,
-              clock_timestamp(),
-              'high',
-              6498,
-              0,
-              6498,
-              'manual',
-              clock_timestamp()
+                'invoice_no','FH-260924-B6A14716',
+                'order_item_id',v_soil_line_id,
+                'original_sale_movement_id',v_sale_move_id,
+                'reason','Reduce aquascape soil from 6 bags to 2 before delivery'
+              )
             );
 
-            UPDATE public.orders
-            SET items = items || jsonb_build_array(
-                  jsonb_build_object(
-                    'quantity',6,
-                    'costPrice',1747,
-                    'lineTotal',38988,
-                    'productId','yee-07509',
-                    'variantId','fine15',
-                    'variantLabel','1.5 لتر',
-                    'costSource','product_current',
-                    'costStatus','exact',
-                    'insertCost',0,
-                    'productName','تربة أكواسكيب للنباتات المائية — 1.5 أو 3 لتر — 1.5 لتر',
-                    'packagingCost',0,
-                    'priceAtPurchase',6498
+            UPDATE public.orders o
+            SET items = (
+                  SELECT jsonb_agg(
+                    CASE
+                      WHEN e->>'productId'='yee-07509' AND e->>'variantId'='fine15'
+                      THEN jsonb_set(
+                             jsonb_set(e,'{quantity}','2'::jsonb,false),
+                             '{lineTotal}','12996'::jsonb,false
+                           )
+                      ELSE e
+                    END
+                    ORDER BY ord
                   )
+                  FROM jsonb_array_elements(o.items) WITH ORDINALITY a(e,ord)
                 ),
-                total=237188,
-                rounded_total=237250,
-                items_subtotal_snapshot=242188,
-                formula_total_snapshot=237188,
-                rounding_adjustment_snapshot=62,
+                total=211196,
+                rounded_total=211250,
+                items_subtotal_snapshot=216196,
+                formula_total_snapshot=211196,
+                rounding_adjustment_snapshot=54,
                 updated_at=clock_timestamp()
-            WHERE id=v_order_id;
+            WHERE o.id=v_order_id;
 
-            UPDATE public.manual_invoices
-            SET items = items || jsonb_build_array(
-                  jsonb_build_object(
-                    'name','تربة أكواسكيب للنباتات المائية — 1.5 لتر',
-                    'total',38988,
-                    'imageUrl','https://res.cloudinary.com/dyczh8ogv/image/upload/v1789384261/aquavo/products/yee/yff-049/uvitwcg0ooc9uk0jrfph.jpg',
-                    'quantity',6,
-                    'productId','yee-07509',
-                    'variantId','fine15',
-                    'variantLabel','1.5 لتر',
-                    'unitPrice',6498
+            UPDATE public.manual_invoices mi
+            SET items = (
+                  SELECT jsonb_agg(
+                    CASE
+                      WHEN e->>'productId'='yee-07509' AND e->>'variantId'='fine15'
+                      THEN jsonb_set(
+                             jsonb_set(e,'{quantity}','2'::jsonb,false),
+                             '{total}','12996'::jsonb,false
+                           )
+                      ELSE e
+                    END
+                    ORDER BY ord
                   )
+                  FROM jsonb_array_elements(mi.items) WITH ORDINALITY a(e,ord)
                 ),
-                subtotal=242188,
-                total=237250,
+                subtotal=216196,
+                total=211250,
                 updated_at=clock_timestamp()
-            WHERE invoice_no='FH-260924-B6A14716';
+            WHERE mi.invoice_no='FH-260924-B6A14716';
 
           END
           $block$;
@@ -231,54 +173,29 @@ jobs:
           echo "=== VERIFY_ORDER ==="
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -Atqc "
             SELECT order_number || '|' || status || '|' || total::text || '|' ||
-                   rounded_total::text || '|' || shipping_cost::text || '|' ||
-                   discount_total::text || '|' || items_subtotal_snapshot::text || '|' ||
+                   rounded_total::text || '|' || items_subtotal_snapshot::text || '|' ||
                    formula_total_snapshot::text || '|' || rounding_adjustment_snapshot::text
             FROM public.orders
             WHERE order_number='FH-260924-B6A14716';
           "
 
-          echo "=== VERIFY_RELATIONAL_SOIL ==="
+          echo "=== VERIFY_SOIL_LINE ==="
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -Atqc "
             SELECT oi.product_id || '|' || oi.quantity::text || '|' ||
                    oi.price_at_purchase::text || '|' || oi.total_price::text || '|' ||
-                   COALESCE(oi.metadata->>'variantId','') || '|' ||
-                   COALESCE(oi.unit_cost_price::text,'') || '|' ||
-                   COALESCE(oi.cost_snapshot_status,'')
+                   COALESCE(oi.metadata->>'variantId','')
             FROM public.order_items_relational oi
             JOIN public.orders o ON o.id=oi.order_id
             WHERE o.order_number='FH-260924-B6A14716'
               AND oi.product_id='yee-07509';
           "
 
-          echo "=== VERIFY_ORDER_JSON_SOIL ==="
-          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -Atqc "
-            SELECT (x.e->>'productId') || '|' || (x.e->>'quantity') || '|' ||
-                   (x.e->>'priceAtPurchase') || '|' || (x.e->>'lineTotal') || '|' ||
-                   COALESCE(x.e->>'variantId','')
-            FROM public.orders o
-            CROSS JOIN LATERAL jsonb_array_elements(o.items) AS x(e)
-            WHERE o.order_number='FH-260924-B6A14716'
-              AND x.e->>'productId'='yee-07509';
-          "
-
           echo "=== VERIFY_MANUAL ==="
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -Atqc "
-            SELECT invoice_no || '|' || status || '|' || subtotal::text || '|' ||
+            SELECT invoice_no || '|' || subtotal::text || '|' ||
                    discount::text || '|' || delivery::text || '|' || total::text || '|' || token
             FROM public.manual_invoices
             WHERE invoice_no='FH-260924-B6A14716';
-          "
-
-          echo "=== VERIFY_MANUAL_SOIL ==="
-          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -Atqc "
-            SELECT (x.e->>'productId') || '|' || (x.e->>'quantity') || '|' ||
-                   (x.e->>'unitPrice') || '|' || (x.e->>'total') || '|' ||
-                   COALESCE(x.e->>'variantId','')
-            FROM public.manual_invoices mi
-            CROSS JOIN LATERAL jsonb_array_elements(mi.items) AS x(e)
-            WHERE mi.invoice_no='FH-260924-B6A14716'
-              AND x.e->>'productId'='yee-07509';
           "
 
           echo "=== VERIFY_SOIL_STOCK ==="
