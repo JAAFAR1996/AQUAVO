@@ -1,4 +1,4 @@
-name: TEMP Inspect Sand FH-260924-B6A14716
+name: TEMP Inspect River Sand FH-260924-B6A14716
 
 on:
   push:
@@ -14,66 +14,56 @@ jobs:
     timeout-minutes: 5
     environment: production
     steps:
-      - name: Inspect sand products and invoice sand lines
+      - name: Inspect exact river sand and current Dutch sand line
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           set -euo pipefail
-          echo "=== SAND_PRODUCTS ==="
+
+          echo "=== RIVER_SAND ==="
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -Atqc "
-            SELECT id || '|' || slug || '|' || name || '|' || price::text || '|' ||
-                   stock::text || '|' || COALESCE(variants::text,'null') || '|' ||
+            SELECT id || '|' || name || '|' || price::text || '|' || stock::text || '|' ||
+                   COALESCE(specifications::text,'{}') || '|' ||
+                   COALESCE(cost_price::text,'') || '|' ||
+                   COALESCE(packaging_cost::text,'') || '|' ||
+                   COALESCE(insert_cost::text,'') || '|' ||
                    COALESCE(thumbnail,'')
             FROM public.products
-            WHERE deleted_at IS NULL
-              AND (
-                name ILIKE '%رمل%'
-                OR name ILIKE '%sand%'
-                OR slug ILIKE '%sand%'
-              )
-            ORDER BY name;
+            WHERE id='houyi-river-sand';
           "
 
-          echo "=== ORDER_SAND_LINES ==="
+          echo "=== DUTCH_RELATIONAL ==="
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -Atqc "
-            SELECT (e->>'productId') || '|' || COALESCE(e->>'productName','') || '|' ||
-                   COALESCE(e->>'variantId','') || '|' || COALESCE(e->>'variantLabel','') || '|' ||
-                   COALESCE(e->>'quantity','') || '|' || COALESCE(e->>'priceAtPurchase','') || '|' ||
-                   COALESCE(e->>'lineTotal','')
-            FROM public.orders o
-            CROSS JOIN LATERAL jsonb_array_elements(o.items) e
+            SELECT to_jsonb(oi)::text
+            FROM public.order_items_relational oi
+            JOIN public.orders o ON o.id=oi.order_id
             WHERE o.order_number='FH-260924-B6A14716'
-              AND (
-                (e->>'productName') ILIKE '%رمل%'
-                OR (e->>'productName') ILIKE '%لمی%'
-                OR (e->>'productId') ILIKE '%sand%'
-              );
+              AND oi.product_id='houyi-dutch-sand';
           "
 
-          echo "=== MANUAL_SAND_LINES ==="
+          echo "=== DUTCH_MOVEMENT ==="
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -Atqc "
-            SELECT (e->>'productId') || '|' || COALESCE(e->>'name','') || '|' ||
-                   COALESCE(e->>'variantId','') || '|' || COALESCE(e->>'variantLabel','') || '|' ||
-                   COALESCE(e->>'quantity','') || '|' || COALESCE(e->>'unitPrice','') || '|' ||
-                   COALESCE(e->>'total','')
-            FROM public.manual_invoices mi
-            CROSS JOIN LATERAL jsonb_array_elements(mi.items) e
-            WHERE mi.invoice_no='FH-260924-B6A14716'
-              AND (
-                (e->>'name') ILIKE '%رمل%'
-                OR (e->>'name') ILIKE '%لمی%'
-                OR (e->>'productId') ILIKE '%sand%'
-              );
+            SELECT to_jsonb(im)::text
+            FROM public.inventory_movements im
+            WHERE im.idempotency_key IN (
+              SELECT 'order_item:'||oi.id
+              FROM public.order_items_relational oi
+              JOIN public.orders o ON o.id=oi.order_id
+              WHERE o.order_number='FH-260924-B6A14716'
+                AND oi.product_id='houyi-dutch-sand'
+            )
+            ORDER BY im.created_at;
           "
 
-          echo "=== CURRENT_TOTALS ==="
+          echo "=== RIVER_STOCK ==="
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -Atqc "
-            SELECT 'order|' || total::text || '|' || rounded_total::text || '|' ||
-                   items_subtotal_snapshot::text || '|' || formula_total_snapshot::text || '|' ||
-                   rounding_adjustment_snapshot::text
-            FROM public.orders WHERE order_number='FH-260924-B6A14716'
-            UNION ALL
-            SELECT 'manual|' || total::text || '|' || subtotal::text || '|' ||
-                   discount::text || '|' || delivery::text || '|'
-            FROM public.manual_invoices WHERE invoice_no='FH-260924-B6A14716';
+            WITH main AS (
+              SELECT id FROM public.inventory_locations
+              WHERE code='MAIN' AND is_active=true LIMIT 1
+            )
+            SELECT COALESCE(SUM(quantity_delta),0)::text
+            FROM public.inventory_movements
+            WHERE location_id=(SELECT id FROM main)
+              AND product_id='houyi-river-sand'
+              AND variant_id IS NULL;
           "
