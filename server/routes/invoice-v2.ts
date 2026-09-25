@@ -50,6 +50,38 @@ export function createInvoiceV2Router() {
         if (invoice.status === "confirmed" && invoice.order_id) {
           return { kind: "confirmed" as const, orderId: invoice.order_id, invoiceNo: invoice.invoice_no };
         }
+
+        // Re-approval path for an invoice that was previously confirmed, then
+        // reopened after admin edits. Reuse the existing order instead of
+        // creating a duplicate order or decrementing inventory twice.
+        if (invoice.status === "sent" && invoice.order_id) {
+          const existingOrderResult = await tx.execute(sql`
+            SELECT id, order_number, rounded_total
+            FROM orders
+            WHERE id=${invoice.order_id}
+            FOR UPDATE
+          `);
+          const existingOrder = rowsOf<any>(existingOrderResult)[0];
+          if (!existingOrder || existingOrder.order_number !== invoice.invoice_no) {
+            throw Object.assign(new Error("تعذر ربط الفاتورة بالطلب الحالي"), { status: 409 });
+          }
+          if (Number(existingOrder.rounded_total) !== money(invoice.total, "الإجمالي")) {
+            throw Object.assign(new Error("إجمالي الفاتورة لا يطابق الطلب الحالي بعد التعديل"), { status: 409 });
+          }
+
+          const [reconfirmed] = await tx.update(manualInvoices).set({
+            status: "confirmed",
+            confirmedAt: new Date(),
+            updatedAt: new Date(),
+          } as any).where(eq(manualInvoices.id, invoice.id)).returning();
+
+          return {
+            kind: "confirmed" as const,
+            orderId: invoice.order_id,
+            invoiceNo: reconfirmed.invoiceNo,
+          };
+        }
+
         if (invoice.status !== "sent") {
           throw Object.assign(new Error(invoice.status === "rejected" ? "تم رفض هذه الفاتورة" : "لا يمكن قبول هذه الفاتورة في حالتها الحالية"), { status: 400 });
         }
