@@ -1680,8 +1680,8 @@ function OrderCard({ part }: { part: OrderPart }) {
         <>
           <View style={styles.orderMetaRow}>
             {[
-              ["المصدر / الحالة", String(order.source ?? "—") + " · " + String(order.status ?? "—")],
-              ["الدفع / التسوية", String(order.payment_status ?? "—") + " · " + String(order.settlement_status ?? "—")],
+              ["المصدر / الحالة", humanStatus(order.source) + " · " + humanStatus(order.status)],
+              ["الدفع / التسوية", humanStatus(order.payment_status) + " · " + humanStatus(order.settlement_status)],
               ["الناقل / المدينة", String(order.accounting_carrier ?? order.operational_carrier ?? "—") + " · " + String(address.city ?? "—")],
               ["التاريخ / البنود", dateOnly(order.order_created_at) + " · " + numberValue(allItems.length)],
             ].map(([label, value]) => (
@@ -2042,27 +2042,27 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
     <Document
       title={"AQUAVO Monthly Accounting " + periodKey}
       author="AQUAVO"
-      subject="Monthly professional management accounting report - VECTOR V6"
+      subject="Monthly professional management accounting report - VECTOR V7"
       keywords="AQUAVO, accounting, monthly report, finance"
     >
       <ReportPage
         payload={payload}
         section="01 · الملخص التنفيذي"
-        title={"التحليل المالي الشهري — " + periodLabel(periodKey)}
-        subtitle="صفحة قراءة سريعة: الأداء، الربحية، اتجاه الشهر، وأهم الملاحظات قبل التفاصيل"
+        title={"تقرير الإدارة المالي الشهري — " + periodLabel(periodKey)}
+        subtitle="ملخص تنفيذي للإدارة: النتائج، الربحية، التحصيل، ضوابط الإقفال، والاستثناءات التي تتطلب إجراء"
       >
         <View style={styles.hero}>
           <View style={styles.heroCopy}>
-            <Text style={styles.heroEyebrow}>AQUAVO · MONTHLY MANAGEMENT ACCOUNTING · VECTOR V6</Text>
-            <Text style={styles.heroTitle}>ملخص الأداء المالي: من المبيعات إلى صافي النتيجة.</Text>
+            <Text style={styles.heroEyebrow}>AQUAVO · INTERNAL MANAGEMENT REPORT · VECTOR V7</Text>
+            <Text style={styles.heroTitle}>ملخص الإدارة المالي للفترة المحاسبية</Text>
             <Text style={styles.heroNote}>
-              تقرير بصري مبني على دفتر الأستاذ، حقائق الطلبات، التسويات والمصاريف الموثقة. الأرقام الناقصة تبقى ظاهرة ولا تتحول تلقائياً إلى صفر.
+              تقرير إدارة داخلي سري مبني على دفتر الأستاذ وحقائق الطلبات والتسويات والمصاريف الموثقة. لا تُستبدل البيانات الناقصة بأصفار، ولا تُعرض تقديرات غير مدعومة كمعلومات محاسبية.
             </Text>
           </View>
           <View style={styles.heroStatus}>
             <Text style={styles.heroStatusLabel}>حالة الإغلاق</Text>
             <Text style={styles.heroStatusValue}>
-              {payload.manifest?.taxFinal ? "TAX FINAL" : blockers.length ? "يحتاج مراجعة" : "جاهز إدارياً"}
+              {payload.manifest?.taxFinal ? "اعتماد ضريبي نهائي" : blockers.length ? "إقفال معلّق" : "جاهز للإقفال الإداري"}
             </Text>
             <Text style={[styles.heroStatusLabel, { marginTop: 5 }]}>
               {blockers.length ? numberValue(blockers.length) + " مانع/نوع" : "لا توجد موانع مسجلة"}
@@ -2085,7 +2085,7 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
             invert
           />
           <KpiCard label="الربح الإجمالي" value={iqd(gross)} note={"هامش " + percent(grossMargin)} />
-          <KpiCard label="صافي النتيجة" value={iqd(net)} note={"هامش " + percent(netMargin)} />
+          <KpiCard label="صافي النتيجة الإدارية" value={iqd(net)} note={"هامش " + percent(netMargin)} />
           <KpiCard
             label="الطلبات"
             value={numberValue(summary.realized_orders)}
@@ -2102,7 +2102,7 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
             <WaterfallChart summary={summary} net={net} />
           </View>
           <View style={[styles.chartCard, { width: "40%" }]}>
-            <Text style={styles.chartTitle}>توزيع نتيجة الشهر وبنود التكلفة</Text>
+            <Text style={styles.chartTitle}>تركيب بنود التكلفة المسجلة</Text>
             <Text style={styles.chartSubtitle}>الدائرة توزع بنود التكلفة فقط؛ صافي النتيجة يظهر كمؤشر مستقل حتى لا تختلط الربحية بالمصروفات.</Text>
             <DonutChart
               segments={costDistribution}
@@ -2125,8 +2125,8 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
       <ReportPage
         payload={payload}
         section="02 · تحليل الربحية"
-        title="قراءة الربح والتكاليف"
-        subtitle="تحليل يوضح نسبة كل تكلفة من المبيعات والتسلسل المحاسبي الذي أنتج صافي النتيجة"
+        title="قائمة نتائج الإدارة وتحليل الربحية"
+        subtitle="عرض منظم للإيراد والكلفة والربح الإجمالي وصافي النتيجة الإدارية، مع فصل كل بند مؤثر"
       >
         <AccountingFlow summary={summary} gross={gross} net={net} />
 
@@ -2135,34 +2135,35 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
             <Text style={styles.chartTitle}>وزن بنود التكلفة من المبيعات</Text>
             <Text style={styles.chartSubtitle}>النسبة تحت كل بند = البند ÷ مبيعات المنتجات</Text>
             <SimpleBars
+              maxValue={100}
               rows={[
                 {
                   label: "كلفة المنتجات",
-                  value: Math.max(0, finiteNumber(summary.cogs) ?? 0),
+                  value: Math.max(0, ratio(summary.cogs, summary.product_revenue) ?? 0),
                   valueLabel: iqd(summary.cogs),
                   meta: percent(ratio(summary.cogs, summary.product_revenue)),
                   color: C.navy,
                 },
                 {
                   label: "كلفة التجهيز",
-                  value: Math.max(0, finiteNumber(summary.fulfillment_cost) ?? 0),
+                  value: Math.max(0, ratio(summary.fulfillment_cost, summary.product_revenue) ?? 0),
                   valueLabel: iqd(summary.fulfillment_cost),
                   meta: percent(ratio(summary.fulfillment_cost, summary.product_revenue)),
                   color: C.teal,
                 },
                 {
                   label: "دعم التوصيل",
-                  value: Math.max(0, finiteNumber(summary.delivery_subsidy) ?? 0),
+                  value: Math.max(0, ratio(summary.delivery_subsidy, summary.product_revenue) ?? 0),
                   valueLabel: iqd(summary.delivery_subsidy),
                   meta: percent(ratio(summary.delivery_subsidy, summary.product_revenue)),
                   color: "#4E8CAD",
                 },
                 {
                   label: "الراجعات والخسائر",
-                  value: Math.max(
-                    0,
+                  value: Math.max(0, ratio(
                     (finiteNumber(summary.sales_returns) ?? 0) + (finiteNumber(summary.actual_return_loss) ?? 0),
-                  ),
+                    summary.product_revenue,
+                  ) ?? 0),
                   valueLabel: iqd(
                     (finiteNumber(summary.sales_returns) ?? 0) + (finiteNumber(summary.actual_return_loss) ?? 0),
                   ),
@@ -2171,7 +2172,7 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
                 },
                 {
                   label: "المصاريف الموثقة",
-                  value: Math.max(0, finiteNumber(summary.verified_expenses) ?? 0),
+                  value: Math.max(0, ratio(summary.verified_expenses, summary.product_revenue) ?? 0),
                   valueLabel: iqd(summary.verified_expenses),
                   meta: percent(ratio(summary.verified_expenses, summary.product_revenue)),
                   color: C.red,
@@ -2181,25 +2182,18 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
           </View>
 
           <View style={[styles.chartCard, { width: "43%" }]}>
-            <Text style={styles.chartTitle}>قراءة المحاسب</Text>
-            <View style={styles.callout}>
-              <Text style={styles.calloutTitle}>الهامش الإجمالي</Text>
-              <Text style={styles.calloutText}>
-                مبيعات المنتجات {iqd(summary.product_revenue)} ناقص COGS {iqd(summary.cogs)} = ربح إجمالي {iqd(gross)}، بهامش {percent(grossMargin)}.
-              </Text>
-            </View>
-            <View style={[styles.callout, { marginTop: 7 }]}>
-              <Text style={styles.calloutTitle}>صافي النتيجة الإدارية</Text>
-              <Text style={styles.calloutText}>
-                بعد التجهيز ودعم التوصيل والراجعات والمصاريف وفروقات العملة، النتيجة المسجلة هي {iqd(net)}، أي {percent(netMargin)} من مبيعات المنتجات.
-              </Text>
-            </View>
-            <View style={[styles.callout, { marginTop: 7 }]}>
-              <Text style={styles.calloutTitle}>فرق التقريب</Text>
-              <Text style={styles.calloutText}>
-                حساب 3050 مستقل بقيمة {iqd(summary.rounding_adjustment)}؛ يظهر منفصلاً حتى لا يختلط بالمبيعات أو المصاريف.
-              </Text>
-            </View>
+            <Text style={styles.chartTitle}>قائمة نتائج الإدارة</Text>
+            <Text style={styles.chartSubtitle}>ترتيب بنود الفترة وفق تسلسل محاسبي واضح؛ الأرقام السالبة بنود تخفيض للنتيجة.</Text>
+            <DataTable
+              columns={[
+                { label: "البند", width: 62 },
+                { label: "القيمة", width: 38, numeric: true },
+              ]}
+              rows={managementStatementRows}
+            />
+            <Text style={[styles.smallMuted, { textAlign: "right", marginTop: 6 }]}>
+              الربح الإجمالي {percent(grossMargin)} من المبيعات، وصافي النتيجة الإدارية {percent(netMargin)}. فرق التقريب معروض مستقلاً ولا يُدمج بالمبيعات.
+            </Text>
           </View>
         </View>
 
@@ -2220,7 +2214,7 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
         {currentOpenPeriod && previous ? (
           <View style={styles.noteBox}>
             <Text style={styles.noteText}>
-              تنبيه مهني: الفترة الحالية ما زالت مفتوحة، بينما الفترة السابقة قد تمثل شهراً كاملاً. لذلك تُقرأ نسب التغير أدناه كمؤشرات اتجاهية فقط، لا كتحليل نمو نهائي أو مقارنة like-for-like.
+              تنبيه مهني: الفترة الحالية ما زالت مفتوحة، بينما الفترة السابقة قد تمثل شهراً كاملاً. لذلك تُقرأ نسب التغير أدناه كمؤشرات اتجاهية فقط، ولا تُعامل كمقارنة نهائية على أساس فترتين متماثلتين.
             </Text>
           </View>
         ) : null}
@@ -2307,7 +2301,7 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
         <View style={[styles.twoCol, { marginTop: 9 }]}>
           <View style={[styles.chartCard, { width: "42%" }]}>
             <Text style={styles.chartTitle}>تركيب أرصدة التحصيل والتوفر النقدي</Text>
-            <DonutChart segments={liquidSegments} centerLabel="سيولة + COD" centerValue={compactMoney(
+            <DonutChart segments={liquidSegments} centerLabel="نقد + أرصدة تحصيل" centerValue={compactMoney(
               (balanceMap.get("1000") ?? 0) + (balanceMap.get("1010") ?? 0) + (balanceMap.get("1100") ?? 0),
             )} />
           </View>
@@ -2405,11 +2399,11 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
 
         <View style={styles.insightGrid}>
           <View style={styles.insightCard}>
-            <Text style={styles.insightTitle}>Website</Text>
+            <Text style={styles.insightTitle}>الموقع</Text>
             <Text style={styles.insightText}>{numberValue(webOrders)} طلب</Text>
           </View>
           <View style={styles.insightCard}>
-            <Text style={styles.insightTitle}>WhatsApp</Text>
+            <Text style={styles.insightTitle}>واتساب</Text>
             <Text style={styles.insightText}>{numberValue(whatsappOrders)} طلب</Text>
           </View>
           <View style={styles.insightCard}>
@@ -2685,7 +2679,7 @@ export async function downloadAccountantPdfV2(
   try {
     const a = document.createElement("a");
     a.href = url;
-    a.download = "AQUAVO-Accounting-VECTOR-V6-" + String(payload.manifest?.periodKey ?? "period") + ".pdf";
+    a.download = "AQUAVO-Accounting-VECTOR-V7-" + String(payload.manifest?.periodKey ?? "period") + ".pdf";
     document.body.appendChild(a);
     a.click();
     a.remove();
