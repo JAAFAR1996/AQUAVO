@@ -1,21 +1,27 @@
 /**
  * AQUAVO Links Page — permanent QR landing page.
  *
- * This page is intentionally simple and evergreen: support first, useful
- * self-service second, social profiles last. It is used by printed QR codes,
- * so the URL can stay stable while destinations change behind it.
+ * Design principles:
+ * - one dominant action for the most common high-intent task (support)
+ * - related actions grouped to reduce decision complexity
+ * - secondary contact methods progressively disclosed
+ * - social profiles visually secondary
+ * - no urgency, fake scarcity, counters, or decorative motion
  */
 
 import { useEffect, type ComponentType } from "react";
 import {
+  ChevronDown,
   ChevronLeft,
   CircleHelp,
   Facebook,
   Globe2,
   Instagram,
+  Mail,
   MessageCircle,
   Music2,
   PackageSearch,
+  Phone,
   ShieldCheck,
   ShoppingBag,
 } from "lucide-react";
@@ -54,6 +60,7 @@ function trackLinkClick(item: LinkItem) {
 function ActionCard({ item }: { item: LinkItem }) {
   const Icon = item.icon;
   const isWhatsApp = item.id === "whatsapp";
+  const { dir } = useLocale();
 
   return (
     <a
@@ -63,14 +70,14 @@ function ActionCard({ item }: { item: LinkItem }) {
       rel={item.external ? "noopener noreferrer" : undefined}
       className={
         item.featured
-          ? "group flex min-h-[72px] w-full items-center gap-3 rounded-2xl bg-[#0B93A6] px-4 py-3 text-white shadow-[0_8px_24px_rgba(11,147,166,0.16)] transition hover:bg-[#087f90] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B93A6] focus-visible:ring-offset-2 focus-visible:ring-offset-[#F6F4EF]"
-          : "group flex min-h-[72px] w-full items-center gap-3 rounded-2xl border border-[#0B93A6]/20 bg-white/70 px-4 py-3 text-[#232323] transition hover:border-[#0B93A6]/45 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B93A6] focus-visible:ring-offset-2 focus-visible:ring-offset-[#F6F4EF]"
+          ? "group flex min-h-[76px] w-full items-center gap-3 rounded-2xl bg-[#0B93A6] px-4 py-3 text-[#0B1E28] shadow-[0_8px_24px_rgba(11,147,166,0.16)] transition hover:shadow-[0_10px_28px_rgba(11,147,166,0.22)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B1E28] focus-visible:ring-offset-2 focus-visible:ring-offset-[#F6F4EF]"
+          : "group flex min-h-[72px] w-full items-center gap-3 rounded-2xl border border-[#0B93A6]/20 bg-white/72 px-4 py-3 text-[#232323] transition hover:border-[#0B93A6]/45 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B93A6] focus-visible:ring-offset-2 focus-visible:ring-offset-[#F6F4EF]"
       }
     >
       <span
         className={
           item.featured
-            ? "grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-white/14"
+            ? "grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#F6F4EF]/55 text-[#0B1E28]"
             : "grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#0B93A6]/9 text-[#0B93A6]"
         }
       >
@@ -78,14 +85,17 @@ function ActionCard({ item }: { item: LinkItem }) {
       </span>
 
       <span className="min-w-0 flex-1">
-        <span className="block text-sm font-bold leading-6">{item.label}</span>
-        <span className={item.featured ? "mt-0.5 block text-xs leading-5 text-white/80" : "mt-0.5 block text-xs leading-5 text-[#232323]/60"}>
+        <span className={item.featured ? "block text-base font-bold leading-6" : "block text-sm font-bold leading-6"}>
+          {item.label}
+        </span>
+        <span className={item.featured ? "mt-0.5 block text-xs font-medium leading-5 text-[#0B1E28]/75" : "mt-0.5 block text-xs leading-5 text-[#232323]/70"}>
           {item.sublabel}
         </span>
       </span>
 
       <ChevronLeft
-        className={item.featured ? "h-4 w-4 shrink-0 text-white/80" : "h-4 w-4 shrink-0 text-[#0B93A6]"}
+        className={item.featured ? "h-4 w-4 shrink-0 text-[#0B1E28]/75" : "h-4 w-4 shrink-0 text-[#0B93A6]"}
+        style={{ transform: dir === "ltr" ? "rotate(180deg)" : undefined }}
         aria-hidden
       />
     </a>
@@ -101,14 +111,14 @@ function CompactLinkCard({ item }: { item: LinkItem }) {
       onClick={() => trackLinkClick(item)}
       target={item.external ? "_blank" : undefined}
       rel={item.external ? "noopener noreferrer" : undefined}
-      className="flex min-h-[88px] flex-col items-start justify-between rounded-2xl border border-[#0B93A6]/18 bg-white/60 p-3.5 text-[#232323] transition hover:border-[#0B93A6]/45 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B93A6] focus-visible:ring-offset-2 focus-visible:ring-offset-[#F6F4EF]"
+      className="flex min-h-[92px] flex-col items-start justify-between rounded-2xl border border-[#0B93A6]/18 bg-white/62 p-3.5 text-[#232323] transition hover:border-[#0B93A6]/45 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B93A6] focus-visible:ring-offset-2 focus-visible:ring-offset-[#F6F4EF]"
     >
-      <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#0B93A6]/9 text-[#0B93A6]">
+      <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#0B93A6]/9 text-[#0B93A6]">
         <Icon className="h-[18px] w-[18px]" aria-hidden />
       </span>
       <span className="mt-3 min-w-0">
         <span className="block text-sm font-bold leading-5">{item.label}</span>
-        <span className="mt-0.5 block truncate text-[11px] leading-4 text-[#232323]/55">
+        <span className="mt-0.5 block truncate text-[11px] leading-4 text-[#232323]/65">
           {item.sublabel}
         </span>
       </span>
@@ -201,10 +211,7 @@ export default function LinksPage() {
   return (
     <>
       <MetaTags title={t("links.s14")} description={t("links.s18")} />
-      <main
-        className="min-h-screen bg-[#F6F4EF] font-sans text-[#232323]"
-        dir={dir}
-      >
+      <main className="min-h-screen bg-[#F6F4EF] font-sans text-[#232323]" dir={dir}>
         <div className="h-1 w-full bg-[#0B93A6]" aria-hidden />
 
         <div className="mx-auto flex min-h-[calc(100vh-4px)] w-full max-w-md flex-col px-4 pb-8 pt-4 sm:px-5">
@@ -223,31 +230,71 @@ export default function LinksPage() {
 
             <div className="mt-5 h-px w-16 bg-[#0B93A6]/55" aria-hidden />
 
-            <p className="mt-5 text-sm font-bold text-[#0B93A6]">{t("links.s1")}</p>
-            <h1 className="mt-2 text-[26px] font-bold leading-[1.45] tracking-[-0.02em]">
+            <p className="mt-5 text-sm font-semibold text-[#0B1E28]/75">{t("links.s1")}</p>
+            <h1 className="mt-2 text-[26px] font-bold leading-[1.45] tracking-[-0.02em] text-[#232323]">
               {t("links.s17")}
             </h1>
-            <p className="mt-3 max-w-sm text-sm leading-7 text-[#232323]/65">
+            <p className="mt-3 max-w-sm text-sm leading-7 text-[#232323]/75">
               {t("links.s18")}
             </p>
 
-            <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-[#0B93A6]/18 bg-white/65 px-3 py-2 text-xs font-semibold text-[#232323]/70">
+            <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-[#0B93A6]/20 bg-white/65 px-3 py-2 text-xs font-semibold text-[#232323]/75">
               <ShieldCheck className="h-4 w-4 text-[#0B93A6]" aria-hidden />
               <span>{t("links.s15")}</span>
             </div>
           </header>
 
           <section aria-labelledby="links-services-title">
-            <h2 id="links-services-title" className="mb-3 px-1 text-xs font-bold uppercase tracking-[0.08em] text-[#232323]/50">
+            <h2 id="links-services-title" className="mb-3 px-1 text-xs font-bold text-[#232323]/70">
               {t("links.s23")}
             </h2>
             <div className="space-y-2.5">
               {services.map((item) => <ActionCard key={item.id} item={item} />)}
             </div>
+
+            <p className="mt-3 border-s-2 border-[#0B93A6]/45 ps-3 text-xs leading-6 text-[#232323]/70">
+              {t("links.s29")}
+            </p>
           </section>
 
+          <details className="group mt-6 rounded-2xl border border-[#0B93A6]/18 bg-white/45">
+            <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 rounded-2xl px-4 py-3 text-sm font-bold text-[#232323] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B93A6] [&::-webkit-details-marker]:hidden">
+              <span>{t("links.s26")}</span>
+              <ChevronDown className="h-4 w-4 shrink-0 text-[#0B93A6] transition-transform group-open:rotate-180" aria-hidden />
+            </summary>
+            <div className="grid grid-cols-1 gap-2 px-3 pb-3 sm:grid-cols-2">
+              <a
+                href="tel:+9647747880673"
+                onClick={() => trackBioLinkClick("phone")}
+                className="flex min-h-14 items-center gap-3 rounded-xl bg-white/75 px-3 py-2.5 text-[#232323] transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B93A6]"
+              >
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-[#0B93A6]/9 text-[#0B93A6]">
+                  <Phone className="h-4 w-4" aria-hidden />
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-sm font-bold">{t("links.s27")}</span>
+                  <span dir="ltr" className="mt-0.5 block text-xs text-[#232323]/65">+964 774 788 0673</span>
+                </span>
+              </a>
+
+              <a
+                href="mailto:info@aquavoiq.com"
+                onClick={() => trackBioLinkClick("email")}
+                className="flex min-h-14 items-center gap-3 rounded-xl bg-white/75 px-3 py-2.5 text-[#232323] transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B93A6]"
+              >
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-[#0B93A6]/9 text-[#0B93A6]">
+                  <Mail className="h-4 w-4" aria-hidden />
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-sm font-bold">{t("links.s28")}</span>
+                  <span dir="ltr" className="mt-0.5 block truncate text-xs text-[#232323]/65">info@aquavoiq.com</span>
+                </span>
+              </a>
+            </div>
+          </details>
+
           <section className="mt-7" aria-labelledby="links-official-title">
-            <h2 id="links-official-title" className="mb-3 px-1 text-xs font-bold uppercase tracking-[0.08em] text-[#232323]/50">
+            <h2 id="links-official-title" className="mb-3 px-1 text-xs font-bold text-[#232323]/70">
               {t("links.s24")}
             </h2>
             <div className="grid grid-cols-2 gap-2.5">
@@ -255,9 +302,9 @@ export default function LinksPage() {
             </div>
           </section>
 
-          <footer className="mt-8 border-t border-[#0B93A6]/14 pt-5 text-center">
-            <p className="text-xs leading-6 text-[#232323]/55">{t("links.s25")}</p>
-            <p className="mt-1 text-[11px] font-semibold tracking-[0.12em] text-[#0B93A6]">
+          <footer className="mt-8 border-t border-[#0B93A6]/16 pt-5 text-center">
+            <p className="text-xs leading-6 text-[#232323]/65">{t("links.s25")}</p>
+            <p className="mt-1 text-[11px] font-semibold text-[#0B1E28]/65">
               {t("links.s16")}
             </p>
           </footer>
