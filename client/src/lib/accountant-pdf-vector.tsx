@@ -1124,7 +1124,7 @@ function Header({ payload, section }: { payload: AnyRow; section: string }) {
         </View>
         <View style={styles.headerMeta}>
           <Text style={styles.period}>{periodLabel(period)}</Text>
-          <Text style={styles.smallMuted}>تقرير مالي وإداري شهري · {section}</Text>
+          <Text style={styles.smallMuted}>تقرير إدارة مالي شهري · سري للاستخدام الداخلي · {section}</Text>
           <Text style={styles.smallMuted}>توليد: {dateBaghdad(payload.manifest?.generatedAt)}</Text>
         </View>
       </View>
@@ -1142,8 +1142,8 @@ function Footer({ payload }: { payload: AnyRow }) {
     <View style={styles.footer} fixed>
       <Text style={styles.footerText}>
         {taxFinal
-          ? "فترة موسومة TAX FINAL في النظام"
-          : "تقرير إدارة ومحاسبة داخلي غير مدقق — لا يُعد إقراراً ضريبياً أو قوائم مالية مدققة"}
+          ? "سري - للاستخدام الداخلي فقط · الفترة تحمل اعتماداً ضريبياً نهائياً في النظام"
+          : "سري - للاستخدام الداخلي فقط · تقرير إدارة مالي غير مدقق - لا يُعد إقراراً ضريبياً أو قوائم مالية مدققة"}
       </Text>
       <Text
         style={styles.pageNumber}
@@ -1565,36 +1565,6 @@ function CompareCard({
       <Text style={styles.comparePrevious}>السابق: {formatter(previous)}</Text>
       <Delta current={current} previous={previous} invert={invert} />
     </View>
-  );
-}
-
-function GanttTimeline({ periodKey }: { periodKey: string }) {
-  const [year, month] = periodKey.split("-").map(Number);
-  const days = year && month ? new Date(Date.UTC(year, month, 0)).getUTCDate() : 30;
-  const phases = [
-    { no: "01", title: "تجميع المبيعات", from: 1, to: 10, color: C.navy },
-    { no: "02", title: "التسويات والكلف", from: 11, to: 20, color: C.teal },
-    { no: "03", title: "المراجعة والمطابقة", from: 21, to: Math.max(21, days - 2), color: "#4E8CAD" },
-    { no: "04", title: "الإقفال وإصدار التقرير", from: Math.max(22, days - 1), to: days, color: C.green },
-  ];
-  return (
-    <>
-      <View style={styles.ganttTrack}>
-        {phases.map((p) => {
-          const width = Math.max(4, ((p.to - p.from + 1) / days) * 100);
-          return <View key={p.no} style={{ width: width + "%", backgroundColor: p.color }} />;
-        })}
-      </View>
-      <View style={styles.ganttLegend}>
-        {phases.map((p) => (
-          <View key={p.no} style={styles.ganttPhase}>
-            <Text style={styles.ganttPhaseNo}>{p.no}</Text>
-            <Text style={styles.ganttPhaseTitle}>{p.title}</Text>
-            <Text style={styles.ganttPhaseDate}>{String(p.from).padStart(2, "0")}–{String(p.to).padStart(2, "0")}</Text>
-          </View>
-        ))}
-      </View>
-    </>
   );
 }
 
@@ -2673,13 +2643,13 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
           {[
             ["الطلبات المتحققة", "طلبات دخلت المحاسبة عند تحقق الاعتراف بالإيراد، وليس كل طلب منشأ على الموقع."],
             ["مبيعات المنتجات", "إيراد المنتجات من حساب الأستاذ 3000، منفصل عن أجور التوصيل."],
-            ["كلفة المنتجات COGS", "كلفة البضاعة المرتبطة بالمبيعات من حساب 4000 وفق snapshot/ledger."],
+            ["كلفة المنتجات COGS", "كلفة البضاعة المرتبطة بالمبيعات من حساب 4000 وفق لقطة الكلفة المحاسبية ودفتر الأستاذ."],
             ["كلفة التجهيز", "مواد التجهيز والتغليف المسجلة محاسبياً في حساب 5100."],
             ["دعم التوصيل", "ما تتحمله AQUAVO عندما تكون أجرة الناقل أعلى من المبلغ المحصل من الزبون."],
             ["مساهمة الطلب", "مبيعات الطلب ناقص COGS ودعم التوصيل وكلفة التجهيز ضمن فترة التقرير."],
             ["COD لدى شركات التوصيل", "رصيد دفتر أستاذ للمبالغ التي ما زالت بعهدة شركات التوصيل."],
             ["صافي النتيجة الإدارية", "مقياس إدارة داخلي حسب المعادلة الموضحة في التقرير؛ وليس تسمية IFRS مستقلة."],
-            ["حدود IFRS", "هذا الملف تقرير إدارة ومراجعة داخلية غير مدقق. لا يصف نفسه كقوائم IFRS مكتملة، ولا كقائمة تدفقات نقدية IAS 7، ولا يثبت بمفرده اختبار IAS 2 لصافي القيمة القابلة للتحقق للمخزون."],
+            ["حدود التقرير", "هذا الملف تقرير إدارة ومراجعة داخلية غير مدقق. لا يمثل مجموعة قوائم مالية مكتملة وفق IFRS، ولا قائمة تدفقات نقدية وفق IAS 7، ولا يثبت بمفرده اختبار IAS 2 لصافي القيمة القابلة للتحقق للمخزون."],
           ].map(([term, meaning]) => (
             <View key={term} style={styles.definitionRow}>
               <Text style={styles.definitionTerm}>{term}</Text>
