@@ -46,9 +46,9 @@ describe("accounting monthly management pack", () => {
     expect(pdf).not.toContain("jsPDF");
     expect(pdf).not.toContain("toJpeg");
     expect(ui).toContain("جاري بناء التقرير المتجهي");
-    expect(ui).toContain("PDF ENGINE · VECTOR V5");
-    expect(ui).toContain("تنزيل التقرير المالي V5 · VECTOR");
-    expect(pdf).toContain("AQUAVO-Accounting-VECTOR-V5-");
+    expect(ui).toContain("PDF ENGINE · VECTOR V6");
+    expect(ui).toContain("تنزيل التقرير المالي V6 · VECTOR");
+    expect(pdf).toContain("AQUAVO-Accounting-VECTOR-V6-");
   });
 
   it("presents full accountant analysis plus detailed audit appendices", () => {
@@ -73,6 +73,10 @@ describe("accounting monthly management pack", () => {
     ]) expect(pdf).toContain(phrase);
     expect(pdf).toContain("verifiedRestockCogs");
     expect(pdf).toContain("orderPeriodContribution");
+    expect(pdf).toContain("if (!rows.length) return null");
+    expect(pdf).toContain("Statement of Cash Flows وفق IAS 7");
+    expect(pdf).toContain("صافي القيمة القابلة للتحقق");
+    expect(pdf).toContain("like-for-like");
     expect(pdf).toContain("غير متوفر");
     expect(pdf).toContain("غير مدقق");
   });
