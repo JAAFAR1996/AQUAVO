@@ -72,6 +72,7 @@ const AdminPartnersPage = lazy(() => import("@/pages/admin/partners"));
 const AITools = lazy(() => import("@/pages/ai-tools"));
 const BeginnerGuide = lazy(() => import("@/pages/beginner-guide"));
 const FinancePage = lazy(() => import("@/pages/admin/finance"));
+const FinanceHtmlReportPage = lazy(() => import("@/pages/admin/finance-report"));
 const Wishlist = lazy(() => import("@/pages/wishlist"));
 const SearchResults = lazy(() => import("@/pages/search-results"));
 const Sustainability = lazy(() => import("@/pages/sustainability"));
@@ -861,6 +862,19 @@ function Router() {
 
       <Route path="/admin/login">
         {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><AdminLogin /></Suspense></ErrorBoundary>)}
+      </Route>
+
+      {/* Admin: Finance HTML Management Report */}
+      <Route path="/admin/finance/report">
+        {() => (
+          <ErrorBoundary>
+            <RequireAdmin>
+              <Suspense fallback={<PageLoader />}>
+                <FinanceHtmlReportPage />
+              </Suspense>
+            </RequireAdmin>
+          </ErrorBoundary>
+        )}
       </Route>
 
       {/* Admin: Finance Center */}

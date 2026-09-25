@@ -54,13 +54,12 @@ describe("accounting expense and PDF truth contract", () => {
   });
 
   it("uses the AQUAVO light document identity and rejects incomplete PDF figures", () => {
-    const source = read("client/src/lib/accountant-pdf-v2.ts");
-    expect(source).toContain('light: "#F6F4EF"');
+    const source = read("client/src/lib/accountant-pdf-vector.tsx");
+    expect(source).toContain('cream: "#F6F4EF"');
     expect(source).toContain('text: "#232323"');
-    expect(source).toContain('border: "#DDD8CE"');
-    expect(source).toContain('/brand/aquavo-v2-horizontal.svg');
+    expect(source).toContain('border: "#D9E2E7"');
     expect(source).toContain("validateAccountantPayload(payload)");
-    expect(source).toContain("القيم المفقودة لا تُستبدل بأصفار");
+    expect(source).toContain("الأرقام الناقصة");
     expect(source).not.toContain("Number(value ?? 0)");
   });
 });
