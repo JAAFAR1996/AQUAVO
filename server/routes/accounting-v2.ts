@@ -296,7 +296,13 @@ export function createAccountingV2Router() {
         db!.execute(sql`SELECT * FROM public.expenses WHERE deleted_at IS NULL AND to_char(COALESCE(expense_occurred_at,expense_date AT TIME ZONE 'Asia/Baghdad') AT TIME ZONE 'Asia/Baghdad','YYYY-MM')=${periodKey} ORDER BY expense_occurred_at,created_at`),
         db!.execute(sql`SELECT * FROM public.order_return_events WHERE to_char(updated_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Baghdad','YYYY-MM')=${periodKey} ORDER BY updated_at,created_at`),
         db!.execute(sql`SELECT s.* FROM public.cash_settlements s WHERE to_char(COALESCE(s.received_at,s.updated_at) AT TIME ZONE 'Asia/Baghdad','YYYY-MM')=${periodKey} ORDER BY COALESCE(s.received_at,s.updated_at)`),
-        db!.execute(sql`SELECT * FROM public.opening_inventory_snapshot WHERE cutover_id='aquavo-2026-08-01' ORDER BY product_id,variant_id`),
+        db!.execute(sql`
+          SELECT oi.*,p.name AS product_name,p.slug AS product_slug
+          FROM public.opening_inventory_snapshot oi
+          LEFT JOIN public.products p ON p.id=oi.product_id
+          WHERE oi.cutover_id='aquavo-2026-08-01'
+          ORDER BY COALESCE(p.name,oi.product_id),oi.variant_id
+        `),
         db!.execute(sql`SELECT * FROM public.evidence_files WHERE to_char(created_at AT TIME ZONE 'Asia/Baghdad','YYYY-MM')<=${periodKey} ORDER BY created_at,id`),
         db!.execute(sql`SELECT * FROM public.accounting_period_closes WHERE period_key=${periodKey} LIMIT 1`),
         db!.execute(sql`SELECT id,company_key,name,default_fee,active,is_default,notes FROM public.delivery_companies ORDER BY is_default DESC,active DESC,name`),
