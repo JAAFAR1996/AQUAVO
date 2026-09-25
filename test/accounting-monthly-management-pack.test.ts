@@ -51,6 +51,13 @@ describe("accounting monthly management pack", () => {
     expect(pdf).toContain("AQUAVO-Accounting-VECTOR-V6-");
   });
 
+  it("proxies accounting PDF fonts through the AQUAVO origin", () => {
+    const vercel = read("vercel.json");
+    expect(vercel).toContain("/fonts/aquavo-noto-sans-arabic-400.woff");
+    expect(vercel).toContain("/fonts/aquavo-noto-sans-arabic-700.woff");
+    expect(vercel).toContain("@fontsource/noto-sans-arabic");
+  });
+
   it("presents full accountant analysis plus detailed audit appendices", () => {
     const pdf = read("client/src/lib/accountant-pdf-vector.tsx");
     for (const phrase of [
@@ -77,8 +84,10 @@ describe("accounting monthly management pack", () => {
     expect(pdf).toContain("Statement of Cash Flows وفق IAS 7");
     expect(pdf).toContain("صافي القيمة القابلة للتحقق");
     expect(pdf).toContain("like-for-like");
-    expect(pdf).toContain("https://fonts.gstatic.com/");
-    expect(pdf).not.toContain("cdn.jsdelivr.net/npm/@fontsource/noto-sans-arabic");
+    expect(pdf).toContain("/fonts/aquavo-noto-sans-arabic-400.woff");
+    expect(pdf).toContain("/fonts/aquavo-noto-sans-arabic-700.woff");
+    expect(pdf).not.toContain("https://fonts.gstatic.com/");
+    expect(pdf).not.toContain("https://cdn.jsdelivr.net/");
     expect(pdf).toContain("غير متوفر");
     expect(pdf).toContain("غير مدقق");
   });
