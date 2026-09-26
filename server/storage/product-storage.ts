@@ -135,7 +135,9 @@ export class ProductStorage {
             query = query.where(and(...conditions)) as any;
         }
 
-        // Apply sorting
+        // Keep sellable inventory ahead of sold-out items on every catalogue sort.
+        // The user's selected sort still applies inside each availability group.
+        const availabilityRank = sql<number>`CASE WHEN ${products.stock} > 0 THEN 1 ELSE 0 END`;
         if (filters?.sortBy) {
             const sortColumn = filters.sortBy === 'rating' ? products.rating :
                 filters.sortBy === 'price' ? products.price :
@@ -144,10 +146,10 @@ export class ProductStorage {
                             products.createdAt;
 
             query = filters.sortOrder === 'asc'
-                ? query.orderBy(sortColumn) as any
-                : query.orderBy(desc(sortColumn)) as any;
+                ? query.orderBy(desc(availabilityRank), sortColumn) as any
+                : query.orderBy(desc(availabilityRank), desc(sortColumn)) as any;
         } else {
-            query = query.orderBy(desc(products.createdAt)) as any;
+            query = query.orderBy(desc(availabilityRank), desc(products.createdAt)) as any;
         }
 
         if (filters?.limit) {
