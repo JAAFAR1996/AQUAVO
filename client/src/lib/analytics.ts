@@ -22,6 +22,7 @@ declare global {
 }
 
 const GA_ID = import.meta.env.VITE_GA_ID;
+const GOOGLE_ADS_PURCHASE_DESTINATION = 'AW-18476435110/iP0mCJaFsYYdEKaNoOpE';
 
 // Initialize Google Analytics.
 // Google Ads owns the base Google tag in client/index.html. Reuse that same
@@ -198,6 +199,16 @@ export function trackPurchase(orderData: {
       price: item.price,
       quantity: item.quantity,
     })),
+  });
+
+  // Direct Google Ads Purchase conversion. Use the confirmed order total and
+  // transaction id so bidding learns from real revenue and duplicate orders
+  // can be de-duplicated by Google Ads.
+  window.gtag('event', 'conversion', {
+    send_to: GOOGLE_ADS_PURCHASE_DESTINATION,
+    value: orderData.total,
+    currency: 'IQD',
+    transaction_id: orderData.orderId,
   });
 }
 
