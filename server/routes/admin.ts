@@ -20,7 +20,7 @@ import { getDb } from "../db.js";
 import { recordFinancialChange, actorFromRequest, type FinancialEntityType } from "../services/accountingAuditTrail.js";
 // Canonical engine — per-order profit MUST come from here, not an inline formula.
 import { buildCostResolver, buildFulfillmentResolver, calcOrderProfit, collectProductIds } from "../services/accounting-engine.js";
-import { setCanonicalProductStock, type InventoryAdjustmentResult } from "../services/inventory-adjustment-service.js";
+import { setCanonicalProductStock, setCanonicalVariantConfiguration, type InventoryAdjustmentResult } from "../services/inventory-adjustment-service.js";
 
 /** Strip sensitive fields before sending user data to client */
 function sanitizeUser(user: Record<string, any>) {
@@ -1297,8 +1297,56 @@ export function createAdminRouter(): RouterType {
             validateImageUrls(data.thumbnail, data.images);
 
             const parsed = insertProductSchema.parse(data);
-            const product = await storage.createProduct(parsed);
-            clearProductsCache(); // Invalidate products cache on new product
+            const requestedStock = Number((parsed as any).stock ?? 0);
+            const requestedHasVariants = Boolean((parsed as any).hasVariants);
+            const requestedVariants = Array.isArray((parsed as any).variants)
+                ? (parsed as any).variants
+                : [];
+
+            // A newly-created SKU starts at zero inventory. The requested amount
+            // is posted immediately afterwards through inventory_movements so a
+            // product can never be born with storefront stock that has no ledger.
+            const createPayload: any = {
+                ...parsed,
+                stock: 0,
+                ...(requestedHasVariants
+                    ? { variants: requestedVariants.map((variant: any) => ({ ...variant, stock: 0 })) }
+                    : {}),
+            };
+            let product = await storage.createProduct(createPayload);
+
+            const db = getDb();
+            if (!db) {
+                throw new OperationalError("قاعدة البيانات غير مهيأة", 503);
+            }
+            const adminId = getSession(req)?.userId || "admin";
+            let inventoryResult: InventoryAdjustmentResult | InventoryAdjustmentResult[] | null = null;
+
+            if (requestedHasVariants && requestedVariants.length > 0) {
+                const variantResult = await db.transaction(async (tx: any) =>
+                    setCanonicalVariantConfiguration(
+                        tx,
+                        { clientId: adminId, mode: "admin" },
+                        product.id,
+                        true,
+                        requestedVariants,
+                    ),
+                );
+                inventoryResult = variantResult.stock_adjustments;
+            } else if (requestedStock > 0) {
+                inventoryResult = await db.transaction(async (tx: any) =>
+                    setCanonicalProductStock(
+                        tx,
+                        { clientId: adminId, mode: "admin" },
+                        product.id,
+                        requestedStock,
+                        null,
+                    ),
+                );
+            }
+
+            product = await storage.getProduct(product.id) ?? product;
+            clearProductsCache();
 
             // Auto-generate embedding for new product (fire-and-forget)
             embeddingGenerator.generateProductEmbedding(product.id).catch((err) => {
@@ -1307,11 +1355,11 @@ export function createAdminRouter(): RouterType {
 
             // Audit Log
             await storage.createAuditLog({
-                userId: getSession(req)?.userId || "admin",
+                userId: adminId,
                 action: "create",
                 entityType: "product",
                 entityId: product.id,
-                changes: parsed as any
+                changes: { ...(parsed as any), inventoryResult }
             });
 
             res.status(201).json(product);
@@ -1323,7 +1371,12 @@ export function createAdminRouter(): RouterType {
             const { id } = req.params as { id: string };
             const updates = adminProductUpdateSchema.parse(req.body);
             const requestedStock = updates.stock;
+            // Variant structure + per-variant stock are owned exclusively by
+            // PUT /api/products/:productId/variants. Generic metadata editing
+            // must never send those JSON stock fields to products directly.
             delete updates.stock;
+            delete updates.variants;
+            delete updates.hasVariants;
 
             // Get existing product to merge images
             const existingProduct = await storage.getProduct(id);
@@ -1395,7 +1448,7 @@ export function createAdminRouter(): RouterType {
             }
 
             let stockAdjustment: InventoryAdjustmentResult | null = null;
-            if (requestedStock !== undefined) {
+            if (requestedStock !== undefined && !existingProduct.hasVariants) {
                 const db = getDb();
                 if (!db) {
                     res.status(503).json({ message: "قاعدة البيانات غير مهيأة" });
@@ -1430,7 +1483,9 @@ export function createAdminRouter(): RouterType {
                 entityId: product.id,
                 changes: {
                     ...updates,
-                    ...(requestedStock !== undefined ? { stock: requestedStock, stockAdjustment } : {}),
+                    ...(requestedStock !== undefined && !existingProduct.hasVariants
+                        ? { stock: requestedStock, stockAdjustment }
+                        : {}),
                 }
             });
 
