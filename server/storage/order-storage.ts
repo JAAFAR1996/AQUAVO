@@ -325,34 +325,46 @@ export class OrderStorage {
             let couponId = null;
 
             if (couponCode) {
-                const [coupon] = await tx.select().from(coupons)
+                const [candidateCoupon] = await tx.select().from(coupons)
                     .where(and(eq(sql`lower(${coupons.code})`, couponCode.toLowerCase()), eq(coupons.isActive, true)))
                     .limit(1);
 
-                if (coupon) {
-                    // Check logic validity again (expiry, etc) just to be safe, though UI checks it too
-                    const now = new Date();
-                    const isValidDate = (!coupon.startDate || new Date(coupon.startDate) <= now) &&
-                        (!coupon.endDate || new Date(coupon.endDate) >= now);
-                    const isValidAmount = !coupon.minOrderAmount || subtotal >= Number(coupon.minOrderAmount);
+                if (candidateCoupon) {
+                    // Serialize redemptions for this coupon. Without a row lock,
+                    // two simultaneous orders could both observe usedCount=N and
+                    // overshoot maxUses.
+                    await tx.execute(sql`SELECT id FROM coupons WHERE id = ${candidateCoupon.id} FOR UPDATE`);
+                    const [coupon] = await tx.select().from(coupons)
+                        .where(eq(coupons.id, candidateCoupon.id))
+                        .limit(1);
 
-                    const isNotExhausted = !coupon.maxUses || (coupon.usedCount || 0) < coupon.maxUses;
+                    if (coupon?.isActive) {
+                        const now = new Date();
+                        const isValidDate = (!coupon.startDate || new Date(coupon.startDate) <= now) &&
+                            (!coupon.endDate || new Date(coupon.endDate) >= now);
+                        const isValidAmount = !coupon.minOrderAmount || subtotal >= Number(coupon.minOrderAmount);
+                        const isNotExhausted = !coupon.maxUses || (coupon.usedCount || 0) < coupon.maxUses;
 
-                    if (isValidDate && isValidAmount && isNotExhausted) {
-                        couponId = coupon.id;
-                        if (coupon.type === 'percentage') {
-                            discount = Math.round((subtotal * Number(coupon.value)) / 100);
-                        } else if (coupon.type === 'fixed') {
-                            discount = Number(coupon.value);
-                        } else if (coupon.type === 'free_shipping') {
-                            deliveryFee = 0; // Override delivery fee
-                            discount = 0; // No product discount
+                        if (isValidDate && isValidAmount && isNotExhausted) {
+                            couponId = coupon.id;
+                            if (coupon.type === 'percentage') {
+                                discount = Math.round((subtotal * Number(coupon.value)) / 100);
+                            } else if (coupon.type === 'fixed') {
+                                discount = Number(coupon.value);
+                            } else if (coupon.type === 'free_shipping') {
+                                deliveryFee = 0;
+                                discount = 0;
+                            }
+
+                            const nextUsedCount = (coupon.usedCount || 0) + 1;
+                            const exhausted = Boolean(coupon.maxUses && nextUsedCount >= coupon.maxUses);
+                            await tx.update(coupons)
+                                .set({
+                                    usedCount: nextUsedCount,
+                                    ...(exhausted ? { isActive: false } : {}),
+                                } as any)
+                                .where(eq(coupons.id, coupon.id));
                         }
-
-                        // Increment usage count
-                        await tx.update(coupons)
-                            .set({ usedCount: (coupon.usedCount || 0) + 1 } as any)
-                            .where(eq(coupons.id, coupon.id));
                     }
                 }
             }
