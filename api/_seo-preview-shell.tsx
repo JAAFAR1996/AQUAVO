@@ -400,7 +400,7 @@ function HomePage({ products }: { products: SeoPreviewProduct[] }) {
       <section className="aq-ssr-hero">
         <p className="aq-ssr-kicker">متجر معدات أحواض أونلاين في العراق</p>
         <h1>مستلزمات أحواض الزينة مع اختيار أوضح ودعم محلي</h1>
-        <p>فلاتر، سخانات، أغذية، إضاءة، ديكورات ومعالجات مياه. التوصيل لكل العراق خلال 24 ساعة بأجور 5,000 د.ع، والدفع عند الاستلام أو إلكترونياً، والدعم متوفر 24/7.</p>
+        <p>فلاتر، سخانات، أغذية، إضاءة، ديكورات ومعالجات مياه. التوصيل لكل العراق خلال 24 ساعة، ورسومه الحالية تظهر قبل تأكيد الطلب، والدفع عند الاستلام أو إلكترونياً، والدعم متوفر 24/7.</p>
         <div className="aq-ssr-actions"><a href="/products">تصفح المنتجات</a><a href="/guides">اقرأ الأدلة</a></div>
       </section>
       <section aria-labelledby="aq-categories-title">
@@ -742,7 +742,7 @@ function AboutPage({ prerendered }: { prerendered?: string }) {
       <h1>عن AQUAVO</h1>
       <p>AQUAVO، المشغّل قانونياً باسم {AQUAVO_ENTITY.legalName}، متجر إلكتروني عراقي متخصص في معدات ومستلزمات أحواض الزينة.</p>
       <p>العمل بالكامل عبر الموقع وواتساب، ولا يوجد محل لاستقبال الزبائن حالياً. AQUAVO لا يبيع أسماكاً أو كائنات أو نباتات حية.</p>
-      <p>التوصيل لكل العراق خلال 24 ساعة بأجور 5,000 د.ع، والدفع عند الاستلام أو إلكترونياً، والدعم متوفر 24/7.</p>
+      <p>التوصيل لكل العراق خلال 24 ساعة، ورسومه الحالية تظهر قبل تأكيد الطلب، والدفع عند الاستلام أو إلكترونياً، والدعم متوفر 24/7.</p>
       {/* The real /about page, rendered from its own component at build time and
           appended: the disclosures above are published to a crawler only here,
           so nothing replaces them. server/__tests__/about-crawler.test.ts pins
