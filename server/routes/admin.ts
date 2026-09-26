@@ -446,27 +446,10 @@ export function createAdminRouter(): RouterType {
                     }
                 }
 
-                // 📦 رجوع البضاعة للمخزون عند رجوع من العميل
+                // 📦 rejected_returned inventory is restored canonically by
+                // orders_reverse_inventory_on_terminal_status. Keep only the
+                // loyalty side effect here; duplicate stock writes are forbidden.
                 if (newStatus === "rejected_returned" && oldStatus !== "rejected_returned") {
-                    try {
-                        const { getDb } = await import("../db.js");
-                        const { products: productsTable } = await import("../../shared/schema.js");
-                        const { eq: eqOp, sql: sqlOp } = await import("drizzle-orm");
-                        const dbConn = getDb();
-                        if (dbConn && Array.isArray((order as any).items)) {
-                            for (const item of ((order as any).items as any[])) {
-                                if (item.productId && item.quantity) {
-                                    await dbConn
-                                        .update(productsTable)
-                                        .set({ stock: sqlOp`stock + ${item.quantity}` } as any)
-                                        .where(eqOp(productsTable.id, item.productId));
-                                }
-                            }
-                            console.log(`[Admin] 📦 Stock restored for rejected_returned order ${order.id}`);
-                        }
-                    } catch (stockErr) {
-                        console.error("[Admin] Failed to restore stock:", stockErr);
-                    }
                     try {
                         const { loyaltyStorage } = await import("../storage/loyalty-storage.js");
                         if ((order as any).userId) {
@@ -489,29 +472,9 @@ export function createAdminRouter(): RouterType {
                     }
                 }
 
-                // 📦 استلام من شركة النقل — إرجاع المخزون
-                if (newStatus === "returned" && oldStatus !== "returned") {
-                    try {
-                        const orderItems = (order as any).items;
-                        if (Array.isArray(orderItems)) {
-                            for (const item of orderItems) {
-                                const productId = item.productId;
-                                const qty = item.quantity || 1;
-                                if (productId) {
-                                    const product = await storage.getProduct(productId);
-                                    if (product) {
-                                        const newStock = (product.stock || 0) + qty;
-                                        await storage.updateProduct(productId, { stock: newStock });
-                                        console.log(`[Admin] 📦 Restored ${qty}x ${product.name} — new stock: ${newStock}`);
-                                    }
-                                }
-                            }
-                        }
-                        console.log(`[Admin] 📦 Order ${order.id} returned — stock restored`);
-                    } catch (stockErr) {
-                        console.error("[Admin] Failed to restore stock:", stockErr);
-                    }
-                }
+                // 📦 returned inventory is restored by the database status
+                // trigger with idempotent sale_reversal movements. No app-level
+                // products.stock write belongs here.
 
                 // Send push notification when order status changes to shipped
                 if (newStatus === "shipped" && oldStatus !== "shipped") {
