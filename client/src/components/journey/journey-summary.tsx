@@ -57,8 +57,9 @@ export function JourneySummary({ wizardData, products }: JourneySummaryProps) {
         fetchRecommendations();
     }, [wizardData, products]); // Re-run if wizard data inputs change
 
-    const addRecommendedProductsToCart = () => {
-        addItems(recommendations);
+    const addRecommendedProductsToCart = async () => {
+        const addedCount = await addItems(recommendations);
+        if (addedCount <= 0) return;
         toast({
             title: t("journey-summary.s1"),
             description: t("journey-summary.s2"),
