@@ -23,23 +23,32 @@ declare global {
 
 const GA_ID = import.meta.env.VITE_GA_ID;
 
-// Initialize Google Analytics
+// Initialize Google Analytics.
+// Google Ads owns the base Google tag in client/index.html. Reuse that same
+// dataLayer/gtag instance here so GA4 does not inject a second gtag.js loader.
 export function initGA() {
   if (!GA_ID || !isTrackingAllowed()) return;
 
-  // Load gtag script
-  const script = document.createElement('script');
-  script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_ID}`;
-  script.async = true;
-  document.head.appendChild(script);
-
-  // Initialize dataLayer
   window.dataLayer = window.dataLayer || [];
-  window.gtag = function gtag() {
-    window.dataLayer?.push(arguments);
-  };
 
-  window.gtag('js', new Date());
+  if (!window.gtag) {
+    window.gtag = function gtag() {
+      window.dataLayer?.push(arguments);
+    };
+    window.gtag('js', new Date());
+  }
+
+  const hasGoogleTagLoader = Array.from(document.scripts).some((script) =>
+    script.src.includes('googletagmanager.com/gtag/js')
+  );
+
+  if (!hasGoogleTagLoader) {
+    const script = document.createElement('script');
+    script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_ID}`;
+    script.async = true;
+    document.head.appendChild(script);
+  }
+
   window.gtag('config', GA_ID, {
     page_path: window.location.pathname,
     send_page_view: false, // We'll send manually
