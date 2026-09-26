@@ -8,13 +8,13 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { i18next } from "@/i18n";
+import { formatShippingFeeNumber, useShippingFee } from "@/contexts/shipping-fee-context";
 
 // Company stats
-const STATS = [
+const BASE_STATS = [
   { value: i18next.t("pages:about.statPremium"), label: i18next.t("pages:about.s1"), icon: Package },
   { value: "18", label: i18next.t("pages:about.s2"), icon: MapPin },
   { value: "24/7", label: i18next.t("pages:about.s3"), icon: Phone },
-  { value: "5,000 د.ع", label: i18next.t("pages:about.s4"), icon: Truck },
 ];
 
 // Core values
@@ -66,7 +66,13 @@ const CATEGORIES = [
 ];
 
 export default function About() {
-  const { t } = useTranslation("pages");
+  const { t, i18n } = useTranslation("pages");
+  const shippingFee = formatShippingFeeNumber(useShippingFee());
+  const shippingCurrency = i18n.language.startsWith("en") ? "IQD" : "د.ع";
+  const stats = [
+    ...BASE_STATS,
+    { value: `${shippingFee} ${shippingCurrency}`, label: t("about.s4"), icon: Truck },
+  ];
   return (
     <div className="flex-1 flex flex-col bg-background">
       <MetaTags
@@ -112,7 +118,7 @@ export default function About() {
         <section className="py-12 border-y border-border/50">
           <div className="container mx-auto px-4">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-              {STATS.map((stat, i) => (
+              {stats.map((stat, i) => (
                 <motion.div
                   key={i}
                   className="text-center"
