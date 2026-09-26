@@ -1,7 +1,7 @@
 import type { Router as RouterType, Request, Response, NextFunction } from "express";
 import { Router } from "express";
 import { storage } from "../storage/index.js";
-import { isStockError } from "../storage/order-storage.js";
+import { isCartVariantError, isStockError } from "../storage/order-storage.js";
 import { z } from "zod";
 import { analyticsTracker } from "../services/analytics-tracker.js";
 import * as Sentry from "@sentry/node";
@@ -94,6 +94,10 @@ export function createCartRouter(): RouterType {
                 res.status(409).json({ message: err.message, code: "OUT_OF_STOCK" });
                 return;
             }
+            if (err instanceof Error && isCartVariantError(err.message)) {
+                res.status(400).json({ message: err.message, code: "INVALID_VARIANT" });
+                return;
+            }
             next(err);
         }
     });
@@ -126,6 +130,10 @@ export function createCartRouter(): RouterType {
             // matching the POST / handler above.
             if (err instanceof Error && isStockError(err.message)) {
                 res.status(409).json({ message: err.message, code: "OUT_OF_STOCK" });
+                return;
+            }
+            if (err instanceof Error && isCartVariantError(err.message)) {
+                res.status(400).json({ message: err.message, code: "INVALID_VARIANT" });
                 return;
             }
             next(err);
