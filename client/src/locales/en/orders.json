@@ -282,7 +282,7 @@
     "s10": "Discount code is invalid",
     "s11": "Discount of {{v0}}% applied ({{v1}})",
     "s12": "Discount of {{v0}} applied",
-    "s13": "Delivery is fixed at 5,000 IQD for Baghdad and all governorates within 24 hours",
+    "s13": "Delivery is available to Baghdad and all governorates within 24 hours; the current fee is shown before confirmation",
     "s14": "An error occurred while validating the coupon",
     "s15": "Complete Order",
     "s16": "Confirm Order",
