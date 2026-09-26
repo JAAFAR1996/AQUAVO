@@ -28,6 +28,7 @@ import { currencyLabel } from "@/i18n/format";
 import { localizeCategoryName } from "@shared/i18n/categories";
 import { PRODUCT_TAG_VALUES, productDifficultyKey, productTagKey } from "@/lib/product-filter-values";
 import { getLocalizedStaticMeta } from "@/i18n/static-meta";
+import { formatShippingFeeNumber, useShippingFee } from "@/contexts/shipping-fee-context";
 
 const FilterModal = lazy(() => import("@/components/products/filter-modal").then(m => ({ default: m.FilterModal })));
 const QuickViewModal = lazy(() => import("@/components/products/quick-view-modal").then(m => ({ default: m.QuickViewModal })));
@@ -44,6 +45,7 @@ type ActiveFilterChip = {
 export default function Products() {
   const { t } = useTranslation("products");
   const { locale, dir } = useLocale();
+  const shippingFeeLabel = formatShippingFeeNumber(useShippingFee());
   const [location, setLocation] = useLocation();
   const { user } = useAuth();
   const searchParams = new URLSearchParams(window.location.search);
@@ -475,7 +477,7 @@ export default function Products() {
           </div>
           <div className="flex min-h-11 items-center justify-center gap-2 bg-card px-3 py-2 text-center">
             <Truck className="h-4 w-4 text-primary" aria-hidden="true" />
-            {t("service.delivery")}
+            {t("service.delivery", { fee: shippingFeeLabel })}
           </div>
           <div className="hidden min-h-11 items-center justify-center gap-2 bg-card px-3 py-2 text-center sm:flex">
             <Clock className="h-4 w-4 text-primary" aria-hidden="true" />
