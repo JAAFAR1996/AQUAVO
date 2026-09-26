@@ -19,12 +19,22 @@ type Post = { slug: string; title: string; excerpt: string | null; content: stri
 type Product = { name: string; category: string };
 
 async function loadFacts(): Promise<BusinessFacts> {
-  const res = await fetch(`${BASE}/api/products?limit=500`);
+  const [res, shippingRes] = await Promise.all([
+    fetch(`${BASE}/api/products?limit=500`),
+    fetch(`${BASE}/api/settings/shipping`),
+  ]);
   if (!res.ok) throw new Error(`catalogue failed: ${res.status}`);
   const body = (await res.json()) as Product[] | { products: Product[] };
+  const shipping = shippingRes.ok
+    ? await shippingRes.json() as { shippingFee?: number }
+    : {};
   const items = Array.isArray(body) ? body : body.products;
+  const configuredShippingFee = Number(shipping.shippingFee ?? AQUAVO_INVARIANTS.deliveryFeeIqd);
   return {
     ...AQUAVO_INVARIANTS,
+    deliveryFeeIqd: Number.isFinite(configuredShippingFee) && configuredShippingFee > 0
+      ? configuredShippingFee
+      : AQUAVO_INVARIANTS.deliveryFeeIqd,
     categories: Array.from(new Set(items.map((p) => p.category).filter(Boolean))),
     productTerms: Array.from(
       new Set(items.flatMap((p) => (p.name ?? "").split(/[\s—–\-،(),.\/]+/)).filter((w) => w.length > 3)),
