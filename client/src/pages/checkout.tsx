@@ -36,7 +36,7 @@ export default function CheckoutPage() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
   const { toast } = useToast();
-  const { items: cartItems, totalPrice: cartTotal, clearCart } = useCart();
+  const { items: cartItems, totalPrice: cartTotal, clearCart, refetchCart } = useCart();
   const canUseTestMode = user?.role === "admin" || user?.role === "accounting_admin";
   const testRequested = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("test") === "1";
   const [testMode, setTestMode] = useState(testRequested);
@@ -197,8 +197,45 @@ export default function CheckoutPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleContinue = () => {
+  const findStockIssue = (items: typeof cartItems) =>
+    items.find((item) =>
+      item.stock != null &&
+      Number.isFinite(Number(item.stock)) &&
+      item.quantity > Number(item.stock)
+    );
+
+  const surfaceStockIssue = (item: (typeof cartItems)[number]) => {
+    const available = Math.max(0, Number(item.stock ?? 0));
+    toast({
+      title: t("errors.stockChangedTitle"),
+      description: available <= 0
+        ? t("errors.stockUnavailable", { name: item.name })
+        : t("errors.stockQuantityChanged", {
+            name: item.name,
+            requested: item.quantity,
+            available,
+          }),
+      variant: "destructive",
+    });
+  };
+
+  const handleContinue = async () => {
     if (validateInfo()) {
+      const latestCart = await refetchCart();
+      const stockIssue = findStockIssue(latestCart);
+      if (stockIssue) {
+        surfaceStockIssue(stockIssue);
+        return;
+      }
+      if (latestCart.length === 0) {
+        toast({
+          title: t("errors.cartChangedTitle"),
+          description: t("errors.cartEmptyAfterRefresh"),
+          variant: "destructive",
+        });
+        return;
+      }
+
       if (!testMode) {
         trackAddShippingInfo(cartItems.map((item) => ({
           id: item.productId,
@@ -223,6 +260,24 @@ export default function CheckoutPage() {
 
   const handleConfirmOrder = async () => {
     if (!agreed || isSubmitting) return;
+
+    const latestCart = await refetchCart();
+    const stockIssue = findStockIssue(latestCart);
+    if (stockIssue) {
+      surfaceStockIssue(stockIssue);
+      setStep("info");
+      return;
+    }
+    if (latestCart.length === 0) {
+      toast({
+        title: t("errors.cartChangedTitle"),
+        description: t("errors.cartEmptyAfterRefresh"),
+        variant: "destructive",
+      });
+      setStep("info");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const cartSignature = JSON.stringify({
