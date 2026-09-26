@@ -6,6 +6,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mockSetLocation = vi.hoisted(() => vi.fn());
 const mockFetch = vi.hoisted(() => vi.fn());
 const mockClearCart = vi.hoisted(() => vi.fn());
+const mockToast = vi.hoisted(() => vi.fn());
+const mockCartState = vi.hoisted(() => ({
+  items: [{ id: "line-1", productId: "p1", name: "فلتر اختبار", price: 25000, quantity: 1, stock: 5, image: "/brand/aquavo-v2-icon.svg" }] as any[],
+}));
+const mockRefetchCart = vi.hoisted(() => vi.fn(async () => mockCartState.items));
 
 vi.mock("wouter", () => ({
   useLocation: () => ["/checkout", mockSetLocation],
@@ -14,12 +19,13 @@ vi.mock("wouter", () => ({
 vi.mock("@/contexts/auth-context", () => ({ useAuth: () => ({ user: null }) }));
 vi.mock("@/contexts/cart-context", () => ({
   useCart: () => ({
-    items: [{ id: "line-1", productId: "p1", name: "فلتر اختبار", price: 25000, quantity: 1, image: "/brand/aquavo-v2-icon.svg" }],
-    totalPrice: 25000,
+    items: mockCartState.items,
+    totalPrice: mockCartState.items.reduce((sum, item) => sum + item.price * item.quantity, 0),
     clearCart: mockClearCart,
+    refetchCart: mockRefetchCart,
   }),
 }));
-vi.mock("@/hooks/use-toast", () => ({ useToast: () => ({ toast: vi.fn() }) }));
+vi.mock("@/hooks/use-toast", () => ({ useToast: () => ({ toast: mockToast }) }));
 vi.mock("@/lib/tiktok-pixel", () => ({ ttqInitiateCheckout: vi.fn(), ttqAddPaymentInfo: vi.fn(), ttqPlaceAnOrder: vi.fn() }));
 vi.mock("@/lib/meta-pixel", () => ({ metaTrackInitiateCheckout: vi.fn(), metaTrackPurchase: vi.fn() }));
 vi.mock("@/lib/analytics", () => ({
@@ -75,6 +81,8 @@ const orderCalls = () => mockFetch.mock.calls.filter(([url]) => url === "/api/or
 describe("checkout page", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockCartState.items = [{ id: "line-1", productId: "p1", name: "فلتر اختبار", price: 25000, quantity: 1, stock: 5, image: "/brand/aquavo-v2-icon.svg" }];
+    mockRefetchCart.mockImplementation(async () => mockCartState.items);
     queuedOrderResponses.length = 0;
     vi.stubGlobal("fetch", mockFetch);
     // Default to gateway-down so the COD assertions below stay deterministic;
@@ -104,6 +112,37 @@ describe("checkout page", () => {
     expect(screen.getByText("العنوان مطلوب")).toBeInTheDocument();
     expect(orderCalls()).toHaveLength(0);
     expect(screen.getByRole("heading", { level: 1, name: "إتمام الطلب" })).toBeInTheDocument();
+  });
+
+  it("blocks confirmation when refreshed cart quantity exceeds current stock", async () => {
+    const user = userEvent.setup();
+    mockCartState.items = [{
+      id: "line-1",
+      productId: "p1",
+      name: "فلتر اختبار",
+      price: 25000,
+      quantity: 3,
+      stock: 1,
+      image: "/brand/aquavo-v2-icon.svg",
+    }];
+
+    renderCheckout();
+
+    fireEvent.change(screen.getByLabelText("الاسم الكامل"), { target: { value: "جعفر محمد" } });
+    fireEvent.change(screen.getByLabelText("رقم الهاتف"), { target: { value: "07701234567" } });
+    await user.click(screen.getByRole("combobox", { name: "المحافظة" }));
+    await user.click(screen.getByRole("option", { name: "بغداد" }));
+    fireEvent.change(screen.getByLabelText("العنوان"), { target: { value: "الكرادة داخل قرب ساحة كهرمانة" } });
+
+    await user.click(screen.getByRole("button", { name: "مراجعة الطلب" }));
+
+    expect(mockRefetchCart).toHaveBeenCalled();
+    expect(mockToast).toHaveBeenCalledWith(expect.objectContaining({
+      title: "مخزون السلة تغيّر",
+      variant: "destructive",
+    }));
+    expect(screen.getByRole("heading", { level: 1, name: "إتمام الطلب" })).toBeInTheDocument();
+    expect(orderCalls()).toHaveLength(0);
   });
 
   it("moves focus to the first invalid field on a failed submit", async () => {
