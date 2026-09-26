@@ -111,6 +111,94 @@ describe("OrderStorage.updateCartItem stock enforcement", () => {
     });
 });
 
+describe("POST /api/cart/preflight", () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    function buildPublicApp() {
+        const app = express();
+        app.use(express.json());
+        app.use("/api/cart", createCartRouter());
+        return app;
+    }
+
+    it("is public and returns current variant price/stock instead of a guest snapshot", async () => {
+        vi.spyOn(storage, "getProductsByIds").mockResolvedValue([{
+            id: "prod-variant",
+            slug: "variant-product",
+            name: "Variant Product",
+            price: "10000",
+            stock: 4,
+            hasVariants: true,
+            thumbnail: "/variant.webp",
+            images: ["/variant.webp"],
+            variants: [
+                { id: "small", label: "Small", price: 12000, stock: 2, isDefault: true },
+            ],
+        } as any]);
+
+        const app = buildPublicApp();
+        const res = await request(app)
+            .post("/api/cart/preflight")
+            .send({
+                items: [{
+                    productId: "prod-variant",
+                    variantId: "small",
+                    quantity: 2,
+                }],
+            });
+
+        expect(res.status).toBe(200);
+        expect(res.headers["cache-control"]).toContain("no-store");
+        expect(res.body.items).toEqual([
+            expect.objectContaining({
+                productId: "prod-variant",
+                variantId: "small",
+                price: 12000,
+                stock: 2,
+                variantLabel: "Small",
+                valid: true,
+                reason: null,
+            }),
+        ]);
+    });
+
+    it("marks a removed variant invalid without falling back to base stock", async () => {
+        vi.spyOn(storage, "getProductsByIds").mockResolvedValue([{
+            id: "prod-variant",
+            slug: "variant-product",
+            name: "Variant Product",
+            price: "10000",
+            stock: 50,
+            hasVariants: true,
+            variants: [
+                { id: "large", label: "Large", price: 20000, stock: 20, isDefault: true },
+            ],
+        } as any]);
+
+        const app = buildPublicApp();
+        const res = await request(app)
+            .post("/api/cart/preflight")
+            .send({
+                items: [{
+                    productId: "prod-variant",
+                    variantId: "removed-small",
+                    quantity: 1,
+                }],
+            });
+
+        expect(res.status).toBe(200);
+        expect(res.body.items[0]).toMatchObject({
+            productId: "prod-variant",
+            variantId: "removed-small",
+            stock: 0,
+            valid: false,
+            reason: "VARIANT_INVALID",
+        });
+    });
+});
+
 describe("PUT /api/cart/:itemId route", () => {
     afterEach(() => {
         vi.restoreAllMocks();
