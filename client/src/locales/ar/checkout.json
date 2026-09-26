@@ -28,7 +28,12 @@
     "createFailedShort": "فشل في إنشاء الطلب",
     "generic": "حدث خطأ",
     "orderTitle": "خطأ في الطلب",
-    "onlineSetup": "تعذر تجهيز الدفع الإلكتروني. حاول مرة ثانية."
+    "onlineSetup": "تعذر تجهيز الدفع الإلكتروني. حاول مرة ثانية.",
+    "stockChangedTitle": "مخزون السلة تغيّر",
+    "stockUnavailable": "{{name}} صار غير متوفر حالياً. عدّل السلة قبل تأكيد الطلب.",
+    "stockQuantityChanged": "الكمية المطلوبة من {{name}} هي {{requested}}، والمتوفر حالياً {{available}} فقط. عدّل الكمية ثم كمل.",
+    "cartChangedTitle": "السلة تغيّرت",
+    "cartEmptyAfterRefresh": "المنتجات المحفوظة بالسلة ما عادت صالحة للطلب. ارجع للمنتجات وأضف المتوفر حالياً."
   },
   "coupon": {
     "prompt": "عندك كود خصم؟",
