@@ -41,6 +41,56 @@ BEGIN
 END;
 $function$;
 
+
+CREATE OR REPLACE FUNCTION public.sync_product_variant_reconciliation()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $function$
+BEGIN
+  UPDATE product_variant_reconciliation
+  SET is_active=false,updated_at=now()
+  WHERE product_id=NEW.id;
+
+  INSERT INTO product_variant_reconciliation(
+    product_id,variant_id,label,sku,observed_price,observed_original_price,
+    observed_stock,is_default,specifications,source_snapshot,
+    reconciliation_status,is_active
+  )
+  SELECT
+    NEW.id,x.value->>'id',COALESCE(NULLIF(x.value->>'label',''),x.value->>'id'),
+    NULLIF(x.value->>'sku',''),
+    CASE WHEN NULLIF(x.value->>'price','') IS NULL THEN NULL ELSE (x.value->>'price')::numeric END,
+    CASE WHEN NULLIF(x.value->>'originalPrice','') IS NULL THEN NULL ELSE (x.value->>'originalPrice')::numeric END,
+    CASE WHEN NULLIF(x.value->>'stock','') IS NULL THEN NULL ELSE (x.value->>'stock')::integer END,
+    COALESCE((x.value->>'isDefault')::boolean,false),
+    COALESCE(x.value->'specifications','{}'::jsonb),
+    x.value,
+    CASE WHEN NULLIF(x.value->>'stock','') IS NOT NULL AND (x.value->>'stock')::integer<0
+      THEN 'conflict' ELSE 'pending' END,
+    true
+  FROM jsonb_array_elements(
+    CASE WHEN jsonb_typeof(NEW.variants)='array' THEN NEW.variants ELSE '[]'::jsonb END
+  ) x(value)
+  WHERE NULLIF(x.value->>'id','') IS NOT NULL
+  ON CONFLICT(product_id,variant_id) DO UPDATE SET
+    label=EXCLUDED.label,sku=EXCLUDED.sku,
+    observed_price=EXCLUDED.observed_price,
+    observed_original_price=EXCLUDED.observed_original_price,
+    observed_stock=EXCLUDED.observed_stock,
+    is_default=EXCLUDED.is_default,
+    specifications=EXCLUDED.specifications,
+    source_snapshot=EXCLUDED.source_snapshot,
+    is_active=true,
+    reconciliation_status=CASE
+      WHEN product_variant_reconciliation.reconciliation_status='approved'
+        THEN product_variant_reconciliation.reconciliation_status
+      ELSE EXCLUDED.reconciliation_status
+    END,
+    updated_at=now();
+  RETURN NEW;
+END;
+$function$;
+
 UPDATE public.schema_migrations
 SET rolled_back_at=clock_timestamp(),
     notes=COALESCE(notes,'')||' | Rolled back zero-stock variant shape allowance; original strict NULL-vs-zero comparison restored.'
