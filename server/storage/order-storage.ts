@@ -610,10 +610,16 @@ export class OrderStorage {
 
             validItems.push({
                 ...cartItem,
+                // These top-level fields are display snapshots only. Refresh them
+                // from the CURRENT product definition on every read so a cart
+                // cannot show an obsolete variant price/label while checkout
+                // charges the live canonical price.
+                ...(selectedVariant ? {
+                    variantPrice: String(selectedVariant.price),
+                    variantLabel: selectedVariant.label,
+                } : {}),
                 product: {
                     ...toPublicProduct(product),
-                    // Always derive variant presentation from the CURRENT product
-                    // definition; never trust historical client-supplied snapshots.
                     price: selectedVariant?.price ?? product.price,
                     name: selectedVariant?.label
                         ? `${product.name} (${selectedVariant.label})`
