@@ -204,6 +204,26 @@ export default function CheckoutPage() {
       item.quantity > Number(item.stock)
     );
 
+  const cartCommercialFingerprint = (items: typeof cartItems) =>
+    JSON.stringify(
+      items
+        .map((item) => ({
+          productId: item.productId,
+          variantId: item.variantId ?? null,
+          quantity: item.quantity,
+          price: Number(item.price),
+        }))
+        .sort((left, right) =>
+          `${left.productId}::${left.variantId ?? ""}`.localeCompare(
+            `${right.productId}::${right.variantId ?? ""}`,
+          ),
+        ),
+    );
+
+  const cartCommerciallyChanged = (before: typeof cartItems, after: typeof cartItems) =>
+    cartCommercialFingerprint(before) !== cartCommercialFingerprint(after);
+
+
   const surfaceStockIssue = (item: (typeof cartItems)[number]) => {
     const available = Math.max(0, Number(item.stock ?? 0));
     toast({
@@ -232,6 +252,13 @@ export default function CheckoutPage() {
           title: t("errors.cartChangedTitle"),
           description: t("errors.cartEmptyAfterRefresh"),
           variant: "destructive",
+        });
+        return;
+      }
+      if (cartCommerciallyChanged(cartItems, latestCart)) {
+        toast({
+          title: t("errors.cartChangedTitle"),
+          description: t("errors.cartUpdatedReview"),
         });
         return;
       }
@@ -275,6 +302,14 @@ export default function CheckoutPage() {
         variant: "destructive",
       });
       setStep("info");
+      return;
+    }
+    if (cartCommerciallyChanged(cartItems, latestCart)) {
+      setAgreed(false);
+      toast({
+        title: t("errors.cartChangedTitle"),
+        description: t("errors.cartUpdatedConfirm"),
+      });
       return;
     }
 
