@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useLocation } from "wouter";
-import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { formatIQD } from "@/lib/utils";
 import { useCart } from "@/contexts/cart-context";
@@ -29,6 +28,7 @@ import { WhatsAppLink } from "@/components/whatsapp-link";
 import { useTranslation } from "react-i18next";
 import { useLocale } from "@/i18n/locale-context";
 import { ArrowBack } from "@/components/ui/directional-icons";
+import { useShippingFee } from "@/contexts/shipping-fee-context";
 
 export default function CheckoutPage() {
   const { t } = useTranslation("checkout");
@@ -41,20 +41,7 @@ export default function CheckoutPage() {
   const testRequested = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("test") === "1";
   const [testMode, setTestMode] = useState(testRequested);
 
-  const { data: shippingConfig } = useQuery<{ shippingFee: number }>({
-    queryKey: ["/api/settings/shipping"],
-    queryFn: async () => {
-      const response = await fetch("/api/settings/shipping", {
-        credentials: "include",
-        cache: "no-store",
-      });
-      if (!response.ok) throw new Error("Failed to load shipping fee");
-      return response.json();
-    },
-    staleTime: 0,
-    refetchOnMount: "always",
-    refetchOnWindowFocus: "always",
-  });
+  const configuredShippingFee = useShippingFee();
 
   const [step, setStep] = useState<"info" | "confirm" | "success">("info");
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({
@@ -399,7 +386,7 @@ export default function CheckoutPage() {
     }
   }, [step]);
 
-  const baseDeliveryFee = Number(shippingConfig?.shippingFee ?? 5000);
+  const baseDeliveryFee = configuredShippingFee;
   const isFreeShipping = appliedCoupon?.type === "free_shipping";
   const deliveryFee = isFreeShipping ? 0 : baseDeliveryFee;
   const discount = couponDiscount + loyaltyData.pointsDiscount;
