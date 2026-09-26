@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockSetLocation = vi.hoisted(() => vi.fn());
@@ -39,16 +40,34 @@ function queueOrderResponse(build: () => unknown) {
   queuedOrderResponses.push(build);
 }
 
-/** Answers the availability probe; everything else drains the order queue. */
+/** Answers read-only checkout probes; everything else drains the order queue. */
 function routeFetch(onlineAvailable: boolean) {
   mockFetch.mockImplementation(async (url: unknown) => {
-    if (String(url).includes("/api/payments/wayl/availability")) {
+    const href = String(url);
+    if (href.includes("/api/settings/shipping")) {
+      return { ok: true, json: async () => ({ shippingFee: 5000 }) };
+    }
+    if (href.includes("/api/payments/wayl/availability")) {
       return { ok: true, json: async () => ({ available: onlineAvailable }) };
     }
     const next = queuedOrderResponses.shift();
-    if (!next) throw new Error(`unqueued fetch in test: ${String(url)}`);
+    if (!next) throw new Error(`unqueued fetch in test: ${href}`);
     return next();
   });
+}
+
+function renderCheckout() {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false, gcTime: 0 },
+      mutations: { retry: false },
+    },
+  });
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <CheckoutPage />
+    </QueryClientProvider>,
+  );
 }
 
 const orderCalls = () => mockFetch.mock.calls.filter(([url]) => url === "/api/orders");
@@ -64,7 +83,7 @@ describe("checkout page", () => {
   });
 
   it("shows COD, the fixed delivery fee and the visible total", () => {
-    render(<CheckoutPage />);
+    renderCheckout();
 
     expect(screen.getByRole("heading", { level: 1, name: "إتمام الطلب" })).toBeInTheDocument();
     expect(screen.getAllByText(/الدفع عند الاستلام/).length).toBeGreaterThan(0);
@@ -74,7 +93,7 @@ describe("checkout page", () => {
 
   it("blocks progression and exposes field errors before any order request", async () => {
     const user = userEvent.setup();
-    render(<CheckoutPage />);
+    renderCheckout();
 
     await user.click(screen.getByRole("button", { name: "مراجعة الطلب" }));
 
@@ -83,13 +102,13 @@ describe("checkout page", () => {
     expect(screen.getByText("رقم الهاتف مطلوب")).toBeInTheDocument();
     expect(screen.getByText("يرجى اختيار المحافظة")).toBeInTheDocument();
     expect(screen.getByText("العنوان مطلوب")).toBeInTheDocument();
-    expect(mockFetch).not.toHaveBeenCalled();
+    expect(orderCalls()).toHaveLength(0);
     expect(screen.getByRole("heading", { level: 1, name: "إتمام الطلب" })).toBeInTheDocument();
   });
 
   it("moves focus to the first invalid field on a failed submit", async () => {
     const user = userEvent.setup();
-    render(<CheckoutPage />);
+    renderCheckout();
 
     await user.click(screen.getByRole("button", { name: "مراجعة الطلب" }));
 
@@ -98,7 +117,7 @@ describe("checkout page", () => {
 
   it("moves focus to phone when only the name field is filled in", async () => {
     const user = userEvent.setup();
-    render(<CheckoutPage />);
+    renderCheckout();
 
     fireEvent.change(screen.getByLabelText("الاسم الكامل"), { target: { value: "جعفر محمد" } });
     await user.click(screen.getByRole("button", { name: "مراجعة الطلب" }));
@@ -108,7 +127,7 @@ describe("checkout page", () => {
 
   it("marks invalid fields with aria-invalid and links them to their error text", async () => {
     const user = userEvent.setup();
-    render(<CheckoutPage />);
+    renderCheckout();
 
     await user.click(screen.getByRole("button", { name: "مراجعة الطلب" }));
 
@@ -121,7 +140,7 @@ describe("checkout page", () => {
 
   it("reviews valid delivery data before enabling the final order action", async () => {
     const user = userEvent.setup();
-    render(<CheckoutPage />);
+    renderCheckout();
 
     fireEvent.change(screen.getByLabelText("الاسم الكامل"), { target: { value: "جعفر محمد" } });
     fireEvent.change(screen.getByLabelText("رقم الهاتف"), { target: { value: "07701234567" } });
@@ -154,7 +173,7 @@ describe("checkout page", () => {
   it("offers Wayl alongside COD when the gateway reports itself available", async () => {
     routeFetch(true);
     const user = userEvent.setup();
-    render(<CheckoutPage />);
+    renderCheckout();
     await reachConfirmationStep(user);
 
     const online = await screen.findByRole("radio", { name: /الدفع الإلكتروني الآمن/ });
@@ -167,7 +186,7 @@ describe("checkout page", () => {
   it("falls back to COD, without losing the order, when the gateway is unavailable", async () => {
     routeFetch(false);
     const user = userEvent.setup();
-    render(<CheckoutPage />);
+    renderCheckout();
     await reachConfirmationStep(user);
 
     expect(
@@ -186,7 +205,7 @@ describe("checkout page", () => {
       ok: true,
       json: async () => ({ id: "order-test", orderNumber: "FH-TEST", roundedTotal: 30000, shippingCost: 5000, discountTotal: 0, status: "pending" }),
     }));
-    render(<CheckoutPage />);
+    renderCheckout();
 
     fireEvent.change(screen.getByLabelText("الاسم الكامل"), { target: { value: "جعفر محمد" } });
     fireEvent.change(screen.getByLabelText("رقم الهاتف"), { target: { value: "07701234567" } });
@@ -216,7 +235,7 @@ describe("checkout page", () => {
         resolveFetch = resolve;
       })
     );
-    render(<CheckoutPage />);
+    renderCheckout();
 
     fireEvent.change(screen.getByLabelText("الاسم الكامل"), { target: { value: "جعفر محمد" } });
     fireEvent.change(screen.getByLabelText("رقم الهاتف"), { target: { value: "07701234567" } });
@@ -250,7 +269,7 @@ describe("checkout page", () => {
       ok: true,
       json: async () => ({ code: "FREESHIP", type: "free_shipping", value: "0" }),
     });
-    render(<CheckoutPage />);
+    renderCheckout();
 
     await user.click(screen.getByRole("button", { name: /عندك كود خصم؟/ }));
     await user.type(screen.getByPlaceholderText("أدخل الكود..."), "FREESHIP");
@@ -270,7 +289,7 @@ describe("checkout page", () => {
       ok: false,
       json: async () => ({ message: "انتهت صلاحية هذا الكوبون" }),
     });
-    render(<CheckoutPage />);
+    renderCheckout();
 
     await user.click(screen.getByRole("button", { name: /عندك كود خصم؟/ }));
     await user.type(screen.getByPlaceholderText("أدخل الكود..."), "EXPIRED");
@@ -291,7 +310,7 @@ describe("checkout page", () => {
       ok: true,
       json: async () => ({ id: "order-coupon-test", orderNumber: "FH-COUPON", roundedTotal: 25000, shippingCost: 5000, discountTotal: 5000, status: "pending" }),
     }));
-    render(<CheckoutPage />);
+    renderCheckout();
 
     await user.click(screen.getByRole("button", { name: /عندك كود خصم؟/ }));
     await user.type(screen.getByPlaceholderText("أدخل الكود..."), "SAVE20");
