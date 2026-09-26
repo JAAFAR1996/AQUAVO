@@ -41,4 +41,10 @@ BEGIN
 END;
 $function$;
 
+UPDATE public.schema_migrations
+SET rolled_back_at=clock_timestamp(),
+    notes=COALESCE(notes,'')||' | Rolled back zero-stock variant shape allowance; original strict NULL-vs-zero comparison restored.'
+WHERE version='0088_allow_zero_stock_variant_shape_changes'
+  AND rolled_back_at IS NULL;
+
 COMMIT;
