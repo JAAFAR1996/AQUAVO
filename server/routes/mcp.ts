@@ -11,7 +11,7 @@
 import type { Request, Response, NextFunction, Router as RouterType } from "express";
 import type { Table } from "drizzle-orm/table";
 import { Router } from "express";
-import { randomUUID, timingSafeEqual } from "crypto";
+import { timingSafeEqual } from "crypto";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import {
@@ -33,6 +33,10 @@ import { getDb } from "../db.js";
 import * as schema from "../../shared/schema.js";
 import { handleOAuthRegister, handleOAuthRegisterOptions, verifyMcpToken } from "./oauth.js";
 import { clearProductsCache } from "./products.js";
+import {
+  setCanonicalProductStock,
+  type InventoryAdjustmentResult,
+} from "../services/inventory-adjustment-service.js";
 // ── Canonical accounting engine ──────────────────────────────────────────────
 // Every money figure an MCP finance tool reports MUST come from the engine, so
 // an assistant reading these tools cannot quote a different revenue or profit
@@ -255,155 +259,6 @@ function normalizeOffset(value: unknown): number {
   return Math.floor(parsed);
 }
 
-
-type InventoryAdjustmentResult = {
-  id: string;
-  variant_id: string | null;
-  previous_stock: number;
-  new_stock: number;
-  adjustment: number;
-  changed: boolean;
-};
-
-/**
- * Canonical stock setter for MCP writes.
- *
- * Inventory is ledger-enforced in production: direct writes to products.stock or
- * variant stock are rejected by a database trigger. This helper converts an
- * absolute target into one append-only inventory_movements adjustment. Database
- * projection triggers then update products.stock / variant stock.
- *
- * Must run inside a transaction.
- */
-async function setCanonicalProductStock(
-  tx: any,
-  auth: McpAuthInfo,
-  productId: string,
-  targetStockInput: unknown,
-  variantId?: string | null,
-): Promise<InventoryAdjustmentResult> {
-  const targetStock = Number(targetStockInput);
-  if (!Number.isInteger(targetStock) || targetStock < 0) {
-    throw new Error("stock يجب أن يكون عدداً صحيحاً أكبر من أو يساوي صفر");
-  }
-
-  const normalizedVariantId =
-    typeof variantId === "string" && variantId.trim() ? variantId.trim() : null;
-
-  // Serialize adjustments to the same SKU so concurrent MCP calls cannot both
-  // calculate a delta from the same old balance.
-  await tx.execute(sql`
-    SELECT pg_advisory_xact_lock(
-      hashtext(${productId || ""} || ':' || ${normalizedVariantId ?? "base"})
-    )
-  `);
-
-  const productResult = await tx.execute(sql`
-    SELECT id, name, has_variants, variants
-    FROM products
-    WHERE id = ${productId} AND deleted_at IS NULL
-    FOR UPDATE
-  `);
-  const product = (productResult as any)?.rows?.[0];
-  if (!product) throw new Error(`المنتج "${productId}" غير موجود`);
-
-  const hasVariants = Boolean(product.has_variants);
-  if (hasVariants && !normalizedVariantId) {
-    throw new Error("هذا المنتج يحتوي خيارات. استخدم variant_id لتحديد الخيار المطلوب.");
-  }
-  if (!hasVariants && normalizedVariantId) {
-    throw new Error("هذا المنتج لا يستخدم خيارات حالياً؛ لا ترسل variant_id.");
-  }
-
-  if (normalizedVariantId) {
-    const variants = Array.isArray(product.variants) ? product.variants : [];
-    if (!variants.some((variant: any) => String(variant?.id ?? "") === normalizedVariantId)) {
-      throw new Error(`الخيار "${normalizedVariantId}" غير موجود حالياً في المنتج`);
-    }
-  }
-
-  const locationResult = await tx.execute(sql`
-    SELECT id
-    FROM inventory_locations
-    WHERE code = 'MAIN' AND is_active = true
-    LIMIT 1
-  `);
-  const locationId = (locationResult as any)?.rows?.[0]?.id;
-  if (!locationId) throw new Error("موقع المخزون MAIN غير موجود أو غير فعال");
-
-  const balanceResult = normalizedVariantId
-    ? await tx.execute(sql`
-        SELECT COALESCE(SUM(quantity_delta), 0)::int AS qty
-        FROM inventory_movements
-        WHERE product_id = ${productId}
-          AND variant_id = ${normalizedVariantId}
-          AND location_id = ${locationId}
-      `)
-    : await tx.execute(sql`
-        SELECT COALESCE(SUM(quantity_delta), 0)::int AS qty
-        FROM inventory_movements
-        WHERE product_id = ${productId}
-          AND variant_id IS NULL
-          AND location_id = ${locationId}
-      `);
-
-  const previousStock = Number((balanceResult as any)?.rows?.[0]?.qty ?? 0);
-  const adjustment = targetStock - previousStock;
-  if (adjustment === 0) {
-    return {
-      id: productId,
-      variant_id: normalizedVariantId,
-      previous_stock: previousStock,
-      new_stock: targetStock,
-      adjustment: 0,
-      changed: false,
-    };
-  }
-
-  const sourceId = randomUUID();
-  await tx.execute(sql`
-    INSERT INTO inventory_movements (
-      product_id,
-      variant_id,
-      location_id,
-      quantity_delta,
-      movement_type,
-      source_type,
-      source_id,
-      idempotency_key,
-      happened_at,
-      metadata,
-      created_by
-    ) VALUES (
-      ${productId},
-      ${normalizedVariantId},
-      ${locationId},
-      ${adjustment},
-      'manual_adjustment',
-      'mcp_stock_adjustment',
-      ${sourceId},
-      ${"mcp-stock:" + sourceId},
-      now(),
-      jsonb_build_object(
-        'client_id', ${auth.clientId},
-        'auth_mode', ${auth.mode},
-        'target_stock', ${targetStock},
-        'previous_stock', ${previousStock},
-        'variant_id', ${normalizedVariantId}
-      ),
-      ${"mcp:" + auth.clientId}
-    )
-  `);
-
-  return {
-    id: productId,
-    variant_id: normalizedVariantId,
-    previous_stock: previousStock,
-    new_stock: targetStock,
-    adjustment,
-    changed: true,
-  };
-}
 
 function isSensitiveField(key: string): boolean {
   return sensitiveFieldPatterns.some((pattern) => pattern.test(key));
