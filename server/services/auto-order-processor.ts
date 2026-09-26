@@ -111,130 +111,14 @@ export class AutoOrderProcessor {
         failed: number;
         skipped: number;
     }> {
+        // Intentionally quarantined. The removed legacy implementation created
+        // orders outside the canonical transaction and mutated products.stock
+        // directly. Re-enable only by routing order creation through
+        // storage.createOrderSecure(), whose relational line insert drives the
+        // canonical inventory ledger trigger.
         throw new Error(
-            "AutoOrderProcessor.processScheduledOrders() is QUARANTINED: it references " +
-            "columns that do not exist (totalAmount/priceAtTime/shippingMethod), writes no " +
-            "orders.items, and inserts outside any transaction. Route it through " +
-            "storage.createOrderSecure() before re-enabling."
+            "AutoOrderProcessor.processScheduledOrders() is QUARANTINED: automatic orders must use storage.createOrderSecure()."
         );
-
-        // eslint-disable-next-line no-unreachable
-        console.log("[AutoOrderProcessor] Processing scheduled orders...");
-
-        try {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-
-            const tomorrow = new Date(today);
-            tomorrow.setDate(tomorrow.getDate() + 1);
-
-            // Get orders due today
-            const dueOrders = await db
-                .select()
-                .from(autoOrders)
-                .where(
-                    and(
-                        eq(autoOrders.status, "active"),
-                        lte(autoOrders.nextOrderDate, tomorrow),
-                        gte(autoOrders.nextOrderDate, today)
-                    )
-                );
-
-            let processed = 0;
-            let failed = 0;
-            let skipped = 0;
-
-            for (const autoOrder of dueOrders) {
-                try {
-                    // Get product info
-                    const product = await db
-                        .select()
-                        .from(products)
-                        .where(eq(products.id, autoOrder.productId))
-                        .limit(1);
-
-                    if (product.length === 0) {
-                        skipped++;
-                        continue;
-                    }
-
-                    const p = product[0];
-
-                    // Check stock
-                    if ((p.stock || 0) < autoOrder.quantity) {
-                        // Not enough stock, skip this time
-                        console.log(
-                            `[AutoOrderProcessor] Skipping order ${autoOrder.id}: insufficient stock`
-                        );
-                        skipped++;
-                        continue;
-                    }
-
-                    // Create actual order
-                    const totalAmount = (parseFloat(p.price) * autoOrder.quantity).toString();
-
-                    const [order] = await db
-                        .insert(orders)
-                        .values({
-                            userId: autoOrder.userId,
-                            status: "pending",
-                            totalAmount,
-                            shippingMethod: "standard",
-                            paymentMethod: "cod", // Cash on delivery by default
-                            notes: `طلب تلقائي - ${autoOrder.frequency}`,
-                            createdAt: new Date(),
-                        })
-                        .returning({ id: orders.id });
-
-                    // Add order item
-                    await db.insert(orderItems).values({
-                        orderId: order.id,
-                        productId: autoOrder.productId,
-                        quantity: autoOrder.quantity,
-                        priceAtTime: p.price,
-                    });
-
-                    // Update stock
-                    await db
-                        .update(products)
-                        .set({
-                            stock: sql`${products.stock} - ${autoOrder.quantity}`,
-                        })
-                        .where(eq(products.id, autoOrder.productId));
-
-                    // Update next order date
-                    const nextOrderDate = this.calculateNextOrderDate(
-                        autoOrder.nextOrderDate,
-                        autoOrder.frequency as "weekly" | "biweekly" | "monthly"
-                    );
-
-                    await db
-                        .update(autoOrders)
-                        .set({
-                            nextOrderDate,
-                            lastOrderDate: new Date(),
-                            lastOrderId: order.id,
-                            totalOrders: sql`${autoOrders.totalOrders} + 1`,
-                            updatedAt: new Date(),
-                        })
-                        .where(eq(autoOrders.id, autoOrder.id));
-
-                    processed++;
-                } catch (error) {
-                    console.error(`[AutoOrderProcessor] Failed to process order ${autoOrder.id}:`, error);
-                    failed++;
-                }
-            }
-
-            console.log(
-                `[AutoOrderProcessor] Complete: ${processed} processed, ${failed} failed, ${skipped} skipped`
-            );
-
-            return { processed, failed, skipped };
-        } catch (error) {
-            console.error("[AutoOrderProcessor] Processing failed:", error);
-            throw error;
-        }
     }
 
     /**
