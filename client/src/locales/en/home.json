@@ -21,7 +21,7 @@
     "payment": "Flexible payment",
     "paymentDetail": "Cash on delivery or online",
     "fee": "Flat delivery fee",
-    "feeDetail": "5,000 IQD",
+    "feeDetail": "{{fee}} IQD",
     "support": "24/7 support",
     "supportDetail": "We help you pick what fits"
   },
