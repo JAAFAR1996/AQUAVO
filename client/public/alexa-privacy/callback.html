@@ -25,63 +25,45 @@
 <body>
   <main>
     <h1 id="title">Completing Amazon authorization…</h1>
-    <p id="status">Return to the setup window when this finishes.</p>
-    <p dir="rtl">جارٍ إكمال ربط Amazon. ارجع إلى نافذة الإعداد بعد اكتمال العملية.</p>
+    <p id="status">Returning authorization to the local setup tool.</p>
+    <p dir="rtl">جارٍ إكمال ربط Amazon وإرجاع النتيجة إلى أداة الإعداد المحلية.</p>
   </main>
 
   <script>
     (() => {
       "use strict";
 
-      // This page is intentionally standalone: no AQUAVO app bundle, analytics,
-      // pixels, storage, API calls, or device-control code are loaded here.
-      const SETUP_ORIGIN = "http://127.0.0.1:8945";
+      // Standalone OAuth bridge only: no AQUAVO app bundle, analytics, storage,
+      // API calls, or device-control code are loaded here.
+      const LOCAL_CALLBACK = "http://127.0.0.1:8945/oauth/callback";
       const params = new URLSearchParams(window.location.search);
       const code = params.get("code");
       const state = params.get("state");
       const error = params.get("error");
 
-      // Remove OAuth parameters from the visible address bar immediately.
-      try {
-        window.history.replaceState(null, "", window.location.pathname);
-      } catch (_) {}
-
       const title = document.getElementById("title");
       const status = document.getElementById("status");
 
-      if (!window.opener || window.opener.closed) {
-        title.textContent = "Authorization window not connected";
-        title.className = "err";
-        status.textContent = "Return to the setup tool and restart the authorization flow.";
-        return;
-      }
-
-      // State is validated by the local setup tool that generated it.
-      // This bridge only relays the short-lived authorization result to that opener.
-      window.opener.postMessage(
-        {
-          type: "aquavo-alexa-oauth-callback",
-          code: code || null,
-          state: state || null,
-          error: error || null
-        },
-        SETUP_ORIGIN
-      );
-
-      if (error || !code || !state) {
+      if (!code && !error) {
         title.textContent = "Amazon authorization was not completed";
         title.className = "err";
-        status.textContent = "Return to the setup window for details.";
+        status.textContent = "No authorization result was returned.";
         return;
       }
 
+      const out = new URLSearchParams();
+      if (code) out.set("code", code);
+      if (state) out.set("state", state);
+      if (error) out.set("error", error);
+
+      // State validation and token handling occur only in the local setup tool.
+      // This page only forwards the short-lived OAuth result in the same browser tab,
+      // so it does not depend on window.opener or popup behavior.
       title.textContent = "Authorization received";
       title.className = "ok";
-      status.textContent = "You can return to the setup window. This window may close automatically.";
+      status.textContent = "Returning to the local setup tool…";
 
-      window.setTimeout(() => {
-        try { window.close(); } catch (_) {}
-      }, 500);
+      window.location.replace(LOCAL_CALLBACK + "?" + out.toString());
     })();
   </script>
 </body>
