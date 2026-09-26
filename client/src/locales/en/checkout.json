@@ -33,7 +33,9 @@
     "stockUnavailable": "{{name}} is currently out of stock. Update your cart before confirming the order.",
     "stockQuantityChanged": "You requested {{requested}} of {{name}}, but only {{available}} are currently available. Update the quantity before continuing.",
     "cartChangedTitle": "Cart changed",
-    "cartEmptyAfterRefresh": "The saved cart items are no longer valid for ordering. Return to products and add currently available items."
+    "cartEmptyAfterRefresh": "The saved cart items are no longer valid for ordering. Return to products and add currently available items.",
+    "cartUpdatedReview": "We refreshed the cart using current price and stock. Review it, then select Review order again.",
+    "cartUpdatedConfirm": "The cart changed since your last review. Check the current price and quantity, then agree and confirm again."
   },
   "coupon": {
     "prompt": "Have a discount code?",
