@@ -1109,6 +1109,14 @@ function setResponseHeaders(res: VercelResponse, robots: string, mode: string): 
   res.setHeader("Vary", "Accept");
 }
 
+function semanticCacheControl(production: boolean, pathname: string): string {
+  if (!production) return "private, no-store";
+  if (pathname === "/products" || pathname.startsWith("/products/")) {
+    return "private, no-store, max-age=0";
+  }
+  return "public, s-maxage=300, stale-while-revalidate=3600";
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   const production = isProductionRequest(req);
   const requestUrl = new URL(req.url || "/", AQUAVO_BASE_URL);
@@ -1138,7 +1146,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
 
       const robots = robotsValue(production, localizedStatic.status, pathname);
       setResponseHeaders(res, robots, "semantic-v3");
-      res.setHeader("Cache-Control", production ? "public, s-maxage=300, stale-while-revalidate=3600" : "private, no-store");
+      res.setHeader("Cache-Control", semanticCacheControl(production, pathname));
 
       if (acceptsMarkdown) {
         res.status(200).setHeader("Content-Type", "text/markdown; charset=utf-8");
@@ -1269,7 +1277,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
 
     const robots = robotsValue(production, resolved.status, pathname);
     setResponseHeaders(res, robots, "semantic-v3");
-    res.setHeader("Cache-Control", production ? "public, s-maxage=300, stale-while-revalidate=3600" : "private, no-store");
+    res.setHeader("Cache-Control", semanticCacheControl(production, pathname));
 
     if (acceptsMarkdown) {
       res.status(resolved.status).setHeader("Content-Type", "text/markdown; charset=utf-8");
