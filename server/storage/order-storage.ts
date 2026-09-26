@@ -20,13 +20,16 @@ export const STOCK_ERROR_INSUFFICIENT = "الكمية المطلوبة غير م
 export const STOCK_ERROR_MAX_REACHED = "وصلت للكمية المتوفرة";
 export const CART_ERROR_VARIANT_REQUIRED = "يرجى اختيار الخيار المطلوب قبل الإضافة للسلة";
 export const CART_ERROR_VARIANT_INVALID = "الخيار المحدد لم يعد متاحاً؛ اختر خياراً متوفراً من صفحة المنتج";
+export const CART_ERROR_NOT_PURCHASABLE = "هذا المنتج غير متاح حالياً للشراء";
 export function isStockError(message?: string): boolean {
     if (!message) return false;
     return message.includes(STOCK_ERROR_INSUFFICIENT) || message.includes(STOCK_ERROR_MAX_REACHED);
 }
 export function isCartVariantError(message?: string): boolean {
     if (!message) return false;
-    return message.includes(CART_ERROR_VARIANT_REQUIRED) || message.includes(CART_ERROR_VARIANT_INVALID);
+    return message.includes(CART_ERROR_VARIANT_REQUIRED)
+        || message.includes(CART_ERROR_VARIANT_INVALID)
+        || message.includes(CART_ERROR_NOT_PURCHASABLE);
 }
 
 /**
@@ -642,7 +645,10 @@ export class OrderStorage {
         const db = this.ensureDb();
 
         const [product] = await db.select().from(products)
-            .where(or(eq(products.id, productId), eq(products.slug, productId)));
+            .where(and(
+                or(eq(products.id, productId), eq(products.slug, productId)),
+                isNull(products.deletedAt)
+            ));
         if (!product) throw new Error("Product not found");
 
         // Source of truth for SKU identity, price and stock is the CURRENT
@@ -667,6 +673,10 @@ export class OrderStorage {
         } else if (variantId) {
             // Historical/forged variant ids must never fall back to base stock.
             throw new Error(CART_ERROR_VARIANT_INVALID);
+        } else if (!(Number(product.price ?? 0) > 0)) {
+            // Do not trust a client-supplied variantPrice to make a simple
+            // coming-soon product purchasable.
+            throw new Error(CART_ERROR_NOT_PURCHASABLE);
         }
 
         if (effectiveStock < quantity) throw new Error(STOCK_ERROR_INSUFFICIENT);
