@@ -244,8 +244,9 @@ export function toPublicProduct(product: unknown): AnyRecord | null {
     publicProduct.variants = [];
   } else if (Array.isArray(rawVariants)) {
     publicProduct.variants = rawVariants.map(toPublicVariant);
-  } else if (rawVariants === null) {
-    publicProduct.variants = null;
+  } else {
+    // Public consumers get one stable collection shape.
+    publicProduct.variants = [];
   }
 
   return publicProduct;
