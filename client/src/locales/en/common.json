@@ -54,7 +54,7 @@
   "items_one": "1 item",
   "items_other": "{{count}} items",
   "shipping": {
-    "flatFee": "Flat delivery fee: 5,000 IQD",
+    "flatFee": "Flat delivery fee: {{fee}} IQD",
     "within24h": "Delivery within 24 hours",
     "allIraq": "Across all of Iraq",
     "payment": "Cash on delivery or online payment",
