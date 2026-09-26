@@ -237,20 +237,20 @@ export default function CheckoutPage() {
       }
 
       if (!testMode) {
-        trackAddShippingInfo(cartItems.map((item) => ({
+        trackAddShippingInfo(latestCart.map((item) => ({
           id: item.productId,
           name: item.name,
           price: item.price,
           quantity: item.quantity,
-        })), cartTotal);
+        })), latestCart.reduce((sum, item) => sum + item.price * item.quantity, 0));
         ttqAddPaymentInfo(
-          cartItems.map((item) => ({
+          latestCart.map((item) => ({
             id: item.productId,
             name: item.name,
             price: item.price,
             quantity: item.quantity,
           })),
-          cartTotal
+          latestCart.reduce((sum, item) => sum + item.price * item.quantity, 0)
         );
       }
       setStep("confirm");
@@ -278,10 +278,14 @@ export default function CheckoutPage() {
       return;
     }
 
+    const checkoutItems = latestCart;
+    const checkoutSubtotal = checkoutItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const checkoutGrandTotal = Math.max(0, checkoutSubtotal + deliveryFee - discount);
+
     setIsSubmitting(true);
     try {
       const cartSignature = JSON.stringify({
-        items: cartItems.map(({ productId, variantId, quantity }) => ({ productId, variantId, quantity })),
+        items: checkoutItems.map(({ productId, variantId, quantity }) => ({ productId, variantId, quantity })),
         couponCode: testMode ? null : appliedCoupon?.code ?? null,
         cashbackToUse: testMode ? 0 : loyaltyData.cashbackToUse,
         testMode,
@@ -299,12 +303,12 @@ export default function CheckoutPage() {
             ...customerInfo,
             address: `${GOVERNORATES.find((g) => g.value === customerInfo.governorate)?.label} - ${customerInfo.address}`,
           },
-          items: cartItems.map((item) => ({
+          items: checkoutItems.map((item) => ({
             productId: item.productId,
             quantity: item.quantity,
             ...(item.variantId ? { variantId: item.variantId } : {}),
           })),
-          total: cartTotal,
+          total: checkoutSubtotal,
           couponCode: testMode ? undefined : appliedCoupon ? appliedCoupon.code : undefined,
           usePoints: testMode ? false : loyaltyData.usePoints,
           useCashback: testMode ? false : loyaltyData.useCashback,
@@ -320,23 +324,23 @@ export default function CheckoutPage() {
       }
 
       const orderData = await response.json();
-      const confirmedTotal = resolveCheckoutTotal(orderData, grandTotal);
+      const confirmedTotal = resolveCheckoutTotal(orderData, checkoutGrandTotal);
 
       if (!testMode) {
         ttqPlaceAnOrder(
-          cartItems.map((item) => ({
+          checkoutItems.map((item) => ({
             id: item.productId,
             name: item.name,
             price: item.price,
             quantity: item.quantity,
           })),
-          cartTotal
+          checkoutSubtotal
         );
         metaTrackPurchase({
           orderId: orderData.orderNumber || orderData.id || "unknown",
           totalIQD: confirmedTotal,
-          productIds: cartItems.map((i) => i.productId),
-          numItems: cartItems.reduce((sum, i) => sum + i.quantity, 0),
+          productIds: checkoutItems.map((i) => i.productId),
+          numItems: checkoutItems.reduce((sum, i) => sum + i.quantity, 0),
           phone: customerInfo.phone,
         });
         // Reached only after `response.ok` and a parsed order body, so a failed submission cannot emit it.
@@ -345,14 +349,14 @@ export default function CheckoutPage() {
         phTrackPurchase({
           orderId: orderData.orderNumber ?? orderData.id,
           totalValue: confirmedTotal,
-          numItems: cartItems.reduce((sum, i) => sum + i.quantity, 0),
-          productIds: cartItems.map((i) => i.productId),
+          numItems: checkoutItems.reduce((sum, i) => sum + i.quantity, 0),
+          productIds: checkoutItems.map((i) => i.productId),
           sourcePage: "checkout",
         });
         trackPurchase({
           orderId: orderData.orderNumber || orderData.id || "unknown",
           total: confirmedTotal,
-          items: cartItems.map((item) => ({
+          items: checkoutItems.map((item) => ({
             id: item.productId,
             name: item.name,
             price: item.price,
@@ -381,7 +385,7 @@ export default function CheckoutPage() {
           orderNumber: orderData.orderNumber ?? orderData.id,
           total: confirmedTotal,
           status: orderData.status,
-          items: cartItems.map((item) => ({
+          items: checkoutItems.map((item) => ({
             productId: item.productId,
             productName: item.name,
             quantity: item.quantity,
