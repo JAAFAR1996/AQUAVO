@@ -11,6 +11,8 @@ import { toPublicProduct, toPublicProducts } from "../../shared/public-product.j
 import { localizeJsonResponses } from "../middleware/localize-response.js";
 import { DEFAULT_LOCALE } from "../../shared/i18n/locales.js";
 import { fitCatalogue } from "../../shared/tank-compatibility.js";
+import { getDb } from "../db.js";
+import { setCanonicalVariantConfiguration } from "../services/inventory-adjustment-service.js";
 
 // Product availability is commerce-critical and must not depend on process-local
 // serverless memory. Keep the invalidation export for existing callers, but the
@@ -635,17 +637,34 @@ export function createProductRouter(): RouterType {
         }
     });
 
-    // Update product variants
+    // Update product variants through the canonical inventory ledger.
     router.put("/:productId/variants", requireAdmin, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { productId } = req.params as { productId: string };
             const { hasVariants, variants } = req.body as { hasVariants: boolean; variants: any[] | null };
+            const db = getDb();
+            if (!db) {
+                res.status(503).json({ message: "قاعدة البيانات غير مهيأة" });
+                return;
+            }
 
-            await storage.updateProductVariants(productId, hasVariants, variants);
+            const adminId = getSession(req)?.userId || "admin";
+            const result = await db.transaction(async (tx: any) =>
+                setCanonicalVariantConfiguration(
+                    tx,
+                    { clientId: adminId, mode: "admin" },
+                    productId,
+                    hasVariants,
+                    variants,
+                ),
+            );
+            clearProductsCache();
 
+            res.set("Cache-Control", "no-store");
             res.json({
                 success: true,
-                message: "تم تحديث خيارات المنتج بنجاح"
+                message: "تم تحديث خيارات المنتج والمخزون بنجاح",
+                inventory: result.stock_adjustments,
             });
         } catch (err) {
             next(err);
