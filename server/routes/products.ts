@@ -59,6 +59,16 @@ function resolveClientSessionId(req: Request, candidate: unknown): string {
 export function createProductRouter(): RouterType {
     const router = Router();
 
+    const isPurchasableProduct = (product: any): boolean => {
+        if (!product) return false;
+        if (product.hasVariants && Array.isArray(product.variants) && product.variants.length > 0) {
+            return product.variants.some((variant: any) =>
+                Number(variant?.stock ?? 0) > 0 && Number(variant?.price ?? 0) > 0
+            );
+        }
+        return Number(product.stock ?? 0) > 0 && Number(product.price ?? 0) > 0;
+    };
+
     // Get all products
     // Every JSON payload leaving this router is merged with the request
     // locale's translations (no-op for Arabic). See middleware/localize-response.ts.
@@ -190,10 +200,10 @@ export function createProductRouter(): RouterType {
             // Helper: get fallback products (trending → newest)
             const getFallbackProducts = async () => {
                 const trending = await storage.getTrendingProducts();
-                if (trending.length > 0) return trending.slice(0, 8);
-                // Ultimate fallback: newest products (ignores stock for stores still setting up)
-                const newest = await storage.getProducts({ limit: 8, sortBy: "createdAt", sortOrder: "desc" });
-                return newest;
+                if (trending.length > 0) return trending.filter(isPurchasableProduct).slice(0, 8);
+                // Ultimate fallback: newest products that can actually be purchased.
+                const newest = await storage.getProducts({ limit: 50, sortBy: "createdAt", sortOrder: "desc" });
+                return newest.filter(isPurchasableProduct).slice(0, 8);
             };
 
             if (userId) {
@@ -201,7 +211,8 @@ export function createProductRouter(): RouterType {
                 const { productIds, method } = await recommendationEngine.getPersonalizedRecommendations(userId, 8);
 
                 if (productIds.length > 0) {
-                    const validProducts = await storage.getProductsByIds(productIds);
+                    const validProducts = (await storage.getProductsByIds(productIds))
+                        .filter(isPurchasableProduct);
                     if (validProducts.length > 0) {
                         res.json({ products: toPublicProducts(validProducts), personalized: true, method });
                         return;
@@ -249,7 +260,8 @@ export function createProductRouter(): RouterType {
 
                 // Fetch product details in batch
                 const productIds = mapped.map(p => p.productId);
-                const fetchedProducts = await storage.getProductsByIds(productIds);
+                const fetchedProducts = (await storage.getProductsByIds(productIds))
+                    .filter(isPurchasableProduct);
                 const productMap = new Map(fetchedProducts.map(p => [p.id, p]));
                 const results = mapped
                     .map(pred => {
@@ -271,7 +283,8 @@ export function createProductRouter(): RouterType {
             // Saved predictions: fetch product details in batch
             const topPredictions = predictions.slice(0, 5);
             const predProductIds = topPredictions.map(p => p.productId);
-            const fetchedProducts = await storage.getProductsByIds(predProductIds);
+            const fetchedProducts = (await storage.getProductsByIds(predProductIds))
+                .filter(isPurchasableProduct);
             const productMap = new Map(fetchedProducts.map(p => [p.id, p]));
             const results = topPredictions
                 .map(pred => {
