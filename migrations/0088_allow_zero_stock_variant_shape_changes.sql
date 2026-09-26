@@ -42,13 +42,23 @@ BEGIN
     SELECT
       e->>'id' AS variant_id,
       COALESCE(NULLIF(e->>'stock','')::integer,0) AS stock
-    FROM jsonb_array_elements(COALESCE(OLD.variants,'[]'::jsonb)) e
+    FROM jsonb_array_elements(
+      CASE WHEN COALESCE(OLD.has_variants,false)
+        THEN COALESCE(OLD.variants,'[]'::jsonb)
+        ELSE '[]'::jsonb
+      END
+    ) e
   ),
   newv AS (
     SELECT
       e->>'id' AS variant_id,
       COALESCE(NULLIF(e->>'stock','')::integer,0) AS stock
-    FROM jsonb_array_elements(COALESCE(NEW.variants,'[]'::jsonb)) e
+    FROM jsonb_array_elements(
+      CASE WHEN COALESCE(NEW.has_variants,false)
+        THEN COALESCE(NEW.variants,'[]'::jsonb)
+        ELSE '[]'::jsonb
+      END
+    ) e
   )
   SELECT EXISTS(
     SELECT 1
@@ -70,7 +80,7 @@ INSERT INTO public.schema_migrations(version,checksum,notes)
 VALUES(
   '0088_allow_zero_stock_variant_shape_changes',
   '0000000000000000000000000000000000000000000000000000000000000000',
-  'Allow adding/removing zero-stock variant identities while retaining the ledger-only guard for every real stock quantity change. Runner must normalize checksum to SHA-256(file bytes).'
+  'Compare only active variant identities (has_variants=true), allow zero-stock shape changes, and retain the ledger-only guard for every real active stock quantity change. Runner must normalize checksum to SHA-256(file bytes).'
 )
 ON CONFLICT(version) DO UPDATE SET
   checksum=EXCLUDED.checksum,
