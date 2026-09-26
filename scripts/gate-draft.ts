@@ -19,12 +19,23 @@ const file = process.argv[2];
 if (!file) { console.error("usage: npx tsx scripts/gate-draft.ts <file.html>"); process.exit(2); }
 const html = fs.readFileSync(file, "utf8");
 
-const body = (await (await fetch(`${BASE}/api/products?limit=500`)).json()) as
+const [productResponse, shippingResponse] = await Promise.all([
+  fetch(`${BASE}/api/products?limit=500`),
+  fetch(`${BASE}/api/settings/shipping`),
+]);
+const body = (await productResponse.json()) as
   | Array<{ name: string; category: string }>
   | { products: Array<{ name: string; category: string }> };
+const shipping = shippingResponse.ok
+  ? await shippingResponse.json() as { shippingFee?: number }
+  : {};
 const items = Array.isArray(body) ? body : body.products;
+const configuredShippingFee = Number(shipping.shippingFee ?? AQUAVO_INVARIANTS.deliveryFeeIqd);
 const facts: BusinessFacts = {
   ...AQUAVO_INVARIANTS,
+  deliveryFeeIqd: Number.isFinite(configuredShippingFee) && configuredShippingFee > 0
+    ? configuredShippingFee
+    : AQUAVO_INVARIANTS.deliveryFeeIqd,
   categories: Array.from(new Set(items.map((p) => p.category).filter(Boolean))),
   productTerms: Array.from(
     new Set(items.flatMap((p) => (p.name ?? "").split(/[\s—–\-،(),.\/]+/)).filter((w) => w.length > 3)),
