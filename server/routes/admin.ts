@@ -1302,6 +1302,9 @@ export function createAdminRouter(): RouterType {
             const requestedVariants = Array.isArray((parsed as any).variants)
                 ? (parsed as any).variants
                 : [];
+            if (requestedHasVariants && requestedVariants.length === 0) {
+                throw new OperationalError("عند تفعيل الخيارات يجب إضافة خيار واحد على الأقل", 400);
+            }
 
             // A newly-created SKU starts at zero inventory. The requested amount
             // is posted immediately afterwards through inventory_movements so a
