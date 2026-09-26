@@ -347,6 +347,7 @@ async function buildSiteOverview(db: ReturnType<typeof getDb>) {
     customerCount,
     pendingOrderCount,
     lowStockCount,
+    shippingSetting,
   ] = await Promise.all([
     db.select({ count: sql<number>`COUNT(*)` }).from(schema.products),
     db.select({ count: sql<number>`COUNT(*)` }).from(schema.products).where(isNull(schema.products.deletedAt)),
@@ -355,7 +356,14 @@ async function buildSiteOverview(db: ReturnType<typeof getDb>) {
     db.select({ count: sql<number>`COUNT(*)` }).from(schema.orders).where(eq(schema.orders.status, "pending")),
     db.select({ count: sql<number>`COUNT(*)` }).from(schema.products)
       .where(and(isNull(schema.products.deletedAt), sql`${schema.products.stock} <= ${schema.products.lowStockThreshold}`)),
+    db.select({ value: schema.settings.value }).from(schema.settings)
+      .where(eq(schema.settings.key, "shipping_fee")).limit(1),
   ]);
+
+  const configuredShippingFee = Number(shippingSetting[0]?.value ?? 5000);
+  const shippingFeeIqd = Number.isFinite(configuredShippingFee) && configuredShippingFee > 0
+    ? configuredShippingFee
+    : 5000;
 
   return {
     name: "AQUAVO",
@@ -373,7 +381,7 @@ async function buildSiteOverview(db: ReturnType<typeof getDb>) {
     rules: {
       sells_live_fish: false,
       payment_methods: ["cash_on_delivery", "wayl"],
-      shipping_fee_iqd: 5000,
+      shipping_fee_iqd: shippingFeeIqd,
     },
   };
 }
