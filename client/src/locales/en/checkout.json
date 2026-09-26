@@ -41,7 +41,7 @@
     "appliedFixed": "Discount of {{amount}} applied",
     "appliedFreeShipping": "Free delivery applied",
     "unsupported": "This coupon type is not supported yet",
-    "flatShipping": "Delivery is a flat 5,000 IQD to Baghdad and every governorate within 24 hours",
+    "flatShipping": "Delivery is available to Baghdad and every governorate within 24 hours; the current fee is shown before confirmation",
     "checkError": "Something went wrong while checking the coupon"
   },
   "testMode": {
@@ -53,7 +53,7 @@
   "footer": {
     "tagline": "AQUAVO — premium aquarium equipment from Baghdad to all of Iraq",
     "payment": "Cash on delivery or online payment",
-    "delivery": "Delivery 5,000 IQD across Iraq",
+    "delivery": "Delivery across Iraq — the current fee is shown before confirmation",
     "whatsapp": "WhatsApp"
   },
   "form": {
