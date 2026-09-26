@@ -183,7 +183,10 @@ export function trackPurchase(orderData: {
   total: number;
   items: AnalyticsCartItem[];
 }) {
-  if (!GA_ID || !isTrackingAllowed() || !window.gtag) return;
+  // Purchase measurement must keep working even if the GA4 env id is
+  // temporarily unavailable: the Google Ads destination is installed in the
+  // document shell and exposes the same gtag instance.
+  if (!isTrackingAllowed() || !window.gtag) return;
 
   window.gtag('event', 'purchase', {
     transaction_id: orderData.orderId,
