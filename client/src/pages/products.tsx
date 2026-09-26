@@ -188,9 +188,18 @@ export default function Products() {
       }
       return false;
     };
-    const withPrice = filtered.filter(p => hasPrice(p));
-    const noPrice = filtered.filter(p => !hasPrice(p));
-    filtered = [...withPrice, ...noPrice];
+    const isInStock = (p: Product) => {
+      if (p.hasVariants && p.variants?.length) {
+        return p.variants.some(v => (v.stock ?? 0) > 0 && (v.price ?? 0) > 0);
+      }
+      return (p.stock ?? 0) > 0;
+    };
+
+    // Preserve the selected order inside each group, but never let an item that
+    // cannot currently be purchased displace a sellable product above the fold.
+    const sellable = filtered.filter(p => hasPrice(p) && isInStock(p));
+    const unavailable = filtered.filter(p => !(hasPrice(p) && isInStock(p)));
+    filtered = [...sellable, ...unavailable];
 
     return filtered;
   }, [products, filters.difficulties, filters.tags, sortBy, boostIds]);
