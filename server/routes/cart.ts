@@ -29,6 +29,120 @@ export function createCartRouter(): RouterType {
         next();
     };
 
+    const preflightSchema = z.object({
+        items: z.array(z.object({
+            productId: z.string().min(1),
+            variantId: z.string().min(1).optional(),
+            quantity: z.number().int().positive(),
+        })).min(1).max(50),
+    });
+
+    // Public, read-only cart preflight for guest/localStorage carts.
+    // Returns only the same commerce fields already exposed by the public
+    // catalogue; it never mutates a cart or requires a customer identity.
+    router.post("/preflight", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const { items } = preflightSchema.parse(req.body);
+            const productIds = [...new Set(items.map((item) => item.productId))];
+            const currentProducts = await storage.getProductsByIds(productIds);
+            const byId = new Map(currentProducts.map((product) => [product.id, product]));
+
+            const result = items.map((line) => {
+                const product = byId.get(line.productId);
+                if (!product) {
+                    return {
+                        productId: line.productId,
+                        variantId: line.variantId ?? null,
+                        quantity: line.quantity,
+                        price: null,
+                        stock: 0,
+                        valid: false,
+                        reason: "PRODUCT_NOT_FOUND",
+                    };
+                }
+
+                const variants = Array.isArray(product.variants) ? product.variants as any[] : [];
+                const hasVariants = Boolean(product.hasVariants);
+                let price = Number(product.price ?? 0);
+                let stock = Number(product.stock ?? 0);
+                let variantLabel: string | null = null;
+
+                if (hasVariants) {
+                    if (!line.variantId) {
+                        return {
+                            productId: product.id,
+                            variantId: null,
+                            quantity: line.quantity,
+                            name: product.name,
+                            slug: product.slug,
+                            price,
+                            stock: 0,
+                            valid: false,
+                            reason: "VARIANT_REQUIRED",
+                        };
+                    }
+                    const variant = variants.find((candidate) => candidate?.id === line.variantId);
+                    if (!variant) {
+                        return {
+                            productId: product.id,
+                            variantId: line.variantId,
+                            quantity: line.quantity,
+                            name: product.name,
+                            slug: product.slug,
+                            price,
+                            stock: 0,
+                            valid: false,
+                            reason: "VARIANT_INVALID",
+                        };
+                    }
+                    price = Number(variant.price ?? 0);
+                    stock = Number(variant.stock ?? 0);
+                    variantLabel = typeof variant.label === "string" ? variant.label : null;
+                } else if (line.variantId) {
+                    return {
+                        productId: product.id,
+                        variantId: line.variantId,
+                        quantity: line.quantity,
+                        name: product.name,
+                        slug: product.slug,
+                        price,
+                        stock: 0,
+                        valid: false,
+                        reason: "VARIANT_INVALID",
+                    };
+                }
+
+                const purchasable = Number.isFinite(price) && price > 0;
+                const reason = !purchasable
+                    ? "NOT_PURCHASABLE"
+                    : stock <= 0
+                        ? "OUT_OF_STOCK"
+                        : line.quantity > stock
+                            ? "INSUFFICIENT_STOCK"
+                            : null;
+
+                return {
+                    productId: product.id,
+                    variantId: line.variantId ?? null,
+                    quantity: line.quantity,
+                    name: product.name,
+                    slug: product.slug,
+                    thumbnail: product.thumbnail ?? product.images?.[0] ?? null,
+                    variantLabel,
+                    price: purchasable ? price : null,
+                    stock: Number.isFinite(stock) ? Math.max(0, stock) : 0,
+                    valid: reason === null,
+                    reason,
+                };
+            });
+
+            res.setHeader("Cache-Control", "private, no-store");
+            res.json({ items: result });
+        } catch (err) {
+            next(err);
+        }
+    });
+
     router.use(requireAuth);
 
     router.get("/", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
