@@ -145,6 +145,30 @@ describe("checkout page", () => {
     expect(orderCalls()).toHaveLength(0);
   });
 
+  it("requires a second review when the live cart price changed", async () => {
+    const user = userEvent.setup();
+    mockRefetchCart.mockResolvedValueOnce([{
+      ...mockCartState.items[0],
+      price: 26000,
+    }]);
+
+    renderCheckout();
+
+    fireEvent.change(screen.getByLabelText("الاسم الكامل"), { target: { value: "جعفر محمد" } });
+    fireEvent.change(screen.getByLabelText("رقم الهاتف"), { target: { value: "07701234567" } });
+    await user.click(screen.getByRole("combobox", { name: "المحافظة" }));
+    await user.click(screen.getByRole("option", { name: "بغداد" }));
+    fireEvent.change(screen.getByLabelText("العنوان"), { target: { value: "الكرادة داخل قرب ساحة كهرمانة" } });
+
+    await user.click(screen.getByRole("button", { name: "مراجعة الطلب" }));
+
+    expect(mockToast).toHaveBeenCalledWith(expect.objectContaining({
+      title: "السلة تغيّرت",
+    }));
+    expect(screen.getByRole("heading", { level: 1, name: "إتمام الطلب" })).toBeInTheDocument();
+    expect(orderCalls()).toHaveLength(0);
+  });
+
   it("moves focus to the first invalid field on a failed submit", async () => {
     const user = userEvent.setup();
     renderCheckout();
