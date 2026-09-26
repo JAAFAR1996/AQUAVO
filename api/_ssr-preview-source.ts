@@ -212,7 +212,7 @@ export const STATIC_COPY: Record<string, { heading: string; summary: string; par
     heading: "الشحن والتوصيل",
     summary: "AQUAVO يوصّل الطلبات إلى جميع محافظات العراق خلال 24 ساعة.",
     paragraphs: [
-      `أجور التوصيل الثابتة ${new Intl.NumberFormat("ar-IQ").format(AQUAVO_ENTITY.deliveryFee)} د.ع لكل العراق.`,
+      "رسوم التوصيل الحالية تظهر بوضوح قبل تأكيد الطلب وتُحتسب من إعدادات المتجر.",
       "الدفع عند الاستلام أو إلكترونياً، وتظهر تفاصيل الطلب قبل التأكيد.",
     ],
   },
@@ -299,6 +299,19 @@ function getPool(): Pool {
   if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL is unavailable for semantic rendering");
   if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
   return pool;
+}
+
+async function loadShippingFee(): Promise<number> {
+  try {
+    const { rows } = await getPool().query(
+      `SELECT value FROM settings WHERE key='shipping_fee' LIMIT 1`,
+    );
+    const value = Number(rows[0]?.value ?? AQUAVO_ENTITY.deliveryFee);
+    return Number.isFinite(value) && value > 0 ? value : AQUAVO_ENTITY.deliveryFee;
+  } catch (err) {
+    console.error("[semantic-v3] shipping setting unavailable", err instanceof Error ? err.message : err);
+    return AQUAVO_ENTITY.deliveryFee;
+  }
 }
 
 /**
@@ -617,7 +630,7 @@ async function resolvePage(pathname: string, rawCategory?: string): Promise<Reso
         title: DEFAULT_TITLE,
         description: DEFAULT_DESCRIPTION,
         canonicalPath: "/",
-        jsonLd: buildHomeStructuredData(products),
+        jsonLd: buildHomeStructuredData(products, { shippingFee: await loadShippingFee() }),
       },
       status: 200,
     };
@@ -696,7 +709,7 @@ async function resolvePage(pathname: string, rawCategory?: string): Promise<Reso
         canonicalPath: productPath,
         image: productImage(product),
         ogType: "product",
-        jsonLd: buildProductStructuredData(product),
+        jsonLd: buildProductStructuredData(product, { shippingFee: await loadShippingFee() }),
       },
       status: 200,
     };
@@ -1094,7 +1107,7 @@ function markdown(page: SeoPreviewPage, meta: Meta): string {
       "",
       "العمل بالكامل عبر الموقع وواتساب، ولا يوجد محل لاستقبال الزبائن حالياً. AQUAVO لا يبيع أسماكاً أو كائنات أو نباتات حية.",
       "",
-      `التوصيل لكل العراق خلال 24 ساعة بأجور ${formatMoney(AQUAVO_ENTITY.deliveryFee, AQUAVO_ENTITY.currency)}، والدعم متوفر 24/7.`,
+      "التوصيل متاح لكل العراق، وتظهر رسومه الحالية قبل تأكيد الطلب، والدعم متوفر 24/7.",
     );
   } else if (page.kind === "static") {
     for (const paragraph of page.paragraphs ?? []) lines.push(paragraph, "");
