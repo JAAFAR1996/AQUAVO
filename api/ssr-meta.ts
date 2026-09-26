@@ -1283,6 +1283,15 @@ function generateMarkdown(meta: PageMeta & { url: string; image: string }, pathn
   return lines.join("\n");
 }
 
+// Commerce pages embed live price/stock. They must never inherit the long-lived
+// educational/static cache policy used by the rest of the site.
+function commerceCacheControl(pathname: string): string {
+  if (pathname === "/products" || pathname.startsWith("/products/")) {
+    return "private, no-store, max-age=0";
+  }
+  return "public, s-maxage=3600, stale-while-revalidate=86400";
+}
+
 // ─── Handler ────────────────────────────────────────────────────────────────
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
@@ -1418,12 +1427,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (acceptHeader.includes("text/markdown")) {
       const md = generateMarkdown(meta, pathname);
       res.setHeader("Content-Type", "text/markdown; charset=utf-8");
-      res.setHeader("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
+      res.setHeader("Cache-Control", commerceCacheControl(pathname));
       return res.status(status).send(md);
     }
 
     res.setHeader("Content-Type", "text/html; charset=utf-8");
-    res.setHeader("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
+    res.setHeader("Cache-Control", commerceCacheControl(pathname));
     if (meta.noIndex) res.setHeader("X-Robots-Tag", "noindex, nofollow, noarchive");
     return res.status(status).send(html);
   } catch (err) {
