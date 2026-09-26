@@ -141,6 +141,7 @@ vi.mock('@/lib/recommendations', () => ({
 }));
 
 import ProductDetails from '../product-details';
+import { fetchProductBySlug } from '@/lib/api';
 
 const createWrapper = () => {
     const queryClient = new QueryClient({
@@ -204,6 +205,58 @@ describe('Product Details Page', () => {
                 _variantLabel: '1.7 متر',
             }),
             1
+        );
+    });
+
+    it('auto-selects an in-stock variant when the configured default is sold out', async () => {
+        const user = await import('@testing-library/user-event').then((m) => m.default.setup());
+
+        vi.mocked(fetchProductBySlug).mockResolvedValueOnce({
+            id: 'test-oos-default',
+            name: 'اختبار سائل للأمونيا أو النتريت',
+            slug: 'c3-1010',
+            price: 12000,
+            originalPrice: null,
+            description: 'اختبار ماء',
+            category: 'الفحص والمراقبة',
+            brand: 'YEE',
+            stock: 4,
+            rating: 4.5,
+            reviewCount: 2,
+            image: '/images/test.jpg',
+            images: ['/images/test.jpg'],
+            hasVariants: true,
+            variants: [
+                {
+                    id: 'ammonia',
+                    label: 'اختبار الأمونيا',
+                    price: 12000,
+                    stock: 0,
+                    isDefault: true,
+                },
+                {
+                    id: 'nitrite',
+                    label: 'اختبار النتريت',
+                    price: 12000,
+                    stock: 4,
+                    isDefault: false,
+                },
+            ],
+        } as any);
+
+        render(<ProductDetails />, { wrapper: createWrapper() });
+
+        await screen.findByRole('heading', { level: 1, name: 'اختبار سائل للأمونيا أو النتريت' });
+        await user.click(screen.getByRole('button', { name: /أضف للسلة/ }));
+
+        expect(mockAddItem).toHaveBeenCalledWith(
+            expect.objectContaining({
+                id: 'test-oos-default',
+                _variantId: 'nitrite',
+                _variantLabel: 'اختبار النتريت',
+                price: 12000,
+            }),
+            1,
         );
     });
 
