@@ -735,9 +735,16 @@ export class OrderStorage {
 
         if (existing) {
             const [product] = await db.select().from(products)
-                .where(eq(products.id, existing.productId));
+                .where(and(
+                    eq(products.id, existing.productId),
+                    isNull(products.deletedAt)
+                ));
 
-            if (product) {
+            if (!product) {
+                throw new Error(CART_ERROR_NOT_PURCHASABLE);
+            }
+
+            {
                 const variants = Array.isArray((product as any).variants)
                     ? ((product as any).variants as ProductVariant[])
                     : [];
@@ -786,7 +793,10 @@ export class OrderStorage {
         })
             .from(favorites)
             .innerJoin(products, eq(favorites.productId, products.id))
-            .where(eq(favorites.userId, userId));
+            .where(and(
+                eq(favorites.userId, userId),
+                isNull(products.deletedAt)
+            ));
 
         // `product: products` selects the whole row, cost columns included, and this list is served
         // straight to a logged-in customer by GET /api/favorites. Authenticated, but every customer with
@@ -797,7 +807,10 @@ export class OrderStorage {
     async addFavorite(userId: string, productId: string): Promise<Favorite> {
         const db = this.ensureDb();
         const [product] = await db.select().from(products)
-            .where(or(eq(products.id, productId), eq(products.slug, productId)));
+            .where(and(
+                or(eq(products.id, productId), eq(products.slug, productId)),
+                isNull(products.deletedAt)
+            ));
         if (!product) throw new Error("Product not found");
 
         const [existing] = await db.select().from(favorites)
