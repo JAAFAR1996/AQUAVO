@@ -26,5 +26,8 @@ describe("Google Ads tag wiring", () => {
     expect(source).toContain("transaction_id: orderData.orderId");
     expect(source).toContain("currency: 'IQD'");
     expect(source).toContain("value: orderData.total");
+    expect(source).toContain("AW-18476435110/iP0mCJaFsYYdEKaNoOpE");
+    expect(source).toContain("window.gtag('event', 'conversion'");
+    expect(source).toContain("send_to: GOOGLE_ADS_PURCHASE_DESTINATION");
   });
 });
