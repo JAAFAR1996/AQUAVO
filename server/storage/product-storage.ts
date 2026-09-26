@@ -165,12 +165,18 @@ export class ProductStorage {
     async getProductAttributes(): Promise<{ categories: string[], brands: string[], minPrice: number, maxPrice: number }> {
         const db = this.ensureDb();
 
-        // Run all 3 queries in parallel instead of sequentially
+        // Derive storefront attributes from ACTIVE products only. The categories
+        // table is an authoring dictionary and may legitimately contain future or
+        // legacy categories; exposing it directly created empty storefront filters.
         const [categoryResults, brandResults, priceStats] = await Promise.all([
-            // Categories from dedicated table
-            db.select({ name: categories.name })
-                .from(categories)
-                .orderBy(categories.name),
+            db.selectDistinct({ name: products.category })
+                .from(products)
+                .where(and(
+                    isNull(products.deletedAt),
+                    sql`${products.category} IS NOT NULL`,
+                    sql`btrim(${products.category}) <> ''`
+                ))
+                .orderBy(products.category),
             // Unique brands from active products
             db.selectDistinct({ brand: products.brand })
                 .from(products)
