@@ -88,7 +88,9 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
   // Read shipping fee from settings (admin-configurable)
   const { data: shippingConfig } = useQuery<{ shippingFee: number }>({
     queryKey: ["/api/settings/shipping"],
-    staleTime: 1000 * 60 * 10,
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: "always",
   });
   const SHIPPING_FEE = shippingConfig?.shippingFee ?? 5000;
   const [step, setStep] = useState<'info' | 'confirm'>('info');
