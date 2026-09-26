@@ -63,6 +63,7 @@ describe("OrderStorage.updateCartItem stock enforcement", () => {
             id: "prod-1",
             name: "Tank",
             stock: 50, // base stock is high on purpose — must NOT be used for a variant line
+            hasVariants: true,
             variants: [
                 { id: "small", label: "Small", price: 10000, stock: 2 },
                 { id: "large", label: "Large", price: 20000, stock: 20 },
@@ -90,6 +91,7 @@ describe("OrderStorage.updateCartItem stock enforcement", () => {
             id: "prod-1",
             name: "Tank",
             stock: 50,
+            hasVariants: true,
             variants: [{ id: "small", label: "Small", price: 10000, stock: 4 }],
         };
         (getDb as any).mockReturnValue(makeFakeDb(cartItemRow, productRow));
