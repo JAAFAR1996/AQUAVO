@@ -4,6 +4,18 @@
 
 BEGIN;
 
+DO $guard$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM public.schema_migrations
+    WHERE version='0087_accounting_carton_adjustment_inventory_reconciliation'
+      AND rolled_back_at IS NULL
+  ) THEN
+    RAISE EXCEPTION '0088_REQUIRES_ACTIVE_0087';
+  END IF;
+END
+$guard$;
+
 CREATE OR REPLACE FUNCTION public.guard_products_inventory_direct_write()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -53,5 +65,17 @@ BEGIN
   RETURN NEW;
 END;
 $function$;
+
+INSERT INTO public.schema_migrations(version,checksum,notes)
+VALUES(
+  '0088_allow_zero_stock_variant_shape_changes',
+  '0000000000000000000000000000000000000000000000000000000000000000',
+  'Allow adding/removing zero-stock variant identities while retaining the ledger-only guard for every real stock quantity change. Runner must normalize checksum to SHA-256(file bytes).'
+)
+ON CONFLICT(version) DO UPDATE SET
+  checksum=EXCLUDED.checksum,
+  notes=EXCLUDED.notes,
+  rolled_back_at=NULL,
+  applied_at=now();
 
 COMMIT;
