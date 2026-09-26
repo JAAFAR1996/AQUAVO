@@ -18,6 +18,7 @@ import { addCsrfHeader } from "@/lib/csrf";
 import { WHATSAPP_NUMBER, WHATSAPP_URL } from "@/lib/constants/shipping";
 import { WhatsAppLink } from "@/components/whatsapp-link";
 import { useLocale } from "@/i18n/locale-context";
+import { formatShippingFeeNumber, useShippingFee } from "@/contexts/shipping-fee-context";
 
 const shopLinks = [
   { href: "/products", key: "links.allProducts" },
@@ -56,6 +57,7 @@ export default function Footer() {
   const { t } = useTranslation("nav");
   const { t: tc } = useTranslation("common");
   const { dir, href } = useLocale();
+  const shippingFeeLabel = formatShippingFeeNumber(useShippingFee());
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
@@ -229,7 +231,7 @@ export default function Footer() {
         <div className="flex flex-col gap-3 border-t border-border py-6 text-xs text-foreground/70 sm:flex-row sm:items-center sm:justify-between">
           <p>{t("footer.copyright", { year: new Date().getFullYear() })}</p>
           <p>{t("footer.paymentMethods")}</p>
-          <p>{tc("shipping.flatFee")}</p>
+          <p>{tc("shipping.flatFee", { fee: shippingFeeLabel })}</p>
         </div>
       </div>
     </footer>
