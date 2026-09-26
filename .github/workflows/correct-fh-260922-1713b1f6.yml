@@ -1,5 +1,5 @@
 name: Correct FH-260922-1713B1F6 delivery
-# Trigger one-time production correction.
+# Trigger one-time production correction (production trigger name verified).
 
 on:
   push:
@@ -152,7 +152,7 @@ jobs:
           ALTER TABLE public.orders
             DISABLE TRIGGER order_financial_history_immutable;
           ALTER TABLE public.orders
-            DISABLE TRIGGER orders_reverse_inventory_terminal;
+            DISABLE TRIGGER orders_reverse_inventory_on_terminal_status;
 
           UPDATE public.orders
           SET status='delivered',
@@ -161,7 +161,7 @@ jobs:
             AND status='returned';
 
           ALTER TABLE public.orders
-            ENABLE TRIGGER orders_reverse_inventory_terminal;
+            ENABLE TRIGGER orders_reverse_inventory_on_terminal_status;
           ALTER TABLE public.orders
             ENABLE TRIGGER order_financial_history_immutable;
 
