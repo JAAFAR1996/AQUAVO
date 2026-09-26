@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { formatIQD } from "@/lib/utils";
 import { useCart } from "@/contexts/cart-context";
@@ -10,7 +11,7 @@ import { ttqInitiateCheckout, ttqAddPaymentInfo, ttqPlaceAnOrder } from "@/lib/t
 import { phTrackInitiateCheckout, phTrackPurchase } from "@/lib/posthog";
 import { metaTrackInitiateCheckout, metaTrackPurchase } from "@/lib/meta-pixel";
 import { trackAddShippingInfo, trackBeginCheckout, trackPurchase } from "@/lib/analytics";
-import { BAGHDAD_SHIPPING, OTHER_GOVERNORATES_SHIPPING, WHATSAPP_URL, DELIVERY_DAYS } from "@/lib/constants/shipping";
+import { WHATSAPP_URL, DELIVERY_DAYS } from "@/lib/constants/shipping";
 import { ArrowRight, ShoppingCart, MessageCircle, Instagram } from "lucide-react";
 import { MetaTags } from "@/components/seo/meta-tags";
 import { resolveCheckoutTotal } from "@/lib/checkout-total";
@@ -39,6 +40,21 @@ export default function CheckoutPage() {
   const canUseTestMode = user?.role === "admin" || user?.role === "accounting_admin";
   const testRequested = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("test") === "1";
   const [testMode, setTestMode] = useState(testRequested);
+
+  const { data: shippingConfig } = useQuery<{ shippingFee: number }>({
+    queryKey: ["/api/settings/shipping"],
+    queryFn: async () => {
+      const response = await fetch("/api/settings/shipping", {
+        credentials: "include",
+        cache: "no-store",
+      });
+      if (!response.ok) throw new Error("Failed to load shipping fee");
+      return response.json();
+    },
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: "always",
+  });
 
   const [step, setStep] = useState<"info" | "confirm" | "success">("info");
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({
@@ -383,7 +399,7 @@ export default function CheckoutPage() {
     }
   }, [step]);
 
-  const baseDeliveryFee = customerInfo.governorate === "baghdad" ? BAGHDAD_SHIPPING : OTHER_GOVERNORATES_SHIPPING;
+  const baseDeliveryFee = Number(shippingConfig?.shippingFee ?? 5000);
   const isFreeShipping = appliedCoupon?.type === "free_shipping";
   const deliveryFee = isFreeShipping ? 0 : baseDeliveryFee;
   const discount = couponDiscount + loyaltyData.pointsDiscount;
