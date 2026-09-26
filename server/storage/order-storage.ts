@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 import { type Order, type Coupon, type AuditLog, type CartItem, type Favorite, type GallerySubmission, type GalleryPrize, type Payment, type ProductVariant, type OrderLineItem, orders, coupons, auditLogs, cartItems, favorites, gallerySubmissions, galleryVotes, galleryPrizes, payments, products, settings, orderItems, returnRequests, referrals, loyaltyTransactions, loyaltyCoupons, autoOrders } from "../../shared/schema.js";
-import { eq, desc, and, sql, or, isNull } from "drizzle-orm";
+import { eq, desc, and, sql, or, isNull, inArray } from "drizzle-orm";
 import { getDb } from "../db.js";
 import { toPublicProduct } from "../../shared/public-product.js";
 import { loyaltyStorage, type TransactionalOrderLoyaltyResult } from "./loyalty-storage.js";
@@ -18,9 +18,15 @@ const ORDER_NUMBER_MAX_ATTEMPTS = 3;
 // and the frontend can surface a clean message without leaking English.
 export const STOCK_ERROR_INSUFFICIENT = "الكمية المطلوبة غير متوفرة حالياً";
 export const STOCK_ERROR_MAX_REACHED = "وصلت للكمية المتوفرة";
+export const CART_ERROR_VARIANT_REQUIRED = "يرجى اختيار الخيار المطلوب قبل الإضافة للسلة";
+export const CART_ERROR_VARIANT_INVALID = "الخيار المحدد لم يعد متاحاً؛ اختر خياراً متوفراً من صفحة المنتج";
 export function isStockError(message?: string): boolean {
     if (!message) return false;
     return message.includes(STOCK_ERROR_INSUFFICIENT) || message.includes(STOCK_ERROR_MAX_REACHED);
+}
+export function isCartVariantError(message?: string): boolean {
+    if (!message) return false;
+    return message.includes(CART_ERROR_VARIANT_REQUIRED) || message.includes(CART_ERROR_VARIANT_INVALID);
 }
 
 /**
@@ -559,20 +565,56 @@ export class OrderStorage {
             .innerJoin(products, eq(cartItems.productId, products.id))
             .where(eq(cartItems.userId, userId));
 
-        // Sanitized for the same reason as getFavorites: GET /api/cart serves this to the customer, and
-        // the join pulled every cost column along with it. The variant price/name overrides below are
-        // applied on top of the PUBLIC product, so the storefront behaviour is unchanged.
-        return items.map(({ cartItem, product }) => ({
-            ...cartItem,
-            product: {
-                ...toPublicProduct(product),
-                // Use variant price if stored, otherwise fallback to product DB price
-                price: (cartItem as any).variantPrice ?? product.price,
-                name: (cartItem as any).variantLabel
-                    ? `${product.name} (${(cartItem as any).variantLabel})`
-                    : product.name,
+        // Self-heal cart rows that can no longer represent a purchasable SKU.
+        // This specifically catches historical rows left behind when a product was
+        // converted from multi-variant to a simple SKU (or when a variant was removed).
+        // Sold-out but still-valid rows are intentionally preserved so a customer can
+        // see what became unavailable and keep it for a future restock.
+        const staleIds: string[] = [];
+        const validItems: Array<CartItem & { product: any }> = [];
+
+        for (const { cartItem, product } of items) {
+            const variants = Array.isArray((product as any).variants)
+                ? ((product as any).variants as ProductVariant[])
+                : [];
+            const hasVariants = Boolean((product as any).hasVariants);
+            const variantId = (cartItem as any).variantId as string | null | undefined;
+            const selectedVariant = variantId
+                ? variants.find((variant) => variant.id === variantId)
+                : undefined;
+
+            const stale =
+                Boolean((product as any).deletedAt)
+                || (hasVariants && (!variantId || !selectedVariant))
+                || (!hasVariants && Boolean(variantId));
+
+            if (stale) {
+                staleIds.push(cartItem.id);
+                continue;
             }
-        }));
+
+            validItems.push({
+                ...cartItem,
+                product: {
+                    ...toPublicProduct(product),
+                    // Always derive variant presentation from the CURRENT product
+                    // definition; never trust historical client-supplied snapshots.
+                    price: selectedVariant?.price ?? product.price,
+                    name: selectedVariant?.label
+                        ? `${product.name} (${selectedVariant.label})`
+                        : product.name,
+                }
+            } as CartItem & { product: any });
+        }
+
+        if (staleIds.length > 0) {
+            await db.delete(cartItems).where(and(
+                eq(cartItems.userId, userId),
+                inArray(cartItems.id, staleIds)
+            ));
+        }
+
+        return validItems;
     }
 
     async addToCart(
@@ -591,13 +633,30 @@ export class OrderStorage {
             .where(or(eq(products.id, productId), eq(products.slug, productId)));
         if (!product) throw new Error("Product not found");
 
-        // Source of truth for stock: for variant products use the selected
-        // variant's stock, otherwise the base product stock.
-        let effectiveStock = product.stock || 0;
-        if (variantId && Array.isArray((product as any).variants)) {
-            const selected = ((product as any).variants as ProductVariant[]).find((v) => v.id === variantId);
-            if (selected) effectiveStock = Number(selected.stock ?? 0);
+        // Source of truth for SKU identity, price and stock is the CURRENT
+        // product row. Client-supplied variantPrice/variantLabel are never trusted.
+        const variants = Array.isArray((product as any).variants)
+            ? ((product as any).variants as ProductVariant[])
+            : [];
+        const hasVariants = Boolean((product as any).hasVariants);
+
+        let effectiveStock = Number(product.stock ?? 0);
+        let canonicalVariantPrice: number | undefined;
+        let canonicalVariantLabel: string | undefined;
+
+        if (hasVariants) {
+            if (!variantId) throw new Error(CART_ERROR_VARIANT_REQUIRED);
+            const selected = variants.find((v) => v.id === variantId);
+            if (!selected) throw new Error(CART_ERROR_VARIANT_INVALID);
+            effectiveStock = Number(selected.stock ?? 0);
+            canonicalVariantPrice = Number(selected.price ?? 0);
+            canonicalVariantLabel = selected.label;
+            if (!(canonicalVariantPrice > 0)) throw new Error(CART_ERROR_VARIANT_INVALID);
+        } else if (variantId) {
+            // Historical/forged variant ids must never fall back to base stock.
+            throw new Error(CART_ERROR_VARIANT_INVALID);
         }
+
         if (effectiveStock < quantity) throw new Error(STOCK_ERROR_INSUFFICIENT);
 
         const actualProductId = product.id;
@@ -618,10 +677,9 @@ export class OrderStorage {
             const [updated] = await db.update(cartItems)
                 .set({
                     quantity: (existing.quantity || 0) + quantity,
-                    // Update variant info if provided (user may change variant)
-                    ...(variantPrice !== undefined && { variantPrice: variantPrice.toString() }),
-                    ...(variantLabel !== undefined && { variantLabel }),
-                    ...(variantId !== undefined && { variantId }),
+                    ...(hasVariants && canonicalVariantPrice !== undefined && { variantPrice: canonicalVariantPrice.toString() }),
+                    ...(hasVariants && canonicalVariantLabel !== undefined && { variantLabel: canonicalVariantLabel }),
+                    ...(hasVariants && variantId !== undefined && { variantId }),
                 } as any)
                 .where(eq(cartItems.id, existing.id))
                 .returning();
@@ -632,10 +690,10 @@ export class OrderStorage {
                     userId,
                     productId: actualProductId,
                     quantity,
-                    // Store variant info for correct pricing
-                    ...(variantPrice !== undefined && { variantPrice: variantPrice.toString() }),
-                    ...(variantLabel !== undefined && { variantLabel }),
-                    ...(variantId !== undefined && { variantId }),
+                    // Store the canonical CURRENT variant snapshot for cart display only.
+                    ...(hasVariants && canonicalVariantPrice !== undefined && { variantPrice: canonicalVariantPrice.toString() }),
+                    ...(hasVariants && canonicalVariantLabel !== undefined && { variantLabel: canonicalVariantLabel }),
+                    ...(hasVariants && variantId !== undefined && { variantId }),
                 } as any)
                 .returning();
             return created;
@@ -658,12 +716,21 @@ export class OrderStorage {
                 .where(eq(products.id, existing.productId));
 
             if (product) {
+                const variants = Array.isArray((product as any).variants)
+                    ? ((product as any).variants as ProductVariant[])
+                    : [];
+                const hasVariants = Boolean((product as any).hasVariants);
                 let effectiveStock = Number(product.stock ?? 0);
-                if (existing.variantId && Array.isArray((product as any).variants)) {
-                    const selected = ((product as any).variants as ProductVariant[])
-                        .find((v) => v.id === existing.variantId);
-                    if (selected) effectiveStock = Number(selected.stock ?? 0);
+
+                if (hasVariants) {
+                    if (!existing.variantId) throw new Error(CART_ERROR_VARIANT_REQUIRED);
+                    const selected = variants.find((v) => v.id === existing.variantId);
+                    if (!selected) throw new Error(CART_ERROR_VARIANT_INVALID);
+                    effectiveStock = Number(selected.stock ?? 0);
+                } else if (existing.variantId) {
+                    throw new Error(CART_ERROR_VARIANT_INVALID);
                 }
+
                 if (effectiveStock < quantity) {
                     throw new Error(STOCK_ERROR_INSUFFICIENT);
                 }
