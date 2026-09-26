@@ -1,5 +1,5 @@
 name: Correct FH-260922-1713B1F6 delivery
-# Trigger one-time production correction (production trigger name verified).
+# Trigger one-time production correction (false return kept as disputed audit evidence).
 
 on:
   push:
@@ -131,8 +131,6 @@ jobs:
           -- The automatic return record is false evidence for this real delivery.
           UPDATE public.order_return_events e
           SET status='disputed',
-              restocked=false,
-              restocked_at=NULL,
               note=concat_ws(
                 ' | ',
                 NULLIF(e.note,''),
@@ -222,8 +220,7 @@ jobs:
             ORDER BY created_at DESC
             LIMIT 1;
 
-            IF v_return_status IS DISTINCT FROM 'disputed'
-               OR COALESCE(v_restocked,false)<>false THEN
+            IF v_return_status IS DISTINCT FROM 'disputed' THEN
               RAISE EXCEPTION
                 'FINAL_RETURN_EVENT_NOT_DISPUTED: status=% restocked=%',
                 v_return_status,v_restocked;
