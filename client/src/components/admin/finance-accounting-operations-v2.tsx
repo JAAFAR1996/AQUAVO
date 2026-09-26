@@ -311,7 +311,7 @@ export function FinanceAccountingOperationsV2({ periodKey }: { periodKey: string
         </Panel>
 
         <Panel title="شركات التوصيل">
-          <p style={hintStyle}>الوسيط هي الافتراضية حالياً وأجرتها 5,000 د.ع. تكدر تضيف شركات ثانية وتغيّر الافتراضية؛ كل طلب يحتفظ باسم الشركة وأجرتها وقت التوصيل.</p>
+          <p style={hintStyle}>شركة التوصيل الافتراضية وأجرتها الحالية تبين بالقائمة. تكدر تضيف شركات ثانية وتغيّر الافتراضية؛ كل طلب يحتفظ باسم الشركة وأجرتها وقت التوصيل.</p>
           <div style={{ display: "grid", gap: 6 }}>{(companies.data?.items ?? []).map((item) => <div key={item.id} style={{ border: "1px solid #1e3a5f", borderRadius: 8, padding: 8, color: "#cbd5e1", fontSize: 12, display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center" }}><span>{item.name} — {formatIqd(item.default_fee)} {item.is_default ? "— الافتراضية" : ""} {!item.active ? "— متوقفة" : ""}</span>{item.active && !item.is_default ? <button style={secondaryButtonStyle} onClick={() => makeDefaultCompany.mutate(item.id)}>اجعلها افتراضية</button> : null}</div>)}</div>
           <Field label="اسم شركة جديدة"><input style={inputStyle} value={newCompanyName} onChange={(e) => setNewCompanyName(e.target.value)} /></Field>
           <Field label="أجرتها الافتراضية"><input type="number" min="0" style={inputStyle} value={newCompanyFee} onChange={(e) => setNewCompanyFee(e.target.value)} /></Field>
