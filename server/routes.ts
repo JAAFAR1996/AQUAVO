@@ -84,9 +84,12 @@ declare module "express-session" {
 
 export async function registerRoutes(httpServer: Server, app: express.Application): Promise<Server> {
   app.get("/api/settings/shipping", async (_req, res) => {
+    res.set("Cache-Control", "no-store");
     try {
-      const shippingFee = await storage.getSetting("shipping_fee");
-      res.json({ shippingFee: Number(shippingFee ?? 5000) });
+      const stored = await storage.getSetting("shipping_fee");
+      const parsed = Number(stored ?? 5000);
+      const shippingFee = Number.isFinite(parsed) && parsed > 0 ? parsed : 5000;
+      res.json({ shippingFee });
     } catch {
       res.json({ shippingFee: 5000 });
     }
