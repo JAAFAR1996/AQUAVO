@@ -59,7 +59,7 @@ export function JourneySummary({ wizardData, products }: JourneySummaryProps) {
 
     const addRecommendedProductsToCart = async () => {
         const addedCount = await addItems(recommendations);
-        if (addedCount <= 0) return;
+        if (addedCount !== recommendations.length) return;
         toast({
             title: t("journey-summary.s1"),
             description: t("journey-summary.s2"),
