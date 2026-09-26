@@ -68,6 +68,78 @@ interface ServerCartItem {
   quantity: number;
 }
 
+type CartPreflightLine = {
+  productId: string;
+  variantId?: string | null;
+  quantity: number;
+  name?: string;
+  slug?: string;
+  thumbnail?: string | null;
+  variantLabel?: string | null;
+  price?: number | null;
+  stock: number;
+  valid: boolean;
+  reason?: string | null;
+};
+
+async function preflightGuestCartItems(items: CartItem[]): Promise<CartItem[]> {
+  if (items.length === 0) return items;
+
+  try {
+    const response = await fetch("/api/cart/preflight", {
+      method: "POST",
+      headers: addCsrfHeader({ "Content-Type": "application/json" }),
+      credentials: "include",
+      cache: "no-store",
+      body: JSON.stringify({
+        items: items.map(({ productId, variantId, quantity }) => ({
+          productId,
+          ...(variantId ? { variantId } : {}),
+          quantity,
+        })),
+      }),
+    });
+    if (!response.ok) return items;
+
+    const payload = await response.json() as { items?: CartPreflightLine[] };
+    if (!Array.isArray(payload.items)) return items;
+
+    const key = (productId: string, variantId?: string | null) =>
+      `${productId}::${variantId ?? ""}`;
+    const currentByKey = new Map(
+      payload.items.map((line) => [key(line.productId, line.variantId), line]),
+    );
+
+    return items.map((item) => {
+      const current = currentByKey.get(key(item.productId, item.variantId));
+      if (!current) return item;
+
+      const identityStillValid = ![
+        "PRODUCT_NOT_FOUND",
+        "VARIANT_REQUIRED",
+        "VARIANT_INVALID",
+        "NOT_PURCHASABLE",
+      ].includes(String(current.reason ?? ""));
+
+      return {
+        ...item,
+        name: current.name ?? item.name,
+        slug: current.slug ?? item.slug,
+        image: current.thumbnail ?? item.image,
+        variantLabel: current.variantLabel ?? item.variantLabel,
+        price: identityStillValid && current.price != null
+          ? Number(current.price)
+          : item.price,
+        stock: Number.isFinite(Number(current.stock))
+          ? Math.max(0, Number(current.stock))
+          : 0,
+      };
+    });
+  } catch {
+    return items;
+  }
+}
+
 interface CartContextType {
   items: CartItem[];
   /** Resolves true when the item was added, false when blocked (e.g. out of stock). */
@@ -162,10 +234,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const stored = syncStorage.getItem<CartItem[]>(CART_STORAGE_KEY);
       if (stored) {
         try {
-          setItems(stored.map((item) => ({
+          const normalized = stored.map((item) => ({
             ...item,
             name: normalizeCartItemName(item.name, item.variantLabel),
-          })));
+          }));
+          setItems(normalized);
+
+          // localStorage is only a convenience snapshot. Reconcile it against
+          // current public catalogue truth immediately so guest users do not
+          // browse or enter checkout with obsolete price/stock information.
+          void preflightGuestCartItems(normalized).then((freshItems) => {
+            setItems(freshItems);
+            syncStorage.setItem(CART_STORAGE_KEY, freshItems);
+          });
         } catch (e) {
           console.error("Failed to parse cart", e);
         }
@@ -586,7 +667,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [user, removeItem, items]);
 
   const refetchCart = useCallback(async (): Promise<CartItem[]> => {
-    if (!user) return items;
+    if (!user) {
+      const freshItems = await preflightGuestCartItems(items);
+      setItems(freshItems);
+      syncStorage.setItem(CART_STORAGE_KEY, freshItems);
+      return freshItems;
+    }
     try {
       const cartRes = await fetch("/api/cart", { credentials: "include" });
       if (cartRes.ok) {
