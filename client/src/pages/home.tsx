@@ -85,7 +85,9 @@ export default function Home() {
   const { data: salesData, isLoading: isStorePicksLoading, isError: isStorePicksError } = useQuery({
     queryKey: ["products", "top-selling"],
     queryFn: fetchTopSellingProducts,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: "always",
     retry: false,
   });
 
