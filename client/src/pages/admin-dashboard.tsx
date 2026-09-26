@@ -544,6 +544,17 @@ export default function AdminDashboard() {
         ...data,
         name: `نسخة من ${product.name}`,
         slug: `${product.slug}-copy-${Date.now()}`,
+        // Product duplication copies the catalogue definition, never physical
+        // inventory. Stock must be received/count-adjusted independently.
+        stock: 0,
+        ...((data as any).hasVariants && Array.isArray((data as any).variants)
+          ? {
+              variants: (data as any).variants.map((variant: any) => ({
+                ...variant,
+                stock: 0,
+              })),
+            }
+          : {}),
       };
       const res = await fetch("/api/admin/products", {
         method: "POST",
