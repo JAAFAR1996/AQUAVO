@@ -129,12 +129,18 @@ function availability(stock: string | number | null | undefined): string {
     : "https://schema.org/OutOfStock";
 }
 
-function shippingDetails(): object {
+function normalizedShippingFee(value: unknown): number {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) && numeric > 0 ? numeric : AQUAVO_ENTITY.deliveryFee;
+}
+
+function shippingDetails(shippingFee = AQUAVO_ENTITY.deliveryFee): object {
+  const liveFee = normalizedShippingFee(shippingFee);
   return {
     "@type": "OfferShippingDetails",
     shippingRate: {
       "@type": "MonetaryAmount",
-      value: AQUAVO_ENTITY.deliveryFee,
+      value: liveFee,
       currency: AQUAVO_ENTITY.currency,
     },
     shippingDestination: {
@@ -177,6 +183,7 @@ function buildOffer(
   price: string | number | null | undefined,
   currency: string,
   stock: string | number | null | undefined,
+  shippingFee = AQUAVO_ENTITY.deliveryFee,
 ): object | undefined {
   const numericPrice = numberValue(price);
   if (numericPrice === null || numericPrice <= 0) return undefined;
@@ -188,7 +195,7 @@ function buildOffer(
     availability: availability(stock),
     itemCondition: "https://schema.org/NewCondition",
     seller: { "@id": `${AQUAVO_BASE_URL}/#organization` },
-    shippingDetails: shippingDetails(),
+    shippingDetails: shippingDetails(shippingFee),
     eligibleRegion: {
       "@type": "Country",
       name: AQUAVO_ENTITY.countryName,
@@ -258,7 +265,11 @@ function variantIdentityProperties(label: string, variesBy: string[]): Record<st
   return properties;
 }
 
-export function buildProductStructuredData(product: SeoPreviewProduct): object[] {
+export function buildProductStructuredData(
+  product: SeoPreviewProduct,
+  options: { shippingFee?: number } = {},
+): object[] {
+  const shippingFee = normalizedShippingFee(options.shippingFee);
   const url = `${AQUAVO_BASE_URL}/products/${encodeURIComponent(product.slug)}`;
   const currency = product.currency || AQUAVO_ENTITY.currency;
   const description = cleanText(product.description, `معلومات ومواصفات ${product.name} من AQUAVO.`);
@@ -303,7 +314,7 @@ export function buildProductStructuredData(product: SeoPreviewProduct): object[]
           name: "الخيار",
           value: variant.label,
         },
-        offers: buildOffer(url, variant.price, currency, variant.stock),
+        offers: buildOffer(url, variant.price, currency, variant.stock, shippingFee),
       })),
       aggregateRating: rating,
     };
@@ -323,7 +334,7 @@ export function buildProductStructuredData(product: SeoPreviewProduct): object[]
       sku,
       brand,
       category,
-      offers: buildOffer(url, productPrice, currency, productStock),
+      offers: buildOffer(url, productPrice, currency, productStock, shippingFee),
       aggregateRating: rating,
     };
   }
@@ -366,7 +377,7 @@ export function buildProductStructuredData(product: SeoPreviewProduct): object[]
     // The Offer's `seller` and the WebPage's `isPartOf` both point at @ids that
     // were only ever defined on the home page. Defining them here too is what
     // makes those references resolve on a product page instead of dangling.
-    ...buildEntityStructuredData(),
+    ...buildEntityStructuredData({ shippingFee }),
   ];
 }
 
@@ -421,7 +432,10 @@ export function buildCollectionStructuredData(
  * WebPage that was part of nothing. Every page that references them now also
  * defines them.
  */
-export function buildEntityStructuredData(options: { includeMerchantPolicies?: boolean } = {}): object[] {
+export function buildEntityStructuredData(
+  options: { includeMerchantPolicies?: boolean; shippingFee?: number } = {},
+): object[] {
+  const shippingFee = normalizedShippingFee(options.shippingFee);
   const merchantPolicies = options.includeMerchantPolicies
     ? {
         hasMerchantReturnPolicy: {
@@ -432,7 +446,7 @@ export function buildEntityStructuredData(options: { includeMerchantPolicies?: b
           "@type": "ShippingService",
           "@id": `${AQUAVO_BASE_URL}/#shipping-iraq`,
           name: "توصيل AQUAVO داخل العراق",
-          description: `توصيل طلبات AQUAVO إلى جميع محافظات العراق بأجرة ثابتة ${AQUAVO_ENTITY.deliveryFee.toLocaleString("en-US")} د.ع.`,
+          description: `توصيل طلبات AQUAVO إلى جميع محافظات العراق بأجرة ثابتة ${shippingFee.toLocaleString("en-US")} د.ع.`,
           fulfillmentType: "https://schema.org/FulfillmentTypeDelivery",
           shippingConditions: {
             "@type": "ShippingConditions",
@@ -442,7 +456,7 @@ export function buildEntityStructuredData(options: { includeMerchantPolicies?: b
             },
             shippingRate: {
               "@type": "MonetaryAmount",
-              value: AQUAVO_ENTITY.deliveryFee,
+              value: shippingFee,
               currency: AQUAVO_ENTITY.currency,
             },
             transitTime: {
@@ -537,9 +551,12 @@ export function withSiteEntities(nodes: object[]): object[] {
   return alreadyPresent ? nodes : [...nodes, ...buildEntityStructuredData()];
 }
 
-export function buildHomeStructuredData(products: SeoPreviewProduct[]): object[] {
+export function buildHomeStructuredData(
+  products: SeoPreviewProduct[],
+  options: { shippingFee?: number } = {},
+): object[] {
   return [
-    ...buildEntityStructuredData({ includeMerchantPolicies: true }),
+    ...buildEntityStructuredData({ includeMerchantPolicies: true, shippingFee: options.shippingFee }),
     ...buildCollectionStructuredData(products.slice(0, 24), "/", "منتجات AQUAVO"),
   ];
 }
