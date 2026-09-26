@@ -1,0 +1,122 @@
+name: Purge selected AQUAVO test orders v2
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/purge-selected-test-orders-20260926-v2.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  purge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: production
+    steps:
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client
+
+      - name: Purge exact cancelled test orders
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          set -euo pipefail
+          test -n "$DATABASE_URL"
+
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 <<'SQL'
+          BEGIN;
+
+          DO $guard$
+          DECLARE
+            v_found integer;
+            v_bad integer;
+          BEGIN
+            SELECT count(*) INTO v_found
+            FROM public.orders
+            WHERE order_number IN (
+              'TEST-14B0CCBA3F',
+              'TEST-F6170A99F5',
+              'TEST-9FBD2E5F4D',
+              'TEST-D903ADCDB0'
+            );
+
+            IF v_found <> 4 THEN
+              RAISE EXCEPTION 'EXPECTED_4_ORDERS_FOUND_%', v_found;
+            END IF;
+
+            SELECT count(*) INTO v_bad
+            FROM public.orders
+            WHERE order_number IN (
+              'TEST-14B0CCBA3F',
+              'TEST-F6170A99F5',
+              'TEST-9FBD2E5F4D',
+              'TEST-D903ADCDB0'
+            )
+            AND (
+              lower(btrim(COALESCE(status,''))) <> 'cancelled'
+              OR delivered_at IS NOT NULL
+              OR COALESCE(financially_counted,false)
+              OR COALESCE(cod_received,false)
+            );
+
+            IF v_bad <> 0 THEN
+              RAISE EXCEPTION 'PURGE_BLOCKED_%_ORDERS_NOT_SAFE_CANCELLED_TEST_ROWS', v_bad;
+            END IF;
+          END
+          $guard$;
+
+          SELECT id AS purge_id FROM public.orders WHERE order_number='TEST-14B0CCBA3F' \gset
+          SELECT public.purge_non_delivered_order(
+            :'purge_id',
+            'owner:Jaafar',
+            'Owner requested permanent deletion of cancelled test order on 2026-09-26'
+          );
+
+          SELECT id AS purge_id FROM public.orders WHERE order_number='TEST-F6170A99F5' \gset
+          SELECT public.purge_non_delivered_order(
+            :'purge_id',
+            'owner:Jaafar',
+            'Owner requested permanent deletion of cancelled test order on 2026-09-26'
+          );
+
+          SELECT id AS purge_id FROM public.orders WHERE order_number='TEST-9FBD2E5F4D' \gset
+          SELECT public.purge_non_delivered_order(
+            :'purge_id',
+            'owner:Jaafar',
+            'Owner requested permanent deletion of cancelled test order on 2026-09-26'
+          );
+
+          SELECT id AS purge_id FROM public.orders WHERE order_number='TEST-D903ADCDB0' \gset
+          SELECT public.purge_non_delivered_order(
+            :'purge_id',
+            'owner:Jaafar',
+            'Owner requested permanent deletion of cancelled test order on 2026-09-26'
+          );
+
+          DO $verify$
+          DECLARE
+            v_remaining integer;
+          BEGIN
+            SELECT count(*) INTO v_remaining
+            FROM public.orders
+            WHERE order_number IN (
+              'TEST-14B0CCBA3F',
+              'TEST-F6170A99F5',
+              'TEST-9FBD2E5F4D',
+              'TEST-D903ADCDB0'
+            );
+
+            IF v_remaining <> 0 THEN
+              RAISE EXCEPTION 'PURGE_VERIFY_FAILED_REMAINING_%', v_remaining;
+            END IF;
+          END
+          $verify$;
+
+          COMMIT;
+
+          SELECT 'PURGE_OK' AS result;
+          SQL
