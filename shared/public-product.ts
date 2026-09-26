@@ -237,13 +237,15 @@ export function toPublicProduct(product: unknown): AnyRecord | null {
   // migration 0073 that the ProductVariant type does not declare.
   const rawVariants = (product as AnyRecord).variants;
   const hasVariants = Boolean((product as AnyRecord).hasVariants);
-  if (hasVariants && Array.isArray(rawVariants)) {
-    publicProduct.variants = rawVariants.map(toPublicVariant);
-  } else {
+  if (!hasVariants) {
     // Historical variant JSON may remain after a SKU is deliberately converted
     // to a simple product. hasVariants=false is the active commerce contract;
     // never expose stale option stock/prices to the storefront or crawlers.
     publicProduct.variants = [];
+  } else if (Array.isArray(rawVariants)) {
+    publicProduct.variants = rawVariants.map(toPublicVariant);
+  } else if (rawVariants === null) {
+    publicProduct.variants = null;
   }
 
   return publicProduct;
