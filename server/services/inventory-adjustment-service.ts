@@ -1,5 +1,6 @@
 import { randomUUID } from "crypto";
 import { sql } from "drizzle-orm";
+import { preserveInternalVariantFields } from "../../shared/public-product.js";
 
 export type InventoryAdjustmentActor = {
   clientId: string;
@@ -161,5 +162,150 @@ ${sourceType},
     new_stock: targetStock,
     adjustment,
     changed: true,
+  };
+}
+
+
+export type VariantConfigurationInput = Record<string, unknown> & {
+  id?: unknown;
+  stock?: unknown;
+};
+
+export type VariantConfigurationResult = {
+  has_variants: boolean;
+  variants: Array<Record<string, unknown>>;
+  stock_adjustments: InventoryAdjustmentResult[];
+};
+
+/**
+ * Replace a product's variant structure without bypassing ledger enforcement.
+ *
+ * Safe sequence inside ONE transaction:
+ * 1) zero inventory for variants being removed (or base stock when enabling variants),
+ * 2) update variant metadata with unchanged/zero stock only,
+ * 3) project requested target stocks through inventory_movements,
+ * 4) when disabling variants, reconcile the base ledger back to zero.
+ *
+ * The database guard intentionally blocks direct quantity changes. Structure-only
+ * add/remove is safe when the absent side is treated as stock=0 (migration 0088).
+ */
+export async function setCanonicalVariantConfiguration(
+  tx: InventoryAdjustmentTx,
+  actor: InventoryAdjustmentActor,
+  productId: string,
+  hasVariantsInput: unknown,
+  variantsInput: unknown,
+): Promise<VariantConfigurationResult> {
+  const hasVariants = Boolean(hasVariantsInput);
+  const requestedVariants = hasVariants
+    ? (Array.isArray(variantsInput) ? variantsInput as VariantConfigurationInput[] : [])
+    : [];
+
+  if (hasVariants && requestedVariants.length === 0) {
+    throw new Error("عند تفعيل الخيارات يجب إضافة خيار واحد على الأقل");
+  }
+
+  const ids = new Set<string>();
+  const targets = new Map<string, number>();
+  for (const raw of requestedVariants) {
+    const id = typeof raw?.id === "string" ? raw.id.trim() : "";
+    if (!id) throw new Error("كل خيار يحتاج id غير فارغ");
+    if (ids.has(id)) throw new Error(`معرّف الخيار مكرر: ${id}`);
+    ids.add(id);
+
+    const stock = Number(raw.stock ?? 0);
+    if (!Number.isInteger(stock) || stock < 0) {
+      throw new Error(`مخزون الخيار "${id}" يجب أن يكون عدداً صحيحاً أكبر من أو يساوي صفر`);
+    }
+    targets.set(id, stock);
+  }
+
+  await tx.execute(sql`
+    SELECT pg_advisory_xact_lock(hashtext(${productId || ""} || ':variant-config'))
+  `);
+
+  const currentResult = await tx.execute(sql`
+    SELECT id, has_variants, stock, variants
+    FROM products
+    WHERE id = ${productId} AND deleted_at IS NULL
+    FOR UPDATE
+  `) as {
+    rows?: Array<{
+      id: string;
+      has_variants: boolean;
+      stock: number | string;
+      variants: unknown;
+    }>;
+  };
+  const current = currentResult.rows?.[0];
+  if (!current) throw new Error(`المنتج "${productId}" غير موجود`);
+
+  const currentHasVariants = Boolean(current.has_variants);
+  const currentVariants = Array.isArray(current.variants)
+    ? current.variants as Array<Record<string, unknown>>
+    : [];
+  const currentById = new Map(
+    currentVariants
+      .map((variant) => [String(variant?.id ?? ""), variant] as const)
+      .filter(([id]) => Boolean(id)),
+  );
+
+  const adjustments: InventoryAdjustmentResult[] = [];
+
+  // A simple SKU and a variant SKU must never both carry canonical stock.
+  if (!currentHasVariants && hasVariants) {
+    adjustments.push(await setCanonicalProductStock(tx, actor, productId, 0, null));
+  }
+
+  if (currentHasVariants) {
+    for (const variant of currentVariants) {
+      const id = String(variant?.id ?? "");
+      if (!id || ids.has(id)) continue;
+      // Removed variants must be emptied through the ledger before their JSON
+      // entry disappears, otherwise historical positive stock would be orphaned.
+      adjustments.push(await setCanonicalProductStock(tx, actor, productId, 0, id));
+    }
+  }
+
+  const structureVariants = requestedVariants.map((variant) => {
+    const id = String(variant.id);
+    const existing = currentHasVariants ? currentById.get(id) : undefined;
+    return {
+      ...variant,
+      // Existing SKU keeps its projected stock until phase 3. New SKU starts
+      // at zero so the direct JSON write carries no inventory quantity.
+      stock: existing ? Number(existing.stock ?? 0) : 0,
+    };
+  });
+
+  const merged = hasVariants
+    ? preserveInternalVariantFields(structureVariants, currentVariants)
+    : null;
+
+  await tx.execute(sql`
+    UPDATE products
+    SET has_variants = ${hasVariants},
+        variants = ${merged === null ? null : JSON.stringify(merged)}::jsonb,
+        updated_at = now()
+    WHERE id = ${productId}
+  `);
+
+  if (hasVariants) {
+    for (const variant of requestedVariants) {
+      const id = String(variant.id);
+      adjustments.push(
+        await setCanonicalProductStock(tx, actor, productId, targets.get(id) ?? 0, id),
+      );
+    }
+  } else {
+    // After the structure becomes simple, clear any historical base-ledger
+    // residue that may have existed while the product was variant-based.
+    adjustments.push(await setCanonicalProductStock(tx, actor, productId, 0, null));
+  }
+
+  return {
+    has_variants: hasVariants,
+    variants: hasVariants ? requestedVariants.map((variant) => ({ ...variant })) : [],
+    stock_adjustments: adjustments,
   };
 }
