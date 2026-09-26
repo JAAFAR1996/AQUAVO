@@ -129,16 +129,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     }
 
     if (request.params.name === "update_product_stock") {
-      const { productId, newStock } = request.params.arguments as any;
-      
-      const updated = await db.update(products)
-        .set({ stock: newStock, updatedAt: new Date() })
-        .where(eq(products.id, productId))
-        .returning();
-        
-      return {
-        content: [{ type: "text", text: JSON.stringify({ success: true, updated: updated[0] }, null, 2) }]
-      };
+      throw new McpError(
+        ErrorCode.InvalidRequest,
+        "Legacy stock writes are disabled. Use the authenticated AQUAVO MCP update_stock tool, which posts inventory_movements."
+      );
     }
 
     if (request.params.name === "get_social_insights_from_analyzer") {
