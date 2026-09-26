@@ -20,6 +20,7 @@ import { getDb } from "../db.js";
 import { recordFinancialChange, actorFromRequest, type FinancialEntityType } from "../services/accountingAuditTrail.js";
 // Canonical engine — per-order profit MUST come from here, not an inline formula.
 import { buildCostResolver, buildFulfillmentResolver, calcOrderProfit, collectProductIds } from "../services/accounting-engine.js";
+import { setCanonicalProductStock, type InventoryAdjustmentResult } from "../services/inventory-adjustment-service.js";
 
 /** Strip sensitive fields before sending user data to client */
 function sanitizeUser(user: Record<string, any>) {
@@ -1321,6 +1322,8 @@ export function createAdminRouter(): RouterType {
         try {
             const { id } = req.params as { id: string };
             const updates = adminProductUpdateSchema.parse(req.body);
+            const requestedStock = updates.stock;
+            delete updates.stock;
 
             // Get existing product to merge images
             const existingProduct = await storage.getProduct(id);
@@ -1385,13 +1388,32 @@ export function createAdminRouter(): RouterType {
             // Enforce validation to make sure everything is a Cloudinary URL or allowed local path
             validateImageUrls(updates.thumbnail as string | undefined, updates.images as string[] | undefined);
 
-            const product = await storage.updateProduct(id, updates);
-            clearProductsCache(); // Invalidate cache on product update
-
+            let product = await storage.updateProduct(id, updates);
             if (!product) {
                 res.status(404).json({ message: "Product not found" });
                 return;
             }
+
+            let stockAdjustment: InventoryAdjustmentResult | null = null;
+            if (requestedStock !== undefined) {
+                const db = getDb();
+                if (!db) {
+                    res.status(503).json({ message: "قاعدة البيانات غير مهيأة" });
+                    return;
+                }
+                const adminId = getSession(req)?.userId || "admin";
+                stockAdjustment = await db.transaction(async (tx: any) =>
+                    setCanonicalProductStock(
+                        tx,
+                        { clientId: adminId, mode: "admin" },
+                        id,
+                        requestedStock,
+                        null,
+                    ),
+                );
+                product = await storage.getProduct(id) ?? product;
+            }
+            clearProductsCache(); // compatibility no-op; public product APIs are no-store
 
             // Re-generate embedding on product update (name/description/category change)
             if (updates.name || updates.description || updates.category || updates.brand) {
@@ -1406,7 +1428,10 @@ export function createAdminRouter(): RouterType {
                 action: "update",
                 entityType: "product",
                 entityId: product.id,
-                changes: updates
+                changes: {
+                    ...updates,
+                    ...(requestedStock !== undefined ? { stock: requestedStock, stockAdjustment } : {}),
+                }
             });
 
             // Check if price was provided in updates
