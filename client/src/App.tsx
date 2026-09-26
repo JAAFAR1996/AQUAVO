@@ -9,6 +9,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { CartProvider } from "@/contexts/cart-context";
 import { WishlistProvider } from "@/contexts/wishlist-context";
 import { AuthProvider } from "@/contexts/auth-context";
+import { ShippingFeeProvider } from "@/contexts/shipping-fee-context";
 import { RequireAdmin } from "@/components/auth/require-admin";
 import { FlowGateProvider } from "@/lib/motion/flow-gate-context";
 // Lazy-load heavy effects that read DOM geometry and cause forced reflows
@@ -1037,6 +1038,7 @@ function AppShell() {
     // covered separately by the global rule in client/src/index.css.
     <MotionConfig reducedMotion="always" transition={{ duration: 0 }}>
     <QueryClientProvider client={queryClient}>
+      <ShippingFeeProvider>
       <AuthProvider>
         <CartProvider>
           <WishlistProvider>
@@ -1130,6 +1132,7 @@ function AppShell() {
           </WishlistProvider>
         </CartProvider>
       </AuthProvider>
+      </ShippingFeeProvider>
     </QueryClientProvider>
     </MotionConfig>
   );
