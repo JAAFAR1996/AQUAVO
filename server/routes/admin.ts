@@ -942,7 +942,20 @@ export function createAdminRouter(): RouterType {
     // Coupons
     router.get("/coupons", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const coupons = await storage.getCoupons();
+            const couponRows = await storage.getCoupons();
+            const now = new Date();
+            const coupons = couponRows.map((coupon) => {
+                const exhausted = coupon.maxUses != null && (coupon.usedCount ?? 0) >= coupon.maxUses;
+                const expired = coupon.endDate != null && new Date(coupon.endDate) < now;
+                return {
+                    ...coupon,
+                    // Admin should see operational truth, not only the persisted toggle.
+                    isActive: Boolean(coupon.isActive && !exhausted && !expired),
+                    exhausted,
+                    expired,
+                };
+            });
+            res.set("Cache-Control", "no-store");
             res.json(coupons);
         } catch (err) { next(err); }
     });
