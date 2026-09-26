@@ -21,7 +21,7 @@
     "payment": "طرق دفع مرنة",
     "paymentDetail": "عند الاستلام أو إلكترونياً",
     "fee": "أجرة توصيل ثابتة",
-    "feeDetail": "5,000 د.ع",
+    "feeDetail": "{{fee}} د.ع",
     "support": "دعم 24/7",
     "supportDetail": "نساعدك تختار المناسب"
   },
