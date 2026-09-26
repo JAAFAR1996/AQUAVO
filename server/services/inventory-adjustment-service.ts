@@ -3,7 +3,7 @@ import { sql } from "drizzle-orm";
 
 export type InventoryAdjustmentActor = {
   clientId: string;
-  mode: "oauth" | "static";
+  mode: "oauth" | "static" | "admin";
 };
 
 export type InventoryAdjustmentResult = {
@@ -117,6 +117,9 @@ export async function setCanonicalProductStock(
   }
 
   const sourceId = randomUUID();
+  const sourceType = actor.mode === "admin" ? "admin_stock_adjustment" : "mcp_stock_adjustment";
+  const createdBy = actor.mode === "admin" ? `admin:${actor.clientId}` : `mcp:${actor.clientId}`;
+  const idempotencyPrefix = actor.mode === "admin" ? "admin-stock" : "mcp-stock";
   await tx.execute(sql`
     INSERT INTO inventory_movements (
       product_id,
@@ -136,9 +139,9 @@ export async function setCanonicalProductStock(
       ${locationId},
       ${adjustment},
       'manual_adjustment',
-      'mcp_stock_adjustment',
+${sourceType},
       ${sourceId},
-      ${"mcp-stock:" + sourceId},
+      ${idempotencyPrefix + ":" + sourceId},
       now(),
       jsonb_build_object(
         'client_id', ${actor.clientId},
@@ -147,7 +150,7 @@ export async function setCanonicalProductStock(
         'previous_stock', ${previousStock},
         'variant_id', ${normalizedVariantId}
       ),
-      ${"mcp:" + actor.clientId}
+      ${createdBy}
     )
   `);
 
