@@ -251,6 +251,7 @@ export async function setCanonicalVariantConfiguration(
   );
 
   const adjustments: InventoryAdjustmentResult[] = [];
+  const currentAggregateStock = Number(current.stock ?? 0);
 
   // A simple SKU and a variant SKU must never both carry canonical stock.
   if (!currentHasVariants && hasVariants) {
@@ -261,9 +262,22 @@ export async function setCanonicalVariantConfiguration(
     for (const variant of currentVariants) {
       const id = String(variant?.id ?? "");
       if (!id || ids.has(id)) continue;
-      // Removed variants must be emptied through the ledger before their JSON
-      // entry disappears, otherwise historical positive stock would be orphaned.
-      adjustments.push(await setCanonicalProductStock(tx, actor, productId, 0, id));
+
+      const currentVariantStock = Number(variant?.stock ?? 0);
+      if (hasVariants && currentVariantStock > 0) {
+        // Deleting one option is a catalogue action, not evidence that physical
+        // inventory vanished. Require an explicit count correction first.
+        throw new Error(
+          `لا يمكن حذف الخيار "${id}" لأن مخزونه ${currentVariantStock}. صفّر مخزونه أولاً ثم احذف الخيار.`,
+        );
+      }
+
+      if (!hasVariants && currentVariantStock > 0) {
+        // Disabling the variant model is an identity transfer, not a stock loss:
+        // drain each active variant through the ledger, then restore the same
+        // aggregate quantity to the simple/base SKU after the structure switch.
+        adjustments.push(await setCanonicalProductStock(tx, actor, productId, 0, id));
+      }
     }
   }
 
@@ -297,10 +311,13 @@ export async function setCanonicalVariantConfiguration(
         await setCanonicalProductStock(tx, actor, productId, targets.get(id) ?? 0, id),
       );
     }
-  } else {
-    // After the structure becomes simple, clear any historical base-ledger
-    // residue that may have existed while the product was variant-based.
-    adjustments.push(await setCanonicalProductStock(tx, actor, productId, 0, null));
+  } else if (currentHasVariants) {
+    // Preserve the physical quantity while changing inventory identity from
+    // variant SKUs to the simple/base SKU. The variant drains above plus this
+    // base opening net to zero aggregate quantity change.
+    adjustments.push(
+      await setCanonicalProductStock(tx, actor, productId, currentAggregateStock, null),
+    );
   }
 
   return {
