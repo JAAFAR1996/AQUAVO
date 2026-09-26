@@ -77,7 +77,7 @@ interface CartContextType {
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
-  refetchCart: () => Promise<void>;
+  refetchCart: () => Promise<CartItem[]>;
   totalItems: number;
   totalPrice: number;
 }
@@ -585,8 +585,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [user, removeItem, items]);
 
-  const refetchCart = useCallback(async () => {
-    if (!user) return;
+  const refetchCart = useCallback(async (): Promise<CartItem[]> => {
+    if (!user) return items;
     try {
       const cartRes = await fetch("/api/cart", { credentials: "include" });
       if (cartRes.ok) {
@@ -594,12 +594,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
         if (Array.isArray(serverItems)) {
           const mappedItems = serverItems.map(mapServerCartItem);
           setItems(mappedItems);
+          return mappedItems;
         }
       }
     } catch (err) {
       console.warn("Failed to refetch cart:", err);
     }
-  }, [user]);
+    return items;
+  }, [user, items]);
 
   const clearCart = async () => {
     if (user) {
