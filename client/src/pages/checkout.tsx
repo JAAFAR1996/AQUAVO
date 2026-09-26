@@ -292,7 +292,7 @@ export default function CheckoutPage() {
           sourcePage: "checkout",
         });
         trackPurchase({
-          orderId: orderData.id || "unknown",
+          orderId: orderData.orderNumber || orderData.id || "unknown",
           total: confirmedTotal,
           items: cartItems.map((item) => ({
             id: item.productId,
