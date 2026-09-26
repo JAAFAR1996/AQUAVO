@@ -58,7 +58,9 @@ export default function Products() {
   const { data: attributes } = useQuery({
     queryKey: ["product-attributes"],
     queryFn: fetchProductAttributes,
-    staleTime: 1000 * 60 * 10,
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: "always",
   });
 
   const availableCategories = attributes?.categories || [];
@@ -154,7 +156,9 @@ export default function Products() {
   const { data, isLoading: isProductsLoading, isError, refetch: refetchProducts } = useQuery({
     queryKey: ["products", queryParams],
     queryFn: () => fetchProducts(queryParams),
-    staleTime: 1000 * 60 * 5,
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: "always",
     retry: 1,
     retryDelay: 500,
   });
