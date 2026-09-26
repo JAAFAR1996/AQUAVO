@@ -72,7 +72,8 @@ interface CartContextType {
   items: CartItem[];
   /** Resolves true when the item was added, false when blocked (e.g. out of stock). */
   addItem: (product: Product, quantity?: number) => Promise<boolean>;
-  addItems: (products: Product[]) => void;
+  /** Adds each product through the same validated path as addItem; returns count successfully added. */
+  addItems: (products: Product[]) => Promise<number>;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
@@ -429,106 +430,31 @@ export function CartProvider({ children }: { children: ReactNode }) {
     return true;
   };
 
-  const addItems = async (products: Product[]) => {
-    // Filter: only products with a price can be added
-    const purchasableProducts = products.filter(p => Number(p.price) > 0);
-    if (purchasableProducts.length === 0) {
+  const addItems = async (products: Product[]): Promise<number> => {
+    if (products.length === 0) return 0;
+
+    // Deliberately reuse addItem() instead of maintaining a second cart path.
+    // This keeps stock/variant validation, server error handling, guest caps and
+    // analytics identical for single-add and batch-add surfaces.
+    let addedCount = 0;
+    for (const product of products) {
+      if (await addItem(product, 1)) addedCount += 1;
+    }
+
+    if (addedCount === 0) {
       toast({
         title: t("cart-context.s13"),
         description: t("cart-context.s14"),
         variant: "destructive",
       });
-      return;
-    }
-    if (purchasableProducts.length < products.length) {
+    } else if (addedCount < products.length) {
       toast({
         title: t("cart-context.s15"),
-        description: t("cart-context.s16", { v0: purchasableProducts.length }),
+        description: t("cart-context.s16", { v0: addedCount }),
       });
     }
-    if (user) {
-      // Server Side: Add all concurrently then update state
-      try {
-        const promises = purchasableProducts.map(product => {
-          const { variantId, variantLabel } = getCartVariantMeta(product);
-          return fetch("/api/cart", {
-            method: "POST",
-            headers: addCsrfHeader({ "Content-Type": "application/json" }),
-            credentials: "include",
-            body: JSON.stringify({
-              productId: product.id,
-              quantity: 1,
-              variantPrice: variantId ? Number(product.price) : undefined,
-              variantLabel,
-              variantId,
-            }),
-          });
-        });
 
-        await Promise.all(promises);
-
-        // Refresh cart once
-        const cartRes = await fetch("/api/cart", { credentials: "include" });
-        if (cartRes.ok) {
-          const serverItems = await cartRes.json();
-          const mappedItems = serverItems.map(mapServerCartItem);
-          setItems(mappedItems);
-        }
-
-        purchasableProducts.forEach((product) => {
-          fireAddToCartAnalytics({ id: product.id, name: product.name, price: Number(product.price), quantity: 1, category: product.category });
-        });
-      } catch (err) {
-        console.error("Failed to add items batch", err);
-        toast({
-          title: t("cart-context.s17"),
-          description: t("cart-context.s18"),
-          variant: "destructive"
-        });
-      }
-    } else {
-      // Client Side: Compute new state in one go
-      setItems(prev => {
-        let newItems = [...prev];
-        purchasableProducts.forEach((product) => {
-          const { variantId, variantLabel } = getCartVariantMeta(product);
-          const cartItemId = `${product.id}-${variantId || 'default'}`;
-          
-          const existingIndex = newItems.findIndex(i => i.id === cartItemId);
-          if (existingIndex > -1) {
-            newItems[existingIndex] = {
-              ...newItems[existingIndex],
-              quantity: newItems[existingIndex].quantity + 1
-            };
-          } else {
-            newItems.push({
-              id: cartItemId,
-              productId: product.id,
-              name: product.name,
-              price: Number(product.price),
-              quantity: 1,
-              image: product.thumbnail || product.image || product.images?.[0] || '',
-              slug: product.slug,
-              variantId: variantId ?? undefined,
-              variantLabel,
-            });
-          }
-        });
-
-        // Side effect: Save to local storage
-        syncStorage.setItem(CART_STORAGE_KEY, newItems);
-        window.dispatchEvent(new StorageEvent('storage', {
-          key: CART_STORAGE_KEY,
-          newValue: JSON.stringify(newItems),
-        }));
-
-        return newItems;
-      });
-
-      purchasableProducts.forEach((product) => {
-        fireAddToCartAnalytics({ id: product.id, name: product.name, price: Number(product.price), quantity: 1, category: product.category });
-      });
-    }
+    return addedCount;
   };
 
   const removeItem = useCallback(async (id: string) => {
