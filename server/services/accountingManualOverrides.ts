@@ -117,6 +117,40 @@ export async function updateReviewFlagStatus(
   status: "open" | "resolved" | "ignored",
   resolvedBy?: string,
 ) {
+  const rows = await db()
+    .select({
+      id: accountingReviewFlags.id,
+      category: accountingReviewFlags.category,
+      status: accountingReviewFlags.status,
+    })
+    .from(accountingReviewFlags)
+    .where(eq(accountingReviewFlags.id, id))
+    .limit(1);
+
+  const flag = rows[0];
+  if (!flag) {
+    const error = new Error("Review flag not found");
+    (error as any).status = 404;
+    throw error;
+  }
+
+  // Inventory valuation reconciliation flags are not acknowledgements. They
+  // represent an unresolved accounting counterpart for a canonical stock
+  // movement. Closing or ignoring one through the generic status endpoint can
+  // hide an unposted inventory valuation difference from period readiness.
+  // These flags must be resolved only by a dedicated accounting reconciliation
+  // that posts/verifies the journal entry and records the applied adjustment.
+  if (
+    flag.category === "inventory_valuation_reconciliation" &&
+    status !== "open"
+  ) {
+    const error = new Error(
+      "Inventory valuation reconciliation requires a posted accounting reconciliation; it cannot be resolved or ignored from the generic flag endpoint.",
+    );
+    (error as any).status = 409;
+    throw error;
+  }
+
   await db()
     .update(accountingReviewFlags)
     .set({

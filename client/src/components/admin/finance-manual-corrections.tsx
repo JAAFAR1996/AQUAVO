@@ -444,7 +444,21 @@ export function FinanceManualCorrections() {
                     {f.detectedValueJson != null && <> — مكتشف: <span style={{ color: "#f59e0b" }}>{jsonDisplay(f.detectedValueJson)}</span></>}
                     {f.suggestedValueJson != null && <> — مقترح: <span style={{ color: "#22c55e" }}>{jsonDisplay(f.suggestedValueJson)}</span></>}
                   </div>
-                  {f.status === "open" && (
+                  {f.status === "open" && f.category === "inventory_valuation_reconciliation" ? (
+                    <div style={{
+                      marginTop: 8,
+                      padding: "8px 10px",
+                      borderRadius: 6,
+                      border: "1px solid #f9731666",
+                      background: "#f9731612",
+                      color: "#fdba74",
+                      fontSize: 10,
+                      lineHeight: 1.6,
+                    }}>
+                      هذا التنبيه يمثل فرق قيمة مخزون محاسبي. لا يمكن إغلاقه أو تجاهله من هنا؛
+                      يجب أولاً تسجيل تسوية محاسبية فعلية بقيد متوازن وتوثيق سبب الفرق.
+                    </div>
+                  ) : f.status === "open" ? (
                     <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
                       <button
                         onClick={() => flagStatusMutation.mutate({ id: f.id, status: "resolved" })}
@@ -459,7 +473,7 @@ export function FinanceManualCorrections() {
                         تجاهل
                       </button>
                     </div>
-                  )}
+                  ) : null}
                 </div>
               ))}
           </div>
