@@ -292,11 +292,11 @@ export async function sendProductDiscountEmail(email: string, product: { name: s
                 لأنك من عائلتنا المميزة، أردنا أن تكون أول من يعلم بهذا العرض الخاص. الكمية محدودة جداً، لا تضيع الفرصة قبل نفاذ المخزون!
             </div>
 
-            <a href="${process.env.VITE_PUBLIC_BASE_URL || 'https://www.aquavoiq.com'}/product/${product.slug}" class="btn">احصل عليه الآن 🛒</a>
+            <a href="${process.env.VITE_PUBLIC_BASE_URL || 'https://www.aquavoiq.com'}/products/${product.slug}" class="btn">احصل عليه الآن 🛒</a>
             
             <div style="margin-top: 30px; text-align: center; color: var(--text-heading); font-weight: bold;">
                 <p>للطلب السريع عبر واتساب:</p>
-                <p style="color: var(--btn-bg); font-size: 18px; direction: ltr;">+964 774 788 0678</p>
+                <p style="color: var(--btn-bg); font-size: 18px; direction: ltr;">+964 774 788 0673</p>
             </div>
         </div>
         <div class="footer">
@@ -313,7 +313,7 @@ export async function sendProductDiscountEmail(email: string, product: { name: s
     to: email,
     subject: `فرصة خاصة لك: تخفيض على ${product.name} 🔥`,
     html,
-    text: `تخفيض مميز على ${product.name}! السعر الـجديد: ${product.price} د.ع. تسوق الآن: ${process.env.VITE_PUBLIC_BASE_URL}/product/${product.slug}`
+    text: `تخفيض مميز على ${product.name}! السعر الـجديد: ${product.price} د.ع. تسوق الآن: ${process.env.VITE_PUBLIC_BASE_URL}/products/${product.slug}`
   });
 
   // Log to database
