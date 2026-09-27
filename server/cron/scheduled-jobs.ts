@@ -503,7 +503,7 @@ async function runWeeklyEmailCampaign(): Promise<{
             
             <div style="margin-top: 25px; font-weight: bold; color: var(--text-heading); background: var(--bg-feature); padding: 20px; border-radius: 12px; text-align: center;">
                 <p style="margin: 0 0 10px 0;">هل تحتاج إلى مساعدة؟ فريقنا هنا دائماً.</p>
-                <p style="margin: 0; color: var(--btn-bg); direction: ltr;">+964 774 788 0678</p>
+                <p style="margin: 0; color: var(--btn-bg); direction: ltr;">+964 774 788 0673</p>
                 <p style="margin: 5px 0 0 0;">info@aquavoiq.com</p>
             </div>
             

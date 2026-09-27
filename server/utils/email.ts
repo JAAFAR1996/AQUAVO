@@ -71,15 +71,29 @@ async function logEmailToDatabase(data: EmailLogData): Promise<void> {
 
 // ... (imports and config)
 
-export async function sendEmail(options: EmailOptions): Promise<boolean> {
+type EmailSendResult = { success: true } | { success: false; errorMessage: string };
+
+function safeEmailError(prefix: string, error: unknown): string {
+  const raw = error instanceof Error
+    ? `${error.name}: ${error.message}`
+    : typeof error === "object" && error !== null
+      ? JSON.stringify(error)
+      : String(error ?? "unknown");
+  return `${prefix}: ${raw}`
+    .replace(/https?:\/\/\S+/gi, "[url]")
+    .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, "[email]")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 500);
+}
+
+async function sendEmailDetailed(options: EmailOptions): Promise<EmailSendResult> {
   const resend = getResendClient();
   const fromEmail = getFromEmail();
 
   if (!resend) {
-    console.log("[Email] Skipping email send - Resend API key not configured");
-    console.log("[Email] Would have sent to:", options.to);
-    console.log("[Email] Subject:", options.subject);
-    return false;
+    console.warn("[Email] Skipping email send - Resend API key not configured");
+    return { success: false, errorMessage: "RESEND_API_KEY_NOT_CONFIGURED" };
   }
 
   try {
@@ -92,16 +106,22 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
     });
 
     if (error) {
-      console.error("[Email] Resend API error:", error);
-      return false;
+      const errorMessage = safeEmailError("RESEND_API_ERROR", error);
+      console.error("[Email] Resend API error:", errorMessage);
+      return { success: false, errorMessage };
     }
 
     console.log(`[Email] Successfully sent to: ${options.to}`);
-    return true;
+    return { success: true };
   } catch (error) {
-    console.error("[Email] Failed to send:", error);
-    return false;
+    const errorMessage = safeEmailError("RESEND_SEND_EXCEPTION", error);
+    console.error("[Email] Failed to send:", errorMessage);
+    return { success: false, errorMessage };
   }
+}
+
+export async function sendEmail(options: EmailOptions): Promise<boolean> {
+  return (await sendEmailDetailed(options)).success;
 }
 
 export async function sendWelcomeEmail(email: string): Promise<boolean> {
@@ -192,21 +212,22 @@ export async function sendWelcomeEmail(email: string): Promise<boolean> {
 </html>
   `;
 
-  const success = await sendEmail({
+  const delivery = await sendEmailDetailed({
     to: email,
     subject: "أهلاً بك في عائلة AQUAVO! 🌿",
     html,
     text: "مرحباً بك في عائلة AQUAVO! نحن سعداء جداً بانضمامك إلينا. ستصلك قريباً أفضل العروض والنصائح."
   });
 
-  // Log to database
+  // Log the provider/configuration reason for failed sends so production failures are diagnosable.
   await logEmailToDatabase({
     emailType: "welcome",
     recipientEmail: email,
-    status: success ? "sent" : "failed",
+    status: delivery.success ? "sent" : "failed",
+    errorMessage: delivery.success ? undefined : delivery.errorMessage,
   });
 
-  return success;
+  return delivery.success;
 }
 
 export async function sendProductDiscountEmail(email: string, product: { name: string, price: string, originalPrice?: string, slug: string, image: string }): Promise<boolean> {
@@ -292,11 +313,11 @@ export async function sendProductDiscountEmail(email: string, product: { name: s
                 لأنك من عائلتنا المميزة، أردنا أن تكون أول من يعلم بهذا العرض الخاص. الكمية محدودة جداً، لا تضيع الفرصة قبل نفاذ المخزون!
             </div>
 
-            <a href="${process.env.VITE_PUBLIC_BASE_URL || 'https://www.aquavoiq.com'}/product/${product.slug}" class="btn">احصل عليه الآن 🛒</a>
+            <a href="${process.env.VITE_PUBLIC_BASE_URL || 'https://www.aquavoiq.com'}/products/${product.slug}" class="btn">احصل عليه الآن 🛒</a>
             
             <div style="margin-top: 30px; text-align: center; color: var(--text-heading); font-weight: bold;">
                 <p>للطلب السريع عبر واتساب:</p>
-                <p style="color: var(--btn-bg); font-size: 18px; direction: ltr;">+964 774 788 0678</p>
+                <p style="color: var(--btn-bg); font-size: 18px; direction: ltr;">+964 774 788 0673</p>
             </div>
         </div>
         <div class="footer">
@@ -309,23 +330,24 @@ export async function sendProductDiscountEmail(email: string, product: { name: s
   `;
   // Send email and log to database
 
-  const success = await sendEmail({
+  const delivery = await sendEmailDetailed({
     to: email,
     subject: `فرصة خاصة لك: تخفيض على ${product.name} 🔥`,
     html,
-    text: `تخفيض مميز على ${product.name}! السعر الـجديد: ${product.price} د.ع. تسوق الآن: ${process.env.VITE_PUBLIC_BASE_URL}/product/${product.slug}`
+    text: `تخفيض مميز على ${product.name}! السعر الـجديد: ${product.price} د.ع. تسوق الآن: ${process.env.VITE_PUBLIC_BASE_URL || 'https://www.aquavoiq.com'}/products/${product.slug}`
   });
 
-  // Log to database
+  // Log the provider/configuration reason for failed sends so production failures are diagnosable.
   await logEmailToDatabase({
     emailType: "discount",
     recipientEmail: email,
     productName: product.name,
     discountPercentage: discount,
-    status: success ? "sent" : "failed",
+    status: delivery.success ? "sent" : "failed",
+    errorMessage: delivery.success ? undefined : delivery.errorMessage,
   });
 
-  return success;
+  return delivery.success;
 }
 
 export async function sendPasswordResetEmail(email: string, resetToken: string, baseUrl: string): Promise<boolean> {
@@ -630,21 +652,22 @@ ${resetUrl}
 ✨ نحول حلمك المائي إلى حقيقة ✨
   `.trim();
 
-  const success = await sendEmail({
+  const delivery = await sendEmailDetailed({
     to: email,
     subject: "🔐 إعادة تعيين كلمة المرور - AQUAVO",
     html,
     text,
   });
 
-  // Log to database
+  // Log the provider/configuration reason for failed sends so production failures are diagnosable.
   await logEmailToDatabase({
     emailType: "password_reset",
     recipientEmail: email,
-    status: success ? "sent" : "failed",
+    status: delivery.success ? "sent" : "failed",
+    errorMessage: delivery.success ? undefined : delivery.errorMessage,
   });
 
-  return success;
+  return delivery.success;
 }
 
 // Verify Resend connection

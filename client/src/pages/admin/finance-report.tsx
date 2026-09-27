@@ -440,7 +440,7 @@ export default function FinanceHtmlReportPage() {
   const grossMargin = ratio(gross, summary.product_revenue);
   const netMargin = ratio(net, summary.product_revenue);
 
-  const settled = sales.filter((row) => ["matched", "reconciled", "closed"].includes(String(row.settlement_status ?? "").toLowerCase())).length;
+  const settled = sales.filter((row) => ["matched", "reconciled", "closed", "not_required"].includes(String(row.settlement_status ?? "").toLowerCase())).length;
   const settleRate = sales.length ? (settled / sales.length) * 100 : null;
   const webOrders = sales.filter((row) => String(row.source ?? "").toLowerCase() === "website").length;
   const whatsappOrders = sales.filter((row) => String(row.source ?? "").toLowerCase() === "whatsapp").length;

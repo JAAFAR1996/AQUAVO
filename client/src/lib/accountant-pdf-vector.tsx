@@ -1785,7 +1785,7 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
     : null;
 
   const settledCount = sales.filter((row) =>
-    ["matched", "reconciled", "closed"].includes(String(row.settlement_status ?? "").toLowerCase()),
+    ["matched", "reconciled", "closed", "not_required"].includes(String(row.settlement_status ?? "").toLowerCase()),
   ).length;
   const unsettledCount = sales.length - settledCount;
   const webOrders = sales.filter((row) => String(row.source ?? "").toLowerCase() === "website").length;

@@ -565,13 +565,13 @@ export default function CheckoutPage() {
           </Button>
           <h1 ref={stepHeadingRef} tabIndex={-1} className="text-lg font-bold outline-none">{step === "info" ? t("steps.info") : t("steps.confirm")}</h1>
           <div className="flex items-center gap-1 text-sm text-muted-foreground">
-            <ShoppingCart className="w-4 h-4" />
+            <ShoppingCart className="w-4 h-4" aria-hidden="true" />
             {cartItems.length}
           </div>
         </div>
       </header>
 
-      <main className="flex-1 container mx-auto px-4 pt-6 pb-0 max-w-lg">
+      <main id="main-content" className="flex-1 container mx-auto px-4 pt-6 pb-0 max-w-lg">
         {step === "info" ? (
           <div className="space-y-5">
             <CustomerInfoForm
@@ -677,7 +677,7 @@ export default function CheckoutPage() {
             source="checkout"
             className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-green-500 transition-colors"
           >
-            <MessageCircle className="w-3.5 h-3.5" />
+            <MessageCircle className="w-3.5 h-3.5" aria-hidden="true" />
             {t("footer.whatsapp")}
           </WhatsAppLink>
           <a
@@ -686,7 +686,7 @@ export default function CheckoutPage() {
             rel="noopener noreferrer"
             className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
           >
-            <Instagram className="w-3.5 h-3.5" />
+            <Instagram className="w-3.5 h-3.5" aria-hidden="true" />
             Instagram
           </a>
         </div>
