@@ -363,6 +363,39 @@ describe("checkout page", () => {
     expect(screen.getByText("30,000 د.ع")).toBeInTheDocument();
   });
 
+  it("clears an applied coupon when the live cart changes before review", async () => {
+    const user = userEvent.setup();
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ code: "SAVE20", type: "percentage", value: "20" }),
+    });
+    renderCheckout();
+
+    await user.click(screen.getByRole("button", { name: /عندك كود خصم؟/ }));
+    await user.type(screen.getByPlaceholderText("أدخل الكود..."), "SAVE20");
+    await user.click(screen.getByRole("button", { name: "تطبيق" }));
+    expect(await screen.findByText(/تم تطبيق خصم 20%/)).toBeInTheDocument();
+
+    mockRefetchCart.mockResolvedValueOnce([{
+      ...mockCartState.items[0],
+      price: 26000,
+    }]);
+
+    fireEvent.change(screen.getByLabelText("الاسم الكامل"), { target: { value: "جعفر محمد" } });
+    fireEvent.change(screen.getByLabelText("رقم الهاتف"), { target: { value: "07701234567" } });
+    await user.click(screen.getByRole("combobox", { name: "المحافظة" }));
+    await user.click(screen.getByRole("option", { name: "بغداد" }));
+    fireEvent.change(screen.getByLabelText("العنوان"), { target: { value: "الكرادة داخل قرب ساحة كهرمانة" } });
+
+    await user.click(screen.getByRole("button", { name: "مراجعة الطلب" }));
+
+    expect(mockToast).toHaveBeenCalledWith(expect.objectContaining({
+      title: "السلة تغيّرت",
+    }));
+    expect(screen.queryByText(/تم تطبيق خصم 20%/)).not.toBeInTheDocument();
+    expect(orderCalls()).toHaveLength(0);
+  });
+
   it("sends the applied coupon code with order creation so checkout-displayed and order-created totals stay consistent", async () => {
     const user = userEvent.setup();
     mockFetch.mockResolvedValueOnce({
