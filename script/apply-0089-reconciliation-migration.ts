@@ -94,6 +94,7 @@ async function main(): Promise<void> {
       invoice_rounding_ok: boolean;
       direct_cash_settlement_ok: boolean;
       no_test_orders_in_finance_queue: boolean;
+      no_pre_cutover_orders_in_finance_queue: boolean;
       cost_history_backfill_count: number;
     }>(
       `SELECT
@@ -121,6 +122,12 @@ async function main(): Promise<void> {
            JOIN public.orders o ON o.id=q.order_id
            WHERE COALESCE(o.is_test,false)=true
          ) AS no_test_orders_in_finance_queue,
+         NOT EXISTS(
+           SELECT 1
+           FROM public.order_financial_reconciliation_queue q
+           JOIN public.orders o ON o.id=q.order_id
+           WHERE COALESCE(o.delivered_at,o.created_at) < public.aquavo_active_cutover()
+         ) AS no_pre_cutover_orders_in_finance_queue,
          (
            SELECT COUNT(*)::int
            FROM public.product_cost_history
@@ -143,6 +150,7 @@ async function main(): Promise<void> {
       || checks.invoice_rounding_ok !== true
       || checks.direct_cash_settlement_ok !== true
       || checks.no_test_orders_in_finance_queue !== true
+      || checks.no_pre_cutover_orders_in_finance_queue !== true
       || Number(checks.cost_history_backfill_count) !== 3
     ) {
       throw new Error(`Reconciliation migration health failed: ${JSON.stringify(checks)}`);
