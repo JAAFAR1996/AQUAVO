@@ -89,6 +89,54 @@ SELECT
 FROM public.order_financial_reconciliation
 WHERE reconciliation_reason <> 'no_conflict_detected';
 
+CREATE OR REPLACE VIEW public.v_order_accounting AS
+SELECT
+  f.order_id,
+  o.order_number,
+  o.source,
+  o.status,
+  o.payment_status,
+  o.cod_received,
+  f.recognized_at,
+  f.period_key,
+  f.gross_collected,
+  f.customer_delivery_fee,
+  f.carrier_fee,
+  COALESCE(
+    public.accounting_order_account_balance(f.order_id,'3000'),
+    f.product_revenue
+  ) AS product_revenue,
+  f.merchant_net,
+  f.delivery_subsidy,
+  f.delivery_surplus,
+  f.cash_custody,
+  f.cogs_amount,
+  f.cost_status,
+  CASE
+    WHEN f.cogs_amount IS NULL THEN NULL::numeric
+    ELSE
+      COALESCE(public.accounting_order_account_balance(f.order_id,'3000'),f.product_revenue)
+      - f.cogs_amount
+      - f.delivery_subsidy
+      - COALESCE(
+          public.accounting_order_account_balance(f.order_id,'5100'),
+          (
+            SELECT SUM(e.actual_cost)
+            FROM public.order_fulfillment_events e
+            WHERE e.order_id=f.order_id
+              AND e.workflow_state='confirmed'
+          ),
+          CASE WHEN COALESCE(o.box_cost,0)>0 THEN o.box_cost ELSE 0 END
+        )
+  END AS contribution_profit,
+  CASE WHEN s.id IS NULL THEN 'unsettled'::text ELSE s.status END AS settlement_status,
+  s.settlement_id,
+  f.policy_version
+FROM public.order_accounting_facts f
+JOIN public.orders o ON o.id=f.order_id
+LEFT JOIN public.order_accounting_settlements s ON s.order_fact_id=f.id
+WHERE COALESCE(o.is_test,false)=false;
+
 CREATE OR REPLACE VIEW public.order_total_reconciliation AS
 SELECT
   o.id AS order_id,
