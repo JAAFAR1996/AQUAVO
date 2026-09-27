@@ -30,7 +30,7 @@ const C = {
   tealSoft: "#E9F7F8",
   cream: "#F6F4EF",
   paper: "#FFFFFF",
-  text: "#1F2933",
+  text: "#232323",
   muted: "#6B7280",
   subtle: "#94A3B8",
   border: "#D9E2E7",
