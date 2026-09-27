@@ -34,8 +34,8 @@
     "stockQuantityChanged": "You requested {{requested}} of {{name}}, but only {{available}} are currently available. Update the quantity before continuing.",
     "cartChangedTitle": "Cart changed",
     "cartEmptyAfterRefresh": "The saved cart items are no longer valid for ordering. Return to products and add currently available items.",
-    "cartUpdatedReview": "We refreshed the cart using current price and stock. Review it, then select Review order again.",
-    "cartUpdatedConfirm": "The cart changed since your last review. Check the current price and quantity, then agree and confirm again."
+    "cartUpdatedReview": "We refreshed the cart using current price and stock and cleared temporary coupon/loyalty adjustments so no stale amount is used. Review the cart, reapply any discounts you need, then select Review order again.",
+    "cartUpdatedConfirm": "The cart changed since your last review, so temporary coupon/loyalty adjustments were cleared. Review the current price and quantity, reapply any discounts you need, then agree and confirm again."
   },
   "coupon": {
     "prompt": "Have a discount code?",
