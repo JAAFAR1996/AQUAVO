@@ -107,11 +107,12 @@ export default function ProductDetails() {
     queryFn: () => fetchProductBySlug(slug!),
     enabled: !!slug,
     initialData: embedded?.product,
-    // Age the embedded payload from the moment the SERVER rendered it, not
-    // from now. If this HTML is ever served from a cache, the data is treated
-    // as exactly as old as it really is and refetched once past staleTime, so
-    // a stale price can never be presented as fresh.
+    // Embedded SSR data is useful for first paint, but live price/stock must
+    // always reconcile immediately after mount and whenever the tab regains focus.
     initialDataUpdatedAt: embedded?.renderedAt,
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: "always",
   });
 
   // Related products are rendered by <RecommendationsSection/> below (dedicated
@@ -122,18 +123,37 @@ export default function ProductDetails() {
     queryKey: ["product-variants", slug],
     queryFn: () => fetchProductVariants(slug!),
     enabled: !!slug && !!product && !product.hasVariants,
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: "always",
   });
 
   // Use embedded variants if available, otherwise use legacy
   const hasEmbeddedVariants = product?.hasVariants && product?.variants && product.variants.length > 0;
 
-  // Set default variant on product load
+  // Resolve the initial variant from the current product, not from stale
+  // component state. Prefer the configured default only while it is actually
+  // sellable; otherwise open the first in-stock option so an available product
+  // never lands on an out-of-stock choice by default.
   useEffect(() => {
-    if (hasEmbeddedVariants && product?.variants && !selectedVariant) {
-      const defaultVariant = product.variants.find(v => v.isDefault) || product.variants[0];
-      setSelectedVariant(defaultVariant);
+    if (!hasEmbeddedVariants || !product?.variants?.length) {
+      setSelectedVariant(null);
+      return;
     }
-  }, [hasEmbeddedVariants, product?.variants]);
+
+    setSelectedVariant((current) => {
+      if (current && product.variants!.some((variant) => variant.id === current.id)) {
+        return current;
+      }
+
+      return (
+        product.variants!.find((variant) => variant.isDefault && (variant.stock ?? 0) > 0) ??
+        product.variants!.find((variant) => (variant.stock ?? 0) > 0) ??
+        product.variants!.find((variant) => variant.isDefault) ??
+        product.variants![0]
+      );
+    });
+  }, [product?.id, hasEmbeddedVariants, product?.variants]);
 
   // Current display values (from selected variant or product)
   const displayPrice = selectedVariant?.price ?? product?.price ?? 0;
@@ -183,7 +203,7 @@ export default function ProductDetails() {
   const displayOriginalPrice = selectedVariant?.originalPrice ?? product?.originalPrice;
   const woodSaleActive = product ? isWoodMonthEndSale(product) : false;
   const displayStock = selectedVariant?.stock ?? product?.stock ?? 0;
-  const isOutOfStock = product?.stock === 0 || (hasEmbeddedVariants && selectedVariant?.stock === 0);
+  const isOutOfStock = (product?.stock ?? 0) <= 0 || (hasEmbeddedVariants && (selectedVariant?.stock ?? 0) <= 0);
   const displayModel = selectedVariant?.specifications?.['الموديل'] ?? product?.specifications?.['الموديل'];
   const product3DMeta = readProduct3DMeta(product?.specifications);
   const exactPieceCode = product3DMeta?.pieceCode ?? product3DMeta?.label;

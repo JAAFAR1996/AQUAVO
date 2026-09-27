@@ -587,7 +587,8 @@ export class AIToolsExecutor {
                 return { success: false, error: "الكوبون منتهي الصلاحية" };
             }
 
-            if (coupon.maxUses && coupon.usedCount && coupon.usedCount >= coupon.maxUses) {
+            if (coupon.maxUses !== null && coupon.maxUses !== undefined &&
+                Number(coupon.usedCount ?? 0) >= Number(coupon.maxUses)) {
                 return { success: false, error: "تم استخدام الكوبون الحد الأقصى" };
             }
 
@@ -600,7 +601,9 @@ export class AIToolsExecutor {
                     description: coupon.description,
                     minOrderAmount: coupon.minOrderAmount,
                 },
-                message: `كوبون ${coupon.code} صالح - خصم ${coupon.type === 'percentage' ? coupon.value + '%' : coupon.value + ' د.ع'}`,
+                message: coupon.type === "free_shipping"
+                    ? `كوبون ${coupon.code} صالح - شحن مجاني`
+                    : `كوبون ${coupon.code} صالح - خصم ${coupon.type === "percentage" ? coupon.value + "%" : coupon.value + " د.ع"}`,
             };
         } catch (error) {
             console.error("applyCoupon error:", error);

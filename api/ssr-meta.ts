@@ -50,6 +50,21 @@ function getPool(): Pool | null {
   return pool;
 }
 
+async function loadShippingFee(): Promise<number> {
+  const db = getPool();
+  if (!db) return AQUAVO_ENTITY.deliveryFee;
+  try {
+    const { rows } = await db.query(
+      `SELECT value FROM settings WHERE key='shipping_fee' LIMIT 1`,
+    );
+    const value = Number(rows[0]?.value ?? AQUAVO_ENTITY.deliveryFee);
+    return Number.isFinite(value) && value > 0 ? value : AQUAVO_ENTITY.deliveryFee;
+  } catch (err) {
+    console.error("SSR meta: shipping setting query error", err);
+    return AQUAVO_ENTITY.deliveryFee;
+  }
+}
+
 /** One translated record for an entity, or null (Arabic requests never query). */
 async function loadTranslation<T>(entityType: TranslationRecord["entityType"], entityId: string, locale: Locale): Promise<TranslationRecord<T> | null> {
   if (locale === DEFAULT_LOCALE) return null;
@@ -319,7 +334,7 @@ const STATIC_PAGES: Record<string, PageMeta> = {
   },
   "/shipping": {
     title: "شحن وتوصيل مستلزمات الأحواض لكل العراق | AQUAVO",
-    description: "خدمة شحن وتوصيل مستلزمات الأحواض لجميع محافظات العراق برسوم ثابتة 5,000 دينار والتوصيل خلال 24 ساعة.",
+    description: "خدمة شحن وتوصيل مستلزمات الأحواض لجميع محافظات العراق، وتظهر رسوم التوصيل الحالية بوضوح قبل تأكيد الطلب.",
     keywords: "توصيل مستلزمات احواض العراق، شحن مستلزمات احواض بغداد، توصيل البصرة، توصيل اربيل",
   },
   "/terms": {
@@ -633,7 +648,7 @@ async function getProductMeta(slug: string, locale: Locale = DEFAULT_LOCALE): Pr
         variants,
         rating: p.rating,
         reviewCount: p.reviewCount,
-      }),
+      }, { shippingFee: await loadShippingFee() }),
     };
   } catch (err) {
     console.error("SSR meta: product query error", err);
@@ -1283,6 +1298,15 @@ function generateMarkdown(meta: PageMeta & { url: string; image: string }, pathn
   return lines.join("\n");
 }
 
+// Commerce pages embed live price/stock. They must never inherit the long-lived
+// educational/static cache policy used by the rest of the site.
+function commerceCacheControl(pathname: string): string {
+  if (pathname === "/products" || pathname.startsWith("/products/")) {
+    return "private, no-store, max-age=0";
+  }
+  return "public, s-maxage=3600, stale-while-revalidate=86400";
+}
+
 // ─── Handler ────────────────────────────────────────────────────────────────
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
@@ -1379,6 +1403,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const template = getTemplate();
     const status = isKnownSitePath(pathname, Object.keys(GUIDE_CONTENT_PAGES)) ? 200 : 404;
     const meta = await resolveMetadata(pathname, status === 404, locale, rawCategory);
+    if (pathname === "/" && locale === DEFAULT_LOCALE && !meta.notFound) {
+      meta.jsonLd = buildEntityStructuredData({
+        includeMerchantPolicies: true,
+        shippingFee: await loadShippingFee(),
+      });
+    }
     // Canonical is per locale: each translated page is its own indexable document.
     if (locale !== DEFAULT_LOCALE) {
       try {
@@ -1418,12 +1448,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (acceptHeader.includes("text/markdown")) {
       const md = generateMarkdown(meta, pathname);
       res.setHeader("Content-Type", "text/markdown; charset=utf-8");
-      res.setHeader("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
+      res.setHeader("Cache-Control", commerceCacheControl(pathname));
       return res.status(status).send(md);
     }
 
     res.setHeader("Content-Type", "text/html; charset=utf-8");
-    res.setHeader("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
+    res.setHeader("Cache-Control", commerceCacheControl(pathname));
     if (meta.noIndex) res.setHeader("X-Robots-Tag", "noindex, nofollow, noarchive");
     return res.status(status).send(html);
   } catch (err) {

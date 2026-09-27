@@ -27,6 +27,7 @@ import { MetaTags } from "@/components/seo/meta-tags";
 import { HomeHero, type HomeHeroCopy } from "@/components/home/home-hero";
 import { ArrowForward, useForwardHoverClass } from "@/components/ui/directional-icons";
 import { useLocale } from "@/i18n/locale-context";
+import { formatShippingFeeNumber, useShippingFee } from "@/contexts/shipping-fee-context";
 import { formatLocalizedPrice } from "@/i18n/format";
 import { PrecisionReveal } from "@/components/motion/precision-reveal";
 import { fetchTopSellingProducts } from "@/lib/api";
@@ -70,6 +71,7 @@ const linkButton =
 export default function Home() {
   const { t } = useTranslation("home");
   const { locale, dir, href } = useLocale();
+  const shippingFeeLabel = formatShippingFeeNumber(useShippingFee());
   const forwardHover = useForwardHoverClass();
   const heroCopy: HomeHeroCopy = {
     eyebrow: t("hero.eyebrow"),
@@ -85,7 +87,9 @@ export default function Home() {
   const { data: salesData, isLoading: isStorePicksLoading, isError: isStorePicksError } = useQuery({
     queryKey: ["products", "top-selling"],
     queryFn: fetchTopSellingProducts,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: "always",
     retry: false,
   });
 
@@ -105,7 +109,7 @@ export default function Home() {
               <div key={title} className="aq-trust-seal flex min-h-28 flex-col justify-center bg-background px-4 py-5 text-center sm:min-h-32">
                 <Icon className="mx-auto mb-3 h-5 w-5 text-primary" aria-hidden="true" />
                 <p className="text-sm font-bold text-foreground">{t(title)}</p>
-                <p className="mt-1 text-xs leading-5 text-foreground/60">{t(detail)}</p>
+                <p className="mt-1 text-xs leading-5 text-foreground/60">{t(detail, detail === "facts.feeDetail" ? { fee: shippingFeeLabel } : undefined)}</p>
               </div>
             ))}
           </PrecisionReveal>

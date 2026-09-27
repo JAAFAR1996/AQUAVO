@@ -245,7 +245,26 @@ class CombinedStorage implements IStorage {
                 ?? await this.productStorage.getProductBySlug(product.slug);
 
             if (!existing) {
-                await this.productStorage.createProduct(product);
+                const desiredStock = Number(product.stock ?? 0);
+                const created = await this.productStorage.createProduct({
+                    ...product,
+                    stock: 0,
+                });
+                if (desiredStock > 0) {
+                    const db = getDb();
+                    if (!db) throw new Error("DB not initialized");
+                    const { setCanonicalProductStock } =
+                        await import("../services/inventory-adjustment-service.js");
+                    await db.transaction(async (tx: any) =>
+                        setCanonicalProductStock(
+                            tx,
+                            { clientId: "system-seed", mode: "admin" },
+                            created.id,
+                            desiredStock,
+                            null,
+                        ),
+                    );
+                }
             }
         }
     };

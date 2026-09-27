@@ -135,7 +135,9 @@ export class ProductStorage {
             query = query.where(and(...conditions)) as any;
         }
 
-        // Apply sorting
+        // Keep sellable inventory ahead of sold-out items on every catalogue sort.
+        // The user's selected sort still applies inside each availability group.
+        const availabilityRank = sql<number>`CASE WHEN ${products.stock} > 0 THEN 1 ELSE 0 END`;
         if (filters?.sortBy) {
             const sortColumn = filters.sortBy === 'rating' ? products.rating :
                 filters.sortBy === 'price' ? products.price :
@@ -144,10 +146,10 @@ export class ProductStorage {
                             products.createdAt;
 
             query = filters.sortOrder === 'asc'
-                ? query.orderBy(sortColumn) as any
-                : query.orderBy(desc(sortColumn)) as any;
+                ? query.orderBy(desc(availabilityRank), sortColumn) as any
+                : query.orderBy(desc(availabilityRank), desc(sortColumn)) as any;
         } else {
-            query = query.orderBy(desc(products.createdAt)) as any;
+            query = query.orderBy(desc(availabilityRank), desc(products.createdAt)) as any;
         }
 
         if (filters?.limit) {
@@ -163,12 +165,18 @@ export class ProductStorage {
     async getProductAttributes(): Promise<{ categories: string[], brands: string[], minPrice: number, maxPrice: number }> {
         const db = this.ensureDb();
 
-        // Run all 3 queries in parallel instead of sequentially
+        // Derive storefront attributes from ACTIVE products only. The categories
+        // table is an authoring dictionary and may legitimately contain future or
+        // legacy categories; exposing it directly created empty storefront filters.
         const [categoryResults, brandResults, priceStats] = await Promise.all([
-            // Categories from dedicated table
-            db.select({ name: categories.name })
-                .from(categories)
-                .orderBy(categories.name),
+            db.selectDistinct({ name: products.category })
+                .from(products)
+                .where(and(
+                    isNull(products.deletedAt),
+                    sql`${products.category} IS NOT NULL`,
+                    sql`btrim(${products.category}) <> ''`
+                ))
+                .orderBy(products.category),
             // Unique brands from active products
             db.selectDistinct({ brand: products.brand })
                 .from(products)
@@ -267,6 +275,16 @@ export class ProductStorage {
 
     async createProduct(product: Partial<Product>): Promise<Product> {
         const db = this.ensureDb();
+
+        // ProductStorage owns catalogue metadata, not inventory quantities.
+        // New identities may only be created at zero; callers that need initial
+        // stock must post it through inventory_movements after creation.
+        const requestedStock = Number(product.stock ?? 0);
+        const requestedVariants = Array.isArray(product.variants) ? product.variants as any[] : [];
+        const hasVariantStock = requestedVariants.some((variant) => Number(variant?.stock ?? 0) !== 0);
+        if (requestedStock !== 0 || hasVariantStock) {
+            throw new Error("INVENTORY_WRITE_REQUIRES_LEDGER: create products at stock=0, then use canonical inventory adjustment");
+        }
         // Dual Write Logic: Ensure categoryId is set if category is provided
         if (product.category && !product.categoryId) {
             product.categoryId = await this.resolveCategoryId(product.category) || null;
@@ -298,6 +316,17 @@ export class ProductStorage {
 
     async updateProduct(id: string, updates: Partial<Product>): Promise<Product | undefined> {
         const db = this.ensureDb();
+
+        // Stock and variant structure are canonical-inventory concerns. Keeping
+        // this invariant here prevents a future route/service from accidentally
+        // bypassing inventory_movements even if the DB guard would catch it later.
+        if (
+            Object.prototype.hasOwnProperty.call(updates, "stock")
+            || Object.prototype.hasOwnProperty.call(updates, "variants")
+            || Object.prototype.hasOwnProperty.call(updates, "hasVariants")
+        ) {
+            throw new Error("INVENTORY_WRITE_REQUIRES_LEDGER: use canonical inventory adjustment/variant configuration");
+        }
         // Dual Write Logic: Update categoryId if category changes
         if (updates.category) {
             const newCategoryId = await this.resolveCategoryId(updates.category);
@@ -324,33 +353,10 @@ export class ProductStorage {
         return result[0];
     }
 
-    async updateProductVariants(id: string, hasVariants: boolean, variants: any[] | null): Promise<boolean> {
-        const db = this.ensureDb();
-
-        // This is a full REPLACE of the `variants` jsonb column, and the admin dialog that calls it reads
-        // its products from the now-sanitized public endpoint — so the array arriving here has no cost
-        // keys on it. Replacing blindly would erase the per-variant costPrice/costStatus/costBasis/
-        // costEvidence that migration 0073 writes, on the very first variant edit, with no error and no
-        // visible symptom until the accounting numbers drifted. Read the current row and carry those
-        // fields across by variant id.
-        //
-        // Note this also makes the endpoint safe against a caller that never had the data at all, which
-        // is the property that actually matters: it does not depend on any client behaving well.
-        const [current] = await db.select({ variants: products.variants })
-            .from(products)
-            .where(eq(products.id, id))
-            .limit(1);
-        const merged = preserveInternalVariantFields(variants, current?.variants ?? null);
-
-        const result = await db.update(products)
-            .set({
-                hasVariants,
-                variants: merged as any,
-                updatedAt: new Date()
-            } as any)
-            .where(eq(products.id, id))
-            .returning();
-        return result.length > 0;
+    async updateProductVariants(_id: string, _hasVariants: boolean, _variants: any[] | null): Promise<boolean> {
+        throw new Error(
+            "INVENTORY_WRITE_REQUIRES_LEDGER: use setCanonicalVariantConfiguration()"
+        );
     }
 
     async deleteProduct(id: string): Promise<boolean> {

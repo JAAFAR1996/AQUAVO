@@ -5,7 +5,7 @@
 
 import { groqClient } from "./groq-client.js";
 import { getDb } from "../db.js";
-import { productViews, searchQueries, products, blogPosts } from "../../shared/schema.js";
+import { productViews, searchQueries, products, blogPosts, settings } from "../../shared/schema.js";
 import { desc, count, eq } from "drizzle-orm";
 import { aiMonitor } from "./ai-monitor.js";
 import { EDITORIAL_TEAM_AUTHOR } from "../../shared/editorial-author.js";
@@ -167,12 +167,18 @@ function safeString(value: unknown): string {
 async function loadBusinessFacts(): Promise<BusinessFacts> {
   try {
     const db = getDb();
-    const rows = await db
-      .select({ category: products.category, name: products.name })
-      .from(products);
+    const [rows, shippingRows] = await Promise.all([
+      db.select({ category: products.category, name: products.name }).from(products),
+      db.select({ value: settings.value }).from(settings).where(eq(settings.key, "shipping_fee")).limit(1),
+    ]);
     if (rows.length === 0) return AQUAVO_INVARIANTS;
+    const configuredShippingFee = Number(shippingRows[0]?.value ?? AQUAVO_INVARIANTS.deliveryFeeIqd);
+    const deliveryFeeIqd = Number.isFinite(configuredShippingFee) && configuredShippingFee > 0
+      ? configuredShippingFee
+      : AQUAVO_INVARIANTS.deliveryFeeIqd;
     return {
       ...AQUAVO_INVARIANTS,
+      deliveryFeeIqd,
       categories: Array.from(new Set(rows.map((r) => r.category).filter(Boolean))),
       // Every significant word of every product name, not just the head noun:
       // the catalogue calls it "أزرق الميثيلين" and an article may write

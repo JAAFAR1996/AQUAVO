@@ -41,6 +41,12 @@ jobs:
       - name: 🔍 TypeScript type check
         run: pnpm run check
         timeout-minutes: 10
+      - name: 🔍 Strict server type gate
+        run: pnpm run check:server
+        timeout-minutes: 10
+      - name: 🧾 Migration ledger governance
+        run: pnpm run check:migrations
+        timeout-minutes: 5
 
   build:
     name: 🏗️ Build

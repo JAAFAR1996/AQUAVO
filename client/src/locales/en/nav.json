@@ -60,7 +60,7 @@
     "secure": "Secure payment and protected information"
   },
   "deliveryNote": "Delivery within 24 hours across Iraq",
-  "paymentNote": "Cash on delivery or online payment. Delivery 5,000 IQD",
+  "paymentNote": "Cash on delivery or online payment. Delivery {{fee}} IQD",
   "footer": {
     "serviceInfo": "Service information",
     "trust": {

@@ -195,11 +195,17 @@ describe("malformed input is handled without failing open", () => {
     expect(toPublicProducts([leakedProductRow(), null, "x"])).toHaveLength(1);
   });
 
-  it("handles products with no variants, and with variants explicitly null", () => {
+  it("normalizes missing/null variant payloads to an empty public list", () => {
     const { variants, ...noVariants } = leakedProductRow();
-    expect(toPublicProduct(noVariants)).not.toHaveProperty("variants");
-    expect(toPublicProduct({ ...leakedProductRow(), variants: null })!.variants).toBeNull();
+    expect(toPublicProduct(noVariants)!.variants).toEqual([]);
+    expect(toPublicProduct({ ...leakedProductRow(), variants: null })!.variants).toEqual([]);
     expect(toPublicVariant(null)).toEqual({});
+  });
+
+  it("never exposes historical variant JSON when hasVariants=false", () => {
+    const row = leakedProductRow();
+    row.hasVariants = false;
+    expect(toPublicProduct(row)!.variants).toEqual([]);
   });
 });
 

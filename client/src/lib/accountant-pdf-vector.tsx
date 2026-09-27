@@ -30,7 +30,7 @@ const C = {
   tealSoft: "#E9F7F8",
   cream: "#F6F4EF",
   paper: "#FFFFFF",
-  text: "#1F2933",
+  text: "#232323",
   muted: "#6B7280",
   subtle: "#94A3B8",
   border: "#D9E2E7",
@@ -2639,7 +2639,7 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
         payload={payload}
         section="16 · الاعتماد والمنهجية"
         title="بيانات المنشأة، الاعتماد، وتعريفات التقرير"
-        subtitle="الحقول الناقصة تبقى ناقصة صراحةً؛ ولا يتم اختراع رقم مكلف أو اعتماد محاسب"
+        subtitle="الحقول والأرقام الناقصة تبقى ناقصة صراحةً؛ ولا يتم اختراع رقم مكلف أو اعتماد محاسب"
       >
         <View style={styles.kpiRow}>
           <KpiCard label="حالة الملف" value={fieldValue(profile.status)} />

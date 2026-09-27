@@ -68,15 +68,88 @@ interface ServerCartItem {
   quantity: number;
 }
 
+type CartPreflightLine = {
+  productId: string;
+  variantId?: string | null;
+  quantity: number;
+  name?: string;
+  slug?: string;
+  thumbnail?: string | null;
+  variantLabel?: string | null;
+  price?: number | null;
+  stock: number;
+  valid: boolean;
+  reason?: string | null;
+};
+
+async function preflightGuestCartItems(items: CartItem[]): Promise<CartItem[]> {
+  if (items.length === 0) return items;
+
+  try {
+    const response = await fetch("/api/cart/preflight", {
+      method: "POST",
+      headers: addCsrfHeader({ "Content-Type": "application/json" }),
+      credentials: "include",
+      cache: "no-store",
+      body: JSON.stringify({
+        items: items.map(({ productId, variantId, quantity }) => ({
+          productId,
+          ...(variantId ? { variantId } : {}),
+          quantity,
+        })),
+      }),
+    });
+    if (!response.ok) return items;
+
+    const payload = await response.json() as { items?: CartPreflightLine[] };
+    if (!Array.isArray(payload.items)) return items;
+
+    const key = (productId: string, variantId?: string | null) =>
+      `${productId}::${variantId ?? ""}`;
+    const currentByKey = new Map(
+      payload.items.map((line) => [key(line.productId, line.variantId), line]),
+    );
+
+    return items.map((item) => {
+      const current = currentByKey.get(key(item.productId, item.variantId));
+      if (!current) return item;
+
+      const identityStillValid = ![
+        "PRODUCT_NOT_FOUND",
+        "VARIANT_REQUIRED",
+        "VARIANT_INVALID",
+        "NOT_PURCHASABLE",
+      ].includes(String(current.reason ?? ""));
+
+      return {
+        ...item,
+        name: current.name ?? item.name,
+        slug: current.slug ?? item.slug,
+        image: current.thumbnail ?? item.image,
+        variantLabel: current.variantLabel ?? item.variantLabel,
+        price: identityStillValid && current.price != null
+          ? Number(current.price)
+          : item.price,
+        stock: Number.isFinite(Number(current.stock))
+          ? Math.max(0, Number(current.stock))
+          : 0,
+      };
+    });
+  } catch {
+    return items;
+  }
+}
+
 interface CartContextType {
   items: CartItem[];
   /** Resolves true when the item was added, false when blocked (e.g. out of stock). */
   addItem: (product: Product, quantity?: number) => Promise<boolean>;
-  addItems: (products: Product[]) => void;
+  /** Adds each product through the same validated path as addItem; returns count successfully added. */
+  addItems: (products: Product[]) => Promise<number>;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
-  refetchCart: () => Promise<void>;
+  refetchCart: () => Promise<CartItem[]>;
   totalItems: number;
   totalPrice: number;
 }
@@ -161,10 +234,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const stored = syncStorage.getItem<CartItem[]>(CART_STORAGE_KEY);
       if (stored) {
         try {
-          setItems(stored.map((item) => ({
+          const normalized = stored.map((item) => ({
             ...item,
             name: normalizeCartItemName(item.name, item.variantLabel),
-          })));
+          }));
+          setItems(normalized);
+
+          // localStorage is only a convenience snapshot. Reconcile it against
+          // current public catalogue truth immediately so guest users do not
+          // browse or enter checkout with obsolete price/stock information.
+          void preflightGuestCartItems(normalized).then((freshItems) => {
+            setItems(freshItems);
+            syncStorage.setItem(CART_STORAGE_KEY, freshItems);
+          });
         } catch (e) {
           console.error("Failed to parse cart", e);
         }
@@ -429,106 +511,31 @@ export function CartProvider({ children }: { children: ReactNode }) {
     return true;
   };
 
-  const addItems = async (products: Product[]) => {
-    // Filter: only products with a price can be added
-    const purchasableProducts = products.filter(p => Number(p.price) > 0);
-    if (purchasableProducts.length === 0) {
+  const addItems = async (products: Product[]): Promise<number> => {
+    if (products.length === 0) return 0;
+
+    // Deliberately reuse addItem() instead of maintaining a second cart path.
+    // This keeps stock/variant validation, server error handling, guest caps and
+    // analytics identical for single-add and batch-add surfaces.
+    let addedCount = 0;
+    for (const product of products) {
+      if (await addItem(product, 1)) addedCount += 1;
+    }
+
+    if (addedCount === 0) {
       toast({
         title: t("cart-context.s13"),
         description: t("cart-context.s14"),
         variant: "destructive",
       });
-      return;
-    }
-    if (purchasableProducts.length < products.length) {
+    } else if (addedCount < products.length) {
       toast({
         title: t("cart-context.s15"),
-        description: t("cart-context.s16", { v0: purchasableProducts.length }),
+        description: t("cart-context.s16", { v0: addedCount }),
       });
     }
-    if (user) {
-      // Server Side: Add all concurrently then update state
-      try {
-        const promises = purchasableProducts.map(product => {
-          const { variantId, variantLabel } = getCartVariantMeta(product);
-          return fetch("/api/cart", {
-            method: "POST",
-            headers: addCsrfHeader({ "Content-Type": "application/json" }),
-            credentials: "include",
-            body: JSON.stringify({
-              productId: product.id,
-              quantity: 1,
-              variantPrice: variantId ? Number(product.price) : undefined,
-              variantLabel,
-              variantId,
-            }),
-          });
-        });
 
-        await Promise.all(promises);
-
-        // Refresh cart once
-        const cartRes = await fetch("/api/cart", { credentials: "include" });
-        if (cartRes.ok) {
-          const serverItems = await cartRes.json();
-          const mappedItems = serverItems.map(mapServerCartItem);
-          setItems(mappedItems);
-        }
-
-        purchasableProducts.forEach((product) => {
-          fireAddToCartAnalytics({ id: product.id, name: product.name, price: Number(product.price), quantity: 1, category: product.category });
-        });
-      } catch (err) {
-        console.error("Failed to add items batch", err);
-        toast({
-          title: t("cart-context.s17"),
-          description: t("cart-context.s18"),
-          variant: "destructive"
-        });
-      }
-    } else {
-      // Client Side: Compute new state in one go
-      setItems(prev => {
-        let newItems = [...prev];
-        purchasableProducts.forEach((product) => {
-          const { variantId, variantLabel } = getCartVariantMeta(product);
-          const cartItemId = `${product.id}-${variantId || 'default'}`;
-          
-          const existingIndex = newItems.findIndex(i => i.id === cartItemId);
-          if (existingIndex > -1) {
-            newItems[existingIndex] = {
-              ...newItems[existingIndex],
-              quantity: newItems[existingIndex].quantity + 1
-            };
-          } else {
-            newItems.push({
-              id: cartItemId,
-              productId: product.id,
-              name: product.name,
-              price: Number(product.price),
-              quantity: 1,
-              image: product.thumbnail || product.image || product.images?.[0] || '',
-              slug: product.slug,
-              variantId: variantId ?? undefined,
-              variantLabel,
-            });
-          }
-        });
-
-        // Side effect: Save to local storage
-        syncStorage.setItem(CART_STORAGE_KEY, newItems);
-        window.dispatchEvent(new StorageEvent('storage', {
-          key: CART_STORAGE_KEY,
-          newValue: JSON.stringify(newItems),
-        }));
-
-        return newItems;
-      });
-
-      purchasableProducts.forEach((product) => {
-        fireAddToCartAnalytics({ id: product.id, name: product.name, price: Number(product.price), quantity: 1, category: product.category });
-      });
-    }
+    return addedCount;
   };
 
   const removeItem = useCallback(async (id: string) => {
@@ -659,8 +666,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [user, removeItem, items]);
 
-  const refetchCart = useCallback(async () => {
-    if (!user) return;
+  const refetchCart = useCallback(async (): Promise<CartItem[]> => {
+    if (!user) {
+      const freshItems = await preflightGuestCartItems(items);
+      setItems(freshItems);
+      syncStorage.setItem(CART_STORAGE_KEY, freshItems);
+      return freshItems;
+    }
     try {
       const cartRes = await fetch("/api/cart", { credentials: "include" });
       if (cartRes.ok) {
@@ -668,12 +680,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
         if (Array.isArray(serverItems)) {
           const mappedItems = serverItems.map(mapServerCartItem);
           setItems(mappedItems);
+          return mappedItems;
         }
       }
     } catch (err) {
       console.warn("Failed to refetch cart:", err);
     }
-  }, [user]);
+    return items;
+  }, [user, items]);
 
   const clearCart = async () => {
     if (user) {

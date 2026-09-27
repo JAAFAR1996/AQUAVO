@@ -32,6 +32,11 @@ import {
 import { getDb } from "../db.js";
 import * as schema from "../../shared/schema.js";
 import { handleOAuthRegister, handleOAuthRegisterOptions, verifyMcpToken } from "./oauth.js";
+import { clearProductsCache } from "./products.js";
+import {
+  setCanonicalProductStock,
+  type InventoryAdjustmentResult,
+} from "../services/inventory-adjustment-service.js";
 // ── Canonical accounting engine ──────────────────────────────────────────────
 // Every money figure an MCP finance tool reports MUST come from the engine, so
 // an assistant reading these tools cannot quote a different revenue or profit
@@ -254,6 +259,7 @@ function normalizeOffset(value: unknown): number {
   return Math.floor(parsed);
 }
 
+
 function isSensitiveField(key: string): boolean {
   return sensitiveFieldPatterns.some((pattern) => pattern.test(key));
 }
@@ -341,6 +347,7 @@ async function buildSiteOverview(db: ReturnType<typeof getDb>) {
     customerCount,
     pendingOrderCount,
     lowStockCount,
+    shippingSetting,
   ] = await Promise.all([
     db.select({ count: sql<number>`COUNT(*)` }).from(schema.products),
     db.select({ count: sql<number>`COUNT(*)` }).from(schema.products).where(isNull(schema.products.deletedAt)),
@@ -349,7 +356,14 @@ async function buildSiteOverview(db: ReturnType<typeof getDb>) {
     db.select({ count: sql<number>`COUNT(*)` }).from(schema.orders).where(eq(schema.orders.status, "pending")),
     db.select({ count: sql<number>`COUNT(*)` }).from(schema.products)
       .where(and(isNull(schema.products.deletedAt), sql`${schema.products.stock} <= ${schema.products.lowStockThreshold}`)),
+    db.select({ value: schema.settings.value }).from(schema.settings)
+      .where(eq(schema.settings.key, "shipping_fee")).limit(1),
   ]);
+
+  const configuredShippingFee = Number(shippingSetting[0]?.value ?? 5000);
+  const shippingFeeIqd = Number.isFinite(configuredShippingFee) && configuredShippingFee > 0
+    ? configuredShippingFee
+    : 5000;
 
   return {
     name: "AQUAVO",
@@ -367,7 +381,7 @@ async function buildSiteOverview(db: ReturnType<typeof getDb>) {
     rules: {
       sells_live_fish: false,
       payment_methods: ["cash_on_delivery", "wayl"],
-      shipping_fee_iqd: 5000,
+      shipping_fee_iqd: shippingFeeIqd,
     },
   };
 }
@@ -593,7 +607,7 @@ function buildMcpServer(auth: McpAuthInfo): Server {
       },
       {
         name: "update_product",
-        description: "تعديل بيانات منتج: السعر، المخزون، الاسم، الوصف، الفئة، العلامة التجارية، حالة البيع.",
+        description: "تعديل بيانات منتج. المخزون يُحدّث عبر سجل inventory_movements؛ للمنتجات ذات الخيارات استخدم update_stock مع variant_id.",
         inputSchema: {
           type: "object",
           required: ["id"],
@@ -627,6 +641,7 @@ function buildMcpServer(auth: McpAuthInfo): Server {
                 properties: {
                   id: { type: "string" },
                   stock: { type: "number" },
+                  variant_id: { type: "string", description: "معرّف الخيار للمنتجات متعددة الخيارات. يُترك فارغاً للمنتج العادي." },
                 },
               },
               description: "قائمة تحديثات [{id, stock}]",
@@ -1266,34 +1281,60 @@ function buildMcpServer(auth: McpAuthInfo): Server {
           if (!id) throw new Error("id مطلوب");
           const [existing] = await db.select({ id: schema.products.id, name: schema.products.name }).from(schema.products).where(eq(schema.products.id, id)).limit(1);
           if (!existing) throw new Error("المنتج غير موجود");
+
           const updates: Record<string, unknown> = { updatedAt: new Date() };
           if (name !== undefined) updates.name = name;
           if (price !== undefined) updates.price = String(price);
           if (original_price !== undefined) updates.originalPrice = String(original_price);
-          if (stock !== undefined) updates.stock = Number(stock);
           if (description !== undefined) updates.description = description;
           if (category !== undefined) updates.category = category;
           if (brand !== undefined) updates.brand = brand;
           if (is_best_seller !== undefined) updates.isBestSeller = Boolean(is_best_seller);
           if (is_new !== undefined) updates.isNew = Boolean(is_new);
           if (low_stock_threshold !== undefined) updates.lowStockThreshold = Number(low_stock_threshold);
-          await db.update(schema.products).set(updates as any).where(eq(schema.products.id, id));
-          await recordMcpAudit(db, auth, "update_product", "product", id, {
-            fields: Object.keys(updates),
-            updates,
+
+          let stockResult: InventoryAdjustmentResult | null = null;
+          await db.transaction(async (tx: any) => {
+            await tx.update(schema.products).set(updates as any).where(eq(schema.products.id, id));
+            if (stock !== undefined) {
+              stockResult = await setCanonicalProductStock(tx, auth, id, stock, null);
+            }
           });
-          return text({ success: true, product_id: id, product_name: existing.name, updated_fields: Object.keys(updates) });
+          clearProductsCache();
+
+          await recordMcpAudit(db, auth, "update_product", "product", id, {
+            fields: [...Object.keys(updates), ...(stock !== undefined ? ["stock"] : [])],
+            updates,
+            stock_adjustment: stockResult,
+          });
+          return text({
+            success: true,
+            product_id: id,
+            product_name: existing.name,
+            updated_fields: [...Object.keys(updates), ...(stock !== undefined ? ["stock"] : [])],
+            stock_adjustment: stockResult,
+          });
         }
 
         case "update_stock": {
           const { updates } = a;
           if (!Array.isArray(updates) || !updates.length) throw new Error("updates array مطلوب");
-          const results = [];
-          for (const { id, stock } of updates) {
-            if (!id || stock === undefined) continue;
-            await db.update(schema.products).set({ stock: Number(stock), updatedAt: new Date() } as any).where(eq(schema.products.id, id));
-            results.push({ id, new_stock: Number(stock) });
-          }
+
+          const results = await db.transaction(async (tx: any) => {
+            const adjusted: InventoryAdjustmentResult[] = [];
+            for (const entry of updates) {
+              const id = entry?.id;
+              const stock = entry?.stock;
+              const variantId = entry?.variant_id ?? null;
+              if (!id || stock === undefined) {
+                throw new Error("كل عنصر في updates يحتاج id و stock");
+              }
+              adjusted.push(await setCanonicalProductStock(tx, auth, id, stock, variantId));
+            }
+            return adjusted;
+          });
+          clearProductsCache();
+
           await recordMcpAudit(db, auth, "update_stock", "product", "bulk", { updates: results });
           return text({ success: true, updated: results });
         }
@@ -1360,6 +1401,7 @@ function buildMcpServer(auth: McpAuthInfo): Server {
           const [existing] = await db.select({ id: schema.products.id, name: schema.products.name }).from(schema.products).where(eq(schema.products.id, id)).limit(1);
           if (!existing) throw new Error("المنتج غير موجود");
           await db.update(schema.products).set({ deletedAt: new Date(), updatedAt: new Date() } as any).where(eq(schema.products.id, id));
+          clearProductsCache();
           await recordMcpAudit(db, auth, "soft_delete_product", "product", id, { name: existing.name });
           return text({ success: true, deleted_product: { id, name: existing.name } });
         }
@@ -1368,6 +1410,7 @@ function buildMcpServer(auth: McpAuthInfo): Server {
           const { id } = a;
           if (!id) throw new Error("id مطلوب");
           await db.update(schema.products).set({ deletedAt: null, updatedAt: new Date() } as any).where(eq(schema.products.id, id));
+          clearProductsCache();
           await recordMcpAudit(db, auth, "restore_product", "product", id, {});
           return text({ success: true, restored_product_id: id });
         }

@@ -5,7 +5,10 @@
     "listName": "All AQUAVO products",
     "categoryListName": "Aquarium equipment - {{category}}"
   },
-  "breadcrumb": { "home": "Home", "shop": "Shop" },
+  "breadcrumb": {
+    "home": "Home",
+    "shop": "Shop"
+  },
   "header": {
     "title": "Set up your tank on a clear basis",
     "subtitle": "Pick a section, sort the results and see the available information before you decide."
@@ -13,7 +16,7 @@
   "service": {
     "label": "Delivery and payment information",
     "payment": "Cash on delivery or online payment",
-    "delivery": "Delivery 5,000 IQD",
+    "delivery": "Delivery {{fee}} IQD",
     "within24h": "Within 24 hours",
     "support": "24/7 support"
   },

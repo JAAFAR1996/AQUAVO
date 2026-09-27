@@ -38,7 +38,7 @@ export const AQUAVO_FAQ_GROUPS: readonly FaqGroup[] = [
     items: [
       {
         question: "وين يوصل AQUAVO؟",
-        answer: "نوصل لكل العراق خلال 24 ساعة، وأجرة التوصيل ثابتة 5,000 د.ع.",
+        answer: "نوصل لكل العراق خلال 24 ساعة، وأجرة التوصيل الحالية تظهر بوضوح قبل تأكيد الطلب.",
       },
       {
         question: "شلون أدفع؟",

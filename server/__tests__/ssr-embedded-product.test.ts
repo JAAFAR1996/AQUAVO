@@ -46,7 +46,7 @@ const PRODUCT_ROW = {
   isBestSeller: false,
   isProductOfWeek: false,
   specifications: { power: "2W" },
-  hasVariants: false,
+  hasVariants: true,
   createdAt: "2026-01-01T00:00:00.000Z",
   updatedAt: "2026-08-01T00:00:00.000Z",
   variants: [

@@ -216,8 +216,7 @@ export class InvoiceStorage {
    */
   private async createOrderFromInvoice(invoice: ManualInvoice): Promise<string> {
     const db = this.ensureDb();
-    const { orders, orderItems, products } = await import("../../shared/schema.js");
-    const { eq: eqORM, sql: sqlORM } = await import("drizzle-orm");
+    const { orders, orderItems } = await import("../../shared/schema.js");
     const {
       buildProductCostSnapshot,
       lockProductRowForUpdate,
@@ -313,11 +312,10 @@ export class InvoiceStorage {
           },
         } as any);
 
-        // Deduct stock — parameterized (no string interpolation / injection).
-        await tx
-          .update(products)
-          .set({ stock: sqlORM`GREATEST(${products.stock} - ${item.quantity}, 0)`, updatedAt: new Date() })
-          .where(eqORM(products.id, item.productId));
+        // Inventory is posted canonically by the
+        // order_items_record_inventory_sale database trigger after this insert.
+        // Never mutate products.stock here: that would be a second deduction
+        // and is blocked when inventory_ledger_mode=enforce.
       }
     });
 

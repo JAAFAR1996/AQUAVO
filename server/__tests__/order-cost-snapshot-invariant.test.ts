@@ -636,9 +636,13 @@ describe("admin / WhatsApp creation path (invoice confirmation)", () => {
     expect(Number(r.totalPrice)).toBe(j.lineTotal);
   });
 
-  it("WhatsApp deducts inventory exactly once per line", async () => {
+  it("WhatsApp delegates inventory deduction exactly once to the relational order-line trigger", async () => {
     const { h } = await runInvoice(KNOWN_COST_PRODUCT, invItem("p-known"));
-    expect(h.state.productUpdates).toHaveLength(1);
+    // The application must not mutate products.stock directly. Production's
+    // order_items_record_inventory_sale trigger appends the one canonical sale
+    // movement when this single relational line is inserted.
+    expect(h.state.productUpdates).toHaveLength(0);
+    expect(h.state.orderItemInserts).toHaveLength(1);
   });
 
   it("WhatsApp fails closed when the invoice references a missing product", async () => {

@@ -189,6 +189,7 @@ export interface ChatContext {
         rating: number | null;
     }>;
     customerProfile?: any;
+    shippingFeeIqd?: number;
     searchPerformed?: boolean;
     productsFound?: number;
     fishPatients?: Array<{
@@ -224,6 +225,23 @@ const FALLBACK_MESSAGES = [
 
 function getRandomFallback(): string {
     return FALLBACK_MESSAGES[Math.floor(Math.random() * FALLBACK_MESSAGES.length)];
+}
+
+async function loadShippingFeeIqd(): Promise<number> {
+    const db = getDb();
+    if (!db) return 5000;
+
+    try {
+        const rows = await db
+            .select({ value: schema.settings.value })
+            .from(schema.settings)
+            .where(eq(schema.settings.key, "shipping_fee"))
+            .limit(1);
+        const configured = Number(rows[0]?.value ?? 5000);
+        return Number.isFinite(configured) && configured > 0 ? configured : 5000;
+    } catch {
+        return 5000;
+    }
 }
 
 // ============================================================
@@ -353,7 +371,7 @@ ${context?.userId
 - الاسم: AQUAVO (اكوافو) اول متجر احواض متخصص بالعراق
 - الموقع: بغداد، العراق. نوصل لكل المحافظات
 - AQUAVO لا يبيع ولا يشحن اسماك حية او نباتات حية. المتجر يبيع معدات ومستلزمات الاحواض فقط.
-- التوصيل: رسوم ثابتة 5,000 د.ع لبغداد وكل المحافظات العراقية. التوصيل خلال 24 ساعة لكل العراق. لا يوجد حد يعفي من رسوم التوصيل.
+- التوصيل: رسوم ثابتة ${(context?.shippingFeeIqd ?? 5000).toLocaleString("en-US")} د.ع لبغداد وكل المحافظات العراقية. التوصيل خلال 24 ساعة لكل العراق. لا يوجد حد يعفي من رسوم التوصيل.
 - الدفع: عند الاستلام أو إلكترونياً من صفحة إكمال الطلب. الدفع الإلكتروني يُعتمد فقط بعد تأكيد بوابة الدفع، وAQUAVO ما يخزن بيانات البطاقة الحساسة
 - الارجاع: 7 ايام (مو مفتوح وبحالته الاصلية)
 - التواصل: انستغرام @aquavo.iq، واتساب متوفر
@@ -1031,7 +1049,11 @@ export async function sendMessage(
         }
 
         // 2. Create system prompt (with context for admin data injection) + inject learnings
-        let systemPrompt = createSalesAgentPrompt(context?.userName, customerProfile, isAdmin, context);
+        const promptContext: ChatContext = {
+            ...(context ?? {}),
+            shippingFeeIqd: await loadShippingFeeIqd(),
+        };
+        let systemPrompt = createSalesAgentPrompt(context?.userName, customerProfile, isAdmin, promptContext);
         const learnings = await getAppliedLearnings();
         if (learnings) systemPrompt += learnings;
 
@@ -1254,7 +1276,11 @@ export async function* sendMessageStream(
     }
 
     // 2. System prompt + inject learnings
-    let systemPrompt = createSalesAgentPrompt(context?.userName, customerProfile, isAdmin, context);
+    const promptContext: ChatContext = {
+        ...(context ?? {}),
+        shippingFeeIqd: await loadShippingFeeIqd(),
+    };
+    let systemPrompt = createSalesAgentPrompt(context?.userName, customerProfile, isAdmin, promptContext);
     const learningsText = await getAppliedLearnings();
     if (learningsText) systemPrompt += learningsText;
 

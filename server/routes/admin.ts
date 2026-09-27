@@ -20,6 +20,7 @@ import { getDb } from "../db.js";
 import { recordFinancialChange, actorFromRequest, type FinancialEntityType } from "../services/accountingAuditTrail.js";
 // Canonical engine — per-order profit MUST come from here, not an inline formula.
 import { buildCostResolver, buildFulfillmentResolver, calcOrderProfit, collectProductIds } from "../services/accounting-engine.js";
+import { setCanonicalProductStock, setCanonicalVariantConfiguration, type InventoryAdjustmentResult } from "../services/inventory-adjustment-service.js";
 
 /** Strip sensitive fields before sending user data to client */
 function sanitizeUser(user: Record<string, any>) {
@@ -445,27 +446,10 @@ export function createAdminRouter(): RouterType {
                     }
                 }
 
-                // 📦 رجوع البضاعة للمخزون عند رجوع من العميل
+                // 📦 rejected_returned inventory is restored canonically by
+                // orders_reverse_inventory_on_terminal_status. Keep only the
+                // loyalty side effect here; duplicate stock writes are forbidden.
                 if (newStatus === "rejected_returned" && oldStatus !== "rejected_returned") {
-                    try {
-                        const { getDb } = await import("../db.js");
-                        const { products: productsTable } = await import("../../shared/schema.js");
-                        const { eq: eqOp, sql: sqlOp } = await import("drizzle-orm");
-                        const dbConn = getDb();
-                        if (dbConn && Array.isArray((order as any).items)) {
-                            for (const item of ((order as any).items as any[])) {
-                                if (item.productId && item.quantity) {
-                                    await dbConn
-                                        .update(productsTable)
-                                        .set({ stock: sqlOp`stock + ${item.quantity}` } as any)
-                                        .where(eqOp(productsTable.id, item.productId));
-                                }
-                            }
-                            console.log(`[Admin] 📦 Stock restored for rejected_returned order ${order.id}`);
-                        }
-                    } catch (stockErr) {
-                        console.error("[Admin] Failed to restore stock:", stockErr);
-                    }
                     try {
                         const { loyaltyStorage } = await import("../storage/loyalty-storage.js");
                         if ((order as any).userId) {
@@ -488,29 +472,9 @@ export function createAdminRouter(): RouterType {
                     }
                 }
 
-                // 📦 استلام من شركة النقل — إرجاع المخزون
-                if (newStatus === "returned" && oldStatus !== "returned") {
-                    try {
-                        const orderItems = (order as any).items;
-                        if (Array.isArray(orderItems)) {
-                            for (const item of orderItems) {
-                                const productId = item.productId;
-                                const qty = item.quantity || 1;
-                                if (productId) {
-                                    const product = await storage.getProduct(productId);
-                                    if (product) {
-                                        const newStock = (product.stock || 0) + qty;
-                                        await storage.updateProduct(productId, { stock: newStock });
-                                        console.log(`[Admin] 📦 Restored ${qty}x ${product.name} — new stock: ${newStock}`);
-                                    }
-                                }
-                            }
-                        }
-                        console.log(`[Admin] 📦 Order ${order.id} returned — stock restored`);
-                    } catch (stockErr) {
-                        console.error("[Admin] Failed to restore stock:", stockErr);
-                    }
-                }
+                // 📦 returned inventory is restored by the database status
+                // trigger with idempotent sale_reversal movements. No app-level
+                // products.stock write belongs here.
 
                 // Send push notification when order status changes to shipped
                 if (newStatus === "shipped" && oldStatus !== "shipped") {
@@ -942,7 +906,20 @@ export function createAdminRouter(): RouterType {
     // Coupons
     router.get("/coupons", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const coupons = await storage.getCoupons();
+            const couponRows = await storage.getCoupons();
+            const now = new Date();
+            const coupons = couponRows.map((coupon) => {
+                const exhausted = coupon.maxUses != null && (coupon.usedCount ?? 0) >= coupon.maxUses;
+                const expired = coupon.endDate != null && new Date(coupon.endDate) < now;
+                return {
+                    ...coupon,
+                    // Admin should see operational truth, not only the persisted toggle.
+                    isActive: Boolean(coupon.isActive && !exhausted && !expired),
+                    exhausted,
+                    expired,
+                };
+            });
+            res.set("Cache-Control", "no-store");
             res.json(coupons);
         } catch (err) { next(err); }
     });
@@ -1283,8 +1260,59 @@ export function createAdminRouter(): RouterType {
             validateImageUrls(data.thumbnail, data.images);
 
             const parsed = insertProductSchema.parse(data);
-            const product = await storage.createProduct(parsed);
-            clearProductsCache(); // Invalidate products cache on new product
+            const requestedStock = Number((parsed as any).stock ?? 0);
+            const requestedHasVariants = Boolean((parsed as any).hasVariants);
+            const requestedVariants = Array.isArray((parsed as any).variants)
+                ? (parsed as any).variants
+                : [];
+            if (requestedHasVariants && requestedVariants.length === 0) {
+                throw new OperationalError("عند تفعيل الخيارات يجب إضافة خيار واحد على الأقل", 400);
+            }
+
+            // A newly-created SKU starts at zero inventory. The requested amount
+            // is posted immediately afterwards through inventory_movements so a
+            // product can never be born with storefront stock that has no ledger.
+            const createPayload: any = {
+                ...parsed,
+                stock: 0,
+                ...(requestedHasVariants
+                    ? { variants: requestedVariants.map((variant: any) => ({ ...variant, stock: 0 })) }
+                    : {}),
+            };
+            let product = await storage.createProduct(createPayload);
+
+            const db = getDb();
+            if (!db) {
+                throw new OperationalError("قاعدة البيانات غير مهيأة", 503);
+            }
+            const adminId = getSession(req)?.userId || "admin";
+            let inventoryResult: InventoryAdjustmentResult | InventoryAdjustmentResult[] | null = null;
+
+            if (requestedHasVariants && requestedVariants.length > 0) {
+                const variantResult = await db.transaction(async (tx: any) =>
+                    setCanonicalVariantConfiguration(
+                        tx,
+                        { clientId: adminId, mode: "admin" },
+                        product.id,
+                        true,
+                        requestedVariants,
+                    ),
+                );
+                inventoryResult = variantResult.stock_adjustments;
+            } else if (requestedStock > 0) {
+                inventoryResult = await db.transaction(async (tx: any) =>
+                    setCanonicalProductStock(
+                        tx,
+                        { clientId: adminId, mode: "admin" },
+                        product.id,
+                        requestedStock,
+                        null,
+                    ),
+                );
+            }
+
+            product = await storage.getProduct(product.id) ?? product;
+            clearProductsCache();
 
             // Auto-generate embedding for new product (fire-and-forget)
             embeddingGenerator.generateProductEmbedding(product.id).catch((err) => {
@@ -1293,11 +1321,11 @@ export function createAdminRouter(): RouterType {
 
             // Audit Log
             await storage.createAuditLog({
-                userId: getSession(req)?.userId || "admin",
+                userId: adminId,
                 action: "create",
                 entityType: "product",
                 entityId: product.id,
-                changes: parsed as any
+                changes: { ...(parsed as any), inventoryResult }
             });
 
             res.status(201).json(product);
@@ -1308,6 +1336,13 @@ export function createAdminRouter(): RouterType {
         try {
             const { id } = req.params as { id: string };
             const updates = adminProductUpdateSchema.parse(req.body);
+            const requestedStock = updates.stock;
+            // Variant structure + per-variant stock are owned exclusively by
+            // PUT /api/products/:productId/variants. Generic metadata editing
+            // must never send those JSON stock fields to products directly.
+            delete updates.stock;
+            delete updates.variants;
+            delete updates.hasVariants;
 
             // Get existing product to merge images
             const existingProduct = await storage.getProduct(id);
@@ -1372,13 +1407,32 @@ export function createAdminRouter(): RouterType {
             // Enforce validation to make sure everything is a Cloudinary URL or allowed local path
             validateImageUrls(updates.thumbnail as string | undefined, updates.images as string[] | undefined);
 
-            const product = await storage.updateProduct(id, updates);
-            clearProductsCache(); // Invalidate cache on product update
-
+            let product = await storage.updateProduct(id, updates);
             if (!product) {
                 res.status(404).json({ message: "Product not found" });
                 return;
             }
+
+            let stockAdjustment: InventoryAdjustmentResult | null = null;
+            if (requestedStock !== undefined && !existingProduct.hasVariants) {
+                const db = getDb();
+                if (!db) {
+                    res.status(503).json({ message: "قاعدة البيانات غير مهيأة" });
+                    return;
+                }
+                const adminId = getSession(req)?.userId || "admin";
+                stockAdjustment = await db.transaction(async (tx: any) =>
+                    setCanonicalProductStock(
+                        tx,
+                        { clientId: adminId, mode: "admin" },
+                        id,
+                        requestedStock,
+                        null,
+                    ),
+                );
+                product = await storage.getProduct(id) ?? product;
+            }
+            clearProductsCache(); // compatibility no-op; public product APIs are no-store
 
             // Re-generate embedding on product update (name/description/category change)
             if (updates.name || updates.description || updates.category || updates.brand) {
@@ -1393,7 +1447,12 @@ export function createAdminRouter(): RouterType {
                 action: "update",
                 entityType: "product",
                 entityId: product.id,
-                changes: updates
+                changes: {
+                    ...updates,
+                    ...(requestedStock !== undefined && !existingProduct.hasVariants
+                        ? { stock: requestedStock, stockAdjustment }
+                        : {}),
+                }
             });
 
             // Check if price was provided in updates

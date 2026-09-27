@@ -14,6 +14,16 @@ import { execFileSync } from "node:child_process";
 // files are cleaned up. Prefix match on the forward-slashed path.
 const OWNED = [
   "server/storage/invoice-storage.ts",
+  // Commerce-critical paths: new strict errors here must block CI even while
+  // unrelated legacy server debt is burned down incrementally.
+  "server/routes.ts",
+  "server/routes/products.ts",
+  "server/routes/cart.ts",
+  "server/storage/order-storage.ts",
+  "server/storage/product-storage.ts",
+  "server/services/wayl-order-payment.ts",
+  "server/services/inventory-adjustment-service.ts",
+  "shared/public-product.ts",
 ];
 
 let output = "";

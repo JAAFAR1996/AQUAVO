@@ -103,6 +103,8 @@ interface Product {
   rating: string;
   reviewCount: number;
   stock: number;
+  hasVariants?: boolean;
+  variants?: import("@/types").ProductVariant[] | null;
   lowStockThreshold: number;
   isNew: boolean;
   isBestSeller: boolean;
@@ -483,7 +485,19 @@ export default function AdminDashboard() {
 
     // Remove date fields that the server will regenerate
     const { createdAt, updatedAt, deletedAt, ...cleanFormData } = formData as Partial<Product> & { createdAt?: string; updatedAt?: string; deletedAt?: string };
-    const payload = { ...cleanFormData, imageBase64: imageBase64 || undefined };
+    const payload: Partial<Product> & { imageBase64?: string } = {
+      ...cleanFormData,
+      imageBase64: imageBase64 || undefined,
+    };
+
+    // Variant quantities are managed only by ProductVariantsManager so this
+    // generic edit form can never imply that the aggregate parent stock is
+    // independently editable.
+    if (selectedProduct.hasVariants) {
+      delete payload.stock;
+      delete payload.hasVariants;
+      delete payload.variants;
+    }
 
     updateProductMutation.mutate({ id: selectedProduct.id, payload });
   };
@@ -544,6 +558,17 @@ export default function AdminDashboard() {
         ...data,
         name: `نسخة من ${product.name}`,
         slug: `${product.slug}-copy-${Date.now()}`,
+        // Product duplication copies the catalogue definition, never physical
+        // inventory. Stock must be received/count-adjusted independently.
+        stock: 0,
+        ...((data as any).hasVariants && Array.isArray((data as any).variants)
+          ? {
+              variants: (data as any).variants.map((variant: any) => ({
+                ...variant,
+                stock: 0,
+              })),
+            }
+          : {}),
       };
       const res = await fetch("/api/admin/products", {
         method: "POST",
@@ -1463,17 +1488,25 @@ export default function AdminDashboard() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="stock">الكمية المتوفرة *</Label>
+                <Label htmlFor="stock">
+                  {selectedProduct?.hasVariants ? "المخزون الكلي (محسوب من الخيارات)" : "الكمية المتوفرة *"}
+                </Label>
                 <Input
                   id="stock"
                   type="number"
                   min="0"
                   value={formData.stock}
+                  disabled={Boolean(selectedProduct?.hasVariants)}
                   onChange={(e) =>
                     setFormData({ ...formData, stock: Number(e.target.value) })
                   }
                   placeholder="0"
                 />
+                {selectedProduct?.hasVariants && (
+                  <p className="text-xs text-muted-foreground">
+                    عدّل كمية كل خيار من زر «إدارة الخيارات». المجموع يتحدث تلقائياً من سجل المخزون.
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">

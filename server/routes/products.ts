@@ -11,24 +11,15 @@ import { toPublicProduct, toPublicProducts } from "../../shared/public-product.j
 import { localizeJsonResponses } from "../middleware/localize-response.js";
 import { DEFAULT_LOCALE } from "../../shared/i18n/locales.js";
 import { fitCatalogue } from "../../shared/tank-compatibility.js";
+import { getDb } from "../db.js";
+import { setCanonicalVariantConfiguration } from "../services/inventory-adjustment-service.js";
 
-// ─── Server-side in-memory cache ──────────────────────────────
-// Prevents repeated DB round-trips for the same product query.
-// Cache TTL = 60s. Cleared on any product mutation (create/update/delete).
-const productsCache = new Map<string, { data: { products: any[] }; expires: number }>();
-const CACHE_TTL = 60 * 1000; // 60 seconds
-
+// Product availability is commerce-critical and must not depend on process-local
+// serverless memory. Keep the invalidation export for existing callers, but the
+// public product endpoints now read canonical DB state on every request.
 export function clearProductsCache() {
-    productsCache.clear();
+    // Intentionally empty: there is no process-local product cache to invalidate.
 }
-
-// Periodically clean up expired entries to prevent memory accumulation
-setInterval(() => {
-    const now = Date.now();
-    for (const [key, val] of productsCache) {
-        if (now > val.expires) productsCache.delete(key);
-    }
-}, 5 * 60 * 1000); // sweep every 5 minutes
 
 /**
  * Categories where tank volume actually changes which product is correct.
@@ -70,6 +61,16 @@ function resolveClientSessionId(req: Request, candidate: unknown): string {
 export function createProductRouter(): RouterType {
     const router = Router();
 
+    const isPurchasableProduct = (product: any): boolean => {
+        if (!product) return false;
+        if (product.hasVariants && Array.isArray(product.variants) && product.variants.length > 0) {
+            return product.variants.some((variant: any) =>
+                Number(variant?.stock ?? 0) > 0 && Number(variant?.price ?? 0) > 0
+            );
+        }
+        return Number(product.stock ?? 0) > 0 && Number(product.price ?? 0) > 0;
+    };
+
     // Get all products
     // Every JSON payload leaving this router is merged with the request
     // locale's translations (no-op for Arabic). See middleware/localize-response.ts.
@@ -96,34 +97,13 @@ export function createProductRouter(): RouterType {
                 locale: req.locale ?? DEFAULT_LOCALE,
             };
 
-            // Admin panel sends ?fresh=1 to bypass all caching and read straight
-            // from the DB — guarantees edits (price/stock/...) show immediately,
-            // without relying on in-memory cache invalidation across serverless instances.
-            const bypassCache = query.fresh !== undefined;
-
-            // Serve from cache if available
-            const cacheKey = JSON.stringify(filters);
-            if (!bypassCache) {
-                const cached = productsCache.get(cacheKey);
-                if (cached && Date.now() < cached.expires) {
-                    res.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
-                    return res.json(cached.data);
-                }
-            }
-
             const products = await storage.getProducts(filters);
-            // Sanitize BEFORE caching. If the cache held raw rows, a single un-sanitized write would be
-            // re-served for 60s (and by any CDN edge honouring the max-age below) long after the code
-            // path that produced it was fixed.
             const responseData = { products: toPublicProducts(products) };
 
-            if (bypassCache) {
-                res.set('Cache-Control', 'no-store');
-            } else {
-                // Store in cache
-                productsCache.set(cacheKey, { data: responseData, expires: Date.now() + CACHE_TTL });
-                res.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
-            }
+            // Price and stock can change from admin, orders, returns and inventory
+            // movements. Never let a CDN/serverless instance serve an older
+            // availability snapshot.
+            res.set("Cache-Control", "no-store");
             res.json(responseData);
         } catch (err) {
             next(err);
@@ -170,7 +150,7 @@ export function createProductRouter(): RouterType {
             );
             const groups = fitCatalogue(relevant as any, litres);
 
-            res.set("Cache-Control", "public, max-age=300");
+            res.set("Cache-Control", "no-store");
             res.json({
                 litres,
                 groups,
@@ -187,7 +167,7 @@ export function createProductRouter(): RouterType {
     router.get("/top-selling", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const result = await storage.getTopSellingProducts();
-            res.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=1800');
+            res.set("Cache-Control", "no-store");
             // getTopSellingProducts returns an OBJECT, not an array. toPublicProducts takes `unknown`
             // and returns [] for anything that is not an array — it fails closed, which is exactly
             // right for a security allowlist and exactly why this was silent: passing the object
@@ -206,7 +186,7 @@ export function createProductRouter(): RouterType {
     router.get("/info/trending", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const products = await storage.getTrendingProducts();
-            res.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=1800');
+            res.set("Cache-Control", "no-store");
             res.json(toPublicProducts(products));
         } catch (err) {
             next(err);
@@ -222,10 +202,10 @@ export function createProductRouter(): RouterType {
             // Helper: get fallback products (trending → newest)
             const getFallbackProducts = async () => {
                 const trending = await storage.getTrendingProducts();
-                if (trending.length > 0) return trending.slice(0, 8);
-                // Ultimate fallback: newest products (ignores stock for stores still setting up)
-                const newest = await storage.getProducts({ limit: 8, sortBy: "createdAt", sortOrder: "desc" });
-                return newest;
+                if (trending.length > 0) return trending.filter(isPurchasableProduct).slice(0, 8);
+                // Ultimate fallback: newest products that can actually be purchased.
+                const newest = await storage.getProducts({ limit: 50, sortBy: "createdAt", sortOrder: "desc" });
+                return newest.filter(isPurchasableProduct).slice(0, 8);
             };
 
             if (userId) {
@@ -233,7 +213,8 @@ export function createProductRouter(): RouterType {
                 const { productIds, method } = await recommendationEngine.getPersonalizedRecommendations(userId, 8);
 
                 if (productIds.length > 0) {
-                    const validProducts = await storage.getProductsByIds(productIds);
+                    const validProducts = (await storage.getProductsByIds(productIds))
+                        .filter(isPurchasableProduct);
                     if (validProducts.length > 0) {
                         res.json({ products: toPublicProducts(validProducts), personalized: true, method });
                         return;
@@ -281,7 +262,8 @@ export function createProductRouter(): RouterType {
 
                 // Fetch product details in batch
                 const productIds = mapped.map(p => p.productId);
-                const fetchedProducts = await storage.getProductsByIds(productIds);
+                const fetchedProducts = (await storage.getProductsByIds(productIds))
+                    .filter(isPurchasableProduct);
                 const productMap = new Map(fetchedProducts.map(p => [p.id, p]));
                 const results = mapped
                     .map(pred => {
@@ -303,7 +285,8 @@ export function createProductRouter(): RouterType {
             // Saved predictions: fetch product details in batch
             const topPredictions = predictions.slice(0, 5);
             const predProductIds = topPredictions.map(p => p.productId);
-            const fetchedProducts = await storage.getProductsByIds(predProductIds);
+            const fetchedProducts = (await storage.getProductsByIds(predProductIds))
+                .filter(isPurchasableProduct);
             const productMap = new Map(fetchedProducts.map(p => [p.id, p]));
             const results = topPredictions
                 .map(pred => {
@@ -517,8 +500,8 @@ export function createProductRouter(): RouterType {
     router.get("/attributes", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const attributes = await storage.getProductAttributes();
-            // Cache for 10 minutes — attributes (categories, brands, prices) rarely change
-            res.set('Cache-Control', 'public, max-age=600, stale-while-revalidate=1800');
+            // Categories/prices feed commerce filters; keep them aligned with current products.
+            res.set("Cache-Control", "no-store");
             res.json(attributes);
         } catch (err) {
             next(err);
@@ -545,6 +528,8 @@ export function createProductRouter(): RouterType {
                 res.status(404).json({ message: "Product not found" });
                 return;
             }
+
+            res.set("Cache-Control", "no-store");
 
             // Track product view (fire-and-forget)
             const session = getSession(req);
@@ -612,6 +597,7 @@ export function createProductRouter(): RouterType {
                     p.category === product.category;
             });
 
+            res.set("Cache-Control", "no-store");
             res.json({ variants: toPublicProducts(variants) });
         } catch (err) {
             next(err);
@@ -651,17 +637,34 @@ export function createProductRouter(): RouterType {
         }
     });
 
-    // Update product variants
+    // Update product variants through the canonical inventory ledger.
     router.put("/:productId/variants", requireAdmin, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { productId } = req.params as { productId: string };
             const { hasVariants, variants } = req.body as { hasVariants: boolean; variants: any[] | null };
+            const db = getDb();
+            if (!db) {
+                res.status(503).json({ message: "قاعدة البيانات غير مهيأة" });
+                return;
+            }
 
-            await storage.updateProductVariants(productId, hasVariants, variants);
+            const adminId = getSession(req)?.userId || "admin";
+            const result = await db.transaction(async (tx: any) =>
+                setCanonicalVariantConfiguration(
+                    tx,
+                    { clientId: adminId, mode: "admin" },
+                    productId,
+                    hasVariants,
+                    variants,
+                ),
+            );
+            clearProductsCache();
 
+            res.set("Cache-Control", "no-store");
             res.json({
                 success: true,
-                message: "تم تحديث خيارات المنتج بنجاح"
+                message: "تم تحديث خيارات المنتج والمخزون بنجاح",
+                inventory: result.stock_adjustments,
             });
         } catch (err) {
             next(err);

@@ -35,6 +35,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { useCart } from "@/contexts/cart-context";
 import { useWishlist } from "@/contexts/wishlist-context";
 import { useLocale } from "@/i18n/locale-context";
+import { formatShippingFeeNumber, useShippingFee } from "@/contexts/shipping-fee-context";
 import { formatLocalizedPrice } from "@/i18n/format";
 import { trackCartOpen } from "@/lib/analytics";
 import { useFlowGateNav } from "@/lib/motion/flow-gate-context";
@@ -72,6 +73,7 @@ const tabletOverflowLinks: NavLink[] = [
 ];
 
 export default function Navbar() {
+  const shippingFeeLabel = formatShippingFeeNumber(useShippingFee());
   const [location, setLocation] = useLocation();
   const { t } = useTranslation("nav");
   const { t: tc } = useTranslation("common");
@@ -203,7 +205,7 @@ export default function Navbar() {
                   <p className="px-3 text-xs leading-6 text-muted-foreground">
                     {t("deliveryNote")}
                     <br />
-                    {t("paymentNote")}
+                    {t("paymentNote", { fee: shippingFeeLabel })}
                   </p>
                 </div>
 

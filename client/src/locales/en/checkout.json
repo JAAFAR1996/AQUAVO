@@ -28,7 +28,14 @@
     "createFailedShort": "Could not create the order",
     "generic": "Something went wrong",
     "orderTitle": "Order error",
-    "onlineSetup": "Online payment could not be prepared. Please try again."
+    "onlineSetup": "Online payment could not be prepared. Please try again.",
+    "stockChangedTitle": "Cart stock changed",
+    "stockUnavailable": "{{name}} is currently out of stock. Update your cart before confirming the order.",
+    "stockQuantityChanged": "You requested {{requested}} of {{name}}, but only {{available}} are currently available. Update the quantity before continuing.",
+    "cartChangedTitle": "Cart changed",
+    "cartEmptyAfterRefresh": "The saved cart items are no longer valid for ordering. Return to products and add currently available items.",
+    "cartUpdatedReview": "We refreshed the cart using current price and stock and cleared temporary coupon/loyalty adjustments so no stale amount is used. Review the cart, reapply any discounts you need, then select Review order again.",
+    "cartUpdatedConfirm": "The cart changed since your last review, so temporary coupon/loyalty adjustments were cleared. Review the current price and quantity, reapply any discounts you need, then agree and confirm again."
   },
   "coupon": {
     "prompt": "Have a discount code?",
@@ -41,7 +48,7 @@
     "appliedFixed": "Discount of {{amount}} applied",
     "appliedFreeShipping": "Free delivery applied",
     "unsupported": "This coupon type is not supported yet",
-    "flatShipping": "Delivery is a flat 5,000 IQD to Baghdad and every governorate within 24 hours",
+    "flatShipping": "Delivery is available to Baghdad and every governorate within 24 hours; the current fee is shown before confirmation",
     "checkError": "Something went wrong while checking the coupon"
   },
   "testMode": {
@@ -53,7 +60,7 @@
   "footer": {
     "tagline": "AQUAVO — premium aquarium equipment from Baghdad to all of Iraq",
     "payment": "Cash on delivery or online payment",
-    "delivery": "Delivery 5,000 IQD across Iraq",
+    "delivery": "Delivery across Iraq — the current fee is shown before confirmation",
     "whatsapp": "WhatsApp"
   },
   "form": {

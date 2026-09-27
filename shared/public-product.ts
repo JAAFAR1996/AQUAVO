@@ -236,10 +236,17 @@ export function toPublicProduct(product: unknown): AnyRecord | null {
   // never copied. The raw blob carries costPrice/costStatus/costBasis/costEvidence written by
   // migration 0073 that the ProductVariant type does not declare.
   const rawVariants = (product as AnyRecord).variants;
-  if (Array.isArray(rawVariants)) {
+  const hasVariants = Boolean((product as AnyRecord).hasVariants);
+  if (!hasVariants) {
+    // Historical variant JSON may remain after a SKU is deliberately converted
+    // to a simple product. hasVariants=false is the active commerce contract;
+    // never expose stale option stock/prices to the storefront or crawlers.
+    publicProduct.variants = [];
+  } else if (Array.isArray(rawVariants)) {
     publicProduct.variants = rawVariants.map(toPublicVariant);
-  } else if (rawVariants === null) {
-    publicProduct.variants = null;
+  } else {
+    // Public consumers get one stable collection shape.
+    publicProduct.variants = [];
   }
 
   return publicProduct;

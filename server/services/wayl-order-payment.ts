@@ -745,8 +745,16 @@ async function finalizePaidOrder(
       }
 
       if (order.couponId) {
-        await tx.update(coupons).set({ usedCount: sql`COALESCE(${coupons.usedCount}, 0) + 1` } as any)
-          .where(eq(coupons.id, order.couponId));
+        await tx.execute(sql`SELECT id FROM coupons WHERE id = ${order.couponId} FOR UPDATE`);
+        await tx.update(coupons).set({
+          usedCount: sql`COALESCE(${coupons.usedCount}, 0) + 1`,
+          isActive: sql`CASE
+            WHEN ${coupons.maxUses} IS NOT NULL
+             AND COALESCE(${coupons.usedCount}, 0) + 1 >= ${coupons.maxUses}
+            THEN false
+            ELSE ${coupons.isActive}
+          END`,
+        } as any).where(eq(coupons.id, order.couponId));
       }
 
       let loyaltyResult: TransactionalOrderLoyaltyResult | null = null;

@@ -10,7 +10,7 @@ import { ttqInitiateCheckout, ttqAddPaymentInfo, ttqPlaceAnOrder } from "@/lib/t
 import { phTrackInitiateCheckout, phTrackPurchase } from "@/lib/posthog";
 import { metaTrackInitiateCheckout, metaTrackPurchase } from "@/lib/meta-pixel";
 import { trackAddShippingInfo, trackBeginCheckout, trackPurchase } from "@/lib/analytics";
-import { BAGHDAD_SHIPPING, OTHER_GOVERNORATES_SHIPPING, WHATSAPP_URL, DELIVERY_DAYS } from "@/lib/constants/shipping";
+import { WHATSAPP_URL, DELIVERY_DAYS } from "@/lib/constants/shipping";
 import { ArrowRight, ShoppingCart, MessageCircle, Instagram } from "lucide-react";
 import { MetaTags } from "@/components/seo/meta-tags";
 import { resolveCheckoutTotal } from "@/lib/checkout-total";
@@ -28,6 +28,7 @@ import { WhatsAppLink } from "@/components/whatsapp-link";
 import { useTranslation } from "react-i18next";
 import { useLocale } from "@/i18n/locale-context";
 import { ArrowBack } from "@/components/ui/directional-icons";
+import { useShippingFee } from "@/contexts/shipping-fee-context";
 
 export default function CheckoutPage() {
   const { t } = useTranslation("checkout");
@@ -35,10 +36,12 @@ export default function CheckoutPage() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
   const { toast } = useToast();
-  const { items: cartItems, totalPrice: cartTotal, clearCart } = useCart();
+  const { items: cartItems, totalPrice: cartTotal, clearCart, refetchCart } = useCart();
   const canUseTestMode = user?.role === "admin" || user?.role === "accounting_admin";
   const testRequested = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("test") === "1";
   const [testMode, setTestMode] = useState(testRequested);
+
+  const configuredShippingFee = useShippingFee();
 
   const [step, setStep] = useState<"info" | "confirm" | "success">("info");
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({
@@ -65,23 +68,27 @@ export default function CheckoutPage() {
     setLoyaltyData(data);
   }, []);
 
+  const resetCommercialAdjustments = useCallback(() => {
+    setAppliedCoupon(null);
+    setCouponDiscount(0);
+    setCouponError("");
+    setCouponSuccess("");
+    setLoyaltyData({
+      usePoints: false,
+      useCashback: false,
+      pointsToUse: 0,
+      cashbackToUse: 0,
+      pointsDiscount: 0,
+      roundedAmount: 0,
+      cashbackEarned: 0,
+    });
+  }, []);
+
   const setSafeTestMode = (enabled: boolean) => {
     setTestMode(enabled);
     if (enabled) {
-      setAppliedCoupon(null);
+      resetCommercialAdjustments();
       setCouponCode("");
-      setCouponDiscount(0);
-      setCouponError("");
-      setCouponSuccess("");
-      setLoyaltyData({
-        usePoints: false,
-        useCashback: false,
-        pointsToUse: 0,
-        cashbackToUse: 0,
-        pointsDiscount: 0,
-        roundedAmount: 0,
-        cashbackEarned: 0,
-      });
     }
   };
 
@@ -194,23 +201,88 @@ export default function CheckoutPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleContinue = () => {
+  const findStockIssue = (items: typeof cartItems) =>
+    items.find((item) =>
+      item.stock != null &&
+      Number.isFinite(Number(item.stock)) &&
+      item.quantity > Number(item.stock)
+    );
+
+  const cartCommercialFingerprint = (items: typeof cartItems) =>
+    JSON.stringify(
+      items
+        .map((item) => ({
+          productId: item.productId,
+          variantId: item.variantId ?? null,
+          quantity: item.quantity,
+          price: Number(item.price),
+        }))
+        .sort((left, right) =>
+          `${left.productId}::${left.variantId ?? ""}`.localeCompare(
+            `${right.productId}::${right.variantId ?? ""}`,
+          ),
+        ),
+    );
+
+  const cartCommerciallyChanged = (before: typeof cartItems, after: typeof cartItems) =>
+    cartCommercialFingerprint(before) !== cartCommercialFingerprint(after);
+
+
+  const surfaceStockIssue = (item: (typeof cartItems)[number]) => {
+    const available = Math.max(0, Number(item.stock ?? 0));
+    toast({
+      title: t("errors.stockChangedTitle"),
+      description: available <= 0
+        ? t("errors.stockUnavailable", { name: item.name })
+        : t("errors.stockQuantityChanged", {
+            name: item.name,
+            requested: item.quantity,
+            available,
+          }),
+      variant: "destructive",
+    });
+  };
+
+  const handleContinue = async () => {
     if (validateInfo()) {
+      const latestCart = await refetchCart();
+      const stockIssue = findStockIssue(latestCart);
+      if (stockIssue) {
+        surfaceStockIssue(stockIssue);
+        return;
+      }
+      if (latestCart.length === 0) {
+        toast({
+          title: t("errors.cartChangedTitle"),
+          description: t("errors.cartEmptyAfterRefresh"),
+          variant: "destructive",
+        });
+        return;
+      }
+      if (cartCommerciallyChanged(cartItems, latestCart)) {
+        resetCommercialAdjustments();
+        toast({
+          title: t("errors.cartChangedTitle"),
+          description: t("errors.cartUpdatedReview"),
+        });
+        return;
+      }
+
       if (!testMode) {
-        trackAddShippingInfo(cartItems.map((item) => ({
+        trackAddShippingInfo(latestCart.map((item) => ({
           id: item.productId,
           name: item.name,
           price: item.price,
           quantity: item.quantity,
-        })), cartTotal);
+        })), latestCart.reduce((sum, item) => sum + item.price * item.quantity, 0));
         ttqAddPaymentInfo(
-          cartItems.map((item) => ({
+          latestCart.map((item) => ({
             id: item.productId,
             name: item.name,
             price: item.price,
             quantity: item.quantity,
           })),
-          cartTotal
+          latestCart.reduce((sum, item) => sum + item.price * item.quantity, 0)
         );
       }
       setStep("confirm");
@@ -220,10 +292,41 @@ export default function CheckoutPage() {
 
   const handleConfirmOrder = async () => {
     if (!agreed || isSubmitting) return;
+
+    const latestCart = await refetchCart();
+    const stockIssue = findStockIssue(latestCart);
+    if (stockIssue) {
+      surfaceStockIssue(stockIssue);
+      setStep("info");
+      return;
+    }
+    if (latestCart.length === 0) {
+      toast({
+        title: t("errors.cartChangedTitle"),
+        description: t("errors.cartEmptyAfterRefresh"),
+        variant: "destructive",
+      });
+      setStep("info");
+      return;
+    }
+    if (cartCommerciallyChanged(cartItems, latestCart)) {
+      setAgreed(false);
+      resetCommercialAdjustments();
+      toast({
+        title: t("errors.cartChangedTitle"),
+        description: t("errors.cartUpdatedConfirm"),
+      });
+      return;
+    }
+
+    const checkoutItems = latestCart;
+    const checkoutSubtotal = checkoutItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const checkoutGrandTotal = Math.max(0, checkoutSubtotal + deliveryFee - discount);
+
     setIsSubmitting(true);
     try {
       const cartSignature = JSON.stringify({
-        items: cartItems.map(({ productId, variantId, quantity }) => ({ productId, variantId, quantity })),
+        items: checkoutItems.map(({ productId, variantId, quantity }) => ({ productId, variantId, quantity })),
         couponCode: testMode ? null : appliedCoupon?.code ?? null,
         cashbackToUse: testMode ? 0 : loyaltyData.cashbackToUse,
         testMode,
@@ -241,12 +344,12 @@ export default function CheckoutPage() {
             ...customerInfo,
             address: `${GOVERNORATES.find((g) => g.value === customerInfo.governorate)?.label} - ${customerInfo.address}`,
           },
-          items: cartItems.map((item) => ({
+          items: checkoutItems.map((item) => ({
             productId: item.productId,
             quantity: item.quantity,
             ...(item.variantId ? { variantId: item.variantId } : {}),
           })),
-          total: cartTotal,
+          total: checkoutSubtotal,
           couponCode: testMode ? undefined : appliedCoupon ? appliedCoupon.code : undefined,
           usePoints: testMode ? false : loyaltyData.usePoints,
           useCashback: testMode ? false : loyaltyData.useCashback,
@@ -262,23 +365,23 @@ export default function CheckoutPage() {
       }
 
       const orderData = await response.json();
-      const confirmedTotal = resolveCheckoutTotal(orderData, grandTotal);
+      const confirmedTotal = resolveCheckoutTotal(orderData, checkoutGrandTotal);
 
       if (!testMode) {
         ttqPlaceAnOrder(
-          cartItems.map((item) => ({
+          checkoutItems.map((item) => ({
             id: item.productId,
             name: item.name,
             price: item.price,
             quantity: item.quantity,
           })),
-          cartTotal
+          checkoutSubtotal
         );
         metaTrackPurchase({
           orderId: orderData.orderNumber || orderData.id || "unknown",
           totalIQD: confirmedTotal,
-          productIds: cartItems.map((i) => i.productId),
-          numItems: cartItems.reduce((sum, i) => sum + i.quantity, 0),
+          productIds: checkoutItems.map((i) => i.productId),
+          numItems: checkoutItems.reduce((sum, i) => sum + i.quantity, 0),
           phone: customerInfo.phone,
         });
         // Reached only after `response.ok` and a parsed order body, so a failed submission cannot emit it.
@@ -287,14 +390,14 @@ export default function CheckoutPage() {
         phTrackPurchase({
           orderId: orderData.orderNumber ?? orderData.id,
           totalValue: confirmedTotal,
-          numItems: cartItems.reduce((sum, i) => sum + i.quantity, 0),
-          productIds: cartItems.map((i) => i.productId),
+          numItems: checkoutItems.reduce((sum, i) => sum + i.quantity, 0),
+          productIds: checkoutItems.map((i) => i.productId),
           sourcePage: "checkout",
         });
         trackPurchase({
           orderId: orderData.orderNumber || orderData.id || "unknown",
           total: confirmedTotal,
-          items: cartItems.map((item) => ({
+          items: checkoutItems.map((item) => ({
             id: item.productId,
             name: item.name,
             price: item.price,
@@ -323,7 +426,7 @@ export default function CheckoutPage() {
           orderNumber: orderData.orderNumber ?? orderData.id,
           total: confirmedTotal,
           status: orderData.status,
-          items: cartItems.map((item) => ({
+          items: checkoutItems.map((item) => ({
             productId: item.productId,
             productName: item.name,
             quantity: item.quantity,
@@ -383,7 +486,7 @@ export default function CheckoutPage() {
     }
   }, [step]);
 
-  const baseDeliveryFee = customerInfo.governorate === "baghdad" ? BAGHDAD_SHIPPING : OTHER_GOVERNORATES_SHIPPING;
+  const baseDeliveryFee = configuredShippingFee;
   const isFreeShipping = appliedCoupon?.type === "free_shipping";
   const deliveryFee = isFreeShipping ? 0 : baseDeliveryFee;
   const discount = couponDiscount + loyaltyData.pointsDiscount;
