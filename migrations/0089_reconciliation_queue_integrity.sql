@@ -105,7 +105,8 @@ SELECT
 FROM public.order_financial_reconciliation r
 JOIN public.orders o ON o.id=r.order_id
 WHERE r.reconciliation_reason <> 'no_conflict_detected'
-  AND COALESCE(o.is_test,false)=false;
+  AND COALESCE(o.is_test,false)=false
+  AND COALESCE(o.delivered_at,o.created_at) >= public.aquavo_active_cutover();
 
 CREATE OR REPLACE VIEW public.v_order_accounting AS
 SELECT
@@ -295,7 +296,7 @@ INSERT INTO public.schema_migrations(version,checksum,notes)
 VALUES(
   '0089_reconciliation_queue_integrity',
   '0000000000000000000000000000000000000000000000000000000000000000',
-  'Align finance queues with NULL=auto semantics, exclude test orders, distinguish direct owner cash from carrier settlements, accept valid cash-denomination invoice rounding, scope order-total reconciliation to arithmetic, and append missing 0087 product cost-history events. Runner must normalize checksum to SHA-256(file bytes).'
+  'Align finance queues with NULL=auto semantics, exclude test and pre-cutover legacy orders, distinguish direct owner cash from carrier settlements, accept valid cash-denomination invoice rounding, scope order-total reconciliation to arithmetic, and append missing 0087 product cost-history events. Runner must normalize checksum to SHA-256(file bytes).'
 )
 ON CONFLICT(version) DO UPDATE SET
   checksum=EXCLUDED.checksum,
