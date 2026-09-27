@@ -34,7 +34,7 @@ export default function ComparePage() {
                 description={t("compare.s2")}
                 keywords={[t("compare.s3"), t("compare.s4"), "AQUAVO"]}
             />
-            <main className="flex-1 container mx-auto px-4 py-8 pt-24">
+            <main id="main-content" className="flex-1 container mx-auto px-4 py-8 pt-24">
                 {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
                     <div>
