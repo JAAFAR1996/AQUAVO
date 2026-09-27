@@ -91,6 +91,8 @@ async function main(): Promise<void> {
       ledger_ok: boolean;
       no_test_finance_rows: boolean;
       no_null_auto_false_positive: boolean;
+      no_noncarrier_settlement_false_positive: boolean;
+      noncarrier_settlement_not_required: boolean;
       total_queue_is_arithmetic_only: boolean;
       manual_invoice_queue_is_real_conflict_only: boolean;
       collapsed_cost_history_reconciled: boolean;
@@ -111,6 +113,19 @@ async function main(): Promise<void> {
            FROM public.order_financial_reconciliation
            WHERE reconciliation_reason='financial_counting_undecided'
          ) AS no_null_auto_false_positive,
+         NOT EXISTS(
+           SELECT 1
+           FROM public.order_financial_reconciliation_queue q
+           JOIN public.order_accounting_facts f ON f.order_id=q.order_id
+           WHERE f.cash_custody<>'carrier'
+             AND q.reconciliation_reason='cod_not_reconciled_to_settlement'
+         ) AS no_noncarrier_settlement_false_positive,
+         NOT EXISTS(
+           SELECT 1
+           FROM public.v_order_accounting
+           WHERE cash_custody<>'carrier'
+             AND settlement_status<>'not_required'
+         ) AS noncarrier_settlement_not_required,
          NOT EXISTS(
            SELECT 1
            FROM public.order_total_reconciliation_queue
