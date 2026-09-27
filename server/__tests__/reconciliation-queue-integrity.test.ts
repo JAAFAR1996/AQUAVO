@@ -10,6 +10,7 @@ describe("0089 reconciliation queue integrity", () => {
 
   it("keeps production financial reconciliation free of test orders and treats NULL as auto", () => {
     expect(source).toContain("COALESCE(o.is_test,false)=false");
+    expect(source).toContain("COALESCE(o.delivered_at,o.created_at) >= public.aquavo_active_cutover()");
     expect(source).toContain("JOIN public.orders o ON o.id=r.order_id");
     expect(source).not.toContain("financial_counting_undecided");
   });
