@@ -68,23 +68,27 @@ export default function CheckoutPage() {
     setLoyaltyData(data);
   }, []);
 
+  const resetCommercialAdjustments = useCallback(() => {
+    setAppliedCoupon(null);
+    setCouponDiscount(0);
+    setCouponError("");
+    setCouponSuccess("");
+    setLoyaltyData({
+      usePoints: false,
+      useCashback: false,
+      pointsToUse: 0,
+      cashbackToUse: 0,
+      pointsDiscount: 0,
+      roundedAmount: 0,
+      cashbackEarned: 0,
+    });
+  }, []);
+
   const setSafeTestMode = (enabled: boolean) => {
     setTestMode(enabled);
     if (enabled) {
-      setAppliedCoupon(null);
+      resetCommercialAdjustments();
       setCouponCode("");
-      setCouponDiscount(0);
-      setCouponError("");
-      setCouponSuccess("");
-      setLoyaltyData({
-        usePoints: false,
-        useCashback: false,
-        pointsToUse: 0,
-        cashbackToUse: 0,
-        pointsDiscount: 0,
-        roundedAmount: 0,
-        cashbackEarned: 0,
-      });
     }
   };
 
@@ -256,6 +260,7 @@ export default function CheckoutPage() {
         return;
       }
       if (cartCommerciallyChanged(cartItems, latestCart)) {
+        resetCommercialAdjustments();
         toast({
           title: t("errors.cartChangedTitle"),
           description: t("errors.cartUpdatedReview"),
@@ -306,6 +311,7 @@ export default function CheckoutPage() {
     }
     if (cartCommerciallyChanged(cartItems, latestCart)) {
       setAgreed(false);
+      resetCommercialAdjustments();
       toast({
         title: t("errors.cartChangedTitle"),
         description: t("errors.cartUpdatedConfirm"),
