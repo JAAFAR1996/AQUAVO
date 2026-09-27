@@ -2639,7 +2639,7 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
         payload={payload}
         section="16 · الاعتماد والمنهجية"
         title="بيانات المنشأة، الاعتماد، وتعريفات التقرير"
-        subtitle="الحقول الناقصة تبقى ناقصة صراحةً؛ ولا يتم اختراع رقم مكلف أو اعتماد محاسب"
+        subtitle="الحقول والأرقام الناقصة تبقى ناقصة صراحةً؛ ولا يتم اختراع رقم مكلف أو اعتماد محاسب"
       >
         <View style={styles.kpiRow}>
           <KpiCard label="حالة الملف" value={fieldValue(profile.status)} />
