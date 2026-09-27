@@ -1,7 +1,11 @@
 -- 0089_reconciliation_queue_integrity.sql
--- Keep test orders out of operational reconciliation queues and make the
--- order-total queue about arithmetic integrity only. Rounding policy is a
--- separate concern and must not turn a formula-correct order into a mismatch.
+-- Reconcile reporting views with current accounting semantics:
+--   * financially_counted NULL means AUTO, not "undecided"
+--   * test orders do not belong in operational finance queues
+--   * invoice totals may be raw or rounded up to the 250 IQD cash denomination
+--   * order-total reconciliation checks arithmetic, not a separate rounding policy
+-- Also backfill the cost-history events that migration 0087 intentionally changed
+-- at product level but did not append to product_cost_history.
 
 BEGIN;
 
@@ -17,6 +21,71 @@ BEGIN
   END IF;
 END
 $guard$;
+
+CREATE OR REPLACE VIEW public.order_financial_reconciliation AS
+WITH paid AS (
+  SELECT
+    pe.order_id,
+    sum(
+      CASE
+        WHEN pe.status='completed'
+          AND pe.event_type IN ('capture','cod_received','adjustment') THEN pe.amount
+        WHEN pe.status='completed'
+          AND pe.event_type IN ('refund','chargeback') THEN -pe.amount
+        ELSE 0::numeric
+      END
+    ) AS verified_payment_amount,
+    count(*) FILTER (WHERE pe.status='completed') AS completed_event_count
+  FROM public.payment_events pe
+  GROUP BY pe.order_id
+),
+settled AS (
+  SELECT
+    csi.order_id,
+    sum(csi.net_amount) FILTER (
+      WHERE csi.reconciliation_status IN ('matched','approved')
+    ) AS reconciled_settlement_amount
+  FROM public.cash_settlement_items csi
+  GROUP BY csi.order_id
+),
+adjustments AS (
+  SELECT
+    a.order_id,
+    sum(a.amount) AS adjustment_amount
+  FROM public.order_financial_adjustments a
+  GROUP BY a.order_id
+)
+SELECT
+  o.id AS order_id,
+  o.order_number,
+  o.status AS order_status,
+  o.payment_status,
+  o.cod_received,
+  o.financially_counted,
+  o.total AS order_total,
+  COALESCE(p.verified_payment_amount,0::numeric) AS verified_payment_amount,
+  COALESCE(s.reconciled_settlement_amount,0::numeric) AS reconciled_settlement_amount,
+  COALESCE(a.adjustment_amount,0::numeric) AS documented_adjustment_amount,
+  CASE
+    WHEN o.status='delivered'
+      AND o.payment_status='pending'
+      AND COALESCE(p.verified_payment_amount,0::numeric)=0::numeric
+      THEN 'delivered_without_verified_payment'
+    WHEN o.payment_status='paid'
+      AND COALESCE(p.verified_payment_amount,0::numeric)=0::numeric
+      THEN 'paid_status_without_payment_event'
+    WHEN COALESCE(p.verified_payment_amount,0::numeric)>0::numeric
+      AND o.payment_status<>'paid'
+      THEN 'payment_event_without_paid_status'
+    WHEN o.cod_received=true
+      AND COALESCE(s.reconciled_settlement_amount,0::numeric)=0::numeric
+      THEN 'cod_not_reconciled_to_settlement'
+    ELSE 'no_conflict_detected'
+  END AS reconciliation_reason
+FROM public.orders o
+LEFT JOIN paid p ON p.order_id=o.id
+LEFT JOIN settled s ON s.order_id=o.id
+LEFT JOIN adjustments a ON a.order_id=o.id;
 
 CREATE OR REPLACE VIEW public.order_financial_reconciliation_queue AS
 SELECT
@@ -71,11 +140,108 @@ SELECT
 FROM public.order_total_reconciliation
 WHERE reconciliation_reason <> 'no_conflict_detected';
 
+CREATE OR REPLACE VIEW public.manual_invoice_reconciliation_queue AS
+WITH evaluated AS (
+  SELECT
+    mi.id AS invoice_id,
+    mi.invoice_no,
+    mi.order_id,
+    mi.status,
+    mi.subtotal,
+    mi.discount,
+    mi.delivery,
+    mi.total,
+    mi.subtotal-mi.discount+mi.delivery AS calculated_total,
+    mi.total-(mi.subtotal-mi.discount+mi.delivery) AS delta,
+    CASE
+      WHEN mi.order_id IS NOT NULL AND o.id IS NULL
+        THEN 'broken_order_link'
+      WHEN mi.total <> (mi.subtotal-mi.discount+mi.delivery)
+        AND mi.total <> ceil((mi.subtotal-mi.discount+mi.delivery)/250.0)*250
+        AND NOT (
+          o.id IS NOT NULL
+          AND o.total=(mi.subtotal-mi.discount+mi.delivery)
+          AND o.rounded_total=mi.total
+        )
+        THEN 'total_formula_mismatch'
+      ELSE 'no_conflict_detected'
+    END AS reconciliation_reason
+  FROM public.manual_invoices mi
+  LEFT JOIN public.orders o ON o.id=mi.order_id
+)
+SELECT
+  invoice_id,
+  invoice_no,
+  order_id,
+  status,
+  subtotal,
+  discount,
+  delivery,
+  total,
+  calculated_total,
+  delta,
+  reconciliation_reason
+FROM evaluated
+WHERE reconciliation_reason <> 'no_conflict_detected';
+
+-- 0087 deliberately synchronized these top-level product costs from the retained
+-- default-variant cost after variant collapse. Append the missing history event;
+-- do not modify the current product cost or the GL.
+INSERT INTO public.product_cost_history(
+  product_id,
+  cost_price,
+  packaging_cost,
+  insert_cost,
+  effective_from,
+  note,
+  changed_by,
+  cost_price_resolution,
+  packaging_cost_resolution,
+  insert_cost_resolution,
+  cost_resolution_note,
+  approved_by,
+  approved_at,
+  reason
+)
+SELECT
+  p.id,
+  p.cost_price,
+  p.packaging_cost,
+  p.insert_cost,
+  p.cost_resolution_at,
+  'Backfill of the authoritative top-level cost synchronization performed by migration 0087',
+  'migration_0089',
+  p.cost_price_resolution,
+  p.packaging_cost_resolution,
+  p.insert_cost_resolution,
+  p.cost_resolution_note,
+  'migration_0087',
+  p.cost_resolution_at,
+  'variant_collapse_top_level_cost_sync'
+FROM public.products p
+WHERE p.id IN (
+  'houyi-ceramic-ring',
+  'houyi-breathing-ring-white',
+  'houyi-feeding-cup'
+)
+  AND p.cost_resolution_by='migration_0087'
+  AND p.cost_resolution_at IS NOT NULL
+  AND NOT EXISTS (
+    SELECT 1
+    FROM public.product_cost_history h
+    WHERE h.product_id=p.id
+      AND h.effective_from=p.cost_resolution_at
+      AND h.cost_price IS NOT DISTINCT FROM p.cost_price
+      AND h.packaging_cost IS NOT DISTINCT FROM p.packaging_cost
+      AND h.insert_cost IS NOT DISTINCT FROM p.insert_cost
+      AND h.reason='variant_collapse_top_level_cost_sync'
+  );
+
 INSERT INTO public.schema_migrations(version,checksum,notes)
 VALUES(
   '0089_reconciliation_queue_integrity',
   '0000000000000000000000000000000000000000000000000000000000000000',
-  'Exclude test orders from operational financial reconciliation and keep order-total reconciliation scoped to subtotal/shipping/discount arithmetic. Runner must normalize checksum to SHA-256(file bytes).'
+  'Align finance queues with NULL=auto semantics, exclude test orders, accept valid cash-denomination invoice rounding, scope order-total reconciliation to arithmetic, and append missing 0087 product cost-history events. Runner must normalize checksum to SHA-256(file bytes).'
 )
 ON CONFLICT(version) DO UPDATE SET
   checksum=EXCLUDED.checksum,
