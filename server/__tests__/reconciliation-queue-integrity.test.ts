@@ -14,6 +14,11 @@ describe("0089 reconciliation queue integrity", () => {
     expect(source).not.toContain("financial_counting_undecided");
   });
 
+  it("requires carrier settlement only when cash is actually in carrier custody", () => {
+    expect(source).toContain("COALESCE(f.cash_custody,'carrier')='carrier'");
+    expect(source).toContain("WHEN f.cash_custody<>'carrier' THEN 'not_required'::text");
+  });
+
   it("does not classify a formula-correct order as broken only because it rounded down", () => {
     expect(source).not.toContain("rounded_below_total");
     expect(source).toContain("abs(o.total - o.formula_total_snapshot) > 1::numeric");
