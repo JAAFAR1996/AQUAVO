@@ -163,12 +163,31 @@ export function orderAttributionPayload(): Record<string, string> {
   const out: Record<string, string> = { aq_sid: getSessionId() };
   const last = readStoredTouch(LAST_TOUCH_KEY);
   const first = readStoredTouch(FIRST_TOUCH_KEY);
-  for (const key of ["utm_source", "utm_medium", "utm_campaign", "fbclid",
-                     "aq_campaign_id", "aq_adset_id", "aq_ad_id",
-                     "aq_creative_id", "aq_concept_id", "aq_hypothesis_id", "aq_experiment_id"]) {
+
+  // Last-touch fields drive campaign optimization. Fall back to first touch only
+  // when a later campaign-bearing visit was never observed.
+  for (const key of [
+    "utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term",
+    "fbclid", "gclid", "ttclid", "igshid",
+    "aq_campaign_id", "aq_adset_id", "aq_ad_id",
+    "aq_creative_id", "aq_concept_id", "aq_hypothesis_id", "aq_experiment_id",
+  ]) {
     const v = last?.[key] ?? first?.[key];
     if (v) out[key] = v;
   }
+
+  const capturedAt = last?.at ?? first?.at;
+  if (capturedAt) out.attribution_captured_at = capturedAt;
+
+  // Preserve acquisition touch separately from the last-touch fields above.
+  // This lets reporting answer both "what acquired this customer?" and
+  // "what brought them back immediately before purchase?" without inference.
+  if (first?.utm_source) out.first_touch_utm_source = first.utm_source;
+  if (first?.utm_medium) out.first_touch_utm_medium = first.utm_medium;
+  if (first?.utm_campaign) out.first_touch_utm_campaign = first.utm_campaign;
+  if (first?.aq_campaign_id) out.first_touch_aq_campaign_id = first.aq_campaign_id;
+  if (first?.at) out.first_touch_captured_at = first.at;
+
   return out;
 }
 

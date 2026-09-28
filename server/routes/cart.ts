@@ -6,6 +6,15 @@ import { z } from "zod";
 import { analyticsTracker } from "../services/analytics-tracker.js";
 import * as Sentry from "@sentry/node";
 
+const CLIENT_VIEW_SESSION_ID = /^cs_[A-Za-z0-9_]{1,64}$/;
+
+function resolveCartSessionId(req: Request, candidate: unknown): string {
+    if (typeof candidate === "string" && candidate !== "cs_unavailable" && CLIENT_VIEW_SESSION_ID.test(candidate)) {
+        return candidate;
+    }
+    return req.sessionID || "unknown";
+}
+
 export function createCartRouter(): RouterType {
     const router = Router();
 
@@ -161,6 +170,7 @@ export function createCartRouter(): RouterType {
         variantPrice: z.number().positive().optional(), // سعر الخيار المحدد
         variantLabel: z.string().optional(),           // اسم الخيار (مثل: 40×23 سم)
         variantId: z.string().optional(),              // معرّف الخيار
+        clientSessionId: z.string().max(80).optional(),
     });
 
     router.post("/", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -195,7 +205,7 @@ export function createCartRouter(): RouterType {
             // Track cart add interaction (fire-and-forget)
             analyticsTracker.trackCartAdd({
                 userId,
-                sessionId: req.sessionID || "unknown",
+                sessionId: resolveCartSessionId(req, data.clientSessionId),
                 productId: data.productId,
                 quantity: data.quantity,
                 from: (req.query.from as string) || "unknown",
@@ -259,13 +269,6 @@ export function createCartRouter(): RouterType {
             const userId = getSessionUserId(req)!;
             const { itemId } = req.params as { itemId: string };
             await storage.removeFromCart(userId, itemId);
-
-            // Track cart remove interaction (fire-and-forget)
-            analyticsTracker.trackCartRemove({
-                userId,
-                sessionId: req.sessionID || "unknown",
-                productId: "unknown_item", // We don't have the productId here easily without fetching the item first.
-            }).catch(() => {});
 
             res.status(204).end();
         } catch (err) {

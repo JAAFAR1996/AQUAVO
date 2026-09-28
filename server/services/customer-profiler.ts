@@ -13,6 +13,16 @@ import { aiMonitor } from "./ai-monitor.js";
 // CUSTOMER PROFILER CLASS
 // ============================================================
 
+function normalizeCustomerPhone(value: unknown): string | null {
+    let digits = String(value ?? "").normalize("NFKC").replace(/\D/g, "");
+    if (!digits) return null;
+    if (digits.startsWith("00964")) digits = digits.slice(2);
+    if (digits.startsWith("9640")) digits = `964${digits.slice(4)}`;
+    if (digits.startsWith("0") && digits.length === 11) digits = `964${digits.slice(1)}`;
+    if (digits.startsWith("7") && digits.length === 10) digits = `964${digits}`;
+    return /^9647\d{9}$/.test(digits) ? digits : null;
+}
+
 export class CustomerProfiler {
     private db = getDb();
     private schemaError = false; // Circuit breaker: stop querying if tables/columns are missing
@@ -230,23 +240,64 @@ export class CustomerProfiler {
             updatedAt: new Date(),
         };
 
-        // Upsert
-        const existing = await db
+        // Production customer_profiles is phone-centric so guest and
+        // authenticated orders can converge on one CRM identity. user_id is an
+        // optional verified-account link. Prefer an existing user link, then
+        // merge by canonical Iraqi phone, and only then create a new row.
+        const [existingByUser] = await db
             .select()
             .from(schema.customerProfiles)
-            .where(eq(schema.customerProfiles.userId, userId));
+            .where(eq(schema.customerProfiles.userId, userId))
+            .limit(1);
 
-        if (existing.length > 0) {
+        if (existingByUser) {
             await db
                 .update(schema.customerProfiles)
                 .set(profileData)
-                .where(eq(schema.customerProfiles.userId, userId));
-        } else {
-            await db.insert(schema.customerProfiles).values({
-                ...profileData,
-                createdAt: new Date(),
-            });
+                .where(eq(schema.customerProfiles.id, existingByUser.id));
+            return;
         }
+
+        const [user] = await db
+            .select({
+                phone: schema.users.phone,
+                fullName: schema.users.fullName,
+            })
+            .from(schema.users)
+            .where(eq(schema.users.id, userId))
+            .limit(1);
+
+        const phone = normalizeCustomerPhone(user?.phone);
+        if (!phone) {
+            console.warn(`[CustomerProfiler] No canonical phone for user ${userId}; profile creation skipped`);
+            return;
+        }
+
+        const [existingByPhone] = await db
+            .select()
+            .from(schema.customerProfiles)
+            .where(eq(schema.customerProfiles.phone, phone))
+            .limit(1);
+
+        if (existingByPhone) {
+            await db
+                .update(schema.customerProfiles)
+                .set({
+                    ...profileData,
+                    userId,
+                    name: user?.fullName || existingByPhone.name,
+                })
+                .where(eq(schema.customerProfiles.id, existingByPhone.id));
+            return;
+        }
+
+        await db.insert(schema.customerProfiles).values({
+            ...profileData,
+            phone,
+            name: user?.fullName || null,
+            userId,
+            createdAt: new Date(),
+        });
     }
 
     /**

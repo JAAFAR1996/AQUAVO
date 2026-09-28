@@ -9,11 +9,35 @@ import { ttqAddToCart } from "@/lib/tiktok-pixel";
 import { trackAddToCart as gaTrackAddToCart } from "@/lib/analytics";
 import { phTrackAddToCart } from "@/lib/posthog";
 import { useTranslation } from "react-i18next";
+import { getClientSessionId } from "@/lib/client-session";
 
 // Single source of truth for AddToCart tracking. Fires Meta Pixel (+CAPI),
 // TikTok, GA4 and PostHog — ONLY after a successful add. Centralizing here
 // guarantees every surface (cards, PDP, quick-view, suggestions, bundles…)
 // tracks identically and that we never fire on a failed/blocked add.
+function fireCartLifecycleAnalytics(
+  action: "add" | "remove" | "touch",
+  productId: string,
+  quantity: number = 1,
+): void {
+  try {
+    void fetch("/api/analytics/cart-event", {
+      method: "POST",
+      headers: addCsrfHeader({ "Content-Type": "application/json" }),
+      credentials: "include",
+      keepalive: true,
+      body: JSON.stringify({
+        action,
+        productId,
+        quantity,
+        clientSessionId: getClientSessionId(),
+      }),
+    }).catch(() => {});
+  } catch {
+    // Analytics can never block cart UX.
+  }
+}
+
 function fireAddToCartAnalytics(args: {
   id: string;
   name: string;
@@ -275,7 +299,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
                   quantity: item.quantity,
                   variantId: item.variantId,
                   variantLabel: item.variantLabel,
-                  variantPrice: item.price
+                  variantPrice: item.price,
+                  clientSessionId: getClientSessionId(),
                 }),
               }).catch(err => {
                 console.error(`Failed to push item ${item.id} to server:`, err);
@@ -397,6 +422,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
             variantPrice: variantId ? Number(product.price) : undefined,
             variantLabel,
             variantId,
+            clientSessionId: getClientSessionId(),
           }),
         });
         if (res.ok) {
@@ -508,6 +534,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     });
 
     fireAddToCartAnalytics({ id: product.id, name: displayName, price: productPrice, quantity, category: product.category });
+    fireCartLifecycleAnalytics("add", product.id, quantity);
     return true;
   };
 
@@ -539,6 +566,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const removeItem = useCallback(async (id: string) => {
+    const removedItem = items.find((item) => item.id === id);
     if (user) {
       // Optimistic update first
       setItems(prev => prev.filter((item) => item.id !== id));
@@ -549,6 +577,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
           headers: addCsrfHeader(),
           credentials: "include"
         });
+        if (res.ok && removedItem) {
+          fireCartLifecycleAnalytics("remove", removedItem.productId, removedItem.quantity);
+        }
         if (!res.ok) {
           // Rollback on failure - refetch from server
           const cartRes = await fetch("/api/cart", { credentials: "include" });
@@ -573,6 +604,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
         });
       }
     } else {
+      if (removedItem) {
+        fireCartLifecycleAnalytics("remove", removedItem.productId, removedItem.quantity);
+      }
       // Use functional update to avoid stale closure
       setItems(prev => {
         const newItems = prev.filter((item) => item.id !== id);
@@ -584,7 +618,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         return newItems;
       });
     }
-  }, [user]);
+  }, [user, items]);
 
   const updateQuantity = useCallback(async (id: string, quantity: number) => {
     // Never auto-remove — user must use the trash button explicitly
@@ -629,6 +663,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
           body: JSON.stringify({ quantity }),
         });
 
+        if (res.ok && currentItem) {
+          fireCartLifecycleAnalytics("touch", currentItem.productId, quantity);
+        }
         if (!res.ok) {
           // Rollback on failure
           setItems(prev => prev.map((item) =>
@@ -663,6 +700,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
         }));
         return newItems;
       });
+      if (currentItem) {
+        fireCartLifecycleAnalytics("touch", currentItem.productId, quantity);
+      }
     }
   }, [user, removeItem, items]);
 

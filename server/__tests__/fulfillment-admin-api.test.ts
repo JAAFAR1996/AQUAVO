@@ -61,7 +61,17 @@ beforeAll(async () => {
       customer_name text, customer_email text, customer_phone text,
       bonus_prize text, bonus_claimed_at timestamptz, carrier text,
       cod_received boolean DEFAULT false, box_cost numeric DEFAULT '0',
-      source text DEFAULT 'website', financially_counted boolean DEFAULT true,
+      source text DEFAULT 'website',
+      view_session_id text, aq_sid text,
+      attribution_utm_source text, attribution_utm_medium text, attribution_utm_campaign text,
+      attribution_utm_content text, attribution_utm_term text,
+      attribution_fbclid text, attribution_gclid text, attribution_ttclid text, attribution_igshid text,
+      aq_campaign_id text, aq_adset_id text, aq_ad_id text, aq_creative_id text,
+      aq_concept_id text, aq_hypothesis_id text, aq_experiment_id text,
+      attribution_captured_at timestamptz,
+      first_touch_utm_source text, first_touch_utm_medium text, first_touch_utm_campaign text,
+      first_touch_aq_campaign_id text, first_touch_captured_at timestamptz,
+      financially_counted boolean DEFAULT true,
       created_at timestamptz DEFAULT now(), updated_at timestamptz DEFAULT now());`);
   await client.exec(`CREATE TABLE products (
       id text PRIMARY KEY, slug text, name text NOT NULL, brand text, category text,

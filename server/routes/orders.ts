@@ -42,6 +42,35 @@ const createOrderCustomerSchema = z.object({
     email: z.string().email("Invalid email").optional().or(z.literal(""))
 });
 
+const attributionValue = z.string().min(1).max(200);
+const orderAttributionSchema = z.object({
+    aq_sid: z.string().min(8).max(128),
+    utm_source: attributionValue.optional(),
+    utm_medium: attributionValue.optional(),
+    utm_campaign: attributionValue.optional(),
+    utm_content: attributionValue.optional(),
+    utm_term: attributionValue.optional(),
+    fbclid: attributionValue.optional(),
+    gclid: attributionValue.optional(),
+    ttclid: attributionValue.optional(),
+    igshid: attributionValue.optional(),
+    aq_campaign_id: attributionValue.optional(),
+    aq_adset_id: attributionValue.optional(),
+    aq_ad_id: attributionValue.optional(),
+    aq_creative_id: attributionValue.optional(),
+    aq_concept_id: attributionValue.optional(),
+    aq_hypothesis_id: attributionValue.optional(),
+    aq_experiment_id: attributionValue.optional(),
+    attribution_captured_at: z.string().datetime({ offset: true }).optional(),
+    first_touch_utm_source: attributionValue.optional(),
+    first_touch_utm_medium: attributionValue.optional(),
+    first_touch_utm_campaign: attributionValue.optional(),
+    first_touch_aq_campaign_id: attributionValue.optional(),
+    first_touch_captured_at: z.string().datetime({ offset: true }).optional(),
+}).strict();
+
+const CLIENT_VIEW_SESSION_ID = /^cs_[A-Za-z0-9_]{1,64}$/;
+
 export const createOrderSchema = z.object({
     items: z.array(createOrderItemSchema).min(1, "At least one item required").max(50, "Maximum 50 items per order"),
     customerInfo: createOrderCustomerSchema,
@@ -51,6 +80,8 @@ export const createOrderSchema = z.object({
     useCashback: z.boolean().optional().default(false),
     pointsToUse: z.number().int().min(0).optional().default(0),
     cashbackToUse: z.number().int().min(0).optional().default(0),
+    clientSessionId: z.string().max(80).optional(),
+    attribution: orderAttributionSchema.optional(),
 });
 
 const idempotencyKeySchema = z.string().uuid();
@@ -170,7 +201,11 @@ export function createOrderRouter(): RouterType {
                 return;
             }
 
-            const { items, customerInfo, couponCode, useCashback, cashbackToUse } = validationResult.data;
+            const { items, customerInfo, couponCode, useCashback, cashbackToUse, clientSessionId, attribution } = validationResult.data;
+            const analyticsSessionId =
+                clientSessionId && CLIENT_VIEW_SESSION_ID.test(clientSessionId)
+                    ? clientSessionId
+                    : ((req as any).sessionID || "unknown");
 
             const rawIdempotencyKey = req.get("Idempotency-Key");
             const parsedIdempotencyKey = rawIdempotencyKey
@@ -208,6 +243,12 @@ export function createOrderRouter(): RouterType {
                 couponCode,
                 { useCashback, cashbackToUse },
                 idempotencyKey,
+                {
+                    viewSessionId: clientSessionId && CLIENT_VIEW_SESSION_ID.test(clientSessionId)
+                        ? clientSessionId
+                        : undefined,
+                    attribution,
+                },
             );
 
             // 📝 Store client IP with order for rejection tracking
@@ -245,42 +286,6 @@ export function createOrderRouter(): RouterType {
                 console.error("[AQUAVO] Audit log failed (non-blocking):", auditErr);
             }
 
-            // Mark cart session as converted for accurate analytics
-            analyticsTracker.trackSessionStatus(
-                (req as any).sessionID || "unknown",
-                "converted"
-            ).catch(() => { });
-
-            // Track purchase interactions for each item (fire-and-forget).
-            //
-            // The lines come from the ORDER, not from the request body. The old code looped over the
-            // client-supplied `items` and, because it could not trust a client price, passed a literal
-            // `price: 0`. It was right not to trust the request and wrong about the remedy: the trusted
-            // price was already sitting in the order it had just created. createOrderSecure recomputes
-            // every line from the product row it locked and persists the result as order.items, so
-            // priceAtPurchase is the amount the customer was actually charged.
-            //
-            // The cost of the literal was total: every purchase row ever written carries price 0, so
-            // this table — the only purchase record that survived the 55-day PostHog outage — could be
-            // counted and never valued. Quantity now comes from the same authoritative line as the
-            // price, so the two can never describe different orders.
-            // Guarded rather than trusted: this runs AFTER the order is committed, so a throw here
-            // would 500 a customer whose order actually succeeded.
-            const orderLines = Array.isArray(order.items) ? order.items : [];
-            for (const line of orderLines) {
-                const unitPrice = Number(line.priceAtPurchase);
-                analyticsTracker.trackPurchase({
-                    userId: userId || undefined,
-                    sessionId: (req as any).sessionID || "unknown",
-                    productId: line.productId,
-                    orderId: order.id,
-                    quantity: Number(line.quantity) || 0,
-                    // A non-finite price would be a defect upstream; record 0 rather than NaN, which
-                    // would poison every aggregate that touches this column.
-                    price: Number.isFinite(unitPrice) ? unitPrice : 0,
-                }).catch(() => { });
-            }
-
             // === AQUAVO LOYALTY POINTS SYSTEM ===
             // Financial loyalty effects are committed inside createOrderSecure; this block is post-commit side effects only.
             const loyaltyResult = (order as any).loyaltyResult ?? null;
@@ -311,19 +316,6 @@ export function createOrderRouter(): RouterType {
                 } catch (loyaltyErr) {
                     console.error("[AQUAVO Loyalty] Post-commit side effects failed:", loyaltyErr);
                 }
-            }
-
-            // === AQUAVO AI CORPORATION - EVENT BUS TRIGGER ===
-            try {
-                if (db) {
-                    await db.execute(sql`
-                        INSERT INTO event_bus (source_agent, target_agent, event_type, payload, status, priority, created_at)
-                        VALUES ('sales', 'logistics', 'new_order_received', ${JSON.stringify({ orderId: order.id, customerAddress: customerInfo.address })}::jsonb, 'pending', 1, NOW())
-                    `);
-                    console.log("[AQUAVO AI] Alerted Logistics Agent for Order", order.id);
-                }
-            } catch (e) {
-                console.error("[AQUAVO AI] EventBus Notification Failed:", e);
             }
 
             // إضافة معلومات النقاط في الرد
@@ -361,7 +353,7 @@ export function createOrderRouter(): RouterType {
             // and the message is built from the STORED order row (customer, address,
             // lines with variant labels, totals, createdAt) — never from the request.
             // Any failure here is logged and never reaches the customer response.
-            notifyMerchantOfCodOrder(order.id).catch((err) =>
+            notifyMerchantOfCodOrder(order.id, analyticsSessionId).catch((err) =>
                 console.error("[AQUAVO] Order notification failed:", err instanceof Error ? err.message : err),
             );
 
@@ -562,12 +554,15 @@ export function createOrderRouter(): RouterType {
  * fall back to ONE direct sendOrderNotification from the stored order so the
  * merchant still hears about the sale. Never throws.
  */
-async function notifyMerchantOfCodOrder(orderId: string): Promise<void> {
+async function notifyMerchantOfCodOrder(orderId: string, analyticsSessionId?: string): Promise<void> {
     try {
-        await enqueueMerchantNotificationOutbox(orderId);
+        await enqueueMerchantNotificationOutbox(orderId, analyticsSessionId);
     } catch (outboxErr) {
-        console.error("[AQUAVO] Order notification outbox unavailable, sending directly:", outboxErr instanceof Error ? outboxErr.message : outboxErr);
-        await sendCodNotificationDirectly(orderId);
+        console.error("[AQUAVO] COD operational outbox unavailable; using direct fallbacks:", outboxErr instanceof Error ? outboxErr.message : outboxErr);
+        await Promise.allSettled([
+            sendCodNotificationDirectly(orderId),
+            trackCodAnalyticsDirectly(orderId, analyticsSessionId),
+        ]);
         return;
     }
     // Enqueued: the durable event now owns delivery. If the immediate drain
@@ -577,6 +572,28 @@ async function notifyMerchantOfCodOrder(orderId: string): Promise<void> {
         await processPaymentOutboxForOrder(orderId);
     } catch (drainErr) {
         console.error("[AQUAVO] Order notification drain failed; cron will retry:", drainErr instanceof Error ? drainErr.message : drainErr);
+    }
+}
+
+async function trackCodAnalyticsDirectly(orderId: string, sessionId?: string): Promise<void> {
+    try {
+        const stored = await storage.getOrder(orderId);
+        if (!stored) return;
+        const resolvedSession = sessionId || `payment:${stored.id}`;
+        if (sessionId) {
+            await analyticsTracker.trackSessionStatus(sessionId, "converted");
+        }
+        const lines = Array.isArray(stored.items) ? stored.items : [];
+        await Promise.all(lines.map((line: any) => analyticsTracker.trackPurchase({
+            userId: stored.userId || undefined,
+            sessionId: resolvedSession,
+            productId: line.productId,
+            orderId: stored.id,
+            quantity: Number(line.quantity) || 0,
+            price: Number.isFinite(Number(line.priceAtPurchase)) ? Number(line.priceAtPurchase) : 0,
+        })));
+    } catch (analyticsErr) {
+        console.error("[AQUAVO] Direct COD analytics fallback failed:", analyticsErr instanceof Error ? analyticsErr.message : analyticsErr);
     }
 }
 

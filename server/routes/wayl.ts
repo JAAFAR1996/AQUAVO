@@ -24,6 +24,35 @@ const AQUAVO_CANONICAL_ORIGIN = "https://www.aquavoiq.com";
 const AQUAVO_PRODUCTION_HOSTS = new Set(["www.aquavoiq.com", "aquavoiq.com"]);
 const WEBHOOK_SIGNATURE_HEADER = "x-wayl-signature-256";
 
+const attributionValue = z.string().min(1).max(200);
+const onlineAttributionSchema = z.object({
+  aq_sid: z.string().min(8).max(128),
+  utm_source: attributionValue.optional(),
+  utm_medium: attributionValue.optional(),
+  utm_campaign: attributionValue.optional(),
+  utm_content: attributionValue.optional(),
+  utm_term: attributionValue.optional(),
+  fbclid: attributionValue.optional(),
+  gclid: attributionValue.optional(),
+  ttclid: attributionValue.optional(),
+  igshid: attributionValue.optional(),
+  aq_campaign_id: attributionValue.optional(),
+  aq_adset_id: attributionValue.optional(),
+  aq_ad_id: attributionValue.optional(),
+  aq_creative_id: attributionValue.optional(),
+  aq_concept_id: attributionValue.optional(),
+  aq_hypothesis_id: attributionValue.optional(),
+  aq_experiment_id: attributionValue.optional(),
+  attribution_captured_at: z.string().datetime({ offset: true }).optional(),
+  first_touch_utm_source: attributionValue.optional(),
+  first_touch_utm_medium: attributionValue.optional(),
+  first_touch_utm_campaign: attributionValue.optional(),
+  first_touch_aq_campaign_id: attributionValue.optional(),
+  first_touch_captured_at: z.string().datetime({ offset: true }).optional(),
+}).strict();
+
+const CLIENT_VIEW_SESSION_ID = /^cs_[A-Za-z0-9_]{1,64}$/;
+
 const onlineCheckoutSchema = z.object({
   customerInfo: z.object({
     name: z.string().trim().min(2).max(100),
@@ -39,6 +68,8 @@ const onlineCheckoutSchema = z.object({
   couponCode: z.string().trim().max(100).optional(),
   useCashback: z.boolean().optional().default(false),
   cashbackToUse: z.number().int().min(0).optional().default(0),
+  clientSessionId: z.string().max(80).optional(),
+  attribution: onlineAttributionSchema.optional(),
 }).strict();
 
 const retrySchema = z.object({ paymentId: z.string().trim().min(1).max(300) }).strict();
@@ -160,7 +191,10 @@ export function createWaylRouter() {
       const prepared = await prepareOnlineOrder({
         idempotencyKey: parsedKey.data,
         userId: session?.userId || null,
-        sessionId: (req as any).sessionID,
+        sessionId: parsed.data.clientSessionId && CLIENT_VIEW_SESSION_ID.test(parsed.data.clientSessionId)
+          ? parsed.data.clientSessionId
+          : (req as any).sessionID,
+        attribution: parsed.data.attribution,
         customerInfo: parsed.data.customerInfo,
         items: parsed.data.items,
         couponCode: parsed.data.couponCode,

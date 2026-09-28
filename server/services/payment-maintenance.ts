@@ -33,7 +33,7 @@ export async function enqueuePaidOrderOutbox(
     sessionId: input.sessionId || null,
     loyaltyResult: input.loyaltyResult || null,
   });
-  const eventTypes = ["analytics", "loyalty", "logistics", "merchant_notification"] as const;
+  const eventTypes = ["analytics", "loyalty", "merchant_notification"] as const;
   for (const eventType of eventTypes) {
     await tx.execute(sql`
       INSERT INTO payment_outbox(event_key, order_id, event_type, payload, status, next_attempt_at)
@@ -49,13 +49,29 @@ export async function enqueuePaidOrderOutbox(
  * deduplication guarantee: a repeated Idempotency-Key request never reaches this
  * code, and even if it did, the second INSERT is a no-op.
  */
-export async function enqueueMerchantNotificationOutbox(orderId: string): Promise<void> {
+export async function enqueueMerchantNotificationOutbox(
+  orderId: string,
+  sessionId?: string,
+): Promise<void> {
   const db = dbOrThrow();
-  await db.execute(sql`
-    INSERT INTO payment_outbox(event_key, order_id, event_type, payload, status, next_attempt_at)
-    VALUES (${`${orderId}:merchant_notification`}, ${orderId}, 'merchant_notification', '{}'::jsonb, 'pending', now())
-    ON CONFLICT(event_key) DO NOTHING
-  `);
+  const payload = JSON.stringify({ sessionId: sessionId || null });
+
+  // COD has no provider-payment transaction in which to stage post-commit
+  // effects. Insert analytics + merchant notification atomically here so a
+  // process crash after enqueue cannot leave one lifecycle side effect durable
+  // and the other missing. event_key keeps repeated calls idempotent.
+  await db.transaction(async (tx) => {
+    const eventTypes = sessionId
+      ? (["analytics", "merchant_notification"] as const)
+      : (["merchant_notification"] as const);
+    for (const eventType of eventTypes) {
+      await tx.execute(sql`
+        INSERT INTO payment_outbox(event_key, order_id, event_type, payload, status, next_attempt_at)
+        VALUES (${`${orderId}:${eventType}`}, ${orderId}, ${eventType}, ${payload}::jsonb, 'pending', now())
+        ON CONFLICT(event_key) DO NOTHING
+      `);
+    }
+  });
 }
 
 export async function releaseExpiredPaymentReservations(limit = 500): Promise<number> {
@@ -167,17 +183,10 @@ async function deliverOutboxEvent(event: ClaimedOutbox): Promise<void> {
   }
 
   if (event.eventType === "logistics") {
-    await db.execute(sql`
-      INSERT INTO event_bus (source_agent, target_agent, event_type, payload, status, priority, created_at)
-      SELECT 'sales', 'logistics', 'new_order_received',
-             ${JSON.stringify({ orderId: order.id, customerAddress: order.shippingAddress })}::jsonb,
-             'pending', 1, NOW()
-      WHERE NOT EXISTS (
-        SELECT 1 FROM event_bus
-        WHERE event_type='new_order_received'
-          AND payload->>'orderId'=${order.id}
-      )
-    `);
+    // Legacy payment_outbox rows may still carry this event type. The old
+    // implementation wrote to event_bus even though no logistics consumer has
+    // existed since May 2026, leaving a permanent pending backlog. Treat the
+    // legacy event as retired; fulfillment is the canonical logistics workflow.
     return;
   }
 

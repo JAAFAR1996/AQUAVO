@@ -191,6 +191,36 @@ export const orders = pgTable("orders", {
   boxCost: numeric("box_cost").default("0"),
   // Order origin: 'website' (default) | 'whatsapp' (created from a manual WhatsApp invoice)
   source: text("source").default("website"),
+
+  // Durable commerce identity. viewSessionId joins the exact browser-tab funnel
+  // (page → product → cart → checkout → order); aqSid joins acquisition history
+  // across visits. Campaign fields are snapshots captured at order creation —
+  // never reconstructed later from timestamp proximity.
+  viewSessionId: text("view_session_id"),
+  aqSid: text("aq_sid"),
+  attributionUtmSource: text("attribution_utm_source"),
+  attributionUtmMedium: text("attribution_utm_medium"),
+  attributionUtmCampaign: text("attribution_utm_campaign"),
+  attributionUtmContent: text("attribution_utm_content"),
+  attributionUtmTerm: text("attribution_utm_term"),
+  attributionFbclid: text("attribution_fbclid"),
+  attributionGclid: text("attribution_gclid"),
+  attributionTtclid: text("attribution_ttclid"),
+  attributionIgshid: text("attribution_igshid"),
+  aqCampaignId: text("aq_campaign_id"),
+  aqAdsetId: text("aq_adset_id"),
+  aqAdId: text("aq_ad_id"),
+  aqCreativeId: text("aq_creative_id"),
+  aqConceptId: text("aq_concept_id"),
+  aqHypothesisId: text("aq_hypothesis_id"),
+  aqExperimentId: text("aq_experiment_id"),
+  attributionCapturedAt: timestamp("attribution_captured_at", { withTimezone: true }),
+  firstTouchUtmSource: text("first_touch_utm_source"),
+  firstTouchUtmMedium: text("first_touch_utm_medium"),
+  firstTouchUtmCampaign: text("first_touch_utm_campaign"),
+  firstTouchAqCampaignId: text("first_touch_aq_campaign_id"),
+  firstTouchCapturedAt: timestamp("first_touch_captured_at", { withTimezone: true }),
+
   // Manual financial inclusion override: null=auto (use status), true=force include, false=force exclude
   financiallyCounted: boolean("financially_counted"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -1346,7 +1376,19 @@ export const searchQueries = pgTable("search_queries", {
 // ==================== Customer Profiles - ملفات العملاء للذكاء الاصطناعي ====================
 
 export const customerProfiles = pgTable("customer_profiles", {
-  userId: text("user_id").primaryKey().references(() => users.id),
+  // Production owns a phone-centric customer identity record so guest and
+  // registered orders can share one CRM profile without pretending a guest was
+  // authenticated. userId is an optional verified-account link, not the PK.
+  id: serial("id").primaryKey(),
+  phone: varchar("phone", { length: 32 }).notNull(),
+  name: varchar("name", { length: 255 }),
+  city: varchar("city", { length: 255 }),
+  totalOrdersCount: integer("total_orders_count").notNull().default(0),
+  totalSpentIqd: integer("total_spent_iqd").notNull().default(0),
+  lastOrderAt: timestamp("last_order_at"),
+  segment: varchar("segment", { length: 64 }).notNull().default("new"),
+  notes: text("notes"),
+  userId: text("user_id").references(() => users.id),
   preferredCategories: jsonb("preferred_categories").$type<string[]>(),
   preferredBrands: jsonb("preferred_brands").$type<string[]>(),
   priceRange: jsonb("price_range").$type<{ min: number, max: number }>(),
@@ -1366,6 +1408,8 @@ export const customerProfiles = pgTable("customer_profiles", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => ({
+  phoneIdx: uniqueIndex("customer_profiles_phone_uidx").on(table.phone),
+  userIdIdx: index("customer_profiles_user_id_idx").on(table.userId),
   engagementIdx: index("customer_profiles_engagement_idx").on(table.engagementLevel),
   expiresAtIdx: index("customer_profiles_expires_at_idx").on(table.expiresAt),
 }));

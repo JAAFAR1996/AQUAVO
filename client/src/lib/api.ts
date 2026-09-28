@@ -73,11 +73,15 @@ export async function fetchProductsCore(params?: ProductQueryParams): Promise<{ 
 }
 
 export async function fetchProductCore(id: string): Promise<Product> {
-  return await getJson<Product>(`/api/products/${id}`);
+  return await getJson<Product>(
+    `/api/products/${id}?sid=${encodeURIComponent(getClientSessionId())}`
+  );
 }
 
 export async function fetchProductBySlugCore(slug: string): Promise<Product> {
-  return await getJson<Product>(`/api/products/${slug}`);
+  return await getJson<Product>(
+    `/api/products/${slug}?sid=${encodeURIComponent(getClientSessionId())}`
+  );
 }
 
 // Production functions - NO fallback to mock data (real database only)

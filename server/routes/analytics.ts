@@ -7,6 +7,8 @@ import { sql, desc, gte, count, sum, eq, and, gt, inArray } from "drizzle-orm";
 import { pageViews } from "../../shared/schema.js";
 import { REALIZED_STATUSES, isRealizedStatus } from "../../shared/order-financials.js";
 import { REALIZED_STATUS_SQL } from "../services/accounting-engine.js";
+import { analyticsTracker } from "../services/analytics-tracker.js";
+import { apiLimiter } from "../middleware/rate-limit.js";
 
 const router = Router();
 
@@ -72,6 +74,60 @@ router.post("/heartbeat", (req: Request, res: Response): void => {
         ts: Date.now(),
     });
     res.json({ ok: true });
+});
+
+const CLIENT_VIEW_SESSION_ID = /^cs_[A-Za-z0-9_]{1,64}$/;
+
+/**
+ * Guest carts live in localStorage by design, but their lifecycle still needs a
+ * durable anonymous funnel. This endpoint records only opaque session/product
+ * identifiers — no name, phone, email, address or free-form text.
+ */
+router.post("/cart-event", apiLimiter, async (req: Request, res: Response): Promise<void> => {
+    try {
+        const body = (req.body ?? {}) as Record<string, unknown>;
+        const sessionId = typeof body.clientSessionId === "string"
+            && body.clientSessionId !== "cs_unavailable"
+            && CLIENT_VIEW_SESSION_ID.test(body.clientSessionId)
+            ? body.clientSessionId
+            : null;
+        const productId = typeof body.productId === "string" ? body.productId.trim() : "";
+        const action = body.action === "add" || body.action === "remove" || body.action === "touch"
+            ? body.action
+            : null;
+        const quantity = Number(body.quantity ?? 1);
+
+        if (!sessionId || !action || !productId || productId.length > 128 || !Number.isInteger(quantity) || quantity < 1 || quantity > 100) {
+            res.status(202).json({ accepted: false });
+            return;
+        }
+
+        const userId = ((req.session as Record<string, unknown> | undefined)?.userId as string | undefined) ?? undefined;
+        if (action === "add") {
+            await analyticsTracker.trackCartAdd({
+                userId,
+                sessionId,
+                productId,
+                quantity,
+                from: "storefront",
+            });
+        } else if (action === "remove") {
+            await analyticsTracker.trackCartRemove({
+                userId,
+                sessionId,
+                productId,
+                reason: "shopper_removed",
+            });
+        } else {
+            // Quantity changes are activity, not a new add/remove conversion.
+            await analyticsTracker.touchCartSession({ userId, sessionId });
+        }
+
+        res.status(202).json({ accepted: true });
+    } catch {
+        // Telemetry must never break commerce UX.
+        res.status(202).json({ accepted: false });
+    }
 });
 
 interface AnalyticsQuery {

@@ -1,6 +1,6 @@
 import { getDb } from "../db.js";
 import * as schema from "../../shared/schema.js";
-import { count, avg, eq, desc, and, gte } from "drizzle-orm";
+import { count, avg, eq, desc, and, gte, sql } from "drizzle-orm";
 
 /**
  * متتبع التحليلات - تتبع تفاعلات المستخدمين في الوقت الفعلي
@@ -122,9 +122,79 @@ export class AnalyticsTracker {
         createdAt: new Date(),
       });
 
+      // Removal is still cart activity. Keep the session alive so a later
+      // nightly abandonment pass measures inactivity from the last real action,
+      // not from the first add.
+      await this.db.insert(schema.cartSessions)
+        .values({
+          sessionId: data.sessionId,
+          userId: data.userId || null,
+          status: 'active',
+          updatedAt: new Date(),
+        })
+        .onConflictDoUpdate({
+          target: schema.cartSessions.sessionId,
+          set: {
+            userId: data.userId || null,
+            status: 'active',
+            updatedAt: new Date(),
+          },
+        });
+
       console.log(`[Analytics] 🗑️ Cart remove tracked: ${data.productId}`);
     } catch (error) {
       console.error('[Analytics] Error tracking cart remove:', error);
+    }
+  }
+
+  /**
+   * Convert genuinely stale active carts into abandoned carts. This is a
+   * lifecycle classification, not a deletion: every interaction row remains
+   * available for funnel analysis.
+   */
+  async touchCartSession(data: {
+    userId?: string;
+    sessionId: string;
+  }): Promise<void> {
+    try {
+      await this.db.insert(schema.cartSessions)
+        .values({
+          sessionId: data.sessionId,
+          userId: data.userId || null,
+          status: 'active',
+          updatedAt: new Date(),
+        })
+        .onConflictDoUpdate({
+          target: schema.cartSessions.sessionId,
+          set: {
+            userId: data.userId || null,
+            status: 'active',
+            updatedAt: new Date(),
+          },
+        });
+    } catch (error) {
+      console.error('[Analytics] Error touching cart session:', error);
+    }
+  }
+
+  async abandonStaleCartSessions(maxAgeHours = 24): Promise<number> {
+    try {
+      const hours = Number.isFinite(maxAgeHours)
+        ? Math.min(24 * 30, Math.max(1, Math.floor(maxAgeHours)))
+        : 24;
+      const result = await this.db.execute(sql`
+        UPDATE public.cart_sessions
+           SET status='abandoned',
+               updated_at=clock_timestamp()
+         WHERE status='active'
+           AND updated_at < clock_timestamp() - (${hours} * interval '1 hour')
+        RETURNING id
+      `);
+      const rows = (result as { rows?: unknown[] } | null)?.rows;
+      return Array.isArray(rows) ? rows.length : 0;
+    } catch (error) {
+      console.error('[Analytics] Error abandoning stale cart sessions:', error);
+      return 0;
     }
   }
 

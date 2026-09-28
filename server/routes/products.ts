@@ -535,7 +535,7 @@ export function createProductRouter(): RouterType {
             const session = getSession(req);
             analyticsTracker.trackProductView({
                 userId: session?.userId,
-                sessionId: (req as any).sessionID || "unknown",
+                sessionId: resolveClientSessionId(req, req.query.sid),
                 productId: product.id,
                 from: (req.query.from as string) || "direct",
             }).catch(() => {});
