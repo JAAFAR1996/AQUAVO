@@ -22,6 +22,7 @@ import {
 import { toPublicOrderItem } from "../../shared/public-product.js";
 import { apiMessage } from "../i18n/messages.js";
 import { payments } from "../../shared/schema.js";
+import { WHATSAPP_CONSENT_VERSION } from "../../shared/whatsapp-consent.js";
 
 const referralStorage = new ReferralStorage();
 
@@ -71,6 +72,12 @@ const orderAttributionSchema = z.object({
 
 const CLIENT_VIEW_SESSION_ID = /^cs_[A-Za-z0-9_]{1,64}$/;
 
+const whatsappConsentSchema = z.object({
+    care: z.boolean(),
+    marketing: z.boolean(),
+    version: z.literal(WHATSAPP_CONSENT_VERSION),
+}).strict();
+
 export const createOrderSchema = z.object({
     items: z.array(createOrderItemSchema).min(1, "At least one item required").max(50, "Maximum 50 items per order"),
     customerInfo: createOrderCustomerSchema,
@@ -82,6 +89,7 @@ export const createOrderSchema = z.object({
     cashbackToUse: z.number().int().min(0).optional().default(0),
     clientSessionId: z.string().max(80).optional(),
     attribution: orderAttributionSchema.optional(),
+    whatsappConsent: whatsappConsentSchema.optional(),
 });
 
 const idempotencyKeySchema = z.string().uuid();
@@ -201,7 +209,7 @@ export function createOrderRouter(): RouterType {
                 return;
             }
 
-            const { items, customerInfo, couponCode, useCashback, cashbackToUse, clientSessionId, attribution } = validationResult.data;
+            const { items, customerInfo, couponCode, useCashback, cashbackToUse, clientSessionId, attribution, whatsappConsent } = validationResult.data;
             const analyticsSessionId =
                 clientSessionId && CLIENT_VIEW_SESSION_ID.test(clientSessionId)
                     ? clientSessionId
@@ -248,6 +256,9 @@ export function createOrderRouter(): RouterType {
                         ? clientSessionId
                         : undefined,
                     attribution,
+                    whatsappConsent: whatsappConsent
+                        ? { ...whatsappConsent, capturedAt: new Date().toISOString() }
+                        : undefined,
                 },
             );
 
