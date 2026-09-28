@@ -7,6 +7,7 @@ import { CartItem } from "@/contexts/cart-context";
 import { formatIQD } from "@/lib/utils";
 import { addCsrfHeader } from "@/lib/csrf";
 import { getOrderIdempotencyKey } from "@/lib/order-idempotency";
+import { orderAttributionPayload } from "@/lib/attribution";
 import { PaymentMethodCard } from "./payment-method-card";
 import { ArrowLeft, Loader2, Lock, LockKeyhole, RotateCcw, ShieldCheck, Truck } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -149,6 +150,7 @@ export function ConfirmationView({
                     ...(couponCode ? { couponCode } : {}),
                     useCashback: false,
                     cashbackToUse: 0,
+                    attribution: orderAttributionPayload(),
                 }),
             });
 
