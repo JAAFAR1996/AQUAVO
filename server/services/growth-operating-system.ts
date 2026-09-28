@@ -625,18 +625,28 @@ export async function updateCustomerAquariumProfile(input:{
   `);
   if(rowsOf(current).length===0) return {ok:false,reason:"profile_not_found"};
 
+  const hasVolume=input.tankVolumeLiters !== undefined;
+  const hasDimensions=input.tankDimensions !== undefined;
+  const hasLivestock=input.livestock !== undefined;
+  const hasPlants=input.plants !== undefined;
+  const hasFilter=input.filterSetup !== undefined;
+  const hasHeater=input.heaterSetup !== undefined;
+  const hasWater=input.waterProfile !== undefined;
+  const hasGoals=input.goals !== undefined;
+  const hasNotes=input.notes !== undefined;
+
   await db.execute(sql`
     UPDATE public.customer_profiles
     SET
-      tank_volume_liters=${input.tankVolumeLiters ?? null},
-      tank_dimensions=${JSON.stringify(input.tankDimensions ?? {})}::jsonb,
-      livestock=${JSON.stringify(input.livestock ?? [])}::jsonb,
-      plants=${JSON.stringify(input.plants ?? [])}::jsonb,
-      filter_setup=${JSON.stringify(input.filterSetup ?? {})}::jsonb,
-      heater_setup=${JSON.stringify(input.heaterSetup ?? {})}::jsonb,
-      water_profile=${JSON.stringify(input.waterProfile ?? {})}::jsonb,
-      goals=${JSON.stringify(input.goals ?? [])}::jsonb,
-      notes=${clampText(input.notes,2000)},
+      tank_volume_liters=CASE WHEN ${hasVolume} THEN ${input.tankVolumeLiters ?? null} ELSE tank_volume_liters END,
+      tank_dimensions=CASE WHEN ${hasDimensions} THEN ${JSON.stringify(input.tankDimensions ?? {})}::jsonb ELSE tank_dimensions END,
+      livestock=CASE WHEN ${hasLivestock} THEN ${JSON.stringify(input.livestock ?? [])}::jsonb ELSE livestock END,
+      plants=CASE WHEN ${hasPlants} THEN ${JSON.stringify(input.plants ?? [])}::jsonb ELSE plants END,
+      filter_setup=CASE WHEN ${hasFilter} THEN ${JSON.stringify(input.filterSetup ?? {})}::jsonb ELSE filter_setup END,
+      heater_setup=CASE WHEN ${hasHeater} THEN ${JSON.stringify(input.heaterSetup ?? {})}::jsonb ELSE heater_setup END,
+      water_profile=CASE WHEN ${hasWater} THEN ${JSON.stringify(input.waterProfile ?? {})}::jsonb ELSE water_profile END,
+      goals=CASE WHEN ${hasGoals} THEN ${JSON.stringify(input.goals ?? [])}::jsonb ELSE goals END,
+      notes=CASE WHEN ${hasNotes} THEN ${clampText(input.notes,2000)} ELSE notes END,
       aquarium_profile_source=${input.source ?? "admin"},
       aquarium_last_verified_at=now(),
       updated_at=now()
