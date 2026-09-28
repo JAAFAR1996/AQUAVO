@@ -246,7 +246,7 @@ function escapeRegExp(value: string): string {
   let escaped = "";
   const special = "\\^$.*+?()[]{}|";
   for (const char of value) {
-    escaped += special.includes(char) ? "\\\\" + char : char;
+    escaped += special.includes(char) ? "\\" + char : char;
   }
   return escaped;
 }
