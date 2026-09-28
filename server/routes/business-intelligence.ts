@@ -3,12 +3,14 @@ import { z } from "zod";
 import { requireAccountingAdmin } from "../middleware/accounting-auth-v2.js";
 import {
   getBusinessAssessment,
+  getBusinessEvents,
   getBusinessFindings,
   getBusinessHistory,
   getBusinessOverview,
   getInventoryHealth,
   ingestMarketingDaily,
   rebuildBusinessHistory,
+  recordBusinessEvent,
   refreshBusinessSnapshot,
 } from "../services/business-intelligence.js";
 
@@ -27,6 +29,18 @@ const marketingSchema = z.object({
   source: z.string().trim().min(2).max(100),
   confidence: z.enum(["exact", "estimated", "unknown"]).optional(),
   evidence: z.record(z.unknown()).optional(),
+}).strict();
+
+const eventSchema = z.object({
+  occurredAt: z.string().datetime({ offset: true }),
+  eventType: z.string().trim().min(2).max(80),
+  entityType: z.string().trim().min(1).max(80).nullable().optional(),
+  entityId: z.string().trim().min(1).max(200).nullable().optional(),
+  title: z.string().trim().min(2).max(300),
+  details: z.record(z.unknown()).optional(),
+  source: z.string().trim().min(2).max(100),
+  severity: z.enum(["info", "warning", "critical"]).optional(),
+  fingerprint: z.string().trim().min(3).max(300),
 }).strict();
 
 export function createBusinessIntelligenceRouter() {
@@ -51,6 +65,24 @@ export function createBusinessIntelligenceRouter() {
 
   router.get("/inventory", async (req: Request, res: Response, next: NextFunction) => {
     try { res.json(await getInventoryHealth(Number(req.query.limit ?? 25))); } catch (error) { next(error); }
+  });
+
+  router.get("/events", async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const eventType = typeof req.query.eventType === "string" ? req.query.eventType : undefined;
+      res.json(await getBusinessEvents(Number(req.query.limit ?? 100), eventType));
+    } catch (error) { next(error); }
+  });
+
+  router.post("/events", async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const parsed = eventSchema.safeParse(req.body);
+      if (!parsed.success) {
+        res.status(400).json({ message: "Invalid event payload", issues: parsed.error.issues });
+        return;
+      }
+      res.json(await recordBusinessEvent(parsed.data));
+    } catch (error) { next(error); }
   });
 
   router.get("/findings", async (_req: Request, res: Response, next: NextFunction) => {
