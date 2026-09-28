@@ -82,6 +82,7 @@ export const createOrderSchema = z.object({
     cashbackToUse: z.number().int().min(0).optional().default(0),
     clientSessionId: z.string().max(80).optional(),
     attribution: orderAttributionSchema.optional(),
+    whatsappMarketingOptIn: z.boolean().optional().default(false),
 });
 
 const idempotencyKeySchema = z.string().uuid();
@@ -201,7 +202,7 @@ export function createOrderRouter(): RouterType {
                 return;
             }
 
-            const { items, customerInfo, couponCode, useCashback, cashbackToUse, clientSessionId, attribution } = validationResult.data;
+            const { items, customerInfo, couponCode, useCashback, cashbackToUse, clientSessionId, attribution, whatsappMarketingOptIn } = validationResult.data;
             const analyticsSessionId =
                 clientSessionId && CLIENT_VIEW_SESSION_ID.test(clientSessionId)
                     ? clientSessionId
@@ -250,6 +251,25 @@ export function createOrderRouter(): RouterType {
                     attribution,
                 },
             );
+
+            // Persist explicit WhatsApp marketing consent on the committed order.
+            // The DB trigger rolls a true opt-in into the canonical customer profile
+            // and append-only consent ledger. False never revokes earlier consent.
+            if (db && whatsappMarketingOptIn) {
+                try {
+                    await db.execute(sql`
+                        UPDATE public.orders
+                           SET whatsapp_marketing_opt_in=true,
+                               whatsapp_marketing_opt_in_at=clock_timestamp(),
+                               updated_at=clock_timestamp()
+                         WHERE id=${order.id}
+                    `);
+                } catch (consentErr) {
+                    // Commerce wins over CRM messaging. Fail closed: no consent row
+                    // means no future marketing/replenishment message can be sent.
+                    console.warn("[AQUAVO] WhatsApp marketing opt-in not stored:", consentErr instanceof Error ? consentErr.message : consentErr);
+                }
+            }
 
             // 📝 Store client IP with order for rejection tracking
             if (db && clientIp !== 'unknown') {
