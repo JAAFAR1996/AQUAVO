@@ -13,6 +13,7 @@ import { useTranslation } from "react-i18next";
 import { isolateNumericRanges as bidi } from "@shared/i18n/bidi";
 import { getClientSessionId } from "@/lib/client-session";
 import { orderAttributionPayload } from "@/lib/attribution";
+import { WHATSAPP_CONSENT_VERSION } from "@shared/whatsapp-consent";
 
 const APPLIED_COUPON_STORAGE_KEY = "aquavo_applied_coupon_v1";
 
@@ -36,6 +37,10 @@ interface ConfirmationViewProps {
     getDeliveryEstimate: () => string;
     agreed: boolean;
     setAgreed: (agreed: boolean) => void;
+    whatsappCareOptIn: boolean;
+    setWhatsappCareOptIn: (value: boolean) => void;
+    whatsappMarketingOptIn: boolean;
+    setWhatsappMarketingOptIn: (value: boolean) => void;
     isSubmitting: boolean;
     handleBack: () => void;
     handleConfirmOrder: () => void;
@@ -65,6 +70,10 @@ export function ConfirmationView({
     getDeliveryEstimate,
     agreed,
     setAgreed,
+    whatsappCareOptIn,
+    setWhatsappCareOptIn,
+    whatsappMarketingOptIn,
+    setWhatsappMarketingOptIn,
     isSubmitting,
     handleBack,
     handleConfirmOrder,
@@ -125,6 +134,8 @@ export function ConfirmationView({
                 })),
                 couponCode,
                 cashback: 0,
+                whatsappCareOptIn,
+                whatsappMarketingOptIn,
             });
             const idempotencyKey = getOrderIdempotencyKey(cartSignature);
             const governorate = GOVERNORATES.find((entry) => entry.value === customerInfo.governorate)?.label;
@@ -153,6 +164,11 @@ export function ConfirmationView({
                     ...(couponCode ? { couponCode } : {}),
                     useCashback: false,
                     cashbackToUse: 0,
+                    whatsappConsent: {
+                        care: whatsappCareOptIn,
+                        marketing: whatsappMarketingOptIn,
+                        version: WHATSAPP_CONSENT_VERSION,
+                    },
                 }),
             });
 
@@ -322,6 +338,40 @@ export function ConfirmationView({
                         </div>
                     </div>
                 )}
+            </section>
+
+            <section className="rounded-xl border border-primary/15 bg-primary/[0.035] p-4" aria-labelledby="whatsapp-consent-heading">
+                <div>
+                    <h4 id="whatsapp-consent-heading" className="text-sm font-semibold">{t("confirm.whatsappConsentTitle")}</h4>
+                    <p className="mt-1 text-xs leading-6 text-muted-foreground">{t("confirm.whatsappConsentHint")}</p>
+                </div>
+                <div className="mt-3 space-y-3">
+                    <div className="flex items-start gap-3">
+                        <Checkbox
+                            id="whatsapp-care-opt-in"
+                            checked={whatsappCareOptIn}
+                            onCheckedChange={(checked) => setWhatsappCareOptIn(checked === true)}
+                            className="mt-0.5"
+                            disabled={busy}
+                        />
+                        <label htmlFor="whatsapp-care-opt-in" className="cursor-pointer text-sm leading-6">
+                            {t("confirm.whatsappCareOptIn")}
+                        </label>
+                    </div>
+                    <div className="flex items-start gap-3">
+                        <Checkbox
+                            id="whatsapp-marketing-opt-in"
+                            checked={whatsappMarketingOptIn}
+                            onCheckedChange={(checked) => setWhatsappMarketingOptIn(checked === true)}
+                            className="mt-0.5"
+                            disabled={busy}
+                        />
+                        <label htmlFor="whatsapp-marketing-opt-in" className="cursor-pointer text-sm leading-6">
+                            {t("confirm.whatsappMarketingOptIn")}
+                        </label>
+                    </div>
+                </div>
+                <p className="mt-3 text-[11px] leading-5 text-muted-foreground">{t("confirm.whatsappOptOut")}</p>
             </section>
 
             <div className="flex items-start gap-3 py-2">
