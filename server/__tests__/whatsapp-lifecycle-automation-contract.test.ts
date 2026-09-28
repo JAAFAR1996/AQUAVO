@@ -56,11 +56,27 @@ describe("automatic WhatsApp lifecycle contract",()=>{
     expect(growth).toContain("purchase_day-prior_day BETWEEN 7 AND 180");
   });
 
-  it("does not remind a later-due consumable at the earliest product window",()=>{
+  it("creates one independent replenishment job per consumable product timing",()=>{
     const growth=read("server/services/growth-operating-system.ts");
-    expect(growth).toContain("repurchase_candidates AS");
-    expect(growth).toContain("repurchase_target AS");
-    expect(growth).toContain("c.interval_target_days=t.target_days");
+    const migration=read("migrations/0094_repurchase_per_product_automation.sql");
+    expect(growth).toContain("'product:' || r.product_id");
+    expect(growth).toContain("jsonb_build_array(r.product_id)");
+    expect(growth).toContain("r.interval_target_days");
+    expect(growth).toContain("ON CONFLICT(order_id,job_type,scope_key)");
+    expect(growth).toContain("per_product_replenishment_12_30_baghdad");
+    expect(growth).toContain("metadata->>'deferReason'");
+    expect(migration).toContain("UNIQUE(order_id,job_type,scope_key)");
+  });
+
+  it("uses a durable activation boundary and does not backfill old delivered orders",()=>{
+    const growth=read("server/services/growth-operating-system.ts");
+    const lifecycle=read("server/services/whatsapp-lifecycle.ts");
+    const migration=read("migrations/0094_repurchase_per_product_automation.sql");
+    expect(migration).toContain("whatsapp_lifecycle_runtime_config");
+    expect(migration).toContain("repurchase_enabled");
+    expect(migration).toContain("clock_timestamp()");
+    expect(growth).toContain("d.delivered_at >= cfg.activation_at");
+    expect(lifecycle).toContain("FROM public.whatsapp_lifecycle_runtime_config");
   });
 
   it("enforces anti-spam and replenishment suppression controls",()=>{

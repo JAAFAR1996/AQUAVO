@@ -71,6 +71,10 @@ The job is suppressed if the order stops being eligible or an existing delivery-
 
 Trigger: product-specific expected replenishment timing from `product_repurchase_profiles`.
 
+AQUAVO now schedules replenishment independently per consumable product. Each job has a durable `scope_key=product:<product_id>` and its own due date from that product's target interval. If another repurchase Marketing message was accepted for the same customer inside the 30-day frequency window, the later product reminder is deferred to the next allowed instant rather than discarded.
+
+Production rollout is controlled by `public.whatsapp_lifecycle_runtime_config`. The activation timestamp is written at rollout time, so orders delivered before activation never enter the automatic repurchase stream. The table contains no provider secrets; WhatsApp credentials remain environment variables.
+
 Schedule: 12:30 Asia/Baghdad.
 
 Category: **MARKETING**

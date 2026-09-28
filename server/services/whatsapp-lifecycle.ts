@@ -116,25 +116,54 @@ function parseJsonArray(value: unknown): string[] {
   return parsed.map((item) => String(item ?? "").trim()).filter(Boolean);
 }
 
-function readLifecycleConfig(): LifecycleConfig | null {
+async function readLifecycleConfig(): Promise<LifecycleConfig | null> {
   if (process.env.WHATSAPP_CLOUD_ENABLED?.trim().toLowerCase() !== "true") return null;
-  if (process.env.WHATSAPP_LIFECYCLE_ENABLED?.trim().toLowerCase() !== "true") return null;
 
   const apiVersion = process.env.WHATSAPP_API_VERSION?.trim() ?? "";
   const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID?.trim() ?? "";
   const accessToken = process.env.WHATSAPP_ACCESS_TOKEN?.trim() ?? "";
   const languageCode = process.env.WHATSAPP_TEMPLATE_LANGUAGE?.trim() || "ar";
-  const activationRaw = process.env.WHATSAPP_LIFECYCLE_ACTIVATION_AT?.trim() ?? "";
-  const activationAt = activationRaw ? new Date(activationRaw) : new Date(Number.NaN);
-  const day7Template = process.env.WHATSAPP_DAY7_CARE_TEMPLATE?.trim() || null;
-  const repurchaseTemplate = process.env.WHATSAPP_REPURCHASE_TEMPLATE?.trim() || null;
-  const repurchaseEnabled = process.env.WHATSAPP_REPURCHASE_ENABLED?.trim().toLowerCase() === "true";
+
+  let runtime: Row | null = null;
+  const db = getDb();
+  if (db) {
+    try {
+      const result = await db.execute(sql`
+        SELECT lifecycle_enabled,day7_enabled,repurchase_enabled,activation_at,
+               day7_template,repurchase_template
+        FROM public.whatsapp_lifecycle_runtime_config
+        WHERE id=1
+        LIMIT 1
+      `);
+      runtime = rowsOf(result)[0] ?? null;
+    } catch {
+      // Migration may not be present during a rolling deploy. Fall back to env.
+    }
+  }
+
+  const lifecycleEnabled = runtime
+    ? Boolean(runtime.lifecycle_enabled)
+    : process.env.WHATSAPP_LIFECYCLE_ENABLED?.trim().toLowerCase() === "true";
+  if (!lifecycleEnabled) return null;
+
+  const activationAt = runtime
+    ? asDate(runtime.activation_at)
+    : asDate(process.env.WHATSAPP_LIFECYCLE_ACTIVATION_AT?.trim() ?? "");
+  const day7Enabled = runtime ? Boolean(runtime.day7_enabled) : true;
+  const day7Template = day7Enabled
+    ? (String(runtime?.day7_template ?? "").trim() || process.env.WHATSAPP_DAY7_CARE_TEMPLATE?.trim() || null)
+    : null;
+  const repurchaseEnabled = runtime
+    ? Boolean(runtime.repurchase_enabled)
+    : process.env.WHATSAPP_REPURCHASE_ENABLED?.trim().toLowerCase() === "true";
+  const repurchaseTemplate = String(runtime?.repurchase_template ?? "").trim()
+    || process.env.WHATSAPP_REPURCHASE_TEMPLATE?.trim()
+    || null;
 
   if (!/^v\d+\.\d+$/.test(apiVersion)) return null;
   if (!/^\d+$/.test(phoneNumberId)) return null;
   if (!accessToken) return null;
-  if (!activationRaw || !Number.isFinite(activationAt.getTime())) return null;
-  if (activationAt.getTime() > Date.now()) return null;
+  if (!activationAt || activationAt.getTime() > Date.now()) return null;
   if (!day7Template && !(repurchaseEnabled && repurchaseTemplate)) return null;
 
   return {
@@ -450,26 +479,48 @@ async function alreadyReplenished(context: LifecycleContext): Promise<boolean> {
   return Boolean(rowsOf(result)[0]?.replenished);
 }
 
-async function marketingFrequencyCapReached(context: LifecycleContext): Promise<boolean> {
+async function nextMarketingAllowedAt(context: LifecycleContext): Promise<Date | null> {
   const db = getDb();
-  if (!db) return true;
+  if (!db) return new Date(Date.now() + MARKETING_FREQUENCY_CAP_DAYS * 86_400_000);
 
   const result = await db.execute(sql`
-    SELECT EXISTS (
-      SELECT 1
-      FROM public.customer_lifecycle_jobs sent
-      JOIN public.orders so ON so.id=sent.order_id
-      WHERE sent.id<>${context.id}
-        AND sent.job_type='repurchase'
-        AND sent.channel='whatsapp'
-        AND sent.status='completed'
-        AND sent.accepted_at >= clock_timestamp() - (${MARKETING_FREQUENCY_CAP_DAYS} * interval '1 day')
-        AND public.aquavo_normalize_iraqi_phone(so.customer_phone)
-            =public.aquavo_normalize_iraqi_phone(${context.customerPhone})
-    ) AS capped
+    SELECT MAX(sent.accepted_at) + (${MARKETING_FREQUENCY_CAP_DAYS} * interval '1 day') AS next_allowed_at
+    FROM public.customer_lifecycle_jobs sent
+    JOIN public.orders so ON so.id=sent.order_id
+    WHERE sent.id<>${context.id}
+      AND sent.job_type='repurchase'
+      AND sent.channel='whatsapp'
+      AND sent.status='completed'
+      AND sent.accepted_at IS NOT NULL
+      AND public.aquavo_normalize_iraqi_phone(so.customer_phone)
+          =public.aquavo_normalize_iraqi_phone(${context.customerPhone})
   `);
 
-  return Boolean(rowsOf(result)[0]?.capped);
+  const nextAllowedAt = asDate(rowsOf(result)[0]?.next_allowed_at);
+  if (!nextAllowedAt || nextAllowedAt.getTime() <= Date.now()) return null;
+  return nextAllowedAt;
+}
+
+async function deferLifecycleJobForFrequencyCap(job: ClaimedLifecycleJob, nextAllowedAt: Date): Promise<void> {
+  const db = getDb();
+  if (!db) return;
+  await db.execute(sql`
+    UPDATE public.customer_lifecycle_jobs
+       SET status='planned',
+           due_at=${nextAllowedAt},
+           attempt_count=GREATEST(attempt_count-1,0),
+           locked_at=NULL,
+           last_error_code='MARKETING_FREQUENCY_CAP_30D',
+           last_error_at=clock_timestamp(),
+           metadata=metadata || jsonb_build_object(
+             'deferReason','marketing_frequency_cap_30d',
+             'deferredAt',clock_timestamp(),
+             'nextAllowedAt',${nextAllowedAt}
+           ),
+           updated_at=clock_timestamp()
+     WHERE id=${job.id}
+       AND status='sending'
+  `);
 }
 
 async function chooseRepurchaseProduct(context: LifecycleContext): Promise<string | null> {
@@ -620,7 +671,7 @@ async function markLifecycleAccepted(jobId: string, providerMessageId: string, c
   return false;
 }
 
-async function dispatchLifecycleJob(jobId: string, config: LifecycleConfig): Promise<"sent"|"retry"|"failed"|"suppressed"|"noop"> {
+async function dispatchLifecycleJob(jobId: string, config: LifecycleConfig): Promise<"sent"|"retry"|"failed"|"suppressed"|"deferred"|"noop"> {
   const job = await claimLifecycleJob(jobId, config);
   if (!job) return "noop";
 
@@ -695,9 +746,10 @@ async function dispatchLifecycleJob(jobId: string, config: LifecycleConfig): Pro
         return "suppressed";
       }
 
-      if (await marketingFrequencyCapReached(context)) {
-        await suppressLifecycleJob(job.id, "MARKETING_FREQUENCY_CAP_30D");
-        return "suppressed";
+      const nextAllowedAt = await nextMarketingAllowedAt(context);
+      if (nextAllowedAt) {
+        await deferLifecycleJobForFrequencyCap(job, nextAllowedAt);
+        return "deferred";
       }
 
       const productName = await chooseRepurchaseProduct(context);
@@ -746,11 +798,12 @@ export async function runDueLifecycleWhatsAppJobs(limit = DEFAULT_LIMIT): Promis
   retried: number;
   failed: number;
   suppressed: number;
+  deferred: number;
   staleFailed: number;
   preActivationSuppressed: number;
 }> {
   const db = getDb();
-  const config = readLifecycleConfig();
+  const config = await readLifecycleConfig();
   if (!db || !config) {
     return {
       enabled: false,
@@ -760,6 +813,7 @@ export async function runDueLifecycleWhatsAppJobs(limit = DEFAULT_LIMIT): Promis
       retried: 0,
       failed: 0,
       suppressed: 0,
+      deferred: 0,
       staleFailed: 0,
       preActivationSuppressed: 0,
     };
@@ -777,6 +831,7 @@ export async function runDueLifecycleWhatsAppJobs(limit = DEFAULT_LIMIT): Promis
       retried: 0,
       failed: 0,
       suppressed: 0,
+      deferred: 0,
       staleFailed,
       preActivationSuppressed,
     };
@@ -801,6 +856,7 @@ export async function runDueLifecycleWhatsAppJobs(limit = DEFAULT_LIMIT): Promis
   let retried = 0;
   let failed = 0;
   let suppressed = 0;
+  let deferred = 0;
 
   for (const row of rowsOf(due)) {
     const id = String(row.id ?? "");
@@ -812,6 +868,7 @@ export async function runDueLifecycleWhatsAppJobs(limit = DEFAULT_LIMIT): Promis
     else if (result === "retry") retried += 1;
     else if (result === "failed") failed += 1;
     else if (result === "suppressed") suppressed += 1;
+    else if (result === "deferred") deferred += 1;
   }
 
   return {
@@ -822,6 +879,7 @@ export async function runDueLifecycleWhatsAppJobs(limit = DEFAULT_LIMIT): Promis
     retried,
     failed,
     suppressed,
+    deferred,
     staleFailed,
     preActivationSuppressed,
   };
@@ -1238,7 +1296,7 @@ export async function getWhatsAppLifecycleAutomationHealth() {
     FROM public.customer_profiles
   `);
   return {
-    configured:Boolean(readLifecycleConfig()),
+    configured:Boolean(await readLifecycleConfig()),
     sendWindowOpen:isBaghdadLifecycleSendWindow(),
     jobs:rowsOf(result)[0] ?? {},
     consent:rowsOf(consent)[0] ?? {},
