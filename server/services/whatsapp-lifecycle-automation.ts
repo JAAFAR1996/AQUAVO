@@ -79,6 +79,7 @@ function boundedHour(value: unknown, fallback: number): number {
 function readLifecycleConfig(): LifecycleWhatsAppConfig | null {
   if (process.env.WHATSAPP_CLOUD_ENABLED?.trim().toLowerCase() !== "true") return null;
   if (process.env.WHATSAPP_LIFECYCLE_AUTOMATION_ENABLED?.trim().toLowerCase() !== "true") return null;
+  if (process.env.WHATSAPP_LIFECYCLE_TEMPLATES_APPROVED?.trim().toLowerCase() !== "true") return null;
 
   const apiVersion = process.env.WHATSAPP_API_VERSION?.trim() ?? "";
   const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID?.trim() ?? "";
@@ -122,6 +123,7 @@ export function getLifecycleWhatsAppReadiness() {
     enabled: Boolean(config),
     cloudEnabled: process.env.WHATSAPP_CLOUD_ENABLED?.trim().toLowerCase() === "true",
     lifecycleEnabled: process.env.WHATSAPP_LIFECYCLE_AUTOMATION_ENABLED?.trim().toLowerCase() === "true",
+    templatesApproved: process.env.WHATSAPP_LIFECYCLE_TEMPLATES_APPROVED?.trim().toLowerCase() === "true",
     apiVersionConfigured: /^v\d+\.\d+$/.test(process.env.WHATSAPP_API_VERSION?.trim() ?? ""),
     phoneNumberConfigured: /^\d+$/.test(process.env.WHATSAPP_PHONE_NUMBER_ID?.trim() ?? ""),
     tokenConfigured: Boolean(process.env.WHATSAPP_ACCESS_TOKEN?.trim()),
@@ -570,6 +572,7 @@ async function suppressUnsafeDueJobs(config: LifecycleWhatsAppConfig): Promise<{
         ON sent.customer_phone=pending.customer_phone
        AND sent.job_type='repurchase'
        AND sent.status='completed'
+       AND COALESCE(sent.provider_status,'accepted')<>'failed'
        AND sent.id<>pending.id
       WHERE pending.channel='whatsapp'
         AND pending.job_type='repurchase'
