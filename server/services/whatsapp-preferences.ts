@@ -179,8 +179,8 @@ export async function handleWhatsAppPreferenceTextEvent(event:WhatsAppPreference
       all_opt_out_at,consent_source,last_inbound_at,created_at,updated_at
     ) VALUES(
       ${phone},
-      ${category==="marketing"},
-      ${category==="care"},
+      false,
+      false,
       CASE WHEN ${category} IN ('care','all') THEN ${event.receivedAt} ELSE NULL END,
       CASE WHEN ${category} IN ('marketing','all') THEN ${event.receivedAt} ELSE NULL END,
       CASE WHEN ${category}='all' THEN ${event.receivedAt} ELSE NULL END,
