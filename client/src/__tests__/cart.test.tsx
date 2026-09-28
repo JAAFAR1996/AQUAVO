@@ -393,6 +393,8 @@ describe('Variant display and checkout flow', () => {
         isSubmitting={false}
         handleBack={vi.fn()}
         handleConfirmOrder={vi.fn()}
+        whatsappMarketingOptIn={false}
+        setWhatsappMarketingOptIn={vi.fn()}
       />
     );
 
