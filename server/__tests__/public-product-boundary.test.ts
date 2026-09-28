@@ -72,7 +72,7 @@ function leakedProductRow() {
     costResolutionAt: new Date("2026-08-03T11:04:18.689Z"),
     variants: [
       {
-        id: "v1", label: "صغير", price: 15000, originalPrice: 18000, stock: 4,
+        id: "v1", label: "INTERNAL-MODEL-DW-S — صغير", price: 15000, originalPrice: 18000, stock: 4,
         sku: "INTERNAL-MODEL-DW-S", isDefault: true,
         specifications: { الحجم: "صغير", موديل: "INTERNAL-MODEL-DW-S", "رمز القطعة": "DW-01" },
         image: "v1.webp",
@@ -111,6 +111,19 @@ describe("public product DTO — the leaked fields are gone", () => {
     expect(variant).not.toHaveProperty("sku");
     expect(variant.specifications).toEqual({ الحجم: "صغير", "رمز القطعة": "DW-01" });
     expect(variant.label).toBe("صغير");
+  });
+
+  it("never falls back to exposing a model-only label", () => {
+    const pub = toPublicVariant({
+      id: "m1",
+      label: "C4-1123",
+      sku: "C4-1123",
+      price: 1000,
+      stock: 1,
+      specifications: { "Model": "C4-1123", "الحجم": "كبير" },
+    }, 2);
+    expect(pub.label).toBe("كبير");
+    expect(JSON.stringify(pub)).not.toContain("C4-1123");
   });
 
   it("drops the internal keys hidden inside the variants jsonb", () => {
