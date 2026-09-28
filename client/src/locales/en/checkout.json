@@ -130,7 +130,12 @@
     "processing": "Processing...",
     "payOnline": "Continue to secure payment — {{amount}}",
     "placeOrder": "Confirm order",
-    "processingStatus": "Processing your order, please wait..."
+    "processingStatus": "Processing your order, please wait...",
+    "whatsappConsentTitle": "AQUAVO WhatsApp follow-up",
+    "whatsappConsentHint": "Optional and separated by message type so you only receive what is useful to you.",
+    "whatsappCareOptIn": "I agree to receive AQUAVO WhatsApp follow-ups about my order and aquarium.",
+    "whatsappMarketingOptIn": "I agree to receive AQUAVO WhatsApp reminders about relevant consumables and products that may be due for replenishment.",
+    "whatsappOptOut": "You can stop these messages at any time by replying STOP. Leaving these unchecked does not affect your order."
   },
   "paymentCard": {
     "onlineTitle": "Secure online payment",
