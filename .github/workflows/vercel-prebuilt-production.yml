@@ -76,8 +76,8 @@ jobs:
           node -e '
             const fs=require("fs");
             const body=JSON.parse(fs.readFileSync("/tmp/aquavo-ready.json","utf8"));
-            if (body.orderCreationReady !== true) {
-              console.error("orderCreationReady is not true:", body);
+            if (body.orderCreationEnabled !== true) {
+              console.error("orderCreationEnabled is not true:", body);
               process.exit(1);
             }
             console.log("AQUAVO readiness passed.");
