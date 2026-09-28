@@ -41,6 +41,7 @@ type Overview = {
     roas: number | null;
     mer: number | null;
   };
+  reconciliation: { orderFinancialOpen: number; orderTotalOpen: number; productCostOpen: number; inventoryDifference: number };
   findings: { open: number; critical: number; warning: number };
 };
 
@@ -179,6 +180,7 @@ export function BusinessIntelligenceDashboard() {
             <div className="flex justify-between"><span>ربح المساهمة</span><strong>{iq(data.financials.contributionProfit)}</strong></div>
             <div className="flex justify-between"><span>مصاريف تشغيلية</span><strong>{iq(data.financials.operatingExpenses)}</strong></div>
             <div className="flex justify-between"><span>متوسط الطلب</span><strong>{iq(data.financials.avgOrderValue)}</strong></div>
+            <div className="flex justify-between"><span>مصالحة مالية مفتوحة</span><strong>{data.reconciliation.orderFinancialOpen}</strong></div>
             <p className="pt-2 text-xs text-muted-foreground">
               {data.financials.exactOrders} طلب Exact، {data.financials.estimatedOrders} طلب تاريخي معاد البناء.
             </p>
