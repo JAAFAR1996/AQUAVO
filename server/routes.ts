@@ -39,6 +39,7 @@ import { createAccountingEvidenceUploadV2Router } from "./routes/accounting-evid
 import { createUploadRouter } from "./routes/upload.js";
 import { createAnalyticsRouter } from "./routes/analytics.js";
 import { createAccurateAdminAnalyticsRouter } from "./routes/admin-analytics-accurate.js";
+import { createBusinessIntelligenceRouter } from "./routes/business-intelligence.js";
 import { createNotificationsRouter } from "./routes/notifications.js";
 import journeyRoutes from "./routes/journey.js";
 import aiRoutes from "./routes/ai.js";
@@ -121,6 +122,7 @@ export async function registerRoutes(httpServer: Server, app: express.Applicatio
   app.use("/api/admin/security", createSecurityRouter());
   app.use("/api/admin/translations", createAdminTranslationsRouter());
   app.use("/api/admin/analytics", createAccurateAdminAnalyticsRouter());
+  app.use("/api/admin/business-intelligence", createBusinessIntelligenceRouter());
 
   app.use("/api/analytics", async (req, res, next) => {
     const trackingEndpoints = new Set(["/track-visit", "/presence", "/heartbeat", "/presence/leave"]);

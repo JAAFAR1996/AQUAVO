@@ -44,6 +44,7 @@ import {
 // statuses IN ('delivered','confirmed') — 'confirmed' is NOT realized revenue,
 // and shipping was never deducted.
 import { computePeriodFinancials, getRealizedOrdersForPeriod, lineQuantity, type OrderLineItem } from "../services/accounting-engine.js";
+import { getBusinessAssessment, getBusinessOverview, getBusinessHistory, getBusinessEvents, getInventoryHealth, getBusinessFindings } from "../services/business-intelligence.js";
 import { toMoney } from "../../shared/order-financials.js";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -550,6 +551,36 @@ function buildMcpServer(auth: McpAuthInfo): Server {
             limit: { type: "number" },
           },
         },
+      },
+      {
+        name: "get_project_history",
+        description: "Read-only AQUAVO project/business event timeline from the durable Business OS event log.",
+        inputSchema: { type: "object", properties: { limit: { type: "number", minimum: 1, maximum: 500 }, event_type: { type: "string" } } },
+      },
+      {
+        name: "get_business_assessment",
+        description: "Read-only AQUAVO decision-support assessment: whether evidence currently supports CONTINUE, FIX, REASSESS, or INSUFFICIENT_DATA, with reasons, trend evidence, and thresholds.",
+        inputSchema: { type: "object", properties: {} },
+      },
+      {
+        name: "get_business_overview",
+        description: "Read-only canonical AQUAVO business overview: realized sales, reconstructed legacy COGS confidence, contribution profit, recorded operating/ad costs, customers, inventory and findings.",
+        inputSchema: { type: "object", properties: {} },
+      },
+      {
+        name: "get_business_history",
+        description: "Read-only AQUAVO daily Business OS snapshots for trend analysis.",
+        inputSchema: { type: "object", properties: { days: { type: "number", minimum: 1, maximum: 366 } } },
+      },
+      {
+        name: "get_inventory_health",
+        description: "Read-only inventory health: accounting value, low/stockout SKUs, 60-day dead stock and cost-confidence gaps.",
+        inputSchema: { type: "object", properties: { limit: { type: "number", minimum: 1, maximum: 100 } } },
+      },
+      {
+        name: "get_business_findings",
+        description: "Read-only open Business OS findings and warnings.",
+        inputSchema: { type: "object", properties: {} },
       },
       {
         name: "list_site_data_sources",
@@ -1238,6 +1269,33 @@ function buildMcpServer(auth: McpAuthInfo): Server {
 
         case "get_site_overview": {
           return text(await buildSiteOverview(db));
+        }
+
+        case "get_project_history": {
+          const { limit = 100, event_type } = args as Record<string, any>;
+          return text(await getBusinessEvents(Number(limit), typeof event_type === "string" ? event_type : undefined));
+        }
+
+        case "get_business_assessment": {
+          return text(await getBusinessAssessment());
+        }
+
+        case "get_business_overview": {
+          return text(await getBusinessOverview());
+        }
+
+        case "get_business_history": {
+          const { days = 90 } = args as Record<string, any>;
+          return text(await getBusinessHistory(Number(days)));
+        }
+
+        case "get_inventory_health": {
+          const { limit = 25 } = args as Record<string, any>;
+          return text(await getInventoryHealth(Number(limit)));
+        }
+
+        case "get_business_findings": {
+          return text(await getBusinessFindings());
         }
 
         case "search": {
