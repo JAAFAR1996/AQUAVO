@@ -2,6 +2,7 @@ import { Router, type NextFunction, type Request, type Response } from "express"
 import { z } from "zod";
 import { requireAccountingAdmin } from "../middleware/accounting-auth-v2.js";
 import {
+  getBusinessAssessment,
   getBusinessFindings,
   getBusinessHistory,
   getBusinessOverview,
@@ -38,6 +39,10 @@ export function createBusinessIntelligenceRouter() {
 
   router.get("/overview", async (_req: Request, res: Response, next: NextFunction) => {
     try { res.json(await getBusinessOverview()); } catch (error) { next(error); }
+  });
+
+  router.get("/assessment", async (_req: Request, res: Response, next: NextFunction) => {
+    try { res.json(await getBusinessAssessment()); } catch (error) { next(error); }
   });
 
   router.get("/history", async (req: Request, res: Response, next: NextFunction) => {
