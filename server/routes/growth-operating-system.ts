@@ -22,6 +22,7 @@ import {
 const daySchema=z.string().regex(/^20\d{2}-(0[1-9]|1[0-2])-([012]\d|3[01])$/);
 const receiptSchema=z.object({
   orderId:z.string().trim().min(1).max(200),
+  aqSid:z.string().trim().min(8).max(128),
   provider:z.enum(["google_tag","meta_pixel","tiktok","posthog"]),
   eventKey:z.string().trim().min(1).max(200),
   status:z.enum(["emitted","blocked","failed"]),
@@ -76,6 +77,7 @@ export function createGrowthPublicRouter(){
       // and must not become an order-existence oracle.
       await recordPurchaseMeasurementReceipt({
         publicOrderId:parsed.data.orderId,
+        aqSid:parsed.data.aqSid,
         provider:parsed.data.provider,
         eventKey:parsed.data.eventKey,
         status:parsed.data.status,
