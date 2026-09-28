@@ -92,7 +92,9 @@ router.post("/cart-event", apiLimiter, async (req: Request, res: Response): Prom
             ? body.clientSessionId
             : null;
         const productId = typeof body.productId === "string" ? body.productId.trim() : "";
-        const action = body.action === "add" || body.action === "remove" ? body.action : null;
+        const action = body.action === "add" || body.action === "remove" || body.action === "touch"
+            ? body.action
+            : null;
         const quantity = Number(body.quantity ?? 1);
 
         if (!sessionId || !action || !productId || productId.length > 128 || !Number.isInteger(quantity) || quantity < 1 || quantity > 100) {
@@ -109,13 +111,16 @@ router.post("/cart-event", apiLimiter, async (req: Request, res: Response): Prom
                 quantity,
                 from: "storefront",
             });
-        } else {
+        } else if (action === "remove") {
             await analyticsTracker.trackCartRemove({
                 userId,
                 sessionId,
                 productId,
                 reason: "shopper_removed",
             });
+        } else {
+            // Quantity changes are activity, not a new add/remove conversion.
+            await analyticsTracker.touchCartSession({ userId, sessionId });
         }
 
         res.status(202).json({ accepted: true });
