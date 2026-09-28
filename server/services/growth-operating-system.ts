@@ -1000,6 +1000,20 @@ export async function getLifecycleOverview(limitInput=50) {
     LIMIT ${limit}
   `);
 
+  const attention=await db.execute(sql`
+    SELECT
+      j.id,j.job_type,j.updated_at,j.customer_phone,
+      j.metadata->'reply'->>'choice' AS choice,
+      o.order_number,o.customer_name
+    FROM public.customer_lifecycle_jobs j
+    JOIN public.orders o ON o.id=j.order_id
+    WHERE j.status='completed'
+      AND j.metadata->'reply'->>'choice' IN ('day7_help','repurchase_interest')
+      AND j.metadata->>'reply_handled_at' IS NULL
+    ORDER BY j.updated_at ASC
+    LIMIT ${limit}
+  `);
+
   const s=rowsOf(summary)[0] ?? {};
   return {
     summary:{
@@ -1031,7 +1045,45 @@ export async function getLifecycleOverview(limitInput=50) {
         whatsappUrl:phone ? `https://wa.me/${phone}?text=${encodeURIComponent(message)}` : null,
       };
     }),
+    attention:rowsOf(attention).map((row)=>{
+      const phone=normalizePhone(row.customer_phone);
+      const choice=String(row.choice ?? "");
+      return {
+        id:String(row.id),
+        jobType:String(row.job_type ?? ""),
+        choice,
+        updatedAt:row.updated_at,
+        orderNumber:String(row.order_number ?? ""),
+        customerName:String(row.customer_name ?? ""),
+        customerPhone:phone,
+        label:choice==="day7_help" ? "يحتاج مساعدة" : "مهتم بإعادة الشراء",
+        whatsappUrl:phone ? `https://wa.me/${phone}` : null,
+      };
+    }),
   };
+}
+
+export async function markLifecycleReplyHandled(jobId:string) {
+  const db=getDb();
+  if(!db) throw new Error("DATABASE_NOT_CONNECTED");
+  const result=await db.execute(sql`
+    UPDATE public.customer_lifecycle_jobs
+    SET metadata=jsonb_set(
+          COALESCE(metadata,'{}'::jsonb),
+          '{reply_handled_at}',
+          to_jsonb(clock_timestamp()),
+          true
+        ),
+        updated_at=now()
+    WHERE id=${jobId}
+      AND status='completed'
+      AND metadata->'reply'->>'choice' IN ('day7_help','repurchase_interest')
+      AND metadata->>'reply_handled_at' IS NULL
+    RETURNING id,job_type,order_id,status
+  `);
+  const row=rowsOf(result)[0];
+  if(!row) return {ok:false,reason:"attention_not_found_or_handled"};
+  return {ok:true,job:row};
 }
 
 export async function markLifecycleJobCompleted(jobId:string) {
