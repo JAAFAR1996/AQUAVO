@@ -44,7 +44,7 @@ import {
 // statuses IN ('delivered','confirmed') — 'confirmed' is NOT realized revenue,
 // and shipping was never deducted.
 import { computePeriodFinancials, getRealizedOrdersForPeriod, lineQuantity, type OrderLineItem } from "../services/accounting-engine.js";
-import { getBusinessAssessment, getBusinessOverview, getBusinessHistory, getInventoryHealth, getBusinessFindings } from "../services/business-intelligence.js";
+import { getBusinessAssessment, getBusinessOverview, getBusinessHistory, getBusinessEvents, getInventoryHealth, getBusinessFindings } from "../services/business-intelligence.js";
 import { toMoney } from "../../shared/order-financials.js";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -551,6 +551,11 @@ function buildMcpServer(auth: McpAuthInfo): Server {
             limit: { type: "number" },
           },
         },
+      },
+      {
+        name: "get_project_history",
+        description: "Read-only AQUAVO project/business event timeline from the durable Business OS event log.",
+        inputSchema: { type: "object", properties: { limit: { type: "number", minimum: 1, maximum: 500 }, event_type: { type: "string" } } },
       },
       {
         name: "get_business_assessment",
@@ -1264,6 +1269,11 @@ function buildMcpServer(auth: McpAuthInfo): Server {
 
         case "get_site_overview": {
           return text(await buildSiteOverview(db));
+        }
+
+        case "get_project_history": {
+          const { limit = 100, event_type } = args as Record<string, any>;
+          return text(await getBusinessEvents(Number(limit), typeof event_type === "string" ? event_type : undefined));
         }
 
         case "get_business_assessment": {
