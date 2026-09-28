@@ -42,6 +42,35 @@ const createOrderCustomerSchema = z.object({
     email: z.string().email("Invalid email").optional().or(z.literal(""))
 });
 
+const attributionValue = z.string().min(1).max(200);
+const orderAttributionSchema = z.object({
+    aq_sid: z.string().min(8).max(128),
+    utm_source: attributionValue.optional(),
+    utm_medium: attributionValue.optional(),
+    utm_campaign: attributionValue.optional(),
+    utm_content: attributionValue.optional(),
+    utm_term: attributionValue.optional(),
+    fbclid: attributionValue.optional(),
+    gclid: attributionValue.optional(),
+    ttclid: attributionValue.optional(),
+    igshid: attributionValue.optional(),
+    aq_campaign_id: attributionValue.optional(),
+    aq_adset_id: attributionValue.optional(),
+    aq_ad_id: attributionValue.optional(),
+    aq_creative_id: attributionValue.optional(),
+    aq_concept_id: attributionValue.optional(),
+    aq_hypothesis_id: attributionValue.optional(),
+    aq_experiment_id: attributionValue.optional(),
+    attribution_captured_at: z.string().datetime({ offset: true }).optional(),
+    first_touch_utm_source: attributionValue.optional(),
+    first_touch_utm_medium: attributionValue.optional(),
+    first_touch_utm_campaign: attributionValue.optional(),
+    first_touch_aq_campaign_id: attributionValue.optional(),
+    first_touch_captured_at: z.string().datetime({ offset: true }).optional(),
+}).strict();
+
+const CLIENT_VIEW_SESSION_ID = /^cs_[A-Za-z0-9_]{1,64}$/;
+
 export const createOrderSchema = z.object({
     items: z.array(createOrderItemSchema).min(1, "At least one item required").max(50, "Maximum 50 items per order"),
     customerInfo: createOrderCustomerSchema,
@@ -51,6 +80,8 @@ export const createOrderSchema = z.object({
     useCashback: z.boolean().optional().default(false),
     pointsToUse: z.number().int().min(0).optional().default(0),
     cashbackToUse: z.number().int().min(0).optional().default(0),
+    clientSessionId: z.string().max(80).optional(),
+    attribution: orderAttributionSchema.optional(),
 });
 
 const idempotencyKeySchema = z.string().uuid();
@@ -170,7 +201,11 @@ export function createOrderRouter(): RouterType {
                 return;
             }
 
-            const { items, customerInfo, couponCode, useCashback, cashbackToUse } = validationResult.data;
+            const { items, customerInfo, couponCode, useCashback, cashbackToUse, clientSessionId, attribution } = validationResult.data;
+            const analyticsSessionId =
+                clientSessionId && CLIENT_VIEW_SESSION_ID.test(clientSessionId)
+                    ? clientSessionId
+                    : ((req as any).sessionID || "unknown");
 
             const rawIdempotencyKey = req.get("Idempotency-Key");
             const parsedIdempotencyKey = rawIdempotencyKey
@@ -208,6 +243,12 @@ export function createOrderRouter(): RouterType {
                 couponCode,
                 { useCashback, cashbackToUse },
                 idempotencyKey,
+                {
+                    viewSessionId: clientSessionId && CLIENT_VIEW_SESSION_ID.test(clientSessionId)
+                        ? clientSessionId
+                        : undefined,
+                    attribution,
+                },
             );
 
             // 📝 Store client IP with order for rejection tracking
@@ -247,7 +288,7 @@ export function createOrderRouter(): RouterType {
 
             // Mark cart session as converted for accurate analytics
             analyticsTracker.trackSessionStatus(
-                (req as any).sessionID || "unknown",
+                analyticsSessionId,
                 "converted"
             ).catch(() => { });
 
@@ -271,7 +312,7 @@ export function createOrderRouter(): RouterType {
                 const unitPrice = Number(line.priceAtPurchase);
                 analyticsTracker.trackPurchase({
                     userId: userId || undefined,
-                    sessionId: (req as any).sessionID || "unknown",
+                    sessionId: analyticsSessionId,
                     productId: line.productId,
                     orderId: order.id,
                     quantity: Number(line.quantity) || 0,
