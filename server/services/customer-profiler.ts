@@ -5,7 +5,7 @@
 
 import { getDb } from "../db.js";
 import * as schema from "../../shared/schema.js";
-import { eq, desc, sql, and, gte, or } from "drizzle-orm";
+import { eq, desc, sql, and, gte } from "drizzle-orm";
 import { groqClient } from "./groq-client.js";
 import { aiMonitor } from "./ai-monitor.js";
 
