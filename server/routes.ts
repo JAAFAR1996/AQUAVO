@@ -40,6 +40,7 @@ import { createUploadRouter } from "./routes/upload.js";
 import { createAnalyticsRouter } from "./routes/analytics.js";
 import { createAccurateAdminAnalyticsRouter } from "./routes/admin-analytics-accurate.js";
 import { createBusinessIntelligenceRouter } from "./routes/business-intelligence.js";
+import { createGrowthAdminRouter, createGrowthPublicRouter } from "./routes/growth-operating-system.js";
 import { createNotificationsRouter } from "./routes/notifications.js";
 import journeyRoutes from "./routes/journey.js";
 import aiRoutes from "./routes/ai.js";
@@ -123,6 +124,7 @@ export async function registerRoutes(httpServer: Server, app: express.Applicatio
   app.use("/api/admin/translations", createAdminTranslationsRouter());
   app.use("/api/admin/analytics", createAccurateAdminAnalyticsRouter());
   app.use("/api/admin/business-intelligence", createBusinessIntelligenceRouter());
+  app.use("/api/admin/growth-os", createGrowthAdminRouter());
 
   app.use("/api/analytics", async (req, res, next) => {
     const trackingEndpoints = new Set(["/track-visit", "/presence", "/heartbeat", "/presence/leave"]);
@@ -141,6 +143,7 @@ export async function registerRoutes(httpServer: Server, app: express.Applicatio
     next();
   });
   app.use("/api/analytics", createAnalyticsRouter());
+  app.use("/api/growth", createGrowthPublicRouter());
   app.use("/api/notifications", createNotificationsRouter());
   app.use("/api/gallery", createGalleryRouter());
   app.use("/api/referral", createReferralRouter());
