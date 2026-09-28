@@ -11,9 +11,11 @@ import {
   getGrowthOverview,
   getInventoryIntelligence,
   getLifecycleOverview,
+  markLifecycleJobCompleted,
   recordPurchaseMeasurementReceipt,
   refreshGrowthOs,
   seedDefaultBundles,
+  suppressLifecycleJob,
   upsertCustomerAquariumProfile,
 } from "../services/growth-operating-system.js";
 
@@ -121,6 +123,33 @@ export function createGrowthAdminRouter() {
 
   router.get("/lifecycle", async (req, res, next) => {
     try { res.json(await getLifecycleOverview(Number(req.query.limit ?? 50))); } catch (error) { next(error); }
+  });
+
+  router.post("/lifecycle/:id/complete", async (req, res, next) => {
+    try {
+      const result = await markLifecycleJobCompleted(req.params.id);
+      if (!result.ok) {
+        res.status(404).json(result);
+        return;
+      }
+      res.json(result);
+    } catch (error) { next(error); }
+  });
+
+  router.post("/lifecycle/:id/suppress", async (req, res, next) => {
+    try {
+      const parsed = z.object({ reason: z.string().trim().min(2).max(500) }).strict().safeParse(req.body);
+      if (!parsed.success) {
+        res.status(400).json({ message: "Invalid suppression reason", issues: parsed.error.issues });
+        return;
+      }
+      const result = await suppressLifecycleJob(req.params.id, parsed.data.reason);
+      if (!result.ok) {
+        res.status(404).json(result);
+        return;
+      }
+      res.json(result);
+    } catch (error) { next(error); }
   });
 
   router.get("/profiles", async (req, res, next) => {
