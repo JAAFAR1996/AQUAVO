@@ -76,7 +76,6 @@ export const PUBLIC_VARIANT_FIELDS = [
   "price",
   "originalPrice",
   "stock",
-  "sku",
   "isDefault",
   "specifications",
   "image",
@@ -205,6 +204,27 @@ export const FORBIDDEN_PUBLIC_FIELD_PATTERN =
 
 type AnyRecord = Record<string, unknown>;
 
+/**
+ * Commercial model/SKU metadata is an internal catalogue identifier, not a
+ * customer choice. Keep private implementation metadata such as `__model3d`
+ * intact because the storefront uses it to render the 3D viewer.
+ */
+export function isCommercialModelSpecificationKey(key: unknown): boolean {
+  const normalized = String(key ?? "").normalize("NFKC").trim().toLowerCase();
+  if (!normalized || normalized.startsWith("__")) return false;
+  return /(^|[\s._-])(model|model\s*(?:no\.?|number)|موديل|الموديل|مۆدێل)(?:$|[\s._-])/i.test(` ${normalized} `);
+}
+
+function sanitizePublicSpecifications(value: unknown): unknown {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return value;
+  const clean: AnyRecord = {};
+  for (const [key, entry] of Object.entries(value as AnyRecord)) {
+    if (isCommercialModelSpecificationKey(key)) continue;
+    clean[key] = entry;
+  }
+  return clean;
+}
+
 /** Pick an explicit set of keys. Absent keys stay absent — no `undefined` padding, no spread. */
 function pick<T extends AnyRecord>(source: T | null | undefined, keys: readonly string[]): AnyRecord {
   const out: AnyRecord = {};
@@ -217,7 +237,11 @@ function pick<T extends AnyRecord>(source: T | null | undefined, keys: readonly 
 
 /** Strip a single variant down to its public keys. */
 export function toPublicVariant(variant: unknown): AnyRecord {
-  return pick(variant as AnyRecord, PUBLIC_VARIANT_FIELDS);
+  const out = pick(variant as AnyRecord, PUBLIC_VARIANT_FIELDS);
+  if (Object.prototype.hasOwnProperty.call(out, "specifications")) {
+    out.specifications = sanitizePublicSpecifications(out.specifications);
+  }
+  return out;
 }
 
 /**
@@ -231,6 +255,9 @@ export function toPublicProduct(product: unknown): AnyRecord | null {
   if (typeof product !== "object") return null;
 
   const publicProduct = pick(product as AnyRecord, PUBLIC_PRODUCT_FIELDS);
+  if (Object.prototype.hasOwnProperty.call(publicProduct, "specifications")) {
+    publicProduct.specifications = sanitizePublicSpecifications(publicProduct.specifications);
+  }
 
   // `variants` is deliberately NOT in PUBLIC_PRODUCT_FIELDS: it must be rebuilt element by element,
   // never copied. The raw blob carries costPrice/costStatus/costBasis/costEvidence written by
