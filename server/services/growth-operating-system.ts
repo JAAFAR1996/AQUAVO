@@ -997,15 +997,55 @@ export async function getBundles(publicOnly=true) {
     FROM agg
     ORDER BY name_ar
   `);
-  return rowsOf(result).map((row)=>({
-    id:String(row.id),slug:String(row.slug),nameAr:String(row.name_ar),descriptionAr:String(row.description_ar),
-    priceStrategy:String(row.price_strategy),discountPct:n(row.discount_pct),retailSum:n(row.retail_sum),
-    bundlePrice:n(row.bundle_price),estimatedCost:row.cost_sum == null ? null : n(row.cost_sum),
-    grossMarginPct:row.gross_margin_pct == null ? null : n(row.gross_margin_pct),
-    inStock:Boolean(row.in_stock),requiresVariantSelection:Boolean(row.requires_variant_selection),
-    audienceTag:row.audience_tag == null ? null : String(row.audience_tag),
-    storefrontVisible:Boolean(row.storefront_visible),items:row.items ?? [],
-  }));
+  return rowsOf(result).map((row)=>{
+    const shared = {
+      id:String(row.id),slug:String(row.slug),nameAr:String(row.name_ar),descriptionAr:String(row.description_ar),
+      priceStrategy:String(row.price_strategy),discountPct:n(row.discount_pct),retailSum:n(row.retail_sum),
+      bundlePrice:n(row.bundle_price),
+      inStock:Boolean(row.in_stock),requiresVariantSelection:Boolean(row.requires_variant_selection),
+      audienceTag:row.audience_tag == null ? null : String(row.audience_tag),
+      storefrontVisible:Boolean(row.storefront_visible),items:row.items ?? [],
+    };
+    if (publicOnly) return shared;
+    return {
+      ...shared,
+      estimatedCost:row.cost_sum == null ? null : n(row.cost_sum),
+      grossMarginPct:row.gross_margin_pct == null ? null : n(row.gross_margin_pct),
+    };
+  });
+}
+
+export async function markLifecycleJobCompleted(jobId:string) {
+  const db=getDb();
+  if(!db) throw new Error("DATABASE_NOT_CONNECTED");
+  const result=await db.execute(sql`
+    UPDATE public.customer_lifecycle_jobs
+    SET status='completed',completed_at=now(),updated_at=now()
+    WHERE id=${jobId}
+      AND status IN ('ready','planned')
+    RETURNING id,job_type,order_id,status,completed_at
+  `);
+  const row=rowsOf(result)[0];
+  if(!row) return {ok:false,reason:"job_not_found_or_terminal"};
+  return {ok:true,job:row};
+}
+
+export async function suppressLifecycleJob(jobId:string, reason:string) {
+  const db=getDb();
+  if(!db) throw new Error("DATABASE_NOT_CONNECTED");
+  const cleanReason=clampText(reason,500) ?? "manual_suppression";
+  const result=await db.execute(sql`
+    UPDATE public.customer_lifecycle_jobs
+    SET status='suppressed',
+        metadata=metadata || jsonb_build_object('suppressReason',${cleanReason},'suppressedAt',now()),
+        updated_at=now()
+    WHERE id=${jobId}
+      AND status IN ('ready','planned')
+    RETURNING id,job_type,order_id,status,updated_at
+  `);
+  const row=rowsOf(result)[0];
+  if(!row) return {ok:false,reason:"job_not_found_or_terminal"};
+  return {ok:true,job:row};
 }
 
 export async function captureBusinessExpense(input:{
