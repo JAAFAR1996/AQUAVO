@@ -42,6 +42,7 @@ import { layoutGroup } from "@/lib/layout-group";
 import Home from "@/pages/home";
 const Products = lazy(() => import("@/pages/products"));
 const Deals = lazy(() => import("@/pages/deals"));
+const Bundles = lazy(() => import("@/pages/bundles"));
 
 // Lazy load ALL non-critical pages for better performance (code splitting)
 const NotFound = lazy(() => import("@/pages/404"));
@@ -269,6 +270,16 @@ function Router() {
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <PageTransition><Deals /></PageTransition>
+            </Suspense>
+          </ErrorBoundary>
+        )}
+      </Route>
+
+      <Route path="/bundles">
+        {() => (
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <PageTransition><Bundles /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}
