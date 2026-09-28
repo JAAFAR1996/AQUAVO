@@ -282,6 +282,11 @@ export async function refreshInventorySkuDaily(dayInput?: string) {
 
   await db.execute(sql`
     WITH
+    cleared AS (
+      DELETE FROM public.inventory_sku_daily
+      WHERE day=${day}::date
+      RETURNING sku_key
+    ),
     stock AS (
       SELECT b.product_id,b.variant_id,SUM(b.canonical_stock)::numeric AS stock
       FROM public.inventory_canonical_balances b
