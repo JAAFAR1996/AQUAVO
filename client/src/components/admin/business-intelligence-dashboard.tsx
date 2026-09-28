@@ -69,6 +69,76 @@ type BusinessEvent = {
   severity: "info" | "warning" | "critical";
 };
 
+type GrowthOverview = {
+  attribution: {
+    realizedOrders: number;
+    attributedOrders: number;
+    attributionCoveragePct: number;
+    googleClickOrders: number;
+    metaClickOrders: number;
+    googleMeasuredOrders: number;
+    purchaseMeasurementCoveragePct: number;
+    providerSpendIqd: number;
+    providerTrackedConversions: number;
+  };
+  inventory: {
+    day: string | null;
+    summary: {
+      skuCount: number;
+      fast: number;
+      medium: number;
+      slow: number;
+      dead: number;
+      new: number;
+      stockout: number;
+      capitalLocked: number;
+      reorderSkus: number;
+      reorderValue: number;
+    };
+    items: Array<{
+      skuKey: string;
+      name: string;
+      stock: number;
+      units30d: number;
+      units90d: number;
+      classification: string;
+      daysInventory: number | null;
+      recommendedReorderQty: number;
+      capitalLocked: number;
+      confidence: string;
+    }>;
+  };
+  lifecycle: {
+    summary: {
+      ready: number;
+      planned: number;
+      completed: number;
+      suppressed: number;
+      cancelled: number;
+      day7Ready: number;
+      repurchaseReady: number;
+    };
+    jobs: Array<{
+      id: string;
+      jobType: string;
+      dueAt: string;
+      status: string;
+      orderNumber: string;
+      customerName: string;
+      whatsappUrl: string | null;
+      message: string;
+      recommendedProducts: unknown;
+    }>;
+  };
+  customerProfiles: { total: number; detailed: number; coveragePct: number };
+  bundles: { count: number; live: number; inStock: number };
+  expenses: {
+    capturedUnpostedCount: number;
+    capturedUnpostedAmount: number;
+    marketingSpendCaptured: number;
+  };
+};
+
 type Finding = {
   id: string;
   severity: string;
@@ -109,18 +179,28 @@ export function BusinessIntelligenceDashboard() {
     queryFn: () => jsonFetch("/api/admin/business-intelligence/events?limit=8"),
     refetchInterval: 60_000,
   });
+  const growth = useQuery<GrowthOverview>({
+    queryKey: ["growth-os", "overview"],
+    queryFn: () => jsonFetch("/api/admin/growth-os/overview"),
+    refetchInterval: 60_000,
+  });
   const findings = useQuery<Finding[]>({
     queryKey: ["business-intelligence", "findings"],
     queryFn: () => jsonFetch("/api/admin/business-intelligence/findings"),
     refetchInterval: 60_000,
   });
   const refresh = useMutation({
-    mutationFn: () =>
-      jsonFetch("/api/admin/business-intelligence/refresh", {
+    mutationFn: async () => {
+      const request = (url: string) => jsonFetch(url, {
         method: "POST",
         headers: addCsrfHeader({ "Content-Type": "application/json" }),
         body: "{}",
-      }),
+      });
+      return Promise.all([
+        request("/api/admin/business-intelligence/refresh"),
+        request("/api/admin/growth-os/refresh"),
+      ]);
+    },
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["business-intelligence", "overview"] }),
@@ -128,6 +208,7 @@ export function BusinessIntelligenceDashboard() {
         queryClient.invalidateQueries({ queryKey: ["business-intelligence", "findings"] }),
         queryClient.invalidateQueries({ queryKey: ["business-intelligence", "events"] }),
         queryClient.invalidateQueries({ queryKey: ["business-intelligence", "history"] }),
+        queryClient.invalidateQueries({ queryKey: ["growth-os", "overview"] }),
       ]);
     },
   });
@@ -289,6 +370,105 @@ export function BusinessIntelligenceDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {growth.data && (
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-xl font-bold">Growth OS</h3>
+            <p className="text-sm text-muted-foreground">Attribution + دوران المخزون + إعادة الشراء + الباقات + اكتمال المصاريف.</p>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <Card>
+              <CardHeader className="pb-2"><CardTitle className="text-sm">تغطية Attribution</CardTitle></CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{pct(growth.data.attribution.attributionCoveragePct)}</div>
+                <p className="text-xs text-muted-foreground">{growth.data.attribution.attributedOrders} من {growth.data.attribution.realizedOrders} طلب محقق</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2"><CardTitle className="text-sm">Google Purchase Coverage</CardTitle></CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{pct(growth.data.attribution.purchaseMeasurementCoveragePct)}</div>
+                <p className="text-xs text-muted-foreground">{growth.data.attribution.googleMeasuredOrders} طلب عنده receipt فعلي</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2"><CardTitle className="text-sm">رأس المال Slow / Dead</CardTitle></CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{iq(growth.data.inventory.summary.capitalLocked)}</div>
+                <p className="text-xs text-muted-foreground">Slow {growth.data.inventory.summary.slow} · Dead {growth.data.inventory.summary.dead}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2"><CardTitle className="text-sm">متابعات مستحقة</CardTitle></CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{growth.data.lifecycle.summary.ready}</div>
+                <p className="text-xs text-muted-foreground">Day 7: {growth.data.lifecycle.summary.day7Ready} · Reorder: {growth.data.lifecycle.summary.repurchaseReady}</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-3">
+            <Card>
+              <CardHeader><CardTitle className="text-base">حركة المخزون</CardTitle></CardHeader>
+              <CardContent className="space-y-2 text-sm">
+                <div className="flex justify-between"><span>Fast</span><strong>{growth.data.inventory.summary.fast}</strong></div>
+                <div className="flex justify-between"><span>Medium</span><strong>{growth.data.inventory.summary.medium}</strong></div>
+                <div className="flex justify-between"><span>Slow</span><strong>{growth.data.inventory.summary.slow}</strong></div>
+                <div className="flex justify-between"><span>Dead</span><strong>{growth.data.inventory.summary.dead}</strong></div>
+                <div className="flex justify-between"><span>Stockout</span><strong>{growth.data.inventory.summary.stockout}</strong></div>
+                <div className="flex justify-between border-t pt-2"><span>SKU مقترح إعادة طلبه</span><strong>{growth.data.inventory.summary.reorderSkus}</strong></div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader><CardTitle className="text-base">الزبائن والباقات</CardTitle></CardHeader>
+              <CardContent className="space-y-2 text-sm">
+                <div className="flex justify-between"><span>Customer Profiles</span><strong>{growth.data.customerProfiles.detailed}/{growth.data.customerProfiles.total}</strong></div>
+                <div className="flex justify-between"><span>تغطية ملفات الأحواض</span><strong>{pct(growth.data.customerProfiles.coveragePct)}</strong></div>
+                <div className="flex justify-between"><span>الباقات</span><strong>{growth.data.bundles.live}</strong></div>
+                <div className="flex justify-between"><span>متوفر بالكامل</span><strong>{growth.data.bundles.inStock}</strong></div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader><CardTitle className="text-base">اكتمال المصاريف والقياس</CardTitle></CardHeader>
+              <CardContent className="space-y-2 text-sm">
+                <div className="flex justify-between"><span>Marketing spend captured</span><strong>{iq(growth.data.expenses.marketingSpendCaptured)}</strong></div>
+                <div className="flex justify-between"><span>مصروف غير مرحّل</span><strong>{iq(growth.data.expenses.capturedUnpostedAmount)}</strong></div>
+                <div className="flex justify-between"><span>Provider conversions</span><strong>{growth.data.attribution.providerTrackedConversions}</strong></div>
+                {growth.data.attribution.providerSpendIqd > 0 && growth.data.attribution.providerTrackedConversions === 0 && (
+                  <p className="rounded-md bg-amber-50 p-2 text-xs text-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
+                    أكو صرف إعلاني لكن المنصات بعدها ما تسجل Purchase. الـreceipts الجديدة راح تبين هل المشكلة من الإطلاق لو من Attribution بالمنصة.
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {growth.data.lifecycle.jobs.some((job) => job.status === "ready") && (
+            <Card>
+              <CardHeader><CardTitle className="text-base">متابعات جاهزة — الإرسال يدوي حالياً</CardTitle></CardHeader>
+              <CardContent className="space-y-2">
+                {growth.data.lifecycle.jobs.filter((job) => job.status === "ready").slice(0, 8).map((job) => (
+                  <div key={job.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3">
+                    <div>
+                      <p className="font-medium">{job.jobType === "day7_care" ? "متابعة اليوم السابع" : "تذكير إعادة شراء"} · {job.customerName || job.orderNumber}</p>
+                      <p className="text-xs text-muted-foreground">#{job.orderNumber} · {new Date(job.dueAt).toLocaleDateString("ar-IQ")}</p>
+                    </div>
+                    {job.whatsappUrl ? (
+                      <a href={job.whatsappUrl} target="_blank" rel="noreferrer" className="text-sm font-semibold text-primary underline underline-offset-4">
+                        فتح WhatsApp
+                      </a>
+                    ) : <Badge variant="secondary">رقم غير صالح</Badge>}
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
 
       <Card>
         <CardHeader><CardTitle className="text-base">آخر أحداث المشروع</CardTitle></CardHeader>
