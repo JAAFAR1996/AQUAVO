@@ -42,6 +42,8 @@ interface ConfirmationViewProps {
     couponDiscount?: number;
     loyaltyData?: LoyaltyBreakdown;
     isLoggedIn?: boolean;
+    whatsappMarketingOptIn: boolean;
+    setWhatsappMarketingOptIn: (value: boolean) => void;
 }
 
 type PaymentMethod = "cod" | "online";
@@ -71,6 +73,8 @@ export function ConfirmationView({
     couponDiscount = 0,
     loyaltyData,
     isLoggedIn = false,
+    whatsappMarketingOptIn,
+    setWhatsappMarketingOptIn,
 }: ConfirmationViewProps) {
     const { t } = useTranslation("checkout");
     const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cod");
@@ -125,6 +129,7 @@ export function ConfirmationView({
                 })),
                 couponCode,
                 cashback: 0,
+                whatsappMarketingOptIn,
             });
             const idempotencyKey = getOrderIdempotencyKey(cartSignature);
             const governorate = GOVERNORATES.find((entry) => entry.value === customerInfo.governorate)?.label;
@@ -153,6 +158,7 @@ export function ConfirmationView({
                     ...(couponCode ? { couponCode } : {}),
                     useCashback: false,
                     cashbackToUse: 0,
+                    whatsappMarketingOptIn,
                 }),
             });
 
@@ -329,6 +335,26 @@ export function ConfirmationView({
                 <label htmlFor="agree" className="text-sm cursor-pointer leading-relaxed text-muted-foreground">
                     {t("confirm.agreePrefix")}{" "}<a href="/terms" target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-2 hover:text-primary/80 font-medium" onClick={(e) => e.stopPropagation()}>{t("confirm.terms")}</a>{" "}{t("confirm.agreeSuffix")}
                 </label>
+            </div>
+
+            <div className="rounded-xl border border-border/60 bg-muted/20 p-3.5">
+                <div className="flex items-start gap-3">
+                    <Checkbox
+                        id="whatsapp-marketing-opt-in"
+                        checked={whatsappMarketingOptIn}
+                        onCheckedChange={(checked) => setWhatsappMarketingOptIn(checked === true)}
+                        className="mt-0.5"
+                        disabled={busy}
+                    />
+                    <label htmlFor="whatsapp-marketing-opt-in" className="cursor-pointer">
+                        <span className="block text-sm font-medium leading-relaxed text-foreground">
+                            {t("confirm.whatsappOptIn")}
+                        </span>
+                        <span className="mt-1 block text-xs leading-6 text-muted-foreground">
+                            {t("confirm.whatsappOptInHint")}
+                        </span>
+                    </label>
+                </div>
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row">
