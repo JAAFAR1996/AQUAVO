@@ -26,6 +26,22 @@ Existing transactional outbox:
 
 This path remains isolated and unchanged.
 
+### 0b. Optional delivery UGC incentive — consent-gated
+
+For customers with a current explicit WhatsApp marketing opt-in, the immediate
+`delivery_care` job can use `aquavo_delivery_care_ugc_v1` instead of the Utility
+delivery-care template. It is a **MARKETING** template because it includes the
+5% Story / 10% Reels incentive.
+
+This is not a second message. AQUAVO selects exactly one immediate template:
+
+- opted in + Marketing template fully activated → combined care + UGC incentive;
+- otherwise → existing Utility delivery-care template.
+
+The Marketing variant has its own feature flag and activation instant, so an older
+delivery-care job cannot change category during a retry. It remains disabled until the
+exact template is Approved/Active in WhatsApp Manager.
+
 ### 1. Day-7 service follow-up
 
 Trigger: roughly 7 days after a realized delivered order.

@@ -119,6 +119,22 @@ describe("post-delivery customer messaging contract", () => {
     expect(rollout).toContain("- equipment/hardware: target day 9 after delivery;");
   });
 
+  it("uses the UGC discount copy only as a consent-gated Marketing variant of delivery care", () => {
+    expect(service).toContain("WHATSAPP_DELIVERY_CARE_MARKETING_ENABLED");
+    expect(service).toContain("WHATSAPP_DELIVERY_CARE_MARKETING_TEMPLATE");
+    expect(service).toContain("WHATSAPP_DELIVERY_CARE_MARKETING_ACTIVATION_AT");
+    expect(service).toContain("cp.whatsapp_marketing_opt_in=true");
+    expect(service).toContain("cp.whatsapp_marketing_opt_out_at IS NULL");
+    expect(service).toContain("job.createdAt.getTime() >= config.deliveryCareMarketingActivationAt.getTime()");
+    expect(service).toContain('marketingTemplateEligible ? "marketing_ugc" : "utility"');
+    expect(service).toContain("selectedTemplate");
+    expect(service).toContain("delivery_care_template_kind");
+    expect(rollout).toContain("aquavo_delivery_care_ugc_v1");
+    expect(rollout).toContain("ستوري + منشن @aquavo_iq = خصم 5% على طلبك الجاي");
+    expect(rollout).toContain("ريلز لفتح الطلب + منشن @aquavo_iq = خصم 10% على طلبك الجاي");
+    expect(rollout).toContain("MARKETING");
+  });
+
   it("distinguishes provider API acceptance from delivery state and persists wamid idempotently", () => {
     expect(migration).toContain("provider_status");
     expect(migration).toContain("provider_status_at");

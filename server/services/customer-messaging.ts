@@ -57,11 +57,13 @@ type ClaimedJob = {
   id: string;
   orderId: string;
   attemptCount: number;
+  createdAt: Date;
 };
 
 type OrderRecipient = {
   customerName: string | null;
   customerPhone: string | null;
+  whatsappMarketingOptIn: boolean;
 };
 
 type WhatsAppConfig = {
@@ -69,6 +71,9 @@ type WhatsAppConfig = {
   phoneNumberId: string;
   accessToken: string;
   deliveryCareTemplate: string;
+  deliveryCareMarketingEnabled: boolean;
+  deliveryCareMarketingTemplate: string | null;
+  deliveryCareMarketingActivationAt: Date | null;
   languageCode: string;
   activationAt: Date;
 };
@@ -188,6 +193,25 @@ function readWhatsAppConfig(): WhatsAppConfig | null {
   const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID?.trim() ?? "";
   const accessToken = process.env.WHATSAPP_ACCESS_TOKEN?.trim() ?? "";
   const deliveryCareTemplate = process.env.WHATSAPP_DELIVERY_CARE_TEMPLATE?.trim() ?? "";
+  const deliveryCareMarketingRequested =
+    process.env.WHATSAPP_DELIVERY_CARE_MARKETING_ENABLED?.trim().toLowerCase() === "true";
+  const deliveryCareMarketingTemplate =
+    process.env.WHATSAPP_DELIVERY_CARE_MARKETING_TEMPLATE?.trim() || null;
+  const marketingActivationRaw =
+    process.env.WHATSAPP_DELIVERY_CARE_MARKETING_ACTIVATION_AT?.trim() ?? "";
+  const parsedMarketingActivationAt = marketingActivationRaw
+    ? new Date(marketingActivationRaw)
+    : new Date(Number.NaN);
+  const deliveryCareMarketingActivationAt =
+    Number.isFinite(parsedMarketingActivationAt.getTime())
+      ? parsedMarketingActivationAt
+      : null;
+  const deliveryCareMarketingEnabled = Boolean(
+    deliveryCareMarketingRequested
+    && deliveryCareMarketingTemplate
+    && deliveryCareMarketingActivationAt
+    && deliveryCareMarketingActivationAt.getTime() <= Date.now()
+  );
   const languageCode = process.env.WHATSAPP_TEMPLATE_LANGUAGE?.trim() || "ar";
   const activationRaw = process.env.WHATSAPP_DELIVERY_CARE_ACTIVATION_AT?.trim() ?? "";
   const activationAt = activationRaw ? new Date(activationRaw) : new Date(Number.NaN);
@@ -199,7 +223,17 @@ function readWhatsAppConfig(): WhatsAppConfig | null {
   // A future boundary keeps outbound sending disabled until that exact instant.
   if (activationAt.getTime() > Date.now()) return null;
 
-  return { apiVersion, phoneNumberId, accessToken, deliveryCareTemplate, languageCode, activationAt };
+  return {
+    apiVersion,
+    phoneNumberId,
+    accessToken,
+    deliveryCareTemplate,
+    deliveryCareMarketingEnabled,
+    deliveryCareMarketingTemplate,
+    deliveryCareMarketingActivationAt,
+    languageCode,
+    activationAt,
+  };
 }
 
 async function cancelPreActivationDeliveryCare(activationAt: Date): Promise<number> {
@@ -247,7 +281,7 @@ async function claimDeliveryCareJob(orderId: string, activationAt: Date): Promis
            updated_at=clock_timestamp()
       FROM candidate
      WHERE job.id=candidate.id
-    RETURNING job.id,job.order_id,job.attempt_count
+    RETURNING job.id,job.order_id,job.attempt_count,job.created_at
   `);
 
   const row = rowsOf(result)[0];
@@ -256,6 +290,7 @@ async function claimDeliveryCareJob(orderId: string, activationAt: Date): Promis
     id: String(row.id),
     orderId: String(row.order_id),
     attemptCount: Number(row.attempt_count) || 1,
+    createdAt: row.created_at instanceof Date ? row.created_at : new Date(String(row.created_at)),
   };
 }
 
@@ -264,10 +299,23 @@ async function loadOrderRecipient(orderId: string): Promise<OrderRecipient | nul
   if (!db) return null;
 
   const result = await db.execute(sql`
-    SELECT customer_name,customer_phone
-    FROM public.orders
-    WHERE id=${orderId}
-      AND status='delivered'
+    SELECT
+      o.customer_name,
+      o.customer_phone,
+      COALESCE(
+        cp.whatsapp_marketing_opt_in=true
+        AND cp.whatsapp_marketing_opt_in_at IS NOT NULL
+        AND (
+          cp.whatsapp_marketing_opt_out_at IS NULL
+          OR cp.whatsapp_marketing_opt_in_at > cp.whatsapp_marketing_opt_out_at
+        ),
+        false
+      ) AS whatsapp_marketing_opt_in
+    FROM public.orders o
+    LEFT JOIN public.customer_profiles cp
+      ON cp.phone=public.aquavo_normalize_iraqi_phone(o.customer_phone)
+    WHERE o.id=${orderId}
+      AND o.status='delivered'
     LIMIT 1
   `);
   const row = rowsOf(result)[0];
@@ -275,6 +323,7 @@ async function loadOrderRecipient(orderId: string): Promise<OrderRecipient | nul
   return {
     customerName: row.customer_name == null ? null : String(row.customer_name),
     customerPhone: row.customer_phone == null ? null : String(row.customer_phone),
+    whatsappMarketingOptIn: row.whatsapp_marketing_opt_in === true,
   };
 }
 
@@ -291,6 +340,7 @@ async function sendDeliveryCareTemplate(
   config: WhatsAppConfig,
   recipientPhone: string,
   customerFirstName: string,
+  templateName: string,
 ): Promise<string> {
   const endpoint = `https://graph.facebook.com/${config.apiVersion}/${encodeURIComponent(config.phoneNumberId)}/messages`;
 
@@ -336,7 +386,7 @@ async function sendDeliveryCareTemplate(
           to: recipientPhone,
           type: "template",
           template: {
-            name: config.deliveryCareTemplate,
+            name: templateName,
             language: { code: config.languageCode },
             components,
           },
@@ -398,7 +448,11 @@ function sleep(ms: number): Promise<void> {
  * a retry recognizes the same completed job/wamid and preserves any newer webhook
  * status already reconciled in the meantime.
  */
-async function markAccepted(jobId: string, providerMessageId: string): Promise<boolean> {
+async function markAccepted(
+  jobId: string,
+  providerMessageId: string,
+  templateKind: "utility" | "marketing_ugc",
+): Promise<boolean> {
   const db = getDb();
   if (!db) return false;
 
@@ -411,6 +465,12 @@ async function markAccepted(jobId: string, providerMessageId: string): Promise<b
                provider_status=CASE WHEN status='sending' THEN 'accepted' ELSE provider_status END,
                provider_status_at=CASE WHEN status='sending' THEN NULL ELSE provider_status_at END,
                accepted_at=COALESCE(accepted_at, clock_timestamp()),
+               metadata=jsonb_set(
+                 COALESCE(metadata,'{}'::jsonb),
+                 '{delivery_care_template_kind}',
+                 to_jsonb(${templateKind}::text),
+                 true
+               ),
                locked_at=NULL,
                last_error_code=CASE WHEN status='sending' THEN NULL ELSE last_error_code END,
                last_error_at=CASE WHEN status='sending' THEN NULL ELSE last_error_at END,
@@ -661,12 +721,27 @@ export async function dispatchDeliveryCareForOrder(orderId: string): Promise<Cus
       return await releaseClaimAsFailed(job, "INVALID_CUSTOMER_NAME", false);
     }
 
+    const marketingTemplateEligible = Boolean(
+      recipient.whatsappMarketingOptIn
+      && config.deliveryCareMarketingEnabled
+      && config.deliveryCareMarketingTemplate
+      && config.deliveryCareMarketingActivationAt
+      && Number.isFinite(job.createdAt.getTime())
+      && job.createdAt.getTime() >= config.deliveryCareMarketingActivationAt.getTime()
+    );
+    const templateKind: "utility" | "marketing_ugc" =
+      marketingTemplateEligible ? "marketing_ugc" : "utility";
+    const selectedTemplate = marketingTemplateEligible
+      ? config.deliveryCareMarketingTemplate!
+      : config.deliveryCareTemplate;
+
     const providerMessageId = await sendDeliveryCareTemplate(
       config,
       phone,
       firstName,
+      selectedTemplate,
     );
-    const acceptedPersisted = await markAccepted(job.id, providerMessageId);
+    const acceptedPersisted = await markAccepted(job.id, providerMessageId, templateKind);
     if (!acceptedPersisted) {
       return {
         status: "failed",

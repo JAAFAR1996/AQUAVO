@@ -136,6 +136,50 @@ Stable developer payloads attached at send time:
 The payload is the authoritative automation contract. Button text is accepted only as a
 compatibility fallback for the configured visible label.
 
+## Optional consent-gated UGC incentive variant
+
+AQUAVO may use one **MARKETING** template instead of the Utility delivery-care
+template for a customer who has a current explicit WhatsApp marketing opt-in.
+This avoids sending two back-to-back messages after delivery.
+
+The variant is independently fail-closed behind:
+
+- `WHATSAPP_DELIVERY_CARE_MARKETING_ENABLED=true`
+- `WHATSAPP_DELIVERY_CARE_MARKETING_ACTIVATION_AT=<controlled UTC instant>`
+- `WHATSAPP_DELIVERY_CARE_MARKETING_TEMPLATE=aquavo_delivery_care_ugc_v1`
+
+The marketing variant is eligible only when the canonical phone-centric
+`customer_profiles` record is currently opted in. An explicit opt-out wins over an
+older opt-in. A delivery-care job created before the independent marketing activation
+instant can never switch from Utility to Marketing on a later retry.
+
+If any marketing gate is missing, malformed, in the future, or the customer is not
+currently opted in, AQUAVO sends the existing Utility delivery-care template instead.
+The service message therefore remains available even when marketing is disabled.
+
+Proposed **MARKETING** template body:
+
+```text
+السلام عليكم أستاذ {{1}}
+حبينا نطمن عليك بعد استلام طلبك من AQUAVO، وإن شاء الله وصلك كامل وبحالة ممتازة.
+إذا عندك أي ملاحظة، حتى لو بسيطة، دزلنا هنا مباشرة.
+وإذا حبيت تشارك لحظة فتح الطلب على إنستغرام، حتى تصوير بسيط يكفي:
+ستوري + منشن @aquavo_iq = خصم 5% على طلبك الجاي
+ريلز لفتح الطلب + منشن @aquavo_iq = خصم 10% على طلبك الجاي
+شارك تجربتك بطريقتك ومثل ما هي، ومن تسويلنا منشن ندزلك كود الخصم مباشرة
+```
+
+It keeps the same two Quick Reply buttons and developer payload contract as the Utility
+delivery-care template, so support correlation remains unchanged:
+
+1. `وصلتني وكلشي تمام`
+2. `عندي ملاحظة عالطلب`
+
+Do not set the marketing feature flag until WhatsApp Manager shows the exact template as
+Approved/Active in the Marketing category. Provider acceptance stores
+`metadata.delivery_care_template_kind` as either `utility` or `marketing_ugc`
+for operational audit without exposing tokens or provider secrets.
+
 ## Quick Reply validation and correlation
 
 AQUAVO automates only signed inbound messages that strictly match Meta's button callback
