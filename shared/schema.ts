@@ -221,6 +221,14 @@ export const orders = pgTable("orders", {
   firstTouchAqCampaignId: text("first_touch_aq_campaign_id"),
   firstTouchCapturedAt: timestamp("first_touch_captured_at", { withTimezone: true }),
 
+  // Explicit WhatsApp opt-ins are optional and category-specific. An unchecked
+  // box never revokes older consent; revocation is recorded through the
+  // preference/audit tables by an explicit customer opt-out.
+  whatsappCareOptIn: boolean("whatsapp_care_opt_in").notNull().default(false),
+  whatsappMarketingOptIn: boolean("whatsapp_marketing_opt_in").notNull().default(false),
+  whatsappConsentVersion: text("whatsapp_consent_version"),
+  whatsappConsentCapturedAt: timestamp("whatsapp_consent_captured_at", { withTimezone: true }),
+
   // Manual financial inclusion override: null=auto (use status), true=force include, false=force exclude
   financiallyCounted: boolean("financially_counted"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -230,6 +238,44 @@ export const orders = pgTable("orders", {
   createdAtIdx: index("orders_created_at_idx").on(table.createdAt),
   statusIdx: index("orders_status_idx").on(table.status),
   sourceIdx: index("orders_source_idx").on(table.source),
+}));
+
+// Current WhatsApp permission projection, keyed by the canonical Iraqi WhatsApp
+// number. Consent history is append-only in customerWhatsappConsentEvents.
+export const customerWhatsappPreferences = pgTable("customer_whatsapp_preferences", {
+  phone: text("phone").primaryKey(),
+  careOptIn: boolean("care_opt_in").notNull().default(false),
+  marketingOptIn: boolean("marketing_opt_in").notNull().default(false),
+  careOptInAt: timestamp("care_opt_in_at", { withTimezone: true }),
+  marketingOptInAt: timestamp("marketing_opt_in_at", { withTimezone: true }),
+  careOptOutAt: timestamp("care_opt_out_at", { withTimezone: true }),
+  marketingOptOutAt: timestamp("marketing_opt_out_at", { withTimezone: true }),
+  allOptOutAt: timestamp("all_opt_out_at", { withTimezone: true }),
+  consentVersion: text("consent_version"),
+  consentSource: text("consent_source"),
+  lastOrderId: text("last_order_id").references(() => orders.id, { onDelete: "set null" }),
+  lastInboundAt: timestamp("last_inbound_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  updatedIdx: index("customer_whatsapp_preferences_updated_idx").on(table.updatedAt),
+}));
+
+export const customerWhatsappConsentEvents = pgTable("customer_whatsapp_consent_events", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  phone: text("phone").notNull(),
+  category: text("category").notNull(),
+  action: text("action").notNull(),
+  source: text("source").notNull(),
+  orderId: text("order_id").references(() => orders.id, { onDelete: "set null" }),
+  consentVersion: text("consent_version"),
+  inboundMessageId: text("inbound_message_id"),
+  metadata: jsonb("metadata").notNull().default(sql`'{}'::jsonb`),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  inboundUq: uniqueIndex("customer_whatsapp_consent_events_inbound_uq")
+    .on(table.inboundMessageId),
+  phoneIdx: index("customer_whatsapp_consent_events_phone_idx").on(table.phone, table.createdAt),
 }));
 
 /**
