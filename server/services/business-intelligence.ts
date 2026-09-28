@@ -477,7 +477,6 @@ export async function getBusinessAssessment() {
 
   const dataReady =
     overview.marketing.configured
-    && overview.reconciliation.orderFinancialOpen === 0
     && overview.reconciliation.orderTotalOpen === 0
     && overview.reconciliation.productCostOpen === 0
     && overview.inventory.missingCurrentCosts === 0;
@@ -499,7 +498,10 @@ export async function getBusinessAssessment() {
   const reasons: string[] = [];
 
   if (!dataReady) {
-    reasons.push("القياس بعده مو مكتمل: الإعلانات أو المصالحات أو كلف المخزون تحتاج إغلاق.");
+    reasons.push("القياس بعده مو مكتمل: الإعلانات أو كلف المخزون أو أخطاء إجمالي الطلب تحتاج إغلاق.");
+  }
+  if (overview.reconciliation.orderFinancialOpen > 0) {
+    reasons.push("أكو " + overview.reconciliation.orderFinancialOpen + " معاملات COD بعده تحتاج مصالحة ويا شركة التوصيل؛ هذا خطر كاش وليس سبباً وحده لرفض اقتصاد المشروع.");
   }
   if (overview.financials.realizedOrders < 20) {
     reasons.push("عدد الطلبات المحققة بعده قليل لاتخاذ قرار طويل الأمد.");
