@@ -258,7 +258,9 @@ describe("trigger-point contracts", () => {
     expect(waylService).toMatch(/if \(order\.paymentStatus === "paid" && payment\.status === "completed"\) \{\r?\n\s+return \{\r?\n\s+order,\r?\n\s+loyaltyResult: null,\r?\n\s+newlyFinalized: false,/);
     expect(waylRoute).not.toContain("sendOrderNotification");
     expect(waylService).not.toContain("sendOrderNotification");
-    expect(maintenance).toContain('eventTypes = ["analytics", "loyalty", "logistics", "merchant_notification"]');
+    expect(maintenance).toContain('eventTypes = ["analytics", "loyalty", "merchant_notification"]');
+    expect(maintenance).toContain('if (event.eventType === "logistics")');
+    expect(maintenance).toContain("Legacy payment_outbox rows may still carry this event type");
     expect(maintenance).toContain("ON CONFLICT(event_key) DO NOTHING");
   });
 
