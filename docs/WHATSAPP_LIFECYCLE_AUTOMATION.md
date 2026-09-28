@@ -150,3 +150,15 @@ for later provider lifecycle truth.
 ## Operational principle
 
 Automation should reduce repetitive manual follow-up, not create repeated pressure on customers. A customer who does not repurchase receives no repeated marketing chase from the same order. A new realized order starts a new product-based lifecycle.
+
+## Learning replenishment timing
+
+Rule-based intervals are only the cold-start fallback. Growth OS also learns from
+realized repeat purchases of products that are already classified as consumables.
+
+Observed cadence becomes authoritative only after at least four valid repeat-purchase
+intervals across at least two different customers. The engine uses the median interval,
+ignores implausible gaps below 7 or above 180 days, and raises confidence only as evidence
+grows. Equipment is excluded from this learning path so a customer buying a second tank
+cannot accidentally teach AQUAVO that a heater or filter is a consumable.
+
