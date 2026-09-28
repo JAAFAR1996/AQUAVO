@@ -22,6 +22,7 @@ import {
 import { toPublicOrderItem } from "../../shared/public-product.js";
 import { apiMessage } from "../i18n/messages.js";
 import { payments } from "../../shared/schema.js";
+import { persistOrderAttribution } from "../services/growth-operating-system.js";
 
 const referralStorage = new ReferralStorage();
 
@@ -42,6 +43,33 @@ const createOrderCustomerSchema = z.object({
     email: z.string().email("Invalid email").optional().or(z.literal(""))
 });
 
+const orderAttributionSchema = z.object({
+    aq_sid: z.string().min(1).max(120).optional(),
+    utm_source: z.string().max(300).optional(),
+    utm_medium: z.string().max(300).optional(),
+    utm_campaign: z.string().max(300).optional(),
+    utm_content: z.string().max(300).optional(),
+    utm_term: z.string().max(300).optional(),
+    fbclid: z.string().max(300).optional(),
+    gclid: z.string().max(300).optional(),
+    gbraid: z.string().max(300).optional(),
+    wbraid: z.string().max(300).optional(),
+    aq_campaign_id: z.string().max(300).optional(),
+    aq_adset_id: z.string().max(300).optional(),
+    aq_ad_id: z.string().max(300).optional(),
+    aq_creative_id: z.string().max(300).optional(),
+    aq_concept_id: z.string().max(300).optional(),
+    aq_hypothesis_id: z.string().max(300).optional(),
+    aq_experiment_id: z.string().max(300).optional(),
+    attribution_first_touch_at: z.string().max(100).optional(),
+    attribution_last_touch_at: z.string().max(100).optional(),
+    first_touch_utm_source: z.string().max(300).optional(),
+    first_touch_utm_campaign: z.string().max(300).optional(),
+    first_touch_aq_campaign_id: z.string().max(300).optional(),
+    landing_path: z.string().max(500).optional(),
+    referrer_host: z.string().max(200).optional(),
+}).strict().optional();
+
 export const createOrderSchema = z.object({
     items: z.array(createOrderItemSchema).min(1, "At least one item required").max(50, "Maximum 50 items per order"),
     customerInfo: createOrderCustomerSchema,
@@ -51,6 +79,7 @@ export const createOrderSchema = z.object({
     useCashback: z.boolean().optional().default(false),
     pointsToUse: z.number().int().min(0).optional().default(0),
     cashbackToUse: z.number().int().min(0).optional().default(0),
+    attribution: orderAttributionSchema,
 });
 
 const idempotencyKeySchema = z.string().uuid();
@@ -170,7 +199,7 @@ export function createOrderRouter(): RouterType {
                 return;
             }
 
-            const { items, customerInfo, couponCode, useCashback, cashbackToUse } = validationResult.data;
+            const { items, customerInfo, couponCode, useCashback, cashbackToUse, attribution } = validationResult.data;
 
             const rawIdempotencyKey = req.get("Idempotency-Key");
             const parsedIdempotencyKey = rawIdempotencyKey
@@ -189,6 +218,9 @@ export function createOrderRouter(): RouterType {
             if (idempotencyKey) {
                 const existingOrder = await storage.getOrder(idempotencyKey);
                 if (existingOrder) {
+                    if (attribution) {
+                        persistOrderAttribution(existingOrder.id, attribution.aq_sid, attribution).catch(() => {});
+                    }
                     res.status(200).json(existingOrder);
                     return;
                 }
@@ -209,6 +241,14 @@ export function createOrderRouter(): RouterType {
                 { useCashback, cashbackToUse },
                 idempotencyKey,
             );
+
+            // Attribution is post-commit and non-blocking. Order truth must never
+            // fail because marketing metadata is unavailable.
+            if (attribution) {
+                persistOrderAttribution(order.id, attribution.aq_sid, attribution).catch((error) => {
+                    console.warn("[AQUAVO Attribution] Failed to persist order attribution:", error instanceof Error ? error.message : error);
+                });
+            }
 
             // 📝 Store client IP with order for rejection tracking
             if (db && clientIp !== 'unknown') {
