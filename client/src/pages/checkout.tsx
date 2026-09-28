@@ -15,6 +15,7 @@ import { ArrowRight, ShoppingCart, MessageCircle, Instagram } from "lucide-react
 import { MetaTags } from "@/components/seo/meta-tags";
 import { resolveCheckoutTotal } from "@/lib/checkout-total";
 import { clearOrderIdempotencyKey, getOrderIdempotencyKey } from "@/lib/order-idempotency";
+import { orderAttributionPayload } from "@/lib/attribution";
 
 import { stashOrder } from "@/lib/order-stash";
 import { CustomerInfo, GOVERNORATES } from "@/components/cart/checkout/types";
@@ -355,6 +356,7 @@ export default function CheckoutPage() {
           useCashback: testMode ? false : loyaltyData.useCashback,
           pointsToUse: testMode ? 0 : loyaltyData.pointsToUse,
           cashbackToUse: testMode ? 0 : loyaltyData.cashbackToUse,
+          ...(testMode ? {} : { attribution: orderAttributionPayload() }),
           ...(testMode ? { notifyTelegram: true } : {}),
         }),
       });
