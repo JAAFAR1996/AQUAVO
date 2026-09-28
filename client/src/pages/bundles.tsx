@@ -235,8 +235,8 @@ export default function BundlesPage() {
                         {item.thumbnail ? <img src={item.thumbnail} alt="" className="h-full w-full object-cover" loading="lazy" /> : null}
                       </div>
                       <div className="min-w-0">
-                        <p className="line-clamp-2 text-sm font-semibold">{item.name}</p>
-                        <p className="text-xs text-muted-foreground">{formatIQD(Number(item.price || 0))}</p>
+                        <p className="line-clamp-2 text-sm font-semibold">{productMap.get(item.productId)?.name ?? item.name}</p>
+                        <p className="text-xs text-muted-foreground">{formatIQD(Number(productMap.get(item.productId)?.price ?? item.price ?? 0))}</p>
                       </div>
                     </Link>
                   ))}
