@@ -140,10 +140,19 @@ async function frequencyCapHit(phone: string, kind: LifecycleKind): Promise<bool
     FROM public.customer_message_jobs j
     JOIN public.orders o ON o.id=j.order_id
     WHERE j.job_type=${target}
-      AND j.status='completed'
-      AND COALESCE(j.provider_status,'accepted')<>'failed'
       AND public.aquavo_normalize_iraqi_phone(o.customer_phone)=${phone}
-      AND COALESCE(j.accepted_at,j.updated_at) >= clock_timestamp() - (${days} * interval '1 day')
+      AND (
+        (
+          j.status IN ('pending','sending')
+          AND j.created_at >= clock_timestamp() - (${days} * interval '1 day')
+        )
+        OR
+        (
+          j.status='completed'
+          AND COALESCE(j.provider_status,'accepted')<>'failed'
+          AND COALESCE(j.accepted_at,j.updated_at) >= clock_timestamp() - (${days} * interval '1 day')
+        )
+      )
     LIMIT 1
   `);
   return rowsOf(result).length > 0;
@@ -528,8 +537,41 @@ async function cancelNoLongerEligibleOutbox():Promise<number>{
               ELSE p.marketing_opt_in
             END
         )
+        OR NOT EXISTS (
+          SELECT 1
+          FROM public.customer_lifecycle_jobs lifecycle
+          WHERE lifecycle.id=j.metadata->>'lifecycleJobId'
+            AND lifecycle.order_id=j.order_id
+            AND lifecycle.status IN ('planned','ready')
+        )
       )
     RETURNING j.id
+  `);
+  return rowsOf(result).length;
+}
+
+async function reconcileAcceptedLifecycleSources():Promise<number>{
+  const db=getDb();
+  if(!db) return 0;
+  const result=await db.execute(sql`
+    UPDATE public.customer_lifecycle_jobs lifecycle
+    SET status='completed',
+        completed_at=COALESCE(lifecycle.completed_at,outbox.accepted_at,outbox.updated_at),
+        channel='whatsapp',
+        metadata=lifecycle.metadata || jsonb_build_object(
+          'automationStatus','accepted_reconciled',
+          'providerMessageId',outbox.provider_message_id,
+          'acceptedAt',COALESCE(outbox.accepted_at,outbox.updated_at)
+        ),
+        updated_at=clock_timestamp()
+    FROM public.customer_message_jobs outbox
+    WHERE outbox.job_type IN ('lifecycle_day7','lifecycle_repurchase')
+      AND outbox.status='completed'
+      AND outbox.provider_message_id IS NOT NULL
+      AND lifecycle.id=outbox.metadata->>'lifecycleJobId'
+      AND lifecycle.order_id=outbox.order_id
+      AND lifecycle.status IN ('planned','ready')
+    RETURNING lifecycle.id
   `);
   return rowsOf(result).length;
 }
@@ -587,6 +629,7 @@ export async function runDueLifecycleWhatsAppJobs(limit=DEFAULT_LIMIT):Promise<{
   let providerEventsReconciled=0;
   try{providerEventsReconciled=await reconcilePendingWhatsAppProviderEvents(25);}catch{/* later worker can retry */}
 
+  await reconcileAcceptedLifecycleSources();
   const cancelled=await cancelNoLongerEligibleOutbox();
   const staleFailed=await failStaleClaims();
 
