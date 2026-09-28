@@ -33,7 +33,7 @@ export async function enqueuePaidOrderOutbox(
     sessionId: input.sessionId || null,
     loyaltyResult: input.loyaltyResult || null,
   });
-  const eventTypes = ["analytics", "loyalty", "logistics", "merchant_notification"] as const;
+  const eventTypes = ["analytics", "loyalty", "merchant_notification"] as const;
   for (const eventType of eventTypes) {
     await tx.execute(sql`
       INSERT INTO payment_outbox(event_key, order_id, event_type, payload, status, next_attempt_at)
@@ -167,17 +167,10 @@ async function deliverOutboxEvent(event: ClaimedOutbox): Promise<void> {
   }
 
   if (event.eventType === "logistics") {
-    await db.execute(sql`
-      INSERT INTO event_bus (source_agent, target_agent, event_type, payload, status, priority, created_at)
-      SELECT 'sales', 'logistics', 'new_order_received',
-             ${JSON.stringify({ orderId: order.id, customerAddress: order.shippingAddress })}::jsonb,
-             'pending', 1, NOW()
-      WHERE NOT EXISTS (
-        SELECT 1 FROM event_bus
-        WHERE event_type='new_order_received'
-          AND payload->>'orderId'=${order.id}
-      )
-    `);
+    // Legacy payment_outbox rows may still carry this event type. The old
+    // implementation wrote to event_bus even though no logistics consumer has
+    // existed since May 2026, leaving a permanent pending backlog. Treat the
+    // legacy event as retired; fulfillment is the canonical logistics workflow.
     return;
   }
 
