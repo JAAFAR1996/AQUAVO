@@ -72,6 +72,12 @@ interface CreateOrderLoyaltyOptions {
 interface OrderCommerceContext {
     viewSessionId?: string;
     attribution?: Record<string, string>;
+    whatsappConsent?: {
+        care: boolean;
+        marketing: boolean;
+        version: string;
+        capturedAt: string;
+    };
 }
 
 type OrderWithLoyalty = Order & {
@@ -436,6 +442,13 @@ export class OrderStorage {
                 firstTouchAqCampaignId: commerceContext.attribution?.first_touch_aq_campaign_id,
                 firstTouchCapturedAt: commerceContext.attribution?.first_touch_captured_at
                     ? new Date(commerceContext.attribution.first_touch_captured_at)
+                    : undefined,
+
+                whatsappCareOptIn: commerceContext.whatsappConsent?.care ?? false,
+                whatsappMarketingOptIn: commerceContext.whatsappConsent?.marketing ?? false,
+                whatsappConsentVersion: commerceContext.whatsappConsent?.version,
+                whatsappConsentCapturedAt: commerceContext.whatsappConsent?.capturedAt
+                    ? new Date(commerceContext.whatsappConsent.capturedAt)
                     : undefined,
             } as any).returning();
 
