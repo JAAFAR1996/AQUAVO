@@ -5,17 +5,6 @@
 
 BEGIN;
 
-DO $guard$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM public.schema_migrations
-    WHERE version='0090_business_operating_system' AND rolled_back_at IS NULL
-  ) THEN
-    RAISE EXCEPTION '0091_REQUIRES_ACTIVE_0090';
-  END IF;
-END
-$guard$;
-
 CREATE TABLE IF NOT EXISTS public.order_attribution (
   order_id text PRIMARY KEY REFERENCES public.orders(id) ON DELETE CASCADE,
   session_id text,
