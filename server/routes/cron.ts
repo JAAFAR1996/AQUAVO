@@ -10,6 +10,7 @@ import { cleanupWhatsAppProviderStatusEvents } from "../services/whatsapp-provid
 import { runResilientFinanceAudit } from "../services/groq-finance-audit-resilient.js";
 import { smartNotifications } from "../services/smart-notifications.js";
 import { runPaymentMaintenance } from "../services/payment-maintenance.js";
+import { refreshBusinessSnapshot } from "../services/business-intelligence.js";
 import { verifyGitHubActionsCronToken } from "../security/github-actions-oidc.js";
 
 const router = Router();
@@ -160,11 +161,20 @@ router.get("/finance-audit", async (_req: Request, res: Response) => {
   try {
     const db = getDb();
     const automaticClose = db ? await runAutomaticPeriodClose(db) : [];
+    let businessIntelligence: unknown = null;
+    try {
+      businessIntelligence = db ? await refreshBusinessSnapshot() : { skipped: true, reason: "database_not_connected" };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error("[Cron] Business OS snapshot failed:", message);
+      businessIntelligence = { success: false, error: message };
+    }
 
     if (process.env.FINANCE_AI_AUDIT_ENABLED !== "true") {
       return res.status(200).json({
         success: true,
         automaticClose,
+        businessIntelligence,
         aiAudit: { skipped: true, reason: "FINANCE_AI_AUDIT_ENABLED is not set" },
         duration: Date.now() - startTime,
       });
@@ -197,6 +207,7 @@ router.get("/finance-audit", async (_req: Request, res: Response) => {
       success,
       message: result.error ?? `Finance audit completed: ${result.report?.overallStatus ?? "ok"}`,
       automaticClose,
+      businessIntelligence,
       duration,
     });
   } catch (error) {
