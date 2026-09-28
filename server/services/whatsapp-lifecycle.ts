@@ -7,6 +7,7 @@ import {
 import {
   reconcileWhatsAppProviderEvents,
 } from "./whatsapp-provider-status.js";
+import { escapeHtml, sendTelegramMessage } from "./order-notifications.js";
 
 type Row = Record<string, unknown>;
 
@@ -885,7 +886,8 @@ export async function handleLifecycleReply(event: LifecycleReplyEvent): Promise<
   if (!senderPhone) return "unmatched";
 
   const result = await db.execute(sql`
-    SELECT j.id,j.order_id,j.job_type,j.metadata,o.customer_phone
+    SELECT j.id,j.order_id,j.job_type,j.metadata,
+           o.customer_phone,o.customer_name,o.order_number
     FROM public.customer_lifecycle_jobs j
     JOIN public.orders o ON o.id=j.order_id
     WHERE j.provider_message_id=${event.contextProviderMessageId}
@@ -929,6 +931,27 @@ export async function handleLifecycleReply(event: LifecycleReplyEvent): Promise<
 
   if (choice === "repurchase_stop") {
     await setMarketingOptOut(senderPhone,event.inboundMessageId,orderId,event.receivedAt);
+  }
+
+  if (choice === "day7_help" || choice === "repurchase_interest") {
+    const intentLabel = choice === "day7_help"
+      ? "الزبون طلب مساعدة بعد المتابعة"
+      : "الزبون مهتم بإعادة الشراء";
+    const customerName = String(row.customer_name ?? "").trim();
+    const orderNumber = String(row.order_number ?? orderId).trim();
+    const waUrl = `https://wa.me/${senderPhone}`;
+    const alert = [
+      "🔔 <b>AQUAVO — رد يحتاج متابعة</b>",
+      "",
+      `<b>الحالة:</b> ${escapeHtml(intentLabel)}`,
+      customerName ? `<b>الزبون:</b> ${escapeHtml(customerName)}` : "",
+      `<b>الطلب:</b> <code>${escapeHtml(orderNumber)}</code>`,
+      `<a href="${waUrl}">فتح محادثة WhatsApp</a>`,
+    ].filter(Boolean).join("\n");
+    void sendTelegramMessage(alert).catch(() => {
+      // The reply is already durable in PostgreSQL. Telegram is only a fast
+      // operator alert and must never determine whether the customer reply exists.
+    });
   }
 
   return "handled";
