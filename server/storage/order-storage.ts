@@ -11,6 +11,7 @@ import {
     toRelationalCostFields,
     type LockedProductRow as CanonicalLockedProductRow,
 } from "../services/product-cost-snapshot.js";
+import { persistWhatsAppConsentInTransaction } from "../services/whatsapp-consent.js";
 
 const ORDER_NUMBER_MAX_ATTEMPTS = 3;
 
@@ -451,6 +452,13 @@ export class OrderStorage {
                     ? new Date(commerceContext.whatsappConsent.capturedAt)
                     : undefined,
             } as any).returning();
+
+            await persistWhatsAppConsentInTransaction(tx, {
+                orderId: newOrder.id,
+                customerPhone: customerInfo.phone,
+                consent: commerceContext.whatsappConsent,
+                source: "checkout",
+            });
 
             // 6b. Persist normalized line items into order_items_relational so that
             // sales analytics (top-selling, predictive, inventory) see website orders.
