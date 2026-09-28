@@ -233,9 +233,9 @@ export async function recordCheckoutWhatsAppConsent(input: {
       ON CONFLICT(phone) DO UPDATE SET
         name=COALESCE(NULLIF(public.customer_profiles.name,''),EXCLUDED.name),
         whatsapp_followup_opt_in=true,
-        whatsapp_followup_opt_in_at=COALESCE(public.customer_profiles.whatsapp_followup_opt_in_at,clock_timestamp()),
+        whatsapp_followup_opt_in_at=clock_timestamp(),
         whatsapp_marketing_opt_in=true,
-        whatsapp_marketing_opt_in_at=COALESCE(public.customer_profiles.whatsapp_marketing_opt_in_at,clock_timestamp()),
+        whatsapp_marketing_opt_in_at=clock_timestamp(),
         whatsapp_followup_opt_out_at=NULL,
         whatsapp_consent_source='checkout',
         whatsapp_consent_updated_at=clock_timestamp(),
