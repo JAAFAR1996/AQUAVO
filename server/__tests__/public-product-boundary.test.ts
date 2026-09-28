@@ -116,14 +116,14 @@ describe("public product DTO — the leaked fields are gone", () => {
   it("never falls back to exposing a model-only label", () => {
     const pub = toPublicVariant({
       id: "m1",
-      label: "C4-1123",
-      sku: "C4-1123",
+      label: "C4.1123+",
+      sku: "C4.1123+",
       price: 1000,
       stock: 1,
-      specifications: { "Model": "C4-1123", "الحجم": "كبير" },
+      specifications: { "Model": "C4.1123+", "الحجم": "كبير" },
     }, 2);
     expect(pub.label).toBe("كبير");
-    expect(JSON.stringify(pub)).not.toContain("C4-1123");
+    expect(JSON.stringify(pub)).not.toContain("C4.1123+");
   });
 
   it("drops the internal keys hidden inside the variants jsonb", () => {
