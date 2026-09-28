@@ -219,7 +219,11 @@ export function createOrderRouter(): RouterType {
                 const existingOrder = await storage.getOrder(idempotencyKey);
                 if (existingOrder) {
                     if (attribution) {
-                        persistOrderAttribution(existingOrder.id, attribution.aq_sid, attribution).catch(() => {});
+                        try {
+                            await persistOrderAttribution(existingOrder.id, attribution.aq_sid, attribution);
+                        } catch (error) {
+                            console.warn("[AQUAVO Attribution] Existing-order attribution failed:", error instanceof Error ? error.message : error);
+                        }
                     }
                     res.status(200).json(existingOrder);
                     return;
@@ -245,9 +249,11 @@ export function createOrderRouter(): RouterType {
             // Attribution is post-commit and non-blocking. Order truth must never
             // fail because marketing metadata is unavailable.
             if (attribution) {
-                persistOrderAttribution(order.id, attribution.aq_sid, attribution).catch((error) => {
+                try {
+                    await persistOrderAttribution(order.id, attribution.aq_sid, attribution);
+                } catch (error) {
                     console.warn("[AQUAVO Attribution] Failed to persist order attribution:", error instanceof Error ? error.message : error);
-                });
+                }
             }
 
             // 📝 Store client IP with order for rejection tracking
