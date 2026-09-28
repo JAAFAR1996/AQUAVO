@@ -49,8 +49,11 @@ describe("public order tracking security", () => {
     it("requires the same phone verifier before the carrier mirror is queried", () => {
         const source = readFileSync("server/routes/alwaseet-public-tracking.ts", "utf8");
         const parseVerifier = source.indexOf("orderTrackingSchema.safeParse");
-        const verifyPhone = source.indexOf("verifyOrderTrackingPhone");
-        const carrierLookup = source.indexOf("resolveAlWaseetTrackingRuntime({");
+        const verifyPhone = source.indexOf(
+            "verifyOrderTrackingPhone(order.customerPhone",
+            parseVerifier,
+        );
+        const carrierLookup = source.indexOf("resolveAlWaseetTrackingRuntime({", verifyPhone);
 
         expect(parseVerifier).toBeGreaterThan(-1);
         expect(verifyPhone).toBeGreaterThan(parseVerifier);
