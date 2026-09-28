@@ -354,19 +354,6 @@ export function createOrderRouter(): RouterType {
                 }
             }
 
-            // === AQUAVO AI CORPORATION - EVENT BUS TRIGGER ===
-            try {
-                if (db) {
-                    await db.execute(sql`
-                        INSERT INTO event_bus (source_agent, target_agent, event_type, payload, status, priority, created_at)
-                        VALUES ('sales', 'logistics', 'new_order_received', ${JSON.stringify({ orderId: order.id, customerAddress: customerInfo.address })}::jsonb, 'pending', 1, NOW())
-                    `);
-                    console.log("[AQUAVO AI] Alerted Logistics Agent for Order", order.id);
-                }
-            } catch (e) {
-                console.error("[AQUAVO AI] EventBus Notification Failed:", e);
-            }
-
             // إضافة معلومات النقاط في الرد
             // Use JSON.parse/stringify to strip any non-serializable values (BigInt, Decimal, circular refs)
             let safeOrder: Record<string, unknown>;
