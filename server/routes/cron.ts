@@ -11,6 +11,7 @@ import { runResilientFinanceAudit } from "../services/groq-finance-audit-resilie
 import { smartNotifications } from "../services/smart-notifications.js";
 import { runPaymentMaintenance } from "../services/payment-maintenance.js";
 import { verifyGitHubActionsCronToken } from "../security/github-actions-oidc.js";
+import { analyticsTracker } from "../services/analytics-tracker.js";
 
 const router = Router();
 
@@ -70,6 +71,10 @@ router.get("/nightly", async (_req: Request, res: Response) => {
   } catch (error) {
     console.error("[Cron] Payment maintenance fallback failed:", error);
   }
+
+  // Lifecycle hygiene: a cart becomes abandoned only after a full day without
+  // any add/remove activity. No rows are deleted; the classification is durable.
+  const abandonedCartSessions = await analyticsTracker.abandonStaleCartSessions(24);
   const tasks: Array<{ name: string; jobKey: Parameters<typeof triggerJob>[0] }> = [
     { name: "Embeddings", jobKey: "embeddings" },
     { name: "Predictions", jobKey: "predictions" },
@@ -120,7 +125,7 @@ router.get("/nightly", async (_req: Request, res: Response) => {
   const totalDuration = Date.now() - startTime;
   const successCount = Object.values(results).filter((result) => result.success).length;
   const allSucceeded = successCount === tasks.length;
-  res.status(200).json({ success: allSucceeded, totalDuration, completed: `${successCount}/${tasks.length}`, paymentMaintenance, results });
+  res.status(200).json({ success: allSucceeded, totalDuration, completed: `${successCount}/${tasks.length}`, paymentMaintenance, abandonedCartSessions, results });
 });
 
 router.get("/weekly-blog", async (_req: Request, res: Response) => {
