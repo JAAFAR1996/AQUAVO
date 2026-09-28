@@ -4,6 +4,7 @@ import { addCsrfHeader } from "@/lib/csrf";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { CustomerAquariumProfileManager } from "@/components/admin/customer-aquarium-profile-manager";
 
 type Overview = {
   confidence: "exact" | "mixed" | "estimated";
@@ -500,6 +501,8 @@ export function BusinessIntelligenceDashboard() {
           )}
         </div>
       )}
+
+      <CustomerAquariumProfileManager />
 
       <Card>
         <CardHeader><CardTitle className="text-base">آخر أحداث المشروع</CardTitle></CardHeader>
