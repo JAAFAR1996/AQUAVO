@@ -217,8 +217,14 @@ export const STATIC_COPY: Record<string, { heading: string; summary: string; par
     ],
   },
   "/return-policy": {
-    heading: "سياسة الاسترجاع والاستبدال",
-    summary: "راجع الشروط والإجراءات المنشورة لطلبات الاسترجاع أو الاستبدال قبل إرسال الطلب.",
+    heading: "مشاكل الاستلام والضمان المحدود",
+    summary: "سياسة AQUAVO لمراجعة الضرر والنقص وعدم المطابقة، وفصلها عن ضمان AQUAVO المحدود للمنتجات الكهربائية المعتمدة فقط.",
+    paragraphs: [
+      "إذا وصل المنتج تالف، ناقص، أو غير مطابق لطلبك، لا تستخدمه. دز رقم الطلب وصور واضحة فور ما تلاحظ المشكلة حتى نراجع الحالة.",
+      "ضمان AQUAVO المحدود ينطبق فقط إذا صفحة المنتج تذكره بوضوح. عدم وجود عبارة الضمان بصفحة المنتج يعني أنه غير مفعّل لهذا المنتج.",
+      "للمنتج المعتمد: المدة 6 أشهر من تاريخ التسليم المؤكد. أول 7 أيام استبدال بعد الفحص وتأكيد عيب التصنيع، ومن اليوم 8 إلى نهاية الشهر السادس: إصلاح أولاً، ثم استبدال، ثم استرداد أو بديل يوافق عليه الزبون إذا تعذر الإصلاح والاستبدال.",
+      "الضمان المحدود يغطي عيب التصنيع المؤكد، وما يغطي سوء الاستخدام أو الضرر الخارجي. أهلية الضمان مقفلة افتراضياً ولا تُعرض إلا بعد اعتماد المنتج.",
+    ],
   },
   "/privacy-policy": {
     heading: "سياسة الخصوصية",
@@ -410,6 +416,7 @@ async function loadProducts(category?: string): Promise<SeoPreviewProduct[]> {
             review_count AS "reviewCount"
        FROM products
       WHERE deleted_at IS NULL
+        AND COALESCE(is_storefront_visible, true) = true
         AND slug IS NOT NULL
         AND slug <> ''
         ${categoryClause}
@@ -437,6 +444,7 @@ async function loadProduct(slug: string): Promise<SeoPreviewProduct | null> {
        FROM products
       WHERE slug = $1
         AND deleted_at IS NULL
+        AND COALESCE(is_storefront_visible, true) = true
       LIMIT 1`,
     [slug],
   );
