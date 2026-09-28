@@ -330,7 +330,10 @@ async function loadLifecycleContext(job: ClaimedLifecycleJob): Promise<Lifecycle
           FROM public.customer_lifecycle_jobs followup
           WHERE followup.order_id=o.id
             AND followup.job_type='day7_care'
-            AND followup.metadata->'reply'->>'choice'='day7_help'
+            AND COALESCE(
+              followup.metadata->'reply'->>'latest_choice',
+              followup.metadata->'reply'->>'choice'
+            )='day7_help'
         )
       ) AS support_issue_open
     FROM public.customer_lifecycle_jobs j
@@ -911,24 +914,51 @@ export async function handleLifecycleReply(event: LifecycleReplyEvent): Promise<
        SET metadata=jsonb_set(
              COALESCE(metadata,'{}'::jsonb),
              '{reply}',
-             jsonb_build_object(
-               'inbound_message_id',${event.inboundMessageId},
-               'choice',${choice},
-               'received_at',${event.receivedAt}
-             ),
+             CASE
+               WHEN metadata->'reply' IS NULL THEN
+                 jsonb_build_object(
+                   'inbound_message_id',${event.inboundMessageId},
+                   'choice',${choice},
+                   'received_at',${event.receivedAt},
+                   'latest_choice',${choice},
+                   'latest_choice_at',${event.receivedAt},
+                   'subsequent_choices','[]'::jsonb
+                 )
+               ELSE
+                 metadata->'reply'
+                 || jsonb_build_object(
+                      'latest_choice',${choice},
+                      'latest_choice_at',${event.receivedAt},
+                      'subsequent_choices',
+                        COALESCE(metadata->'reply'->'subsequent_choices','[]'::jsonb)
+                        || jsonb_build_array(
+                             jsonb_build_object(
+                               'inbound_message_id',${event.inboundMessageId},
+                               'choice',${choice},
+                               'received_at',${event.receivedAt}
+                             )
+                           )
+                    )
+             END,
              true
            ),
            updated_at=clock_timestamp()
      WHERE id=${jobId}
-       AND (
-         metadata->'reply' IS NULL
-         OR metadata->'reply'->>'inbound_message_id'=${event.inboundMessageId}
+       AND metadata->'reply'->>'inbound_message_id' IS DISTINCT FROM ${event.inboundMessageId}
+       AND NOT EXISTS (
+         SELECT 1
+         FROM jsonb_array_elements(
+           COALESCE(metadata->'reply'->'subsequent_choices','[]'::jsonb)
+         ) item
+         WHERE item->>'inbound_message_id'=${event.inboundMessageId}
        )
     RETURNING id
   `);
 
   if (rowsOf(update).length === 0) return "duplicate";
 
+  // Opt-out is terminal from a marketing perspective and must win even if the
+  // same customer previously tapped "أحتاجه" on this message.
   if (choice === "repurchase_stop") {
     await setMarketingOptOut(senderPhone,event.inboundMessageId,orderId,event.receivedAt);
   }
