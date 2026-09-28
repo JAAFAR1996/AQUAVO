@@ -78,6 +78,8 @@ type GrowthOverview = {
     metaClickOrders: number;
     googleMeasuredOrders: number;
     purchaseMeasurementCoveragePct: number;
+    metaMeasuredOrders: number;
+    metaPurchaseMeasurementCoveragePct: number;
     providerSpendIqd: number;
     providerTrackedConversions: number;
   };
@@ -403,6 +405,13 @@ export function BusinessIntelligenceDashboard() {
               <CardContent>
                 <div className="text-2xl font-bold">{pct(growth.data.attribution.purchaseMeasurementCoveragePct)}</div>
                 <p className="text-xs text-muted-foreground">{growth.data.attribution.googleMeasuredOrders} طلب عنده receipt فعلي</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2"><CardTitle className="text-sm">Meta Purchase Coverage</CardTitle></CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{pct(growth.data.attribution.metaPurchaseMeasurementCoveragePct)}</div>
+                <p className="text-xs text-muted-foreground">{growth.data.attribution.metaMeasuredOrders} طلب عنده receipt فعلي</p>
               </CardContent>
             </Card>
             <Card>
