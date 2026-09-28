@@ -667,11 +667,14 @@ export async function planCustomerLifecycleJobs() {
       SELECT
         o.id AS order_id,
         public.aquavo_normalize_iraqi_phone(o.customer_phone) AS customer_phone,
-        COALESCE(dc.created_at,v.recognized_at,o.updated_at AT TIME ZONE 'UTC',o.created_at AT TIME ZONE 'UTC') AS delivered_at
+        COALESCE(v.recognized_at,dc.created_at,o.updated_at AT TIME ZONE 'UTC',o.created_at AT TIME ZONE 'UTC') AS delivered_at
       FROM public.orders o
       LEFT JOIN public.v_order_accounting v ON v.order_id=o.id
-      LEFT JOIN public.customer_message_jobs dc
-        ON dc.order_id=o.id AND dc.job_type='delivery_care'
+      LEFT JOIN LATERAL (
+        SELECT MAX(j.created_at) AS created_at
+        FROM public.customer_message_jobs j
+        WHERE j.order_id=o.id AND j.job_type='delivery_care'
+      ) dc ON true
       WHERE COALESCE(o.is_test,false)=false
         AND o.status='delivered'
         AND o.payment_status='paid'
@@ -694,11 +697,14 @@ export async function planCustomerLifecycleJobs() {
       SELECT
         o.id AS order_id,
         public.aquavo_normalize_iraqi_phone(o.customer_phone) AS customer_phone,
-        COALESCE(dc.created_at,v.recognized_at,o.updated_at AT TIME ZONE 'UTC',o.created_at AT TIME ZONE 'UTC') AS delivered_at
+        COALESCE(v.recognized_at,dc.created_at,o.updated_at AT TIME ZONE 'UTC',o.created_at AT TIME ZONE 'UTC') AS delivered_at
       FROM public.orders o
       LEFT JOIN public.v_order_accounting v ON v.order_id=o.id
-      LEFT JOIN public.customer_message_jobs dc
-        ON dc.order_id=o.id AND dc.job_type='delivery_care'
+      LEFT JOIN LATERAL (
+        SELECT MAX(j.created_at) AS created_at
+        FROM public.customer_message_jobs j
+        WHERE j.order_id=o.id AND j.job_type='delivery_care'
+      ) dc ON true
       WHERE COALESCE(o.is_test,false)=false
         AND o.status='delivered'
         AND o.payment_status='paid'
@@ -973,6 +979,7 @@ export async function seedDefaultBundles() {
         FROM public.products p
         WHERE p.id=${productId}
           AND p.deleted_at IS NULL
+          AND p.is_storefront_visible=true
           AND (
             ${variantId}::text IS NULL
             OR EXISTS (
@@ -1047,7 +1054,7 @@ export async function getBundles(publicOnly=true) {
         ) AS unit_cost
       FROM public.product_bundles b
       JOIN public.product_bundle_items bi ON bi.bundle_id=b.id
-      JOIN public.products p ON p.id=bi.product_id AND p.deleted_at IS NULL
+      JOIN public.products p ON p.id=bi.product_id AND p.deleted_at IS NULL AND p.is_storefront_visible=true
       WHERE b.active=true
         AND (${publicOnly}=false OR b.storefront_visible=true)
     ),
