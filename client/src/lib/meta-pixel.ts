@@ -4,6 +4,7 @@
 import { isTrackingAllowed } from "./tracking-environment";
 import { META_AD_CURRENCY, iqdToAdValue } from "./ad-currency";
 import { addCsrfHeader } from "./csrf";
+import { getSessionId } from "./attribution";
 
 declare global {
   interface Window {
@@ -324,6 +325,7 @@ function recordMetaPurchaseReceipt(orderId: string, valueIqd: number, browserPix
       keepalive: true,
       body: JSON.stringify({
         orderId,
+        aqSid: getSessionId(),
         provider: "meta_pixel",
         eventKey: "Purchase",
         status: "emitted",
