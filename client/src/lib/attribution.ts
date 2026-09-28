@@ -15,10 +15,10 @@
  *
  * WHAT THIS DELIBERATELY DOES NOT DO
  * ----------------------------------
- * It does not attempt to attribute anything by itself. Timestamp proximity is not attribution, and a
- * session id that never reaches the order row buys nothing. Writing `aq_sid` onto the order is a
- * production schema change and is prepared separately, awaiting approval — until that lands, this
- * module makes the join POSSIBLE rather than claiming it EXISTS.
+ * It does not infer attribution from timestamp proximity. Growth OS persists this browser-scoped
+ * acquisition identity into the dedicated `order_attribution` table when a real order is committed.
+ * If the browser carries no acquisition metadata, the order stays honestly unattributed; it is never
+ * silently labelled direct/organic.
  *
  * PRIVACY
  * -------
@@ -169,9 +169,9 @@ export function attributionProperties(): Record<string, unknown> {
 /**
  * The subset that should travel with an ORDER, for the day the order record can carry it.
  *
- * Separate from `attributionProperties()` because an analytics event and a business record have
- * different lifetimes and different review standards: this is the shape the prepared Neon migration
- * expects, and it is intentionally small.
+ * Separate from `attributionProperties()` because an analytics event and a durable business record
+ * have different lifetimes and different review standards. The server validates this narrow payload
+ * and stores it in Growth OS `order_attribution`; no customer PII belongs here.
  */
 export function orderAttributionPayload(): Record<string, string> {
   const out: Record<string, string> = { aq_sid: getSessionId() };
