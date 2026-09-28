@@ -425,6 +425,25 @@ export async function getInventoryHealth(limitInput = 25) {
   };
 }
 
+export async function getReconciliationHealth() {
+  const db = getDb();
+  if (!db) throw new Error("DATABASE_NOT_CONNECTED");
+  const result = await db.execute(sql`
+    SELECT
+      (SELECT COUNT(*) FROM public.order_financial_reconciliation_queue)::int AS order_financial_open,
+      (SELECT COUNT(*) FROM public.order_total_reconciliation_queue)::int AS order_total_open,
+      (SELECT COUNT(*) FROM public.product_cost_reconciliation_queue)::int AS product_cost_open,
+      COALESCE((SELECT difference_iqd FROM public.v_accounting_inventory_asset_reconciliation LIMIT 1),0) AS inventory_difference
+  `);
+  const row = rowsOf(result)[0] ?? {};
+  return {
+    orderFinancialOpen: n(row.order_financial_open),
+    orderTotalOpen: n(row.order_total_open),
+    productCostOpen: n(row.product_cost_open),
+    inventoryDifference: n(row.inventory_difference),
+  };
+}
+
 export async function getBusinessFindings() {
   const db = getDb();
   if (!db) throw new Error("DATABASE_NOT_CONNECTED");
@@ -455,7 +474,7 @@ export async function getBusinessOverview() {
   const netOperatingProfit = allTime.contributionProfit-operatingExpenses-marketing.adSpend;
   const marketingComplete = marketing.rows>0;
   const confidence: Confidence = allTime.estimatedOrders>0 || !marketingComplete ? "mixed" : "exact";
-  const findings = await getBusinessFindings();
+  const [findings, reconciliation] = await Promise.all([getBusinessFindings(), getReconciliationHealth()]);
   return {
     generatedAt: new Date().toISOString(),currency:"IQD",confidence,
     financials:{...allTime,operatingExpenses,adSpend:marketing.adSpend,netOperatingProfit,recordedMarketingOnly:true},
@@ -467,6 +486,7 @@ export async function getBusinessOverview() {
       roas:marketing.adSpend>0 ? marketing.conversionValue/marketing.adSpend : null,
       mer:marketing.adSpend>0 ? allTime.productRevenue/marketing.adSpend : null,
     },
+    reconciliation,
     findings:{
       open:findings.length,
       critical:findings.filter((item)=>item.severity==="critical").length,
@@ -534,12 +554,13 @@ async function resolveFinding(fingerprint:string) {
   `);
 }
 
-async function refreshFindings(day:string,snapshot:Record<string,number>,marketingRows:number) {
+async function refreshFindings(day:string,snapshot:Record<string,number>,marketingRows:number,reconciliationOpen:number) {
   const checks:Array<{fingerprint:string;active:boolean;findingType:string;metricKey?:string;severity:"warning"|"critical";titleAr:string;details:Record<string,unknown>}>= [
     {fingerprint:"bos:marketing-data-missing",active:marketingRows===0,findingType:"data_quality",metricKey:"ad_spend",severity:"warning",titleAr:"بيانات الإعلانات غير مربوطة بالنظام بعد",details:{day,reason:"No marketing facts recorded; profit excludes unimported ad spend."}},
     {fingerprint:"bos:repeat-rate-below-20",active:snapshot.customersTotal>=20&&snapshot.repeatRate<20,findingType:"customer_retention",metricKey:"repeat_customer_rate_pct",severity:"warning",titleAr:"نسبة العملاء المتكررين أقل من 20%",details:{day,repeatRate:snapshot.repeatRate,customers:snapshot.customersTotal}},
     {fingerprint:"bos:net-operating-loss",active:snapshot.netProfit<0,findingType:"profitability",metricKey:"net_operating_profit",severity:"critical",titleAr:"الربح التشغيلي المسجل أصبح سالباً",details:{day,netOperatingProfit:snapshot.netProfit}},
     {fingerprint:"bos:tracked-conversions-zero",active:snapshot.adSpend>0&&snapshot.trackedConversions===0,findingType:"marketing_attribution",metricKey:"roas",severity:"warning",titleAr:"يوجد إنفاق إعلاني لكن التحويلات المتتبعة صفر",details:{day,adSpend:snapshot.adSpend}},
+    {fingerprint:"bos:financial-reconciliation-open",active:reconciliationOpen>0,findingType:"data_quality",severity:"warning",titleAr:"توجد معاملات مالية تحتاج مصالحة",details:{day,openItems:reconciliationOpen}},
   ];
   for(const check of checks){
     if(check.active) await upsertFinding(check);
@@ -551,8 +572,8 @@ export async function refreshBusinessSnapshot(dayInput?:string) {
   const day=validateDay(dayInput ?? baghdadDay(-1));
   const db=getDb();
   if(!db) throw new Error("DATABASE_NOT_CONNECTED");
-  const [period,customers,operatingExpenses,marketing]=await Promise.all([
-    calculatePeriod(day,day),customerMetrics(day),dailyOperatingExpenses(day),marketingMetrics(day),
+  const [period,customers,operatingExpenses,marketing,reconciliation]=await Promise.all([
+    calculatePeriod(day,day),customerMetrics(day),dailyOperatingExpenses(day),marketingMetrics(day),getReconciliationHealth(),
   ]);
   const isPreviousDay=day===baghdadDay(-1);
   const inventory=isPreviousDay ? await getInventoryHealth(25) : null;
@@ -609,9 +630,9 @@ export async function refreshBusinessSnapshot(dayInput?:string) {
   await refreshFindings(day,{
     customersTotal:customers.customersTotal,repeatRate:customers.repeatCustomerRatePct,
     netProfit:netOperatingProfit,adSpend:marketing.adSpend,trackedConversions:marketing.trackedConversions,
-  },marketing.rows);
+  },marketing.rows,reconciliation.orderFinancialOpen+reconciliation.orderTotalOpen+reconciliation.productCostOpen);
 
-  return {day,confidence,financials:{...period,operatingExpenses,adSpend:marketing.adSpend,netOperatingProfit},customers,marketing,inventory,details};
+  return {day,confidence,financials:{...period,operatingExpenses,adSpend:marketing.adSpend,netOperatingProfit},customers,marketing,inventory,reconciliation,details};
 }
 
 export async function rebuildBusinessHistory(fromDay:string,toDay:string) {
@@ -651,5 +672,6 @@ export async function ingestMarketingDaily(input:{
       conversion_value_iqd=EXCLUDED.conversion_value_iqd,source=EXCLUDED.source,confidence=EXCLUDED.confidence,
       evidence=EXCLUDED.evidence,captured_at=now(),updated_at=now()
   `);
-  return {ok:true,day,platform:input.platform,accountKey:input.accountKey ?? "default"};
+  const snapshot = await refreshBusinessSnapshot(day);
+  return {ok:true,day,platform:input.platform,accountKey:input.accountKey ?? "default",snapshotRefreshed:true,snapshot};
 }
