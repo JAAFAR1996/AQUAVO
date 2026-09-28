@@ -32,18 +32,21 @@ router.post("/track/:orderNumber", orderTrackingLimiter, async (req: Request, re
       return;
     }
 
-    // Only after the second factor matches may we call the carrier mirror.
-    // The response exposes tracking state only; customer PII, addresses, items,
-    // and payment data are never returned.
-    const shipping = await resolveAlWaseetTrackingRuntime({
-      id: order.id,
-      orderNumber: order.orderNumber,
-      customerPhone: order.customerPhone,
-      customerName: order.customerName,
-      total: order.total,
-      roundedTotal: order.roundedTotal,
-      createdAt: order.createdAt,
-    });
+    // Only after the second factor matches may we call a carrier mirror, and
+    // only for an order that AQUAVO explicitly assigned to that carrier.
+    // Unknown/other carriers fall back to factual AQUAVO order state instead of
+    // attempting a phone+amount match against Al-Waseet and risking a false hit.
+    const shipping = String(order.carrier ?? "").trim() === "الوسيط"
+      ? await resolveAlWaseetTrackingRuntime({
+          id: order.id,
+          orderNumber: order.orderNumber,
+          customerPhone: order.customerPhone,
+          customerName: order.customerName,
+          total: order.total,
+          roundedTotal: order.roundedTotal,
+          createdAt: order.createdAt,
+        })
+      : null;
 
     res.json({
       orderNumber: order.orderNumber,
