@@ -863,23 +863,23 @@ export async function seedDefaultBundles() {
 
   const definitions=[
     {
-      slug:"betta-care-starter",name:"باقة بداية البيتا",description:"أساسيات الرعاية اليومية للبيتا بدون شراء قطع غير ضرورية.",discount:5,audience:"betta",
+      slug:"betta-care-starter",name:"باقة بداية البيتا",description:"أساسيات الرعاية اليومية للبيتا بدون شراء قطع غير ضرورية.",discount:0,audience:"betta",
       items:["yee-c1-1124-1","general-sponge-filter-xy180","sunsun-air-pump","houyi-oxygenation-tube","yee-02924","houyi-suction-thermometer"],
     },
     {
-      slug:"guppy-starter",name:"باقة بداية الجوبي",description:"فلترة وتهوية وطعام ومعالجة ماء مناسبة كبداية لحوض جوبي.",discount:5,audience:"guppy",
+      slug:"guppy-starter",name:"باقة بداية الجوبي",description:"فلترة وتهوية وطعام ومعالجة ماء مناسبة كبداية لحوض جوبي.",discount:0,audience:"guppy",
       items:["yee-c1-1113-2","general-sponge-filter-xy180","sunsun-air-pump","houyi-oxygenation-tube","yee-02924","houyi-suction-thermometer"],
     },
     {
-      slug:"planted-tank-starter",name:"باقة بداية الحوض المزروع",description:"مواد تأسيس وعناية بالأكواسكيب والنباتات.",discount:5,audience:"planted",
+      slug:"planted-tank-starter",name:"باقة بداية الحوض المزروع",description:"مواد تأسيس وعناية بالأكواسكيب والنباتات.",discount:0,audience:"planted",
       items:["yee-07509","houyi-moss-glue-5g","houyi-tool-kit","houyi-base-fertilizer","houyi-moss-line"],
     },
     {
-      slug:"filter-maintenance-pack",name:"باقة صيانة الفلتر",description:"مواد وأدوات أساسية لصيانة الفلتر والخراطيم.",discount:5,audience:"maintenance",
+      slug:"filter-maintenance-pack",name:"باقة صيانة الفلتر",description:"مواد وأدوات أساسية لصيانة الفلتر والخراطيم.",discount:0,audience:"maintenance",
       items:["houyi-white-cotton","houyi-activated-carbon","houyi-net-bag","houyi-hose-brush"],
     },
     {
-      slug:"water-testing-pack",name:"باقة فحص ومراقبة الماء",description:"فحص سريع ومراقبة حرارة الحوض مع أساسيات معالجة الماء.",discount:5,audience:"testing",
+      slug:"water-testing-pack",name:"باقة فحص ومراقبة الماء",description:"فحص سريع ومراقبة حرارة الحوض مع أساسيات معالجة الماء.",discount:0,audience:"testing",
       items:["yee-c4-1123-1a","houyi-led-light","yee-02924"],
     },
   ] as const;
@@ -889,7 +889,7 @@ export async function seedDefaultBundles() {
       INSERT INTO public.product_bundles(
         slug,name_ar,description_ar,active,storefront_visible,price_strategy,discount_pct,target_margin_pct,audience_tag,metadata,updated_at
       ) VALUES(
-        ${definition.slug},${definition.name},${definition.description},true,true,'discount',${definition.discount},25,${definition.audience},
+        ${definition.slug},${definition.name},${definition.description},true,true,'sum',${definition.discount},25,${definition.audience},
         ${JSON.stringify({seed:"growth_os_v1"})}::jsonb,now()
       )
       ON CONFLICT(slug) DO UPDATE SET
