@@ -301,25 +301,31 @@ CREATE OR REPLACE FUNCTION public.aquavo_sync_customer_profile_from_order()
 RETURNS trigger
 LANGUAGE plpgsql
 AS $fn$
+DECLARE
+  order_id_for_log text;
 BEGIN
+  order_id_for_log := CASE WHEN TG_OP='DELETE' THEN OLD.id ELSE NEW.id END;
+
   BEGIN
     IF TG_OP='DELETE' THEN
       PERFORM public.aquavo_refresh_customer_profile(OLD.customer_phone);
-      RETURN OLD;
-    END IF;
+    ELSE
+      IF TG_OP='UPDATE'
+         AND OLD.customer_phone IS DISTINCT FROM NEW.customer_phone THEN
+        PERFORM public.aquavo_refresh_customer_profile(OLD.customer_phone);
+      END IF;
 
-    IF TG_OP='UPDATE'
-       AND OLD.customer_phone IS DISTINCT FROM NEW.customer_phone THEN
-      PERFORM public.aquavo_refresh_customer_profile(OLD.customer_phone);
+      PERFORM public.aquavo_refresh_customer_profile(NEW.customer_phone);
     END IF;
-
-    PERFORM public.aquavo_refresh_customer_profile(NEW.customer_phone);
   EXCEPTION WHEN OTHERS THEN
     RAISE WARNING 'AQUAVO customer profile refresh failed for order %: %',
-      COALESCE(NEW.id,OLD.id), SQLERRM;
+      order_id_for_log, SQLERRM;
   END;
 
-  RETURN COALESCE(NEW,OLD);
+  IF TG_OP='DELETE' THEN
+    RETURN OLD;
+  END IF;
+  RETURN NEW;
 END
 $fn$;
 
