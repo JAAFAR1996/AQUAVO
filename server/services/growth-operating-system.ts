@@ -895,6 +895,8 @@ export async function getLifecycleOverview(limitInput=50) {
       COUNT(*) FILTER(WHERE status='completed')::int AS completed,
       COUNT(*) FILTER(WHERE status='suppressed')::int AS suppressed,
       COUNT(*) FILTER(WHERE status='cancelled')::int AS cancelled,
+      COUNT(*) FILTER(WHERE status='failed')::int AS failed,
+      COUNT(*) FILTER(WHERE channel='whatsapp' AND status='ready')::int AS automated_ready,
       COUNT(*) FILTER(WHERE job_type='day7_care' AND status='ready')::int AS day7_ready,
       COUNT(*) FILTER(WHERE job_type='repurchase' AND status='ready')::int AS repurchase_ready
     FROM public.customer_lifecycle_jobs
@@ -923,7 +925,8 @@ export async function getLifecycleOverview(limitInput=50) {
   return {
     summary:{
       ready:n(s.ready),planned:n(s.planned),completed:n(s.completed),suppressed:n(s.suppressed),
-      cancelled:n(s.cancelled),day7Ready:n(s.day7_ready),repurchaseReady:n(s.repurchase_ready),
+      cancelled:n(s.cancelled),failed:n(s.failed),automatedReady:n(s.automated_ready),
+      day7Ready:n(s.day7_ready),repurchaseReady:n(s.repurchase_ready),
     },
     jobs:rowsOf(jobs).map((row)=>{
       const phone=normalizePhone(row.customer_phone);
