@@ -236,8 +236,12 @@ jobs:
         continue-on-error: true
         with:
           path: ./
-          base: ${{ github.event.repository.default_branch }}
-          head: HEAD
+          # Compare the actual pushed/PR commit range. Using the default branch
+          # after checkout makes push builds scan main -> HEAD where both refs
+          # already point at the same commit, causing TruffleHog to fail closed
+          # with "BASE and HEAD commits are the same" even when no secret exists.
+          base: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event_name == 'push' && github.event.before || 'HEAD^' }}
+          head: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
 
   # ==================== QUALITY GATE ====================
   quality-gate:
