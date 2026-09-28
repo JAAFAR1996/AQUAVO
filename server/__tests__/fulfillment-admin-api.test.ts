@@ -71,6 +71,8 @@ beforeAll(async () => {
       attribution_captured_at timestamptz,
       first_touch_utm_source text, first_touch_utm_medium text, first_touch_utm_campaign text,
       first_touch_aq_campaign_id text, first_touch_captured_at timestamptz,
+      whatsapp_marketing_opt_in boolean NOT NULL DEFAULT false,
+      whatsapp_marketing_opt_in_at timestamptz,
       financially_counted boolean DEFAULT true,
       created_at timestamptz DEFAULT now(), updated_at timestamptz DEFAULT now());`);
   await client.exec(`CREATE TABLE products (

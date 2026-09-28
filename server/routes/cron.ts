@@ -12,6 +12,11 @@ import { smartNotifications } from "../services/smart-notifications.js";
 import { runPaymentMaintenance } from "../services/payment-maintenance.js";
 import { refreshBusinessSnapshot } from "../services/business-intelligence.js";
 import { refreshGrowthOs } from "../services/growth-operating-system.js";
+import {
+  cleanupLifecycleReplyInbox,
+  reconcilePendingLifecycleReplies,
+  runDueLifecycleWhatsAppJobs,
+} from "../services/whatsapp-lifecycle.js";
 import { verifyGitHubActionsCronToken } from "../security/github-actions-oidc.js";
 import { analyticsTracker } from "../services/analytics-tracker.js";
 
@@ -243,6 +248,21 @@ router.get("/customer-messaging", async (_req: Request, res: Response) => {
   try {
     const result = await runDueDeliveryCareJobs(5);
 
+    let lifecycle: Awaited<ReturnType<typeof runDueLifecycleWhatsAppJobs>> | null = null;
+    let lifecycleFailed = false;
+    try {
+      lifecycle = await runDueLifecycleWhatsAppJobs(5);
+    } catch {
+      lifecycleFailed = true;
+    }
+
+    let lifecycleRepliesReconciled = 0;
+    try {
+      lifecycleRepliesReconciled = await reconcilePendingLifecycleReplies(25);
+    } catch {
+      // Reply inbox remains durable for a later worker invocation.
+    }
+
     let autoReplies: Awaited<ReturnType<typeof runResilientDeliveryCareAutoReplyRecovery>> | null = null;
     let autoReplyRecoveryFailed = false;
     try {
@@ -265,6 +285,13 @@ router.get("/customer-messaging", async (_req: Request, res: Response) => {
       // Maintenance only; pending events remain durable for a later invocation.
     }
 
+    let lifecycleInboxEventsCleaned = 0;
+    try {
+      lifecycleInboxEventsCleaned = await cleanupLifecycleReplyInbox(500);
+    } catch {
+      // Maintenance only; pending events remain durable for a later invocation.
+    }
+
     const duration = Date.now() - startTime;
     aiMonitor.log({
       event: "cron_job",
@@ -276,20 +303,28 @@ router.get("/customer-messaging", async (_req: Request, res: Response) => {
         status: "completed",
         source: "github_actions_oidc",
         ...result,
+        lifecycle,
+        lifecycleFailed,
+        lifecycleRepliesReconciled,
         autoReplies,
         autoReplyRecoveryFailed,
         providerEventsCleaned,
         buttonInboxEventsCleaned,
+        lifecycleInboxEventsCleaned,
       },
     });
     return res.status(200).json({
       success: true,
       duration,
       ...result,
+      lifecycle,
+      lifecycleFailed,
+      lifecycleRepliesReconciled,
       autoReplies,
       autoReplyRecoveryFailed,
       providerEventsCleaned,
       buttonInboxEventsCleaned,
+      lifecycleInboxEventsCleaned,
     });
   } catch (error) {
     const duration = Date.now() - startTime;

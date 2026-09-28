@@ -94,16 +94,28 @@ type GrowthOverview = {
   lifecycle: {
     summary: {
       ready: number; planned: number; completed: number; suppressed: number; cancelled: number;
+      failed: number; sending: number; automaticCompleted: number; automaticRead: number;
       day7Ready: number; repurchaseReady: number;
     };
     jobs: Array<{
-      id: string; jobType: string; dueAt: string; status: string; orderNumber: string;
+      id: string; jobType: string; dueAt: string; status: string; channel: string;
+      providerStatus: string | null; lastErrorCode: string | null; orderNumber: string;
       customerName: string; whatsappUrl: string | null; message: string;
+    }>;
+    attention: Array<{
+      id: string; jobType: string; choice: string; updatedAt: string; orderNumber: string;
+      customerName: string; customerPhone: string | null; label: string; whatsappUrl: string | null;
     }>;
   };
   customerProfiles: { total: number; detailed: number; coveragePct: number };
   bundles: { count: number; live: number; inStock: number };
   expenses: { capturedUnpostedCount: number; capturedUnpostedAmount: number; marketingSpendCaptured: number };
+  whatsappLifecycle: {
+    configured: boolean;
+    sendWindowOpen: boolean;
+    jobs: { planned?: number; ready?: number; completed?: number; failed?: number; suppressed?: number; read_count?: number };
+    consent: { opted_in?: number; opted_out?: number };
+  };
 };
 
 type Finding = {
@@ -177,6 +189,18 @@ export function BusinessIntelligenceDashboard() {
         queryClient.invalidateQueries({ queryKey: ["business-intelligence", "history"] }),
         queryClient.invalidateQueries({ queryKey: ["growth-os", "overview"] }),
       ]);
+    },
+  });
+
+  const handleLifecycleReply = useMutation({
+    mutationFn: (jobId: string) =>
+      jsonFetch("/api/admin/growth-os/lifecycle/" + encodeURIComponent(jobId) + "/reply-handled", {
+        method: "POST",
+        headers: addCsrfHeader({ "Content-Type": "application/json" }),
+        body: "{}",
+      }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["growth-os", "overview"] });
     },
   });
 
@@ -399,18 +423,54 @@ export function BusinessIntelligenceDashboard() {
               <div className="flex justify-between"><span>Marketing spend captured</span><strong>{iq(growth.data.expenses.marketingSpendCaptured)}</strong></div>
               <div className="flex justify-between"><span>مصروف غير مرحّل</span><strong>{iq(growth.data.expenses.capturedUnpostedAmount)}</strong></div>
               <div className="flex justify-between"><span>Provider conversions</span><strong>{growth.data.attribution.providerTrackedConversions}</strong></div>
+              <div className="flex justify-between"><span>WhatsApp تلقائي / مقروء</span><strong>{growth.data.lifecycle.summary.automaticCompleted} / {growth.data.lifecycle.summary.automaticRead}</strong></div>
+              <div className="flex justify-between"><span>WhatsApp failed</span><strong>{growth.data.lifecycle.summary.failed}</strong></div>
+              <div className="flex justify-between"><span>Marketing opt-in</span><strong>{Number(growth.data.whatsappLifecycle.consent.opted_in ?? 0)}</strong></div>
+              <div className="flex justify-between"><span>Lifecycle config</span><strong>{growth.data.whatsappLifecycle.configured ? "ON" : "OFF"}</strong></div>
             </CardContent></Card>
           </div>
 
+          {growth.data.lifecycle.attention.length > 0 && (
+            <Card className="border-primary/30">
+              <CardHeader>
+                <CardTitle className="text-base">ردود زبائن تحتاج متابعة ({growth.data.lifecycle.attention.length})</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {growth.data.lifecycle.attention.slice(0,10).map((item) => (
+                  <div key={item.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3">
+                    <div>
+                      <p className="font-medium">{item.label} · {item.customerName || item.orderNumber}</p>
+                      <p className="text-xs text-muted-foreground">#{item.orderNumber} · {new Date(item.updatedAt).toLocaleString("ar-IQ")}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {item.whatsappUrl ? (
+                        <a href={item.whatsappUrl} target="_blank" rel="noreferrer" className="text-sm font-semibold text-primary underline underline-offset-4">فتح WhatsApp</a>
+                      ) : <Badge variant="secondary">رقم غير صالح</Badge>}
+                      <Button size="sm" variant="outline" disabled={handleLifecycleReply.isPending} onClick={() => handleLifecycleReply.mutate(item.id)}>
+                        تمت المتابعة
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+
           {growth.data.lifecycle.jobs.some((job) => job.status === "ready") && (
-            <Card><CardHeader><CardTitle className="text-base">متابعات جاهزة — الإرسال يدوي</CardTitle></CardHeader><CardContent className="space-y-2">
+            <Card><CardHeader><CardTitle className="text-base">متابعات جاهزة</CardTitle></CardHeader><CardContent className="space-y-2">
               {growth.data.lifecycle.jobs.filter((job) => job.status === "ready").slice(0,8).map((job) => (
                 <div key={job.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3">
                   <div><p className="font-medium">{job.jobType === "day7_care" ? "متابعة اليوم السابع" : "تذكير إعادة شراء"} · {job.customerName || job.orderNumber}</p>
                     <p className="text-xs text-muted-foreground">#{job.orderNumber} · {new Date(job.dueAt).toLocaleDateString("ar-IQ")}</p></div>
                   <div className="flex items-center gap-2">
-                    {job.whatsappUrl ? <a href={job.whatsappUrl} target="_blank" rel="noreferrer" className="text-sm font-semibold text-primary underline underline-offset-4">فتح WhatsApp</a> : <Badge variant="secondary">رقم غير صالح</Badge>}
-                    <Button size="sm" variant="outline" disabled={completeLifecycle.isPending} onClick={() => completeLifecycle.mutate(job.id)}>تم التواصل</Button>
+                    {job.channel === "whatsapp" ? (
+                      <Badge variant="secondary">تلقائي</Badge>
+                    ) : (
+                      <>
+                        {job.whatsappUrl ? <a href={job.whatsappUrl} target="_blank" rel="noreferrer" className="text-sm font-semibold text-primary underline underline-offset-4">فتح WhatsApp</a> : <Badge variant="secondary">رقم غير صالح</Badge>}
+                        <Button size="sm" variant="outline" disabled={completeLifecycle.isPending} onClick={() => completeLifecycle.mutate(job.id)}>تم التواصل</Button>
+                      </>
+                    )}
                   </div>
                 </div>
               ))}

@@ -140,6 +140,8 @@ const PRE_MIGRATION_SCHEMA = `
     first_touch_utm_campaign text,
     first_touch_aq_campaign_id text,
     first_touch_captured_at timestamptz,
+    whatsapp_marketing_opt_in boolean NOT NULL DEFAULT false,
+    whatsapp_marketing_opt_in_at timestamptz,
     financially_counted boolean,
     created_at timestamp DEFAULT now(),
     updated_at timestamp DEFAULT now()

@@ -1,5 +1,9 @@
 import { sql } from "drizzle-orm";
 import { getDb } from "../db.js";
+import {
+  getWhatsAppLifecycleAutomationHealth,
+  syncCheckoutWhatsAppMarketingConsents,
+} from "./whatsapp-lifecycle.js";
 
 type Row = Record<string, unknown>;
 type PurchaseProvider = "google_tag" | "meta_pixel" | "tiktok" | "posthog";
@@ -273,6 +277,107 @@ export async function refreshRepurchaseProfiles() {
   `);
   const row=rowsOf(result)[0] ?? {};
   return { profiles:n(row.profiles), consumables:n(row.consumables) };
+}
+
+export async function refreshObservedRepurchaseProfiles() {
+  const db=getDb();
+  if(!db) throw new Error("DATABASE_NOT_CONNECTED");
+
+  // Learn only on products already classified as consumables. Repeated purchases
+  // of equipment can mean a second tank, not depletion, and must never teach the
+  // replenishment engine a false cadence.
+  const result=await db.execute(sql`
+    WITH realized AS (
+      SELECT
+        public.aquavo_normalize_iraqi_phone(o.customer_phone) AS customer_phone,
+        oi.product_id,
+        (COALESCE(v.recognized_at,o.created_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Baghdad')::date AS purchase_day
+      FROM public.orders o
+      JOIN public.order_items_relational oi ON oi.order_id=o.id
+      LEFT JOIN public.v_order_accounting v ON v.order_id=o.id
+      JOIN public.product_repurchase_profiles base
+        ON base.sku_key=oi.product_id || '::'
+       AND base.is_consumable=true
+       AND base.active=true
+      WHERE COALESCE(o.is_test,false)=false
+        AND o.status='delivered'
+        AND o.payment_status='paid'
+        AND o.cod_received=true
+        AND public.aquavo_normalize_iraqi_phone(o.customer_phone) IS NOT NULL
+    ),
+    ordered AS (
+      SELECT
+        customer_phone,product_id,purchase_day,
+        LAG(purchase_day) OVER (
+          PARTITION BY customer_phone,product_id
+          ORDER BY purchase_day
+        ) AS prior_day
+      FROM realized
+      GROUP BY customer_phone,product_id,purchase_day
+    ),
+    gaps AS (
+      SELECT
+        customer_phone,product_id,
+        (purchase_day-prior_day)::int AS gap_days
+      FROM ordered
+      WHERE prior_day IS NOT NULL
+        AND purchase_day-prior_day BETWEEN 7 AND 180
+    ),
+    stats AS (
+      SELECT
+        product_id,
+        COUNT(*)::int AS interval_count,
+        COUNT(DISTINCT customer_phone)::int AS customer_count,
+        ROUND(
+          percentile_cont(0.5) WITHIN GROUP (ORDER BY gap_days)
+        )::int AS target_days
+      FROM gaps
+      GROUP BY product_id
+      HAVING COUNT(*)>=4
+         AND COUNT(DISTINCT customer_phone)>=2
+    )
+    INSERT INTO public.product_repurchase_profiles(
+      sku_key,product_id,variant_id,is_consumable,
+      interval_min_days,interval_target_days,interval_max_days,
+      profile_source,confidence,active,notes,updated_at
+    )
+    SELECT
+      s.product_id || '::',
+      s.product_id,
+      NULL,
+      true,
+      GREATEST(7,ROUND(s.target_days*0.70)::int),
+      s.target_days,
+      LEAST(240,GREATEST(s.target_days,ROUND(s.target_days*1.40)::int)),
+      'observed',
+      CASE WHEN s.interval_count>=8 AND s.customer_count>=3 THEN 'high' ELSE 'medium' END,
+      true,
+      'Observed realized-order median cadence; intervals=' || s.interval_count || '; customers=' || s.customer_count,
+      now()
+    FROM stats s
+    ON CONFLICT(sku_key) DO UPDATE SET
+      is_consumable=true,
+      interval_min_days=EXCLUDED.interval_min_days,
+      interval_target_days=EXCLUDED.interval_target_days,
+      interval_max_days=EXCLUDED.interval_max_days,
+      profile_source='observed',
+      confidence=EXCLUDED.confidence,
+      active=true,
+      notes=EXCLUDED.notes,
+      updated_at=now()
+    WHERE public.product_repurchase_profiles.profile_source IN ('rule','observed')
+    RETURNING sku_key,interval_target_days,confidence
+  `);
+
+  const rows=rowsOf(result);
+  return {
+    observedProfiles:rows.length,
+    profiles:rows.map((row)=>({
+      skuKey:String(row.sku_key ?? ""),
+      targetDays:n(row.interval_target_days),
+      confidence:String(row.confidence ?? ""),
+    })),
+  };
 }
 
 export async function refreshInventorySkuDaily(dayInput?: string) {
@@ -728,8 +833,17 @@ export async function planCustomerLifecycleJobs() {
       customer_phone,order_id,job_type,due_at,status,channel,metadata
     )
     SELECT
-      d.customer_phone,d.order_id,'day7_care',d.delivered_at+interval '7 days','planned','manual',
-      jsonb_build_object('source','growth_os','deliveredAt',d.delivered_at)
+      d.customer_phone,d.order_id,'day7_care',
+      (
+        ((d.delivered_at AT TIME ZONE 'Asia/Baghdad')::date + 7 + time '11:30')
+        AT TIME ZONE 'Asia/Baghdad'
+      ),
+      'planned','whatsapp',
+      jsonb_build_object(
+        'source','growth_os',
+        'deliveredAt',d.delivered_at,
+        'schedulePolicy','day7_11_30_baghdad'
+      )
     FROM delivered d
     WHERE d.customer_phone IS NOT NULL
       AND d.delivered_at >= now()-interval '21 days'
@@ -754,11 +868,10 @@ export async function planCustomerLifecycleJobs() {
         AND o.payment_status='paid'
         AND o.cod_received=true
     ),
-    repurchase AS (
+    repurchase_candidates AS (
       SELECT
         d.customer_phone,d.order_id,d.delivered_at,
-        MIN(pr.interval_target_days) AS target_days,
-        jsonb_agg(DISTINCT oi.product_id) AS products
+        oi.product_id,pr.interval_target_days
       FROM delivered d
       JOIN public.order_items_relational oi ON oi.order_id=d.order_id
       JOIN public.product_repurchase_profiles pr
@@ -766,16 +879,42 @@ export async function planCustomerLifecycleJobs() {
        AND pr.is_consumable=true AND pr.active=true
       WHERE d.customer_phone IS NOT NULL
         AND d.delivered_at >= now()-interval '90 days'
-      GROUP BY d.customer_phone,d.order_id,d.delivered_at
+    ),
+    repurchase_target AS (
+      SELECT
+        customer_phone,order_id,delivered_at,
+        MIN(interval_target_days) AS target_days
+      FROM repurchase_candidates
+      GROUP BY customer_phone,order_id,delivered_at
+    ),
+    repurchase AS (
+      SELECT
+        t.customer_phone,t.order_id,t.delivered_at,t.target_days,
+        jsonb_agg(DISTINCT c.product_id) AS products
+      FROM repurchase_target t
+      JOIN repurchase_candidates c
+        ON c.customer_phone=t.customer_phone
+       AND c.order_id=t.order_id
+       AND c.delivered_at=t.delivered_at
+       AND c.interval_target_days=t.target_days
+      GROUP BY t.customer_phone,t.order_id,t.delivered_at,t.target_days
     )
     INSERT INTO public.customer_lifecycle_jobs(
       customer_phone,order_id,job_type,due_at,status,channel,recommended_product_ids,metadata
     )
     SELECT
       r.customer_phone,r.order_id,'repurchase',
-      r.delivered_at + make_interval(days=>r.target_days),
-      'planned','manual',r.products,
-      jsonb_build_object('source','consumables_engine','targetDays',r.target_days,'deliveredAt',r.delivered_at)
+      (
+        ((r.delivered_at AT TIME ZONE 'Asia/Baghdad')::date + r.target_days + time '12:30')
+        AT TIME ZONE 'Asia/Baghdad'
+      ),
+      'planned','whatsapp',r.products,
+      jsonb_build_object(
+        'source','consumables_engine',
+        'targetDays',r.target_days,
+        'deliveredAt',r.delivered_at,
+        'schedulePolicy','replenishment_12_30_baghdad'
+      )
     FROM repurchase r
     ON CONFLICT(order_id,job_type) DO NOTHING
   `);
@@ -835,6 +974,10 @@ export async function getLifecycleOverview(limitInput=50) {
       COUNT(*) FILTER(WHERE status='completed')::int AS completed,
       COUNT(*) FILTER(WHERE status='suppressed')::int AS suppressed,
       COUNT(*) FILTER(WHERE status='cancelled')::int AS cancelled,
+      COUNT(*) FILTER(WHERE status='failed')::int AS failed,
+      COUNT(*) FILTER(WHERE status='sending')::int AS sending,
+      COUNT(*) FILTER(WHERE channel='whatsapp' AND status='completed')::int AS automatic_completed,
+      COUNT(*) FILTER(WHERE channel='whatsapp' AND provider_status='read')::int AS automatic_read,
       COUNT(*) FILTER(WHERE job_type='day7_care' AND status='ready')::int AS day7_ready,
       COUNT(*) FILTER(WHERE job_type='repurchase' AND status='ready')::int AS repurchase_ready
     FROM public.customer_lifecycle_jobs
@@ -842,7 +985,8 @@ export async function getLifecycleOverview(limitInput=50) {
 
   const jobs=await db.execute(sql`
     SELECT
-      j.id,j.job_type,j.due_at,j.status,j.customer_phone,j.recommended_product_ids,j.metadata,
+      j.id,j.job_type,j.due_at,j.status,j.channel,j.provider_status,j.last_error_code,
+      j.customer_phone,j.recommended_product_ids,j.metadata,
       o.order_number,o.customer_name,
       COALESCE((
         SELECT jsonb_agg(jsonb_build_object('id',p.id,'name',p.name,'price',p.price))
@@ -856,11 +1000,33 @@ export async function getLifecycleOverview(limitInput=50) {
     LIMIT ${limit}
   `);
 
+  const attention=await db.execute(sql`
+    SELECT
+      j.id,j.job_type,j.updated_at,j.customer_phone,
+      COALESCE(
+        j.metadata->'reply'->>'latest_choice',
+        j.metadata->'reply'->>'choice'
+      ) AS choice,
+      o.order_number,o.customer_name
+    FROM public.customer_lifecycle_jobs j
+    JOIN public.orders o ON o.id=j.order_id
+    WHERE j.status='completed'
+      AND COALESCE(
+        j.metadata->'reply'->>'latest_choice',
+        j.metadata->'reply'->>'choice'
+      ) IN ('day7_help','repurchase_interest')
+      AND j.metadata->>'reply_handled_at' IS NULL
+    ORDER BY j.updated_at ASC
+    LIMIT ${limit}
+  `);
+
   const s=rowsOf(summary)[0] ?? {};
   return {
     summary:{
       ready:n(s.ready),planned:n(s.planned),completed:n(s.completed),suppressed:n(s.suppressed),
-      cancelled:n(s.cancelled),day7Ready:n(s.day7_ready),repurchaseReady:n(s.repurchase_ready),
+      cancelled:n(s.cancelled),failed:n(s.failed),sending:n(s.sending),
+      automaticCompleted:n(s.automatic_completed),automaticRead:n(s.automatic_read),
+      day7Ready:n(s.day7_ready),repurchaseReady:n(s.repurchase_ready),
     },
     jobs:rowsOf(jobs).map((row)=>{
       const phone=normalizePhone(row.customer_phone);
@@ -874,6 +1040,9 @@ export async function getLifecycleOverview(limitInput=50) {
         jobType:type,
         dueAt:row.due_at,
         status:String(row.status),
+        channel:String(row.channel ?? "manual"),
+        providerStatus:row.provider_status == null ? null : String(row.provider_status),
+        lastErrorCode:row.last_error_code == null ? null : String(row.last_error_code),
         orderNumber:String(row.order_number ?? ""),
         customerName:String(row.customer_name ?? ""),
         customerPhone:phone,
@@ -882,7 +1051,48 @@ export async function getLifecycleOverview(limitInput=50) {
         whatsappUrl:phone ? `https://wa.me/${phone}?text=${encodeURIComponent(message)}` : null,
       };
     }),
+    attention:rowsOf(attention).map((row)=>{
+      const phone=normalizePhone(row.customer_phone);
+      const choice=String(row.choice ?? "");
+      return {
+        id:String(row.id),
+        jobType:String(row.job_type ?? ""),
+        choice,
+        updatedAt:row.updated_at,
+        orderNumber:String(row.order_number ?? ""),
+        customerName:String(row.customer_name ?? ""),
+        customerPhone:phone,
+        label:choice==="day7_help" ? "يحتاج مساعدة" : "مهتم بإعادة الشراء",
+        whatsappUrl:phone ? `https://wa.me/${phone}` : null,
+      };
+    }),
   };
+}
+
+export async function markLifecycleReplyHandled(jobId:string) {
+  const db=getDb();
+  if(!db) throw new Error("DATABASE_NOT_CONNECTED");
+  const result=await db.execute(sql`
+    UPDATE public.customer_lifecycle_jobs
+    SET metadata=jsonb_set(
+          COALESCE(metadata,'{}'::jsonb),
+          '{reply_handled_at}',
+          to_jsonb(clock_timestamp()),
+          true
+        ),
+        updated_at=now()
+    WHERE id=${jobId}
+      AND status='completed'
+      AND COALESCE(
+        metadata->'reply'->>'latest_choice',
+        metadata->'reply'->>'choice'
+      ) IN ('day7_help','repurchase_interest')
+      AND metadata->>'reply_handled_at' IS NULL
+    RETURNING id,job_type,order_id,status
+  `);
+  const row=rowsOf(result)[0];
+  if(!row) return {ok:false,reason:"attention_not_found_or_handled"};
+  return {ok:true,job:row};
 }
 
 export async function markLifecycleJobCompleted(jobId:string) {
@@ -891,7 +1101,7 @@ export async function markLifecycleJobCompleted(jobId:string) {
   const result=await db.execute(sql`
     UPDATE public.customer_lifecycle_jobs
     SET status='completed',completed_at=now(),updated_at=now()
-    WHERE id=${jobId} AND status IN ('ready','planned')
+    WHERE id=${jobId} AND channel='manual' AND status IN ('ready','planned')
     RETURNING id,job_type,order_id,status,completed_at
   `);
   const row=rowsOf(result)[0];
@@ -1265,13 +1475,14 @@ export async function getExpenseCompleteness() {
 }
 
 export async function getGrowthOverview() {
-  const [attribution,inventory,lifecycle,customerProfiles,bundles,expenses]=await Promise.all([
+  const [attribution,inventory,lifecycle,customerProfiles,bundles,expenses,whatsappLifecycle]=await Promise.all([
     getAttributionHealth(),
     getInventoryIntelligence(20),
     getLifecycleOverview(20),
     getCustomerProfileCoverage(),
     getBundles(false),
     getExpenseCompleteness(),
+    getWhatsAppLifecycleAutomationHealth(),
   ]);
 
   return {
@@ -1287,15 +1498,18 @@ export async function getGrowthOverview() {
       items:bundles,
     },
     expenses,
+    whatsappLifecycle,
   };
 }
 
 export async function refreshGrowthOs(dayInput?:string) {
   const day=validateDay(dayInput ?? baghdadGrowthDay(-1));
   const repurchase=await refreshRepurchaseProfiles();
+  const observedRepurchase=await refreshObservedRepurchaseProfiles();
   const customerProfiles=await refreshCustomerAquariumProfiles();
+  const whatsappConsentRepair=await syncCheckoutWhatsAppMarketingConsents();
   const inventory=await refreshInventorySkuDaily(day);
   const lifecycle=await planCustomerLifecycleJobs();
   const bundles=await seedDefaultBundles();
-  return {day,repurchase,customerProfiles,inventory,lifecycle,bundles};
+  return {day,repurchase,observedRepurchase,customerProfiles,whatsappConsentRepair,inventory,lifecycle,bundles};
 }

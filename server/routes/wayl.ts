@@ -11,6 +11,7 @@ import {
   noteWaylStoreVerificationFailure,
   verifyWaylWebhookSignature,
 } from "../services/wayl-client.js";
+import { recordCheckoutWhatsAppMarketingOptIn } from "../services/whatsapp-lifecycle.js";
 import {
   findWebhookSecretForReference,
   getVerifiedPaymentState,
@@ -70,6 +71,7 @@ const onlineCheckoutSchema = z.object({
   cashbackToUse: z.number().int().min(0).optional().default(0),
   clientSessionId: z.string().max(80).optional(),
   attribution: onlineAttributionSchema.optional(),
+  whatsappMarketingOptIn: z.boolean().optional().default(false),
 }).strict();
 
 const retrySchema = z.object({ paymentId: z.string().trim().min(1).max(300) }).strict();
@@ -201,6 +203,19 @@ export function createWaylRouter() {
         useCashback: parsed.data.useCashback,
         cashbackToUse: parsed.data.cashbackToUse,
       });
+      if (parsed.data.whatsappMarketingOptIn) {
+        try {
+          const consent = await recordCheckoutWhatsAppMarketingOptIn(prepared.order.id);
+          if (!consent.ok) {
+            console.warn("[AQUAVO Wayl] WhatsApp marketing opt-in deferred:", consent.reason);
+          }
+        } catch (consentError) {
+          // Payment/order truth never depends on CRM messaging state. The daily
+          // repair worker can reconstruct consent from the committed order flag.
+          console.warn("[AQUAVO Wayl] WhatsApp marketing opt-in deferred:", consentError instanceof Error ? consentError.message : consentError);
+        }
+      }
+
       const started = await startWaylPaymentForOrder(prepared.order.id, paymentUrls(req));
       res.status(prepared.reused ? 200 : 201).json(started);
     } catch (error) {

@@ -153,6 +153,7 @@ export default function CheckoutPage() {
   }, []);
 
   const [agreed, setAgreed] = useState(false);
+  const [whatsappMarketingOptIn, setWhatsappMarketingOptIn] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formErrorSummary, setFormErrorSummary] = useState("");
   const [couponCode, setCouponCode] = useState("");
@@ -331,6 +332,7 @@ export default function CheckoutPage() {
         items: checkoutItems.map(({ productId, variantId, quantity }) => ({ productId, variantId, quantity })),
         couponCode: testMode ? null : appliedCoupon?.code ?? null,
         cashbackToUse: testMode ? 0 : loyaltyData.cashbackToUse,
+        whatsappMarketingOptIn: testMode ? false : whatsappMarketingOptIn,
         testMode,
       });
       const idempotencyKey = getOrderIdempotencyKey(cartSignature);
@@ -359,6 +361,7 @@ export default function CheckoutPage() {
           useCashback: testMode ? false : loyaltyData.useCashback,
           pointsToUse: testMode ? 0 : loyaltyData.pointsToUse,
           cashbackToUse: testMode ? 0 : loyaltyData.cashbackToUse,
+          whatsappMarketingOptIn: testMode ? false : whatsappMarketingOptIn,
           ...(testMode ? { notifyTelegram: true } : {}),
         }),
       });
@@ -663,6 +666,8 @@ export default function CheckoutPage() {
               couponDiscount={couponDiscount}
               loyaltyData={loyaltyData}
               isLoggedIn={!!user}
+              whatsappMarketingOptIn={whatsappMarketingOptIn}
+              setWhatsappMarketingOptIn={setWhatsappMarketingOptIn}
             />
           </div>
         )}

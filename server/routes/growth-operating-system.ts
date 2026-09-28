@@ -12,6 +12,7 @@ import {
   getInventoryIntelligence,
   getLifecycleOverview,
   markLifecycleJobCompleted,
+  markLifecycleReplyHandled,
   recordPurchaseMeasurementReceipt,
   refreshGrowthOs,
   seedDefaultBundles,
@@ -113,6 +114,13 @@ export function createGrowthAdminRouter(){
   });
   router.get("/lifecycle",async(req,res,next)=>{
     try{res.json(await getLifecycleOverview(Number(req.query.limit ?? 50)));}catch(error){next(error);}
+  });
+  router.post("/lifecycle/:id/reply-handled",async(req,res,next)=>{
+    try{
+      const result=await markLifecycleReplyHandled(req.params.id);
+      if(!result.ok){res.status(404).json(result);return;}
+      res.json(result);
+    }catch(error){next(error);}
   });
   router.post("/lifecycle/:id/complete",async(req,res,next)=>{
     try{
