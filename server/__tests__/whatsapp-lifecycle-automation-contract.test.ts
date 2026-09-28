@@ -95,6 +95,18 @@ describe("automatic WhatsApp lifecycle contract",()=>{
     expect(service).toContain("MARKETING_OPTED_OUT");
   });
 
+  it("surfaces help and repurchase-interest replies for human follow-up",()=>{
+    const lifecycle=read("server/services/whatsapp-lifecycle.ts");
+    const growth=read("server/services/growth-operating-system.ts");
+    const dashboard=read("client/src/components/admin/business-intelligence-dashboard.tsx");
+    expect(lifecycle).toContain("AQUAVO — رد يحتاج متابعة");
+    expect(lifecycle).toContain("sendTelegramMessage");
+    expect(growth).toContain("repurchase_interest");
+    expect(growth).toContain("day7_help");
+    expect(growth).toContain("reply_handled_at");
+    expect(dashboard).toContain("ردود زبائن تحتاج متابعة");
+  });
+
   it("runs from the protected five-minute messaging worker",()=>{
     const cron=read("server/routes/cron.ts");
     expect(cron).toContain("runDueLifecycleWhatsAppJobs(5)");
