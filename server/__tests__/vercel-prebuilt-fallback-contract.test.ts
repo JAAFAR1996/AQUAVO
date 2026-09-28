@@ -21,6 +21,6 @@ describe("Vercel prebuilt production fallback", () => {
 
   it("smoke-checks the public readiness contract after deploy", () => {
     expect(workflow).toContain("https://www.aquavoiq.com/ready");
-    expect(workflow).toContain("orderCreationReady !== true");
+    expect(workflow).toContain("orderCreationEnabled !== true");
   });
 });
