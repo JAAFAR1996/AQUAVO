@@ -767,11 +767,10 @@ export async function planCustomerLifecycleJobs() {
         AND o.payment_status='paid'
         AND o.cod_received=true
     ),
-    repurchase AS (
+    repurchase_candidates AS (
       SELECT
         d.customer_phone,d.order_id,d.delivered_at,
-        MIN(pr.interval_target_days) AS target_days,
-        jsonb_agg(DISTINCT oi.product_id) AS products
+        oi.product_id,pr.interval_target_days
       FROM delivered d
       JOIN public.order_items_relational oi ON oi.order_id=d.order_id
       JOIN public.product_repurchase_profiles pr
@@ -779,7 +778,25 @@ export async function planCustomerLifecycleJobs() {
        AND pr.is_consumable=true AND pr.active=true
       WHERE d.customer_phone IS NOT NULL
         AND d.delivered_at >= now()-interval '90 days'
-      GROUP BY d.customer_phone,d.order_id,d.delivered_at
+    ),
+    repurchase_target AS (
+      SELECT
+        customer_phone,order_id,delivered_at,
+        MIN(interval_target_days) AS target_days
+      FROM repurchase_candidates
+      GROUP BY customer_phone,order_id,delivered_at
+    ),
+    repurchase AS (
+      SELECT
+        t.customer_phone,t.order_id,t.delivered_at,t.target_days,
+        jsonb_agg(DISTINCT c.product_id) AS products
+      FROM repurchase_target t
+      JOIN repurchase_candidates c
+        ON c.customer_phone=t.customer_phone
+       AND c.order_id=t.order_id
+       AND c.delivered_at=t.delivered_at
+       AND c.interval_target_days=t.target_days
+      GROUP BY t.customer_phone,t.order_id,t.delivered_at,t.target_days
     )
     INSERT INTO public.customer_lifecycle_jobs(
       customer_phone,order_id,job_type,due_at,status,channel,recommended_product_ids,metadata
