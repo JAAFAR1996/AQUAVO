@@ -94,16 +94,33 @@ type GrowthOverview = {
   lifecycle: {
     summary: {
       ready: number; planned: number; completed: number; suppressed: number; cancelled: number;
-      day7Ready: number; repurchaseReady: number;
+      failed: number; automatedReady: number; day7Ready: number; repurchaseReady: number;
     };
     jobs: Array<{
       id: string; jobType: string; dueAt: string; status: string; orderNumber: string;
       customerName: string; whatsappUrl: string | null; message: string;
+      channel: string; automated: boolean; consentEligible: boolean;
+      templateName: string | null; templateCategory: string | null;
+      providerStatus: string | null; attemptCount: number; lastErrorCode: string | null;
     }>;
   };
   customerProfiles: { total: number; detailed: number; coveragePct: number };
   bundles: { count: number; live: number; inStock: number };
   expenses: { capturedUnpostedCount: number; capturedUnpostedAmount: number; marketingSpendCaptured: number };
+};
+
+type WhatsAppLifecycleReadiness = {
+  enabled: boolean;
+  cloudEnabled: boolean;
+  lifecycleEnabled: boolean;
+  templatesApproved: boolean;
+  apiVersionConfigured: boolean;
+  phoneNumberConfigured: boolean;
+  tokenConfigured: boolean;
+  day7TemplateConfigured: boolean;
+  repurchaseTemplateConfigured: boolean;
+  activationAt: string | null;
+  sendWindowBaghdad: { startHour: number; endHour: number };
 };
 
 type Finding = {
@@ -151,6 +168,11 @@ export function BusinessIntelligenceDashboard() {
     queryFn: () => jsonFetch("/api/admin/growth-os/overview"),
     refetchInterval: 60_000,
   });
+  const whatsappReadiness = useQuery<WhatsAppLifecycleReadiness>({
+    queryKey: ["growth-os", "whatsapp-readiness"],
+    queryFn: () => jsonFetch("/api/admin/growth-os/whatsapp/readiness"),
+    refetchInterval: 60_000,
+  });
   const findings = useQuery<Finding[]>({
     queryKey: ["business-intelligence", "findings"],
     queryFn: () => jsonFetch("/api/admin/business-intelligence/findings"),
@@ -176,6 +198,7 @@ export function BusinessIntelligenceDashboard() {
         queryClient.invalidateQueries({ queryKey: ["business-intelligence", "events"] }),
         queryClient.invalidateQueries({ queryKey: ["business-intelligence", "history"] }),
         queryClient.invalidateQueries({ queryKey: ["growth-os", "overview"] }),
+        queryClient.invalidateQueries({ queryKey: ["growth-os", "whatsapp-readiness"] }),
       ]);
     },
   });
@@ -357,6 +380,24 @@ export function BusinessIntelligenceDashboard() {
             <p className="text-sm text-muted-foreground">Attribution + دوران المخزون + إعادة الشراء + الباقات + اكتمال المصاريف.</p>
           </div>
 
+          {whatsappReadiness.data && (
+            <Card className={whatsappReadiness.data.enabled ? "border-emerald-500/30" : "border-amber-500/30"}>
+              <CardHeader className="pb-2"><CardTitle className="text-sm">WhatsApp Lifecycle</CardTitle></CardHeader>
+              <CardContent className="flex flex-wrap items-center justify-between gap-3 text-sm">
+                <div>
+                  <p className="font-semibold">{whatsappReadiness.data.enabled ? "جاهز للإرسال التلقائي" : "محمي — الإرسال التلقائي غير مفعل"}</p>
+                  <p className="text-xs text-muted-foreground">
+                    Templates: {whatsappReadiness.data.templatesApproved ? "Approved" : "بانتظار الاعتماد/التفعيل"} ·
+                    {" "}نافذة الإرسال {whatsappReadiness.data.sendWindowBaghdad.startHour}:00–{whatsappReadiness.data.sendWindowBaghdad.endHour}:00 بغداد
+                  </p>
+                </div>
+                <Badge variant={whatsappReadiness.data.enabled ? "default" : "secondary"}>
+                  {whatsappReadiness.data.enabled ? "AUTO ON" : "AUTO OFF"}
+                </Badge>
+              </CardContent>
+            </Card>
+          )}
+
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
             <Card><CardHeader className="pb-2"><CardTitle className="text-sm">Attribution</CardTitle></CardHeader><CardContent>
               <div className="text-2xl font-bold">{pct(growth.data.attribution.attributionCoveragePct)}</div>
@@ -402,15 +443,32 @@ export function BusinessIntelligenceDashboard() {
             </CardContent></Card>
           </div>
 
-          {growth.data.lifecycle.jobs.some((job) => job.status === "ready") && (
-            <Card><CardHeader><CardTitle className="text-base">متابعات جاهزة — الإرسال يدوي</CardTitle></CardHeader><CardContent className="space-y-2">
-              {growth.data.lifecycle.jobs.filter((job) => job.status === "ready").slice(0,8).map((job) => (
+          {growth.data.lifecycle.jobs.some((job) => ["ready","sending","failed"].includes(job.status)) && (
+            <Card><CardHeader><CardTitle className="text-base">متابعات WhatsApp</CardTitle></CardHeader><CardContent className="space-y-2">
+              {growth.data.lifecycle.jobs.filter((job) => ["ready","sending","failed"].includes(job.status)).slice(0,10).map((job) => (
                 <div key={job.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3">
-                  <div><p className="font-medium">{job.jobType === "day7_care" ? "متابعة اليوم السابع" : "تذكير إعادة شراء"} · {job.customerName || job.orderNumber}</p>
-                    <p className="text-xs text-muted-foreground">#{job.orderNumber} · {new Date(job.dueAt).toLocaleDateString("ar-IQ")}</p></div>
+                  <div>
+                    <p className="font-medium">{job.jobType === "day7_care" ? "متابعة اليوم السابع" : "تذكير إعادة شراء"} · {job.customerName || job.orderNumber}</p>
+                    <p className="text-xs text-muted-foreground">
+                      #{job.orderNumber} · {new Date(job.dueAt).toLocaleDateString("ar-IQ")} ·
+                      {" "}{job.automated ? "إرسال تلقائي" : "يدوي"}
+                      {job.templateCategory ? " · " + job.templateCategory : ""}
+                    </p>
+                    {job.lastErrorCode && <p className="mt-1 text-xs text-destructive">{job.lastErrorCode}</p>}
+                  </div>
                   <div className="flex items-center gap-2">
-                    {job.whatsappUrl ? <a href={job.whatsappUrl} target="_blank" rel="noreferrer" className="text-sm font-semibold text-primary underline underline-offset-4">فتح WhatsApp</a> : <Badge variant="secondary">رقم غير صالح</Badge>}
-                    <Button size="sm" variant="outline" disabled={completeLifecycle.isPending} onClick={() => completeLifecycle.mutate(job.id)}>تم التواصل</Button>
+                    {job.automated ? (
+                      <Badge variant={job.status === "failed" ? "destructive" : "secondary"}>
+                        {job.status === "sending" ? "جاري الإرسال" : job.status === "failed" ? "فشل" : "WhatsApp تلقائي"}
+                      </Badge>
+                    ) : job.whatsappUrl ? (
+                      <>
+                        <a href={job.whatsappUrl} target="_blank" rel="noreferrer" className="text-sm font-semibold text-primary underline underline-offset-4">فتح WhatsApp</a>
+                        <Button size="sm" variant="outline" disabled={completeLifecycle.isPending} onClick={() => completeLifecycle.mutate(job.id)}>تم التواصل</Button>
+                      </>
+                    ) : (
+                      <Badge variant="secondary">{job.consentEligible ? "رقم غير صالح" : "لا توجد موافقة WhatsApp"}</Badge>
+                    )}
                   </div>
                 </div>
               ))}
