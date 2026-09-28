@@ -70,6 +70,7 @@ const onlineCheckoutSchema = z.object({
   cashbackToUse: z.number().int().min(0).optional().default(0),
   clientSessionId: z.string().max(80).optional(),
   attribution: onlineAttributionSchema.optional(),
+  whatsappMarketingOptIn: z.boolean().optional().default(false),
 }).strict();
 
 const retrySchema = z.object({ paymentId: z.string().trim().min(1).max(300) }).strict();
@@ -201,6 +202,22 @@ export function createWaylRouter() {
         useCashback: parsed.data.useCashback,
         cashbackToUse: parsed.data.cashbackToUse,
       });
+      if (db && parsed.data.whatsappMarketingOptIn) {
+        try {
+          await db.execute(sql`
+            UPDATE public.orders
+               SET whatsapp_marketing_opt_in=true,
+                   whatsapp_marketing_opt_in_at=clock_timestamp(),
+                   updated_at=clock_timestamp()
+             WHERE id=${prepared.order.id}
+          `);
+        } catch (consentError) {
+          // A payment/order must never fail because CRM consent persistence had a
+          // transient issue. Missing consent fails closed for future marketing.
+          console.warn("[AQUAVO Wayl] WhatsApp marketing opt-in not stored:", consentError instanceof Error ? consentError.message : consentError);
+        }
+      }
+
       const started = await startWaylPaymentForOrder(prepared.order.id, paymentUrls(req));
       res.status(prepared.reused ? 200 : 201).json(started);
     } catch (error) {
