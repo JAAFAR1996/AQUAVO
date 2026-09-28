@@ -15,6 +15,8 @@ import { ArrowRight, ShoppingCart, MessageCircle, Instagram } from "lucide-react
 import { MetaTags } from "@/components/seo/meta-tags";
 import { resolveCheckoutTotal } from "@/lib/checkout-total";
 import { clearOrderIdempotencyKey, getOrderIdempotencyKey } from "@/lib/order-idempotency";
+import { getClientSessionId } from "@/lib/client-session";
+import { orderAttributionPayload } from "@/lib/attribution";
 
 import { stashOrder } from "@/lib/order-stash";
 import { CustomerInfo, GOVERNORATES } from "@/components/cart/checkout/types";
@@ -340,6 +342,8 @@ export default function CheckoutPage() {
         }),
         credentials: "include",
         body: JSON.stringify({
+          clientSessionId: getClientSessionId(),
+          attribution: orderAttributionPayload(),
           customerInfo: {
             ...customerInfo,
             address: `${GOVERNORATES.find((g) => g.value === customerInfo.governorate)?.label} - ${customerInfo.address}`,
