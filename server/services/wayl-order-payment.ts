@@ -47,6 +47,12 @@ export interface OnlineCheckoutInput {
   userId: string | null;
   sessionId?: string;
   attribution?: Record<string, string>;
+  whatsappConsent?: {
+    care: boolean;
+    marketing: boolean;
+    version: string;
+    capturedAt: string;
+  };
   customerInfo: {
     name: string;
     phone: string;
@@ -482,6 +488,12 @@ export async function prepareOnlineOrder(input: OnlineCheckoutInput): Promise<Pr
           firstTouchAqCampaignId: input.attribution?.first_touch_aq_campaign_id,
           firstTouchCapturedAt: input.attribution?.first_touch_captured_at
             ? new Date(input.attribution.first_touch_captured_at)
+            : undefined,
+          whatsappCareOptIn: input.whatsappConsent?.care ?? false,
+          whatsappMarketingOptIn: input.whatsappConsent?.marketing ?? false,
+          whatsappConsentVersion: input.whatsappConsent?.version,
+          whatsappConsentCapturedAt: input.whatsappConsent?.capturedAt
+            ? new Date(input.whatsappConsent.capturedAt)
             : undefined,
         } as any).returning();
 
