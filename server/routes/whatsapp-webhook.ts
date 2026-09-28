@@ -15,6 +15,10 @@ import {
   type WhatsAppProviderStatus,
   type WhatsAppProviderStatusEvent,
 } from "../services/whatsapp-provider-status.js";
+import {
+  extractWhatsAppPreferenceTextEvents,
+  handleWhatsAppPreferenceTextEvent,
+} from "../services/whatsapp-preferences.js";
 
 type RawBodyRequest = Request & { rawBody?: Buffer };
 
@@ -297,12 +301,25 @@ export function createWhatsAppWebhookRouter(): RouterType {
 
     const statusEvents = extractWhatsAppStatusEvents(payload);
     const buttonReplyEvents = extractDeliveryCareButtonReplyEvents(payload);
+    const preferenceTextEvents = extractWhatsAppPreferenceTextEvents(payload);
 
     try {
       // Persist signed provider lifecycle status first. If wamid acceptance is
       // still racing, the existing durable inbox retains it for reconciliation.
       for (const event of statusEvents) {
         await recordWhatsAppProviderStatusEvent(event);
+      }
+
+      let preferenceEventsHandled = 0;
+      for (const event of preferenceTextEvents) {
+        const result = await handleWhatsAppPreferenceTextEvent(event);
+        if (result.status === "db_unavailable") {
+          res.status(503).json({ code: "WEBHOOK_PERSISTENCE_FAILED" });
+          return;
+        }
+        if (result.status === "opted_out" || result.status === "duplicate") {
+          preferenceEventsHandled += 1;
+        }
       }
 
       let buttonRepliesHandled = 0;
@@ -346,6 +363,8 @@ export function createWhatsAppWebhookRouter(): RouterType {
         events: statusEvents.length,
         buttonReplies: buttonReplyEvents.length,
         buttonRepliesHandled,
+        preferenceEvents: preferenceTextEvents.length,
+        preferenceEventsHandled,
       });
     } catch {
       // Non-2xx deliberately asks Meta to retry a verified event when persistence
