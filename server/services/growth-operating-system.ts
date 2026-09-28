@@ -60,6 +60,7 @@ function firstName(value: unknown): string {
 
 export async function recordPurchaseMeasurementReceipt(input: {
   publicOrderId: string;
+  aqSid: string;
   provider: PurchaseProvider;
   eventKey: string;
   status: MeasurementStatus;
@@ -73,6 +74,7 @@ export async function recordPurchaseMeasurementReceipt(input: {
     SELECT id,total
     FROM public.orders
     WHERE COALESCE(is_test,false)=false
+      AND aq_sid=${input.aqSid.slice(0,128)}
       AND (id=${input.publicOrderId} OR order_number=${input.publicOrderId})
     LIMIT 1
   `);
@@ -281,9 +283,25 @@ export async function refreshInventorySkuDaily(dayInput?: string) {
   await db.execute(sql`
     WITH
     stock AS (
-      SELECT product_id,variant_id,SUM(canonical_stock)::numeric AS stock
-      FROM public.inventory_canonical_balances
-      GROUP BY product_id,variant_id
+      SELECT b.product_id,b.variant_id,SUM(b.canonical_stock)::numeric AS stock
+      FROM public.inventory_canonical_balances b
+      JOIN public.products p ON p.id=b.product_id AND p.deleted_at IS NULL
+      WHERE
+        (
+          p.has_variants=true
+          AND b.variant_id IS NOT NULL
+          AND EXISTS (
+            SELECT 1
+            FROM jsonb_array_elements(COALESCE(p.variants,'[]'::jsonb)) vv
+            WHERE vv->>'id'=b.variant_id
+          )
+        )
+        OR
+        (
+          COALESCE(p.has_variants,false)=false
+          AND b.variant_id IS NULL
+        )
+      GROUP BY b.product_id,b.variant_id
     ),
     variant_sales AS (
       SELECT
@@ -547,10 +565,10 @@ export async function refreshCustomerAquariumProfiles() {
           THEN jsonb_build_array(u.aquarium_profile->>'mainProblem')
         ELSE cp.goals
       END,
-      notes=CASE
-        WHEN COALESCE(u.aquarium_profile->>'tankAge','')<>'' AND cp.notes IS NULL
+      aquarium_notes=CASE
+        WHEN COALESCE(u.aquarium_profile->>'tankAge','')<>'' AND cp.aquarium_notes IS NULL
           THEN 'Tank age: ' || (u.aquarium_profile->>'tankAge')
-        ELSE cp.notes
+        ELSE cp.aquarium_notes
       END,
       aquarium_profile_source=COALESCE(cp.aquarium_profile_source,'import'),
       aquarium_last_verified_at=COALESCE(cp.aquarium_last_verified_at,u.updated_at),
@@ -595,7 +613,7 @@ export async function getCustomerAquariumProfiles(limitInput=50) {
     SELECT
       id,phone,name,city,user_id,total_orders_count,total_spent_iqd,last_order_at,segment,
       tank_volume_liters,tank_dimensions,livestock,plants,filter_setup,heater_setup,
-      water_profile,goals,notes,aquarium_profile_source,aquarium_last_verified_at,updated_at
+      water_profile,goals,aquarium_notes,aquarium_profile_source,aquarium_last_verified_at,updated_at
     FROM public.customer_profiles
     ORDER BY COALESCE(last_order_at,updated_at) DESC,id DESC
     LIMIT ${limit}
@@ -646,7 +664,7 @@ export async function updateCustomerAquariumProfile(input:{
       heater_setup=CASE WHEN ${hasHeater} THEN ${JSON.stringify(input.heaterSetup ?? {})}::jsonb ELSE heater_setup END,
       water_profile=CASE WHEN ${hasWater} THEN ${JSON.stringify(input.waterProfile ?? {})}::jsonb ELSE water_profile END,
       goals=CASE WHEN ${hasGoals} THEN ${JSON.stringify(input.goals ?? [])}::jsonb ELSE goals END,
-      notes=CASE WHEN ${hasNotes} THEN ${clampText(input.notes,2000)} ELSE notes END,
+      aquarium_notes=CASE WHEN ${hasNotes} THEN ${clampText(input.notes,2000)} ELSE aquarium_notes END,
       aquarium_profile_source=${input.source ?? "admin"},
       aquarium_last_verified_at=now(),
       updated_at=now()
