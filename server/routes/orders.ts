@@ -97,7 +97,7 @@ export function normalizePhoneDigits(value: string): string {
         .replace(/\D/g, "");
 }
 
-const orderTrackingSchema = z.object({
+export const orderTrackingSchema = z.object({
     phoneLast4: z.string().transform(normalizePhoneDigits).refine(
         (value) => value.length === 4,
         "The last four phone digits are required",
@@ -117,16 +117,13 @@ export function buildPublicOrderTrackingResponse(order: {
     createdAt: Date;
     updatedAt: Date;
 }) {
-    const orderDate = new Date(order.createdAt);
-    const estimatedDelivery = new Date(orderDate);
-    estimatedDelivery.setDate(orderDate.getDate() + (order.status === "delivered" ? 0 : order.status === "shipped" ? 2 : 4));
-
+    // Never invent an ETA from order age/status. A delivery estimate is only
+    // trustworthy when a carrier/provider explicitly supplies one.
     return {
         orderNumber: order.orderNumber,
         status: order.status,
         createdAt: order.createdAt,
         updatedAt: order.updatedAt,
-        estimatedDelivery,
     };
 }
 
