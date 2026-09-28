@@ -63,6 +63,7 @@ describe("AQUAVO Growth OS contract",()=>{
   it("keeps lifecycle outbound manual and suppresses already replenished reminders",()=>{
     const service=read("server/services/growth-operating-system.ts");
     expect(service).toContain("'planned','manual'");
+    expect(service).toContain("now()-interval '21 days'");
     expect(service).toContain("'already_replenished'");
     expect(service).not.toContain("graph.facebook.com");
   });
