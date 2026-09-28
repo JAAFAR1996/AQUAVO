@@ -11,6 +11,7 @@ import { runResilientFinanceAudit } from "../services/groq-finance-audit-resilie
 import { smartNotifications } from "../services/smart-notifications.js";
 import { runPaymentMaintenance } from "../services/payment-maintenance.js";
 import { refreshBusinessSnapshot } from "../services/business-intelligence.js";
+import { refreshGrowthOs } from "../services/growth-operating-system.js";
 import { verifyGitHubActionsCronToken } from "../security/github-actions-oidc.js";
 import { analyticsTracker } from "../services/analytics-tracker.js";
 
@@ -175,11 +176,21 @@ router.get("/finance-audit", async (_req: Request, res: Response) => {
       businessIntelligence = { success: false, error: message };
     }
 
+    let growthOs: unknown = null;
+    try {
+      growthOs = db ? await refreshGrowthOs() : { skipped: true, reason: "database_not_connected" };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error("[Cron] Growth OS refresh failed:", message);
+      growthOs = { success: false, error: message };
+    }
+
     if (process.env.FINANCE_AI_AUDIT_ENABLED !== "true") {
       return res.status(200).json({
         success: true,
         automaticClose,
         businessIntelligence,
+        growthOs,
         aiAudit: { skipped: true, reason: "FINANCE_AI_AUDIT_ENABLED is not set" },
         duration: Date.now() - startTime,
       });
@@ -213,6 +224,7 @@ router.get("/finance-audit", async (_req: Request, res: Response) => {
       message: result.error ?? `Finance audit completed: ${result.report?.overallStatus ?? "ok"}`,
       automaticClose,
       businessIntelligence,
+      growthOs,
       duration,
     });
   } catch (error) {
