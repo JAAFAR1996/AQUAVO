@@ -81,7 +81,7 @@ ALTER TABLE public.customer_message_jobs
 CREATE OR REPLACE FUNCTION public.aquavo_sync_whatsapp_consent_from_order()
 RETURNS trigger
 LANGUAGE plpgsql
-AS $$
+AS '
 DECLARE
   normalized_phone text;
   captured_at timestamptz;
@@ -127,7 +127,7 @@ BEGIN
     NULL,
     NULL,
     NEW.whatsapp_consent_version,
-    'checkout',
+    ''checkout'',
     NEW.id,
     clock_timestamp(),
     clock_timestamp()
@@ -158,7 +158,7 @@ BEGIN
       ELSE public.customer_whatsapp_preferences.all_opt_out_at
     END,
     consent_version = COALESCE(EXCLUDED.consent_version,public.customer_whatsapp_preferences.consent_version),
-    consent_source = 'checkout',
+    consent_source = ''checkout'',
     last_order_id = EXCLUDED.last_order_id,
     updated_at = clock_timestamp();
 
@@ -166,8 +166,8 @@ BEGIN
     INSERT INTO public.customer_whatsapp_consent_events(
       phone,category,action,source,order_id,consent_version,metadata
     ) VALUES(
-      normalized_phone,'care','opt_in','checkout',NEW.id,NEW.whatsapp_consent_version,
-      jsonb_build_object('capturedAt',captured_at)
+      normalized_phone,''care'',''opt_in'',''checkout'',NEW.id,NEW.whatsapp_consent_version,
+      jsonb_build_object(''capturedAt'',captured_at)
     )
     ON CONFLICT DO NOTHING;
   END IF;
@@ -176,15 +176,15 @@ BEGIN
     INSERT INTO public.customer_whatsapp_consent_events(
       phone,category,action,source,order_id,consent_version,metadata
     ) VALUES(
-      normalized_phone,'marketing','opt_in','checkout',NEW.id,NEW.whatsapp_consent_version,
-      jsonb_build_object('capturedAt',captured_at)
+      normalized_phone,''marketing'',''opt_in'',''checkout'',NEW.id,NEW.whatsapp_consent_version,
+      jsonb_build_object(''capturedAt'',captured_at)
     )
     ON CONFLICT DO NOTHING;
   END IF;
 
   RETURN NEW;
 END;
-$$;
+';
 
 DROP TRIGGER IF EXISTS trg_orders_sync_whatsapp_consent ON public.orders;
 CREATE TRIGGER trg_orders_sync_whatsapp_consent
