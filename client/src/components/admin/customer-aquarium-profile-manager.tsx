@@ -95,12 +95,10 @@ export function CustomerAquariumProfileManager(){
         headers:addCsrfHeader({"Content-Type":"application/json"}),
         body:JSON.stringify({
           tankVolumeLiters:parsedVolume && parsedVolume>0?parsedVolume:null,
-          tankDimensions:{},
           livestock:splitList(values.livestock),
           plants:splitList(values.plants),
           filterSetup:values.filter.trim()?{description:values.filter.trim()}: {},
           heaterSetup:values.heater.trim()?{description:values.heater.trim()}: {},
-          waterProfile:{},
           goals:splitList(values.goals),
           notes:values.notes.trim()||null,
           source:"admin",
