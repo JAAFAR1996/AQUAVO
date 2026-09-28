@@ -52,6 +52,14 @@ describe("AQUAVO Growth OS contract",()=>{
     expect(service).not.toContain("THEN 'Tank age: ' || (u.aquarium_profile->>'tankAge')\n        ELSE cp.notes");
   });
 
+  it("maps legacy tank type without inventing livestock",()=>{
+    const service=read("server/services/growth-operating-system.ts");
+    expect(service).toContain("legacySystemType");
+    expect(service).toContain("legacySizeClass");
+    expect(service).toContain("cp.livestock=jsonb_build_array");
+    expect(service).not.toContain("THEN jsonb_build_array(u.aquarium_profile->>'fishType')\n        ELSE cp.livestock");
+  });
+
   it("keeps lifecycle outbound manual and suppresses already replenished reminders",()=>{
     const service=read("server/services/growth-operating-system.ts");
     expect(service).toContain("'planned','manual'");
