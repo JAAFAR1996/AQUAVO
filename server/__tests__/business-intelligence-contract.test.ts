@@ -35,10 +35,13 @@ describe("AQUAVO Business Operating System wiring", () => {
     const mcp = readFileSync("server/routes/mcp.ts", "utf8");
     expect(route).toContain("requireAccountingAdmin");
     expect(route).toContain('router.get("/assessment"');
+    expect(route).toContain('router.get("/events"');
+    expect(route).toContain('router.post("/events"');
     expect(routes).toContain("/api/admin/business-intelligence");
     expect(cron).toContain("refreshBusinessSnapshot");
     expect(admin).toContain("business-intelligence");
     expect(mcp).toContain("get_business_overview");
     expect(mcp).toContain("get_business_assessment");
+    expect(mcp).toContain("get_project_history");
   });
 });
