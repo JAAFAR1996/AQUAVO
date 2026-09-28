@@ -30,11 +30,13 @@
 const SID_KEY = "aq_sid";
 const FIRST_TOUCH_KEY = "aq_first_touch";
 const LAST_TOUCH_KEY = "aq_last_touch";
+const LANDING_PATH_KEY = "aq_landing_path";
+const REFERRER_HOST_KEY = "aq_referrer_host";
 
 /** Campaign parameters worth carrying. All are OUR OWN labels or standard ad-platform click ids. */
 const TRACKED_PARAMS = [
   "utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term",
-  "fbclid", "gclid", "ttclid", "igshid",
+  "fbclid", "gclid", "gbraid", "wbraid", "ttclid", "igshid",
   "aq_campaign_id", "aq_adset_id", "aq_ad_id",
   "aq_creative_id", "aq_concept_id", "aq_hypothesis_id", "aq_experiment_id",
 ] as const;
@@ -119,6 +121,18 @@ function readStoredTouch(key: string): TouchRecord | null {
  */
 export function captureAttributionFromUrl(): void {
   getSessionId(); // ensure the id exists from the very first pageview
+
+  if (!safeGet(LANDING_PATH_KEY) && typeof window !== "undefined") {
+    const path = (window.location.pathname + window.location.search).slice(0, 500);
+    safeSet(LANDING_PATH_KEY, path);
+  }
+  if (!safeGet(REFERRER_HOST_KEY) && typeof document !== "undefined" && document.referrer) {
+    try {
+      const host = new URL(document.referrer).hostname.slice(0, 200);
+      if (host) safeSet(REFERRER_HOST_KEY, host);
+    } catch { /* malformed referrer — ignore */ }
+  }
+
   const touch = readCurrentTouch();
   if (!touch) return;
   if (!safeGet(FIRST_TOUCH_KEY)) safeSet(FIRST_TOUCH_KEY, JSON.stringify(touch));
@@ -163,12 +177,24 @@ export function orderAttributionPayload(): Record<string, string> {
   const out: Record<string, string> = { aq_sid: getSessionId() };
   const last = readStoredTouch(LAST_TOUCH_KEY);
   const first = readStoredTouch(FIRST_TOUCH_KEY);
-  for (const key of ["utm_source", "utm_medium", "utm_campaign", "fbclid",
+  for (const key of ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term",
+                     "fbclid", "gclid", "gbraid", "wbraid",
                      "aq_campaign_id", "aq_adset_id", "aq_ad_id",
                      "aq_creative_id", "aq_concept_id", "aq_hypothesis_id", "aq_experiment_id"]) {
     const v = last?.[key] ?? first?.[key];
     if (v) out[key] = v;
   }
+  if (first?.at) out.attribution_first_touch_at = first.at;
+  if (last?.at) out.attribution_last_touch_at = last.at;
+  if (first?.utm_source) out.first_touch_utm_source = first.utm_source;
+  if (first?.utm_campaign) out.first_touch_utm_campaign = first.utm_campaign;
+  if (first?.aq_campaign_id) out.first_touch_aq_campaign_id = first.aq_campaign_id;
+
+  const landing = safeGet(LANDING_PATH_KEY);
+  const referrer = safeGet(REFERRER_HOST_KEY);
+  if (landing) out.landing_path = landing.slice(0, 500);
+  if (referrer) out.referrer_host = referrer.slice(0, 200);
+
   return out;
 }
 
@@ -179,6 +205,8 @@ export function __resetAttributionForTests(): void {
       localStorage.removeItem(SID_KEY);
       localStorage.removeItem(FIRST_TOUCH_KEY);
       localStorage.removeItem(LAST_TOUCH_KEY);
+      localStorage.removeItem(LANDING_PATH_KEY);
+      localStorage.removeItem(REFERRER_HOST_KEY);
     }
   } catch (_) { /* ignore */ }
 }
