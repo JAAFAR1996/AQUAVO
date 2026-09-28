@@ -106,6 +106,12 @@ type GrowthOverview = {
   customerProfiles: { total: number; detailed: number; coveragePct: number };
   bundles: { count: number; live: number; inStock: number };
   expenses: { capturedUnpostedCount: number; capturedUnpostedAmount: number; marketingSpendCaptured: number };
+  whatsappLifecycle: {
+    configured: boolean;
+    sendWindowOpen: boolean;
+    jobs: { planned?: number; ready?: number; completed?: number; failed?: number; suppressed?: number; read_count?: number };
+    consent: { opted_in?: number; opted_out?: number };
+  };
 };
 
 type Finding = {
@@ -403,6 +409,8 @@ export function BusinessIntelligenceDashboard() {
               <div className="flex justify-between"><span>Provider conversions</span><strong>{growth.data.attribution.providerTrackedConversions}</strong></div>
               <div className="flex justify-between"><span>WhatsApp تلقائي / مقروء</span><strong>{growth.data.lifecycle.summary.automaticCompleted} / {growth.data.lifecycle.summary.automaticRead}</strong></div>
               <div className="flex justify-between"><span>WhatsApp failed</span><strong>{growth.data.lifecycle.summary.failed}</strong></div>
+              <div className="flex justify-between"><span>Marketing opt-in</span><strong>{Number(growth.data.whatsappLifecycle.consent.opted_in ?? 0)}</strong></div>
+              <div className="flex justify-between"><span>Lifecycle config</span><strong>{growth.data.whatsappLifecycle.configured ? "ON" : "OFF"}</strong></div>
             </CardContent></Card>
           </div>
 
