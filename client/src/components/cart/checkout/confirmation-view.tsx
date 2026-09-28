@@ -11,6 +11,8 @@ import { PaymentMethodCard } from "./payment-method-card";
 import { ArrowLeft, Loader2, Lock, LockKeyhole, RotateCcw, ShieldCheck, Truck } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { isolateNumericRanges as bidi } from "@shared/i18n/bidi";
+import { getClientSessionId } from "@/lib/client-session";
+import { orderAttributionPayload } from "@/lib/attribution";
 
 const APPLIED_COUPON_STORAGE_KEY = "aquavo_applied_coupon_v1";
 
@@ -136,6 +138,8 @@ export function ConfirmationView({
                 }),
                 credentials: "include",
                 body: JSON.stringify({
+                    clientSessionId: getClientSessionId(),
+                    attribution: orderAttributionPayload(),
                     customerInfo: {
                         name: customerInfo.name,
                         phone: customerInfo.phone,
