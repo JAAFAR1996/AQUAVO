@@ -728,8 +728,17 @@ export async function planCustomerLifecycleJobs() {
       customer_phone,order_id,job_type,due_at,status,channel,metadata
     )
     SELECT
-      d.customer_phone,d.order_id,'day7_care',d.delivered_at+interval '7 days','planned','manual',
-      jsonb_build_object('source','growth_os','deliveredAt',d.delivered_at)
+      d.customer_phone,d.order_id,'day7_care',
+      (
+        ((d.delivered_at AT TIME ZONE 'Asia/Baghdad')::date + 7 + time '11:30')
+        AT TIME ZONE 'Asia/Baghdad'
+      ),
+      'planned','whatsapp',
+      jsonb_build_object(
+        'source','growth_os',
+        'deliveredAt',d.delivered_at,
+        'schedulePolicy','day7_11_30_baghdad'
+      )
     FROM delivered d
     WHERE d.customer_phone IS NOT NULL
       AND d.delivered_at >= now()-interval '21 days'
@@ -773,9 +782,17 @@ export async function planCustomerLifecycleJobs() {
     )
     SELECT
       r.customer_phone,r.order_id,'repurchase',
-      r.delivered_at + make_interval(days=>r.target_days),
-      'planned','manual',r.products,
-      jsonb_build_object('source','consumables_engine','targetDays',r.target_days,'deliveredAt',r.delivered_at)
+      (
+        ((r.delivered_at AT TIME ZONE 'Asia/Baghdad')::date + r.target_days + time '12:30')
+        AT TIME ZONE 'Asia/Baghdad'
+      ),
+      'planned','whatsapp',r.products,
+      jsonb_build_object(
+        'source','consumables_engine',
+        'targetDays',r.target_days,
+        'deliveredAt',r.delivered_at,
+        'schedulePolicy','replenishment_12_30_baghdad'
+      )
     FROM repurchase r
     ON CONFLICT(order_id,job_type) DO NOTHING
   `);
@@ -835,6 +852,10 @@ export async function getLifecycleOverview(limitInput=50) {
       COUNT(*) FILTER(WHERE status='completed')::int AS completed,
       COUNT(*) FILTER(WHERE status='suppressed')::int AS suppressed,
       COUNT(*) FILTER(WHERE status='cancelled')::int AS cancelled,
+      COUNT(*) FILTER(WHERE status='failed')::int AS failed,
+      COUNT(*) FILTER(WHERE status='sending')::int AS sending,
+      COUNT(*) FILTER(WHERE channel='whatsapp' AND status='completed')::int AS automatic_completed,
+      COUNT(*) FILTER(WHERE channel='whatsapp' AND provider_status='read')::int AS automatic_read,
       COUNT(*) FILTER(WHERE job_type='day7_care' AND status='ready')::int AS day7_ready,
       COUNT(*) FILTER(WHERE job_type='repurchase' AND status='ready')::int AS repurchase_ready
     FROM public.customer_lifecycle_jobs
@@ -842,7 +863,8 @@ export async function getLifecycleOverview(limitInput=50) {
 
   const jobs=await db.execute(sql`
     SELECT
-      j.id,j.job_type,j.due_at,j.status,j.customer_phone,j.recommended_product_ids,j.metadata,
+      j.id,j.job_type,j.due_at,j.status,j.channel,j.provider_status,j.last_error_code,
+      j.customer_phone,j.recommended_product_ids,j.metadata,
       o.order_number,o.customer_name,
       COALESCE((
         SELECT jsonb_agg(jsonb_build_object('id',p.id,'name',p.name,'price',p.price))
@@ -860,7 +882,9 @@ export async function getLifecycleOverview(limitInput=50) {
   return {
     summary:{
       ready:n(s.ready),planned:n(s.planned),completed:n(s.completed),suppressed:n(s.suppressed),
-      cancelled:n(s.cancelled),day7Ready:n(s.day7_ready),repurchaseReady:n(s.repurchase_ready),
+      cancelled:n(s.cancelled),failed:n(s.failed),sending:n(s.sending),
+      automaticCompleted:n(s.automatic_completed),automaticRead:n(s.automatic_read),
+      day7Ready:n(s.day7_ready),repurchaseReady:n(s.repurchase_ready),
     },
     jobs:rowsOf(jobs).map((row)=>{
       const phone=normalizePhone(row.customer_phone);
@@ -874,6 +898,9 @@ export async function getLifecycleOverview(limitInput=50) {
         jobType:type,
         dueAt:row.due_at,
         status:String(row.status),
+        channel:String(row.channel ?? "manual"),
+        providerStatus:row.provider_status == null ? null : String(row.provider_status),
+        lastErrorCode:row.last_error_code == null ? null : String(row.last_error_code),
         orderNumber:String(row.order_number ?? ""),
         customerName:String(row.customer_name ?? ""),
         customerPhone:phone,
@@ -891,7 +918,7 @@ export async function markLifecycleJobCompleted(jobId:string) {
   const result=await db.execute(sql`
     UPDATE public.customer_lifecycle_jobs
     SET status='completed',completed_at=now(),updated_at=now()
-    WHERE id=${jobId} AND status IN ('ready','planned')
+    WHERE id=${jobId} AND channel='manual' AND status IN ('ready','planned')
     RETURNING id,job_type,order_id,status,completed_at
   `);
   const row=rowsOf(result)[0];
