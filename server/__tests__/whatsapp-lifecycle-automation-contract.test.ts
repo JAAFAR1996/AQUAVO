@@ -64,6 +64,7 @@ describe("automatic WhatsApp lifecycle contract",()=>{
     expect(growth).toContain("r.interval_target_days");
     expect(growth).toContain("ON CONFLICT(order_id,job_type,scope_key)");
     expect(growth).toContain("per_product_replenishment_12_30_baghdad");
+    expect(growth).toContain("metadata->>'deferReason'");
     expect(migration).toContain("UNIQUE(order_id,job_type,scope_key)");
   });
 
