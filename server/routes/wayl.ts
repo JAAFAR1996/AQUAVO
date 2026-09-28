@@ -197,13 +197,15 @@ export function createWaylRouter() {
         cashbackToUse: parsed.data.cashbackToUse,
       });
       if (parsed.data.attribution) {
-        persistOrderAttribution(
-          prepared.order.id,
-          parsed.data.attribution.aq_sid,
-          parsed.data.attribution,
-        ).catch((error) => {
+        try {
+          await persistOrderAttribution(
+            prepared.order.id,
+            parsed.data.attribution.aq_sid,
+            parsed.data.attribution,
+          );
+        } catch (error) {
           console.warn("[AQUAVO Attribution] Failed to persist Wayl order attribution:", error instanceof Error ? error.message : error);
-        });
+        }
       }
             const started = await startWaylPaymentForOrder(prepared.order.id, paymentUrls(req));
       res.status(prepared.reused ? 200 : 201).json(started);
