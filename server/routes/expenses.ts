@@ -6,6 +6,7 @@ import { expenses } from "../../shared/schema.js";
 import { expenseInputSchema, accountingPeriodSchema, type AccountingPeriod } from "../../shared/accounting.js";
 import { and, gte, lte, eq, desc, isNull } from "drizzle-orm";
 import { recordFinancialChange, actorFromRequest } from "../services/accountingAuditTrail.js";
+import { captureBusinessExpense, ignoreBusinessExpense } from "../services/growth-operating-system.js";
 
 const router = Router();
 router.use(requireAdmin);
@@ -24,6 +25,40 @@ function getExpensesDb(res: Response): Db | null {
 function toNumber(value: unknown): number {
   const n = Number(value);
   return Number.isFinite(n) ? n : 0;
+}
+
+function baghdadDate(value: Date | string): string {
+  const date = value instanceof Date ? value : new Date(value);
+  if (!Number.isFinite(date.getTime())) return new Date().toISOString().slice(0, 10);
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Baghdad",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
+}
+
+async function mirrorExpenseToGrowthInbox(expense: {
+  id: string;
+  category: string;
+  amount: unknown;
+  description?: string | null;
+  expenseDate: Date | string;
+}) {
+  try {
+    await captureBusinessExpense({
+      fingerprint: "admin-expense:" + expense.id,
+      expenseDate: baghdadDate(expense.expenseDate),
+      category: expense.category,
+      amountIqd: toNumber(expense.amount),
+      currency: "IQD",
+      description: expense.description ?? null,
+      source: "admin_expenses",
+      evidence: { expenseId: expense.id, sourceTable: "expenses" },
+    });
+  } catch (error) {
+    console.warn("[Growth OS] Expense inbox mirror failed:", error instanceof Error ? error.message : error);
+  }
 }
 
 function serializeExpense(e: typeof expenses.$inferSelect) {
@@ -172,6 +207,7 @@ router.post("/", async (req: Request, res: Response, next: NextFunction): Promis
       performedByName: actor.name,
     });
 
+    await mirrorExpenseToGrowthInbox(inserted);
     res.status(201).json({ success: true, data: serializeExpense(inserted) });
   } catch (err) {
     next(err);
@@ -233,6 +269,7 @@ router.patch("/:id", async (req: Request, res: Response, next: NextFunction): Pr
       return [row];
     });
 
+    await mirrorExpenseToGrowthInbox(updated);
     res.json({ success: true, data: serializeExpense(updated) });
   } catch (err) {
     next(err);
@@ -278,6 +315,12 @@ router.delete("/:id", async (req: Request, res: Response, next: NextFunction): P
         performedByName: actor.name,
       });
     });
+
+    try {
+      await ignoreBusinessExpense("admin-expense:" + id, parsed.data.reason);
+    } catch (error) {
+      console.warn("[Growth OS] Expense inbox ignore failed:", error instanceof Error ? error.message : error);
+    }
 
     res.json({ success: true });
   } catch (err) {
