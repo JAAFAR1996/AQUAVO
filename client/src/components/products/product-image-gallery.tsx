@@ -139,6 +139,13 @@ export function ProductImageGallery({
                                     if (!target.dataset.retried && target.src !== currentImage) {
                                         target.dataset.retried = "1";
                                         target.src = currentImage;
+                                    } else if (galleryImages.length > 1) {
+                                        // A stale variant image must not blank the whole PDP.
+                                        // Advance to the next gallery image, which is sourced
+                                        // from the current product gallery and is independently
+                                        // retryable. Only show unavailable when no alternative exists.
+                                        setImageFailed(false);
+                                        setSelectedIndex((prev) => (prev + 1) % galleryImages.length);
                                     } else {
                                         setImageFailed(true);
                                     }
