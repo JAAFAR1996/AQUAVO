@@ -141,6 +141,25 @@ describe("durable merchant notification (shared by COD and Wayl)", () => {
     expect(state.outbox[0].status).toBe("delivered");
   });
 
+  it("COD with a canonical session durably stages analytics and merchant delivery exactly once", async () => {
+    const state = { order: storedOrder, payment: { method: "cod", status: "pending" }, outbox: [] as OutboxRow[] };
+    (getDb as any).mockReturnValue(createFakeDb(state));
+    const fetchMock = vi.fn(async () => telegramOk());
+    vi.stubGlobal("fetch", fetchMock);
+
+    await enqueueMerchantNotificationOutbox("order-1", "cs_checkout_1");
+    await enqueueMerchantNotificationOutbox("order-1", "cs_checkout_1");
+    const result = await processPaymentOutboxForOrder("order-1");
+
+    expect(state.outbox.map((row) => row.event_key).sort()).toEqual([
+      "order-1:analytics",
+      "order-1:merchant_notification",
+    ]);
+    expect(result).toEqual({ processed: 2, failed: 0 });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(state.outbox.every((row) => row.status === "delivered")).toBe(true);
+  });
+
   it("the payable amount is the stored rounded total (post-cashback), never the raw total", async () => {
     // Raw total 32,000 with 1,750 cashback used → 30,250 collected.
     const order = { ...storedOrder, total: "32000", pointsDiscount: "1750", roundedTotal: "30250", discountTotal: "0" };
@@ -225,7 +244,7 @@ describe("trigger-point contracts", () => {
   it("COD: the alert is enqueued only after createOrderSecure committed, after the idempotent early return, and can never fail the response", () => {
     const duplicateReturn = ordersRoute.search(/if \(existingOrder\) \{\r?\n\s+res\.status\(200\)\.json\(existingOrder\);/);
     const create = ordersRoute.indexOf("await storage.createOrderSecure");
-    const notify = ordersRoute.indexOf("notifyMerchantOfCodOrder(order.id).catch(");
+    const notify = ordersRoute.indexOf("notifyMerchantOfCodOrder(order.id, analyticsSessionId).catch(");
     const respond = ordersRoute.indexOf("res.status(201).json(response);");
     expect(duplicateReturn).toBeGreaterThan(-1);
     expect(duplicateReturn).toBeLessThan(create);
@@ -236,15 +255,16 @@ describe("trigger-point contracts", () => {
 
   it("COD: the direct fallback fires only when the outbox INSERT itself failed; a drain failure after a successful enqueue is left to the cron (no duplicate)", () => {
     const fn = ordersRoute.slice(ordersRoute.indexOf("async function notifyMerchantOfCodOrder"));
-    const enqueue = fn.indexOf("await enqueueMerchantNotificationOutbox(orderId);");
-    const fallback = fn.indexOf("await sendCodNotificationDirectly(orderId);");
+    const enqueue = fn.indexOf("await enqueueMerchantNotificationOutbox(orderId, analyticsSessionId);");
+    const fallback = fn.indexOf("sendCodNotificationDirectly(orderId)");
     const drain = fn.indexOf("await processPaymentOutboxForOrder(orderId);");
     expect(enqueue).toBeGreaterThan(-1);
     expect(fallback).toBeGreaterThan(enqueue);
     expect(drain).toBeGreaterThan(fallback);
     // The drain's catch only logs.
     expect(fn).toMatch(/await processPaymentOutboxForOrder\(orderId\);\r?\n\s+\} catch \(drainErr\) \{\r?\n\s+console\.error\([^\n]*\r?\n\s+\}/);
-    // Exactly one direct-send site in the route file.
+    expect(fn).toContain("trackCodAnalyticsDirectly(orderId, analyticsSessionId)");
+    // Exactly one direct Telegram-send site in the route file.
     expect(ordersRoute.split("await sendOrderNotification(data);").length - 1).toBe(1);
   });
 
