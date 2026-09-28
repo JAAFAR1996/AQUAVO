@@ -11,6 +11,7 @@ import {
   noteWaylStoreVerificationFailure,
   verifyWaylWebhookSignature,
 } from "../services/wayl-client.js";
+import { recordCheckoutWhatsAppMarketingOptIn } from "../services/whatsapp-lifecycle.js";
 import {
   findWebhookSecretForReference,
   getVerifiedPaymentState,
@@ -202,19 +203,16 @@ export function createWaylRouter() {
         useCashback: parsed.data.useCashback,
         cashbackToUse: parsed.data.cashbackToUse,
       });
-      if (db && parsed.data.whatsappMarketingOptIn) {
+      if (parsed.data.whatsappMarketingOptIn) {
         try {
-          await db.execute(sql`
-            UPDATE public.orders
-               SET whatsapp_marketing_opt_in=true,
-                   whatsapp_marketing_opt_in_at=clock_timestamp(),
-                   updated_at=clock_timestamp()
-             WHERE id=${prepared.order.id}
-          `);
+          const consent = await recordCheckoutWhatsAppMarketingOptIn(prepared.order.id);
+          if (!consent.ok) {
+            console.warn("[AQUAVO Wayl] WhatsApp marketing opt-in deferred:", consent.reason);
+          }
         } catch (consentError) {
-          // A payment/order must never fail because CRM consent persistence had a
-          // transient issue. Missing consent fails closed for future marketing.
-          console.warn("[AQUAVO Wayl] WhatsApp marketing opt-in not stored:", consentError instanceof Error ? consentError.message : consentError);
+          // Payment/order truth never depends on CRM messaging state. The daily
+          // repair worker can reconstruct consent from the committed order flag.
+          console.warn("[AQUAVO Wayl] WhatsApp marketing opt-in deferred:", consentError instanceof Error ? consentError.message : consentError);
         }
       }
 
