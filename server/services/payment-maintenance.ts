@@ -49,13 +49,29 @@ export async function enqueuePaidOrderOutbox(
  * deduplication guarantee: a repeated Idempotency-Key request never reaches this
  * code, and even if it did, the second INSERT is a no-op.
  */
-export async function enqueueMerchantNotificationOutbox(orderId: string): Promise<void> {
+export async function enqueueMerchantNotificationOutbox(
+  orderId: string,
+  sessionId?: string,
+): Promise<void> {
   const db = dbOrThrow();
-  await db.execute(sql`
-    INSERT INTO payment_outbox(event_key, order_id, event_type, payload, status, next_attempt_at)
-    VALUES (${`${orderId}:merchant_notification`}, ${orderId}, 'merchant_notification', '{}'::jsonb, 'pending', now())
-    ON CONFLICT(event_key) DO NOTHING
-  `);
+  const payload = JSON.stringify({ sessionId: sessionId || null });
+
+  // COD has no provider-payment transaction in which to stage post-commit
+  // effects. Insert analytics + merchant notification atomically here so a
+  // process crash after enqueue cannot leave one lifecycle side effect durable
+  // and the other missing. event_key keeps repeated calls idempotent.
+  await db.transaction(async (tx) => {
+    const eventTypes = sessionId
+      ? (["analytics", "merchant_notification"] as const)
+      : (["merchant_notification"] as const);
+    for (const eventType of eventTypes) {
+      await tx.execute(sql`
+        INSERT INTO payment_outbox(event_key, order_id, event_type, payload, status, next_attempt_at)
+        VALUES (${`${orderId}:${eventType}`}, ${orderId}, ${eventType}, ${payload}::jsonb, 'pending', now())
+        ON CONFLICT(event_key) DO NOTHING
+      `);
+    }
+  });
 }
 
 export async function releaseExpiredPaymentReservations(limit = 500): Promise<number> {
