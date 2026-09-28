@@ -313,15 +313,24 @@ async function loadLifecycleContext(job: ClaimedLifecycleJob): Promise<Lifecycle
       COALESCE(o.is_test,false) AS is_test,o.created_at AS order_created_at,
       COALESCE(cp.whatsapp_marketing_opt_in,false) AS marketing_opt_in,
       cp.whatsapp_marketing_opt_in_at,cp.whatsapp_marketing_opt_out_at,
-      EXISTS (
-        SELECT 1
-        FROM public.customer_message_jobs dc
-        WHERE dc.order_id=o.id
-          AND dc.job_type='delivery_care'
-          AND COALESCE(
-            dc.metadata->'delivery_care_reply'->>'latest_choice',
-            dc.metadata->'delivery_care_reply'->>'choice'
-          )='issue'
+      (
+        EXISTS (
+          SELECT 1
+          FROM public.customer_message_jobs dc
+          WHERE dc.order_id=o.id
+            AND dc.job_type='delivery_care'
+            AND COALESCE(
+              dc.metadata->'delivery_care_reply'->>'latest_choice',
+              dc.metadata->'delivery_care_reply'->>'choice'
+            )='issue'
+        )
+        OR EXISTS (
+          SELECT 1
+          FROM public.customer_lifecycle_jobs followup
+          WHERE followup.order_id=o.id
+            AND followup.job_type='day7_care'
+            AND followup.metadata->'reply'->>'choice'='day7_help'
+        )
       ) AS support_issue_open
     FROM public.customer_lifecycle_jobs j
     JOIN public.orders o ON o.id=j.order_id
