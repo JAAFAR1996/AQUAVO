@@ -6,7 +6,7 @@ import { embeddingGenerator } from "../services/embedding-generator.js";
 import { smartNotifications } from "../services/smart-notifications.js";
 import { aiMonitor } from "../services/ai-monitor.js";
 import { emailCampaignAI } from "../services/email-campaign-ai.js";
-import { sendEmail } from "../utils/email.js";
+import { getEmailCampaignReadiness, sendEmail } from "../utils/email.js";
 import { runFinanceAudit, getAccountingRowCounts } from "../services/groqFinanceAudit.js";
 import { sendAuditAlert, needsAlert } from "../services/telegramAlert.js";
 import { SecurityStorage } from "../storage/security-storage.js";
@@ -149,6 +149,17 @@ export function initializeScheduledJobs(): void {
 
     // ==================== Weekly Email Campaigns at 10:00 AM Monday ====================
     cron.schedule("0 10 * * 1", async () => {
+        const readiness = getEmailCampaignReadiness();
+        if (!readiness.ready) {
+            console.warn(`[ScheduledJobs] Email campaign skipped: ${readiness.reason}`);
+            aiMonitor.log({
+                event: "cron_job",
+                level: "info",
+                success: true,
+                details: { job: "email_campaigns", status: "skipped", reason: readiness.reason },
+            });
+            return;
+        }
         if (jobStatus.emailCampaignsRunning) return;
         jobStatus.emailCampaignsRunning = true;
         const t = Date.now();
@@ -344,7 +355,15 @@ export async function triggerJob(
             case "pricing":
                 return { success: true, message: "Pricing agent not implemented yet" };
 
-            case "email_campaigns":
+            case "email_campaigns": {
+                const readiness = getEmailCampaignReadiness();
+                if (!readiness.ready) {
+                    return {
+                        success: false,
+                        message: `Email campaigns unavailable: ${readiness.reason}`,
+                        result: { skipped: true, reason: readiness.reason },
+                    };
+                }
                 if (jobStatus.emailCampaignsRunning) {
                     return { success: false, message: "Email campaigns already running" };
                 }
@@ -356,6 +375,7 @@ export async function triggerJob(
                     message: `تم إرسال ${emailResult.emailsSent} إيميل لـ ${emailResult.targetUsers} مستخدم`,
                     result: emailResult,
                 };
+            }
 
             case "finance_audit": {
                 if (process.env.FINANCE_AI_AUDIT_ENABLED !== "true") {
@@ -405,6 +425,18 @@ async function runWeeklyEmailCampaign(): Promise<{
     emailsFailed: number;
     campaignType: string;
 }> {
+    const readiness = getEmailCampaignReadiness();
+    if (!readiness.ready) {
+        console.warn(`[EmailCampaign] Skipped before campaign creation: ${readiness.reason}`);
+        return {
+            campaignId: "skipped",
+            targetUsers: 0,
+            emailsSent: 0,
+            emailsFailed: 0,
+            campaignType: "disabled",
+        };
+    }
+
     console.log("[EmailCampaign] Starting weekly email campaign...");
 
     // Step 1: Create campaign (targets high-risk churn users first, then all)
