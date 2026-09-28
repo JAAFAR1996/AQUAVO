@@ -221,6 +221,11 @@ export const orders = pgTable("orders", {
   firstTouchAqCampaignId: text("first_touch_aq_campaign_id"),
   firstTouchCapturedAt: timestamp("first_touch_captured_at", { withTimezone: true }),
 
+  // Explicit optional consent for proactive replenishment/marketing on WhatsApp.
+  // False means this order did not add consent; it is not an opt-out signal.
+  whatsappMarketingOptIn: boolean("whatsapp_marketing_opt_in").notNull().default(false),
+  whatsappMarketingOptInAt: timestamp("whatsapp_marketing_opt_in_at", { withTimezone: true }),
+
   // Manual financial inclusion override: null=auto (use status), true=force include, false=force exclude
   financiallyCounted: boolean("financially_counted"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -1400,6 +1405,12 @@ export const customerProfiles = pgTable("customer_profiles", {
   aquariumNotes: text("aquarium_notes"),
   aquariumProfileSource: text("aquarium_profile_source"),
   aquariumLastVerifiedAt: timestamp("aquarium_last_verified_at", { withTimezone: true }),
+  whatsappMarketingOptIn: boolean("whatsapp_marketing_opt_in").notNull().default(false),
+  whatsappMarketingOptInAt: timestamp("whatsapp_marketing_opt_in_at", { withTimezone: true }),
+  whatsappMarketingOptOutAt: timestamp("whatsapp_marketing_opt_out_at", { withTimezone: true }),
+  whatsappMarketingConsentSource: text("whatsapp_marketing_consent_source"),
+  whatsappMarketingSourceOrderId: text("whatsapp_marketing_source_order_id"),
+  whatsappMarketingLastMessageAt: timestamp("whatsapp_marketing_last_message_at", { withTimezone: true }),
   preferredCategories: jsonb("preferred_categories").$type<string[]>(),
   preferredBrands: jsonb("preferred_brands").$type<string[]>(),
   priceRange: jsonb("price_range").$type<{ min: number, max: number }>(),
