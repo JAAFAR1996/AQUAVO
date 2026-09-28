@@ -218,7 +218,7 @@ describe("checkout page", () => {
     const confirmButton = screen.getByRole("button", { name: "تأكيد الطلب" });
     expect(confirmButton).toBeDisabled();
 
-    await user.click(screen.getByRole("checkbox"));
+    await user.click(screen.getByRole("checkbox", { name: /أوافق على.*الشروط والأحكام/ }));
     expect(confirmButton).toBeEnabled();
     // The availability probe is expected here; what must not have happened is an order.
     expect(orderCalls()).toHaveLength(0);
@@ -258,7 +258,7 @@ describe("checkout page", () => {
     expect(screen.getByRole("radio", { name: /الدفع الإلكتروني الآمن/ })).toBeDisabled();
     // The COD path must remain fully usable — an outage never blocks checkout.
     expect(screen.getByRole("radio", { name: /الدفع عند الاستلام/ })).toBeEnabled();
-    await user.click(screen.getByRole("checkbox"));
+    await user.click(screen.getByRole("checkbox", { name: /أوافق على.*الشروط والأحكام/ }));
     expect(screen.getByRole("button", { name: "تأكيد الطلب" })).toBeEnabled();
   });
 
@@ -276,7 +276,7 @@ describe("checkout page", () => {
     await user.click(screen.getByRole("option", { name: "بغداد" }));
     fireEvent.change(screen.getByLabelText("العنوان"), { target: { value: "الكرادة داخل قرب ساحة كهرمانة" } });
     await user.click(screen.getByRole("button", { name: "مراجعة الطلب" }));
-    await user.click(screen.getByRole("checkbox"));
+    await user.click(screen.getByRole("checkbox", { name: /أوافق على.*الشروط والأحكام/ }));
     await user.click(screen.getByRole("button", { name: "تأكيد الطلب" }));
 
     // Heading moved into <CheckoutSuccessFallback /> and was reworded in 32de533c.
@@ -306,7 +306,7 @@ describe("checkout page", () => {
     await user.click(screen.getByRole("option", { name: "بغداد" }));
     fireEvent.change(screen.getByLabelText("العنوان"), { target: { value: "الكرادة داخل قرب ساحة كهرمانة" } });
     await user.click(screen.getByRole("button", { name: "مراجعة الطلب" }));
-    await user.click(screen.getByRole("checkbox"));
+    await user.click(screen.getByRole("checkbox", { name: /أوافق على.*الشروط والأحكام/ }));
 
     const confirmButton = screen.getByRole("button", { name: "تأكيد الطلب" });
     await user.click(confirmButton);
@@ -419,7 +419,7 @@ describe("checkout page", () => {
     await user.click(screen.getByRole("option", { name: "بغداد" }));
     fireEvent.change(screen.getByLabelText("العنوان"), { target: { value: "الكرادة داخل قرب ساحة كهرمانة" } });
     await user.click(screen.getByRole("button", { name: "مراجعة الطلب" }));
-    await user.click(screen.getByRole("checkbox"));
+    await user.click(screen.getByRole("checkbox", { name: /أوافق على.*الشروط والأحكام/ }));
     await user.click(screen.getByRole("button", { name: "تأكيد الطلب" }));
 
     // Heading moved into <CheckoutSuccessFallback /> and was reworded in 32de533c.
