@@ -225,6 +225,66 @@ function sanitizePublicSpecifications(value: unknown): unknown {
   return clean;
 }
 
+function commercialModelValues(variant: AnyRecord): string[] {
+  const values = new Set<string>();
+  const sku = typeof variant.sku === "string" ? variant.sku.trim() : "";
+  if (sku) values.add(sku);
+
+  const specs = variant.specifications;
+  if (specs && typeof specs === "object" && !Array.isArray(specs)) {
+    for (const [key, value] of Object.entries(specs as AnyRecord)) {
+      if (!isCommercialModelSpecificationKey(key)) continue;
+      if (typeof value !== "string" && typeof value !== "number") continue;
+      const normalized = String(value).trim();
+      if (normalized) values.add(normalized);
+    }
+  }
+  return [...values].sort((a, b) => b.length - a.length);
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^$(){}|[\]\\]/g, "\\function sanitizePublicSpecifications(value: unknown): unknown {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return value;
+  const clean: AnyRecord = {};
+  for (const [key, entry] of Object.entries(value as AnyRecord)) {
+    if (isCommercialModelSpecificationKey(key)) continue;
+    clean[key] = entry;
+  }
+  return clean;
+}
+
+/** Pick an explicit set of keys. Absent keys stay absent — no `undefined` padding, no spread. */");
+}
+
+function sanitizeVariantLabel(variant: AnyRecord, index: number): string | undefined {
+  if (typeof variant.label !== "string") return undefined;
+  const original = variant.label.normalize("NFKC").trim();
+  if (!original) return undefined;
+
+  let clean = original;
+  for (const modelValue of commercialModelValues(variant)) {
+    clean = clean.replace(new RegExp(escapeRegExp(modelValue), "giu"), " ");
+  }
+  clean = clean
+    .replace(/^[\s\-–—:|/·]+|[\s\-–—:|/·]+$/gu, "")
+    .replace(/[\s\-–—:|/·]{2,}/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (clean) return clean;
+
+  const publicSpecs = sanitizePublicSpecifications(variant.specifications);
+  if (publicSpecs && typeof publicSpecs === "object" && !Array.isArray(publicSpecs)) {
+    const values = Object.entries(publicSpecs as AnyRecord)
+      .filter(([key]) => !key.startsWith("__"))
+      .map(([, value]) => (typeof value === "string" || typeof value === "number" ? String(value).trim() : ""))
+      .filter(Boolean);
+    if (values.length > 0) return [...new Set(values)].slice(0, 2).join(" — ");
+  }
+
+  return `خيار ${index + 1}`;
+}
+
 /** Pick an explicit set of keys. Absent keys stay absent — no `undefined` padding, no spread. */
 function pick<T extends AnyRecord>(source: T | null | undefined, keys: readonly string[]): AnyRecord {
   const out: AnyRecord = {};
@@ -236,8 +296,11 @@ function pick<T extends AnyRecord>(source: T | null | undefined, keys: readonly 
 }
 
 /** Strip a single variant down to its public keys. */
-export function toPublicVariant(variant: unknown): AnyRecord {
-  const out = pick(variant as AnyRecord, PUBLIC_VARIANT_FIELDS);
+export function toPublicVariant(variant: unknown, index = 0): AnyRecord {
+  const raw = variant && typeof variant === "object" ? variant as AnyRecord : {};
+  const out = pick(raw, PUBLIC_VARIANT_FIELDS);
+  const cleanLabel = sanitizeVariantLabel(raw, index);
+  if (cleanLabel !== undefined) out.label = cleanLabel;
   if (Object.prototype.hasOwnProperty.call(out, "specifications")) {
     out.specifications = sanitizePublicSpecifications(out.specifications);
   }
@@ -270,7 +333,7 @@ export function toPublicProduct(product: unknown): AnyRecord | null {
     // never expose stale option stock/prices to the storefront or crawlers.
     publicProduct.variants = [];
   } else if (Array.isArray(rawVariants)) {
-    publicProduct.variants = rawVariants.map(toPublicVariant);
+    publicProduct.variants = rawVariants.map((variant, index) => toPublicVariant(variant, index));
   } else {
     // Public consumers get one stable collection shape.
     publicProduct.variants = [];
