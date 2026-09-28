@@ -279,6 +279,107 @@ export async function refreshRepurchaseProfiles() {
   return { profiles:n(row.profiles), consumables:n(row.consumables) };
 }
 
+export async function refreshObservedRepurchaseProfiles() {
+  const db=getDb();
+  if(!db) throw new Error("DATABASE_NOT_CONNECTED");
+
+  // Learn only on products already classified as consumables. Repeated purchases
+  // of equipment can mean a second tank, not depletion, and must never teach the
+  // replenishment engine a false cadence.
+  const result=await db.execute(sql`
+    WITH realized AS (
+      SELECT
+        public.aquavo_normalize_iraqi_phone(o.customer_phone) AS customer_phone,
+        oi.product_id,
+        (COALESCE(v.recognized_at,o.created_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Baghdad')::date AS purchase_day
+      FROM public.orders o
+      JOIN public.order_items_relational oi ON oi.order_id=o.id
+      LEFT JOIN public.v_order_accounting v ON v.order_id=o.id
+      JOIN public.product_repurchase_profiles base
+        ON base.sku_key=oi.product_id || '::'
+       AND base.is_consumable=true
+       AND base.active=true
+      WHERE COALESCE(o.is_test,false)=false
+        AND o.status='delivered'
+        AND o.payment_status='paid'
+        AND o.cod_received=true
+        AND public.aquavo_normalize_iraqi_phone(o.customer_phone) IS NOT NULL
+    ),
+    ordered AS (
+      SELECT
+        customer_phone,product_id,purchase_day,
+        LAG(purchase_day) OVER (
+          PARTITION BY customer_phone,product_id
+          ORDER BY purchase_day
+        ) AS prior_day
+      FROM realized
+      GROUP BY customer_phone,product_id,purchase_day
+    ),
+    gaps AS (
+      SELECT
+        customer_phone,product_id,
+        (purchase_day-prior_day)::int AS gap_days
+      FROM ordered
+      WHERE prior_day IS NOT NULL
+        AND purchase_day-prior_day BETWEEN 7 AND 180
+    ),
+    stats AS (
+      SELECT
+        product_id,
+        COUNT(*)::int AS interval_count,
+        COUNT(DISTINCT customer_phone)::int AS customer_count,
+        ROUND(
+          percentile_cont(0.5) WITHIN GROUP (ORDER BY gap_days)
+        )::int AS target_days
+      FROM gaps
+      GROUP BY product_id
+      HAVING COUNT(*)>=4
+         AND COUNT(DISTINCT customer_phone)>=2
+    )
+    INSERT INTO public.product_repurchase_profiles(
+      sku_key,product_id,variant_id,is_consumable,
+      interval_min_days,interval_target_days,interval_max_days,
+      profile_source,confidence,active,notes,updated_at
+    )
+    SELECT
+      s.product_id || '::',
+      s.product_id,
+      NULL,
+      true,
+      GREATEST(7,ROUND(s.target_days*0.70)::int),
+      s.target_days,
+      LEAST(240,GREATEST(s.target_days,ROUND(s.target_days*1.40)::int)),
+      'observed',
+      CASE WHEN s.interval_count>=8 AND s.customer_count>=3 THEN 'high' ELSE 'medium' END,
+      true,
+      'Observed realized-order median cadence; intervals=' || s.interval_count || '; customers=' || s.customer_count,
+      now()
+    FROM stats s
+    ON CONFLICT(sku_key) DO UPDATE SET
+      is_consumable=true,
+      interval_min_days=EXCLUDED.interval_min_days,
+      interval_target_days=EXCLUDED.interval_target_days,
+      interval_max_days=EXCLUDED.interval_max_days,
+      profile_source='observed',
+      confidence=EXCLUDED.confidence,
+      active=true,
+      notes=EXCLUDED.notes,
+      updated_at=now()
+    WHERE public.product_repurchase_profiles.profile_source IN ('rule','observed')
+    RETURNING sku_key,interval_target_days,confidence
+  `);
+
+  const rows=rowsOf(result);
+  return {
+    observedProfiles:rows.length,
+    profiles:rows.map((row)=>({
+      skuKey:String(row.sku_key ?? ""),
+      targetDays:n(row.interval_target_days),
+      confidence:String(row.confidence ?? ""),
+    })),
+  };
+}
+
 export async function refreshInventorySkuDaily(dayInput?: string) {
   const db=getDb();
   if(!db) throw new Error("DATABASE_NOT_CONNECTED");
@@ -1343,10 +1444,11 @@ export async function getGrowthOverview() {
 export async function refreshGrowthOs(dayInput?:string) {
   const day=validateDay(dayInput ?? baghdadGrowthDay(-1));
   const repurchase=await refreshRepurchaseProfiles();
+  const observedRepurchase=await refreshObservedRepurchaseProfiles();
   const customerProfiles=await refreshCustomerAquariumProfiles();
   const whatsappConsentRepair=await syncCheckoutWhatsAppMarketingConsents();
   const inventory=await refreshInventorySkuDaily(day);
   const lifecycle=await planCustomerLifecycleJobs();
   const bundles=await seedDefaultBundles();
-  return {day,repurchase,customerProfiles,whatsappConsentRepair,inventory,lifecycle,bundles};
+  return {day,repurchase,observedRepurchase,customerProfiles,whatsappConsentRepair,inventory,lifecycle,bundles};
 }
