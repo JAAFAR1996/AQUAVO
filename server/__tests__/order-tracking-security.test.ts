@@ -58,6 +58,13 @@ describe("public order tracking security", () => {
         expect(source).toContain("ORDER_TRACKING_FAILURE_MESSAGE");
     });
 
+    it("never links shipped push notifications to an internal order UUID or promises an invented ETA", () => {
+        const adminSource = readFileSync("server/routes/admin.ts", "utf8");
+        expect(adminSource).toContain('url: "/order-tracking"');
+        expect(adminSource).not.toContain('/order-tracking/${order.id}');
+        expect(adminSource).not.toContain("سيصل قريباً");
+    });
+
     it("closes the legacy GET lookup without querying an order", async () => {
         const getOrder = vi.spyOn(storage, "getOrder");
         const app = express().use(express.json()).use("/api/orders", createOrderRouter());
