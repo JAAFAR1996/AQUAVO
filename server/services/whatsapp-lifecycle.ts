@@ -1022,6 +1022,148 @@ export async function cleanupLifecycleReplyInbox(limit = 500): Promise<number> {
   return rowsOf(result).length;
 }
 
+export async function recordCheckoutWhatsAppMarketingOptIn(orderIdInput: string): Promise<{
+  ok: boolean;
+  reason?: string;
+  customerPhone?: string;
+}> {
+  const db = getDb();
+  if (!db) return { ok: false, reason: "database_not_connected" };
+
+  const orderId = String(orderIdInput ?? "").trim();
+  if (!orderId) return { ok: false, reason: "invalid_order_id" };
+
+  // Idempotent order-level evidence. A repeated checkout response never moves
+  // the original consent timestamp forward and therefore cannot resurrect an
+  // opt-in that the customer later revoked.
+  const updated = await db.execute(sql`
+    UPDATE public.orders
+       SET whatsapp_marketing_opt_in=true,
+           whatsapp_marketing_opt_in_at=COALESCE(whatsapp_marketing_opt_in_at,clock_timestamp()),
+           updated_at=clock_timestamp()
+     WHERE id=${orderId}
+       AND COALESCE(is_test,false)=false
+     RETURNING customer_phone,whatsapp_marketing_opt_in_at
+  `);
+  const order = rowsOf(updated)[0];
+  if (!order) return { ok: false, reason: "eligible_order_not_found" };
+
+  const customerPhone = normalizeIraqiWhatsAppPhone(order.customer_phone);
+  const consentAt = asDate(order.whatsapp_marketing_opt_in_at);
+  if (!customerPhone || !consentAt) {
+    return { ok: false, reason: "invalid_customer_identity" };
+  }
+
+  // The canonical CRM row is phone-centric and can represent guest orders. The
+  // refresh function is already non-financial and idempotent.
+  await db.execute(sql`SELECT public.aquavo_refresh_customer_profile(${customerPhone})`);
+
+  // Only a consent event newer than the latest opt-out may reactivate marketing.
+  // Historical/replayed order evidence is preserved in the audit ledger but
+  // cannot override a later customer stop request.
+  await db.execute(sql`
+    UPDATE public.customer_profiles
+       SET whatsapp_marketing_opt_in=CASE
+             WHEN whatsapp_marketing_opt_out_at IS NULL
+               OR ${consentAt} > whatsapp_marketing_opt_out_at
+             THEN true
+             ELSE whatsapp_marketing_opt_in
+           END,
+           whatsapp_marketing_opt_in_at=CASE
+             WHEN whatsapp_marketing_opt_out_at IS NULL
+               OR ${consentAt} > whatsapp_marketing_opt_out_at
+             THEN GREATEST(
+               COALESCE(whatsapp_marketing_opt_in_at,'-infinity'::timestamptz),
+               ${consentAt}
+             )
+             ELSE whatsapp_marketing_opt_in_at
+           END,
+           whatsapp_marketing_opt_out_at=CASE
+             WHEN whatsapp_marketing_opt_out_at IS NOT NULL
+               AND ${consentAt} > whatsapp_marketing_opt_out_at
+             THEN NULL
+             ELSE whatsapp_marketing_opt_out_at
+           END,
+           whatsapp_marketing_consent_source=CASE
+             WHEN whatsapp_marketing_opt_out_at IS NULL
+               OR ${consentAt} > whatsapp_marketing_opt_out_at
+             THEN 'checkout'
+             ELSE whatsapp_marketing_consent_source
+           END,
+           whatsapp_marketing_source_order_id=CASE
+             WHEN whatsapp_marketing_opt_out_at IS NULL
+               OR ${consentAt} > whatsapp_marketing_opt_out_at
+             THEN ${orderId}
+             ELSE whatsapp_marketing_source_order_id
+           END,
+           updated_at=clock_timestamp()
+     WHERE phone=${customerPhone}
+  `);
+
+  await db.execute(sql`
+    INSERT INTO public.customer_messaging_consent_events(
+      customer_phone,order_id,event_type,source,source_event_id,metadata,occurred_at
+    ) VALUES(
+      ${customerPhone},${orderId},'marketing_opt_in','checkout',
+      ${"order:" + orderId},
+      jsonb_build_object('channel','whatsapp','purpose','replenishment'),
+      ${consentAt}
+    )
+    ON CONFLICT (source,source_event_id)
+      WHERE source_event_id IS NOT NULL
+    DO NOTHING
+  `);
+
+  return { ok: true, customerPhone };
+}
+
+/**
+ * Daily repair for the deliberate non-blocking checkout boundary. If commerce
+ * succeeded but the post-commit CRM write had a transient failure, the order's
+ * durable opt-in flag is enough to reconstruct the consent ledger later.
+ */
+export async function syncCheckoutWhatsAppMarketingConsents(limitInput = 200): Promise<{
+  candidates: number;
+  repaired: number;
+  failed: number;
+}> {
+  const db = getDb();
+  if (!db) return { candidates: 0, repaired: 0, failed: 0 };
+
+  const limit = Math.max(1, Math.min(1000, Math.floor(Number(limitInput) || 200)));
+  const pending = await db.execute(sql`
+    SELECT o.id
+    FROM public.orders o
+    WHERE COALESCE(o.is_test,false)=false
+      AND o.whatsapp_marketing_opt_in=true
+      AND o.whatsapp_marketing_opt_in_at IS NOT NULL
+      AND NOT EXISTS (
+        SELECT 1
+        FROM public.customer_messaging_consent_events e
+        WHERE e.source='checkout'
+          AND e.source_event_id='order:' || o.id
+      )
+    ORDER BY o.whatsapp_marketing_opt_in_at ASC,o.id ASC
+    LIMIT ${limit}
+  `);
+
+  let repaired = 0;
+  let failed = 0;
+  for (const row of rowsOf(pending)) {
+    const id = String(row.id ?? "").trim();
+    if (!id) continue;
+    try {
+      const result = await recordCheckoutWhatsAppMarketingOptIn(id);
+      if (result.ok) repaired += 1;
+      else failed += 1;
+    } catch {
+      failed += 1;
+    }
+  }
+
+  return { candidates: rowsOf(pending).length, repaired, failed };
+}
+
 export async function getWhatsAppLifecycleAutomationHealth() {
   const db = getDb();
   if (!db) throw new Error("DATABASE_NOT_CONNECTED");
