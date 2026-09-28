@@ -1,6 +1,7 @@
 import { Router, type Request, type Response } from "express";
 import { sql } from "drizzle-orm";
 import { z } from "zod";
+import { WHATSAPP_CONSENT_VERSION } from "../../shared/whatsapp-consent.js";
 import { getSession } from "../middleware/auth.js";
 import { orderLimiter } from "../middleware/rate-limit.js";
 import { db } from "../db.js";
@@ -53,6 +54,12 @@ const onlineAttributionSchema = z.object({
 
 const CLIENT_VIEW_SESSION_ID = /^cs_[A-Za-z0-9_]{1,64}$/;
 
+const whatsappConsentSchema = z.object({
+  care: z.boolean(),
+  marketing: z.boolean(),
+  version: z.literal(WHATSAPP_CONSENT_VERSION),
+}).strict();
+
 const onlineCheckoutSchema = z.object({
   customerInfo: z.object({
     name: z.string().trim().min(2).max(100),
@@ -70,6 +77,7 @@ const onlineCheckoutSchema = z.object({
   cashbackToUse: z.number().int().min(0).optional().default(0),
   clientSessionId: z.string().max(80).optional(),
   attribution: onlineAttributionSchema.optional(),
+  whatsappConsent: whatsappConsentSchema.optional(),
 }).strict();
 
 const retrySchema = z.object({ paymentId: z.string().trim().min(1).max(300) }).strict();
@@ -195,6 +203,9 @@ export function createWaylRouter() {
           ? parsed.data.clientSessionId
           : (req as any).sessionID,
         attribution: parsed.data.attribution,
+        whatsappConsent: parsed.data.whatsappConsent
+          ? { ...parsed.data.whatsappConsent, capturedAt: new Date().toISOString() }
+          : undefined,
         customerInfo: parsed.data.customerInfo,
         items: parsed.data.items,
         couponCode: parsed.data.couponCode,
