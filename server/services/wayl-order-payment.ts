@@ -46,6 +46,7 @@ export interface OnlineCheckoutInput {
   idempotencyKey: string;
   userId: string | null;
   sessionId?: string;
+  attribution?: Record<string, string>;
   customerInfo: {
     name: string;
     phone: string;
@@ -454,6 +455,34 @@ export async function prepareOnlineOrder(input: OnlineCheckoutInput): Promise<Pr
           customerEmail: input.customerInfo.email || undefined,
           customerPhone: input.customerInfo.phone,
           source: "website",
+          viewSessionId: input.sessionId,
+          aqSid: input.attribution?.aq_sid,
+          attributionUtmSource: input.attribution?.utm_source,
+          attributionUtmMedium: input.attribution?.utm_medium,
+          attributionUtmCampaign: input.attribution?.utm_campaign,
+          attributionUtmContent: input.attribution?.utm_content,
+          attributionUtmTerm: input.attribution?.utm_term,
+          attributionFbclid: input.attribution?.fbclid,
+          attributionGclid: input.attribution?.gclid,
+          attributionTtclid: input.attribution?.ttclid,
+          attributionIgshid: input.attribution?.igshid,
+          aqCampaignId: input.attribution?.aq_campaign_id,
+          aqAdsetId: input.attribution?.aq_adset_id,
+          aqAdId: input.attribution?.aq_ad_id,
+          aqCreativeId: input.attribution?.aq_creative_id,
+          aqConceptId: input.attribution?.aq_concept_id,
+          aqHypothesisId: input.attribution?.aq_hypothesis_id,
+          aqExperimentId: input.attribution?.aq_experiment_id,
+          attributionCapturedAt: input.attribution?.attribution_captured_at
+            ? new Date(input.attribution.attribution_captured_at)
+            : undefined,
+          firstTouchUtmSource: input.attribution?.first_touch_utm_source,
+          firstTouchUtmMedium: input.attribution?.first_touch_utm_medium,
+          firstTouchUtmCampaign: input.attribution?.first_touch_utm_campaign,
+          firstTouchAqCampaignId: input.attribution?.first_touch_aq_campaign_id,
+          firstTouchCapturedAt: input.attribution?.first_touch_captured_at
+            ? new Date(input.attribution.first_touch_captured_at)
+            : undefined,
         } as any).returning();
 
         const [payment] = await tx.insert(payments).values({
