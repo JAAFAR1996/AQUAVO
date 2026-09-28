@@ -41,10 +41,14 @@ describe("customer lifecycle integrity", () => {
     expect(cartRoute).toContain("resolveCartSessionId(req, data.clientSessionId)");
     expect(analyticsRoute).toContain('router.post("/cart-event"');
     expect(analyticsRoute).toContain("CLIENT_VIEW_SESSION_ID.test(body.clientSessionId)");
-    expect(orders).toContain('analyticsTracker.trackSessionStatus(\n                analyticsSessionId');
+    expect(orders).toContain("notifyMerchantOfCodOrder(order.id, analyticsSessionId)");
+    expect(paymentMaintenance).toContain('(["analytics", "merchant_notification"] as const)');
   });
 
   it("classifies abandoned carts from real inactivity instead of leaving them active forever", () => {
+    expect(analyticsTracker).toContain("async touchCartSession");
+    expect(analyticsRoute).toContain('body.action === "touch"');
+    expect(cartContext).toContain('fireCartLifecycleAnalytics("touch"');
     expect(analyticsTracker).toContain("async abandonStaleCartSessions(maxAgeHours = 24)");
     expect(analyticsTracker).toContain("status='abandoned'");
     expect(migration).toContain("updated_at < now() - interval '24 hours'");
@@ -74,6 +78,13 @@ describe("customer lifecycle integrity", () => {
     expect(reviews).toContain('order.status === "delivered"');
     expect(migration).toContain("JOIN public.order_items_relational oi ON oi.order_id=o.id");
     expect(migration).toContain("SET verified_purchase=true");
+  });
+
+  it("uses the durable outbox for COD purchase analytics instead of best-effort request-tail tracking", () => {
+    expect(paymentMaintenance).toContain("COD has no provider-payment transaction");
+    expect(paymentMaintenance).toContain('(["analytics", "merchant_notification"] as const)');
+    expect(orders).toContain("await enqueueMerchantNotificationOutbox(orderId, analyticsSessionId)");
+    expect(orders).toContain("trackCodAnalyticsDirectly(orderId, analyticsSessionId)");
   });
 
   it("retires the orphan logistics agent path without touching canonical fulfillment", () => {
