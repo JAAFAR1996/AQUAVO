@@ -12,6 +12,8 @@ import { metaTrackInitiateCheckout, metaTrackPurchase } from "@/lib/meta-pixel";
 import { trackAddShippingInfo, trackBeginCheckout, trackPurchase } from "@/lib/analytics";
 import { phTrackInitiateCheckout, phTrackPurchase } from "@/lib/posthog";
 import { clearOrderIdempotencyKey, getOrderIdempotencyKey } from "@/lib/order-idempotency";
+import { getClientSessionId } from "@/lib/client-session";
+import { orderAttributionPayload } from "@/lib/attribution";
 
 // Sub-components
 import { CustomerInfo, GOVERNORATES } from "./checkout/types";
@@ -256,6 +258,8 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
           "Idempotency-Key": idempotencyKey,
         }),
         body: JSON.stringify({
+          clientSessionId: getClientSessionId(),
+          attribution: orderAttributionPayload(),
           customerInfo: submittedCustomerInfo,
           items: cartItems.map(item => ({
             productId: item.productId,
