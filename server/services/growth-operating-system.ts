@@ -933,6 +933,7 @@ export async function planCustomerLifecycleJobs() {
         metadata=EXCLUDED.metadata,
         updated_at=now()
     WHERE public.customer_lifecycle_jobs.status='planned'
+      AND COALESCE(public.customer_lifecycle_jobs.metadata->>'deferReason','')=''
   `);
 
   await db.execute(sql`
