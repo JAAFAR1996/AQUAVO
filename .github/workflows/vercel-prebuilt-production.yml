@@ -1,4 +1,5 @@
 name: Vercel Prebuilt Production Fallback
+# Manual/marked-merge only: normal main pushes remain owned by Vercel Git integration.
 
 on:
   workflow_dispatch:
