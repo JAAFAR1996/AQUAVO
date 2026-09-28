@@ -443,6 +443,43 @@ export async function getReconciliationHealth() {
   };
 }
 
+export async function getBusinessEvents(limitInput=100,eventType?:string) {
+  const db=getDb();
+  if(!db) throw new Error("DATABASE_NOT_CONNECTED");
+  const limit=Math.max(1,Math.min(500,Math.floor(Number(limitInput)||100)));
+  const result=await db.execute(sql`
+    SELECT id,occurred_at,event_type,entity_type,entity_id,title,details,source,severity,fingerprint,created_at
+    FROM public.business_event_log
+    WHERE (${eventType ?? null}::text IS NULL OR event_type=${eventType ?? null})
+    ORDER BY occurred_at DESC
+    LIMIT ${limit}
+  `);
+  return rowsOf(result);
+}
+
+export async function recordBusinessEvent(input:{
+  occurredAt:string;eventType:string;entityType?:string|null;entityId?:string|null;
+  title:string;details?:Record<string,unknown>;source:string;severity?:"info"|"warning"|"critical";fingerprint:string;
+}) {
+  const db=getDb();
+  if(!db) throw new Error("DATABASE_NOT_CONNECTED");
+  const occurredAt=new Date(input.occurredAt);
+  if(!Number.isFinite(occurredAt.getTime())) throw new Error("BUSINESS_EVENT_INVALID_DATE");
+  await db.execute(sql`
+    INSERT INTO public.business_event_log(
+      occurred_at,event_type,entity_type,entity_id,title,details,source,severity,fingerprint
+    ) VALUES(
+      ${occurredAt},${input.eventType},${input.entityType ?? null},${input.entityId ?? null},${input.title},
+      ${JSON.stringify(input.details ?? {})}::jsonb,${input.source},${input.severity ?? "info"},${input.fingerprint}
+    )
+    ON CONFLICT(fingerprint) DO UPDATE SET
+      occurred_at=EXCLUDED.occurred_at,event_type=EXCLUDED.event_type,entity_type=EXCLUDED.entity_type,
+      entity_id=EXCLUDED.entity_id,title=EXCLUDED.title,details=EXCLUDED.details,source=EXCLUDED.source,
+      severity=EXCLUDED.severity
+  `);
+  return {ok:true,fingerprint:input.fingerprint};
+}
+
 export async function getBusinessFindings() {
   const db = getDb();
   if (!db) throw new Error("DATABASE_NOT_CONNECTED");
