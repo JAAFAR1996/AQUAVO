@@ -1,6 +1,7 @@
 // Google Analytics 4 Integration
 // To use: Add VITE_GA_ID to your .env file
 import { isTrackingAllowed } from "./tracking-environment";
+import { addCsrfHeader } from "./csrf";
 
 // Cart item interface for analytics
 interface AnalyticsCartItem {
@@ -179,37 +180,79 @@ function toGAItems(items: AnalyticsCartItem[]) {
   return items.map(toGAItem);
 }
 
+function recordGooglePurchaseReceipt(
+  orderId: string,
+  status: 'emitted' | 'blocked' | 'failed',
+  value: number,
+  reason?: string,
+) {
+  try {
+    void fetch('/api/growth/purchase-receipt', {
+      method: 'POST',
+      headers: addCsrfHeader({ 'Content-Type': 'application/json' }),
+      credentials: 'include',
+      keepalive: true,
+      body: JSON.stringify({
+        orderId,
+        provider: 'google_tag',
+        eventKey: 'purchase',
+        status,
+        clientValueIqd: value,
+        details: reason ? { reason } : {},
+      }),
+    }).catch(() => {});
+  } catch {
+    // Diagnostics must never interfere with checkout.
+  }
+}
+
 export function trackPurchase(orderData: {
   orderId: string;
   total: number;
   items: AnalyticsCartItem[];
 }) {
-  // Purchase measurement must keep working even if the GA4 env id is
-  // temporarily unavailable: the Google Ads destination is installed in the
-  // document shell and exposes the same gtag instance.
-  if (!isTrackingAllowed() || !window.gtag) return;
+  const orderId = String(orderData.orderId || '').trim();
+  if (!orderId || orderId === 'unknown' || !isTrackingAllowed()) return;
 
-  window.gtag('event', 'purchase', {
-    transaction_id: orderData.orderId,
-    currency: 'IQD',
-    value: orderData.total,
-    items: orderData.items.map((item) => ({
-      item_id: item.id,
-      item_name: item.name,
-      price: item.price,
-      quantity: item.quantity,
-    })),
-  });
+  const dedupKey = `aq_google_purchase_${orderId}`;
+  try {
+    if (localStorage.getItem(dedupKey)) return;
+  } catch {
+    // Storage can be unavailable; Google also deduplicates by transaction_id.
+  }
 
-  // Direct Google Ads Purchase conversion. Use the confirmed order total and
-  // transaction id so bidding learns from real revenue and duplicate orders
-  // can be de-duplicated by Google Ads.
-  window.gtag('event', 'conversion', {
-    send_to: GOOGLE_ADS_PURCHASE_DESTINATION,
-    value: orderData.total,
-    currency: 'IQD',
-    transaction_id: orderData.orderId,
-  });
+  // Do not mark this order as measured when the tag is unavailable. The order
+  // confirmation page calls this helper again and can recover the conversion.
+  if (!window.gtag) {
+    recordGooglePurchaseReceipt(orderId, 'blocked', orderData.total, 'gtag_unavailable');
+    return;
+  }
+
+  try {
+    window.gtag('event', 'purchase', {
+      transaction_id: orderId,
+      currency: 'IQD',
+      value: orderData.total,
+      items: orderData.items.map((item) => ({
+        item_id: item.id,
+        item_name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+      })),
+    });
+
+    window.gtag('event', 'conversion', {
+      send_to: GOOGLE_ADS_PURCHASE_DESTINATION,
+      value: orderData.total,
+      currency: 'IQD',
+      transaction_id: orderId,
+    });
+
+    try { localStorage.setItem(dedupKey, '1'); } catch { /* provider transaction_id still deduplicates */ }
+    recordGooglePurchaseReceipt(orderId, 'emitted', orderData.total);
+  } catch {
+    recordGooglePurchaseReceipt(orderId, 'failed', orderData.total, 'gtag_throw');
+  }
 }
 
 export function trackSearch(searchQuery: string) {
