@@ -115,32 +115,18 @@ ALTER TABLE public.customer_profiles
   ADD COLUMN IF NOT EXISTS aquarium_profile_source text,
   ADD COLUMN IF NOT EXISTS aquarium_last_verified_at timestamptz;
 
-DO $constraints$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_constraint
-    WHERE conname='customer_profiles_tank_volume_chk'
-      AND conrelid='public.customer_profiles'::regclass
-  ) THEN
-    ALTER TABLE public.customer_profiles
-      ADD CONSTRAINT customer_profiles_tank_volume_chk
-      CHECK (tank_volume_liters IS NULL OR tank_volume_liters > 0);
-  END IF;
+ALTER TABLE public.customer_profiles
+  DROP CONSTRAINT IF EXISTS customer_profiles_tank_volume_chk,
+  DROP CONSTRAINT IF EXISTS customer_profiles_aquarium_source_chk;
 
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_constraint
-    WHERE conname='customer_profiles_aquarium_source_chk'
-      AND conrelid='public.customer_profiles'::regclass
-  ) THEN
-    ALTER TABLE public.customer_profiles
-      ADD CONSTRAINT customer_profiles_aquarium_source_chk
-      CHECK (
-        aquarium_profile_source IS NULL
-        OR aquarium_profile_source IN ('admin','customer','import','conversation')
-      );
-  END IF;
-END
-$constraints$;
+ALTER TABLE public.customer_profiles
+  ADD CONSTRAINT customer_profiles_tank_volume_chk
+    CHECK (tank_volume_liters IS NULL OR tank_volume_liters > 0),
+  ADD CONSTRAINT customer_profiles_aquarium_source_chk
+    CHECK (
+      aquarium_profile_source IS NULL
+      OR aquarium_profile_source IN ('admin','customer','import','conversation')
+    );
 
 CREATE TABLE IF NOT EXISTS public.customer_lifecycle_jobs (
   id text PRIMARY KEY DEFAULT gen_random_uuid()::text,
