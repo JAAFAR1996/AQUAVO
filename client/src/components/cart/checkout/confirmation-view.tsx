@@ -36,8 +36,8 @@ interface ConfirmationViewProps {
     getDeliveryEstimate: () => string;
     agreed: boolean;
     setAgreed: (agreed: boolean) => void;
-    whatsappFollowupOptIn: boolean;
-    setWhatsappFollowupOptIn: (optedIn: boolean) => void;
+    whatsappFollowupOptIn?: boolean;
+    setWhatsappFollowupOptIn?: (optedIn: boolean) => void;
     showWhatsAppFollowupConsent?: boolean;
     isSubmitting: boolean;
     handleBack: () => void;
@@ -68,9 +68,9 @@ export function ConfirmationView({
     getDeliveryEstimate,
     agreed,
     setAgreed,
-    whatsappFollowupOptIn,
-    setWhatsappFollowupOptIn,
-    showWhatsAppFollowupConsent = true,
+    whatsappFollowupOptIn = false,
+    setWhatsappFollowupOptIn = () => {},
+    showWhatsAppFollowupConsent = false,
     isSubmitting,
     handleBack,
     handleConfirmOrder,
