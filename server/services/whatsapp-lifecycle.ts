@@ -116,25 +116,54 @@ function parseJsonArray(value: unknown): string[] {
   return parsed.map((item) => String(item ?? "").trim()).filter(Boolean);
 }
 
-function readLifecycleConfig(): LifecycleConfig | null {
+async function readLifecycleConfig(): Promise<LifecycleConfig | null> {
   if (process.env.WHATSAPP_CLOUD_ENABLED?.trim().toLowerCase() !== "true") return null;
-  if (process.env.WHATSAPP_LIFECYCLE_ENABLED?.trim().toLowerCase() !== "true") return null;
 
   const apiVersion = process.env.WHATSAPP_API_VERSION?.trim() ?? "";
   const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID?.trim() ?? "";
   const accessToken = process.env.WHATSAPP_ACCESS_TOKEN?.trim() ?? "";
   const languageCode = process.env.WHATSAPP_TEMPLATE_LANGUAGE?.trim() || "ar";
-  const activationRaw = process.env.WHATSAPP_LIFECYCLE_ACTIVATION_AT?.trim() ?? "";
-  const activationAt = activationRaw ? new Date(activationRaw) : new Date(Number.NaN);
-  const day7Template = process.env.WHATSAPP_DAY7_CARE_TEMPLATE?.trim() || null;
-  const repurchaseTemplate = process.env.WHATSAPP_REPURCHASE_TEMPLATE?.trim() || null;
-  const repurchaseEnabled = process.env.WHATSAPP_REPURCHASE_ENABLED?.trim().toLowerCase() === "true";
+
+  let runtime: Row | null = null;
+  const db = getDb();
+  if (db) {
+    try {
+      const result = await db.execute(sql`
+        SELECT lifecycle_enabled,day7_enabled,repurchase_enabled,activation_at,
+               day7_template,repurchase_template
+        FROM public.whatsapp_lifecycle_runtime_config
+        WHERE id=1
+        LIMIT 1
+      `);
+      runtime = rowsOf(result)[0] ?? null;
+    } catch {
+      // Migration may not be present during a rolling deploy. Fall back to env.
+    }
+  }
+
+  const lifecycleEnabled = runtime
+    ? Boolean(runtime.lifecycle_enabled)
+    : process.env.WHATSAPP_LIFECYCLE_ENABLED?.trim().toLowerCase() === "true";
+  if (!lifecycleEnabled) return null;
+
+  const activationAt = runtime
+    ? asDate(runtime.activation_at)
+    : asDate(process.env.WHATSAPP_LIFECYCLE_ACTIVATION_AT?.trim() ?? "");
+  const day7Enabled = runtime ? Boolean(runtime.day7_enabled) : true;
+  const day7Template = day7Enabled
+    ? (String(runtime?.day7_template ?? "").trim() || process.env.WHATSAPP_DAY7_CARE_TEMPLATE?.trim() || null)
+    : null;
+  const repurchaseEnabled = runtime
+    ? Boolean(runtime.repurchase_enabled)
+    : process.env.WHATSAPP_REPURCHASE_ENABLED?.trim().toLowerCase() === "true";
+  const repurchaseTemplate = String(runtime?.repurchase_template ?? "").trim()
+    || process.env.WHATSAPP_REPURCHASE_TEMPLATE?.trim()
+    || null;
 
   if (!/^v\d+\.\d+$/.test(apiVersion)) return null;
   if (!/^\d+$/.test(phoneNumberId)) return null;
   if (!accessToken) return null;
-  if (!activationRaw || !Number.isFinite(activationAt.getTime())) return null;
-  if (activationAt.getTime() > Date.now()) return null;
+  if (!activationAt || activationAt.getTime() > Date.now()) return null;
   if (!day7Template && !(repurchaseEnabled && repurchaseTemplate)) return null;
 
   return {
@@ -750,7 +779,7 @@ export async function runDueLifecycleWhatsAppJobs(limit = DEFAULT_LIMIT): Promis
   preActivationSuppressed: number;
 }> {
   const db = getDb();
-  const config = readLifecycleConfig();
+  const config = await readLifecycleConfig();
   if (!db || !config) {
     return {
       enabled: false,
@@ -1238,7 +1267,7 @@ export async function getWhatsAppLifecycleAutomationHealth() {
     FROM public.customer_profiles
   `);
   return {
-    configured:Boolean(readLifecycleConfig()),
+    configured:Boolean(await readLifecycleConfig()),
     sendWindowOpen:isBaghdadLifecycleSendWindow(),
     jobs:rowsOf(result)[0] ?? {},
     consent:rowsOf(consent)[0] ?? {},
