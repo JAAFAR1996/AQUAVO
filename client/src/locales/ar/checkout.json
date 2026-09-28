@@ -130,7 +130,9 @@
     "processing": "جاري المعالجة...",
     "payOnline": "متابعة إلى الدفع الآمن — {{amount}}",
     "placeOrder": "تأكيد الطلب",
-    "processingStatus": "جاري معالجة طلبك، الرجاء الانتظار..."
+    "processingStatus": "جاري معالجة طلبك، الرجاء الانتظار...",
+    "whatsappFollowupTitle": "متابعة AQUAVO على واتساب",
+    "whatsappFollowupConsent": "أريد استلام متابعة بعد البيع وتذكيرات إعادة شراء المنتجات المستهلكة على واتساب. أقدر أوقفها بأي وقت بإرسال «إيقاف»."
   },
   "paymentCard": {
     "onlineTitle": "الدفع الإلكتروني الآمن",
