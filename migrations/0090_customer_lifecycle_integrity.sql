@@ -380,7 +380,7 @@ INSERT INTO public.schema_migrations(version,checksum,notes)
 VALUES(
   '0090_customer_lifecycle_integrity',
   '0000000000000000000000000000000000000000000000000000000000000000',
-  'Add durable order session/acquisition attribution, align and backfill phone-centric CRM profiles with non-blocking refresh triggers, repair verified-purchase reviews, classify stale carts, and retire the disconnected legacy logistics event backlog. No settlement facts are synthesized.'
+  'Add durable order session/acquisition attribution, align and backfill phone-centric CRM profiles with non-blocking refresh triggers, repair verified-purchase reviews, classify stale carts, and retire the disconnected legacy logistics event backlog. No settlement facts are synthesized. Runner must normalize checksum to SHA-256(file bytes).'
 )
 ON CONFLICT(version) DO UPDATE SET
   checksum=EXCLUDED.checksum,
