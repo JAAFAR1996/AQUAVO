@@ -323,7 +323,7 @@ async function loadOrderRecipient(orderId: string): Promise<OrderRecipient | nul
   return {
     customerName: row.customer_name == null ? null : String(row.customer_name),
     customerPhone: row.customer_phone == null ? null : String(row.customer_phone),
-    whatsappMarketingOptIn: Boolean(row.whatsapp_marketing_opt_in),
+    whatsappMarketingOptIn: row.whatsapp_marketing_opt_in === true,
   };
 }
 
