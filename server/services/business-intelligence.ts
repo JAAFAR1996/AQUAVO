@@ -338,7 +338,6 @@ export async function getInventoryHealth(limitInput = 25) {
     sales AS (
       SELECT
         oi.product_id,
-        NULLIF(oi.metadata->>'variantId','') AS variant_id,
         MAX(COALESCE(v.recognized_at,o.created_at AT TIME ZONE 'UTC')) AS last_sale_at,
         SUM(oi.quantity) FILTER (
           WHERE COALESCE(v.recognized_at,o.created_at AT TIME ZONE 'UTC') >= now()-interval '60 days'
@@ -348,14 +347,14 @@ export async function getInventoryHealth(limitInput = 25) {
       LEFT JOIN public.v_order_accounting v ON v.order_id=o.id
       WHERE COALESCE(o.is_test,false)=false
         AND o.status='delivered' AND o.payment_status='paid' AND o.cod_received=true
-      GROUP BY oi.product_id,NULLIF(oi.metadata->>'variantId','')
+      GROUP BY oi.product_id
     ),
     enriched AS (
       SELECT c.*,sa.last_sale_at,COALESCE(sa.units_60d,0) AS units_60d,
              CASE WHEN c.unit_cost IS NULL THEN NULL ELSE c.stock*c.unit_cost END AS stock_value,
              CASE WHEN c.stock>0 AND COALESCE(sa.units_60d,0)=0 THEN true ELSE false END AS dead_60d
       FROM costed c
-      LEFT JOIN sales sa ON sa.product_id=c.product_id AND sa.variant_id IS NOT DISTINCT FROM c.variant_id
+      LEFT JOIN sales sa ON sa.product_id=c.product_id
     )
     SELECT
       COUNT(*)::int AS sku_count,
@@ -373,7 +372,7 @@ export async function getInventoryHealth(limitInput = 25) {
       FROM public.inventory_canonical_balances GROUP BY product_id,variant_id
     ),
     sales AS (
-      SELECT oi.product_id,NULLIF(oi.metadata->>'variantId','') AS variant_id,
+      SELECT oi.product_id,
              MAX(COALESCE(v.recognized_at,o.created_at AT TIME ZONE 'UTC')) AS last_sale_at,
              COALESCE(SUM(oi.quantity) FILTER (
                WHERE COALESCE(v.recognized_at,o.created_at AT TIME ZONE 'UTC') >= now()-interval '60 days'
@@ -383,12 +382,12 @@ export async function getInventoryHealth(limitInput = 25) {
       LEFT JOIN public.v_order_accounting v ON v.order_id=o.id
       WHERE COALESCE(o.is_test,false)=false
         AND o.status='delivered' AND o.payment_status='paid' AND o.cod_received=true
-      GROUP BY oi.product_id,NULLIF(oi.metadata->>'variantId','')
+      GROUP BY oi.product_id
     )
     SELECT p.id AS product_id,p.name,s.variant_id,s.stock,sa.last_sale_at,COALESCE(sa.units_60d,0) AS units_60d
     FROM stock s
     JOIN public.products p ON p.id=s.product_id
-    LEFT JOIN sales sa ON sa.product_id=s.product_id AND sa.variant_id IS NOT DISTINCT FROM s.variant_id
+    LEFT JOIN sales sa ON sa.product_id=s.product_id
     WHERE p.deleted_at IS NULL AND s.stock>0 AND COALESCE(sa.units_60d,0)=0
     ORDER BY s.stock DESC,p.name
     LIMIT ${limit}
@@ -496,6 +495,7 @@ export async function getBusinessOverview() {
       exactAccountingOrders:allTime.exactOrders,
       reconstructedLegacyOrders:allTime.estimatedOrders,
       legacyCostRule:"exact variant opening snapshot -> product opening snapshot -> verified current variant cost -> verified current product cost",
+      deadStockRule:"conservative: a stocked SKU is marked dead only when its PRODUCT has zero realized sales in the last 60 days",
       marketingRule:"only rows imported into business_marketing_daily are deducted; missing provider sync is never silently treated as complete",
     },
   };
