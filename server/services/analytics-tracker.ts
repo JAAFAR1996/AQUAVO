@@ -152,6 +152,31 @@ export class AnalyticsTracker {
    * lifecycle classification, not a deletion: every interaction row remains
    * available for funnel analysis.
    */
+  async touchCartSession(data: {
+    userId?: string;
+    sessionId: string;
+  }): Promise<void> {
+    try {
+      await this.db.insert(schema.cartSessions)
+        .values({
+          sessionId: data.sessionId,
+          userId: data.userId || null,
+          status: 'active',
+          updatedAt: new Date(),
+        })
+        .onConflictDoUpdate({
+          target: schema.cartSessions.sessionId,
+          set: {
+            userId: data.userId || null,
+            status: 'active',
+            updatedAt: new Date(),
+          },
+        });
+    } catch (error) {
+      console.error('[Analytics] Error touching cart session:', error);
+    }
+  }
+
   async abandonStaleCartSessions(maxAgeHours = 24): Promise<number> {
     try {
       const hours = Number.isFinite(maxAgeHours)
