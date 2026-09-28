@@ -676,9 +676,14 @@ async function loadMessageInput(job: ClaimedLifecycleJob): Promise<{
       j.customer_phone,j.recommended_product_ids,
       o.order_number,o.customer_name,
       COALESCE((
-        SELECT string_agg(p.name,'، ' ORDER BY p.name)
-        FROM public.products p
-        WHERE p.id IN (SELECT jsonb_array_elements_text(j.recommended_product_ids))
+        SELECT string_agg(product_name,'، ' ORDER BY product_name)
+        FROM (
+          SELECT p.name AS product_name
+          FROM public.products p
+          WHERE p.id IN (SELECT jsonb_array_elements_text(j.recommended_product_ids))
+          ORDER BY p.name
+          LIMIT 2
+        ) recommended
       ),'') AS product_text
     FROM public.customer_lifecycle_jobs j
     JOIN public.orders o ON o.id=j.order_id
