@@ -263,6 +263,13 @@ ON CONFLICT(metric_key) DO UPDATE SET
   active=true,
   updated_at=now();
 
+UPDATE public.business_metric_definitions
+SET definition_version='growth_os_v1',updated_at=now()
+WHERE metric_key IN (
+  'attribution_coverage_pct','purchase_measurement_coverage_pct','ready_lifecycle_jobs',
+  'fast_inventory_value','slow_dead_inventory_value','unposted_expense_inbox'
+);
+
 INSERT INTO public.schema_migrations(version,checksum,notes)
 VALUES(
   '0091_growth_operating_system',
