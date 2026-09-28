@@ -15,6 +15,7 @@ import {
   type WhatsAppProviderStatus,
   type WhatsAppProviderStatusEvent,
 } from "../services/whatsapp-provider-status.js";
+import { handleLifecycleConsentInbound } from "../services/whatsapp-lifecycle-automation.js";
 
 type RawBodyRequest = Request & { rawBody?: Buffer };
 
@@ -98,6 +99,23 @@ const contextualTextReplyMessageSchema = z.object({
 
 const statusesValueSchema = z.object({ statuses: z.array(z.unknown()) }).passthrough();
 const messagesValueSchema = z.object({ messages: z.array(z.unknown()) }).passthrough();
+
+const lifecycleTextMessageSchema = z.object({
+  id: z.string().trim().min(1).max(500),
+  from: z.string().regex(/^\d{5,20}$/),
+  timestamp: unixTimestampSchema,
+  type: z.literal("text"),
+  text: z.object({
+    body: z.string().trim().min(1).max(2048),
+  }).passthrough(),
+}).passthrough();
+
+type LifecycleConsentInboundEvent = {
+  inboundMessageId: string;
+  fromPhone: string;
+  text: string;
+  receivedAt: Date;
+};
 
 function constantTimeStringEquals(left: string, right: string): boolean {
   const leftBuffer = Buffer.from(left, "utf8");
@@ -251,6 +269,35 @@ export function extractDeliveryCareButtonReplyEvents(
   return events;
 }
 
+export function extractLifecycleConsentTextEvents(payload: unknown): LifecycleConsentInboundEvent[] {
+  const root = webhookEnvelopeSchema.safeParse(payload);
+  if (!root.success) return [];
+
+  const events: LifecycleConsentInboundEvent[] = [];
+  for (const entry of root.data.entry) {
+    for (const change of entry.changes) {
+      if (change.field !== "messages") continue;
+      const value = messagesValueSchema.safeParse(change.value);
+      if (!value.success) continue;
+
+      for (const rawMessage of value.data.messages) {
+        const parsed = lifecycleTextMessageSchema.safeParse(rawMessage);
+        if (!parsed.success) continue;
+        const timestampSeconds = Number(parsed.data.timestamp);
+        const receivedAt = new Date(timestampSeconds * 1000);
+        if (!Number.isFinite(receivedAt.getTime())) continue;
+        events.push({
+          inboundMessageId: parsed.data.id,
+          fromPhone: parsed.data.from,
+          text: parsed.data.text.body,
+          receivedAt,
+        });
+      }
+    }
+  }
+  return events;
+}
+
 export function createWhatsAppWebhookRouter(): RouterType {
   const router = Router();
 
@@ -297,6 +344,7 @@ export function createWhatsAppWebhookRouter(): RouterType {
 
     const statusEvents = extractWhatsAppStatusEvents(payload);
     const buttonReplyEvents = extractDeliveryCareButtonReplyEvents(payload);
+    const lifecycleConsentEvents = extractLifecycleConsentTextEvents(payload);
 
     try {
       // Persist signed provider lifecycle status first. If wamid acceptance is
@@ -341,11 +389,25 @@ export function createWhatsAppWebhookRouter(): RouterType {
         }
       }
 
+      let lifecycleConsentCommands = 0;
+      for (const event of lifecycleConsentEvents) {
+        const result = await handleLifecycleConsentInbound(event);
+        if (result.status === "db_unavailable") {
+          res.status(503).json({ code: "WEBHOOK_PERSISTENCE_FAILED" });
+          return;
+        }
+        if (result.status === "applied" || result.status === "duplicate") {
+          lifecycleConsentCommands += 1;
+        }
+      }
+
       res.status(200).json({
         received: true,
         events: statusEvents.length,
         buttonReplies: buttonReplyEvents.length,
         buttonRepliesHandled,
+        lifecycleConsentEvents: lifecycleConsentEvents.length,
+        lifecycleConsentCommands,
       });
     } catch {
       // Non-2xx deliberately asks Meta to retry a verified event when persistence
