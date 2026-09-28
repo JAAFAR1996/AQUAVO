@@ -2,6 +2,7 @@
 // To use: Add VITE_GA_ID to your .env file
 import { isTrackingAllowed } from "./tracking-environment";
 import { addCsrfHeader } from "./csrf";
+import { getSessionId } from "./attribution";
 
 // Cart item interface for analytics
 interface AnalyticsCartItem {
@@ -194,6 +195,7 @@ function recordGooglePurchaseReceipt(
       keepalive: true,
       body: JSON.stringify({
         orderId,
+        aqSid: getSessionId(),
         provider: 'google_tag',
         eventKey: 'purchase',
         status,
