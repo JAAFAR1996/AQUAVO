@@ -547,6 +547,7 @@ async function loadDealProducts(): Promise<SeoPreviewProduct[]> {
             review_count AS "reviewCount"
        FROM products
       WHERE deleted_at IS NULL
+        AND COALESCE(is_storefront_visible, true) = true
         AND slug IS NOT NULL
         AND slug <> ''
         AND original_price IS NOT NULL
