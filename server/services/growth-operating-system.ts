@@ -1003,12 +1003,18 @@ export async function getLifecycleOverview(limitInput=50) {
   const attention=await db.execute(sql`
     SELECT
       j.id,j.job_type,j.updated_at,j.customer_phone,
-      j.metadata->'reply'->>'choice' AS choice,
+      COALESCE(
+        j.metadata->'reply'->>'latest_choice',
+        j.metadata->'reply'->>'choice'
+      ) AS choice,
       o.order_number,o.customer_name
     FROM public.customer_lifecycle_jobs j
     JOIN public.orders o ON o.id=j.order_id
     WHERE j.status='completed'
-      AND j.metadata->'reply'->>'choice' IN ('day7_help','repurchase_interest')
+      AND COALESCE(
+        j.metadata->'reply'->>'latest_choice',
+        j.metadata->'reply'->>'choice'
+      ) IN ('day7_help','repurchase_interest')
       AND j.metadata->>'reply_handled_at' IS NULL
     ORDER BY j.updated_at ASC
     LIMIT ${limit}
@@ -1077,7 +1083,10 @@ export async function markLifecycleReplyHandled(jobId:string) {
         updated_at=now()
     WHERE id=${jobId}
       AND status='completed'
-      AND metadata->'reply'->>'choice' IN ('day7_help','repurchase_interest')
+      AND COALESCE(
+        metadata->'reply'->>'latest_choice',
+        metadata->'reply'->>'choice'
+      ) IN ('day7_help','repurchase_interest')
       AND metadata->>'reply_handled_at' IS NULL
     RETURNING id,job_type,order_id,status
   `);
