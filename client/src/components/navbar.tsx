@@ -43,7 +43,7 @@ import { isEligibleSection, prefetchSection } from "@/lib/motion/flow-gate-route
 
 const GlobalSearch = lazy(() => import("@/components/search/global-search").then((module) => ({ default: module.GlobalSearch })));
 
-type NavKey = "home" | "shop" | "journey" | "guides" | "orderTracking" | "about" | "wishlist" | "contact";
+type NavKey = "home" | "shop" | "bundles" | "journey" | "guides" | "orderTracking" | "about" | "wishlist" | "contact";
 interface NavLink {
   href: string;
   key: NavKey;
@@ -52,6 +52,7 @@ interface NavLink {
 
 const primaryLinks: NavLink[] = [
   { href: "/products", key: "shop", icon: Package },
+  { href: "/bundles", key: "bundles", icon: ShoppingCart },
   { href: "/journey", key: "journey", icon: Wrench },
   { href: "/guides", key: "guides", icon: BookOpen },
   { href: "/order-tracking", key: "orderTracking", icon: ShoppingCart },
