@@ -23,7 +23,7 @@ type Profile = {
   heater_setup: Record<string, unknown> | null;
   water_profile: Record<string, unknown> | null;
   goals: unknown[] | null;
-  notes: string | null;
+  aquarium_notes: string | null;
   aquarium_profile_source: string | null;
   aquarium_last_verified_at: string | null;
 };
@@ -55,7 +55,7 @@ function toDraft(profile:Profile):Draft{
     filter:objectDescription(profile.filter_setup),
     heater:objectDescription(profile.heater_setup),
     goals:arrayText(profile.goals),
-    notes:profile.notes ?? "",
+    notes:profile.aquarium_notes ?? "",
   };
 }
 
