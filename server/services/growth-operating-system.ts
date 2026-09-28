@@ -1071,6 +1071,21 @@ export async function captureBusinessExpense(input:{
   return {ok:true,fingerprint:input.fingerprint};
 }
 
+export async function ignoreBusinessExpense(fingerprint:string, reason:string) {
+  const db=getDb();
+  if(!db) throw new Error("DATABASE_NOT_CONNECTED");
+  const result=await db.execute(sql`
+    UPDATE public.business_expense_inbox
+    SET status='ignored',
+        evidence=evidence || jsonb_build_object('ignoreReason',${clampText(reason,500) ?? "source_expense_deleted"}),
+        reviewed_at=now(),updated_at=now()
+    WHERE fingerprint=${fingerprint}
+      AND status<>'posted'
+    RETURNING id,status
+  `);
+  return {ok:rowsOf(result).length>0};
+}
+
 export async function getExpenseCompleteness() {
   const db=getDb();
   if(!db) throw new Error("DATABASE_NOT_CONNECTED");
