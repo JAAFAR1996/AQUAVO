@@ -732,7 +732,7 @@ export async function planCustomerLifecycleJobs() {
       jsonb_build_object('source','growth_os','deliveredAt',d.delivered_at)
     FROM delivered d
     WHERE d.customer_phone IS NOT NULL
-      AND d.delivered_at >= now()-interval '45 days'
+      AND d.delivered_at >= now()-interval '21 days'
     ON CONFLICT(order_id,job_type) DO NOTHING
   `);
 
