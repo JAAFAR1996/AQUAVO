@@ -44,7 +44,7 @@ import {
 // statuses IN ('delivered','confirmed') — 'confirmed' is NOT realized revenue,
 // and shipping was never deducted.
 import { computePeriodFinancials, getRealizedOrdersForPeriod, lineQuantity, type OrderLineItem } from "../services/accounting-engine.js";
-import { getBusinessOverview, getBusinessHistory, getInventoryHealth, getBusinessFindings } from "../services/business-intelligence.js";
+import { getBusinessAssessment, getBusinessOverview, getBusinessHistory, getInventoryHealth, getBusinessFindings } from "../services/business-intelligence.js";
 import { toMoney } from "../../shared/order-financials.js";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -551,6 +551,11 @@ function buildMcpServer(auth: McpAuthInfo): Server {
             limit: { type: "number" },
           },
         },
+      },
+      {
+        name: "get_business_assessment",
+        description: "Read-only AQUAVO decision-support assessment: whether evidence currently supports CONTINUE, FIX, REASSESS, or INSUFFICIENT_DATA, with reasons, trend evidence, and thresholds.",
+        inputSchema: { type: "object", properties: {} },
       },
       {
         name: "get_business_overview",
@@ -1259,6 +1264,10 @@ function buildMcpServer(auth: McpAuthInfo): Server {
 
         case "get_site_overview": {
           return text(await buildSiteOverview(db));
+        }
+
+        case "get_business_assessment": {
+          return text(await getBusinessAssessment());
         }
 
         case "get_business_overview": {
