@@ -1,5 +1,6 @@
 -- 0091_growth_operating_system_rollback.sql
 BEGIN;
+DROP VIEW IF EXISTS public.v_growth_order_customer_identity;
 DROP TABLE IF EXISTS public.business_expense_inbox;
 DROP TABLE IF EXISTS public.product_bundle_items;
 DROP TABLE IF EXISTS public.product_bundles;
