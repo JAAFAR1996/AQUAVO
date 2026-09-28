@@ -59,11 +59,12 @@ DATABASE_URL=postgresql://user:password@host:5432/database?sslmode=require
 # مفتاح الجلسة (لا تستخدم القيمة الافتراضية في الإنتاج!)
 SESSION_SECRET=your-super-secret-key-here
 
-# البريد الإلكتروني (لإعادة تعيين كلمة المرور)
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your_email@gmail.com
-SMTP_PASS=your_app_password
+# البريد الإلكتروني (Resend — لإعادة تعيين كلمة المرور والرسائل)
+RESEND_API_KEY=your_resend_api_key
+# يجب أن يكون من دومين موثّق في Resend
+SMTP_FROM=AQUAVO <info@aquavoiq.com>
+# حملات البريد الأسبوعية معطلة افتراضياً حتى يتم التحقق من القناة
+EMAIL_CAMPAIGNS_ENABLED=false
 SMTP_FROM=your_email@gmail.com
 ```
 
