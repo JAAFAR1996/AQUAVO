@@ -1397,6 +1397,7 @@ export const customerProfiles = pgTable("customer_profiles", {
   heaterSetup: jsonb("heater_setup").$type<Record<string, unknown>>().notNull().default({}),
   waterProfile: jsonb("water_profile").$type<Record<string, unknown>>().notNull().default({}),
   goals: jsonb("goals").$type<unknown[]>().notNull().default([]),
+  aquariumNotes: text("aquarium_notes"),
   aquariumProfileSource: text("aquarium_profile_source"),
   aquariumLastVerifiedAt: timestamp("aquarium_last_verified_at", { withTimezone: true }),
   preferredCategories: jsonb("preferred_categories").$type<string[]>(),
