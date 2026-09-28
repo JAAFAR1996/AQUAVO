@@ -16,7 +16,7 @@ import { getClientSessionId } from "@/lib/client-session";
 // guarantees every surface (cards, PDP, quick-view, suggestions, bundles…)
 // tracks identically and that we never fire on a failed/blocked add.
 function fireCartLifecycleAnalytics(
-  action: "add" | "remove",
+  action: "add" | "remove" | "touch",
   productId: string,
   quantity: number = 1,
 ): void {
@@ -580,6 +580,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
         if (res.ok && removedItem) {
           fireCartLifecycleAnalytics("remove", removedItem.productId, removedItem.quantity);
         }
+        if (res.ok && currentItem) {
+          fireCartLifecycleAnalytics("touch", currentItem.productId, quantity);
+        }
         if (!res.ok) {
           // Rollback on failure - refetch from server
           const cartRes = await fetch("/api/cart", { credentials: "include" });
@@ -697,6 +700,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
         }));
         return newItems;
       });
+      if (currentItem) {
+        fireCartLifecycleAnalytics("touch", currentItem.productId, quantity);
+      }
     }
   }, [user, removeItem, items]);
 
