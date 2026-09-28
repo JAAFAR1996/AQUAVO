@@ -76,6 +76,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
          FROM products
         WHERE slug = $1
           AND deleted_at IS NULL
+          AND COALESCE(is_storefront_visible, true) = true
         LIMIT 1`,
       [resolved.slug],
     );
