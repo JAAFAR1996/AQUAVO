@@ -21,6 +21,24 @@ function getFromEmail(): string {
   return process.env.SMTP_FROM || "AQUAVO <onboarding@resend.dev>";
 }
 
+export type EmailCampaignReadiness =
+  | { ready: true; from: string }
+  | { ready: false; reason: "EMAIL_CAMPAIGNS_DISABLED" | "RESEND_API_KEY_NOT_CONFIGURED" | "SMTP_FROM_NOT_PRODUCTION_READY" };
+
+export function getEmailCampaignReadiness(): EmailCampaignReadiness {
+  if (process.env.EMAIL_CAMPAIGNS_ENABLED?.trim().toLowerCase() !== "true") {
+    return { ready: false, reason: "EMAIL_CAMPAIGNS_DISABLED" };
+  }
+  if (!process.env.RESEND_API_KEY?.trim()) {
+    return { ready: false, reason: "RESEND_API_KEY_NOT_CONFIGURED" };
+  }
+  const from = process.env.SMTP_FROM?.trim();
+  if (!from || /onboarding@resend\.dev/i.test(from)) {
+    return { ready: false, reason: "SMTP_FROM_NOT_PRODUCTION_READY" };
+  }
+  return { ready: true, from };
+}
+
 export interface EmailOptions {
   to: string;
   subject: string;
