@@ -169,12 +169,24 @@ export default function BundlesPage() {
 
   const addBundle = async (bundle: Bundle) => {
     if (!bundle.inStock || bundle.requiresVariantSelection || adding) return;
-    const resolved = bundle.items
-      .filter((item) => item.required)
-      .map((item) => productMap.get(item.productId))
+    const requiredItems = bundle.items.filter((item) => item.required);
+    const resolved = requiredItems
+      .map((item) => {
+        const product = productMap.get(item.productId);
+        if (!product) return null;
+        if (!item.variantId) return product;
+        const variant = product.variants?.find((candidate) => candidate.id === item.variantId);
+        if (!variant || Number(variant.stock ?? 0) <= 0 || Number(variant.price ?? 0) <= 0) return null;
+        return {
+          ...product,
+          price: Number(variant.price),
+          _variantId: variant.id,
+          _variantLabel: variant.label,
+        } as Product & { _variantId: string; _variantLabel: string };
+      })
       .filter((item): item is Product => Boolean(item));
 
-    if (resolved.length !== bundle.items.filter((item) => item.required).length) return;
+    if (resolved.length !== requiredItems.length) return;
 
     setAdding(bundle.id);
     try {
