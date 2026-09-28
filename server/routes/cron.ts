@@ -4,6 +4,7 @@ import { aiMonitor } from "../services/ai-monitor.js";
 import { getDb } from "../db.js";
 import { runAutomaticPeriodClose } from "../services/accounting-auto-close-v2.js";
 import { runDueDeliveryCareJobs } from "../services/customer-messaging.js";
+import { runDueLifecycleWhatsAppJobs } from "../services/whatsapp-lifecycle-automation.js";
 import { cleanupDeliveryCareButtonInbox } from "../services/whatsapp-delivery-care-button-inbox.js";
 import { runResilientDeliveryCareAutoReplyRecovery } from "../services/whatsapp-delivery-care-recovery.js";
 import { cleanupWhatsAppProviderStatusEvents } from "../services/whatsapp-provider-status.js";
@@ -243,6 +244,14 @@ router.get("/customer-messaging", async (_req: Request, res: Response) => {
   try {
     const result = await runDueDeliveryCareJobs(5);
 
+    let lifecycle: Awaited<ReturnType<typeof runDueLifecycleWhatsAppJobs>> | null = null;
+    let lifecycleFailed = false;
+    try {
+      lifecycle = await runDueLifecycleWhatsAppJobs(5);
+    } catch {
+      lifecycleFailed = true;
+    }
+
     let autoReplies: Awaited<ReturnType<typeof runResilientDeliveryCareAutoReplyRecovery>> | null = null;
     let autoReplyRecoveryFailed = false;
     try {
@@ -276,6 +285,8 @@ router.get("/customer-messaging", async (_req: Request, res: Response) => {
         status: "completed",
         source: "github_actions_oidc",
         ...result,
+        lifecycle,
+        lifecycleFailed,
         autoReplies,
         autoReplyRecoveryFailed,
         providerEventsCleaned,
@@ -286,6 +297,8 @@ router.get("/customer-messaging", async (_req: Request, res: Response) => {
       success: true,
       duration,
       ...result,
+      lifecycle,
+      lifecycleFailed,
       autoReplies,
       autoReplyRecoveryFailed,
       providerEventsCleaned,
