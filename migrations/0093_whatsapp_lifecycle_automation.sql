@@ -87,6 +87,10 @@ CREATE TABLE IF NOT EXISTS public.whatsapp_lifecycle_consent_events (
 CREATE INDEX IF NOT EXISTS whatsapp_lifecycle_consent_events_phone_idx
   ON public.whatsapp_lifecycle_consent_events(customer_phone,occurred_at DESC);
 
+CREATE UNIQUE INDEX IF NOT EXISTS whatsapp_lifecycle_consent_checkout_uq
+  ON public.whatsapp_lifecycle_consent_events(order_id,action,scope,source)
+  WHERE order_id IS NOT NULL AND source='checkout';
+
 INSERT INTO public.schema_migrations(version,checksum,notes)
 VALUES(
   '0093_whatsapp_lifecycle_automation',
