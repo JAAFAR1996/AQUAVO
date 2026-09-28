@@ -13,12 +13,18 @@ describe("AQUAVO Growth OS contract",()=>{
     expect(service).toContain("public.aquavo_normalize_iraqi_phone");
   });
 
-  it("keeps public purchase diagnostics non-authoritative and order keyed",()=>{
+  it("keeps public purchase diagnostics non-authoritative, order keyed and bound to aq_sid",()=>{
     const route=read("server/routes/growth-operating-system.ts");
+    const service=read("server/services/growth-operating-system.ts");
     const analytics=read("client/src/lib/analytics.ts");
+    const meta=read("client/src/lib/meta-pixel.ts");
     expect(route).toContain('router.post("/purchase-receipt"');
+    expect(route).toContain("aqSid:z.string()");
     expect(route).toContain("res.status(204).end()");
+    expect(service).toContain("AND aq_sid=");
     expect(analytics).toContain("aq_google_purchase_");
+    expect(analytics).toContain("aqSid: getSessionId()");
+    expect(meta).toContain("aqSid: getSessionId()");
     expect(analytics).toContain("transaction_id: orderId");
     expect(analytics).toContain("gtag_unavailable");
   });
@@ -29,11 +35,21 @@ describe("AQUAVO Growth OS contract",()=>{
     expect(confirmation).toContain("trackPurchase({");
   });
 
-  it("never creates a reorder quantity from product fallback variant demand",()=>{
+  it("never creates a reorder quantity from product fallback variant demand or stale variant identities",()=>{
     const service=read("server/services/growth-operating-system.ts");
     expect(service).toContain("s.sales_basis<>'product_fallback'");
+    expect(service).toContain("p.has_variants=true");
+    expect(service).toContain("vv->>'id'=b.variant_id");
     expect(service).toContain("recommended_reorder_qty");
     expect(service).toContain("capital_locked");
+  });
+
+  it("keeps aquarium notes separate from generic CRM notes",()=>{
+    const migration=read("migrations/0092_growth_os_aquarium_notes.sql");
+    const service=read("server/services/growth-operating-system.ts");
+    expect(migration).toContain("ADD COLUMN IF NOT EXISTS aquarium_notes text");
+    expect(service).toContain("aquarium_notes=");
+    expect(service).not.toContain("THEN 'Tank age: ' || (u.aquarium_profile->>'tankAge')\n        ELSE cp.notes");
   });
 
   it("keeps lifecycle outbound manual and suppresses already replenished reminders",()=>{
