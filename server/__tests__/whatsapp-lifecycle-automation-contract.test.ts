@@ -95,6 +95,16 @@ describe("automatic WhatsApp lifecycle contract",()=>{
     expect(service).toContain("MARKETING_OPTED_OUT");
   });
 
+  it("lets a later stop request override an earlier repurchase-interest tap",()=>{
+    const lifecycle=read("server/services/whatsapp-lifecycle.ts");
+    const growth=read("server/services/growth-operating-system.ts");
+    expect(lifecycle).toContain("latest_choice");
+    expect(lifecycle).toContain("subsequent_choices");
+    expect(lifecycle).toContain("Opt-out is terminal");
+    expect(lifecycle).toContain("setMarketingOptOut");
+    expect(growth).toContain("metadata->'reply'->>'latest_choice'");
+  });
+
   it("surfaces help and repurchase-interest replies for human follow-up",()=>{
     const lifecycle=read("server/services/whatsapp-lifecycle.ts");
     const growth=read("server/services/growth-operating-system.ts");
