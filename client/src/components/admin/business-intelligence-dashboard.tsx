@@ -45,6 +45,21 @@ type Overview = {
   findings: { open: number; critical: number; warning: number };
 };
 
+type Assessment = {
+  status: "CONTINUE" | "FIX" | "REASSESS" | "INSUFFICIENT_DATA";
+  dataReady: boolean;
+  reasons: string[];
+  operatingDays: number;
+  evidence: {
+    revenueGrowthPct: number;
+    orderGrowthPct: number;
+    current30ProductRevenue: number;
+    previous30ProductRevenue: number;
+    current30Orders: number;
+    previous30Orders: number;
+  };
+};
+
 type Finding = {
   id: string;
   severity: string;
@@ -75,6 +90,11 @@ export function BusinessIntelligenceDashboard() {
     queryFn: () => jsonFetch("/api/admin/business-intelligence/overview"),
     refetchInterval: 60_000,
   });
+  const assessment = useQuery<Assessment>({
+    queryKey: ["business-intelligence", "assessment"],
+    queryFn: () => jsonFetch("/api/admin/business-intelligence/assessment"),
+    refetchInterval: 60_000,
+  });
   const findings = useQuery<Finding[]>({
     queryKey: ["business-intelligence", "findings"],
     queryFn: () => jsonFetch("/api/admin/business-intelligence/findings"),
@@ -90,6 +110,7 @@ export function BusinessIntelligenceDashboard() {
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["business-intelligence", "overview"] }),
+        queryClient.invalidateQueries({ queryKey: ["business-intelligence", "assessment"] }),
         queryClient.invalidateQueries({ queryKey: ["business-intelligence", "findings"] }),
         queryClient.invalidateQueries({ queryKey: ["business-intelligence", "history"] }),
       ]);
@@ -156,6 +177,42 @@ export function BusinessIntelligenceDashboard() {
           </Button>
         </div>
       </div>
+
+      {assessment.data && (
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <CardTitle className="text-base">قرار التشغيل الحالي</CardTitle>
+              <Badge variant={
+                assessment.data.status === "CONTINUE"
+                  ? "default"
+                  : assessment.data.status === "REASSESS"
+                    ? "destructive"
+                    : "secondary"
+              }>
+                {assessment.data.status === "CONTINUE"
+                  ? "استمر"
+                  : assessment.data.status === "FIX"
+                    ? "أصلح قبل التوسع"
+                    : assessment.data.status === "REASSESS"
+                      ? "أعد تقييم النموذج"
+                      : "البيانات غير كافية"}
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid gap-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
+              <div className="rounded-lg border p-3"><span className="text-muted-foreground">نمو المبيعات 30 يوم</span><div className="font-bold">{pct(assessment.data.evidence.revenueGrowthPct)}</div></div>
+              <div className="rounded-lg border p-3"><span className="text-muted-foreground">نمو الطلبات 30 يوم</span><div className="font-bold">{pct(assessment.data.evidence.orderGrowthPct)}</div></div>
+              <div className="rounded-lg border p-3"><span className="text-muted-foreground">مبيعات آخر 30 يوم</span><div className="font-bold">{iq(assessment.data.evidence.current30ProductRevenue)}</div></div>
+              <div className="rounded-lg border p-3"><span className="text-muted-foreground">أيام التشغيل المقاسة</span><div className="font-bold">{assessment.data.operatingDays}</div></div>
+            </div>
+            <div className="space-y-1 text-sm text-muted-foreground">
+              {assessment.data.reasons.map((reason) => <p key={reason}>• {reason}</p>)}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {cards.map(({ title, value, sub, icon: Icon }) => (
