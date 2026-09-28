@@ -634,8 +634,6 @@ export default function CheckoutPage() {
               loyaltyDiscount={loyaltyData.pointsDiscount}
               cashbackEarned={loyaltyData.cashbackEarned}
               isLoggedIn={!!user}
-              whatsappMarketingOptIn={whatsappMarketingOptIn}
-              setWhatsappMarketingOptIn={setWhatsappMarketingOptIn}
             />
 
             <p className="sr-only" aria-live="assertive" aria-atomic="true">
@@ -668,6 +666,8 @@ export default function CheckoutPage() {
               couponDiscount={couponDiscount}
               loyaltyData={loyaltyData}
               isLoggedIn={!!user}
+              whatsappMarketingOptIn={whatsappMarketingOptIn}
+              setWhatsappMarketingOptIn={setWhatsappMarketingOptIn}
             />
           </div>
         )}
