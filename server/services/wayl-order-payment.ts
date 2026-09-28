@@ -28,6 +28,7 @@ import {
   type WaylLink,
 } from "./wayl-client.js";
 import { enqueuePaidOrderOutbox, processPaymentOutboxForOrder } from "./payment-maintenance.js";
+import { persistWhatsAppConsentInTransaction } from "./whatsapp-consent.js";
 
 const IRAQI_DENOMINATION = 250;
 const ORDER_NUMBER_MAX_ATTEMPTS = 3;
@@ -496,6 +497,13 @@ export async function prepareOnlineOrder(input: OnlineCheckoutInput): Promise<Pr
             ? new Date(input.whatsappConsent.capturedAt)
             : undefined,
         } as any).returning();
+
+        await persistWhatsAppConsentInTransaction(tx, {
+          orderId: order.id,
+          customerPhone: input.customerInfo.phone,
+          consent: input.whatsappConsent,
+          source: "wayl_checkout",
+        });
 
         const [payment] = await tx.insert(payments).values({
           orderId: order.id,
