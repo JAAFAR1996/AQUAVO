@@ -1,6 +1,9 @@
 import { sql } from "drizzle-orm";
 import { getDb } from "../db.js";
-import { getWhatsAppLifecycleAutomationHealth } from "./whatsapp-lifecycle.js";
+import {
+  getWhatsAppLifecycleAutomationHealth,
+  syncCheckoutWhatsAppMarketingConsents,
+} from "./whatsapp-lifecycle.js";
 
 type Row = Record<string, unknown>;
 type PurchaseProvider = "google_tag" | "meta_pixel" | "tiktok" | "posthog";
@@ -1324,8 +1327,9 @@ export async function refreshGrowthOs(dayInput?:string) {
   const day=validateDay(dayInput ?? baghdadGrowthDay(-1));
   const repurchase=await refreshRepurchaseProfiles();
   const customerProfiles=await refreshCustomerAquariumProfiles();
+  const whatsappConsentRepair=await syncCheckoutWhatsAppMarketingConsents();
   const inventory=await refreshInventorySkuDaily(day);
   const lifecycle=await planCustomerLifecycleJobs();
   const bundles=await seedDefaultBundles();
-  return {day,repurchase,customerProfiles,inventory,lifecycle,bundles};
+  return {day,repurchase,customerProfiles,whatsappConsentRepair,inventory,lifecycle,bundles};
 }
