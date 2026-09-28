@@ -49,6 +49,7 @@ import { NotificationLogPanel } from "@/components/admin/notification-log-panel"
 
 import SecurityManagement from "@/components/admin/security-management";
 import AnalyticsDashboard from "@/components/admin/analytics-dashboard";
+import { BusinessIntelligenceDashboard } from "@/components/admin/business-intelligence-dashboard";
 import { PriceSuggestionsPanel } from "@/components/admin/price-suggestions-panel";
 import { AIInsightsPanel } from "@/components/admin/ai-insights-panel";
 import { AIChatPanel } from "@/components/admin/ai-chat-panel";
@@ -198,7 +199,7 @@ function slugify(text: string): string {
 const ADMIN_SECTIONS = [
   "products", "ai-insights", "ai-monitor", "ai-learnings", "notifications",
   "coupons", "orders", "invoices", "customers", "reviews",
-  "gallery", "audit-logs", "analytics", "security", "settings",
+  "gallery", "audit-logs", "analytics", "business-intelligence", "security", "settings", "translations",
 ] as const;
 const ADMIN_SECTION_SET = new Set<string>(ADMIN_SECTIONS);
 
@@ -825,6 +826,7 @@ export default function AdminDashboard() {
             <TabsTrigger value="gallery" className="min-h-[44px]">المعرض</TabsTrigger>
             <TabsTrigger value="audit-logs" className="min-h-[44px]">السجلات</TabsTrigger>
             <TabsTrigger value="analytics" className="min-h-[44px]">التحليلات</TabsTrigger>
+            <TabsTrigger value="business-intelligence" className="min-h-[44px]">ذكاء الأعمال</TabsTrigger>
             <TabsTrigger value="security" className="min-h-[44px]">الأمان</TabsTrigger>
             <TabsTrigger value="settings" className="min-h-[44px]">الإعدادات</TabsTrigger>
             <TabsTrigger value="translations" className="min-h-[44px]">الترجمات</TabsTrigger>
@@ -874,6 +876,10 @@ export default function AdminDashboard() {
 
         <TabsContent value="analytics" className="space-y-4">
           <AnalyticsDashboard />
+        </TabsContent>
+
+        <TabsContent value="business-intelligence" className="space-y-4">
+          <BusinessIntelligenceDashboard />
         </TabsContent>
 
         <TabsContent value="translations" className="space-y-4">
