@@ -55,6 +55,7 @@ describe("public order tracking security", () => {
         expect(parseVerifier).toBeGreaterThan(-1);
         expect(verifyPhone).toBeGreaterThan(parseVerifier);
         expect(carrierLookup).toBeGreaterThan(verifyPhone);
+        expect(source).toContain('String(order.carrier ?? "").trim() === "الوسيط"');
         expect(source).toContain("ORDER_TRACKING_FAILURE_MESSAGE");
     });
 
