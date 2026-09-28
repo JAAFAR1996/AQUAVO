@@ -69,6 +69,11 @@ interface CreateOrderLoyaltyOptions {
     cashbackToUse?: number;
 }
 
+interface OrderCommerceContext {
+    viewSessionId?: string;
+    attribution?: Record<string, string>;
+}
+
 type OrderWithLoyalty = Order & {
     loyaltyResult?: TransactionalOrderLoyaltyResult;
     actualCashbackUsed?: number;
@@ -239,6 +244,7 @@ export class OrderStorage {
         couponCode?: string,
         loyaltyOptions: CreateOrderLoyaltyOptions = {},
         idempotencyKey?: string,
+        commerceContext: OrderCommerceContext = {},
     ): Promise<OrderWithLoyalty> {
         const db = this.ensureDb();
         if (!userId && loyaltyOptions.useCashback && Number(loyaltyOptions.cashbackToUse ?? 0) > 0) {
@@ -399,6 +405,38 @@ export class OrderStorage {
                 customerName: customerInfo.name,
                 customerEmail: customerInfo.email,
                 customerPhone: customerInfo.phone,
+
+                // Durable funnel + acquisition snapshot. These values are
+                // browser-generated opaque/campaign identifiers only; customer
+                // PII never enters the attribution namespace.
+                viewSessionId: commerceContext.viewSessionId,
+                aqSid: commerceContext.attribution?.aq_sid,
+                attributionUtmSource: commerceContext.attribution?.utm_source,
+                attributionUtmMedium: commerceContext.attribution?.utm_medium,
+                attributionUtmCampaign: commerceContext.attribution?.utm_campaign,
+                attributionUtmContent: commerceContext.attribution?.utm_content,
+                attributionUtmTerm: commerceContext.attribution?.utm_term,
+                attributionFbclid: commerceContext.attribution?.fbclid,
+                attributionGclid: commerceContext.attribution?.gclid,
+                attributionTtclid: commerceContext.attribution?.ttclid,
+                attributionIgshid: commerceContext.attribution?.igshid,
+                aqCampaignId: commerceContext.attribution?.aq_campaign_id,
+                aqAdsetId: commerceContext.attribution?.aq_adset_id,
+                aqAdId: commerceContext.attribution?.aq_ad_id,
+                aqCreativeId: commerceContext.attribution?.aq_creative_id,
+                aqConceptId: commerceContext.attribution?.aq_concept_id,
+                aqHypothesisId: commerceContext.attribution?.aq_hypothesis_id,
+                aqExperimentId: commerceContext.attribution?.aq_experiment_id,
+                attributionCapturedAt: commerceContext.attribution?.attribution_captured_at
+                    ? new Date(commerceContext.attribution.attribution_captured_at)
+                    : undefined,
+                firstTouchUtmSource: commerceContext.attribution?.first_touch_utm_source,
+                firstTouchUtmMedium: commerceContext.attribution?.first_touch_utm_medium,
+                firstTouchUtmCampaign: commerceContext.attribution?.first_touch_utm_campaign,
+                firstTouchAqCampaignId: commerceContext.attribution?.first_touch_aq_campaign_id,
+                firstTouchCapturedAt: commerceContext.attribution?.first_touch_captured_at
+                    ? new Date(commerceContext.attribution.first_touch_captured_at)
+                    : undefined,
             } as any).returning();
 
             // 6b. Persist normalized line items into order_items_relational so that
