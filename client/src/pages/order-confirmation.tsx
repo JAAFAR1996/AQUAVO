@@ -29,6 +29,7 @@ import { readStashedOrder } from "@/lib/order-stash";
 import { ttqPurchase } from "@/lib/tiktok-pixel";
 import { phTrackPurchase } from "@/lib/posthog";
 import { metaTrackPurchase } from "@/lib/meta-pixel";
+import { trackPurchase } from "@/lib/analytics";
 import { DELIVERY_DAYS } from "@/lib/constants/shipping";
 import { WhatsAppLink } from "@/components/whatsapp-link";
 import { useTranslation } from "react-i18next";
@@ -167,6 +168,16 @@ export default function OrderConfirmation() {
                 productIds: full.items.map(item => item.productId),
                 numItems: full.items.reduce((sum, item) => sum + item.quantity, 0),
                 phone: full.customerPhone,
+            });
+            trackPurchase({
+                orderId: full.orderNumber || full.id,
+                total: Number(full.total ?? 0),
+                items: full.items.map(item => ({
+                    id: item.productId,
+                    name: item.productName || item.productId,
+                    price: Number(item.priceAtPurchase || 0),
+                    quantity: item.quantity,
+                })),
             });
         }
     }, [(order as OrderData | undefined)?.id]);
