@@ -4,6 +4,7 @@ import {
   buildCustomerFirstName,
   normalizeIraqiWhatsAppPhone,
 } from "./customer-messaging.js";
+import { reconcileWhatsAppProviderEvents } from "./whatsapp-provider-status.js";
 
 const REQUEST_TIMEOUT_MS = 7_000;
 const MAX_SEND_ATTEMPTS = 5;
@@ -719,7 +720,11 @@ async function markAccepted(job: ClaimedLifecycleJob, providerMessageId: string)
         )
       RETURNING id
     `);
-    return rowsOf(result).length>0;
+    const persisted=rowsOf(result).length>0;
+    if(persisted){
+      try{ await reconcileWhatsAppProviderEvents(providerMessageId); }catch{ /* recovery worker retries */ }
+    }
+    return persisted;
   }catch{
     // Never resend after provider acceptance merely because our acknowledgement
     // write is uncertain. The stale-sending guard converts this to ambiguity.
