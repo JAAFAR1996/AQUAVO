@@ -286,42 +286,6 @@ export function createOrderRouter(): RouterType {
                 console.error("[AQUAVO] Audit log failed (non-blocking):", auditErr);
             }
 
-            // Mark cart session as converted for accurate analytics
-            analyticsTracker.trackSessionStatus(
-                analyticsSessionId,
-                "converted"
-            ).catch(() => { });
-
-            // Track purchase interactions for each item (fire-and-forget).
-            //
-            // The lines come from the ORDER, not from the request body. The old code looped over the
-            // client-supplied `items` and, because it could not trust a client price, passed a literal
-            // `price: 0`. It was right not to trust the request and wrong about the remedy: the trusted
-            // price was already sitting in the order it had just created. createOrderSecure recomputes
-            // every line from the product row it locked and persists the result as order.items, so
-            // priceAtPurchase is the amount the customer was actually charged.
-            //
-            // The cost of the literal was total: every purchase row ever written carries price 0, so
-            // this table — the only purchase record that survived the 55-day PostHog outage — could be
-            // counted and never valued. Quantity now comes from the same authoritative line as the
-            // price, so the two can never describe different orders.
-            // Guarded rather than trusted: this runs AFTER the order is committed, so a throw here
-            // would 500 a customer whose order actually succeeded.
-            const orderLines = Array.isArray(order.items) ? order.items : [];
-            for (const line of orderLines) {
-                const unitPrice = Number(line.priceAtPurchase);
-                analyticsTracker.trackPurchase({
-                    userId: userId || undefined,
-                    sessionId: analyticsSessionId,
-                    productId: line.productId,
-                    orderId: order.id,
-                    quantity: Number(line.quantity) || 0,
-                    // A non-finite price would be a defect upstream; record 0 rather than NaN, which
-                    // would poison every aggregate that touches this column.
-                    price: Number.isFinite(unitPrice) ? unitPrice : 0,
-                }).catch(() => { });
-            }
-
             // === AQUAVO LOYALTY POINTS SYSTEM ===
             // Financial loyalty effects are committed inside createOrderSecure; this block is post-commit side effects only.
             const loyaltyResult = (order as any).loyaltyResult ?? null;
@@ -389,7 +353,7 @@ export function createOrderRouter(): RouterType {
             // and the message is built from the STORED order row (customer, address,
             // lines with variant labels, totals, createdAt) — never from the request.
             // Any failure here is logged and never reaches the customer response.
-            notifyMerchantOfCodOrder(order.id).catch((err) =>
+            notifyMerchantOfCodOrder(order.id, analyticsSessionId).catch((err) =>
                 console.error("[AQUAVO] Order notification failed:", err instanceof Error ? err.message : err),
             );
 
@@ -590,12 +554,15 @@ export function createOrderRouter(): RouterType {
  * fall back to ONE direct sendOrderNotification from the stored order so the
  * merchant still hears about the sale. Never throws.
  */
-async function notifyMerchantOfCodOrder(orderId: string): Promise<void> {
+async function notifyMerchantOfCodOrder(orderId: string, analyticsSessionId?: string): Promise<void> {
     try {
-        await enqueueMerchantNotificationOutbox(orderId);
+        await enqueueMerchantNotificationOutbox(orderId, analyticsSessionId);
     } catch (outboxErr) {
-        console.error("[AQUAVO] Order notification outbox unavailable, sending directly:", outboxErr instanceof Error ? outboxErr.message : outboxErr);
-        await sendCodNotificationDirectly(orderId);
+        console.error("[AQUAVO] COD operational outbox unavailable; using direct fallbacks:", outboxErr instanceof Error ? outboxErr.message : outboxErr);
+        await Promise.allSettled([
+            sendCodNotificationDirectly(orderId),
+            trackCodAnalyticsDirectly(orderId, analyticsSessionId),
+        ]);
         return;
     }
     // Enqueued: the durable event now owns delivery. If the immediate drain
@@ -605,6 +572,28 @@ async function notifyMerchantOfCodOrder(orderId: string): Promise<void> {
         await processPaymentOutboxForOrder(orderId);
     } catch (drainErr) {
         console.error("[AQUAVO] Order notification drain failed; cron will retry:", drainErr instanceof Error ? drainErr.message : drainErr);
+    }
+}
+
+async function trackCodAnalyticsDirectly(orderId: string, sessionId?: string): Promise<void> {
+    try {
+        const stored = await storage.getOrder(orderId);
+        if (!stored) return;
+        const resolvedSession = sessionId || `payment:${stored.id}`;
+        if (sessionId) {
+            await analyticsTracker.trackSessionStatus(sessionId, "converted");
+        }
+        const lines = Array.isArray(stored.items) ? stored.items : [];
+        await Promise.all(lines.map((line: any) => analyticsTracker.trackPurchase({
+            userId: stored.userId || undefined,
+            sessionId: resolvedSession,
+            productId: line.productId,
+            orderId: stored.id,
+            quantity: Number(line.quantity) || 0,
+            price: Number.isFinite(Number(line.priceAtPurchase)) ? Number(line.priceAtPurchase) : 0,
+        })));
+    } catch (analyticsErr) {
+        console.error("[AQUAVO] Direct COD analytics fallback failed:", analyticsErr instanceof Error ? analyticsErr.message : analyticsErr);
     }
 }
 
