@@ -70,6 +70,11 @@ export async function reconcileWhatsAppProviderEvents(providerMessageId: string)
     FROM public.customer_message_jobs
     WHERE provider_message_id=${normalizedId}
       AND status='completed'
+    UNION ALL
+    SELECT id
+    FROM public.customer_lifecycle_jobs
+    WHERE provider_message_id=${normalizedId}
+      AND status='completed'
     LIMIT 1
   `);
   if (rowsOf(jobLookup).length === 0) return 0;
@@ -136,16 +141,58 @@ export async function reconcileWhatsAppProviderEvents(providerMessageId: string)
          )
     `);
 
+    await db.execute(sql`
+      UPDATE public.customer_lifecycle_jobs AS job
+         SET provider_status=${status},
+             provider_status_at=${statusAt},
+             last_error_code=CASE
+               WHEN ${status}='failed' THEN ${errorCode}
+               WHEN job.last_error_code LIKE 'WHATSAPP_PROVIDER_FAILED_%' THEN NULL
+               ELSE job.last_error_code
+             END,
+             last_error_at=CASE
+               WHEN ${status}='failed' THEN ${statusAt}
+               WHEN job.last_error_code LIKE 'WHATSAPP_PROVIDER_FAILED_%' THEN NULL
+               ELSE job.last_error_at
+             END,
+             updated_at=clock_timestamp()
+       WHERE job.provider_message_id=${normalizedId}
+         AND job.status='completed'
+         AND (
+           job.provider_status_at IS NULL
+           OR job.provider_status_at < ${statusAt}
+           OR (
+             job.provider_status_at = ${statusAt}
+             AND CASE job.provider_status
+               WHEN 'accepted' THEN 0
+               WHEN 'sent' THEN 1
+               WHEN 'delivered' THEN 2
+               WHEN 'read' THEN 3
+               WHEN 'failed' THEN 4
+               ELSE -1
+             END < ${incomingRank}
+           )
+         )
+    `);
+
     const marked = await db.execute(sql`
       UPDATE public.whatsapp_provider_status_events AS event
          SET applied_at=clock_timestamp()
        WHERE event.id=${eventId}
          AND event.applied_at IS NULL
-         AND EXISTS (
-           SELECT 1
-           FROM public.customer_message_jobs AS job
-           WHERE job.provider_message_id=${normalizedId}
-             AND job.status='completed'
+         AND (
+           EXISTS (
+             SELECT 1
+             FROM public.customer_message_jobs AS job
+             WHERE job.provider_message_id=${normalizedId}
+               AND job.status='completed'
+           )
+           OR EXISTS (
+             SELECT 1
+             FROM public.customer_lifecycle_jobs AS job
+             WHERE job.provider_message_id=${normalizedId}
+               AND job.status='completed'
+           )
          )
       RETURNING event.id
     `);
@@ -164,10 +211,21 @@ export async function reconcilePendingWhatsAppProviderEvents(limit = 25): Promis
   const result = await db.execute(sql`
     SELECT DISTINCT event.provider_message_id
     FROM public.whatsapp_provider_status_events AS event
-    JOIN public.customer_message_jobs AS job
-      ON job.provider_message_id=event.provider_message_id
-     AND job.status='completed'
     WHERE event.applied_at IS NULL
+      AND (
+        EXISTS (
+          SELECT 1
+          FROM public.customer_message_jobs AS job
+          WHERE job.provider_message_id=event.provider_message_id
+            AND job.status='completed'
+        )
+        OR EXISTS (
+          SELECT 1
+          FROM public.customer_lifecycle_jobs AS job
+          WHERE job.provider_message_id=event.provider_message_id
+            AND job.status='completed'
+        )
+      )
     ORDER BY event.provider_message_id
     LIMIT ${safeLimit}
   `);
