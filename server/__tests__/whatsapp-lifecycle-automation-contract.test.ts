@@ -46,6 +46,13 @@ describe("automatic WhatsApp lifecycle contract",()=>{
     expect(growth).toContain("syncCheckoutWhatsAppMarketingConsents()");
   });
 
+  it("does not remind a later-due consumable at the earliest product window",()=>{
+    const growth=read("server/services/growth-operating-system.ts");
+    expect(growth).toContain("repurchase_candidates AS");
+    expect(growth).toContain("repurchase_target AS");
+    expect(growth).toContain("c.interval_target_days=t.target_days");
+  });
+
   it("enforces anti-spam and replenishment suppression controls",()=>{
     const service=read("server/services/whatsapp-lifecycle.ts");
     expect(service).toContain("MARKETING_FREQUENCY_CAP_DAYS = 30");
