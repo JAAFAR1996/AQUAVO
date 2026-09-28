@@ -830,7 +830,7 @@ export async function planCustomerLifecycleJobs() {
         AND o.cod_received=true
     )
     INSERT INTO public.customer_lifecycle_jobs(
-      customer_phone,order_id,job_type,due_at,status,channel,metadata
+      customer_phone,order_id,job_type,due_at,status,channel,scope_key,metadata
     )
     SELECT
       d.customer_phone,d.order_id,'day7_care',
@@ -838,7 +838,7 @@ export async function planCustomerLifecycleJobs() {
         ((d.delivered_at AT TIME ZONE 'Asia/Baghdad')::date + 7 + time '11:30')
         AT TIME ZONE 'Asia/Baghdad'
       ),
-      'planned','whatsapp',
+      'planned','whatsapp','order',
       jsonb_build_object(
         'source','growth_os',
         'deliveredAt',d.delivered_at,
@@ -847,11 +847,28 @@ export async function planCustomerLifecycleJobs() {
     FROM delivered d
     WHERE d.customer_phone IS NOT NULL
       AND d.delivered_at >= now()-interval '21 days'
-    ON CONFLICT(order_id,job_type) DO NOTHING
+      AND EXISTS (
+        SELECT 1
+        FROM public.whatsapp_lifecycle_runtime_config cfg
+        WHERE cfg.id=1
+          AND cfg.lifecycle_enabled=true
+          AND cfg.day7_enabled=true
+          AND cfg.activation_at IS NOT NULL
+          AND d.delivered_at >= cfg.activation_at
+      )
+    ON CONFLICT(order_id,job_type,scope_key) DO NOTHING
   `);
 
   await db.execute(sql`
-    WITH delivered AS (
+    WITH runtime AS (
+      SELECT activation_at
+      FROM public.whatsapp_lifecycle_runtime_config
+      WHERE id=1
+        AND lifecycle_enabled=true
+        AND repurchase_enabled=true
+        AND activation_at IS NOT NULL
+    ),
+    delivered AS (
       SELECT
         o.id AS order_id,
         public.aquavo_normalize_iraqi_phone(o.customer_phone) AS customer_phone,
@@ -868,55 +885,54 @@ export async function planCustomerLifecycleJobs() {
         AND o.payment_status='paid'
         AND o.cod_received=true
     ),
-    repurchase_candidates AS (
+    repurchase AS (
       SELECT
-        d.customer_phone,d.order_id,d.delivered_at,
-        oi.product_id,pr.interval_target_days
+        d.customer_phone,
+        d.order_id,
+        d.delivered_at,
+        oi.product_id,
+        pr.interval_target_days
       FROM delivered d
+      CROSS JOIN runtime cfg
       JOIN public.order_items_relational oi ON oi.order_id=d.order_id
       JOIN public.product_repurchase_profiles pr
         ON pr.sku_key=oi.product_id || '::'
-       AND pr.is_consumable=true AND pr.active=true
+       AND pr.is_consumable=true
+       AND pr.active=true
+       AND pr.interval_target_days IS NOT NULL
       WHERE d.customer_phone IS NOT NULL
-        AND d.delivered_at >= now()-interval '90 days'
-    ),
-    repurchase_target AS (
-      SELECT
-        customer_phone,order_id,delivered_at,
-        MIN(interval_target_days) AS target_days
-      FROM repurchase_candidates
-      GROUP BY customer_phone,order_id,delivered_at
-    ),
-    repurchase AS (
-      SELECT
-        t.customer_phone,t.order_id,t.delivered_at,t.target_days,
-        jsonb_agg(DISTINCT c.product_id) AS products
-      FROM repurchase_target t
-      JOIN repurchase_candidates c
-        ON c.customer_phone=t.customer_phone
-       AND c.order_id=t.order_id
-       AND c.delivered_at=t.delivered_at
-       AND c.interval_target_days=t.target_days
-      GROUP BY t.customer_phone,t.order_id,t.delivered_at,t.target_days
+        AND d.delivered_at >= cfg.activation_at
+      GROUP BY d.customer_phone,d.order_id,d.delivered_at,oi.product_id,pr.interval_target_days
     )
     INSERT INTO public.customer_lifecycle_jobs(
-      customer_phone,order_id,job_type,due_at,status,channel,recommended_product_ids,metadata
+      customer_phone,order_id,job_type,due_at,status,channel,scope_key,recommended_product_ids,metadata
     )
     SELECT
-      r.customer_phone,r.order_id,'repurchase',
+      r.customer_phone,
+      r.order_id,
+      'repurchase',
       (
-        ((r.delivered_at AT TIME ZONE 'Asia/Baghdad')::date + r.target_days + time '12:30')
+        ((r.delivered_at AT TIME ZONE 'Asia/Baghdad')::date + r.interval_target_days + time '12:30')
         AT TIME ZONE 'Asia/Baghdad'
       ),
-      'planned','whatsapp',r.products,
+      'planned',
+      'whatsapp',
+      'product:' || r.product_id,
+      jsonb_build_array(r.product_id),
       jsonb_build_object(
         'source','consumables_engine',
-        'targetDays',r.target_days,
+        'targetDays',r.interval_target_days,
+        'productId',r.product_id,
         'deliveredAt',r.delivered_at,
-        'schedulePolicy','replenishment_12_30_baghdad'
+        'schedulePolicy','per_product_replenishment_12_30_baghdad'
       )
     FROM repurchase r
-    ON CONFLICT(order_id,job_type) DO NOTHING
+    ON CONFLICT(order_id,job_type,scope_key) DO UPDATE
+    SET due_at=EXCLUDED.due_at,
+        recommended_product_ids=EXCLUDED.recommended_product_ids,
+        metadata=EXCLUDED.metadata,
+        updated_at=now()
+    WHERE public.customer_lifecycle_jobs.status='planned'
   `);
 
   await db.execute(sql`
