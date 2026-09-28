@@ -8,7 +8,7 @@
 -- Important policy boundary:
 --   - day7_care is service/utility follow-up tied to a delivered order.
 --   - repurchase is marketing and MUST require explicit customer opt-in.
---   - an unchecked checkout box never revokes a previous opt-in; opt-out is explicit.
+--   - an unchecked checkout box never revokes a previous opt-in. Opt-out is explicit.
 
 BEGIN;
 
