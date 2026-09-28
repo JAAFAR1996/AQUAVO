@@ -580,9 +580,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
         if (res.ok && removedItem) {
           fireCartLifecycleAnalytics("remove", removedItem.productId, removedItem.quantity);
         }
-        if (res.ok && currentItem) {
-          fireCartLifecycleAnalytics("touch", currentItem.productId, quantity);
-        }
         if (!res.ok) {
           // Rollback on failure - refetch from server
           const cartRes = await fetch("/api/cart", { credentials: "include" });
@@ -666,6 +663,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
           body: JSON.stringify({ quantity }),
         });
 
+        if (res.ok && currentItem) {
+          fireCartLifecycleAnalytics("touch", currentItem.productId, quantity);
+        }
         if (!res.ok) {
           // Rollback on failure
           setItems(prev => prev.map((item) =>
