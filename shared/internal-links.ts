@@ -25,7 +25,9 @@
  * by the suite rather than by a reader hitting a 404.
  */
 
-/** Static paths served by the SPA router. Mirrors client/src/App.tsx. */
+/** Static paths served by the SPA router. Mirrors client/src/App.tsx.
+ * /bundles is the Growth OS curated-bundle storefront.
+ */
 export const ROUTES: readonly string[] = [
   "/", "/about", "/about-aquavo", "/ai-tools", "/alexa-privacy", "/aquarium-wizard", "/ar", "/auth",
   "/beginner-guide", "/blog", "/calculators", "/cart", "/checkout", "/community-gallery",
