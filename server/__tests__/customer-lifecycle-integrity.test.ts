@@ -21,6 +21,7 @@ const migration = read("migrations/0090_customer_lifecycle_integrity.sql");
 const schema = read("shared/schema.ts");
 const waylRoute = read("server/routes/wayl.ts");
 const waylService = read("server/services/wayl-order-payment.ts");
+const migrationRunner = read("script/apply-0090-customer-lifecycle-migration.ts");
 
 describe("customer lifecycle integrity", () => {
   it("carries the exact browser session and acquisition snapshot into COD checkout", () => {
@@ -79,6 +80,15 @@ describe("customer lifecycle integrity", () => {
     expect(orders).not.toContain("INSERT INTO event_bus");
     expect(paymentMaintenance).toContain('eventTypes = ["analytics", "loyalty", "merchant_notification"]');
     expect(migration).toContain("LEGACY_LOGISTICS_CONSUMER_RETIRED_2026_09_28");
+  });
+
+  it("governs migration 0090 with an explicit SHA-256 runner and health checks", () => {
+    expect(migrationRunner).toContain('createHash("sha256")');
+    expect(migrationRunner).toContain("CONFIRM_CUSTOMER_LIFECYCLE_0090");
+    expect(migrationRunner).toContain("pg_advisory_lock");
+    expect(migrationRunner).toContain("attribution_columns");
+    expect(migrationRunner).toContain("inventory_gl_diff");
+    expect(migration).toContain("Runner must normalize checksum to SHA-256(file bytes)");
   });
 
   it("adds durable order join keys without guessing historical attribution", () => {
