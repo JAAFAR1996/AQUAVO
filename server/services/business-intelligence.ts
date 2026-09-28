@@ -456,6 +456,102 @@ export async function getBusinessFindings() {
   return rowsOf(result).map((row) => ({ ...row, severity: String(row.severity ?? "info") })) as Array<Row & {severity:string}>;
 }
 
+export async function getBusinessAssessment() {
+  const latestClosed = baghdadDay(-1);
+  const currentFrom = baghdadDay(-30);
+  const previousFrom = baghdadDay(-60);
+  const previousTo = baghdadDay(-31);
+
+  const [overview, current30, previous30] = await Promise.all([
+    getBusinessOverview(),
+    calculatePeriod(currentFrom, latestClosed),
+    calculatePeriod(previousFrom, previousTo),
+  ]);
+
+  const revenueGrowthPct = previous30.productRevenue > 0
+    ? ((current30.productRevenue - previous30.productRevenue) / previous30.productRevenue) * 100
+    : current30.productRevenue > 0 ? 100 : 0;
+  const orderGrowthPct = previous30.realizedOrders > 0
+    ? ((current30.realizedOrders - previous30.realizedOrders) / previous30.realizedOrders) * 100
+    : current30.realizedOrders > 0 ? 100 : 0;
+
+  const dataReady =
+    overview.marketing.configured
+    && overview.reconciliation.orderFinancialOpen === 0
+    && overview.reconciliation.orderTotalOpen === 0
+    && overview.reconciliation.productCostOpen === 0
+    && overview.inventory.missingCurrentCosts === 0;
+
+  const firstRealized = await getDb()!.execute(sql`
+    SELECT MIN(COALESCE(v.recognized_at,o.created_at AT TIME ZONE 'UTC')) AS first_realized_at
+    FROM public.orders o
+    LEFT JOIN public.v_order_accounting v ON v.order_id=o.id
+    WHERE COALESCE(o.is_test,false)=false
+      AND o.status='delivered' AND o.payment_status='paid' AND o.cod_received=true
+  `);
+  const firstAtRaw = rowsOf(firstRealized)[0]?.first_realized_at;
+  const firstAt = firstAtRaw ? new Date(String(firstAtRaw)) : null;
+  const operatingDays = firstAt && Number.isFinite(firstAt.getTime())
+    ? Math.max(0, Math.floor((Date.now() - firstAt.getTime()) / 86_400_000))
+    : 0;
+
+  let status: "CONTINUE" | "FIX" | "REASSESS" | "INSUFFICIENT_DATA" = "INSUFFICIENT_DATA";
+  const reasons: string[] = [];
+
+  if (!dataReady) {
+    reasons.push("القياس بعده مو مكتمل: الإعلانات أو المصالحات أو كلف المخزون تحتاج إغلاق.");
+  }
+  if (overview.financials.realizedOrders < 20) {
+    reasons.push("عدد الطلبات المحققة بعده قليل لاتخاذ قرار طويل الأمد.");
+  }
+
+  if (dataReady && overview.financials.realizedOrders >= 20) {
+    const economicsPositive = overview.financials.netOperatingProfit >= 0 && overview.financials.contributionProfit > 0;
+    const momentumHealthy = revenueGrowthPct >= -20 || current30.productRevenue > 0;
+
+    if (economicsPositive && momentumHealthy) {
+      status = "CONTINUE";
+      reasons.push("الاقتصاد المسجل موجب وربح المساهمة موجب، والزخم خلال آخر 30 يوم لا يظهر انهياراً حاداً.");
+    } else if (overview.financials.contributionProfit > 0) {
+      status = "FIX";
+      reasons.push("المنتج يحقق ربح مساهمة، لكن الربح التشغيلي أو الزخم يحتاج إصلاح قبل التوسع.");
+    } else if (operatingDays >= 90 && overview.financials.netOperatingProfit < 0 && revenueGrowthPct < 0) {
+      status = "REASSESS";
+      reasons.push("بعد مدة تشغيل كافية، ربح المساهمة والربح التشغيلي والزخم كلها غير داعمة للاستمرار بنفس النموذج.");
+    } else {
+      status = "FIX";
+      reasons.push("المشروع يحتاج تصحيح اقتصادي أو تشغيلي قبل الحكم النهائي.");
+    }
+  }
+
+  return {
+    status,
+    generatedAt: new Date().toISOString(),
+    operatingDays,
+    dataReady,
+    reasons,
+    evidence: {
+      allTimeNetOperatingProfit: overview.financials.netOperatingProfit,
+      allTimeContributionProfit: overview.financials.contributionProfit,
+      realizedOrders: overview.financials.realizedOrders,
+      repeatCustomerRatePct: overview.customers.repeatCustomerRatePct,
+      current30ProductRevenue: current30.productRevenue,
+      previous30ProductRevenue: previous30.productRevenue,
+      revenueGrowthPct,
+      current30Orders: current30.realizedOrders,
+      previous30Orders: previous30.realizedOrders,
+      orderGrowthPct,
+      marketingConfigured: overview.marketing.configured,
+      reconciliation: overview.reconciliation,
+    },
+    thresholds: {
+      minimumOrdersForDecision: 20,
+      reassessMinimumOperatingDays: 90,
+      severeRevenueDeclinePct: -20,
+    },
+  };
+}
+
 export async function getBusinessOverview() {
   const [allTime, customers, marketing, inventory] = await Promise.all([
     calculatePeriod(null,null),customerMetrics(null),marketingMetrics(null),getInventoryHealth(10),
@@ -627,7 +723,7 @@ export async function refreshBusinessSnapshot(dayInput?:string) {
     ON CONFLICT(fingerprint) DO UPDATE SET occurred_at=now(),details=EXCLUDED.details,source=EXCLUDED.source,severity=EXCLUDED.severity
   `);
 
-  await refreshFindings(day,{
+  if (day === baghdadDay(-1)) await refreshFindings(day,{
     customersTotal:customers.customersTotal,repeatRate:customers.repeatCustomerRatePct,
     netProfit:netOperatingProfit,adSpend:marketing.adSpend,trackedConversions:marketing.trackedConversions,
   },marketing.rows,reconciliation.orderFinancialOpen+reconciliation.orderTotalOpen+reconciliation.productCostOpen);
