@@ -213,6 +213,18 @@ export function BusinessIntelligenceDashboard() {
     },
   });
 
+  const completeLifecycle = useMutation({
+    mutationFn: (jobId: string) =>
+      jsonFetch("/api/admin/growth-os/lifecycle/" + encodeURIComponent(jobId) + "/complete", {
+        method: "POST",
+        headers: addCsrfHeader({ "Content-Type": "application/json" }),
+        body: "{}",
+      }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["growth-os", "overview"] });
+    },
+  });
+
   if (overview.isLoading) {
     return <div className="p-8 text-center text-muted-foreground">جاري حساب حقيقة المشروع…</div>;
   }
@@ -457,11 +469,21 @@ export function BusinessIntelligenceDashboard() {
                       <p className="font-medium">{job.jobType === "day7_care" ? "متابعة اليوم السابع" : "تذكير إعادة شراء"} · {job.customerName || job.orderNumber}</p>
                       <p className="text-xs text-muted-foreground">#{job.orderNumber} · {new Date(job.dueAt).toLocaleDateString("ar-IQ")}</p>
                     </div>
-                    {job.whatsappUrl ? (
-                      <a href={job.whatsappUrl} target="_blank" rel="noreferrer" className="text-sm font-semibold text-primary underline underline-offset-4">
-                        فتح WhatsApp
-                      </a>
-                    ) : <Badge variant="secondary">رقم غير صالح</Badge>}
+                    <div className="flex items-center gap-2">
+                      {job.whatsappUrl ? (
+                        <a href={job.whatsappUrl} target="_blank" rel="noreferrer" className="text-sm font-semibold text-primary underline underline-offset-4">
+                          فتح WhatsApp
+                        </a>
+                      ) : <Badge variant="secondary">رقم غير صالح</Badge>}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={completeLifecycle.isPending}
+                        onClick={() => completeLifecycle.mutate(job.id)}
+                      >
+                        تم التواصل
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </CardContent>
