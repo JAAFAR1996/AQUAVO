@@ -24,6 +24,7 @@ describe("AQUAVO Business Operating System wiring", () => {
     expect(service).toContain("accounting_order_id IS NOT NULL THEN 'exact' ELSE 'estimated'");
     expect(service).toContain("marketingDataPresent");
     expect(service).toContain("business_marketing_daily");
+    expect(service).toContain('day === baghdadDay(-1)');
   });
 
   it("is protected, mounted, scheduled, visible, and MCP-readable", () => {
@@ -33,9 +34,11 @@ describe("AQUAVO Business Operating System wiring", () => {
     const admin = readFileSync("client/src/pages/admin-dashboard.tsx", "utf8");
     const mcp = readFileSync("server/routes/mcp.ts", "utf8");
     expect(route).toContain("requireAccountingAdmin");
+    expect(route).toContain('router.get("/assessment"');
     expect(routes).toContain("/api/admin/business-intelligence");
     expect(cron).toContain("refreshBusinessSnapshot");
     expect(admin).toContain("business-intelligence");
     expect(mcp).toContain("get_business_overview");
+    expect(mcp).toContain("get_business_assessment");
   });
 });
