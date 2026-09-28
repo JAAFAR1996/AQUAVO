@@ -173,21 +173,29 @@ export async function getAttributionHealth() {
       SELECT DISTINCT order_id
       FROM public.purchase_measurement_receipts
       WHERE provider='google_tag' AND status='emitted'
+    ),
+    meta_receipts AS (
+      SELECT DISTINCT order_id
+      FROM public.purchase_measurement_receipts
+      WHERE provider='meta_pixel' AND status='emitted'
     )
     SELECT
       COUNT(*)::int AS realized_orders,
       COUNT(a.order_id)::int AS attributed_orders,
       COUNT(*) FILTER (WHERE a.gclid IS NOT NULL OR a.gbraid IS NOT NULL OR a.wbraid IS NOT NULL)::int AS google_click_orders,
       COUNT(*) FILTER (WHERE a.fbclid IS NOT NULL)::int AS meta_click_orders,
-      COUNT(g.order_id)::int AS google_measured_orders
+      COUNT(g.order_id)::int AS google_measured_orders,
+      COUNT(m.order_id)::int AS meta_measured_orders
     FROM realized r
     LEFT JOIN public.order_attribution a ON a.order_id=r.id
     LEFT JOIN google_receipts g ON g.order_id=r.id
+    LEFT JOIN meta_receipts m ON m.order_id=r.id
   `);
   const row = rowsOf(result)[0] ?? {};
   const realized = n(row.realized_orders);
   const attributed = n(row.attributed_orders);
   const measured = n(row.google_measured_orders);
+  const metaMeasured = n(row.meta_measured_orders);
 
   const provider = await db.execute(sql`
     SELECT
@@ -206,6 +214,8 @@ export async function getAttributionHealth() {
     metaClickOrders: n(row.meta_click_orders),
     googleMeasuredOrders: measured,
     purchaseMeasurementCoveragePct: realized > 0 ? measured / realized * 100 : 0,
+    metaMeasuredOrders: metaMeasured,
+    metaPurchaseMeasurementCoveragePct: realized > 0 ? metaMeasured / realized * 100 : 0,
     providerSpendIqd: n(p.spend_iqd),
     providerTrackedConversions: n(p.tracked_conversions),
     providerConversionValueIqd: n(p.conversion_value_iqd),
