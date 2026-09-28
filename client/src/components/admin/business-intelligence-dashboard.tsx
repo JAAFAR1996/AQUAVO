@@ -60,6 +60,15 @@ type Assessment = {
   };
 };
 
+type BusinessEvent = {
+  id: string;
+  occurred_at: string;
+  event_type: string;
+  title: string;
+  source: string;
+  severity: "info" | "warning" | "critical";
+};
+
 type Finding = {
   id: string;
   severity: string;
@@ -95,6 +104,11 @@ export function BusinessIntelligenceDashboard() {
     queryFn: () => jsonFetch("/api/admin/business-intelligence/assessment"),
     refetchInterval: 60_000,
   });
+  const events = useQuery<BusinessEvent[]>({
+    queryKey: ["business-intelligence", "events"],
+    queryFn: () => jsonFetch("/api/admin/business-intelligence/events?limit=8"),
+    refetchInterval: 60_000,
+  });
   const findings = useQuery<Finding[]>({
     queryKey: ["business-intelligence", "findings"],
     queryFn: () => jsonFetch("/api/admin/business-intelligence/findings"),
@@ -112,6 +126,7 @@ export function BusinessIntelligenceDashboard() {
         queryClient.invalidateQueries({ queryKey: ["business-intelligence", "overview"] }),
         queryClient.invalidateQueries({ queryKey: ["business-intelligence", "assessment"] }),
         queryClient.invalidateQueries({ queryKey: ["business-intelligence", "findings"] }),
+        queryClient.invalidateQueries({ queryKey: ["business-intelligence", "events"] }),
         queryClient.invalidateQueries({ queryKey: ["business-intelligence", "history"] }),
       ]);
     },
@@ -274,6 +289,31 @@ export function BusinessIntelligenceDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader><CardTitle className="text-base">آخر أحداث المشروع</CardTitle></CardHeader>
+        <CardContent>
+          {(events.data?.length ?? 0) === 0 ? (
+            <p className="text-sm text-muted-foreground">ماكو أحداث مسجلة بعد.</p>
+          ) : (
+            <div className="space-y-2">
+              {events.data?.map((event) => (
+                <div key={event.id} className="flex items-start justify-between gap-3 rounded-lg border p-3">
+                  <div>
+                    <p className="font-medium">{event.title}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(event.occurred_at).toLocaleString("ar-IQ")} · {event.source}
+                    </p>
+                  </div>
+                  <Badge variant={event.severity === "critical" ? "destructive" : "secondary"}>
+                    {event.event_type}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
