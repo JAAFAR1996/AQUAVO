@@ -236,45 +236,45 @@ export async function refreshRepurchaseProfiles() {
       p.id,
       NULL,
       CASE
-        WHEN p.category='طعام الأسماك' THEN true
+        WHEN p.category='طعام الأسماك' AND COALESCE(p.subcategory,'')<>'أدوات التغذية' THEN true
         WHEN p.subcategory='أدوات فحص المياه' THEN true
         WHEN p.name ILIKE '%قطن فلترة%' THEN true
         WHEN p.name ILIKE '%كربون نشط%' THEN true
-        WHEN p.category='معالجة المياه' AND p.subcategory NOT IN ('علاج الأمراض','مكافحة الطحالب') THEN true
-        WHEN p.subcategory='التسميد' THEN true
+        WHEN p.category='معالجة المياه' AND p.subcategory NOT IN ('علاج الأمراض','مكافحة الطحالب') AND p.name NOT ILIKE '%طحالب%' AND p.name NOT ILIKE '%علاج%' AND p.name NOT ILIKE '%دواء%' THEN true
+        WHEN p.subcategory='التسميد' AND p.name NOT ILIKE '%سرنجة%' AND p.name NOT ILIKE '%أداة%' THEN true
         WHEN p.subcategory='مواد طبيعية' THEN true
         WHEN p.name ILIKE '%مزيل ترسبات%' THEN true
         ELSE false
       END,
       CASE
-        WHEN p.category='طعام الأسماك' THEN 30
+        WHEN p.category='طعام الأسماك' AND COALESCE(p.subcategory,'')<>'أدوات التغذية' THEN 30
         WHEN p.subcategory='أدوات فحص المياه' THEN 45
         WHEN p.name ILIKE '%قطن فلترة%' THEN 21
         WHEN p.name ILIKE '%كربون نشط%' THEN 30
-        WHEN p.category='معالجة المياه' AND p.subcategory NOT IN ('علاج الأمراض','مكافحة الطحالب') THEN 30
-        WHEN p.subcategory='التسميد' THEN 45
+        WHEN p.category='معالجة المياه' AND p.subcategory NOT IN ('علاج الأمراض','مكافحة الطحالب') AND p.name NOT ILIKE '%طحالب%' AND p.name NOT ILIKE '%علاج%' AND p.name NOT ILIKE '%دواء%' THEN 30
+        WHEN p.subcategory='التسميد' AND p.name NOT ILIKE '%سرنجة%' AND p.name NOT ILIKE '%أداة%' THEN 45
         WHEN p.subcategory='مواد طبيعية' THEN 30
         WHEN p.name ILIKE '%مزيل ترسبات%' THEN 60
         ELSE NULL
       END,
       CASE
-        WHEN p.category='طعام الأسماك' THEN 45
+        WHEN p.category='طعام الأسماك' AND COALESCE(p.subcategory,'')<>'أدوات التغذية' THEN 45
         WHEN p.subcategory='أدوات فحص المياه' THEN 60
         WHEN p.name ILIKE '%قطن فلترة%' THEN 30
         WHEN p.name ILIKE '%كربون نشط%' THEN 45
-        WHEN p.category='معالجة المياه' AND p.subcategory NOT IN ('علاج الأمراض','مكافحة الطحالب') THEN 45
-        WHEN p.subcategory='التسميد' THEN 60
+        WHEN p.category='معالجة المياه' AND p.subcategory NOT IN ('علاج الأمراض','مكافحة الطحالب') AND p.name NOT ILIKE '%طحالب%' AND p.name NOT ILIKE '%علاج%' AND p.name NOT ILIKE '%دواء%' THEN 45
+        WHEN p.subcategory='التسميد' AND p.name NOT ILIKE '%سرنجة%' AND p.name NOT ILIKE '%أداة%' THEN 60
         WHEN p.subcategory='مواد طبيعية' THEN 45
         WHEN p.name ILIKE '%مزيل ترسبات%' THEN 90
         ELSE NULL
       END,
       CASE
-        WHEN p.category='طعام الأسماك' THEN 75
+        WHEN p.category='طعام الأسماك' AND COALESCE(p.subcategory,'')<>'أدوات التغذية' THEN 75
         WHEN p.subcategory='أدوات فحص المياه' THEN 90
         WHEN p.name ILIKE '%قطن فلترة%' THEN 45
         WHEN p.name ILIKE '%كربون نشط%' THEN 60
-        WHEN p.category='معالجة المياه' AND p.subcategory NOT IN ('علاج الأمراض','مكافحة الطحالب') THEN 75
-        WHEN p.subcategory='التسميد' THEN 90
+        WHEN p.category='معالجة المياه' AND p.subcategory NOT IN ('علاج الأمراض','مكافحة الطحالب') AND p.name NOT ILIKE '%طحالب%' AND p.name NOT ILIKE '%علاج%' AND p.name NOT ILIKE '%دواء%' THEN 75
+        WHEN p.subcategory='التسميد' AND p.name NOT ILIKE '%سرنجة%' AND p.name NOT ILIKE '%أداة%' THEN 90
         WHEN p.subcategory='مواد طبيعية' THEN 75
         WHEN p.name ILIKE '%مزيل ترسبات%' THEN 120
         ELSE NULL
@@ -581,19 +581,12 @@ export async function refreshCustomerAquariumProfiles() {
 
   await db.execute(sql`
     WITH candidates AS (
-      SELECT DISTINCT ON (customer_key)
-        customer_key,user_id,normalized_phone,customer_name
-      FROM (
-        SELECT
-          COALESCE(NULLIF(regexp_replace(customer_phone,'\\D','','g'),''),user_id,lower(customer_email),id) AS customer_key,
-          user_id,
-          NULLIF(regexp_replace(customer_phone,'\\D','','g'),'') AS normalized_phone,
-          customer_name,
-          created_at
-        FROM public.orders
-        WHERE COALESCE(is_test,false)=false
-      ) x
-      ORDER BY customer_key,created_at DESC
+      SELECT DISTINCT ON (ci.customer_key)
+        ci.customer_key,ci.user_id,ci.normalized_phone,ci.customer_name
+      FROM public.v_growth_order_customer_identity ci
+      JOIN public.orders o ON o.id=ci.order_id
+      WHERE COALESCE(o.is_test,false)=false
+      ORDER BY ci.customer_key,ci.created_at DESC
     )
     INSERT INTO public.customer_aquarium_profiles(
       customer_key,user_id,normalized_phone,customer_name,source,created_at,updated_at
@@ -736,7 +729,7 @@ export async function getCustomerAquariumProfiles(limitInput=50) {
     SELECT cp.*,
       (SELECT COUNT(*) FROM public.orders o
        WHERE COALESCE(o.is_test,false)=false
-         AND COALESCE(NULLIF(regexp_replace(o.customer_phone,'\\D','','g'),''),o.user_id,lower(o.customer_email),o.id)=cp.customer_key
+         AND EXISTS (SELECT 1 FROM public.v_growth_order_customer_identity ci WHERE ci.order_id=o.id AND ci.customer_key=cp.customer_key)
       )::int AS orders_count
     FROM public.customer_aquarium_profiles cp
     ORDER BY cp.updated_at DESC
@@ -756,9 +749,10 @@ export async function planCustomerLifecycleJobs() {
     WITH delivered AS (
       SELECT
         o.id AS order_id,
-        COALESCE(NULLIF(regexp_replace(o.customer_phone,'\\D','','g'),''),o.user_id,lower(o.customer_email),o.id) AS customer_key,
+        ci.customer_key AS customer_key,
         COALESCE(dc.created_at,v.recognized_at,o.updated_at AT TIME ZONE 'UTC',o.created_at AT TIME ZONE 'UTC') AS delivered_at
       FROM public.orders o
+      JOIN public.v_growth_order_customer_identity ci ON ci.order_id=o.id
       LEFT JOIN public.v_order_accounting v ON v.order_id=o.id
       LEFT JOIN public.customer_message_jobs dc ON dc.order_id=o.id AND dc.job_type='delivery_care'
       WHERE COALESCE(o.is_test,false)=false
@@ -781,9 +775,10 @@ export async function planCustomerLifecycleJobs() {
     WITH delivered AS (
       SELECT
         o.id AS order_id,
-        COALESCE(NULLIF(regexp_replace(o.customer_phone,'\\D','','g'),''),o.user_id,lower(o.customer_email),o.id) AS customer_key,
+        ci.customer_key AS customer_key,
         COALESCE(dc.created_at,v.recognized_at,o.updated_at AT TIME ZONE 'UTC',o.created_at AT TIME ZONE 'UTC') AS delivered_at
       FROM public.orders o
+      JOIN public.v_growth_order_customer_identity ci ON ci.order_id=o.id
       LEFT JOIN public.v_order_accounting v ON v.order_id=o.id
       LEFT JOIN public.customer_message_jobs dc ON dc.order_id=o.id AND dc.job_type='delivery_care'
       WHERE COALESCE(o.is_test,false)=false
