@@ -3,6 +3,7 @@
 // Hybrid tracking: Browser Pixel + Server-side CAPI with event deduplication
 import { isTrackingAllowed } from "./tracking-environment";
 import { META_AD_CURRENCY, iqdToAdValue } from "./ad-currency";
+import { addCsrfHeader } from "./csrf";
 
 declare global {
   interface Window {
@@ -313,6 +314,28 @@ export function metaTrackInitiateCheckout(params: {
   });
 }
 
+function recordMetaPurchaseReceipt(orderId: string, valueIqd: number, browserPixelReady: boolean) {
+  if (!PIXEL_ID || !orderId || orderId === "unknown") return;
+  try {
+    void fetch("/api/growth/purchase-receipt", {
+      method: "POST",
+      headers: addCsrfHeader({ "Content-Type": "application/json" }),
+      credentials: "include",
+      keepalive: true,
+      body: JSON.stringify({
+        orderId,
+        provider: "meta_pixel",
+        eventKey: "Purchase",
+        status: "emitted",
+        clientValueIqd: valueIqd,
+        details: { browserPixelReady, capiAttempted: true },
+      }),
+    }).catch(() => {});
+  } catch {
+    // Diagnostics must never interfere with checkout.
+  }
+}
+
 /** إتمام الطلب — Purchase (الأهم للـ ROAS) */
 export function metaTrackPurchase(params: {
   orderId: string;
@@ -351,6 +374,7 @@ export function metaTrackPurchase(params: {
     }, { eventID: eventId });
   }
 
+  const browserPixelReady = isPixelReady();
   sendCAPI({
     event_name: "Purchase",
     event_id: eventId,
@@ -366,6 +390,7 @@ export function metaTrackPurchase(params: {
       order_id: params.orderId,
     },
   });
+  recordMetaPurchaseReceipt(params.orderId, params.totalIQD, browserPixelReady);
 }
 
 /** بحث — Search */
