@@ -103,7 +103,7 @@ function toProduct(raw: Record<string, unknown>): Product {
 }
 
 export default function BundlesPage() {
-  const { locale, href } = useLocale();
+  const { locale } = useLocale();
   const t = COPY[locale];
   const { addItems } = useCart();
   const [adding, setAdding] = useState<string | null>(null);
@@ -198,7 +198,7 @@ export default function BundlesPage() {
                   {bundle.items.map((item) => (
                     <Link
                       key={item.productId + "::" + (item.variantId ?? "")}
-                      href={href("/products/" + item.slug)}
+                      href={"/products/" + item.slug}
                       className="flex items-center gap-3 rounded-xl border p-3 transition-colors hover:border-primary/40 hover:bg-primary/[0.03]"
                     >
                       <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-muted">
@@ -219,7 +219,7 @@ export default function BundlesPage() {
                   </div>
                   {bundle.requiresVariantSelection ? (
                     <Button asChild variant="outline">
-                      <Link href={href("/products")}>
+                      <Link href="/products">
                         <PackagePlus className="me-2 h-4 w-4" />
                         {t.choose}
                       </Link>
