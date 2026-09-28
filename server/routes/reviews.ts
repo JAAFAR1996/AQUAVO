@@ -95,12 +95,16 @@ export function createReviewsRouter(): RouterType {
                 }
             }
 
-            // Verified purchase — only possible for logged-in users
+            // Verified purchase — only a realized purchase counts.
+            // Order lines store productId; the old item.id comparison made every
+            // legitimate purchase look unverified.
             let verifiedPurchase = false;
             if (userId) {
                 const userOrders = await storage.getOrders(userId);
                 verifiedPurchase = userOrders.some(order =>
-                    order.items.some((item: any) => item.id === productId)
+                    order.status === "delivered"
+                    && Array.isArray(order.items)
+                    && order.items.some((item: any) => (item.productId ?? item.id) === productId)
                 );
             }
 
