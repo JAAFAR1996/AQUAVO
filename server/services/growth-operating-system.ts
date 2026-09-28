@@ -704,6 +704,30 @@ export async function upsertCustomerAquariumProfile(input:{
   return {ok:true,customerKey:input.customerKey};
 }
 
+export async function getCustomerProfileCoverage() {
+  const db=getDb();
+  if(!db) throw new Error("DATABASE_NOT_CONNECTED");
+  const result=await db.execute(sql`
+    SELECT
+      COUNT(*)::int AS total,
+      COUNT(*) FILTER(
+        WHERE tank_volume_liters IS NOT NULL
+           OR tank_dimensions<>'{}'::jsonb
+           OR livestock<>'[]'::jsonb
+           OR plants<>'[]'::jsonb
+           OR filter_setup<>'{}'::jsonb
+           OR heater_setup<>'{}'::jsonb
+           OR water_profile<>'{}'::jsonb
+           OR goals<>'[]'::jsonb
+           OR notes IS NOT NULL
+      )::int AS detailed
+    FROM public.customer_aquarium_profiles
+  `);
+  const row=rowsOf(result)[0]??{};
+  const total=n(row.total),detailed=n(row.detailed);
+  return {total,detailed,coveragePct:total>0?detailed/total*100:0};
+}
+
 export async function getCustomerAquariumProfiles(limitInput=50) {
   const db=getDb();
   if(!db) throw new Error("DATABASE_NOT_CONNECTED");
@@ -1140,27 +1164,20 @@ export async function getExpenseCompleteness() {
 }
 
 export async function getGrowthOverview() {
-  const [attribution,inventory,lifecycle,profiles,bundles,expenses]=await Promise.all([
+  const [attribution,inventory,lifecycle,customerProfiles,bundles,expenses]=await Promise.all([
     getAttributionHealth(),
     getInventoryIntelligence(20),
     getLifecycleOverview(20),
-    getCustomerAquariumProfiles(200),
+    getCustomerProfileCoverage(),
     getBundles(false),
     getExpenseCompleteness(),
   ]);
-  const detailedProfiles=profiles.filter((row:any)=>
-    row.tank_volume_liters != null
-    || JSON.stringify(row.tank_dimensions ?? {})!=="{}"
-    || JSON.stringify(row.livestock ?? [])!=="[]"
-    || JSON.stringify(row.plants ?? [])!=="[]"
-    || JSON.stringify(row.filter_setup ?? {})!=="{}"
-  ).length;
   return {
     generatedAt:new Date().toISOString(),
     attribution,
     inventory,
     lifecycle,
-    customerProfiles:{total:profiles.length,detailed:detailedProfiles,coveragePct:profiles.length>0?detailedProfiles/profiles.length*100:0},
+    customerProfiles,
     bundles:{count:bundles.length,live:bundles.filter((b:any)=>b.storefrontVisible).length,inStock:bundles.filter((b:any)=>b.inStock).length,items:bundles},
     expenses,
   };
