@@ -1,29 +1,15 @@
 -- 0093_whatsapp_lifecycle_automation.sql
--- AQUAVO automatic WhatsApp lifecycle:
---   * explicit marketing-consent ledger
---   * provider lifecycle fields on Growth OS jobs
---   * durable contextual-reply inbox
---   * fail-closed foundations for day-7 care + replenishment automation
+-- AQUAVO automatic WhatsApp lifecycle
+-- Explicit marketing-consent ledger
+-- Provider lifecycle fields on Growth OS jobs
+-- Durable contextual-reply inbox
+-- Fail-closed foundations for day-7 care and replenishment automation
 --
--- Important policy boundary:
---   - day7_care is service/utility follow-up tied to a delivered order.
---   - repurchase is marketing and MUST require explicit customer opt-in.
---   - an unchecked checkout box never revokes a previous opt-in. Opt-out is explicit.
+-- Policy boundary
+-- Repurchase is marketing and requires explicit customer opt-in.
+-- An unchecked checkout box never revokes a previous opt-in. Opt-out is explicit.
 
 BEGIN;
-
-DO $guard$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1
-    FROM public.schema_migrations
-    WHERE version='0092_growth_os_aquarium_notes'
-      AND rolled_back_at IS NULL
-  ) THEN
-    RAISE EXCEPTION '0093_REQUIRES_ACTIVE_0092';
-  END IF;
-END
-$guard$;
 
 ALTER TABLE public.orders
   ADD COLUMN IF NOT EXISTS whatsapp_marketing_opt_in boolean NOT NULL DEFAULT false,
@@ -40,7 +26,8 @@ ALTER TABLE public.orders
   );
 
 COMMENT ON COLUMN public.orders.whatsapp_marketing_opt_in IS
-  'Explicit checkout consent for AQUAVO WhatsApp marketing/replenishment reminders. False does not mean opt-out; it means this order did not add new consent.';
+  'Explicit checkout consent for AQUAVO WhatsApp marketing and replenishment reminders. False means this order did not add new consent.';
+
 COMMENT ON COLUMN public.orders.whatsapp_marketing_opt_in_at IS
   'Timestamp of the explicit checkout marketing opt-in captured for this order.';
 
@@ -85,74 +72,6 @@ CREATE UNIQUE INDEX IF NOT EXISTS customer_messaging_consent_events_source_event
 
 CREATE INDEX IF NOT EXISTS customer_messaging_consent_events_phone_idx
   ON public.customer_messaging_consent_events(customer_phone,occurred_at DESC);
-
-CREATE OR REPLACE FUNCTION public.aquavo_capture_whatsapp_marketing_consent()
-RETURNS trigger
-LANGUAGE plpgsql
-AS $fn$
-DECLARE
-  canonical_phone text;
-  consent_at timestamptz;
-BEGIN
-  IF COALESCE(NEW.is_test,false)=true
-     OR COALESCE(NEW.whatsapp_marketing_opt_in,false)=false THEN
-    RETURN NEW;
-  END IF;
-
-  canonical_phone := public.aquavo_normalize_iraqi_phone(NEW.customer_phone);
-  IF canonical_phone IS NULL THEN
-    RETURN NEW;
-  END IF;
-
-  consent_at := COALESCE(NEW.whatsapp_marketing_opt_in_at, clock_timestamp());
-
-  -- Ensure the canonical CRM row exists even if trigger ordering changes later.
-  PERFORM public.aquavo_refresh_customer_profile(NEW.customer_phone);
-
-  UPDATE public.customer_profiles
-     SET whatsapp_marketing_opt_in=true,
-         whatsapp_marketing_opt_in_at=CASE
-           WHEN whatsapp_marketing_opt_out_at IS NOT NULL
-                AND whatsapp_marketing_opt_out_at > consent_at
-             THEN whatsapp_marketing_opt_in_at
-           ELSE consent_at
-         END,
-         whatsapp_marketing_opt_out_at=CASE
-           WHEN whatsapp_marketing_opt_out_at IS NOT NULL
-                AND whatsapp_marketing_opt_out_at > consent_at
-             THEN whatsapp_marketing_opt_out_at
-           ELSE NULL
-         END,
-         whatsapp_marketing_consent_source='checkout',
-         whatsapp_marketing_source_order_id=NEW.id,
-         updated_at=clock_timestamp()
-   WHERE phone=canonical_phone;
-
-  INSERT INTO public.customer_messaging_consent_events(
-    customer_phone,order_id,event_type,source,source_event_id,metadata,occurred_at
-  ) VALUES (
-    canonical_phone,
-    NEW.id,
-    'marketing_opt_in',
-    'checkout',
-    'order:' || NEW.id,
-    jsonb_build_object('channel','whatsapp','purpose','replenishment'),
-    consent_at
-  )
-  ON CONFLICT (source,source_event_id)
-    WHERE source_event_id IS NOT NULL
-  DO NOTHING;
-
-  RETURN NEW;
-END
-$fn$;
-
-DROP TRIGGER IF EXISTS trg_orders_whatsapp_marketing_consent ON public.orders;
-CREATE TRIGGER trg_orders_whatsapp_marketing_consent
-AFTER INSERT OR UPDATE OF whatsapp_marketing_opt_in,whatsapp_marketing_opt_in_at,customer_phone
-ON public.orders
-FOR EACH ROW
-EXECUTE FUNCTION public.aquavo_capture_whatsapp_marketing_consent();
 
 ALTER TABLE public.customer_lifecycle_jobs
   ADD COLUMN IF NOT EXISTS attempt_count integer NOT NULL DEFAULT 0,
@@ -209,33 +128,16 @@ CREATE INDEX IF NOT EXISTS whatsapp_lifecycle_reply_events_pending_idx
   WHERE applied_at IS NULL;
 
 COMMENT ON TABLE public.customer_messaging_consent_events IS
-  'Append-only audit ledger for explicit AQUAVO WhatsApp marketing opt-in/opt-out changes.';
+  'Append-only audit ledger for explicit AQUAVO WhatsApp marketing opt-in and opt-out changes.';
+
 COMMENT ON TABLE public.whatsapp_lifecycle_reply_events IS
-  'Minimal verified contextual-reply inbox for day-7/replenishment WhatsApp templates. Closes the race where a reply arrives before outbound wamid persistence.';
-
-DO $priv$
-BEGIN
-  IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname='aquavo_runtime') THEN
-    REVOKE ALL ON public.customer_messaging_consent_events FROM PUBLIC;
-    GRANT SELECT,INSERT ON public.customer_messaging_consent_events TO aquavo_runtime;
-
-    REVOKE ALL ON public.whatsapp_lifecycle_reply_events FROM PUBLIC;
-    GRANT SELECT,INSERT,UPDATE,DELETE ON public.whatsapp_lifecycle_reply_events TO aquavo_runtime;
-
-    GRANT SELECT,UPDATE ON public.customer_lifecycle_jobs TO aquavo_runtime;
-    GRANT SELECT,UPDATE ON public.customer_profiles TO aquavo_runtime;
-
-    REVOKE ALL ON FUNCTION public.aquavo_capture_whatsapp_marketing_consent() FROM PUBLIC;
-    GRANT EXECUTE ON FUNCTION public.aquavo_capture_whatsapp_marketing_consent() TO aquavo_runtime;
-  END IF;
-END
-$priv$;
+  'Minimal verified contextual-reply inbox for day-7 and replenishment WhatsApp templates.';
 
 INSERT INTO public.schema_migrations(version,checksum,notes)
 VALUES(
   '0093_whatsapp_lifecycle_automation',
   '0000000000000000000000000000000000000000000000000000000000000000',
-  'Explicit WhatsApp marketing consent ledger + automatic Growth OS lifecycle provider state and contextual reply inbox. Day-7 is utility/service; replenishment requires explicit marketing opt-in. Runner must normalize checksum to SHA-256(file bytes).'
+  'Explicit WhatsApp marketing consent ledger plus automatic Growth OS lifecycle provider state and contextual reply inbox. Day-7 is utility service. Replenishment requires explicit marketing opt-in. Runner must normalize checksum to SHA-256 file bytes.'
 )
 ON CONFLICT(version) DO UPDATE SET
   checksum=EXCLUDED.checksum,
