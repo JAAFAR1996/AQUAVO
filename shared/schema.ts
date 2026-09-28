@@ -1380,7 +1380,7 @@ export const customerProfiles = pgTable("customer_profiles", {
   // registered orders can share one CRM profile without pretending a guest was
   // authenticated. userId is an optional verified-account link, not the PK.
   id: serial("id").primaryKey(),
-  phone: varchar("phone", { length: 32 }).notNull().unique(),
+  phone: varchar("phone", { length: 32 }).notNull(),
   name: varchar("name", { length: 255 }),
   city: varchar("city", { length: 255 }),
   totalOrdersCount: integer("total_orders_count").notNull().default(0),
