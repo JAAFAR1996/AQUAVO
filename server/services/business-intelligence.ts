@@ -509,7 +509,7 @@ export async function getBusinessAssessment() {
 
   if (dataReady && overview.financials.realizedOrders >= 20) {
     const economicsPositive = overview.financials.netOperatingProfit >= 0 && overview.financials.contributionProfit > 0;
-    const momentumHealthy = revenueGrowthPct >= -20 || current30.productRevenue > 0;
+    const momentumHealthy = revenueGrowthPct >= -20;
 
     if (economicsPositive && momentumHealthy) {
       status = "CONTINUE";
@@ -570,7 +570,7 @@ export async function getBusinessOverview() {
   const operatingExpenses = n(rowsOf(op)[0]?.operating_expenses);
   const netOperatingProfit = allTime.contributionProfit-operatingExpenses-marketing.adSpend;
   const marketingComplete = marketing.rows>0;
-  const confidence: Confidence = allTime.estimatedOrders>0 || !marketingComplete ? "mixed" : "exact";
+  const confidence: Confidence = allTime.estimatedOrders>0 || !marketingComplete || marketing.exactRows<marketing.rows ? "mixed" : "exact";
   const [findings, reconciliation] = await Promise.all([getBusinessFindings(), getReconciliationHealth()]);
   return {
     generatedAt: new Date().toISOString(),currency:"IQD",confidence,
