@@ -19,6 +19,7 @@ import {
   startWaylPaymentForOrder,
   verifyAndSyncWaylPayment,
 } from "../services/wayl-order-payment.js";
+import { recordCheckoutWhatsAppConsent } from "../services/whatsapp-lifecycle-automation.js";
 
 const AQUAVO_CANONICAL_ORIGIN = "https://www.aquavoiq.com";
 const AQUAVO_PRODUCTION_HOSTS = new Set(["www.aquavoiq.com", "aquavoiq.com"]);
@@ -70,6 +71,7 @@ const onlineCheckoutSchema = z.object({
   cashbackToUse: z.number().int().min(0).optional().default(0),
   clientSessionId: z.string().max(80).optional(),
   attribution: onlineAttributionSchema.optional(),
+  whatsappFollowupOptIn: z.boolean().optional().default(false),
 }).strict();
 
 const retrySchema = z.object({ paymentId: z.string().trim().min(1).max(300) }).strict();
@@ -201,6 +203,19 @@ export function createWaylRouter() {
         useCashback: parsed.data.useCashback,
         cashbackToUse: parsed.data.cashbackToUse,
       });
+      if (parsed.data.whatsappFollowupOptIn) {
+        try {
+          await recordCheckoutWhatsAppConsent({
+            phone: parsed.data.customerInfo.phone,
+            customerName: parsed.data.customerInfo.name,
+            orderId: prepared.order.id,
+            optedIn: true,
+          });
+        } catch (error) {
+          console.warn("[AQUAVO WhatsApp] Wayl consent persistence failed:", error instanceof Error ? error.message : error);
+        }
+      }
+
       const started = await startWaylPaymentForOrder(prepared.order.id, paymentUrls(req));
       res.status(prepared.reused ? 200 : 201).json(started);
     } catch (error) {

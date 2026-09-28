@@ -153,6 +153,7 @@ export default function CheckoutPage() {
   }, []);
 
   const [agreed, setAgreed] = useState(false);
+  const [whatsappFollowupOptIn, setWhatsappFollowupOptIn] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formErrorSummary, setFormErrorSummary] = useState("");
   const [couponCode, setCouponCode] = useState("");
@@ -359,6 +360,7 @@ export default function CheckoutPage() {
           useCashback: testMode ? false : loyaltyData.useCashback,
           pointsToUse: testMode ? 0 : loyaltyData.pointsToUse,
           cashbackToUse: testMode ? 0 : loyaltyData.cashbackToUse,
+          whatsappFollowupOptIn: testMode ? false : whatsappFollowupOptIn,
           ...(testMode ? { notifyTelegram: true } : {}),
         }),
       });
@@ -657,6 +659,9 @@ export default function CheckoutPage() {
               getDeliveryEstimate={getDeliveryEstimate}
               agreed={agreed}
               setAgreed={setAgreed}
+              whatsappFollowupOptIn={whatsappFollowupOptIn}
+              setWhatsappFollowupOptIn={setWhatsappFollowupOptIn}
+              showWhatsAppFollowupConsent={!testMode}
               isSubmitting={isSubmitting}
               handleBack={handleBack}
               handleConfirmOrder={handleConfirmOrder}

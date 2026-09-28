@@ -703,6 +703,9 @@ export async function planCustomerLifecycleJobs() {
   const db=getDb();
   if(!db) throw new Error("DATABASE_NOT_CONNECTED");
 
+  const day7Template=process.env.WHATSAPP_DAY7_TEMPLATE?.trim() || "aquavo_day7_care_v1";
+  const repurchaseTemplate=process.env.WHATSAPP_REPURCHASE_TEMPLATE?.trim() || "aquavo_repurchase_v1";
+
   await refreshRepurchaseProfiles();
   await refreshCustomerAquariumProfiles();
 
@@ -725,12 +728,24 @@ export async function planCustomerLifecycleJobs() {
         AND o.cod_received=true
     )
     INSERT INTO public.customer_lifecycle_jobs(
-      customer_phone,order_id,job_type,due_at,status,channel,metadata
+      customer_phone,order_id,job_type,due_at,status,channel,template_name,
+      template_category,consent_scope,metadata
     )
     SELECT
-      d.customer_phone,d.order_id,'day7_care',d.delivered_at+interval '7 days','planned','manual',
+      d.customer_phone,d.order_id,'day7_care',d.delivered_at+interval '7 days','planned',
+      CASE
+        WHEN cp.whatsapp_followup_opt_in=true
+         AND (
+           cp.whatsapp_followup_opt_out_at IS NULL
+           OR cp.whatsapp_followup_opt_in_at > cp.whatsapp_followup_opt_out_at
+         )
+        THEN 'whatsapp'
+        ELSE 'manual'
+      END,
+      ${day7Template},'utility','followup',
       jsonb_build_object('source','growth_os','deliveredAt',d.delivered_at)
     FROM delivered d
+    LEFT JOIN public.customer_profiles cp ON cp.phone=d.customer_phone
     WHERE d.customer_phone IS NOT NULL
       AND d.delivered_at >= now()-interval '21 days'
     ON CONFLICT(order_id,job_type) DO NOTHING
@@ -769,15 +784,60 @@ export async function planCustomerLifecycleJobs() {
       GROUP BY d.customer_phone,d.order_id,d.delivered_at
     )
     INSERT INTO public.customer_lifecycle_jobs(
-      customer_phone,order_id,job_type,due_at,status,channel,recommended_product_ids,metadata
+      customer_phone,order_id,job_type,due_at,status,channel,template_name,
+      template_category,consent_scope,recommended_product_ids,metadata
     )
     SELECT
       r.customer_phone,r.order_id,'repurchase',
       r.delivered_at + make_interval(days=>r.target_days),
-      'planned','manual',r.products,
+      'planned',
+      CASE
+        WHEN cp.whatsapp_marketing_opt_in=true
+         AND (
+           cp.whatsapp_followup_opt_out_at IS NULL
+           OR cp.whatsapp_marketing_opt_in_at > cp.whatsapp_followup_opt_out_at
+         )
+        THEN 'whatsapp'
+        ELSE 'manual'
+      END,
+      ${repurchaseTemplate},'marketing','marketing',r.products,
       jsonb_build_object('source','consumables_engine','targetDays',r.target_days,'deliveredAt',r.delivered_at)
     FROM repurchase r
+    LEFT JOIN public.customer_profiles cp ON cp.phone=r.customer_phone
     ON CONFLICT(order_id,job_type) DO NOTHING
+  `);
+
+  // Existing open jobs are upgraded to automatic WhatsApp only after the
+  // canonical customer profile contains an explicit, currently active consent.
+  await db.execute(sql`
+    UPDATE public.customer_lifecycle_jobs j
+    SET channel='whatsapp',
+        template_name=CASE WHEN j.job_type='day7_care' THEN ${day7Template} ELSE ${repurchaseTemplate} END,
+        template_category=CASE WHEN j.job_type='day7_care' THEN 'utility' ELSE 'marketing' END,
+        consent_scope=CASE WHEN j.job_type='day7_care' THEN 'followup' ELSE 'marketing' END,
+        updated_at=now()
+    FROM public.customer_profiles cp
+    WHERE cp.phone=j.customer_phone
+      AND j.status IN ('planned','ready')
+      AND (
+        (
+          j.job_type='day7_care'
+          AND cp.whatsapp_followup_opt_in=true
+          AND (
+            cp.whatsapp_followup_opt_out_at IS NULL
+            OR cp.whatsapp_followup_opt_in_at > cp.whatsapp_followup_opt_out_at
+          )
+        )
+        OR
+        (
+          j.job_type='repurchase'
+          AND cp.whatsapp_marketing_opt_in=true
+          AND (
+            cp.whatsapp_followup_opt_out_at IS NULL
+            OR cp.whatsapp_marketing_opt_in_at > cp.whatsapp_followup_opt_out_at
+          )
+        )
+      )
   `);
 
   await db.execute(sql`
@@ -835,6 +895,8 @@ export async function getLifecycleOverview(limitInput=50) {
       COUNT(*) FILTER(WHERE status='completed')::int AS completed,
       COUNT(*) FILTER(WHERE status='suppressed')::int AS suppressed,
       COUNT(*) FILTER(WHERE status='cancelled')::int AS cancelled,
+      COUNT(*) FILTER(WHERE status='failed')::int AS failed,
+      COUNT(*) FILTER(WHERE channel='whatsapp' AND status='ready')::int AS automated_ready,
       COUNT(*) FILTER(WHERE job_type='day7_care' AND status='ready')::int AS day7_ready,
       COUNT(*) FILTER(WHERE job_type='repurchase' AND status='ready')::int AS repurchase_ready
     FROM public.customer_lifecycle_jobs
@@ -842,8 +904,10 @@ export async function getLifecycleOverview(limitInput=50) {
 
   const jobs=await db.execute(sql`
     SELECT
-      j.id,j.job_type,j.due_at,j.status,j.customer_phone,j.recommended_product_ids,j.metadata,
+      j.id,j.job_type,j.due_at,j.status,j.channel,j.template_name,j.template_category,j.consent_scope,
+      j.provider_status,j.attempt_count,j.last_error_code,j.customer_phone,j.recommended_product_ids,j.metadata,
       o.order_number,o.customer_name,
+      cp.whatsapp_followup_opt_in,cp.whatsapp_marketing_opt_in,cp.whatsapp_followup_opt_out_at,
       COALESCE((
         SELECT jsonb_agg(jsonb_build_object('id',p.id,'name',p.name,'price',p.price))
         FROM public.products p
@@ -851,7 +915,8 @@ export async function getLifecycleOverview(limitInput=50) {
       ),'[]'::jsonb) AS recommended_products
     FROM public.customer_lifecycle_jobs j
     JOIN public.orders o ON o.id=j.order_id
-    WHERE j.status IN ('ready','planned')
+    LEFT JOIN public.customer_profiles cp ON cp.phone=j.customer_phone
+    WHERE j.status IN ('ready','planned','sending','failed')
     ORDER BY CASE j.status WHEN 'ready' THEN 0 ELSE 1 END,j.due_at ASC
     LIMIT ${limit}
   `);
@@ -860,7 +925,8 @@ export async function getLifecycleOverview(limitInput=50) {
   return {
     summary:{
       ready:n(s.ready),planned:n(s.planned),completed:n(s.completed),suppressed:n(s.suppressed),
-      cancelled:n(s.cancelled),day7Ready:n(s.day7_ready),repurchaseReady:n(s.repurchase_ready),
+      cancelled:n(s.cancelled),failed:n(s.failed),automatedReady:n(s.automated_ready),
+      day7Ready:n(s.day7_ready),repurchaseReady:n(s.repurchase_ready),
     },
     jobs:rowsOf(jobs).map((row)=>{
       const phone=normalizePhone(row.customer_phone);
@@ -869,17 +935,32 @@ export async function getLifecycleOverview(limitInput=50) {
       const message=type==="day7_care"
         ? `هلا ${name}، حبيت نطمن عليك بعد استلام طلبك من AQUAVO. كلشي تمام بالحوض والمعدات؟ إذا عندك أي ملاحظة أو سؤال إحنا بالخدمة.`
         : `هلا ${name}، حسب مشترياتك السابقة ممكن يكون قرب وقت تجديد بعض المستهلكات. إذا تحب نراجع احتياج حوضك قبل لا تطلب، اكتبلنا ونرتبلك المناسب فقط.`;
+      const consentEligible=type==="day7_care"
+        ? Boolean(row.whatsapp_followup_opt_in)
+        : Boolean(row.whatsapp_marketing_opt_in);
+      const automated=String(row.channel)==="whatsapp";
       return {
         id:String(row.id),
         jobType:type,
         dueAt:row.due_at,
         status:String(row.status),
+        channel:String(row.channel ?? "manual"),
+        templateName:row.template_name == null ? null : String(row.template_name),
+        templateCategory:row.template_category == null ? null : String(row.template_category),
+        consentScope:row.consent_scope == null ? null : String(row.consent_scope),
+        providerStatus:row.provider_status == null ? null : String(row.provider_status),
+        attemptCount:n(row.attempt_count),
+        lastErrorCode:row.last_error_code == null ? null : String(row.last_error_code),
         orderNumber:String(row.order_number ?? ""),
         customerName:String(row.customer_name ?? ""),
         customerPhone:phone,
         recommendedProducts:row.recommended_products ?? [],
         message,
-        whatsappUrl:phone ? `https://wa.me/${phone}?text=${encodeURIComponent(message)}` : null,
+        automated,
+        consentEligible,
+        whatsappUrl:phone && consentEligible && !automated
+          ? `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
+          : null,
       };
     }),
   };

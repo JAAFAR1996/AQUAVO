@@ -18,6 +18,7 @@ import {
   suppressLifecycleJob,
   updateCustomerAquariumProfile,
 } from "../services/growth-operating-system.js";
+import { getLifecycleWhatsAppReadiness } from "../services/whatsapp-lifecycle-automation.js";
 
 const daySchema=z.string().regex(/^20\d{2}-(0[1-9]|1[0-2])-([012]\d|3[01])$/);
 const receiptSchema=z.object({
@@ -104,6 +105,9 @@ export function createGrowthAdminRouter(){
   });
   router.get("/attribution",async(_req,res,next)=>{
     try{res.json(await getAttributionHealth());}catch(error){next(error);}
+  });
+  router.get("/whatsapp/readiness",async(_req,res,next)=>{
+    try{res.json(getLifecycleWhatsAppReadiness());}catch(error){next(error);}
   });
   router.get("/inventory",async(req,res,next)=>{
     try{

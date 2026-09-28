@@ -54,6 +54,7 @@ import {
   getInventoryIntelligence,
   getLifecycleOverview,
 } from "../services/growth-operating-system.js";
+import { getLifecycleWhatsAppReadiness } from "../services/whatsapp-lifecycle-automation.js";
 import { toMoney } from "../../shared/order-financials.js";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -589,6 +590,11 @@ function buildMcpServer(auth: McpAuthInfo): Server {
       {
         name: "get_product_bundles",
         description: "Read-only curated AQUAVO bundles. Admin MCP output includes internal margin estimates.",
+        inputSchema: { type: "object", properties: {} },
+      },
+      {
+        name: "get_whatsapp_lifecycle_readiness",
+        description: "Read-only readiness for AQUAVO automatic WhatsApp day-7 and replenishment lifecycle: feature flags, template approval gate, activation boundary and Baghdad send window. Never returns secrets.",
         inputSchema: { type: "object", properties: {} },
       },
       {
@@ -1340,6 +1346,10 @@ function buildMcpServer(auth: McpAuthInfo): Server {
 
         case "get_product_bundles": {
           return text(await getBundles(false));
+        }
+
+        case "get_whatsapp_lifecycle_readiness": {
+          return text(getLifecycleWhatsAppReadiness());
         }
 
         case "get_expense_completeness": {

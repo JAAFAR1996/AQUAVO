@@ -36,6 +36,9 @@ interface ConfirmationViewProps {
     getDeliveryEstimate: () => string;
     agreed: boolean;
     setAgreed: (agreed: boolean) => void;
+    whatsappFollowupOptIn?: boolean;
+    setWhatsappFollowupOptIn?: (optedIn: boolean) => void;
+    showWhatsAppFollowupConsent?: boolean;
     isSubmitting: boolean;
     handleBack: () => void;
     handleConfirmOrder: () => void;
@@ -65,6 +68,9 @@ export function ConfirmationView({
     getDeliveryEstimate,
     agreed,
     setAgreed,
+    whatsappFollowupOptIn = false,
+    setWhatsappFollowupOptIn = () => {},
+    showWhatsAppFollowupConsent = false,
     isSubmitting,
     handleBack,
     handleConfirmOrder,
@@ -153,6 +159,7 @@ export function ConfirmationView({
                     ...(couponCode ? { couponCode } : {}),
                     useCashback: false,
                     cashbackToUse: 0,
+                    whatsappFollowupOptIn,
                 }),
             });
 
@@ -323,6 +330,24 @@ export function ConfirmationView({
                     </div>
                 )}
             </section>
+
+            {showWhatsAppFollowupConsent && (
+                <div className="rounded-xl border border-border/70 bg-muted/25 p-3.5">
+                    <div className="flex items-start gap-3">
+                        <Checkbox
+                            id="whatsapp-followup-opt-in"
+                            checked={whatsappFollowupOptIn}
+                            onCheckedChange={(checked) => setWhatsappFollowupOptIn(checked === true)}
+                            className="mt-0.5"
+                            disabled={busy}
+                        />
+                        <label htmlFor="whatsapp-followup-opt-in" className="cursor-pointer text-sm leading-7 text-muted-foreground">
+                            <span className="block font-medium text-foreground">{t("confirm.whatsappFollowupTitle")}</span>
+                            <span>{t("confirm.whatsappFollowupConsent")}</span>
+                        </label>
+                    </div>
+                </div>
+            )}
 
             <div className="flex items-start gap-3 py-2">
                 <Checkbox id="agree" checked={agreed} onCheckedChange={(checked) => setAgreed(checked === true)} className="mt-0.5" disabled={busy} />

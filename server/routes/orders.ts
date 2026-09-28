@@ -22,6 +22,7 @@ import {
 import { toPublicOrderItem } from "../../shared/public-product.js";
 import { apiMessage } from "../i18n/messages.js";
 import { payments } from "../../shared/schema.js";
+import { recordCheckoutWhatsAppConsent } from "../services/whatsapp-lifecycle-automation.js";
 
 const referralStorage = new ReferralStorage();
 
@@ -82,6 +83,7 @@ export const createOrderSchema = z.object({
     cashbackToUse: z.number().int().min(0).optional().default(0),
     clientSessionId: z.string().max(80).optional(),
     attribution: orderAttributionSchema.optional(),
+    whatsappFollowupOptIn: z.boolean().optional().default(false),
 });
 
 const idempotencyKeySchema = z.string().uuid();
@@ -201,7 +203,7 @@ export function createOrderRouter(): RouterType {
                 return;
             }
 
-            const { items, customerInfo, couponCode, useCashback, cashbackToUse, clientSessionId, attribution } = validationResult.data;
+            const { items, customerInfo, couponCode, useCashback, cashbackToUse, clientSessionId, attribution, whatsappFollowupOptIn } = validationResult.data;
             const analyticsSessionId =
                 clientSessionId && CLIENT_VIEW_SESSION_ID.test(clientSessionId)
                     ? clientSessionId
@@ -224,6 +226,18 @@ export function createOrderRouter(): RouterType {
             if (idempotencyKey) {
                 const existingOrder = await storage.getOrder(idempotencyKey);
                 if (existingOrder) {
+                    if (whatsappFollowupOptIn) {
+                        try {
+                            await recordCheckoutWhatsAppConsent({
+                                phone: customerInfo.phone,
+                                customerName: customerInfo.name,
+                                orderId: existingOrder.id,
+                                optedIn: true,
+                            });
+                        } catch (error) {
+                            console.warn("[AQUAVO WhatsApp] Consent persistence failed on idempotent replay:", error instanceof Error ? error.message : error);
+                        }
+                    }
                     res.status(200).json(existingOrder);
                     return;
                 }
@@ -250,6 +264,21 @@ export function createOrderRouter(): RouterType {
                     attribution,
                 },
             );
+
+            if (whatsappFollowupOptIn) {
+                try {
+                    await recordCheckoutWhatsAppConsent({
+                        phone: customerInfo.phone,
+                        customerName: customerInfo.name,
+                        orderId: order.id,
+                        optedIn: true,
+                    });
+                } catch (error) {
+                    // The order is already committed; consent capture failure must not
+                    // corrupt inventory/accounting truth or silently opt the customer in.
+                    console.warn("[AQUAVO WhatsApp] Consent persistence failed:", error instanceof Error ? error.message : error);
+                }
+            }
 
             // 📝 Store client IP with order for rejection tracking
             if (db && clientIp !== 'unknown') {
