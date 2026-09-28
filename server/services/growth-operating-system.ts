@@ -871,6 +871,13 @@ export async function seedDefaultBundles() {
   const db=getDb();
   if(!db) throw new Error("DATABASE_NOT_CONNECTED");
 
+  const seededVariantByProduct: Record<string,string> = {
+    "general-sponge-filter-xy180": "xy-180",
+    "houyi-oxygenation-tube": "4m-black",
+    "houyi-net-bag": "white-15x20",
+    "yee-07509": "fine15",
+  };
+
   const definitions=[
     {
       slug:"betta-care-starter",name:"باقة بداية البيتا",description:"أساسيات الرعاية اليومية للبيتا بدون شراء قطع غير ضرورية.",discount:0,audience:"betta",
@@ -914,11 +921,19 @@ export async function seedDefaultBundles() {
     await db.execute(sql`DELETE FROM public.product_bundle_items WHERE bundle_id=${bundleId}`);
     for(let index=0;index<definition.items.length;index+=1){
       const productId=definition.items[index];
+      const variantId=seededVariantByProduct[productId] ?? null;
       await db.execute(sql`
-        INSERT INTO public.product_bundle_items(bundle_id,product_id,quantity,required,sort_order)
-        SELECT ${bundleId},p.id,1,true,${index}
+        INSERT INTO public.product_bundle_items(bundle_id,product_id,variant_id,quantity,required,sort_order)
+        SELECT ${bundleId},p.id,${variantId},1,true,${index}
         FROM public.products p
         WHERE p.id=${productId} AND p.deleted_at IS NULL
+          AND (
+            ${variantId}::text IS NULL
+            OR EXISTS (
+              SELECT 1 FROM jsonb_array_elements(COALESCE(p.variants,'[]'::jsonb)) vv
+              WHERE vv->>'id'=${variantId}
+            )
+          )
         ON CONFLICT DO NOTHING
       `);
     }
