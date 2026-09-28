@@ -19,10 +19,38 @@ import {
   startWaylPaymentForOrder,
   verifyAndSyncWaylPayment,
 } from "../services/wayl-order-payment.js";
+import { persistOrderAttribution } from "../services/growth-operating-system.js";
 
 const AQUAVO_CANONICAL_ORIGIN = "https://www.aquavoiq.com";
 const AQUAVO_PRODUCTION_HOSTS = new Set(["www.aquavoiq.com", "aquavoiq.com"]);
 const WEBHOOK_SIGNATURE_HEADER = "x-wayl-signature-256";
+
+const orderAttributionSchema = z.object({
+  aq_sid: z.string().min(1).max(120).optional(),
+  utm_source: z.string().max(300).optional(),
+  utm_medium: z.string().max(300).optional(),
+  utm_campaign: z.string().max(300).optional(),
+  utm_content: z.string().max(300).optional(),
+  utm_term: z.string().max(300).optional(),
+  fbclid: z.string().max(300).optional(),
+  gclid: z.string().max(300).optional(),
+  gbraid: z.string().max(300).optional(),
+  wbraid: z.string().max(300).optional(),
+  aq_campaign_id: z.string().max(300).optional(),
+  aq_adset_id: z.string().max(300).optional(),
+  aq_ad_id: z.string().max(300).optional(),
+  aq_creative_id: z.string().max(300).optional(),
+  aq_concept_id: z.string().max(300).optional(),
+  aq_hypothesis_id: z.string().max(300).optional(),
+  aq_experiment_id: z.string().max(300).optional(),
+  attribution_first_touch_at: z.string().max(100).optional(),
+  attribution_last_touch_at: z.string().max(100).optional(),
+  first_touch_utm_source: z.string().max(300).optional(),
+  first_touch_utm_campaign: z.string().max(300).optional(),
+  first_touch_aq_campaign_id: z.string().max(300).optional(),
+  landing_path: z.string().max(500).optional(),
+  referrer_host: z.string().max(200).optional(),
+}).strict().optional();
 
 const onlineCheckoutSchema = z.object({
   customerInfo: z.object({
@@ -39,6 +67,7 @@ const onlineCheckoutSchema = z.object({
   couponCode: z.string().trim().max(100).optional(),
   useCashback: z.boolean().optional().default(false),
   cashbackToUse: z.number().int().min(0).optional().default(0),
+  attribution: orderAttributionSchema,
 }).strict();
 
 const retrySchema = z.object({ paymentId: z.string().trim().min(1).max(300) }).strict();
@@ -167,7 +196,16 @@ export function createWaylRouter() {
         useCashback: parsed.data.useCashback,
         cashbackToUse: parsed.data.cashbackToUse,
       });
-      const started = await startWaylPaymentForOrder(prepared.order.id, paymentUrls(req));
+      if (parsed.data.attribution) {
+        persistOrderAttribution(
+          prepared.order.id,
+          parsed.data.attribution.aq_sid,
+          parsed.data.attribution,
+        ).catch((error) => {
+          console.warn("[AQUAVO Attribution] Failed to persist Wayl order attribution:", error instanceof Error ? error.message : error);
+        });
+      }
+            const started = await startWaylPaymentForOrder(prepared.order.id, paymentUrls(req));
       res.status(prepared.reused ? 200 : 201).json(started);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
