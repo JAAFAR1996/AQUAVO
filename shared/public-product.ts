@@ -243,19 +243,13 @@ function commercialModelValues(variant: AnyRecord): string[] {
 }
 
 function escapeRegExp(value: string): string {
-  return value.replace(/[.*+?^$(){}|[\]\\]/g, "\\function sanitizePublicSpecifications(value: unknown): unknown {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return value;
-  const clean: AnyRecord = {};
-  for (const [key, entry] of Object.entries(value as AnyRecord)) {
-    if (isCommercialModelSpecificationKey(key)) continue;
-    clean[key] = entry;
+  let escaped = "";
+  const special = "\\^$.*+?()[]{}|";
+  for (const char of value) {
+    escaped += special.includes(char) ? "\\\\" + char : char;
   }
-  return clean;
+  return escaped;
 }
-
-/** Pick an explicit set of keys. Absent keys stay absent — no `undefined` padding, no spread. */");
-}
-
 function sanitizeVariantLabel(variant: AnyRecord, index: number): string | undefined {
   if (typeof variant.label !== "string") return undefined;
   const original = variant.label.normalize("NFKC").trim();
