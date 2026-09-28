@@ -169,6 +169,7 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
   }, [open]);
 
   const [agreed, setAgreed] = useState(false);
+  const [whatsappMarketingOptIn, setWhatsappMarketingOptIn] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [couponCode, setCouponCode] = useState("");
   const [couponDiscount, setCouponDiscount] = useState(0);
@@ -248,6 +249,7 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
         items: cartItems.map(({ productId, variantId, quantity }) => ({ productId, variantId, quantity })),
         couponCode: appliedCoupon?.code ?? null,
         cashbackToUse: loyaltyData.cashbackToUse,
+        whatsappMarketingOptIn,
       });
       const idempotencyKey = getOrderIdempotencyKey(cartSignature);
       const response = await fetch("/api/orders", {
@@ -273,6 +275,7 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
           useCashback: loyaltyData.useCashback,
           pointsToUse: loyaltyData.pointsToUse,
           cashbackToUse: loyaltyData.cashbackToUse,
+          whatsappMarketingOptIn,
         }),
       });
 
@@ -329,6 +332,7 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
       setStep('info');
       setCustomerInfo({ name: '', phone: '', governorate: '', address: '', notes: '' });
       setAgreed(false);
+      setWhatsappMarketingOptIn(false);
       onOpenChange(false);
 
       // Fire-and-forget pixel tracking — errors must never block checkout
@@ -507,6 +511,8 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
             couponDiscount={couponDiscount}
             loyaltyData={loyaltyData}
             isLoggedIn={!!user}
+            whatsappMarketingOptIn={whatsappMarketingOptIn}
+            setWhatsappMarketingOptIn={setWhatsappMarketingOptIn}
           />
         )}
       </DialogContent>
