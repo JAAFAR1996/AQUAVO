@@ -15,6 +15,10 @@ import {
   type WhatsAppProviderStatus,
   type WhatsAppProviderStatusEvent,
 } from "../services/whatsapp-provider-status.js";
+import {
+  handleLifecycleReply,
+  recordPendingLifecycleReply,
+} from "../services/whatsapp-lifecycle.js";
 
 type RawBodyRequest = Request & { rawBody?: Buffer };
 
@@ -307,6 +311,25 @@ export function createWhatsAppWebhookRouter(): RouterType {
 
       let buttonRepliesHandled = 0;
       for (const event of buttonReplyEvents) {
+        // Growth OS lifecycle buttons are deliberately distinct from the
+        // immediate delivery-care buttons. Try them first; if the outbound wamid
+        // persistence is still racing, park only recognized lifecycle choices in
+        // their own durable inbox. Unrecognized choices continue to the existing
+        // delivery-care handler unchanged.
+        const lifecycle = await handleLifecycleReply(event);
+        if (lifecycle === "db_unavailable") {
+          res.status(503).json({ code: "WEBHOOK_PERSISTENCE_FAILED" });
+          return;
+        }
+        if (lifecycle === "handled" || lifecycle === "duplicate") {
+          buttonRepliesHandled += 1;
+          continue;
+        }
+        if (await recordPendingLifecycleReply(event)) {
+          buttonRepliesHandled += 1;
+          continue;
+        }
+
         const result = await handleDeliveryCareButtonReply(event);
         if (result.status === "db_unavailable") {
           res.status(503).json({ code: "WEBHOOK_PERSISTENCE_FAILED" });
