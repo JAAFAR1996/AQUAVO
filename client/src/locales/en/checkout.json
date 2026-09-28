@@ -130,7 +130,9 @@
     "processing": "Processing...",
     "payOnline": "Continue to secure payment — {{amount}}",
     "placeOrder": "Confirm order",
-    "processingStatus": "Processing your order, please wait..."
+    "processingStatus": "Processing your order, please wait...",
+    "whatsappOptIn": "I agree to receive WhatsApp replenishment reminders and purchase-related offers from AQUAVO. I can stop them at any time.",
+    "whatsappOptInHint": "Optional and does not affect your order. Order/service messages are separate from marketing messages."
   },
   "paymentCard": {
     "onlineTitle": "Secure online payment",
