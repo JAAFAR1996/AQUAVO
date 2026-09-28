@@ -552,18 +552,39 @@ export async function refreshCustomerAquariumProfiles() {
   const db=getDb();
   if(!db) throw new Error("DATABASE_NOT_CONNECTED");
 
+  // Repair the old profile vocabulary first. `fishType` was never a
+  // livestock list; its real values are system classes such as freshwater,
+  // saltwater and planted. Keep those in water_profile so the CRM does not
+  // later recommend against fictitious livestock.
+  await db.execute(sql`
+    UPDATE public.customer_profiles cp
+    SET
+      livestock='[]'::jsonb,
+      water_profile=CASE
+        WHEN cp.water_profile='{}'::jsonb
+          THEN jsonb_build_object('legacySystemType',u.aquarium_profile->>'fishType')
+        ELSE cp.water_profile
+      END,
+      updated_at=now()
+    FROM public.users u
+    WHERE cp.user_id=u.id
+      AND cp.aquarium_profile_source='import'
+      AND COALESCE(u.aquarium_profile->>'fishType','') IN ('freshwater','saltwater','planted')
+      AND cp.livestock=jsonb_build_array(u.aquarium_profile->>'fishType')
+  `);
+
   await db.execute(sql`
     UPDATE public.customer_profiles cp
     SET
       tank_dimensions=CASE
         WHEN COALESCE(u.aquarium_profile->>'tankSize','')<>'' AND cp.tank_dimensions='{}'::jsonb
-          THEN jsonb_build_object('legacyTankSize',u.aquarium_profile->>'tankSize')
+          THEN jsonb_build_object('legacySizeClass',u.aquarium_profile->>'tankSize')
         ELSE cp.tank_dimensions
       END,
-      livestock=CASE
-        WHEN COALESCE(u.aquarium_profile->>'fishType','')<>'' AND cp.livestock='[]'::jsonb
-          THEN jsonb_build_array(u.aquarium_profile->>'fishType')
-        ELSE cp.livestock
+      water_profile=CASE
+        WHEN COALESCE(u.aquarium_profile->>'fishType','')<>'' AND cp.water_profile='{}'::jsonb
+          THEN jsonb_build_object('legacySystemType',u.aquarium_profile->>'fishType')
+        ELSE cp.water_profile
       END,
       goals=CASE
         WHEN COALESCE(u.aquarium_profile->>'mainProblem','')<>'' AND cp.goals='[]'::jsonb
