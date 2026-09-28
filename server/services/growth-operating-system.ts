@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import { getDb } from "../db.js";
+import { getLifecycleWhatsAppAutomationHealth } from "./whatsapp-lifecycle-automation.js";
 
 type Row = Record<string, unknown>;
 type PurchaseProvider = "google_tag" | "meta_pixel" | "tiktok" | "posthog";
@@ -1265,13 +1266,14 @@ export async function getExpenseCompleteness() {
 }
 
 export async function getGrowthOverview() {
-  const [attribution,inventory,lifecycle,customerProfiles,bundles,expenses]=await Promise.all([
+  const [attribution,inventory,lifecycle,customerProfiles,bundles,expenses,whatsappAutomation]=await Promise.all([
     getAttributionHealth(),
     getInventoryIntelligence(20),
     getLifecycleOverview(20),
     getCustomerProfileCoverage(),
     getBundles(false),
     getExpenseCompleteness(),
+    getLifecycleWhatsAppAutomationHealth(),
   ]);
 
   return {
@@ -1279,6 +1281,7 @@ export async function getGrowthOverview() {
     attribution,
     inventory,
     lifecycle,
+    whatsappAutomation,
     customerProfiles,
     bundles:{
       count:bundles.length,
