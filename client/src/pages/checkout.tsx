@@ -17,6 +17,7 @@ import { resolveCheckoutTotal } from "@/lib/checkout-total";
 import { clearOrderIdempotencyKey, getOrderIdempotencyKey } from "@/lib/order-idempotency";
 import { getClientSessionId } from "@/lib/client-session";
 import { orderAttributionPayload } from "@/lib/attribution";
+import { WHATSAPP_CONSENT_VERSION } from "@shared/whatsapp-consent";
 
 import { stashOrder } from "@/lib/order-stash";
 import { CustomerInfo, GOVERNORATES } from "@/components/cart/checkout/types";
@@ -153,6 +154,8 @@ export default function CheckoutPage() {
   }, []);
 
   const [agreed, setAgreed] = useState(false);
+  const [whatsappCareOptIn, setWhatsappCareOptIn] = useState(false);
+  const [whatsappMarketingOptIn, setWhatsappMarketingOptIn] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formErrorSummary, setFormErrorSummary] = useState("");
   const [couponCode, setCouponCode] = useState("");
@@ -331,6 +334,8 @@ export default function CheckoutPage() {
         items: checkoutItems.map(({ productId, variantId, quantity }) => ({ productId, variantId, quantity })),
         couponCode: testMode ? null : appliedCoupon?.code ?? null,
         cashbackToUse: testMode ? 0 : loyaltyData.cashbackToUse,
+        whatsappCareOptIn: testMode ? false : whatsappCareOptIn,
+        whatsappMarketingOptIn: testMode ? false : whatsappMarketingOptIn,
         testMode,
       });
       const idempotencyKey = getOrderIdempotencyKey(cartSignature);
@@ -359,6 +364,13 @@ export default function CheckoutPage() {
           useCashback: testMode ? false : loyaltyData.useCashback,
           pointsToUse: testMode ? 0 : loyaltyData.pointsToUse,
           cashbackToUse: testMode ? 0 : loyaltyData.cashbackToUse,
+          ...(testMode ? {} : {
+            whatsappConsent: {
+              care: whatsappCareOptIn,
+              marketing: whatsappMarketingOptIn,
+              version: WHATSAPP_CONSENT_VERSION,
+            },
+          }),
           ...(testMode ? { notifyTelegram: true } : {}),
         }),
       });
@@ -657,6 +669,10 @@ export default function CheckoutPage() {
               getDeliveryEstimate={getDeliveryEstimate}
               agreed={agreed}
               setAgreed={setAgreed}
+              whatsappCareOptIn={whatsappCareOptIn}
+              setWhatsappCareOptIn={setWhatsappCareOptIn}
+              whatsappMarketingOptIn={whatsappMarketingOptIn}
+              setWhatsappMarketingOptIn={setWhatsappMarketingOptIn}
               isSubmitting={isSubmitting}
               handleBack={handleBack}
               handleConfirmOrder={handleConfirmOrder}
