@@ -60,12 +60,14 @@ describe("AQUAVO Growth OS contract",()=>{
     expect(service).not.toContain("THEN jsonb_build_array(u.aquarium_profile->>'fishType')\n        ELSE cp.livestock");
   });
 
-  it("keeps lifecycle outbound manual and suppresses already replenished reminders",()=>{
+  it("plans lifecycle over WhatsApp and suppresses already replenished reminders",()=>{
     const service=read("server/services/growth-operating-system.ts");
-    expect(service).toContain("'planned','manual'");
+    const lifecycle=read("server/services/whatsapp-lifecycle.ts");
+    expect(service).toContain("'planned','whatsapp'");
     expect(service).toContain("now()-interval '21 days'");
     expect(service).toContain("'already_replenished'");
-    expect(service).not.toContain("graph.facebook.com");
+    expect(lifecycle).toContain("graph.facebook.com");
+    expect(lifecycle).toContain("WHATSAPP_LIFECYCLE_ENABLED");
   });
 
   it("fails closed on incomplete bundles and hides internal margin from public responses",()=>{
