@@ -4,6 +4,7 @@ import { addCsrfHeader } from "@/lib/csrf";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { CustomerAquariumProfileManager } from "./customer-aquarium-profile-manager";
 
 type Overview = {
   confidence: "exact" | "mixed" | "estimated";
@@ -69,6 +70,42 @@ type BusinessEvent = {
   severity: "info" | "warning" | "critical";
 };
 
+type GrowthOverview = {
+  attribution: {
+    realizedOrders: number;
+    attributedOrders: number;
+    attributionCoveragePct: number;
+    googleClickOrders: number;
+    metaClickOrders: number;
+    googleMeasuredOrders: number;
+    googlePurchaseMeasurementCoveragePct: number;
+    metaMeasuredOrders: number;
+    metaPurchaseMeasurementCoveragePct: number;
+    providerSpendIqd: number;
+    providerTrackedConversions: number;
+  };
+  inventory: {
+    day: string | null;
+    summary: {
+      skuCount: number; fast: number; medium: number; slow: number; dead: number;
+      new: number; stockout: number; capitalLocked: number; reorderSkus: number; reorderValue: number;
+    };
+  };
+  lifecycle: {
+    summary: {
+      ready: number; planned: number; completed: number; suppressed: number; cancelled: number;
+      day7Ready: number; repurchaseReady: number;
+    };
+    jobs: Array<{
+      id: string; jobType: string; dueAt: string; status: string; orderNumber: string;
+      customerName: string; whatsappUrl: string | null; message: string;
+    }>;
+  };
+  customerProfiles: { total: number; detailed: number; coveragePct: number };
+  bundles: { count: number; live: number; inStock: number };
+  expenses: { capturedUnpostedCount: number; capturedUnpostedAmount: number; marketingSpendCaptured: number };
+};
+
 type Finding = {
   id: string;
   severity: string;
@@ -109,18 +146,28 @@ export function BusinessIntelligenceDashboard() {
     queryFn: () => jsonFetch("/api/admin/business-intelligence/events?limit=8"),
     refetchInterval: 60_000,
   });
+  const growth = useQuery<GrowthOverview>({
+    queryKey: ["growth-os", "overview"],
+    queryFn: () => jsonFetch("/api/admin/growth-os/overview"),
+    refetchInterval: 60_000,
+  });
   const findings = useQuery<Finding[]>({
     queryKey: ["business-intelligence", "findings"],
     queryFn: () => jsonFetch("/api/admin/business-intelligence/findings"),
     refetchInterval: 60_000,
   });
   const refresh = useMutation({
-    mutationFn: () =>
-      jsonFetch("/api/admin/business-intelligence/refresh", {
+    mutationFn: async () => {
+      const request = (url: string) => jsonFetch(url, {
         method: "POST",
         headers: addCsrfHeader({ "Content-Type": "application/json" }),
         body: "{}",
-      }),
+      });
+      return Promise.all([
+        request("/api/admin/business-intelligence/refresh"),
+        request("/api/admin/growth-os/refresh"),
+      ]);
+    },
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["business-intelligence", "overview"] }),
@@ -128,7 +175,20 @@ export function BusinessIntelligenceDashboard() {
         queryClient.invalidateQueries({ queryKey: ["business-intelligence", "findings"] }),
         queryClient.invalidateQueries({ queryKey: ["business-intelligence", "events"] }),
         queryClient.invalidateQueries({ queryKey: ["business-intelligence", "history"] }),
+        queryClient.invalidateQueries({ queryKey: ["growth-os", "overview"] }),
       ]);
+    },
+  });
+
+  const completeLifecycle = useMutation({
+    mutationFn: (jobId: string) =>
+      jsonFetch("/api/admin/growth-os/lifecycle/" + encodeURIComponent(jobId) + "/complete", {
+        method: "POST",
+        headers: addCsrfHeader({ "Content-Type": "application/json" }),
+        body: "{}",
+      }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["growth-os", "overview"] });
     },
   });
 
@@ -289,6 +349,77 @@ export function BusinessIntelligenceDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {growth.data && (
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-xl font-bold">AQUAVO Growth OS</h3>
+            <p className="text-sm text-muted-foreground">Attribution + دوران المخزون + إعادة الشراء + الباقات + اكتمال المصاريف.</p>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+            <Card><CardHeader className="pb-2"><CardTitle className="text-sm">Attribution</CardTitle></CardHeader><CardContent>
+              <div className="text-2xl font-bold">{pct(growth.data.attribution.attributionCoveragePct)}</div>
+              <p className="text-xs text-muted-foreground">{growth.data.attribution.attributedOrders} من {growth.data.attribution.realizedOrders} طلب</p>
+            </CardContent></Card>
+            <Card><CardHeader className="pb-2"><CardTitle className="text-sm">Google Purchase</CardTitle></CardHeader><CardContent>
+              <div className="text-2xl font-bold">{pct(growth.data.attribution.googlePurchaseMeasurementCoveragePct)}</div>
+              <p className="text-xs text-muted-foreground">{growth.data.attribution.googleMeasuredOrders} receipt</p>
+            </CardContent></Card>
+            <Card><CardHeader className="pb-2"><CardTitle className="text-sm">Meta Purchase</CardTitle></CardHeader><CardContent>
+              <div className="text-2xl font-bold">{pct(growth.data.attribution.metaPurchaseMeasurementCoveragePct)}</div>
+              <p className="text-xs text-muted-foreground">{growth.data.attribution.metaMeasuredOrders} receipt</p>
+            </CardContent></Card>
+            <Card><CardHeader className="pb-2"><CardTitle className="text-sm">Slow / Dead Capital</CardTitle></CardHeader><CardContent>
+              <div className="text-2xl font-bold">{iq(growth.data.inventory.summary.capitalLocked)}</div>
+              <p className="text-xs text-muted-foreground">Slow {growth.data.inventory.summary.slow} · Dead {growth.data.inventory.summary.dead}</p>
+            </CardContent></Card>
+            <Card><CardHeader className="pb-2"><CardTitle className="text-sm">متابعات مستحقة</CardTitle></CardHeader><CardContent>
+              <div className="text-2xl font-bold">{growth.data.lifecycle.summary.ready}</div>
+              <p className="text-xs text-muted-foreground">Day 7: {growth.data.lifecycle.summary.day7Ready} · Reorder: {growth.data.lifecycle.summary.repurchaseReady}</p>
+            </CardContent></Card>
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-3">
+            <Card><CardHeader><CardTitle className="text-base">حركة المخزون</CardTitle></CardHeader><CardContent className="space-y-2 text-sm">
+              <div className="flex justify-between"><span>Fast</span><strong>{growth.data.inventory.summary.fast}</strong></div>
+              <div className="flex justify-between"><span>Medium</span><strong>{growth.data.inventory.summary.medium}</strong></div>
+              <div className="flex justify-between"><span>Slow</span><strong>{growth.data.inventory.summary.slow}</strong></div>
+              <div className="flex justify-between"><span>Dead</span><strong>{growth.data.inventory.summary.dead}</strong></div>
+              <div className="flex justify-between"><span>Stockout</span><strong>{growth.data.inventory.summary.stockout}</strong></div>
+              <div className="flex justify-between border-t pt-2"><span>إعادة طلب مقترحة</span><strong>{growth.data.inventory.summary.reorderSkus}</strong></div>
+            </CardContent></Card>
+            <Card><CardHeader><CardTitle className="text-base">الزبائن والباقات</CardTitle></CardHeader><CardContent className="space-y-2 text-sm">
+              <div className="flex justify-between"><span>ملفات أحواض مكتملة</span><strong>{growth.data.customerProfiles.detailed}/{growth.data.customerProfiles.total}</strong></div>
+              <div className="flex justify-between"><span>التغطية</span><strong>{pct(growth.data.customerProfiles.coveragePct)}</strong></div>
+              <div className="flex justify-between"><span>الباقات المنشورة</span><strong>{growth.data.bundles.live}</strong></div>
+              <div className="flex justify-between"><span>المتوفرة بالكامل</span><strong>{growth.data.bundles.inStock}</strong></div>
+            </CardContent></Card>
+            <Card><CardHeader><CardTitle className="text-base">اكتمال المصاريف والقياس</CardTitle></CardHeader><CardContent className="space-y-2 text-sm">
+              <div className="flex justify-between"><span>Marketing spend captured</span><strong>{iq(growth.data.expenses.marketingSpendCaptured)}</strong></div>
+              <div className="flex justify-between"><span>مصروف غير مرحّل</span><strong>{iq(growth.data.expenses.capturedUnpostedAmount)}</strong></div>
+              <div className="flex justify-between"><span>Provider conversions</span><strong>{growth.data.attribution.providerTrackedConversions}</strong></div>
+            </CardContent></Card>
+          </div>
+
+          {growth.data.lifecycle.jobs.some((job) => job.status === "ready") && (
+            <Card><CardHeader><CardTitle className="text-base">متابعات جاهزة — الإرسال يدوي</CardTitle></CardHeader><CardContent className="space-y-2">
+              {growth.data.lifecycle.jobs.filter((job) => job.status === "ready").slice(0,8).map((job) => (
+                <div key={job.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3">
+                  <div><p className="font-medium">{job.jobType === "day7_care" ? "متابعة اليوم السابع" : "تذكير إعادة شراء"} · {job.customerName || job.orderNumber}</p>
+                    <p className="text-xs text-muted-foreground">#{job.orderNumber} · {new Date(job.dueAt).toLocaleDateString("ar-IQ")}</p></div>
+                  <div className="flex items-center gap-2">
+                    {job.whatsappUrl ? <a href={job.whatsappUrl} target="_blank" rel="noreferrer" className="text-sm font-semibold text-primary underline underline-offset-4">فتح WhatsApp</a> : <Badge variant="secondary">رقم غير صالح</Badge>}
+                    <Button size="sm" variant="outline" disabled={completeLifecycle.isPending} onClick={() => completeLifecycle.mutate(job.id)}>تم التواصل</Button>
+                  </div>
+                </div>
+              ))}
+            </CardContent></Card>
+          )}
+
+          <CustomerAquariumProfileManager />
+        </div>
+      )}
 
       <Card>
         <CardHeader><CardTitle className="text-base">آخر أحداث المشروع</CardTitle></CardHeader>

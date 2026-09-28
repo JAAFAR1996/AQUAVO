@@ -45,6 +45,15 @@ import {
 // and shipping was never deducted.
 import { computePeriodFinancials, getRealizedOrdersForPeriod, lineQuantity, type OrderLineItem } from "../services/accounting-engine.js";
 import { getBusinessAssessment, getBusinessOverview, getBusinessHistory, getBusinessEvents, getInventoryHealth, getBusinessFindings } from "../services/business-intelligence.js";
+import {
+  getAttributionHealth,
+  getBundles,
+  getCustomerAquariumProfiles,
+  getExpenseCompleteness,
+  getGrowthOverview,
+  getInventoryIntelligence,
+  getLifecycleOverview,
+} from "../services/growth-operating-system.js";
 import { toMoney } from "../../shared/order-financials.js";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -551,6 +560,41 @@ function buildMcpServer(auth: McpAuthInfo): Server {
             limit: { type: "number" },
           },
         },
+      },
+      {
+        name: "get_growth_overview",
+        description: "Read-only AQUAVO Growth OS overview: attribution, purchase measurement, SKU velocity/reorder, lifecycle, aquarium-profile coverage, bundles, and expense completeness.",
+        inputSchema: { type: "object", properties: {} },
+      },
+      {
+        name: "get_attribution_health",
+        description: "Read-only advertising attribution and purchase-measurement coverage for realized orders.",
+        inputSchema: { type: "object", properties: {} },
+      },
+      {
+        name: "get_inventory_intelligence",
+        description: "Read-only SKU intelligence: fast/medium/slow/dead/new/stockout, 30/60/90-day velocity, capital locked, reorder point and recommended quantity.",
+        inputSchema: { type: "object", properties: { limit: { type: "number", minimum: 1, maximum: 200 }, day: { type: "string" } } },
+      },
+      {
+        name: "get_customer_lifecycle",
+        description: "Read-only planned/ready customer care and repurchase opportunities. Does not send messages.",
+        inputSchema: { type: "object", properties: { limit: { type: "number", minimum: 1, maximum: 200 } } },
+      },
+      {
+        name: "get_customer_aquarium_profiles",
+        description: "Read-only aquarium profile data attached to canonical AQUAVO customer profiles.",
+        inputSchema: { type: "object", properties: { limit: { type: "number", minimum: 1, maximum: 200 } } },
+      },
+      {
+        name: "get_product_bundles",
+        description: "Read-only curated AQUAVO bundles. Admin MCP output includes internal margin estimates.",
+        inputSchema: { type: "object", properties: {} },
+      },
+      {
+        name: "get_expense_completeness",
+        description: "Read-only expense-capture completeness and recorded marketing spend.",
+        inputSchema: { type: "object", properties: {} },
       },
       {
         name: "get_project_history",
@@ -1269,6 +1313,37 @@ function buildMcpServer(auth: McpAuthInfo): Server {
 
         case "get_site_overview": {
           return text(await buildSiteOverview(db));
+        }
+
+        case "get_growth_overview": {
+          return text(await getGrowthOverview());
+        }
+
+        case "get_attribution_health": {
+          return text(await getAttributionHealth());
+        }
+
+        case "get_inventory_intelligence": {
+          const { limit = 50, day } = a;
+          return text(await getInventoryIntelligence(Number(limit), typeof day === "string" ? day : undefined));
+        }
+
+        case "get_customer_lifecycle": {
+          const { limit = 50 } = a;
+          return text(await getLifecycleOverview(Number(limit)));
+        }
+
+        case "get_customer_aquarium_profiles": {
+          const { limit = 50 } = a;
+          return text(await getCustomerAquariumProfiles(Number(limit)));
+        }
+
+        case "get_product_bundles": {
+          return text(await getBundles(false));
+        }
+
+        case "get_expense_completeness": {
+          return text(await getExpenseCompleteness());
         }
 
         case "get_project_history": {

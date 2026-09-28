@@ -18,16 +18,19 @@ describe("Google Ads tag wiring", () => {
     expect(source).toContain("if (!hasGoogleTagLoader)");
   });
 
-  it("emits purchase only after tracking is allowed and gtag exists", () => {
+  it("emits purchase only after tracking is allowed and records blocked gtag for retry", () => {
     const source = readFileSync(resolve(process.cwd(), "client/src/lib/analytics.ts"), "utf8");
 
-    expect(source).toContain("if (!isTrackingAllowed() || !window.gtag) return;");
+    expect(source).toContain("if (!orderId || orderId === 'unknown' || !isTrackingAllowed()) return;");
+    expect(source).toContain("if (!window.gtag)");
+    expect(source).toContain("'gtag_unavailable'");
     expect(source).toContain("window.gtag('event', 'purchase'");
-    expect(source).toContain("transaction_id: orderData.orderId");
+    expect(source).toContain("transaction_id: orderId");
     expect(source).toContain("currency: 'IQD'");
     expect(source).toContain("value: orderData.total");
     expect(source).toContain("AW-18476435110/iP0mCJaFsYYdEKaNoOpE");
     expect(source).toContain("window.gtag('event', 'conversion'");
     expect(source).toContain("send_to: GOOGLE_ADS_PURCHASE_DESTINATION");
+    expect(source).toContain("aqSid: getSessionId()");
   });
 });
