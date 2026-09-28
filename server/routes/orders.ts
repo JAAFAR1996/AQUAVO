@@ -22,6 +22,7 @@ import {
 import { toPublicOrderItem } from "../../shared/public-product.js";
 import { apiMessage } from "../i18n/messages.js";
 import { payments } from "../../shared/schema.js";
+import { recordCheckoutWhatsAppMarketingOptIn } from "../services/whatsapp-lifecycle.js";
 
 const referralStorage = new ReferralStorage();
 
@@ -252,22 +253,17 @@ export function createOrderRouter(): RouterType {
                 },
             );
 
-            // Persist explicit WhatsApp marketing consent on the committed order.
-            // The DB trigger rolls a true opt-in into the canonical customer profile
-            // and append-only consent ledger. False never revokes earlier consent.
-            if (db && whatsappMarketingOptIn) {
+            // Commerce is already committed. Consent persistence is a separate
+            // non-financial side effect with daily repair from durable order evidence.
+            // If this fails, marketing fails closed instead of blocking the order.
+            if (whatsappMarketingOptIn) {
                 try {
-                    await db.execute(sql`
-                        UPDATE public.orders
-                           SET whatsapp_marketing_opt_in=true,
-                               whatsapp_marketing_opt_in_at=clock_timestamp(),
-                               updated_at=clock_timestamp()
-                         WHERE id=${order.id}
-                    `);
+                    const consent = await recordCheckoutWhatsAppMarketingOptIn(order.id);
+                    if (!consent.ok) {
+                        console.warn("[AQUAVO] WhatsApp marketing opt-in deferred:", consent.reason);
+                    }
                 } catch (consentErr) {
-                    // Commerce wins over CRM messaging. Fail closed: no consent row
-                    // means no future marketing/replenishment message can be sent.
-                    console.warn("[AQUAVO] WhatsApp marketing opt-in not stored:", consentErr instanceof Error ? consentErr.message : consentErr);
+                    console.warn("[AQUAVO] WhatsApp marketing opt-in deferred:", consentErr instanceof Error ? consentErr.message : consentErr);
                 }
             }
 
