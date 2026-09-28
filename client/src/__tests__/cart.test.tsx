@@ -548,7 +548,7 @@ describe('Variant display and checkout flow', () => {
     expect(screen.getByText('الخيار: 1.5 متر')).toBeInTheDocument();
     expect(screen.getByText('الخيار: 1.7 متر')).toBeInTheDocument();
 
-    await user.click(screen.getByRole('checkbox'));
+    await user.click(screen.getByRole('checkbox', { name: /أوافق على.*الشروط والأحكام/ }));
     await user.click(screen.getByRole('button', { name: /تأكيد الطلب/ }));
 
     await waitFor(() => {
