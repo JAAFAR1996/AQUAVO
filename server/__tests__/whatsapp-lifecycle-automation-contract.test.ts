@@ -29,10 +29,21 @@ describe("automatic WhatsApp lifecycle contract",()=>{
   });
 
   it("never treats an unchecked box as opt-out",()=>{
-    const migration=read("migrations/0093_whatsapp_lifecycle_automation.sql");
-    expect(migration).toContain("COALESCE(NEW.whatsapp_marketing_opt_in,false)=false");
-    expect(migration).toContain("RETURN NEW");
-    expect(migration).not.toContain("whatsapp_marketing_opt_in=false,\n         whatsapp_marketing_opt_out_at=clock_timestamp()");
+    const service=read("server/services/whatsapp-lifecycle.ts");
+    const orders=read("server/routes/orders.ts");
+    expect(orders).toContain("if (whatsappMarketingOptIn)");
+    expect(service).toContain("recordCheckoutWhatsAppMarketingOptIn");
+    expect(service).toContain("whatsapp_marketing_opt_out_at");
+    expect(service).not.toContain("whatsapp_marketing_opt_in=false,\n             whatsapp_marketing_opt_out_at=clock_timestamp()");
+  });
+
+  it("repairs post-commit consent persistence without blocking commerce",()=>{
+    const service=read("server/services/whatsapp-lifecycle.ts");
+    const growth=read("server/services/growth-operating-system.ts");
+    expect(service).toContain("syncCheckoutWhatsAppMarketingConsents");
+    expect(service).toContain("customer_messaging_consent_events");
+    expect(service).toContain("source_event_id='order:' || o.id");
+    expect(growth).toContain("syncCheckoutWhatsAppMarketingConsents()");
   });
 
   it("enforces anti-spam and replenishment suppression controls",()=>{
