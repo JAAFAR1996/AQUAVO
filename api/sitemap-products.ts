@@ -81,6 +81,7 @@ export default async function handler(_req: VercelRequest, res: VercelResponse):
       `SELECT id, slug, name, images, thumbnail, updated_at AS "updatedAt"
          FROM products
         WHERE deleted_at IS NULL
+          AND COALESCE(is_storefront_visible, true) = true
           AND slug IS NOT NULL
           AND slug <> ''
         ORDER BY updated_at DESC NULLS LAST, name ASC
@@ -115,9 +116,17 @@ export default async function handler(_req: VercelRequest, res: VercelResponse):
 ${entries}
 </urlset>`;
 
+    const newestLastmod = rows.reduce<string>(
+      (latest, product) => {
+        const current = effectiveLastmod(product.updatedAt);
+        return current > latest ? current : latest;
+      },
+      AQUAVO_SEO_RELEASE_LASTMOD,
+    );
+
     res.setHeader("Content-Type", "application/xml; charset=utf-8");
     res.setHeader("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
-    res.setHeader("Last-Modified", "Tue, 04 Aug 2026 00:00:00 GMT");
+    res.setHeader("Last-Modified", new Date(`${newestLastmod}T00:00:00.000Z`).toUTCString());
     res.status(200).send(xml);
   } catch (error) {
     console.error("[sitemap-products] generation failed", error);
