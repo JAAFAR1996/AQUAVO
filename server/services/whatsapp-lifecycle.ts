@@ -69,6 +69,15 @@ type LifecycleContext = {
   originalOrderCreatedAt: Date;
 };
 
+type RepurchaseProduct = {
+  id: string;
+  name: string;
+  replenished: boolean;
+  available: boolean;
+  discountType: string | null;
+  discountValue: number | null;
+};
+
 const REQUEST_TIMEOUT_MS = 7_000;
 const MAX_ATTEMPTS = 5;
 const STALE_SENDING_MINUTES = 10;
@@ -455,30 +464,6 @@ async function scheduleLifecycleRetry(job: ClaimedLifecycleJob, errorCode: strin
   return "retry";
 }
 
-async function alreadyReplenished(context: LifecycleContext): Promise<boolean> {
-  const db = getDb();
-  if (!db || context.recommendedProductIds.length === 0) return false;
-
-  const result = await db.execute(sql`
-    SELECT EXISTS (
-      SELECT 1
-      FROM public.orders later
-      JOIN public.order_items_relational li ON li.order_id=later.id
-      WHERE COALESCE(later.is_test,false)=false
-        AND later.status='delivered'
-        AND later.payment_status='paid'
-        AND later.cod_received=true
-        AND public.aquavo_normalize_iraqi_phone(later.customer_phone)
-            =public.aquavo_normalize_iraqi_phone(${context.customerPhone})
-        AND later.created_at > ${context.originalOrderCreatedAt}
-        AND li.product_id IN (
-          SELECT jsonb_array_elements_text(${JSON.stringify(context.recommendedProductIds)}::jsonb)
-        )
-    ) AS replenished
-  `);
-  return Boolean(rowsOf(result)[0]?.replenished);
-}
-
 async function nextMarketingAllowedAt(context: LifecycleContext): Promise<Date | null> {
   const db = getDb();
   if (!db) return new Date(Date.now() + MARKETING_FREQUENCY_CAP_DAYS * 86_400_000);
@@ -523,28 +508,112 @@ async function deferLifecycleJobForFrequencyCap(job: ClaimedLifecycleJob, nextAl
   `);
 }
 
-async function chooseRepurchaseProduct(context: LifecycleContext): Promise<string | null> {
+async function loadRepurchaseProducts(context: LifecycleContext): Promise<RepurchaseProduct[]> {
   const db = getDb();
-  if (!db || context.recommendedProductIds.length === 0) return null;
+  if (!db || context.recommendedProductIds.length === 0) return [];
 
   const result = await db.execute(sql`
-    SELECT p.name
-    FROM public.products p
-    WHERE p.id IN (
-      SELECT jsonb_array_elements_text(${JSON.stringify(context.recommendedProductIds)}::jsonb)
+    WITH requested AS (
+      SELECT pid,ord
+      FROM jsonb_array_elements_text(${JSON.stringify(context.recommendedProductIds)}::jsonb)
+           WITH ORDINALITY AS x(pid,ord)
     )
-      AND p.deleted_at IS NULL
-      AND COALESCE(p.stock,0)>0
-      AND COALESCE(p.is_storefront_visible,true)=true
-    ORDER BY array_position(
-      ARRAY(SELECT jsonb_array_elements_text(${JSON.stringify(context.recommendedProductIds)}::jsonb)),
-      p.id
-    )
-    LIMIT 1
+    SELECT
+      p.id,
+      p.name,
+      EXISTS (
+        SELECT 1
+        FROM public.orders later
+        JOIN public.order_items_relational li ON li.order_id=later.id
+        WHERE COALESCE(later.is_test,false)=false
+          AND later.status='delivered'
+          AND later.payment_status='paid'
+          AND later.cod_received=true
+          AND public.aquavo_normalize_iraqi_phone(later.customer_phone)
+              =public.aquavo_normalize_iraqi_phone(${context.customerPhone})
+          AND later.created_at > ${context.originalOrderCreatedAt}
+          AND li.product_id=p.id
+      ) AS replenished,
+      (
+        p.deleted_at IS NULL
+        AND COALESCE(p.stock,0)>0
+        AND COALESCE(p.is_storefront_visible,true)=true
+      ) AS available,
+      offer.type AS discount_type,
+      offer.value AS discount_value
+    FROM requested r
+    JOIN public.products p ON p.id=r.pid
+    LEFT JOIN LATERAL (
+      SELECT d.type,d.value
+      FROM public.discounts d
+      WHERE d.product_id=p.id
+        AND d.is_active=true
+        AND (d.start_date IS NULL OR d.start_date<=now()::timestamp)
+        AND (d.end_date IS NULL OR d.end_date>=now()::timestamp)
+      ORDER BY d.created_at DESC
+      LIMIT 1
+    ) offer ON true
+    ORDER BY r.ord
   `);
-  const row = rowsOf(result)[0];
-  return row?.name == null ? null : String(row.name).trim().slice(0,120);
+
+  return rowsOf(result).map((row) => ({
+    id: String(row.id ?? ""),
+    name: String(row.name ?? "").trim().slice(0,120),
+    replenished: Boolean(row.replenished),
+    available: Boolean(row.available),
+    discountType: row.discount_type == null ? null : String(row.discount_type),
+    discountValue: row.discount_value == null ? null : Number(row.discount_value),
+  })).filter((item) => item.id && item.name);
 }
+
+function formatDiscount(product: RepurchaseProduct): string {
+  if (!product.discountType || product.discountValue == null || !Number.isFinite(product.discountValue)) return "";
+  if (product.discountType === "percentage") {
+    return ` (خصم ${Math.max(0,product.discountValue).toLocaleString("en-US",{maximumFractionDigits:1})}%)`;
+  }
+  if (product.discountType === "fixed") {
+    return ` (خصم ${Math.max(0,Math.round(product.discountValue)).toLocaleString("en-US")} د.ع)`;
+  }
+  return "";
+}
+
+function buildRepurchaseProductSummary(products: RepurchaseProduct[]): string {
+  const labels = products.map((product) => `${product.name}${formatDiscount(product)}`);
+  const visible = labels.slice(0,4);
+  const remaining = labels.length-visible.length;
+  const suffix = remaining > 0 ? `، و${remaining} مواد ثانية` : "";
+  return `${visible.join("، ")}${suffix}`.slice(0,500);
+}
+
+async function persistRepurchaseSelection(
+  jobId: string,
+  products: RepurchaseProduct[],
+): Promise<void> {
+  const db = getDb();
+  if (!db) return;
+  const ids = products.map((product) => product.id);
+  const offers = products
+    .filter((product) => product.discountType && product.discountValue != null)
+    .map((product) => ({
+      productId: product.id,
+      type: product.discountType,
+      value: product.discountValue,
+    }));
+
+  await db.execute(sql`
+    UPDATE public.customer_lifecycle_jobs
+       SET recommended_product_ids=${JSON.stringify(ids)}::jsonb,
+           metadata=metadata || jsonb_build_object(
+             'messageProductIds',${JSON.stringify(ids)}::jsonb,
+             'activeOffers',${JSON.stringify(offers)}::jsonb,
+             'selectionUpdatedAt',clock_timestamp()
+           ),
+           updated_at=clock_timestamp()
+     WHERE id=${jobId}
+       AND status='sending'
+  `);
+}
+
 
 async function sendTemplate(
   config: LifecycleConfig,
@@ -741,8 +810,14 @@ async function dispatchLifecycleJob(jobId: string, config: LifecycleConfig): Pro
         return "suppressed";
       }
 
-      if (await alreadyReplenished(context)) {
-        await suppressLifecycleJob(job.id, "ALREADY_REPLENISHED");
+      const products = await loadRepurchaseProducts(context);
+      const eligibleProducts = products.filter((product) => !product.replenished && product.available);
+      if (eligibleProducts.length === 0) {
+        const allReplenished = products.length > 0 && products.every((product) => product.replenished);
+        await suppressLifecycleJob(
+          job.id,
+          allReplenished ? "ALREADY_REPLENISHED" : "RECOMMENDED_PRODUCT_UNAVAILABLE",
+        );
         return "suppressed";
       }
 
@@ -752,14 +827,15 @@ async function dispatchLifecycleJob(jobId: string, config: LifecycleConfig): Pro
         return "deferred";
       }
 
-      const productName = await chooseRepurchaseProduct(context);
-      if (!productName) {
+      await persistRepurchaseSelection(job.id, eligibleProducts);
+      const productSummary = buildRepurchaseProductSummary(eligibleProducts);
+      if (!productSummary) {
         await suppressLifecycleJob(job.id, "RECOMMENDED_PRODUCT_UNAVAILABLE");
         return "suppressed";
       }
 
       templateName = config.repurchaseTemplate;
-      bodyParameters = [firstName, productName];
+      bodyParameters = [firstName, productSummary];
       buttons = [
         { index: "0", payload: REPURCHASE_INTEREST_PAYLOAD },
         { index: "1", payload: REPURCHASE_STOP_PAYLOAD },

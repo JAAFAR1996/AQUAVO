@@ -860,7 +860,7 @@ export async function planCustomerLifecycleJobs() {
   `);
 
   await db.execute(sql`
-    WITH runtime AS (
+    WITH RECURSIVE runtime AS (
       SELECT activation_at
       FROM public.whatsapp_lifecycle_runtime_config
       WHERE id=1
@@ -903,30 +903,94 @@ export async function planCustomerLifecycleJobs() {
       WHERE d.customer_phone IS NOT NULL
         AND d.delivered_at >= cfg.activation_at
       GROUP BY d.customer_phone,d.order_id,d.delivered_at,oi.product_id,pr.interval_target_days
+    ),
+    ordered AS (
+      SELECT
+        r.*,
+        ROW_NUMBER() OVER (
+          PARTITION BY r.order_id
+          ORDER BY r.interval_target_days,r.product_id
+        ) AS rn
+      FROM repurchase r
+    ),
+    grouped AS (
+      SELECT
+        o.customer_phone,
+        o.order_id,
+        o.delivered_at,
+        o.product_id,
+        o.interval_target_days,
+        o.rn,
+        1::bigint AS bundle_no,
+        o.interval_target_days AS bundle_start_days
+      FROM ordered o
+      WHERE o.rn=1
+
+      UNION ALL
+
+      SELECT
+        o.customer_phone,
+        o.order_id,
+        o.delivered_at,
+        o.product_id,
+        o.interval_target_days,
+        o.rn,
+        CASE
+          WHEN o.interval_target_days-g.bundle_start_days > 15
+          THEN g.bundle_no+1
+          ELSE g.bundle_no
+        END AS bundle_no,
+        CASE
+          WHEN o.interval_target_days-g.bundle_start_days > 15
+          THEN o.interval_target_days
+          ELSE g.bundle_start_days
+        END AS bundle_start_days
+      FROM grouped g
+      JOIN ordered o
+        ON o.order_id=g.order_id
+       AND o.rn=g.rn+1
+    ),
+    bundles AS (
+      SELECT
+        g.customer_phone,
+        g.order_id,
+        g.delivered_at,
+        g.bundle_no,
+        MIN(g.interval_target_days)::int AS target_days,
+        MAX(g.interval_target_days)::int AS latest_target_days,
+        jsonb_agg(to_jsonb(g.product_id) ORDER BY g.interval_target_days,g.product_id) AS product_ids,
+        jsonb_agg(
+          jsonb_build_object('productId',g.product_id,'targetDays',g.interval_target_days)
+          ORDER BY g.interval_target_days,g.product_id
+        ) AS product_schedule
+      FROM grouped g
+      GROUP BY g.customer_phone,g.order_id,g.delivered_at,g.bundle_no
     )
     INSERT INTO public.customer_lifecycle_jobs(
       customer_phone,order_id,job_type,due_at,status,channel,scope_key,recommended_product_ids,metadata
     )
     SELECT
-      r.customer_phone,
-      r.order_id,
+      b.customer_phone,
+      b.order_id,
       'repurchase',
       (
-        ((r.delivered_at AT TIME ZONE 'Asia/Baghdad')::date + r.interval_target_days + time '12:30')
+        ((b.delivered_at AT TIME ZONE 'Asia/Baghdad')::date + b.target_days + time '12:30')
         AT TIME ZONE 'Asia/Baghdad'
       ),
       'planned',
       'whatsapp',
-      'product:' || r.product_id,
-      jsonb_build_array(r.product_id),
+      'bundle:' || b.bundle_no::text,
+      b.product_ids,
       jsonb_build_object(
         'source','consumables_engine',
-        'targetDays',r.interval_target_days,
-        'productId',r.product_id,
-        'deliveredAt',r.delivered_at,
-        'schedulePolicy','per_product_replenishment_12_30_baghdad'
+        'targetDays',b.target_days,
+        'latestTargetDays',b.latest_target_days,
+        'bundleWindowDays',15,
+        'productSchedule',b.product_schedule,
+        'deliveredAt',b.delivered_at,
+        'schedulePolicy','smart_grouped_replenishment_12_30_baghdad'
       )
-    FROM repurchase r
+    FROM bundles b
     ON CONFLICT(order_id,job_type,scope_key) DO UPDATE
     SET due_at=EXCLUDED.due_at,
         recommended_product_ids=EXCLUDED.recommended_product_ids,
@@ -948,27 +1012,38 @@ export async function planCustomerLifecycleJobs() {
 
   await db.execute(sql`
     UPDATE public.customer_lifecycle_jobs j
-    SET status='suppressed',updated_at=now(),
-        metadata=j.metadata || jsonb_build_object('suppressReason','already_replenished','suppressedAt',now())
+    SET recommended_product_ids=COALESCE((
+          SELECT jsonb_agg(to_jsonb(pid) ORDER BY ord)
+          FROM jsonb_array_elements_text(j.recommended_product_ids) WITH ORDINALITY AS candidate(pid,ord)
+          WHERE NOT EXISTS (
+            SELECT 1
+            FROM public.orders later
+            JOIN public.order_items_relational li ON li.order_id=later.id
+            WHERE COALESCE(later.is_test,false)=false
+              AND later.status='delivered'
+              AND later.payment_status='paid'
+              AND later.cod_received=true
+              AND public.aquavo_normalize_iraqi_phone(later.customer_phone)=j.customer_phone
+              AND later.created_at > (
+                SELECT original.created_at FROM public.orders original WHERE original.id=j.order_id
+              )
+              AND li.product_id=candidate.pid
+          )
+        ),'[]'::jsonb),
+        updated_at=now()
     WHERE j.job_type='repurchase'
       AND j.status IN ('planned','ready')
-      AND EXISTS (
-        SELECT 1
-        FROM public.orders later
-        JOIN public.order_items_relational li ON li.order_id=later.id
-        WHERE COALESCE(later.is_test,false)=false
-          AND later.status='delivered'
-          AND later.payment_status='paid'
-          AND later.cod_received=true
-          AND public.aquavo_normalize_iraqi_phone(later.customer_phone)=j.customer_phone
-          AND later.created_at > (
-            SELECT original.created_at FROM public.orders original WHERE original.id=j.order_id
-          )
-          AND li.product_id IN (
-            SELECT jsonb_array_elements_text(j.recommended_product_ids)
-          )
-      )
   `);
+
+  await db.execute(sql`
+    UPDATE public.customer_lifecycle_jobs
+    SET status='suppressed',updated_at=now(),
+        metadata=metadata || jsonb_build_object('suppressReason','already_replenished_all','suppressedAt',now())
+    WHERE job_type='repurchase'
+      AND status IN ('planned','ready')
+      AND jsonb_array_length(recommended_product_ids)=0
+  `);
+
 
   await db.execute(sql`
     UPDATE public.customer_lifecycle_jobs
