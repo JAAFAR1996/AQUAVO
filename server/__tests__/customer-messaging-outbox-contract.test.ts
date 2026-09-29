@@ -119,7 +119,7 @@ describe("post-delivery customer messaging contract", () => {
     expect(service).toContain("buildCustomerFirstName");
     expect(service).toContain("INVALID_CUSTOMER_NAME");
     expect(service).toContain("MARKETING_OPT_IN_REQUIRED");
-    expect(service).toContain("o.whatsapp_marketing_opt_in=true");
+    expect(service).toContain("cp.whatsapp_marketing_opt_in=true");
     expect(service).not.toContain('sub_type: "quick_reply"');
     expect(service).not.toContain("WHATSAPP_DELIVERY_CARE_MARKETING_TEMPLATE");
     expect(service).not.toContain('marketingTemplateEligible ? "marketing_ugc" : "utility"');
@@ -133,7 +133,7 @@ describe("post-delivery customer messaging contract", () => {
     expect(textReplyService).toContain("runPendingWhatsAppCustomerTextAlerts");
     expect(textReplyService).toContain("recordWhatsAppMarketingOptOut");
     expect(webhookRoute).toContain("extractWhatsAppCustomerTextEvents");
-    expect(webhookRoute).toContain("handleWhatsAppCustomerText(event)");
+    expect(webhookRoute).toContain("handleWhatsAppCustomerText({");
     expect(cronRoute).toContain("runPendingWhatsAppCustomerTextAlerts(20)");
   });
 
@@ -204,7 +204,7 @@ describe("post-delivery customer messaging contract", () => {
     expect(vercelEntry).toContain("req.rawBody = buf");
   });
 
-  it("handles only correlated Quick Replies and stores the choice before auto-replying", () => {
+  it("keeps legacy correlated Quick Reply recovery isolated from current buttonless templates", () => {
     expect(webhookRoute).toContain("extractDeliveryCareButtonReplyEvents");
     expect(webhookRoute).toContain('type: z.literal("button")');
     expect(webhookRoute).toContain("contextProviderMessageId");
