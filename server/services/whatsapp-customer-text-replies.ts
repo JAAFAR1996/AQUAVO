@@ -136,7 +136,7 @@ export async function handleWhatsAppCustomerText(
   const orderId=matched ? String(matched.order_id ?? "") : null;
 
   const stop=isExplicitStop(messageText);
-  if (stop && !Boolean(stored.marketing_opt_out)) {
+  if (stop && !event.suppressOperatorAlert && !Boolean(stored.marketing_opt_out)) {
     await recordWhatsAppMarketingOptOut(
       senderPhone,
       inboundMessageId,
