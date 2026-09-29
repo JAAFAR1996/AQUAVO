@@ -1914,7 +1914,21 @@ export async function getGrowthOverview() {
 export async function refreshGrowthOs(dayInput?:string) {
   const day=validateDay(dayInput ?? baghdadGrowthDay(-1));
   const repurchase=await refreshRepurchaseProfiles();
-  const observedRepurchase=await refreshObservedRepurchaseProfiles();
+
+  // AQUAVO starts replenishment in deterministic rule-only mode. Observed
+  // repeat-purchase learning is opt-in and remains disabled unless explicitly
+  // enabled later after enough clean production history exists.
+  const observedLearningEnabled =
+    process.env.GROWTH_REPURCHASE_OBSERVED_LEARNING_ENABLED?.trim().toLowerCase() === "true";
+  const observedRepurchase = observedLearningEnabled
+    ? await refreshObservedRepurchaseProfiles()
+    : {
+        observedProfiles: 0,
+        profiles: [] as Array<{ skuKey: string; targetDays: number; confidence: string }>,
+        disabled: true,
+        mode: "rule_only" as const,
+      };
+
   const customerProfiles=await refreshCustomerAquariumProfiles();
   const whatsappConsentRepair=await syncCheckoutWhatsAppMarketingConsents();
   const inventory=await refreshInventorySkuDaily(day);
