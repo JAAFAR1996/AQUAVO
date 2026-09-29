@@ -240,6 +240,17 @@ describe("automatic WhatsApp lifecycle contract",()=>{
     expect(immediate).toContain("o.whatsapp_marketing_opt_in_at > cp.whatsapp_marketing_opt_out_at");
   });
 
+  it("also gates lifecycle sends in-process when DB migrations lag deployment",()=>{
+    const service=read("server/services/whatsapp-lifecycle.ts");
+    const env=read(".env.example");
+    expect(service).toContain("WHATSAPP_DAY7_TEMPLATE_APPROVED");
+    expect(service).toContain("WHATSAPP_REPURCHASE_TEMPLATE_APPROVED");
+    expect(service).toContain("const day7Enabled = day7ProviderApproved");
+    expect(service).toContain("const repurchaseEnabled = repurchaseProviderApproved");
+    expect(env).toContain("WHATSAPP_DAY7_TEMPLATE_APPROVED=false");
+    expect(env).toContain("WHATSAPP_REPURCHASE_TEMPLATE_APPROVED=false");
+  });
+
   it("keeps unapproved Day-7 and repurchase templates fail closed",()=>{
     const safety=read("migrations/0097_whatsapp_lifecycle_fail_closed.sql");
     expect(safety).toContain("lifecycle_enabled=false");
