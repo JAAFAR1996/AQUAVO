@@ -197,6 +197,7 @@ export function createWaylRouter() {
           ? parsed.data.clientSessionId
           : (req as any).sessionID,
         attribution: parsed.data.attribution,
+        whatsappMarketingOptIn: parsed.data.whatsappMarketingOptIn,
         customerInfo: parsed.data.customerInfo,
         items: parsed.data.items,
         couponCode: parsed.data.couponCode,
