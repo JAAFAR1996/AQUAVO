@@ -60,6 +60,7 @@ type OrderRecipient = {
   customerName: string | null;
   customerPhone: string | null;
   whatsappMarketingOptIn: boolean;
+  isTest: boolean;
 };
 
 type WhatsAppConfig = {
@@ -276,6 +277,7 @@ async function loadOrderRecipient(orderId: string): Promise<OrderRecipient | nul
     SELECT
       o.customer_name,
       o.customer_phone,
+      COALESCE(o.is_test,false) AS is_test,
       COALESCE(
         (
           cp.whatsapp_marketing_opt_in=true
@@ -309,6 +311,7 @@ async function loadOrderRecipient(orderId: string): Promise<OrderRecipient | nul
     customerName: row.customer_name == null ? null : String(row.customer_name),
     customerPhone: row.customer_phone == null ? null : String(row.customer_phone),
     whatsappMarketingOptIn: row.whatsapp_marketing_opt_in === true,
+    isTest: row.is_test === true,
   };
 }
 
@@ -642,6 +645,21 @@ export async function dispatchDeliveryCareForOrder(orderId: string): Promise<Cus
     const recipient = await loadOrderRecipient(orderId);
     if (!recipient) {
       return await releaseClaimAsFailed(job, "ORDER_NOT_DELIVERED_OR_MISSING", false);
+    }
+
+    if (recipient.isTest) {
+      await db.execute(sql`
+        UPDATE public.customer_message_jobs
+           SET status='cancelled',
+               cancelled_at=clock_timestamp(),
+               locked_at=NULL,
+               last_error_code='TEST_ORDER_NOT_ELIGIBLE',
+               last_error_at=clock_timestamp(),
+               updated_at=clock_timestamp()
+         WHERE id=${job.id}
+           AND status='sending'
+      `);
+      return { status: "already_handled", jobId: job.id, errorCode: "TEST_ORDER_NOT_ELIGIBLE" };
     }
 
     const phone = normalizeIraqiWhatsAppPhone(recipient.customerPhone);
