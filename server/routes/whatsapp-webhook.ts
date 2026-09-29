@@ -333,7 +333,23 @@ export function createWhatsAppWebhookRouter(): RouterType {
 
       let textRepliesHandled = 0;
       for (const event of customerTextEvents) {
-        const result = await handleWhatsAppCustomerText(event);
+        const lifecycle = await handleLifecycleReply({
+          inboundMessageId: event.inboundMessageId,
+          contextProviderMessageId: event.contextProviderMessageId ?? "",
+          fromPhone: event.fromPhone,
+          receivedAt: event.receivedAt,
+          payload: "",
+          buttonText: event.text,
+        });
+        if (lifecycle === "db_unavailable") {
+          res.status(503).json({ code: "WEBHOOK_PERSISTENCE_FAILED" });
+          return;
+        }
+
+        const result = await handleWhatsAppCustomerText({
+          ...event,
+          suppressOperatorAlert: lifecycle === "handled" || lifecycle === "duplicate",
+        });
         if (result === "db_unavailable") {
           res.status(503).json({ code: "WEBHOOK_PERSISTENCE_FAILED" });
           return;
