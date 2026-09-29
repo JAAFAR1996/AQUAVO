@@ -818,10 +818,21 @@ async function dispatchLifecycleJob(jobId: string, config: LifecycleConfig): Pro
       return "failed";
     }
 
+    const consentIsCurrent = context.marketingOptIn
+      && context.marketingOptInAt != null
+      && (
+        context.marketingOptOutAt == null
+        || context.marketingOptInAt.getTime() > context.marketingOptOutAt.getTime()
+      );
+
     let templateName: string | null = null;
     let bodyParameters: string[] = [];
 
     if (context.jobType === "day7_care") {
+      if (!consentIsCurrent) {
+        await suppressLifecycleJob(job.id, "WHATSAPP_OPT_IN_REQUIRED");
+        return "suppressed";
+      }
       templateName = config.day7Template;
       if (!templateName) {
         await suppressLifecycleJob(job.id, "DAY7_TEMPLATE_NOT_CONFIGURED");
@@ -835,12 +846,6 @@ async function dispatchLifecycleJob(jobId: string, config: LifecycleConfig): Pro
         return "suppressed";
       }
 
-      const consentIsCurrent = context.marketingOptIn
-        && context.marketingOptInAt != null
-        && (
-          context.marketingOptOutAt == null
-          || context.marketingOptInAt.getTime() > context.marketingOptOutAt.getTime()
-        );
       if (!consentIsCurrent) {
         await suppressLifecycleJob(job.id, "MARKETING_OPT_IN_REQUIRED");
         return "suppressed";
@@ -1037,7 +1042,7 @@ export async function recordWhatsAppMarketingOptOut(
            updated_at=clock_timestamp()
       FROM public.orders o
      WHERE j.order_id=o.id
-       AND j.job_type='repurchase'
+       AND j.job_type IN ('day7_care','repurchase')
        AND j.status IN ('planned','ready')
        AND public.aquavo_normalize_iraqi_phone(o.customer_phone)=${canonicalPhone}
   `);
