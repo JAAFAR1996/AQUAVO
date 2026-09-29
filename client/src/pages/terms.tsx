@@ -184,6 +184,31 @@ export default function Terms() {
             className="mb-16"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.28 }}
+          >
+            <h2 className="text-3xl font-bold mb-8 flex items-center gap-3">
+              <ChevronLeft className="w-6 h-6 text-primary" />
+              {t("terms.s66")}
+            </h2>
+            <Card className="border-green-500/30 bg-green-500/5">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 bg-green-500/20 rounded-full flex items-center justify-center flex-shrink-0">
+                    <MessageCircle className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div className="space-y-3 text-muted-foreground">
+                    <p>{t("terms.s67")}</p>
+                    <p>{t("terms.s68")}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.section>
+
+          <motion.section
+            className="mb-16"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
           >
             <h2 className="text-3xl font-bold mb-8 flex items-center gap-3">
