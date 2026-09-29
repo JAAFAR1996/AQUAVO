@@ -20,7 +20,7 @@ describe("automatic WhatsApp lifecycle contract",()=>{
     const orderRoute=read("server/routes/orders.ts");
     const wayl=read("server/routes/wayl.ts");
     const migration=read("migrations/0093_whatsapp_lifecycle_automation.sql");
-    expect(checkout).toContain('id="whatsapp-marketing-opt-in"');
+    expect(checkout).not.toContain('id="whatsapp-marketing-opt-in"');
     expect(checkout).toContain("whatsappMarketingOptIn");
     expect(orderRoute).toContain("whatsappMarketingOptIn");
     expect(wayl).toContain("whatsappMarketingOptIn");
