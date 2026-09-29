@@ -141,6 +141,9 @@ keeps both disabled until WhatsApp Manager shows the exact templates Approved/Ac
 activation must then set a fresh boundary so no stale backlog is sent. Provider credentials
 remain environment secrets.
 
+Before merge, CI must run against the final PR head, including any verified dependency-lock
+refresh committed by automation.
+
 ## Worker
 
 The protected five-minute customer-messaging worker runs:
