@@ -87,6 +87,9 @@ describe("automatic WhatsApp lifecycle contract",()=>{
     expect(growth).toContain("realized_payment.method IN ('wayl','alqaseh')");
     expect(migration).toContain("v_payment_method IN ('alqaseh','wayl')");
     expect(migration).toContain("ONLINE_CAPTURE_EVENT_MISSING_OR_MISMATCH");
+    expect(migration).toContain("0095_DEPENDENCY_MISSING");
+    expect(migration.indexOf("IF FOUND THEN RETURN v_entry_id; END IF;"))
+      .toBeLessThan(migration.indexOf("SELECT method INTO v_payment_method"));
   });
 
   it("stores checkout consent evidence in the order transaction before CRM projection",()=>{
