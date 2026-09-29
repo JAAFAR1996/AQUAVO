@@ -137,6 +137,12 @@ describe("post-delivery customer messaging contract", () => {
     expect(cronRoute).toContain("runPendingWhatsAppCustomerTextAlerts(20)");
   });
 
+  it("never sends the Marketing delivery-care template for test orders", () => {
+    expect(service).toContain("COALESCE(o.is_test,false) AS is_test");
+    expect(service).toContain("recipient.isTest");
+    expect(service).toContain("TEST_ORDER_NOT_ELIGIBLE");
+  });
+
   it("distinguishes provider API acceptance from delivery state and persists wamid idempotently", () => {
     expect(migration).toContain("provider_status");
     expect(migration).toContain("provider_status_at");
