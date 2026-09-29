@@ -12,6 +12,7 @@ export type WhatsAppCustomerTextEvent = {
   fromPhone: string;
   receivedAt: Date;
   text: string;
+  suppressOperatorAlert?: boolean;
 };
 
 export type WhatsAppCustomerTextResult =
@@ -153,6 +154,19 @@ export async function handleWhatsAppCustomerText(
            updated_at=clock_timestamp()
      WHERE inbound_message_id=${inboundMessageId}
   `);
+
+  if (event.suppressOperatorAlert) {
+    await db.execute(sql`
+      UPDATE public.whatsapp_customer_text_events
+         SET alert_status='sent',
+             alert_processing_at=NULL,
+             alerted_at=COALESCE(alerted_at,clock_timestamp()),
+             updated_at=clock_timestamp()
+       WHERE inbound_message_id=${inboundMessageId}
+         AND alert_status<>'sent'
+    `);
+    return "handled";
+  }
 
   const claim=await db.execute(sql`
     UPDATE public.whatsapp_customer_text_events
