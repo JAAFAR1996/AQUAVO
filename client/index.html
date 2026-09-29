@@ -5,13 +5,27 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5, user-scalable=yes" />
 
-  <!-- Google tag (gtag.js) — Google Ads -->
-  <script id="aquavo-google-tag" async src="https://www.googletagmanager.com/gtag/js?id=AW-18476435110"></script>
+  <!-- Google tag (gtag.js) — Google Ads.
+       Do not load it on unique Vercel preview/deployment hosts: preview traffic must
+       never become an Ads measurement domain or pollute production attribution. -->
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'AW-18476435110');
+    (function () {
+      var hostname = window.location.hostname.toLowerCase();
+      var isUniqueVercelDeployment =
+        hostname.endsWith('.vercel.app') && hostname !== 'aquavo.vercel.app';
+      if (isUniqueVercelDeployment) return;
+
+      var script = document.createElement('script');
+      script.id = 'aquavo-google-tag';
+      script.async = true;
+      script.src = 'https://www.googletagmanager.com/gtag/js?id=AW-18476435110';
+      document.head.appendChild(script);
+
+      gtag('js', new Date());
+      gtag('config', 'AW-18476435110');
+    })();
   </script>
 
   <!-- Theme bootstrap (runs before first paint — prevents flash + sets first-visit default).
