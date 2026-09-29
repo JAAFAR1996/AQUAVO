@@ -26,10 +26,18 @@ describe("Google Ads tag wiring", () => {
         .find((part: string) => part.startsWith(`${name} `)) ?? "";
 
     const scriptSrc = directive("script-src");
+    const scriptSrcElem = directive("script-src-elem");
     const connectSrc = directive("connect-src");
 
-    // Tag Diagnostics reports this as an effective script-src-elem violation.
-    // With no explicit script-src-elem directive, CSP falls back to script-src.
+    // Google documents Google Ads script loading under script-src-elem.
+    // Keep it explicit rather than relying on CSP fallback from script-src.
+    expect(scriptSrcElem).toContain("https://www.googletagmanager.com");
+    expect(scriptSrcElem).toContain("https://www.googleadservices.com");
+    expect(scriptSrcElem).toContain("https://www.google.com");
+    expect(scriptSrcElem).toContain("https://googleads.g.doubleclick.net");
+    expect(scriptSrcElem).toContain("'unsafe-inline'");
+
+    // Keep the general script policy compatible with the explicit element policy.
     expect(scriptSrc).toContain("https://googleads.g.doubleclick.net");
 
     expect(connectSrc).toContain("https://ad.doubleclick.net");
