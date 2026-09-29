@@ -1,0 +1,85 @@
+name: Vercel Prebuilt Production Fallback
+# Manual/marked-merge only: normal main pushes remain owned by Vercel Git integration.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+concurrency:
+  group: vercel-prebuilt-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: "22"
+  PNPM_VERSION: "10.0.0"
+  VERCEL_CLI_VERSION: "59.20.0"
+  VERCEL_ORG_ID: "team_56HgXZxSSPCYeVr5ADcQJOK8"
+  VERCEL_PROJECT_ID: "prj_eaTDQ2tkfCX4Mxhn2nymDfDDARep"
+
+jobs:
+  deploy:
+    name: Prebuilt production deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[prebuilt-vercel-prod]')
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+    steps:
+      - name: Checkout exact main commit
+        uses: actions/checkout@v4
+
+      - name: Require Vercel deployment credential
+        shell: bash
+        run: |
+          if [ -z "${VERCEL_TOKEN:-}" ]; then
+            echo "::error::VERCEL_TOKEN GitHub Secret is not configured. Prebuilt deployment cannot authenticate."
+            exit 2
+          fi
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+
+      - name: Pull production project settings and environment
+        run: pnpm dlx vercel@${VERCEL_CLI_VERSION} pull --yes --environment=production --token="${VERCEL_TOKEN}"
+
+      - name: Build Vercel output on GitHub runner
+        run: pnpm dlx vercel@${VERCEL_CLI_VERSION} build --prod --token="${VERCEL_TOKEN}"
+
+      - name: Deploy prebuilt output to production
+        id: deploy
+        shell: bash
+        run: |
+          url="$(pnpm dlx vercel@${VERCEL_CLI_VERSION} deploy --prebuilt --prod --token="${VERCEL_TOKEN}")"
+          echo "url=${url}" >> "$GITHUB_OUTPUT"
+          echo "Production deployment created."
+
+      - name: Smoke check public readiness
+        shell: bash
+        run: |
+          curl --fail --silent --show-error --retry 5 --retry-delay 5 \
+            "https://www.aquavoiq.com/ready" > /tmp/aquavo-ready.json
+          node -e '
+            const fs=require("fs");
+            const body=JSON.parse(fs.readFileSync("/tmp/aquavo-ready.json","utf8"));
+            if (body.orderCreationEnabled !== true) {
+              console.error("orderCreationEnabled is not true:", body);
+              process.exit(1);
+            }
+            console.log("AQUAVO readiness passed.");
+          '
