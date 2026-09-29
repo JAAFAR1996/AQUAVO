@@ -59,10 +59,11 @@ describe("automatic WhatsApp lifecycle contract",()=>{
   it("groups nearby consumables from one order into one smart reminder",()=>{
     const growth=read("server/services/growth-operating-system.ts");
     const migration=read("migrations/0094_repurchase_per_product_automation.sql");
-    expect(growth).toContain("o.interval_target_days-o.previous_target_days > 15");
+    expect(growth).toContain("o.interval_target_days-g.bundle_start_days > 15");
     expect(growth).toContain("'bundle:' || b.bundle_no::text");
     expect(growth).toContain("jsonb_agg(to_jsonb(g.product_id)");
     expect(growth).toContain("'bundleWindowDays',15");
+    expect(growth).toContain("WITH RECURSIVE runtime AS");
     expect(growth).toContain("smart_grouped_replenishment_12_30_baghdad");
     expect(growth).toContain("ON CONFLICT(order_id,job_type,scope_key)");
     expect(growth).toContain("metadata->>'deferReason'");
