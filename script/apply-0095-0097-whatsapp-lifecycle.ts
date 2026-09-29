@@ -1,10 +1,12 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { Pool, neonConfig, type PoolClient } from "@neondatabase/serverless";
+import { Pool, neonConfig } from "@neondatabase/serverless";
 import ws from "ws";
 
 neonConfig.webSocketConstructor = ws;
+
+type DbClient = Awaited<ReturnType<Pool["connect"]>>;
 
 const CONFIRM = "APPLY_WHATSAPP_LIFECYCLE_0095_0097";
 const ZERO_CHECKSUM = "0".repeat(64);
@@ -38,7 +40,7 @@ function stripOuterTransaction(body: string): string {
     .trim();
 }
 
-async function requirePrerequisites(client: PoolClient): Promise<void> {
+async function requirePrerequisites(client: DbClient): Promise<void> {
   const result = await client.query<{ version: string }>(
     `SELECT version
        FROM public.schema_migrations
@@ -62,7 +64,7 @@ async function requirePrerequisites(client: PoolClient): Promise<void> {
   }
 }
 
-async function verifyAppliedShape(client: PoolClient, version: string): Promise<boolean> {
+async function verifyAppliedShape(client: DbClient, version: string): Promise<boolean> {
   if (version === "0095_wayl_delivery_accounting") {
     const result = await client.query<{ ok: boolean }>(`
       SELECT
@@ -99,7 +101,7 @@ async function verifyAppliedShape(client: PoolClient, version: string): Promise<
 }
 
 async function applyOne(
-  client: PoolClient,
+  client: DbClient,
   version: string,
   file: string,
 ): Promise<{ appliedNow: boolean; checksum: string }> {
@@ -172,7 +174,7 @@ async function applyOne(
 }
 
 async function verifyFinalState(
-  client: PoolClient,
+  client: DbClient,
   expectedChecksums: Map<string, string>,
   requireFailClosed: boolean,
 ): Promise<void> {
