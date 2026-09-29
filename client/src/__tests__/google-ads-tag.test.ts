@@ -41,6 +41,7 @@ describe("Google Ads tag wiring", () => {
     // Google documents Google Ads script loading under script-src-elem.
     // Keep it explicit rather than relying on CSP fallback from script-src.
     expect(scriptSrcElem).toContain("https://www.googletagmanager.com");
+    expect(scriptSrcElem).toContain("https://tagmanager.google.com");
     expect(scriptSrcElem).toContain("https://www.googleadservices.com");
     expect(scriptSrcElem).toContain("https://www.google.com");
     expect(scriptSrcElem).toContain("https://googleads.g.doubleclick.net");
@@ -57,6 +58,10 @@ describe("Google Ads tag wiring", () => {
     expect(scriptSrc).toContain("https://www.googletagmanager.com");
     expect(connectSrc).toContain("https://googleads.g.doubleclick.net");
     expect(connectSrc).toContain("https://pagead2.googlesyndication.com");
+
+    const styleSrc = directive("style-src");
+    expect(styleSrc).toContain("https://www.googletagmanager.com");
+    expect(styleSrc).toContain("https://tagmanager.google.com");
   });
 
   it("reuses the shell Google tag instead of injecting a duplicate loader", () => {
