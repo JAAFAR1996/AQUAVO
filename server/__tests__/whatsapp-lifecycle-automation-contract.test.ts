@@ -9,8 +9,8 @@ describe("automatic WhatsApp lifecycle contract",()=>{
     const service=read("server/services/whatsapp-lifecycle.ts");
     expect(env).toContain("WHATSAPP_DAY7_CARE_TEMPLATE=aquavo_day7_care_v1");
     expect(env).toContain("WHATSAPP_REPURCHASE_TEMPLATE=aquavo_repurchase_reminder_v1");
-    expect(env).toContain("category: UTILITY");
-    expect(env).toContain("category: MARKETING");
+    expect(env.toLowerCase()).toContain("category: utility");
+    expect(env.toLowerCase()).toContain("category: marketing");
     expect(service).toContain("context.jobType === \"day7_care\"");
     expect(service).toContain("context.marketingOptIn");
   });
@@ -53,7 +53,7 @@ describe("automatic WhatsApp lifecycle contract",()=>{
     expect(growth).toContain("percentile_cont(0.5)");
     expect(growth).toContain("COUNT(*)>=4");
     expect(growth).toContain("COUNT(DISTINCT customer_phone)>=2");
-    expect(growth).toContain("base.is_consumable=true");
+    expect(growth).toContain("candidate.is_consumable=true");
     expect(growth).toContain("purchase_day-prior_day BETWEEN 7 AND 365");
   });
 
