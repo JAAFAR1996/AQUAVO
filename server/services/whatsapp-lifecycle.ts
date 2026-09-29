@@ -60,6 +60,8 @@ type LifecycleContext = {
   orderStatus: string;
   paymentStatus: string;
   codReceived: boolean;
+  paymentMethod: string | null;
+  paymentRecordStatus: string | null;
   isTest: boolean;
   recommendedProductIds: string[];
   marketingOptIn: boolean;
@@ -349,6 +351,7 @@ async function loadLifecycleContext(job: ClaimedLifecycleJob): Promise<Lifecycle
       j.id,j.order_id,j.job_type,j.recommended_product_ids,
       o.order_number,o.customer_name,o.customer_phone,o.status AS order_status,
       o.payment_status,COALESCE(o.cod_received,false) AS cod_received,
+      pay.method AS payment_method,pay.status AS payment_record_status,
       COALESCE(o.is_test,false) AS is_test,o.created_at AS order_created_at,
       COALESCE(cp.whatsapp_marketing_opt_in,false) AS marketing_opt_in,
       cp.whatsapp_marketing_opt_in_at,cp.whatsapp_marketing_opt_out_at,
@@ -376,6 +379,7 @@ async function loadLifecycleContext(job: ClaimedLifecycleJob): Promise<Lifecycle
       ) AS support_issue_open
     FROM public.customer_lifecycle_jobs j
     JOIN public.orders o ON o.id=j.order_id
+    LEFT JOIN public.payments pay ON pay.order_id=o.id
     LEFT JOIN public.customer_profiles cp
       ON cp.phone=public.aquavo_normalize_iraqi_phone(o.customer_phone)
     WHERE j.id=${job.id}
@@ -397,6 +401,8 @@ async function loadLifecycleContext(job: ClaimedLifecycleJob): Promise<Lifecycle
     orderStatus: String(row.order_status ?? ""),
     paymentStatus: String(row.payment_status ?? ""),
     codReceived: Boolean(row.cod_received),
+    paymentMethod: row.payment_method == null ? null : String(row.payment_method).toLowerCase(),
+    paymentRecordStatus: row.payment_record_status == null ? null : String(row.payment_record_status).toLowerCase(),
     isTest: Boolean(row.is_test),
     recommendedProductIds: parseJsonArray(row.recommended_product_ids),
     marketingOptIn: Boolean(row.marketing_opt_in),
@@ -528,7 +534,16 @@ async function loadRepurchaseProducts(context: LifecycleContext): Promise<Repurc
         WHERE COALESCE(later.is_test,false)=false
           AND later.status='delivered'
           AND later.payment_status='paid'
-          AND later.cod_received=true
+          AND (
+            later.cod_received=true
+            OR EXISTS (
+              SELECT 1
+              FROM public.payments lp
+              WHERE lp.order_id=later.id
+                AND lp.method IN ('wayl','alqaseh')
+                AND lp.status='completed'
+            )
+          )
           AND public.aquavo_normalize_iraqi_phone(later.customer_phone)
               =public.aquavo_normalize_iraqi_phone(${context.customerPhone})
           AND later.created_at > ${context.originalOrderCreatedAt}
@@ -621,75 +636,51 @@ async function sendTemplate(
     templateName: string;
     to: string;
     bodyParameters: string[];
-    buttons: Array<{ index: string; payload: string }>;
   },
 ): Promise<string> {
   const endpoint = `https://graph.facebook.com/${config.apiVersion}/${encodeURIComponent(config.phoneNumberId)}/messages`;
 
-  const request = async (includePayloads: boolean): Promise<{ response: Response; body: any }> => {
-    let response: Response;
-    try {
-      const components: Array<Record<string, unknown>> = [{
-        type: "body",
-        parameters: input.bodyParameters.map((value) => ({ type: "text", text: value })),
-      }];
-
-      if (includePayloads) {
-        for (const button of input.buttons) {
-          components.push({
-            type: "button",
-            sub_type: "quick_reply",
-            index: button.index,
-            parameters: [{ type: "payload", payload: button.payload }],
-          });
-        }
-      }
-
-      response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${config.accessToken}`,
-          "Content-Type": "application/json",
+  let response: Response;
+  try {
+    response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${config.accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        messaging_product: "whatsapp",
+        recipient_type: "individual",
+        to: input.to,
+        type: "template",
+        template: {
+          name: input.templateName,
+          language: { code: config.languageCode },
+          components: [{
+            type: "body",
+            parameters: input.bodyParameters.map((value) => ({ type: "text", text: value })),
+          }],
         },
-        body: JSON.stringify({
-          messaging_product: "whatsapp",
-          recipient_type: "individual",
-          to: input.to,
-          type: "template",
-          template: {
-            name: input.templateName,
-            language: { code: config.languageCode },
-            components,
-          },
-        }),
-        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-      });
-    } catch (error) {
-      const name = error instanceof Error ? error.name : "";
-      const code = name === "TimeoutError" || name === "AbortError"
-        ? "WHATSAPP_TIMEOUT_AMBIGUOUS"
-        : "WHATSAPP_NETWORK_AMBIGUOUS";
-      throw new LifecycleSendError(code, false);
-    }
-
-    let body: any = {};
-    try { body = await response.json(); } catch { /* no provider body in logs */ }
-    return { response, body };
-  };
-
-  let attempt = await request(true);
-  let wamid = String(attempt.body?.messages?.[0]?.id ?? "").trim();
-  if (attempt.response.ok && wamid) return wamid;
-
-  // Same safe compatibility fallback used by immediate delivery-care.
-  if (attempt.response.status === 400 && Number(attempt.body?.error?.code) === 132018) {
-    attempt = await request(false);
-    wamid = String(attempt.body?.messages?.[0]?.id ?? "").trim();
-    if (attempt.response.ok && wamid) return wamid;
+      }),
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    });
+  } catch (error) {
+    const name = error instanceof Error ? error.name : "";
+    const code = name === "TimeoutError" || name === "AbortError"
+      ? "WHATSAPP_TIMEOUT_AMBIGUOUS"
+      : "WHATSAPP_NETWORK_AMBIGUOUS";
+    throw new LifecycleSendError(code, false);
   }
 
-  const code = compactMetaErrorCode(attempt.response.status, attempt.body);
-  const retryable = attempt.response.status === 429 || attempt.response.status >= 500;
+  let body: any = {};
+  try { body = await response.json(); } catch { /* no provider body in logs */ }
+
+  const wamid = String(body?.messages?.[0]?.id ?? "").trim();
+  if (response.ok && wamid) return wamid;
+  if (response.ok) throw new LifecycleSendError("WHATSAPP_ACCEPTANCE_AMBIGUOUS", false);
+
+  const code = compactMetaErrorCode(response.status, body);
+  const retryable = response.status === 429 || response.status >= 500;
   throw new LifecycleSendError(code, retryable);
 }
 
@@ -751,11 +742,15 @@ async function dispatchLifecycleJob(jobId: string, config: LifecycleConfig): Pro
       return "failed";
     }
 
+    const verifiedOnlinePayment =
+      (context.paymentMethod === "wayl" || context.paymentMethod === "alqaseh")
+      && context.paymentRecordStatus === "completed";
+    const financiallyEligible = context.codReceived || verifiedOnlinePayment;
     if (
       context.isTest
       || context.orderStatus !== "delivered"
       || context.paymentStatus !== "paid"
-      || !context.codReceived
+      || !financiallyEligible
     ) {
       await suppressLifecycleJob(job.id, "ORDER_NO_LONGER_ELIGIBLE");
       return "suppressed";
@@ -780,7 +775,6 @@ async function dispatchLifecycleJob(jobId: string, config: LifecycleConfig): Pro
 
     let templateName: string | null = null;
     let bodyParameters: string[] = [];
-    let buttons: Array<{ index: string; payload: string }> = [];
 
     if (context.jobType === "day7_care") {
       templateName = config.day7Template;
@@ -788,11 +782,8 @@ async function dispatchLifecycleJob(jobId: string, config: LifecycleConfig): Pro
         await suppressLifecycleJob(job.id, "DAY7_TEMPLATE_NOT_CONFIGURED");
         return "suppressed";
       }
-      bodyParameters = [firstName, context.orderNumber];
-      buttons = [
-        { index: "0", payload: DAY7_OK_PAYLOAD },
-        { index: "1", payload: DAY7_HELP_PAYLOAD },
-      ];
+      // Approved Day-7 template has one variable (first name) and no buttons.
+      bodyParameters = [firstName];
     } else {
       if (!config.repurchaseEnabled || !config.repurchaseTemplate) {
         await suppressLifecycleJob(job.id, "REPURCHASE_AUTOMATION_DISABLED");
@@ -835,18 +826,14 @@ async function dispatchLifecycleJob(jobId: string, config: LifecycleConfig): Pro
       }
 
       templateName = config.repurchaseTemplate;
+      // Repurchase template has two variables and no buttons.
       bodyParameters = [firstName, productSummary];
-      buttons = [
-        { index: "0", payload: REPURCHASE_INTEREST_PAYLOAD },
-        { index: "1", payload: REPURCHASE_STOP_PAYLOAD },
-      ];
     }
 
     const providerMessageId = await sendTemplate(config, {
       templateName,
       to: phone,
       bodyParameters,
-      buttons,
     });
 
     const persisted = await markLifecycleAccepted(job.id, providerMessageId, context);
