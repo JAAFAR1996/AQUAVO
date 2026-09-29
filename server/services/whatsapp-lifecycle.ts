@@ -160,13 +160,24 @@ async function readLifecycleConfig(): Promise<LifecycleConfig | null> {
   const activationAt = runtime
     ? asDate(runtime.activation_at)
     : asDate(process.env.WHATSAPP_LIFECYCLE_ACTIVATION_AT?.trim() ?? "");
-  const day7Enabled = runtime ? Boolean(runtime.day7_enabled) : true;
+  // Database rollout intent is not provider approval. During a rolling deploy
+  // migrations may lag application code, so unapproved templates must also be
+  // gated in-process. These flags default false and are set only after WhatsApp
+  // Manager shows the exact template Approved/Active.
+  const day7ProviderApproved =
+    process.env.WHATSAPP_DAY7_TEMPLATE_APPROVED?.trim().toLowerCase() === "true";
+  const repurchaseProviderApproved =
+    process.env.WHATSAPP_REPURCHASE_TEMPLATE_APPROVED?.trim().toLowerCase() === "true";
+
+  const day7Enabled = day7ProviderApproved
+    && (runtime ? Boolean(runtime.day7_enabled) : true);
   const day7Template = day7Enabled
     ? (String(runtime?.day7_template ?? "").trim() || process.env.WHATSAPP_DAY7_CARE_TEMPLATE?.trim() || null)
     : null;
-  const repurchaseEnabled = runtime
-    ? Boolean(runtime.repurchase_enabled)
-    : process.env.WHATSAPP_REPURCHASE_ENABLED?.trim().toLowerCase() === "true";
+  const repurchaseEnabled = repurchaseProviderApproved
+    && (runtime
+      ? Boolean(runtime.repurchase_enabled)
+      : process.env.WHATSAPP_REPURCHASE_ENABLED?.trim().toLowerCase() === "true");
   const repurchaseTemplate = String(runtime?.repurchase_template ?? "").trim()
     || process.env.WHATSAPP_REPURCHASE_TEMPLATE?.trim()
     || null;
