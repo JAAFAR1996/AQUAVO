@@ -57,6 +57,14 @@ describe("automatic WhatsApp lifecycle contract",()=>{
     expect(growth).toContain("purchase_day-prior_day BETWEEN 7 AND 365");
   });
 
+  it("keeps observed repurchase learning disabled by default",()=>{
+    const growth=read("server/services/growth-operating-system.ts");
+    const env=read(".env.example");
+    expect(growth).toContain("GROWTH_REPURCHASE_OBSERVED_LEARNING_ENABLED");
+    expect(growth).toContain('mode: "rule_only"');
+    expect(env).toContain("GROWTH_REPURCHASE_OBSERVED_LEARNING_ENABLED=false");
+  });
+
   it("makes replenishment timing variant and purchased-quantity aware",()=>{
     const growth=read("server/services/growth-operating-system.ts");
     expect(growth).toContain("parseRepurchasePackMeasure");
