@@ -13,16 +13,23 @@ CREATE TABLE IF NOT EXISTS public.whatsapp_customer_text_events (
   matched_job_id text,
   matched_order_id text REFERENCES public.orders(id) ON DELETE SET NULL,
   marketing_opt_out boolean NOT NULL DEFAULT false,
+  alert_status text NOT NULL DEFAULT 'pending',
+  alert_attempt_count integer NOT NULL DEFAULT 0,
+  alert_processing_at timestamptz,
   alerted_at timestamptz,
   created_at timestamptz NOT NULL DEFAULT clock_timestamp(),
   updated_at timestamptz NOT NULL DEFAULT clock_timestamp(),
   CONSTRAINT whatsapp_customer_text_events_job_type_chk
-    CHECK (matched_job_type IS NULL OR matched_job_type IN ('delivery_care','day7_care','repurchase'))
+    CHECK (matched_job_type IS NULL OR matched_job_type IN ('delivery_care','day7_care','repurchase')),
+  CONSTRAINT whatsapp_customer_text_events_alert_status_chk
+    CHECK (alert_status IN ('pending','processing','sent')),
+  CONSTRAINT whatsapp_customer_text_events_alert_attempts_chk
+    CHECK (alert_attempt_count >= 0)
 );
 
 CREATE INDEX IF NOT EXISTS whatsapp_customer_text_events_unalerted_idx
   ON public.whatsapp_customer_text_events(created_at)
-  WHERE alerted_at IS NULL;
+  WHERE alert_status='pending';
 
 CREATE INDEX IF NOT EXISTS whatsapp_customer_text_events_sender_idx
   ON public.whatsapp_customer_text_events(sender_phone,received_at DESC);
