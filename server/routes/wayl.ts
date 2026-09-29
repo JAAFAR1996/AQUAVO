@@ -203,7 +203,7 @@ export function createWaylRouter() {
         useCashback: parsed.data.useCashback,
         cashbackToUse: parsed.data.cashbackToUse,
       });
-      if (parsed.data.whatsappMarketingOptIn) {
+      if ((prepared.order as any).whatsappMarketingOptIn) {
         try {
           const consent = await recordCheckoutWhatsAppMarketingOptIn(prepared.order.id);
           if (!consent.ok) {
