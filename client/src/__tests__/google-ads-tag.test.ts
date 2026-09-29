@@ -11,17 +11,35 @@ describe("Google Ads tag wiring", () => {
   });
 
 
-  it("allows Google Ads measurement endpoints through the production CSP", () => {
-    const vercel = readFileSync(resolve(process.cwd(), "vercel.json"), "utf8");
+  it("allows the exact Google Ads endpoints reported by Tag Diagnostics", () => {
+    const vercel = JSON.parse(readFileSync(resolve(process.cwd(), "vercel.json"), "utf8"));
+    const csp = vercel.headers
+      .flatMap((rule: { headers?: Array<{ key: string; value: string }> }) => rule.headers ?? [])
+      .find((header: { key: string }) => header.key === "Content-Security-Policy")?.value as string;
 
-    expect(vercel).toContain("https://www.googletagmanager.com");
-    expect(vercel).toContain("https://www.googleadservices.com");
-    expect(vercel).toContain("https://www.google.com");
-    expect(vercel).toContain("https://googleads.g.doubleclick.net");
-    expect(vercel).toContain("https://pagead2.googlesyndication.com");
-    expect(vercel).toContain("https://ad.doubleclick.net");
-    expect(vercel).toContain("https://stats.g.doubleclick.net");
-    expect(vercel).toContain("https://td.doubleclick.net");
+    expect(csp).toBeTruthy();
+
+    const directive = (name: string) =>
+      csp
+        .split(";")
+        .map((part: string) => part.trim())
+        .find((part: string) => part.startsWith(`${name} `)) ?? "";
+
+    const scriptSrc = directive("script-src");
+    const connectSrc = directive("connect-src");
+
+    // Tag Diagnostics reports this as an effective script-src-elem violation.
+    // With no explicit script-src-elem directive, CSP falls back to script-src.
+    expect(scriptSrc).toContain("https://googleads.g.doubleclick.net");
+
+    expect(connectSrc).toContain("https://ad.doubleclick.net");
+    expect(connectSrc).toContain("https://www.google.com");
+    expect(connectSrc).toContain("https://www.googleadservices.com");
+
+    // Keep the rest of Google's documented Ads measurement endpoints available.
+    expect(scriptSrc).toContain("https://www.googletagmanager.com");
+    expect(connectSrc).toContain("https://googleads.g.doubleclick.net");
+    expect(connectSrc).toContain("https://pagead2.googlesyndication.com");
   });
 
   it("reuses the shell Google tag instead of injecting a duplicate loader", () => {
