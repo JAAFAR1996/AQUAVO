@@ -410,6 +410,17 @@ async function loadLifecycleContext(job: ClaimedLifecycleJob): Promise<Lifecycle
               followup.metadata->'reply'->>'choice'
             )='day7_help'
         )
+        OR EXISTS (
+          SELECT 1
+          FROM public.whatsapp_customer_text_events txt
+          WHERE txt.matched_order_id=o.id
+            AND txt.matched_job_type IN ('delivery_care','day7_care')
+            AND txt.received_at >= clock_timestamp() - interval '14 days'
+            AND lower(btrim(txt.message_text)) NOT IN (
+              'تمام','كلشي تمام','كله تمام','شكرا','شكراً',
+              'وصلت وكلشي تمام','وصلني وكلشي تمام'
+            )
+        )
       ) AS support_issue_open
     FROM public.customer_lifecycle_jobs j
     JOIN public.orders o ON o.id=j.order_id
