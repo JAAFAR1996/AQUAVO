@@ -168,12 +168,21 @@ export async function getAttributionHealth() {
 
   const result = await db.execute(sql`
     WITH realized AS (
-      SELECT id,aq_sid,attribution_gclid,attribution_fbclid
-      FROM public.orders
-      WHERE COALESCE(is_test,false)=false
-        AND status='delivered'
-        AND payment_status='paid'
-        AND cod_received=true
+      SELECT o.id,o.aq_sid,o.attribution_gclid,o.attribution_fbclid
+      FROM public.orders o
+      WHERE COALESCE(o.is_test,false)=false
+        AND o.status='delivered'
+        AND o.payment_status='paid'
+        AND (
+          o.cod_received=true
+          OR EXISTS (
+            SELECT 1
+            FROM public.payments realized_payment
+            WHERE realized_payment.order_id=o.id
+              AND realized_payment.method IN ('wayl','alqaseh')
+              AND realized_payment.status='completed'
+          )
+        )
     ),
     google_receipts AS (
       SELECT DISTINCT order_id
@@ -484,7 +493,16 @@ export async function refreshObservedRepurchaseProfiles() {
       WHERE COALESCE(o.is_test,false)=false
         AND o.status='delivered'
         AND o.payment_status='paid'
-        AND o.cod_received=true
+        AND (
+          o.cod_received=true
+          OR EXISTS (
+            SELECT 1
+            FROM public.payments realized_payment
+            WHERE realized_payment.order_id=o.id
+              AND realized_payment.method IN ('wayl','alqaseh')
+              AND realized_payment.status='completed'
+          )
+        )
         AND public.aquavo_normalize_iraqi_phone(o.customer_phone) IS NOT NULL
       GROUP BY
         public.aquavo_normalize_iraqi_phone(o.customer_phone),
@@ -633,7 +651,16 @@ export async function refreshInventorySkuDaily(dayInput?: string) {
       JOIN public.orders o ON o.id=oi.order_id
       LEFT JOIN public.v_order_accounting v ON v.order_id=o.id
       WHERE COALESCE(o.is_test,false)=false
-        AND o.status='delivered' AND o.payment_status='paid' AND o.cod_received=true
+        AND o.status='delivered' AND o.payment_status='paid' AND (
+          o.cod_received=true
+          OR EXISTS (
+            SELECT 1
+            FROM public.payments realized_payment
+            WHERE realized_payment.order_id=o.id
+              AND realized_payment.method IN ('wayl','alqaseh')
+              AND realized_payment.status='completed'
+          )
+        )
         AND NULLIF(oi.metadata->>'variantId','') IS NOT NULL
       GROUP BY oi.product_id,NULLIF(oi.metadata->>'variantId','')
     ),
@@ -660,7 +687,16 @@ export async function refreshInventorySkuDaily(dayInput?: string) {
       JOIN public.orders o ON o.id=oi.order_id
       LEFT JOIN public.v_order_accounting v ON v.order_id=o.id
       WHERE COALESCE(o.is_test,false)=false
-        AND o.status='delivered' AND o.payment_status='paid' AND o.cod_received=true
+        AND o.status='delivered' AND o.payment_status='paid' AND (
+          o.cod_received=true
+          OR EXISTS (
+            SELECT 1
+            FROM public.payments realized_payment
+            WHERE realized_payment.order_id=o.id
+              AND realized_payment.method IN ('wayl','alqaseh')
+              AND realized_payment.status='completed'
+          )
+        )
       GROUP BY oi.product_id
     ),
     base AS (
@@ -1023,7 +1059,16 @@ export async function planCustomerLifecycleJobs() {
       WHERE COALESCE(o.is_test,false)=false
         AND o.status='delivered'
         AND o.payment_status='paid'
-        AND o.cod_received=true
+        AND (
+          o.cod_received=true
+          OR EXISTS (
+            SELECT 1
+            FROM public.payments realized_payment
+            WHERE realized_payment.order_id=o.id
+              AND realized_payment.method IN ('wayl','alqaseh')
+              AND realized_payment.status='completed'
+          )
+        )
     )
     INSERT INTO public.customer_lifecycle_jobs(
       customer_phone,order_id,job_type,due_at,status,channel,scope_key,metadata
@@ -1079,7 +1124,16 @@ export async function planCustomerLifecycleJobs() {
       WHERE COALESCE(o.is_test,false)=false
         AND o.status='delivered'
         AND o.payment_status='paid'
-        AND o.cod_received=true
+        AND (
+          o.cod_received=true
+          OR EXISTS (
+            SELECT 1
+            FROM public.payments realized_payment
+            WHERE realized_payment.order_id=o.id
+              AND realized_payment.method IN ('wayl','alqaseh')
+              AND realized_payment.status='completed'
+          )
+        )
     ),
     repurchase AS (
       SELECT
@@ -1248,7 +1302,20 @@ export async function planCustomerLifecycleJobs() {
     FROM public.orders o
     WHERE o.id=j.order_id
       AND j.status IN ('planned','ready')
-      AND (o.status<>'delivered' OR o.payment_status<>'paid' OR COALESCE(o.cod_received,false)=false)
+      AND (
+        o.status<>'delivered'
+        OR o.payment_status<>'paid'
+        OR NOT (
+          o.cod_received=true
+          OR EXISTS (
+            SELECT 1
+            FROM public.payments realized_payment
+            WHERE realized_payment.order_id=o.id
+              AND realized_payment.method IN ('wayl','alqaseh')
+              AND realized_payment.status='completed'
+          )
+        )
+      )
   `);
 
   await db.execute(sql`
@@ -1263,7 +1330,16 @@ export async function planCustomerLifecycleJobs() {
             WHERE COALESCE(later.is_test,false)=false
               AND later.status='delivered'
               AND later.payment_status='paid'
-              AND later.cod_received=true
+              AND (
+                later.cod_received=true
+                OR EXISTS (
+                  SELECT 1
+                  FROM public.payments later_payment
+                  WHERE later_payment.order_id=later.id
+                    AND later_payment.method IN ('wayl','alqaseh')
+                    AND later_payment.status='completed'
+                )
+              )
               AND public.aquavo_normalize_iraqi_phone(later.customer_phone)=j.customer_phone
               AND later.created_at > (
                 SELECT original.created_at FROM public.orders original WHERE original.id=j.order_id
