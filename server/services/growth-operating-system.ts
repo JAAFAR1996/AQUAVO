@@ -860,7 +860,7 @@ export async function planCustomerLifecycleJobs() {
   `);
 
   await db.execute(sql`
-    WITH runtime AS (
+    WITH RECURSIVE runtime AS (
       SELECT activation_at
       FROM public.whatsapp_lifecycle_runtime_config
       WHERE id=1
@@ -907,27 +907,48 @@ export async function planCustomerLifecycleJobs() {
     ordered AS (
       SELECT
         r.*,
-        LAG(r.interval_target_days) OVER (
+        ROW_NUMBER() OVER (
           PARTITION BY r.order_id
           ORDER BY r.interval_target_days,r.product_id
-        ) AS previous_target_days
+        ) AS rn
       FROM repurchase r
     ),
     grouped AS (
       SELECT
-        o.*,
-        SUM(
-          CASE
-            WHEN o.previous_target_days IS NULL
-              OR o.interval_target_days-o.previous_target_days > 15
-            THEN 1 ELSE 0
-          END
-        ) OVER (
-          PARTITION BY o.order_id
-          ORDER BY o.interval_target_days,o.product_id
-          ROWS UNBOUNDED PRECEDING
-        ) AS bundle_no
+        o.customer_phone,
+        o.order_id,
+        o.delivered_at,
+        o.product_id,
+        o.interval_target_days,
+        o.rn,
+        1::bigint AS bundle_no,
+        o.interval_target_days AS bundle_start_days
       FROM ordered o
+      WHERE o.rn=1
+
+      UNION ALL
+
+      SELECT
+        o.customer_phone,
+        o.order_id,
+        o.delivered_at,
+        o.product_id,
+        o.interval_target_days,
+        o.rn,
+        CASE
+          WHEN o.interval_target_days-g.bundle_start_days > 15
+          THEN g.bundle_no+1
+          ELSE g.bundle_no
+        END AS bundle_no,
+        CASE
+          WHEN o.interval_target_days-g.bundle_start_days > 15
+          THEN o.interval_target_days
+          ELSE g.bundle_start_days
+        END AS bundle_start_days
+      FROM grouped g
+      JOIN ordered o
+        ON o.order_id=g.order_id
+       AND o.rn=g.rn+1
     ),
     bundles AS (
       SELECT
