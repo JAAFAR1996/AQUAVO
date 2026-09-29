@@ -16,7 +16,10 @@ describe("Google Ads tag wiring", () => {
 
     expect(vercel).toContain("https://www.googletagmanager.com");
     expect(vercel).toContain("https://www.googleadservices.com");
+    expect(vercel).toContain("https://www.google.com");
     expect(vercel).toContain("https://googleads.g.doubleclick.net");
+    expect(vercel).toContain("https://pagead2.googlesyndication.com");
+    expect(vercel).toContain("https://ad.doubleclick.net");
     expect(vercel).toContain("https://stats.g.doubleclick.net");
     expect(vercel).toContain("https://td.doubleclick.net");
   });
