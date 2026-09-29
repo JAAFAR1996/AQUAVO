@@ -1014,9 +1014,26 @@ export async function handleLifecycleReply(event: LifecycleReplyEvent): Promise<
            o.customer_phone,o.customer_name,o.order_number
     FROM public.customer_lifecycle_jobs j
     JOIN public.orders o ON o.id=j.order_id
-    WHERE j.provider_message_id=${event.contextProviderMessageId}
-      AND j.job_type=${jobType}
+    WHERE j.job_type=${jobType}
       AND j.status='completed'
+      AND public.aquavo_normalize_iraqi_phone(o.customer_phone)=${senderPhone}
+      AND (
+        (
+          ${event.contextProviderMessageId}<>'' 
+          AND j.provider_message_id=${event.contextProviderMessageId}
+        )
+        OR (
+          ${event.contextProviderMessageId}=''
+          AND COALESCE(j.accepted_at,j.updated_at,j.created_at)<=${event.receivedAt}
+          AND COALESCE(j.accepted_at,j.updated_at,j.created_at)>=${event.receivedAt} - interval '30 days'
+        )
+      )
+    ORDER BY
+      CASE
+        WHEN ${event.contextProviderMessageId}<>'' AND j.provider_message_id=${event.contextProviderMessageId}
+        THEN 0 ELSE 1
+      END,
+      COALESCE(j.accepted_at,j.updated_at,j.created_at) DESC
     LIMIT 1
   `);
   const row = rowsOf(result)[0];
