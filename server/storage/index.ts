@@ -64,6 +64,11 @@ export interface IStorage {
         couponCode?: string,
         loyaltyOptions?: { useCashback?: boolean; cashbackToUse?: number },
         idempotencyKey?: string,
+        commerceContext?: {
+            viewSessionId?: string;
+            attribution?: Record<string, string>;
+            whatsappMarketingOptIn?: boolean;
+        },
     ): Promise<Order>;
     seedProductsIfNeeded(): Promise<void>;
     // Sales analytics
