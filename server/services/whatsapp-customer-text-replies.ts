@@ -219,3 +219,55 @@ export async function handleWhatsAppCustomerText(
 
   return "handled";
 }
+
+
+export async function runPendingWhatsAppCustomerTextAlerts(limit=20): Promise<{
+  processed:number;
+  handled:number;
+  failed:number;
+  staleReset:number;
+}> {
+  const db=getDb();
+  if (!db) return { processed:0,handled:0,failed:0,staleReset:0 };
+
+  const stale=await db.execute(sql`
+    UPDATE public.whatsapp_customer_text_events
+       SET alert_status='pending',
+           alert_processing_at=NULL,
+           updated_at=clock_timestamp()
+     WHERE alert_status='processing'
+       AND alert_processing_at IS NOT NULL
+       AND alert_processing_at <= clock_timestamp() - interval '10 minutes'
+    RETURNING id
+  `);
+  const staleReset=rowsOf(stale).length;
+  const safeLimit=Math.max(1,Math.min(100,Math.floor(Number(limit)||20)));
+  const pending=await db.execute(sql`
+    SELECT inbound_message_id,context_provider_message_id,sender_phone,message_text,received_at
+    FROM public.whatsapp_customer_text_events
+    WHERE alert_status='pending'
+    ORDER BY received_at ASC,created_at ASC
+    LIMIT ${safeLimit}
+  `);
+
+  let processed=0,handled=0,failed=0;
+  for (const row of rowsOf(pending)) {
+    const receivedAt=row.received_at instanceof Date ? row.received_at : new Date(String(row.received_at ?? ""));
+    if (!Number.isFinite(receivedAt.getTime())) continue;
+    processed+=1;
+    try {
+      const result=await handleWhatsAppCustomerText({
+        inboundMessageId:String(row.inbound_message_id ?? ""),
+        contextProviderMessageId:row.context_provider_message_id == null ? null : String(row.context_provider_message_id),
+        fromPhone:String(row.sender_phone ?? ""),
+        receivedAt,
+        text:String(row.message_text ?? ""),
+      });
+      if (result==="handled" || result==="duplicate") handled+=1;
+      else failed+=1;
+    } catch {
+      failed+=1;
+    }
+  }
+  return { processed,handled,failed,staleReset };
+}
