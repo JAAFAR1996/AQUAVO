@@ -461,11 +461,26 @@ export async function refreshObservedRepurchaseProfiles() {
       FROM public.orders o
       JOIN public.order_items_relational oi ON oi.order_id=o.id
       LEFT JOIN public.v_order_accounting v ON v.order_id=o.id
-      JOIN public.product_repurchase_profiles base
-        ON base.sku_key=oi.product_id || '::' ||
-          COALESCE(NULLIF(COALESCE(oi.metadata->>'variantId',oi.metadata->>'variant_id'),''),'')
-       AND base.is_consumable=true
-       AND base.active=true
+      JOIN LATERAL (
+        SELECT candidate.sku_key
+        FROM public.product_repurchase_profiles candidate
+        WHERE candidate.product_id=oi.product_id
+          AND candidate.is_consumable=true
+          AND candidate.active=true
+          AND (
+            candidate.sku_key=oi.product_id || '::' ||
+              COALESCE(NULLIF(COALESCE(oi.metadata->>'variantId',oi.metadata->>'variant_id'),''),'')
+            OR candidate.sku_key=oi.product_id || '::'
+          )
+        ORDER BY
+          CASE
+            WHEN candidate.variant_id=
+              NULLIF(COALESCE(oi.metadata->>'variantId',oi.metadata->>'variant_id'),'') THEN 0
+            WHEN candidate.variant_id IS NULL THEN 1
+            ELSE 2
+          END
+        LIMIT 1
+      ) base ON true
       WHERE COALESCE(o.is_test,false)=false
         AND o.status='delivered'
         AND o.payment_status='paid'
