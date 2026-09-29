@@ -79,7 +79,7 @@ VALUES(
 ON CONFLICT(id) DO NOTHING;
 
 COMMENT ON COLUMN public.customer_lifecycle_jobs.scope_key IS
-  'Idempotency scope. day7 uses order; replenishment uses product:<product_id>, allowing independent due dates per consumable product.';
+  'Idempotency scope. day7 uses order, replenishment uses product:<product_id>, allowing independent due dates per consumable product.';
 
 COMMENT ON TABLE public.whatsapp_lifecycle_runtime_config IS
   'Durable non-secret rollout controls for AQUAVO WhatsApp lifecycle automation. Provider credentials remain environment secrets.';
