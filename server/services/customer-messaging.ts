@@ -277,11 +277,22 @@ async function loadOrderRecipient(orderId: string): Promise<OrderRecipient | nul
       o.customer_name,
       o.customer_phone,
       COALESCE(
-        cp.whatsapp_marketing_opt_in=true
-        AND cp.whatsapp_marketing_opt_in_at IS NOT NULL
-        AND (
-          cp.whatsapp_marketing_opt_out_at IS NULL
-          OR cp.whatsapp_marketing_opt_in_at > cp.whatsapp_marketing_opt_out_at
+        (
+          cp.whatsapp_marketing_opt_in=true
+          AND cp.whatsapp_marketing_opt_in_at IS NOT NULL
+          AND (
+            cp.whatsapp_marketing_opt_out_at IS NULL
+            OR cp.whatsapp_marketing_opt_in_at > cp.whatsapp_marketing_opt_out_at
+          )
+        )
+        OR
+        (
+          o.whatsapp_marketing_opt_in=true
+          AND o.whatsapp_marketing_opt_in_at IS NOT NULL
+          AND (
+            cp.whatsapp_marketing_opt_out_at IS NULL
+            OR o.whatsapp_marketing_opt_in_at > cp.whatsapp_marketing_opt_out_at
+          )
         ),
         false
       ) AS whatsapp_marketing_opt_in
