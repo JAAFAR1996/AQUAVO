@@ -231,6 +231,16 @@ describe("automatic WhatsApp lifecycle contract",()=>{
     expect(wayl).toContain("whatsappMarketingOptInAt: input.whatsappMarketingOptIn === true");
   });
 
+  it("keeps unapproved Day-7 and repurchase templates fail closed",()=>{
+    const safety=read("migrations/0097_whatsapp_lifecycle_fail_closed.sql");
+    expect(safety).toContain("lifecycle_enabled=false");
+    expect(safety).toContain("day7_enabled=false");
+    expect(safety).toContain("repurchase_enabled=false");
+    expect(safety).toContain("activation_at=NULL");
+    expect(safety).toContain("0097_DEPENDENCY_MISSING");
+    expect(safety).toContain("Approved/Active");
+  });
+
   it("stores provider lifecycle for both immediate and Growth OS sends",()=>{
     const status=read("server/services/whatsapp-provider-status.ts");
     expect(status).toContain("public.customer_message_jobs");
