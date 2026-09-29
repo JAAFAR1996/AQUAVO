@@ -53,7 +53,20 @@ describe("automatic WhatsApp lifecycle contract",()=>{
     expect(growth).toContain("COUNT(*)>=4");
     expect(growth).toContain("COUNT(DISTINCT customer_phone)>=2");
     expect(growth).toContain("base.is_consumable=true");
-    expect(growth).toContain("purchase_day-prior_day BETWEEN 7 AND 180");
+    expect(growth).toContain("purchase_day-prior_day BETWEEN 7 AND 365");
+  });
+
+  it("makes replenishment timing variant and purchased-quantity aware",()=>{
+    const growth=read("server/services/growth-operating-system.ts");
+    expect(growth).toContain("parseRepurchasePackMeasure");
+    expect(growth).toContain("variant_id");
+    expect(growth).toContain("purchased_quantity");
+    expect(growth).toContain("normalized_gap_days");
+    expect(growth).toContain("prior_quantity");
+    expect(growth).toContain("pr.interval_target_days*SUM(GREATEST(1,oi.quantity))");
+    expect(growth).toContain("'variantId',g.variant_id");
+    expect(growth).toContain("'quantity',g.purchased_quantity");
+    expect(growth).toContain("packFactor=");
   });
 
   it("groups nearby consumables from one order into one smart reminder",()=>{
