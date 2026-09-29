@@ -353,8 +353,31 @@ async function loadLifecycleContext(job: ClaimedLifecycleJob): Promise<Lifecycle
       o.payment_status,COALESCE(o.cod_received,false) AS cod_received,
       pay.method AS payment_method,pay.status AS payment_record_status,
       COALESCE(o.is_test,false) AS is_test,o.created_at AS order_created_at,
-      COALESCE(cp.whatsapp_marketing_opt_in,false) AS marketing_opt_in,
-      cp.whatsapp_marketing_opt_in_at,cp.whatsapp_marketing_opt_out_at,
+      COALESCE(
+        (
+          cp.whatsapp_marketing_opt_in=true
+          AND cp.whatsapp_marketing_opt_in_at IS NOT NULL
+          AND (
+            cp.whatsapp_marketing_opt_out_at IS NULL
+            OR cp.whatsapp_marketing_opt_in_at > cp.whatsapp_marketing_opt_out_at
+          )
+        )
+        OR
+        (
+          o.whatsapp_marketing_opt_in=true
+          AND o.whatsapp_marketing_opt_in_at IS NOT NULL
+          AND (
+            cp.whatsapp_marketing_opt_out_at IS NULL
+            OR o.whatsapp_marketing_opt_in_at > cp.whatsapp_marketing_opt_out_at
+          )
+        ),
+        false
+      ) AS marketing_opt_in,
+      GREATEST(
+        cp.whatsapp_marketing_opt_in_at,
+        o.whatsapp_marketing_opt_in_at
+      ) AS whatsapp_marketing_opt_in_at,
+      cp.whatsapp_marketing_opt_out_at,
       (
         EXISTS (
           SELECT 1
