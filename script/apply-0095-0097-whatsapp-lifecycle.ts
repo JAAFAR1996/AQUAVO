@@ -91,6 +91,13 @@ async function verifyAppliedShape(client: DbClient, version: string): Promise<bo
       SELECT
         to_regclass('public.whatsapp_lifecycle_runtime_config') IS NOT NULL
         AND EXISTS(
+          SELECT 1
+          FROM public.schema_migrations
+          WHERE version='0097_whatsapp_lifecycle_fail_closed'
+            AND rolled_back_at IS NULL
+            AND notes ILIKE '%Disables Day-7 and repurchase WhatsApp lifecycle%'
+        )
+        AND EXISTS(
           SELECT 1 FROM public.whatsapp_lifecycle_runtime_config WHERE id=1
         ) AS ok
     `);
