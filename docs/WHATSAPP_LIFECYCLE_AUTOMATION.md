@@ -73,6 +73,8 @@ Trigger: product-specific expected replenishment timing from `product_repurchase
 
 AQUAVO now schedules replenishment independently per consumable product. Each job has a durable `scope_key=product:<product_id>` and its own due date from that product's target interval. If another repurchase Marketing message was accepted for the same customer inside the 30-day frequency window, the later product reminder is deferred to the next allowed instant rather than discarded.
 
+Timing is calculated from the exact purchased SKU when possible: variant pack size, purchased quantity, and later realized repeat-purchase cadence all contribute. The stored product schedule keeps variantId, variantLabel, purchased quantity, the per-unit target, and the effective target used for the reminder. If exact variant evidence is unavailable, the engine falls back to the product-level consumable profile instead of guessing a missing size.
+
 Production rollout is controlled by `public.whatsapp_lifecycle_runtime_config`. The activation timestamp is written at rollout time, so orders delivered before activation never enter the automatic repurchase stream. The table contains no provider secrets; WhatsApp credentials remain environment variables.
 
 Schedule: 12:30 Asia/Baghdad.
