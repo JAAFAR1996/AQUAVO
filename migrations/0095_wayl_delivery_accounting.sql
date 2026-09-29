@@ -3,6 +3,20 @@
 -- the verified online-payment controls introduced for legacy Al-Qaseh.
 BEGIN;
 
+DO $do$
+BEGIN
+  IF to_regclass('public.payments') IS NULL
+     OR to_regclass('public.payment_events') IS NULL
+     OR to_regclass('public.order_accounting_facts') IS NULL
+     OR to_regprocedure('public.record_order_delivery_accounting()') IS NULL
+     OR to_regprocedure('public.post_order_delivery_journal(text)') IS NULL THEN
+    RAISE EXCEPTION
+      '0095_DEPENDENCY_MISSING: apply the existing delivery/accounting baseline before Wayl delivery accounting'
+      USING ERRCODE='55000';
+  END IF;
+END
+$do$;
+
 CREATE OR REPLACE FUNCTION public.post_order_delivery_journal(p_fact_id text)
 RETURNS text
 LANGUAGE plpgsql
@@ -20,8 +34,8 @@ BEGIN
   SELECT * INTO f FROM public.order_accounting_facts WHERE id=p_fact_id;
   IF NOT FOUND THEN RAISE EXCEPTION 'order accounting fact % not found',p_fact_id; END IF;
   SELECT id INTO v_entry_id FROM public.journal_entries WHERE source_type='order' AND source_id=f.order_id AND event_kind='delivery_recognition';
-  SELECT method INTO v_payment_method FROM public.payment_events WHERE id=f.payment_event_id LIMIT 1;
   IF FOUND THEN RETURN v_entry_id; END IF;
+  SELECT method INTO v_payment_method FROM public.payment_events WHERE id=f.payment_event_id LIMIT 1;
 
   IF f.cash_custody IN ('carrier','owner_cash') THEN
     v_debit_total:=f.merchant_net+f.delivery_subsidy;
