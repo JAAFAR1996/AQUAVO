@@ -24,6 +24,7 @@ describe("automatic WhatsApp lifecycle contract",()=>{
     expect(checkout).toContain("whatsappMarketingOptIn");
     expect(orderRoute).toContain("whatsappMarketingOptIn");
     expect(wayl).toContain("whatsappMarketingOptIn");
+    expect(wayl).toContain("whatsappMarketingOptIn: parsed.data.whatsappMarketingOptIn");
     expect(migration).toContain("customer_messaging_consent_events");
     expect(migration).toContain("marketing_opt_in");
   });
