@@ -231,6 +231,15 @@ describe("automatic WhatsApp lifecycle contract",()=>{
     expect(wayl).toContain("whatsappMarketingOptInAt: input.whatsappMarketingOptIn === true");
   });
 
+  it("uses durable order consent if the customer-profile projection is temporarily behind",()=>{
+    const lifecycle=read("server/services/whatsapp-lifecycle.ts");
+    const immediate=read("server/services/customer-messaging.ts");
+    expect(lifecycle).toContain("o.whatsapp_marketing_opt_in=true");
+    expect(lifecycle).toContain("o.whatsapp_marketing_opt_in_at > cp.whatsapp_marketing_opt_out_at");
+    expect(immediate).toContain("o.whatsapp_marketing_opt_in=true");
+    expect(immediate).toContain("o.whatsapp_marketing_opt_in_at > cp.whatsapp_marketing_opt_out_at");
+  });
+
   it("keeps unapproved Day-7 and repurchase templates fail closed",()=>{
     const safety=read("migrations/0097_whatsapp_lifecycle_fail_closed.sql");
     expect(safety).toContain("lifecycle_enabled=false");
