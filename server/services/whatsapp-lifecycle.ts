@@ -1022,7 +1022,7 @@ export async function recordWhatsAppMarketingOptOut(
     )
     SELECT
       ${canonicalPhone},${orderId},'marketing_opt_out','whatsapp',${sourceEventId},
-      jsonb_build_object('channel','whatsapp','purpose','replenishment'),
+      jsonb_build_object('channel','whatsapp','purpose','whatsapp_lifecycle'),
       ${occurredAt}
     FROM updated
     ON CONFLICT (source,source_event_id)
@@ -1033,10 +1033,16 @@ export async function recordWhatsAppMarketingOptOut(
   await db.execute(sql`
     UPDATE public.customer_lifecycle_jobs j
        SET status='suppressed',
-           last_error_code='MARKETING_OPTED_OUT',
+           last_error_code=CASE
+             WHEN j.job_type='day7_care' THEN 'WHATSAPP_OPTED_OUT'
+             ELSE 'MARKETING_OPTED_OUT'
+           END,
            last_error_at=clock_timestamp(),
            metadata=j.metadata || jsonb_build_object(
-             'suppressReason','marketing_opted_out',
+             'suppressReason',CASE
+               WHEN j.job_type='day7_care' THEN 'whatsapp_opted_out'
+               ELSE 'marketing_opted_out'
+             END,
              'suppressedAt',clock_timestamp()
            ),
            updated_at=clock_timestamp()
