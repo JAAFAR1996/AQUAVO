@@ -221,11 +221,19 @@ export function createOrderRouter(): RouterType {
                 ? parsedIdempotencyKey.data
                 : undefined;
 
-            // A repeated request returns the already committed order and skips every
-            // inventory, coupon, loyalty, notification, and analytics side effect.
+            // A repeated request returns the already committed order and skips commerce
+            // side effects. If that committed order already contains durable WhatsApp
+            // consent evidence, retry only the repairable CRM/event projection.
             if (idempotencyKey) {
                 const existingOrder = await storage.getOrder(idempotencyKey);
                 if (existingOrder) {
+                    if ((existingOrder as any).whatsappMarketingOptIn) {
+                        try {
+                            await recordCheckoutWhatsAppMarketingOptIn(existingOrder.id);
+                        } catch {
+                            // Daily repair uses the order-level evidence; never block commerce.
+                        }
+                    }
                     res.status(200).json(existingOrder);
                     return;
                 }
@@ -250,13 +258,14 @@ export function createOrderRouter(): RouterType {
                         ? clientSessionId
                         : undefined,
                     attribution,
+                    whatsappMarketingOptIn,
                 },
             );
 
-            // Commerce is already committed. Consent persistence is a separate
-            // non-financial side effect with daily repair from durable order evidence.
-            // If this fails, marketing fails closed instead of blocking the order.
-            if (whatsappMarketingOptIn) {
+            // Order-level consent evidence is already committed in the commerce
+            // transaction. This projects it to the customer profile + append-only
+            // consent ledger; failure is repairable from the durable order fields.
+            if ((order as any).whatsappMarketingOptIn) {
                 try {
                     const consent = await recordCheckoutWhatsAppMarketingOptIn(order.id);
                     if (!consent.ok) {
