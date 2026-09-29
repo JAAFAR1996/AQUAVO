@@ -948,7 +948,7 @@ export async function runDueLifecycleWhatsAppJobs(limit = DEFAULT_LIMIT): Promis
   };
 }
 
-async function setMarketingOptOut(
+export async function recordWhatsAppMarketingOptOut(
   canonicalPhone: string,
   sourceEventId: string,
   orderId: string | null,
@@ -1081,7 +1081,7 @@ export async function handleLifecycleReply(event: LifecycleReplyEvent): Promise<
   // Opt-out is terminal from a marketing perspective and must win even if the
   // same customer previously tapped "أحتاجه" on this message.
   if (choice === "repurchase_stop") {
-    await setMarketingOptOut(senderPhone,event.inboundMessageId,orderId,event.receivedAt);
+    await recordWhatsAppMarketingOptOut(senderPhone,event.inboundMessageId,orderId,event.receivedAt);
   }
 
   if (choice === "day7_help" || choice === "repurchase_interest") {
