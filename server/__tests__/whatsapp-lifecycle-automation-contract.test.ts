@@ -279,6 +279,23 @@ describe("automatic WhatsApp lifecycle contract",()=>{
     expect(safety).toContain("Approved/Active");
   });
 
+  it("ships a manual guarded production runner for 0095-0097",()=>{
+    const runner=read("script/apply-0095-0097-whatsapp-lifecycle.ts");
+    const workflow=read(".github/workflows/whatsapp-lifecycle-production-migrate.yml");
+    const pkg=read("package.json");
+    expect(runner).toContain("APPLY_WHATSAPP_LIFECYCLE_0095_0097");
+    expect(runner).toContain("0095_wayl_delivery_accounting");
+    expect(runner).toContain("0096_whatsapp_customer_text_replies");
+    expect(runner).toContain("0097_whatsapp_lifecycle_fail_closed");
+    expect(runner).toContain("pg_advisory_lock");
+    expect(runner).toContain("runner-verified file sha256");
+    expect(workflow).toContain("workflow_dispatch:");
+    expect(workflow).not.toContain("push:");
+    expect(workflow).toContain("environment: production");
+    expect(workflow).toContain("CONFIRM_WHATSAPP_LIFECYCLE_0095_0097");
+    expect(pkg).toContain('"migrate:0095-0097"');
+  });
+
   it("stores provider lifecycle for both immediate and Growth OS sends",()=>{
     const status=read("server/services/whatsapp-provider-status.ts");
     expect(status).toContain("public.customer_message_jobs");
