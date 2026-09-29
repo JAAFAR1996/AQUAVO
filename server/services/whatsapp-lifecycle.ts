@@ -60,6 +60,8 @@ type LifecycleContext = {
   orderStatus: string;
   paymentStatus: string;
   codReceived: boolean;
+  paymentMethod: string | null;
+  paymentRecordStatus: string | null;
   isTest: boolean;
   recommendedProductIds: string[];
   marketingOptIn: boolean;
@@ -158,13 +160,24 @@ async function readLifecycleConfig(): Promise<LifecycleConfig | null> {
   const activationAt = runtime
     ? asDate(runtime.activation_at)
     : asDate(process.env.WHATSAPP_LIFECYCLE_ACTIVATION_AT?.trim() ?? "");
-  const day7Enabled = runtime ? Boolean(runtime.day7_enabled) : true;
+  // Database rollout intent is not provider approval. During a rolling deploy
+  // migrations may lag application code, so unapproved templates must also be
+  // gated in-process. These flags default false and are set only after WhatsApp
+  // Manager shows the exact template Approved/Active.
+  const day7ProviderApproved =
+    process.env.WHATSAPP_DAY7_TEMPLATE_APPROVED?.trim().toLowerCase() === "true";
+  const repurchaseProviderApproved =
+    process.env.WHATSAPP_REPURCHASE_TEMPLATE_APPROVED?.trim().toLowerCase() === "true";
+
+  const day7Enabled = day7ProviderApproved
+    && (runtime ? Boolean(runtime.day7_enabled) : true);
   const day7Template = day7Enabled
     ? (String(runtime?.day7_template ?? "").trim() || process.env.WHATSAPP_DAY7_CARE_TEMPLATE?.trim() || null)
     : null;
-  const repurchaseEnabled = runtime
-    ? Boolean(runtime.repurchase_enabled)
-    : process.env.WHATSAPP_REPURCHASE_ENABLED?.trim().toLowerCase() === "true";
+  const repurchaseEnabled = repurchaseProviderApproved
+    && (runtime
+      ? Boolean(runtime.repurchase_enabled)
+      : process.env.WHATSAPP_REPURCHASE_ENABLED?.trim().toLowerCase() === "true");
   const repurchaseTemplate = String(runtime?.repurchase_template ?? "").trim()
     || process.env.WHATSAPP_REPURCHASE_TEMPLATE?.trim()
     || null;
@@ -349,9 +362,33 @@ async function loadLifecycleContext(job: ClaimedLifecycleJob): Promise<Lifecycle
       j.id,j.order_id,j.job_type,j.recommended_product_ids,
       o.order_number,o.customer_name,o.customer_phone,o.status AS order_status,
       o.payment_status,COALESCE(o.cod_received,false) AS cod_received,
+      pay.method AS payment_method,pay.status AS payment_record_status,
       COALESCE(o.is_test,false) AS is_test,o.created_at AS order_created_at,
-      COALESCE(cp.whatsapp_marketing_opt_in,false) AS marketing_opt_in,
-      cp.whatsapp_marketing_opt_in_at,cp.whatsapp_marketing_opt_out_at,
+      COALESCE(
+        (
+          cp.whatsapp_marketing_opt_in=true
+          AND cp.whatsapp_marketing_opt_in_at IS NOT NULL
+          AND (
+            cp.whatsapp_marketing_opt_out_at IS NULL
+            OR cp.whatsapp_marketing_opt_in_at > cp.whatsapp_marketing_opt_out_at
+          )
+        )
+        OR
+        (
+          o.whatsapp_marketing_opt_in=true
+          AND o.whatsapp_marketing_opt_in_at IS NOT NULL
+          AND (
+            cp.whatsapp_marketing_opt_out_at IS NULL
+            OR o.whatsapp_marketing_opt_in_at > cp.whatsapp_marketing_opt_out_at
+          )
+        ),
+        false
+      ) AS marketing_opt_in,
+      GREATEST(
+        cp.whatsapp_marketing_opt_in_at,
+        o.whatsapp_marketing_opt_in_at
+      ) AS whatsapp_marketing_opt_in_at,
+      cp.whatsapp_marketing_opt_out_at,
       (
         EXISTS (
           SELECT 1
@@ -373,9 +410,21 @@ async function loadLifecycleContext(job: ClaimedLifecycleJob): Promise<Lifecycle
               followup.metadata->'reply'->>'choice'
             )='day7_help'
         )
+        OR EXISTS (
+          SELECT 1
+          FROM public.whatsapp_customer_text_events txt
+          WHERE txt.matched_order_id=o.id
+            AND txt.matched_job_type IN ('delivery_care','day7_care')
+            AND txt.received_at >= clock_timestamp() - interval '14 days'
+            AND lower(btrim(txt.message_text)) NOT IN (
+              'تمام','كلشي تمام','كله تمام','شكرا','شكراً',
+              'وصلت وكلشي تمام','وصلني وكلشي تمام'
+            )
+        )
       ) AS support_issue_open
     FROM public.customer_lifecycle_jobs j
     JOIN public.orders o ON o.id=j.order_id
+    LEFT JOIN public.payments pay ON pay.order_id=o.id
     LEFT JOIN public.customer_profiles cp
       ON cp.phone=public.aquavo_normalize_iraqi_phone(o.customer_phone)
     WHERE j.id=${job.id}
@@ -397,6 +446,8 @@ async function loadLifecycleContext(job: ClaimedLifecycleJob): Promise<Lifecycle
     orderStatus: String(row.order_status ?? ""),
     paymentStatus: String(row.payment_status ?? ""),
     codReceived: Boolean(row.cod_received),
+    paymentMethod: row.payment_method == null ? null : String(row.payment_method).toLowerCase(),
+    paymentRecordStatus: row.payment_record_status == null ? null : String(row.payment_record_status).toLowerCase(),
     isTest: Boolean(row.is_test),
     recommendedProductIds: parseJsonArray(row.recommended_product_ids),
     marketingOptIn: Boolean(row.marketing_opt_in),
@@ -528,7 +579,16 @@ async function loadRepurchaseProducts(context: LifecycleContext): Promise<Repurc
         WHERE COALESCE(later.is_test,false)=false
           AND later.status='delivered'
           AND later.payment_status='paid'
-          AND later.cod_received=true
+          AND (
+            later.cod_received=true
+            OR EXISTS (
+              SELECT 1
+              FROM public.payments lp
+              WHERE lp.order_id=later.id
+                AND lp.method IN ('wayl','alqaseh')
+                AND lp.status='completed'
+            )
+          )
           AND public.aquavo_normalize_iraqi_phone(later.customer_phone)
               =public.aquavo_normalize_iraqi_phone(${context.customerPhone})
           AND later.created_at > ${context.originalOrderCreatedAt}
@@ -621,75 +681,51 @@ async function sendTemplate(
     templateName: string;
     to: string;
     bodyParameters: string[];
-    buttons: Array<{ index: string; payload: string }>;
   },
 ): Promise<string> {
   const endpoint = `https://graph.facebook.com/${config.apiVersion}/${encodeURIComponent(config.phoneNumberId)}/messages`;
 
-  const request = async (includePayloads: boolean): Promise<{ response: Response; body: any }> => {
-    let response: Response;
-    try {
-      const components: Array<Record<string, unknown>> = [{
-        type: "body",
-        parameters: input.bodyParameters.map((value) => ({ type: "text", text: value })),
-      }];
-
-      if (includePayloads) {
-        for (const button of input.buttons) {
-          components.push({
-            type: "button",
-            sub_type: "quick_reply",
-            index: button.index,
-            parameters: [{ type: "payload", payload: button.payload }],
-          });
-        }
-      }
-
-      response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${config.accessToken}`,
-          "Content-Type": "application/json",
+  let response: Response;
+  try {
+    response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${config.accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        messaging_product: "whatsapp",
+        recipient_type: "individual",
+        to: input.to,
+        type: "template",
+        template: {
+          name: input.templateName,
+          language: { code: config.languageCode },
+          components: [{
+            type: "body",
+            parameters: input.bodyParameters.map((value) => ({ type: "text", text: value })),
+          }],
         },
-        body: JSON.stringify({
-          messaging_product: "whatsapp",
-          recipient_type: "individual",
-          to: input.to,
-          type: "template",
-          template: {
-            name: input.templateName,
-            language: { code: config.languageCode },
-            components,
-          },
-        }),
-        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-      });
-    } catch (error) {
-      const name = error instanceof Error ? error.name : "";
-      const code = name === "TimeoutError" || name === "AbortError"
-        ? "WHATSAPP_TIMEOUT_AMBIGUOUS"
-        : "WHATSAPP_NETWORK_AMBIGUOUS";
-      throw new LifecycleSendError(code, false);
-    }
-
-    let body: any = {};
-    try { body = await response.json(); } catch { /* no provider body in logs */ }
-    return { response, body };
-  };
-
-  let attempt = await request(true);
-  let wamid = String(attempt.body?.messages?.[0]?.id ?? "").trim();
-  if (attempt.response.ok && wamid) return wamid;
-
-  // Same safe compatibility fallback used by immediate delivery-care.
-  if (attempt.response.status === 400 && Number(attempt.body?.error?.code) === 132018) {
-    attempt = await request(false);
-    wamid = String(attempt.body?.messages?.[0]?.id ?? "").trim();
-    if (attempt.response.ok && wamid) return wamid;
+      }),
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    });
+  } catch (error) {
+    const name = error instanceof Error ? error.name : "";
+    const code = name === "TimeoutError" || name === "AbortError"
+      ? "WHATSAPP_TIMEOUT_AMBIGUOUS"
+      : "WHATSAPP_NETWORK_AMBIGUOUS";
+    throw new LifecycleSendError(code, false);
   }
 
-  const code = compactMetaErrorCode(attempt.response.status, attempt.body);
-  const retryable = attempt.response.status === 429 || attempt.response.status >= 500;
+  let body: any = {};
+  try { body = await response.json(); } catch { /* no provider body in logs */ }
+
+  const wamid = String(body?.messages?.[0]?.id ?? "").trim();
+  if (response.ok && wamid) return wamid;
+  if (response.ok) throw new LifecycleSendError("WHATSAPP_ACCEPTANCE_AMBIGUOUS", false);
+
+  const code = compactMetaErrorCode(response.status, body);
+  const retryable = response.status === 429 || response.status >= 500;
   throw new LifecycleSendError(code, retryable);
 }
 
@@ -751,11 +787,15 @@ async function dispatchLifecycleJob(jobId: string, config: LifecycleConfig): Pro
       return "failed";
     }
 
+    const verifiedOnlinePayment =
+      (context.paymentMethod === "wayl" || context.paymentMethod === "alqaseh")
+      && context.paymentRecordStatus === "completed";
+    const financiallyEligible = context.codReceived || verifiedOnlinePayment;
     if (
       context.isTest
       || context.orderStatus !== "delivered"
       || context.paymentStatus !== "paid"
-      || !context.codReceived
+      || !financiallyEligible
     ) {
       await suppressLifecycleJob(job.id, "ORDER_NO_LONGER_ELIGIBLE");
       return "suppressed";
@@ -778,33 +818,34 @@ async function dispatchLifecycleJob(jobId: string, config: LifecycleConfig): Pro
       return "failed";
     }
 
+    const consentIsCurrent = context.marketingOptIn
+      && context.marketingOptInAt != null
+      && (
+        context.marketingOptOutAt == null
+        || context.marketingOptInAt.getTime() > context.marketingOptOutAt.getTime()
+      );
+
     let templateName: string | null = null;
     let bodyParameters: string[] = [];
-    let buttons: Array<{ index: string; payload: string }> = [];
 
     if (context.jobType === "day7_care") {
+      if (!consentIsCurrent) {
+        await suppressLifecycleJob(job.id, "WHATSAPP_OPT_IN_REQUIRED");
+        return "suppressed";
+      }
       templateName = config.day7Template;
       if (!templateName) {
         await suppressLifecycleJob(job.id, "DAY7_TEMPLATE_NOT_CONFIGURED");
         return "suppressed";
       }
-      bodyParameters = [firstName, context.orderNumber];
-      buttons = [
-        { index: "0", payload: DAY7_OK_PAYLOAD },
-        { index: "1", payload: DAY7_HELP_PAYLOAD },
-      ];
+      // Approved Day-7 template has one variable (first name) and no buttons.
+      bodyParameters = [firstName];
     } else {
       if (!config.repurchaseEnabled || !config.repurchaseTemplate) {
         await suppressLifecycleJob(job.id, "REPURCHASE_AUTOMATION_DISABLED");
         return "suppressed";
       }
 
-      const consentIsCurrent = context.marketingOptIn
-        && context.marketingOptInAt != null
-        && (
-          context.marketingOptOutAt == null
-          || context.marketingOptInAt.getTime() > context.marketingOptOutAt.getTime()
-        );
       if (!consentIsCurrent) {
         await suppressLifecycleJob(job.id, "MARKETING_OPT_IN_REQUIRED");
         return "suppressed";
@@ -835,18 +876,14 @@ async function dispatchLifecycleJob(jobId: string, config: LifecycleConfig): Pro
       }
 
       templateName = config.repurchaseTemplate;
+      // Repurchase template has two variables and no buttons.
       bodyParameters = [firstName, productSummary];
-      buttons = [
-        { index: "0", payload: REPURCHASE_INTEREST_PAYLOAD },
-        { index: "1", payload: REPURCHASE_STOP_PAYLOAD },
-      ];
     }
 
     const providerMessageId = await sendTemplate(config, {
       templateName,
       to: phone,
       bodyParameters,
-      buttons,
     });
 
     const persisted = await markLifecycleAccepted(job.id, providerMessageId, context);
@@ -961,7 +998,7 @@ export async function runDueLifecycleWhatsAppJobs(limit = DEFAULT_LIMIT): Promis
   };
 }
 
-async function setMarketingOptOut(
+export async function recordWhatsAppMarketingOptOut(
   canonicalPhone: string,
   sourceEventId: string,
   orderId: string | null,
@@ -985,7 +1022,7 @@ async function setMarketingOptOut(
     )
     SELECT
       ${canonicalPhone},${orderId},'marketing_opt_out','whatsapp',${sourceEventId},
-      jsonb_build_object('channel','whatsapp','purpose','replenishment'),
+      jsonb_build_object('channel','whatsapp','purpose','whatsapp_lifecycle'),
       ${occurredAt}
     FROM updated
     ON CONFLICT (source,source_event_id)
@@ -996,16 +1033,22 @@ async function setMarketingOptOut(
   await db.execute(sql`
     UPDATE public.customer_lifecycle_jobs j
        SET status='suppressed',
-           last_error_code='MARKETING_OPTED_OUT',
+           last_error_code=CASE
+             WHEN j.job_type='day7_care' THEN 'WHATSAPP_OPTED_OUT'
+             ELSE 'MARKETING_OPTED_OUT'
+           END,
            last_error_at=clock_timestamp(),
            metadata=j.metadata || jsonb_build_object(
-             'suppressReason','marketing_opted_out',
+             'suppressReason',CASE
+               WHEN j.job_type='day7_care' THEN 'whatsapp_opted_out'
+               ELSE 'marketing_opted_out'
+             END,
              'suppressedAt',clock_timestamp()
            ),
            updated_at=clock_timestamp()
       FROM public.orders o
      WHERE j.order_id=o.id
-       AND j.job_type='repurchase'
+       AND j.job_type IN ('day7_care','repurchase')
        AND j.status IN ('planned','ready')
        AND public.aquavo_normalize_iraqi_phone(o.customer_phone)=${canonicalPhone}
   `);
@@ -1027,9 +1070,26 @@ export async function handleLifecycleReply(event: LifecycleReplyEvent): Promise<
            o.customer_phone,o.customer_name,o.order_number
     FROM public.customer_lifecycle_jobs j
     JOIN public.orders o ON o.id=j.order_id
-    WHERE j.provider_message_id=${event.contextProviderMessageId}
-      AND j.job_type=${jobType}
+    WHERE j.job_type=${jobType}
       AND j.status='completed'
+      AND public.aquavo_normalize_iraqi_phone(o.customer_phone)=${senderPhone}
+      AND (
+        (
+          ${event.contextProviderMessageId}<>'' 
+          AND j.provider_message_id=${event.contextProviderMessageId}
+        )
+        OR (
+          ${event.contextProviderMessageId}=''
+          AND COALESCE(j.accepted_at,j.updated_at,j.created_at)<=${event.receivedAt}
+          AND COALESCE(j.accepted_at,j.updated_at,j.created_at)>=${event.receivedAt} - interval '30 days'
+        )
+      )
+    ORDER BY
+      CASE
+        WHEN ${event.contextProviderMessageId}<>'' AND j.provider_message_id=${event.contextProviderMessageId}
+        THEN 0 ELSE 1
+      END,
+      COALESCE(j.accepted_at,j.updated_at,j.created_at) DESC
     LIMIT 1
   `);
   const row = rowsOf(result)[0];
@@ -1094,7 +1154,7 @@ export async function handleLifecycleReply(event: LifecycleReplyEvent): Promise<
   // Opt-out is terminal from a marketing perspective and must win even if the
   // same customer previously tapped "أحتاجه" on this message.
   if (choice === "repurchase_stop") {
-    await setMarketingOptOut(senderPhone,event.inboundMessageId,orderId,event.receivedAt);
+    await recordWhatsAppMarketingOptOut(senderPhone,event.inboundMessageId,orderId,event.receivedAt);
   }
 
   if (choice === "day7_help" || choice === "repurchase_interest") {

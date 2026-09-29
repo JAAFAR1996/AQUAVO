@@ -12,6 +12,16 @@ const buttonInboxMigration = readFileSync(
   "utf8",
 );
 
+const textReplyMigration = readFileSync(
+  join(process.cwd(), "migrations/0096_whatsapp_customer_text_replies.sql"),
+  "utf8",
+);
+
+const textReplyService = readFileSync(
+  join(process.cwd(), "server/services/whatsapp-customer-text-replies.ts"),
+  "utf8",
+);
+
 const client = readFileSync(
   join(process.cwd(), "client/src/components/admin/orders-management.tsx"),
   "utf8",
@@ -101,38 +111,36 @@ describe("post-delivery customer messaging contract", () => {
     expect(migration).toContain("Phase 1 queues care only");
   });
 
-  it("locks the approved immediate delivery copy, first-name personalization and two-button contract", () => {
-    expect(rollout).toContain("هلا أستاذ {{1}} 🌿");
-    expect(rollout).toContain("حبينا نطمن على طلبك بعد التوصيل.");
-    expect(rollout).toContain("إذا استلمته، كل القطع وصلت كاملة وبحالة زينة؟");
-    expect(rollout).toContain("وصلتني وكلشي تمام");
-    expect(rollout).toContain("عندي ملاحظة عالطلب");
+  it("locks the immediate delivery message to one consent-gated Marketing template with no buttons", () => {
+    expect(rollout).toContain("aquavo_delivery_care_v1");
+    expect(rollout).toContain("category: **MARKETING**");
+    expect(rollout).toContain("ستوري + منشن @aquavo_iq = خصم 5%");
+    expect(rollout).toContain("ريلز لفتح الطلب + منشن @aquavo_iq = خصم 10%");
     expect(service).toContain("buildCustomerFirstName");
     expect(service).toContain("INVALID_CUSTOMER_NAME");
-    expect(service).not.toContain("buildCustomerHonorific");
-    expect(service).toContain('sub_type: "quick_reply"');
-    expect(service).toContain('index: "0"');
-    expect(service).toContain('index: "1"');
-    expect(deliveryReplyContract).toContain('"aquavo_delivery_ok_v1"');
-    expect(deliveryReplyContract).toContain('"aquavo_delivery_issue_v1"');
-    expect(rollout).toContain("- consumables: target day 5 after delivery;");
-    expect(rollout).toContain("- equipment/hardware: target day 9 after delivery;");
+    expect(service).toContain("MARKETING_OPT_IN_REQUIRED");
+    expect(service).toContain("cp.whatsapp_marketing_opt_in=true");
+    expect(service).not.toContain('sub_type: "quick_reply"');
+    expect(service).not.toContain("WHATSAPP_DELIVERY_CARE_MARKETING_TEMPLATE");
+    expect(service).not.toContain('marketingTemplateEligible ? "marketing_ugc" : "utility"');
+    expect(service).toContain('markAccepted(job.id, providerMessageId, "marketing_ugc")');
   });
 
-  it("uses the UGC discount copy only as a consent-gated Marketing variant of delivery care", () => {
-    expect(service).toContain("WHATSAPP_DELIVERY_CARE_MARKETING_ENABLED");
-    expect(service).toContain("WHATSAPP_DELIVERY_CARE_MARKETING_TEMPLATE");
-    expect(service).toContain("WHATSAPP_DELIVERY_CARE_MARKETING_ACTIVATION_AT");
-    expect(service).toContain("cp.whatsapp_marketing_opt_in=true");
-    expect(service).toContain("cp.whatsapp_marketing_opt_out_at IS NULL");
-    expect(service).toContain("job.createdAt.getTime() >= config.deliveryCareMarketingActivationAt.getTime()");
-    expect(service).toContain('marketingTemplateEligible ? "marketing_ugc" : "utility"');
-    expect(service).toContain("selectedTemplate");
-    expect(service).toContain("delivery_care_template_kind");
-    expect(rollout).toContain("aquavo_delivery_care_ugc_v1");
-    expect(rollout).toContain("ستوري + منشن @aquavo_iq = خصم 5% على طلبك الجاي");
-    expect(rollout).toContain("ريلز لفتح الطلب + منشن @aquavo_iq = خصم 10% على طلبك الجاي");
-    expect(rollout).toContain("MARKETING");
+  it("durably captures free-text replies from buttonless templates and recovers support alerts", () => {
+    expect(textReplyMigration).toContain("CREATE TABLE IF NOT EXISTS public.whatsapp_customer_text_events");
+    expect(textReplyMigration).toContain("inbound_message_id text NOT NULL UNIQUE");
+    expect(textReplyService).toContain("handleWhatsAppCustomerText");
+    expect(textReplyService).toContain("runPendingWhatsAppCustomerTextAlerts");
+    expect(textReplyService).toContain("recordWhatsAppMarketingOptOut");
+    expect(webhookRoute).toContain("extractWhatsAppCustomerTextEvents");
+    expect(webhookRoute).toContain("handleWhatsAppCustomerText({");
+    expect(cronRoute).toContain("runPendingWhatsAppCustomerTextAlerts(20)");
+  });
+
+  it("never sends the Marketing delivery-care template for test orders", () => {
+    expect(service).toContain("COALESCE(o.is_test,false) AS is_test");
+    expect(service).toContain("recipient.isTest");
+    expect(service).toContain("TEST_ORDER_NOT_ELIGIBLE");
   });
 
   it("distinguishes provider API acceptance from delivery state and persists wamid idempotently", () => {
@@ -202,7 +210,7 @@ describe("post-delivery customer messaging contract", () => {
     expect(vercelEntry).toContain("req.rawBody = buf");
   });
 
-  it("handles only correlated Quick Replies and stores the choice before auto-replying", () => {
+  it("keeps legacy correlated Quick Reply recovery isolated from current buttonless templates", () => {
     expect(webhookRoute).toContain("extractDeliveryCareButtonReplyEvents");
     expect(webhookRoute).toContain('type: z.literal("button")');
     expect(webhookRoute).toContain("contextProviderMessageId");

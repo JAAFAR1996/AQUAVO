@@ -242,12 +242,14 @@ describe("durable merchant notification (shared by COD and Wayl)", () => {
 
 describe("trigger-point contracts", () => {
   it("COD: the alert is enqueued only after createOrderSecure committed, after the idempotent early return, and can never fail the response", () => {
-    const duplicateReturn = ordersRoute.search(/if \(existingOrder\) \{\r?\n\s+res\.status\(200\)\.json\(existingOrder\);/);
+    const duplicateBlock = ordersRoute.indexOf("if (existingOrder) {");
+    const duplicateResponse = ordersRoute.indexOf("res.status(200).json(existingOrder);", duplicateBlock);
     const create = ordersRoute.indexOf("await storage.createOrderSecure");
     const notify = ordersRoute.indexOf("notifyMerchantOfCodOrder(order.id, analyticsSessionId).catch(");
     const respond = ordersRoute.indexOf("res.status(201).json(response);");
-    expect(duplicateReturn).toBeGreaterThan(-1);
-    expect(duplicateReturn).toBeLessThan(create);
+    expect(duplicateBlock).toBeGreaterThan(-1);
+    expect(duplicateResponse).toBeGreaterThan(duplicateBlock);
+    expect(duplicateResponse).toBeLessThan(create);
     expect(notify).toBeGreaterThan(create);
     expect(notify).toBeLessThan(respond);
     expect(ordersRoute).not.toMatch(/customerName: customerInfo\.name,\r?\n\s+customerPhone: customerInfo\.phone/);

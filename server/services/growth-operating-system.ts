@@ -62,6 +62,61 @@ function firstName(value: unknown): string {
   return raw.split(" ")[0]?.slice(0, 30) || "عزيزي";
 }
 
+type RepurchasePackDimension = "mass" | "volume" | "count";
+type RepurchasePackMeasure = { dimension: RepurchasePackDimension; amount: number };
+
+function normalizeRepurchaseMeasureText(value: unknown): string {
+  const arabicIndic = "٠١٢٣٤٥٦٧٨٩";
+  const easternArabic = "۰۱۲۳۴۵۶۷۸۹";
+  return String(value ?? "")
+    .normalize("NFKC")
+    .replace(/[٠-٩]/g, (digit) => String(arabicIndic.indexOf(digit)))
+    .replace(/[۰-۹]/g, (digit) => String(easternArabic.indexOf(digit)))
+    .replace(/,/g, ".")
+    .toLowerCase();
+}
+
+export function parseRepurchasePackMeasure(value: unknown): RepurchasePackMeasure | null {
+  const text = normalizeRepurchaseMeasureText(value);
+  const patterns: Array<{
+    dimension: RepurchasePackDimension;
+    re: RegExp;
+    multiplier: number;
+  }> = [
+    { dimension: "mass", re: /(\d+(?:\.\d+)?)\s*(?:kg|kgs|كغم|كغ|كيلوغرام|كيلو)(?=\s|$|[)\]،,-])/i, multiplier: 1000 },
+    { dimension: "mass", re: /(\d+(?:\.\d+)?)\s*(?:g|gm|gr|غم|غرام)(?=\s|$|[)\]،,-])/i, multiplier: 1 },
+    { dimension: "volume", re: /(\d+(?:\.\d+)?)\s*(?:ml|مل|مليلتر)(?=\s|$|[)\]،,-])/i, multiplier: 1 },
+    { dimension: "volume", re: /(\d+(?:\.\d+)?)\s*(?:ltr|liter|litre|l|لتر|ليتر)(?=\s|$|[)\]،,-])/i, multiplier: 1000 },
+    { dimension: "count", re: /(\d+(?:\.\d+)?)\s*(?:pcs?|pieces?|قطعة|قطع|حبة|حبات|شريط|شرائط)(?=\s|$|[)\]،,-])/i, multiplier: 1 },
+  ];
+
+  for (const pattern of patterns) {
+    const match = text.match(pattern.re);
+    if (!match) continue;
+    const amount = Number(match[1]) * pattern.multiplier;
+    if (Number.isFinite(amount) && amount > 0) {
+      return { dimension: pattern.dimension, amount };
+    }
+  }
+  return null;
+}
+
+function measureVariantPack(variant: Record<string, unknown>): RepurchasePackMeasure | null {
+  const values: unknown[] = [variant.label, variant.id, variant.sku];
+  if (variant.specifications && typeof variant.specifications === "object") {
+    values.push(...Object.values(variant.specifications as Record<string, unknown>));
+  }
+  for (const value of values) {
+    const measure = parseRepurchasePackMeasure(value);
+    if (measure) return measure;
+  }
+  return null;
+}
+
+function clampRepurchaseDays(value: number): number {
+  return Math.max(7, Math.min(365, Math.round(value)));
+}
+
 export async function recordPurchaseMeasurementReceipt(input: {
   publicOrderId: string;
   aqSid: string;
@@ -113,12 +168,21 @@ export async function getAttributionHealth() {
 
   const result = await db.execute(sql`
     WITH realized AS (
-      SELECT id,aq_sid,attribution_gclid,attribution_fbclid
-      FROM public.orders
-      WHERE COALESCE(is_test,false)=false
-        AND status='delivered'
-        AND payment_status='paid'
-        AND cod_received=true
+      SELECT o.id,o.aq_sid,o.attribution_gclid,o.attribution_fbclid
+      FROM public.orders o
+      WHERE COALESCE(o.is_test,false)=false
+        AND o.status='delivered'
+        AND o.payment_status='paid'
+        AND (
+          o.cod_received=true
+          OR EXISTS (
+            SELECT 1
+            FROM public.payments realized_payment
+            WHERE realized_payment.order_id=o.id
+              AND realized_payment.method IN ('wayl','alqaseh')
+              AND realized_payment.status='completed'
+          )
+        )
     ),
     google_receipts AS (
       SELECT DISTINCT order_id
@@ -269,6 +333,115 @@ export async function refreshRepurchaseProfiles() {
     WHERE public.product_repurchase_profiles.profile_source='rule'
   `);
 
+  const ruleVariantSources = rowsOf(await db.execute(sql`
+    SELECT
+      pr.product_id,pr.interval_min_days,pr.interval_target_days,pr.interval_max_days,
+      p.variants
+    FROM public.product_repurchase_profiles pr
+    JOIN public.products p ON p.id=pr.product_id
+    WHERE pr.variant_id IS NULL
+      AND pr.profile_source='rule'
+      AND pr.is_consumable=true
+      AND pr.active=true
+      AND COALESCE(p.has_variants,false)=true
+      AND jsonb_typeof(COALESCE(p.variants,'[]'::jsonb))='array'
+  `));
+
+  const variantProfiles: Array<Record<string, unknown>> = [];
+  for (const source of ruleVariantSources) {
+    const rawVariants = Array.isArray(source.variants)
+      ? source.variants
+      : typeof source.variants === "string"
+        ? (() => { try { return JSON.parse(source.variants); } catch { return []; } })()
+        : [];
+    const variants = rawVariants
+      .filter((variant: unknown): variant is Record<string, unknown> => Boolean(variant && typeof variant === "object"))
+      .map((variant: Record<string, unknown>) => ({
+        raw: variant,
+        id: String(variant.id ?? "").trim(),
+        measure: measureVariantPack(variant),
+        isDefault: Boolean(variant.isDefault),
+      }))
+      .filter((variant: { id: string }) => Boolean(variant.id));
+
+    const defaultMeasure = variants.find((variant) => variant.isDefault && variant.measure)?.measure ?? null;
+    const referenceByDimension = new Map<RepurchasePackDimension, number>();
+    for (const dimension of ["mass","volume","count"] as const) {
+      if (defaultMeasure?.dimension === dimension) {
+        referenceByDimension.set(dimension, defaultMeasure.amount);
+        continue;
+      }
+      const amounts = variants
+        .map((variant) => variant.measure)
+        .filter((measure): measure is RepurchasePackMeasure => measure?.dimension === dimension)
+        .map((measure) => measure.amount)
+        .sort((a,b) => a-b);
+      if (amounts.length > 0) {
+        referenceByDimension.set(dimension, amounts[Math.floor((amounts.length-1)/2)]);
+      }
+    }
+
+    const baseMin=n(source.interval_min_days);
+    const baseTarget=n(source.interval_target_days);
+    const baseMax=n(source.interval_max_days);
+    for (const variant of variants) {
+      let factor=1;
+      if (variant.measure) {
+        const reference=referenceByDimension.get(variant.measure.dimension);
+        if (reference && reference>0) factor=variant.measure.amount/reference;
+      }
+      factor=Math.max(0.25,Math.min(8,factor));
+      variantProfiles.push({
+        sku_key:`${String(source.product_id)}::${variant.id}`,
+        product_id:String(source.product_id),
+        variant_id:variant.id,
+        interval_min_days:clampRepurchaseDays(baseMin*factor),
+        interval_target_days:clampRepurchaseDays(baseTarget*factor),
+        interval_max_days:clampRepurchaseDays(baseMax*factor),
+        notes:`AQUAVO Growth OS rule variant profile; packFactor=${factor.toFixed(3)}`,
+      });
+    }
+  }
+
+  if (variantProfiles.length>0) {
+    await db.execute(sql`
+      WITH input AS (
+        SELECT *
+        FROM jsonb_to_recordset(${JSON.stringify(variantProfiles)}::jsonb) AS x(
+          sku_key text,
+          product_id text,
+          variant_id text,
+          interval_min_days integer,
+          interval_target_days integer,
+          interval_max_days integer,
+          notes text
+        )
+      )
+      INSERT INTO public.product_repurchase_profiles(
+        sku_key,product_id,variant_id,is_consumable,
+        interval_min_days,interval_target_days,interval_max_days,
+        profile_source,confidence,active,notes,updated_at
+      )
+      SELECT
+        sku_key,product_id,variant_id,true,
+        interval_min_days,interval_target_days,interval_max_days,
+        'rule','medium',true,notes,now()
+      FROM input
+      ON CONFLICT(sku_key) DO UPDATE SET
+        product_id=EXCLUDED.product_id,
+        variant_id=EXCLUDED.variant_id,
+        is_consumable=true,
+        interval_min_days=EXCLUDED.interval_min_days,
+        interval_target_days=EXCLUDED.interval_target_days,
+        interval_max_days=EXCLUDED.interval_max_days,
+        confidence=EXCLUDED.confidence,
+        active=true,
+        notes=EXCLUDED.notes,
+        updated_at=now()
+      WHERE public.product_repurchase_profiles.profile_source='rule'
+    `);
+  }
+
   const result = await db.execute(sql`
     SELECT
       COUNT(*)::int AS profiles,
@@ -283,56 +456,95 @@ export async function refreshObservedRepurchaseProfiles() {
   const db=getDb();
   if(!db) throw new Error("DATABASE_NOT_CONNECTED");
 
-  // Learn only on products already classified as consumables. Repeated purchases
-  // of equipment can mean a second tank, not depletion, and must never teach the
-  // replenishment engine a false cadence.
+  // Learn a per-unit cadence for the exact SKU/variant. If a customer bought
+  // two packs and returned 70 days later, the evidence is ~35 days per pack.
+  // This keeps quantity-aware reminders grounded in realized repeat behavior.
   const result=await db.execute(sql`
     WITH realized AS (
       SELECT
         public.aquavo_normalize_iraqi_phone(o.customer_phone) AS customer_phone,
         oi.product_id,
-        (COALESCE(v.recognized_at,o.created_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Baghdad')::date AS purchase_day
+        NULLIF(COALESCE(oi.metadata->>'variantId',oi.metadata->>'variant_id'),'') AS variant_id,
+        (COALESCE(v.recognized_at,o.created_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Baghdad')::date AS purchase_day,
+        SUM(GREATEST(1,oi.quantity))::int AS purchased_quantity
       FROM public.orders o
       JOIN public.order_items_relational oi ON oi.order_id=o.id
       LEFT JOIN public.v_order_accounting v ON v.order_id=o.id
-      JOIN public.product_repurchase_profiles base
-        ON base.sku_key=oi.product_id || '::'
-       AND base.is_consumable=true
-       AND base.active=true
+      JOIN LATERAL (
+        SELECT candidate.sku_key
+        FROM public.product_repurchase_profiles candidate
+        WHERE candidate.product_id=oi.product_id
+          AND candidate.is_consumable=true
+          AND candidate.active=true
+          AND (
+            candidate.sku_key=oi.product_id || '::' ||
+              COALESCE(NULLIF(COALESCE(oi.metadata->>'variantId',oi.metadata->>'variant_id'),''),'')
+            OR candidate.sku_key=oi.product_id || '::'
+          )
+        ORDER BY
+          CASE
+            WHEN candidate.variant_id=
+              NULLIF(COALESCE(oi.metadata->>'variantId',oi.metadata->>'variant_id'),'') THEN 0
+            WHEN candidate.variant_id IS NULL THEN 1
+            ELSE 2
+          END
+        LIMIT 1
+      ) base ON true
       WHERE COALESCE(o.is_test,false)=false
         AND o.status='delivered'
         AND o.payment_status='paid'
-        AND o.cod_received=true
+        AND (
+          o.cod_received=true
+          OR EXISTS (
+            SELECT 1
+            FROM public.payments realized_payment
+            WHERE realized_payment.order_id=o.id
+              AND realized_payment.method IN ('wayl','alqaseh')
+              AND realized_payment.status='completed'
+          )
+        )
         AND public.aquavo_normalize_iraqi_phone(o.customer_phone) IS NOT NULL
+      GROUP BY
+        public.aquavo_normalize_iraqi_phone(o.customer_phone),
+        oi.product_id,
+        NULLIF(COALESCE(oi.metadata->>'variantId',oi.metadata->>'variant_id'),''),
+        (COALESCE(v.recognized_at,o.created_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Baghdad')::date
     ),
     ordered AS (
       SELECT
-        customer_phone,product_id,purchase_day,
+        customer_phone,product_id,variant_id,purchase_day,purchased_quantity,
         LAG(purchase_day) OVER (
-          PARTITION BY customer_phone,product_id
+          PARTITION BY customer_phone,product_id,variant_id
           ORDER BY purchase_day
-        ) AS prior_day
+        ) AS prior_day,
+        LAG(purchased_quantity) OVER (
+          PARTITION BY customer_phone,product_id,variant_id
+          ORDER BY purchase_day
+        ) AS prior_quantity
       FROM realized
-      GROUP BY customer_phone,product_id,purchase_day
     ),
     gaps AS (
       SELECT
-        customer_phone,product_id,
-        (purchase_day-prior_day)::int AS gap_days
+        customer_phone,product_id,variant_id,
+        (purchase_day-prior_day)::int AS gap_days,
+        prior_quantity,
+        ((purchase_day-prior_day)::numeric/GREATEST(prior_quantity,1)) AS normalized_gap_days
       FROM ordered
       WHERE prior_day IS NOT NULL
-        AND purchase_day-prior_day BETWEEN 7 AND 180
+        AND purchase_day-prior_day BETWEEN 7 AND 365
+        AND prior_quantity IS NOT NULL
+        AND prior_quantity>0
     ),
     stats AS (
       SELECT
-        product_id,
+        product_id,variant_id,
         COUNT(*)::int AS interval_count,
         COUNT(DISTINCT customer_phone)::int AS customer_count,
         ROUND(
-          percentile_cont(0.5) WITHIN GROUP (ORDER BY gap_days)
+          percentile_cont(0.5) WITHIN GROUP (ORDER BY normalized_gap_days)
         )::int AS target_days
       FROM gaps
-      GROUP BY product_id
+      GROUP BY product_id,variant_id
       HAVING COUNT(*)>=4
          AND COUNT(DISTINCT customer_phone)>=2
     )
@@ -342,20 +554,22 @@ export async function refreshObservedRepurchaseProfiles() {
       profile_source,confidence,active,notes,updated_at
     )
     SELECT
-      s.product_id || '::',
+      s.product_id || '::' || COALESCE(s.variant_id,''),
       s.product_id,
-      NULL,
+      s.variant_id,
       true,
       GREATEST(7,ROUND(s.target_days*0.70)::int),
-      s.target_days,
-      LEAST(240,GREATEST(s.target_days,ROUND(s.target_days*1.40)::int)),
+      GREATEST(7,s.target_days),
+      LEAST(365,GREATEST(s.target_days,ROUND(s.target_days*1.40)::int)),
       'observed',
       CASE WHEN s.interval_count>=8 AND s.customer_count>=3 THEN 'high' ELSE 'medium' END,
       true,
-      'Observed realized-order median cadence; intervals=' || s.interval_count || '; customers=' || s.customer_count,
+      'Observed realized-order median per-unit cadence; intervals=' || s.interval_count || '; customers=' || s.customer_count,
       now()
     FROM stats s
     ON CONFLICT(sku_key) DO UPDATE SET
+      product_id=EXCLUDED.product_id,
+      variant_id=EXCLUDED.variant_id,
       is_consumable=true,
       interval_min_days=EXCLUDED.interval_min_days,
       interval_target_days=EXCLUDED.interval_target_days,
@@ -437,7 +651,16 @@ export async function refreshInventorySkuDaily(dayInput?: string) {
       JOIN public.orders o ON o.id=oi.order_id
       LEFT JOIN public.v_order_accounting v ON v.order_id=o.id
       WHERE COALESCE(o.is_test,false)=false
-        AND o.status='delivered' AND o.payment_status='paid' AND o.cod_received=true
+        AND o.status='delivered' AND o.payment_status='paid' AND (
+          o.cod_received=true
+          OR EXISTS (
+            SELECT 1
+            FROM public.payments realized_payment
+            WHERE realized_payment.order_id=o.id
+              AND realized_payment.method IN ('wayl','alqaseh')
+              AND realized_payment.status='completed'
+          )
+        )
         AND NULLIF(oi.metadata->>'variantId','') IS NOT NULL
       GROUP BY oi.product_id,NULLIF(oi.metadata->>'variantId','')
     ),
@@ -464,7 +687,16 @@ export async function refreshInventorySkuDaily(dayInput?: string) {
       JOIN public.orders o ON o.id=oi.order_id
       LEFT JOIN public.v_order_accounting v ON v.order_id=o.id
       WHERE COALESCE(o.is_test,false)=false
-        AND o.status='delivered' AND o.payment_status='paid' AND o.cod_received=true
+        AND o.status='delivered' AND o.payment_status='paid' AND (
+          o.cod_received=true
+          OR EXISTS (
+            SELECT 1
+            FROM public.payments realized_payment
+            WHERE realized_payment.order_id=o.id
+              AND realized_payment.method IN ('wayl','alqaseh')
+              AND realized_payment.status='completed'
+          )
+        )
       GROUP BY oi.product_id
     ),
     base AS (
@@ -827,7 +1059,16 @@ export async function planCustomerLifecycleJobs() {
       WHERE COALESCE(o.is_test,false)=false
         AND o.status='delivered'
         AND o.payment_status='paid'
-        AND o.cod_received=true
+        AND (
+          o.cod_received=true
+          OR EXISTS (
+            SELECT 1
+            FROM public.payments realized_payment
+            WHERE realized_payment.order_id=o.id
+              AND realized_payment.method IN ('wayl','alqaseh')
+              AND realized_payment.status='completed'
+          )
+        )
     )
     INSERT INTO public.customer_lifecycle_jobs(
       customer_phone,order_id,job_type,due_at,status,channel,scope_key,metadata
@@ -883,7 +1124,16 @@ export async function planCustomerLifecycleJobs() {
       WHERE COALESCE(o.is_test,false)=false
         AND o.status='delivered'
         AND o.payment_status='paid'
-        AND o.cod_received=true
+        AND (
+          o.cod_received=true
+          OR EXISTS (
+            SELECT 1
+            FROM public.payments realized_payment
+            WHERE realized_payment.order_id=o.id
+              AND realized_payment.method IN ('wayl','alqaseh')
+              AND realized_payment.status='completed'
+          )
+        )
     ),
     repurchase AS (
       SELECT
@@ -891,18 +1141,48 @@ export async function planCustomerLifecycleJobs() {
         d.order_id,
         d.delivered_at,
         oi.product_id,
-        pr.interval_target_days
+        NULLIF(COALESCE(oi.metadata->>'variantId',oi.metadata->>'variant_id'),'') AS variant_id,
+        MAX(NULLIF(COALESCE(oi.metadata->>'variantLabel',oi.metadata->>'variant_label'),'')) AS variant_label,
+        SUM(GREATEST(1,oi.quantity))::int AS purchased_quantity,
+        pr.interval_target_days AS unit_target_days,
+        LEAST(
+          365,
+          GREATEST(
+            7,
+            ROUND(pr.interval_target_days*SUM(GREATEST(1,oi.quantity)))::int
+          )
+        ) AS interval_target_days
       FROM delivered d
       CROSS JOIN runtime cfg
       JOIN public.order_items_relational oi ON oi.order_id=d.order_id
-      JOIN public.product_repurchase_profiles pr
-        ON pr.sku_key=oi.product_id || '::'
-       AND pr.is_consumable=true
-       AND pr.active=true
-       AND pr.interval_target_days IS NOT NULL
+      JOIN LATERAL (
+        SELECT candidate.interval_target_days
+        FROM public.product_repurchase_profiles candidate
+        WHERE candidate.product_id=oi.product_id
+          AND candidate.is_consumable=true
+          AND candidate.active=true
+          AND candidate.interval_target_days IS NOT NULL
+          AND (
+            candidate.sku_key=oi.product_id || '::' ||
+              COALESCE(NULLIF(COALESCE(oi.metadata->>'variantId',oi.metadata->>'variant_id'),''),'')
+            OR candidate.sku_key=oi.product_id || '::'
+          )
+        ORDER BY
+          CASE
+            WHEN candidate.variant_id=
+              NULLIF(COALESCE(oi.metadata->>'variantId',oi.metadata->>'variant_id'),'') THEN 0
+            WHEN candidate.variant_id IS NULL THEN 1
+            ELSE 2
+          END,
+          CASE candidate.profile_source WHEN 'observed' THEN 0 WHEN 'manual' THEN 1 ELSE 2 END
+        LIMIT 1
+      ) pr ON true
       WHERE d.customer_phone IS NOT NULL
         AND d.delivered_at >= cfg.activation_at
-      GROUP BY d.customer_phone,d.order_id,d.delivered_at,oi.product_id,pr.interval_target_days
+      GROUP BY
+        d.customer_phone,d.order_id,d.delivered_at,oi.product_id,
+        NULLIF(COALESCE(oi.metadata->>'variantId',oi.metadata->>'variant_id'),''),
+        pr.interval_target_days
     ),
     ordered AS (
       SELECT
@@ -919,6 +1199,10 @@ export async function planCustomerLifecycleJobs() {
         o.order_id,
         o.delivered_at,
         o.product_id,
+        o.variant_id,
+        o.variant_label,
+        o.purchased_quantity,
+        o.unit_target_days,
         o.interval_target_days,
         o.rn,
         1::bigint AS bundle_no,
@@ -933,6 +1217,10 @@ export async function planCustomerLifecycleJobs() {
         o.order_id,
         o.delivered_at,
         o.product_id,
+        o.variant_id,
+        o.variant_label,
+        o.purchased_quantity,
+        o.unit_target_days,
         o.interval_target_days,
         o.rn,
         CASE
@@ -960,8 +1248,15 @@ export async function planCustomerLifecycleJobs() {
         MAX(g.interval_target_days)::int AS latest_target_days,
         jsonb_agg(to_jsonb(g.product_id) ORDER BY g.interval_target_days,g.product_id) AS product_ids,
         jsonb_agg(
-          jsonb_build_object('productId',g.product_id,'targetDays',g.interval_target_days)
-          ORDER BY g.interval_target_days,g.product_id
+          jsonb_build_object(
+            'productId',g.product_id,
+            'variantId',g.variant_id,
+            'variantLabel',g.variant_label,
+            'quantity',g.purchased_quantity,
+            'unitTargetDays',g.unit_target_days,
+            'targetDays',g.interval_target_days
+          )
+          ORDER BY g.interval_target_days,g.product_id,g.variant_id
         ) AS product_schedule
       FROM grouped g
       GROUP BY g.customer_phone,g.order_id,g.delivered_at,g.bundle_no
@@ -1007,7 +1302,20 @@ export async function planCustomerLifecycleJobs() {
     FROM public.orders o
     WHERE o.id=j.order_id
       AND j.status IN ('planned','ready')
-      AND (o.status<>'delivered' OR o.payment_status<>'paid' OR COALESCE(o.cod_received,false)=false)
+      AND (
+        o.status<>'delivered'
+        OR o.payment_status<>'paid'
+        OR NOT (
+          o.cod_received=true
+          OR EXISTS (
+            SELECT 1
+            FROM public.payments realized_payment
+            WHERE realized_payment.order_id=o.id
+              AND realized_payment.method IN ('wayl','alqaseh')
+              AND realized_payment.status='completed'
+          )
+        )
+      )
   `);
 
   await db.execute(sql`
@@ -1022,7 +1330,16 @@ export async function planCustomerLifecycleJobs() {
             WHERE COALESCE(later.is_test,false)=false
               AND later.status='delivered'
               AND later.payment_status='paid'
-              AND later.cod_received=true
+              AND (
+                later.cod_received=true
+                OR EXISTS (
+                  SELECT 1
+                  FROM public.payments later_payment
+                  WHERE later_payment.order_id=later.id
+                    AND later_payment.method IN ('wayl','alqaseh')
+                    AND later_payment.status='completed'
+                )
+              )
               AND public.aquavo_normalize_iraqi_phone(later.customer_phone)=j.customer_phone
               AND later.created_at > (
                 SELECT original.created_at FROM public.orders original WHERE original.id=j.order_id

@@ -2,6 +2,7 @@ import { createHmac } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import {
   extractDeliveryCareButtonReplyEvents,
+  extractWhatsAppCustomerTextEvents,
   extractWhatsAppStatusEvents,
   verifyMetaWebhookSignature,
 } from "../routes/whatsapp-webhook.js";
@@ -153,8 +154,8 @@ describe("WhatsApp webhook security and payload parsing", () => {
     ]);
   });
 
-  it("extracts a contextual text variant for downstream exact-choice validation", () => {
-    const events = extractDeliveryCareButtonReplyEvents({
+  it("extracts contextual and ordinary text replies for buttonless templates", () => {
+    const payload = {
       object: "whatsapp_business_account",
       entry: [
         {
@@ -169,7 +170,14 @@ describe("WhatsApp webhook security and payload parsing", () => {
                     id: "wamid.customer-text-reply",
                     timestamp: "1700000102",
                     type: "text",
-                    text: { body: "عندي ملاحظة عالطلب" },
+                    text: { body: "أحتاجه" },
+                  },
+                  {
+                    from: "9647721310937",
+                    id: "wamid.customer-text-no-context",
+                    timestamp: "1700000103",
+                    type: "text",
+                    text: { body: "عندي سؤال عن الطلب" },
                   },
                 ],
               },
@@ -177,21 +185,28 @@ describe("WhatsApp webhook security and payload parsing", () => {
           ],
         },
       ],
-    });
+    };
 
-    expect(events).toEqual([
+    expect(extractDeliveryCareButtonReplyEvents(payload)).toEqual([]);
+    expect(extractWhatsAppCustomerTextEvents(payload)).toEqual([
       {
         inboundMessageId: "wamid.customer-text-reply",
         contextProviderMessageId: "wamid.original-template",
         fromPhone: "9647721310937",
         receivedAt: new Date(1700000102 * 1000),
-        payload: "",
-        buttonText: "عندي ملاحظة عالطلب",
+        text: "أحتاجه",
+      },
+      {
+        inboundMessageId: "wamid.customer-text-no-context",
+        contextProviderMessageId: null,
+        fromPhone: "9647721310937",
+        receivedAt: new Date(1700000103 * 1000),
+        text: "عندي سؤال عن الطلب",
       },
     ]);
   });
 
-  it("ignores ordinary incoming text and malformed button callbacks", () => {
+  it("keeps ordinary text out of the legacy button extractor and rejects malformed callbacks", () => {
     const events = extractDeliveryCareButtonReplyEvents({
       object: "whatsapp_business_account",
       entry: [

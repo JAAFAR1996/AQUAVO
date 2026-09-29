@@ -39,6 +39,10 @@ Rule-generated profiles cover fish food, test supplies, filter cotton, activated
 
 Manual/observed profiles are not overwritten by rule refreshes.
 
+Repurchase timing is quantity- and variant-aware. Rule profiles treat the target interval as a per-pack baseline. When a consumable has size variants, Growth OS parses normalized pack measures from the variant label/specifications (for example g/kg, ml/L, strip/piece counts) and scales the rule interval relative to the product's default or median comparable pack size. The order planner then multiplies that per-pack interval by the purchased quantity, capped at 365 days.
+
+Observed learning is also normalized per purchased unit and partitioned by exact variant. For example, if a customer bought two identical packs and repurchased 70 days later, the evidence contributes roughly 35 days per pack. After enough realized repeat evidence, the observed median replaces the rule estimate for that exact SKU/variant. Legacy or unparseable variants safely fall back to the product-level profile rather than being dropped.
+
 ## Customer aquarium profiles
 
 AQUAVO already has canonical phone-centric `customer_profiles`, maintained by 0090 order triggers. Growth OS enriches that same record with tank volume/dimensions, livestock, plants, filter, heater, water profile and goals.

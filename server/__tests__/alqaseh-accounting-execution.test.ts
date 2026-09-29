@@ -7,10 +7,22 @@ const migration = readFileSync(
   join(process.cwd(), "migrations/20260825_alqaseh_online_accounting.sql"),
   "utf8",
 );
+const waylMigration = readFileSync(
+  join(process.cwd(), "migrations/0095_wayl_delivery_accounting.sql"),
+  "utf8",
+);
 
-async function accountingDb(): Promise<PGlite> {
+async function accountingDb(options: { wayl?: boolean } = {}): Promise<PGlite> {
   const db = new PGlite();
   await db.exec(String.raw`
+    CREATE TABLE schema_migrations(
+      version text PRIMARY KEY,
+      checksum text NOT NULL,
+      notes text,
+      applied_at timestamptz NOT NULL DEFAULT now(),
+      rolled_back_at timestamptz
+    );
+
     CREATE TABLE orders(
       id text PRIMARY KEY,
       order_number text NOT NULL,
@@ -140,6 +152,7 @@ async function accountingDb(): Promise<PGlite> {
   `);
 
   await db.exec(migration);
+  if (options.wayl) await db.exec(waylMigration);
   await db.exec(`
     CREATE TRIGGER orders_record_delivery_accounting
     AFTER UPDATE OF status ON orders
@@ -151,7 +164,13 @@ async function accountingDb(): Promise<PGlite> {
 async function seedOrder(
   db: PGlite,
   id: string,
-  options: { online?: boolean; paymentStatus?: string; paymentAmount?: number; carrier?: string } = {},
+  options: {
+    online?: boolean;
+    onlineMethod?: "alqaseh" | "wayl";
+    paymentStatus?: string;
+    paymentAmount?: number;
+    carrier?: string;
+  } = {},
 ): Promise<void> {
   const paymentStatus = options.paymentStatus ?? (options.online ? "paid" : "pending");
   const carrier = options.carrier ?? "Fast Carrier";
@@ -171,7 +190,10 @@ async function seedOrder(
     const status = paymentStatus === "paid" ? "completed" : "pending";
     await db.exec(`
       INSERT INTO payments(id,order_id,amount,currency,method,status,transaction_id)
-      VALUES ('pay-${id}','${id}',${amount},'IQD','alqaseh','${status}','alq-${id}');
+      VALUES (
+        'pay-${id}','${id}',${amount},'IQD','${options.onlineMethod ?? "alqaseh"}',
+        '${status}','${options.onlineMethod === "wayl" ? "wayl" : "alq"}-${id}'
+      );
     `);
   }
 }
@@ -230,6 +252,61 @@ describe("Al-Qaseh delivery accounting execution", () => {
       SELECT COUNT(*)::int count FROM payment_events WHERE order_id='online' AND event_type='cod_received'
     `);
     expect(cod.rows[0]?.count).toBe(0);
+  });
+
+  it("records a verified Wayl delivery as bank capture and keeps journal posting idempotent", async () => {
+    const db = await accountingDb({ wayl: true });
+    await seedOrder(db, "wayl-online", { online: true, onlineMethod: "wayl" });
+    await deliver(db, "wayl-online");
+
+    const events = await db.query<Record<string, string>>(`
+      SELECT event_type,method,provider,provider_transaction_id,amount::text amount
+      FROM payment_events WHERE order_id='wayl-online'
+    `);
+    expect(events.rows).toHaveLength(1);
+    expect(events.rows[0]).toMatchObject({
+      event_type: "capture",
+      method: "wayl",
+      provider: "wayl",
+      provider_transaction_id: "wayl-wayl-online",
+      amount: "30000",
+    });
+
+    const facts = await db.query<Record<string, string>>(`
+      SELECT id,cash_custody,policy_version,evidence->>'payment_method' payment_method
+      FROM order_accounting_facts WHERE order_id='wayl-online'
+    `);
+    expect(facts.rows[0]).toMatchObject({
+      cash_custody: "bank",
+      policy_version: "v7_wayl_online_accounting",
+      payment_method: "wayl",
+    });
+
+    const bankLine = await db.query<Record<string, string>>(`
+      SELECT account_code,debit::text debit,dimensions->>'payment_method' payment_method
+      FROM journal_lines
+      WHERE entry_id=(SELECT id FROM journal_entries WHERE source_id='wayl-online')
+        AND account_code='1010'
+    `);
+    expect(bankLine.rows[0]).toMatchObject({
+      account_code: "1010",
+      debit: "30000",
+      payment_method: "wayl",
+    });
+
+    const firstJournal = await db.query<{ id: string }>(`
+      SELECT id FROM journal_entries
+      WHERE source_id='wayl-online' AND event_kind='delivery_recognition'
+    `);
+    const replay = await db.query<{ id: string }>(`
+      SELECT post_order_delivery_journal('${facts.rows[0]!.id}') AS id
+    `);
+    const journalCount = await db.query<{ count: number }>(`
+      SELECT COUNT(*)::int count FROM journal_entries
+      WHERE source_id='wayl-online' AND event_kind='delivery_recognition'
+    `);
+    expect(replay.rows[0]?.id).toBe(firstJournal.rows[0]?.id);
+    expect(journalCount.rows[0]?.count).toBe(1);
   });
 
   it("preserves COD delivery accounting when there is no online payment", async () => {

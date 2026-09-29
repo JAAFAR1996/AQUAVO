@@ -7,25 +7,26 @@ const service = readFileSync(
   "utf8",
 );
 
-describe("WhatsApp template 132018 recovery", () => {
-  it("retries an explicitly rejected template once without Quick Reply payload parameters", () => {
-    expect(service).toContain("includeQuickReplyPayloads");
-    expect(service).toContain("attempt.response.status === 400");
-    expect(service).toContain("Number(attempt.body.error?.code) === 132018");
-    expect(service).toContain("attempt = await requestTemplate(false)");
+describe("WhatsApp delivery-care template transport safety", () => {
+  it("sends the current approved-shape template without Quick Reply payload components", () => {
+    expect(service).toContain("sendDeliveryCareTemplate");
+    expect(service).toContain('type: "body"');
+    expect(service).toContain('parameters: [{ type: "text", text: customerFirstName }]');
+    expect(service).not.toContain('sub_type: "quick_reply"');
+    expect(service).not.toContain("DELIVERY_CARE_OK_PAYLOAD");
+    expect(service).not.toContain("DELIVERY_CARE_ISSUE_PAYLOAD");
   });
 
-  it("preserves the normal Quick Reply payload path first", () => {
-    expect(service).toContain("let attempt = await requestTemplate(true)");
-    expect(service).toContain('sub_type: "quick_reply"');
-    expect(service).toContain("DELIVERY_CARE_OK_PAYLOAD");
-    expect(service).toContain("DELIVERY_CARE_ISSUE_PAYLOAD");
-  });
-
-  it("does not classify the explicit 132018 fallback as a blind transport retry", () => {
-    expect(service).toContain("HTTP 400");
-    expect(service).toContain("safe from duplicate delivery");
+  it("does not blindly retry ambiguous network, timeout or acceptance outcomes", () => {
     expect(service).toContain("WHATSAPP_TIMEOUT_AMBIGUOUS");
     expect(service).toContain("WHATSAPP_NETWORK_AMBIGUOUS");
+    expect(service).toContain("WHATSAPP_ACCEPTANCE_AMBIGUOUS");
+    expect(service).toContain("const retryable = response.status === 429 || response.status >= 500");
+  });
+
+  it("persists provider acceptance by wamid before later webhook delivery/read truth", () => {
+    expect(service).toContain("providerMessageId");
+    expect(service).toContain("provider_status=CASE WHEN status='sending' THEN 'accepted'");
+    expect(service).toContain("reconcileWhatsAppProviderEvents(providerMessageId)");
   });
 });

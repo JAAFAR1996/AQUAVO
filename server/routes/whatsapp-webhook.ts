@@ -19,6 +19,10 @@ import {
   handleLifecycleReply,
   recordPendingLifecycleReply,
 } from "../services/whatsapp-lifecycle.js";
+import {
+  handleWhatsAppCustomerText,
+  type WhatsAppCustomerTextEvent,
+} from "../services/whatsapp-customer-text-replies.js";
 
 type RawBodyRequest = Request & { rawBody?: Buffer };
 
@@ -89,12 +93,12 @@ const interactiveReplyMessageSchema = z.object({
 // contextual text reply. We only surface contextual text here; the downstream
 // delivery-care contract still accepts only AQUAVO's two exact choices and the
 // handler still requires context.id + sender phone to match the completed job.
-const contextualTextReplyMessageSchema = z.object({
+const customerTextMessageSchema = z.object({
   id: z.string().trim().min(1).max(500),
   from: z.string().regex(/^\d{5,20}$/),
   timestamp: unixTimestampSchema,
   type: z.literal("text"),
-  context: messageContextSchema,
+  context: messageContextSchema.optional(),
   text: z.object({
     body: z.string().trim().min(1).max(2048),
   }).passthrough(),
@@ -233,25 +237,42 @@ export function extractDeliveryCareButtonReplyEvents(
           continue;
         }
 
-        const parsedText = contextualTextReplyMessageSchema.safeParse(rawMessage);
-        if (!parsedText.success) continue;
-        const message = parsedText.data;
-        const timestampSeconds = Number(message.timestamp);
-        const receivedAt = new Date(timestampSeconds * 1000);
-        if (!Number.isFinite(receivedAt.getTime())) continue;
-
-        events.push({
-          inboundMessageId: message.id,
-          contextProviderMessageId: message.context.id,
-          fromPhone: message.from,
-          receivedAt,
-          payload: "",
-          buttonText: message.text.body.trim(),
-        });
       }
     }
   }
 
+  return events;
+}
+
+export function extractWhatsAppCustomerTextEvents(
+  payload: unknown,
+): WhatsAppCustomerTextEvent[] {
+  const root=webhookEnvelopeSchema.safeParse(payload);
+  if (!root.success) return [];
+
+  const events: WhatsAppCustomerTextEvent[]=[];
+  for (const entry of root.data.entry) {
+    for (const change of entry.changes) {
+      if (change.field!=="messages") continue;
+      const value=messagesValueSchema.safeParse(change.value);
+      if (!value.success) continue;
+
+      for (const rawMessage of value.data.messages) {
+        const parsed=customerTextMessageSchema.safeParse(rawMessage);
+        if (!parsed.success) continue;
+        const message=parsed.data;
+        const receivedAt=new Date(Number(message.timestamp)*1000);
+        if (!Number.isFinite(receivedAt.getTime())) continue;
+        events.push({
+          inboundMessageId:message.id,
+          contextProviderMessageId:message.context?.id ?? null,
+          fromPhone:message.from,
+          receivedAt,
+          text:message.text.body.trim(),
+        });
+      }
+    }
+  }
   return events;
 }
 
@@ -301,12 +322,39 @@ export function createWhatsAppWebhookRouter(): RouterType {
 
     const statusEvents = extractWhatsAppStatusEvents(payload);
     const buttonReplyEvents = extractDeliveryCareButtonReplyEvents(payload);
+    const customerTextEvents = extractWhatsAppCustomerTextEvents(payload);
 
     try {
       // Persist signed provider lifecycle status first. If wamid acceptance is
       // still racing, the existing durable inbox retains it for reconciliation.
       for (const event of statusEvents) {
         await recordWhatsAppProviderStatusEvent(event);
+      }
+
+      let textRepliesHandled = 0;
+      for (const event of customerTextEvents) {
+        const lifecycle = await handleLifecycleReply({
+          inboundMessageId: event.inboundMessageId,
+          contextProviderMessageId: event.contextProviderMessageId ?? "",
+          fromPhone: event.fromPhone,
+          receivedAt: event.receivedAt,
+          payload: "",
+          buttonText: event.text,
+        });
+        if (lifecycle === "db_unavailable") {
+          res.status(503).json({ code: "WEBHOOK_PERSISTENCE_FAILED" });
+          return;
+        }
+
+        const result = await handleWhatsAppCustomerText({
+          ...event,
+          suppressOperatorAlert: lifecycle === "handled" || lifecycle === "duplicate",
+        });
+        if (result === "db_unavailable") {
+          res.status(503).json({ code: "WEBHOOK_PERSISTENCE_FAILED" });
+          return;
+        }
+        if (result === "handled" || result === "duplicate") textRepliesHandled += 1;
       }
 
       let buttonRepliesHandled = 0;
@@ -369,6 +417,8 @@ export function createWhatsAppWebhookRouter(): RouterType {
         events: statusEvents.length,
         buttonReplies: buttonReplyEvents.length,
         buttonRepliesHandled,
+        textReplies: customerTextEvents.length,
+        textRepliesHandled,
       });
     } catch {
       // Non-2xx deliberately asks Meta to retry a verified event when persistence

@@ -11,36 +11,25 @@ The design follows current WhatsApp Business Platform behavior and current 2026 
 - Proactive marketing should be expected by the customer and backed by clear opt-in.
 - Marketing experiences should provide an easy stop/unsubscribe path.
 - A successful Cloud API response with a `wamid` means Meta accepted the send; handset delivery/read truth comes later from signed webhook status events.
-- Quick Reply buttons are supported on approved templates and can be used for support/opt-out actions.
+- Current AQUAVO lifecycle templates are intentionally buttonless. Legacy Quick Reply webhook recovery remains only for historical provider callbacks; new outbound lifecycle sends do not attach Quick Reply components.
 
 The production design therefore keeps service follow-up and marketing replenishment as two separate approved templates.
 
 ## Lifecycle
 
-### 0. Immediate delivery care — already existing
+### 0. Immediate delivery care
 
-Trigger: admin changes the order to `delivered`.
+Trigger: admin changes a real order to `delivered`.
 
-Existing transactional outbox:
-`customer_message_jobs.job_type='delivery_care'`
+Template: `aquavo_delivery_care_v1`  
+Category: **MARKETING**  
+Variables: one (`{{1}}` = customer first name)  
+Buttons: none
 
-This path remains isolated and unchanged.
-
-### 0b. Optional delivery UGC incentive — consent-gated
-
-For customers with a current explicit WhatsApp marketing opt-in, the immediate
-`delivery_care` job can use `aquavo_delivery_care_ugc_v1` instead of the Utility
-delivery-care template. It is a **MARKETING** template because it includes the
-5% Story / 10% Reels incentive.
-
-This is not a second message. AQUAVO selects exactly one immediate template:
-
-- opted in + Marketing template fully activated → combined care + UGC incentive;
-- otherwise → existing Utility delivery-care template.
-
-The Marketing variant has its own feature flag and activation instant, so an older
-delivery-care job cannot change category during a retry. It remains disabled until the
-exact template is Approved/Active in WhatsApp Manager.
+The same message contains both the delivery check-in and the Instagram Story/Reels
+5% / 10% reward. Because the discount/reward is promotional, there is no Utility
+fallback for this template. Sending requires a current WhatsApp marketing opt-in.
+Without current consent the outbox is cancelled with `MARKETING_OPT_IN_REQUIRED`.
 
 ### 1. Day-7 service follow-up
 
@@ -50,109 +39,120 @@ Schedule: 11:30 Asia/Baghdad.
 
 Category: **UTILITY**
 
-Template name:
-`aquavo_day7_care_v1`
+Template: `aquavo_day7_care_v1`
 
 Body:
 
 هلا أستاذ {{1}}
-صار تقريباً أسبوع على استلام طلبك رقم {{2}} من AQUAVO.
-حبينا نطمن: كلشي تمام ويا المنتجات والحوض؟
-إذا عندك أي ملاحظة أو تحتاج مساعدة، رد علينا هنا.
+صار تقريباً أسبوع على استلام طلبك من AQUAVO.
+حبينا نطمن عليك: كلشي تمام لحد هسة ويا المنتجات والحوض؟
+إذا أكو أي ملاحظة، حتى لو بسيطة، رد علينا هنا ونساعدك بيها.
 
-Quick Replies:
-
-1. `كلشي تمام`
-2. `أحتاج مساعدة`
-
-The job is suppressed if the order stops being eligible or an existing delivery-care reply already shows a support issue.
+One body variable, no buttons. Day-7 remains a Utility/service template, but any
+business-initiated WhatsApp send still requires a current AQUAVO WhatsApp opt-in.
+A later opt-out suppresses pending Day-7 and replenishment jobs.
 
 ### 2. Replenishment reminder
 
-Trigger: product-specific expected replenishment timing from `product_repurchase_profiles`.
-
-AQUAVO now schedules replenishment independently per consumable product. Each job has a durable `scope_key=product:<product_id>` and its own due date from that product's target interval. If another repurchase Marketing message was accepted for the same customer inside the 30-day frequency window, the later product reminder is deferred to the next allowed instant rather than discarded.
-
-Production rollout is controlled by `public.whatsapp_lifecycle_runtime_config`. The activation timestamp is written at rollout time, so orders delivered before activation never enter the automatic repurchase stream. The table contains no provider secrets; WhatsApp credentials remain environment variables.
+Trigger: quantity/variant-aware expected replenishment timing from Growth OS.
 
 Schedule: 12:30 Asia/Baghdad.
 
 Category: **MARKETING**
 
-Template name:
-`aquavo_repurchase_reminder_v1`
+Template: `aquavo_repurchase_reminder_v1`
 
 Body:
 
 هلا أستاذ {{1}}
-حسب طلبك السابق من AQUAVO، ممكن يكون {{2}} قرب يخلص.
-إذا تحتاجه من جديد، نراجع احتياج حوضك ونرتبلك المناسب فقط.
+إذا {{2}} قرب يخلص عندك، حبينا نذكّرك بيه بوقت مناسب.
+إذا تحتاجه من جديد، دزلنا هنا ونرتبلك المناسب.
 
-Quick Replies:
+Two body variables, no buttons. Current marketing consent is mandatory.
 
-1. `أحتاجه`
-2. `إيقاف التذكيرات`
-
-This message is allowed only when the canonical customer profile has a current explicit WhatsApp marketing opt-in.
+Timing uses the exact purchased variant/pack size when available, purchased quantity,
+and realized repeat-purchase cadence. Nearby consumables may be grouped into one
+reminder; a later purchase suppresses stale recommendations.
 
 ## Consent model
 
-Checkout shows a separate, optional, unchecked WhatsApp marketing consent control.
+The existing required Terms acceptance is the storefront consent control. When accepted,
+checkout sends `whatsappMarketingOptIn=true`; test-mode orders force it false.
 
-The consent is not bundled into acceptance of store Terms.
+The order-level consent flag and timestamp are written inside the same order-creation
+transaction for both COD and Wayl. Projection to `customer_profiles` and the append-only
+`customer_messaging_consent_events` ledger happens after commit and is repairable from
+the durable order evidence.
 
-A true checkout opt-in is written to the order and then rolled into the canonical phone-centric `customer_profiles` record. Every opt-in/opt-out is preserved in the append-only `customer_messaging_consent_events` ledger.
+A later explicit WhatsApp opt-out wins over an older opt-in. An order that does not add
+new consent never revokes a previous consent by itself.
 
-An unchecked box does **not** mean opt-out and never revokes prior consent.
+## Free-text replies
 
-The repurchase template's `إيقاف التذكيرات` button performs an explicit opt-out and suppresses all still-open repurchase jobs for that phone.
+Current templates have no Quick Reply buttons. Normal `type="text"` webhook messages are
+persisted idempotently in `whatsapp_customer_text_events`.
 
-Day-7 service follow-up does not depend on marketing consent.
+Correlation uses Meta `context.id` when present; otherwise it falls back to the same
+phone's most recent completed AQUAVO WhatsApp lifecycle message inside a bounded 30-day
+window. Recognized lifecycle text such as repurchase interest / stop or Day-7 help is
+also applied to the lifecycle job. Generic text is surfaced to human support through
+Telegram. Alert failures remain durable and are retried by the five-minute worker.
+
+Explicit stop phrases record a canonical marketing opt-out and suppress pending
+replenishment jobs.
 
 ## Anti-spam / quality controls
 
 The automation is deliberately conservative:
 
 - no test orders;
-- only delivered + paid + COD-received realized orders;
+- only delivered + paid orders with financial realization evidence;
+- COD requires `cod_received=true`;
+- verified online orders require `payments.method IN ('wayl','alqaseh')` and `status='completed'`;
 - no stale pre-activation backlog;
 - daytime-only sending: 10:00–19:30 Asia/Baghdad;
-- day-7 backlog limited by the planner window;
-- no repurchase marketing without explicit current opt-in;
+- no repurchase marketing without current opt-in;
 - maximum one accepted repurchase marketing message per customer per 30 days;
-- no repurchase reminder if the relevant product has already been repurchased;
-- no repurchase reminder if no recommended product is currently storefront-visible and in stock;
-- no lifecycle message when the immediate delivery-care path already records a customer issue;
+- no reminder for already-replenished or unavailable products;
+- no lifecycle marketing while a support issue is open;
 - provider timeout/network ambiguity is never blindly resent;
-- only explicit 429/5xx send failures receive bounded retry/backoff;
-- provider `sent/delivered/read/failed` is stored from the signed webhook and cannot regress on out-of-order events.
+- only explicit 429/5xx failures use bounded retry;
+- provider `sent/delivered/read/failed` state is reconciled from signed webhooks.
 
 ## Rollout gates
 
-All new automation fails closed until these are explicitly configured:
+All lifecycle automation fails closed until the approved template names and rollout
+boundary are configured.
 
-`WHATSAPP_LIFECYCLE_ENABLED=true`
+Immediate delivery care:
+`WHATSAPP_DELIVERY_CARE_TEMPLATE=aquavo_delivery_care_v1`
 
-`WHATSAPP_LIFECYCLE_ACTIVATION_AT=<controlled UTC instant>`
-
+Day-7:
 `WHATSAPP_DAY7_CARE_TEMPLATE=aquavo_day7_care_v1`
+`WHATSAPP_DAY7_TEMPLATE_APPROVED=true` only after WhatsApp Manager shows the exact template Approved/Active.
 
-Replenishment has a second independent gate:
-
-`WHATSAPP_REPURCHASE_ENABLED=true`
-
+Replenishment:
 `WHATSAPP_REPURCHASE_TEMPLATE=aquavo_repurchase_reminder_v1`
+`WHATSAPP_REPURCHASE_TEMPLATE_APPROVED=true` only after WhatsApp Manager shows the exact template Approved/Active.
 
-Do not enable a template name until WhatsApp Manager shows the exact template as approved/active in its intended category.
+Production runtime config in `whatsapp_lifecycle_runtime_config` controls activation of
+Day-7 and replenishment. Migration `0097_whatsapp_lifecycle_fail_closed` deliberately
+keeps both disabled until WhatsApp Manager shows the exact templates Approved/Active;
+activation must then set a fresh boundary so no stale backlog is sent. Provider credentials
+remain environment secrets.
+
+Before merge, CI must run against the final PR head, including any verified dependency-lock
+refresh committed by automation.
 
 ## Worker
 
-The existing protected five-minute customer-messaging worker now runs both:
+The protected five-minute customer-messaging worker runs:
 
 - immediate delivery-care recovery;
-- Growth OS lifecycle automation.
-
-The worker also reconciles lifecycle quick-reply races and cleans the bounded reply inbox.
+- Day-7 / replenishment lifecycle sending;
+- provider-status reconciliation;
+- free-text support-alert recovery;
+- bounded cleanup of reply/provider inboxes.
 
 ## Delivery truth
 

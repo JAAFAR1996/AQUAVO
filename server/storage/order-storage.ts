@@ -72,6 +72,7 @@ interface CreateOrderLoyaltyOptions {
 interface OrderCommerceContext {
     viewSessionId?: string;
     attribution?: Record<string, string>;
+    whatsappMarketingOptIn?: boolean;
 }
 
 type OrderWithLoyalty = Order & {
@@ -405,6 +406,12 @@ export class OrderStorage {
                 customerName: customerInfo.name,
                 customerEmail: customerInfo.email,
                 customerPhone: customerInfo.phone,
+                // Consent evidence must be committed atomically with the order.
+                // CRM/event fan-out is post-commit and repairable from these fields.
+                whatsappMarketingOptIn: commerceContext.whatsappMarketingOptIn === true,
+                whatsappMarketingOptInAt: commerceContext.whatsappMarketingOptIn === true
+                    ? snapshotAt
+                    : undefined,
 
                 // Durable funnel + acquisition snapshot. These values are
                 // browser-generated opaque/campaign identifiers only; customer

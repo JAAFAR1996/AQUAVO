@@ -47,6 +47,7 @@ export interface OnlineCheckoutInput {
   userId: string | null;
   sessionId?: string;
   attribution?: Record<string, string>;
+  whatsappMarketingOptIn?: boolean;
   customerInfo: {
     name: string;
     phone: string;
@@ -454,6 +455,10 @@ export async function prepareOnlineOrder(input: OnlineCheckoutInput): Promise<Pr
           customerName: input.customerInfo.name,
           customerEmail: input.customerInfo.email || undefined,
           customerPhone: input.customerInfo.phone,
+          whatsappMarketingOptIn: input.whatsappMarketingOptIn === true,
+          whatsappMarketingOptInAt: input.whatsappMarketingOptIn === true
+            ? snapshotAt
+            : undefined,
           source: "website",
           viewSessionId: input.sessionId,
           aqSid: input.attribution?.aq_sid,

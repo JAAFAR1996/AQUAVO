@@ -197,13 +197,14 @@ export function createWaylRouter() {
           ? parsed.data.clientSessionId
           : (req as any).sessionID,
         attribution: parsed.data.attribution,
+        whatsappMarketingOptIn: parsed.data.whatsappMarketingOptIn,
         customerInfo: parsed.data.customerInfo,
         items: parsed.data.items,
         couponCode: parsed.data.couponCode,
         useCashback: parsed.data.useCashback,
         cashbackToUse: parsed.data.cashbackToUse,
       });
-      if (parsed.data.whatsappMarketingOptIn) {
+      if ((prepared.order as any).whatsappMarketingOptIn) {
         try {
           const consent = await recordCheckoutWhatsAppMarketingOptIn(prepared.order.id);
           if (!consent.ok) {

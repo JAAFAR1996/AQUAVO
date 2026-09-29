@@ -7,6 +7,7 @@ import { runDueDeliveryCareJobs } from "../services/customer-messaging.js";
 import { cleanupDeliveryCareButtonInbox } from "../services/whatsapp-delivery-care-button-inbox.js";
 import { runResilientDeliveryCareAutoReplyRecovery } from "../services/whatsapp-delivery-care-recovery.js";
 import { cleanupWhatsAppProviderStatusEvents } from "../services/whatsapp-provider-status.js";
+import { runPendingWhatsAppCustomerTextAlerts } from "../services/whatsapp-customer-text-replies.js";
 import { runResilientFinanceAudit } from "../services/groq-finance-audit-resilient.js";
 import { smartNotifications } from "../services/smart-notifications.js";
 import { runPaymentMaintenance } from "../services/payment-maintenance.js";
@@ -271,6 +272,14 @@ router.get("/customer-messaging", async (_req: Request, res: Response) => {
       autoReplyRecoveryFailed = true;
     }
 
+    let customerTextAlerts: Awaited<ReturnType<typeof runPendingWhatsAppCustomerTextAlerts>> | null = null;
+    let customerTextAlertsFailed = false;
+    try {
+      customerTextAlerts = await runPendingWhatsAppCustomerTextAlerts(20);
+    } catch {
+      customerTextAlertsFailed = true;
+    }
+
     let providerEventsCleaned = 0;
     try {
       providerEventsCleaned = await cleanupWhatsAppProviderStatusEvents(500);
@@ -308,6 +317,8 @@ router.get("/customer-messaging", async (_req: Request, res: Response) => {
         lifecycleRepliesReconciled,
         autoReplies,
         autoReplyRecoveryFailed,
+        customerTextAlerts,
+        customerTextAlertsFailed,
         providerEventsCleaned,
         buttonInboxEventsCleaned,
         lifecycleInboxEventsCleaned,
@@ -322,6 +333,8 @@ router.get("/customer-messaging", async (_req: Request, res: Response) => {
       lifecycleRepliesReconciled,
       autoReplies,
       autoReplyRecoveryFailed,
+      customerTextAlerts,
+      customerTextAlertsFailed,
       providerEventsCleaned,
       buttonInboxEventsCleaned,
       lifecycleInboxEventsCleaned,
