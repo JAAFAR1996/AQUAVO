@@ -48,8 +48,9 @@ Body:
 حبينا نطمن عليك: كلشي تمام لحد هسة ويا المنتجات والحوض؟
 إذا أكو أي ملاحظة، حتى لو بسيطة، رد علينا هنا ونساعدك بيها.
 
-One body variable, no buttons. Day-7 is service-only and does not require marketing
-consent.
+One body variable, no buttons. Day-7 remains a Utility/service template, but any
+business-initiated WhatsApp send still requires a current AQUAVO WhatsApp opt-in.
+A later opt-out suppresses pending Day-7 and replenishment jobs.
 
 ### 2. Replenishment reminder
 
