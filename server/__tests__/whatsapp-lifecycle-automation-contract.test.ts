@@ -31,7 +31,7 @@ describe("automatic WhatsApp lifecycle contract",()=>{
   it("never treats an unchecked box as opt-out",()=>{
     const service=read("server/services/whatsapp-lifecycle.ts");
     const orders=read("server/routes/orders.ts");
-    expect(orders).toContain("if (whatsappMarketingOptIn)");
+    expect(orders).toContain("if ((order as any).whatsappMarketingOptIn)");
     expect(service).toContain("recordCheckoutWhatsAppMarketingOptIn");
     expect(service).toContain("whatsapp_marketing_opt_out_at");
     expect(service).not.toContain("whatsapp_marketing_opt_in=false,\n             whatsapp_marketing_opt_out_at=clock_timestamp()");
@@ -67,6 +67,36 @@ describe("automatic WhatsApp lifecycle contract",()=>{
     expect(growth).toContain("'variantId',g.variant_id");
     expect(growth).toContain("'quantity',g.purchased_quantity");
     expect(growth).toContain("packFactor=");
+  });
+
+  it("matches the approved buttonless day-7 and repurchase template shapes",()=>{
+    const service=read("server/services/whatsapp-lifecycle.ts");
+    expect(service).toContain("bodyParameters = [firstName];");
+    expect(service).toContain("bodyParameters = [firstName, productSummary];");
+    expect(service).not.toContain('sub_type: "quick_reply"');
+    expect(service).not.toContain("buttons: Array<{ index: string; payload: string }>");
+  });
+
+  it("accepts verified Wayl orders as financially eligible without pretending COD was received",()=>{
+    const lifecycle=read("server/services/whatsapp-lifecycle.ts");
+    const growth=read("server/services/growth-operating-system.ts");
+    const migration=read("migrations/0095_wayl_delivery_accounting.sql");
+    expect(lifecycle).toContain('context.paymentMethod === "wayl"');
+    expect(lifecycle).toContain('context.paymentRecordStatus === "completed"');
+    expect(growth).toContain("realized_payment.method IN ('wayl','alqaseh')");
+    expect(migration).toContain("v_payment_method IN ('alqaseh','wayl')");
+    expect(migration).toContain("ONLINE_CAPTURE_EVENT_MISSING_OR_MISMATCH");
+  });
+
+  it("stores checkout consent evidence in the order transaction before CRM projection",()=>{
+    const orderStorage=read("server/storage/order-storage.ts");
+    const orders=read("server/routes/orders.ts");
+    const wayl=read("server/services/wayl-order-payment.ts");
+    expect(orderStorage).toContain("whatsappMarketingOptIn: commerceContext.whatsappMarketingOptIn === true");
+    expect(orderStorage).toContain("whatsappMarketingOptInAt: commerceContext.whatsappMarketingOptIn === true");
+    expect(orders).toContain("whatsappMarketingOptIn,");
+    expect(wayl).toContain("whatsappMarketingOptIn: input.whatsappMarketingOptIn === true");
+    expect(wayl).toContain("whatsappMarketingOptInAt: input.whatsappMarketingOptIn === true");
   });
 
   it("groups nearby consumables from one order into one smart reminder",()=>{
@@ -123,7 +153,7 @@ describe("automatic WhatsApp lifecycle contract",()=>{
     expect(service).toContain("WHATSAPP_TIMEOUT_AMBIGUOUS");
     expect(service).toContain("WHATSAPP_NETWORK_AMBIGUOUS");
     expect(service).toContain("throw new LifecycleSendError(code, false)");
-    expect(service).toContain("attempt.response.status === 429 || attempt.response.status >= 500");
+    expect(service).toContain("response.status === 429 || response.status >= 500");
     expect(service).toContain("MAX_ATTEMPTS = 5");
   });
 
@@ -144,7 +174,7 @@ describe("automatic WhatsApp lifecycle contract",()=>{
     expect(lifecycle).toContain("latest_choice");
     expect(lifecycle).toContain("subsequent_choices");
     expect(lifecycle).toContain("Opt-out is terminal");
-    expect(lifecycle).toContain("setMarketingOptOut");
+    expect(lifecycle).toContain("recordWhatsAppMarketingOptOut");
     expect(growth).toContain("metadata->'reply'->>'latest_choice'");
   });
 
