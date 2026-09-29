@@ -133,7 +133,10 @@ Replenishment:
 `WHATSAPP_REPURCHASE_TEMPLATE=aquavo_repurchase_reminder_v1`
 
 Production runtime config in `whatsapp_lifecycle_runtime_config` controls activation of
-Day-7 and replenishment. Provider credentials remain environment secrets.
+Day-7 and replenishment. Migration `0097_whatsapp_lifecycle_fail_closed` deliberately
+keeps both disabled until WhatsApp Manager shows the exact templates Approved/Active;
+activation must then set a fresh boundary so no stale backlog is sent. Provider credentials
+remain environment secrets.
 
 ## Worker
 
