@@ -10,6 +10,15 @@ describe("Google Ads tag wiring", () => {
     expect(html).toContain("gtag('config', 'AW-18476435110')");
   });
 
+  it("does not load the production Google tag on unique Vercel preview hosts", () => {
+    const html = readFileSync(resolve(process.cwd(), "client/index.html"), "utf8");
+
+    expect(html).toContain("hostname.endsWith('.vercel.app')");
+    expect(html).toContain("hostname !== 'aquavo.vercel.app'");
+    expect(html).toContain("if (isUniqueVercelDeployment) return;");
+    expect(html).toContain("document.head.appendChild(script)");
+  });
+
 
   it("allows the exact Google Ads endpoints reported by Tag Diagnostics", () => {
     const vercel = JSON.parse(readFileSync(resolve(process.cwd(), "vercel.json"), "utf8"));
