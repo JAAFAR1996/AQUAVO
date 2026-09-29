@@ -201,6 +201,13 @@ describe("automatic WhatsApp lifecycle contract",()=>{
     expect(cron).toContain("cleanupLifecycleReplyInbox(500)");
   });
 
+  it("requires current WhatsApp consent before Day-7 or repurchase sends",()=>{
+    const service=read("server/services/whatsapp-lifecycle.ts");
+    expect(service).toContain("WHATSAPP_OPT_IN_REQUIRED");
+    expect(service).toContain("MARKETING_OPT_IN_REQUIRED");
+    expect(service).toContain("day7_care','repurchase");
+  });
+
   it("matches the approved buttonless lifecycle template shapes",()=>{
     const service=read("server/services/whatsapp-lifecycle.ts");
     const env=read(".env.example");
