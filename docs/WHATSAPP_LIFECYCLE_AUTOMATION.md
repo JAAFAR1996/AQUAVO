@@ -11,7 +11,7 @@ The design follows current WhatsApp Business Platform behavior and current 2026 
 - Proactive marketing should be expected by the customer and backed by clear opt-in.
 - Marketing experiences should provide an easy stop/unsubscribe path.
 - A successful Cloud API response with a `wamid` means Meta accepted the send; handset delivery/read truth comes later from signed webhook status events.
-- Quick Reply buttons are supported on approved templates and can be used for support/opt-out actions.
+- Current AQUAVO lifecycle templates are intentionally buttonless. Legacy Quick Reply webhook recovery remains only for historical provider callbacks; new outbound lifecycle sends do not attach Quick Reply components.
 
 The production design therefore keeps service follow-up and marketing replenishment as two separate approved templates.
 
