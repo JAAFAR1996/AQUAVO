@@ -4,10 +4,6 @@ import {
   reconcilePendingWhatsAppProviderEvents,
   reconcileWhatsAppProviderEvents,
 } from "./whatsapp-provider-status.js";
-import {
-  DELIVERY_CARE_ISSUE_PAYLOAD,
-  DELIVERY_CARE_OK_PAYLOAD,
-} from "./whatsapp-delivery-care-contract.js";
 
 const WHATSAPP_REQUEST_TIMEOUT_MS = 7_000;
 const MAX_SEND_ATTEMPTS = 5;
@@ -71,9 +67,6 @@ type WhatsAppConfig = {
   phoneNumberId: string;
   accessToken: string;
   deliveryCareTemplate: string;
-  deliveryCareMarketingEnabled: boolean;
-  deliveryCareMarketingTemplate: string | null;
-  deliveryCareMarketingActivationAt: Date | null;
   languageCode: string;
   activationAt: Date;
 };
@@ -192,26 +185,10 @@ function readWhatsAppConfig(): WhatsAppConfig | null {
   const apiVersion = process.env.WHATSAPP_API_VERSION?.trim() ?? "";
   const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID?.trim() ?? "";
   const accessToken = process.env.WHATSAPP_ACCESS_TOKEN?.trim() ?? "";
+  // The approved AQUAVO delivery-care template itself contains the
+  // Story/Reels incentive, so it is a Marketing template. There is no Utility
+  // fallback: sending it requires current marketing consent.
   const deliveryCareTemplate = process.env.WHATSAPP_DELIVERY_CARE_TEMPLATE?.trim() ?? "";
-  const deliveryCareMarketingRequested =
-    process.env.WHATSAPP_DELIVERY_CARE_MARKETING_ENABLED?.trim().toLowerCase() === "true";
-  const deliveryCareMarketingTemplate =
-    process.env.WHATSAPP_DELIVERY_CARE_MARKETING_TEMPLATE?.trim() || null;
-  const marketingActivationRaw =
-    process.env.WHATSAPP_DELIVERY_CARE_MARKETING_ACTIVATION_AT?.trim() ?? "";
-  const parsedMarketingActivationAt = marketingActivationRaw
-    ? new Date(marketingActivationRaw)
-    : new Date(Number.NaN);
-  const deliveryCareMarketingActivationAt =
-    Number.isFinite(parsedMarketingActivationAt.getTime())
-      ? parsedMarketingActivationAt
-      : null;
-  const deliveryCareMarketingEnabled = Boolean(
-    deliveryCareMarketingRequested
-    && deliveryCareMarketingTemplate
-    && deliveryCareMarketingActivationAt
-    && deliveryCareMarketingActivationAt.getTime() <= Date.now()
-  );
   const languageCode = process.env.WHATSAPP_TEMPLATE_LANGUAGE?.trim() || "ar";
   const activationRaw = process.env.WHATSAPP_DELIVERY_CARE_ACTIVATION_AT?.trim() ?? "";
   const activationAt = activationRaw ? new Date(activationRaw) : new Date(Number.NaN);
@@ -228,9 +205,6 @@ function readWhatsAppConfig(): WhatsAppConfig | null {
     phoneNumberId,
     accessToken,
     deliveryCareTemplate,
-    deliveryCareMarketingEnabled,
-    deliveryCareMarketingTemplate,
-    deliveryCareMarketingActivationAt,
     languageCode,
     activationAt,
   };
@@ -340,101 +314,50 @@ async function sendDeliveryCareTemplate(
   config: WhatsAppConfig,
   recipientPhone: string,
   customerFirstName: string,
-  templateName: string,
 ): Promise<string> {
   const endpoint = `https://graph.facebook.com/${config.apiVersion}/${encodeURIComponent(config.phoneNumberId)}/messages`;
 
-  const requestTemplate = async (includeQuickReplyPayloads: boolean): Promise<{
-    response: Response;
-    body: MetaSendResponse;
-  }> => {
-    let response: Response;
-    try {
-      const components: Array<Record<string, unknown>> = [
-        {
-          type: "body",
-          parameters: [{ type: "text", text: customerFirstName }],
+  let response: Response;
+  try {
+    response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${config.accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        messaging_product: "whatsapp",
+        recipient_type: "individual",
+        to: recipientPhone,
+        type: "template",
+        template: {
+          name: config.deliveryCareTemplate,
+          language: { code: config.languageCode },
+          components: [{
+            type: "body",
+            parameters: [{ type: "text", text: customerFirstName }],
+          }],
         },
-      ];
-
-      if (includeQuickReplyPayloads) {
-        components.push(
-          {
-            type: "button",
-            sub_type: "quick_reply",
-            index: "0",
-            parameters: [{ type: "payload", payload: DELIVERY_CARE_OK_PAYLOAD }],
-          },
-          {
-            type: "button",
-            sub_type: "quick_reply",
-            index: "1",
-            parameters: [{ type: "payload", payload: DELIVERY_CARE_ISSUE_PAYLOAD }],
-          },
-        );
-      }
-
-      response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${config.accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          messaging_product: "whatsapp",
-          recipient_type: "individual",
-          to: recipientPhone,
-          type: "template",
-          template: {
-            name: templateName,
-            language: { code: config.languageCode },
-            components,
-          },
-        }),
-        signal: AbortSignal.timeout(WHATSAPP_REQUEST_TIMEOUT_MS),
-      });
-    } catch (error) {
-      const name = error instanceof Error ? error.name : "";
-      const code = name === "TimeoutError" || name === "AbortError"
-        ? "WHATSAPP_TIMEOUT_AMBIGUOUS"
-        : "WHATSAPP_NETWORK_AMBIGUOUS";
-
-      // A transport failure can happen after Meta already accepted the request but
-      // before the response reached us. Without a wamid there is no safe automatic
-      // deduplication key, so prefer at-most-once customer messaging and escalate.
-      throw new WhatsAppSendError(code, false);
-    }
-
-    let body: MetaSendResponse = {};
-    try {
-      body = await response.json() as MetaSendResponse;
-    } catch {
-      // Keep provider response bodies out of logs; an invalid JSON body is enough
-      // to classify the failure without exposing arbitrary upstream content.
-    }
-
-    return { response, body };
-  };
-
-  let attempt = await requestTemplate(true);
-  let providerMessageId = String(attempt.body.messages?.[0]?.id ?? "").trim();
-  if (attempt.response.ok && providerMessageId) return providerMessageId;
-
-  // Meta 132018 is an explicit template-parameter validation rejection. A common
-  // cause is that the approved template's button structure changed while AQUAVO
-  // still sends developer payload parameters for Quick Replies. Because HTTP 400
-  // proves the first request was rejected before acceptance, one body-only retry
-  // is safe from duplicate delivery. Quick Reply buttons remain template-defined;
-  // AQUAVO's webhook already supports exact button-text fallback when no custom
-  // payload is attached.
-  if (attempt.response.status === 400 && Number(attempt.body.error?.code) === 132018) {
-    attempt = await requestTemplate(false);
-    providerMessageId = String(attempt.body.messages?.[0]?.id ?? "").trim();
-    if (attempt.response.ok && providerMessageId) return providerMessageId;
+      }),
+      signal: AbortSignal.timeout(WHATSAPP_REQUEST_TIMEOUT_MS),
+    });
+  } catch (error) {
+    const name = error instanceof Error ? error.name : "";
+    const code = name === "TimeoutError" || name === "AbortError"
+      ? "WHATSAPP_TIMEOUT_AMBIGUOUS"
+      : "WHATSAPP_NETWORK_AMBIGUOUS";
+    throw new WhatsAppSendError(code, false);
   }
 
-  const code = compactMetaErrorCode(attempt.response.status, attempt.body);
-  const retryable = attempt.response.status === 429 || attempt.response.status >= 500;
+  let body: MetaSendResponse = {};
+  try { body = await response.json() as MetaSendResponse; } catch { /* no provider body in logs */ }
+
+  const providerMessageId = String(body.messages?.[0]?.id ?? "").trim();
+  if (response.ok && providerMessageId) return providerMessageId;
+
+  if (response.ok) throw new WhatsAppSendError("WHATSAPP_ACCEPTANCE_AMBIGUOUS", false);
+  const code = compactMetaErrorCode(response.status, body);
+  const retryable = response.status === 429 || response.status >= 500;
   throw new WhatsAppSendError(code, retryable);
 }
 
@@ -451,7 +374,7 @@ function sleep(ms: number): Promise<void> {
 async function markAccepted(
   jobId: string,
   providerMessageId: string,
-  templateKind: "utility" | "marketing_ugc",
+  templateKind: "marketing_ugc",
 ): Promise<boolean> {
   const db = getDb();
   if (!db) return false;
@@ -721,27 +644,30 @@ export async function dispatchDeliveryCareForOrder(orderId: string): Promise<Cus
       return await releaseClaimAsFailed(job, "INVALID_CUSTOMER_NAME", false);
     }
 
-    const marketingTemplateEligible = Boolean(
-      recipient.whatsappMarketingOptIn
-      && config.deliveryCareMarketingEnabled
-      && config.deliveryCareMarketingTemplate
-      && config.deliveryCareMarketingActivationAt
-      && Number.isFinite(job.createdAt.getTime())
-      && job.createdAt.getTime() >= config.deliveryCareMarketingActivationAt.getTime()
-    );
-    const templateKind: "utility" | "marketing_ugc" =
-      marketingTemplateEligible ? "marketing_ugc" : "utility";
-    const selectedTemplate = marketingTemplateEligible
-      ? config.deliveryCareMarketingTemplate!
-      : config.deliveryCareTemplate;
+    // This template includes the Story/Reels reward and is Marketing.
+    // Fail closed when current consent is absent; never substitute a marketing
+    // template into a Utility path.
+    if (!recipient.whatsappMarketingOptIn) {
+      await db.execute(sql`
+        UPDATE public.customer_message_jobs
+           SET status='cancelled',
+               cancelled_at=clock_timestamp(),
+               locked_at=NULL,
+               last_error_code='MARKETING_OPT_IN_REQUIRED',
+               last_error_at=clock_timestamp(),
+               updated_at=clock_timestamp()
+         WHERE id=${job.id}
+           AND status='sending'
+      `);
+      return { status: "already_handled", jobId: job.id, errorCode: "MARKETING_OPT_IN_REQUIRED" };
+    }
 
     const providerMessageId = await sendDeliveryCareTemplate(
       config,
       phone,
       firstName,
-      selectedTemplate,
     );
-    const acceptedPersisted = await markAccepted(job.id, providerMessageId, templateKind);
+    const acceptedPersisted = await markAccepted(job.id, providerMessageId, "marketing_ugc");
     if (!acceptedPersisted) {
       return {
         status: "failed",
