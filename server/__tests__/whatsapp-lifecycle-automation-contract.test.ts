@@ -157,7 +157,7 @@ describe("automatic WhatsApp lifecycle contract",()=>{
     expect(service).toContain("MAX_ATTEMPTS = 5");
   });
 
-  it("routes lifecycle quick replies separately and supports durable race recovery",()=>{
+  it("routes lifecycle replies separately and keeps durable legacy race recovery",()=>{
     const webhook=read("server/routes/whatsapp-webhook.ts");
     const migration=read("migrations/0093_whatsapp_lifecycle_automation.sql");
     const service=read("server/services/whatsapp-lifecycle.ts");
@@ -195,6 +195,36 @@ describe("automatic WhatsApp lifecycle contract",()=>{
     expect(cron).toContain("runDueLifecycleWhatsAppJobs(5)");
     expect(cron).toContain("reconcilePendingLifecycleReplies(25)");
     expect(cron).toContain("cleanupLifecycleReplyInbox(500)");
+  });
+
+  it("matches the approved buttonless lifecycle template shapes",()=>{
+    const service=read("server/services/whatsapp-lifecycle.ts");
+    const env=read(".env.example");
+    expect(service).toContain("bodyParameters = [firstName]");
+    expect(service).toContain("bodyParameters = [firstName, productSummary]");
+    expect(service).not.toContain('sub_type: "quick_reply"');
+    expect(env).toContain("Day-7 service follow-up, category: UTILITY. One variable, no buttons.");
+    expect(env).toContain("Two variables, no buttons.");
+  });
+
+  it("accepts verified Wayl orders as financially realized lifecycle orders",()=>{
+    const lifecycle=read("server/services/whatsapp-lifecycle.ts");
+    const growth=read("server/services/growth-operating-system.ts");
+    const migration=read("migrations/0095_wayl_delivery_accounting.sql");
+    expect(lifecycle).toContain('context.paymentMethod === "wayl"');
+    expect(lifecycle).toContain('context.paymentRecordStatus === "completed"');
+    expect(growth).toContain("realized_payment.method IN ('wayl','alqaseh')");
+    expect(migration).toContain("v_payment_method IN ('alqaseh','wayl')");
+    expect(migration).toContain("ONLINE_CAPTURE_EVENT_MISSING_OR_MISMATCH");
+  });
+
+  it("persists checkout consent inside the order transaction before CRM projection",()=>{
+    const storage=read("server/storage/order-storage.ts");
+    const wayl=read("server/services/wayl-order-payment.ts");
+    expect(storage).toContain("whatsappMarketingOptIn: commerceContext.whatsappMarketingOptIn === true");
+    expect(storage).toContain("whatsappMarketingOptInAt: commerceContext.whatsappMarketingOptIn === true");
+    expect(wayl).toContain("whatsappMarketingOptIn: input.whatsappMarketingOptIn === true");
+    expect(wayl).toContain("whatsappMarketingOptInAt: input.whatsappMarketingOptIn === true");
   });
 
   it("stores provider lifecycle for both immediate and Growth OS sends",()=>{
