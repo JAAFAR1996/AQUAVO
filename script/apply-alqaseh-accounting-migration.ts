@@ -76,33 +76,68 @@ async function main(): Promise<void> {
       console.log(`[alqaseh-accounting] skip ${VERSION}: already applied`);
     }
 
-    const verification = await client.query<Record<string, boolean>>(`
+    const verification = await client.query<{
+      migration_registered: boolean;
+      delivery_trigger_attached: boolean;
+      delivery_def: string;
+      journal_def: string;
+    }>(`
       SELECT
         EXISTS(
           SELECT 1 FROM public.schema_migrations
           WHERE version='20260825_alqaseh_online_accounting' AND rolled_back_at IS NULL
         ) AS migration_registered,
-        pg_get_functiondef('public.record_order_delivery_accounting()'::regprocedure)
-          ILIKE '%v6_alqaseh_online_accounting%' AS policy_version,
-        pg_get_functiondef('public.record_order_delivery_accounting()'::regprocedure)
-          ILIKE '%v_payment_method=''alqaseh''%' AS alqaseh_branch,
-        pg_get_functiondef('public.record_order_delivery_accounting()'::regprocedure)
-          ILIKE '%v_cash_custody:=''bank''%' AS bank_custody,
-        pg_get_functiondef('public.record_order_delivery_accounting()'::regprocedure)
-          ILIKE '%''capture'',''completed'',v_gross,''IQD'',''alqaseh''%' AS capture_event,
-        pg_get_functiondef('public.post_order_delivery_journal(text)'::regprocedure)
-          ILIKE '%''1010'',f.gross_collected%' AS bank_journal,
         EXISTS(
           SELECT 1 FROM pg_trigger t
           WHERE t.tgrelid='public.orders'::regclass
             AND t.tgfoid='public.record_order_delivery_accounting()'::regprocedure
             AND NOT t.tgisinternal
-        ) AS delivery_trigger_attached
+        ) AS delivery_trigger_attached,
+        pg_get_functiondef('public.record_order_delivery_accounting()'::regprocedure) AS delivery_def,
+        pg_get_functiondef('public.post_order_delivery_journal(text)'::regprocedure) AS journal_def
     `);
 
     const checks = verification.rows[0];
-    if (!checks || Object.values(checks).some((value) => value !== true)) {
-      throw new Error(`Al-Qaseh accounting verification failed: ${JSON.stringify(checks)}`);
+    const deliveryDef = String(checks?.delivery_def ?? "").replace(/\s+/g, " ");
+    const journalDef = String(checks?.journal_def ?? "").replace(/\s+/g, " ");
+    const supportedPolicy =
+      deliveryDef.includes("v6_alqaseh_online_accounting")
+      || deliveryDef.includes("v7_wayl_online_accounting");
+    const alqasehBranch =
+      deliveryDef.includes("v_payment_method='alqaseh'")
+      || deliveryDef.includes("v_payment_method = 'alqaseh'")
+      || deliveryDef.includes("v_payment_method IN ('alqaseh','wayl')")
+      || deliveryDef.includes("v_payment_method IN ('alqaseh', 'wayl')");
+    const bankCustody = deliveryDef.includes("v_cash_custody:='bank'")
+      || deliveryDef.includes("v_cash_custody := 'bank'");
+    const captureEvent = deliveryDef.includes("'capture','completed',v_gross,'IQD','alqaseh'")
+      || (
+        deliveryDef.includes("'capture','completed',v_gross,'IQD',v_payment_method")
+        && deliveryDef.includes("'alqaseh'")
+      );
+    const bankJournal = journalDef.includes("'1010',f.gross_collected");
+
+    if (
+      !checks
+      || checks.migration_registered !== true
+      || checks.delivery_trigger_attached !== true
+      || !supportedPolicy
+      || !alqasehBranch
+      || !bankCustody
+      || !captureEvent
+      || !bankJournal
+    ) {
+      throw new Error(
+        `Al-Qaseh accounting verification failed: ${JSON.stringify({
+          migrationRegistered: checks?.migration_registered,
+          deliveryTriggerAttached: checks?.delivery_trigger_attached,
+          supportedPolicy,
+          alqasehBranch,
+          bankCustody,
+          captureEvent,
+          bankJournal,
+        })}`,
+      );
     }
 
     if (transactionOpen) {
