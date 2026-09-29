@@ -128,9 +128,11 @@ Immediate delivery care:
 
 Day-7:
 `WHATSAPP_DAY7_CARE_TEMPLATE=aquavo_day7_care_v1`
+`WHATSAPP_DAY7_TEMPLATE_APPROVED=true` only after WhatsApp Manager shows the exact template Approved/Active.
 
 Replenishment:
 `WHATSAPP_REPURCHASE_TEMPLATE=aquavo_repurchase_reminder_v1`
+`WHATSAPP_REPURCHASE_TEMPLATE_APPROVED=true` only after WhatsApp Manager shows the exact template Approved/Active.
 
 Production runtime config in `whatsapp_lifecycle_runtime_config` controls activation of
 Day-7 and replenishment. Migration `0097_whatsapp_lifecycle_fail_closed` deliberately
