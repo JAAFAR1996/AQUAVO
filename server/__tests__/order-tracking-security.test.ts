@@ -1,5 +1,6 @@
 import express from "express";
 import request from "supertest";
+import { readFileSync } from "node:fs";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
     buildPublicOrderTrackingResponse,
@@ -33,16 +34,39 @@ describe("public order tracking security", () => {
 
         expect(Object.keys(response).sort()).toEqual([
             "createdAt",
-            "estimatedDelivery",
             "orderNumber",
             "status",
             "updatedAt",
         ]);
+        expect(response).not.toHaveProperty("estimatedDelivery");
         expect(response).not.toHaveProperty("id");
         expect(response).not.toHaveProperty("total");
         expect(response).not.toHaveProperty("items");
         expect(response).not.toHaveProperty("customerPhone");
         expect(response).not.toHaveProperty("shippingAddress");
+    });
+
+    it("requires the same phone verifier before the carrier mirror is queried", () => {
+        const source = readFileSync("server/routes/alwaseet-public-tracking.ts", "utf8");
+        const parseVerifier = source.indexOf("orderTrackingSchema.safeParse");
+        const verifyPhone = source.indexOf(
+            "verifyOrderTrackingPhone(order.customerPhone",
+            parseVerifier,
+        );
+        const carrierLookup = source.indexOf("resolveAlWaseetTrackingRuntime({", verifyPhone);
+
+        expect(parseVerifier).toBeGreaterThan(-1);
+        expect(verifyPhone).toBeGreaterThan(parseVerifier);
+        expect(carrierLookup).toBeGreaterThan(verifyPhone);
+        expect(source).toContain('String(order.carrier ?? "").trim() === "الوسيط"');
+        expect(source).toContain("ORDER_TRACKING_FAILURE_MESSAGE");
+    });
+
+    it("never links shipped push notifications to an internal order UUID or promises an invented ETA", () => {
+        const adminSource = readFileSync("server/routes/admin.ts", "utf8");
+        expect(adminSource).toContain('url: "/order-tracking"');
+        expect(adminSource).not.toContain('/order-tracking/${order.id}');
+        expect(adminSource).not.toContain("سيصل قريباً");
     });
 
     it("closes the legacy GET lookup without querying an order", async () => {
@@ -93,10 +117,10 @@ describe("public order tracking security", () => {
         expect(response.status).toBe(200);
         expect(Object.keys(response.body).sort()).toEqual([
             "createdAt",
-            "estimatedDelivery",
             "orderNumber",
             "status",
             "updatedAt",
         ]);
+        expect(response.body).not.toHaveProperty("estimatedDelivery");
     });
 });
