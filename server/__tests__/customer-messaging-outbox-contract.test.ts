@@ -132,6 +132,10 @@ describe("post-delivery customer messaging contract", () => {
     expect(textReplyService).toContain("handleWhatsAppCustomerText");
     expect(textReplyService).toContain("runPendingWhatsAppCustomerTextAlerts");
     expect(textReplyService).toContain("recordWhatsAppMarketingOptOut");
+    expect(textReplyService).toContain("CAST(${event.receivedAt} AS timestamptz)");
+    expect(textReplyService).toContain("TELEGRAM_NOT_CONFIGURED");
+    expect(textReplyService).toContain("TELEGRAM_HTTP_");
+    expect(textReplyService).toContain("errorCodes");
     expect(webhookRoute).toContain("extractWhatsAppCustomerTextEvents");
     expect(webhookRoute).toContain("handleWhatsAppCustomerText({");
     expect(cronRoute).toContain("runPendingWhatsAppCustomerTextAlerts(20)");
