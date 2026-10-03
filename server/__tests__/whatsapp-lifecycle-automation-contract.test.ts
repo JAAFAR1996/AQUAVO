@@ -250,6 +250,7 @@ describe("automatic WhatsApp lifecycle contract",()=>{
     const lifecycle=read("server/services/whatsapp-lifecycle.ts");
     const textReplies=read("server/services/whatsapp-customer-text-replies.ts");
     expect(lifecycle).toContain("FROM public.whatsapp_customer_text_events txt");
+    expect(lifecycle).toContain("CAST(${event.receivedAt} AS timestamptz)");
     expect(lifecycle).toContain("txt.matched_job_type IN ('delivery_care','day7_care')");
     expect(lifecycle).toContain("interval '14 days'");
     expect(lifecycle).toContain("SUPPORT_ISSUE_OPEN");
