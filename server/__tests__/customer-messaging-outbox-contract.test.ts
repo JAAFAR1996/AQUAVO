@@ -17,6 +17,11 @@ const textReplyMigration = readFileSync(
   "utf8",
 );
 
+const textAlertHardeningMigration = readFileSync(
+  join(process.cwd(), "migrations/0098_whatsapp_text_alert_hardening.sql"),
+  "utf8",
+);
+
 const textReplyService = readFileSync(
   join(process.cwd(), "server/services/whatsapp-customer-text-replies.ts"),
   "utf8",
@@ -136,6 +141,10 @@ describe("post-delivery customer messaging contract", () => {
     expect(textReplyService).toContain("TELEGRAM_NOT_CONFIGURED");
     expect(textReplyService).toContain("TELEGRAM_HTTP_");
     expect(textReplyService).toContain("errorCodes");
+    expect(textAlertHardeningMigration).toContain("'suppressed'");
+    expect(textAlertHardeningMigration).toContain("pre_hardening_backlog");
+    expect(textReplyService).toContain("unmatched_general_text");
+    expect(textReplyService).toContain("lifecycle_handled");
     expect(webhookRoute).toContain("extractWhatsAppCustomerTextEvents");
     expect(webhookRoute).toContain("handleWhatsAppCustomerText({");
     expect(cronRoute).toContain("runPendingWhatsAppCustomerTextAlerts(20)");
