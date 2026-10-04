@@ -109,7 +109,9 @@ triggers the legacy Quick Reply auto-response path.
 - timeout/network ambiguity is never blindly resent.
 - explicit HTTP 429/5xx can use bounded retry.
 - stale `sending` claims become terminal ambiguity.
-- the protected five-minute worker recovers safe pending work and support alerts.
+- the protected five-minute worker recovers safe pending work and correlated support alerts.
+- Neon Function Trigger is the primary five-minute scheduler; GitHub Actions OIDC remains an independent fallback because GitHub scheduled workflows are not a strict real-time scheduler.
+- generic inbound WhatsApp chat text is retained durably but is suppressed from the lifecycle Telegram alert channel unless it correlates to an AQUAVO post-delivery/lifecycle message.
 - test orders are excluded/quarantined.
 - a WhatsApp failure never rolls back order or accounting truth.
 
