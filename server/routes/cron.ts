@@ -19,6 +19,7 @@ import {
   runDueLifecycleWhatsAppJobs,
 } from "../services/whatsapp-lifecycle.js";
 import { verifyGitHubActionsCronToken } from "../security/github-actions-oidc.js";
+import { verifyNeonSchedulerToken } from "../security/neon-scheduler-token.js";
 import { analyticsTracker } from "../services/analytics-tracker.js";
 
 const router = Router();
@@ -35,16 +36,31 @@ async function authorizeCronRequest(req: Request, res: Response): Promise<boolea
 
   // Vercel Cron authenticates the daily/weekly jobs with the deployment
   // CRON_SECRET. Keep that path unchanged.
-  if (cronSecret && token === cronSecret) return true;
+  if (cronSecret && token === cronSecret) {
+    res.locals.cronAuthSource = "vercel_cron_secret";
+    return true;
+  }
 
   // The five-minute customer-messaging worker cannot live on Vercel Hobby
   // (sub-daily crons are rejected). GitHub Actions therefore calls only this
   // route with a short-lived, signed OIDC token. The verifier pins the token
   // to this repository, immutable repo id, workflow file, main ref and audience.
   if (req.path === "/customer-messaging" && token) {
+    const neon = await verifyNeonSchedulerToken(token);
+    if (neon.ok) {
+      res.locals.cronAuthSource = "neon_function_trigger";
+      return true;
+    }
+
     const oidc = await verifyGitHubActionsCronToken(token);
-    if (oidc.ok) return true;
-    console.warn(`[Cron] GitHub OIDC scheduler token rejected: ${oidc.reason}`);
+    if (oidc.ok) {
+      res.locals.cronAuthSource = "github_actions_oidc";
+      return true;
+    }
+
+    console.warn(
+      `[Cron] Customer-messaging scheduler token rejected (neon=${neon.reason}, github=${oidc.reason})`,
+    );
   }
 
   if (!cronSecret && process.env.NODE_ENV !== "production") {
@@ -246,6 +262,7 @@ router.get("/finance-audit", async (_req: Request, res: Response) => {
  */
 router.get("/customer-messaging", async (_req: Request, res: Response) => {
   const startTime = Date.now();
+  const schedulerSource=String(res.locals.cronAuthSource ?? "cron_auth");
   try {
     const result = await runDueDeliveryCareJobs(5);
 
@@ -310,7 +327,7 @@ router.get("/customer-messaging", async (_req: Request, res: Response) => {
       details: {
         job: "customer_messaging_delivery_care",
         status: "completed",
-        source: "github_actions_oidc",
+        source: schedulerSource,
         ...result,
         lifecycle,
         lifecycleFailed,
@@ -345,7 +362,7 @@ router.get("/customer-messaging", async (_req: Request, res: Response) => {
     aiMonitor.logError(`Customer messaging retry worker failed: ${message}`, {}, {
       event: "cron_job",
       responseTimeMs: duration,
-      details: { job: "customer_messaging_delivery_care", status: "failed", source: "github_actions_oidc" },
+      details: { job: "customer_messaging_delivery_care", status: "failed", source: schedulerSource },
     } as any);
     return res.status(500).json({ success: false, error: "CUSTOMER_MESSAGING_WORKER_FAILED", duration });
   }
