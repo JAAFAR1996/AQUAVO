@@ -92,6 +92,21 @@ const githubOidcVerifier = readFileSync(
   "utf8",
 );
 
+const neonSchedulerVerifier = readFileSync(
+  join(process.cwd(), "server/security/neon-scheduler-token.ts"),
+  "utf8",
+);
+
+const schedulerAuthMigration = readFileSync(
+  join(process.cwd(), "migrations/0099_customer_messaging_scheduler_auth.sql"),
+  "utf8",
+);
+
+const neonSchedulerFunction = readFileSync(
+  join(process.cwd(), "neon-functions/customer-messaging-scheduler.ts"),
+  "utf8",
+);
+
 const rollout = readFileSync(
   join(process.cwd(), "docs/POST_DELIVERY_MESSAGING_ROLLOUT.md"),
   "utf8",
@@ -321,6 +336,14 @@ describe("post-delivery customer messaging contract", () => {
     expect(githubOidcVerifier).toContain("EXPECTED_WORKFLOW_REF");
     expect(githubOidcVerifier).toContain("verifySignature");
     expect(cronRoute).toContain("verifyGitHubActionsCronToken");
+    expect(cronRoute).toContain("verifyNeonSchedulerToken");
+    expect(neonSchedulerVerifier).toContain('createHash("sha256")');
+    expect(neonSchedulerVerifier).toContain("timingSafeEqual");
+    expect(schedulerAuthMigration).toContain("customer_messaging_scheduler_auth");
+    expect(schedulerAuthMigration).not.toContain("AQUAVO_CUSTOMER_MESSAGING_SCHEDULER_TOKEN");
+    expect(neonSchedulerFunction).toContain("x-neon-trigger-invocation-id");
+    expect(neonSchedulerFunction).toContain("AQUAVO_CUSTOMER_MESSAGING_SCHEDULER_TOKEN");
+    expect(neonSchedulerFunction).toContain("/api/cron/customer-messaging");
     expect(githubWorker).toContain("/api/cron/customer-messaging");
   });
 });
