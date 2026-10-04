@@ -278,6 +278,23 @@ describe("automatic WhatsApp lifecycle contract",()=>{
     expect(env).toContain("WHATSAPP_REPURCHASE_TEMPLATE_APPROVED=false");
   });
 
+  it("persists explicit provider approval in runtime config before enabling lifecycle",()=>{
+    const service=read("server/services/whatsapp-lifecycle.ts");
+    const approval=read("migrations/0100_whatsapp_lifecycle_provider_approval.sql");
+    const rollback=read("migrations/0100_whatsapp_lifecycle_provider_approval_rollback.sql");
+    expect(service).toContain("day7_provider_approved");
+    expect(service).toContain("repurchase_provider_approved");
+    expect(service).toContain("Boolean(runtime.day7_provider_approved)");
+    expect(service).toContain("Boolean(runtime.repurchase_provider_approved)");
+    expect(approval).toContain("provider_approval_confirmed_at");
+    expect(approval).toContain("operator_confirmed_meta_active_2026-10-04");
+    expect(approval).toContain("day7_provider_approved=true");
+    expect(approval).toContain("repurchase_provider_approved=true");
+    expect(rollback).toContain("lifecycle_enabled=false");
+    expect(rollback).toContain("day7_provider_approved=false");
+    expect(rollback).toContain("repurchase_provider_approved=false");
+  });
+
   it("keeps unapproved Day-7 and repurchase templates fail closed",()=>{
     const safety=read("migrations/0097_whatsapp_lifecycle_fail_closed.sql");
     expect(safety).toContain("lifecycle_enabled=false");

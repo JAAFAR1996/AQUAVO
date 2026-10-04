@@ -141,7 +141,9 @@ async function readLifecycleConfig(): Promise<LifecycleConfig | null> {
     try {
       const result = await db.execute(sql`
         SELECT lifecycle_enabled,day7_enabled,repurchase_enabled,activation_at,
-               day7_template,repurchase_template
+               day7_template,repurchase_template,
+               day7_provider_approved,repurchase_provider_approved,
+               provider_approval_confirmed_at,provider_approval_source
         FROM public.whatsapp_lifecycle_runtime_config
         WHERE id=1
         LIMIT 1
@@ -164,10 +166,12 @@ async function readLifecycleConfig(): Promise<LifecycleConfig | null> {
   // migrations may lag application code, so unapproved templates must also be
   // gated in-process. These flags default false and are set only after WhatsApp
   // Manager shows the exact template Approved/Active.
-  const day7ProviderApproved =
-    process.env.WHATSAPP_DAY7_TEMPLATE_APPROVED?.trim().toLowerCase() === "true";
-  const repurchaseProviderApproved =
-    process.env.WHATSAPP_REPURCHASE_TEMPLATE_APPROVED?.trim().toLowerCase() === "true";
+  const day7ProviderApproved = runtime
+    ? Boolean(runtime.day7_provider_approved)
+    : process.env.WHATSAPP_DAY7_TEMPLATE_APPROVED?.trim().toLowerCase() === "true";
+  const repurchaseProviderApproved = runtime
+    ? Boolean(runtime.repurchase_provider_approved)
+    : process.env.WHATSAPP_REPURCHASE_TEMPLATE_APPROVED?.trim().toLowerCase() === "true";
 
   const day7Enabled = day7ProviderApproved
     && (runtime ? Boolean(runtime.day7_enabled) : true);
