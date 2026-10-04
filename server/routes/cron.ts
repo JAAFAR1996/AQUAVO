@@ -41,10 +41,9 @@ async function authorizeCronRequest(req: Request, res: Response): Promise<boolea
     return true;
   }
 
-  // The five-minute customer-messaging worker cannot live on Vercel Hobby
-  // (sub-daily crons are rejected). GitHub Actions therefore calls only this
-  // route with a short-lived, signed OIDC token. The verifier pins the token
-  // to this repository, immutable repo id, workflow file, main ref and audience.
+  // Customer messaging uses a reliable Neon Function Trigger as the primary
+  // five-minute scheduler. GitHub Actions OIDC remains an independent fallback.
+  // Both identities are scoped to this exact endpoint and fail closed.
   if (req.path === "/customer-messaging" && token) {
     const neon = await verifyNeonSchedulerToken(token);
     if (neon.ok) {
