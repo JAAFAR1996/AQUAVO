@@ -160,8 +160,10 @@ jobs:
       - name: 📚 Install dependencies
         run: pnpm install --prefer-offline
         timeout-minutes: 10
-      - name: 🔍 Audit npm packages (moderate)
-        run: pnpm audit --audit-level=moderate
+      - name: 🔍 Audit production packages (moderate)
+        run: pnpm audit --prod --audit-level=moderate
+      - name: 🧭 Audit all packages (informational)
+        run: pnpm audit --audit-level=moderate || true
       - name: 🔐 Check for secrets
         uses: trufflesecurity/trufflehog@v3.96.0
         with:

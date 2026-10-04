@@ -1080,8 +1080,8 @@ export async function handleLifecycleReply(event: LifecycleReplyEvent): Promise<
         )
         OR (
           ${event.contextProviderMessageId}=''
-          AND COALESCE(j.accepted_at,j.updated_at,j.created_at)<=${event.receivedAt}
-          AND COALESCE(j.accepted_at,j.updated_at,j.created_at)>=${event.receivedAt} - interval '30 days'
+          AND COALESCE(j.accepted_at,j.updated_at,j.created_at)<=CAST(${event.receivedAt} AS timestamptz)
+          AND COALESCE(j.accepted_at,j.updated_at,j.created_at)>=CAST(${event.receivedAt} AS timestamptz) - interval '30 days'
         )
       )
     ORDER BY

@@ -146,7 +146,12 @@ refresh committed by automation.
 
 ## Worker
 
-The protected five-minute customer-messaging worker runs:
+The protected customer-messaging endpoint accepts two independent scheduler identities:
+
+- primary: a Neon Function Trigger every five minutes. The function accepts only Neon-triggered invocations and calls AQUAVO with a dedicated bearer secret; AQUAVO stores only the SHA-256 digest in PostgreSQL.
+- fallback: GitHub Actions OIDC pinned to the exact AQUAVO repository, workflow and main ref.
+
+The worker runs:
 
 - immediate delivery-care recovery;
 - Day-7 / replenishment lifecycle sending;
@@ -182,3 +187,14 @@ ignores implausible gaps below 7 or above 180 days, and raises confidence only a
 grows. Equipment is excluded from this learning path so a customer buying a second tank
 cannot accidentally teach AQUAVO that a heater or filter is a consumable.
 
+
+
+## Rollout migrations
+
+Migration `0098_whatsapp_text_alert_hardening` quarantines the pre-fix inbound-text backlog without deleting customer messages, so historical/general chat is never replayed as an operator-alert flood.
+
+Migration `0099_customer_messaging_scheduler_auth` stores only the SHA-256 digest used to authenticate the primary Neon scheduler. The plaintext bearer credential exists only in the scheduler environment.
+
+## Scheduler reliability
+
+The primary scheduler is a Neon Function Trigger at a five-minute UTC cadence. GitHub Actions remains a secondary recovery path only; scheduled GitHub workflow execution can be delayed and must not be treated as an exact clock. Both callers hit the same idempotent protected worker.

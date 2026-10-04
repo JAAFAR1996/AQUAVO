@@ -2,7 +2,7 @@ import { sql } from "drizzle-orm";
 import { getDb } from "../db.js";
 import { normalizeIraqiWhatsAppPhone } from "./customer-messaging.js";
 import { recordWhatsAppMarketingOptOut } from "./whatsapp-lifecycle.js";
-import { escapeHtml, sendTelegramMessage } from "./order-notifications.js";
+import { escapeHtml, sendTelegramMessage, TelegramSendError } from "./order-notifications.js";
 
 type Row = Record<string, unknown>;
 
@@ -102,7 +102,7 @@ export async function handleWhatsAppCustomerText(
         AND j.status='completed'
         AND j.accepted_at IS NOT NULL
         AND public.aquavo_normalize_iraqi_phone(o.customer_phone)=${senderPhone}
-        AND j.accepted_at BETWEEN ${event.receivedAt} - interval '30 days' AND ${event.receivedAt} + interval '5 minutes'
+        AND j.accepted_at BETWEEN CAST(${event.receivedAt} AS timestamptz) - interval '30 days' AND CAST(${event.receivedAt} AS timestamptz) + interval '5 minutes'
 
       UNION ALL
 
@@ -121,7 +121,7 @@ export async function handleWhatsAppCustomerText(
         AND j.status='completed'
         AND j.accepted_at IS NOT NULL
         AND public.aquavo_normalize_iraqi_phone(o.customer_phone)=${senderPhone}
-        AND j.accepted_at BETWEEN ${event.receivedAt} - interval '30 days' AND ${event.receivedAt} + interval '5 minutes'
+        AND j.accepted_at BETWEEN CAST(${event.receivedAt} AS timestamptz) - interval '30 days' AND CAST(${event.receivedAt} AS timestamptz) + interval '5 minutes'
     )
     SELECT *
     FROM candidates
@@ -162,15 +162,18 @@ export async function handleWhatsAppCustomerText(
      WHERE inbound_message_id=${inboundMessageId}
   `);
 
-  if (event.suppressOperatorAlert) {
+  if (event.suppressOperatorAlert || !matched) {
+    const suppressReason=event.suppressOperatorAlert
+      ? "lifecycle_handled"
+      : "unmatched_general_text";
     await db.execute(sql`
       UPDATE public.whatsapp_customer_text_events
-         SET alert_status='sent',
+         SET alert_status='suppressed',
+             alert_suppress_reason=${suppressReason},
              alert_processing_at=NULL,
-             alerted_at=COALESCE(alerted_at,clock_timestamp()),
              updated_at=clock_timestamp()
        WHERE inbound_message_id=${inboundMessageId}
-         AND alert_status<>'sent'
+         AND alert_status IN ('pending','processing')
     `);
     return "handled";
   }
@@ -216,17 +219,19 @@ export async function handleWhatsAppCustomerText(
   ].filter(Boolean).join("\n");
 
   try {
-    await sendTelegramMessage(alert);
+    const accepted=await sendTelegramMessage(alert);
+    if (!accepted) throw new Error("TELEGRAM_NOT_CONFIGURED");
     await db.execute(sql`
       UPDATE public.whatsapp_customer_text_events
          SET alert_status='sent',
+             alert_suppress_reason=NULL,
              alert_processing_at=NULL,
              alerted_at=clock_timestamp(),
              updated_at=clock_timestamp()
        WHERE inbound_message_id=${inboundMessageId}
          AND alert_status='processing'
     `);
-  } catch {
+  } catch (error) {
     await db.execute(sql`
       UPDATE public.whatsapp_customer_text_events
          SET alert_status='pending',
@@ -235,6 +240,10 @@ export async function handleWhatsAppCustomerText(
        WHERE inbound_message_id=${inboundMessageId}
          AND alert_status='processing'
     `);
+    if (error instanceof TelegramSendError) {
+      throw new Error(error.status == null ? "TELEGRAM_NETWORK_ERROR" : `TELEGRAM_HTTP_${error.status}`);
+    }
+    if (error instanceof Error && error.message==="TELEGRAM_NOT_CONFIGURED") throw error;
     throw new Error("WHATSAPP_SUPPORT_ALERT_FAILED");
   }
 
@@ -246,10 +255,15 @@ export async function runPendingWhatsAppCustomerTextAlerts(limit=20): Promise<{
   processed:number;
   handled:number;
   failed:number;
+  ignored:number;
+  dbUnavailable:number;
   staleReset:number;
+  errorCodes:Record<string,number>;
 }> {
   const db=getDb();
-  if (!db) return { processed:0,handled:0,failed:0,staleReset:0 };
+  if (!db) return {
+    processed:0,handled:0,failed:0,ignored:0,dbUnavailable:0,staleReset:0,errorCodes:{ DB_UNAVAILABLE:1 },
+  };
 
   const stale=await db.execute(sql`
     UPDATE public.whatsapp_customer_text_events
@@ -271,7 +285,8 @@ export async function runPendingWhatsAppCustomerTextAlerts(limit=20): Promise<{
     LIMIT ${safeLimit}
   `);
 
-  let processed=0,handled=0,failed=0;
+  let processed=0,handled=0,failed=0,ignored=0,dbUnavailable=0;
+  const errorCodes:Record<string,number>={};
   for (const row of rowsOf(pending)) {
     const receivedAt=row.received_at instanceof Date ? row.received_at : new Date(String(row.received_at ?? ""));
     if (!Number.isFinite(receivedAt.getTime())) continue;
@@ -284,11 +299,21 @@ export async function runPendingWhatsAppCustomerTextAlerts(limit=20): Promise<{
         receivedAt,
         text:String(row.message_text ?? ""),
       });
-      if (result==="handled" || result==="duplicate") handled+=1;
-      else failed+=1;
-    } catch {
+      if (result==="handled" || result==="duplicate") {
+        handled+=1;
+      } else {
+        failed+=1;
+        if (result==="ignored") ignored+=1;
+        if (result==="db_unavailable") dbUnavailable+=1;
+        const code=result==="ignored" ? "IGNORED_INPUT" : "DB_UNAVAILABLE";
+        errorCodes[code]=(errorCodes[code] ?? 0)+1;
+      }
+    } catch (error) {
       failed+=1;
+      const raw=error instanceof Error ? error.message : "WHATSAPP_SUPPORT_ALERT_FAILED";
+      const code=/^[A-Z0-9_]+$/.test(raw) ? raw : "WHATSAPP_SUPPORT_ALERT_FAILED";
+      errorCodes[code]=(errorCodes[code] ?? 0)+1;
     }
   }
-  return { processed,handled,failed,staleReset };
+  return { processed,handled,failed,ignored,dbUnavailable,staleReset,errorCodes };
 }
