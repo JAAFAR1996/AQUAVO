@@ -162,15 +162,18 @@ export async function handleWhatsAppCustomerText(
      WHERE inbound_message_id=${inboundMessageId}
   `);
 
-  if (event.suppressOperatorAlert) {
+  if (event.suppressOperatorAlert || !matched) {
+    const suppressReason=event.suppressOperatorAlert
+      ? "lifecycle_handled"
+      : "unmatched_general_text";
     await db.execute(sql`
       UPDATE public.whatsapp_customer_text_events
-         SET alert_status='sent',
+         SET alert_status='suppressed',
+             alert_suppress_reason=${suppressReason},
              alert_processing_at=NULL,
-             alerted_at=COALESCE(alerted_at,clock_timestamp()),
              updated_at=clock_timestamp()
        WHERE inbound_message_id=${inboundMessageId}
-         AND alert_status<>'sent'
+         AND alert_status IN ('pending','processing')
     `);
     return "handled";
   }
@@ -221,6 +224,7 @@ export async function handleWhatsAppCustomerText(
     await db.execute(sql`
       UPDATE public.whatsapp_customer_text_events
          SET alert_status='sent',
+             alert_suppress_reason=NULL,
              alert_processing_at=NULL,
              alerted_at=clock_timestamp(),
              updated_at=clock_timestamp()
