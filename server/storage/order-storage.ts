@@ -382,8 +382,11 @@ export class OrderStorage {
             // 4. Calculate Final Total
             const finalTotal = Math.max(0, subtotal + deliveryFee - discount);
             const IRAQI_DENOMINATION = 250;
-            const roundedTotal = Math.ceil(finalTotal / IRAQI_DENOMINATION) * IRAQI_DENOMINATION;
-            const roundingCashback = roundedTotal - finalTotal;
+            // Round to the nearest cash denomination instead of always charging upward.
+            // A downward round is an immediate customer benefit; only a positive difference
+            // can become pending change-balance cashback for members.
+            const roundedTotal = Math.round(finalTotal / IRAQI_DENOMINATION) * IRAQI_DENOMINATION;
+            const roundingCashback = Math.max(0, roundedTotal - finalTotal);
 
             // 5. Generate Order Number. DB unique constraint remains the final authority.
             const orderNumber = this.generateOrderNumber();
