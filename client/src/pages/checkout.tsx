@@ -10,7 +10,7 @@ import { ttqInitiateCheckout, ttqAddPaymentInfo, ttqPlaceAnOrder } from "@/lib/t
 import { phTrackCheckoutStep, phTrackInitiateCheckout, phTrackPurchase } from "@/lib/posthog";
 import { metaTrackInitiateCheckout, metaTrackPurchase } from "@/lib/meta-pixel";
 import { trackAddShippingInfo, trackBeginCheckout, trackPurchase } from "@/lib/analytics";
-import { WHATSAPP_URL, DELIVERY_DAYS } from "@/lib/constants/shipping";
+import { DELIVERY_DAYS } from "@/lib/constants/shipping";
 import { ArrowRight, ShoppingCart, MessageCircle, Instagram, Loader2 } from "lucide-react";
 import { MetaTags } from "@/components/seo/meta-tags";
 import { resolveCheckoutTotal } from "@/lib/checkout-total";
@@ -601,6 +601,14 @@ export default function CheckoutPage() {
     }
   };
 
+  const whatsappCartItems = cartItems
+    .map((item) => `- ${item.name}${item.variantLabel ? ` (${item.variantLabel})` : ""} × ${item.quantity}`)
+    .join("\n");
+  const whatsappCheckoutMessage = t("footer.whatsappPrefill", {
+    items: whatsappCartItems,
+    total: formatIQD(cartTotal),
+  });
+
   if (!isCartReady && step !== "success") {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center" role="status" aria-live="polite">
@@ -750,10 +758,11 @@ export default function CheckoutPage() {
         <div className="flex items-center justify-center gap-4">
           <WhatsAppLink
             source="checkout"
+            message={whatsappCheckoutMessage}
             className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-green-500 transition-colors"
           >
             <MessageCircle className="w-3.5 h-3.5" aria-hidden="true" />
-            {t("footer.whatsapp")}
+            {t("footer.whatsappHelp")}
           </WhatsAppLink>
           <a
             href="https://www.instagram.com/aquavo_iq"
