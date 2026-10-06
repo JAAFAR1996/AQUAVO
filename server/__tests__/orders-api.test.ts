@@ -766,18 +766,19 @@ describe('OrderStorage.createOrderSecure', () => {
         expect(userUpdates[0]).toMatchObject({
             cashbackBalance: 3800,
             pendingLoyaltyPoints: 2,
-            pendingCashbackBalance: 0,
+            pendingCashbackBalance: 200,
         });
         expect(orderUpdates[0]).toMatchObject({
             cashbackUsed: 1200,
             pointsDiscount: '1200',
             pointsEarned: 2,
-            roundingCashback: 0,
-            roundedTotal: '13750',
+            roundingCashback: 200,
+            roundedTotal: '14000',
         });
         expect(insertedLoyaltyTransactions.map((tx) => tx.type)).toEqual([
             'redeem',
             'purchase_earn',
+            'rounding_earn',
         ]);
         expect(insertedLoyaltyTransactions[0]).toMatchObject({
             pointsType: 'cashback',

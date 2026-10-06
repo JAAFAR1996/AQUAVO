@@ -102,10 +102,10 @@ export function ConfirmationView({
 
     const pointsDiscount = loyaltyData?.pointsDiscount ?? 0;
     const cashbackEarned = loyaltyData?.cashbackEarned ?? 0;
-    const amountBeforeRounding = Math.max(0, cartTotal + deliveryFee - couponDiscount - pointsDiscount);
-    const roundedTotal = Math.round(amountBeforeRounding / 250) * 250;
-    const roundingDifference = roundedTotal - amountBeforeRounding;
-    const finalAmount = roundedTotal;
+    const amountBeforeRounding = cartTotal + deliveryFee - couponDiscount - pointsDiscount;
+    const roundedUp = Math.ceil(Math.max(0, amountBeforeRounding) / 250) * 250;
+    const roundingDifference = roundedUp - Math.max(0, amountBeforeRounding);
+    const finalAmount = roundingDifference > 0 ? roundedUp : Math.max(0, amountBeforeRounding);
     const onlineBlockedByLoyalty = Boolean(
         (loyaltyData?.useCashback && loyaltyData.cashbackToUse > 0)
         || (loyaltyData?.usePoints && (loyaltyData.pointsToUse > 0 || pointsDiscount > 0)),
@@ -307,7 +307,7 @@ export function ConfirmationView({
                 </div>
                 {couponDiscount > 0 && <div className="flex justify-between text-sm"><span className="text-green-600 dark:text-green-400">{t("summary.couponDiscount")}</span><span className="text-green-600 dark:text-green-400">-{formatIQD(couponDiscount)}</span></div>}
                 {loyaltyData && loyaltyData.cashbackToUse > 0 && <div className="flex justify-between text-sm"><span className="text-green-600 dark:text-green-400">{t("summary.cashbackDiscount")}</span><span className="text-green-600 dark:text-green-400">-{formatIQD(loyaltyData.cashbackToUse)}</span></div>}
-                {roundingDifference !== 0 && <div className="flex justify-between text-xs text-muted-foreground"><span>{t("summary.rounding")}</span><span>{roundingDifference > 0 ? "+" : ""}{formatIQD(roundingDifference)}</span></div>}
+                {roundingDifference > 0 && <div className="flex justify-between text-xs text-muted-foreground"><span>{t("summary.rounding")}</span><span>+{formatIQD(roundingDifference)}</span></div>}
                 <Separator />
                 <div className="flex justify-between items-center" role="status" aria-live="polite" aria-atomic="true">
                     <span className="font-semibold">{t("summary.total")}</span><span className="text-xl font-bold text-primary">{formatIQD(finalAmount)}</span>
@@ -376,6 +376,7 @@ export function ConfirmationView({
                     onCheckedChange={(checked) => {
                         const accepted = checked === true;
                         setAgreed(accepted);
+                        setWhatsappMarketingOptIn(accepted);
                         if (accepted) setAgreementError(false);
                     }}
                     className="mt-0.5"
@@ -388,24 +389,6 @@ export function ConfirmationView({
             {agreementError && (
                 <p className="text-sm text-destructive" role="alert">{t("confirm.agreementRequired")}</p>
             )}
-
-            <div className="rounded-xl border border-border/60 bg-muted/20 p-3">
-                <div className="flex items-start gap-3">
-                    <Checkbox
-                        id="whatsapp-marketing-opt-in"
-                        checked={whatsappMarketingOptIn}
-                        onCheckedChange={(checked) => setWhatsappMarketingOptIn(checked === true)}
-                        className="mt-0.5"
-                        disabled={busy}
-                    />
-                    <div className="space-y-1">
-                        <label htmlFor="whatsapp-marketing-opt-in" className="text-sm cursor-pointer leading-relaxed text-foreground">
-                            {t("confirm.whatsappOptIn")}
-                        </label>
-                        <p className="text-xs leading-5 text-muted-foreground">{t("confirm.whatsappOptInHint")}</p>
-                    </div>
-                </div>
-            </div>
 
             <div className="flex flex-col gap-3 sm:flex-row">
                 <Button variant="outline" onClick={handleBack} className="order-2 h-11 w-full sm:order-1 sm:h-12 sm:flex-1" disabled={busy} aria-disabled={busy}>{t("confirm.edit")}</Button>

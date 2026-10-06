@@ -435,7 +435,7 @@ export async function prepareOnlineOrder(input: OnlineCheckoutInput): Promise<Pr
         }
 
         const total = Math.max(0, subtotal + shippingCost - discount);
-        const roundedTotal = Math.round(total / IRAQI_DENOMINATION) * IRAQI_DENOMINATION;
+        const roundedTotal = Math.ceil(total / IRAQI_DENOMINATION) * IRAQI_DENOMINATION;
         if (roundedTotal <= 0) throw Object.assign(new Error("Online payment amount must be greater than zero"), { status: 400 });
 
         const [order] = await tx.insert(orders).values({
@@ -445,7 +445,7 @@ export async function prepareOnlineOrder(input: OnlineCheckoutInput): Promise<Pr
           items: lines,
           total: String(total),
           roundedTotal: String(roundedTotal),
-          roundingCashback: Math.max(0, roundedTotal - total),
+          roundingCashback: roundedTotal - total,
           shippingCost: String(shippingCost),
           discountTotal: String(discount),
           couponId,

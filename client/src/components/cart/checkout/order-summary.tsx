@@ -20,11 +20,11 @@ interface OrderSummaryProps {
 
 export function OrderSummary({ cartTotal, deliveryFee, discount, grandTotal, isFreeShipping, getDeliveryEstimate, loyaltyDiscount, cashbackEarned, isLoggedIn = false, cartItems = [] }: OrderSummaryProps) {
     const { t } = useTranslation("checkout");
-    // Cash settlement uses the nearest 250 IQD, never an always-upward surcharge.
+    // حساب التقريب للعرض
     const rawTotal = Math.max(0, grandTotal);
-    const roundedTotal = Math.round(rawTotal / 250) * 250;
+    const roundedTotal = Math.ceil(rawTotal / 250) * 250;
     const roundingDiff = roundedTotal - rawTotal;
-    const displayTotal = roundedTotal;
+    const displayTotal = roundingDiff > 0 ? roundedTotal : rawTotal;
 
     // حساب خصم الكوبون فقط (بدون النقاط)
     const couponOnlyDiscount = loyaltyDiscount && loyaltyDiscount > 0
@@ -90,13 +90,13 @@ export function OrderSummary({ cartTotal, deliveryFee, discount, grandTotal, isF
                 )}
 
                 {/* التقريب */}
-                {roundingDiff !== 0 && (
+                {roundingDiff > 0 && (
                     <div className="flex justify-between text-xs text-muted-foreground">
                         <span className="flex items-center gap-1">
                             <Info className="w-3 h-3" />
                             {t("summary.rounding")}
                         </span>
-                        <span>{roundingDiff > 0 ? "+" : ""}{formatIQD(roundingDiff)}</span>
+                        <span>+{formatIQD(roundingDiff)}</span>
                     </div>
                 )}
             </div>
