@@ -11,7 +11,8 @@
     "review": "Review order",
     "infoHint": "Enter your delivery details to complete the order",
     "confirmHint": "Review your order details before confirming",
-    "continue": "Continue to confirmation"
+    "continue": "Continue to confirmation",
+    "loadingCart": "Loading your cart..."
   },
   "deliveryEstimate": "Within {{days}}",
   "deliveryEstimate24": "Delivery within 24 hours",
@@ -61,7 +62,9 @@
     "tagline": "AQUAVO — premium aquarium equipment from Baghdad to all of Iraq",
     "payment": "Cash on delivery or online payment",
     "delivery": "Delivery across Iraq — the current fee is shown before confirmation",
-    "whatsapp": "WhatsApp"
+    "whatsapp": "WhatsApp",
+    "whatsappHelp": "Need help completing the order? WhatsApp",
+    "whatsappPrefill": "Hi AQUAVO, I need help completing my order. Cart contents:\\n{{items}}\\nSubtotal before delivery: {{total}}"
   },
   "form": {
     "login": "Log in",
@@ -132,7 +135,8 @@
     "placeOrder": "Confirm order",
     "processingStatus": "Processing your order, please wait...",
     "whatsappOptIn": "I want AQUAVO to remind me on WhatsApp when products I use may be running low, and send offers related to my purchases only. I can stop them at any time.",
-    "whatsappOptInHint": "Optional and does not affect your order. We do not send random offers; order and service messages stay separate."
+    "whatsappOptInHint": "Optional and does not affect your order. We do not send random offers; order and service messages stay separate.",
+    "agreementRequired": "Please accept the terms and conditions to complete your order."
   },
   "paymentCard": {
     "onlineTitle": "Secure online payment",
