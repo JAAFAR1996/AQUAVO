@@ -221,6 +221,32 @@ export function phTrackInitiateCheckout(data: {
   });
 }
 
+export function phTrackCheckoutStep(data: {
+  step:
+    | "checkout_loaded"
+    | "empty_cart_redirect"
+    | "customer_info_completed"
+    | "order_submit_started"
+    | "order_submit_failed"
+    | "order_created"
+    | "online_submit_started"
+    | "online_submit_failed";
+  numItems?: number;
+  totalValue?: number;
+  statusCode?: number;
+  errorCode?: string;
+  paymentMethod?: "cod" | "online";
+}): void {
+  capture("CheckoutFunnel", {
+    step: data.step,
+    ...(typeof data.numItems === "number" ? { num_items: data.numItems } : {}),
+    ...(typeof data.totalValue === "number" ? { total_value: data.totalValue, currency: "IQD" } : {}),
+    ...(typeof data.statusCode === "number" ? { status_code: data.statusCode } : {}),
+    ...(data.errorCode ? { error_code: data.errorCode } : {}),
+    ...(data.paymentMethod ? { payment_method: data.paymentMethod } : {}),
+  });
+}
+
 export function phTrackPurchase(data: {
   orderId: number | string;
   totalValue: number;

@@ -539,6 +539,9 @@ export default function Navbar() {
                             {price(totalPrice)}
                           </dd>
                         </dl>
+                        <p className="mt-2 text-center text-xs leading-5 text-muted-foreground">
+                          {t("paymentNote", { fee: shippingFeeLabel })}
+                        </p>
 
                         <Button
                           type="button"

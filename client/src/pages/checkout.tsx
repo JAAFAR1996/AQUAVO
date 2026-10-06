@@ -7,11 +7,11 @@ import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/hooks/use-toast";
 import { addCsrfHeader } from "@/lib/csrf";
 import { ttqInitiateCheckout, ttqAddPaymentInfo, ttqPlaceAnOrder } from "@/lib/tiktok-pixel";
-import { phTrackInitiateCheckout, phTrackPurchase } from "@/lib/posthog";
+import { phTrackCheckoutStep, phTrackInitiateCheckout, phTrackPurchase } from "@/lib/posthog";
 import { metaTrackInitiateCheckout, metaTrackPurchase } from "@/lib/meta-pixel";
 import { trackAddShippingInfo, trackBeginCheckout, trackPurchase } from "@/lib/analytics";
-import { WHATSAPP_URL, DELIVERY_DAYS } from "@/lib/constants/shipping";
-import { ArrowRight, ShoppingCart, MessageCircle, Instagram } from "lucide-react";
+import { DELIVERY_DAYS } from "@/lib/constants/shipping";
+import { ArrowRight, ShoppingCart, MessageCircle, Instagram, Loader2 } from "lucide-react";
 import { MetaTags } from "@/components/seo/meta-tags";
 import { resolveCheckoutTotal } from "@/lib/checkout-total";
 import { clearOrderIdempotencyKey, getOrderIdempotencyKey } from "@/lib/order-idempotency";
@@ -38,7 +38,7 @@ export default function CheckoutPage() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
   const { toast } = useToast();
-  const { items: cartItems, totalPrice: cartTotal, clearCart, refetchCart } = useCart();
+  const { items: cartItems, totalPrice: cartTotal, clearCart, refetchCart, isReady: isCartReady } = useCart();
   const canUseTestMode = user?.role === "admin" || user?.role === "accounting_admin";
   const testRequested = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("test") === "1";
   const [testMode, setTestMode] = useState(testRequested);
@@ -94,11 +94,17 @@ export default function CheckoutPage() {
     }
   };
 
+  const emptyRedirectTrackedRef = useRef(false);
   useEffect(() => {
-    if (cartItems.length === 0 && step !== "success") {
+    if (!isCartReady || step === "success") return;
+    if (cartItems.length === 0) {
+      if (!emptyRedirectTrackedRef.current && !testMode) {
+        emptyRedirectTrackedRef.current = true;
+        phTrackCheckoutStep({ step: "empty_cart_redirect", numItems: 0, totalValue: 0 });
+      }
       setLocation("/");
     }
-  }, [cartItems.length, step]);
+  }, [isCartReady, cartItems.length, step, testMode, setLocation]);
 
   useEffect(() => {
     if (user) {
@@ -115,8 +121,15 @@ export default function CheckoutPage() {
     }
   }, [user]);
 
+  const checkoutTrackedRef = useRef(false);
   useEffect(() => {
-    if (cartItems.length > 0 && !testMode) {
+    if (isCartReady && cartItems.length > 0 && !testMode && !checkoutTrackedRef.current) {
+      checkoutTrackedRef.current = true;
+      phTrackCheckoutStep({
+        step: "checkout_loaded",
+        numItems: cartItems.reduce((sum, item) => sum + item.quantity, 0),
+        totalValue: cartTotal,
+      });
       ttqInitiateCheckout(
         cartItems.map((item) => ({
           id: item.productId,
@@ -150,7 +163,7 @@ export default function CheckoutPage() {
         cartTotal
       );
     }
-  }, []);
+  }, [isCartReady, cartItems.length, cartTotal, testMode]);
 
   const [agreed, setAgreed] = useState(false);
   const [whatsappMarketingOptIn, setWhatsappMarketingOptIn] = useState(false);
@@ -272,6 +285,11 @@ export default function CheckoutPage() {
       }
 
       if (!testMode) {
+        phTrackCheckoutStep({
+          step: "customer_info_completed",
+          numItems: latestCart.reduce((sum, item) => sum + item.quantity, 0),
+          totalValue: latestCart.reduce((sum, item) => sum + item.price * item.quantity, 0),
+        });
         trackAddShippingInfo(latestCart.map((item) => ({
           id: item.productId,
           name: item.name,
@@ -326,7 +344,16 @@ export default function CheckoutPage() {
     const checkoutSubtotal = checkoutItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
     const checkoutGrandTotal = Math.max(0, checkoutSubtotal + deliveryFee - discount);
 
+    let failureTracked = false;
     setIsSubmitting(true);
+    if (!testMode) {
+      phTrackCheckoutStep({
+        step: "order_submit_started",
+        numItems: checkoutItems.reduce((sum, item) => sum + item.quantity, 0),
+        totalValue: checkoutGrandTotal,
+        paymentMethod: "cod",
+      });
+    }
     try {
       const cartSignature = JSON.stringify({
         items: checkoutItems.map(({ productId, variantId, quantity }) => ({ productId, variantId, quantity })),
@@ -368,10 +395,29 @@ export default function CheckoutPage() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => null);
+        if (!testMode) {
+          failureTracked = true;
+          phTrackCheckoutStep({
+            step: "order_submit_failed",
+            numItems: checkoutItems.reduce((sum, item) => sum + item.quantity, 0),
+            totalValue: checkoutGrandTotal,
+            paymentMethod: "cod",
+            statusCode: response.status,
+            errorCode: typeof errorData?.code === "string" ? errorData.code : `HTTP_${response.status}`,
+          });
+        }
         throw new Error(errorData?.message || t("errors.createFailed", { status: response.status }));
       }
 
       const orderData = await response.json();
+      if (!testMode) {
+        phTrackCheckoutStep({
+          step: "order_created",
+          numItems: checkoutItems.reduce((sum, item) => sum + item.quantity, 0),
+          totalValue: checkoutGrandTotal,
+          paymentMethod: "cod",
+        });
+      }
       const confirmedTotal = resolveCheckoutTotal(orderData, checkoutGrandTotal);
 
       if (!testMode) {
@@ -466,6 +512,15 @@ export default function CheckoutPage() {
       window.scrollTo(0, 0);
     } catch (error: unknown) {
       console.error("Checkout error:", error);
+      if (!testMode && !failureTracked) {
+        phTrackCheckoutStep({
+          step: "order_submit_failed",
+          numItems: checkoutItems.reduce((sum, item) => sum + item.quantity, 0),
+          totalValue: checkoutGrandTotal,
+          paymentMethod: "cod",
+          errorCode: "CLIENT_OR_NETWORK_ERROR",
+        });
+      }
       const message = error instanceof Error ? error.message : t("errors.generic");
       toast({ title: t("errors.orderTitle"), description: message, variant: "destructive" });
     } finally {
@@ -545,6 +600,25 @@ export default function CheckoutPage() {
       setIsApplyingCoupon(false);
     }
   };
+
+  const whatsappCartItems = cartItems
+    .map((item) => `- ${item.name}${item.variantLabel ? ` (${item.variantLabel})` : ""} × ${item.quantity}`)
+    .join("\n");
+  const whatsappCheckoutMessage = t("footer.whatsappPrefill", {
+    items: whatsappCartItems,
+    total: formatIQD(cartTotal),
+  });
+
+  if (!isCartReady && step !== "success") {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center" role="status" aria-live="polite">
+        <div className="flex items-center gap-3 text-muted-foreground">
+          <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
+          <span>{t("steps.loadingCart")}</span>
+        </div>
+      </div>
+    );
+  }
 
   if (step === "success" && orderResult) {
     return (
@@ -684,10 +758,11 @@ export default function CheckoutPage() {
         <div className="flex items-center justify-center gap-4">
           <WhatsAppLink
             source="checkout"
+            message={whatsappCheckoutMessage}
             className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-green-500 transition-colors"
           >
             <MessageCircle className="w-3.5 h-3.5" aria-hidden="true" />
-            {t("footer.whatsapp")}
+            {t("footer.whatsappHelp")}
           </WhatsAppLink>
           <a
             href="https://www.instagram.com/aquavo_iq"

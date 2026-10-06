@@ -166,6 +166,8 @@ async function preflightGuestCartItems(items: CartItem[]): Promise<CartItem[]> {
 
 interface CartContextType {
   items: CartItem[];
+  /** True only after auth resolution and the correct guest/server cart has been hydrated. */
+  isReady: boolean;
   /** Resolves true when the item was added, false when blocked (e.g. out of stock). */
   addItem: (product: Product, quantity?: number) => Promise<boolean>;
   /** Adds each product through the same validated path as addItem; returns count successfully added. */
@@ -248,13 +250,13 @@ const mapServerCartItem = (item: ServerCartItem): CartItem => {
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const { t } = useTranslation("common");
-  const { user } = useAuth();
+  const { user, isLoading: isAuthLoading } = useAuth();
   const [items, setItems] = useState<CartItem[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
 
   // Load from LocalStorage on mount (for guest)
   useEffect(() => {
-    if (!user && !isInitialized) {
+    if (!isAuthLoading && !user && !isInitialized) {
       const stored = syncStorage.getItem<CartItem[]>(CART_STORAGE_KEY);
       if (stored) {
         try {
@@ -277,11 +279,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
       setIsInitialized(true);
     }
-  }, [user, isInitialized]);
+  }, [user, isAuthLoading, isInitialized]);
 
   // Sync with Server on Login - MERGE local cart with server cart
   useEffect(() => {
-    if (user) {
+    if (!isAuthLoading && user) {
+      setIsInitialized(false);
       const mergeGuestCartWithServer = async () => {
         try {
           // 1. Get local cart BEFORE we replace it
@@ -346,9 +349,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
         }
       };
 
-      mergeGuestCartWithServer();
+      void mergeGuestCartWithServer().finally(() => setIsInitialized(true));
     }
-  }, [user]);
+  }, [user, isAuthLoading]);
 
   // Persist changes
   const saveCart = async (newItems: CartItem[]) => {
@@ -750,6 +753,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     <CartContext.Provider
       value={{
         items,
+        isReady: !isAuthLoading && isInitialized,
         addItem,
         addItems,
         removeItem,
