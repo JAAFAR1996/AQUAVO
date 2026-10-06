@@ -100,10 +100,10 @@ export function ConfirmationView({
 
     const pointsDiscount = loyaltyData?.pointsDiscount ?? 0;
     const cashbackEarned = loyaltyData?.cashbackEarned ?? 0;
-    const amountBeforeRounding = cartTotal + deliveryFee - couponDiscount - pointsDiscount;
-    const roundedUp = Math.ceil(Math.max(0, amountBeforeRounding) / 250) * 250;
-    const roundingDifference = roundedUp - Math.max(0, amountBeforeRounding);
-    const finalAmount = roundingDifference > 0 ? roundedUp : Math.max(0, amountBeforeRounding);
+    const amountBeforeRounding = Math.max(0, cartTotal + deliveryFee - couponDiscount - pointsDiscount);
+    const roundedTotal = Math.round(amountBeforeRounding / 250) * 250;
+    const roundingDifference = roundedTotal - amountBeforeRounding;
+    const finalAmount = roundedTotal;
     const onlineBlockedByLoyalty = Boolean(
         (loyaltyData?.useCashback && loyaltyData.cashbackToUse > 0)
         || (loyaltyData?.usePoints && (loyaltyData.pointsToUse > 0 || pointsDiscount > 0)),
@@ -268,7 +268,7 @@ export function ConfirmationView({
                 </div>
                 {couponDiscount > 0 && <div className="flex justify-between text-sm"><span className="text-green-600 dark:text-green-400">{t("summary.couponDiscount")}</span><span className="text-green-600 dark:text-green-400">-{formatIQD(couponDiscount)}</span></div>}
                 {loyaltyData && loyaltyData.cashbackToUse > 0 && <div className="flex justify-between text-sm"><span className="text-green-600 dark:text-green-400">{t("summary.cashbackDiscount")}</span><span className="text-green-600 dark:text-green-400">-{formatIQD(loyaltyData.cashbackToUse)}</span></div>}
-                {roundingDifference > 0 && <div className="flex justify-between text-xs text-muted-foreground"><span>{t("summary.rounding")}</span><span>+{formatIQD(roundingDifference)}</span></div>}
+                {roundingDifference !== 0 && <div className="flex justify-between text-xs text-muted-foreground"><span>{t("summary.rounding")}</span><span>{roundingDifference > 0 ? "+" : ""}{formatIQD(roundingDifference)}</span></div>}
                 <Separator />
                 <div className="flex justify-between items-center" role="status" aria-live="polite" aria-atomic="true">
                     <span className="font-semibold">{t("summary.total")}</span><span className="text-xl font-bold text-primary">{formatIQD(finalAmount)}</span>
