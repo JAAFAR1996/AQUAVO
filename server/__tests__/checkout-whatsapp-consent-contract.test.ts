@@ -29,10 +29,14 @@ describe("checkout WhatsApp consent contract",()=>{
     expect(ar.confirm.whatsappOptInHint).toContain("اختياري");
   });
 
-  it("keeps WhatsApp communication terms inside the terms page",()=>{
+  it("keeps service messaging separate from optional marketing in the terms page",()=>{
     const terms=read("client/src/pages/terms.tsx");
+    const ar=JSON.parse(read("client/src/locales/ar/pages.json"));
     expect(terms).toContain('t("terms.s66")');
     expect(terms).toContain('t("terms.s67")');
     expect(terms).toContain('t("terms.s68")');
+    expect(ar.terms.s67).toContain("الطلب والتوصيل");
+    expect(ar.terms.s68).toContain("اختيارية");
+    expect(ar.terms.s68).toContain("بشكل منفصل");
   });
 });
