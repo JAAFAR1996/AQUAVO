@@ -8,6 +8,7 @@ const mockFetch = vi.hoisted(() => vi.fn());
 const mockClearCart = vi.hoisted(() => vi.fn());
 const mockToast = vi.hoisted(() => vi.fn());
 const mockCartState = vi.hoisted(() => ({
+  isReady: true,
   items: [{ id: "line-1", productId: "p1", name: "فلتر اختبار", price: 25000, quantity: 1, stock: 5, image: "/brand/aquavo-v2-icon.svg" }] as any[],
 }));
 const mockRefetchCart = vi.hoisted(() => vi.fn(async () => mockCartState.items));
@@ -23,6 +24,7 @@ vi.mock("@/contexts/cart-context", () => ({
     totalPrice: mockCartState.items.reduce((sum, item) => sum + item.price * item.quantity, 0),
     clearCart: mockClearCart,
     refetchCart: mockRefetchCart,
+    isReady: mockCartState.isReady,
   }),
 }));
 vi.mock("@/hooks/use-toast", () => ({ useToast: () => ({ toast: mockToast }) }));
@@ -81,6 +83,7 @@ const orderCalls = () => mockFetch.mock.calls.filter(([url]) => url === "/api/or
 describe("checkout page", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockCartState.isReady = true;
     mockCartState.items = [{ id: "line-1", productId: "p1", name: "فلتر اختبار", price: 25000, quantity: 1, stock: 5, image: "/brand/aquavo-v2-icon.svg" }];
     mockRefetchCart.mockImplementation(async () => mockCartState.items);
     queuedOrderResponses.length = 0;
@@ -88,6 +91,25 @@ describe("checkout page", () => {
     // Default to gateway-down so the COD assertions below stay deterministic;
     // the Wayl cases opt in explicitly.
     routeFetch(false);
+  });
+
+  it("waits for cart hydration instead of redirecting an initially empty cart", () => {
+    mockCartState.isReady = false;
+    mockCartState.items = [];
+
+    renderCheckout();
+
+    expect(screen.getByText("جاري تحميل السلة...")).toBeInTheDocument();
+    expect(mockSetLocation).not.toHaveBeenCalledWith("/");
+  });
+
+  it("redirects only after cart hydration confirms the cart is empty", async () => {
+    mockCartState.isReady = true;
+    mockCartState.items = [];
+
+    renderCheckout();
+
+    expect(mockSetLocation).toHaveBeenCalledWith("/");
   });
 
   it("shows COD, the fixed delivery fee and the visible total", () => {
@@ -216,7 +238,11 @@ describe("checkout page", () => {
     expect(screen.getByText("جعفر محمد")).toBeInTheDocument();
     expect(screen.getByText(/بغداد - الكرادة داخل/)).toBeInTheDocument();
     const confirmButton = screen.getByRole("button", { name: "تأكيد الطلب" });
-    expect(confirmButton).toBeDisabled();
+    expect(confirmButton).toBeEnabled();
+
+    await user.click(confirmButton);
+    expect(screen.getByText("وافق على الشروط والأحكام حتى نكمل طلبك.")).toBeInTheDocument();
+    expect(orderCalls()).toHaveLength(0);
 
     await user.click(screen.getByRole("checkbox", { name: /أوافق على.*الشروط والأحكام/ }));
     expect(confirmButton).toBeEnabled();
