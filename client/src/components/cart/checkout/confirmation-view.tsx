@@ -377,7 +377,6 @@ export function ConfirmationView({
                         const accepted = checked === true;
                         setAgreed(accepted);
                         if (accepted) setAgreementError(false);
-                        setWhatsappMarketingOptIn(accepted);
                     }}
                     className="mt-0.5"
                     disabled={busy}
@@ -389,6 +388,24 @@ export function ConfirmationView({
             {agreementError && (
                 <p className="text-sm text-destructive" role="alert">{t("confirm.agreementRequired")}</p>
             )}
+
+            <div className="rounded-xl border border-border/60 bg-muted/20 p-3">
+                <div className="flex items-start gap-3">
+                    <Checkbox
+                        id="whatsapp-marketing-opt-in"
+                        checked={whatsappMarketingOptIn}
+                        onCheckedChange={(checked) => setWhatsappMarketingOptIn(checked === true)}
+                        className="mt-0.5"
+                        disabled={busy}
+                    />
+                    <div className="space-y-1">
+                        <label htmlFor="whatsapp-marketing-opt-in" className="text-sm cursor-pointer leading-relaxed text-foreground">
+                            {t("confirm.whatsappOptIn")}
+                        </label>
+                        <p className="text-xs leading-5 text-muted-foreground">{t("confirm.whatsappOptInHint")}</p>
+                    </div>
+                </div>
+            </div>
 
             <div className="flex flex-col gap-3 sm:flex-row">
                 <Button variant="outline" onClick={handleBack} className="order-2 h-11 w-full sm:order-1 sm:h-12 sm:flex-1" disabled={busy} aria-disabled={busy}>{t("confirm.edit")}</Button>
