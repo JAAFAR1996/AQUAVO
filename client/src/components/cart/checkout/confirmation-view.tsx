@@ -13,6 +13,7 @@ import { useTranslation } from "react-i18next";
 import { isolateNumericRanges as bidi } from "@shared/i18n/bidi";
 import { getClientSessionId } from "@/lib/client-session";
 import { orderAttributionPayload } from "@/lib/attribution";
+import { phTrackCheckoutStep } from "@/lib/posthog";
 
 const APPLIED_COUPON_STORAGE_KEY = "aquavo_applied_coupon_v1";
 
@@ -82,6 +83,7 @@ export function ConfirmationView({
     const [onlineError, setOnlineError] = useState("");
     const [onlineAvailable, setOnlineAvailable] = useState<boolean | null>(null);
     const [preparedOrder, setPreparedOrder] = useState<Pick<OnlineStartResponse, "orderNumber" | "amount"> | null>(null);
+    const [agreementError, setAgreementError] = useState(false);
 
     useEffect(() => {
         let active = true;
@@ -115,6 +117,13 @@ export function ConfirmationView({
         setOnlinePreparing(true);
         setOnlineError("");
         setPreparedOrder(null);
+        let failureTracked = false;
+        phTrackCheckoutStep({
+            step: "online_submit_started",
+            numItems: cartItems.reduce((sum, item) => sum + item.quantity, 0),
+            totalValue: finalAmount,
+            paymentMethod: "online",
+        });
 
         try {
             let couponCode = "";
@@ -164,10 +173,25 @@ export function ConfirmationView({
 
             const data = await response.json().catch(() => ({})) as Partial<OnlineStartResponse> & { message?: string };
             if (!response.ok || !data.redirectUrl || !data.orderId || !data.paymentId) {
+                failureTracked = true;
+                phTrackCheckoutStep({
+                    step: "online_submit_failed",
+                    numItems: cartItems.reduce((sum, item) => sum + item.quantity, 0),
+                    totalValue: finalAmount,
+                    paymentMethod: "online",
+                    statusCode: response.status,
+                    errorCode: typeof (data as any)?.code === "string" ? String((data as any).code) : `HTTP_${response.status}`,
+                });
                 throw new Error(data.message || t("errors.onlineSetup"));
             }
 
             const started = data as OnlineStartResponse;
+            phTrackCheckoutStep({
+                step: "order_created",
+                numItems: cartItems.reduce((sum, item) => sum + item.quantity, 0),
+                totalValue: started.amount,
+                paymentMethod: "online",
+            });
             setPreparedOrder({ orderNumber: started.orderNumber, amount: started.amount });
             try {
                 sessionStorage.setItem("aquavo_online_payment_v1", JSON.stringify({
@@ -180,6 +204,15 @@ export function ConfirmationView({
 
             window.setTimeout(() => window.location.assign(started.redirectUrl), 250);
         } catch (error) {
+            if (!failureTracked) {
+                phTrackCheckoutStep({
+                    step: "online_submit_failed",
+                    numItems: cartItems.reduce((sum, item) => sum + item.quantity, 0),
+                    totalValue: finalAmount,
+                    paymentMethod: "online",
+                    errorCode: "CLIENT_OR_NETWORK_ERROR",
+                });
+            }
             setOnlineError(error instanceof Error ? error.message : t("errors.onlineSetup"));
             setOnlinePreparing(false);
             setPreparedOrder(null);
@@ -187,6 +220,12 @@ export function ConfirmationView({
     };
 
     const submit = () => {
+        if (!agreed) {
+            setAgreementError(true);
+            requestAnimationFrame(() => document.getElementById("agree")?.focus());
+            return;
+        }
+        setAgreementError(false);
         if (paymentMethod === "online") {
             void beginOnlinePayment();
             return;
@@ -337,6 +376,7 @@ export function ConfirmationView({
                     onCheckedChange={(checked) => {
                         const accepted = checked === true;
                         setAgreed(accepted);
+                        if (accepted) setAgreementError(false);
                         setWhatsappMarketingOptIn(accepted);
                     }}
                     className="mt-0.5"
@@ -346,6 +386,9 @@ export function ConfirmationView({
                     {t("confirm.agreePrefix")}{" "}<a href="/terms" target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-2 hover:text-primary/80 font-medium" onClick={(e) => e.stopPropagation()}>{t("confirm.terms")}</a>{" "}{t("confirm.agreeSuffix")}
                 </label>
             </div>
+            {agreementError && (
+                <p className="text-sm text-destructive" role="alert">{t("confirm.agreementRequired")}</p>
+            )}
 
             <div className="flex flex-col gap-3 sm:flex-row">
                 <Button variant="outline" onClick={handleBack} className="order-2 h-11 w-full sm:order-1 sm:h-12 sm:flex-1" disabled={busy} aria-disabled={busy}>{t("confirm.edit")}</Button>
@@ -353,8 +396,8 @@ export function ConfirmationView({
                     onClick={submit}
                     className="order-1 h-12 w-full text-base font-semibold sm:order-2 sm:flex-1"
                     size="lg"
-                    disabled={!agreed || busy || (paymentMethod === "online" && onlineBlockedByLoyalty)}
-                    aria-disabled={!agreed || busy || (paymentMethod === "online" && onlineBlockedByLoyalty)}
+                    disabled={busy || (paymentMethod === "online" && onlineBlockedByLoyalty)}
+                    aria-disabled={busy || (paymentMethod === "online" && onlineBlockedByLoyalty)}
                     aria-busy={busy}
                 >
                     {isSubmitting
