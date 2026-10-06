@@ -4,7 +4,7 @@
  * نظام نقاط الولاء والعضويات لمتجر أكوافو
  * 
  * المكونات:
- * 1. تقريب الأسعار للسوق العراقي (أقرب 250 دينار - دائماً لأعلى)
+ * 1. تقريب المبلغ النقدي لأقرب 250 دينار بدون انحياز للأعلى
  * 2. نقاط الولاء (1 نقطة لكل 5,000 دينار) - للعضوية فقط، لا تُستبدل بفلوس أبداً، أبدية
  * 3. مستويات العضوية (برونزي/فضي/ذهبي/ماسي) - تعتمد على نقاط الولاء
  * 4. نقاط الباقي (cashback) - تُستبدل كخصم مالي، لها صلاحية
@@ -256,11 +256,13 @@ export class LoyaltyStorage {
     if (amount <= 0) {
       return { originalAmount: 0, roundedAmount: 0, remainder: 0 };
     }
-    const rounded = Math.ceil(amount / IRAQI_DENOMINATION) * IRAQI_DENOMINATION;
+    const rounded = Math.round(amount / IRAQI_DENOMINATION) * IRAQI_DENOMINATION;
     return {
       originalAmount: amount,
       roundedAmount: rounded,
-      remainder: rounded - amount,
+      // Only an upward difference is cashback. A downward round is already
+      // an immediate customer discount and must never create negative points.
+      remainder: Math.max(0, rounded - amount),
     };
   }
 
