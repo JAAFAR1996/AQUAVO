@@ -2,7 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useCart } from "@/contexts/cart-context";
 import { fetchCartSuggestions } from "@/lib/api";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, Sparkles } from "lucide-react";
+import { ShoppingCart, Sparkles, SlidersHorizontal } from "lucide-react";
+import { Link } from "wouter";
 import { thumbImage } from "@/lib/cloudinary";
 import type { Product } from "@/types";
 import { useTranslation } from "react-i18next";
@@ -25,52 +26,68 @@ export function CartSuggestions() {
   if (suggestions.length === 0) return null;
 
   return (
-    <div className="hidden py-3 sm:block">
-      <div className="flex items-center gap-1.5 mb-2 justify-end">
-        <h4 className="text-xs font-bold text-muted-foreground">{t("suggestions.title")}</h4>
-        <Sparkles className="h-3 w-3 text-primary" aria-hidden="true" />
+    <div className="py-3">
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <p className="text-[11px] leading-4 text-muted-foreground">{data?.reason || ""}</p>
+        <div className="flex shrink-0 items-center gap-1.5">
+          <h4 className="text-xs font-bold text-foreground">{t("suggestions.title")}</h4>
+          <Sparkles className="h-3 w-3 text-primary" aria-hidden="true" />
+        </div>
       </div>
-      <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
-        {suggestions.map((product: Product) => (
-          <div
-            key={product.id}
-            className="flex-shrink-0 w-[130px] p-2 rounded-lg border bg-muted/30 hover:border-primary/30 transition-colors"
-          >
-            <div className="w-full h-16 rounded-md overflow-hidden bg-background mb-1.5">
-              <img
-                src={thumbImage(product.images?.[0] || product.thumbnail) || "/brand/aquavo-v2-icon.svg"}
-                alt={product.name}
-                className="w-full h-full object-contain p-1"
-                loading="lazy"
-                decoding="async"
-                width={120}
-                height={120}
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = "/brand/aquavo-v2-icon.svg";
-                }}
-              />
+      <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 scrollbar-hide">
+        {suggestions.map((product: Product) => {
+          const needsChoice = Boolean(product.hasVariants && product.variants?.length);
+          return (
+            <div
+              key={product.id}
+              className="flex w-[205px] flex-shrink-0 items-center gap-2 rounded-xl border border-border bg-background p-2"
+            >
+              <Link href={`/products/${product.slug}`} className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-muted/30">
+                <img
+                  src={thumbImage(product.images?.[0] || product.thumbnail) || "/brand/aquavo-v2-icon.svg"}
+                  alt=""
+                  className="h-full w-full object-contain p-1"
+                  loading="lazy"
+                  decoding="async"
+                  width={64}
+                  height={64}
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = "/brand/aquavo-v2-icon.svg";
+                  }}
+                />
+              </Link>
+              <div className="min-w-0 flex-1">
+                <Link href={`/products/${product.slug}`} className="line-clamp-2 text-[11px] font-semibold leading-4 text-foreground hover:text-primary">
+                  {product.name}
+                </Link>
+                <div className="mt-1 flex items-center justify-between gap-2">
+                  <span className="whitespace-nowrap text-[10px] font-bold text-primary">
+                    {product.price && Number(product.price) > 0 ? formatIQD(Number(product.price)) : ""}
+                  </span>
+                  {needsChoice ? (
+                    <Link
+                      href={`/products/${product.slug}`}
+                      className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                      aria-label={t("suggestions.choose", { name: product.name })}
+                    >
+                      <SlidersHorizontal className="h-3.5 w-3.5" aria-hidden="true" />
+                    </Link>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 w-7 p-0 hover:bg-primary/10 hover:text-primary"
+                      onClick={() => void addItem(product)}
+                      aria-label={t("suggestions.add", { name: product.name })}
+                    >
+                      <ShoppingCart className="h-3.5 w-3.5" aria-hidden="true" />
+                    </Button>
+                  )}
+                </div>
+              </div>
             </div>
-            <h5 className="text-[11px] font-medium text-right line-clamp-2 leading-tight mb-1">
-              {product.name}
-            </h5>
-            <div className="flex items-center justify-between">
-              <Button
-                size="sm"
-                variant="ghost"
-                className="h-6 w-6 p-0 hover:bg-primary/10 hover:text-primary"
-                onClick={() => addItem(product)}
-                aria-label={t("suggestions.add", { name: product.name })}
-              >
-                <ShoppingCart className="h-3 w-3" aria-hidden="true" />
-              </Button>
-              <span className="text-[10px] font-bold text-primary">
-                {product.price && Number(product.price) > 0
-                  ? formatIQD(Number(product.price))
-                  : ""}
-              </span>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
