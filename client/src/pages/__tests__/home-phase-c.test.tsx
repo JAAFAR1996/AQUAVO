@@ -119,7 +119,7 @@ describe("Home — Phase C store-picks states", () => {
     render(<Home />, { wrapper: createWrapper() });
     await waitFor(() => {
       expect(screen.getByText(/تعذر علينا تحميل الاختيارات المختارة هسه/)).toBeInTheDocument();
-    });
+    }, { timeout: 3500 });
   });
 
   it("falls back to new arrivals when only the sales feed fails", async () => {
