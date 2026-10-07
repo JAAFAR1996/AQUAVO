@@ -72,7 +72,7 @@ describe('Navbar Component', () => {
 
         expect(screen.getByRole('link', { name: 'المتجر' })).toBeInTheDocument();
         // Renamed in b864de27 ("canonical journey link"); still the /journey entry.
-        expect(screen.getByRole('link', { name: 'اختار حسب حوضك' })).toBeInTheDocument();
+        expect(screen.getByRole('link', { name: 'رتب تجهيز حوضك' })).toBeInTheDocument();
         expect(screen.getByRole('link', { name: 'أدلة AQUAVO' })).toBeInTheDocument();
         expect(screen.getByRole('link', { name: 'تتبع طلبك' })).toBeInTheDocument();
         expect(screen.getByRole('link', { name: 'منو AQUAVO' })).toBeInTheDocument();
