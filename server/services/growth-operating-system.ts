@@ -1537,9 +1537,20 @@ export async function suppressLifecycleJob(jobId:string, reason:string) {
 
 const DEFAULT_BUNDLES = [
   {
+    slug:"sponge-filter-ready",
+    name:"باقة تشغيل الفلتر الإسفنجي",
+    description:"فلتر إسفنجي + مضخة هواء + خرطوم 4 متر بطلب واحد، حتى يشتغل الفلتر من أول تركيب بدون ما تجمع القطع وحدة وحدة.",
+    audience:"sponge-filter",
+    items:[
+      ["general-sponge-filter-xy180","xy-180"],
+      ["sunsun-air-pump",null],
+      ["houyi-oxygenation-tube","4m-black"],
+    ],
+  },
+  {
     slug:"betta-care-starter",
     name:"باقة بداية البيتا",
-    description:"أساسيات الرعاية اليومية للبيتا بدون شراء قطع غير ضرورية.",
+    description:"أساسيات البيتا بطلب واحد: طعام وفلترة وتهوية ومعالجة ماء وقياس حرارة، بدون ما تجمع القطع وحدة وحدة.",
     audience:"betta",
     items:[
       ["yee-c1-1124-1",null],
@@ -1553,7 +1564,7 @@ const DEFAULT_BUNDLES = [
   {
     slug:"guppy-starter",
     name:"باقة بداية الجوبي",
-    description:"فلترة وتهوية وطعام ومعالجة ماء مناسبة كبداية لحوض جوبي.",
+    description:"أساسيات الجوبي بطلب واحد: فلترة وتهوية وطعام ومعالجة ماء وقياس حرارة، حتى تبدأ بتجهيز واضح بدل الشراء المتفرق.",
     audience:"guppy",
     items:[
       ["yee-c1-1113-2",null],
@@ -1567,7 +1578,7 @@ const DEFAULT_BUNDLES = [
   {
     slug:"planted-tank-starter",
     name:"باقة بداية الحوض المزروع",
-    description:"مواد تأسيس وعناية بالأكواسكيب والنباتات.",
+    description:"تربة وأدوات تثبيت وعناية للأكواسكيب بطلب واحد، حتى تبدأ مشروع الحوض المزروع بقطع مكملة لبعضها.",
     audience:"planted",
     items:[
       ["yee-07509","fine15"],
@@ -1580,7 +1591,7 @@ const DEFAULT_BUNDLES = [
   {
     slug:"filter-maintenance-pack",
     name:"باقة صيانة الفلتر",
-    description:"مواد وأدوات أساسية لصيانة الفلتر والخراطيم.",
+    description:"قطن فلترة وكيس ميديا وفرشاة خراطيم مع كربون للاستخدام عند الحاجة، مجمعة بطلب صيانة واحد.",
     audience:"maintenance",
     items:[
       ["houyi-white-cotton",null],
@@ -1592,7 +1603,7 @@ const DEFAULT_BUNDLES = [
   {
     slug:"water-testing-pack",
     name:"باقة فحص ومراقبة الماء",
-    description:"فحص سريع ومراقبة حرارة الحوض مع أساسيات معالجة الماء.",
+    description:"شرائط فحص وميزان حرارة ومزيل كلور بطلب واحد، حتى تراقب الماء قبل ما تتحول القراءة الغلط إلى مشكلة بالحوض.",
     audience:"testing",
     items:[
       ["yee-c4-1123-1a",null],
