@@ -25,12 +25,13 @@ import { useTranslation } from "react-i18next";
 import { BackToTop } from "@/components/back-to-top";
 import { MetaTags } from "@/components/seo/meta-tags";
 import { HomeHero, type HomeHeroCopy } from "@/components/home/home-hero";
+import { HomeTankFit } from "@/components/home/home-tank-fit";
 import { ArrowForward, useForwardHoverClass } from "@/components/ui/directional-icons";
 import { useLocale } from "@/i18n/locale-context";
 import { formatShippingFeeNumber, useShippingFee } from "@/contexts/shipping-fee-context";
 import { formatLocalizedPrice } from "@/i18n/format";
 import { PrecisionReveal } from "@/components/motion/precision-reveal";
-import { fetchTopSellingProducts } from "@/lib/api";
+import { fetchProducts, fetchTopSellingProducts } from "@/lib/api";
 import { cardImage, cardImageSrcSet } from "@/lib/cloudinary";
 import { SHOP_CATEGORY_LINKS } from "@/lib/product-category-links";
 import { getProductDisplayIdentity } from "@/lib/product-display";
@@ -84,7 +85,7 @@ export default function Home() {
     methodLabel: t("hero.methodLabel"),
     methodTitle: t("hero.methodTitle"),
   };
-  const { data: salesData, isLoading: isStorePicksLoading, isError: isStorePicksError } = useQuery({
+  const { data: salesData, isLoading: isSalesLoading, isError: isSalesError } = useQuery({
     queryKey: ["products", "top-selling"],
     queryFn: fetchTopSellingProducts,
     staleTime: 0,
@@ -93,8 +94,30 @@ export default function Home() {
     retry: false,
   });
 
-  const storePicks = salesData?.bestSellers?.slice(0, 4) ?? [];
+  const { data: availableData, isLoading: isAvailableLoading, isError: isAvailableError } = useQuery({
+    queryKey: ["products", "home-available-picks"],
+    queryFn: () => fetchProducts({ limit: 24, sortBy: "createdAt", sortOrder: "desc" }),
+    staleTime: 60_000,
+    retry: false,
+  });
+
+  const isPurchasable = (product: any) => {
+    const hasPrice = Number(product?.price ?? 0) > 0
+      || (Array.isArray(product?.variants) && product.variants.some((variant: any) => Number(variant?.price ?? 0) > 0));
+    const hasStock = Number(product?.stock ?? 0) > 0
+      || (Array.isArray(product?.variants) && product.variants.some((variant: any) => Number(variant?.stock ?? 0) > 0));
+    return hasPrice && hasStock;
+  };
+
+  const realBestSellers = salesData?.hasRealSales
+    ? (salesData.bestSellers ?? []).filter(isPurchasable).slice(0, 4)
+    : [];
+  const availablePicks = (availableData?.products ?? []).filter(isPurchasable).slice(0, 4);
+  const storePicks = realBestSellers.length > 0 ? realBestSellers : availablePicks;
+  const hasRealPicks = realBestSellers.length > 0;
   const hasStorePicks = storePicks.length > 0;
+  const isStorePicksLoading = isSalesLoading || (!hasRealPicks && isAvailableLoading);
+  const isStorePicksError = !hasStorePicks && isSalesError && isAvailableError;
 
   return (
     <div className="flex-1 overflow-x-hidden bg-background text-foreground">
@@ -146,12 +169,14 @@ export default function Home() {
           </PrecisionReveal>
         </section>
 
+        <HomeTankFit />
+
         <section className="border-y border-border bg-card">
           <PrecisionReveal stagger className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
                 <p className="text-sm font-bold text-primary">{t("picks.eyebrow")}</p>
-                <h2 className="mt-2 text-3xl font-bold text-foreground">{t("picks.title")}</h2>
+                <h2 className="mt-2 text-3xl font-bold text-foreground">{t(hasRealPicks ? "picks.bestSellerTitle" : "picks.availableTitle")}</h2>
               </div>
               <Link href="/products" className="text-sm font-bold text-primary hover:underline">{t("picks.viewAll")}</Link>
             </div>
@@ -228,6 +253,22 @@ export default function Home() {
                 </Link>
               </div>
             )}
+          </PrecisionReveal>
+        </section>
+
+        <section className="bg-background">
+          <PrecisionReveal className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+            <div className="flex flex-col gap-6 rounded-3xl border border-primary/15 bg-primary/[0.045] p-6 sm:p-8 lg:flex-row lg:items-center lg:justify-between">
+              <div className="max-w-2xl">
+                <p className="text-sm font-bold text-primary">{t("bundles.eyebrow")}</p>
+                <h2 className="mt-2 text-2xl font-bold text-foreground sm:text-3xl">{t("bundles.title")}</h2>
+                <p className="mt-3 text-sm leading-7 text-muted-foreground">{t("bundles.description")}</p>
+              </div>
+              <Link href="/bundles" className={`${linkButton} shrink-0 bg-primary text-white hover:bg-primary/90`}>
+                {t("bundles.button")}
+                <ArrowForward className="h-4 w-4" aria-hidden="true" />
+              </Link>
+            </div>
           </PrecisionReveal>
         </section>
 
