@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect, useRef, lazy, Suspense } from "react";
 import { phTrackCategoryClick } from "@/lib/posthog";
 import { useInView } from "@/hooks/use-in-view";
-import { useLocation } from "wouter";
+import { Link, useLocation } from "wouter";
 import { AlertCircle, ArrowUpDown, Banknote, Clock, Headphones, RefreshCw, Sparkles, Truck, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MetaTags, ItemListSchema, BreadcrumbSchema } from "@/components/seo/meta-tags";
@@ -498,6 +498,13 @@ export default function Products() {
             </div>
           </div>
         )}
+
+        <div className="mb-5 flex flex-col gap-3 rounded-xl border border-primary/20 bg-primary/[0.045] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm leading-6 text-muted-foreground">{t("helper.text")}</p>
+          <Link href="/journey" className="shrink-0 text-sm font-bold text-primary underline-offset-4 hover:underline">
+            {t("helper.action")}
+          </Link>
+        </div>
 
         <div className="mb-5 overflow-hidden rounded-xl border border-border/70">
           <CategoryScrollBar
