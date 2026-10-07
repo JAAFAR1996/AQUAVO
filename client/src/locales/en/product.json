@@ -45,7 +45,7 @@
   "trust": {
     "label": "Purchase and trust information",
     "delivery": "Delivery: {{fee}} across Iraq",
-    "deliveryTime": "Arrives within {{days}}",
+    "deliveryTime": "Arrives within {{days}} across Iraq",
     "payment": "Cash on delivery or online payment"
   },
   "description": {
@@ -127,7 +127,7 @@
     "title": "Shipping and returns information",
     "policyTitle": "Shipping policy",
     "flat": "Flat delivery across Iraq: {{fee}}",
-    "time": "Arrives within {{days}}",
+    "time": "Arrives within {{days}} across Iraq",
     "exchangeTitle": "Exchange policy",
     "exchange1": "We exchange damaged or incorrect products only",
     "exchange2": "Document the condition and contact us as soon as possible with the order number and clear photos",
@@ -233,5 +233,10 @@
     "minute": "min",
     "second": "sec",
     "aria": "Month-end sale ends in {{days}} days, {{hours}} hours, {{minutes}} minutes and {{seconds}} seconds"
+  },
+  "decision": {
+    "title": "Is this product a fit for you?",
+    "subtitle": "Two decision points taken directly from this product's recorded information.",
+    "beforeBuy": "Before you buy:"
   }
 }
