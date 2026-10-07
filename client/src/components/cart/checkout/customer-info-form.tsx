@@ -7,6 +7,14 @@ import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
 
+export function normalizePhoneInputDigits(value: string): string {
+    const arabicIndic = "٠١٢٣٤٥٦٧٨٩";
+    const easternArabic = "۰۱۲۳۴۵۶۷۸۹";
+    return value
+        .replace(/[٠-٩]/g, (digit) => String(arabicIndic.indexOf(digit)))
+        .replace(/[۰-۹]/g, (digit) => String(easternArabic.indexOf(digit)));
+}
+
 interface CustomerInfoFormProps {
     customerInfo: CustomerInfo;
     setCustomerInfo: (info: CustomerInfo) => void;
@@ -129,7 +137,7 @@ export function CustomerInfoForm({ customerInfo, setCustomerInfo, errors, isGues
                     placeholder="07801234567"
                     autoComplete="tel"
                     value={customerInfo.phone}
-                    onChange={(e) => setCustomerInfo({ ...customerInfo, phone: e.target.value })}
+                    onChange={(e) => setCustomerInfo({ ...customerInfo, phone: normalizePhoneInputDigits(e.target.value) })}
                     className={errors.phone ? 'border-red-500' : ''}
                     dir="ltr"
                     aria-invalid={!!errors.phone}
