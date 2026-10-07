@@ -44,13 +44,14 @@ import { ttqViewContent } from "@/lib/tiktok-pixel";
 import { metaTrackViewContent } from "@/lib/meta-pixel";
 import { trackViewItem } from "@/lib/analytics";
 import { phTrackViewContent, phTrackWhatsAppClick } from "@/lib/posthog";
-import { DELIVERY_FEE, DELIVERY_DAYS, WHATSAPP_URL } from "@/lib/constants/shipping";
+import { DELIVERY_DAYS } from "@/lib/constants/shipping";
 import { WhatsAppLink } from "@/components/whatsapp-link";
 import { useTranslation } from "react-i18next";
 import { useLocale } from "@/i18n/locale-context";
 import { localizeCategoryName } from "@shared/i18n/categories";
 import { formatIQD } from "@/lib/utils";
 import { getProductDisplayIdentity } from "@/lib/product-display";
+import { useShippingFee } from "@/contexts/shipping-fee-context";
 
 interface Product3DMeta {
   src: string;
@@ -85,6 +86,7 @@ export default function ProductDetails() {
   const slug = params.slug;
   const [, setLocation] = useLocation();
   const { addItem } = useCart();
+  const shippingFee = useShippingFee();
   const { toast } = useToast();
   const [quantity, setQuantity] = useState(1);
   const [isAddedToCart, setIsAddedToCart] = useState(false);
@@ -257,7 +259,7 @@ export default function ProductDetails() {
 
   const handleQuantityChange = (delta: number) => {
     const newQuantity = quantity + delta;
-    if (newQuantity >= 1 && newQuantity <= (product?.stock || 99)) {
+    if (newQuantity >= 1 && newQuantity <= Math.max(1, displayStock)) {
       setQuantity(newQuantity);
     }
   };
@@ -610,7 +612,7 @@ export default function ProductDetails() {
                 >
                   <li className="flex items-center gap-2 text-sm">
                     <Truck className="w-4 h-4 text-primary" aria-hidden="true" />
-                    <span className="font-medium">{t("trust.delivery", { fee: formatIQD(DELIVERY_FEE) })}</span>
+                    <span className="font-medium">{t("trust.delivery", { fee: formatIQD(shippingFee) })}</span>
                   </li>
                   <li className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Clock className="w-4 h-4" aria-hidden="true" />
@@ -625,11 +627,11 @@ export default function ProductDetails() {
                 {/* Description — progressive disclosure for long text */}
                 <div className="text-muted-foreground text-sm leading-relaxed mb-6" style={{ whiteSpace: 'pre-line' }}>
                   {bidi(
-                    (product.description?.length ?? 0) > 220 && !descriptionExpanded
-                      ? (product.description?.slice(0, 220) ?? "") + "..."
+                    (product.description?.length ?? 0) > 400 && !descriptionExpanded
+                      ? (product.description?.slice(0, 400) ?? "") + "..."
                       : product.description ?? "",
                   )}
-                  {(product.description?.length ?? 0) > 220 && (
+                  {(product.description?.length ?? 0) > 400 && (
                     <button
                       onClick={() => setDescriptionExpanded((v) => !v)}
                       className="block mt-2 text-primary hover:text-primary/80 font-medium underline underline-offset-2 transition-colors text-sm"
@@ -1009,7 +1011,7 @@ export default function ProductDetails() {
                     <div>
                       <h3 className="font-semibold mb-2 text-start">{t("shipping.policyTitle")}</h3>
                       <ul className="list-disc space-y-1 text-muted-foreground text-start ps-5">
-                        <li>{t("shipping.flat", { fee: formatIQD(DELIVERY_FEE) })}</li>
+                        <li>{t("shipping.flat", { fee: formatIQD(shippingFee) })}</li>
                         <li>{t("shipping.time", { days: DELIVERY_DAYS })}</li>
                       </ul>
                     </div>
@@ -1119,15 +1121,35 @@ export default function ProductDetails() {
               {formatPrice(displayPrice)}
               {isKilogramProduct && <span className="text-xs font-medium text-muted-foreground">{t("price.perKilo")}</span>}
             </p>
-            <p className="text-xs text-muted-foreground truncate">{productDisplay.name}</p>
+            <p className="text-xs text-muted-foreground truncate">
+              {selectedVariant?.label
+                ? t("cart.stickyVariantQty", { variant: selectedVariant.label, quantity })
+                : t("cart.stickyQty", { quantity })}
+            </p>
           </div>
           <Button
             size="sm"
-            className="gap-2 h-10 px-6 font-bold shrink-0"
+            className={`gap-2 h-10 px-5 font-bold shrink-0 ${isAddedToCart ? "bg-green-500 hover:bg-green-600" : ""}`}
             onClick={handleAddToCart}
+            disabled={isAddingToCart}
+            aria-busy={isAddingToCart}
           >
-            <ShoppingCart className="w-4 h-4" />
-            {t("cart.addShort")}
+            {isAddingToCart ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+                {t("cart.adding")}
+              </>
+            ) : isAddedToCart ? (
+              <>
+                <Check className="w-4 h-4" aria-hidden="true" />
+                {t("cart.added")}
+              </>
+            ) : (
+              <>
+                <ShoppingCart className="w-4 h-4" aria-hidden="true" />
+                {t("cart.addShort")}
+              </>
+            )}
           </Button>
         </div>
       )}
