@@ -9,7 +9,7 @@ import type { Product } from "@/types";
 import { useTranslation } from "react-i18next";
 import { formatIQD } from "@/lib/utils";
 
-export function CartSuggestions() {
+export function CartSuggestions({ onNavigate }: { onNavigate?: () => void } = {}) {
   const { t } = useTranslation("checkout");
   const { items: cartItems, addItem } = useCart();
   const productIds = cartItems.map((item) => item.productId);
@@ -39,7 +39,7 @@ export function CartSuggestions() {
               key={product.id}
               className="flex w-[205px] flex-shrink-0 items-center gap-2 rounded-xl border border-border bg-background p-2"
             >
-              <Link href={`/products/${product.slug}`} className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-muted/30">
+              <Link href={`/products/${product.slug}`} onClick={onNavigate} className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-muted/30">
                 <img
                   src={thumbImage(product.images?.[0] || product.thumbnail) || "/brand/aquavo-v2-icon.svg"}
                   alt=""
@@ -54,7 +54,7 @@ export function CartSuggestions() {
                 />
               </Link>
               <div className="min-w-0 flex-1">
-                <Link href={`/products/${product.slug}`} className="line-clamp-2 text-[11px] font-semibold leading-4 text-foreground hover:text-primary">
+                <Link href={`/products/${product.slug}`} onClick={onNavigate} className="line-clamp-2 text-[11px] font-semibold leading-4 text-foreground hover:text-primary">
                   {product.name}
                 </Link>
                 <div className="mt-1 flex items-center justify-between gap-2">
@@ -64,6 +64,7 @@ export function CartSuggestions() {
                   {needsChoice ? (
                     <Link
                       href={`/products/${product.slug}`}
+                      onClick={onNavigate}
                       className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-primary/10 hover:text-primary"
                       aria-label={t("suggestions.choose", { name: product.name })}
                     >
