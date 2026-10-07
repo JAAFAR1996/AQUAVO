@@ -128,6 +128,16 @@ describe("Home — Phase C store-picks states", () => {
       expect(screen.getByRole("link", { name: /فلتر تجريبي/ })).toHaveAttribute("href", "/products/test-filter");
     });
   });
+
+  it("does not call editorial or review fallbacks sales-backed when hasRealSales is false", async () => {
+    fetchTopSellingProducts.mockResolvedValueOnce({ productOfWeek: sampleProducts[0], bestSellers: sampleProducts, hasRealSales: false });
+    render(<Home />, { wrapper: createWrapper() });
+
+    await waitFor(() => {
+      expect(screen.getByRole("heading", { name: "جديد AQUAVO" })).toBeInTheDocument();
+    });
+    expect(screen.queryByRole("heading", { name: "منتجات عليها طلب فعلي" })).not.toBeInTheDocument();
+  });
 });
 
 describe("Home — Phase C structure and landmarks", () => {
