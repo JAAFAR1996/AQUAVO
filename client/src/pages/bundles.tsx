@@ -43,21 +43,24 @@ type ProductResponse={products?:Array<Record<string,unknown>>};
 const COPY={
   ar:{
     title:"باقات AQUAVO",
-    description:"مجموعات جاهزة مرتبة حسب احتياج الحوض، حتى تختار القطع المتوافقة بدل الشراء العشوائي.",
+    description:"احتياج واحد، قطع تشتغل ويه بعض، وطلب واحد. رسوم التوصيل ثابتة للطلب، فنجمع القطع اللي تحتاجها فعلاً بدل طلب كل قطعة وحدها.",
+    note:"ما نحسب خصم أو توفير إلا إذا السعر فعلاً أقل من مجموع القطع.",
     components:"المكونات",add:"أضف الباقة للسلة",added:"تمت إضافة الباقة",
     unavailable:"بعض القطع غير متوفرة",price:"سعر المكونات",
     loading:"جاري تحميل الباقات…",empty:"ماكو باقات متاحة حالياً.",failed:"تعذر تحميل الباقات حالياً.",
   },
   en:{
     title:"AQUAVO Bundles",
-    description:"Curated aquarium sets built around a specific need, so you can choose compatible essentials instead of buying at random.",
+    description:"One need, compatible parts, one order. The delivery fee is charged per order, so each set groups items you genuinely use together instead of ordering them one by one.",
+    note:"We only show a saving when the bundle price is genuinely lower than the component total.",
     components:"Components",add:"Add bundle to cart",added:"Bundle added",
     unavailable:"Some items are unavailable",price:"Component total",
     loading:"Loading bundles…",empty:"No bundles are available right now.",failed:"Bundles could not be loaded right now.",
   },
   ckb:{
     title:"پاکێجەکانی AQUAVO",
-    description:"کۆمەڵە بەرهەمێکی هەڵبژێردراو بەپێی پێویستی ئەکواریۆمەکەت، بۆ ئەوەی پێکهاتە گونجاوەکان هەڵبژێریت.",
+    description:"یەک پێویستی، پارچەی گونجاو و یەک داواکاری. کرێی گەیاندن بۆ هەر داواکارییە، بۆیە پاکێجەکە تەنها ئەو شتانە کۆدەکاتەوە کە پێکەوە بەکاریان دەهێنیت.",
+    note:"تەنها کاتێک قازانج پیشان دەدەین کە نرخی پاکێجەکە بەڕاستی لە کۆی پارچەکان کەمتر بێت.",
     components:"پێکهاتەکان",add:"پاکێجەکە زیاد بکە بۆ سەبەتە",added:"پاکێجەکە زیادکرا",
     unavailable:"هەندێک بەرهەم بەردەست نییە",price:"کۆی نرخی پێکهاتەکان",
     loading:"پاکێجەکان بار دەکرێن…",empty:"ئێستا هیچ پاکێجێک بەردەست نییە.",failed:"ئێستا نەتوانرا پاکێجەکان بار بکرێن.",
@@ -89,6 +92,11 @@ const BUNDLE_COPY:Record<string,Record<"ar"|"en"|"ckb",{name:string;description:
     ar:{name:"باقة فحص ومراقبة الماء",description:"فحص سريع ومراقبة حرارة الحوض مع أساسيات معالجة الماء."},
     en:{name:"Water Testing Pack",description:"Quick water testing, temperature monitoring and basic water care."},
     ckb:{name:"پاکێجی پشکنین و چاودێری ئاو",description:"پشکنینی خێرای ئاو، چاودێری پلەی گەرمی و بنەمای چاودێری ئاو."},
+  },
+  "safe-water-change-pack":{
+    ar:{name:"باقة تغيير الماء الآمن",description:"سيفون لتغيير الماء + مزيل كلور + فحص سريع، حتى تكمل الصيانة الأساسية بطلب واحد."},
+    en:{name:"Safe Water Change Pack",description:"Siphon + dechlorinator + quick water test for the core water-change routine in one order."},
+    ckb:{name:"پاکێجی گۆڕینی ئاوی پارێزراو",description:"سایفۆن + لابەری کلۆر + پشکنینی خێرا بۆ ڕوتینی سەرەکی گۆڕینی ئاو لە یەک داواکاری."},
   },
 };
 
@@ -182,6 +190,7 @@ export default function BundlesPage(){
           </div>
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{t.title}</h1>
           <p className="mt-3 text-base leading-8 text-muted-foreground">{t.description}</p>
+          <p className="mt-2 text-xs leading-5 text-muted-foreground">{t.note}</p>
         </section>
 
         {bundles.isLoading && <p className="py-12 text-center text-muted-foreground">{t.loading}</p>}
