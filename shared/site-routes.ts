@@ -3,6 +3,7 @@ const STATIC_SITE_PATHS = new Set([
   "/ar",
   "/products",
   "/deals",
+  "/bundles",
   "/tank-builder",
   "/aquarium-wizard",
   "/experiments/ai-natural-matte-driftwood",
