@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useCart } from "@/contexts/cart-context";
 import { useLocale } from "@/i18n/locale-context";
 import { formatIQD } from "@/lib/utils";
+import { getBundleCopy } from "@/lib/bundle-copy";
 import type { Product } from "@/types";
 
 type BundleItem={
@@ -66,39 +67,6 @@ const COPY={
     loading:"پاکێجەکان بار دەکرێن…",empty:"ئێستا هیچ پاکێجێک بەردەست نییە.",failed:"ئێستا نەتوانرا پاکێجەکان بار بکرێن.",
   },
 } as const;
-
-const BUNDLE_COPY:Record<string,Record<"ar"|"en"|"ckb",{name:string;description:string}>>={
-  "betta-care-starter":{
-    ar:{name:"باقة بداية البيتا",description:"أساسيات الرعاية اليومية للبيتا بدون شراء قطع غير ضرورية."},
-    en:{name:"Betta Care Starter",description:"Daily betta-care essentials without unnecessary extras."},
-    ckb:{name:"پاکێجی دەستپێکی بێتا",description:"پێداویستییە سەرەکییەکانی چاودێری ڕۆژانەی بێتا بەبێ کڕینی شتی ناپێویست."},
-  },
-  "guppy-starter":{
-    ar:{name:"باقة بداية الجوبي",description:"فلترة وتهوية وطعام ومعالجة ماء مناسبة كبداية لحوض جوبي."},
-    en:{name:"Guppy Starter",description:"Filtration, aeration, food and water-care essentials for a guppy tank."},
-    ckb:{name:"پاکێجی دەستپێکی گوپی",description:"فلتەر، هەواگۆڕکێ، خواردن و چاودێری ئاو بۆ دەستپێکی حەوزی گوپی."},
-  },
-  "planted-tank-starter":{
-    ar:{name:"باقة بداية الحوض المزروع",description:"مواد تأسيس وعناية بالأكواسكيب والنباتات."},
-    en:{name:"Planted Tank Starter",description:"Core setup and maintenance supplies for a planted aquascape."},
-    ckb:{name:"پاکێجی دەستپێکی حەوزی ڕووەکدار",description:"کەرەستە سەرەکییەکانی دامەزراندن و چاودێری ئەکواسکەیپ و ڕووەک."},
-  },
-  "filter-maintenance-pack":{
-    ar:{name:"باقة صيانة الفلتر",description:"مواد وأدوات أساسية لصيانة الفلتر والخراطيم."},
-    en:{name:"Filter Maintenance Pack",description:"Core media and tools for filter and hose maintenance."},
-    ckb:{name:"پاکێجی چاکسازی فلتەر",description:"ماددە و ئامرازی سەرەکی بۆ پاککردنەوە و چاکسازی فلتەر و هۆز."},
-  },
-  "water-testing-pack":{
-    ar:{name:"باقة فحص ومراقبة الماء",description:"فحص سريع ومراقبة حرارة الحوض مع أساسيات معالجة الماء."},
-    en:{name:"Water Testing Pack",description:"Quick water testing, temperature monitoring and basic water care."},
-    ckb:{name:"پاکێجی پشکنین و چاودێری ئاو",description:"پشکنینی خێرای ئاو، چاودێری پلەی گەرمی و بنەمای چاودێری ئاو."},
-  },
-  "safe-water-change-pack":{
-    ar:{name:"باقة تغيير الماء الآمن",description:"سيفون لتغيير الماء + مزيل كلور + فحص سريع، حتى تكمل الصيانة الأساسية بطلب واحد."},
-    en:{name:"Safe Water Change Pack",description:"Siphon + dechlorinator + quick water test for the core water-change routine in one order."},
-    ckb:{name:"پاکێجی گۆڕینی ئاوی پارێزراو",description:"سایفۆن + لابەری کلۆر + پشکنینی خێرا بۆ ڕوتینی سەرەکی گۆڕینی ئاو لە یەک داواکاری."},
-  },
-};
 
 function toProduct(raw:Record<string,unknown>):Product{
   return {
@@ -201,14 +169,14 @@ export default function BundlesPage(){
 
         <div className="grid gap-5 md:grid-cols-2">
           {bundles.data?.map((bundle)=>{
-            const localized=BUNDLE_COPY[bundle.slug]?.[locale];
+            const localized=getBundleCopy(bundle.slug,locale,bundle.nameAr,bundle.descriptionAr);
             return (
               <Card key={bundle.id} className="overflow-hidden">
                 <CardHeader>
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <CardTitle className="text-xl">{localized?.name ?? bundle.nameAr}</CardTitle>
-                      <p className="mt-2 text-sm leading-7 text-muted-foreground">{localized?.description ?? bundle.descriptionAr}</p>
+                      <CardTitle className="text-xl">{localized.name}</CardTitle>
+                      <p className="mt-2 text-sm leading-7 text-muted-foreground">{localized.description}</p>
                     </div>
                     <Badge variant={bundle.inStock?"default":"secondary"}>
                       {bundle.inStock?t.components+" ✓":t.unavailable}
