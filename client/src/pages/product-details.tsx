@@ -788,7 +788,7 @@ export default function ProductDetails() {
                       {t("stock.unavailable")}
                     </Button>
                     <WhatsAppLink
-                      source="product_out_of_stock"
+                      source="product"
                       productId={product.id}
                       productName={product.name}
                       category={product.category}
