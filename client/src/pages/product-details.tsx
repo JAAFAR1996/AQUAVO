@@ -346,6 +346,13 @@ export default function ProductDetails() {
     ["رمال", "أحجار", "حصى"].includes(product.subcategory ?? "") ||
     ["houyi-activated-carbon", "houyi-ceramic-ring", "houyi-breathing-ring-white"].includes(product.slug);
   const productDisplay = getProductDisplayIdentity(product);
+  const decisionSpecs = (product.specifications ?? {}) as Record<string, unknown>;
+  const decisionCardBenefit =
+    typeof decisionSpecs.__cardBenefit === "string" ? decisionSpecs.__cardBenefit.trim() : "";
+  const decisionBenefits = Array.isArray(decisionSpecs.benefits)
+    ? decisionSpecs.benefits.filter((value): value is string => typeof value === "string" && value.trim().length > 0)
+    : [];
+  const decisionFacts = Array.from(new Set([decisionCardBenefit, ...decisionBenefits].filter(Boolean))).slice(0, 3);
 
   return (
     <div className="flex-1 flex flex-col bg-background">
@@ -579,6 +586,20 @@ export default function ProductDetails() {
                     </>
                   )}
                 </div>
+
+                {decisionFacts.length > 0 && (
+                  <section className="mb-4 rounded-xl border border-primary/20 bg-primary/[0.045] p-4" aria-labelledby="decision-summary-title">
+                    <h2 id="decision-summary-title" className="text-sm font-bold text-foreground">{t("decision.title")}</h2>
+                    <ul className="mt-2 space-y-2">
+                      {decisionFacts.map((fact) => (
+                        <li key={fact} className="flex items-start gap-2 text-sm leading-6 text-muted-foreground">
+                          <Check className="mt-1 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+                          <span>{bidi(fact)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                )}
 
                 {/* Purchase confidence — real, verifiable facts only (Cash on
                     Delivery, flat shipping fee, 24/7 support), surfaced right
