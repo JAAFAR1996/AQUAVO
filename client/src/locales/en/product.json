@@ -233,5 +233,8 @@
     "minute": "min",
     "second": "sec",
     "aria": "Month-end sale ends in {{days}} days, {{hours}} hours, {{minutes}} minutes and {{seconds}} seconds"
+  },
+  "decision": {
+    "title": "Decision summary"
   }
 }
