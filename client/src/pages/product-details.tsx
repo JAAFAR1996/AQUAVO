@@ -346,6 +346,12 @@ export default function ProductDetails() {
     ["رمال", "أحجار", "حصى"].includes(product.subcategory ?? "") ||
     ["houyi-activated-carbon", "houyi-ceramic-ring", "houyi-breathing-ring-white"].includes(product.slug);
   const productDisplay = getProductDisplayIdentity(product);
+  const decisionBenefits = Array.isArray(product.specifications?.benefits)
+    ? product.specifications.benefits.filter((value: unknown) => typeof value === "string" && value.trim()).slice(0, 2)
+    : [];
+  const decisionWarning = Array.isArray(product.specifications?.safetyWarnings)
+    ? product.specifications.safetyWarnings.find((value: unknown) => typeof value === "string" && value.trim())
+    : null;
 
   return (
     <div className="flex-1 flex flex-col bg-background">
@@ -617,6 +623,29 @@ export default function ProductDetails() {
                     </button>
                   )}
                 </div>
+
+                {(decisionBenefits.length > 0 || decisionWarning) && (
+                  <div className="mb-6 rounded-xl border border-primary/20 bg-primary/[0.045] p-4" aria-labelledby="product-decision-title">
+                    <h2 id="product-decision-title" className="text-sm font-bold text-foreground">{t("decision.title")}</h2>
+                    <p className="mt-1 text-xs leading-6 text-muted-foreground">{t("decision.subtitle")}</p>
+                    {decisionBenefits.length > 0 && (
+                      <ul className="mt-3 space-y-2 text-sm">
+                        {decisionBenefits.map((benefit: string, index: number) => (
+                          <li key={index} className="flex items-start gap-2">
+                            <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+                            <span>{bidi(benefit)}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    {typeof decisionWarning === "string" && decisionWarning && (
+                      <div className="mt-3 border-t border-primary/10 pt-3 text-xs leading-6 text-muted-foreground">
+                        <span className="font-bold text-foreground">{t("decision.beforeBuy")}</span>{" "}
+                        {bidi(decisionWarning)}
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {product3DMeta && (
                   <ul className="mb-6 grid gap-2 rounded-lg border border-primary/20 bg-primary/5 p-3 text-sm list-none">
