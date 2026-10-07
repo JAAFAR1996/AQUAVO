@@ -176,7 +176,8 @@
   },
   "suggestions": {
     "title": "أكمل حوضك",
-    "add": "أضف {{name}} للسلة"
+    "add": "أضف {{name}} للسلة",
+    "choose": "اختار خيار {{name}}"
   },
   "governorates": {
     "baghdad": "بغداد",
