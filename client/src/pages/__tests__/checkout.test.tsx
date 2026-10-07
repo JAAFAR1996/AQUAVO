@@ -117,7 +117,7 @@ describe("checkout page", () => {
     renderCheckout();
 
     expect(screen.getByRole("heading", { level: 1, name: "إتمام الطلب" })).toBeInTheDocument();
-    expect(screen.getAllByText(/الدفع عند الاستلام/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/ادفع عند الاستلام/).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/5,000 د\.ع/).length).toBeGreaterThan(0);
     expect(screen.getByText("30,000 د.ع")).toBeInTheDocument();
   });
@@ -268,7 +268,7 @@ describe("checkout page", () => {
 
     const online = await screen.findByRole("radio", { name: /دفع إلكتروني عبر Wayl/ });
     expect(online).toBeEnabled();
-    expect(screen.getByRole("radio", { name: /الدفع عند الاستلام/ })).toBeEnabled();
+    expect(screen.getByRole("radio", { name: /ادفع عند الاستلام/ })).toBeEnabled();
     // COD stays the default; choosing online is the customer's action.
     expect(screen.queryByText(/الدفع الإلكتروني غير متاح مؤقتاً/)).toBeNull();
   });
@@ -284,7 +284,7 @@ describe("checkout page", () => {
     ).toBeInTheDocument();
     expect(screen.getByRole("radio", { name: /دفع إلكتروني عبر Wayl/ })).toBeDisabled();
     // The COD path must remain fully usable — an outage never blocks checkout.
-    expect(screen.getByRole("radio", { name: /الدفع عند الاستلام/ })).toBeEnabled();
+    expect(screen.getByRole("radio", { name: /ادفع عند الاستلام/ })).toBeEnabled();
     await user.click(screen.getByRole("checkbox", { name: /أوافق على.*الشروط والأحكام/ }));
     expect(screen.getByRole("button", { name: "تأكيد الطلب" })).toBeEnabled();
   });
