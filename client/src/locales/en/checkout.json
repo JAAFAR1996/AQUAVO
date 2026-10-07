@@ -72,7 +72,7 @@
     "name": "Full name",
     "namePlaceholder": "Enter your full name",
     "phone": "Phone number",
-    "phoneHelp": "We need it to contact you about order confirmation and delivery.",
+    "phoneHelp": "We use it for delivery and to confirm the address if needed.",
     "governorate": "Governorate",
     "governoratePlaceholder": "Choose a governorate",
     "governorateSearch": "Search governorates",
@@ -104,9 +104,9 @@
     "activatesAfterDelivery": "Activated after delivery is confirmed"
   },
   "confirm": {
-    "gateway": "Secure payment gateway",
-    "redirecting": "Taking you to the secure payment gateway",
-    "redirectHint": "Do not close the page. You will enter your card details directly with Wayl and then return to AQUAVO automatically.",
+    "gateway": "Online payment with Wayl",
+    "redirecting": "Opening Wayl to complete payment",
+    "redirectHint": "Do not close the page. You enter card details directly with Wayl, then return to AQUAVO automatically after payment so we can confirm the result.",
     "amount": "Amount",
     "orderNumber": "Order number",
     "noCardData": "AQUAVO never receives or stores your card details",
@@ -119,10 +119,10 @@
     "online": "Online payment",
     "cod": "Cash on delivery",
     "paymentMethod": "Payment method",
-    "paymentHint": "Choose the method that suits you to complete the order.",
+    "paymentHint": "Choose pay on delivery if you do not want to pay now, or Wayl if you prefer online payment.",
     "onlineUnavailable": "Online payment is temporarily unavailable, so you can complete the order with cash on delivery.",
-    "onlineRedirect": "You will go to the secure Wayl page",
-    "onlineRedirectHint": "Card details are entered directly with the payment provider, and after completing the transaction you return to AQUAVO automatically to verify the result.",
+    "onlineRedirect": "You will continue to Wayl",
+    "onlineRedirectHint": "AQUAVO does not receive your card details. You enter them directly with Wayl and return automatically after payment so we can confirm the result.",
     "onlineWithPoints": "To use online payment right now, go back and remove the points or change balance. No loyalty balance is deducted before payment is confirmed.",
     "retry": "Try again",
     "chooseCod": "Choose cash on delivery",
@@ -139,14 +139,14 @@
     "agreementRequired": "Please accept the terms and conditions to complete your order."
   },
   "paymentCard": {
-    "onlineTitle": "Secure online payment",
-    "codTitle": "Cash on delivery",
-    "onlineSubtitle": "Through the Wayl gateway",
-    "codSubtitle": "In cash when the order arrives",
-    "onlineDetail": "You will be redirected to a secure hosted payment page to enter your card details and then returned to AQUAVO automatically.",
-    "codDetail": "Complete the order now and pay in cash on delivery.",
-    "secure": "Secure connection",
-    "noStore": "We do not store card details"
+    "onlineTitle": "Pay online with Wayl",
+    "codTitle": "Pay on delivery",
+    "onlineSubtitle": "Enter card details with Wayl",
+    "codSubtitle": "No payment needed now",
+    "onlineDetail": "We open Wayl to complete the payment, then return you to AQUAVO automatically to confirm the result.",
+    "codDetail": "Place the order now and pay cash when it arrives within 24 hours.",
+    "secure": "Payment happens with Wayl",
+    "noStore": "AQUAVO does not store card details"
   },
   "loyalty": {
     "useCashback": "Use change balance",
