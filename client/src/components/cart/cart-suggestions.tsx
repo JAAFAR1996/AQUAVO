@@ -27,12 +27,9 @@ export function CartSuggestions() {
 
   return (
     <div className="py-3">
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <p className="text-[11px] leading-4 text-muted-foreground">{data?.reason || ""}</p>
-        <div className="flex shrink-0 items-center gap-1.5">
-          <h4 className="text-xs font-bold text-foreground">{t("suggestions.title")}</h4>
-          <Sparkles className="h-3 w-3 text-primary" aria-hidden="true" />
-        </div>
+      <div className="mb-2 flex items-center justify-end gap-1.5">
+        <h4 className="text-xs font-bold text-foreground">{t("suggestions.title")}</h4>
+        <Sparkles className="h-3 w-3 text-primary" aria-hidden="true" />
       </div>
       <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 scrollbar-hide">
         {suggestions.map((product: Product) => {
