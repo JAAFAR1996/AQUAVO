@@ -48,8 +48,10 @@ vi.mock("@/contexts/auth-context", () => ({
 }));
 
 const fetchTopSellingProducts = vi.fn();
+const fetchProducts = vi.fn();
 vi.mock("@/lib/api", () => ({
   fetchTopSellingProducts: () => fetchTopSellingProducts(),
+  fetchProducts: () => fetchProducts(),
 }));
 
 import Home from "../home";
@@ -71,6 +73,11 @@ const sampleProducts: Product[] = [
 describe("Home — Phase C store-picks states", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    fetchProducts.mockResolvedValue({ products: sampleProducts });
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => [],
+    }));
   });
 
   afterEach(() => {
@@ -80,12 +87,12 @@ describe("Home — Phase C store-picks states", () => {
   it("never lets the store-picks section silently disappear across states", async () => {
     fetchTopSellingProducts.mockResolvedValueOnce({ productOfWeek: null, bestSellers: [], hasRealSales: false });
     render(<Home />, { wrapper: createWrapper() });
-    // Heading is present immediately (loading) and stays present after resolution (empty).
-    expect(screen.getByRole("heading", { name: "اختيارات متوفرة هسه" })).toBeInTheDocument();
+    // A missing bestseller feed falls back to real sellable new arrivals instead
+    // of advertising an "unavailable featured picks" state.
     await waitFor(() => {
-      expect(screen.getByText(/الاختيارات المميزة مو متوفرة هسه/)).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: "جديد AQUAVO" })).toBeInTheDocument();
     });
-    expect(screen.getByRole("heading", { name: "اختيارات متوفرة هسه" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /فلتر تجريبي/ })).toHaveAttribute("href", "/products/test-filter");
   });
 
   it("shows a loading state before data resolves", () => {
@@ -94,13 +101,14 @@ describe("Home — Phase C store-picks states", () => {
     expect(screen.getByRole("status", { name: "جاري تحميل الاختيارات" })).toBeInTheDocument();
   });
 
-  it("shows a non-empty-page empty state with a link to all products, without a false 'coming soon' claim", async () => {
+  it("uses a positive store-navigation empty state only when both bestseller and latest-product feeds are empty", async () => {
     fetchTopSellingProducts.mockResolvedValueOnce({ productOfWeek: null, bestSellers: [], hasRealSales: false });
+    fetchProducts.mockResolvedValueOnce({ products: [] });
     render(<Home />, { wrapper: createWrapper() });
     await waitFor(() => {
-      expect(screen.getByText(/الاختيارات المميزة مو متوفرة هسه/)).toBeInTheDocument();
+      expect(screen.getByText(/ابدأ من القسم المناسب لحوضك/)).toBeInTheDocument();
     });
-    expect(screen.queryByText(/قريباً/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/مو متوفرة هسه/)).not.toBeInTheDocument();
     const allProductsLinks = screen.getAllByRole("link", { name: /شوف كل المنتجات/ });
     expect(allProductsLinks.some((link) => link.getAttribute("href") === "/products")).toBe(true);
   });
@@ -125,6 +133,8 @@ describe("Home — Phase C store-picks states", () => {
 describe("Home — Phase C structure and landmarks", () => {
   beforeEach(() => {
     fetchTopSellingProducts.mockResolvedValueOnce({ productOfWeek: null, bestSellers: [], hasRealSales: false });
+    fetchProducts.mockResolvedValue({ products: sampleProducts });
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => [] }));
   });
 
   it("gives the homepage trust strip a landmark name distinct from the footer's", () => {
@@ -197,6 +207,8 @@ describe("Home — Phase C reduced motion", () => {
 
   beforeEach(() => {
     fetchTopSellingProducts.mockResolvedValueOnce({ productOfWeek: null, bestSellers: [], hasRealSales: false });
+    fetchProducts.mockResolvedValue({ products: sampleProducts });
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => [] }));
     Object.defineProperty(window, "matchMedia", {
       writable: true,
       value: vi.fn().mockImplementation((query: string) => ({
