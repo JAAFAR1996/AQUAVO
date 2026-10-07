@@ -83,6 +83,7 @@ const orderCalls = () => mockFetch.mock.calls.filter(([url]) => url === "/api/or
 describe("checkout page", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    sessionStorage.clear();
     mockCartState.isReady = true;
     mockCartState.items = [{ id: "line-1", productId: "p1", name: "فلتر اختبار", price: 25000, quantity: 1, stock: 5, image: "/brand/aquavo-v2-icon.svg" }];
     mockRefetchCart.mockImplementation(async () => mockCartState.items);
