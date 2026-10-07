@@ -36,6 +36,7 @@ const LINK_LABELS: Record<string, string> = {
   "/why-aquavo": "لماذا AQUAVO",
   "/blog": "المدونة",
   "/deals": "العروض",
+  "/bundles": "الباقات الجاهزة",
   "/beginner-guide": "دليل المبتدئين",
   "/fish-encyclopedia": "موسوعة أسماك الزينة",
   "/fish-health": "تشخيص مشاكل أسماك الزينة",
@@ -85,6 +86,10 @@ export const SEO_META_OVERRIDES: Record<string, SeoMetaOverride> = {
   "/products": {
     title: "مستلزمات أحواض الزينة في العراق | AQUAVO",
     description: "تصفح مستلزمات أحواض الزينة في العراق من AQUAVO: فلاتر، سخانات، أغذية، إضاءة، ديكور ومعالجات مياه، مع دفع عند الاستلام أو إلكترونياً.",
+  },
+  "/bundles": {
+    title: "باقات مستلزمات أحواض الزينة في العراق | AQUAVO",
+    description: "باقات AQUAVO تجمع قطعاً متوافقة حول احتياج واضح للحوض، حتى تشتري التجهيز المطلوب كحل واحد بدل جمع قطع متفرقة.",
   },
   "/shipping": {
     title: "التوصيل والدفع عند الاستلام أو إلكترونياً في العراق | AQUAVO",
