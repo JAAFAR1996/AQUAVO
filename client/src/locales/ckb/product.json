@@ -67,7 +67,9 @@
     "adding": "زیاد دەکرێت...",
     "added": "زیاد کرا!",
     "add": "بۆ سەبەتە زیاد بکە",
-    "addShort": "بۆ سەبەتە زیاد بکە"
+    "addShort": "بۆ سەبەتە زیاد بکە",
+    "stickyQty": "بڕ {{quantity}}",
+    "stickyVariantQty": "{{variant}} · بڕ {{quantity}}"
   },
   "share": {
     "label": "هاوبەشکردنی بەرهەم",
@@ -76,7 +78,9 @@
   },
   "whatsapp": {
     "message": "سڵاو، پرسیارم هەیە دەربارەی {{name}} {{url}}",
-    "support": "پشتگیری AQUAVO 24/7 بەردەستە"
+    "support": "پشتگیری AQUAVO 24/7 بەردەستە",
+    "askAvailability": "پرسیار لە کاتی بەردەستبوون بکە",
+    "availabilityMessage": "سڵاو AQUAVO، {{name}} کەی بەردەست دەبێت؟ {{url}}"
   },
   "highlights": {
     "delivery": "گەیاندن لە ماوەی {{days}}",
