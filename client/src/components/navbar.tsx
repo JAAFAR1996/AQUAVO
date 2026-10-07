@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { ShippingProgress } from "@/components/cart/shipping-progress";
+import { CartSuggestions } from "@/components/cart/cart-suggestions";
 import { ThemeSwitcher } from "@/components/ui/theme-switcher";
 import { LanguageSwitcher } from "@/components/ui/language-switcher";
 import { thumbImage } from "@/lib/cloudinary";
@@ -531,6 +532,10 @@ export default function Navbar() {
                           </li>
                         ))}
                       </ul>
+
+                      <div className="shrink-0 border-t border-border/70 px-5 sm:px-6">
+                        <CartSuggestions />
+                      </div>
 
                       <div className="shrink-0 border-t border-border bg-background px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4 sm:px-6">
                         <dl className="flex items-center justify-between gap-4">
