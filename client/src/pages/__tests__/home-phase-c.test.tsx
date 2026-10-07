@@ -66,8 +66,8 @@ const createWrapper = () => {
 };
 
 const sampleProducts: Product[] = [
-  { id: "1", slug: "test-filter", name: "فلتر تجريبي", images: ["/img/a.webp"], price: 25000 },
-  { id: "2", slug: "test-heater", name: "سخان تجريبي", images: ["/img/b.webp"], price: 18000 },
+  { id: "1", slug: "test-filter", name: "فلتر تجريبي", images: ["/img/a.webp"], price: 25000, stock: 5 },
+  { id: "2", slug: "test-heater", name: "سخان تجريبي", images: ["/img/b.webp"], price: 18000, stock: 5 },
 ] as unknown as Product[];
 
 describe("Home — Phase C store-picks states", () => {
@@ -172,7 +172,7 @@ describe("Home — Phase C structure and landmarks", () => {
   it("keeps critical hero CTAs at a touch-friendly minimum height", () => {
     render(<Home />, { wrapper: createWrapper() });
     const primaryCta = screen.getByRole("link", { name: /شوف المنتجات/i });
-    const secondaryCta = screen.getByRole("link", { name: /اختار حسب حوضك/i });
+    const secondaryCta = screen.getByRole("link", { name: /رتب تجهيز حوضي/i });
     expect(primaryCta.className).toMatch(/min-h-12/);
     expect(secondaryCta.className).toMatch(/min-h-12/);
   });
