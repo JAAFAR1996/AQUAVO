@@ -266,7 +266,7 @@ describe("checkout page", () => {
     renderCheckout();
     await reachConfirmationStep(user);
 
-    const online = await screen.findByRole("radio", { name: /الدفع الإلكتروني الآمن/ });
+    const online = await screen.findByRole("radio", { name: /دفع إلكتروني عبر Wayl/ });
     expect(online).toBeEnabled();
     expect(screen.getByRole("radio", { name: /الدفع عند الاستلام/ })).toBeEnabled();
     // COD stays the default; choosing online is the customer's action.
@@ -282,7 +282,7 @@ describe("checkout page", () => {
     expect(
       await screen.findByText(/الدفع الإلكتروني غير متاح مؤقتاً، لذلك يمكنك إكمال الطلب بالدفع عند الاستلام\./),
     ).toBeInTheDocument();
-    expect(screen.getByRole("radio", { name: /الدفع الإلكتروني الآمن/ })).toBeDisabled();
+    expect(screen.getByRole("radio", { name: /دفع إلكتروني عبر Wayl/ })).toBeDisabled();
     // The COD path must remain fully usable — an outage never blocks checkout.
     expect(screen.getByRole("radio", { name: /الدفع عند الاستلام/ })).toBeEnabled();
     await user.click(screen.getByRole("checkbox", { name: /أوافق على.*الشروط والأحكام/ }));
