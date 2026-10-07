@@ -115,7 +115,7 @@ describe("Home — Phase C store-picks states", () => {
 
   it("shows an error state only when both merchandising feeds fail", async () => {
     fetchTopSellingProducts.mockRejectedValueOnce(new Error("sales feed down"));
-    fetchProducts.mockRejectedValueOnce(new Error("products feed down"));
+    fetchProducts.mockRejectedValue(new Error("products feed down"));
     render(<Home />, { wrapper: createWrapper() });
     await waitFor(() => {
       expect(screen.getByText(/تعذر علينا تحميل الاختيارات المختارة هسه/)).toBeInTheDocument();
