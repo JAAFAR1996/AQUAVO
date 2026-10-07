@@ -20,7 +20,7 @@ import { orderAttributionPayload } from "@/lib/attribution";
 
 import { stashOrder } from "@/lib/order-stash";
 import { CustomerInfo, GOVERNORATES } from "@/components/cart/checkout/types";
-import { CustomerInfoForm } from "@/components/cart/checkout/customer-info-form";
+import { CustomerInfoForm, normalizePhoneInputDigits } from "@/components/cart/checkout/customer-info-form";
 import { CouponSection } from "@/components/cart/checkout/coupon-section";
 import { OrderSummary } from "@/components/cart/checkout/order-summary";
 import { ConfirmationView } from "@/components/cart/checkout/confirmation-view";
@@ -113,7 +113,7 @@ export default function CheckoutPage() {
         name: user.fullName?.trim().toLowerCase() === "system admin"
           ? prev.name
           : (user.fullName || prev.name),
-        phone: user.phone || prev.phone,
+        phone: normalizePhoneInputDigits(user.phone || prev.phone),
       }));
       if (testMode && user.role !== "admin" && user.role !== "accounting_admin") {
         setTestMode(false);
@@ -185,7 +185,7 @@ export default function CheckoutPage() {
   };
 
   const validatePhone = (phone: string): boolean => {
-    const cleanPhone = phone.replace(/\s/g, "");
+    const cleanPhone = normalizePhoneInputDigits(phone).replace(/\s/g, "");
     const iraqiPhoneRegex = /^(\+964|964|0)?7[3-9]\d{8}$/;
     return iraqiPhoneRegex.test(cleanPhone);
   };
