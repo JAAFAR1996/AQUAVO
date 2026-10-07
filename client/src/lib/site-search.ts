@@ -37,8 +37,8 @@ export const SITE_SEARCH_PAGES: SiteSearchPage[] = [
   },
   {
     id: "journey",
-    title: "اختار حسب حوضك",
-    description: "ابدأ من حجم الحوض واحتياجه حتى توصل للقطع الأنسب.",
+    title: "رتب تجهيز حوضك",
+    description: "جاوب على أسئلة الحوض الأساسية ونرتبلك القطع الأنسب حسب احتياجه.",
     url: "/journey",
     keywords: ["حوض", "اختيار", "رحلة", "مساعدة", "wizard", "journey"],
   },
