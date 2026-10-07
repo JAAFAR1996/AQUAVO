@@ -227,6 +227,7 @@ export function ConfirmationView({
             return;
         }
         setAgreementError(false);
+        if (paymentMethod === "online" && (onlineBlockedByLoyalty || onlineAvailable === false)) return;
         try {
             trackAddPaymentInfo(
                 cartItems.map((item) => ({
