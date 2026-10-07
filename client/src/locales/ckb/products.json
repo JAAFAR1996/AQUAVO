@@ -102,7 +102,8 @@
     "imageAlt": "وێنەی بەرهەمی {{name}}",
     "from": "لە",
     "rating": "هەڵسەنگاندن: {{rating}} لە 5 ئەستێرە",
-    "reviews": "({{count}} هەڵسەنگاندن)"
+    "reviews": "({{count}} هەڵسەنگاندن)",
+    "save": "{{amount}} کەمتر"
   },
   "quickView": {
     "close": "داخستن",
