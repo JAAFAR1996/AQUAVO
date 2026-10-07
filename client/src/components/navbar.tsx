@@ -534,7 +534,7 @@ export default function Navbar() {
                       </ul>
 
                       <div className="shrink-0 border-t border-border/70 px-5 sm:px-6">
-                        <CartSuggestions />
+                        <CartSuggestions onNavigate={() => setIsCartOpen(false)} />
                       </div>
 
                       <div className="shrink-0 border-t border-border bg-background px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4 sm:px-6">
