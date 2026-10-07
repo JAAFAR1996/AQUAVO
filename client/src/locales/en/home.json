@@ -50,7 +50,9 @@
     "loadingDetail": "Loading the selected picks",
     "error": "We could not load the selected picks right now. You can browse all products directly.",
     "empty": "Featured picks are not available right now. You can browse everything in the store.",
-    "seeDetails": "See details"
+    "seeDetails": "See details",
+    "bestSellerTitle": "Most ordered right now",
+    "availableTitle": "Available picks you can order now"
   },
   "guides": {
     "eyebrow": "AQUAVO explains why",
@@ -103,5 +105,24 @@
     "title": "Send us your tank size and we will put the right setup together",
     "description": "Practical advice before you buy, so you start with the right part.",
     "button": "Talk to us"
+  },
+  "tankFit": {
+    "eyebrow": "Faster choice",
+    "title": "Enter your tank size and see what actually fits",
+    "description": "Instead of guessing between dozens of products, enter your tank volume and we match it against the size ranges stated in the live product specifications.",
+    "placeholder": "e.g. 60",
+    "inputLabel": "Tank volume in litres",
+    "litre": "L",
+    "button": "Show matches",
+    "quickLabel": "Quick sizes",
+    "proof": "Matches are based on recorded product specifications, not guesses or advertising claims.",
+    "fullPlan": "I want a full tank plan",
+    "empty": "Enter a tank volume or choose a quick size to see filters, heaters and aeration products with clear compatibility evidence."
+  },
+  "bundles": {
+    "eyebrow": "Skip piecemeal shopping",
+    "title": "Complete the job in one order",
+    "description": "We group products that complement each other for a clear use case, so you do not pay delivery for one small part and discover later that another part is still missing.",
+    "button": "View bundles"
   }
 }
