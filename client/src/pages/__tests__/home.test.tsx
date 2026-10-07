@@ -85,7 +85,7 @@ describe('Home Page', () => {
     it('keeps the primary actions calm and useful', () => {
         render(<Home />, { wrapper: createWrapper() });
         expect(screen.getByRole('link', { name: /شوف المنتجات/i })).toHaveAttribute('href', '/products');
-        expect(screen.getByRole('link', { name: /اختار حسب حوضك/i })).toHaveAttribute('href', '/tank-builder');
+        expect(screen.getByRole('link', { name: /رتب تجهيز حوضي/i })).toHaveAttribute('href', '/journey');
     });
 
     it('shows only verified service facts', () => {
