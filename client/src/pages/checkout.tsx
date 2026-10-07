@@ -32,6 +32,31 @@ import { useLocale } from "@/i18n/locale-context";
 import { ArrowBack } from "@/components/ui/directional-icons";
 import { useShippingFee } from "@/contexts/shipping-fee-context";
 
+const CHECKOUT_DRAFT_STORAGE_KEY = "aquavo_checkout_delivery_draft_v1";
+
+function readCheckoutDeliveryDraft(): CustomerInfo {
+  const empty: CustomerInfo = { name: "", phone: "", governorate: "", address: "", notes: "" };
+  if (typeof window === "undefined") return empty;
+  try {
+    const raw = sessionStorage.getItem(CHECKOUT_DRAFT_STORAGE_KEY);
+    if (!raw) return empty;
+    const parsed = JSON.parse(raw) as Partial<CustomerInfo>;
+    return {
+      name: typeof parsed.name === "string" ? parsed.name : "",
+      phone: typeof parsed.phone === "string" ? parsed.phone : "",
+      governorate: typeof parsed.governorate === "string" ? parsed.governorate : "",
+      address: typeof parsed.address === "string" ? parsed.address : "",
+      notes: typeof parsed.notes === "string" ? parsed.notes : "",
+    };
+  } catch {
+    return empty;
+  }
+}
+
+function clearCheckoutDeliveryDraft(): void {
+  try { sessionStorage.removeItem(CHECKOUT_DRAFT_STORAGE_KEY); } catch { /* optional storage */ }
+}
+
 export default function CheckoutPage() {
   const { t } = useTranslation("checkout");
   const { dir } = useLocale();
@@ -46,13 +71,7 @@ export default function CheckoutPage() {
   const configuredShippingFee = useShippingFee();
 
   const [step, setStep] = useState<"info" | "confirm" | "success">("info");
-  const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({
-    name: "",
-    phone: "",
-    governorate: "",
-    address: "",
-    notes: "",
-  });
+  const [customerInfo, setCustomerInfo] = useState<CustomerInfo>(() => readCheckoutDeliveryDraft());
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderResult, setOrderResult] = useState<{ orderId: string; orderNumber: string } | null>(null);
 
@@ -120,6 +139,15 @@ export default function CheckoutPage() {
       }
     }
   }, [user]);
+
+  useEffect(() => {
+    if (testMode) return;
+    try {
+      sessionStorage.setItem(CHECKOUT_DRAFT_STORAGE_KEY, JSON.stringify(customerInfo));
+    } catch {
+      // Checkout must remain usable when storage is unavailable.
+    }
+  }, [customerInfo, testMode]);
 
   const checkoutTrackedRef = useRef(false);
   useEffect(() => {
@@ -465,6 +493,7 @@ export default function CheckoutPage() {
       });
       setStep("success");
       clearOrderIdempotencyKey();
+      if (!testMode) clearCheckoutDeliveryDraft();
 
       if (testMode) {
         clearCart();
