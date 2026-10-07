@@ -29,6 +29,10 @@ const EN: Record<string, LocalizedStaticMeta> = {
     title: "Aquarium Equipment Deals and Discounts in Iraq | AQUAVO",
     description: "Follow AQUAVO deals on aquarium equipment and supplies as stock allows, with clear prices and delivery across Iraq.",
   },
+  "/bundles": {
+    title: "Aquarium Supply Bundles in Iraq | AQUAVO",
+    description: "Shop AQUAVO bundles that group compatible aquarium supplies around one clear need, with transparent component pricing and delivery across Iraq.",
+  },
   "/blog": {
     title: "Aquarium Blog — Care and Equipment Tips for Iraq | AQUAVO",
     description: "Articles and specialist tips on aquariums in Iraq: equipment care, water treatment, filters and heaters, and practical routines for beginners and experienced keepers.",
@@ -149,6 +153,10 @@ const CKB: Record<string, LocalizedStaticMeta> = {
   "/deals": {
     title: "ئۆفەر و داشکاندنی کەرەستەی حەوزی ماسی لە عێراق | AQUAVO",
     description: "ئۆفەرەکانی AQUAVO لەسەر کەرەستە و پێداویستییەکانی حەوزی ماسی بەپێی بەردەستی، لەگەڵ نرخی ڕوون و گەیاندن بۆ هەموو عێراق.",
+  },
+  "/bundles": {
+    title: "پاکێجی پێداویستی حەوزی ماسی لە عێراق | AQUAVO",
+    description: "پاکێجەکانی AQUAVO پارچە گونجاوەکان بەپێی یەک پێویستی ڕوون کۆدەکەنەوە، لەگەڵ نرخی ڕوونی پێکهاتەکان و گەیاندن بۆ هەموو عێراق.",
   },
   "/blog": {
     title: "بلۆگی حەوزی ماسی — ڕێنمایی چاودێری و کەرەستە لە عێراق | AQUAVO",
