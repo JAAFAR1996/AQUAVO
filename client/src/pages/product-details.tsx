@@ -782,10 +782,22 @@ export default function ProductDetails() {
                   </Button>
                 )}
                 {hasPrice && displayStock <= 0 && (
-                  <Button size="lg" variant="outline" className="w-full gap-2 h-12 mb-6" disabled aria-disabled="true">
-                    <Package className="w-5 h-5" aria-hidden="true" />
-                    {t("stock.unavailable")}
-                  </Button>
+                  <div className="mb-6 space-y-2">
+                    <Button size="lg" variant="outline" className="w-full gap-2 h-12" disabled aria-disabled="true">
+                      <Package className="w-5 h-5" aria-hidden="true" />
+                      {t("stock.unavailable")}
+                    </Button>
+                    <WhatsAppLink
+                      source="product_out_of_stock"
+                      productId={product.id}
+                      productName={product.name}
+                      category={product.category}
+                      message={t("whatsapp.availabilityMessage", { name: product.name, url: window.location.href })}
+                      className="flex h-11 w-full items-center justify-center rounded-md border border-green-600/30 px-4 text-sm font-semibold text-green-700 transition-colors hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-950/20"
+                    >
+                      {t("whatsapp.askAvailability")}
+                    </WhatsAppLink>
+                  </div>
                 )}
 
                 {/* Quick Info */}
