@@ -176,7 +176,8 @@
   },
   "suggestions": {
     "title": "Complete your tank",
-    "add": "Add {{name}} to cart"
+    "add": "Add {{name}} to cart",
+    "choose": "Choose an option for {{name}}"
   },
   "governorates": {
     "baghdad": "Baghdad",
