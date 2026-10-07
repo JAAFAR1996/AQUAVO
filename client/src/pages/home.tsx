@@ -135,8 +135,17 @@ export default function Home() {
   const hasStorePicks = storePicks.length > 0;
   const isStorePicksLoading = isBestSellersLoading || (!showingBestSellers && latestProducts.isLoading);
   const isStorePicksError = isBestSellersError && latestProducts.isError;
+  const solutionPriority = new Map([
+    ["safe-water-change-pack", 0],
+    ["water-testing-pack", 1],
+    ["filter-maintenance-pack", 2],
+    ["planted-tank-starter", 3],
+    ["guppy-starter", 4],
+    ["betta-care-starter", 5],
+  ]);
   const solutionBundles = (bundles.data ?? [])
     .filter((bundle) => bundle.inStock && !bundle.requiresVariantSelection)
+    .sort((a, b) => (solutionPriority.get(a.slug) ?? 99) - (solutionPriority.get(b.slug) ?? 99))
     .slice(0, 3);
 
   return (
