@@ -130,7 +130,7 @@ export default function Home() {
 
   const bestSellerPicks = (salesData?.bestSellers ?? []).filter(isSellableProduct).slice(0, 4);
   const latestPicks = (latestProducts.data?.products ?? []).filter(isSellableProduct).slice(0, 4);
-  const showingBestSellers = bestSellerPicks.length > 0;
+  const showingBestSellers = Boolean(salesData?.hasRealSales && bestSellerPicks.length > 0);
   const storePicks = showingBestSellers ? bestSellerPicks : latestPicks;
   const hasStorePicks = storePicks.length > 0;
   const isStorePicksLoading = isBestSellersLoading || (!showingBestSellers && latestProducts.isLoading);
