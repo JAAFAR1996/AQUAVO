@@ -91,8 +91,8 @@ describe("Home — Phase C store-picks states", () => {
     // of advertising an "unavailable featured picks" state.
     await waitFor(() => {
       expect(screen.getByRole("heading", { name: "جديد AQUAVO" })).toBeInTheDocument();
+      expect(screen.getByRole("link", { name: /فلتر تجريبي/ })).toHaveAttribute("href", "/products/test-filter");
     });
-    expect(screen.getByRole("link", { name: /فلتر تجريبي/ })).toHaveAttribute("href", "/products/test-filter");
   });
 
   it("shows a loading state before data resolves", () => {
@@ -113,12 +113,23 @@ describe("Home — Phase C store-picks states", () => {
     expect(allProductsLinks.some((link) => link.getAttribute("href") === "/products")).toBe(true);
   });
 
-  it("shows an error state with a recovery link when the query fails", async () => {
-    fetchTopSellingProducts.mockRejectedValueOnce(new Error("network down"));
+  it("shows an error state only when both merchandising feeds fail", async () => {
+    fetchTopSellingProducts.mockRejectedValueOnce(new Error("sales feed down"));
+    fetchProducts.mockRejectedValueOnce(new Error("products feed down"));
     render(<Home />, { wrapper: createWrapper() });
     await waitFor(() => {
       expect(screen.getByText(/تعذر علينا تحميل الاختيارات المختارة هسه/)).toBeInTheDocument();
     });
+  });
+
+  it("falls back to new arrivals when only the sales feed fails", async () => {
+    fetchTopSellingProducts.mockRejectedValueOnce(new Error("sales feed down"));
+    render(<Home />, { wrapper: createWrapper() });
+    await waitFor(() => {
+      expect(screen.getByRole("heading", { name: "جديد AQUAVO" })).toBeInTheDocument();
+      expect(screen.getByRole("link", { name: /فلتر تجريبي/ })).toHaveAttribute("href", "/products/test-filter");
+    });
+    expect(screen.queryByText(/تعذر علينا تحميل الاختيارات المختارة هسه/)).not.toBeInTheDocument();
   });
 
   it("renders real product links when store picks are populated", async () => {
