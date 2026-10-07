@@ -100,7 +100,7 @@ describe("the homepage hero is in the initial HTML", () => {
     for (const copy of [
       "متجر مستلزمات أحواض الزينة في العراق",
       "شوف المنتجات",
-      "اختار حسب حوضك",
+      "رتب تجهيز حوضي",
       "الحوض أولاً، القطعة بعدها",
     ]) {
       expect(HERO_SOURCE, `component should contain ${copy}`).toContain(copy);
@@ -111,6 +111,6 @@ describe("the homepage hero is in the initial HTML", () => {
   it("keeps the hero's links working as links before React mounts", async () => {
     const html = await renderPath("/");
     expect(html).toContain('href="/products"');
-    expect(html).toContain('href="/tank-builder"');
+    expect(html).toContain('href="/journey"');
   });
 });
