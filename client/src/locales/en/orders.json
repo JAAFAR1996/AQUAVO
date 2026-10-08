@@ -182,7 +182,7 @@
     "s33": "An error occurred",
     "s34": "Track shipments",
     "s35": "Track your order",
-    "s36": "Enter your order number to see the latest update on your order",
+    "s36": "Enter your order number and the last 4 digits of the phone used for the order to see the latest update",
     "s37": "Order number",
     "s38": "Example: FH-260816-13180F34",
     "s39": "Updating order status...",
@@ -203,7 +203,11 @@
     "s54": "We prepare and package the products",
     "s55": "Its actual status appears after shipment is linked",
     "s56": "Delivery",
-    "s57": "You see the latest recorded update on your shipment"
+    "s57": "You see the latest recorded update on your shipment",
+    "s58": "Last 4 digits of the phone number",
+    "s59": "Example: 0673",
+    "s60": "Enter the last 4 digits of the phone number used for the order",
+    "s61": "We use only the last 4 digits to verify the order belongs to you and never display your personal details."
   },
   "invoice-view": {
     "s1": "Awaiting your response",

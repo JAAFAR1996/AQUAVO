@@ -500,9 +500,9 @@ export function createAdminRouter(): RouterType {
                             );
 
                             const payload = JSON.stringify({
-                                title: "🚚 طلبك في الطريق إليك!",
-                                body: `تم شحن طلبك #${order.id.slice(0, 8).toUpperCase()}. سيصل قريباً!`,
-                                url: `/order-tracking/${order.id}`,
+                                title: "🚚 تم شحن طلبك",
+                                body: "تم شحن طلبك. تقدر تراجع آخر حالة مسجلة من صفحة التتبع.",
+                                url: "/order-tracking",
                                 icon: "/icons/icon-192x192.png"
                             });
 
