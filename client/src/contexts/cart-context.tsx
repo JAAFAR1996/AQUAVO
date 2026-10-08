@@ -38,6 +38,27 @@ function fireCartLifecycleAnalytics(
   }
 }
 
+/**
+ * Guest carts are stored locally, so the server cannot infer their monetary
+ * subtotal from a product-id event. Send an anonymous, non-authoritative
+ * snapshot after cart state settles; never include personal data.
+ */
+function fireCartValueSnapshot(items: CartItem[]): void {
+  const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  if (!Number.isSafeInteger(subtotal) || subtotal < 0 || subtotal > 100_000_000) return;
+  try {
+    void fetch("/api/analytics/cart-value", {
+      method: "POST",
+      headers: addCsrfHeader({ "Content-Type": "application/json" }),
+      credentials: "include",
+      keepalive: true,
+      body: JSON.stringify({ subtotal, clientSessionId: getClientSessionId() }),
+    }).catch(() => {});
+  } catch {
+    // Observability must never block commerce.
+  }
+}
+
 function fireAddToCartAnalytics(args: {
   id: string;
   name: string;
@@ -253,6 +274,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const { user, isLoading: isAuthLoading } = useAuth();
   const [items, setItems] = useState<CartItem[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
+  const hadCartItemsForAnalytics = React.useRef(false);
+
+  // Debounced post-hydration cart snapshot. The zero-value snapshot after
+  // clearing a previously non-empty cart prevents a stale abandoned-cart total.
+  // Never create sessions for visitors who have not put anything in a cart.
+  useEffect(() => {
+    if (isAuthLoading || !isInitialized) return;
+    if (items.length > 0) hadCartItemsForAnalytics.current = true;
+    if (!hadCartItemsForAnalytics.current) return;
+    const timer = window.setTimeout(() => fireCartValueSnapshot(items), 250);
+    return () => window.clearTimeout(timer);
+  }, [items, isAuthLoading, isInitialized]);
+
+
 
   // Load from LocalStorage on mount (for guest)
   useEffect(() => {

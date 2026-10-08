@@ -130,6 +130,36 @@ router.post("/cart-event", apiLimiter, async (req: Request, res: Response): Prom
     }
 });
 
+/**
+ * Snapshot the visible cart subtotal (before delivery/discounts) for aggregate
+ * funnel diagnostics. Untrusted client telemetry is bounded and is NOT a price
+ * or payment authority. An opaque browser session id is the only identifier.
+ */
+router.post("/cart-value", apiLimiter, async (req: Request, res: Response): Promise<void> => {
+    try {
+        const body = (req.body ?? {}) as Record<string, unknown>;
+        const sessionId = typeof body.clientSessionId === "string"
+            && body.clientSessionId !== "cs_unavailable"
+            && CLIENT_VIEW_SESSION_ID.test(body.clientSessionId)
+            ? body.clientSessionId
+            : null;
+        const subtotal = body.subtotal;
+
+        if (!sessionId || typeof subtotal !== "number" || !Number.isSafeInteger(subtotal)
+            || subtotal < 0 || subtotal > 100_000_000) {
+            res.status(202).json({ accepted: false });
+            return;
+        }
+
+        const userId = ((req.session as Record<string, unknown> | undefined)?.userId as string | undefined) ?? undefined;
+        await analyticsTracker.recordCartValueSnapshot({ sessionId, userId, totalValue: subtotal });
+        res.status(202).json({ accepted: true });
+    } catch {
+        // Analytics must never interrupt a customer's checkout.
+        res.status(202).json({ accepted: false });
+    }
+});
+
 interface AnalyticsQuery {
     period?: "7d" | "30d" | "90d";
 }
