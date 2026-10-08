@@ -20,7 +20,7 @@ import { orderAttributionPayload } from "@/lib/attribution";
 
 import { stashOrder } from "@/lib/order-stash";
 import { CustomerInfo, GOVERNORATES } from "@/components/cart/checkout/types";
-import { CustomerInfoForm } from "@/components/cart/checkout/customer-info-form";
+import { CustomerInfoForm, normalizePhoneInputDigits } from "@/components/cart/checkout/customer-info-form";
 import { CouponSection } from "@/components/cart/checkout/coupon-section";
 import { OrderSummary } from "@/components/cart/checkout/order-summary";
 import { ConfirmationView } from "@/components/cart/checkout/confirmation-view";
@@ -31,6 +31,31 @@ import { useTranslation } from "react-i18next";
 import { useLocale } from "@/i18n/locale-context";
 import { ArrowBack } from "@/components/ui/directional-icons";
 import { useShippingFee } from "@/contexts/shipping-fee-context";
+
+const CHECKOUT_DRAFT_STORAGE_KEY = "aquavo_checkout_delivery_draft_v1";
+
+function readCheckoutDeliveryDraft(): CustomerInfo {
+  const empty: CustomerInfo = { name: "", phone: "", governorate: "", address: "", notes: "" };
+  if (typeof window === "undefined") return empty;
+  try {
+    const raw = sessionStorage.getItem(CHECKOUT_DRAFT_STORAGE_KEY);
+    if (!raw) return empty;
+    const parsed = JSON.parse(raw) as Partial<CustomerInfo>;
+    return {
+      name: typeof parsed.name === "string" ? parsed.name : "",
+      phone: typeof parsed.phone === "string" ? parsed.phone : "",
+      governorate: typeof parsed.governorate === "string" ? parsed.governorate : "",
+      address: typeof parsed.address === "string" ? parsed.address : "",
+      notes: typeof parsed.notes === "string" ? parsed.notes : "",
+    };
+  } catch {
+    return empty;
+  }
+}
+
+function clearCheckoutDeliveryDraft(): void {
+  try { sessionStorage.removeItem(CHECKOUT_DRAFT_STORAGE_KEY); } catch { /* optional storage */ }
+}
 
 export default function CheckoutPage() {
   const { t } = useTranslation("checkout");
@@ -46,13 +71,7 @@ export default function CheckoutPage() {
   const configuredShippingFee = useShippingFee();
 
   const [step, setStep] = useState<"info" | "confirm" | "success">("info");
-  const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({
-    name: "",
-    phone: "",
-    governorate: "",
-    address: "",
-    notes: "",
-  });
+  const [customerInfo, setCustomerInfo] = useState<CustomerInfo>(() => readCheckoutDeliveryDraft());
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderResult, setOrderResult] = useState<{ orderId: string; orderNumber: string } | null>(null);
 
@@ -113,13 +132,22 @@ export default function CheckoutPage() {
         name: user.fullName?.trim().toLowerCase() === "system admin"
           ? prev.name
           : (user.fullName || prev.name),
-        phone: user.phone || prev.phone,
+        phone: normalizePhoneInputDigits(user.phone || prev.phone),
       }));
       if (testMode && user.role !== "admin" && user.role !== "accounting_admin") {
         setTestMode(false);
       }
     }
   }, [user]);
+
+  useEffect(() => {
+    if (testMode) return;
+    try {
+      sessionStorage.setItem(CHECKOUT_DRAFT_STORAGE_KEY, JSON.stringify(customerInfo));
+    } catch {
+      // Checkout must remain usable when storage is unavailable.
+    }
+  }, [customerInfo, testMode]);
 
   const checkoutTrackedRef = useRef(false);
   useEffect(() => {
@@ -185,7 +213,7 @@ export default function CheckoutPage() {
   };
 
   const validatePhone = (phone: string): boolean => {
-    const cleanPhone = phone.replace(/\s/g, "");
+    const cleanPhone = normalizePhoneInputDigits(phone).replace(/\s/g, "");
     const iraqiPhoneRegex = /^(\+964|964|0)?7[3-9]\d{8}$/;
     return iraqiPhoneRegex.test(cleanPhone);
   };
@@ -465,6 +493,7 @@ export default function CheckoutPage() {
       });
       setStep("success");
       clearOrderIdempotencyKey();
+      if (!testMode) clearCheckoutDeliveryDraft();
 
       if (testMode) {
         clearCart();

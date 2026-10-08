@@ -8,7 +8,7 @@
     "title": "Online aquarium supplies store for Iraq",
     "description": "Shop filters, heaters, lighting, fish food, water care, substrate and decor with clear guidance to help you choose for your tank size and needs.",
     "browse": "Browse products",
-    "journey": "Shop by your tank",
+    "journey": "Build my tank setup",
     "help": "Have a tank and not sure what fits? Send us its size and we will put the right setup together.",
     "imageAlt": "A neatly arranged display aquarium under soft lighting",
     "methodLabel": "The AQUAVO way",
@@ -49,8 +49,12 @@
     "loading": "Loading picks",
     "loadingDetail": "Loading the selected picks",
     "error": "We could not load the selected picks right now. You can browse all products directly.",
-    "empty": "Featured picks are not available right now. You can browse everything in the store.",
-    "seeDetails": "See details"
+    "empty": "Start with the section that fits your tank and browse what is available now.",
+    "seeDetails": "See details",
+    "bestEyebrow": "Most ordered",
+    "bestTitle": "Products with real demand",
+    "latestEyebrow": "New arrivals",
+    "latestTitle": "New at AQUAVO"
   },
   "guides": {
     "eyebrow": "AQUAVO explains why",
@@ -103,5 +107,13 @@
     "title": "Send us your tank size and we will put the right setup together",
     "description": "Practical advice before you buy, so you start with the right part.",
     "button": "Talk to us"
+  },
+  "solutions": {
+    "eyebrow": "Instead of collecting parts one by one",
+    "title": "Ready solutions by need",
+    "description": "Each bundle groups items used together for one job. A simpler decision, one order and one delivery.",
+    "viewAll": "View all bundles",
+    "parts": "items",
+    "available": "Available now"
   }
 }

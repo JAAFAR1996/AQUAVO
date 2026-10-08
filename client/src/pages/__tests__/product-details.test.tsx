@@ -306,7 +306,11 @@ describe('Product Details Page', () => {
 
         await user.click(mainCta);
 
-        expect(await screen.findByRole('button', { name: /جاري الإضافة/ })).toHaveAttribute('aria-busy', 'true');
+        const busyButtons = await screen.findAllByRole('button', { name: /جاري الإضافة/ });
+        expect(busyButtons.length).toBeGreaterThanOrEqual(1);
+        for (const button of busyButtons) {
+            expect(button).toHaveAttribute('aria-busy', 'true');
+        }
 
         resolveAdd(true);
 

@@ -568,12 +568,15 @@ export class ProductStorage {
         try {
             // 1. Get Top Sales IDs (Smart/Automatic)
             const topSalesIds = await this.getHighSalesProductIds(10);
-            const hasRealSales = topSalesIds.length > 0;
+            const hasSalesSignal = topSalesIds.length > 0;
 
-            // Base condition for Best Seller
+            // Include editorial/review fallbacks in the query so the endpoint can
+            // still return useful products when there is no sales history. The
+            // response is narrowed back to real sold IDs below whenever a real
+            // sales signal exists.
             const bestSellerCondition = or(
                 eq(products.isBestSeller, true),
-                hasRealSales ? inArray(products.id, topSalesIds) : undefined,
+                hasSalesSignal ? inArray(products.id, topSalesIds) : undefined,
                 and(gt(products.rating, '4.0'), gt(products.reviewCount, 0))
             );
 
@@ -588,16 +591,28 @@ export class ProductStorage {
                     .limit(1),
             ]);
 
-            // Filter out price=0 products (not ready for sale)
+            // Filter out price=0 products (not ready for sale). When real
+            // sales exist, never label editorial flags/reviews as sales-backed:
+            // keep only the IDs returned by the sales ranking and preserve that
+            // ranking in the response.
             let bestSellers = bestSellersResult.filter(p => parseFloat(String(p.price ?? "0")) > 0);
+            if (hasSalesSignal) {
+                const salesRank = new Map(topSalesIds.map((id, index) => [id, index]));
+                bestSellers = bestSellers
+                    .filter((product) => salesRank.has(product.id))
+                    .sort((a, b) => (salesRank.get(a.id) ?? 999) - (salesRank.get(b.id) ?? 999));
+            }
+            let hasRealSales = hasSalesSignal && bestSellers.length > 0;
 
-            // Fallback if still empty (get newest in-stock with real price)
+            // Fallback if still empty (get newest in-stock with real price).
+            // This fallback is useful merchandising, but explicitly NOT sales-backed.
             if (bestSellers.length === 0) {
                 const fallback = await db.select().from(products)
                     .where(and(isNull(products.deletedAt), gt(products.stock, 0)))
                     .orderBy(desc(products.createdAt))
                     .limit(14);
                 bestSellers = fallback.filter(p => parseFloat(String(p.price ?? "0")) > 0);
+                hasRealSales = false;
             }
 
             let productOfWeek = explicitProductOfWeek.length > 0 ? explicitProductOfWeek[0] : null;

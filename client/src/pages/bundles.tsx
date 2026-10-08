@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useCart } from "@/contexts/cart-context";
 import { useLocale } from "@/i18n/locale-context";
 import { formatIQD } from "@/lib/utils";
+import { getBundleCopy } from "@/lib/bundle-copy";
 import type { Product } from "@/types";
 
 type BundleItem={
@@ -43,54 +44,29 @@ type ProductResponse={products?:Array<Record<string,unknown>>};
 const COPY={
   ar:{
     title:"باقات AQUAVO",
-    description:"مجموعات جاهزة مرتبة حسب احتياج الحوض، حتى تختار القطع المتوافقة بدل الشراء العشوائي.",
+    description:"احتياج واحد، قطع تشتغل ويه بعض، وطلب واحد. رسوم التوصيل ثابتة للطلب، فنجمع القطع اللي تحتاجها فعلاً بدل طلب كل قطعة وحدها.",
+    note:"ما نحسب خصم أو توفير إلا إذا السعر فعلاً أقل من مجموع القطع.",
     components:"المكونات",add:"أضف الباقة للسلة",added:"تمت إضافة الباقة",
     unavailable:"بعض القطع غير متوفرة",price:"سعر المكونات",
     loading:"جاري تحميل الباقات…",empty:"ماكو باقات متاحة حالياً.",failed:"تعذر تحميل الباقات حالياً.",
   },
   en:{
     title:"AQUAVO Bundles",
-    description:"Curated aquarium sets built around a specific need, so you can choose compatible essentials instead of buying at random.",
+    description:"One need, compatible parts, one order. The delivery fee is charged per order, so each set groups items you genuinely use together instead of ordering them one by one.",
+    note:"We only show a saving when the bundle price is genuinely lower than the component total.",
     components:"Components",add:"Add bundle to cart",added:"Bundle added",
     unavailable:"Some items are unavailable",price:"Component total",
     loading:"Loading bundles…",empty:"No bundles are available right now.",failed:"Bundles could not be loaded right now.",
   },
   ckb:{
     title:"پاکێجەکانی AQUAVO",
-    description:"کۆمەڵە بەرهەمێکی هەڵبژێردراو بەپێی پێویستی ئەکواریۆمەکەت، بۆ ئەوەی پێکهاتە گونجاوەکان هەڵبژێریت.",
+    description:"یەک پێویستی، پارچەی گونجاو و یەک داواکاری. کرێی گەیاندن بۆ هەر داواکارییە، بۆیە پاکێجەکە تەنها ئەو شتانە کۆدەکاتەوە کە پێکەوە بەکاریان دەهێنیت.",
+    note:"تەنها کاتێک قازانج پیشان دەدەین کە نرخی پاکێجەکە بەڕاستی لە کۆی پارچەکان کەمتر بێت.",
     components:"پێکهاتەکان",add:"پاکێجەکە زیاد بکە بۆ سەبەتە",added:"پاکێجەکە زیادکرا",
     unavailable:"هەندێک بەرهەم بەردەست نییە",price:"کۆی نرخی پێکهاتەکان",
     loading:"پاکێجەکان بار دەکرێن…",empty:"ئێستا هیچ پاکێجێک بەردەست نییە.",failed:"ئێستا نەتوانرا پاکێجەکان بار بکرێن.",
   },
 } as const;
-
-const BUNDLE_COPY:Record<string,Record<"ar"|"en"|"ckb",{name:string;description:string}>>={
-  "betta-care-starter":{
-    ar:{name:"باقة بداية البيتا",description:"أساسيات الرعاية اليومية للبيتا بدون شراء قطع غير ضرورية."},
-    en:{name:"Betta Care Starter",description:"Daily betta-care essentials without unnecessary extras."},
-    ckb:{name:"پاکێجی دەستپێکی بێتا",description:"پێداویستییە سەرەکییەکانی چاودێری ڕۆژانەی بێتا بەبێ کڕینی شتی ناپێویست."},
-  },
-  "guppy-starter":{
-    ar:{name:"باقة بداية الجوبي",description:"فلترة وتهوية وطعام ومعالجة ماء مناسبة كبداية لحوض جوبي."},
-    en:{name:"Guppy Starter",description:"Filtration, aeration, food and water-care essentials for a guppy tank."},
-    ckb:{name:"پاکێجی دەستپێکی گوپی",description:"فلتەر، هەواگۆڕکێ، خواردن و چاودێری ئاو بۆ دەستپێکی حەوزی گوپی."},
-  },
-  "planted-tank-starter":{
-    ar:{name:"باقة بداية الحوض المزروع",description:"مواد تأسيس وعناية بالأكواسكيب والنباتات."},
-    en:{name:"Planted Tank Starter",description:"Core setup and maintenance supplies for a planted aquascape."},
-    ckb:{name:"پاکێجی دەستپێکی حەوزی ڕووەکدار",description:"کەرەستە سەرەکییەکانی دامەزراندن و چاودێری ئەکواسکەیپ و ڕووەک."},
-  },
-  "filter-maintenance-pack":{
-    ar:{name:"باقة صيانة الفلتر",description:"مواد وأدوات أساسية لصيانة الفلتر والخراطيم."},
-    en:{name:"Filter Maintenance Pack",description:"Core media and tools for filter and hose maintenance."},
-    ckb:{name:"پاکێجی چاکسازی فلتەر",description:"ماددە و ئامرازی سەرەکی بۆ پاککردنەوە و چاکسازی فلتەر و هۆز."},
-  },
-  "water-testing-pack":{
-    ar:{name:"باقة فحص ومراقبة الماء",description:"فحص سريع ومراقبة حرارة الحوض مع أساسيات معالجة الماء."},
-    en:{name:"Water Testing Pack",description:"Quick water testing, temperature monitoring and basic water care."},
-    ckb:{name:"پاکێجی پشکنین و چاودێری ئاو",description:"پشکنینی خێرای ئاو، چاودێری پلەی گەرمی و بنەمای چاودێری ئاو."},
-  },
-};
 
 function toProduct(raw:Record<string,unknown>):Product{
   return {
@@ -182,6 +158,7 @@ export default function BundlesPage(){
           </div>
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{t.title}</h1>
           <p className="mt-3 text-base leading-8 text-muted-foreground">{t.description}</p>
+          <p className="mt-2 text-xs leading-5 text-muted-foreground">{t.note}</p>
         </section>
 
         {bundles.isLoading && <p className="py-12 text-center text-muted-foreground">{t.loading}</p>}
@@ -192,14 +169,14 @@ export default function BundlesPage(){
 
         <div className="grid gap-5 md:grid-cols-2">
           {bundles.data?.map((bundle)=>{
-            const localized=BUNDLE_COPY[bundle.slug]?.[locale];
+            const localized=getBundleCopy(bundle.slug,locale,bundle.nameAr,bundle.descriptionAr);
             return (
               <Card key={bundle.id} className="overflow-hidden">
                 <CardHeader>
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <CardTitle className="text-xl">{localized?.name ?? bundle.nameAr}</CardTitle>
-                      <p className="mt-2 text-sm leading-7 text-muted-foreground">{localized?.description ?? bundle.descriptionAr}</p>
+                      <CardTitle className="text-xl">{localized.name}</CardTitle>
+                      <p className="mt-2 text-sm leading-7 text-muted-foreground">{localized.description}</p>
                     </div>
                     <Badge variant={bundle.inStock?"default":"secondary"}>
                       {bundle.inStock?t.components+" ✓":t.unavailable}

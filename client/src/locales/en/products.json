@@ -28,7 +28,7 @@
     "label": "Sort products",
     "placeholder": "Sort by",
     "smart": "For you",
-    "default": "Default",
+    "default": "Newest",
     "priceAsc": "Price: low to high",
     "priceDesc": "Price: high to low",
     "nameAsc": "Name: A to Z",
@@ -102,7 +102,8 @@
     "imageAlt": "Product photo of {{name}}",
     "from": "from",
     "rating": "Rating: {{rating}} out of 5 stars",
-    "reviews": "({{count}} reviews)"
+    "reviews": "({{count}} reviews)",
+    "save": "Save {{amount}}"
   },
   "quickView": {
     "close": "Close",
@@ -115,7 +116,7 @@
     "addedDetail": "{{name}} was added to your cart"
   },
   "fbt": {
-    "title": "Buy together and save",
+    "title": "Complete the setup",
     "thisProduct": "This product",
     "soon": "Coming soon",
     "total": "Total ({{count}} items):",
@@ -144,5 +145,9 @@
     "cleaning": "Cleaning",
     "decor": "Substrate & decor",
     "breeding": "Quarantine & breeding"
+  },
+  "helper": {
+    "text": "Not sure what your tank needs? Do not piece the setup together by guesswork.",
+    "action": "Build my tank setup"
   }
 }

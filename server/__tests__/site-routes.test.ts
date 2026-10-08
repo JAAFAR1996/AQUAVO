@@ -7,6 +7,7 @@ describe("isKnownSitePath", () => {
     "/products",
     "/products/yee-filter-123",
     "/deals",
+    "/bundles",
     "/tank-builder",
     "/verify-certificate/yee",
     "/order-confirmation/order-123",

@@ -83,6 +83,7 @@ const orderCalls = () => mockFetch.mock.calls.filter(([url]) => url === "/api/or
 describe("checkout page", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    sessionStorage.clear();
     mockCartState.isReady = true;
     mockCartState.items = [{ id: "line-1", productId: "p1", name: "فلتر اختبار", price: 25000, quantity: 1, stock: 5, image: "/brand/aquavo-v2-icon.svg" }];
     mockRefetchCart.mockImplementation(async () => mockCartState.items);
@@ -112,11 +113,11 @@ describe("checkout page", () => {
     expect(mockSetLocation).toHaveBeenCalledWith("/");
   });
 
-  it("shows COD, the fixed delivery fee and the visible total", () => {
+  it("shows payment options, the fixed delivery fee and the visible total", () => {
     renderCheckout();
 
     expect(screen.getByRole("heading", { level: 1, name: "إتمام الطلب" })).toBeInTheDocument();
-    expect(screen.getAllByText(/الدفع عند الاستلام/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/الدفع عند الاستلام أو إلكترونياً/).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/5,000 د\.ع/).length).toBeGreaterThan(0);
     expect(screen.getByText("30,000 د.ع")).toBeInTheDocument();
   });
@@ -265,9 +266,9 @@ describe("checkout page", () => {
     renderCheckout();
     await reachConfirmationStep(user);
 
-    const online = await screen.findByRole("radio", { name: /الدفع الإلكتروني الآمن/ });
+    const online = await screen.findByRole("radio", { name: /دفع إلكتروني عبر Wayl/ });
     expect(online).toBeEnabled();
-    expect(screen.getByRole("radio", { name: /الدفع عند الاستلام/ })).toBeEnabled();
+    expect(screen.getByRole("radio", { name: /ادفع عند الاستلام/ })).toBeEnabled();
     // COD stays the default; choosing online is the customer's action.
     expect(screen.queryByText(/الدفع الإلكتروني غير متاح مؤقتاً/)).toBeNull();
   });
@@ -281,9 +282,9 @@ describe("checkout page", () => {
     expect(
       await screen.findByText(/الدفع الإلكتروني غير متاح مؤقتاً، لذلك يمكنك إكمال الطلب بالدفع عند الاستلام\./),
     ).toBeInTheDocument();
-    expect(screen.getByRole("radio", { name: /الدفع الإلكتروني الآمن/ })).toBeDisabled();
+    expect(screen.getByRole("radio", { name: /دفع إلكتروني عبر Wayl/ })).toBeDisabled();
     // The COD path must remain fully usable — an outage never blocks checkout.
-    expect(screen.getByRole("radio", { name: /الدفع عند الاستلام/ })).toBeEnabled();
+    expect(screen.getByRole("radio", { name: /ادفع عند الاستلام/ })).toBeEnabled();
     await user.click(screen.getByRole("checkbox", { name: /أوافق على.*الشروط والأحكام/ }));
     expect(screen.getByRole("button", { name: "تأكيد الطلب" })).toBeEnabled();
   });

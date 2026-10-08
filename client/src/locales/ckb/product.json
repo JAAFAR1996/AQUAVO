@@ -5,7 +5,7 @@
     "browse": "بەرهەمەکان ببینە"
   },
   "meta": {
-    "description": "{{name}} لە AQUAVO بە باشترین نرخ بکڕە."
+    "description": "{{name}} لە AQUAVO ببینە لەگەڵ نرخ، بەردەستی، تایبەتمەندی و زانیاری گەیاندن لە عێراق."
   },
   "breadcrumb": {
     "home": "سەرەکی",
@@ -67,7 +67,9 @@
     "adding": "زیاد دەکرێت...",
     "added": "زیاد کرا!",
     "add": "بۆ سەبەتە زیاد بکە",
-    "addShort": "بۆ سەبەتە زیاد بکە"
+    "addShort": "بۆ سەبەتە زیاد بکە",
+    "stickyQty": "بڕ {{quantity}}",
+    "stickyVariantQty": "{{variant}} · بڕ {{quantity}}"
   },
   "share": {
     "label": "هاوبەشکردنی بەرهەم",
@@ -76,7 +78,9 @@
   },
   "whatsapp": {
     "message": "سڵاو، پرسیارم هەیە دەربارەی {{name}} {{url}}",
-    "support": "پشتگیری AQUAVO 24/7 بەردەستە"
+    "support": "پشتگیری AQUAVO 24/7 بەردەستە",
+    "askAvailability": "پرسیار لە کاتی بەردەستبوون بکە",
+    "availabilityMessage": "سڵاو AQUAVO، {{name}} کەی بەردەست دەبێت؟ {{url}}"
   },
   "highlights": {
     "delivery": "گەیاندن لە ماوەی {{days}}",
@@ -233,5 +237,8 @@
     "minute": "خولەک",
     "second": "چرکە",
     "aria": "داشکاندنی کۆتایی مانگ دوای {{days}} ڕۆژ و {{hours}} کاتژمێر و {{minutes}} خولەک و {{seconds}} چرکە کۆتایی دێت"
+  },
+  "decision": {
+    "title": "پوختەیەک پێش کڕین"
   }
 }

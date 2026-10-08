@@ -5,7 +5,7 @@
     "browse": "Browse products"
   },
   "meta": {
-    "description": "Shop {{name}} from AQUAVO at the best prices."
+    "description": "View {{name}} from AQUAVO with current price, stock, specifications and delivery information for Iraq."
   },
   "breadcrumb": {
     "home": "Home",
@@ -67,7 +67,9 @@
     "adding": "Adding...",
     "added": "Added!",
     "add": "Add to cart",
-    "addShort": "Add to cart"
+    "addShort": "Add to cart",
+    "stickyQty": "Quantity {{quantity}}",
+    "stickyVariantQty": "{{variant}} · Qty {{quantity}}"
   },
   "share": {
     "label": "Share product",
@@ -76,7 +78,9 @@
   },
   "whatsapp": {
     "message": "Hello, I have a question about {{name}} {{url}}",
-    "support": "AQUAVO support is available 24/7"
+    "support": "AQUAVO support is available 24/7",
+    "askAvailability": "Ask when it will be available",
+    "availabilityMessage": "Hello AQUAVO, when will {{name}} be available? {{url}}"
   },
   "highlights": {
     "delivery": "Delivery within {{days}}",
@@ -233,5 +237,8 @@
     "minute": "min",
     "second": "sec",
     "aria": "Month-end sale ends in {{days}} days, {{hours}} hours, {{minutes}} minutes and {{seconds}} seconds"
+  },
+  "decision": {
+    "title": "Decision summary"
   }
 }

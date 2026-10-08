@@ -1,5 +1,6 @@
 import { formatIQD } from "@/lib/utils";
-import { DELIVERY_FEE, DELIVERY_DAYS } from "@/lib/constants/shipping";
+import { DELIVERY_DAYS } from "@/lib/constants/shipping";
+import { useShippingFee } from "@/contexts/shipping-fee-context";
 import { useTranslation } from "react-i18next";
 import { Truck } from "lucide-react";
 
@@ -9,10 +10,11 @@ interface ShippingProgressProps {
 
 export function ShippingProgress({ compact = false }: ShippingProgressProps) {
   const { t } = useTranslation("checkout");
+  const shippingFee = useShippingFee();
   if (compact) {
     return (
       <div className="text-xs text-muted-foreground">
-        {t("shippingProgress.line", { fee: formatIQD(DELIVERY_FEE), days: DELIVERY_DAYS })}
+        {t("shippingProgress.line", { fee: formatIQD(shippingFee), days: DELIVERY_DAYS })}
       </div>
     );
   }
@@ -23,7 +25,7 @@ export function ShippingProgress({ compact = false }: ShippingProgressProps) {
       <p className="text-sm leading-6 text-muted-foreground">
         {t("shippingProgress.feeLabel")}
         <span className="font-semibold text-primary">
-          {formatIQD(DELIVERY_FEE)}
+          {formatIQD(shippingFee)}
         </span>{" "}
         {t("shippingProgress.everywhere", { days: DELIVERY_DAYS })}
       </p>

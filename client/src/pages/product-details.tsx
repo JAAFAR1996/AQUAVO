@@ -44,13 +44,14 @@ import { ttqViewContent } from "@/lib/tiktok-pixel";
 import { metaTrackViewContent } from "@/lib/meta-pixel";
 import { trackViewItem } from "@/lib/analytics";
 import { phTrackViewContent, phTrackWhatsAppClick } from "@/lib/posthog";
-import { DELIVERY_FEE, DELIVERY_DAYS, WHATSAPP_URL } from "@/lib/constants/shipping";
+import { DELIVERY_DAYS } from "@/lib/constants/shipping";
 import { WhatsAppLink } from "@/components/whatsapp-link";
 import { useTranslation } from "react-i18next";
 import { useLocale } from "@/i18n/locale-context";
 import { localizeCategoryName } from "@shared/i18n/categories";
 import { formatIQD } from "@/lib/utils";
 import { getProductDisplayIdentity } from "@/lib/product-display";
+import { useShippingFee } from "@/contexts/shipping-fee-context";
 
 interface Product3DMeta {
   src: string;
@@ -85,6 +86,7 @@ export default function ProductDetails() {
   const slug = params.slug;
   const [, setLocation] = useLocation();
   const { addItem } = useCart();
+  const shippingFee = useShippingFee();
   const { toast } = useToast();
   const [quantity, setQuantity] = useState(1);
   const [isAddedToCart, setIsAddedToCart] = useState(false);
@@ -257,7 +259,7 @@ export default function ProductDetails() {
 
   const handleQuantityChange = (delta: number) => {
     const newQuantity = quantity + delta;
-    if (newQuantity >= 1 && newQuantity <= (product?.stock || 99)) {
+    if (newQuantity >= 1 && newQuantity <= Math.max(1, displayStock)) {
       setQuantity(newQuantity);
     }
   };
@@ -346,6 +348,13 @@ export default function ProductDetails() {
     ["رمال", "أحجار", "حصى"].includes(product.subcategory ?? "") ||
     ["houyi-activated-carbon", "houyi-ceramic-ring", "houyi-breathing-ring-white"].includes(product.slug);
   const productDisplay = getProductDisplayIdentity(product);
+  const decisionSpecs = (product.specifications ?? {}) as Record<string, unknown>;
+  const decisionCardBenefit =
+    typeof decisionSpecs.__cardBenefit === "string" ? decisionSpecs.__cardBenefit.trim() : "";
+  const decisionBenefits = Array.isArray(decisionSpecs.benefits)
+    ? decisionSpecs.benefits.filter((value): value is string => typeof value === "string" && value.trim().length > 0)
+    : [];
+  const decisionFacts = Array.from(new Set([decisionCardBenefit, ...decisionBenefits].filter(Boolean))).slice(0, 3);
 
   return (
     <div className="flex-1 flex flex-col bg-background">
@@ -580,6 +589,20 @@ export default function ProductDetails() {
                   )}
                 </div>
 
+                {decisionFacts.length > 0 && (
+                  <section className="mb-4 rounded-xl border border-primary/20 bg-primary/[0.045] p-4" aria-labelledby="decision-summary-title">
+                    <h2 id="decision-summary-title" className="text-sm font-bold text-foreground">{t("decision.title")}</h2>
+                    <ul className="mt-2 space-y-2">
+                      {decisionFacts.map((fact) => (
+                        <li key={fact} className="flex items-start gap-2 text-sm leading-6 text-muted-foreground">
+                          <Check className="mt-1 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+                          <span>{bidi(fact)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                )}
+
                 {/* Purchase confidence — real, verifiable facts only (Cash on
                     Delivery, flat shipping fee, 24/7 support), surfaced right
                     above the quantity/CTA controls. */}
@@ -589,7 +612,7 @@ export default function ProductDetails() {
                 >
                   <li className="flex items-center gap-2 text-sm">
                     <Truck className="w-4 h-4 text-primary" aria-hidden="true" />
-                    <span className="font-medium">{t("trust.delivery", { fee: formatIQD(DELIVERY_FEE) })}</span>
+                    <span className="font-medium">{t("trust.delivery", { fee: formatIQD(shippingFee) })}</span>
                   </li>
                   <li className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Clock className="w-4 h-4" aria-hidden="true" />
@@ -604,11 +627,11 @@ export default function ProductDetails() {
                 {/* Description — progressive disclosure for long text */}
                 <div className="text-muted-foreground text-sm leading-relaxed mb-6" style={{ whiteSpace: 'pre-line' }}>
                   {bidi(
-                    (product.description?.length ?? 0) > 220 && !descriptionExpanded
-                      ? (product.description?.slice(0, 220) ?? "") + "..."
+                    (product.description?.length ?? 0) > 400 && !descriptionExpanded
+                      ? (product.description?.slice(0, 400) ?? "") + "..."
                       : product.description ?? "",
                   )}
-                  {(product.description?.length ?? 0) > 220 && (
+                  {(product.description?.length ?? 0) > 400 && (
                     <button
                       onClick={() => setDescriptionExpanded((v) => !v)}
                       className="block mt-2 text-primary hover:text-primary/80 font-medium underline underline-offset-2 transition-colors text-sm"
@@ -759,10 +782,22 @@ export default function ProductDetails() {
                   </Button>
                 )}
                 {hasPrice && displayStock <= 0 && (
-                  <Button size="lg" variant="outline" className="w-full gap-2 h-12 mb-6" disabled aria-disabled="true">
-                    <Package className="w-5 h-5" aria-hidden="true" />
-                    {t("stock.unavailable")}
-                  </Button>
+                  <div className="mb-6 space-y-2">
+                    <Button size="lg" variant="outline" className="w-full gap-2 h-12" disabled aria-disabled="true">
+                      <Package className="w-5 h-5" aria-hidden="true" />
+                      {t("stock.unavailable")}
+                    </Button>
+                    <WhatsAppLink
+                      source="product"
+                      productId={product.id}
+                      productName={product.name}
+                      category={product.category}
+                      message={t("whatsapp.availabilityMessage", { name: product.name, url: window.location.href })}
+                      className="flex h-11 w-full items-center justify-center rounded-md border border-green-600/30 px-4 text-sm font-semibold text-green-700 transition-colors hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-950/20"
+                    >
+                      {t("whatsapp.askAvailability")}
+                    </WhatsAppLink>
+                  </div>
                 )}
 
                 {/* Quick Info */}
@@ -988,7 +1023,7 @@ export default function ProductDetails() {
                     <div>
                       <h3 className="font-semibold mb-2 text-start">{t("shipping.policyTitle")}</h3>
                       <ul className="list-disc space-y-1 text-muted-foreground text-start ps-5">
-                        <li>{t("shipping.flat", { fee: formatIQD(DELIVERY_FEE) })}</li>
+                        <li>{t("shipping.flat", { fee: formatIQD(shippingFee) })}</li>
                         <li>{t("shipping.time", { days: DELIVERY_DAYS })}</li>
                       </ul>
                     </div>
@@ -1098,15 +1133,35 @@ export default function ProductDetails() {
               {formatPrice(displayPrice)}
               {isKilogramProduct && <span className="text-xs font-medium text-muted-foreground">{t("price.perKilo")}</span>}
             </p>
-            <p className="text-xs text-muted-foreground truncate">{productDisplay.name}</p>
+            <p className="text-xs text-muted-foreground truncate">
+              {selectedVariant?.label
+                ? t("cart.stickyVariantQty", { variant: selectedVariant.label, quantity })
+                : t("cart.stickyQty", { quantity })}
+            </p>
           </div>
           <Button
             size="sm"
-            className="gap-2 h-10 px-6 font-bold shrink-0"
+            className={`gap-2 h-10 px-5 font-bold shrink-0 ${isAddedToCart ? "bg-green-500 hover:bg-green-600" : ""}`}
             onClick={handleAddToCart}
+            disabled={isAddingToCart}
+            aria-busy={isAddingToCart}
           >
-            <ShoppingCart className="w-4 h-4" />
-            {t("cart.addShort")}
+            {isAddingToCart ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+                {t("cart.adding")}
+              </>
+            ) : isAddedToCart ? (
+              <>
+                <Check className="w-4 h-4" aria-hidden="true" />
+                {t("cart.added")}
+              </>
+            ) : (
+              <>
+                <ShoppingCart className="w-4 h-4" aria-hidden="true" />
+                {t("cart.addShort")}
+              </>
+            )}
           </Button>
         </div>
       )}

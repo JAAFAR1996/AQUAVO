@@ -232,9 +232,14 @@ export const ProductCard = memo(function ProductCard({
                       : formatPrice(product.price ?? 0)}
                   </span>
                   {!requiresVariantChoice && (product.originalPrice ?? 0) > (product.price ?? 0) ? (
-                    <span className="whitespace-nowrap text-[11px] text-muted-foreground line-through">
-                      {formatPrice(product.originalPrice ?? 0)}
-                    </span>
+                    <>
+                      <span className="whitespace-nowrap text-[11px] text-muted-foreground line-through">
+                        {formatPrice(product.originalPrice ?? 0)}
+                      </span>
+                      <span className="whitespace-nowrap text-[10px] font-semibold text-primary/80">
+                        {t("card.save", { amount: formatPrice((product.originalPrice ?? 0) - (product.price ?? 0)) })}
+                      </span>
+                    </>
                   ) : null}
                 </>
               ) : (

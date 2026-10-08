@@ -14,6 +14,7 @@ import { isolateNumericRanges as bidi } from "@shared/i18n/bidi";
 import { getClientSessionId } from "@/lib/client-session";
 import { orderAttributionPayload } from "@/lib/attribution";
 import { phTrackCheckoutStep } from "@/lib/posthog";
+import { trackAddPaymentInfo } from "@/lib/analytics";
 
 const APPLIED_COUPON_STORAGE_KEY = "aquavo_applied_coupon_v1";
 
@@ -226,6 +227,19 @@ export function ConfirmationView({
             return;
         }
         setAgreementError(false);
+        if (paymentMethod === "online" && (onlineBlockedByLoyalty || onlineAvailable === false)) return;
+        try {
+            trackAddPaymentInfo(
+                cartItems.map((item) => ({
+                    id: item.productId,
+                    name: item.name,
+                    price: item.price,
+                    quantity: item.quantity,
+                })),
+                cartTotal,
+                paymentMethod === "online" ? "wayl" : "cash_on_delivery",
+            );
+        } catch { /* analytics must never block checkout */ }
         if (paymentMethod === "online") {
             void beginOnlinePayment();
             return;

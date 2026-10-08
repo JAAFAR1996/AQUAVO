@@ -17,7 +17,7 @@ import { orderAttributionPayload } from "@/lib/attribution";
 
 // Sub-components
 import { CustomerInfo, GOVERNORATES } from "./checkout/types";
-import { CustomerInfoForm } from "./checkout/customer-info-form";
+import { CustomerInfoForm, normalizePhoneInputDigits } from "./checkout/customer-info-form";
 import { CouponSection } from "./checkout/coupon-section";
 import { OrderSummary } from "./checkout/order-summary";
 import { ConfirmationView } from "./checkout/confirmation-view";
@@ -128,7 +128,7 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
         name: user.fullName?.trim().toLowerCase() === "system admin"
           ? prev.name
           : (user.fullName || prev.name),
-        phone: user.phone || prev.phone
+        phone: normalizePhoneInputDigits(user.phone || prev.phone)
       }));
     }
   }, [open, user]);
@@ -182,7 +182,7 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
   };
 
   const validatePhone = (phone: string): boolean => {
-    const cleanPhone = phone.replace(/\s/g, '');
+    const cleanPhone = normalizePhoneInputDigits(phone).replace(/\s/g, '');
     const iraqiPhoneRegex = /^(\+964|964|0)?7[3-9]\d{8}$/;
     return iraqiPhoneRegex.test(cleanPhone);
   };
@@ -242,6 +242,7 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
       const governorateLabel = GOVERNORATES.find(g => g.value === customerInfo.governorate)?.label;
       const submittedCustomerInfo = {
         ...customerInfo,
+        phone: normalizePhoneInputDigits(customerInfo.phone),
         address: `${governorateLabel || customerInfo.governorate} - ${customerInfo.address}`,
       };
 
@@ -338,13 +339,13 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
       // Fire-and-forget pixel tracking — errors must never block checkout
       try {
         ttqPlaceAnOrder(
-          cartItems.map(item => ({
+          invoiceItems.map(item => ({
             id: item.productId,
             name: item.name,
             price: item.price,
             quantity: item.quantity,
           })),
-          cartTotal
+          serverTotal
         );
       } catch (_) { /* pixel error — ignore */ }
       try {
@@ -358,9 +359,9 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
       } catch (_) { /* pixel error — ignore */ }
       try {
         trackPurchase({
-          orderId: orderData.id || 'unknown',
-          total: cartTotal,
-          items: cartItems.map(item => ({
+          orderId: orderData.orderNumber || orderData.id || 'unknown',
+          total: serverTotal,
+          items: invoiceItems.map(item => ({
             id: item.productId,
             name: item.name,
             price: item.price,
@@ -368,9 +369,11 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
           })),
         });
         phTrackPurchase({
-          orderId: orderData.id || 'unknown',
-          totalValue: cartTotal,
-          numItems: cartItems.reduce((sum, i) => sum + i.quantity, 0),
+          orderId: orderData.orderNumber || orderData.id || 'unknown',
+          totalValue: serverTotal,
+          numItems: invoiceItems.reduce((sum, i) => sum + i.quantity, 0),
+          productIds: invoiceItems.map((i) => i.productId),
+          sourcePage: "checkout_dialog",
         });
       } catch (_) { /* pixel error — ignore */ }
     } catch (error: unknown) {

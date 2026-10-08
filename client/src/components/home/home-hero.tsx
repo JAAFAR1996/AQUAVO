@@ -22,7 +22,7 @@ export const HOME_HERO_COPY_AR: HomeHeroCopy = {
   title: "متجر مستلزمات أحواض الزينة في العراق",
   description: "فلاتر، سخانات، إضاءة، أغذية، معالجة مياه، تربة وديكور للأحواض، مع معلومات واضحة تساعدك تختار حسب حجم حوضك واحتياجه.",
   browse: "شوف المنتجات",
-  journey: "اختار حسب حوضك",
+  journey: "رتب تجهيز حوضي",
   help: "عندك حوض ومحتار؟ دز حجمه ونرتبلك المناسب.",
   imageAlt: "حوض عرض مائي مرتب بإضاءة هادئة",
   methodLabel: "طريقة AQUAVO",
@@ -78,7 +78,7 @@ export function HomeHero({ copy = HOME_HERO_COPY_AR, dir = "rtl" }: HomeHeroProp
                 <Forward className="h-4 w-4" aria-hidden="true" />
               </Link>
               <Link
-                href="/tank-builder"
+                href="/journey"
                 className={`${linkButton} border border-primary/40 text-primary hover:bg-[#0B93A6]/10`}
               >
                 {copy.journey}

@@ -5,7 +5,7 @@
     "browse": "تصفح المنتجات"
   },
   "meta": {
-    "description": "تسوق {{name}} من AQUAVO بأفضل الأسعار."
+    "description": "شوف {{name}} من AQUAVO مع السعر والمخزون والمواصفات والتوصيل داخل العراق."
   },
   "breadcrumb": {
     "home": "الرئيسية",
@@ -67,7 +67,9 @@
     "adding": "جاري الإضافة...",
     "added": "تمت الإضافة!",
     "add": "أضف إلى السلة",
-    "addShort": "أضف للسلة"
+    "addShort": "أضف للسلة",
+    "stickyQty": "الكمية {{quantity}}",
+    "stickyVariantQty": "{{variant}} · الكمية {{quantity}}"
   },
   "share": {
     "label": "مشاركة المنتج",
@@ -76,7 +78,9 @@
   },
   "whatsapp": {
     "message": "مرحباً، أسأل عن {{name}} {{url}}",
-    "support": "دعم AQUAVO متوفر 24/7"
+    "support": "دعم AQUAVO متوفر 24/7",
+    "askAvailability": "اسألنا عن موعد التوفر",
+    "availabilityMessage": "مرحبا AQUAVO اريد اسأل متى يتوفر {{name}} {{url}}"
   },
   "highlights": {
     "delivery": "توصيل خلال {{days}}",
@@ -233,5 +237,8 @@
     "minute": "دقيقة",
     "second": "ثانية",
     "aria": "ينتهي عرض نهاية الشهر خلال {{days}} يوم و{{hours}} ساعة و{{minutes}} دقيقة و{{seconds}} ثانية"
+  },
+  "decision": {
+    "title": "مختصر يفيدك قبل الشراء"
   }
 }

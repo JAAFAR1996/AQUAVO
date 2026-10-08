@@ -157,6 +157,20 @@ export function trackAddShippingInfo(cartItems: AnalyticsCartItem[], total: numb
   });
 }
 
+export function trackAddPaymentInfo(
+  cartItems: AnalyticsCartItem[],
+  total: number,
+  paymentType: 'cash_on_delivery' | 'wayl',
+) {
+  if (!GA_ID || !isTrackingAllowed() || !window.gtag) return;
+  window.gtag('event', 'add_payment_info', {
+    currency: 'IQD',
+    value: total,
+    payment_type: paymentType,
+    items: toGAItems(cartItems),
+  });
+}
+
 export function trackViewItemList(products: Array<AnalyticsCartItem & { category?: string }>, listName: string) {
   if (!GA_ID || !isTrackingAllowed() || !window.gtag || products.length === 0) return;
   window.gtag('event', 'view_item_list', {

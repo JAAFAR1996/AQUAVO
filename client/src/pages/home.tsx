@@ -30,10 +30,11 @@ import { useLocale } from "@/i18n/locale-context";
 import { formatShippingFeeNumber, useShippingFee } from "@/contexts/shipping-fee-context";
 import { formatLocalizedPrice } from "@/i18n/format";
 import { PrecisionReveal } from "@/components/motion/precision-reveal";
-import { fetchTopSellingProducts } from "@/lib/api";
+import { fetchProducts, fetchTopSellingProducts } from "@/lib/api";
 import { cardImage, cardImageSrcSet } from "@/lib/cloudinary";
 import { SHOP_CATEGORY_LINKS } from "@/lib/product-category-links";
 import { getProductDisplayIdentity } from "@/lib/product-display";
+import { getBundleCopy } from "@/lib/bundle-copy";
 
 const serviceFacts = [
   { icon: Truck, title: "facts.delivery", detail: "facts.deliveryDetail" },
@@ -68,6 +69,24 @@ const guides = [
 const linkButton =
   "inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-6 text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background";
 
+type HomeBundle = {
+  id: string;
+  slug: string;
+  nameAr: string;
+  descriptionAr: string;
+  bundlePrice: number;
+  inStock: boolean;
+  requiresVariantSelection: boolean;
+  items: Array<{ productId: string }>;
+};
+
+const isSellableProduct = (product: { price?: number | string; stock?: number; hasVariants?: boolean; variants?: Array<{ price?: number; stock?: number }> | null }) => {
+  if (product.hasVariants && product.variants?.length) {
+    return product.variants.some((variant) => Number(variant.price ?? 0) > 0 && Number(variant.stock ?? 0) > 0);
+  }
+  return Number(product.price ?? 0) > 0 && Number(product.stock ?? 0) > 0;
+};
+
 export default function Home() {
   const { t } = useTranslation("home");
   const { locale, dir, href } = useLocale();
@@ -84,7 +103,7 @@ export default function Home() {
     methodLabel: t("hero.methodLabel"),
     methodTitle: t("hero.methodTitle"),
   };
-  const { data: salesData, isLoading: isStorePicksLoading, isError: isStorePicksError } = useQuery({
+  const { data: salesData, isLoading: isBestSellersLoading, isError: isBestSellersError } = useQuery({
     queryKey: ["products", "top-selling"],
     queryFn: fetchTopSellingProducts,
     staleTime: 0,
@@ -92,9 +111,42 @@ export default function Home() {
     refetchOnWindowFocus: "always",
     retry: false,
   });
+  const latestProducts = useQuery({
+    queryKey: ["products", "home-latest"],
+    queryFn: () => fetchProducts({ sortBy: "createdAt", sortOrder: "desc" }),
+    staleTime: 60_000,
+    retry: 1,
+  });
+  const bundles = useQuery<HomeBundle[]>({
+    queryKey: ["growth-bundles", "home"],
+    queryFn: async () => {
+      const response = await fetch("/api/growth/bundles", { credentials: "include" });
+      if (!response.ok) throw new Error("bundles_failed");
+      return response.json();
+    },
+    staleTime: 60_000,
+    retry: 1,
+  });
 
-  const storePicks = salesData?.bestSellers?.slice(0, 4) ?? [];
+  const bestSellerPicks = (salesData?.bestSellers ?? []).filter(isSellableProduct).slice(0, 4);
+  const latestPicks = (latestProducts.data?.products ?? []).filter(isSellableProduct).slice(0, 4);
+  const showingBestSellers = Boolean(salesData?.hasRealSales && bestSellerPicks.length > 0);
+  const storePicks = showingBestSellers ? bestSellerPicks : latestPicks;
   const hasStorePicks = storePicks.length > 0;
+  const isStorePicksLoading = isBestSellersLoading || (!showingBestSellers && latestProducts.isLoading);
+  const isStorePicksError = isBestSellersError && latestProducts.isError;
+  const solutionPriority = new Map([
+    ["safe-water-change-pack", 0],
+    ["water-testing-pack", 1],
+    ["filter-maintenance-pack", 2],
+    ["planted-tank-starter", 3],
+    ["guppy-starter", 4],
+    ["betta-care-starter", 5],
+  ]);
+  const solutionBundles = (bundles.data ?? [])
+    .filter((bundle) => bundle.inStock && !bundle.requiresVariantSelection)
+    .sort((a, b) => (solutionPriority.get(a.slug) ?? 99) - (solutionPriority.get(b.slug) ?? 99))
+    .slice(0, 3);
 
   return (
     <div className="flex-1 overflow-x-hidden bg-background text-foreground">
@@ -146,12 +198,52 @@ export default function Home() {
           </PrecisionReveal>
         </section>
 
+        {solutionBundles.length > 0 && (
+          <section className="border-y border-border bg-card">
+            <PrecisionReveal stagger className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-16 lg:px-8">
+              <div className="flex flex-wrap items-end justify-between gap-4">
+                <div className="max-w-2xl">
+                  <p className="text-sm font-bold text-primary">{t("solutions.eyebrow")}</p>
+                  <h2 className="mt-2 text-3xl font-bold text-foreground">{t("solutions.title")}</h2>
+                  <p className="mt-3 text-sm leading-6 text-muted-foreground">{t("solutions.description")}</p>
+                </div>
+                <Link href="/bundles" className="text-sm font-bold text-primary hover:underline">{t("solutions.viewAll")}</Link>
+              </div>
+              <div className="mt-8 grid gap-3 md:grid-cols-3">
+                {solutionBundles.map((bundle) => {
+                  const copy = getBundleCopy(bundle.slug, locale, bundle.nameAr, bundle.descriptionAr);
+                  return (
+                    <Link
+                      key={bundle.id}
+                      href="/bundles"
+                      className="aq-interactive-card group flex min-h-44 flex-col rounded-2xl border border-border bg-background p-5 hover:border-[#0B93A6]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                          <Boxes className="h-5 w-5" aria-hidden="true" />
+                        </span>
+                        <span className="text-xs font-semibold text-primary">{t("solutions.available")}</span>
+                      </div>
+                      <h3 className="mt-4 text-lg font-bold leading-7 text-foreground">{copy.name}</h3>
+                      <p className="mt-2 line-clamp-2 text-sm leading-6 text-muted-foreground">{copy.description}</p>
+                      <div className="mt-auto flex items-end justify-between gap-3 pt-5">
+                        <span className="text-xs text-muted-foreground">{bundle.items.length} {t("solutions.parts")}</span>
+                        <span className="text-base font-bold text-primary">{formatLocalizedPrice(bundle.bundlePrice, locale)}</span>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </PrecisionReveal>
+          </section>
+        )}
+
         <section className="border-y border-border bg-card">
           <PrecisionReveal stagger className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
-                <p className="text-sm font-bold text-primary">{t("picks.eyebrow")}</p>
-                <h2 className="mt-2 text-3xl font-bold text-foreground">{t("picks.title")}</h2>
+                <p className="text-sm font-bold text-primary">{t(showingBestSellers ? "picks.bestEyebrow" : "picks.latestEyebrow")}</p>
+                <h2 className="mt-2 text-3xl font-bold text-foreground">{t(showingBestSellers ? "picks.bestTitle" : "picks.latestTitle")}</h2>
               </div>
               <Link href="/products" className="text-sm font-bold text-primary hover:underline">{t("picks.viewAll")}</Link>
             </div>

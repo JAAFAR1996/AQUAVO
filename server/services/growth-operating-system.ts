@@ -1600,6 +1600,17 @@ const DEFAULT_BUNDLES = [
       ["yee-02924",null],
     ],
   },
+  {
+    slug:"safe-water-change-pack",
+    name:"باقة تغيير الماء الآمن",
+    description:"سيفون لتغيير الماء مع مزيل كلور وفحص سريع، حتى تكمل الصيانة الأساسية بطلب واحد.",
+    audience:"maintenance",
+    items:[
+      ["houyi-water-changer-siphon",null],
+      ["yee-02924",null],
+      ["yee-c4-1123-1a",null],
+    ],
+  },
 ] as const;
 
 export async function seedDefaultBundles() {
