@@ -1724,6 +1724,35 @@ export function createAdminRouter(): RouterType {
         }
     });
 
+    // Delivery/support tickets — includes WhatsApp delivery-issue escalations.
+    router.get("/support-tickets", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const { getDb } = await import("../db.js");
+            const { supportTickets } = await import("../../shared/schema.js");
+            const { desc, eq } = await import("drizzle-orm");
+            const db = getDb();
+            if (!db) throw new Error("Database not initialized");
+
+            const status = typeof req.query.status === "string" ? req.query.status.trim() : "";
+            const rawLimit = Number(req.query.limit ?? 50);
+            const limit = Number.isFinite(rawLimit) ? Math.max(1, Math.min(100, Math.floor(rawLimit))) : 50;
+
+            const baseQuery = db.select().from(supportTickets);
+            const rows = status
+                ? await baseQuery.where(eq(supportTickets.status, status)).orderBy(desc(supportTickets.createdAt)).limit(limit)
+                : await baseQuery.orderBy(desc(supportTickets.createdAt)).limit(limit);
+
+            res.json(rows.map((ticket) => ({
+                ...ticket,
+                orderId: ticket.conversationId.startsWith("whatsapp_delivery_issue:")
+                    ? ticket.conversationId.slice("whatsapp_delivery_issue:".length)
+                    : null,
+            })));
+        } catch (err) {
+            next(err);
+        }
+    });
+
     // Get trending products (from analytics)
     router.get("/ai/trending", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
