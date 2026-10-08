@@ -113,11 +113,11 @@ describe("checkout page", () => {
     expect(mockSetLocation).toHaveBeenCalledWith("/");
   });
 
-  it("shows COD, the fixed delivery fee and the visible total", () => {
+  it("shows payment options, the fixed delivery fee and the visible total", () => {
     renderCheckout();
 
     expect(screen.getByRole("heading", { level: 1, name: "إتمام الطلب" })).toBeInTheDocument();
-    expect(screen.getAllByText(/ادفع عند الاستلام/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/الدفع عند الاستلام أو إلكترونياً/).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/5,000 د\.ع/).length).toBeGreaterThan(0);
     expect(screen.getByText("30,000 د.ع")).toBeInTheDocument();
   });
