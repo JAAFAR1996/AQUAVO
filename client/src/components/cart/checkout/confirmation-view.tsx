@@ -75,8 +75,6 @@ export function ConfirmationView({
     couponDiscount = 0,
     loyaltyData,
     isLoggedIn = false,
-    whatsappMarketingOptIn,
-    setWhatsappMarketingOptIn,
 }: ConfirmationViewProps) {
     const { t } = useTranslation("checkout");
     const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cod");
@@ -396,27 +394,10 @@ export function ConfirmationView({
                     disabled={busy}
                 />
                 <label htmlFor="agree" className="text-sm cursor-pointer leading-relaxed text-muted-foreground">
-                    {t("confirm.agreePrefix")}{" "}<a href="/terms" target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-2 hover:text-primary/80 font-medium" onClick={(e) => e.stopPropagation()}>{t("confirm.terms")}</a>{" "}{t("confirm.agreeSuffix")}
+                    {t("confirm.agreePrefix")}{" "}<a href="/terms" target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-2 hover:text-primary/80 font-medium" onClick={(e) => e.stopPropagation()}>{t("confirm.terms")}</a>
                 </label>
             </div>
 
-            <div className="flex items-start gap-3 rounded-xl border border-border/70 bg-muted/20 px-3 py-3">
-                <Checkbox
-                    id="whatsapp-marketing-opt-in"
-                    checked={whatsappMarketingOptIn}
-                    onCheckedChange={(checked) => setWhatsappMarketingOptIn(checked === true)}
-                    disabled={busy}
-                    className="mt-0.5"
-                />
-                <div className="space-y-1">
-                    <label htmlFor="whatsapp-marketing-opt-in" className="text-sm leading-relaxed text-foreground cursor-pointer">
-                        {t("confirm.whatsappOptIn")}
-                    </label>
-                    <p className="text-xs leading-relaxed text-muted-foreground">
-                        {t("confirm.whatsappOptInHint")}
-                    </p>
-                </div>
-            </div>
             {agreementError && (
                 <p className="text-sm text-destructive" role="alert">{t("confirm.agreementRequired")}</p>
             )}
