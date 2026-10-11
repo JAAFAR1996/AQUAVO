@@ -137,7 +137,7 @@ export function ConfirmationView({
                 })),
                 couponCode,
                 cashback: 0,
-                whatsappMarketingOptIn,
+                whatsappMarketingOptIn: false,
             });
             const idempotencyKey = getOrderIdempotencyKey(cartSignature);
             const governorate = GOVERNORATES.find((entry) => entry.value === customerInfo.governorate)?.label;
@@ -166,7 +166,7 @@ export function ConfirmationView({
                     ...(couponCode ? { couponCode } : {}),
                     useCashback: false,
                     cashbackToUse: 0,
-                    whatsappMarketingOptIn,
+                    whatsappMarketingOptIn: false,
                 }),
             });
 
