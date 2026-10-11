@@ -4,30 +4,31 @@ import { resolve } from "node:path";
 
 const read = (path: string) => readFileSync(resolve(process.cwd(), path), "utf8");
 
-describe("checkout WhatsApp consent contract", () => {
-  it("keeps required terms acceptance separate from optional marketing consent", () => {
+describe("checkout terms consent contract", () => {
+  it("shows exactly the linked terms text on the only required checkbox", () => {
     const view = read("client/src/components/cart/checkout/confirmation-view.tsx");
     expect(view).toContain('id="agree"');
     expect(view).toContain("setAgreed(accepted)");
-    expect(view).toContain('id="whatsapp-marketing-opt-in"');
-    expect(view).toContain("checked={whatsappMarketingOptIn}");
-    expect(view).toContain("setWhatsappMarketingOptIn(checked === true)");
+    expect(view).toContain('t("confirm.agreePrefix")');
+    expect(view).toContain('t("confirm.terms")');
+    expect(view).not.toContain('t("confirm.agreeSuffix")');
+    expect(view).not.toContain('id="whatsapp-marketing-opt-in"');
     expect(view).not.toContain("setWhatsappMarketingOptIn(accepted)");
+    expect(view).not.toContain("setWhatsappMarketingOptIn(checked === true)");
   });
 
-  it("explains separate marketing consent in Arabic, English, and Sorani", () => {
+  it("maintains translated terms-only consent wording for all storefront languages", () => {
+    const ar = JSON.parse(read("client/src/locales/ar/checkout.json"));
+    expect(ar.confirm.agreePrefix + " " + ar.confirm.terms).toBe("أوافق على الشروط والأحكام");
     for (const locale of ["ar", "en", "ckb"]) {
       const doc = JSON.parse(read(`client/src/locales/${locale}/checkout.json`));
-      expect(doc.confirm.agreeSuffix.length).toBeGreaterThan(20);
-      expect(doc.confirm.whatsappOptIn.length).toBeGreaterThan(20);
-      expect(doc.confirm.whatsappOptInHint.length).toBeGreaterThan(20);
+      expect(doc.confirm.agreePrefix.length).toBeGreaterThan(0);
+      expect(doc.confirm.terms.length).toBeGreaterThan(0);
+      expect(doc.confirm).not.toHaveProperty("agreeSuffix");
     }
-    const ar = JSON.parse(read("client/src/locales/ar/checkout.json"));
-    expect(ar.confirm.agreeSuffix).toContain("موافقة اختيارية منفصلة");
-    expect(ar.confirm.whatsappOptIn).toContain("واتساب");
   });
 
-  it("keeps the terms page available", () => {
+  it("keeps legal terms linked", () => {
     const terms = read("client/src/pages/terms.tsx");
     expect(terms).toContain('t("terms.s66")');
     expect(terms).toContain('t("terms.s67")');
