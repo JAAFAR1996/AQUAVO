@@ -75,8 +75,6 @@ export function ConfirmationView({
     couponDiscount = 0,
     loyaltyData,
     isLoggedIn = false,
-    whatsappMarketingOptIn,
-    setWhatsappMarketingOptIn,
 }: ConfirmationViewProps) {
     const { t } = useTranslation("checkout");
     const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cod");
@@ -139,7 +137,7 @@ export function ConfirmationView({
                 })),
                 couponCode,
                 cashback: 0,
-                whatsappMarketingOptIn,
+                whatsappMarketingOptIn: false,
             });
             const idempotencyKey = getOrderIdempotencyKey(cartSignature);
             const governorate = GOVERNORATES.find((entry) => entry.value === customerInfo.governorate)?.label;
@@ -168,7 +166,7 @@ export function ConfirmationView({
                     ...(couponCode ? { couponCode } : {}),
                     useCashback: false,
                     cashbackToUse: 0,
-                    whatsappMarketingOptIn,
+                    whatsappMarketingOptIn: false,
                 }),
             });
 
@@ -390,16 +388,16 @@ export function ConfirmationView({
                     onCheckedChange={(checked) => {
                         const accepted = checked === true;
                         setAgreed(accepted);
-                        setWhatsappMarketingOptIn(accepted);
                         if (accepted) setAgreementError(false);
                     }}
                     className="mt-0.5"
                     disabled={busy}
                 />
                 <label htmlFor="agree" className="text-sm cursor-pointer leading-relaxed text-muted-foreground">
-                    {t("confirm.agreePrefix")}{" "}<a href="/terms" target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-2 hover:text-primary/80 font-medium" onClick={(e) => e.stopPropagation()}>{t("confirm.terms")}</a>{" "}{t("confirm.agreeSuffix")}
+                    {t("confirm.agreePrefix")}{" "}<a href="/terms" target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-2 hover:text-primary/80 font-medium" onClick={(e) => e.stopPropagation()}>{t("confirm.terms")}</a>
                 </label>
             </div>
+
             {agreementError && (
                 <p className="text-sm text-destructive" role="alert">{t("confirm.agreementRequired")}</p>
             )}
