@@ -75,7 +75,8 @@ const tabletOverflowLinks: NavLink[] = [
 ];
 
 export default function Navbar() {
-  const shippingFeeLabel = formatShippingFeeNumber(useShippingFee());
+  const shippingFee = useShippingFee();
+  const shippingFeeLabel = formatShippingFeeNumber(shippingFee);
   const [location, setLocation] = useLocation();
   const { t } = useTranslation("nav");
   const { t: tc } = useTranslation("common");
@@ -538,11 +539,21 @@ export default function Navbar() {
                       </div>
 
                       <div className="shrink-0 border-t border-border bg-background px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4 sm:px-6">
-                        <dl className="flex items-center justify-between gap-4">
-                          <dt className="text-base font-medium">{t("cart.total")}</dt>
-                          <dd className="text-xl font-bold text-foreground" aria-live="polite">
-                            {price(totalPrice)}
-                          </dd>
+                        <dl className="space-y-2">
+                          <div className="flex items-center justify-between gap-4">
+                            <dt className="text-sm text-muted-foreground">{t("cart.subtotal")}</dt>
+                            <dd className="text-sm font-medium text-foreground">{price(totalPrice)}</dd>
+                          </div>
+                          <div className="flex items-center justify-between gap-4">
+                            <dt className="text-sm text-muted-foreground">{t("cart.shipping")}</dt>
+                            <dd className="text-sm font-medium text-foreground">{price(shippingFee)}</dd>
+                          </div>
+                          <div className="flex items-center justify-between gap-4 border-t border-border/70 pt-2">
+                            <dt className="text-base font-semibold">{t("cart.estimatedTotal")}</dt>
+                            <dd className="text-xl font-bold text-foreground" aria-live="polite">
+                              {price(totalPrice + shippingFee)}
+                            </dd>
+                          </div>
                         </dl>
                         <p className="mt-2 text-center text-xs leading-5 text-muted-foreground">
                           {t("paymentNote", { fee: shippingFeeLabel })}
