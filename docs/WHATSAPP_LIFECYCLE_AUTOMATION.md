@@ -76,8 +76,10 @@ reminder; a later purchase suppresses stale recommendations.
 
 ## Consent model
 
-The existing required Terms acceptance is the storefront consent control. When accepted,
-checkout sends `whatsappMarketingOptIn=true`; test-mode orders force it false.
+The required Terms acceptance is separate from the optional WhatsApp marketing consent.
+Only an explicit selection of the optional, unchecked marketing checkbox causes checkout to
+send `whatsappMarketingOptIn=true`; accepting Terms alone does not grant marketing consent.
+Test-mode orders force marketing consent false.
 
 The order-level consent flag and timestamp are written inside the same order-creation
 transaction for both COD and Wayl. Projection to `customer_profiles` and the append-only
