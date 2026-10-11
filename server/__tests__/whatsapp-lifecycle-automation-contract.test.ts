@@ -15,12 +15,14 @@ describe("automatic WhatsApp lifecycle contract",()=>{
     expect(service).toContain("context.marketingOptIn");
   });
 
-  it("captures optional explicit checkout marketing consent",()=>{
+  it("does not treat acceptance of checkout terms as marketing consent",()=>{
     const checkout=read("client/src/components/cart/checkout/confirmation-view.tsx");
     const orderRoute=read("server/routes/orders.ts");
     const wayl=read("server/routes/wayl.ts");
     const migration=read("migrations/0093_whatsapp_lifecycle_automation.sql");
-    expect(checkout).toContain('id="whatsapp-marketing-opt-in"');
+    expect(checkout).not.toContain('id="whatsapp-marketing-opt-in"');
+    expect(checkout).not.toContain("setWhatsappMarketingOptIn(accepted)");
+    expect(checkout).not.toContain("setWhatsappMarketingOptIn(checked === true)");
     expect(checkout).toContain("whatsappMarketingOptIn");
     expect(orderRoute).toContain("whatsappMarketingOptIn");
     expect(wayl).toContain("whatsappMarketingOptIn");
