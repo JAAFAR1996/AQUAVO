@@ -1,4 +1,4 @@
-import { memo, useRef, useState, type MouseEvent } from "react";
+import { memo, useEffect, useRef, useState, type MouseEvent } from "react";
 import { Leaf, Package, ShoppingCart } from "lucide-react";
 import { Link, useLocation } from "wouter";
 
@@ -43,6 +43,14 @@ export const ProductCard = memo(function ProductCard({
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [imgLoaded, setImgLoaded] = useState(false);
+  const [imageSourceIndex, setImageSourceIndex] = useState(0);
+
+  // A failed thumbnail should not permanently replace an available product gallery
+  // with the brand icon. New media paths may briefly fail during deployment.
+  useEffect(() => {
+    setImageSourceIndex(0);
+    setImgLoaded(false);
+  }, [product.id, product.thumbnail, product.image]);
   const motionActive = !prefersReducedMotion();
   const imgRef = useRef<HTMLImageElement>(null);
   const navLockRef = useRef(false);
@@ -112,7 +120,12 @@ export const ProductCard = memo(function ProductCard({
     });
   };
 
-  const rawImage = product.thumbnail || product.image;
+  const imageSources = Array.from(new Set(
+    [product.thumbnail, product.image, ...(product.images || [])].filter(
+      (src): src is string => typeof src === "string" && src.trim().length > 0,
+    ),
+  ));
+  const rawImage = imageSources[imageSourceIndex] || "";
   const imageSrc = cardImage(rawImage) || "/brand/aquavo-v2-icon.svg";
   const imageSrcSet = cardImageSrcSet(rawImage);
 
@@ -190,6 +203,11 @@ export const ProductCard = memo(function ProductCard({
             onDragStart={(event) => event.preventDefault()}
             onLoad={() => setImgLoaded(true)}
             onError={(event) => {
+              if (imageSourceIndex < imageSources.length - 1) {
+                setImgLoaded(false);
+                setImageSourceIndex((index) => index + 1);
+                return;
+              }
               const target = event.currentTarget;
               if (!target.src.endsWith("/brand/aquavo-v2-icon.svg")) {
                 target.src = "/brand/aquavo-v2-icon.svg";
