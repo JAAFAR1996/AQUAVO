@@ -301,7 +301,7 @@ export function ConfirmationView({
 
             <div className="border border-border/60 rounded-lg p-4 space-y-2">
                 <h4 className="text-sm font-semibold">{t("confirm.products", { count: cartItems.length })}</h4>
-                <ScrollFadeList label={t("confirm.products", { count: cartItems.length })} className="max-h-28">
+                <ScrollFadeList label={t("confirm.products", { count: cartItems.length })} className="max-h-28" fadeHeight={32}>
                     <div className="space-y-1.5">
                     {cartItems.map((item) => (
                         <div key={item.id} className="flex justify-between items-center text-sm">
@@ -411,6 +411,7 @@ export function ConfirmationView({
             <div className="flex flex-col gap-3 sm:flex-row">
                 <Button variant="outline" onClick={handleBack} className="order-2 h-11 w-full sm:order-1 sm:h-12 sm:flex-1" disabled={busy} aria-disabled={busy}>{t("confirm.edit")}</Button>
                 <DynamicButton
+                    width="full"
                     onClick={submit}
                     className="order-1 h-12 w-full text-base font-semibold sm:order-2 sm:flex-1"
                     disabled={busy || (paymentMethod === "online" && onlineBlockedByLoyalty)}
