@@ -75,7 +75,8 @@
     "s73": "Track your order",
     "s74": "Print invoice",
     "s75": "Need help? Talk to us",
-    "s76": "Return to home"
+    "s76": "Return to home",
+    "s77": "Expand to view products, delivery details, payment and rewards"
   },
   "invoice-dialog": {
     "s1": "Paid electronically",
