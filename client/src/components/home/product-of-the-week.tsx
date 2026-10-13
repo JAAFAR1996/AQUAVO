@@ -32,10 +32,6 @@ export function ProductOfTheWeek({ product }: ProductOfTheWeekProps) {
     }
     const ok = await addItem(product);
     if (!ok) return;
-    toast({
-      title: t("product-of-the-week.s3"),
-      description: t("product-of-the-week.s4", { v0: product.name }),
-    });
   };
   return (
     <section className="py-16 relative overflow-hidden">
