@@ -158,9 +158,9 @@ export default function Products() {
   const { data, isLoading: isProductsLoading, isError, refetch: refetchProducts } = useQuery({
     queryKey: ["products", queryParams],
     queryFn: () => fetchProducts(queryParams),
-    staleTime: 60_000,
+    staleTime: 15_000,
     refetchOnMount: true,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true,
     retry: 2,
     retryDelay: (attempt) => Math.min(500 * 2 ** attempt, 2000),
   });
