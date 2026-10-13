@@ -44,6 +44,8 @@ function PhoneNumberSpringSlot({
     const progress = useMotionValue(char ? 1 : 0);
     const previousChar = useRef(char);
     const lastCharacter = useRef(char);
+    const latestDelayMs = useRef(delayMs);
+    latestDelayMs.current = delayMs;
     if (char) lastCharacter.current = char;
 
     const fillScale = useTransform(progress, (t) => "scale(" + Math.max(0, t) + ")");
@@ -66,7 +68,7 @@ function PhoneNumberSpringSlot({
                 type: "spring",
                 duration: 0.3,
                 bounce: 0.2,
-                delay: delayMs / 1000,
+                delay: latestDelayMs.current / 1000,
             });
             return () => controls.stop();
         }
@@ -75,10 +77,10 @@ function PhoneNumberSpringSlot({
             type: "spring",
             duration: 0.3,
             bounce: 0.2,
-            delay: delayMs / 1000,
+            delay: latestDelayMs.current / 1000,
         });
         return () => controls.stop();
-    }, [char, delayMs, progress, reducedMotion]);
+    }, [char, progress, reducedMotion]);
 
     return (
         <span
