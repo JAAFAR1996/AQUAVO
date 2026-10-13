@@ -6,12 +6,12 @@ import {
     DropdownMenuContent,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { SlidersHorizontal, ChevronDown, Sparkles, TrendingUp, UserRoundCheck, DollarSign } from "lucide-react";
+import { SlidersHorizontal, ChevronDown, Sparkles, TrendingUp, PackageCheck, DollarSign } from "lucide-react";
 import { DualRangeSlider } from "@/components/ui/dual-range-slider";
 import { cn } from "@/lib/utils";
 import { FilterState } from "./filter-modal";
 import { useTranslation } from "react-i18next";
-import { PRODUCT_DIFFICULTY_VALUES, PRODUCT_TAG_VALUES } from "@/lib/product-filter-values";
+import { PRODUCT_TAG_VALUES } from "@/lib/product-filter-values";
 
 interface FilterBarProps {
     filters: FilterState;
@@ -175,15 +175,10 @@ export function FilterBar({
                 onClick={() => toggleTag(PRODUCT_TAG_VALUES.bestSeller)}
             />
             <QuickFilterChip
-                label={t("tags.beginner")}
-                icon={UserRoundCheck}
-                selected={filters.difficulties.includes(PRODUCT_DIFFICULTY_VALUES.beginner)}
-                onClick={() => onFiltersChange({
-                    ...filters,
-                    difficulties: filters.difficulties.includes(PRODUCT_DIFFICULTY_VALUES.beginner)
-                        ? filters.difficulties.filter(d => d !== PRODUCT_DIFFICULTY_VALUES.beginner)
-                        : [PRODUCT_DIFFICULTY_VALUES.beginner],
-                })}
+                label={t("tags.inStock")}
+                icon={PackageCheck}
+                selected={filters.tags.includes("in-stock")}
+                onClick={() => toggleTag("in-stock")}
             />
         </div>
     );
