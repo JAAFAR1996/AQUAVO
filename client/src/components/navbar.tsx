@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { ShippingProgress } from "@/components/cart/shipping-progress";
+import { ScrollFadeList } from "@/components/ui/scroll-fade-list";
 import { CartSuggestions } from "@/components/cart/cart-suggestions";
 import { ThemeSwitcher } from "@/components/ui/theme-switcher";
 import { LanguageSwitcher } from "@/components/ui/language-switcher";
@@ -451,11 +452,14 @@ export default function Navbar() {
                         <ShippingProgress />
                       </div>
 
-                      <ul
-                        className="min-h-0 flex-1 divide-y divide-border/70 overflow-y-auto overflow-x-hidden px-5 sm:px-6"
-                        aria-label={t("cart.itemsList")}
+                      <ScrollFadeList
+                        label={t("cart.itemsList")}
+                        fadeHeight={56}
+                        fill
+                        className="overflow-x-hidden px-5 sm:px-6"
                       >
-                        {cartItems.map((item) => (
+                        <ul className="divide-y divide-border/70" aria-label={t("cart.itemsList")}>
+                          {cartItems.map((item) => (
                           <li
                             key={item.id}
                             className="flex gap-3 py-5"
@@ -530,8 +534,9 @@ export default function Navbar() {
                               </div>
                             </div>
                           </li>
-                        ))}
-                      </ul>
+                          ))}
+                        </ul>
+                      </ScrollFadeList>
 
                       <div className="shrink-0 border-t border-border/70 px-5 sm:px-6">
                         <CartSuggestions onNavigate={() => setIsCartOpen(false)} />
