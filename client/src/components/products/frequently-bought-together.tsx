@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { useCart } from "@/contexts/cart-context";
-import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { thumbImage } from "@/lib/cloudinary";
 import { useTranslation } from "react-i18next";
@@ -37,7 +36,6 @@ export function FrequentlyBoughtTogether({
         new Set([currentProduct.id, ...relatedProducts.slice(0, 2).map(p => p.id)])
     );
     const { addItems } = useCart();
-    const { toast } = useToast();
 
     // Get first 3 related products — exclude Coming Soon (price=0) from bundle
     const products = [
