@@ -60,9 +60,9 @@ export default function Products() {
   const { data: attributes } = useQuery({
     queryKey: ["product-attributes"],
     queryFn: fetchProductAttributes,
-    staleTime: 0,
-    refetchOnMount: "always",
-    refetchOnWindowFocus: "always",
+    staleTime: 60_000,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false,
   });
 
   const availableCategories = attributes?.categories || [];
@@ -158,18 +158,18 @@ export default function Products() {
   const { data, isLoading: isProductsLoading, isError, refetch: refetchProducts } = useQuery({
     queryKey: ["products", queryParams],
     queryFn: () => fetchProducts(queryParams),
-    staleTime: 0,
-    refetchOnMount: "always",
-    refetchOnWindowFocus: "always",
-    retry: 1,
-    retryDelay: 500,
+    staleTime: 60_000,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false,
+    retry: 2,
+    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 4000),
   });
 
   const products = data?.products ?? [];
 
   const finalProducts = useMemo(() => {
     let filtered = products.filter(product => {
-      if (filters.difficulties.length > 0 && product.difficulty && !filters.difficulties.includes(product.difficulty)) {
+      if (filters.difficulties.length > 0 && (!product.difficulty || !filters.difficulties.includes(product.difficulty))) {
         return false;
       }
       if (filters.tags.includes(PRODUCT_TAG_VALUES.eco) && !product.ecoFriendly) {
