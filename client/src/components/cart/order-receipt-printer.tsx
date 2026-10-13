@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { CheckCircle2, LoaderCircle } from "lucide-react";
+import { CheckCircle2, LoaderCircle, RotateCcw } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { formatIQD } from "@/lib/utils";
 
@@ -23,7 +23,7 @@ interface OrderReceiptPrinterProps {
   dateLabel?: string;
 }
 
-type PrinterStage = "processing" | "printing" | "complete";
+type PrinterStage = "idle" | "processing" | "printing" | "complete";
 
 const strings = {
   ar: {
@@ -31,29 +31,29 @@ const strings = {
     items: "المنتجات", subtotal: "المجموع الفرعي", delivery: "التوصيل",
     discount: "الخصم", total: "الإجمالي", payment: "طريقة الدفع / الحالة",
     thanks: "شكرا لتسوقك من AQUAVO", processing: "جاري تجهيز الإيصال",
-    printing: "جاري طباعة الإيصال", complete: "الإيصال جاهز", store: "المتجر",
+    printing: "جاري طباعة الإيصال", complete: "الإيصال جاهز", store: "المتجر", replay: "إعادة عرض الحركة",
   },
   en: {
     receipt: "Order receipt", confirmed: "Order received", number: "Order number",
     items: "Items", subtotal: "Subtotal", delivery: "Delivery",
     discount: "Discount", total: "Total", payment: "Payment method / status",
     thanks: "Thank you for shopping with AQUAVO", processing: "Preparing receipt",
-    printing: "Printing your receipt", complete: "Receipt ready", store: "Shop",
+    printing: "Printing your receipt", complete: "Receipt ready", store: "Shop", replay: "Replay",
   },
   ckb: {
     receipt: "پسووڵەی داواکاری", confirmed: "داواکارییەکەت تۆمار کرا", number: "ژمارەی داواکاری",
     items: "بەرهەمەکان", subtotal: "کۆی سەرەتایی", delivery: "گەیاندن",
     discount: "داشکاندن", total: "کۆی گشتی", payment: "شێواز / دۆخی پارەدان",
     thanks: "سوپاس بۆ کڕین لە AQUAVO", processing: "ئامادەکردنی پسووڵە",
-    printing: "چاپکردنی پسووڵە", complete: "پسووڵە ئامادەیە", store: "فرۆشگا",
+    printing: "چاپکردنی پسووڵە", complete: "پسووڵە ئامادەیە", store: "فرۆشگا", replay: "دووبارە پیشاندان",
   },
 } as const;
 
 // Mechanical stepper-motion: feed, pause, feed, pause, and finish.
 const feedFrames = [
-  "-100%", "-91%", "-91%", "-81%", "-81%", "-70%", "-70%",
-  "-58%", "-58%", "-45%", "-45%", "-32%", "-32%", "-20%",
-  "-20%", "-10%", "-10%", "-3%", "-3%", "0%",
+  "translateY(calc(-100% + 2px))", "translateY(-91%)", "translateY(-91%)", "translateY(-81%)", "translateY(-81%)", "translateY(-70%)", "translateY(-70%)",
+  "translateY(-58%)", "translateY(-58%)", "translateY(-45%)", "translateY(-45%)", "translateY(-32%)", "translateY(-32%)", "translateY(-20%)",
+  "translateY(-20%)", "translateY(-10%)", "translateY(-10%)", "translateY(-3%)", "translateY(-3%)", "translateY(0%)",
 ];
 const feedTimes = [
   0, 0.075, 0.105, 0.18, 0.21, 0.285, 0.315,
@@ -79,32 +79,69 @@ export function OrderReceiptPrinter({
   const language = (i18n.resolvedLanguage ?? i18n.language ?? "ar").split("-")[0];
   const s = strings[language as keyof typeof strings] ?? strings.ar;
   const reduced = useReducedMotion();
-  const [stage, setStage] = useState<PrinterStage>("processing");
+  const machineRef = useRef<HTMLDivElement>(null);
+  // Keep the paper inside the machine until the user can actually see it.
+  // The preceding order-summary content can be tall enough to hide the printer
+  // below the fold; a mount-time timer would finish before the user scrolls down.
+  const [stage, setStage] = useState<PrinterStage>("idle");
+  const [runId, setRunId] = useState(0);
 
   useEffect(() => {
     if (reduced) {
       setStage("complete");
       return;
     }
+    const machine = machineRef.current;
+    if (!machine) return;
+    if (typeof IntersectionObserver === "undefined") {
+      setRunId(current => current === 0 ? 1 : current);
+      return;
+    }
+    const observer = new IntersectionObserver(entries => {
+      if (entries.some(entry => entry.isIntersecting)) {
+        setRunId(current => current === 0 ? 1 : current);
+        observer.disconnect();
+      }
+    }, { threshold: 0.45, rootMargin: "0px 0px -8% 0px" });
+    observer.observe(machine);
+    return () => observer.disconnect();
+  }, [orderNumber, reduced]);
+
+  useEffect(() => {
+    if (reduced || runId === 0) return;
     setStage("processing");
-    const start = window.setTimeout(() => setStage("printing"), 320);
-    const finish = window.setTimeout(() => setStage("complete"), 2380);
+    // Start with no paper, wait a moment, then feed in clearly separated steps.
+    const start = window.setTimeout(() => setStage("printing"), 650);
+    // Complete only after the feed animation (2.6 s) has actually finished.
+    const finish = window.setTimeout(() => setStage("complete"), 3450);
     return () => {
       window.clearTimeout(start);
       window.clearTimeout(finish);
     };
-  }, [orderNumber, reduced]);
+  }, [runId, reduced, orderNumber]);
 
-  const statusText = stage === "processing" ? s.processing : stage === "printing" ? s.printing : s.complete;
+  const statusText = stage === "idle" || stage === "processing" ? s.processing : stage === "printing" ? s.printing : s.complete;
 
   return (
     <section
       className="relative mx-auto flex w-full max-w-[396px] flex-col items-center py-1"
       aria-label={s.receipt}
       data-aqv-receipt
-      data-stage={stage}
+      data-stage={reduced ? "complete" : stage}
+      data-animation-run={runId}
     >
-      <div className="relative z-20 w-full overflow-hidden rounded-[25px] border border-[#181c1e] bg-[#2b3032] px-3 pb-8 pt-3 text-[#F6F4EF] shadow-[0_20px_36px_-20px_rgba(11,30,40,.56),0_6px_14px_-8px_rgba(11,30,40,.3),inset_0_1px_0_rgba(255,255,255,.16)]">
+      {!reduced && (
+        <button
+          type="button"
+          onClick={() => setRunId(current => current + 1)}
+          aria-label={s.replay}
+          className="mb-3 inline-flex min-h-9 items-center gap-1.5 self-end rounded-lg border border-[#0B1E28]/15 bg-[#FFFEFB] px-3 py-1.5 text-xs font-semibold text-[#0B1E28] shadow-sm transition-colors hover:bg-[#F6F4EF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B93A6]"
+        >
+          <RotateCcw aria-hidden="true" className="h-3.5 w-3.5" />
+          {s.replay}
+        </button>
+      )}
+      <div ref={machineRef} className="relative z-20 w-full overflow-hidden rounded-[25px] border border-[#181c1e] bg-[#2b3032] px-3 pb-8 pt-3 text-[#F6F4EF] shadow-[0_20px_36px_-20px_rgba(11,30,40,.56),0_6px_14px_-8px_rgba(11,30,40,.3),inset_0_1px_0_rgba(255,255,255,.16)]">
         <div className="relative z-10 flex h-11 items-start justify-between gap-3 px-1">
           <img src="/brand/aquavo-v2-icon.svg" alt="" width={29} height={29} className="h-7 w-7 object-contain" />
           <a href="/" className="rounded-xl border border-white/10 bg-[#43494b] px-3 py-1.5 text-xs font-semibold text-white shadow-[0_3px_0_rgba(0,0,0,.45)] transition-colors hover:bg-[#545b5d] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B93A6]">
@@ -150,15 +187,30 @@ export function OrderReceiptPrinter({
       <div className="relative z-10 -mt-4 w-[calc(80%+3rem)] max-w-full overflow-hidden px-3 pb-5">
         <div aria-hidden="true" className="pointer-events-none absolute inset-x-3 top-0 z-20 h-2 bg-[#101517]/70 blur-[5px]" />
         <motion.div
-          initial={false}
+          // Remount the sheet for every Replay, so resetting it never animates
+          // upwards in view. Use transform keyframes like the Dqnamo original.
+          key={runId}
+          initial={reduced ? false : {
+            transform: "translateY(calc(-100% + 2px))",
+            opacity: 0,
+          }}
           animate={{
-            y: reduced || stage === "complete" ? "0%" : stage === "printing" ? feedFrames : "-100%",
-            opacity: stage === "processing" && !reduced ? 0.95 : 1,
+            transform: reduced || stage === "complete"
+              ? "translateY(0%)"
+              : stage === "printing"
+                ? feedFrames
+                : "translateY(calc(-100% + 2px))",
+            opacity: reduced || stage === "printing" || stage === "complete" ? 1 : 0,
           }}
           transition={{
-            y: { duration: reduced ? 0 : 1.9, ease: "linear", times: stage === "printing" ? feedTimes : undefined },
-            opacity: { duration: 0.15 },
+            transform: {
+              duration: reduced ? 0 : 2.6,
+              ease: "linear",
+              times: !reduced && stage === "printing" ? feedTimes : undefined,
+            },
+            opacity: { duration: reduced ? 0 : 0.16 },
           }}
+          aria-hidden={stage !== "complete"}
           className="relative drop-shadow-[0_12px_14px_rgba(11,30,40,.16)]"
         >
           <article
