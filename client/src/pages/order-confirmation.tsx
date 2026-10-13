@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import {
     Check,
     CheckCircle2,
+    CircleAlert,
     ChevronDown,
     Clock,
     Copy,
@@ -374,8 +375,8 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
                         className="rounded-2xl border border-primary/20 bg-card px-4 py-5 shadow-sm sm:px-6 sm:py-6"
                     >
                         <div className="flex items-start gap-3 sm:gap-4">
-                            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary" aria-hidden="true">
-                                <CheckCircle2 className="h-6 w-6" />
+                            <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${statusInterrupted ? "bg-destructive/10 text-destructive" : "bg-primary/10 text-primary"}`} aria-hidden="true">
+                                {statusInterrupted ? <CircleAlert className="h-6 w-6" /> : <CheckCircle2 className="h-6 w-6" />}
                             </span>
                             <div className="min-w-0 flex-1">
                                 <div className={`mb-2 inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${statusTone}`}>
