@@ -48,7 +48,7 @@ export function Toaster() {
                 slideMs={400}
                 settleBounce={0.2}
                 swipeDistance={40}
-                duration={4800}
+                duration={4000}
                 fuse="bottom"
                 pauseOnHover
                 closeButton
