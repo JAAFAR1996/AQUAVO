@@ -70,7 +70,7 @@ test.describe('FilterBar controls: labels stay inside their borders', () => {
                 { name: 'السعر', selector: 'button:has-text("السعر")' },
                 { name: 'جديد', selector: 'button:has-text("جديد")' },
                 { name: 'الأكثر مبيعاً', selector: 'button:has-text("الأكثر مبيعاً")' },
-                { name: 'مناسب للمبتدئين', selector: 'button:has-text("مناسب للمبتدئين")' },
+                { name: 'المتوفر حالياً', selector: 'button:has-text("المتوفر حالياً")' },
             ];
 
             for (const control of controls) {
