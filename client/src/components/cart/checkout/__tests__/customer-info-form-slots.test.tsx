@@ -53,6 +53,26 @@ describe("checkout phone digit slots", () => {
     expect(slots.querySelectorAll("[data-phone-slot]")).toHaveLength(11);
   });
 
+  it("animates a fill behind each digit and shows the editing caret without adding an OTP field", () => {
+    render(<PhoneHarness />);
+    const input = screen.getByLabelText("رقم الهاتف") as HTMLInputElement;
+    const slots = screen.getByTestId("phone-digit-slots");
+
+    expect(slots).toHaveAttribute("data-aquavo-phone-slots");
+    expect(screen.getAllByTestId("phone-slot-fill")).toHaveLength(11);
+    expect(screen.queryAllByTestId("phone-slot-digit")).toHaveLength(0);
+
+    fireEvent.focus(input);
+    expect(screen.getAllByTestId("phone-slot-caret")).toHaveLength(1);
+
+    fireEvent.change(input, { target: { value: "07" } });
+    expect(screen.getAllByTestId("phone-slot-digit")).toHaveLength(2);
+    expect(screen.getAllByTestId("phone-slot-fill")).toHaveLength(11);
+    expect(screen.getAllByTestId("phone-slot-caret")).toHaveLength(1);
+    expect(document.querySelectorAll('input[id="phone"]')).toHaveLength(1);
+    expect(document.querySelector('input[autocomplete="one-time-code"]')).toBeNull();
+  });
+
   it("supports existing international numbers, keeping native paste/autofill form semantics", () => {
     render(<PhoneHarness initialPhone="+964 780 123 4567" />);
     const input = screen.getByLabelText("رقم الهاتف") as HTMLInputElement;
