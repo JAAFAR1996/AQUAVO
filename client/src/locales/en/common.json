@@ -203,7 +203,12 @@
     "s1": "Close"
   },
   "toaster": {
-    "s1": "View cart"
+    "s1": "View cart",
+    "added": "Added to cart",
+    "addedDetail": "{{v0}} was added to your cart",
+    "addedQty": "{{v0}} × {{v1}} added to your cart",
+    "addedMany": "{{v0}} items were added to your cart",
+    "close": "Dismiss notification"
   },
   "spinner": {
     "s1": "Loading"

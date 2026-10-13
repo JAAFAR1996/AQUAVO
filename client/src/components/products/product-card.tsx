@@ -9,7 +9,6 @@ import { DifficultyBadge } from "@/components/ui/difficulty-badge";
 import { WishlistButton } from "@/components/wishlist/wishlist-button";
 import { isWoodMonthEndSale, WoodSaleCountdown } from "@/components/products/wood-sale-countdown";
 import { useCart } from "@/contexts/cart-context";
-import { useToast } from "@/hooks/use-toast";
 import { cardImage, cardImageSrcSet } from "@/lib/cloudinary";
 import { formatPrice } from "@/lib/format";
 import { getProductDisplayIdentity } from "@/lib/product-display";
@@ -40,7 +39,6 @@ export const ProductCard = memo(function ProductCard({
   const { t } = useTranslation("products");
   const { t: tProduct } = useTranslation("product");
   const { addItem } = useCart();
-  const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [imgLoaded, setImgLoaded] = useState(false);
   const [imageSourceIndex, setImageSourceIndex] = useState(0);
@@ -92,10 +90,6 @@ export const ProductCard = memo(function ProductCard({
 
     if (motionActive) flyProductToCart(imgRef.current);
 
-    toast({
-      title: t("card.added"),
-      description: t("card.addedDetail", { name: product.name }),
-    });
   };
 
   const handleCardNavigate = (event: MouseEvent<HTMLAnchorElement>) => {

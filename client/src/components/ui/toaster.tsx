@@ -9,9 +9,11 @@ import {
   ToastViewport,
 } from "@/components/ui/toast"
 import { useTranslation } from "react-i18next";
+import { CheckCircle2 } from "lucide-react";
+import SwipeToast from "@/components/ui/swipe-toast";
 
 export function Toaster() {
-  const { t } = useTranslation("common");
+  const { t, i18n } = useTranslation("common");
   const { toasts, dismiss } = useToast()
 
   const openCart = (toastId: string) => {
@@ -26,7 +28,35 @@ export function Toaster() {
 
   return (
     <ToastProvider>
-      {toasts.map(function ({ id, title, description, action, cartAction, ...props }) {
+      {toasts.map(function ({ id, title, description, action, cartAction, swipeCart, ...props }) {
+        if (swipeCart) {
+          return (
+            <div key={id} dir={i18n.dir()}>
+              <SwipeToast
+                title={title}
+                description={description}
+                icon={<CheckCircle2 aria-hidden="true" />}
+                actionLabel={t("toaster.s1")}
+                onAction={() => openCart(id)}
+                onClose={() => dismiss(id)}
+                open={props.open !== false}
+                background="#0B1E28"
+                color="#F6F4EF"
+                fuseColor="#0B93A6"
+                width={356}
+                radius={12}
+                slideMs={400}
+                settleBounce={0.2}
+                swipeDistance={40}
+                duration={4000}
+                fuse="bottom"
+                pauseOnHover
+                closeButton
+                closeLabel={t("toaster.close")}
+              />
+            </div>
+          );
+        }
         return (
           <Toast key={id} {...props}>
             <div className="grid gap-1">

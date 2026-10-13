@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { useCart } from "@/contexts/cart-context";
-import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { thumbImage } from "@/lib/cloudinary";
 import { useTranslation } from "react-i18next";
@@ -36,8 +35,7 @@ export function FrequentlyBoughtTogether({
     const [selectedIds, setSelectedIds] = useState<Set<string>>(
         new Set([currentProduct.id, ...relatedProducts.slice(0, 2).map(p => p.id)])
     );
-    const { addItem } = useCart();
-    const { toast } = useToast();
+    const { addItems } = useCart();
 
     // Get first 3 related products — exclude Coming Soon (price=0) from bundle
     const products = [
@@ -66,16 +64,10 @@ export function FrequentlyBoughtTogether({
     );
     const savings = totalOriginalPrice - totalPrice;
 
-    const handleAddAllToCart = () => {
-        selectedProducts.filter(p => p.price > 0).forEach(product => {
-            // Cast to full Product type for cart compatibility
-            addItem(product as import("@/types").Product);
-        });
-
-        toast({
-            title: t("fbt.addedTitle"),
-            description: t("fbt.addedDetail", { count: selectedProducts.length }),
-        });
+    const handleAddAllToCart = async () => {
+        const validProducts = selectedProducts.filter(p => p.price > 0) as import("@/types").Product[];
+        await addItems(validProducts);
+        // addItems confirms success once and handles partial/failed batches.
     };
 
     if (relatedProducts.length === 0) {

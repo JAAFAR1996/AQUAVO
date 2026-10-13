@@ -54,10 +54,6 @@ export default function Deals() {
     const ok = await addItem(product);
     if (!ok) return;
 
-    toast({
-      title: t("deals.s1"),
-      description: t("deals.s2", { v0: product.name }),
-    });
   };
 
   return (

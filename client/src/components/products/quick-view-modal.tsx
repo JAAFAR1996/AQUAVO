@@ -12,7 +12,6 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ShoppingCart, Heart, Star, ExternalLink, Package, Leaf, X } from "lucide-react";
 import { useCart } from "@/contexts/cart-context";
-import { useToast } from "@/hooks/use-toast";
 import { WishlistButton } from "@/components/wishlist/wishlist-button";
 import { Link } from "wouter";
 import { detailImage, thumbImage } from "@/lib/cloudinary";
@@ -29,7 +28,6 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
     const { t } = useTranslation("products");
     const [selectedImage, setSelectedImage] = useState(0);
     const { addItem } = useCart();
-    const { toast } = useToast();
 
     if (!product) return null;
 
@@ -41,10 +39,6 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
         if (!hasPrice) return;
         const ok = await addItem(product);
         if (!ok) return;
-        toast({
-            title: t("quickView.addedTitle"),
-            description: t("quickView.addedDetail", { name: product.name }),
-        });
     };
 
     return (
