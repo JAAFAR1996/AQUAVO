@@ -1,0 +1,21 @@
+/* Scoped exception to AQUAVO's global no-motion rule: only the phone caret
+   blinks. Digit landing uses imperative MotionValues and remains disabled when
+   the visitor requests reduced motion. All other site motion stays unchanged. */
+@keyframes aquavo-phone-code-caret-blink {
+  0%, 49.9% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+[data-aquavo-phone-slots] .aqv-phone-code-caret {
+  animation-name: aquavo-phone-code-caret-blink !important;
+  animation-duration: 1s !important;
+  animation-iteration-count: infinite !important;
+  animation-timing-function: linear !important;
+  animation-delay: 0s !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-aquavo-phone-slots] .aqv-phone-code-caret {
+    animation: none !important;
+  }
+}
