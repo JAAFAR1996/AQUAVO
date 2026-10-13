@@ -489,7 +489,7 @@ export function AIChatBot() {
     // Handle add to cart from chat
     const handleAddToCart = useCallback((product: Product) => {
         // addItem emits the shared swipe toast after stock validation succeeds.
-        void addItem(product);
+        void addItem(product as Parameters<typeof addItem>[0]);
     }, [addItem]);
 
     // Handle contact support
