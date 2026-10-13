@@ -36,7 +36,7 @@ export function FrequentlyBoughtTogether({
     const [selectedIds, setSelectedIds] = useState<Set<string>>(
         new Set([currentProduct.id, ...relatedProducts.slice(0, 2).map(p => p.id)])
     );
-    const { addItem } = useCart();
+    const { addItems } = useCart();
     const { toast } = useToast();
 
     // Get first 3 related products — exclude Coming Soon (price=0) from bundle
@@ -66,16 +66,10 @@ export function FrequentlyBoughtTogether({
     );
     const savings = totalOriginalPrice - totalPrice;
 
-    const handleAddAllToCart = () => {
-        selectedProducts.filter(p => p.price > 0).forEach(product => {
-            // Cast to full Product type for cart compatibility
-            addItem(product as import("@/types").Product);
-        });
-
-        toast({
-            title: t("fbt.addedTitle"),
-            description: t("fbt.addedDetail", { count: selectedProducts.length }),
-        });
+    const handleAddAllToCart = async () => {
+        const validProducts = selectedProducts.filter(p => p.price > 0) as import("@/types").Product[];
+        await addItems(validProducts);
+        // addItems confirms success once and handles partial/failed batches.
     };
 
     if (relatedProducts.length === 0) {
