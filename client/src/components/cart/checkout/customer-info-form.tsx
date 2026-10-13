@@ -89,6 +89,7 @@ export function CustomerInfoForm({ customerInfo, setCustomerInfo, errors, isGues
     const [govOpen, setGovOpen] = useState(false);
     const [govSearch, setGovSearch] = useState("");
     const [phoneFocused, setPhoneFocused] = useState(false);
+    const reducedPhoneMotion = useReducedMotion();
     const [activeIndex, setActiveIndex] = useState(0);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const triggerRef = useRef<HTMLButtonElement>(null);
@@ -217,7 +218,7 @@ export function CustomerInfoForm({ customerInfo, setCustomerInfo, errors, isGues
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: "auto" }}
                             exit={{ opacity: 0, height: 0 }}
-                            transition={{ duration: 0.16 }}
+                            transition={{ duration: reducedPhoneMotion ? 0 : 0.16 }}
                             className="overflow-hidden"
                         >
                             <PhoneNumberCodeSlots value={customerInfo.phone} />
