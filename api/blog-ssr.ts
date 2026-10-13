@@ -76,6 +76,59 @@ function absoluteImage(value: unknown): string {
   return `${CANONICAL_ORIGIN}${image.startsWith("/") ? "" : "/"}${image}`;
 }
 
+
+/**
+ * Provide useful, indexable article text in the initial HTML for ordinary
+ * browsers and non-JS clients. React's createRoot replaces this temporary
+ * shell once the full interactive article is ready.
+ *
+ * Never interpolate stored HTML into the shell: article copy is treated as
+ * untrusted text and escaped, including script/style blocks.
+ */
+function escapeArticleText(value: unknown): string {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function articlePlainText(value: unknown): string[] {
+  const raw = String(value ?? "")
+    .replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1\s*>/gi, " ")
+    .replace(/<!--[\s\S]*?-->/g, " ")
+    .replace(/<(?:br|hr)\b[^>]*\/?>/gi, "\n")
+    .replace(/<\/(?:p|div|h[1-6]|li|ul|ol|blockquote|section|article)\s*>/gi, "\n\n")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;|&#160;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/\r/g, "");
+  return raw.split(/\n\s*\n+/).map(section => section.replace(/\s+/g, " ").trim()).filter(Boolean);
+}
+
+export function injectBlogArticleShell(
+  html: string,
+  post: { title?: unknown; excerpt?: unknown; content?: unknown },
+): string {
+  const title = escapeArticleText(post.title);
+  const excerpt = escapeArticleText(post.excerpt);
+  const sections = articlePlainText(post.content);
+  const body = sections.map(section => "<p>" + escapeArticleText(section) + "</p>").join("");
+  const article = '<main dir="rtl" id="main-content" style="max-width:820px;margin:100px auto 40px;padding:0 20px;font-family:system-ui,sans-serif;line-height:1.9">'
+    + '<article><h1>' + title + '</h1>'
+    + (excerpt ? '<p>' + excerpt + '</p>' : "")
+    + body + '</article></main>';
+  return html.replace(
+    /(<div id="root"(?:\s[^>]*)?>)\s*(<\/div>)/,
+    (_match, open: string, close: string) => open + article + close,
+  );
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   const resolved = blogSlugFromRequest(req);
   if (!resolved) {
@@ -167,7 +220,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
         ? "public, s-maxage=300, stale-while-revalidate=3600"
         : "private, no-store",
     );
-    res.status(200).send(injectMeta(HTML_TEMPLATE, meta));
+    res.status(200).send(injectBlogArticleShell(injectMeta(HTML_TEMPLATE, meta), post));
   } catch (error) {
     console.error("[blog-ssr] published article lookup failed", error);
     res.setHeader("X-Robots-Tag", "noindex, nofollow, noarchive");
