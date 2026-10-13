@@ -1,11 +1,11 @@
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from "react";
+import { AnimatePresence, motion, useReducedMotion, type HTMLMotionProps } from "framer-motion";
+import { forwardRef, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 /** A checkout-safe, accessible adaptation of the dynamic-label button pattern.
  * Keeps the established AQUAVO button styles and touch target.
  */
-export interface DynamicButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children"> {
+export interface DynamicButtonProps extends Omit<HTMLMotionProps<"button">, "children" | "layout" | "transition" | "initial" | "animate" | "exit"> {
   children: string;
   icon?: ReactNode;
   stateKey?: string;
