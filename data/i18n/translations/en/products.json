@@ -3264,43 +3264,51 @@
   "yee-03326": {
     "entityId": "yee-03326",
     "slug": "ytz-300",
-    "sourceHash": "07bbf149a26ab4a9",
-    "translatedBy": "gemini:gemini-2.5-flash-lite",
-    "translatedAt": "2026-09-19T12:18:31.482Z",
+    "sourceHash": "c432a0a392453a15",
+    "translatedBy": "human-assisted:source-verified",
+    "translatedAt": "2026-10-13T20:45:00.000Z",
     "data": {
-      "name": "YEE Air Pump - 3W",
-      "description": "A practical choice for small aquariums when you need to run an air stone or sponge filter without a large pump. The YEE 3W pump has a single outlet. Its actual performance depends on water depth and the resistance of the tubing and accessory.\n\nPlace it in a dry, ventilated area and use a check valve if the pump is below the water level.",
+      "name": "YEE Compact Air Pump — 3 W",
+      "description": "Need a small air pump to operate an air stone or sponge filter?\n\nThis compact YEE air pump has a 3 W electrical rating and one outlet. It can power a compatible air accessory. Actual bubble output depends on water depth, air-stone or filter resistance and tubing losses.\n\nImportant: Keep the pump outside the water in a dry place. If the pump sits below aquarium water level, use an appropriate non-return valve to reduce the risk of backflow during a power cut.",
       "subcategory": "Air Pumps",
-      "seoTitle": "YEE 3W Single Outlet Air Pump | AQUAVO",
-      "seoDescription": "Compact YEE 3W air pump with one outlet, ideal for small aquariums. Easy to place, runs air stones and sponge filters. Requires check valve if submerged.",
+      "seoTitle": "YEE Compact Air Pump — 3 W | AQUAVO",
+      "seoDescription": "This compact YEE air pump has a 3 W electrical rating and one outlet. It can power a compatible air accessory. Actual bubble output depends on water depth,",
       "specifications": {
         "benefits": [
-          "3W power",
-          "Single air outlet",
-          "Small size, easy to place beside the aquarium",
-          "Suitable for running a compatible air accessory"
+          "Small air pump with 3 W power rating.",
+          "One air outlet according to product specifications.",
+          "Helps operate a compatible air stone or sponge filter.",
+          "Compact design for limited space beside an aquarium."
         ],
         "usageInstructions": [
-          "Connect the air tubing to the outlet",
-          "Install a suitable air stone or air filter",
-          "Install a check valve if needed",
-          "Turn on the pump and monitor that the flow is suitable for the aquarium and accessory"
+          "Connect the air tubing to the pump outlet.",
+          "Install a compatible air stone or sponge filter.",
+          "Use a non-return valve if the pump is below water level.",
+          "Switch on the pump and check airflow at the aquarium's actual water depth."
         ],
         "safetyWarnings": [
-          "Do not immerse the pump in water",
-          "Place in a dry, well-ventilated area",
-          "Use a check valve if the pump is below the water level",
-          "Ensure sufficient flow for the accessory and actual tank depth"
+          "Never immerse the pump in water.",
+          "Keep it dry and ventilated, away from leaks.",
+          "Use a non-return valve when required.",
+          "A 3 W rating alone cannot establish the number of aquariums or suitable operating depth."
         ],
-        "__cardBenefit": "Small 3W pump for running an air stone or sponge filter",
+        "__cardBenefit": "Compact 3 W pump for a compatible air stone or sponge filter.",
         "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "Compact air pump"
+          },
           "القدرة": {
             "label": "Power",
-            "value": "3W"
+            "value": "3 W"
+          },
+          "العلامة": {
+            "label": "Brand",
+            "value": "YEE"
           },
           "عدد المخارج": {
-            "label": "Number of Outlets",
-            "value": "1"
+            "label": "Number of outlets",
+            "value": "One outlet"
           }
         }
       },
@@ -4560,46 +4568,54 @@
   "yee-71934": {
     "entityId": "yee-71934",
     "slug": "ylc-410",
-    "sourceHash": "cf92cf94fd1758d2",
-    "translatedBy": "gemini:gemini-2.5-flash-lite",
-    "translatedAt": "2026-09-19T12:14:32.210Z",
+    "sourceHash": "749cad0e751e1cf2",
+    "translatedBy": "human-assisted:source-verified",
+    "translatedAt": "2026-10-13T20:45:00.000Z",
     "data": {
-      "name": "YEE 16-in-1 Filter Media Set - 2.5 kg",
-      "description": "A set of 16 types of filter media, totaling 2.5 kg according to product data. It combines mechanical, biological, and chemical media for equipping a large filter or sump.\n\nArrange the media according to the water flow direction and the function of each medium, placing mechanical filtration to protect porous media from clogging as much as possible. Use chemical media as needed and according to aquarium instructions.",
+      "name": "YEE 16-in-1 Aquarium Filter Media Set — 2.5 kg",
+      "description": "Want to set up aquarium filtration without buying every filter medium separately?\n\nThe YEE 16-in-1 media set combines 16 types of filter media with a total weight of 2.5 kg. It helps equip filter or sump chambers according to their size and the aquarium's needs. According to product data, the set contains mechanical, biological and chemical filtration media.\n\nImportant: Not every medium needs to run continuously. Arrange media along the water path and according to your aquarium, using chemical media only when needed. Replacing every established biological medium at once may damage beneficial bacteria.",
       "subcategory": "Filter Media",
-      "seoTitle": "YEE 16-in-1 Filter Media Set - 2.5 kg | AQUAVO",
-      "seoDescription": "Comprehensive YEE filter media set with 16 types, 2.5 kg total weight. Combines mechanical, biological, and chemical filtration for large aquariums and sumps.",
+      "seoTitle": "YEE 16-in-1 Aquarium Filter Media Set — 2.5 kg | AQUAVO",
+      "seoDescription": "The YEE 16-in-1 media set combines 16 types of filter media with a total weight of 2.5 kg. It helps equip filter or sump chambers according to their size a",
       "specifications": {
         "benefits": [
-          "16 types of filter media in one set",
-          "Total weight 2.5 kg according to product data",
-          "Combines mechanical, biological, and chemical media",
-          "Suitable for equipping large filter chambers according to their size"
+          "16 types of filter media in one set.",
+          "2.5 kg total weight according to product data.",
+          "Combines mechanical, biological and chemical filtration media.",
+          "Useful for equipping a filter or sump according to space and needs."
         ],
         "usageInstructions": [
-          "Rinse media that require rinsing before use",
-          "Arrange media according to the water flow direction in your filter",
-          "Place mechanical filtration before media that need protection from clogging",
-          "Place carbon or chemical media as needed, not necessarily permanently",
-          "Replace or clean each medium according to its condition and instructions"
+          "Identify the direction of water flow and the available filter chambers.",
+          "Rinse media that require rinsing before use, following instructions.",
+          "Position mechanical filtration to reduce debris reaching biological media.",
+          "Choose chemical media according to aquarium requirements and each medium's instructions.",
+          "Retain some established biological media during maintenance."
         ],
         "safetyWarnings": [
-          "Do not replace all biological filter media at once",
-          "Remove carbon during treatment if medication instructions require it",
-          "Verify the nature of each medium before using it in a sensitive aquarium"
+          "Do not replace all biological filter media at once.",
+          "Some chemical media may affect medications or water chemistry; check before use.",
+          "Chlorine in untreated tap water may harm beneficial bacteria when cleaning biological media."
         ],
-        "__cardBenefit": "16 types of media combining multiple filtration stages in one set",
+        "__cardBenefit": "16 media types in one set for configuring a filter or sump to your needs.",
         "labelled": {
           "الوزن": {
             "label": "Weight",
             "value": "2.5 kg"
           },
+          "العلامة": {
+            "label": "Brand",
+            "value": "YEE"
+          },
           "عدد الأنواع": {
-            "label": "Number of Types",
+            "label": "Number of types",
             "value": "16 types according to product data"
           },
+          "أنواع الترشيح": {
+            "label": "Filtration types",
+            "value": "Mechanical, biological, chemical"
+          },
           "أنواع الفلترة": {
-            "label": "Filtration Types",
+            "label": "Filtration categories",
             "value": "Mechanical + Biological + Chemical"
           }
         }
@@ -5412,59 +5428,72 @@
   "yee-c3-1010-3": {
     "entityId": "yee-c3-1010-3",
     "slug": "c3-1010",
-    "sourceHash": "7485f4db051d10c3",
-    "translatedBy": "gemini:gemini-2.5-flash-lite",
-    "translatedAt": "2026-09-19T12:10:48.989Z",
+    "sourceHash": "ce84ef003d0e62be",
+    "translatedBy": "human-assisted:source-verified",
+    "translatedAt": "2026-10-13T20:45:00.000Z",
     "data": {
-      "name": "YEE Ammonia or Nitrite Liquid Test — 60 or 100 Tests",
-      "description": "Test one of the most important water quality indicators in your aquarium with a clear and easy-to-read liquid test.\n\nThis product is available in two separate options: an ammonia test for approximately 60 tests, or a nitrite test for approximately 100 tests. Choose the required test type before purchasing.\n\nEach option uses a reagent solution and a color chart for result comparison, helping you monitor the nitrogen cycle and water quality in both new and established aquariums. In a stable aquarium, the target reading for ammonia or nitrite is 0 ppm.\n\nFollow the package instructions for the option you purchased regarding sample volume, number of drops, and waiting time, then compare the sample color with the reference chart.",
+      "name": "YEE Liquid Ammonia or Nitrite Test — 60 or 100 Tests",
+      "description": "Ammonia and nitrite are invisible in aquarium water, but both matter greatly for fish health.\n\nThe YEE liquid test checks a specific water parameter instead of relying on guesswork. Two separate products are available: an ammonia test for about 60 tests or a nitrite test for about 100 tests. Choose the parameter you need: each bottle tests just one.\n\nImportant: A stable aquarium generally targets a zero reading for ammonia and nitrite on the appropriate tests. Follow the sample volume, drop count and reading time on your specific package. If the result is concerning, assess the aquarium's condition rather than relying on the color alone.",
       "subcategory": "Water Test Kits",
-      "seoTitle": "YEE Ammonia/Nitrite Test Kit for Aquariums | AQUAVO",
-      "seoDescription": "Accurately test ammonia or nitrite levels in your aquarium with YEE liquid test kits. Available for ~60 (ammonia) or ~100 (nitrite) tests. Monitor water quality.",
+      "seoTitle": "YEE Liquid Ammonia or Nitrite Test — 60 or 100 Tests | AQUAV",
+      "seoDescription": "The YEE liquid test checks a specific water parameter instead of relying on guesswork. Two separate products are available: an ammonia test for about 60 te",
       "specifications": {
         "benefits": [
-          "Choose the test you need: ammonia or nitrite",
-          "Ammonia test provides approximately 60 tests",
-          "Nitrite test provides approximately 100 tests",
-          "Reference color chart helps in easy result reading",
-          "Useful for monitoring the nitrogen cycle and water quality in new and established aquariums"
+          "Choose the ammonia or nitrite test according to your needs.",
+          "The ammonia kit provides approximately 60 tests according to product data.",
+          "The nitrite kit provides approximately 100 tests according to product data.",
+          "Reagent solution and a color chart help interpret the result.",
+          "Useful when cycling a new aquarium and monitoring water quality."
         ],
         "usageInstructions": [
-          "Select the ammonia test or nitrite test based on the parameter you want to measure",
-          "Take a water sample in the provided test tube",
-          "Add the reagent in the specified amount on the test package",
-          "Follow the waiting time printed on the package, then compare the color with the reference chart",
-          "Repeat the test during the tank's cycle or when suspecting a water quality issue"
+          "Select the ammonia-test bottle or the nitrite-test bottle.",
+          "Take the sample volume specified by your test's instructions.",
+          "Add the specified number of reagent drops following the package method.",
+          "Wait for the required time and compare the sample color with that test's chart.",
+          "Record results, particularly while establishing the nitrogen cycle."
         ],
         "safetyWarnings": [
-          "Keep test solutions away from children and eyes",
-          "Do not swallow test solutions",
-          "Wash your hands after use",
-          "Keep the package closed and away from direct sunlight"
+          "Never mix different test reagents or swallow them.",
+          "Keep reagents away from children and eyes.",
+          "Wash hands after use.",
+          "Reaction time and drop count vary by test; follow your own package.",
+          "An ammonia test is different from a nitrite test; one cannot replace the other."
         ],
-        "__cardBenefit": "Detect ammonia or nitrite with a liquid test to monitor water safety",
+        "__cardBenefit": "Ammonia and nitrite are invisible: test the parameter you need.",
         "labelled": {
           "التوافق": {
             "label": "Compatibility",
             "value": "Freshwater and saltwater aquariums"
           },
+          "العلامة": {
+            "label": "Brand",
+            "value": "YEE"
+          },
           "الخيارات": {
             "label": "Options",
-            "value": "Ammonia (NH3/NH4+) — approx. 60 tests | Nitrite (NO2−) — approx. 100 tests"
+            "value": "Ammonia or nitrite, each in a separate bottle"
           },
           "طريقة القياس": {
-            "label": "Measurement Method",
-            "value": "Reagent solution + color chart comparison"
+            "label": "Measurement method",
+            "value": "Reagent solution and color chart"
+          },
+          "اختبار النتريت": {
+            "label": "Nitrite test",
+            "value": "About 100 tests"
+          },
+          "اختبار الأمونيا": {
+            "label": "Ammonia test",
+            "value": "About 60 tests"
           },
           "النتيجة المستهدفة": {
-            "label": "Target Reading",
+            "label": "Target result",
             "value": "0 ppm for ammonia or nitrite in a stable aquarium"
           }
         }
       },
       "variantLabels": {
-        "ammonia": "Ammonia Test — approx. 60 tests",
-        "nitrite": "Nitrite Test — approx. 100 tests"
+        "ammonia": "Ammonia test — approximately 60 tests",
+        "nitrite": "Nitrite test — approximately 100 tests"
       }
     }
   },
@@ -5650,49 +5679,64 @@
   "yee-c4-1123-1a": {
     "entityId": "yee-c4-1123-1a",
     "slug": "c4-1123",
-    "sourceHash": "e4a7e5bcf9c82a9a",
-    "translatedBy": "gemini:gemini-2.5-flash-lite",
-    "translatedAt": "2026-09-19T12:10:43.708Z",
+    "sourceHash": "8529bff0b4ebbc3e",
+    "translatedBy": "human-assisted:source-verified",
+    "translatedAt": "2026-10-13T20:45:00.000Z",
     "data": {
-      "name": "YEE 9-in-1 Aquarium Water Test Strips - 50 Strips",
-      "description": "Fast test strips that measure 9 different aquarium water quality parameters in a single strip. The package contains 50 strips with a color chart for comparison.\n\nThe parameters measured by the strip are: pH, KH, TA, GH, NO3, NO2, Cl2, TCl, and H2S.\n\nDip the strip and use the reading method and time indicated on the package chart, then compare each square to its corresponding color.",
+      "name": "YEE 9-in-1 Aquarium Water Test Strips — 50 Strips",
+      "description": "Your aquarium water may look clear, but do you know its actual condition?\n\nThese 9-in-1 test strips monitor 9 water parameters using one strip rather than relying on appearance alone. The pack contains 50 strips and a color comparison chart to read results according to the included instructions.\n\nThe listed parameters are pH, KH, TA, GH, NO3, NO2, Cl2, TCl and H2S.\n\nImportant: These strips do not measure ammonia. They are not a substitute for confirmatory liquid tests if a reading is concerning or fish show symptoms. Follow each parameter's reading time on the pack.",
       "subcategory": "Water Test Kits",
-      "seoTitle": "YEE 9-in-1 Aquarium Water Test Strips | AQUAVO",
-      "seoDescription": "Test 9 aquarium water parameters with YEE 9-in-1 test strips. Includes 50 strips and a color chart for quick, accurate monitoring.",
+      "seoTitle": "YEE 9-in-1 Aquarium Water Test Strips — 50 Strips | AQUAVO",
+      "seoDescription": "These 9-in-1 test strips monitor 9 water parameters using one strip rather than relying on appearance alone. The pack contains 50 strips and a color compar",
       "specifications": {
         "benefits": [
-          "9 parameters in one strip",
-          "50 strips for frequent testing",
-          "Color chart for direct comparison",
-          "Suitable for quick, regular aquarium water monitoring"
+          "Monitor 9 water parameters with one test strip.",
+          "50 strips for repeated tests.",
+          "A color chart helps compare the results.",
+          "Makes it easier to track changes in water parameters over time."
         ],
         "usageInstructions": [
-          "Remove one strip and close the package immediately",
-          "Dip the strip as specified on the package chart",
-          "Lay it horizontally after removal",
-          "Adhere to the specified reading time for each parameter on the chart",
-          "Compare colors and record results if needed"
+          "Remove one strip and immediately close the container.",
+          "Dip the strip as instructed on the package.",
+          "Follow the specified strip positioning and waiting times.",
+          "Compare each test pad with its correct color chart and record the results.",
+          "If a result is abnormal, verify it using another suitable test before acting."
         ],
         "safetyWarnings": [
-          "Do not touch the test pads with fingers",
-          "Keep strips dry and close the package after each use",
-          "Do not use strips after their expiration date"
+          "Do not touch the reactive pads on the strip.",
+          "Store the container sealed and dry, away from moisture.",
+          "Do not use expired test strips.",
+          "These strips do not include an ammonia test."
         ],
-        "__cardBenefit": "9 water parameters in one strip for quick aquarium monitoring",
+        "__cardBenefit": "Clear water is not always safe water: check 9 parameters with one strip.",
         "labelled": {
+          "العلامة": {
+            "label": "Brand",
+            "value": "YEE"
+          },
+          "المؤشرات": {
+            "label": "Parameters",
+            "value": "pH, KH, TA, GH, NO3, NO2, Cl2, TCl, H2S"
+          },
           "عدد الشرائط": {
-            "label": "Number of Strips",
+            "label": "Strip count",
             "value": "50 strips"
           },
+          "عدد المؤشرات": {
+            "label": "Parameter count",
+            "value": "9"
+          },
+          "التعبئة الحالية": {
+            "label": "Current package",
+            "value": "50 strips with a color comparison chart"
+          },
           "المعايير المقاسة": {
-            "label": "Parameters Measured",
+            "label": "Measured parameters",
             "value": "pH, KH, TA, GH, NO3, NO2, Cl2, TCl, H2S"
           }
         }
       },
-      "variantLabels": {
-        "refill": "50 Strips + AQUAVO Color Chart"
-      }
+      "variantLabels": {}
     }
   },
   "yee-c4-1490-1": {
