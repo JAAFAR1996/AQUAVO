@@ -9,7 +9,6 @@ import { Product } from "@/types";
 import { getJourneyRecommendations } from "./utils";
 import { getSpeciesById } from "./fish-species-data";
 import { useCart } from "@/contexts/cart-context";
-import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "react-i18next";
 
 interface JourneySummaryProps {
@@ -20,7 +19,6 @@ interface JourneySummaryProps {
 export function JourneySummary({ wizardData, products }: JourneySummaryProps) {
   const { t } = useTranslation("tools");
     const { addItem, addItems } = useCart();
-    const { toast } = useToast();
 
     const [recommendations, setRecommendations] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -58,12 +56,8 @@ export function JourneySummary({ wizardData, products }: JourneySummaryProps) {
     }, [wizardData, products]); // Re-run if wizard data inputs change
 
     const addRecommendedProductsToCart = async () => {
-        const addedCount = await addItems(recommendations);
-        if (addedCount !== recommendations.length) return;
-        toast({
-            title: t("journey-summary.s1"),
-            description: t("journey-summary.s2"),
-        });
+        await addItems(recommendations);
+        // Shared CartProvider notifies once after the actual batch result.
     };
 
 
