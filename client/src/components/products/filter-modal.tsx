@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { X, RotateCcw, Check, DollarSign, Tag, Star, Sparkles, Leaf, TrendingUp } from "lucide-react";
+import { X, RotateCcw, Check, DollarSign, Tag, Star, Sparkles, PackageCheck, TrendingUp } from "lucide-react";
 import { DualRangeSlider } from "@/components/ui/dual-range-slider";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
@@ -153,7 +153,7 @@ export function FilterModal({
     const tags = [
         { label: t("tags.new"), value: PRODUCT_TAG_VALUES.new, icon: Sparkles, color: "blue" as const },
         { label: t("tags.bestSeller"), value: PRODUCT_TAG_VALUES.bestSeller, icon: TrendingUp, color: "orange" as const },
-        { label: t("tags.eco"), value: PRODUCT_TAG_VALUES.eco, icon: Leaf, color: "green" as const },
+        { label: t("tags.inStock"), value: "in-stock", icon: PackageCheck, color: "green" as const },
     ];
 
     const handlePriceChange = (value: [number, number]) => {

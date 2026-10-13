@@ -61,7 +61,8 @@
   "tags": {
     "new": "New",
     "bestSeller": "Best seller",
-    "eco": "Eco-friendly"
+    "eco": "Eco-friendly",
+    "inStock": "In stock"
   },
   "difficulty": {
     "beginner": "Beginner",

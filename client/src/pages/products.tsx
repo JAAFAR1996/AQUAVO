@@ -60,9 +60,9 @@ export default function Products() {
   const { data: attributes } = useQuery({
     queryKey: ["product-attributes"],
     queryFn: fetchProductAttributes,
-    staleTime: 0,
-    refetchOnMount: "always",
-    refetchOnWindowFocus: "always",
+    staleTime: 60_000,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false,
   });
 
   const availableCategories = attributes?.categories || [];
@@ -158,18 +158,18 @@ export default function Products() {
   const { data, isLoading: isProductsLoading, isError, refetch: refetchProducts } = useQuery({
     queryKey: ["products", queryParams],
     queryFn: () => fetchProducts(queryParams),
-    staleTime: 0,
-    refetchOnMount: "always",
-    refetchOnWindowFocus: "always",
-    retry: 1,
-    retryDelay: 500,
+    staleTime: 15_000,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    retry: 2,
+    retryDelay: (attempt) => Math.min(500 * 2 ** attempt, 2000),
   });
 
   const products = data?.products ?? [];
 
   const finalProducts = useMemo(() => {
     let filtered = products.filter(product => {
-      if (filters.difficulties.length > 0 && product.difficulty && !filters.difficulties.includes(product.difficulty)) {
+      if (filters.difficulties.length > 0 && (!product.difficulty || !filters.difficulties.includes(product.difficulty))) {
         return false;
       }
       if (filters.tags.includes(PRODUCT_TAG_VALUES.eco) && !product.ecoFriendly) {
@@ -205,7 +205,7 @@ export default function Products() {
     // cannot currently be purchased displace a sellable product above the fold.
     const sellable = filtered.filter(p => hasPrice(p) && isInStock(p));
     const unavailable = filtered.filter(p => !(hasPrice(p) && isInStock(p)));
-    filtered = [...sellable, ...unavailable];
+    filtered = filters.tags.includes("in-stock") ? sellable : [...sellable, ...unavailable];
 
     return filtered;
   }, [products, filters.difficulties, filters.tags, sortBy, boostIds]);
@@ -382,7 +382,7 @@ export default function Products() {
     filters.tags.forEach(tag => {
       chips.push({
         id: `tag:${tag}`,
-        label: tag,
+        label: tag === "in-stock" ? t("tags.inStock") : tag,
         onRemove: () => setFilters(prev => ({
           ...prev,
           tags: prev.tags.filter(item => item !== tag),
@@ -412,7 +412,7 @@ export default function Products() {
     }
 
     return chips;
-  }, [filters, initialSearch, minPrice, maxPrice, setLocation]);
+  }, [filters, initialSearch, minPrice, maxPrice, setLocation, t]);
 
   const breadcrumbItems = [
     { name: t("breadcrumb.home"), url: "https://www.aquavoiq.com" },

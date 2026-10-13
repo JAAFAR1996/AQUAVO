@@ -130,7 +130,7 @@ export default function Footer() {
                 <Instagram className="h-4 w-4" aria-hidden="true" />
               </a>
               <a href="https://www.tiktok.com/@aquavo.iq" target="_blank" rel="noopener noreferrer" aria-label={t("footer.tiktok")} className="grid h-10 w-10 place-items-center rounded-lg border border-border text-foreground/70 hover:border-primary/45 hover:text-foreground">
-                <span className="font-interface text-sm font-bold" aria-hidden="true">Tk</span>
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M16.7 2h-3.1v12.13a3.4 3.4 0 1 1-3.4-3.4V7.6A6.53 6.53 0 1 0 16.7 14.13V8.4a9.1 9.1 0 0 0 5.3 1.7V7a5.62 5.62 0 0 1-5.3-5Z" /></svg>
               </a>
               <WhatsAppLink source="footer" aria-label={t("footer.whatsapp")} className="grid h-10 w-10 place-items-center rounded-lg border border-border text-foreground/70 hover:border-primary/45 hover:text-foreground">
                 <MessageCircle className="h-4 w-4" aria-hidden="true" />
