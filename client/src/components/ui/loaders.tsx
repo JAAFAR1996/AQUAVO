@@ -29,7 +29,7 @@ export function PageLoader() {
       <div className="aqv-loader__progress" aria-hidden="true" />
       <div className="aqv-loader__stage" aria-hidden="true">
         <img
-          src="/brand/aquavo-v2-icon.svg"
+          src="/brand/aquavo-v2-trace.svg"
           alt=""
           width={48}
           height={48}
