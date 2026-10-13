@@ -37,6 +37,7 @@ export interface SwipeToastProps {
   fuse?: SwipeToastFuse;
   pauseOnHover?: boolean;
   closeButton?: boolean;
+  closeLabel?: string;
   inline?: boolean;
   dismissible?: boolean;
   className?: string;
@@ -96,6 +97,7 @@ const SwipeToast: React.FC<SwipeToastProps> = ({
   fuse = 'bottom',
   pauseOnHover = true,
   closeButton = false,
+  closeLabel = 'Close',
   inline = false,
   dismissible = true,
   className = ''
@@ -366,7 +368,7 @@ const SwipeToast: React.FC<SwipeToastProps> = ({
               </button>
             ) : null}
             {closeButton ? (
-              <button type="button" className="swipe-toast__close" aria-label="Close" onClick={() => close('close')}>
+              <button type="button" className="swipe-toast__close" aria-label={closeLabel} onClick={() => close('close')}>
                 <X size={13} strokeWidth={2.5} />
               </button>
             ) : null}
