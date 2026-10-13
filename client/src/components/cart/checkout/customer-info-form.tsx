@@ -6,6 +6,7 @@ import { Link } from "wouter";
 import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 
 export function normalizePhoneInputDigits(value: string): string {
     const arabicIndic = "٠١٢٣٤٥٦٧٨٩";
@@ -13,6 +14,66 @@ export function normalizePhoneInputDigits(value: string): string {
     return value
         .replace(/[٠-٩]/g, (digit) => String(arabicIndic.indexOf(digit)))
         .replace(/[۰-۹]/g, (digit) => String(easternArabic.indexOf(digit)));
+}
+
+
+/**
+ * Visual-only adaptation of the React Bits Code Slots spring effect.
+ *
+ * The real phone input remains native so editing, selection, paste, mobile
+ * keyboards, autofill and the original checkout validation are unchanged.
+ * This mirrored row is never treated as an OTP or a second form field.
+ */
+function PhoneNumberCodeSlots({ value }: { value: string }) {
+    const reducedMotion = useReducedMotion();
+    const digits = value.replace(/\D/g, "");
+    // Support all existing Iraqi checkout formats: 07..., 7..., +964... and 964...
+    const isInternational = /^\s*\+?964/.test(value);
+    const slotCount = Math.max(isInternational ? 13 : /^\s*0/.test(value) ? 11 : 10, digits.length);
+
+    return (
+        <div
+            aria-hidden="true"
+            data-clarity-mask="True"
+            dir="ltr"
+            className="pointer-events-none flex w-full items-center gap-1"
+        >
+            {Array.from({ length: slotCount }, (_, index) => {
+                const digit = digits[index];
+
+                return (
+                    <span
+                        key={index}
+                        className={cn(
+                            "relative flex h-9 min-w-0 flex-1 items-center justify-center overflow-hidden rounded-[5px] border font-semibold tabular-nums text-[13px] sm:text-sm",
+                            digit
+                                ? "border-primary/40 bg-primary/5 text-foreground"
+                                : "border-border/80 bg-muted/30 text-muted-foreground"
+                        )}
+                    >
+                        <AnimatePresence>
+                            {digit && (
+                                <motion.span
+                                    key={digit}
+                                    initial={reducedMotion ? false : { opacity: 0, y: 8, scale: 0.82 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={reducedMotion ? { opacity: 0 } : { opacity: 0, y: -5, scale: 0.92 }}
+                                    transition={
+                                        reducedMotion
+                                            ? { duration: 0 }
+                                            : { type: "spring", stiffness: 540, damping: 25, mass: 0.55 }
+                                    }
+                                    className="absolute inset-0 flex items-center justify-center"
+                                >
+                                    {digit}
+                                </motion.span>
+                            )}
+                        </AnimatePresence>
+                    </span>
+                );
+            })}
+        </div>
+    );
 }
 
 interface CustomerInfoFormProps {
@@ -27,6 +88,7 @@ export function CustomerInfoForm({ customerInfo, setCustomerInfo, errors, isGues
     const govLabel = (value: string, fallback: string) => t(`governorates.${value}` as "governorates.baghdad", { defaultValue: fallback });
     const [govOpen, setGovOpen] = useState(false);
     const [govSearch, setGovSearch] = useState("");
+    const [phoneFocused, setPhoneFocused] = useState(false);
     const [activeIndex, setActiveIndex] = useState(0);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const triggerRef = useRef<HTMLButtonElement>(null);
@@ -138,12 +200,30 @@ export function CustomerInfoForm({ customerInfo, setCustomerInfo, errors, isGues
                     autoComplete="tel"
                     value={customerInfo.phone}
                     onChange={(e) => setCustomerInfo({ ...customerInfo, phone: normalizePhoneInputDigits(e.target.value) })}
+                    onFocus={() => setPhoneFocused(true)}
+                    onBlur={() => setPhoneFocused(false)}
                     className={errors.phone ? 'border-red-500' : ''}
                     dir="ltr"
                     aria-invalid={!!errors.phone}
                     aria-required="true"
                     aria-describedby={errors.phone ? "phone-help phone-error" : "phone-help"}
                 />
+                {/* Spring slots are decorative feedback only while typing; no extra verification step. */}
+                <AnimatePresence initial={false}>
+                    {phoneFocused && /[0-9]/.test(customerInfo.phone) && (
+                        <motion.div
+                            key="phone-spring-slots"
+                            data-clarity-mask="True"
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.16 }}
+                            className="overflow-hidden"
+                        >
+                            <PhoneNumberCodeSlots value={customerInfo.phone} />
+                        </motion.div>
+                    )}
+                </AnimatePresence>
                 <p id="phone-help" className="text-xs leading-5 text-muted-foreground">
                     {t("form.phoneHelp")}
                 </p>
