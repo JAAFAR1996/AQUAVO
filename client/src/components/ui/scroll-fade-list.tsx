@@ -1,62 +1,77 @@
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
-/** Gradients appear only when actual content remains to scroll into view. */
-export function ScrollFadeList({
-  children,
-  className,
-  label,
-  fadeHeight = 20,
-}: {
+interface ScrollFadeListProps {
   children: ReactNode;
-  className?: string;
   label: string;
+  className?: string;
   fadeHeight?: number;
-}) {
-  const ref = useRef<HTMLDivElement>(null);
+}
+
+/** Fade overlays track distance to both scroll edges, as on the reference demo. */
+export function ScrollFadeList({
+  children, label, className, fadeHeight = 76,
+}: ScrollFadeListProps) {
+  const frameRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const [edges, setEdges] = useState({ top: 0, bottom: 0 });
+
   useEffect(() => {
-    const node = ref.current;
+    const node = scrollRef.current;
     if (!node) return;
     let frame = 0;
     const update = () => {
       const maxScroll = Math.max(0, node.scrollHeight - node.clientHeight);
       const top = Math.min(fadeHeight, Math.max(0, node.scrollTop));
       const bottom = Math.min(fadeHeight, Math.max(0, maxScroll - node.scrollTop));
-      setEdges(previous => previous.top === top && previous.bottom === bottom ? previous : { top, bottom });
+      setEdges((prev) => prev.top === top && prev.bottom === bottom ? prev : { top, bottom });
     };
     const schedule = () => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(update);
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(update);
     };
-    schedule();
+    update();
     node.addEventListener("scroll", schedule, { passive: true });
     const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(schedule);
     observer?.observe(node);
     if (node.firstElementChild) observer?.observe(node.firstElementChild);
     return () => {
-      cancelAnimationFrame(frame);
+      window.cancelAnimationFrame(frame);
       node.removeEventListener("scroll", schedule);
       observer?.disconnect();
     };
   }, [children, fadeHeight]);
 
-  const mask = `linear-gradient(to bottom, transparent 0, black ${edges.top}px, black calc(100% - ${edges.bottom}px), transparent 100%)`;
-  const style: CSSProperties = {
-    maskImage: mask,
-    WebkitMaskImage: mask,
-  };
-
   return (
-    <div
-      ref={ref}
-      tabIndex={0}
-      role="region"
-      aria-label={label}
-      style={style}
-      className={cn("max-h-32 overflow-y-auto overscroll-contain focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary", className)}
-    >
-      {children}
+    <div ref={frameRef} className="relative isolate overflow-hidden">
+      <div
+        ref={scrollRef}
+        role="region"
+        aria-label={label}
+        tabIndex={0}
+        className={cn(
+          "max-h-32 overflow-y-auto overscroll-contain [scrollbar-gutter:stable] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
+          className,
+        )}
+      >
+        {children}
+      </div>
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 z-10"
+        style={{
+          height: edges.top,
+          background: "linear-gradient(to bottom, hsl(var(--background)) 0%, transparent 100%)",
+        }}
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-10"
+        style={{
+          height: edges.bottom,
+          background: "linear-gradient(to top, hsl(var(--background)) 0%, transparent 100%)",
+        }}
+      />
     </div>
   );
 }

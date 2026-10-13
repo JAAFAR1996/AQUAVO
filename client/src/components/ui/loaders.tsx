@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import "./loaders.css";
 import "../../styles/flow-gate-copy.css";
 import { i18next } from "@/i18n";
+import { LogoTraceLoader } from "./logo-trace-loader";
 
 /**
  * Suspense fallback for lazy routes. The marker is present from the first
@@ -28,13 +29,7 @@ export function PageLoader() {
     >
       <div className="aqv-loader__progress" aria-hidden="true" />
       <div className="aqv-loader__stage" aria-hidden="true">
-        <img
-          src="/brand/aquavo-v2-trace.svg"
-          alt=""
-          width={48}
-          height={48}
-          className="aqv-loader__logo"
-        />
+        <LogoTraceLoader loading size={74} className="aqv-loader__logo" ariaLabel={i18next.t("errors:loader.page")} />
       </div>
       <p className="aqv-loader__text" aria-hidden="true">{i18next.t("errors:loader.text")}</p>
     </div>
@@ -64,7 +59,7 @@ export function AppInitLoader({ onDone }: AppInitLoaderProps) {
   return (
     <div dir={i18next.dir()} className="aqv-loader" data-visible="true" role="status" aria-label={i18next.t("errors:loader.app")}>
       <div className="aqv-loader__stage" aria-hidden="true">
-        <img src="/brand/aquavo-v2-icon.svg" alt="" width={48} height={48} className="aqv-loader__logo" />
+        <LogoTraceLoader loading={false} size={74} className="aqv-loader__logo" ariaLabel={i18next.t("errors:loader.app")} />
       </div>
       <p className="aqv-loader__text" aria-hidden="true">{i18next.t("errors:loader.text")}</p>
     </div>
