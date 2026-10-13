@@ -152,7 +152,8 @@ function PhoneNumberCodeSlots({
     const caretLeft = useTransform(caretPosition, (index) => {
         const emptyGapWidth = (slotCount - 1) * 4;
         const fraction = (index + 0.5) / slotCount;
-        return "calc(" + (fraction * 100) + "% + " + (4 * index - emptyGapWidth * fraction) + "px)";
+        const offset = 4 * index - emptyGapWidth * fraction;
+        return "calc(" + (fraction * 100) + "% " + (offset < 0 ? "- " : "+ ") + Math.abs(offset) + "px)";
     });
 
     // Pasting/autofilling cascades at 20ms per digit; single keys are instant.
