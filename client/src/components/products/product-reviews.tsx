@@ -31,6 +31,7 @@ import {
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import PeekRating from "@/components/ui/peek-rating";
 import { addCsrfHeader } from "@/lib/csrf";
 import { useTranslation } from "react-i18next";
 import { i18next } from "@/i18n";
@@ -69,7 +70,6 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [rating, setRating] = useState(0);
-  const [hoverRating, setHoverRating] = useState(0);
   const [title, setTitle] = useState("");
   const [comment, setComment] = useState("");
   const [guestName, setGuestName] = useState("");
@@ -297,7 +297,7 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
     });
   };
 
-  const renderStars = (value: number, interactive: boolean = false, size: "sm" | "md" | "lg" = "md") => {
+  const renderStars = (value: number, size: "sm" | "md" | "lg" = "md") => {
     const sizeClasses = {
       sm: "h-3 w-3",
       md: "h-5 w-5",
@@ -307,26 +307,14 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
     return (
       <div className="flex gap-0.5" dir="ltr">
         {[1, 2, 3, 4, 5].map((star) => (
-          <button
-            key={star}
-            type="button"
-            disabled={!interactive}
-            onClick={() => interactive && setRating(star)}
-            onMouseEnter={() => interactive && setHoverRating(star)}
-            onMouseLeave={() => interactive && setHoverRating(0)}
-            className={cn(
-              interactive && "cursor-pointer transition-transform hover:scale-110"
-            )}
-          >
+          <span key={star} aria-hidden="true">
             <Star
               className={cn(
                 sizeClasses[size],
-                star <= (interactive ? (hoverRating || rating) : value)
-                  ? "fill-amber-400 text-amber-400"
-                  : "text-muted-foreground"
+                star <= value ? "fill-amber-400 text-amber-400" : "text-muted-foreground"
               )}
             />
-          </button>
+          </span>
         ))}
       </div>
     );
@@ -359,7 +347,7 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
                   {averageRating.toFixed(1)}
                 </div>
                 <div className="flex justify-center md:justify-start">
-                  {renderStars(Math.round(averageRating), false, "sm")}
+                  {renderStars(Math.round(averageRating), "sm")}
                 </div>
                 <div className="text-sm text-muted-foreground">
                   {reviews.length} {reviews.length === 1 ? t("product-reviews.s20") : t("product-reviews.s21")}
@@ -452,8 +440,25 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
             {/* Rating */}
             <div className="space-y-2">
               <Label>{t("product-reviews.s28")}</Label>
-              <div className="flex gap-1" dir="ltr">
-                {renderStars(rating, true, "lg")}
+              <div className="flex" dir="ltr">
+                <PeekRating
+                  value={rating}
+                  onChange={setRating}
+                  count={5}
+                  shape="star"
+                  size={40}
+                  lift={8}
+                  magnify={1.15}
+                  riseDuration={320}
+                  popScale={1.3}
+                  activeColor="#f5b400"
+                  idleColor="#71717a"
+                  tipColor="#27272a"
+                  tipTextColor="#f5f5f5"
+                  showTip
+                  allowClear
+                  ariaLabel={t("product-reviews.s28")}
+                />
               </div>
             </div>
 
@@ -592,7 +597,7 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
                               )}
                             </div>
                             <div className="flex items-center gap-2 mt-1">
-                              {renderStars(review.rating, false, "sm")}
+                              {renderStars(review.rating, "sm")}
                               <span className="text-xs text-muted-foreground">
                                 {formatDate(review.createdAt)}
                               </span>
