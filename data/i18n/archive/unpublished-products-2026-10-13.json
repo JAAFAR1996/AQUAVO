@@ -1,0 +1,511 @@
+{
+  "archivedAt": "2026-10-13",
+  "reason": "Records absent from the published Arabic API /api/products?limit=500 on 2026-10-13; preserved for a later product reactivation without risking commerce integrity failure.",
+  "source": "AQUAVO language catalogs on GitHub branch fix/i18n-full-catalog-20261013",
+  "records": {
+    "en": {
+      "aquavo-driftwood-dw-02": {
+        "entityId": "aquavo-driftwood-dw-02",
+        "slug": "aquavo-driftwood-dw-02",
+        "sourceHash": "be99a0fb171eb513",
+        "translatedBy": "groq:openai/gpt-oss-120b",
+        "translatedAt": "2026-09-18T22:36:51.959Z",
+        "data": {
+          "name": "AQUAVO Natural Wood for Aquariums and Aquascape — DW-02",
+          "description": "Unique natural wood piece DW-02, and the photos and 3D preview represent the exact piece you will receive. It can be used as a primary or complementary element in aquascapes, anchoring moss and attached plants according to branch shape and tank space.\n\nWash and soak before use; it may need temporary weighting until fully water‑logged. Natural wood may release tannins giving the water an amber hue, and a temporary white biofilm may appear initially.",
+          "subcategory": "Natural Wood",
+          "seoTitle": "AQUAVO Natural Wood DW-02 | AQUAVO",
+          "seoDescription": "Natural wood DW-02 for aquariums and aquascapes. See exact item via 3D preview; wash and soak before use, may release tannins and white biofilm.",
+          "specifications": {
+            "benefits": [
+              "View the exact piece before purchase, not a generic image.",
+              "Adds depth and stronger natural character to the tank layout.",
+              "Each piece is unique and differs from the next."
+            ],
+            "usageInstructions": [
+              "Examine the photo and 3D preview before selecting the piece.",
+              "Clean any décor before placing it in the tank according to your tank’s care method.",
+              "Secure it within the layout without pressing on glass or equipment."
+            ],
+            "safetyWarnings": [
+              "Ensure the piece’s location does not press against glass or impede water flow.",
+              "If your tank is small or crowded, choose the piece after visually comparing its size with the layout."
+            ],
+            "__cardBenefit": "The displayed piece; adds depth and natural character to the design",
+            "labelled": {
+              "ملاحظة": {
+                "label": "Note",
+                "value": "The displayed item is the same piece you receive"
+              },
+              "رمز القطعة": {
+                "label": "Item Code",
+                "value": "DW-02"
+              },
+              "نمط الاستخدام": {
+                "label": "Usage Type",
+                "value": "Decoration and Aquascape"
+              },
+              "طريقة المعاينة": {
+                "label": "Preview Method",
+                "value": "Photo and 3D preview of the same piece"
+              }
+            }
+          },
+          "variantLabels": {}
+        }
+      },
+      "aquavo-driftwood-dw-03": {
+        "entityId": "aquavo-driftwood-dw-03",
+        "slug": "aquavo-driftwood-dw-03",
+        "sourceHash": "1d1daa3e3b8297f8",
+        "translatedBy": "groq:openai/gpt-oss-120b",
+        "translatedAt": "2026-09-18T22:38:11.528Z",
+        "data": {
+          "name": "Natural Wood for Aquariums and Aquascape — DW-03",
+          "description": "Unique natural wood piece DW-03, and the photos and 3D preview represent the exact piece you will receive. Its shape is suitable for adding visual height and depth to the design and can be combined with rocks or attached plants.\n\nWash and soak before use; it may need temporary fixation until fully water‑saturated. Natural wood may release tannins that give the water an amber hue, and a temporary white biofilm may appear at first.",
+          "subcategory": "Natural Wood",
+          "seoTitle": "Natural Wood for Aquariums and Aquascape — DW-03 | AQUAVO",
+          "seoDescription": "Natural wood piece DW-03 for aquariums and aquascapes adds height and depth. Wash and soak before use; it may release tannins and a white biofilm.",
+          "specifications": {
+            "benefits": [
+              "You see the exact piece before purchase, not a generic image.",
+              "It gives the aquarium layout stronger natural depth and character.",
+              "Each piece is unique and differs from the next."
+            ],
+            "usageInstructions": [
+              "View the photo and 3D preview before selecting the piece.",
+              "Clean any décor before placing it in the tank according to your tank’s proper care method.",
+              "Secure it within the layout without pressing on glass or equipment."
+            ],
+            "safetyWarnings": [
+              "Ensure the piece’s location does not press on glass or impede water flow.",
+              "If your tank is small or crowded, choose the piece after visually comparing its size with the layout."
+            ],
+            "__cardBenefit": "The displayed piece; adds height and depth to the design",
+            "labelled": {
+              "ملاحظة": {
+                "label": "Note",
+                "value": "The displayed item is the exact piece you will receive"
+              },
+              "رمز القطعة": {
+                "label": "Item Code",
+                "value": "DW-03"
+              },
+              "نمط الاستخدام": {
+                "label": "Usage Type",
+                "value": "Decoration and Aquascape"
+              },
+              "طريقة المعاينة": {
+                "label": "Preview Method",
+                "value": "Photo and 3D preview of the same piece"
+              }
+            }
+          },
+          "variantLabels": {}
+        }
+      },
+      "aquavo-driftwood-small-collection": {
+        "entityId": "aquavo-driftwood-small-collection",
+        "slug": "aquavo-driftwood-collection",
+        "sourceHash": "16717a1927f28543",
+        "translatedBy": "groq:openai/gpt-oss-120b",
+        "translatedAt": "2026-09-18T22:33:05.547Z",
+        "data": {
+          "name": "AQUAVO Natural Wood Pieces for Aquascape — Choose Piece by Image",
+          "description": "A set of natural wood pieces for aquascaping, each varying in shape, branches, and size. Choose the piece code that fits your tank space and design; when an image or 3D preview is available it represents the exact piece selected.\n\nWash the wood and soak it before use, and it may require temporary anchoring until it becomes waterlogged. It is normal for some pieces to release tannins that give the water an amber hue or a temporary white biofilm may appear initially.",
+          "subcategory": "Natural Wood",
+          "seoTitle": "Natural Wood Pieces for Aquascape – Choose by Image | AQUAVO",
+          "seoDescription": "Natural wood pieces for aquascaping by AQUAVO, each unique in shape and size. Choose the right piece, soak before use, and add a natural look to your tank.",
+          "specifications": {
+            "benefits": [
+              "5 different pieces to choose from.",
+              "Adds a natural touch to any design.",
+              "Allows you to select the shape that fits your tank design."
+            ],
+            "usageInstructions": [
+              "Select the appropriate number for your tank design.",
+              "Clean it before placing it in the tank.",
+              "Secure it in a way that does not impede water flow."
+            ],
+            "safetyWarnings": [
+              "Each piece varies in shape, size, and weight.",
+              "Inspect the piece for any sharp edges.",
+              "Wash the wood and soak it before use.",
+              "Secure pieces that do not sink until they become waterlogged.",
+              "A tannin or temporary white film may appear at the start of use."
+            ],
+            "__cardBenefit": "Choose the piece that fits your design instead of buying a random wood shape",
+            "labelled": {
+              "الحجم": {
+                "label": "Size",
+                "value": "Suitable for small and medium tanks"
+              },
+              "النوع": {
+                "label": "Type",
+                "value": "Natural decorative wood"
+              },
+              "ملاحظة": {
+                "label": "Note",
+                "value": "Each piece is unique — select its number from the list"
+              },
+              "الاستخدام": {
+                "label": "Usage",
+                "value": "Fish tanks and aquascapes"
+              }
+            }
+          },
+          "variantLabels": {
+            "dw-12": "Piece DW-12",
+            "dw-13": "Piece DW-13",
+            "dw-14": "Piece DW-14",
+            "dw-15": "Piece DW-15",
+            "dw-16": "Piece DW-16"
+          }
+        }
+      },
+      "yee-07140": {
+        "entityId": "yee-07140",
+        "slug": "cls-107",
+        "sourceHash": "a64a2d831d1a63df",
+        "translatedBy": "gemini:gemini-2.5-flash-lite",
+        "translatedAt": "2026-09-19T12:14:26.165Z",
+        "data": {
+          "name": "YEE Large Magnetic Glass Cleaner — No Hand Immersion",
+          "description": "Clean the inside glass by moving the tool from outside the aquarium, without immersing your hand in the water each time. The two magnetic pieces move together and help remove light algae and dirt marks from the glass.\n\nKeep it away from sand and gravel during use, as any grain stuck between the tool and the glass can cause scratches.",
+          "subcategory": "Cleaning Tools",
+          "seoTitle": "YEE Magnetic Glass Cleaner | AQUAVO",
+          "seoDescription": "Clean aquarium glass from the outside without getting your hands wet. Features a large, two-piece magnetic design for efficient algae removal.",
+          "specifications": {
+            "benefits": [
+              "Clean glass from the outside without immersing your hand in the water",
+              "Two-piece magnetic design",
+              "Large size covers a wider area with each movement",
+              "Suitable for removing light algae and dirt from glass"
+            ],
+            "usageInstructions": [
+              "Place the inner piece on the glass",
+              "Gradually bring the outer piece closer until it connects magnetically",
+              "Move it slowly over the glass",
+              "Stay away from the substrate to avoid trapping grains under the cleaning surface"
+            ],
+            "safetyWarnings": [
+              "Ensure there is no sand or gravel between the brush and the glass",
+              "Use on the recommended surface type on the packaging",
+              "Do not strike the two magnetic pieces together forcefully",
+              "Clean the brush surface after use"
+            ],
+            "__cardBenefit": "Clean glass from the outside without getting your hands wet",
+            "labelled": {
+              "الحجم": {
+                "label": "Size",
+                "value": "Large"
+              }
+            }
+          },
+          "variantLabels": {}
+        }
+      },
+      "yee-c5-1123-2": {
+        "entityId": "yee-c5-1123-2",
+        "slug": "c5-1123",
+        "sourceHash": "96bc60c520cd8f43",
+        "translatedBy": "gemini:gemini-2.5-flash-lite",
+        "translatedAt": "2026-09-19T12:11:20.211Z",
+        "data": {
+          "name": "YEE 60cm Panorama Aquarium with Filter and Pump",
+          "description": "A long, narrow panoramic aquarium with dimensions of 60x15x15 cm, including a side filter and water pump. The theoretical capacity before substrate and decor is approximately 13.5 L, so careful selection of inhabitants and their numbers is required.\n\nSuitable for nano setups, plants, shrimp, and small inhabitants when their needs align with the tank's capacity and shape. Run the filter and complete the aquarium's nitrogen cycle before adding fish or shrimp.",
+          "subcategory": "Glass Aquariums",
+          "seoTitle": "YEE 60cm Panorama Aquarium | AQUAVO",
+          "seoDescription": "A 60x15x15 cm panoramic aquarium with a side filter and pump. Ideal for nano setups, plants, and shrimp. Capacity approx. 13.5L.",
+          "specifications": {
+            "benefits": [
+              "60 cm panoramic design for narrow spaces",
+              "Side filter and water pump included",
+              "Suitable for nano setups, plants, and shrimp based on species requirements",
+              "Small capacity requires careful planning of inhabitant numbers"
+            ],
+            "usageInstructions": [
+              "Place the aquarium on a level and fully supportive surface",
+              "Install the filter and pump according to product instructions",
+              "Add substrate and decor, then slowly fill with water",
+              "Run the filter and complete the aquarium's nitrogen cycle before adding inhabitants"
+            ],
+            "safetyWarnings": [
+              "Do not move the aquarium when full",
+              "Do not overcrowd the aquarium due to its small capacity",
+              "Ensure the pump and filter remain within the appropriate water level"
+            ],
+            "__cardBenefit": "Slim panoramic design with ready-to-use filter and pump",
+            "labelled": {
+              "يشمل": {
+                "label": "Includes",
+                "value": "Side filter + water pump"
+              },
+              "الأبعاد": {
+                "label": "Dimensions",
+                "value": "60x15x15 cm"
+              },
+              "السعة التقريبية": {
+                "label": "Approximate Capacity",
+                "value": "13.5 L before substrate and decor"
+              }
+            }
+          },
+          "variantLabels": {}
+        }
+      }
+    },
+    "ckb": {
+      "aquavo-driftwood-dw-02": {
+        "entityId": "aquavo-driftwood-dw-02",
+        "slug": "aquavo-driftwood-dw-02",
+        "sourceHash": "be99a0fb171eb513",
+        "translatedBy": "gemini:gemini-2.5-flash",
+        "translatedAt": "2026-09-19T12:20:48.733Z",
+        "data": {
+          "name": "AQUAVO DW-02 داری ئاوی سروشتی بۆ حەوز و ئەکواسکەیپ",
+          "description": "پارچە داری ئاوی سروشتی ناوازە بە کۆدی DW-02، وێنەکان و پێشبینینی سێ ڕەهەندی هەمان ئەو پارچەیە نیشان دەدەن کە وەری دەگریت. دەکرێت وەک توخمێکی سەرەکی یان تەواوکەر لە ئەکواسکەیپدا بەکاربهێنرێت و مۆس و ڕووەکە لکاوەکان بەپێی شێوەی لقەکان و قەبارەی حەوزەکە جێگیر بکرێن.\n\nپێش بەکارهێنان بیشۆ و لە ئاودا بیخوسێنە؛ لەوانەیە بۆ ماوەیەک پێویستی بە جێگیرکردنی کاتی بێت تا بە تەواوی ئاو هەڵمژێت. لەوانەیە دارە سروشتییەکان تانین دەربکەن کە ڕەنگێکی قاوەیی کاڵ بە ئاوەکە دەدەن، و لەوانەیە لە سەرەتادا بایۆفیلمێکی سپی کاتی دەربکەوێت.",
+          "subcategory": "داری سروشتی",
+          "seoTitle": "داری ئاوی سروشتی بۆ حەوز و ئەکواسکەیپ | AQUAVO",
+          "seoDescription": "پارچە داری ئاوی سروشتی ناوازە بە کۆدی DW-02. وێنەکان و پێشبینینی سێ ڕەهەندی هەمان ئەو پارچەیە نیشان دەدەن کە وەری دەگریت. دەکرێت وەک توخمێکی سەرەکی یان تەواوکەر لە ئەکواسکەیپدا بەکاربهێنرێت.",
+          "specifications": {
+            "benefits": [
+              "هەمان پارچە دەبینیت پێش کڕین، نەک وێنەیەکی گشتی.",
+              "قووڵایی و کەسایەتییەکی سروشتی بەهێزتر بە ڕێکخستنی حەوزەکە دەبەخشێت.",
+              "هەر پارچەیەک ناوازەیە و جیاوازە لەوانی تر."
+            ],
+            "usageInstructions": [
+              "پێش هەڵبژاردنی پارچەکە، وێنە و پێشبینینی سێ ڕەهەندییەکە ببینە.",
+              "هەر دیکۆرێک پێش خستنە ناو حەوزەکە پاکبکەرەوە بەپێی شێوازی چاودێری گونجاو بۆ حەوزەکەت.",
+              "لەناو ڕێکخستنەکەدا جێگیری بکە بەبێ ئەوەی فشار بخاتە سەر شووشە یان ئامێرەکان."
+            ],
+            "safetyWarnings": [
+              "دڵنیابە لەوەی شوێنی پارچەکە فشار ناخاتە سەر شووشە یان ڕێگری لە جووڵەی ئاو ناکات.",
+              "ئەگەر حەوزەکەت بچووکە یان قەرەباڵغە، پارچەکە هەڵبژێرە دوای ئەوەی قەبارەکەی بە چاو لەگەڵ ڕێکخستنی حەوزەکە بەراورد دەکەیت."
+            ],
+            "__cardBenefit": "هەمان پارچەی نمایشکراو؛ قووڵایی و کەسایەتییەکی سروشتی بە دیزاینەکە دەبەخشێت",
+            "labelled": {
+              "ملاحظة": {
+                "label": "تێبینی",
+                "value": "شێوەی نمایشکراو هەمان ئەو پارچەیە کە وەری دەگریت"
+              },
+              "رمز القطعة": {
+                "label": "کۆدی پارچەکە",
+                "value": "DW-02"
+              },
+              "نمط الاستخدام": {
+                "label": "شێوازی بەکارهێنان",
+                "value": "دیکۆر و ئەکواسکەیپ"
+              },
+              "طريقة المعاينة": {
+                "label": "شێوازی پێشبینین",
+                "value": "وێنە و پێشبینینی سێ ڕەهەندی بۆ هەمان پارچە"
+              }
+            }
+          },
+          "variantLabels": {}
+        }
+      },
+      "aquavo-driftwood-dw-03": {
+        "entityId": "aquavo-driftwood-dw-03",
+        "slug": "aquavo-driftwood-dw-03",
+        "sourceHash": "1d1daa3e3b8297f8",
+        "translatedBy": "gemini:gemini-2.5-flash",
+        "translatedAt": "2026-09-19T12:21:08.327Z",
+        "data": {
+          "name": "AQUAVO داری سروشتی بۆ حەوز و ئەکواسکەیپ — DW-03",
+          "description": "پارچەیەکی داری ئاوی سروشتی ناوازە بە کۆدی DW-03، و وێنەکان و پێشبینینی سێ ڕەهەندی هەمان پارچەن کە وەری دەگریت. شێوەکەی گونجاوە بۆ زیادکردنی بەرزایی و قووڵایی بینراو بۆ دیزاینەکە و دەکرێت لەگەڵ بەرد یان ڕووەکە لکاوەکان تێکەڵ بکرێت.\n\nپێش بەکارهێنان بیشۆ و لە ئاودا بیخوسێنە؛ لەوانەیە بۆ ماوەیەک پێویستی بە جێگیرکردنی کاتی بێت تا بە تەواوی ئاو هەڵمژێت. لەوانەیە دارە ئاوییە سروشتییەکان تانین دەربدەن کە ڕەنگێکی قاوەیی کاڵ بە ئاوەکە دەبەخشن، و لەوانەیە لە سەرەتادا بایۆفیلمێکی سپی کاتی دەربکەوێت.",
+          "subcategory": "داری سروشتی",
+          "seoTitle": "AQUAVO داری ئاوی بۆ حەوز و ئەکواسکەیپ DW-03 | AQUAVO",
+          "seoDescription": "داری ئاوی سروشتی AQUAVO DW-03 بۆ حەوز و ئەکواسکەیپ. هەمان پارچە وەردەگریت کە لە وێنەکان و پێشبینینی سێ ڕەهەندیدا دەبینیت. قووڵایی و شێوازێکی سروشتی دەدات بە دیزاینەکەت.",
+          "specifications": {
+            "benefits": [
+              "هەمان پارچە دەبینیت پێش کڕین، نەک وێنەیەکی گشتی.",
+              "قووڵایی و کەسایەتییەکی سروشتی بەهێزتر بە ڕێکخستنی حەوزەکە دەبەخشێت.",
+              "هەر پارچەیەک ناوازەیە و جیاوازە لەوەی تر."
+            ],
+            "usageInstructions": [
+              "پێش هەڵبژاردنی پارچەکە، وێنە و پێشبینینی سێ ڕەهەندییەکە ببینە.",
+              "هەر دیکۆرێک پێش خستنە ناو حەوزەکە پاک بکەرەوە بەپێی شێوازی چاودێری گونجاو بۆ حەوزەکەت.",
+              "لەناو ڕێکخستنەکەدا جێگیری بکە بەبێ فشار خستنە سەر شووشە یان ئامێرەکان."
+            ],
+            "safetyWarnings": [
+              "دڵنیا بە کە شوێنی پارچەکە فشار ناخاتە سەر شووشە یان ڕێگر نییە لە جووڵەی ئاو.",
+              "ئەگەر حەوزەکەت بچووکە یان قەرەباڵغە، پارچەکە هەڵبژێرە دوای ئەوەی قەبارەکەی بە چاو لەگەڵ ڕێکخستنی حەوزەکە بەراورد دەکەیت."
+            ],
+            "__cardBenefit": "هەمان پارچەی نمایشکراو؛ بەرزایی و قووڵایی بە دیزاینەکە دەبەخشێت",
+            "labelled": {
+              "ملاحظة": {
+                "label": "تێبینی",
+                "value": "شێوەی نمایشکراو هەمان پارچەیە کە وەری دەگریت"
+              },
+              "رمز القطعة": {
+                "label": "کۆدی پارچە",
+                "value": "DW-03"
+              },
+              "نمط الاستخدام": {
+                "label": "شێوازی بەکارهێنان",
+                "value": "دیکۆر و ئەکواسکەیپ"
+              },
+              "طريقة المعاينة": {
+                "label": "شێوازی پێشبینین",
+                "value": "وێنە و پێشبینینی سێ ڕەهەندی بۆ هەمان پارچە"
+              }
+            }
+          },
+          "variantLabels": {}
+        }
+      },
+      "aquavo-driftwood-small-collection": {
+        "entityId": "aquavo-driftwood-small-collection",
+        "slug": "aquavo-driftwood-collection",
+        "sourceHash": "16717a1927f28543",
+        "translatedBy": "gemini:gemini-2.5-flash",
+        "translatedAt": "2026-09-19T12:20:29.243Z",
+        "data": {
+          "name": "پارچە داری سروشتی بۆ ئەکواسکەیپ — پارچەکە بە وێنە هەڵبژێرە",
+          "description": "کۆمەڵێک پارچە داری سروشتی بۆ ئەکواسکەیپ، و هەر پارچەیەک لە شێوە و لق و قەبارەدا جیاوازە. هێمای ئەو پارچەیە هەڵبژێرە کە گونجاوە بۆ ڕووبەری حەوزەکەت و دیزاینەکەت؛ و کاتێک وێنە یان پێشبینینی سێ ڕەهەندی بەردەست بێت، ئەوا هەمان پارچەی دیاریکراو نیشان دەدات.\n\nپێش بەکارهێنان دارەکە بشۆ و لە ئاودا بیخوسێنە، لەوانەیە بۆ ماوەیەک پێویستی بە جێگیرکردنی کاتی بێت تا بە تەواوی ئاو هەڵمژێت. ئاساییە هەندێک پارچە تانین دەربدەن کە ڕەنگێکی قەنەفەیی بە ئاوەکە دەدات یان بایۆفیلمێکی سپی کاتی لە سەرەتادا لەسەری دەردەکەوێت.",
+          "subcategory": "داری سروشتی",
+          "seoTitle": "پارچە داری سروشتی بۆ ئەکواسکەیپ — پارچەکە بە وێنە هەڵبژێرە | AQUAVO",
+          "seoDescription": "کۆمەڵێک پارچە داری سروشتی ناوازە بۆ حەوز و ئەکواسکەیپ. ئەو پارچەیە هەڵبژێرە کە گونجاوە بۆ دیزاینی حەوزەکەت لە نێوان چەندین بژاردە. هەر پارچەیەک لە شێوە و قەبارەدا جیاوازە.",
+          "specifications": {
+            "benefits": [
+              "5 پارچەی جیاواز بۆ هەڵبژاردن.",
+              "سروشتێکی تایبەت بە هەر دیزاینێک دەبەخشێت.",
+              "ڕێگەت پێدەدات ئەو شێوەیە هەڵبژێریت کە گونجاوە بۆ دیزاینی حەوزەکەت."
+            ],
+            "usageInstructions": [
+              "ژمارەی گونجاو بۆ دیزاینی حەوزەکەت هەڵبژێرە.",
+              "پێش خستنە ناو حەوزەکە پاکی بکەرەوە.",
+              "بە شێوەیەک جێگیری بکە کە ڕێگری لە جووڵەی ئاو نەکات."
+            ],
+            "safetyWarnings": [
+              "هەر پارچەیەک لە شێوە و قەبارە و کێشدا جیاوازە",
+              "پارچەکە بپشکنە بۆ دڵنیابوون لە نەبوونی لێواری تیژ",
+              "پێش بەکارهێنان دارەکە بشۆ و لە ئاودا بیخوسێنە",
+              "ئەو پارچانەی کە نقووم نابن جێگیر بکە تا بە تەواوی ئاو هەڵدەمژن",
+              "لەوانەیە تانین یان پەردەیەکی سپی کاتی لە سەرەتای بەکارهێناندا دەربکەوێت"
+            ],
+            "__cardBenefit": "ئەو پارچەیە هەڵبژێرە کە گونجاوە بۆ دیزاینەکەت لەبری کڕینی شێوەیەکی داری هەڕەمەکی",
+            "labelled": {
+              "الحجم": {
+                "label": "قەبارە",
+                "value": "گونجاوە بۆ حەوزە بچووک و مامناوەندەکان"
+              },
+              "النوع": {
+                "label": "جۆر",
+                "value": "داری دیکۆری سروشتی"
+              },
+              "ملاحظة": {
+                "label": "تێبینی",
+                "value": "هەر پارچەیەک ناوازەیە — ژمارەکەی لە لیستەکە هەڵبژێرە"
+              },
+              "الاستخدام": {
+                "label": "بەکارهێنان",
+                "value": "حەوزی ماسی و ئەکواسکەیپ"
+              }
+            }
+          },
+          "variantLabels": {
+            "dw-12": "پارچەی DW-12",
+            "dw-13": "پارچەی DW-13",
+            "dw-14": "پارچەی DW-14",
+            "dw-15": "پارچەی DW-15",
+            "dw-16": "پارچەی DW-16"
+          }
+        }
+      },
+      "yee-07140": {
+        "entityId": "yee-07140",
+        "slug": "cls-107",
+        "sourceHash": "a64a2d831d1a63df",
+        "translatedBy": "gemini:gemini-2.5-flash",
+        "translatedAt": "2026-09-19T12:35:07.146Z",
+        "data": {
+          "name": "YEE خاوێنکەرەوەی شووشەی موگناتیسی گەورە — بێ ئەوەی دەستت بچێتە ناو ئاو",
+          "description": "شووشەکە لە ناوەوە پاکبکەرەوە لە کاتێکدا ئامێرەکە لە دەرەوەی حەوزەکە دەجوڵێنیت، بێ ئەوەی هەموو جارێک دەستت بچێتە ناو ئاو. دوو پارچە موگناتیسییەکە پێکەوە دەجوڵێن و یارمەتیدەرن بۆ لابردنی قەوزەی سووک و پاشماوەی پیسی لەسەر شووشە.\n\nلە کاتی بەکارهێناندا لە لم و بەردەلانک دووری بخەرەوە، چونکە هەر دەنکۆڵەیەک لە نێوان ئامێرەکە و شووشەکەدا گیربێت، لەوانەیە ببێتە هۆی خراشاندن.",
+          "subcategory": "ئامێرەکانی پاککردنەوە",
+          "seoTitle": "YEE خاوێنکەرەوەی شووشەی موگناتیسی گەورە | AQUAVO",
+          "seoDescription": "شووشەی حەوزی ماسی بە ئاسانی لە دەرەوە پاکبکەرەوە بە بەکارهێنانی خاوێنکەرەوەی موگناتیسی YEE گەورە. قەوزە و پیسی لادەبات بێ ئەوەی دەستت بچێتە ناو ئاو. دیزاینێکی دوو پارچەیی بەهێز.",
+          "specifications": {
+            "benefits": [
+              "پاککردنەوەی شووشە لە دەرەوە بێ ئەوەی دەست بچێتە ناو ئاو",
+              "دیزاینی موگناتیسی بە دوو پارچە",
+              "قەبارە گەورەکە ڕووبەرێکی فراوانتر لە هەر جوڵەیەکدا دادەپۆشێت",
+              "گونجاوە بۆ لابردنی قەوزەی سووک و پیسی لەسەر شووشە"
+            ],
+            "usageInstructions": [
+              "پارچەی ناوەوە بخەرە سەر شووشەکە",
+              "پارچەی دەرەوە بە هێواشی نزیک بکەرەوە تا بە موگناتیسییەوە دەلکێن",
+              "بە هێواشی لەسەر شووشەکە بجوڵێنە",
+              "لە خاک دوور بکەوەرەوە تا دەنکۆڵەکان لە ژێر ڕووی پاککردنەوەکەدا گیر نەبن"
+            ],
+            "safetyWarnings": [
+              "دڵنیا بە لەوەی کە لم یان بەردەلانک لە نێوان فڵچەکە و شووشەکەدا نییە",
+              "لەسەر ئەو جۆرە ڕووە بەکاری بهێنە کە لەسەر پاکەتەکە پێشنیار کراوە",
+              "دوو پارچە موگناتیسییەکە بە توندی لە یەکتر مەدە",
+              "ڕووی فڵچەکە دوای بەکارهێنان پاکبکەرەوە"
+            ],
+            "__cardBenefit": "شووشەکە لە دەرەوە پاکبکەرەوە بێ ئەوەی دەستت بچێتە ناو ئاو",
+            "labelled": {
+              "الحجم": {
+                "label": "قەبارە",
+                "value": "گەورە"
+              }
+            }
+          },
+          "variantLabels": {}
+        }
+      },
+      "yee-c5-1123-2": {
+        "entityId": "yee-c5-1123-2",
+        "slug": "c5-1123",
+        "sourceHash": "96bc60c520cd8f43",
+        "translatedBy": "gemini:gemini-2.5-flash",
+        "translatedAt": "2026-09-19T12:34:46.960Z",
+        "data": {
+          "name": "YEE حەوزی پانۆراما 60 سم — لەگەڵ فلتەر و پەمپ",
+          "description": "حەوزێکی پانۆرامای درێژ و تەسک بە قەبارەی 60×15×15 سم، لەگەڵ فلتەری لایەن و پەمپی ئاو. قەبارەی تیۆری پێش خاک و دیکۆر نزیکەی 13.5 لیترە، بۆیە پێویستە گیانلەبەرەکان و ژمارەیان بە وریاییەوە هەڵبژێردرێن.\n\nگونجاوە بۆ دیزاینی نانۆ، ڕووەک، مەیگوو و گیانلەبەرە بچووکەکان کاتێک پێداویستییەکانیان لەگەڵ قەبارە و شێوەی حەوزەکەدا دەگونجێت. فلتەرەکە کارپێبکە و سووڕی بایۆلۆژی حەوزەکە تەواو بکە پێش زیادکردنی ماسی یان مەیگوو.",
+          "subcategory": "حەوزی شووشەیی",
+          "seoTitle": "YEE حەوزی پانۆراما 60 سم — لەگەڵ فلتەر و پەمپ | AQUAVO",
+          "seoDescription": "حەوزی پانۆرامای YEE بە قەبارەی 60×15×15 سم، لەگەڵ فلتەری لایەن و پەمپی ئاو. قەبارەی 13.5 لیترە، گونجاوە بۆ نانۆ، ڕووەک و مەیگوو. پێویستی بە هەڵبژاردنی وریای گیانلەبەرەکان هەیە.",
+          "specifications": {
+            "benefits": [
+              "دیزاینی پانۆراما بە درێژایی 60 سم بۆ شوێنە تەسکەکان",
+              "فلتەری لایەن و پەمپی ئاو لەگەڵیدایە",
+              "گونجاوە بۆ دیزاینی نانۆ، ڕووەک و مەیگوو بەپێی پێداویستییەکانی جۆرەکە",
+              "قەبارەی بچووک پێویستی بە پلاندانانی وردی ژمارەی گیانلەبەرەکان هەیە"
+            ],
+            "usageInstructions": [
+              "حەوزەکە لەسەر ڕوویەکی تەخت و بە تەواوی پاڵپشتیکراو دابنێ",
+              "فلتەر و پەمپەکە بەپێی ڕێنماییەکانی بەرهەمەکە دامەزرێنە",
+              "خاک و دیکۆر زیاد بکە پاشان ئاوەکە بە هێواشی پڕ بکەرەوە",
+              "فلتەرەکە کارپێبکە و سووڕی بایۆلۆژی حەوزەکە تەواو بکە پێش زیادکردنی گیانلەبەرەکان"
+            ],
+            "safetyWarnings": [
+              "حەوزەکە کاتێک پڕە جوڵەی پێنەکەیت",
+              "بەهۆی بچووکی قەبارەکەیەوە حەوزەکە قەرەباڵغ مەکە",
+              "دڵنیابە لەوەی پەمپ و فلتەرەکە لە ئاستی گونجاوی ئاودا دەمێننەوە"
+            ],
+            "__cardBenefit": "دیزاینی پانۆرامای باریک لەگەڵ فلتەر و پەمپ کە ئامادەن بۆ کارپێکردن",
+            "labelled": {
+              "يشمل": {
+                "label": "لەخۆدەگرێت",
+                "value": "فلتەری لایەن + پەمپی ئاو"
+              },
+              "الأبعاد": {
+                "label": "قەبارە",
+                "value": "60×15×15 سم"
+              },
+              "السعة التقريبية": {
+                "label": "قەبارەی نزیکەیی",
+                "value": "13.5 لیتر پێش خاک و دیکۆر"
+              }
+            }
+          },
+          "variantLabels": {}
+        }
+      }
+    }
+  }
+}

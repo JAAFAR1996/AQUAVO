@@ -49,106 +49,6 @@
       "variantLabels": {}
     }
   },
-  "aquavo-driftwood-dw-02": {
-    "entityId": "aquavo-driftwood-dw-02",
-    "slug": "aquavo-driftwood-dw-02",
-    "sourceHash": "be99a0fb171eb513",
-    "translatedBy": "groq:openai/gpt-oss-120b",
-    "translatedAt": "2026-09-18T22:36:51.959Z",
-    "data": {
-      "name": "AQUAVO Natural Wood for Aquariums and Aquascape — DW-02",
-      "description": "Unique natural wood piece DW-02, and the photos and 3D preview represent the exact piece you will receive. It can be used as a primary or complementary element in aquascapes, anchoring moss and attached plants according to branch shape and tank space.\n\nWash and soak before use; it may need temporary weighting until fully water‑logged. Natural wood may release tannins giving the water an amber hue, and a temporary white biofilm may appear initially.",
-      "subcategory": "Natural Wood",
-      "seoTitle": "AQUAVO Natural Wood DW-02 | AQUAVO",
-      "seoDescription": "Natural wood DW-02 for aquariums and aquascapes. See exact item via 3D preview; wash and soak before use, may release tannins and white biofilm.",
-      "specifications": {
-        "benefits": [
-          "View the exact piece before purchase, not a generic image.",
-          "Adds depth and stronger natural character to the tank layout.",
-          "Each piece is unique and differs from the next."
-        ],
-        "usageInstructions": [
-          "Examine the photo and 3D preview before selecting the piece.",
-          "Clean any décor before placing it in the tank according to your tank’s care method.",
-          "Secure it within the layout without pressing on glass or equipment."
-        ],
-        "safetyWarnings": [
-          "Ensure the piece’s location does not press against glass or impede water flow.",
-          "If your tank is small or crowded, choose the piece after visually comparing its size with the layout."
-        ],
-        "__cardBenefit": "The displayed piece; adds depth and natural character to the design",
-        "labelled": {
-          "ملاحظة": {
-            "label": "Note",
-            "value": "The displayed item is the same piece you receive"
-          },
-          "رمز القطعة": {
-            "label": "Item Code",
-            "value": "DW-02"
-          },
-          "نمط الاستخدام": {
-            "label": "Usage Type",
-            "value": "Decoration and Aquascape"
-          },
-          "طريقة المعاينة": {
-            "label": "Preview Method",
-            "value": "Photo and 3D preview of the same piece"
-          }
-        }
-      },
-      "variantLabels": {}
-    }
-  },
-  "aquavo-driftwood-dw-03": {
-    "entityId": "aquavo-driftwood-dw-03",
-    "slug": "aquavo-driftwood-dw-03",
-    "sourceHash": "1d1daa3e3b8297f8",
-    "translatedBy": "groq:openai/gpt-oss-120b",
-    "translatedAt": "2026-09-18T22:38:11.528Z",
-    "data": {
-      "name": "Natural Wood for Aquariums and Aquascape — DW-03",
-      "description": "Unique natural wood piece DW-03, and the photos and 3D preview represent the exact piece you will receive. Its shape is suitable for adding visual height and depth to the design and can be combined with rocks or attached plants.\n\nWash and soak before use; it may need temporary fixation until fully water‑saturated. Natural wood may release tannins that give the water an amber hue, and a temporary white biofilm may appear at first.",
-      "subcategory": "Natural Wood",
-      "seoTitle": "Natural Wood for Aquariums and Aquascape — DW-03 | AQUAVO",
-      "seoDescription": "Natural wood piece DW-03 for aquariums and aquascapes adds height and depth. Wash and soak before use; it may release tannins and a white biofilm.",
-      "specifications": {
-        "benefits": [
-          "You see the exact piece before purchase, not a generic image.",
-          "It gives the aquarium layout stronger natural depth and character.",
-          "Each piece is unique and differs from the next."
-        ],
-        "usageInstructions": [
-          "View the photo and 3D preview before selecting the piece.",
-          "Clean any décor before placing it in the tank according to your tank’s proper care method.",
-          "Secure it within the layout without pressing on glass or equipment."
-        ],
-        "safetyWarnings": [
-          "Ensure the piece’s location does not press on glass or impede water flow.",
-          "If your tank is small or crowded, choose the piece after visually comparing its size with the layout."
-        ],
-        "__cardBenefit": "The displayed piece; adds height and depth to the design",
-        "labelled": {
-          "ملاحظة": {
-            "label": "Note",
-            "value": "The displayed item is the exact piece you will receive"
-          },
-          "رمز القطعة": {
-            "label": "Item Code",
-            "value": "DW-03"
-          },
-          "نمط الاستخدام": {
-            "label": "Usage Type",
-            "value": "Decoration and Aquascape"
-          },
-          "طريقة المعاينة": {
-            "label": "Preview Method",
-            "value": "Photo and 3D preview of the same piece"
-          }
-        }
-      },
-      "variantLabels": {}
-    }
-  },
   "aquavo-driftwood-dw-11": {
     "entityId": "aquavo-driftwood-dw-11",
     "slug": "aquavo-driftwood-dw-11",
@@ -197,65 +97,6 @@
         }
       },
       "variantLabels": {}
-    }
-  },
-  "aquavo-driftwood-small-collection": {
-    "entityId": "aquavo-driftwood-small-collection",
-    "slug": "aquavo-driftwood-collection",
-    "sourceHash": "16717a1927f28543",
-    "translatedBy": "groq:openai/gpt-oss-120b",
-    "translatedAt": "2026-09-18T22:33:05.547Z",
-    "data": {
-      "name": "AQUAVO Natural Wood Pieces for Aquascape — Choose Piece by Image",
-      "description": "A set of natural wood pieces for aquascaping, each varying in shape, branches, and size. Choose the piece code that fits your tank space and design; when an image or 3D preview is available it represents the exact piece selected.\n\nWash the wood and soak it before use, and it may require temporary anchoring until it becomes waterlogged. It is normal for some pieces to release tannins that give the water an amber hue or a temporary white biofilm may appear initially.",
-      "subcategory": "Natural Wood",
-      "seoTitle": "Natural Wood Pieces for Aquascape – Choose by Image | AQUAVO",
-      "seoDescription": "Natural wood pieces for aquascaping by AQUAVO, each unique in shape and size. Choose the right piece, soak before use, and add a natural look to your tank.",
-      "specifications": {
-        "benefits": [
-          "5 different pieces to choose from.",
-          "Adds a natural touch to any design.",
-          "Allows you to select the shape that fits your tank design."
-        ],
-        "usageInstructions": [
-          "Select the appropriate number for your tank design.",
-          "Clean it before placing it in the tank.",
-          "Secure it in a way that does not impede water flow."
-        ],
-        "safetyWarnings": [
-          "Each piece varies in shape, size, and weight.",
-          "Inspect the piece for any sharp edges.",
-          "Wash the wood and soak it before use.",
-          "Secure pieces that do not sink until they become waterlogged.",
-          "A tannin or temporary white film may appear at the start of use."
-        ],
-        "__cardBenefit": "Choose the piece that fits your design instead of buying a random wood shape",
-        "labelled": {
-          "الحجم": {
-            "label": "Size",
-            "value": "Suitable for small and medium tanks"
-          },
-          "النوع": {
-            "label": "Type",
-            "value": "Natural decorative wood"
-          },
-          "ملاحظة": {
-            "label": "Note",
-            "value": "Each piece is unique — select its number from the list"
-          },
-          "الاستخدام": {
-            "label": "Usage",
-            "value": "Fish tanks and aquascapes"
-          }
-        }
-      },
-      "variantLabels": {
-        "dw-12": "Piece DW-12",
-        "dw-13": "Piece DW-13",
-        "dw-14": "Piece DW-14",
-        "dw-15": "Piece DW-15",
-        "dw-16": "Piece DW-16"
-      }
     }
   },
   "general-air-stone": {
@@ -3013,6 +2854,59 @@
       "variantLabels": {}
     }
   },
+  "yee-02712": {
+    "entityId": "yee-02712",
+    "slug": "ysq-730",
+    "sourceHash": "febb4070e60bc7be",
+    "translatedBy": "human-assisted:source-verified",
+    "translatedAt": "2026-10-13T20:30:00.000Z",
+    "data": {
+      "name": "YEE Automatic Fish Feeder — 3 Speeds",
+      "description": "Not always home at feeding time? This YEE automatic feeder helps schedule food delivery when you are away from the aquarium.\n\nIt is designed to dispense fish food automatically and is described on the supplier invoice as offering 3 speeds. The purpose is consistent feeding, not providing extra food; settings and portions must match your fish's needs.\n\nImportant: An automatic feeder does not replace checking your fish or monitoring portions. Programming details and compatible food types must be confirmed from the manufacturer's instructions when the package arrives.\n\nComing soon to AQUAVO. Final pricing and availability will be announced after receipt.",
+      "subcategory": "Feeding Accessories",
+      "seoTitle": "YEE Automatic Fish Feeder, 3 Speeds | AQUAVO",
+      "seoDescription": "YEE automatic fish feeder with 3 supplier-listed speeds. Organize feeding while checking portion size and compatibility. Coming soon to AQUAVO.",
+      "specifications": {
+        "benefits": [
+          "Dispenses food automatically according to the device settings.",
+          "Useful when you cannot feed your fish personally every time.",
+          "Described by the supplier as having 3 speeds.",
+          "Helps organize a feeding routine while monitoring portions."
+        ],
+        "usageInstructions": [
+          "Check compatible food types in the manufacturer's instructions.",
+          "Install the feeder according to its mounting guide and configure an appropriate feeding schedule.",
+          "Test the dispensed food quantity before leaving the feeder running unattended.",
+          "Monitor feeding over the first few days and adjust the settings if needed."
+        ],
+        "safetyWarnings": [
+          "Do not rely on the feeder before testing its settings and dispensed portions.",
+          "Avoid overfeeding; leftover food can pollute the water.",
+          "Protect the food chamber and electrical parts from water as instructed by the manufacturer."
+        ],
+        "__cardBenefit": "Busy at feeding time? An automatic feeder helps organize your fish's meals.",
+        "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "Automatic fish feeder"
+          },
+          "السرعات": {
+            "label": "Speeds",
+            "value": "3 speeds, according to supplier description"
+          },
+          "العلامة": {
+            "label": "Brand",
+            "value": "YEE"
+          },
+          "تفاصيل البرمجة": {
+            "label": "Programming details",
+            "value": "To be confirmed from the product manual on arrival"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
   "yee-02771": {
     "entityId": "yee-02771",
     "slug": "ykl-018",
@@ -3211,43 +3105,51 @@
   "yee-03326": {
     "entityId": "yee-03326",
     "slug": "ytz-300",
-    "sourceHash": "07bbf149a26ab4a9",
-    "translatedBy": "gemini:gemini-2.5-flash-lite",
-    "translatedAt": "2026-09-19T12:18:31.482Z",
+    "sourceHash": "c432a0a392453a15",
+    "translatedBy": "human-assisted:source-verified",
+    "translatedAt": "2026-10-13T20:45:00.000Z",
     "data": {
-      "name": "YEE Air Pump - 3W",
-      "description": "A practical choice for small aquariums when you need to run an air stone or sponge filter without a large pump. The YEE 3W pump has a single outlet. Its actual performance depends on water depth and the resistance of the tubing and accessory.\n\nPlace it in a dry, ventilated area and use a check valve if the pump is below the water level.",
+      "name": "YEE Compact Air Pump — 3 W",
+      "description": "Need a small air pump to operate an air stone or sponge filter?\n\nThis compact YEE air pump has a 3 W electrical rating and one outlet. It can power a compatible air accessory. Actual bubble output depends on water depth, air-stone or filter resistance and tubing losses.\n\nImportant: Keep the pump outside the water in a dry place. If the pump sits below aquarium water level, use an appropriate non-return valve to reduce the risk of backflow during a power cut.",
       "subcategory": "Air Pumps",
-      "seoTitle": "YEE 3W Single Outlet Air Pump | AQUAVO",
-      "seoDescription": "Compact YEE 3W air pump with one outlet, ideal for small aquariums. Easy to place, runs air stones and sponge filters. Requires check valve if submerged.",
+      "seoTitle": "YEE Compact Air Pump 3 W | AQUAVO",
+      "seoDescription": "YEE compact 3 W air pump with one outlet to power a compatible air stone or sponge filter. Keep dry and use a check valve as needed.",
       "specifications": {
         "benefits": [
-          "3W power",
-          "Single air outlet",
-          "Small size, easy to place beside the aquarium",
-          "Suitable for running a compatible air accessory"
+          "Small air pump with 3 W power rating.",
+          "One air outlet according to product specifications.",
+          "Helps operate a compatible air stone or sponge filter.",
+          "Compact design for limited space beside an aquarium."
         ],
         "usageInstructions": [
-          "Connect the air tubing to the outlet",
-          "Install a suitable air stone or air filter",
-          "Install a check valve if needed",
-          "Turn on the pump and monitor that the flow is suitable for the aquarium and accessory"
+          "Connect the air tubing to the pump outlet.",
+          "Install a compatible air stone or sponge filter.",
+          "Use a non-return valve if the pump is below water level.",
+          "Switch on the pump and check airflow at the aquarium's actual water depth."
         ],
         "safetyWarnings": [
-          "Do not immerse the pump in water",
-          "Place in a dry, well-ventilated area",
-          "Use a check valve if the pump is below the water level",
-          "Ensure sufficient flow for the accessory and actual tank depth"
+          "Never immerse the pump in water.",
+          "Keep it dry and ventilated, away from leaks.",
+          "Use a non-return valve when required.",
+          "A 3 W rating alone cannot establish the number of aquariums or suitable operating depth."
         ],
-        "__cardBenefit": "Small 3W pump for running an air stone or sponge filter",
+        "__cardBenefit": "Compact 3 W pump for a compatible air stone or sponge filter.",
         "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "Compact air pump"
+          },
           "القدرة": {
             "label": "Power",
-            "value": "3W"
+            "value": "3 W"
+          },
+          "العلامة": {
+            "label": "Brand",
+            "value": "YEE"
           },
           "عدد المخارج": {
-            "label": "Number of Outlets",
-            "value": "1"
+            "label": "Number of outlets",
+            "value": "One outlet"
           }
         }
       },
@@ -3333,6 +3235,63 @@
       "variantLabels": {}
     }
   },
+  "yee-05150a-05149a": {
+    "entityId": "yee-05150a-05149a",
+    "slug": "yll-053-054",
+    "sourceHash": "50bebfe98b27b223",
+    "translatedBy": "human-assisted:source-verified",
+    "translatedAt": "2026-10-13T20:30:00.000Z",
+    "data": {
+      "name": "YEE Black Filter Foam — 50×30×2 cm, Coarse or Medium",
+      "description": "Choosing foam for your filter? Different pore sizes perform different tasks.\n\nYEE black filter foam comes in coarse or medium pore sizes and measures 50×30×2 cm. Select the grade that suits your filtration stage and cut it to fit your filter compartment if necessary.\n\nImportant: Foam traps debris according to pore density and water flow, so regular cleaning is needed. Avoid replacing all established biological filter media at once.\n\nComing soon to AQUAVO. Both grades are on the way; final prices and availability will follow delivery.",
+      "subcategory": "Filter Media",
+      "seoTitle": "YEE Black Filter Foam 50×30×2 cm | AQUAVO",
+      "seoDescription": "YEE black aquarium filter foam, 50×30×2 cm, available in coarse or medium pores. Cut to fit and monitor filter water flow.",
+      "specifications": {
+        "benefits": [
+          "Two pore grades to suit different filtration requirements.",
+          "50×30×2 cm piece can be cut to fit the filter compartment.",
+          "Black material gives a consistent look to the filter-media arrangement.",
+          "Traps debris depending on pore size and water flow."
+        ],
+        "usageInstructions": [
+          "Measure the filter compartment before cutting.",
+          "Choose coarse or medium pores for the position in your filter setup.",
+          "Cut neatly without completely blocking the water path.",
+          "Clean when flow drops, according to the aquarium's needs and filter instructions."
+        ],
+        "safetyWarnings": [
+          "Do not use soap or detergents to clean filter media.",
+          "Do not replace all bacteria-colonized biological media at once.",
+          "Monitor water flow after installing the foam."
+        ],
+        "__cardBenefit": "Coarse or medium pores? Choose black filter foam for your setup.",
+        "labelled": {
+          "اللون": {
+            "label": "Color",
+            "value": "Black"
+          },
+          "المسام": {
+            "label": "Pores",
+            "value": "Coarse or medium"
+          },
+          "المقاس": {
+            "label": "Size",
+            "value": "50×30×2 cm"
+          },
+          "العلامة": {
+            "label": "Brand",
+            "value": "YEE"
+          },
+          "ملاحظة الخيارات": {
+            "label": "Options note",
+            "value": "Each variant's price will be set when pricing is finalized"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
   "yee-06255": {
     "entityId": "yee-06255",
     "slug": "yxl-003",
@@ -3403,6 +3362,61 @@
         "40cube": "40×40×40 cm — 6 mm — ~64 L",
         "60x40": "60×40×40 cm — 8 mm — ~96 L"
       }
+    }
+  },
+  "yee-06741a": {
+    "entityId": "yee-06741a",
+    "slug": "ywh-050",
+    "sourceHash": "ae4e37a3983e347f",
+    "translatedBy": "human-assisted:source-verified",
+    "translatedAt": "2026-10-13T20:30:00.000Z",
+    "data": {
+      "name": "YEE Yellow Aquarium Powder — 50 g",
+      "description": "Before adding any treatment to aquarium water, check its ingredients and official directions; do not judge it by its color or name.\n\nThis is a 50 g pack of yellow powder from YEE, according to the supplier invoice. We do not yet have verified information identifying its ingredients or appropriate uses. Usage details will be published only after checking the original packaging.\n\nImportant: Do not use any powder to treat fish without identifying its active ingredient, dosage, sensitive species and warnings. This product is not presented as a proven treatment for any condition before verification.\n\nComing soon to AQUAVO. Usage details are under review; final price and availability will follow delivery.",
+      "subcategory": "Aquarium Preparations",
+      "seoTitle": "YEE Yellow Aquarium Powder 50 g | AQUAVO",
+      "seoDescription": "YEE yellow aquarium powder, 50 g. Ingredients, dose and safe use have not been confirmed; do not use before checking the original label.",
+      "specifications": {
+        "benefits": [
+          "50 g package according to the supplier invoice.",
+          "Ingredients and intended use are still under review.",
+          "No therapeutic benefit is claimed before confirming the manufacturer's instructions."
+        ],
+        "usageInstructions": [
+          "Do not use until the ingredients and full original label are reviewed.",
+          "Read manufacturer dosage, warnings and information on species for which it is unsuitable.",
+          "If fish show signs of illness, consult an aquatic-animal professional rather than trying an unidentified powder."
+        ],
+        "safetyWarnings": [
+          "Do not use or recommend it to treat a disease before verifying the active ingredient and dosage.",
+          "Keep away from children and food.",
+          "Do not mix with other treatments without clear manufacturer instructions."
+        ],
+        "__cardBenefit": "Yellow powder, 50 g — ingredients and use must be verified from the label.",
+        "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "Yellow aquarium powder"
+          },
+          "العلامة": {
+            "label": "Brand",
+            "value": "YEE"
+          },
+          "المكونات": {
+            "label": "Ingredients",
+            "value": "Awaiting packaging verification"
+          },
+          "وزن العبوة": {
+            "label": "Package weight",
+            "value": "50 g"
+          },
+          "طريقة الاستعمال": {
+            "label": "Directions",
+            "value": "Awaiting manufacturer instructions"
+          }
+        }
+      },
+      "variantLabels": {}
     }
   },
   "yee-06834": {
@@ -3503,48 +3517,6 @@
           "النوع": {
             "label": "Type",
             "value": "Mixed ceramic filter media"
-          }
-        }
-      },
-      "variantLabels": {}
-    }
-  },
-  "yee-07140": {
-    "entityId": "yee-07140",
-    "slug": "cls-107",
-    "sourceHash": "a64a2d831d1a63df",
-    "translatedBy": "gemini:gemini-2.5-flash-lite",
-    "translatedAt": "2026-09-19T12:14:26.165Z",
-    "data": {
-      "name": "YEE Large Magnetic Glass Cleaner — No Hand Immersion",
-      "description": "Clean the inside glass by moving the tool from outside the aquarium, without immersing your hand in the water each time. The two magnetic pieces move together and help remove light algae and dirt marks from the glass.\n\nKeep it away from sand and gravel during use, as any grain stuck between the tool and the glass can cause scratches.",
-      "subcategory": "Cleaning Tools",
-      "seoTitle": "YEE Magnetic Glass Cleaner | AQUAVO",
-      "seoDescription": "Clean aquarium glass from the outside without getting your hands wet. Features a large, two-piece magnetic design for efficient algae removal.",
-      "specifications": {
-        "benefits": [
-          "Clean glass from the outside without immersing your hand in the water",
-          "Two-piece magnetic design",
-          "Large size covers a wider area with each movement",
-          "Suitable for removing light algae and dirt from glass"
-        ],
-        "usageInstructions": [
-          "Place the inner piece on the glass",
-          "Gradually bring the outer piece closer until it connects magnetically",
-          "Move it slowly over the glass",
-          "Stay away from the substrate to avoid trapping grains under the cleaning surface"
-        ],
-        "safetyWarnings": [
-          "Ensure there is no sand or gravel between the brush and the glass",
-          "Use on the recommended surface type on the packaging",
-          "Do not strike the two magnetic pieces together forcefully",
-          "Clean the brush surface after use"
-        ],
-        "__cardBenefit": "Clean glass from the outside without getting your hands wet",
-        "labelled": {
-          "الحجم": {
-            "label": "Size",
-            "value": "Large"
           }
         }
       },
@@ -3698,6 +3670,58 @@
         "100w": "100W",
         "200w": "200W"
       }
+    }
+  },
+  "yee-1-8-5-9": {
+    "entityId": "yee-1-8-5-9",
+    "slug": "yee-3602",
+    "sourceHash": "d9909a3446c6e954",
+    "translatedBy": "human-assisted:source-verified",
+    "translatedAt": "2026-10-13T20:30:00.000Z",
+    "data": {
+      "name": "YEE Blue Circular Fish Feeding Ring",
+      "description": "Keep fish food in one area instead of letting it scatter across the surface of the aquarium.\n\nWater movement can spread floating food around the tank. This blue circular YEE feeding ring helps define a feeding area so you can watch the fish eat and more easily judge how much food they consume.\n\nImportant: A feeding ring helps keep food in one location, but it will not prevent water pollution if you overfeed.\n\nComing soon to AQUAVO. Final price and availability will be announced after arrival.",
+      "subcategory": "Feeding Accessories",
+      "seoTitle": "YEE Blue Circular Feeding Ring | AQUAVO",
+      "seoDescription": "Blue circular YEE fish feeding ring keeps floating food in one area for easier observation. Correct portions still matter. Coming soon.",
+      "specifications": {
+        "benefits": [
+          "Helps keep food within a defined feeding area.",
+          "Makes it easier to observe how much fish consume.",
+          "Circular blue design.",
+          "A simple addition to the daily feeding routine."
+        ],
+        "usageInstructions": [
+          "Secure the ring at the water surface as instructed by the manufacturer.",
+          "Place food inside and monitor water movement.",
+          "Observe feeding and adjust food portions to the fish's needs."
+        ],
+        "safetyWarnings": [
+          "Do not feed more than the fish require.",
+          "Clean the ring if leftover food accumulates.",
+          "Check it stays positioned correctly for the aquarium's flow."
+        ],
+        "__cardBenefit": "Keep fish food in a defined area instead of scattering on the surface.",
+        "labelled": {
+          "الشكل": {
+            "label": "Shape",
+            "value": "Circular"
+          },
+          "اللون": {
+            "label": "Color",
+            "value": "Blue"
+          },
+          "العلامة": {
+            "label": "Brand",
+            "value": "YEE"
+          },
+          "الاستخدام": {
+            "label": "Use",
+            "value": "Define a feeding area on the water surface"
+          }
+        }
+      },
+      "variantLabels": {}
     }
   },
   "yee-11578": {
@@ -3880,6 +3904,60 @@
           "النوع": {
             "label": "Type",
             "value": "Aquarium Water Conditioner"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "yee-17390": {
+    "entityId": "yee-17390",
+    "slug": "yeb-751",
+    "sourceHash": "9f66337e685e0f9a",
+    "translatedBy": "human-assisted:source-verified",
+    "translatedAt": "2026-10-13T20:30:00.000Z",
+    "data": {
+      "name": "YEE Green Wave Compact Wall-Mounted Filter — 3 W",
+      "description": "Looking for a compact filter that takes up less space inside the aquarium? Choose based on both the mounting design and, crucially, the tank volume and water flow.\n\nThe YEE Green Wave is a small wall-mounted filter rated at 3 W according to the supplier invoice. Its design is compact, but the flow rate and filter-media capacity are not stated on the invoice. The suitable tank size cannot be determined from power consumption alone.\n\nImportant: Filter sizing depends on tank volume, fish species, flow rate and media capacity, not just wattage.\n\nComing soon to AQUAVO. Final price and availability will be announced after arrival.",
+      "subcategory": "Wall-Mounted Filters",
+      "seoTitle": "YEE Green Wave Wall Filter 3 W | AQUAVO",
+      "seoDescription": "YEE Green Wave compact wall-mounted filter, 3 W. Flow rate and compatible tank volume require verification from the manufacturer.",
+      "specifications": {
+        "benefits": [
+          "Compact wall-mounted design according to the supplier invoice.",
+          "3 W electrical rating.",
+          "An option for customers wanting a small filter when appropriate for their aquarium.",
+          "Media configuration and flow rate must be confirmed from the packaging."
+        ],
+        "usageInstructions": [
+          "Measure the available installation space before choosing the filter.",
+          "Check that water flow suits your fish and aquarium volume.",
+          "Install and start the filter according to the manufacturer's instructions.",
+          "Clean dirty media as needed without removing all beneficial bacteria."
+        ],
+        "safetyWarnings": [
+          "Do not run the filter dry if its design requires water.",
+          "Disconnect power before maintenance.",
+          "Electrical wattage alone does not specify a suitable aquarium volume.",
+          "Check priming and voltage instructions when the product arrives."
+        ],
+        "__cardBenefit": "Compact 3 W wall filter; compatibility depends on flow and tank size.",
+        "labelled": {
+          "القدرة": {
+            "label": "Power",
+            "value": "3 W"
+          },
+          "التصميم": {
+            "label": "Design",
+            "value": "Compact wall-mounted"
+          },
+          "العلامة": {
+            "label": "Brand",
+            "value": "YEE"
+          },
+          "معدل التدفق": {
+            "label": "Flow rate",
+            "value": "Not confirmed on supplier invoice"
           }
         }
       },
@@ -4118,49 +4196,225 @@
       "variantLabels": {}
     }
   },
+  "yee-21467a": {
+    "entityId": "yee-21467a",
+    "slug": "cls-149",
+    "sourceHash": "95f5d73e6c9bc02a",
+    "translatedBy": "human-assisted:source-verified",
+    "translatedAt": "2026-10-13T20:30:00.000Z",
+    "data": {
+      "name": "YEE Large Strong Magnetic Aquarium Glass Cleaner",
+      "description": "Want to clean the inside of your aquarium glass while moving the cleaner from outside? A magnetic cleaner can help when its magnetic strength suits your glass thickness.\n\nThis YEE cleaner is described by the supplier as large with a strong magnet. Its inside and outside sections move together to clean glass, but you must confirm compatible glass thickness and check the cleaning surfaces before use.\n\nImportant: Trapped sand between the cleaner and glass may scratch the pane. The supported glass thickness is not listed on the invoice and must be verified from the packaging before compatibility can be confirmed.\n\nComing soon to AQUAVO. Final price and availability will be announced on arrival.",
+      "subcategory": "Cleaning Tools",
+      "seoTitle": "YEE Large Magnetic Glass Cleaner | AQUAVO",
+      "seoDescription": "Large YEE magnetic aquarium glass cleaner. Check glass-thickness compatibility and keep sand off the pads to prevent scratches. Coming soon.",
+      "specifications": {
+        "benefits": [
+          "Magnetic cleaner for aquarium glass.",
+          "Large size and strong magnet according to the supplier.",
+          "Allows controlled cleaning from outside the aquarium.",
+          "Compare cleaning options based on your glass thickness."
+        ],
+        "usageInstructions": [
+          "Confirm the supported glass thickness before use.",
+          "Inspect both cleaning surfaces for trapped sand or hard particles.",
+          "Move the cleaner slowly across the glass, away from the substrate.",
+          "Rinse cleaning surfaces after use following the product instructions."
+        ],
+        "safetyWarnings": [
+          "Do not use until the suitable glass-thickness range is confirmed.",
+          "Avoid sand and trapped gravel, which can scratch glass.",
+          "Take care when the strong magnet brings the two halves together; protect your fingers."
+        ],
+        "__cardBenefit": "Clean aquarium glass from outside with a magnet matched to its thickness.",
+        "labelled": {
+          "الحجم": {
+            "label": "Size",
+            "value": "Large"
+          },
+          "النوع": {
+            "label": "Type",
+            "value": "Magnetic glass cleaner"
+          },
+          "العلامة": {
+            "label": "Brand",
+            "value": "YEE"
+          },
+          "قوة المغناطيس": {
+            "label": "Magnet strength",
+            "value": "Strong, according to supplier description"
+          },
+          "سماكة الزجاج المناسبة": {
+            "label": "Compatible glass thickness",
+            "value": "Awaiting manufacturer confirmation"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "yee-21519": {
+    "entityId": "yee-21519",
+    "slug": "yee-10080",
+    "sourceHash": "3a13895a6302f11e",
+    "translatedBy": "human-assisted:source-verified",
+    "translatedAt": "2026-10-13T20:30:00.000Z",
+    "data": {
+      "name": "YEE Compact Metal Aquarium Heater with Display — 25 W",
+      "description": "Aquarium temperature should be measured, not guessed, especially when tank volume is small and room temperature changes.\n\nThis compact metal YEE heater is rated at 25 W and has a display according to the supplier invoice. It may be worth considering for a compatible tank, but heater selection also depends on actual water volume, room temperature and target temperature.\n\nImportant: A 25 W rating alone cannot establish the appropriate tank size. Adjustment range, immersion instructions and electrical safety features must be checked on arrival.\n\nComing soon to AQUAVO. Final price and availability will be announced after delivery.",
+      "subcategory": "Aquarium Heaters",
+      "seoTitle": "YEE Metal Aquarium Heater 25 W | AQUAVO",
+      "seoDescription": "Compact metal YEE aquarium heater with display, rated 25 W. Select by water volume and room temperature; verify immersion rules.",
+      "specifications": {
+        "benefits": [
+          "Compact metal heater designed for aquariums.",
+          "25 W rating according to the supplier invoice.",
+          "Equipped with a display according to the product description.",
+          "Helps maintain water temperature when selected and installed correctly."
+        ],
+        "usageInstructions": [
+          "Calculate actual water volume and the difference between room and target water temperature.",
+          "Read the heater's mounting, immersion and temperature-setting instructions.",
+          "Install with appropriate water circulation and electrical precautions.",
+          "Monitor water temperature with a separate thermometer after switching it on."
+        ],
+        "safetyWarnings": [
+          "Disconnect the power before putting a hand in the aquarium or moving the heater.",
+          "Do not operate outside water or partly immersed if the manual forbids it.",
+          "Do not assess tank compatibility from wattage alone.",
+          "Verify voltage, adjustment range and manufacturer instructions before use."
+        ],
+        "__cardBenefit": "25 W heater with display: size it for your tank and room temperature.",
+        "labelled": {
+          "الشاشة": {
+            "label": "Display",
+            "value": "Listed on supplier invoice"
+          },
+          "القدرة": {
+            "label": "Power",
+            "value": "25 W"
+          },
+          "التصميم": {
+            "label": "Design",
+            "value": "Compact metal"
+          },
+          "العلامة": {
+            "label": "Brand",
+            "value": "YEE"
+          },
+          "الحجم المناسب": {
+            "label": "Suitable tank size",
+            "value": "Depends on water volume and room temperature"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "yee-22015a": {
+    "entityId": "yee-22015a",
+    "slug": "ykl-086",
+    "sourceHash": "d2ccbb438936a94f",
+    "translatedBy": "human-assisted:source-verified",
+    "translatedAt": "2026-10-13T20:30:00.000Z",
+    "data": {
+      "name": "YEE Magnetic Fish Jump Guard Mesh — 100×40 cm",
+      "description": "Have fish that may jump out of the aquarium? Keeping them safe means more than looking after water quality and filtration.\n\nThis magnetic mesh cover is designed to cover the tank and help reduce the risk of fish jumping out. It measures 100×40 cm, so check the tank footprint and installation method first.\n\nImportant: Effective protection depends on secure installation and closing gaps around edges and equipment. A mesh cover cannot provide complete protection if openings remain.\n\nComing soon to AQUAVO. Final pricing and availability will be announced after arrival.",
+      "subcategory": "Fish Safety Accessories",
+      "seoTitle": "YEE Magnetic Fish Jump Guard 100×40 cm | AQUAVO",
+      "seoDescription": "YEE magnetic fish jump guard mesh, 100×40 cm. Helps reduce escape risk when installed securely without gaps. Coming soon to AQUAVO.",
+      "specifications": {
+        "benefits": [
+          "Helps reduce the risk of fish jumping out of the aquarium.",
+          "Magnetic design according to the supplier.",
+          "100×40 cm size for compatible aquariums.",
+          "Allows a view into the aquarium from above while the cover remains fitted."
+        ],
+        "usageInstructions": [
+          "Measure the tank opening and gaps around equipment before purchase.",
+          "Install the mesh according to the manufacturer's method.",
+          "Close large gaps near the edges.",
+          "Check that the cover remains secure, especially after tank maintenance."
+        ],
+        "safetyWarnings": [
+          "Do not treat the mesh as an absolute jump barrier while openings remain.",
+          "Do not install it in a way that interferes with equipment or fish safety.",
+          "Verify dimensions against the aquarium's design."
+        ],
+        "__cardBenefit": "Fish jumping? A mesh cover helps reduce the risk of escapes.",
+        "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "Fish jump guard mesh"
+          },
+          "المقاس": {
+            "label": "Size",
+            "value": "100×40 cm"
+          },
+          "التثبيت": {
+            "label": "Mounting",
+            "value": "Magnetic, according to supplier description"
+          },
+          "العلامة": {
+            "label": "Brand",
+            "value": "YEE"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
   "yee-71934": {
     "entityId": "yee-71934",
     "slug": "ylc-410",
-    "sourceHash": "cf92cf94fd1758d2",
-    "translatedBy": "gemini:gemini-2.5-flash-lite",
-    "translatedAt": "2026-09-19T12:14:32.210Z",
+    "sourceHash": "749cad0e751e1cf2",
+    "translatedBy": "human-assisted:source-verified",
+    "translatedAt": "2026-10-13T20:45:00.000Z",
     "data": {
-      "name": "YEE 16-in-1 Filter Media Set - 2.5 kg",
-      "description": "A set of 16 types of filter media, totaling 2.5 kg according to product data. It combines mechanical, biological, and chemical media for equipping a large filter or sump.\n\nArrange the media according to the water flow direction and the function of each medium, placing mechanical filtration to protect porous media from clogging as much as possible. Use chemical media as needed and according to aquarium instructions.",
+      "name": "YEE 16-in-1 Aquarium Filter Media Set — 2.5 kg",
+      "description": "Want to set up aquarium filtration without buying every filter medium separately?\n\nThe YEE 16-in-1 media set combines 16 types of filter media with a total weight of 2.5 kg. It helps equip filter or sump chambers according to their size and the aquarium's needs. According to product data, the set contains mechanical, biological and chemical filtration media.\n\nImportant: Not every medium needs to run continuously. Arrange media along the water path and according to your aquarium, using chemical media only when needed. Replacing every established biological medium at once may damage beneficial bacteria.",
       "subcategory": "Filter Media",
-      "seoTitle": "YEE 16-in-1 Filter Media Set - 2.5 kg | AQUAVO",
-      "seoDescription": "Comprehensive YEE filter media set with 16 types, 2.5 kg total weight. Combines mechanical, biological, and chemical filtration for large aquariums and sumps.",
+      "seoTitle": "YEE 16-in-1 Filter Media 2.5 kg | AQUAVO",
+      "seoDescription": "YEE 16-in-1 aquarium filter media set, 2.5 kg. Mechanical, biological and chemical media for filters and sumps as needed.",
       "specifications": {
         "benefits": [
-          "16 types of filter media in one set",
-          "Total weight 2.5 kg according to product data",
-          "Combines mechanical, biological, and chemical media",
-          "Suitable for equipping large filter chambers according to their size"
+          "16 types of filter media in one set.",
+          "2.5 kg total weight according to product data.",
+          "Combines mechanical, biological and chemical filtration media.",
+          "Useful for equipping a filter or sump according to space and needs."
         ],
         "usageInstructions": [
-          "Rinse media that require rinsing before use",
-          "Arrange media according to the water flow direction in your filter",
-          "Place mechanical filtration before media that need protection from clogging",
-          "Place carbon or chemical media as needed, not necessarily permanently",
-          "Replace or clean each medium according to its condition and instructions"
+          "Identify the direction of water flow and the available filter chambers.",
+          "Rinse media that require rinsing before use, following instructions.",
+          "Position mechanical filtration to reduce debris reaching biological media.",
+          "Choose chemical media according to aquarium requirements and each medium's instructions.",
+          "Retain some established biological media during maintenance."
         ],
         "safetyWarnings": [
-          "Do not replace all biological filter media at once",
-          "Remove carbon during treatment if medication instructions require it",
-          "Verify the nature of each medium before using it in a sensitive aquarium"
+          "Do not replace all biological filter media at once.",
+          "Some chemical media may affect medications or water chemistry; check before use.",
+          "Chlorine in untreated tap water may harm beneficial bacteria when cleaning biological media."
         ],
-        "__cardBenefit": "16 types of media combining multiple filtration stages in one set",
+        "__cardBenefit": "16 media types in one set for configuring a filter or sump to your needs.",
         "labelled": {
           "الوزن": {
             "label": "Weight",
             "value": "2.5 kg"
           },
+          "العلامة": {
+            "label": "Brand",
+            "value": "YEE"
+          },
           "عدد الأنواع": {
-            "label": "Number of Types",
+            "label": "Number of types",
             "value": "16 types according to product data"
           },
+          "أنواع الترشيح": {
+            "label": "Filtration types",
+            "value": "Mechanical, biological, chemical"
+          },
           "أنواع الفلترة": {
-            "label": "Filtration Types",
+            "label": "Filtration categories",
             "value": "Mechanical + Biological + Chemical"
           }
         }
@@ -4973,59 +5227,72 @@
   "yee-c3-1010-3": {
     "entityId": "yee-c3-1010-3",
     "slug": "c3-1010",
-    "sourceHash": "7485f4db051d10c3",
-    "translatedBy": "gemini:gemini-2.5-flash-lite",
-    "translatedAt": "2026-09-19T12:10:48.989Z",
+    "sourceHash": "ce84ef003d0e62be",
+    "translatedBy": "human-assisted:source-verified",
+    "translatedAt": "2026-10-13T20:45:00.000Z",
     "data": {
-      "name": "YEE Ammonia or Nitrite Liquid Test — 60 or 100 Tests",
-      "description": "Test one of the most important water quality indicators in your aquarium with a clear and easy-to-read liquid test.\n\nThis product is available in two separate options: an ammonia test for approximately 60 tests, or a nitrite test for approximately 100 tests. Choose the required test type before purchasing.\n\nEach option uses a reagent solution and a color chart for result comparison, helping you monitor the nitrogen cycle and water quality in both new and established aquariums. In a stable aquarium, the target reading for ammonia or nitrite is 0 ppm.\n\nFollow the package instructions for the option you purchased regarding sample volume, number of drops, and waiting time, then compare the sample color with the reference chart.",
+      "name": "YEE Liquid Ammonia or Nitrite Test — 60 or 100 Tests",
+      "description": "Ammonia and nitrite are invisible in aquarium water, but both matter greatly for fish health.\n\nThe YEE liquid test checks a specific water parameter instead of relying on guesswork. Two separate products are available: an ammonia test for about 60 tests or a nitrite test for about 100 tests. Choose the parameter you need: each bottle tests just one.\n\nImportant: A stable aquarium generally targets a zero reading for ammonia and nitrite on the appropriate tests. Follow the sample volume, drop count and reading time on your specific package. If the result is concerning, assess the aquarium's condition rather than relying on the color alone.",
       "subcategory": "Water Test Kits",
-      "seoTitle": "YEE Ammonia/Nitrite Test Kit for Aquariums | AQUAVO",
-      "seoDescription": "Accurately test ammonia or nitrite levels in your aquarium with YEE liquid test kits. Available for ~60 (ammonia) or ~100 (nitrite) tests. Monitor water quality.",
+      "seoTitle": "YEE Ammonia/Nitrite Liquid Test | AQUAVO",
+      "seoDescription": "YEE liquid tests: choose ammonia for roughly 60 tests or nitrite for roughly 100 tests. Separate kits, reagents and color charts.",
       "specifications": {
         "benefits": [
-          "Choose the test you need: ammonia or nitrite",
-          "Ammonia test provides approximately 60 tests",
-          "Nitrite test provides approximately 100 tests",
-          "Reference color chart helps in easy result reading",
-          "Useful for monitoring the nitrogen cycle and water quality in new and established aquariums"
+          "Choose the ammonia or nitrite test according to your needs.",
+          "The ammonia kit provides approximately 60 tests according to product data.",
+          "The nitrite kit provides approximately 100 tests according to product data.",
+          "Reagent solution and a color chart help interpret the result.",
+          "Useful when cycling a new aquarium and monitoring water quality."
         ],
         "usageInstructions": [
-          "Select the ammonia test or nitrite test based on the parameter you want to measure",
-          "Take a water sample in the provided test tube",
-          "Add the reagent in the specified amount on the test package",
-          "Follow the waiting time printed on the package, then compare the color with the reference chart",
-          "Repeat the test during the tank's cycle or when suspecting a water quality issue"
+          "Select the ammonia-test bottle or the nitrite-test bottle.",
+          "Take the sample volume specified by your test's instructions.",
+          "Add the specified number of reagent drops following the package method.",
+          "Wait for the required time and compare the sample color with that test's chart.",
+          "Record results, particularly while establishing the nitrogen cycle."
         ],
         "safetyWarnings": [
-          "Keep test solutions away from children and eyes",
-          "Do not swallow test solutions",
-          "Wash your hands after use",
-          "Keep the package closed and away from direct sunlight"
+          "Never mix different test reagents or swallow them.",
+          "Keep reagents away from children and eyes.",
+          "Wash hands after use.",
+          "Reaction time and drop count vary by test; follow your own package.",
+          "An ammonia test is different from a nitrite test; one cannot replace the other."
         ],
-        "__cardBenefit": "Detect ammonia or nitrite with a liquid test to monitor water safety",
+        "__cardBenefit": "Ammonia and nitrite are invisible: test the parameter you need.",
         "labelled": {
           "التوافق": {
             "label": "Compatibility",
             "value": "Freshwater and saltwater aquariums"
           },
+          "العلامة": {
+            "label": "Brand",
+            "value": "YEE"
+          },
           "الخيارات": {
             "label": "Options",
-            "value": "Ammonia (NH3/NH4+) — approx. 60 tests | Nitrite (NO2−) — approx. 100 tests"
+            "value": "Ammonia or nitrite, each in a separate bottle"
           },
           "طريقة القياس": {
-            "label": "Measurement Method",
-            "value": "Reagent solution + color chart comparison"
+            "label": "Measurement method",
+            "value": "Reagent solution and color chart"
+          },
+          "اختبار النتريت": {
+            "label": "Nitrite test",
+            "value": "About 100 tests"
+          },
+          "اختبار الأمونيا": {
+            "label": "Ammonia test",
+            "value": "About 60 tests"
           },
           "النتيجة المستهدفة": {
-            "label": "Target Reading",
+            "label": "Target result",
             "value": "0 ppm for ammonia or nitrite in a stable aquarium"
           }
         }
       },
       "variantLabels": {
-        "ammonia": "Ammonia Test — approx. 60 tests",
-        "nitrite": "Nitrite Test — approx. 100 tests"
+        "ammonia": "Ammonia test — approximately 60 tests",
+        "nitrite": "Nitrite test — approximately 100 tests"
       }
     }
   },
@@ -5211,94 +5478,166 @@
   "yee-c4-1123-1a": {
     "entityId": "yee-c4-1123-1a",
     "slug": "c4-1123",
-    "sourceHash": "e4a7e5bcf9c82a9a",
-    "translatedBy": "gemini:gemini-2.5-flash-lite",
-    "translatedAt": "2026-09-19T12:10:43.708Z",
+    "sourceHash": "8529bff0b4ebbc3e",
+    "translatedBy": "human-assisted:source-verified",
+    "translatedAt": "2026-10-13T20:45:00.000Z",
     "data": {
-      "name": "YEE 9-in-1 Aquarium Water Test Strips - 50 Strips",
-      "description": "Fast test strips that measure 9 different aquarium water quality parameters in a single strip. The package contains 50 strips with a color chart for comparison.\n\nThe parameters measured by the strip are: pH, KH, TA, GH, NO3, NO2, Cl2, TCl, and H2S.\n\nDip the strip and use the reading method and time indicated on the package chart, then compare each square to its corresponding color.",
+      "name": "YEE 9-in-1 Aquarium Water Test Strips — 50 Strips",
+      "description": "Your aquarium water may look clear, but do you know its actual condition?\n\nThese 9-in-1 test strips monitor 9 water parameters using one strip rather than relying on appearance alone. The pack contains 50 strips and a color comparison chart to read results according to the included instructions.\n\nThe listed parameters are pH, KH, TA, GH, NO3, NO2, Cl2, TCl and H2S.\n\nImportant: These strips do not measure ammonia. They are not a substitute for confirmatory liquid tests if a reading is concerning or fish show symptoms. Follow each parameter's reading time on the pack.",
       "subcategory": "Water Test Kits",
-      "seoTitle": "YEE 9-in-1 Aquarium Water Test Strips | AQUAVO",
-      "seoDescription": "Test 9 aquarium water parameters with YEE 9-in-1 test strips. Includes 50 strips and a color chart for quick, accurate monitoring.",
+      "seoTitle": "YEE 9-in-1 Water Test Strips, 50 | AQUAVO",
+      "seoDescription": "YEE 9-in-1 aquarium water test strips, 50 per pack. Checks pH, KH, TA, GH, NO3, NO2, Cl2, TCl and H2S; not ammonia.",
       "specifications": {
         "benefits": [
-          "9 parameters in one strip",
-          "50 strips for frequent testing",
-          "Color chart for direct comparison",
-          "Suitable for quick, regular aquarium water monitoring"
+          "Monitor 9 water parameters with one test strip.",
+          "50 strips for repeated tests.",
+          "A color chart helps compare the results.",
+          "Makes it easier to track changes in water parameters over time."
         ],
         "usageInstructions": [
-          "Remove one strip and close the package immediately",
-          "Dip the strip as specified on the package chart",
-          "Lay it horizontally after removal",
-          "Adhere to the specified reading time for each parameter on the chart",
-          "Compare colors and record results if needed"
+          "Remove one strip and immediately close the container.",
+          "Dip the strip as instructed on the package.",
+          "Follow the specified strip positioning and waiting times.",
+          "Compare each test pad with its correct color chart and record the results.",
+          "If a result is abnormal, verify it using another suitable test before acting."
         ],
         "safetyWarnings": [
-          "Do not touch the test pads with fingers",
-          "Keep strips dry and close the package after each use",
-          "Do not use strips after their expiration date"
+          "Do not touch the reactive pads on the strip.",
+          "Store the container sealed and dry, away from moisture.",
+          "Do not use expired test strips.",
+          "These strips do not include an ammonia test."
         ],
-        "__cardBenefit": "9 water parameters in one strip for quick aquarium monitoring",
+        "__cardBenefit": "Clear water is not always safe water: check 9 parameters with one strip.",
         "labelled": {
+          "العلامة": {
+            "label": "Brand",
+            "value": "YEE"
+          },
+          "المؤشرات": {
+            "label": "Parameters",
+            "value": "pH, KH, TA, GH, NO3, NO2, Cl2, TCl, H2S"
+          },
           "عدد الشرائط": {
-            "label": "Number of Strips",
+            "label": "Strip count",
             "value": "50 strips"
           },
+          "عدد المؤشرات": {
+            "label": "Parameter count",
+            "value": "9"
+          },
+          "التعبئة الحالية": {
+            "label": "Current package",
+            "value": "50 strips with a color comparison chart"
+          },
           "المعايير المقاسة": {
-            "label": "Parameters Measured",
+            "label": "Measured parameters",
             "value": "pH, KH, TA, GH, NO3, NO2, Cl2, TCl, H2S"
           }
         }
       },
-      "variantLabels": {
-        "refill": "50 Strips + AQUAVO Color Chart"
-      }
+      "variantLabels": {}
     }
   },
-  "yee-c5-1123-2": {
-    "entityId": "yee-c5-1123-2",
-    "slug": "c5-1123",
-    "sourceHash": "96bc60c520cd8f43",
-    "translatedBy": "gemini:gemini-2.5-flash-lite",
-    "translatedAt": "2026-09-19T12:11:20.211Z",
+  "yee-c4-1490-1": {
+    "entityId": "yee-c4-1490-1",
+    "slug": "c4-1490",
+    "sourceHash": "de529b2449b0166e",
+    "translatedBy": "human-assisted:source-verified",
+    "translatedAt": "2026-10-13T20:30:00.000Z",
     "data": {
-      "name": "YEE 60cm Panorama Aquarium with Filter and Pump",
-      "description": "A long, narrow panoramic aquarium with dimensions of 60x15x15 cm, including a side filter and water pump. The theoretical capacity before substrate and decor is approximately 13.5 L, so careful selection of inhabitants and their numbers is required.\n\nSuitable for nano setups, plants, shrimp, and small inhabitants when their needs align with the tank's capacity and shape. Run the filter and complete the aquarium's nitrogen cycle before adding fish or shrimp.",
-      "subcategory": "Glass Aquariums",
-      "seoTitle": "YEE 60cm Panorama Aquarium | AQUAVO",
-      "seoDescription": "A 60x15x15 cm panoramic aquarium with a side filter and pump. Ideal for nano setups, plants, and shrimp. Capacity approx. 13.5L.",
+      "name": "YEE Small Fish Net with Fiberglass Handle",
+      "description": "When you need to move or temporarily remove a fish, the right net can make handling safer.\n\nThis small YEE fish net has a fiberglass handle according to the supplier invoice. Its compact size can make maneuvering easier in suitable spaces, but the net must be large enough for the fish to avoid unnecessary pressure or injury.\n\nImportant: A net does not eliminate fish stress. Work calmly and avoid chasing fish for extended periods.\n\nComing soon to AQUAVO. Final price and availability will be announced after arrival.",
+      "subcategory": "Fish Nets",
+      "seoTitle": "YEE Fiberglass-Handle Fish Net | AQUAVO",
+      "seoDescription": "Small YEE fish net with fiberglass handle for carefully catching and transferring fish. Match net size to the fish to minimize stress.",
       "specifications": {
         "benefits": [
-          "60 cm panoramic design for narrow spaces",
-          "Side filter and water pump included",
-          "Suitable for nano setups, plants, and shrimp based on species requirements",
-          "Small capacity requires careful planning of inhabitant numbers"
+          "Small net for suitable aquarium tasks.",
+          "Fiberglass handle according to the supplier invoice.",
+          "Helps catch and transfer fish carefully.",
+          "Compact size can help in limited working spaces."
         ],
         "usageInstructions": [
-          "Place the aquarium on a level and fully supportive surface",
-          "Install the filter and pump according to product instructions",
-          "Add substrate and decor, then slowly fill with water",
-          "Run the filter and complete the aquarium's nitrogen cycle before adding inhabitants"
+          "Choose a net sized for the fish, not just the aquarium.",
+          "Move slowly and avoid prolonged chasing.",
+          "Transfer the fish to a safe container of suitable water if required.",
+          "Rinse the net after use and store it clean and dry."
         ],
         "safetyWarnings": [
-          "Do not move the aquarium when full",
-          "Do not overcrowd the aquarium due to its small capacity",
-          "Ensure the pump and filter remain within the appropriate water level"
+          "Do not use a small net for a large fish that may get stuck or injured.",
+          "Never squeeze the fish inside the net.",
+          "Where possible, keep separate tools for quarantine tanks."
         ],
-        "__cardBenefit": "Slim panoramic design with ready-to-use filter and pump",
+        "__cardBenefit": "Transfer fish calmly with a net sized for the fish.",
         "labelled": {
-          "يشمل": {
-            "label": "Includes",
-            "value": "Side filter + water pump"
+          "الحجم": {
+            "label": "Size",
+            "value": "Small"
           },
-          "الأبعاد": {
-            "label": "Dimensions",
-            "value": "60x15x15 cm"
+          "العلامة": {
+            "label": "Brand",
+            "value": "YEE"
           },
-          "السعة التقريبية": {
-            "label": "Approximate Capacity",
-            "value": "13.5 L before substrate and decor"
+          "الاستخدام": {
+            "label": "Use",
+            "value": "Careful capture and transfer of ornamental fish"
+          },
+          "مادة المقبض": {
+            "label": "Handle material",
+            "value": "Fiberglass"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "yee-c4-1562-1": {
+    "entityId": "yee-c4-1562-1",
+    "slug": "c4-1562",
+    "sourceHash": "5572bc431982066f",
+    "translatedBy": "human-assisted:source-verified",
+    "translatedAt": "2026-10-13T20:30:00.000Z",
+    "data": {
+      "name": "YEE White Vertical Aquarium Thermometer",
+      "description": "Aquarium water temperature can change without being obvious. Checking it is an important part of fish care.\n\nThis white vertical YEE thermometer helps you monitor water temperature instead of relying on touch or guesswork. Check the mounting and reading instructions on the packaging before placing it.\n\nImportant: Regular measurement highlights temperature changes but cannot establish their cause by itself. The thermometer's accuracy and measurement range still require confirmation from product specifications.\n\nComing soon to AQUAVO. Final price and availability will be announced after arrival.",
+      "subcategory": "Thermometers",
+      "seoTitle": "YEE White Aquarium Thermometer | AQUAVO",
+      "seoDescription": "YEE white vertical aquarium thermometer helps monitor water temperature. Range and accuracy must be verified on arrival. Coming soon to AQUAVO.",
+      "specifications": {
+        "benefits": [
+          "Helps monitor aquarium water temperature.",
+          "White vertical design.",
+          "Useful for noticing changes when a heater runs or room temperature varies.",
+          "A simple monitoring tool for routine aquarium care."
+        ],
+        "usageInstructions": [
+          "Mount the thermometer according to the manufacturer's instructions where it is easy to read.",
+          "Choose a measuring position representative of the water, away from direct heat sources.",
+          "Read it regularly, particularly when the weather changes.",
+          "Compare unexpected readings with another reliable thermometer."
+        ],
+        "safetyWarnings": [
+          "Protect the thermometer from knocks and pressure.",
+          "Follow the manufacturer's immersion and cleaning instructions.",
+          "Do not assume an accuracy or measuring range not verified on the packaging."
+        ],
+        "__cardBenefit": "Don't guess: monitor aquarium temperature with a readable thermometer.",
+        "labelled": {
+          "اللون": {
+            "label": "Color",
+            "value": "White"
+          },
+          "النوع": {
+            "label": "Type",
+            "value": "Vertical aquarium thermometer"
+          },
+          "العلامة": {
+            "label": "Brand",
+            "value": "YEE"
+          },
+          "المدى والدقة": {
+            "label": "Range and accuracy",
+            "value": "Awaiting manufacturer confirmation"
           }
         }
       },
@@ -5353,6 +5692,59 @@
         "15m": "1.5 meter (reinforced)",
         "17m": "1.7 meter (thick)"
       }
+    }
+  },
+  "yee-c6-1017-202610": {
+    "entityId": "yee-c6-1017-202610",
+    "slug": "c6-1017",
+    "sourceHash": "4fd7988b96bd1f89",
+    "translatedBy": "human-assisted:source-verified",
+    "translatedAt": "2026-10-13T20:30:00.000Z",
+    "data": {
+      "name": "YEE Black Aquarium Base Protection Mat — 6 mm, 3 Sizes",
+      "description": "Before decorating the inside of an aquarium, make sure its base is supported by an appropriate surface.\n\nThis black mat sits underneath the tank, is 6 mm thick and is offered in 3 sizes: 60×30 cm, 60×40 cm and 100×50 cm. Match the mat to your aquarium footprint and ensure the supporting surface is level, stable and fully supported.\n\nImportant: A mat does not compensate for a weak or tilted stand. Follow your aquarium manufacturer's instructions on using under-tank mats.\n\nComing soon to AQUAVO. Sizes are on the way; final pricing and stock will be announced after delivery.",
+      "subcategory": "Aquarium Base Mats",
+      "seoTitle": "YEE Aquarium Base Mat 6 mm | AQUAVO",
+      "seoDescription": "Black YEE aquarium base protection mat, 6 mm thick, offered in 60×30, 60×40 and 100×50 cm. Check tank support requirements first.",
+      "specifications": {
+        "benefits": [
+          "Black 6 mm-thick layer for underneath the aquarium.",
+          "3 sizes suitable for different tank footprints.",
+          "Helps prepare the base neatly when a mat is recommended.",
+          "Choose the size using the tank's actual base dimensions."
+        ],
+        "usageInstructions": [
+          "Measure the aquarium base before selecting a size.",
+          "Make sure the stand is rigid, level and rated for the filled tank's weight.",
+          "Position the mat according to the aquarium manufacturer's recommendations.",
+          "Do not let the tank overhang its supporting surface."
+        ],
+        "safetyWarnings": [
+          "A mat does not make an inadequate stand or unlevel surface safe.",
+          "Check the tank manufacturer's requirements; some designs require particular support methods.",
+          "Never move the aquarium while it is full of water."
+        ],
+        "__cardBenefit": "Prepare the aquarium base with a suitable 6 mm mat in 3 sizes.",
+        "labelled": {
+          "اللون": {
+            "label": "Color",
+            "value": "Black"
+          },
+          "السماكة": {
+            "label": "Thickness",
+            "value": "6 mm"
+          },
+          "العلامة": {
+            "label": "Brand",
+            "value": "YEE"
+          },
+          "المقاسات": {
+            "label": "Sizes",
+            "value": "60×30 cm / 60×40 cm / 100×50 cm"
+          }
+        }
+      },
+      "variantLabels": {}
     }
   }
 }
