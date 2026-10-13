@@ -162,7 +162,7 @@ export default function Products() {
     refetchOnMount: true,
     refetchOnWindowFocus: false,
     retry: 2,
-    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 4000),
+    retryDelay: (attempt) => Math.min(500 * 2 ** attempt, 2000),
   });
 
   const products = data?.products ?? [];
