@@ -37,7 +37,7 @@ export default function Wishlist() {
 
   const handleAddToCart = (item: WishlistItem) => {
     // Convert WishlistItem to Product-like object for cart
-    addToCart({
+    void addToCart({
       id: item.id,
       slug: item.slug,
       name: item.name,
@@ -50,10 +50,7 @@ export default function Wishlist() {
       images: [item.image],
       category: item.category,
     });
-    toast({
-      title: t("wishlist.s3"),
-      description: t("wishlist.s4", { v0: item.name }),
-    });
+    // CartProvider shows the swipe confirmation only when addToCart succeeds.
   };
 
   const handleClearWishlist = () => {
