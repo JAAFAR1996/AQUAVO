@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { DynamicButton } from "@/components/ui/dynamic-button";
+import { ScrollFadeList } from "@/components/ui/scroll-fade-list";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { CustomerInfo, GOVERNORATES } from "./types";
@@ -299,7 +301,8 @@ export function ConfirmationView({
 
             <div className="border border-border/60 rounded-lg p-4 space-y-2">
                 <h4 className="text-sm font-semibold">{t("confirm.products", { count: cartItems.length })}</h4>
-                <div className="space-y-1.5 max-h-28 overflow-y-auto">
+                <ScrollFadeList label={t("confirm.products", { count: cartItems.length })} className="max-h-28">
+                    <div className="space-y-1.5">
                     {cartItems.map((item) => (
                         <div key={item.id} className="flex justify-between items-center text-sm">
                             <div className="min-w-0 flex-1">
@@ -309,7 +312,8 @@ export function ConfirmationView({
                             <span className="font-medium mr-2">{formatIQD(item.price * item.quantity)}</span>
                         </div>
                     ))}
-                </div>
+                    </div>
+                </ScrollFadeList>
             </div>
 
             <section className="border border-border/60 rounded-lg p-4 space-y-2" aria-labelledby="invoice-summary-heading">
@@ -406,20 +410,21 @@ export function ConfirmationView({
 
             <div className="flex flex-col gap-3 sm:flex-row">
                 <Button variant="outline" onClick={handleBack} className="order-2 h-11 w-full sm:order-1 sm:h-12 sm:flex-1" disabled={busy} aria-disabled={busy}>{t("confirm.edit")}</Button>
-                <Button
+                <DynamicButton
                     onClick={submit}
                     className="order-1 h-12 w-full text-base font-semibold sm:order-2 sm:flex-1"
-                    size="lg"
                     disabled={busy || (paymentMethod === "online" && onlineBlockedByLoyalty)}
                     aria-disabled={busy || (paymentMethod === "online" && onlineBlockedByLoyalty)}
                     aria-busy={busy}
+                    stateKey={`${paymentMethod}-${busy ? "busy" : "ready"}`}
+                    icon={busy ? <Loader2 className="animate-spin motion-reduce:animate-none" /> : paymentMethod === "online" ? <LockKeyhole /> : undefined}
                 >
-                    {isSubmitting
+                    {busy
                         ? t("confirm.processing")
                         : paymentMethod === "online"
                             ? t("confirm.payOnline", { amount: formatIQD(finalAmount) })
                             : t("confirm.placeOrder")}
-                </Button>
+                </DynamicButton>
             </div>
             <p className="sr-only" role="status" aria-live="polite">{busy ? t("confirm.processingStatus") : ""}</p>
         </div>

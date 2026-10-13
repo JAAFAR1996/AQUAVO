@@ -24,6 +24,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { InvoiceDialog } from "@/components/cart/invoice-dialog";
+import { OrderReceiptPrinter } from "@/components/cart/order-receipt-printer";
 import { formatIQD } from "@/lib/utils";
 import { readStashedOrder } from "@/lib/order-stash";
 import { ttqPurchase } from "@/lib/tiktok-pixel";
@@ -474,6 +475,19 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
                             </div>
                         </div>
                     </section>
+
+                    {!statusInterrupted && items.length > 0 && (
+                        <OrderReceiptPrinter
+                            orderNumber={displayNumber}
+                            items={items}
+                            subtotal={subtotal}
+                            deliveryFee={shippingCost}
+                            discount={discountAmount}
+                            total={Number(total)}
+                            paymentLabel={paymentLabel}
+                            dateLabel={createdAtLabel}
+                        />
+                    )}
 
                     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
                         <div className="space-y-6">
