@@ -254,6 +254,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
 
+  // Single notification source: no optimistic "added" before the cart accepts the item.
+  const notifyCartAdded = (name: string, quantity: number) => {
+    toast({
+      title: t("toaster.added"),
+      description: quantity > 1
+        ? t("toaster.addedQty", { v0: quantity, v1: name })
+        : t("toaster.addedDetail", { v0: name }),
+      swipeCart: true,
+      cartAction: true,
+    });
+  };
+
   // Load from LocalStorage on mount (for guest)
   useEffect(() => {
     if (!isAuthLoading && !user && !isInitialized) {
@@ -372,7 +384,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const addItem = async (product: Product, quantity: number = 1): Promise<boolean> => {
+  const addItem = async (product: Product, quantity: number = 1, notifySuccess = true): Promise<boolean> => {
     let { variantId, variantLabel } = getCartVariantMeta(product);
 
     // Safety net for "quick add" surfaces (suggestions, frequently-bought,
@@ -439,6 +451,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           }
           // If cartRes is not ok, item was still added — optimistic local state is already correct
           fireAddToCartAnalytics({ id: product.id, name: displayName, price: productPrice, quantity, category: product.category });
+          if (notifySuccess) notifyCartAdded(displayName, quantity);
           return true;
         }
 
@@ -538,6 +551,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
     fireAddToCartAnalytics({ id: product.id, name: displayName, price: productPrice, quantity, category: product.category });
     fireCartLifecycleAnalytics("add", product.id, quantity);
+    if (notifySuccess) notifyCartAdded(displayName, quantity);
     return true;
   };
 
@@ -549,10 +563,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
     // analytics identical for single-add and batch-add surfaces.
     let addedCount = 0;
     for (const product of products) {
-      if (await addItem(product, 1)) addedCount += 1;
+      if (await addItem(product, 1, false)) addedCount += 1;
     }
 
-    if (addedCount === 0) {
+    if (addedCount === products.length && addedCount > 0) {
+      toast({
+        title: t("toaster.added"),
+        description: t("toaster.addedMany", { v0: addedCount }),
+        cartAction: true,
+        swipeCart: true,
+      });
+    } else if (addedCount === 0) {
       toast({
         title: t("cart-context.s13"),
         description: t("cart-context.s14"),
