@@ -25,6 +25,8 @@ type ToasterToast = ToastProps & {
   description?: React.ReactNode
   action?: ToastActionElement
   cartAction?: boolean
+  /** Render this successful add as the swipe-to-dismiss React Bits toast. */
+  swipeCart?: boolean
 }
 
 const actionTypes = {
@@ -164,7 +166,7 @@ function toast({ ...props }: Toast) {
     type: "ADD_TOAST",
     toast: {
       ...props,
-      cartAction: !props.action && isSuccessfulAddToCartToast,
+      cartAction: props.cartAction ?? (!props.action && isSuccessfulAddToCartToast),
       id,
       open: true,
       onOpenChange: (open) => {
