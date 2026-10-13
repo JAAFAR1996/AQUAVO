@@ -448,6 +448,8 @@ export function AIChatBot() {
                 toast({
                     title: t("ai-chat-bot.s11"),
                     description: t("ai-chat-bot.s12", { v0: productName }),
+                    swipeCart: true,
+                    cartAction: true,
                 });
             }
         );
@@ -486,12 +488,9 @@ export function AIChatBot() {
 
     // Handle add to cart from chat
     const handleAddToCart = useCallback((product: Product) => {
-        addItem(product as any);
-        toast({
-            title: t("ai-chat-bot.s11"),
-            description: t("ai-chat-bot.s12", { v0: product.name }),
-        });
-    }, [addItem, toast]);
+        // addItem emits the shared swipe toast after stock validation succeeds.
+        void addItem(product);
+    }, [addItem]);
 
     // Handle contact support
     const handleContactSupport = useCallback(() => {
