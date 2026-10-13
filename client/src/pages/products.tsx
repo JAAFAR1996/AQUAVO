@@ -205,7 +205,7 @@ export default function Products() {
     // cannot currently be purchased displace a sellable product above the fold.
     const sellable = filtered.filter(p => hasPrice(p) && isInStock(p));
     const unavailable = filtered.filter(p => !(hasPrice(p) && isInStock(p)));
-    filtered = [...sellable, ...unavailable];
+    filtered = filters.tags.includes("in-stock") ? sellable : [...sellable, ...unavailable];
 
     return filtered;
   }, [products, filters.difficulties, filters.tags, sortBy, boostIds]);
@@ -382,7 +382,7 @@ export default function Products() {
     filters.tags.forEach(tag => {
       chips.push({
         id: `tag:${tag}`,
-        label: tag,
+        label: tag === "in-stock" ? t("tags.inStock") : tag,
         onRemove: () => setFilters(prev => ({
           ...prev,
           tags: prev.tags.filter(item => item !== tag),
@@ -412,7 +412,7 @@ export default function Products() {
     }
 
     return chips;
-  }, [filters, initialSearch, minPrice, maxPrice, setLocation]);
+  }, [filters, initialSearch, minPrice, maxPrice, setLocation, t]);
 
   const breadcrumbItems = [
     { name: t("breadcrumb.home"), url: "https://www.aquavoiq.com" },
