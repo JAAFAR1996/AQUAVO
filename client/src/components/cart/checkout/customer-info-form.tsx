@@ -111,9 +111,6 @@ function PhoneNumberSpringSlot({
                     {lastCharacter.current}
                 </motion.span>
             )}
-            {active && !char && (
-                <span data-testid="phone-slot-caret" className="aqv-phone-code-caret absolute z-[2] h-5 w-[1.5px] bg-foreground" />
-            )}
         </span>
     );
 }
@@ -136,6 +133,28 @@ function PhoneNumberCodeSlots({
     const slotCount = Math.max(isInternational ? 13 : isLocalWithoutZero ? 10 : 11, digits.length);
     const activeSlot = Math.min(caretIndex, slotCount - 1);
 
+    // The original React Bits caret travels with the active slot, rather than
+    // blinking independently in the next box. Use fractional CSS positioning
+    // so it stays aligned even when 11/13 slots shrink on a mobile screen.
+    const caretPosition = useMotionValue(activeSlot);
+    useEffect(() => {
+        if (reducedMotion) {
+            caretPosition.jump(activeSlot);
+            return;
+        }
+        const controls = animate(caretPosition, activeSlot, {
+            type: "spring",
+            duration: 0.3,
+            bounce: 0.2,
+        });
+        return () => controls.stop();
+    }, [activeSlot, caretPosition, reducedMotion]);
+    const caretLeft = useTransform(caretPosition, (index) => {
+        const emptyGapWidth = (slotCount - 1) * 4;
+        const fraction = (index + 0.5) / slotCount;
+        return "calc((100% - " + emptyGapWidth + "px) * " + fraction + " + " + (4 * index) + "px)";
+    });
+
     // Pasting/autofilling cascades at 20ms per digit; single keys are instant.
     const previousDigitsRef = useRef(digits);
     const previousDigits = previousDigitsRef.current;
@@ -152,7 +171,7 @@ function PhoneNumberCodeSlots({
             aria-hidden="true"
             data-clarity-mask="True"
             dir="ltr"
-            className="pointer-events-none flex h-full w-full items-center gap-1"
+            className="pointer-events-none relative flex h-full w-full items-center gap-1"
         >
             {Array.from({ length: slotCount }, (_, index) => (
                 <PhoneNumberSpringSlot
@@ -165,6 +184,13 @@ function PhoneNumberCodeSlots({
                     delayMs={bulkChange && firstChanged >= 0 && index >= firstChanged ? (index - firstChanged) * 20 : 0}
                 />
             ))}
+            {focused && !digits[activeSlot] && (
+                <motion.span
+                    data-testid="phone-slot-caret"
+                    className="aqv-phone-code-caret absolute z-[3] h-5 w-[1.5px] -translate-x-1/2 bg-foreground"
+                    style={{ left: caretLeft }}
+                />
+            )}
         </div>
     );
 }
