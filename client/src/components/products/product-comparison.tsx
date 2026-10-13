@@ -374,10 +374,6 @@ export function ProductComparisonTable({
     const handleAddToCart = async (product: Product) => {
         const ok = await addItem(product);
         if (!ok) return;
-        toast({
-            title: tr("product-comparison.s15"),
-            description: product.name,
-        });
     };
 
     if (products.length === 0) {
