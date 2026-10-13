@@ -223,7 +223,6 @@ export default function ProductDetails() {
       // The variant-specific ID (e.g. "yxl-003-small") doesn't exist in DB
       const variantLabel = selectedVariant?.label || "";
       const variantId = selectedVariant?.id || "";
-      const displayName = variantLabel ? `${product.name} (${variantLabel})` : product.name;
       const productToAdd = selectedVariant
         ? {
           ...product,
@@ -246,10 +245,6 @@ export default function ProductDetails() {
           const ok = await addItem(productToAdd, quantity);
           if (!ok) return;
           setIsAddedToCart(true);
-          toast({
-            title: t("toast.added"),
-            description: quantity > 1 ? t("toast.addedDetailQty", { count: quantity, name: displayName }) : t("toast.addedDetail", { name: displayName }),
-          });
           setTimeout(() => setIsAddedToCart(false), 2000);
         } finally {
           setIsAddingToCart(false);
