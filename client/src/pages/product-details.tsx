@@ -6,6 +6,7 @@ import { fetchProductBySlug, fetchProductVariants } from "@/lib/api";
 import { getEmbeddedProduct } from "@/lib/embedded-product";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { DynamicButton } from "@/components/ui/dynamic-button";
 import { Badge } from "@/components/ui/badge";
 import { formatNumber, formatPrice } from "@/lib/format";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -708,32 +709,25 @@ export default function ProductDetails() {
                       min-w-0 stays load-bearing for long Sorani labels.
                     */}
                     <div className="flex flex-col gap-3">
-                      <Button
-                        size="lg"
-                        className={`w-full min-w-0 gap-2 text-lg h-12 transition-all duration-300 ${isAddedToCart ? 'bg-green-500 hover:bg-green-600' : ''
-                          }`}
+                      <DynamicButton
+                        // Keep the full-width conversion CTA on phones, while
+                        // the original Dqnamo label/icon crossfade responds to
+                        // the real add → adding → added request states.
+                        width="full"
+                        stateKey={isAddingToCart ? "adding" : isAddedToCart ? "added" : "ready"}
+                        icon={isAddingToCart
+                          ? <Loader2 className="animate-spin motion-reduce:animate-none" />
+                          : isAddedToCart
+                            ? <Check />
+                            : <ShoppingCart />}
+                        className={`h-12 w-full min-w-0 rounded-lg text-lg font-semibold ${isAddedToCart ? "border-green-600 bg-green-600 hover:bg-green-700" : ""}`}
                         onClick={handleAddToCart}
                         disabled={isAddingToCart}
                         aria-disabled={isAddingToCart}
                         aria-busy={isAddingToCart}
                       >
-                        {isAddingToCart ? (
-                          <>
-                            <Loader2 className="w-5 h-5 animate-spin" aria-hidden="true" />
-                            {t("cart.adding")}
-                          </>
-                        ) : isAddedToCart ? (
-                          <>
-                            <Check className="w-5 h-5" aria-hidden="true" />
-                            {t("cart.added")}
-                          </>
-                        ) : (
-                          <>
-                            <ShoppingCart className="w-5 h-5" aria-hidden="true" />
-                            {t("cart.add")}
-                          </>
-                        )}
-                      </Button>
+                        {isAddingToCart ? t("cart.adding") : isAddedToCart ? t("cart.added") : t("cart.add")}
+                      </DynamicButton>
                       <div className="flex flex-wrap items-center justify-between gap-1 text-sm">
                         <WishlistButton
                           product={product}
