@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useLayoutEffect, useRef } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Link, useRoute } from "wouter";
 import { MetaTags } from "@/components/seo/meta-tags";
 import { Button } from "@/components/ui/button";
@@ -6,20 +6,15 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import {
     Check,
     CheckCircle2,
+    ChevronDown,
     Clock,
     Copy,
-    Crown,
     Gift,
     Home,
-    MapPin,
     MessageCircle,
     Package,
-    Phone,
     Printer,
-    Star,
     Truck,
-    User,
-    Wallet,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -339,46 +334,6 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
         (itemsText ? `\n${itemsText}\n` : "") +
         (total > 0 ? t("order-confirmation.s26", { v0: formatIQD(total), v1: paymentLabel }) : "");
 
-    const pageRef = useRef<HTMLDivElement>(null);
-    const heroRef = useRef<HTMLDivElement>(null);
-    const rowRefs = useRef<(HTMLDivElement | null)[]>([]);
-    const factsRef = useRef<HTMLDivElement>(null);
-
-    useLayoutEffect(() => {
-        const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-        if (reduce || !("animate" in Element.prototype)) return;
-
-        const anims: Animation[] = [];
-        const run = (el: Element | null, kf: Keyframe[], opts: KeyframeAnimationOptions) => {
-            if (el) anims.push(el.animate(kf, { fill: "both", ...opts }));
-        };
-
-        run(pageRef.current, [{ opacity: 0 }, { opacity: 1 }], {
-            duration: 160,
-            easing: "ease-out",
-        });
-        run(heroRef.current, [{ opacity: 0, transform: "translateY(6px)" }, { opacity: 1, transform: "translateY(0)" }], {
-            duration: 220,
-            delay: 50,
-            easing: "cubic-bezier(0.22,1,0.36,1)",
-        });
-        rowRefs.current.forEach((row, index) => run(row, [
-            { opacity: 0, transform: "translateY(5px)" },
-            { opacity: 1, transform: "translateY(0)" },
-        ], {
-            duration: 190,
-            delay: 120 + index * 45,
-            easing: "cubic-bezier(0.22,1,0.36,1)",
-        }));
-        run(factsRef.current, [{ opacity: 0, transform: "translateY(5px)" }, { opacity: 1, transform: "translateY(0)" }], {
-            duration: 200,
-            delay: 200,
-            easing: "cubic-bezier(0.22,1,0.36,1)",
-        });
-
-        return () => anims.forEach((animation) => animation.cancel());
-    }, [orderId]);
-
     const statusTone = statusInterrupted
         ? "border-destructive/20 bg-destructive/10 text-destructive"
         : status === "delivered"
@@ -406,73 +361,60 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
     return (
         <div className="flex-1 bg-background font-sans">
             <MetaTags
-                title={t("order-confirmation.s33")}
-                description={t("order-confirmation.s34")}
+                title={statusInterrupted ? t("order-confirmation.s24") : t("order-confirmation.s33")}
+                description={statusInterrupted ? t("order-confirmation.s57") : t("order-confirmation.s34")}
                 noIndex={true}
             />
 
-            <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8" dir="rtl">
-                <div ref={pageRef} className="space-y-6">
+            <main className="mx-auto w-full max-w-[800px] px-4 py-6 sm:px-6 sm:py-10" dir={i18next.dir()}>
+                <div className="space-y-6 sm:space-y-8">
+                    {/* Compact confirmation: the animated receipt is the visual centerpiece. */}
                     <section
-                        ref={heroRef}
                         aria-labelledby="order-confirmation-title"
-                        className="overflow-hidden rounded-3xl border border-primary/20 bg-card text-card-foreground shadow-sm"
+                        className="rounded-2xl border border-primary/20 bg-card px-4 py-5 shadow-sm sm:px-6 sm:py-6"
                     >
-                        <div className="h-1.5 w-full bg-gradient-to-l from-primary via-primary to-primary/70" />
-                        <div className="p-5 sm:p-7 lg:p-8">
-                            <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-                                <div className="flex min-w-0 items-start gap-4 sm:gap-5">
-                                    <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-primary/10 text-primary sm:h-16 sm:w-16">
-                                        <CheckCircle2 className="h-8 w-8 sm:h-9 sm:w-9" strokeWidth={2} aria-hidden="true" />
-                                    </div>
-                                    <div className="min-w-0">
-                                        <div className={`mb-2 inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${statusTone}`}>
-                                            {statusLabel}
-                                        </div>
-                                        <h1 id="order-confirmation-title" className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-                                            {t("order-confirmation.s33")}
-                                        </h1>
-                                        <p className="mt-2 max-w-xl text-sm leading-7 text-muted-foreground sm:text-base">
-                                            {t("order-confirmation.s35")}
-                                        </p>
-                                        <p className="mt-1 text-xs leading-6 text-muted-foreground sm:text-sm">
-                                            {t("order-confirmation.s36")}
-                                        </p>
-                                    </div>
+                        <div className="flex items-start gap-3 sm:gap-4">
+                            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary" aria-hidden="true">
+                                <CheckCircle2 className="h-6 w-6" />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                                <div className={\`mb-2 inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold \${statusTone}\`}>
+                                    {statusLabel}
                                 </div>
-
-                                <div className="grid gap-3 sm:grid-cols-2 lg:w-[520px] lg:shrink-0">
-                                    <div className="rounded-2xl border border-border bg-muted/35 p-4">
-                                        <p className="text-xs font-medium text-muted-foreground">{t("order-confirmation.s37")}</p>
-                                        <div className="mt-1.5 flex items-center justify-between gap-3">
-                                            <bdi className="min-w-0 truncate font-mono text-base font-bold tracking-wide text-foreground sm:text-lg" dir="ltr">
-                                                #{displayNumber}
-                                            </bdi>
-                                            <button
-                                                type="button"
-                                                onClick={copyOrderNumber}
-                                                aria-label={copied ? t("order-confirmation.s38") : t("order-confirmation.s39")}
-                                                className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-border bg-background text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                                            >
-                                                {copied ? <Check className="h-4 w-4 text-primary" /> : <Copy className="h-4 w-4" />}
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <div className="rounded-2xl border border-border bg-muted/35 p-4">
-                                        <div className="flex items-start gap-3">
-                                            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
-                                                <Clock className="h-5 w-5" aria-hidden="true" />
-                                            </span>
-                                            <div>
-                                                <p className="text-xs font-medium text-muted-foreground">{t("order-confirmation.s40")}</p>
-                                                <p className="mt-0.5 text-base font-bold text-foreground">{getDeliveryEstimate()}</p>
-                                                {createdAtLabel && <p className="mt-0.5 text-xs text-muted-foreground">{t("order-confirmation.s41")} {createdAtLabel}</p>}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                <h1 id="order-confirmation-title" className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
+                                    {statusInterrupted ? t("order-confirmation.s56") : t("order-confirmation.s33")}
+                                </h1>
+                                <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
+                                    {statusInterrupted ? t("order-confirmation.s57") : t("order-confirmation.s35")}
+                                </p>
                             </div>
+                        </div>
+                        <div className="mt-4 grid gap-3 border-t border-border pt-4 sm:grid-cols-2">
+                            <div className="flex min-w-0 items-center justify-between gap-2 rounded-xl bg-muted/35 px-3 py-2.5">
+                                <div className="min-w-0">
+                                    <p className="text-xs text-muted-foreground">{t("order-confirmation.s37")}</p>
+                                    <bdi dir="ltr" className="mt-1 block truncate font-mono text-sm font-bold text-foreground">
+                                        #{displayNumber}
+                                    </bdi>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={copyOrderNumber}
+                                    aria-label={copied ? t("order-confirmation.s38") : t("order-confirmation.s39")}
+                                    className="grid h-11 w-11 shrink-0 place-items-center rounded-lg border border-border bg-card text-muted-foreground transition-colors hover:border-primary/45 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                >
+                                    {copied ? <Check className="h-4 w-4 text-primary" /> : <Copy className="h-4 w-4" />}
+                                </button>
+                            </div>
+                            {!statusInterrupted && (
+                                <div className="flex items-center gap-3 rounded-xl bg-muted/35 px-3 py-2.5">
+                                    <Clock className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
+                                    <div className="min-w-0">
+                                        <p className="text-xs text-muted-foreground">{t("order-confirmation.s40")}</p>
+                                        <p className="mt-0.5 text-sm font-bold text-foreground">{getDeliveryEstimate()}</p>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </section>
 
@@ -489,107 +431,179 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
                         />
                     )}
 
-                    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
-                        <div className="space-y-6">
-                            {items.length > 0 && (
-                                <section aria-labelledby="order-items-title" className="rounded-3xl border border-border bg-card p-5 shadow-sm sm:p-6">
-                                    <div className="mb-4 flex items-center justify-between gap-4">
-                                        <div>
-                                            <h2 id="order-items-title" className="text-lg font-bold text-foreground sm:text-xl">{t("order-confirmation.s42")}</h2>
-                                            <p className="mt-1 text-sm text-muted-foreground">{t("order-confirmation.s43")}</p>
-                                        </div>
-                                        <span className="shrink-0 rounded-full bg-muted px-3 py-1.5 text-xs font-semibold text-muted-foreground">
-                                            {items.length} {items.length === 1 ? t("order-confirmation.s44") : t("order-confirmation.s45")}
-                                        </span>
-                                    </div>
+                    {/* One clear action group immediately after the receipt. */}
+                    <section aria-labelledby="order-next-actions" className="mx-auto max-w-2xl rounded-2xl border border-border bg-card px-4 py-5 sm:px-6">
+                        <h2 id="order-next-actions" className="text-base font-bold text-foreground">
+                            {t("order-confirmation.s54")}
+                        </h2>
+                        <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                            {statusInterrupted ? t("order-confirmation.s57") : t("order-confirmation.s55")}
+                        </p>
+                        <div className="mt-4 grid gap-2.5 sm:grid-cols-2">
+                            <Button asChild className="min-h-12 w-full text-sm font-bold">
+                                <Link href="/order-tracking" className="flex items-center justify-center gap-2">
+                                    <Truck className="h-4 w-4" aria-hidden="true" />
+                                    {t("order-confirmation.s73")}
+                                </Link>
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                className="min-h-12 w-full gap-2 text-sm font-semibold"
+                                onClick={() => setInvoiceOpen(true)}
+                            >
+                                <Printer className="h-4 w-4" aria-hidden="true" />
+                                {t("order-confirmation.s74")}
+                            </Button>
+                        </div>
+                        <div className="mt-3 flex flex-col items-center justify-center gap-2 sm:flex-row sm:gap-5">
+                            <WhatsAppLink
+                                source="order_confirmation"
+                                orderNumber={orderData?.orderNumber ?? orderId}
+                                message={whatsappText}
+                                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                            >
+                                <MessageCircle className="h-4 w-4" aria-hidden="true" />
+                                {t("order-confirmation.s75")}
+                            </WhatsAppLink>
+                            <Link
+                                href="/products"
+                                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                            >
+                                <Home className="h-4 w-4" aria-hidden="true" />
+                                {t("order-confirmation.s23")}
+                            </Link>
+                        </div>
+                    </section>
 
-                                    <div className="space-y-3">
+                    {/* All existing order information remains available without competing with the receipt. */}
+                    <details className="group mx-auto max-w-2xl overflow-hidden rounded-2xl border border-border bg-card">
+                        <summary className="flex min-h-16 cursor-pointer list-none items-center justify-between gap-4 px-4 py-4 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-primary sm:px-6 [&::-webkit-details-marker]:hidden">
+                            <div className="min-w-0">
+                                <h2 className="text-base font-bold text-foreground">{t("order-confirmation.s42")}</h2>
+                                <p className="mt-1 text-xs leading-5 text-muted-foreground">{t("order-confirmation.s77")}</p>
+                            </div>
+                            <ChevronDown className="h-5 w-5 shrink-0 text-muted-foreground transition-transform duration-200 group-open:rotate-180 motion-reduce:transition-none" aria-hidden="true" />
+                        </summary>
+
+                        <div className="space-y-6 border-t border-border px-4 py-5 sm:px-6 sm:py-6">
+                            {items.length > 0 && (
+                                <section aria-labelledby="order-items-title">
+                                    <h3 id="order-items-title" className="mb-3 text-sm font-bold text-foreground">{t("order-confirmation.s43")}</h3>
+                                    <ul className="divide-y divide-border/70">
                                         {items.map((item, idx) => (
-                                            <div
-                                                key={`${item.productId}-${item.variantId || idx}`}
-                                                ref={(el) => { rowRefs.current[idx] = el; }}
-                                                className="flex items-center gap-4 rounded-2xl border border-border bg-muted/25 p-3 sm:p-4"
-                                            >
-                                                <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-border bg-muted sm:h-20 sm:w-20">
+                                            <li key={\`\${item.productId}-\${item.variantId || idx}\`} className="flex items-center gap-3 py-3">
+                                                <div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-lg border border-border bg-muted/30">
                                                     {item.image ? (
                                                         <img
                                                             src={item.image}
                                                             alt={item.productName || t("order-confirmation.s46")}
                                                             className="h-full w-full object-cover"
                                                             loading="lazy"
+                                                            width={48}
+                                                            height={48}
                                                         />
-                                                    ) : (
-                                                        <span className="grid h-full w-full place-items-center text-sm font-bold text-primary">{item.quantity}</span>
-                                                    )}
+                                                    ) : <Package className="h-5 w-5 text-muted-foreground" aria-hidden="true" />}
                                                 </div>
                                                 <div className="min-w-0 flex-1">
-                                                    <p className="text-sm font-semibold leading-6 text-foreground sm:text-base">
-                                                        {bidi(item.productName || item.productId)}
+                                                    <p className="text-sm font-semibold leading-5 text-foreground">{bidi(item.productName || item.productId)}</p>
+                                                    <p className="mt-1 text-xs text-muted-foreground">
+                                                        {item.variantLabel ? \`\${item.variantLabel} · \` : ""}{t("order-confirmation.s47")} {item.quantity}
                                                     </p>
-                                                    <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-muted-foreground sm:text-sm">
-                                                        {item.variantLabel && (
-                                                            <span className="rounded-lg border border-border bg-background px-2 py-1">{item.variantLabel}</span>
-                                                        )}
-                                                        <span>{t("order-confirmation.s47")} {item.quantity}</span>
-                                                    </div>
                                                 </div>
                                                 {item.priceAtPurchase != null && (
-                                                    <bdi className="shrink-0 text-sm font-bold text-foreground sm:text-base">
+                                                    <bdi dir="ltr" className="shrink-0 text-xs font-semibold text-foreground sm:text-sm">
                                                         {formatIQD(Number(item.priceAtPurchase) * item.quantity)}
                                                     </bdi>
                                                 )}
-                                            </div>
+                                            </li>
                                         ))}
-                                    </div>
+                                    </ul>
                                 </section>
                             )}
 
-                            <section ref={factsRef} aria-labelledby="delivery-details-title" className="rounded-3xl border border-border bg-card p-5 shadow-sm sm:p-6">
-                                <div className="mb-4">
-                                    <h2 id="delivery-details-title" className="text-lg font-bold text-foreground sm:text-xl">{t("order-confirmation.s48")}</h2>
-                                    <p className="mt-1 text-sm text-muted-foreground">{t("order-confirmation.s49")}</p>
-                                </div>
-                                <div className="grid gap-3 sm:grid-cols-2">
-                                    <Fact icon={<Wallet className="h-5 w-5" />} label={t("order-confirmation.s50")} value={paymentLabel} />
-                                    <Fact icon={<Clock className="h-5 w-5" />} label={t("order-confirmation.s40")} value={getDeliveryEstimate()} />
-                                    {customerName && <Fact icon={<User className="h-5 w-5" />} label={t("order-confirmation.s51")} value={customerName} sensitive />}
-                                    {customerPhone && <Fact icon={<Phone className="h-5 w-5" />} label={t("order-confirmation.s52")} value={customerPhone} ltr sensitive />}
-                                    {address && <Fact icon={<MapPin className="h-5 w-5" />} label={t("order-confirmation.s53")} value={address} full sensitive />}
-                                </div>
+                            <section aria-labelledby="order-shipping-title" className="border-t border-border pt-5">
+                                <h3 id="order-shipping-title" className="mb-3 text-sm font-bold text-foreground">{t("order-confirmation.s48")}</h3>
+                                <dl className="space-y-3 text-sm">
+                                    <div className="flex flex-wrap items-baseline justify-between gap-2">
+                                        <dt className="text-muted-foreground">{t("order-confirmation.s50")}</dt>
+                                        <dd className="font-medium text-foreground">{paymentLabel}</dd>
+                                    </div>
+                                    {!statusInterrupted && (
+                                        <div className="flex flex-wrap items-baseline justify-between gap-2">
+                                            <dt className="text-muted-foreground">{t("order-confirmation.s40")}</dt>
+                                            <dd className="font-medium text-foreground">{getDeliveryEstimate()}</dd>
+                                        </div>
+                                    )}
+                                    {customerName && (
+                                        <div className="flex flex-wrap items-baseline justify-between gap-2">
+                                            <dt className="text-muted-foreground">{t("order-confirmation.s51")}</dt>
+                                            <dd dir="auto" className="ph-no-capture break-words font-medium text-foreground" data-clarity-mask="True">{customerName}</dd>
+                                        </div>
+                                    )}
+                                    {customerPhone && (
+                                        <div className="flex flex-wrap items-baseline justify-between gap-2">
+                                            <dt className="text-muted-foreground">{t("order-confirmation.s52")}</dt>
+                                            <dd dir="ltr" className="ph-no-capture font-medium text-foreground" data-clarity-mask="True">{customerPhone}</dd>
+                                        </div>
+                                    )}
+                                    {address && (
+                                        <div className="flex flex-wrap items-baseline justify-between gap-2">
+                                            <dt className="text-muted-foreground">{t("order-confirmation.s53")}</dt>
+                                            <dd dir="auto" className="ph-no-capture max-w-full break-words font-medium text-foreground" data-clarity-mask="True">{address}</dd>
+                                        </div>
+                                    )}
+                                </dl>
                             </section>
 
-                            <section aria-labelledby="next-steps-title" className="rounded-3xl border border-border bg-card p-5 shadow-sm sm:p-6">
-                                <div className="mb-4">
-                                    <h2 id="next-steps-title" className="text-lg font-bold text-foreground sm:text-xl">{t("order-confirmation.s54")}</h2>
-                                    <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                                        {t("order-confirmation.s55")}
-                                    </p>
-                                </div>
-
-                                {statusInterrupted ? (
-                                    <div className="rounded-2xl border border-destructive/20 bg-destructive/5 p-4">
-                                        <p className="font-semibold text-foreground">{t("order-confirmation.s56")} {statusLabel}</p>
-                                        <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                                            {t("order-confirmation.s57")}
-                                        </p>
+                            <section aria-labelledby="order-financial-title" className="border-t border-border pt-5">
+                                <h3 id="order-financial-title" className="mb-3 text-sm font-bold text-foreground">{t("order-confirmation.s67")}</h3>
+                                <dl className="space-y-3 text-sm">
+                                    {subtotal > 0 && (
+                                        <div className="flex items-center justify-between gap-3">
+                                            <dt className="text-muted-foreground">{t("order-confirmation.s69")}</dt>
+                                            <dd dir="ltr" className="font-medium text-foreground">{formatIQD(subtotal)}</dd>
+                                        </div>
+                                    )}
+                                    <div className="flex items-center justify-between gap-3">
+                                        <dt className="text-muted-foreground">{t("order-confirmation.s31")}</dt>
+                                        <dd dir="ltr" className="font-medium text-foreground">
+                                            {shippingCost === 0 ? t("order-confirmation.s70") : formatIQD(shippingCost)}
+                                        </dd>
                                     </div>
+                                    {discountAmount > 0 && (
+                                        <div className="flex items-center justify-between gap-3">
+                                            <dt className="text-muted-foreground">{t("order-confirmation.s71")}</dt>
+                                            <dd dir="ltr" className="font-medium text-primary">-{formatIQD(discountAmount)}</dd>
+                                        </div>
+                                    )}
+                                    <div className="flex items-center justify-between gap-3 border-t border-border pt-3">
+                                        <dt className="font-bold text-foreground">{t("order-confirmation.s72")}</dt>
+                                        <dd dir="ltr" className="text-lg font-bold text-foreground">{formatIQD(total)}</dd>
+                                    </div>
+                                </dl>
+                            </section>
+
+                            <section aria-labelledby="order-progress-title" className="border-t border-border pt-5">
+                                <h3 id="order-progress-title" className="mb-3 text-sm font-bold text-foreground">{t("order-confirmation.s54")}</h3>
+                                {statusInterrupted ? (
+                                    <p className="rounded-lg border border-destructive/20 bg-destructive/5 p-3 text-sm leading-6 text-foreground">
+                                        {t("order-confirmation.s56")} {statusLabel}. {t("order-confirmation.s57")}
+                                    </p>
                                 ) : (
-                                    <ol className="grid gap-3 sm:grid-cols-3">
+                                    <ol className="grid gap-2 sm:grid-cols-3">
                                         {flowSteps.map((step, index) => {
                                             const StepIcon = step.icon;
                                             const completed = progressStage > index;
                                             const current = progressStage === index;
-                                            const active = completed || current;
                                             return (
                                                 <li
                                                     key={step.title}
                                                     aria-current={current ? "step" : undefined}
-                                                    className={`rounded-2xl border p-4 ${active ? "border-primary/25 bg-primary/5" : "border-border bg-muted/20"}`}
+                                                    className={\`rounded-xl border px-3 py-3 \${completed || current ? "border-primary/25 bg-primary/5" : "border-border bg-muted/20"}\`}
                                                 >
-                                                    <div className={`mb-3 grid h-10 w-10 place-items-center rounded-xl ${active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
-                                                        {completed ? <Check className="h-5 w-5" aria-hidden="true" /> : <StepIcon className="h-5 w-5" aria-hidden="true" />}
-                                                    </div>
-                                                    <p className="text-sm font-bold text-foreground">{step.title}</p>
+                                                    <StepIcon className="mb-2 h-4 w-4 text-primary" aria-hidden="true" />
+                                                    <p className="text-xs font-semibold text-foreground">{step.title}</p>
                                                     <p className="mt-1 text-xs leading-5 text-muted-foreground">{step.description}</p>
                                                 </li>
                                             );
@@ -599,131 +613,35 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
                             </section>
 
                             {loyalty && (loyalty.pointsEarned > 0 || loyalty.cashbackEarned > 0) && (
-                                <section aria-labelledby="order-rewards-title" className="rounded-3xl border border-primary/20 bg-primary/5 p-5 sm:p-6">
-                                    <div className="mb-4 flex items-center gap-2">
-                                        <span className="grid h-10 w-10 place-items-center rounded-xl bg-primary/10 text-primary">
-                                            <Gift className="h-5 w-5" aria-hidden="true" />
-                                        </span>
-                                        <div>
-                                            <h2 id="order-rewards-title" className="font-bold text-foreground">{t("order-confirmation.s58")}</h2>
-                                            <p className="text-xs text-muted-foreground">{t("order-confirmation.s59")}</p>
-                                        </div>
+                                <section aria-labelledby="order-rewards-title" className="border-t border-border pt-5">
+                                    <div className="mb-3 flex items-center gap-2">
+                                        <Gift className="h-4 w-4 text-primary" aria-hidden="true" />
+                                        <h3 id="order-rewards-title" className="text-sm font-bold text-foreground">{t("order-confirmation.s58")}</h3>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-3">
+                                    <p className="mb-3 text-xs text-muted-foreground">{t("order-confirmation.s59")}</p>
+                                    <dl className="space-y-2 text-sm">
                                         {loyalty.pointsEarned > 0 && (
-                                            <div className="rounded-2xl border border-border bg-card p-4 text-center">
-                                                <Star className="mx-auto mb-1 h-5 w-5 text-yellow-500 dark:text-yellow-400" aria-hidden="true" />
-                                                <p className="text-xl font-bold text-primary">+{loyalty.pointsEarned}</p>
-                                                <p className="text-xs text-muted-foreground">{t("order-confirmation.s60")}</p>
+                                            <div className="flex items-center justify-between gap-2">
+                                                <dt className="text-muted-foreground">{t("order-confirmation.s60")}</dt>
+                                                <dd className="font-semibold text-foreground">+{loyalty.pointsEarned}</dd>
                                             </div>
                                         )}
                                         {loyalty.cashbackEarned > 0 && (
-                                            <div className="rounded-2xl border border-border bg-card p-4 text-center">
-                                                <Crown className="mx-auto mb-1 h-5 w-5 text-purple-500 dark:text-purple-300" aria-hidden="true" />
-                                                <p className="text-xl font-bold text-purple-600 dark:text-purple-300">+{loyalty.cashbackEarned}</p>
-                                                <p className="text-xs text-muted-foreground">{t("order-confirmation.s61")}</p>
+                                            <div className="flex items-center justify-between gap-2">
+                                                <dt className="text-muted-foreground">{t("order-confirmation.s61")}</dt>
+                                                <dd className="font-semibold text-foreground">+{loyalty.cashbackEarned}</dd>
                                             </div>
                                         )}
-                                    </div>
+                                    </dl>
                                     {loyalty.tierUpgraded && (
-                                        <div className="mt-3 rounded-xl border border-yellow-400/30 bg-yellow-400/10 p-3 text-center">
-                                            <p className="text-sm font-bold text-yellow-700 dark:text-yellow-300">
-                                                {t("order-confirmation.s62")} {loyalty.tier === "diamond" ? t("order-confirmation.s63") : loyalty.tier === "gold" ? t("order-confirmation.s64") : loyalty.tier === "silver" ? t("order-confirmation.s65") : t("order-confirmation.s66")}!
-                                            </p>
-                                        </div>
+                                        <p className="mt-3 text-sm font-medium text-primary">
+                                            {t("order-confirmation.s62")} {loyalty.tier === "diamond" ? t("order-confirmation.s63") : loyalty.tier === "gold" ? t("order-confirmation.s64") : loyalty.tier === "silver" ? t("order-confirmation.s65") : t("order-confirmation.s66")}
+                                        </p>
                                     )}
                                 </section>
                             )}
                         </div>
-
-                        <aside className="lg:sticky lg:top-24">
-                            <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
-                                <div className="p-5 sm:p-6">
-                                    <div className="flex items-center justify-between gap-3">
-                                        <div>
-                                            <h2 className="text-lg font-bold text-foreground">{t("order-confirmation.s67")}</h2>
-                                            <p className="mt-1 text-xs text-muted-foreground">{t("order-confirmation.s68")}</p>
-                                        </div>
-                                        <span className="grid h-10 w-10 place-items-center rounded-xl bg-primary/10 text-primary">
-                                            <Wallet className="h-5 w-5" aria-hidden="true" />
-                                        </span>
-                                    </div>
-
-                                    {total > 0 && (
-                                        <div className="mt-5 space-y-3 text-sm">
-                                            {subtotal > 0 && (
-                                                <div className="flex items-center justify-between gap-4 text-muted-foreground">
-                                                    <span>{t("order-confirmation.s69")}</span>
-                                                    <bdi className="font-medium text-foreground">{formatIQD(subtotal)}</bdi>
-                                                </div>
-                                            )}
-                                            {shippingCost > 0 && (
-                                                <div className="flex items-center justify-between gap-4 text-muted-foreground">
-                                                    <span>{t("order-confirmation.s31")}</span>
-                                                    <bdi className="font-medium text-foreground">{formatIQD(shippingCost)}</bdi>
-                                                </div>
-                                            )}
-                                            {shippingCost === 0 && subtotal > 0 && (
-                                                <div className="flex items-center justify-between gap-4 text-muted-foreground">
-                                                    <span>{t("order-confirmation.s31")}</span>
-                                                    <span className="font-semibold text-primary">{t("order-confirmation.s70")}</span>
-                                                </div>
-                                            )}
-                                            {discountAmount > 0 && (
-                                                <div className="flex items-center justify-between gap-4 text-muted-foreground">
-                                                    <span>{t("order-confirmation.s71")}</span>
-                                                    <bdi className="font-semibold text-primary">-{formatIQD(discountAmount)}</bdi>
-                                                </div>
-                                            )}
-                                            <div className="flex items-center justify-between gap-4 border-t border-border pt-4">
-                                                <span className="font-bold text-foreground">{t("order-confirmation.s72")}</span>
-                                                <bdi className="text-2xl font-bold text-primary">{formatIQD(total)}</bdi>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    <div className="mt-5 rounded-2xl bg-muted/35 p-3.5">
-                                        <p className="text-xs text-muted-foreground">{t("order-confirmation.s50")}</p>
-                                        <p className="mt-1 text-sm font-semibold text-foreground">{paymentLabel}</p>
-                                    </div>
-                                </div>
-
-                                <div className="border-t border-border bg-muted/15 p-5 sm:p-6">
-                                    <div className="space-y-3">
-                                        <Button asChild className="min-h-12 w-full text-sm font-bold">
-                                            <Link href="/order-tracking">
-                                                <Truck className="ml-2 h-4 w-4" aria-hidden="true" />
-                                                {t("order-confirmation.s73")}
-                                            </Link>
-                                        </Button>
-                                        <Button
-                                            className="min-h-12 w-full text-sm font-semibold"
-                                            variant="outline"
-                                            onClick={() => setInvoiceOpen(true)}
-                                        >
-                                            <Printer className="ml-2 h-4 w-4" aria-hidden="true" />
-                                            {t("order-confirmation.s74")}
-                                        </Button>
-                                        <WhatsAppLink
-                                            source="order_confirmation"
-                                            orderNumber={orderData?.orderNumber ?? orderId}
-                                            message={whatsappText}
-                                            className="flex min-h-12 w-full items-center justify-center gap-2 rounded-md border border-border bg-background px-4 text-sm font-semibold text-foreground transition-colors hover:border-primary/45 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                                        >
-                                            <MessageCircle className="h-4 w-4 text-primary" aria-hidden="true" />
-                                            {t("order-confirmation.s75")}
-                                        </WhatsAppLink>
-                                        <Button asChild className="min-h-11 w-full text-muted-foreground hover:bg-muted hover:text-foreground" variant="ghost">
-                                            <Link href="/">
-                                                <Home className="ml-2 h-4 w-4" aria-hidden="true" />
-                                                {t("order-confirmation.s76")}
-                                            </Link>
-                                        </Button>
-                                    </div>
-                                </div>
-                            </div>
-                        </aside>
-                    </div>
+                    </details>
                 </div>
             </main>
 
@@ -736,20 +654,3 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
     );
 }
 
-function Fact({ icon, label, value, ltr, full, sensitive }: { icon: React.ReactNode; label: string; value: string; ltr?: boolean; full?: boolean; sensitive?: boolean }) {
-    return (
-        <div className={`flex min-h-20 items-start gap-3 rounded-2xl border border-border bg-muted/25 p-4 ${full ? "sm:col-span-2" : ""}`}>
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">{icon}</span>
-            <div className="min-w-0 flex-1">
-                <div className="text-xs font-medium text-muted-foreground">{label}</div>
-                <div
-                    className={`mt-1 break-words text-sm font-semibold leading-6 text-foreground${sensitive ? " ph-no-capture" : ""}`}
-                    dir={ltr ? "ltr" : "auto"}
-                    {...(sensitive ? { "data-clarity-mask": "True" } : {})}
-                >
-                    {value}
-                </div>
-            </div>
-        </div>
-    );
-}
