@@ -52,6 +52,7 @@ export function Toaster() {
                 fuse="bottom"
                 pauseOnHover
                 closeButton
+                closeLabel={t("toaster.close")}
               />
             </div>
           );
