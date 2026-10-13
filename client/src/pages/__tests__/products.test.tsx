@@ -142,7 +142,7 @@ describe('Products Page', () => {
         vi.mocked(fetchProducts).mockRejectedValue(new Error('network unavailable'));
         render(<Products />, { wrapper: createWrapper() });
 
-        expect(await screen.findByRole('heading', { name: 'ما كدرنا نحمّل المنتجات' })).toBeInTheDocument();
+        expect(await screen.findByRole('heading', { name: 'ما كدرنا نحمّل المنتجات' }, { timeout: 4000 })).toBeInTheDocument();
         expect(screen.getByRole('button', { name: 'حاول مرة ثانية' })).toBeInTheDocument();
         expect(screen.queryByRole('heading', { name: 'لم يتم العثور على منتجات' })).not.toBeInTheDocument();
     });
@@ -207,15 +207,16 @@ describe('Products page — backend outcome states', () => {
         vi.mocked(fetchProducts).mockRejectedValue(new Error('HTTP 500: Server initialization error'));
         render(<Products />, { wrapper: createWrapper() });
 
-        expect(await screen.findByRole('heading', { name: ERROR_HEADING }, { timeout: 5000 })).toBeInTheDocument();
+        expect(await screen.findByRole('heading', { name: ERROR_HEADING }, { timeout: 4000 })).toBeInTheDocument();
         expect(screen.queryByRole('heading', { name: EMPTY_HEADING })).not.toBeInTheDocument();
     });
 
     it('retry re-issues the request and leaves the error state once the backend recovers', async () => {
         const user = userEvent.setup();
-        // The page's own query sets `retry: 1`, so the initial load makes two
-        // attempts. Both must fail before the error state is reachable.
+        // The page retries twice on transient failure: the three initial
+        // attempts must fail before showing the recoverable error state.
         vi.mocked(fetchProducts)
+            .mockRejectedValueOnce(new Error('HTTP 500: Server initialization error'))
             .mockRejectedValueOnce(new Error('HTTP 500: Server initialization error'))
             .mockRejectedValueOnce(new Error('HTTP 500: Server initialization error'))
             .mockResolvedValue({
@@ -226,7 +227,7 @@ describe('Products page — backend outcome states', () => {
 
         render(<Products />, { wrapper: createWrapper() });
 
-        expect(await screen.findByRole('heading', { name: ERROR_HEADING })).toBeInTheDocument();
+        expect(await screen.findByRole('heading', { name: ERROR_HEADING }, { timeout: 4000 })).toBeInTheDocument();
         const callsBeforeRetry = vi.mocked(fetchProducts).mock.calls.length;
 
         await user.click(screen.getByRole('button', { name: 'حاول مرة ثانية' }));
