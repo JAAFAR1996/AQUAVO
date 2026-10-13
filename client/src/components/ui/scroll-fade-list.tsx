@@ -6,11 +6,13 @@ interface ScrollFadeListProps {
   label: string;
   className?: string;
   fadeHeight?: number;
+  /** Expand within a bounded flex parent, e.g. the cart drawer. */
+  fill?: boolean;
 }
 
 /** Fade overlays track distance to both scroll edges, as on the reference demo. */
 export function ScrollFadeList({
-  children, label, className, fadeHeight = 76,
+  children, label, className, fadeHeight = 76, fill = false,
 }: ScrollFadeListProps) {
   const frameRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -43,14 +45,18 @@ export function ScrollFadeList({
   }, [children, fadeHeight]);
 
   return (
-    <div ref={frameRef} className="relative isolate overflow-hidden">
+    <div ref={frameRef} className={cn("relative isolate overflow-hidden", fill && "flex min-h-0 flex-1 flex-col")}>
       <div
         ref={scrollRef}
         role="region"
         aria-label={label}
+        data-aqv-scroll-fade
+        data-overflow-top={edges.top > 0}
+        data-overflow-bottom={edges.bottom > 0}
         tabIndex={0}
         className={cn(
-          "max-h-32 overflow-y-auto overscroll-contain [scrollbar-gutter:stable] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
+          "overflow-y-auto overscroll-contain [scrollbar-gutter:stable] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
+          fill ? "min-h-0 flex-1" : "max-h-32",
           className,
         )}
       >
