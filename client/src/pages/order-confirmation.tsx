@@ -378,7 +378,7 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
                                 <CheckCircle2 className="h-6 w-6" />
                             </span>
                             <div className="min-w-0 flex-1">
-                                <div className={\`mb-2 inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold \${statusTone}\`}>
+                                <div className={`mb-2 inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${statusTone}`}>
                                     {statusLabel}
                                 </div>
                                 <h1 id="order-confirmation-title" className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
@@ -492,7 +492,7 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
                                     <h3 id="order-items-title" className="mb-3 text-sm font-bold text-foreground">{t("order-confirmation.s43")}</h3>
                                     <ul className="divide-y divide-border/70">
                                         {items.map((item, idx) => (
-                                            <li key={\`\${item.productId}-\${item.variantId || idx}\`} className="flex items-center gap-3 py-3">
+                                            <li key={`${item.productId}-${item.variantId || idx}`} className="flex items-center gap-3 py-3">
                                                 <div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-lg border border-border bg-muted/30">
                                                     {item.image ? (
                                                         <img
@@ -508,7 +508,7 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
                                                 <div className="min-w-0 flex-1">
                                                     <p className="text-sm font-semibold leading-5 text-foreground">{bidi(item.productName || item.productId)}</p>
                                                     <p className="mt-1 text-xs text-muted-foreground">
-                                                        {item.variantLabel ? \`\${item.variantLabel} · \` : ""}{t("order-confirmation.s47")} {item.quantity}
+                                                        {item.variantLabel ? `${item.variantLabel} · ` : ""}{t("order-confirmation.s47")} {item.quantity}
                                                     </p>
                                                 </div>
                                                 {item.priceAtPurchase != null && (
@@ -600,7 +600,7 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
                                                 <li
                                                     key={step.title}
                                                     aria-current={current ? "step" : undefined}
-                                                    className={\`rounded-xl border px-3 py-3 \${completed || current ? "border-primary/25 bg-primary/5" : "border-border bg-muted/20"}\`}
+                                                    className={`rounded-xl border px-3 py-3 ${completed || current ? "border-primary/25 bg-primary/5" : "border-border bg-muted/20"}`}
                                                 >
                                                     <StepIcon className="mb-2 h-4 w-4 text-primary" aria-hidden="true" />
                                                     <p className="text-xs font-semibold text-foreground">{step.title}</p>
