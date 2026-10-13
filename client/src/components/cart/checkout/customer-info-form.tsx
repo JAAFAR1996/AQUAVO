@@ -6,7 +6,8 @@ import { Link } from "wouter";
 import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { animate, motion, useMotionValue, useReducedMotion, useTransform } from "framer-motion";
+import "./phone-code-slots.css";
 
 export function normalizePhoneInputDigits(value: string): string {
     const arabicIndic = "٠١٢٣٤٥٦٧٨٩";
@@ -18,11 +19,103 @@ export function normalizePhoneInputDigits(value: string): string {
 
 
 /**
- * Phone digits appear as animated code slots, replacing the rectangular field.
- * One native telephone input overlays the slots: it remains the sole source of
- * truth for checkout, native autofill, accessibility, selection, paste and IME.
- * These are phone-number digits, NOT an SMS verification or OTP challenge.
+ * Adapted from React Bits Micro / CodeSlots (spring fill + rising digit).
+ * Phone checkout keeps the native, controlled tel field: the original
+ * one-time-code input, success wash and error clearing are not appropriate.
+ * Use imperative MotionValues because AQUAVO disables Framer Motion component
+ * transitions globally; leave site-wide motion settings unchanged.
+ * Original defaults: 0.2 bounce, 0.3s settle, 8px rise and 20ms cascade.
  */
+function PhoneNumberSpringSlot({
+    char,
+    index,
+    active,
+    invalid,
+    delayMs,
+    reducedMotion,
+}: {
+    char: string;
+    index: number;
+    active: boolean;
+    invalid: boolean;
+    delayMs: number;
+    reducedMotion: boolean | null;
+}) {
+    const progress = useMotionValue(char ? 1 : 0);
+    const previousChar = useRef(char);
+    const lastCharacter = useRef(char);
+    if (char) lastCharacter.current = char;
+
+    const fillScale = useTransform(progress, (t) => "scale(" + Math.max(0, t) + ")");
+    const digitLift = useTransform(progress, (t) => "translateY(" + (1 - t) * 8 + "px)");
+    const digitOpacity = useTransform(progress, (t) => Math.min(1, Math.max(0, t)));
+
+    useEffect(() => {
+        if (previousChar.current === char) return;
+        previousChar.current = char;
+
+        if (reducedMotion) {
+            progress.jump(char ? 1 : 0);
+            return;
+        }
+
+        if (char) {
+            // From React Bits: expanding fill and lifting digit share one spring.
+            progress.jump(0);
+            const controls = animate(progress, 1, {
+                type: "spring",
+                duration: 0.3,
+                bounce: 0.2,
+                delay: delayMs / 1000,
+            });
+            return () => controls.stop();
+        }
+
+        const controls = animate(progress, 0, {
+            type: "spring",
+            duration: 0.3,
+            bounce: 0.2,
+            delay: delayMs / 1000,
+        });
+        return () => controls.stop();
+    }, [char, delayMs, progress, reducedMotion]);
+
+    return (
+        <span
+            data-phone-slot={index}
+            data-active={active ? "" : undefined}
+            data-filled={char ? "" : undefined}
+            className={cn(
+                "relative flex h-11 min-w-0 flex-1 items-center justify-center overflow-hidden rounded-[6px] border tabular-nums",
+                invalid
+                    ? "border-red-500/70 bg-red-500/5"
+                    : active
+                        ? "border-primary bg-primary/10 ring-1 ring-primary/25"
+                        : "border-border/80 bg-muted/30",
+            )}
+        >
+            <motion.span
+                data-testid="phone-slot-fill"
+                aria-hidden="true"
+                className="absolute inset-0 rounded-[inherit] bg-primary"
+                style={{ transform: fillScale }}
+            />
+            {lastCharacter.current && (
+                <motion.span
+                    data-testid="phone-slot-digit"
+                    className="absolute inset-0 z-[1] flex items-center justify-center font-semibold text-primary-foreground text-[clamp(12px,2.7vw,17px)] leading-none"
+                    style={{ transform: digitLift, opacity: digitOpacity }}
+                >
+                    {lastCharacter.current}
+                </motion.span>
+            )}
+            {active && !char && (
+                <span data-testid="phone-slot-caret" className="aqv-phone-code-caret absolute z-[2] h-5 w-[1.5px] bg-foreground" />
+            )}
+        </span>
+    );
+}
+
 function PhoneNumberCodeSlots({
     value,
     focused,
@@ -36,60 +129,40 @@ function PhoneNumberCodeSlots({
 }) {
     const reducedMotion = useReducedMotion();
     const digits = value.replace(/\D/g, "");
-    // Local numbers normally have 11 digits (07...), also accept 7... and +964...
     const isInternational = /^\s*\+?964/.test(value);
     const isLocalWithoutZero = /^\s*7/.test(value);
     const slotCount = Math.max(isInternational ? 13 : isLocalWithoutZero ? 10 : 11, digits.length);
     const activeSlot = Math.min(caretIndex, slotCount - 1);
 
+    // Pasting/autofilling cascades at 20ms per digit; single keys are instant.
+    const previousDigitsRef = useRef(digits);
+    const previousDigits = previousDigitsRef.current;
+    const firstChanged = Array.from({ length: Math.max(digits.length, previousDigits.length) }).findIndex(
+        (_, i) => digits[i] !== previousDigits[i]
+    );
+    const bulkChange = Math.abs(digits.length - previousDigits.length) > 1;
+    previousDigitsRef.current = digits;
+
     return (
         <div
             data-testid="phone-digit-slots"
+            data-aquavo-phone-slots
             aria-hidden="true"
             data-clarity-mask="True"
             dir="ltr"
             className="pointer-events-none flex h-full w-full items-center gap-1"
         >
-            {Array.from({ length: slotCount }, (_, index) => {
-                const digit = digits[index];
-                const isActive = focused && index === activeSlot;
-
-                return (
-                    <span
-                        key={index}
-                        data-phone-slot={index}
-                        className={cn(
-                            "relative flex h-11 min-w-0 flex-1 items-center justify-center overflow-hidden rounded-[5px] border font-semibold tabular-nums text-[13px] sm:text-sm",
-                            invalid
-                                ? "border-red-500/70 bg-red-500/5"
-                                : isActive
-                                    ? "border-primary bg-primary/10 ring-1 ring-primary/30"
-                                    : digit
-                                        ? "border-primary/40 bg-primary/5 text-foreground"
-                                        : "border-border/80 bg-muted/30 text-muted-foreground"
-                        )}
-                    >
-                        <AnimatePresence initial={false} mode="sync">
-                            {digit && (
-                                <motion.span
-                                    key={digit}
-                                    initial={reducedMotion ? false : { opacity: 0, y: 8, scale: 0.82 }}
-                                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                                    exit={reducedMotion ? { opacity: 0 } : { opacity: 0, y: -5, scale: 0.92 }}
-                                    transition={
-                                        reducedMotion
-                                            ? { duration: 0 }
-                                            : { type: "spring", stiffness: 540, damping: 25, mass: 0.55 }
-                                    }
-                                    className="absolute inset-0 flex items-center justify-center"
-                                >
-                                    {digit}
-                                </motion.span>
-                            )}
-                        </AnimatePresence>
-                    </span>
-                );
-            })}
+            {Array.from({ length: slotCount }, (_, index) => (
+                <PhoneNumberSpringSlot
+                    key={index}
+                    char={digits[index] ?? ""}
+                    index={index}
+                    active={focused && index === activeSlot}
+                    invalid={invalid}
+                    reducedMotion={reducedMotion}
+                    delayMs={bulkChange && firstChanged >= 0 && index >= firstChanged ? (index - firstChanged) * 20 : 0}
+                />
+            ))}
         </div>
     );
 }
