@@ -112,11 +112,9 @@ export function OrderReceiptPrinter({
     setStage("processing");
     // Start with no paper, wait a moment, then feed in clearly separated steps.
     const start = window.setTimeout(() => setStage("printing"), 650);
-    // Complete only after the feed animation (2.6 s) has actually finished.
-    const finish = window.setTimeout(() => setStage("complete"), 3450);
+    // The paper itself sets completion after its keyframe animation ends.
     return () => {
       window.clearTimeout(start);
-      window.clearTimeout(finish);
     };
   }, [runId, reduced, orderNumber]);
 
@@ -133,7 +131,11 @@ export function OrderReceiptPrinter({
       {!reduced && (
         <button
           type="button"
-          onClick={() => setRunId(current => current + 1)}
+          onClick={() => {
+            // The reset and new key commit in the same render.
+            setStage("processing");
+            setRunId(current => current + 1);
+          }}
           aria-label={s.replay}
           className="mb-3 inline-flex min-h-9 items-center gap-1.5 self-end rounded-lg border border-[#0B1E28]/15 bg-[#FFFEFB] px-3 py-1.5 text-xs font-semibold text-[#0B1E28] shadow-sm transition-colors hover:bg-[#F6F4EF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B93A6]"
         >
@@ -211,6 +213,10 @@ export function OrderReceiptPrinter({
             opacity: { duration: reduced ? 0 : 0.16 },
           }}
           aria-hidden={stage !== "complete"}
+          onAnimationComplete={() => {
+            // Wait for the actual paper-feed animation, not a wall-clock timer.
+            if (stage === "printing") setStage("complete");
+          }}
           className="relative drop-shadow-[0_12px_14px_rgba(11,30,40,.16)]"
         >
           <article
