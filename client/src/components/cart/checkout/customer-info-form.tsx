@@ -18,40 +18,58 @@ export function normalizePhoneInputDigits(value: string): string {
 
 
 /**
- * Visual-only adaptation of the React Bits Code Slots spring effect.
- *
- * The real phone input remains native so editing, selection, paste, mobile
- * keyboards, autofill and the original checkout validation are unchanged.
- * This mirrored row is never treated as an OTP or a second form field.
+ * Phone digits appear as animated code slots, replacing the rectangular field.
+ * One native telephone input overlays the slots: it remains the sole source of
+ * truth for checkout, native autofill, accessibility, selection, paste and IME.
+ * These are phone-number digits, NOT an SMS verification or OTP challenge.
  */
-function PhoneNumberCodeSlots({ value }: { value: string }) {
+function PhoneNumberCodeSlots({
+    value,
+    focused,
+    caretIndex,
+    invalid,
+}: {
+    value: string;
+    focused: boolean;
+    caretIndex: number;
+    invalid: boolean;
+}) {
     const reducedMotion = useReducedMotion();
     const digits = value.replace(/\D/g, "");
-    // Support all existing Iraqi checkout formats: 07..., 7..., +964... and 964...
+    // Local numbers normally have 11 digits (07...), also accept 7... and +964...
     const isInternational = /^\s*\+?964/.test(value);
-    const slotCount = Math.max(isInternational ? 13 : /^\s*0/.test(value) ? 11 : 10, digits.length);
+    const isLocalWithoutZero = /^\s*7/.test(value);
+    const slotCount = Math.max(isInternational ? 13 : isLocalWithoutZero ? 10 : 11, digits.length);
+    const activeSlot = Math.min(caretIndex, slotCount - 1);
 
     return (
         <div
+            data-testid="phone-digit-slots"
             aria-hidden="true"
             data-clarity-mask="True"
             dir="ltr"
-            className="pointer-events-none flex w-full items-center gap-1"
+            className="pointer-events-none flex h-full w-full items-center gap-1"
         >
             {Array.from({ length: slotCount }, (_, index) => {
                 const digit = digits[index];
+                const isActive = focused && index === activeSlot;
 
                 return (
                     <span
                         key={index}
+                        data-phone-slot={index}
                         className={cn(
-                            "relative flex h-9 min-w-0 flex-1 items-center justify-center overflow-hidden rounded-[5px] border font-semibold tabular-nums text-[13px] sm:text-sm",
-                            digit
-                                ? "border-primary/40 bg-primary/5 text-foreground"
-                                : "border-border/80 bg-muted/30 text-muted-foreground"
+                            "relative flex h-11 min-w-0 flex-1 items-center justify-center overflow-hidden rounded-[5px] border font-semibold tabular-nums text-[13px] sm:text-sm",
+                            invalid
+                                ? "border-red-500/70 bg-red-500/5"
+                                : isActive
+                                    ? "border-primary bg-primary/10 ring-1 ring-primary/30"
+                                    : digit
+                                        ? "border-primary/40 bg-primary/5 text-foreground"
+                                        : "border-border/80 bg-muted/30 text-muted-foreground"
                         )}
                     >
-                        <AnimatePresence>
+                        <AnimatePresence initial={false} mode="sync">
                             {digit && (
                                 <motion.span
                                     key={digit}
@@ -89,7 +107,8 @@ export function CustomerInfoForm({ customerInfo, setCustomerInfo, errors, isGues
     const [govOpen, setGovOpen] = useState(false);
     const [govSearch, setGovSearch] = useState("");
     const [phoneFocused, setPhoneFocused] = useState(false);
-    const reducedPhoneMotion = useReducedMotion();
+    const [phoneCaretIndex, setPhoneCaretIndex] = useState(0);
+    const phoneSlotRowRef = useRef<HTMLDivElement>(null);
     const [activeIndex, setActiveIndex] = useState(0);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const triggerRef = useRef<HTMLButtonElement>(null);
@@ -100,6 +119,35 @@ export function CustomerInfoForm({ customerInfo, setCustomerInfo, errors, isGues
 
     const selectedGov = GOVERNORATES.find(g => g.value === customerInfo.governorate);
     const selectedLabel = selectedGov ? govLabel(selectedGov.value, selectedGov.label) : undefined;
+
+    const syncPhoneCaret = (input: HTMLInputElement) => {
+        const cursor = input.selectionStart ?? input.value.length;
+        const digitIndex = input.value.slice(0, cursor).replace(/\D/g, "").length;
+        setPhoneCaretIndex(digitIndex);
+    };
+
+    // A tap on a digit slot places the actual native input cursor at that digit.
+    // Paste, delete, selection and browser autofill still operate on one input.
+    const handlePhoneClick = (event: React.MouseEvent<HTMLInputElement>) => {
+        const slots = Array.from(phoneSlotRowRef.current?.querySelectorAll<HTMLElement>("[data-phone-slot]") ?? []);
+        if (!slots.length) return;
+
+        const clickX = event.clientX;
+        const requestedIndex = slots.findIndex((slot) => {
+            const rect = slot.getBoundingClientRect();
+            return clickX < rect.left + rect.width / 2;
+        });
+        const digitIndex = requestedIndex < 0 ? slots.length : requestedIndex;
+        const value = event.currentTarget.value;
+        let offset = 0;
+        let matchedDigits = 0;
+        while (offset < value.length && matchedDigits < digitIndex) {
+            if (/\d/.test(value[offset])) matchedDigits++;
+            offset++;
+        }
+        event.currentTarget.setSelectionRange(offset, offset);
+        setPhoneCaretIndex(matchedDigits);
+    };
 
     const selectGov = (value: string) => {
         setCustomerInfo({ ...customerInfo, governorate: value });
@@ -192,39 +240,40 @@ export function CustomerInfoForm({ customerInfo, setCustomerInfo, errors, isGues
                     <Phone className="h-4 w-4" />
                     {t("form.phone")}
                 </Label>
-                <Input
-                    id="phone"
-                    type="tel"
-                    inputMode="tel"
-                    data-clarity-mask="True"
-                    placeholder="07801234567"
-                    autoComplete="tel"
-                    value={customerInfo.phone}
-                    onChange={(e) => setCustomerInfo({ ...customerInfo, phone: normalizePhoneInputDigits(e.target.value) })}
-                    onFocus={() => setPhoneFocused(true)}
-                    onBlur={() => setPhoneFocused(false)}
-                    className={errors.phone ? 'border-red-500' : ''}
-                    dir="ltr"
-                    aria-invalid={!!errors.phone}
-                    aria-required="true"
-                    aria-describedby={errors.phone ? "phone-help phone-error" : "phone-help"}
-                />
-                {/* Spring slots are decorative feedback only while typing; no extra verification step. */}
-                <AnimatePresence initial={false}>
-                    {phoneFocused && /[0-9]/.test(customerInfo.phone) && (
-                        <motion.div
-                            key="phone-spring-slots"
-                            data-clarity-mask="True"
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: "auto" }}
-                            exit={{ opacity: 0, height: 0 }}
-                            transition={{ duration: reducedPhoneMotion ? 0 : 0.16 }}
-                            className="overflow-hidden"
-                        >
-                            <PhoneNumberCodeSlots value={customerInfo.phone} />
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+                <div ref={phoneSlotRowRef} className="relative h-11 w-full" dir="ltr">
+                    <PhoneNumberCodeSlots
+                        value={customerInfo.phone}
+                        focused={phoneFocused}
+                        caretIndex={phoneCaretIndex}
+                        invalid={!!errors.phone}
+                    />
+                    {/* Single native input: visually hidden over the slots, but fully operable. */}
+                    <input
+                        id="phone"
+                        type="tel"
+                        inputMode="tel"
+                        data-clarity-mask="True"
+                        placeholder="07801234567"
+                        autoComplete="tel"
+                        value={customerInfo.phone}
+                        onChange={(e) => {
+                            setCustomerInfo({ ...customerInfo, phone: normalizePhoneInputDigits(e.target.value) });
+                            syncPhoneCaret(e.currentTarget);
+                        }}
+                        onFocus={(e) => {
+                            setPhoneFocused(true);
+                            syncPhoneCaret(e.currentTarget);
+                        }}
+                        onBlur={() => setPhoneFocused(false)}
+                        onSelect={(e) => syncPhoneCaret(e.currentTarget)}
+                        onClick={handlePhoneClick}
+                        className="absolute inset-0 z-10 h-full w-full cursor-text rounded-sm border-0 bg-transparent p-0 text-base text-transparent opacity-0 outline-none"
+                        dir="ltr"
+                        aria-invalid={!!errors.phone}
+                        aria-required="true"
+                        aria-describedby={errors.phone ? "phone-help phone-error" : "phone-help"}
+                    />
+                </div>
                 <p id="phone-help" className="text-xs leading-5 text-muted-foreground">
                     {t("form.phoneHelp")}
                 </p>
