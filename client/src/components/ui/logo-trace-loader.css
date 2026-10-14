@@ -1,8 +1,13 @@
+/* AQUAVO's global motion backstop disables all CSS animation durations.
+   Restore motion ONLY for this loader, and only when the visitor allows it. */
 .aqv-logo-trace__orbit {
-  animation-name: aqv-logo-trace-orbit;
-  animation-timing-function: linear;
-  animation-iteration-count: infinite;
   stroke-dashoffset: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .aqv-logo-trace__orbit {
+    animation: aqv-logo-trace-orbit var(--aqv-logo-loop-duration, 1.55s) linear infinite !important;
+  }
 }
 
 @keyframes aqv-logo-trace-orbit {
@@ -10,5 +15,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .aqv-logo-trace__orbit { animation: none; }
+  .aqv-logo-trace__orbit {
+    animation: none !important;
+  }
 }
