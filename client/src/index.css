@@ -1324,3 +1324,11 @@ html[dir="ltr"] body {
     animation: none !important;
   }
 }
+
+/* Comparison remains contextual and never covers the four primary mobile tabs. */
+.aq-compare-dock { bottom: calc(1rem + env(safe-area-inset-bottom, 0px)); }
+@media (max-width: 767px) {
+  body:has(.aq-mobile-bottom-nav) .aq-compare-dock {
+    bottom: calc(5.25rem + env(safe-area-inset-bottom, 0px));
+  }
+}
