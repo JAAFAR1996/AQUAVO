@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { CheckCircle2, LoaderCircle, RotateCcw } from "lucide-react";
+import { CheckCircle2, LoaderCircle, RotateCcw, Volume2, VolumeX } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { formatIQD } from "@/lib/utils";
+import { PRINTER_FEED_DURATION, PRINTER_FEED_TIMES, playReceiptPrinterSound } from "@/lib/receipt-printer-audio";
 
 type ReceiptLine = {
   productId: string;
@@ -31,21 +32,21 @@ const strings = {
     items: "المنتجات", subtotal: "المجموع الفرعي", delivery: "التوصيل",
     discount: "الخصم", total: "الإجمالي", payment: "طريقة الدفع / الحالة",
     thanks: "شكرا لتسوقك من AQUAVO", processing: "جاري تجهيز الإيصال",
-    printing: "جاري طباعة الإيصال", complete: "الإيصال جاهز", store: "المتجر", replay: "إعادة عرض الحركة",
+    printing: "جاري طباعة الإيصال", complete: "الإيصال جاهز", store: "المتجر", replay: "إعادة عرض الحركة", soundOn: "تشغيل صوت الطابعة", soundOff: "كتم الصوت",
   },
   en: {
     receipt: "Order receipt", confirmed: "Order received", number: "Order number",
     items: "Items", subtotal: "Subtotal", delivery: "Delivery",
     discount: "Discount", total: "Total", payment: "Payment method / status",
     thanks: "Thank you for shopping with AQUAVO", processing: "Preparing receipt",
-    printing: "Printing your receipt", complete: "Receipt ready", store: "Shop", replay: "Replay",
+    printing: "Printing your receipt", complete: "Receipt ready", store: "Shop", replay: "Replay", soundOn: "Enable printer sound", soundOff: "Mute printer sound",
   },
   ckb: {
     receipt: "پسووڵەی داواکاری", confirmed: "داواکارییەکەت تۆمار کرا", number: "ژمارەی داواکاری",
     items: "بەرهەمەکان", subtotal: "کۆی سەرەتایی", delivery: "گەیاندن",
     discount: "داشکاندن", total: "کۆی گشتی", payment: "شێواز / دۆخی پارەدان",
     thanks: "سوپاس بۆ کڕین لە AQUAVO", processing: "ئامادەکردنی پسووڵە",
-    printing: "چاپکردنی پسووڵە", complete: "پسووڵە ئامادەیە", store: "فرۆشگا", replay: "دووبارە پیشاندان",
+    printing: "چاپکردنی پسووڵە", complete: "پسووڵە ئامادەیە", store: "فرۆشگا", replay: "دووبارە پیشاندان", soundOn: "دەنگی چاپکەرەکە چالاک بکە", soundOff: "دەنگی چاپکەرەکە بکوژێنەوە",
   },
 } as const;
 
@@ -55,12 +56,6 @@ const feedFrames = [
   "translateY(-58%)", "translateY(-58%)", "translateY(-45%)", "translateY(-45%)", "translateY(-32%)", "translateY(-32%)", "translateY(-20%)",
   "translateY(-20%)", "translateY(-10%)", "translateY(-10%)", "translateY(-3%)", "translateY(-3%)", "translateY(0%)",
 ];
-const feedTimes = [
-  0, 0.075, 0.105, 0.18, 0.21, 0.285, 0.315,
-  0.39, 0.42, 0.495, 0.525, 0.6, 0.63, 0.705,
-  0.735, 0.81, 0.84, 0.915, 0.945, 1,
-];
-
 // Forty tiny serrations on the bottom edge, independent of receipt height.
 const toothPoints = Array.from({ length: 80 }, (_, i) => {
   const x = 100 - ((i + 1) * 100) / 80;
@@ -85,6 +80,25 @@ export function OrderReceiptPrinter({
   // below the fold; a mount-time timer would finish before the user scrolls down.
   const [stage, setStage] = useState<PrinterStage>("idle");
   const [runId, setRunId] = useState(0);
+  // Browsers block sound on navigation: explicitly enable it with a click.
+  const [soundEnabled, setSoundEnabled] = useState(false);
+  const stopSoundRef = useRef<(() => void) | null>(null);
+
+  useEffect(() => () => {
+    stopSoundRef.current?.();
+    stopSoundRef.current = null;
+  }, []);
+
+  const replay = (withSound: boolean) => {
+    stopSoundRef.current?.();
+    stopSoundRef.current = null;
+    if (withSound && !reduced) {
+      // The paper starts 650ms after Replay; align mechanical sound with it.
+      stopSoundRef.current = playReceiptPrinterSound(0.65);
+    }
+    setStage("processing");
+    setRunId(current => current + 1);
+  };
 
   useEffect(() => {
     if (reduced) {
@@ -129,19 +143,37 @@ export function OrderReceiptPrinter({
       data-animation-run={runId}
     >
       {!reduced && (
-        <button
-          type="button"
-          onClick={() => {
-            // The reset and new key commit in the same render.
-            setStage("processing");
-            setRunId(current => current + 1);
-          }}
-          aria-label={s.replay}
-          className="mb-3 inline-flex min-h-9 items-center gap-1.5 self-end rounded-lg border border-[#0B1E28]/15 bg-[#FFFEFB] px-3 py-1.5 text-xs font-semibold text-[#0B1E28] shadow-sm transition-colors hover:bg-[#F6F4EF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B93A6]"
-        >
-          <RotateCcw aria-hidden="true" className="h-3.5 w-3.5" />
-          {s.replay}
-        </button>
+        <div className="mb-3 flex flex-wrap items-center justify-end gap-2 self-end">
+          <button
+            type="button"
+            aria-label={soundEnabled ? s.soundOff : s.soundOn}
+            aria-pressed={soundEnabled}
+            onClick={() => {
+              if (soundEnabled) {
+                stopSoundRef.current?.();
+                stopSoundRef.current = null;
+                setSoundEnabled(false);
+              } else {
+                // Explicit activation unlocks audio and replays the full motion.
+                setSoundEnabled(true);
+                replay(true);
+              }
+            }}
+            className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-[#0B93A6]/35 bg-[#0B93A6]/10 px-3 py-1.5 text-xs font-semibold text-[#0B1E28] transition-colors hover:bg-[#0B93A6]/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B93A6]"
+          >
+            {soundEnabled ? <Volume2 aria-hidden="true" className="h-3.5 w-3.5" /> : <VolumeX aria-hidden="true" className="h-3.5 w-3.5" />}
+            {soundEnabled ? s.soundOff : s.soundOn}
+          </button>
+          <button
+            type="button"
+            onClick={() => replay(soundEnabled)}
+            aria-label={s.replay}
+            className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-[#0B1E28]/15 bg-[#FFFEFB] px-3 py-1.5 text-xs font-semibold text-[#0B1E28] shadow-sm transition-colors hover:bg-[#F6F4EF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B93A6]"
+          >
+            <RotateCcw aria-hidden="true" className="h-3.5 w-3.5" />
+            {s.replay}
+          </button>
+        </div>
       )}
       <div ref={machineRef} className="relative z-20 w-full overflow-hidden rounded-[25px] border border-[#181c1e] bg-[#2b3032] px-3 pb-8 pt-3 text-[#F6F4EF] shadow-[0_20px_36px_-20px_rgba(11,30,40,.56),0_6px_14px_-8px_rgba(11,30,40,.3),inset_0_1px_0_rgba(255,255,255,.16)]">
         <div className="relative z-10 flex h-11 items-start justify-between gap-3 px-1">
@@ -206,9 +238,9 @@ export function OrderReceiptPrinter({
           }}
           transition={{
             transform: {
-              duration: reduced ? 0 : 2.6,
+              duration: reduced ? 0 : PRINTER_FEED_DURATION,
               ease: "linear",
-              times: !reduced && stage === "printing" ? feedTimes : undefined,
+              times: !reduced && stage === "printing" ? PRINTER_FEED_TIMES : undefined,
             },
             opacity: { duration: reduced ? 0 : 0.16 },
           }}
