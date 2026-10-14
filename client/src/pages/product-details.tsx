@@ -167,32 +167,27 @@ export default function ProductDetails() {
   // Use embedded variants if available, otherwise use legacy
   const hasEmbeddedVariants = product?.hasVariants && product?.variants && product.variants.length > 0;
 
-  // Resolve the initial variant from the current product, not from stale
-  // component state. Prefer the configured default only while it is actually
-  // sellable; otherwise open the first in-stock option so an available product
-  // never lands on an out-of-stock choice by default.
+  // Customers explicitly select a size; do not add an unrequested SKU.
+  // Reconcile a prior selection against fresh server prices and inventory.
   useEffect(() => {
     if (!hasEmbeddedVariants || !product?.variants?.length) {
       setSelectedVariant(null);
       return;
     }
-
-    setSelectedVariant((current) => {
-      if (current && product.variants!.some((variant) => variant.id === current.id)) {
-        return current;
-      }
-
-      return (
-        product.variants!.find((variant) => variant.isDefault && (variant.stock ?? 0) > 0) ??
-        product.variants!.find((variant) => (variant.stock ?? 0) > 0) ??
-        product.variants!.find((variant) => variant.isDefault) ??
-        product.variants![0]
-      );
-    });
+    setSelectedVariant((current) => current
+      ? (product.variants!.find((variant) => variant.id === current.id) ?? null)
+      : null);
   }, [product?.id, hasEmbeddedVariants, product?.variants]);
 
-  // Current display values (from selected variant or product)
-  const displayPrice = selectedVariant?.price ?? product?.price ?? 0;
+  const variantPrices = (hasEmbeddedVariants && product?.variants)
+    ? product.variants.map((variant) => variant.price).filter((price) => price > 0)
+    : [];
+  const variantMinPriceDetail = variantPrices.length > 0 ? Math.min(...variantPrices) : undefined;
+  const requiresVariantSelection = Boolean(hasEmbeddedVariants && !selectedVariant);
+  const displayPrice = selectedVariant?.price ??
+    (hasEmbeddedVariants && variantMinPriceDetail !== undefined
+      ? variantMinPriceDetail
+      : product?.price ?? 0);
 
   // Tracks which productId has already fired ViewContent — prevents double-fire
   // caused by displayPrice changing when selectedVariant initializes after product loads.
@@ -239,19 +234,18 @@ export default function ProductDetails() {
   const displayOriginalPrice = selectedVariant?.originalPrice ?? product?.originalPrice;
   const woodSaleActive = product ? isWoodMonthEndSale(product) : false;
   const displayStock = selectedVariant?.stock ?? product?.stock ?? 0;
-  const isOutOfStock = (product?.stock ?? 0) <= 0 || (hasEmbeddedVariants && (selectedVariant?.stock ?? 0) <= 0);
+  const isOutOfStock = hasEmbeddedVariants
+    ? product?.variants?.every((variant) => (variant.stock ?? 0) <= 0) ?? true
+    : (product?.stock ?? 0) <= 0;
   const displayModel = selectedVariant?.specifications?.['الموديل'] ?? product?.specifications?.['الموديل'];
   const product3DMeta = readProduct3DMeta(product?.specifications);
   const exactPieceCode = product3DMeta?.pieceCode ?? product3DMeta?.label;
   // أي منتج لديه سعر أكبر من صفر يمكن شراؤه
   const isPurchasableBrand = true; // Removed brand restriction — all brands are available
-  const variantMinPriceDetail = (product?.hasVariants && product?.variants?.length)
-    ? Math.min(...product.variants.map(v => v.price))
-    : undefined;
-  const hasPrice = (displayPrice > 0 || (variantMinPriceDetail !== undefined && variantMinPriceDetail > 0));
+  const hasPrice = displayPrice > 0;
 
   const handleAddToCart = () => {
-    if (product) {
+    if (product && !requiresVariantSelection && !isOutOfStock && hasPrice) {
       // IMPORTANT: Always use the BASE product ID for cart API
       // The variant-specific ID (e.g. "yxl-003-small") doesn't exist in DB
       const variantLabel = selectedVariant?.label || "";
@@ -538,6 +532,7 @@ export default function ProductDetails() {
                     <>
                       <div className="flex items-baseline gap-3 flex-wrap">
                         <span className="whitespace-nowrap text-4xl font-bold text-primary">
+                          {requiresVariantSelection && <span className="me-2 align-middle text-xs font-semibold text-muted-foreground">{t("price.from")}</span>}
                           {formatPrice(displayPrice)}
                           {/* Unit of sale sits on the price itself. Sand and
                               stone are priced per kilo, and a shopper should
@@ -601,7 +596,9 @@ export default function ProductDetails() {
 
                 {/* Stock Status */}
                 <div className="flex items-center gap-2 mb-4" role="status">
-                  {displayStock > 0 ? (
+                  {requiresVariantSelection ? (
+                    <span className="text-sm font-medium text-muted-foreground">{t("stock.chooseVariant")}</span>
+                  ) : displayStock > 0 ? (
                     <>
                       <Check className="w-4 h-4 text-green-500" aria-hidden="true" />
                       <span className="text-sm font-medium text-green-600 dark:text-green-400">
@@ -751,11 +748,11 @@ export default function ProductDetails() {
                             : <ShoppingCart />}
                         className={`h-12 w-full min-w-0 rounded-lg text-lg font-semibold ${isAddedToCart ? "border-green-600 bg-green-600 hover:bg-green-700" : ""}`}
                         onClick={handleAddToCart}
-                        disabled={isAddingToCart}
-                        aria-disabled={isAddingToCart}
+                        disabled={isAddingToCart || requiresVariantSelection || isOutOfStock || !hasPrice}
+                        aria-disabled={isAddingToCart || requiresVariantSelection || isOutOfStock || !hasPrice}
                         aria-busy={isAddingToCart}
                       >
-                        {isAddingToCart ? t("cart.adding") : isAddedToCart ? t("cart.added") : t("cart.add")}
+                        {isAddingToCart ? t("cart.adding") : isAddedToCart ? t("cart.added") : requiresVariantSelection ? t("cart.chooseVariant") : t("cart.add")}
                       </DynamicButton>
                       </div>
                       <div className="flex flex-wrap items-center justify-between gap-1 text-sm">
@@ -1150,7 +1147,7 @@ export default function ProductDetails() {
       <BackToTop />
 
       {/* P1.8: Sticky mobile Add to Cart bar */}
-      {product && hasPrice && !isOutOfStock && isPrimaryAddPastViewport && !isEditingText && (
+      {product && hasPrice && !isOutOfStock && !requiresVariantSelection && isPrimaryAddPastViewport && !isEditingText && (
         <div className="aq-sticky-purchase fixed bottom-0 left-0 right-0 z-40 md:hidden bg-background/95 backdrop-blur border-t border-border p-3 flex items-center gap-3 safe-bottom">
           <div className="flex-1 min-w-0">
             <p className="text-sm font-bold text-primary truncate">
