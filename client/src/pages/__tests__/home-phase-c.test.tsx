@@ -190,6 +190,24 @@ describe("Home — Phase C structure and landmarks", () => {
     expect(heroImage.getAttribute("sizes")).not.toContain("66vw");
   });
 
+  it("shows the shop action before the hero photo on mobile", () => {
+    const { container } = render(<Home />, { wrapper: createWrapper() });
+    const hero = container.querySelector(".aq-waterline-hero");
+    const copy = hero?.querySelector(".aq-hero-copy");
+    const photo = hero?.querySelector(".aq-proof-window")?.parentElement;
+    const links = Array.from(hero?.querySelectorAll(".aq-hero-actions a") ?? []);
+
+    // Mobile prioritizes store navigation, while desktop preserves text-left/image-right.
+    expect(hero).toHaveClass("pt-4", "lg:pt-28");
+    expect(copy).toHaveClass("order-1", "lg:order-1");
+    expect(photo).toHaveClass("order-2", "lg:order-2");
+    expect(links).toHaveLength(2);
+    expect(links[0]).toHaveAttribute("href", "/products");
+    expect(links[0]).toHaveClass("bg-primary", "min-h-12");
+    expect(links[1]).toHaveAttribute("href", "/journey");
+    expect(links[1]).toHaveClass("min-h-12");
+  });
+
   it("keeps critical hero CTAs at a touch-friendly minimum height", () => {
     render(<Home />, { wrapper: createWrapper() });
     const primaryCta = screen.getByRole("link", { name: /جهّز حوضك/i });

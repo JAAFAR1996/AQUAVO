@@ -53,45 +53,45 @@ interface HomeHeroProps {
 export function HomeHero({ copy = HOME_HERO_COPY_AR, dir = "rtl" }: HomeHeroProps) {
   const Forward = dir === "rtl" ? ArrowLeft : ArrowRight;
   return (
-      <section className="aq-waterline-hero relative isolate overflow-hidden border-b border-border bg-background pt-24 sm:pt-28">
+      <section className="aq-waterline-hero relative isolate overflow-hidden border-b border-border bg-background pt-4 sm:pt-14 lg:pt-28">
         <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_78%_22%,rgba(11,147,166,0.2),transparent_34%),radial-gradient(circle_at_18%_70%,rgba(11,100,166,0.14),transparent_30%)]" />
-        <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 pb-12 pt-8 sm:px-6 sm:pb-16 lg:grid-cols-[1.02fr_0.98fr] lg:gap-16 lg:px-8 lg:pb-20 lg:pt-12">
-          <div className="aq-hero-copy order-2 text-start lg:order-1">
-            <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-4 py-2 text-xs font-bold text-primary sm:text-sm">
+        <div className="mx-auto grid max-w-7xl items-center gap-8 px-4 pb-8 pt-4 sm:gap-10 sm:px-6 sm:pb-16 lg:grid-cols-[1.02fr_0.98fr] lg:gap-16 lg:px-8 lg:pb-20 lg:pt-12">
+          <div className="aq-hero-copy order-1 text-start lg:order-1">
+            <p className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-4 py-2 text-xs font-bold text-primary sm:mb-5 sm:text-sm">
               <ShieldCheck className="h-4 w-4 text-primary" aria-hidden="true" />
               {copy.eyebrow}
             </p>
-            <h1 className="aq-hero-title max-w-3xl font-display text-[2.55rem] font-bold leading-[1.12] text-foreground sm:text-5xl lg:text-[3.55rem]">
+            <h1 className="aq-hero-title max-w-3xl font-display text-[clamp(1.9rem,7vw,2.55rem)] font-bold leading-[1.12] text-foreground sm:text-5xl lg:text-[3.55rem]">
               {copy.title}
             </h1>
-            <p className="aq-hero-support mt-6 max-w-2xl text-base leading-8 text-foreground/70 sm:text-lg">
+            <p className="aq-hero-support mt-3 max-w-2xl text-base leading-7 text-foreground/70 sm:mt-6 sm:text-lg sm:leading-8">
               {copy.description}
             </p>
 
-            <div className="aq-hero-actions mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+            <div className="aq-hero-actions mt-5 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:flex-wrap">
               <Link
-                href="/journey"
+                href="/products"
                 className={`${linkButton} bg-primary text-white hover:bg-primary/90`}
                 data-tour="hero-cta"
               >
-                {copy.journey}
+                {copy.browse}
                 <Forward className="h-4 w-4" aria-hidden="true" />
               </Link>
               <Link
-                href="/products"
+                href="/journey"
                 className={`${linkButton} border border-primary/40 text-primary hover:bg-[#0B93A6]/10`}
               >
-                {copy.browse}
+                {copy.journey}
                 <Sparkles className="h-4 w-4" aria-hidden="true" />
               </Link>
             </div>
 
-            <p className="mt-6 text-sm leading-6 text-foreground/55">
+            <p className="mt-4 text-sm leading-6 text-foreground/55 sm:mt-6">
               {copy.help}
             </p>
           </div>
 
-          <div className="order-1 lg:order-2">
+          <div className="order-2 lg:order-2">
             <div className="aq-proof-window relative mx-auto max-w-2xl overflow-hidden rounded-[1.75rem] border border-border bg-card shadow-[0_20px_60px_rgba(11,30,40,0.12)]">
               <img
                 src="/images/aquascape-styles/iwagumi_aquascape_1765676307763.webp"
