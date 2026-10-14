@@ -1318,6 +1318,8 @@ html[dir="ltr"] body {
   }
 }
 @media (prefers-reduced-motion: reduce) {
+  @view-transition { navigation: none; }
+  .aq-waterline-hero::after { animation: none !important; transform: none; opacity: 1; }
   .aq-mobile-bottom-nav,
   .aq-sticky-purchase {
     transition: none !important;

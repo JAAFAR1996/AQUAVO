@@ -58,7 +58,7 @@ describe('Cart drawer accessibility', () => {
         const user = await import('@testing-library/user-event').then((module) => module.default.setup());
         render(<Navbar />, { wrapper: createWrapper() });
 
-        await user.click(screen.getByRole('button', { name: /سلة المشتريات/ }));
+        await user.click(screen.getAllByRole('button', { name: /سلة المشتريات/ })[0]);
 
         expect(screen.getByRole('button', { name: 'تقليل كمية فلتر اختبار' })).toBeInTheDocument();
         expect(screen.getByRole('button', { name: 'زيادة كمية فلتر اختبار' })).toBeInTheDocument();
@@ -69,7 +69,7 @@ describe('Cart drawer accessibility', () => {
         const user = await import('@testing-library/user-event').then((module) => module.default.setup());
         render(<Navbar />, { wrapper: createWrapper() });
 
-        await user.click(screen.getByRole('button', { name: /سلة المشتريات/ }));
+        await user.click(screen.getAllByRole('button', { name: /سلة المشتريات/ })[0]);
 
         const list = screen.getByRole('list', { name: 'المنتجات في السلة' });
         expect(list).toBeInTheDocument();
@@ -82,7 +82,7 @@ describe('Cart drawer accessibility', () => {
         const user = await import('@testing-library/user-event').then((module) => module.default.setup());
         render(<Navbar />, { wrapper: createWrapper() });
 
-        await user.click(screen.getByRole('button', { name: /سلة المشتريات/ }));
+        await user.click(screen.getAllByRole('button', { name: /سلة المشتريات/ })[0]);
 
         const image = screen.getByRole('listitem').querySelector('img');
         expect(image).toHaveAttribute('alt', '');
@@ -93,7 +93,7 @@ describe('Cart drawer accessibility', () => {
         const user = await import('@testing-library/user-event').then((module) => module.default.setup());
         render(<Navbar />, { wrapper: createWrapper() });
 
-        await user.click(screen.getByRole('button', { name: /سلة المشتريات/ }));
+        await user.click(screen.getAllByRole('button', { name: /سلة المشتريات/ })[0]);
 
         const decreaseBtn = screen.getByRole('button', { name: 'تقليل كمية فلتر اختبار' });
         const increaseBtn = screen.getByRole('button', { name: 'زيادة كمية فلتر اختبار' });
@@ -111,7 +111,7 @@ describe('Cart drawer accessibility', () => {
         const user = await import('@testing-library/user-event').then((module) => module.default.setup());
         render(<Navbar />, { wrapper: createWrapper() });
 
-        await user.click(screen.getByRole('button', { name: /سلة المشتريات/ }));
+        await user.click(screen.getAllByRole('button', { name: /سلة المشتريات/ })[0]);
 
         expect(screen.getByText('المجموع').tagName).toBe('DT');
         const total = screen.getByText((_, el) => el?.tagName === 'DD' && el.textContent?.includes('50,000') === true);

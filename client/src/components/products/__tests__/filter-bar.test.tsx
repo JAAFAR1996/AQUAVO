@@ -96,7 +96,7 @@ describe('FilterBar quick-filter chips', () => {
 describe('FilterBar mobile touch targets (WCAG 2.5.8 target size, min 44px)', () => {
     it('gives every quick-filter chip a >=44px min-height class', () => {
         renderBar(baseFilters());
-        for (const name of ['جديد', 'الأكثر مبيعاً', 'صديق للبيئة']) {
+        for (const name of ['جديد', 'الأكثر مبيعاً', 'المتوفر حالياً']) {
             expect(screen.getByRole('button', { name })).toHaveClass('min-h-11');
         }
     });
@@ -134,7 +134,7 @@ describe('FilterBar mobile touch targets (WCAG 2.5.8 target size, min 44px)', ()
 
     it('keeps every quick-filter chip at >=44px min-height at tablet width too', () => {
         renderBar(baseFilters());
-        for (const name of ['جديد', 'الأكثر مبيعاً', 'صديق للبيئة']) {
+        for (const name of ['جديد', 'الأكثر مبيعاً', 'المتوفر حالياً']) {
             const chip = screen.getByRole('button', { name });
             expect(chip).toHaveClass('min-h-11');
             expect(chip.className).not.toMatch(/\b(sm|md|lg|xl):min-h-(?!11\b|12\b)/);
@@ -144,7 +144,7 @@ describe('FilterBar mobile touch targets (WCAG 2.5.8 target size, min 44px)', ()
 
 /**
  * Text-containment regression tests (visual QA finding on /products mobile
- * & tablet: "الأكثر مبيعاً" / "صديق للبيئة" wrapped to 2 lines inside a
+ * & tablet: "الأكثر مبيعاً" / "المتوفر حالياً" wrapped to 2 lines inside a
  * 44px-tall pill because the label span had no `whitespace-nowrap`, and the
  * buttons could be squeezed by the overflow-x-auto row because they had no
  * `flex-shrink-0`.)
@@ -152,7 +152,7 @@ describe('FilterBar mobile touch targets (WCAG 2.5.8 target size, min 44px)', ()
 describe('FilterBar quick-filter chip + trigger text containment', () => {
     it('gives every quick-filter chip label whitespace-nowrap so multi-word Arabic labels do not wrap to 2 lines', () => {
         renderBar(baseFilters());
-        for (const name of ['جديد', 'الأكثر مبيعاً', 'صديق للبيئة']) {
+        for (const name of ['جديد', 'الأكثر مبيعاً', 'المتوفر حالياً']) {
             const btn = screen.getByRole('button', { name });
             const label = btn.querySelector('span');
             expect(label).not.toBeNull();
@@ -162,7 +162,7 @@ describe('FilterBar quick-filter chip + trigger text containment', () => {
 
     it('gives every quick-filter chip flex-shrink-0 so the row scrolls instead of squeezing the chip', () => {
         renderBar(baseFilters());
-        for (const name of ['جديد', 'الأكثر مبيعاً', 'صديق للبيئة']) {
+        for (const name of ['جديد', 'الأكثر مبيعاً', 'المتوفر حالياً']) {
             expect(screen.getByRole('button', { name })).toHaveClass('flex-shrink-0');
         }
     });

@@ -98,9 +98,9 @@ describe("the homepage hero is in the initial HTML", () => {
     // Pulled from the component source, so the prerender cannot drift from the
     // page React renders without this failing.
     for (const copy of [
-      "متجر مستلزمات أحواض الزينة في العراق",
-      "شوف المنتجات",
-      "رتب تجهيز حوضي",
+      "اختَر تجهيزات تناسب حوضك",
+      "تسوّق المنتجات",
+      "جهّز حوضك",
       "الحوض أولاً، القطعة بعدها",
     ]) {
       expect(HERO_SOURCE, `component should contain ${copy}`).toContain(copy);

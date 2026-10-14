@@ -79,13 +79,13 @@ describe('Home Page', () => {
         render(<Home />, { wrapper: createWrapper() });
         const headings = screen.getAllByRole('heading', { level: 1 });
         expect(headings).toHaveLength(1);
-        expect(headings[0]).toHaveTextContent('متجر مستلزمات أحواض الزينة في العراق');
+        expect(headings[0]).toHaveTextContent('اختَر تجهيزات تناسب حوضك');
     });
 
     it('keeps the primary actions calm and useful', () => {
         render(<Home />, { wrapper: createWrapper() });
-        expect(screen.getByRole('link', { name: /شوف المنتجات/i })).toHaveAttribute('href', '/products');
-        expect(screen.getByRole('link', { name: /رتب تجهيز حوضي/i })).toHaveAttribute('href', '/journey');
+        expect(screen.getByRole('link', { name: /تسوّق المنتجات/i })).toHaveAttribute('href', '/products');
+        expect(screen.getByRole('link', { name: /جهّز حوضك/i })).toHaveAttribute('href', '/journey');
     });
 
     it('shows only verified service facts', () => {

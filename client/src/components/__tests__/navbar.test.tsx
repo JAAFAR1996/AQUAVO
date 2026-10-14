@@ -52,7 +52,7 @@ describe('Navbar Component', () => {
 
     it('should render navbar', () => {
         render(<Navbar />, { wrapper: createWrapper() });
-        expect(screen.getByRole('navigation')).toBeInTheDocument();
+        expect(screen.getAllByRole('navigation').length).toBeGreaterThanOrEqual(2);
     });
 
     it('should have navigation links', () => {
@@ -70,11 +70,11 @@ describe('Navbar Component', () => {
     it('shows the focused primary navigation', () => {
         render(<Navbar />, { wrapper: createWrapper() });
 
-        expect(screen.getByRole('link', { name: 'المتجر' })).toBeInTheDocument();
+        expect(screen.getAllByRole('link', { name: 'المتجر' })[0]).toHaveAttribute('href', '/products');
         // Renamed in b864de27 ("canonical journey link"); still the /journey entry.
         expect(screen.getByRole('link', { name: 'رتب تجهيز حوضك' })).toBeInTheDocument();
         expect(screen.getByRole('link', { name: 'أدلة AQUAVO' })).toBeInTheDocument();
-        expect(screen.getByRole('link', { name: 'تتبع طلبك' })).toBeInTheDocument();
+        expect(screen.queryByRole('link', { name: 'تتبع طلبك' })).not.toBeInTheDocument();
         expect(screen.getByRole('link', { name: 'منو AQUAVO' })).toBeInTheDocument();
     });
 
@@ -88,7 +88,7 @@ describe('Navbar Component', () => {
         const user = await import('@testing-library/user-event').then((module) => module.default.setup());
         render(<Navbar />, { wrapper: createWrapper() });
 
-        await user.click(screen.getByRole('button', { name: /سلة المشتريات/ }));
+        await user.click(screen.getAllByRole('button', { name: /سلة المشتريات/ })[0]);
         await user.click(screen.getByRole('button', { name: 'كمل معلومات التوصيل' }));
 
         expect(mockSetLocation).toHaveBeenCalledWith('/checkout');

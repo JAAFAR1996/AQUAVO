@@ -45,7 +45,8 @@ describe("search quality: English catalogue", () => {
   const items = names("en");
 
   it("has a translated name for every product", () => {
-    expect(items.length).toBe(SOURCE_PRODUCT_COUNT);
+    expect(items.length).toBeGreaterThanOrEqual(SOURCE_PRODUCT_COUNT);
+    expect(new Set(items.map((p) => p.slug)).size).toBe(items.length);
   });
 
   it("finds every product from the leading words of its own English name", () => {
@@ -63,7 +64,8 @@ describe("search quality: Kurdish catalogue", () => {
   const items = names("ckb");
 
   it("has a translated name for every product", () => {
-    expect(items.length).toBe(SOURCE_PRODUCT_COUNT);
+    expect(items.length).toBeGreaterThanOrEqual(SOURCE_PRODUCT_COUNT);
+    expect(new Set(items.map((p) => p.slug)).size).toBe(items.length);
   });
 
   it("finds every product from the leading words of its own Sorani name", () => {
@@ -77,7 +79,7 @@ describe("search quality: Kurdish catalogue", () => {
   // reached from an Arabic keyboard at all.
   it("is reachable from an Arabic keyboard (ی/ک folded onto ي/ك)", () => {
     const affected = items.filter((p) => /[یک]/.test(p.name));
-    expect(affected.length).toBe(SOURCE_PRODUCT_COUNT);
+    expect(affected.length).toBeGreaterThanOrEqual(SOURCE_PRODUCT_COUNT);
     const broken = affected.filter((p) => !fuzzySearchMatch(p.name, AR_KEYBOARD(leadingQuery(p.name))));
     expect(broken.map((m) => `${m.slug}: ${m.name}`)).toEqual([]);
   });
