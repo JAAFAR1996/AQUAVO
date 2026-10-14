@@ -2,9 +2,8 @@
  * A short thermal receipt printer sound, rendered locally with Web Audio.
  * No audio downloads, tracking or network dependency.
  *
- * Browser autoplay policies require an actual user click before sound can play.
- * The click makes an audible motor-engagement tick immediately; the rollers then
- * start after the same 650ms delay as the receipt animation.
+ * Checkout primes Web Audio from the actual confirmation click. The receipt
+ * plays automatically when visible; browser autoplay limits still apply.
  */
 export const PRINTER_FEED_DURATION = 2.6;
 
@@ -21,10 +20,39 @@ const FEED_BURSTS = Array.from({ length: PRINTER_FEED_TIMES.length / 2 }, (_, i)
 
 type LegacyAudioWindow = Window & { webkitAudioContext?: typeof AudioContext };
 
+// Persist across checkout -> order confirmation SPA navigation.
+// Stopping a sound must not close the user's already authorized AudioContext.
+let preparedContext: AudioContext | null = null;
+
+export function primeReceiptPrinterAudio(): void {
+  if (typeof window === "undefined") return;
+  const Constructor = window.AudioContext ?? (window as LegacyAudioWindow).webkitAudioContext;
+  if (!Constructor) return;
+  try {
+    if (!preparedContext || preparedContext.state === "closed") {
+      preparedContext = new Constructor();
+    }
+    // Called from the trusted checkout button. No sound is played here.
+    void preparedContext.resume().catch(() => {
+      // Audio availability must never prevent an order.
+    });
+  } catch {
+    // Unsupported audio should not interfere with checkout.
+  }
+}
+
+/** Close the shared context on page exit or in isolated tests. */
+export function releaseReceiptPrinterAudio(): void {
+  const context = preparedContext;
+  preparedContext = null;
+  if (context && context.state !== "closed") {
+    void context.close().catch(() => {});
+  }
+}
+
 /**
- * Start printer audio synchronously from a click handler. Returns a cleanup
- * function, or null if this browser cannot create Web Audio. onUnavailable is
- * called on startup/resume failure so the UI does not falsely claim sound is on.
+ * Play on the first automatic print or a Replay click. Return a cleanup to stop
+ * this sound without shutting down the primed Web Audio context.
  */
 export function playReceiptPrinterSound(
   delaySeconds = 0.65,
@@ -45,7 +73,10 @@ export function playReceiptPrinterSound(
   let context: AudioContext | null = null;
   try {
     // Create and schedule while the user's click still grants activation.
-    context = new AudioContextConstructor();
+    context = preparedContext && preparedContext.state !== "closed"
+      ? preparedContext
+      : new AudioContextConstructor();
+    preparedContext = context;
     const rate = context.sampleRate;
     const delay = Math.min(2, Math.max(0, delaySeconds));
     const length = Math.ceil(rate * (delay + PRINTER_FEED_DURATION + 0.16));
@@ -116,7 +147,7 @@ export function playReceiptPrinterSound(
       if (stopped) return;
       stopped = true;
       try { source.stop(); } catch { /* may have ended already */ }
-      void audioContext.close().catch(() => {});
+      // Retain audioContext for subsequent receipt animations.
     };
 
     source.onended = stop;
@@ -129,7 +160,8 @@ export function playReceiptPrinterSound(
     });
     return stop;
   } catch {
-    if (context) void context.close().catch(() => {});
+    if (context === preparedContext) releaseReceiptPrinterAudio();
+    else if (context) void context.close().catch(() => {});
     onUnavailable?.();
     return null;
   }

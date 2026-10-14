@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { CheckCircle2, LoaderCircle, RotateCcw, Volume2, VolumeX } from "lucide-react";
+import { CheckCircle2, LoaderCircle, RotateCcw } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { formatIQD } from "@/lib/utils";
 import { PRINTER_FEED_DURATION, PRINTER_FEED_TIMES, playReceiptPrinterSound } from "@/lib/receipt-printer-audio";
@@ -32,21 +32,21 @@ const strings = {
     items: "المنتجات", subtotal: "المجموع الفرعي", delivery: "التوصيل",
     discount: "الخصم", total: "الإجمالي", payment: "طريقة الدفع / الحالة",
     thanks: "شكرا لتسوقك من AQUAVO", processing: "جاري تجهيز الإيصال",
-    printing: "جاري طباعة الإيصال", complete: "الإيصال جاهز", store: "المتجر", replay: "إعادة عرض الحركة", soundOn: "تشغيل صوت الطابعة", soundOff: "كتم الصوت", soundUnavailable: "المتصفح منع الصوت. تأكد من السماعات أو كتم صوت التبويب وجرب مرة ثانية.",
+    printing: "جاري طباعة الإيصال", complete: "الإيصال جاهز", store: "المتجر", replay: "إعادة عرض الحركة", soundUnavailable: "المتصفح منع الصوت. تأكد من السماعات أو كتم صوت التبويب وجرب مرة ثانية.",
   },
   en: {
     receipt: "Order receipt", confirmed: "Order received", number: "Order number",
     items: "Items", subtotal: "Subtotal", delivery: "Delivery",
     discount: "Discount", total: "Total", payment: "Payment method / status",
     thanks: "Thank you for shopping with AQUAVO", processing: "Preparing receipt",
-    printing: "Printing your receipt", complete: "Receipt ready", store: "Shop", replay: "Replay", soundOn: "Enable printer sound", soundOff: "Mute printer sound", soundUnavailable: "Printer audio could not start. Check your device and tab volume, then try again.",
+    printing: "Printing your receipt", complete: "Receipt ready", store: "Shop", replay: "Replay", soundUnavailable: "Printer audio could not start. Check your device and tab volume, then try again.",
   },
   ckb: {
     receipt: "پسووڵەی داواکاری", confirmed: "داواکارییەکەت تۆمار کرا", number: "ژمارەی داواکاری",
     items: "بەرهەمەکان", subtotal: "کۆی سەرەتایی", delivery: "گەیاندن",
     discount: "داشکاندن", total: "کۆی گشتی", payment: "شێواز / دۆخی پارەدان",
     thanks: "سوپاس بۆ کڕین لە AQUAVO", processing: "ئامادەکردنی پسووڵە",
-    printing: "چاپکردنی پسووڵە", complete: "پسووڵە ئامادەیە", store: "فرۆشگا", replay: "دووبارە پیشاندان", soundOn: "دەنگی چاپکەرەکە چالاک بکە", soundOff: "دەنگی چاپکەرەکە بکوژێنەوە", soundUnavailable: "دەنگەکە دەست پێ نەکرد. دەنگی وێبگەڕ و ئامێرەکەت بپشکنە، پاشان دووبارە هەوڵ بدە.",
+    printing: "چاپکردنی پسووڵە", complete: "پسووڵە ئامادەیە", store: "فرۆشگا", replay: "دووبارە پیشاندان", soundUnavailable: "دەنگەکە دەست پێ نەکرد. دەنگی وێبگەڕ و ئامێرەکەت بپشکنە، پاشان دووبارە هەوڵ بدە.",
   },
 } as const;
 
@@ -80,28 +80,29 @@ export function OrderReceiptPrinter({
   // below the fold; a mount-time timer would finish before the user scrolls down.
   const [stage, setStage] = useState<PrinterStage>("idle");
   const [runId, setRunId] = useState(0);
-  // Browsers block sound on navigation: explicitly enable it with a click.
-  const [soundEnabled, setSoundEnabled] = useState(false);
+  // Sound runs automatically with the receipt; never expose a toggle.
   const [soundError, setSoundError] = useState(false);
   const stopSoundRef = useRef<(() => void) | null>(null);
+  const skipEffectSoundRef = useRef(false);
+
+  const handleSoundUnavailable = () => {
+    stopSoundRef.current = null;
+    setSoundError(true);
+  };
 
   useEffect(() => () => {
     stopSoundRef.current?.();
     stopSoundRef.current = null;
   }, []);
 
-  const replay = (withSound: boolean) => {
+  const replay = () => {
     stopSoundRef.current?.();
     stopSoundRef.current = null;
     setSoundError(false);
-    if (withSound && !reduced) {
-      // Start synchronously within the click gesture. A short mechanical click
-      // sounds immediately; the roller bursts match the paper 650ms later.
-      stopSoundRef.current = playReceiptPrinterSound(0.65, () => {
-        stopSoundRef.current = null;
-        setSoundEnabled(false);
-        setSoundError(true);
-      });
+    if (!reduced) {
+      // The Replay click lets Web Audio start in this exact user gesture.
+      skipEffectSoundRef.current = true;
+      stopSoundRef.current = playReceiptPrinterSound(0.65, handleSoundUnavailable);
     }
     setStage("processing");
     setRunId(current => current + 1);
@@ -130,6 +131,15 @@ export function OrderReceiptPrinter({
 
   useEffect(() => {
     if (reduced || runId === 0) return;
+    if (skipEffectSoundRef.current) {
+      skipEffectSoundRef.current = false;
+    } else {
+      // First automatic receipt print: start audio without requiring a toggle.
+      stopSoundRef.current?.();
+      stopSoundRef.current = null;
+      setSoundError(false);
+      stopSoundRef.current = playReceiptPrinterSound(0.65, handleSoundUnavailable);
+    }
     setStage("processing");
     // Start with no paper, wait a moment, then feed in clearly separated steps.
     const start = window.setTimeout(() => setStage("printing"), 650);
@@ -148,33 +158,13 @@ export function OrderReceiptPrinter({
       data-aqv-receipt
       data-stage={reduced ? "complete" : stage}
       data-animation-run={runId}
+      data-audio-mode="automatic"
     >
       {!reduced && (
         <div className="mb-3 flex flex-wrap items-center justify-end gap-2 self-end">
           <button
             type="button"
-            aria-label={soundEnabled ? s.soundOff : s.soundOn}
-            aria-pressed={soundEnabled}
-            onClick={() => {
-              if (soundEnabled) {
-                stopSoundRef.current?.();
-                stopSoundRef.current = null;
-                setSoundEnabled(false);
-                setSoundError(false);
-              } else {
-                // Explicit activation unlocks audio and replays the full motion.
-                setSoundEnabled(true);
-                replay(true);
-              }
-            }}
-            className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-[#0B93A6]/35 bg-[#0B93A6]/10 px-3 py-1.5 text-xs font-semibold text-[#0B1E28] transition-colors hover:bg-[#0B93A6]/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B93A6]"
-          >
-            {soundEnabled ? <Volume2 aria-hidden="true" className="h-3.5 w-3.5" /> : <VolumeX aria-hidden="true" className="h-3.5 w-3.5" />}
-            {soundEnabled ? s.soundOff : s.soundOn}
-          </button>
-          <button
-            type="button"
-            onClick={() => replay(soundEnabled)}
+            onClick={replay}
             aria-label={s.replay}
             className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-[#0B1E28]/15 bg-[#FFFEFB] px-3 py-1.5 text-xs font-semibold text-[#0B1E28] shadow-sm transition-colors hover:bg-[#F6F4EF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B93A6]"
           >

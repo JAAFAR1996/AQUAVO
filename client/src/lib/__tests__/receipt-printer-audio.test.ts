@@ -1,7 +1,10 @@
 import { describe, expect, it, vi, afterEach } from "vitest";
-import { PRINTER_FEED_DURATION, PRINTER_FEED_TIMES, playReceiptPrinterSound } from "../receipt-printer-audio";
+import { PRINTER_FEED_DURATION, PRINTER_FEED_TIMES, playReceiptPrinterSound, primeReceiptPrinterAudio, releaseReceiptPrinterAudio } from "../receipt-printer-audio";
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  releaseReceiptPrinterAudio();
+  vi.unstubAllGlobals();
+});
 
 describe("thermal receipt printer audio", () => {
   it("uses paired motor bursts matching the 2.6-second receipt animation", () => {
@@ -62,7 +65,41 @@ describe("thermal receipt printer audio", () => {
     expect(samples.slice(5600, 12000).some(v => Math.abs(v) > 0.08)).toBe(true);
     cleanup?.();
     expect(stop).toHaveBeenCalledOnce();
-    expect(close).toHaveBeenCalledOnce();
+    expect(close).not.toHaveBeenCalled(); // stays unlocked for future prints
+  });
+
+
+  it("primes silently at checkout and reuses the audio context for automatic printing", () => {
+    let created = 0;
+    const start = vi.fn();
+    const resume = vi.fn(async () => undefined);
+    const close = vi.fn(async () => undefined);
+    class MockAudioContext {
+      sampleRate = 8000;
+      currentTime = 3;
+      state: AudioContextState = "running";
+      destination = {};
+      constructor() { created++; }
+      createBuffer(_channels: number, frames: number) {
+        return { getChannelData: () => new Float32Array(frames) };
+      }
+      createBufferSource() {
+        return { buffer: null, connect: vi.fn(), start, stop: vi.fn(), onended: null };
+      }
+      createGain() { return { gain: { value: 0 }, connect: vi.fn() }; }
+      resume() { return resume(); }
+      close() { return close(); }
+    }
+    vi.stubGlobal("AudioContext", MockAudioContext);
+    primeReceiptPrinterAudio();
+    expect(created).toBe(1);
+    expect(start).not.toHaveBeenCalled(); // confirming a checkout isn't a printer noise
+    const stop = playReceiptPrinterSound(0.65);
+    expect(created).toBe(1); // not a second, possibly autoplay-blocked context
+    expect(start).toHaveBeenCalledWith(3);
+    expect(resume).toHaveBeenCalledTimes(2);
+    stop?.();
+    expect(close).not.toHaveBeenCalled();
   });
 
   it("supports older Safari's prefixed audio context", () => {

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { primeReceiptPrinterAudio } from "@/lib/receipt-printer-audio";
 import { DynamicButton } from "@/components/ui/dynamic-button";
 import { ScrollFadeList } from "@/components/ui/scroll-fade-list";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -251,6 +252,9 @@ export function ConfirmationView({
             void beginOnlinePayment();
             return;
         }
+        // The checkout click unlocks the receipt printer's shared AudioContext.
+        // It remains silent until a successful order displays the animated receipt.
+        primeReceiptPrinterAudio();
         handleConfirmOrder();
     };
 
