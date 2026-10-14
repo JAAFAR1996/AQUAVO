@@ -1,150 +1,121 @@
-import { describe, expect, it, vi, afterEach } from "vitest";
-import { PRINTER_FEED_DURATION, PRINTER_FEED_TIMES, playReceiptPrinterSound, primeReceiptPrinterAudio, releaseReceiptPrinterAudio } from "../receipt-printer-audio";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import {
+  PRINTER_FEED_DURATION,
+  PRINTER_FEED_TIMES,
+  REAL_RECEIPT_PRINTER_AUDIO_URL,
+  playReceiptPrinterSound,
+  primeReceiptPrinterAudio,
+  releaseReceiptPrinterAudio,
+} from "../receipt-printer-audio";
 
 afterEach(() => {
   releaseReceiptPrinterAudio();
   vi.unstubAllGlobals();
+  vi.useRealTimers();
 });
 
-describe("thermal receipt printer audio", () => {
-  it("uses paired motor bursts matching the 2.6-second receipt animation", () => {
+function mockRealAudio() {
+  const start = vi.fn();
+  const stop = vi.fn();
+  const close = vi.fn(async () => undefined);
+  const resume = vi.fn(async () => undefined);
+  const decodeAudioData = vi.fn(async () => ({ duration: 2.67 } as AudioBuffer));
+  const source = {
+    buffer: null as AudioBuffer | null,
+    connect: vi.fn(),
+    disconnect: vi.fn(),
+    start,
+    stop,
+    onended: null as (() => void) | null,
+  };
+  const gain = { gain: { value: 1 }, connect: vi.fn(), disconnect: vi.fn() };
+  let contexts = 0;
+  class FakeContext {
+    state: AudioContextState = "running";
+    currentTime = 5;
+    destination = {};
+    constructor() { contexts++; }
+    resume() { return resume(); }
+    close() { return close(); }
+    decodeAudioData(b: ArrayBuffer) { return decodeAudioData(b); }
+    createBufferSource() { return source; }
+    createGain() { return gain; }
+  }
+  vi.stubGlobal("AudioContext", FakeContext);
+  vi.stubGlobal("fetch", vi.fn(async () => ({
+    ok: true,
+    arrayBuffer: async () => new ArrayBuffer(256),
+  })));
+  return { start, stop, resume, close, source, gain, decodeAudioData, getContexts: () => contexts };
+}
+
+describe("genuine thermal receipt printer audio", () => {
+  it("matches 2.6-second feed keyframes and uses the actual licensed recording", () => {
     expect(PRINTER_FEED_DURATION).toBe(2.6);
     expect(PRINTER_FEED_TIMES).toHaveLength(20);
     expect(PRINTER_FEED_TIMES[0]).toBe(0);
-    expect(PRINTER_FEED_TIMES[19]).toBe(1);
-    expect(PRINTER_FEED_TIMES.every((time, i) =>
-      i === 0 || time >= PRINTER_FEED_TIMES[i - 1],
-    )).toBe(true);
+    expect(PRINTER_FEED_TIMES.at(-1)).toBe(1);
+    expect(PRINTER_FEED_TIMES.every((time, i) => i === 0 || time >= PRINTER_FEED_TIMES[i - 1])).toBe(true);
+    expect(REAL_RECEIPT_PRINTER_AUDIO_URL).toMatch(/^https:\/\/res\.cloudinary\.com\/dyczh8ogv\/video\/upload\/.+\.mp3$/);
   });
 
-  it("reports unavailable audio and does not falsely enable it", () => {
+  it("does not interrupt checkout when a browser has no Web Audio", () => {
     vi.stubGlobal("AudioContext", undefined);
     vi.stubGlobal("webkitAudioContext", undefined);
     const unavailable = vi.fn();
+    primeReceiptPrinterAudio();
     expect(playReceiptPrinterSound(0.65, unavailable)).toBeNull();
     expect(unavailable).toHaveBeenCalledOnce();
   });
 
-  it("starts audibly on the click, feeds after 650ms, and cleans up", () => {
-    const start = vi.fn();
-    const stop = vi.fn();
-    const close = vi.fn(async () => undefined);
-    const resume = vi.fn(async () => undefined);
-    let samples = new Float32Array();
-    const source = {
-      buffer: null as AudioBuffer | null,
-      connect: vi.fn(), start, stop, onended: null as (() => void) | null,
-    };
-    const gain = { gain: { value: 1 }, connect: vi.fn() };
-    class MockAudioContext {
-      sampleRate = 8000;
-      currentTime = 4;
-      destination = {};
-      createBuffer(_channels: number, frames: number) {
-        samples = new Float32Array(frames);
-        return { getChannelData: () => samples } as unknown as AudioBuffer;
-      }
-      createBufferSource() { return source; }
-      createGain() { return gain; }
-      resume() { return resume(); }
-      close() { return close(); }
-    }
-    vi.stubGlobal("AudioContext", MockAudioContext);
-
-    const cleanup = playReceiptPrinterSound(0.65);
-    expect(cleanup).toBeTypeOf("function");
-    expect(start).toHaveBeenCalledWith(4);
-    expect(resume).toHaveBeenCalledOnce();
-    expect(source.buffer).not.toBeNull();
-    expect(gain.gain.value).toBeGreaterThanOrEqual(0.5);
-    expect(samples.length).toBeGreaterThan(8000 * 3);
-    // Clicking plays a distinct mechanism tick right away.
-    expect(samples.slice(0, 600).some(v => Math.abs(v) > 0.01)).toBe(true);
-    // Rollers remain silent during processing, then audibly feed the sheet.
-    expect(samples.slice(900, 3500).every(v => Math.abs(v) < 0.0001)).toBe(true);
-    expect(samples.slice(5600, 12000).some(v => Math.abs(v) > 0.08)).toBe(true);
-    cleanup?.();
-    expect(stop).toHaveBeenCalledOnce();
-    expect(close).not.toHaveBeenCalled(); // stays unlocked for future prints
-  });
-
-
-  it("primes silently at checkout and reuses the audio context for automatic printing", () => {
-    let created = 0;
-    const start = vi.fn();
-    const resume = vi.fn(async () => undefined);
-    const close = vi.fn(async () => undefined);
-    class MockAudioContext {
-      sampleRate = 8000;
-      currentTime = 3;
-      state: AudioContextState = "running";
-      destination = {};
-      constructor() { created++; }
-      createBuffer(_channels: number, frames: number) {
-        return { getChannelData: () => new Float32Array(frames) };
-      }
-      createBufferSource() {
-        return { buffer: null, connect: vi.fn(), start, stop: vi.fn(), onended: null };
-      }
-      createGain() { return { gain: { value: 0 }, connect: vi.fn() }; }
-      resume() { return resume(); }
-      close() { return close(); }
-    }
-    vi.stubGlobal("AudioContext", MockAudioContext);
+  it("preloads from Cloudinary silently at checkout and reuses a single context", async () => {
+    const m = mockRealAudio();
     primeReceiptPrinterAudio();
-    expect(created).toBe(1);
-    expect(start).not.toHaveBeenCalled(); // confirming a checkout isn't a printer noise
+    await vi.waitFor(() => expect(m.decodeAudioData).toHaveBeenCalledOnce());
+    expect(m.start).not.toHaveBeenCalled();
+    expect(m.getContexts()).toBe(1);
+    expect(vi.mocked(fetch)).toHaveBeenCalledWith(REAL_RECEIPT_PRINTER_AUDIO_URL, { cache: "force-cache" });
+    const cancel = playReceiptPrinterSound(0.65);
+    await vi.waitFor(() => expect(m.start).toHaveBeenCalledOnce());
+    expect(m.getContexts()).toBe(1);
+    expect(m.decodeAudioData).toHaveBeenCalledOnce();
+    expect(m.gain.gain.value).toBe(0.64);
+    expect(m.start.mock.calls[0][0]).toBeGreaterThanOrEqual(5);
+    cancel?.();
+    expect(m.stop).toHaveBeenCalledOnce();
+    expect(m.close).not.toHaveBeenCalled();
+  });
+
+  it("reuses the decoded recording on repeat print without a second network request", async () => {
+    const m = mockRealAudio();
+    primeReceiptPrinterAudio();
+    await vi.waitFor(() => expect(m.decodeAudioData).toHaveBeenCalledOnce());
+    const a = playReceiptPrinterSound(0.65);
+    await vi.waitFor(() => expect(m.start).toHaveBeenCalledOnce());
+    a?.();
+    const b = playReceiptPrinterSound(0.65);
+    await vi.waitFor(() => expect(m.start).toHaveBeenCalledTimes(2));
+    b?.();
+    expect(vi.mocked(fetch)).toHaveBeenCalledTimes(1);
+  });
+
+  it("cancels a waiting recording without starting audio after unmount", async () => {
+    const m = mockRealAudio();
+    let resolveFetch: ((value: {ok: boolean; arrayBuffer: () => Promise<ArrayBuffer>}) => void) | undefined;
+    vi.stubGlobal("fetch", vi.fn(() => new Promise(resolve => { resolveFetch = resolve; })));
     const stop = playReceiptPrinterSound(0.65);
-    expect(created).toBe(1); // not a second, possibly autoplay-blocked context
-    expect(start).toHaveBeenCalledWith(3);
-    expect(resume).toHaveBeenCalledTimes(2);
     stop?.();
-    expect(close).not.toHaveBeenCalled();
+    resolveFetch?.({ ok: true, arrayBuffer: async () => new ArrayBuffer(256) });
+    await vi.waitFor(() => expect(m.decodeAudioData).toHaveBeenCalledOnce());
+    await Promise.resolve();
+    expect(m.start).not.toHaveBeenCalled();
   });
 
-  it("supports older Safari's prefixed audio context", () => {
-    const start = vi.fn();
-    vi.stubGlobal("AudioContext", undefined);
-    class PrefixedContext {
-      sampleRate = 8000;
-      currentTime = 0;
-      destination = {};
-      createBuffer(_channels: number, frames: number) {
-        return { getChannelData: () => new Float32Array(frames) };
-      }
-      createBufferSource() {
-        return { buffer: null, connect: vi.fn(), start, stop: vi.fn(), onended: null };
-      }
-      createGain() { return { gain: { value: 0 }, connect: vi.fn() }; }
-      resume() { return Promise.resolve(); }
-      close() { return Promise.resolve(); }
-    }
-    vi.stubGlobal("webkitAudioContext", class extends PrefixedContext {
-      createBufferSource() {
-        return { buffer: null, connect: vi.fn(), start, stop: vi.fn(), onended: null };
-      }
-    });
-    expect(playReceiptPrinterSound(0.65)).toBeTypeOf("function");
-    expect(start).toHaveBeenCalledOnce();
-  });
-
-  it("reports an audio resume policy error without crashing checkout", async () => {
-    const error = vi.fn();
-    vi.stubGlobal("AudioContext", class {
-      sampleRate = 8000;
-      currentTime = 0;
-      destination = {};
-      createBuffer(_channels: number, frames: number) {
-        return { getChannelData: () => new Float32Array(frames) };
-      }
-      createBufferSource() {
-        return { buffer: null, connect: vi.fn(), start: vi.fn(), stop: vi.fn(), onended: null };
-      }
-      createGain() { return { gain: { value: 0 }, connect: vi.fn() }; }
-      resume() { return Promise.reject(new Error("NotAllowedError")); }
-      close() { return Promise.resolve(); }
-    });
-    expect(playReceiptPrinterSound(0.65, error)).toBeTypeOf("function");
-    await vi.waitFor(() => expect(error).toHaveBeenCalledOnce());
+  it("shows an error when the real audio file is unavailable", async () => {
+    mockRealAudio();
+    vi.stubGlobal("fetch", vi.fn(async () => ({ ok: false })));
+    const unavailable = vi.fn();
+    expect(playReceiptPrinterSound(0.65, unavailable)).toBeTypeOf("function");
+    await vi.waitFor(() => expect(unavailable).toHaveBeenCalledOnce());
   });
 });
