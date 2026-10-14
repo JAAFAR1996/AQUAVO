@@ -1212,7 +1212,7 @@ function toDetailPreloadImage(url: string): string {
   if (url.includes("/upload/f_") || url.includes("/upload/w_") || url.includes("/upload/q_")) {
     return url;
   }
-  return url.replace("/upload/", "/upload/f_auto,q_auto:good,w_800,h_800,c_limit/");
+  return url.replace("/upload/", "/upload/f_auto,q_auto:best,w_800,h_800,c_limit/");
 }
 
 // Mirrors `blogHeroImage` (client/src/lib/cloudinary.ts: width 1200, quality

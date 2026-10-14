@@ -55,7 +55,9 @@ describe('detailImageSrcSet', () => {
 
   it('stays consistent with the single-image detailImage() helper', () => {
     const single = detailImage(CLOUDINARY_URL);
+    expect(single).toContain('q_auto:best');
     const srcSet = detailImageSrcSet(CLOUDINARY_URL) ?? '';
+    expect(srcSet).toContain('q_auto:best');
     const width800Entry = srcSet.split(', ').find((entry) => entry.endsWith(' 800w'));
     expect(width800Entry?.replace(/ 800w$/, '')).toBe(single);
   });

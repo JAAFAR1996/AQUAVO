@@ -200,13 +200,11 @@ export async function uploadToCloudinary(
   localFilePath: string,
   publicId: string
 ): Promise<string> {
-  const ext = path.extname(localFilePath).toLowerCase().slice(1);
+  // Keep master image unchanged on Cloudinary; optimize only at delivery.
   const result = await cloudinary.uploader.upload(localFilePath, {
     public_id: publicId,
     resource_type: "image",
     overwrite: false,
-    format: ext === "webp" ? "webp" : undefined,
-    quality: "auto:best",
   });
   return result.secure_url;
 }

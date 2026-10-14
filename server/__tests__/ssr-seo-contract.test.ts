@@ -183,7 +183,7 @@ describe("SEO metadata contracts", () => {
     // The preload must target the SAME transformed asset the PDP <img> renders
     // (client/src/lib/cloudinary.ts `detailImage`), not the raw original.
     expect(product).toContain(
-      'href="https://res.cloudinary.com/aquavo/image/upload/f_auto,q_auto:good,w_800,h_800,c_limit/v1/product.webp"'
+      'href="https://res.cloudinary.com/aquavo/image/upload/f_auto,q_auto:best,w_800,h_800,c_limit/v1/product.webp"'
     );
     expect(product).not.toContain('href="https://res.cloudinary.com/aquavo/image/upload/v1/product.webp"');
     expect(product).not.toContain("iwagumi_aquascape");

@@ -14,12 +14,12 @@ cloudinary.config({
 
 export async function uploadImage(imageBase64: string, folder: string = "aquavo/products/general"): Promise<string> {
     try {
+        // Preserve the source at its original resolution and encoding.
+        // Adaptive quality, format and sizing belong to delivery URLs.
         const result = await cloudinary.uploader.upload(imageBase64, {
             folder,
-            transformation: [
-                { width: 1200, height: 1200, crop: "limit" },
-                { fetch_format: "auto", quality: "auto" },
-            ],
+            resource_type: "image",
+            overwrite: false,
         });
         return result.secure_url;
     } catch (error) {

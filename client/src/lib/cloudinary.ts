@@ -85,7 +85,7 @@ export function thumbImage(url: string | null | undefined): string {
   });
 }
 
-/** Product detail main image — 800×800 WebP, good quality */
+/** Product detail main image — up to 800×800, best adaptive quality */
 export function detailImage(url: string | null | undefined): string {
   const localWebp = preferLocalWebp(url);
   if (localWebp && localWebp !== url) return localWebp;
@@ -93,7 +93,7 @@ export function detailImage(url: string | null | undefined): string {
   return optimizeCloudinaryUrl(url, {
     width: 800,
     height: 800,
-    quality: "auto:good",
+    quality: "auto:best",
     format: "auto",
     crop: "limit",
   });
@@ -252,7 +252,7 @@ export function cardImageSrcSet(url: string | null | undefined): string | undefi
 /** Responsive srcset companion to `detailImage` — 400/600/800/1200px variants. */
 export function detailImageSrcSet(url: string | null | undefined): string | undefined {
   return buildCloudinarySrcSet(url, [400, 600, 800, 1200], {
-    quality: "auto:good",
+    quality: "auto:best",
     format: "auto",
     crop: "limit",
   });

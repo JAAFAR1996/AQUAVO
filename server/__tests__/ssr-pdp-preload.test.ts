@@ -6,7 +6,7 @@ import { injectMeta } from "../../api/ssr-meta";
  *
  * The PDP main image renders through `client/src/lib/cloudinary.ts`
  * `detailImage()`, which transforms Cloudinary URLs to
- * `f_auto,q_auto:good,w_800,h_800,c_limit`. The SSR-injected preload in
+ * `f_auto,q_auto:best,w_800,h_800,c_limit`. The SSR-injected preload in
  * `api/ssr-meta.ts` must advertise the SAME transformed URL — otherwise the
  * browser fetches both the raw original and the transformed asset, the
  * preload goes unused, and Chrome logs "resource preloaded using link
@@ -49,7 +49,7 @@ function preloadHref(html: string): string {
 describe("PDP SSR preload targets the rendered Cloudinary asset", () => {
   const RAW = "https://res.cloudinary.com/aquavo/image/upload/v123/products/yee-filter.jpg";
   const TRANSFORMED =
-    "https://res.cloudinary.com/aquavo/image/upload/f_auto,q_auto:good,w_800,h_800,c_limit/v123/products/yee-filter.jpg";
+    "https://res.cloudinary.com/aquavo/image/upload/f_auto,q_auto:best,w_800,h_800,c_limit/v123/products/yee-filter.jpg";
 
   it("transforms a raw Cloudinary product image to the detail-size candidate (w_800/c_limit/f_auto)", () => {
     const html = renderProduct(RAW);
@@ -59,7 +59,7 @@ describe("PDP SSR preload targets the rendered Cloudinary asset", () => {
     expect(href).toContain("h_800");
     expect(href).toContain("c_limit");
     expect(href).toContain("f_auto");
-    expect(href).toContain("q_auto:good");
+    expect(href).toContain("q_auto:best");
   });
 
   it("regression guard: rejects preloading the raw/untransformed Cloudinary URL", () => {
@@ -142,7 +142,7 @@ describe("PDP preload matches the responsive candidates the <img> will choose", 
     expect(candidates).toHaveLength(4);
     for (const candidate of candidates) {
       expect(candidate).toContain("f_auto");
-      expect(candidate).toContain("q_auto:good");
+      expect(candidate).toContain("q_auto:best");
       expect(candidate).toMatch(/ \d+w$/);
     }
   });
