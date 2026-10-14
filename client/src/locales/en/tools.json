@@ -1539,5 +1539,13 @@
     "s1": "Fully Compatible",
     "s2": "Requires Caution",
     "s3": "Incompatible"
+  },
+  "tank-dimensions": {
+    "title": "Tank dimensions (cm)",
+    "intro": "Enter length, width and height to calculate approximate geometric capacity.",
+    "length": "Length",
+    "width": "Width",
+    "height": "Height",
+    "disclaimer": "Capacity = length × width × height ÷ 1000. Actual water volume varies with fill level and decor. Volume alone cannot establish fish or equipment suitability."
   }
 }

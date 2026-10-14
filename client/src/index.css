@@ -1302,3 +1302,35 @@ html[dir="ltr"] body {
 .aq-bidi-isolate {
   unicode-bidi: isolate;
 }
+
+/* Reserve a real touch-safe footer area for the four-destination mobile dock.
+   Checkout and product details omit this dock to prevent competing fixed bars. */
+@media (max-width: 767px) {
+  body:has(.aq-mobile-bottom-nav) #root {
+    padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px));
+  }
+  .aq-mobile-bottom-nav a,
+  .aq-mobile-bottom-nav button {
+    -webkit-tap-highlight-color: transparent;
+  }
+  .aq-sticky-purchase {
+    padding-bottom: max(12px, env(safe-area-inset-bottom, 0px));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  @view-transition { navigation: none; }
+  .aq-waterline-hero::after { animation: none !important; transform: none; opacity: 1; }
+  .aq-mobile-bottom-nav,
+  .aq-sticky-purchase {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* Comparison remains contextual and never covers the four primary mobile tabs. */
+.aq-compare-dock { bottom: calc(1rem + env(safe-area-inset-bottom, 0px)); }
+@media (max-width: 767px) {
+  body:has(.aq-mobile-bottom-nav) .aq-compare-dock {
+    bottom: calc(5.25rem + env(safe-area-inset-bottom, 0px));
+  }
+}

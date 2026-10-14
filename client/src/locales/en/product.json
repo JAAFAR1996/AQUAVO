@@ -36,11 +36,13 @@
   },
   "price": {
     "soon": "Coming soon",
-    "perKilo": " / kg"
+    "perKilo": " / kg",
+    "from": "From"
   },
   "stock": {
     "available": "In stock ({{count}} pcs)",
-    "unavailable": "Currently out of stock"
+    "unavailable": "Currently out of stock",
+    "chooseVariant": "Choose a size to check stock"
   },
   "trust": {
     "label": "Purchase and trust information",
@@ -69,7 +71,8 @@
     "add": "Add to cart",
     "addShort": "Add to cart",
     "stickyQty": "Quantity {{quantity}}",
-    "stickyVariantQty": "{{variant}} · Qty {{quantity}}"
+    "stickyVariantQty": "{{variant}} · Qty {{quantity}}",
+    "chooseVariant": "Choose a size"
   },
   "share": {
     "label": "Share product",

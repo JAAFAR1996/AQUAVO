@@ -57,7 +57,6 @@ const primaryLinks: NavLink[] = [
   { href: "/bundles", key: "bundles", icon: ShoppingCart },
   { href: "/journey", key: "journey", icon: Wrench },
   { href: "/guides", key: "guides", icon: BookOpen },
-  { href: "/order-tracking", key: "orderTracking", icon: ShoppingCart },
   { href: "/about", key: "about", icon: User },
 ];
 
@@ -69,14 +68,14 @@ const mobileLinks: NavLink[] = [
 ];
 
 const tabletOverflowLinks: NavLink[] = [
-  { href: "/order-tracking", key: "orderTracking", icon: ShoppingCart },
   { href: "/about", key: "about", icon: User },
   { href: "/wishlist", key: "wishlist", icon: Heart },
   { href: "/contact", key: "contact", icon: User },
 ];
 
 export default function Navbar() {
-  const shippingFeeLabel = formatShippingFeeNumber(useShippingFee());
+  const shippingFee = useShippingFee();
+  const shippingFeeLabel = formatShippingFeeNumber(shippingFee);
   const [location, setLocation] = useLocation();
   const { t } = useTranslation("nav");
   const { t: tc } = useTranslation("common");
@@ -543,15 +542,21 @@ export default function Navbar() {
                       </div>
 
                       <div className="shrink-0 border-t border-border bg-background px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4 sm:px-6">
-                        <dl className="flex items-center justify-between gap-4">
-                          <dt className="text-base font-medium">{t("cart.total")}</dt>
-                          <dd className="text-xl font-bold text-foreground" aria-live="polite">
-                            {price(totalPrice)}
-                          </dd>
-                        </dl>
-                        <p className="mt-2 text-center text-xs leading-5 text-muted-foreground">
-                          {t("paymentNote", { fee: shippingFeeLabel })}
-                        </p>
+                        <dl className="space-y-2">
+                           <div className="flex items-center justify-between gap-4 text-sm">
+                             <dt className="text-muted-foreground">{t("cart.subtotal")}</dt>
+                             <dd className="font-medium text-foreground">{price(totalPrice)}</dd>
+                           </div>
+                           <div className="flex items-center justify-between gap-4 text-sm">
+                             <dt className="text-muted-foreground">{t("cart.delivery")}</dt>
+                             <dd className="font-medium text-foreground">{price(shippingFee)}</dd>
+                           </div>
+                           <div className="flex items-center justify-between gap-4 border-t border-border pt-3">
+                             <dt className="text-base font-bold">{t("cart.total")}</dt>
+                             <dd className="text-xl font-bold text-foreground" aria-live="polite">{price(totalPrice + shippingFee)}</dd>
+                           </div>
+                         </dl>
+                         <p className="mt-2 text-center text-xs leading-5 text-muted-foreground">{t("cart.totalNote")}</p>
 
                         <Button
                           type="button"
@@ -578,6 +583,50 @@ export default function Navbar() {
           </div>
         </div>
       </nav>
+
+      {!(
+        location === "/checkout" || location.startsWith("/checkout/") ||
+        location === "/admin" || location.startsWith("/admin/") ||
+        location.startsWith("/products/")
+      ) && (
+        <nav
+          className="aq-mobile-bottom-nav fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_18px_rgba(11,30,40,0.07)] backdrop-blur-md md:hidden"
+          aria-label={t("mobileNav")}
+          dir={dir}
+        >
+          {([
+            { path: "/", key: "home" as const, Icon: Home },
+            { path: "/products", key: "shop" as const, Icon: Package },
+            { path: "/journey", key: "journey" as const, Icon: Wrench },
+          ]).map(({ path, key, Icon }) => {
+            const active = path === "/" ? location === "/" || location === "/ar" : location === path || location.startsWith(path + "/");
+            return (
+              <Link
+                key={key}
+                href={path}
+                aria-current={active ? "page" : undefined}
+                className={`flex min-h-[68px] flex-col items-center justify-center gap-1 px-1 text-center text-[11px] font-semibold leading-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary ${active ? "text-primary" : "text-muted-foreground"}`}
+              >
+                <Icon className="h-5 w-5" aria-hidden="true" />
+                <span>{t(`links.${key}`)}</span>
+              </Link>
+            );
+          })}
+          <button
+            type="button"
+            className={`relative flex min-h-[68px] flex-col items-center justify-center gap-1 px-1 text-center text-[11px] font-semibold leading-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary ${isCartOpen ? "text-primary" : "text-muted-foreground"}`}
+            onClick={() => openCart(true)}
+            aria-haspopup="dialog"
+            aria-label={cartLabel}
+          >
+            <span className="relative">
+              <ShoppingCart className="h-5 w-5" aria-hidden="true" />
+              {totalItems > 0 && <span className="absolute -end-3 -top-2 inline-flex min-h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] text-white">{totalItems}</span>}
+            </span>
+            <span>{t("cart.title")}</span>
+          </button>
+        </nav>
+      )}
 
       {isSearchOpen && (
         <Suspense fallback={null}>

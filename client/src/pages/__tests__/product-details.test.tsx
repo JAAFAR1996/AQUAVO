@@ -157,6 +157,7 @@ const createWrapper = () => {
 describe('Product Details Page', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        mockAddItem.mockResolvedValue(true);
     });
 
     afterEach(() => {
@@ -193,7 +194,7 @@ describe('Product Details Page', () => {
         });
 
         await user.click(screen.getByRole('button', { name: '1.7 متر' }));
-        await user.click(screen.getByRole('button', { name: /أضف للسلة/ }));
+        await user.click(screen.getByRole('button', { name: 'أضف إلى السلة' }));
 
         expect(mockAddItem).toHaveBeenCalledTimes(1);
         expect(mockAddItem).toHaveBeenCalledWith(
@@ -208,7 +209,7 @@ describe('Product Details Page', () => {
         );
     });
 
-    it('auto-selects an in-stock variant when the configured default is sold out', async () => {
+    it('requires an explicit in-stock variant choice when the default is sold out', async () => {
         const user = await import('@testing-library/user-event').then((m) => m.default.setup());
 
         vi.mocked(fetchProductBySlug).mockResolvedValueOnce({
@@ -247,7 +248,10 @@ describe('Product Details Page', () => {
         render(<ProductDetails />, { wrapper: createWrapper() });
 
         await screen.findByRole('heading', { level: 1, name: 'اختبار سائل للأمونيا أو النتريت' });
-        await user.click(screen.getByRole('button', { name: /أضف للسلة/ }));
+        expect(screen.getByRole('button', { name: 'اختَر المقاس' })).toBeDisabled();
+        expect(mockAddItem).not.toHaveBeenCalled();
+        await user.click(screen.getByRole('button', { name: 'اختبار النتريت' }));
+        await user.click(screen.getByRole('button', { name: 'أضف إلى السلة' }));
 
         expect(mockAddItem).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -302,6 +306,7 @@ describe('Product Details Page', () => {
         );
 
         render(<ProductDetails />, { wrapper: createWrapper() });
+        await user.click(await screen.findByRole('button', { name: '1.5 متر' }));
         const mainCta = await screen.findByRole('button', { name: 'أضف إلى السلة' });
 
         await user.click(mainCta);
@@ -414,6 +419,6 @@ describe('Product Details Page', () => {
         expect(await screen.findByRole('heading', { level: 1, name: 'سيفون تغيير ماء' })).toBeInTheDocument();
         expect(screen.getByRole('main')).toBeInTheDocument();
         expect(screen.getByRole('button', { name: '1.7 متر' })).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: 'أضف إلى السلة' })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'اختَر المقاس' })).toBeDisabled();
     });
 });

@@ -36,11 +36,13 @@
   },
   "price": {
     "soon": "قريباً",
-    "perKilo": " / كيلو"
+    "perKilo": " / كيلو",
+    "from": "يبدأ من"
   },
   "stock": {
     "available": "متوفر ({{count}} قطعة)",
-    "unavailable": "غير متوفر حالياً"
+    "unavailable": "غير متوفر حالياً",
+    "chooseVariant": "اختَر المقاس حتى تتأكد من المخزون"
   },
   "trust": {
     "label": "معلومات الشراء والثقة",
@@ -69,7 +71,8 @@
     "add": "أضف إلى السلة",
     "addShort": "أضف للسلة",
     "stickyQty": "الكمية {{quantity}}",
-    "stickyVariantQty": "{{variant}} · الكمية {{quantity}}"
+    "stickyVariantQty": "{{variant}} · الكمية {{quantity}}",
+    "chooseVariant": "اختَر المقاس"
   },
   "share": {
     "label": "مشاركة المنتج",

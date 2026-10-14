@@ -237,8 +237,7 @@ export function ComparisonDrawer({ products }: ComparisonDrawerProps) {
                     animate={{ y: 0, opacity: 1 }}
                     exit={reduceMotion ? { opacity: 0 } : { y: 120, opacity: 0 }}
                     transition={spring}
-                    className="fixed inset-x-0 z-50 flex justify-center px-3 pointer-events-none"
-                    style={{ bottom: "calc(1rem + env(safe-area-inset-bottom, 0px))" }}
+                    className="aq-compare-dock fixed inset-x-0 z-40 flex justify-center px-3 pointer-events-none"
                 >
                     <motion.div
                         animate={bump && !reduceMotion ? { scale: [1, 1.06, 1] } : { scale: 1 }}

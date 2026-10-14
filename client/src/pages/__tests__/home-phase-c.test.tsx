@@ -192,8 +192,8 @@ describe("Home — Phase C structure and landmarks", () => {
 
   it("keeps critical hero CTAs at a touch-friendly minimum height", () => {
     render(<Home />, { wrapper: createWrapper() });
-    const primaryCta = screen.getByRole("link", { name: /شوف المنتجات/i });
-    const secondaryCta = screen.getByRole("link", { name: /رتب تجهيز حوضي/i });
+    const primaryCta = screen.getByRole("link", { name: /جهّز حوضك/i });
+    const secondaryCta = screen.getByRole("link", { name: /تسوّق المنتجات/i });
     expect(primaryCta.className).toMatch(/min-h-12/);
     expect(secondaryCta.className).toMatch(/min-h-12/);
   });

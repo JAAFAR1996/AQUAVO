@@ -9,20 +9,22 @@ describe("checkout WhatsApp consent contract",()=>{
     const view=read("client/src/components/cart/checkout/confirmation-view.tsx");
     expect(view).toContain('id="agree"');
     expect(view).toContain("setAgreed(accepted)");
-    expect(view).toContain("setWhatsappMarketingOptIn(accepted)");
+    expect(view).toContain("setWhatsappMarketingOptIn(false)");
+    expect(view).not.toContain("setWhatsappMarketingOptIn(accepted)");
     expect(view).not.toContain('id="whatsapp-marketing-opt-in"');
   });
 
-  it("makes the single checkbox itself explicit about AQUAVO WhatsApp messages",()=>{
+  it("does not infer marketing consent from accepting the terms",()=>{
     const ar=read("client/src/locales/ar/checkout.json");
     const en=read("client/src/locales/en/checkout.json");
     const ckb=read("client/src/locales/ckb/checkout.json");
-    expect(ar).toContain("AQUAVO");
-    expect(ar).toContain("واتساب");
-    expect(ar).toContain("التذكيرات والعروض");
-    expect(en).toContain("AQUAVO may message me on WhatsApp");
+    expect(ar).toContain("الشروط والأحكام");
+    expect(en).toContain("terms");
+    expect(JSON.parse(ar).confirm.agreeSuffix).not.toMatch(/واتساب|العروض/);
+    expect(JSON.parse(en).confirm.agreeSuffix).not.toMatch(/WhatsApp|offers/i);
+    expect(JSON.parse(ckb).confirm.agreeSuffix).not.toMatch(/واتسئاپ|پێشنیار/);
     expect(ckb).toContain("AQUAVO");
-    expect(ckb).toContain("واتسئاپ");
+    expect(view).toContain("setWhatsappMarketingOptIn(false)");
   });
 
   it("keeps WhatsApp communication terms inside the terms page",()=>{
