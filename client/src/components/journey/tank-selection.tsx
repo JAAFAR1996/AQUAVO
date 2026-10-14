@@ -119,12 +119,12 @@ export function TankSelection({ wizardData, updateData }: TankSelectionProps) {
                     <p className="text-sm leading-6 text-muted-foreground">{t("tank-dimensions.intro")}</p>
                     <div className="grid grid-cols-3 gap-2 sm:gap-3">
                         {([
-                            { key: "tankLengthCm" as const, label: "length" },
-                            { key: "tankWidthCm" as const, label: "width" },
-                            { key: "tankHeightCm" as const, label: "height" },
+                            { key: "tankLengthCm" as const, label: t("tank-dimensions.length") },
+                            { key: "tankWidthCm" as const, label: t("tank-dimensions.width") },
+                            { key: "tankHeightCm" as const, label: t("tank-dimensions.height") },
                         ]).map(({ key, label }) => (
                             <div key={key} className="min-w-0 space-y-1.5">
-                                <Label htmlFor={key} className="block text-xs font-medium sm:text-sm">{t(`tank-dimensions.${label}`)}</Label>
+                                <Label htmlFor={key} className="block text-xs font-medium sm:text-sm">{label}</Label>
                                 <Input
                                     id={key}
                                     type="number"
