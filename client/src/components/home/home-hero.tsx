@@ -19,10 +19,10 @@ export interface HomeHeroCopy {
 /** Arabic source copy. The build-time prerender (script/prerender-home-hero.ts) uses exactly this. */
 export const HOME_HERO_COPY_AR: HomeHeroCopy = {
   eyebrow: "AQUAVO — متجر عراقي أونلاين متخصص بالأحواض",
-  title: "متجر مستلزمات أحواض الزينة في العراق",
-  description: "فلاتر، سخانات، إضاءة، أغذية، معالجة مياه، تربة وديكور للأحواض، مع معلومات واضحة تساعدك تختار حسب حجم حوضك واحتياجه.",
-  browse: "شوف المنتجات",
-  journey: "رتب تجهيز حوضي",
+  title: "اختَر تجهيزات تناسب حوضك",
+  description: "تسوّق حسب احتياجك، أو خلّينا نساعدك تختار القطع المناسبة.",
+  browse: "تسوّق المنتجات",
+  journey: "جهّز حوضك",
   help: "عندك حوض ومحتار؟ دز حجمه ونرتبلك المناسب.",
   imageAlt: "حوض عرض مائي مرتب بإضاءة هادئة",
   methodLabel: "طريقة AQUAVO",
@@ -70,18 +70,18 @@ export function HomeHero({ copy = HOME_HERO_COPY_AR, dir = "rtl" }: HomeHeroProp
 
             <div className="aq-hero-actions mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <Link
-                href="/products"
+                href="/journey"
                 className={`${linkButton} bg-primary text-white hover:bg-primary/90`}
                 data-tour="hero-cta"
               >
-                {copy.browse}
+                {copy.journey}
                 <Forward className="h-4 w-4" aria-hidden="true" />
               </Link>
               <Link
-                href="/journey"
+                href="/products"
                 className={`${linkButton} border border-primary/40 text-primary hover:bg-[#0B93A6]/10`}
               >
-                {copy.journey}
+                {copy.browse}
                 <Sparkles className="h-4 w-4" aria-hidden="true" />
               </Link>
             </div>
