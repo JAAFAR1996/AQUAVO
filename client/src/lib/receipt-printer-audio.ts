@@ -1,9 +1,10 @@
 /**
- * Short, locally synthesized thermal receipt-printer sound. No third-party
- * audio files, network calls, tracking or dependencies.
+ * A short thermal receipt printer sound, rendered locally with Web Audio.
+ * No audio downloads, tracking or network dependency.
  *
- * The sound can only be started from a user action (browser autoplay policy).
- * Motor bursts use the exact same timing as the paper-feed keyframes.
+ * Browser autoplay policies require an actual user click before sound can play.
+ * The click makes an audible motor-engagement tick immediately; the rollers then
+ * start after the same 650ms delay as the receipt animation.
  */
 export const PRINTER_FEED_DURATION = 2.6;
 
@@ -18,77 +19,118 @@ const FEED_BURSTS = Array.from({ length: PRINTER_FEED_TIMES.length / 2 }, (_, i)
   to: PRINTER_FEED_DURATION * PRINTER_FEED_TIMES[i * 2 + 1],
 }));
 
-/** Returns a cleanup function or null when Web Audio is unavailable. */
-export function playReceiptPrinterSound(delaySeconds = 0.65): (() => void) | null {
-  if (typeof window === "undefined" || typeof window.AudioContext !== "function") return null;
+type LegacyAudioWindow = Window & { webkitAudioContext?: typeof AudioContext };
+
+/**
+ * Start printer audio synchronously from a click handler. Returns a cleanup
+ * function, or null if this browser cannot create Web Audio. onUnavailable is
+ * called on startup/resume failure so the UI does not falsely claim sound is on.
+ */
+export function playReceiptPrinterSound(
+  delaySeconds = 0.65,
+  onUnavailable?: () => void,
+): (() => void) | null {
+  if (typeof window === "undefined") {
+    onUnavailable?.();
+    return null;
+  }
+
+  const AudioContextConstructor =
+    window.AudioContext ?? (window as LegacyAudioWindow).webkitAudioContext;
+  if (!AudioContextConstructor) {
+    onUnavailable?.();
+    return null;
+  }
 
   let context: AudioContext | null = null;
   try {
-    context = new window.AudioContext();
+    // Create and schedule while the user's click still grants activation.
+    context = new AudioContextConstructor();
     const rate = context.sampleRate;
-    const length = Math.ceil(rate * (PRINTER_FEED_DURATION + 0.16));
+    const delay = Math.min(2, Math.max(0, delaySeconds));
+    const length = Math.ceil(rate * (delay + PRINTER_FEED_DURATION + 0.16));
     const buffer = context.createBuffer(1, length, rate);
     const data = buffer.getChannelData(0);
     let seed = 786451;
     let lowNoise = 0;
 
-    // Low stepper motor + close paper friction + very short roller clicks.
-    // Deterministic so replays sound consistent rather than randomly harsh.
     for (let i = 0; i < length; i++) {
-      const time = i / rate;
+      const t = i / rate;
+      const feedTime = t - delay;
       seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
       const noise = (seed / 4294967295) * 2 - 1;
-      lowNoise += 0.055 * (noise - lowNoise);
+      lowNoise += 0.07 * (noise - lowNoise);
+
+      // The short mechanical latch confirms the switch worked immediately.
+      const engage = t < 0.085
+        ? Math.exp(-t * 55) * (
+          0.52 * Math.sin(Math.PI * 2 * 135 * t) + 0.2 * noise
+        )
+        : 0;
 
       let feed = 0;
       let rollerClick = 0;
-      for (const burst of FEED_BURSTS) {
-        if (time >= burst.from && time < burst.to) {
-          feed = Math.max(0, Math.min(1, (time - burst.from) / 0.006, (burst.to - time) / 0.012));
-        }
-        const atStop = time - burst.to;
-        if (atStop >= 0 && atStop < 0.018) {
-          rollerClick += Math.exp(-atStop * 260) * Math.sin(atStop * Math.PI * 2 * 350);
+      if (feedTime >= 0) {
+        for (const burst of FEED_BURSTS) {
+          if (feedTime >= burst.from && feedTime < burst.to) {
+            feed = Math.max(0, Math.min(1,
+              (feedTime - burst.from) / 0.006,
+              (burst.to - feedTime) / 0.012,
+            ));
+          }
+          const atStop = feedTime - burst.to;
+          if (atStop >= 0 && atStop < 0.022) {
+            rollerClick += Math.exp(-atStop * 195)
+              * (0.62 * Math.sin(atStop * Math.PI * 2 * 380) + 0.16 * noise);
+          }
         }
       }
 
-      const motor = Math.sin(Math.PI * 2 * 142 * time) * 0.22
-        + Math.sin(Math.PI * 2 * 284 * time) * 0.075;
-      const paper = (noise - lowNoise) * 0.27 + lowNoise * 0.17;
-      // A short, dull end-of-feed mechanism sound, not a loud cash-register bell.
-      const finish = time - PRINTER_FEED_DURATION;
-      const cutter = finish >= 0 && finish < 0.07
-        ? Math.exp(-finish * 75) * (
-          0.38 * Math.sin(Math.PI * 2 * 220 * finish) + 0.2 * noise
+      // Ratcheting stepper motor plus close, scratchy paper friction.
+      const motor = Math.sin(Math.PI * 2 * 142 * feedTime) * 0.32
+        + Math.sin(Math.PI * 2 * 284 * feedTime) * 0.1
+        + Math.sin(Math.PI * 2 * 71 * feedTime) * 0.065;
+      const paper = (noise - lowNoise) * 0.37 + lowNoise * 0.23;
+      const finish = feedTime - PRINTER_FEED_DURATION;
+      const cutter = finish >= 0 && finish < 0.085
+        ? Math.exp(-finish * 58) * (
+          0.58 * Math.sin(Math.PI * 2 * 210 * finish) + 0.23 * noise
         ) : 0;
-      data[i] = Math.max(-0.9, Math.min(0.9,
-        feed * (motor + paper) + 0.12 * rollerClick + cutter
+
+      data[i] = Math.max(-0.95, Math.min(0.95,
+        engage + feed * (motor + paper) + 0.24 * rollerClick + cutter,
       ));
     }
 
     const source = context.createBufferSource();
     source.buffer = buffer;
     const volume = context.createGain();
-    volume.gain.value = 0.28; // Restrained level in the order-confirmation page.
+    // Old 0.28 made an already quiet motor almost inaudible on phone speakers.
+    volume.gain.value = 0.64;
     source.connect(volume);
     volume.connect(context.destination);
 
-    let stopped = false;
     const audioContext = context;
+    let stopped = false;
     const stop = () => {
       if (stopped) return;
       stopped = true;
-      try { source.stop(); } catch { /* may not have started yet */ }
+      try { source.stop(); } catch { /* may have ended already */ }
       void audioContext.close().catch(() => {});
     };
 
     source.onended = stop;
-    // Called during the click handler so Chrome/iOS can unlock Web Audio.
-    void audioContext.resume().catch(stop);
-    source.start(audioContext.currentTime + Math.max(0, delaySeconds));
+    // The source starts immediately, not 650ms later. Its PCM itself contains
+    // the startup tick, then silence until the paper feed at t=delay.
+    source.start(audioContext.currentTime);
+    void audioContext.resume().catch(() => {
+      stop();
+      onUnavailable?.();
+    });
     return stop;
   } catch {
     if (context) void context.close().catch(() => {});
+    onUnavailable?.();
     return null;
   }
 }

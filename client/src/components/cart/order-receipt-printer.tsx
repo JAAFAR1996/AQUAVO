@@ -32,21 +32,21 @@ const strings = {
     items: "المنتجات", subtotal: "المجموع الفرعي", delivery: "التوصيل",
     discount: "الخصم", total: "الإجمالي", payment: "طريقة الدفع / الحالة",
     thanks: "شكرا لتسوقك من AQUAVO", processing: "جاري تجهيز الإيصال",
-    printing: "جاري طباعة الإيصال", complete: "الإيصال جاهز", store: "المتجر", replay: "إعادة عرض الحركة", soundOn: "تشغيل صوت الطابعة", soundOff: "كتم الصوت",
+    printing: "جاري طباعة الإيصال", complete: "الإيصال جاهز", store: "المتجر", replay: "إعادة عرض الحركة", soundOn: "تشغيل صوت الطابعة", soundOff: "كتم الصوت", soundUnavailable: "المتصفح منع الصوت. تأكد من السماعات أو كتم صوت التبويب وجرب مرة ثانية.",
   },
   en: {
     receipt: "Order receipt", confirmed: "Order received", number: "Order number",
     items: "Items", subtotal: "Subtotal", delivery: "Delivery",
     discount: "Discount", total: "Total", payment: "Payment method / status",
     thanks: "Thank you for shopping with AQUAVO", processing: "Preparing receipt",
-    printing: "Printing your receipt", complete: "Receipt ready", store: "Shop", replay: "Replay", soundOn: "Enable printer sound", soundOff: "Mute printer sound",
+    printing: "Printing your receipt", complete: "Receipt ready", store: "Shop", replay: "Replay", soundOn: "Enable printer sound", soundOff: "Mute printer sound", soundUnavailable: "Printer audio could not start. Check your device and tab volume, then try again.",
   },
   ckb: {
     receipt: "پسووڵەی داواکاری", confirmed: "داواکارییەکەت تۆمار کرا", number: "ژمارەی داواکاری",
     items: "بەرهەمەکان", subtotal: "کۆی سەرەتایی", delivery: "گەیاندن",
     discount: "داشکاندن", total: "کۆی گشتی", payment: "شێواز / دۆخی پارەدان",
     thanks: "سوپاس بۆ کڕین لە AQUAVO", processing: "ئامادەکردنی پسووڵە",
-    printing: "چاپکردنی پسووڵە", complete: "پسووڵە ئامادەیە", store: "فرۆشگا", replay: "دووبارە پیشاندان", soundOn: "دەنگی چاپکەرەکە چالاک بکە", soundOff: "دەنگی چاپکەرەکە بکوژێنەوە",
+    printing: "چاپکردنی پسووڵە", complete: "پسووڵە ئامادەیە", store: "فرۆشگا", replay: "دووبارە پیشاندان", soundOn: "دەنگی چاپکەرەکە چالاک بکە", soundOff: "دەنگی چاپکەرەکە بکوژێنەوە", soundUnavailable: "دەنگەکە دەست پێ نەکرد. دەنگی وێبگەڕ و ئامێرەکەت بپشکنە، پاشان دووبارە هەوڵ بدە.",
   },
 } as const;
 
@@ -82,6 +82,7 @@ export function OrderReceiptPrinter({
   const [runId, setRunId] = useState(0);
   // Browsers block sound on navigation: explicitly enable it with a click.
   const [soundEnabled, setSoundEnabled] = useState(false);
+  const [soundError, setSoundError] = useState(false);
   const stopSoundRef = useRef<(() => void) | null>(null);
 
   useEffect(() => () => {
@@ -92,9 +93,15 @@ export function OrderReceiptPrinter({
   const replay = (withSound: boolean) => {
     stopSoundRef.current?.();
     stopSoundRef.current = null;
+    setSoundError(false);
     if (withSound && !reduced) {
-      // The paper starts 650ms after Replay; align mechanical sound with it.
-      stopSoundRef.current = playReceiptPrinterSound(0.65);
+      // Start synchronously within the click gesture. A short mechanical click
+      // sounds immediately; the roller bursts match the paper 650ms later.
+      stopSoundRef.current = playReceiptPrinterSound(0.65, () => {
+        stopSoundRef.current = null;
+        setSoundEnabled(false);
+        setSoundError(true);
+      });
     }
     setStage("processing");
     setRunId(current => current + 1);
@@ -153,6 +160,7 @@ export function OrderReceiptPrinter({
                 stopSoundRef.current?.();
                 stopSoundRef.current = null;
                 setSoundEnabled(false);
+                setSoundError(false);
               } else {
                 // Explicit activation unlocks audio and replays the full motion.
                 setSoundEnabled(true);
@@ -175,6 +183,7 @@ export function OrderReceiptPrinter({
           </button>
         </div>
       )}
+      {soundError && <p role="alert" className="mb-3 max-w-[360px] text-center text-xs font-semibold text-[#A04527]">{s.soundUnavailable}</p>}
       <div ref={machineRef} className="relative z-20 w-full overflow-hidden rounded-[25px] border border-[#181c1e] bg-[#2b3032] px-3 pb-8 pt-3 text-[#F6F4EF] shadow-[0_20px_36px_-20px_rgba(11,30,40,.56),0_6px_14px_-8px_rgba(11,30,40,.3),inset_0_1px_0_rgba(255,255,255,.16)]">
         <div className="relative z-10 flex h-11 items-start justify-between gap-3 px-1">
           <img src="/brand/aquavo-v2-icon.svg" alt="" width={29} height={29} className="h-7 w-7 object-contain" />
