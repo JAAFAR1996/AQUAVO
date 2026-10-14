@@ -72,7 +72,7 @@ describe('Navbar Component', () => {
 
         expect(screen.getAllByRole('link', { name: 'المتجر' })[0]).toHaveAttribute('href', '/products');
         // Renamed in b864de27 ("canonical journey link"); still the /journey entry.
-        expect(screen.getByRole('link', { name: 'رتب تجهيز حوضك' })).toBeInTheDocument();
+        expect(screen.getAllByRole('link', { name: 'رتب تجهيز حوضك' })[0]).toHaveAttribute('href', '/journey');
         expect(screen.getByRole('link', { name: 'أدلة AQUAVO' })).toBeInTheDocument();
         expect(screen.queryByRole('link', { name: 'تتبع طلبك' })).not.toBeInTheDocument();
         expect(screen.getByRole('link', { name: 'منو AQUAVO' })).toBeInTheDocument();
