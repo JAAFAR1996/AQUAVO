@@ -23,6 +23,23 @@ const PRESET_TO_LITERS: Record<string, number> = {
 
 export function TankSelection({ wizardData, updateData }: TankSelectionProps) {
   const { t } = useTranslation("tools");
+    // Dimensions represent geometric capacity, not filled water volume.
+    const updateDimension = (key: "tankLengthCm" | "tankWidthCm" | "tankHeightCm", input: string) => {
+        const parsed = input.trim() === "" ? undefined : Number(input);
+        const dimension = parsed !== undefined && Number.isFinite(parsed) && parsed > 0 && parsed <= 500 ? parsed : undefined;
+        updateData(key, dimension);
+        const length = key === "tankLengthCm" ? dimension : wizardData.tankLengthCm;
+        const width = key === "tankWidthCm" ? dimension : wizardData.tankWidthCm;
+        const height = key === "tankHeightCm" ? dimension : wizardData.tankHeightCm;
+        if (length && width && height) {
+            const volume = Math.round((length * width * height / 1000) * 10) / 10;
+            if (volume <= 2000) {
+                updateData("tankLiters", volume);
+                updateData("tankSize", volume <= 60 ? "small" : volume <= 150 ? "medium" : volume <= 300 ? "large" : "xlarge");
+            }
+        }
+    };
+
     // Handle preset selection - also sets liters automatically
     const handlePresetSelect = (val: string) => {
         updateData("tankSize", val);
@@ -87,6 +104,35 @@ export function TankSelection({ wizardData, updateData }: TankSelectionProps) {
                         </p>
                     )}
                 </div>
+
+                <fieldset className="space-y-3 rounded-2xl border border-border bg-card p-4">
+                    <legend className="px-1 text-base font-bold">{t("tank-dimensions.title")}</legend>
+                    <p className="text-sm leading-6 text-muted-foreground">{t("tank-dimensions.intro")}</p>
+                    <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                        {([
+                            { key: "tankLengthCm" as const, label: "length" },
+                            { key: "tankWidthCm" as const, label: "width" },
+                            { key: "tankHeightCm" as const, label: "height" },
+                        ]).map(({ key, label }) => (
+                            <div key={key} className="min-w-0 space-y-1.5">
+                                <Label htmlFor={key} className="block text-xs font-medium sm:text-sm">{t(`tank-dimensions.${label}`)}</Label>
+                                <Input
+                                    id={key}
+                                    type="number"
+                                    inputMode="decimal"
+                                    min="1"
+                                    max="500"
+                                    step="0.5"
+                                    dir="ltr"
+                                    value={wizardData[key] ?? ""}
+                                    onChange={(event) => updateDimension(key, event.target.value)}
+                                    className="h-12 min-w-0 text-center"
+                                />
+                            </div>
+                        ))}
+                    </div>
+                    <p className="text-xs leading-5 text-muted-foreground">{t("tank-dimensions.disclaimer")}</p>
+                </fieldset>
 
                 {/* Quick-Select Presets */}
                 <div className="space-y-3">
