@@ -36,11 +36,13 @@
   },
   "price": {
     "soon": "بەم زووانە",
-    "perKilo": " / کیلۆ"
+    "perKilo": " / کیلۆ",
+    "from": "لە"
   },
   "stock": {
     "available": "بەردەستە ({{count}} دانە)",
-    "unavailable": "ئێستا بەردەست نییە"
+    "unavailable": "ئێستا بەردەست نییە",
+    "chooseVariant": "قەبارە هەڵبژێرە بۆ دڵنیابوون لە بڕی بەردەست"
   },
   "trust": {
     "label": "زانیاری کڕین و متمانە",
@@ -69,7 +71,8 @@
     "add": "بۆ سەبەتە زیاد بکە",
     "addShort": "بۆ سەبەتە زیاد بکە",
     "stickyQty": "بڕ {{quantity}}",
-    "stickyVariantQty": "{{variant}} · بڕ {{quantity}}"
+    "stickyVariantQty": "{{variant}} · بڕ {{quantity}}",
+    "chooseVariant": "قەبارە هەڵبژێرە"
   },
   "share": {
     "label": "هاوبەشکردنی بەرهەم",
