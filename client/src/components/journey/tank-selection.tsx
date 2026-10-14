@@ -41,14 +41,22 @@ export function TankSelection({ wizardData, updateData }: TankSelectionProps) {
         }
     };
 
-    // Handle preset selection - also sets liters automatically
+    const clearDimensions = () => {
+        updateData("tankLengthCm", undefined);
+        updateData("tankWidthCm", undefined);
+        updateData("tankHeightCm", undefined);
+    };
+
+    // Manual volume and presets should not leave conflicting dimension values.
     const handlePresetSelect = (val: string) => {
+        clearDimensions();
         updateData("tankSize", val);
         updateData("tankLiters", PRESET_TO_LITERS[val] || 0);
     };
 
     // Handle manual liter input
     const handleLitersChange = (value: string) => {
+        clearDimensions();
         const num = parseInt(value, 10);
         if (isNaN(num) || num < 0) {
             updateData("tankLiters", 0);
