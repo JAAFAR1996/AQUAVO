@@ -143,6 +143,27 @@ export function normalizeSearchText(value: unknown): string {
     .replace(/\s+/g, " ");
 }
 
+/**
+ * Conservative name-only aliases for real product kinds, not chemical effects
+ * or cross-category compatibility claims. Only expand a name if it already
+ * contains one of the complete phrases; never infer from product descriptions.
+ */
+const PRODUCT_NAME_ALIASES: readonly (readonly string[])[] = [
+  ["فلتر اسفنجي", "سفنجه فلتر", "sponge filter"],
+  ["مضخه هواء", "منفاخ هواء", "air pump"],
+  ["خرطوم هواء", "لي هواء", "air hose", "airline tubing"],
+  ["سخان", "هيتر", "heater"],
+  ["شرمب", "روبيان", "shrimp"],
+];
+
+function aliasesForProductName(name: string): string {
+  const normalizedName = normalizeSearchText(name);
+  return PRODUCT_NAME_ALIASES
+    .filter((phrases) => phrases.some((phrase) => normalizedName.includes(normalizeSearchText(phrase))))
+    .flat()
+    .join(" ");
+}
+
 export function fuzzySearchMatch(value: unknown, query: string): boolean {
   const text = normalizeSearchText(value);
   const needle = normalizeSearchText(query);
@@ -168,6 +189,7 @@ function searchableProductText(product: Product): string {
     product.description,
     product.specs,
     product.slug,
+    aliasesForProductName(product.name),
   ].join(" ");
 }
 
@@ -186,6 +208,7 @@ function productScore(product: Product, query: string, semanticRank?: number): n
   if (brand.includes(normalizedQuery)) score += 18;
   if (category.includes(normalizedQuery)) score += 16;
   if (description.includes(normalizedQuery)) score += 6;
+  if (fuzzySearchMatch(aliasesForProductName(product.name), normalizedQuery)) score += 14;
   if (fuzzySearchMatch(searchableProductText(product), normalizedQuery)) score += 4;
   if ((product.stock ?? 0) > 0) score += 7;
   return score;
