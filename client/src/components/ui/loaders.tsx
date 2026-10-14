@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import "./loaders.css";
 import "../../styles/flow-gate-copy.css";
 import { i18next } from "@/i18n";
@@ -29,7 +29,7 @@ export function PageLoader() {
     >
       <div className="aqv-loader__progress" aria-hidden="true" />
       <div className="aqv-loader__stage" aria-hidden="true">
-        <LogoTraceLoader loading size={74} className="aqv-loader__logo" ariaLabel={i18next.t("errors:loader.page")} />
+        <LogoTraceLoader loading size={132} strokeWidth={3} className="aqv-loader__logo" ariaLabel={i18next.t("errors:loader.page")} />
       </div>
       <p className="aqv-loader__text" aria-hidden="true">{i18next.t("errors:loader.text")}</p>
     </div>
@@ -43,15 +43,22 @@ interface AppInitLoaderProps {
 /** Legacy safety fallback for storage-restricted browsers. */
 export function AppInitLoader({ onDone }: AppInitLoaderProps) {
   const [hidden, setHidden] = useState(false);
-  const triggerDone = useCallback(onDone, [onDone]);
+  const finishedRef = useRef(false);
+  const onDoneRef = useRef(onDone);
+  onDoneRef.current = onDone;
 
+  const triggerDone = useCallback(() => {
+    if (finishedRef.current) return;
+    finishedRef.current = true;
+    setHidden(true);
+    onDoneRef.current();
+  }, []);
+
+  // Let the real vector fill finish rather than hiding at 320ms, while a
+  // bounded fallback guarantees this legacy safety screen can never hang.
   useEffect(() => {
-    const hideTimer = window.setTimeout(() => setHidden(true), 320);
-    const doneTimer = window.setTimeout(() => triggerDone(), 420);
-    return () => {
-      window.clearTimeout(hideTimer);
-      window.clearTimeout(doneTimer);
-    };
+    const safetyTimer = window.setTimeout(triggerDone, 1000);
+    return () => window.clearTimeout(safetyTimer);
   }, [triggerDone]);
 
   if (hidden) return null;
@@ -59,7 +66,14 @@ export function AppInitLoader({ onDone }: AppInitLoaderProps) {
   return (
     <div dir={i18next.dir()} className="aqv-loader" data-visible="true" role="status" aria-label={i18next.t("errors:loader.app")}>
       <div className="aqv-loader__stage" aria-hidden="true">
-        <LogoTraceLoader loading={false} size={74} className="aqv-loader__logo" ariaLabel={i18next.t("errors:loader.app")} />
+        <LogoTraceLoader
+          loading={false}
+          size={132}
+          strokeWidth={3}
+          className="aqv-loader__logo"
+          ariaLabel={i18next.t("errors:loader.app")}
+          onDone={triggerDone}
+        />
       </div>
       <p className="aqv-loader__text" aria-hidden="true">{i18next.t("errors:loader.text")}</p>
     </div>
