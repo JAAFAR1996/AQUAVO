@@ -29,7 +29,6 @@ import {
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { ShippingProgress } from "@/components/cart/shipping-progress";
 import { ScrollFadeList } from "@/components/ui/scroll-fade-list";
-import { CartSuggestions } from "@/components/cart/cart-suggestions";
 import { ThemeSwitcher } from "@/components/ui/theme-switcher";
 import { LanguageSwitcher } from "@/components/ui/language-switcher";
 import { thumbImage } from "@/lib/cloudinary";
@@ -536,10 +535,6 @@ export default function Navbar() {
                           ))}
                         </ul>
                       </ScrollFadeList>
-
-                      <div className="shrink-0 border-t border-border/70 px-5 sm:px-6">
-                        <CartSuggestions onNavigate={() => setIsCartOpen(false)} />
-                      </div>
 
                       <div className="shrink-0 border-t border-border bg-background px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4 sm:px-6">
                         <dl className="space-y-2">
