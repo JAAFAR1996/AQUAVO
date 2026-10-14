@@ -20,6 +20,9 @@ describe("checkout WhatsApp consent contract",()=>{
     const ckb=read("client/src/locales/ckb/checkout.json");
     expect(ar).toContain("الشروط والأحكام");
     expect(en).toContain("terms");
+    expect(JSON.parse(ar).confirm.agreeSuffix).not.toMatch(/واتساب|العروض/);
+    expect(JSON.parse(en).confirm.agreeSuffix).not.toMatch(/WhatsApp|offers/i);
+    expect(JSON.parse(ckb).confirm.agreeSuffix).not.toMatch(/واتسئاپ|پێشنیار/);
     expect(ckb).toContain("AQUAVO");
     expect(view).toContain("setWhatsappMarketingOptIn(false)");
   });
