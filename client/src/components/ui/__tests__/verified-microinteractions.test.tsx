@@ -76,12 +76,19 @@ describe("Dqnamo-style interactions on AQUAVO", () => {
         <LogoTraceLoader loading ariaLabel="AQUAVO test" onDone={done} />,
       );
       expect(screen.getByRole("img", { name: "AQUAVO test" })).toBeInTheDocument();
-      expect(container.querySelector(".aqv-logo-trace__orbit")).toBeInTheDocument();
+      const orbit = container.querySelector(".aqv-logo-trace__orbit");
+      expect(orbit).toBeInTheDocument();
+      expect(orbit).toHaveAttribute("vector-effect", "non-scaling-stroke");
+      const tracePath = orbit?.getAttribute("d");
       rerender(<LogoTraceLoader loading={false} ariaLabel="AQUAVO test" onDone={done} />);
       expect(container.querySelector(".aqv-logo-trace__orbit")).not.toBeInTheDocument();
 
       act(() => vi.advanceTimersByTime(500));
-      expect(container.querySelector('path[fill="currentColor"]')).toBeInTheDocument();
+      const filledLogo = container.querySelector('path[fill="currentColor"]');
+      expect(filledLogo).toBeInTheDocument();
+      // The trace is one recognizable contour, not the full compound fill path.
+      expect(tracePath).toBeTruthy();
+      expect(filledLogo?.getAttribute("d")).not.toBe(tracePath);
       act(() => vi.advanceTimersByTime(500));
       expect(done).toHaveBeenCalledTimes(1);
     } finally {
