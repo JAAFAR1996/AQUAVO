@@ -113,8 +113,13 @@ describe('Cart drawer accessibility', () => {
 
         await user.click(screen.getAllByRole('button', { name: /سلة المشتريات/ })[0]);
 
-        expect(screen.getByText('المجموع').tagName).toBe('DT');
-        const total = screen.getByText((_, el) => el?.tagName === 'DD' && el.textContent?.includes('50,000') === true);
-        expect(total).toBeInTheDocument();
+        // The refreshed cart distinguishes item subtotal, delivery and payable total.
+        // Every label must remain correctly paired with an accessible description value.
+        for (const label of ['مجموع المنتجات', 'التوصيل', 'المبلغ الكلي']) {
+            const term = screen.getByText(label);
+            expect(term.tagName).toBe('DT');
+            expect(term.nextElementSibling?.tagName).toBe('DD');
+            expect(term.nextElementSibling?.textContent?.trim()).toBeTruthy();
+        }
     });
 });
