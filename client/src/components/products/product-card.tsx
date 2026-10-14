@@ -41,6 +41,7 @@ export const ProductCard = memo(function ProductCard({
   const { addItem } = useCart();
   const [, setLocation] = useLocation();
   const [imgLoaded, setImgLoaded] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
   const [imageSourceIndex, setImageSourceIndex] = useState(0);
 
   // A failed thumbnail should not permanently replace an available product gallery
@@ -78,17 +79,21 @@ export const ProductCard = memo(function ProductCard({
   const woodSaleActive = isWoodMonthEndSale(product);
 
   const handlePrimaryAction = async (event: MouseEvent<HTMLButtonElement>) => {
-    if (isOutOfStock) return;
+    if (isOutOfStock || isAdding) return;
 
     if (requiresVariantChoice) {
       setLocation(`/products/${product.slug}`);
       return;
     }
 
-    const added = await addItem(product);
-    if (!added) return;
-
-    if (motionActive) flyProductToCart(imgRef.current);
+    setIsAdding(true);
+    try {
+      // The cart context validates the live stock/price and owns the success toast.
+      const added = await addItem(product);
+      if (added && motionActive) flyProductToCart(imgRef.current);
+    } finally {
+      setIsAdding(false);
+    }
 
   };
 
@@ -286,14 +291,15 @@ export const ProductCard = memo(function ProductCard({
           className="min-h-11 w-full gap-2 rounded-xl text-xs font-semibold shadow-sm sm:text-sm"
           onClick={handlePrimaryAction}
           aria-label={primaryActionAriaLabel}
-          disabled={!hasPrice || isOutOfStock}
+          disabled={!hasPrice || isOutOfStock || isAdding}
+           aria-busy={isAdding}
         >
           {isOutOfStock && hasPrice ? (
             <Package className="h-4 w-4" aria-hidden="true" />
           ) : (
             <ShoppingCart className="h-4 w-4" aria-hidden="true" />
           )}
-          {primaryActionLabel}
+          {isAdding ? tProduct("cart.adding") : primaryActionLabel}
         </Button>
       </CardFooter>
     </Card>
