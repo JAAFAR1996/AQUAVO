@@ -56,9 +56,12 @@
     "decrease": "Decrease quantity of {{name}}",
     "increase": "Increase quantity of {{name}}",
     "remove": "Remove {{name}} from cart",
-    "total": "Total",
+    "total": "Grand total",
     "checkout": "Continue to delivery details",
-    "secure": "Secure payment and protected information"
+    "secure": "Secure payment and protected information",
+    "subtotal": "Items subtotal",
+    "delivery": "Delivery",
+    "totalNote": "The final amount is confirmed before placing your order."
   },
   "deliveryNote": "Delivery within 24 hours across Iraq",
   "paymentNote": "Cash on delivery or online payment. Delivery {{fee}} IQD",
@@ -109,5 +112,6 @@
     "subscribeNetworkError": "Could not subscribe right now. Please try again shortly.",
     "copyright": "© {{year}} AQUAVO / AL NABEA SHOP",
     "paymentMethods": "Payment methods: cash on delivery or online"
-  }
+  },
+  "mobileNav": "Quick navigation"
 }
