@@ -27,7 +27,6 @@ export function PageLoader() {
       aria-live="polite"
       aria-label={i18next.t("errors:loader.page")}
     >
-      <div className="aqv-loader__progress" aria-hidden="true" />
       <div className="aqv-loader__stage" aria-hidden="true">
         <LogoTraceLoader loading size={132} strokeWidth={3} className="aqv-loader__logo" ariaLabel={i18next.t("errors:loader.page")} />
       </div>
