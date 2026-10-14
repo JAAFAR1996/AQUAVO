@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { Package, Ruler, Lightbulb, Info } from "lucide-react";
 import { WizardData } from "@/types/journey";
 import { useTranslation } from "react-i18next";
+import { geometricTankLiters } from "@/lib/tank-capacity";
 
 interface TankSelectionProps {
     wizardData: WizardData;
@@ -32,8 +33,8 @@ export function TankSelection({ wizardData, updateData }: TankSelectionProps) {
         const width = key === "tankWidthCm" ? dimension : wizardData.tankWidthCm;
         const height = key === "tankHeightCm" ? dimension : wizardData.tankHeightCm;
         if (length && width && height) {
-            const volume = Math.round((length * width * height / 1000) * 10) / 10;
-            if (volume <= 2000) {
+            const volume = geometricTankLiters({ lengthCm: length, widthCm: width, heightCm: height });
+            if (volume !== null) {
                 updateData("tankLiters", volume);
                 updateData("tankSize", volume <= 60 ? "small" : volume <= 150 ? "medium" : volume <= 300 ? "large" : "xlarge");
             }
