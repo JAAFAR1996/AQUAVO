@@ -19,7 +19,7 @@ function mockRealAudio() {
   const stop = vi.fn();
   const close = vi.fn(async () => undefined);
   const resume = vi.fn(async () => undefined);
-  const decodeAudioData = vi.fn(async () => ({ duration: 2.67 } as AudioBuffer));
+  const decodeAudioData = vi.fn(async (_data: ArrayBuffer) => ({ duration: 2.67 } as AudioBuffer));
   const source = {
     buffer: null as AudioBuffer | null,
     connect: vi.fn(),
