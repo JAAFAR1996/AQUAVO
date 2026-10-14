@@ -92,6 +92,27 @@ export default function ProductDetails() {
   const [quantity, setQuantity] = useState(1);
   const [isAddedToCart, setIsAddedToCart] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const primaryAddRef = useRef<HTMLDivElement>(null);
+  const [isPrimaryAddPastViewport, setIsPrimaryAddPastViewport] = useState(false);
+  const [isEditingText, setIsEditingText] = useState(false);
+  useEffect(() => {
+    const onFocus = (event: FocusEvent) => {
+      const el = event.target;
+      setIsEditingText(el instanceof HTMLElement && (el.matches("input,textarea,[contenteditable='true']") || !!el.closest("[contenteditable='true']")));
+    };
+    const onBlur = () => {
+      requestAnimationFrame(() => {
+        const el = document.activeElement;
+        setIsEditingText(el instanceof HTMLElement && (el.matches("input,textarea,[contenteditable='true']") || !!el.closest("[contenteditable='true']")));
+      });
+    };
+    document.addEventListener("focusin", onFocus);
+    document.addEventListener("focusout", onBlur);
+    return () => {
+      document.removeEventListener("focusin", onFocus);
+      document.removeEventListener("focusout", onBlur);
+    };
+  }, []);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
   // Unique hero name so a card → PDP shared-image transition can target this
@@ -130,6 +151,18 @@ export default function ProductDetails() {
     refetchOnMount: "always",
     refetchOnWindowFocus: "always",
   });
+
+  // Show the compact action only after the main purchase control has actually
+  // scrolled above the viewport. It must never compete with the primary CTA.
+  useEffect(() => {
+    const el = primaryAddRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(([entry]) => {
+      setIsPrimaryAddPastViewport(!entry.isIntersecting && entry.boundingClientRect.top < 0);
+    }, { threshold: 0 });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [product?.id]);
 
   // Use embedded variants if available, otherwise use legacy
   const hasEmbeddedVariants = product?.hasVariants && product?.variants && product.variants.length > 0;
@@ -704,6 +737,7 @@ export default function ProductDetails() {
                       min-w-0 stays load-bearing for long Sorani labels.
                     */}
                     <div className="flex flex-col gap-3">
+                      <div ref={primaryAddRef}>
                       <DynamicButton
                         // Keep the full-width conversion CTA on phones, while
                         // the original Dqnamo label/icon crossfade responds to
@@ -723,6 +757,7 @@ export default function ProductDetails() {
                       >
                         {isAddingToCart ? t("cart.adding") : isAddedToCart ? t("cart.added") : t("cart.add")}
                       </DynamicButton>
+                      </div>
                       <div className="flex flex-wrap items-center justify-between gap-1 text-sm">
                         <WishlistButton
                           product={product}
@@ -1115,8 +1150,8 @@ export default function ProductDetails() {
       <BackToTop />
 
       {/* P1.8: Sticky mobile Add to Cart bar */}
-      {product && hasPrice && !isOutOfStock && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-background/95 backdrop-blur border-t border-border p-3 flex items-center gap-3 safe-bottom">
+      {product && hasPrice && !isOutOfStock && isPrimaryAddPastViewport && !isEditingText && (
+        <div className="aq-sticky-purchase fixed bottom-0 left-0 right-0 z-40 md:hidden bg-background/95 backdrop-blur border-t border-border p-3 flex items-center gap-3 safe-bottom">
           <div className="flex-1 min-w-0">
             <p className="text-sm font-bold text-primary truncate">
               {formatPrice(displayPrice)}
