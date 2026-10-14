@@ -584,7 +584,11 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {!/^\\/(?:checkout|admin|products\\/[^/]+)(?:\\/|$)/.test(location) && (
+      {!(
+        location === "/checkout" || location.startsWith("/checkout/") ||
+        location === "/admin" || location.startsWith("/admin/") ||
+        location.startsWith("/products/")
+      ) && (
         <nav
           className="aq-mobile-bottom-nav fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_18px_rgba(11,30,40,0.07)] backdrop-blur-md md:hidden"
           aria-label={t("mobileNav")}
