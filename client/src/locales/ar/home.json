@@ -54,7 +54,9 @@
     "bestEyebrow": "الأكثر طلباً",
     "bestTitle": "منتجات عليها طلب فعلي",
     "latestEyebrow": "وصل حديثاً",
-    "latestTitle": "جديد AQUAVO"
+    "latestTitle": "جديد AQUAVO",
+    "viewedEyebrow": "الأكثر مشاهدة",
+    "viewedTitle": "المنتجات الأكثر مشاهدة خلال 30 يوم"
   },
   "guides": {
     "eyebrow": "AQUAVO يوضحلك السبب",

@@ -34,7 +34,7 @@ const FilterModal = lazy(() => import("@/components/products/filter-modal").then
 const QuickViewModal = lazy(() => import("@/components/products/quick-view-modal").then(m => ({ default: m.QuickViewModal })));
 const ComparisonDrawer = lazy(() => import("@/components/products/product-comparison").then(m => ({ default: m.ComparisonDrawer })));
 
-type SortOption = "default" | "smart" | "price-asc" | "price-desc" | "name-asc" | "rating-desc";
+type SortOption = "default" | "newest" | "smart" | "price-asc" | "price-desc" | "name-asc" | "rating-desc";
 
 type ActiveFilterChip = {
   id: string;
@@ -79,7 +79,7 @@ export default function Products() {
   });
 
   const [sortBy, setSortBy] = useState<SortOption>(
-    initialSort === "best-selling" ? "rating-desc" : (isRecommendedView && user ? "smart" : user ? "smart" : "default")
+    initialSort === "best-selling" ? "rating-desc" : (isRecommendedView && user ? "smart" : "default")
   );
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
@@ -150,6 +150,7 @@ export default function Products() {
     else if (sortBy === "price-desc") { params.sortBy = "price"; params.sortOrder = "desc"; }
     else if (sortBy === "name-asc") { params.sortBy = "name"; params.sortOrder = "asc"; }
     else if (sortBy === "rating-desc") { params.sortBy = "rating"; params.sortOrder = "desc"; }
+    else if (sortBy === "default") { params.sortBy = "views"; params.sortOrder = "desc"; }
     else { params.sortBy = "createdAt"; params.sortOrder = "desc"; }
 
     return params;
@@ -339,7 +340,7 @@ export default function Products() {
       difficulties: [],
       tags: [],
     });
-    setSortBy(user ? "smart" : "default");
+    setSortBy("default");
     if (window.location.search) setLocation("/products");
   };
 
@@ -535,6 +536,7 @@ export default function Products() {
                 <SelectContent>
                   {user && <SelectItem value="smart">{t("sort.smart")}</SelectItem>}
                   <SelectItem value="default">{t("sort.default")}</SelectItem>
+                  <SelectItem value="newest">{t("sort.newest")}</SelectItem>
                   <SelectItem value="price-asc">{t("sort.priceAsc")}</SelectItem>
                   <SelectItem value="price-desc">{t("sort.priceDesc")}</SelectItem>
                   <SelectItem value="name-asc">{t("sort.nameAsc")}</SelectItem>

@@ -54,7 +54,9 @@
     "bestEyebrow": "زۆرترین داواکراو",
     "bestTitle": "بەرهەمە پڕداواکارییەکان",
     "latestEyebrow": "تازە گەیشتوو",
-    "latestTitle": "نوێ لە AQUAVO"
+    "latestTitle": "نوێ لە AQUAVO",
+    "viewedEyebrow": "زۆرترین بینراو",
+    "viewedTitle": "بەرهەمە زۆر بینراوەکانی ٣٠ ڕۆژی ڕابردوو"
   },
   "guides": {
     "eyebrow": "AQUAVO هۆکارەکەت بۆ ڕوون دەکاتەوە",

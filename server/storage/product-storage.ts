@@ -1,4 +1,4 @@
-import { type Product, type Review, type ReviewRating, type Discount, type FishSpecies, products, reviews, reviewRatings, discounts, fishSpecies, categories, orderItems, orders } from "../../shared/schema.js";
+import { type Product, type Review, type ReviewRating, type Discount, type FishSpecies, products, reviews, reviewRatings, discounts, fishSpecies, categories, orderItems, orders, productViews } from "../../shared/schema.js";
 import { eq, desc, and, gte, lte, sql, isNull, notInArray, gt, inArray, or } from "drizzle-orm";
 import { getDb } from "../db.js";
 import { randomUUID } from "crypto";
@@ -18,7 +18,7 @@ export interface ProductFilters {
     locale?: string;
     limit?: number;
     offset?: number;
-    sortBy?: 'rating' | 'price' | 'createdAt' | 'reviewCount' | 'name';
+    sortBy?: 'rating' | 'price' | 'createdAt' | 'reviewCount' | 'name' | 'views';
     sortOrder?: 'asc' | 'desc';
 }
 
@@ -138,7 +138,21 @@ export class ProductStorage {
         // Keep sellable inventory ahead of sold-out items on every catalogue sort.
         // The user's selected sort still applies inside each availability group.
         const availabilityRank = sql<number>`CASE WHEN ${products.stock} > 0 THEN 1 ELSE 0 END`;
-        if (filters?.sortBy) {
+        // The default storefront ranking is actual viewed products from the last
+        // 30 days: one vote per valid browser session per product. API-only
+        // requests without a client session are not treated as a shopper view.
+        if (filters?.sortBy === 'views') {
+            const recentBrowserViews = sql<number>`(
+                SELECT COUNT(DISTINCT ${productViews.sessionId})
+                FROM ${productViews}
+                WHERE ${productViews.productId} = ${products.id}
+                  AND ${productViews.viewedAt} >= NOW() - INTERVAL '30 days'
+                  AND ${productViews.sessionId} ~ '^cs_[A-Za-z0-9_]{1,64}$'
+            )`;
+            query = filters.sortOrder === 'asc'
+                ? query.orderBy(desc(availabilityRank), recentBrowserViews, desc(products.createdAt), products.id) as any
+                : query.orderBy(desc(availabilityRank), desc(recentBrowserViews), desc(products.createdAt), products.id) as any;
+        } else if (filters?.sortBy) {
             const sortColumn = filters.sortBy === 'rating' ? products.rating :
                 filters.sortBy === 'price' ? products.price :
                     filters.sortBy === 'reviewCount' ? products.reviewCount :

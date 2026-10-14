@@ -30,7 +30,7 @@ import { useLocale } from "@/i18n/locale-context";
 import { formatShippingFeeNumber, useShippingFee } from "@/contexts/shipping-fee-context";
 import { formatLocalizedPrice } from "@/i18n/format";
 import { PrecisionReveal } from "@/components/motion/precision-reveal";
-import { fetchProducts, fetchTopSellingProducts } from "@/lib/api";
+import { fetchProducts } from "@/lib/api";
 import { cardImage, cardImageSrcSet } from "@/lib/cloudinary";
 import { SHOP_CATEGORY_LINKS } from "@/lib/product-category-links";
 import { getProductDisplayIdentity } from "@/lib/product-display";
@@ -103,17 +103,10 @@ export default function Home() {
     methodLabel: t("hero.methodLabel"),
     methodTitle: t("hero.methodTitle"),
   };
-  const { data: salesData, isLoading: isBestSellersLoading, isError: isBestSellersError } = useQuery({
-    queryKey: ["products", "top-selling"],
-    queryFn: fetchTopSellingProducts,
-    staleTime: 0,
-    refetchOnMount: "always",
-    refetchOnWindowFocus: "always",
-    retry: false,
-  });
-  const latestProducts = useQuery({
-    queryKey: ["products", "home-latest"],
-    queryFn: () => fetchProducts({ sortBy: "createdAt", sortOrder: "desc" }),
+  // The first home product collection uses measured rolling 30-day views.
+  const viewedProducts = useQuery({
+    queryKey: ["products", "home-most-viewed", "30d"],
+    queryFn: () => fetchProducts({ sortBy: "views", sortOrder: "desc" }),
     staleTime: 60_000,
     retry: 1,
   });
@@ -128,13 +121,10 @@ export default function Home() {
     retry: 1,
   });
 
-  const bestSellerPicks = (salesData?.bestSellers ?? []).filter(isSellableProduct).slice(0, 4);
-  const latestPicks = (latestProducts.data?.products ?? []).filter(isSellableProduct).slice(0, 4);
-  const showingBestSellers = Boolean(salesData?.hasRealSales && bestSellerPicks.length > 0);
-  const storePicks = showingBestSellers ? bestSellerPicks : latestPicks;
+  const storePicks = (viewedProducts.data?.products ?? []).filter(isSellableProduct).slice(0, 4);
   const hasStorePicks = storePicks.length > 0;
-  const isStorePicksLoading = isBestSellersLoading || (!showingBestSellers && latestProducts.isLoading);
-  const isStorePicksError = isBestSellersError && latestProducts.isError;
+  const isStorePicksLoading = viewedProducts.isLoading;
+  const isStorePicksError = viewedProducts.isError;
   const solutionPriority = new Map([
     ["safe-water-change-pack", 0],
     ["water-testing-pack", 1],
@@ -242,8 +232,8 @@ export default function Home() {
           <PrecisionReveal stagger className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
-                <p className="text-sm font-bold text-primary">{t(showingBestSellers ? "picks.bestEyebrow" : "picks.latestEyebrow")}</p>
-                <h2 className="mt-2 text-3xl font-bold text-foreground">{t(showingBestSellers ? "picks.bestTitle" : "picks.latestTitle")}</h2>
+                <p className="text-sm font-bold text-primary">{t("picks.viewedEyebrow")}</p>
+                <h2 className="mt-2 text-3xl font-bold text-foreground">{t("picks.viewedTitle")}</h2>
               </div>
               <Link href="/products" className="text-sm font-bold text-primary hover:underline">{t("picks.viewAll")}</Link>
             </div>

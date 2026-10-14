@@ -54,7 +54,9 @@
     "bestEyebrow": "Most ordered",
     "bestTitle": "Products with real demand",
     "latestEyebrow": "New arrivals",
-    "latestTitle": "New at AQUAVO"
+    "latestTitle": "New at AQUAVO",
+    "viewedEyebrow": "Most viewed",
+    "viewedTitle": "Most viewed in the last 30 days"
   },
   "guides": {
     "eyebrow": "AQUAVO explains why",

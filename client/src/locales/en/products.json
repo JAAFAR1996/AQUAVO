@@ -28,12 +28,13 @@
     "label": "Sort products",
     "placeholder": "Sort by",
     "smart": "For you",
-    "default": "Newest",
+    "default": "Most viewed (last 30 days)",
     "priceAsc": "Price: low to high",
     "priceDesc": "Price: high to low",
     "nameAsc": "Name: A to Z",
     "ratingDesc": "Highest rated",
-    "byInterests": "Sorted by your interests"
+    "byInterests": "Sorted by your interests",
+    "newest": "Newest"
   },
   "chips": {
     "label": "Active filters",
