@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   PRINTER_FEED_DURATION,
@@ -50,6 +52,16 @@ function mockRealAudio() {
 }
 
 describe("genuine thermal receipt printer audio", () => {
+  it("allows the recording CDN in the deployed Content Security Policy", () => {
+    const vercel = JSON.parse(readFileSync(resolve(process.cwd(), "vercel.json"), "utf8"));
+    const csp = vercel.headers
+      .flatMap((rule: { headers?: Array<{ key: string; value: string }> }) => rule.headers ?? [])
+      .find((header: { key: string }) => header.key === "Content-Security-Policy")
+      ?.value as string | undefined;
+    const connect = csp?.split(";").find(section => section.trim().startsWith("connect-src ")) ?? "";
+    expect(connect.split(/\s+/)).toContain("https://res.cloudinary.com");
+  });
+
   it("matches 2.6-second feed keyframes and uses the actual licensed recording", () => {
     expect(PRINTER_FEED_DURATION).toBe(2.6);
     expect(PRINTER_FEED_TIMES).toHaveLength(20);

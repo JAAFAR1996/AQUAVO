@@ -32,21 +32,21 @@ const strings = {
     items: "المنتجات", subtotal: "المجموع الفرعي", delivery: "التوصيل",
     discount: "الخصم", total: "الإجمالي", payment: "طريقة الدفع / الحالة",
     thanks: "شكرا لتسوقك من AQUAVO", processing: "جاري تجهيز الإيصال",
-    printing: "جاري طباعة الإيصال", complete: "الإيصال جاهز", store: "المتجر", replay: "إعادة عرض الحركة", soundUnavailable: "المتصفح منع الصوت. تأكد من السماعات أو كتم صوت التبويب وجرب مرة ثانية.",
+    printing: "جاري طباعة الإيصال", complete: "الإيصال جاهز", store: "المتجر", replay: "إعادة عرض الحركة", soundUnavailable: "تعذر تشغيل صوت الطابعة. تأكد من اتصال الإنترنت والصوت بالجهاز وجرب إعادة الحركة.",
   },
   en: {
     receipt: "Order receipt", confirmed: "Order received", number: "Order number",
     items: "Items", subtotal: "Subtotal", delivery: "Delivery",
     discount: "Discount", total: "Total", payment: "Payment method / status",
     thanks: "Thank you for shopping with AQUAVO", processing: "Preparing receipt",
-    printing: "Printing your receipt", complete: "Receipt ready", store: "Shop", replay: "Replay", soundUnavailable: "Printer audio could not start. Check your device and tab volume, then try again.",
+    printing: "Printing your receipt", complete: "Receipt ready", store: "Shop", replay: "Replay", soundUnavailable: "Printer audio could not start. Check your connection and device volume, then replay.",
   },
   ckb: {
     receipt: "پسووڵەی داواکاری", confirmed: "داواکارییەکەت تۆمار کرا", number: "ژمارەی داواکاری",
     items: "بەرهەمەکان", subtotal: "کۆی سەرەتایی", delivery: "گەیاندن",
     discount: "داشکاندن", total: "کۆی گشتی", payment: "شێواز / دۆخی پارەدان",
     thanks: "سوپاس بۆ کڕین لە AQUAVO", processing: "ئامادەکردنی پسووڵە",
-    printing: "چاپکردنی پسووڵە", complete: "پسووڵە ئامادەیە", store: "فرۆشگا", replay: "دووبارە پیشاندان", soundUnavailable: "دەنگەکە دەست پێ نەکرد. دەنگی وێبگەڕ و ئامێرەکەت بپشکنە، پاشان دووبارە هەوڵ بدە.",
+    printing: "چاپکردنی پسووڵە", complete: "پسووڵە ئامادەیە", store: "فرۆشگا", replay: "دووبارە پیشاندان", soundUnavailable: "دەنگی چاپکەرەکە کار نەکرد. پەیوەندی ئینتەرنێت و دەنگی ئامێرەکەت بپشکنە و دووبارە هەوڵ بدە.",
   },
 } as const;
 
@@ -138,7 +138,9 @@ export function OrderReceiptPrinter({
       stopSoundRef.current?.();
       stopSoundRef.current = null;
       setSoundError(false);
-      stopSoundRef.current = playReceiptPrinterSound(0.65, handleSoundUnavailable);
+      // Browsers may legitimately prevent audio on a direct-link landing.
+      // Keep that initial automatic attempt silent instead of alarming buyers.
+      stopSoundRef.current = playReceiptPrinterSound(0.65);
     }
     setStage("processing");
     // Start with no paper, wait a moment, then feed in clearly separated steps.
