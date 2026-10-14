@@ -40,10 +40,6 @@
     "api/pdf.ts": {
       "memory": 256,
       "maxDuration": 30
-    },
-    "api/media-migration-upload.ts": {
-      "memory": 1024,
-      "maxDuration": 60
     }
   },
   "crons": [
@@ -405,10 +401,6 @@
     {
       "source": "/agent/auth/:path*",
       "destination": "/api/index"
-    },
-    {
-      "source": "/api/media-migration-upload",
-      "destination": "/api/media-migration-upload"
     },
     {
       "source": "/api/(.*)",
