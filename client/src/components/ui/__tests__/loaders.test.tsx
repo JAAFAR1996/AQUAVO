@@ -7,7 +7,7 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, act } from '@testing-library/react';
-import { PageLoader } from '../loaders';
+import { PageLoader, AppInitLoader } from '../loaders';
 
 describe('PageLoader (branded route transition)', () => {
   beforeEach(() => {
@@ -45,4 +45,21 @@ describe('PageLoader (branded route transition)', () => {
     expect(clearSpy).toHaveBeenCalled();
     clearSpy.mockRestore();
   });
+  it('finishes the legacy init only after the filled mark is ready and calls onDone once', () => {
+    const onDone = vi.fn();
+    const { container } = render(<AppInitLoader onDone={onDone} />);
+
+    // Previous implementation removed the mark after 320ms, before fill.
+    act(() => vi.advanceTimersByTime(320));
+    expect(onDone).not.toHaveBeenCalled();
+    expect(container.querySelector("[data-aqv-logo-trace]")).toBeInTheDocument();
+
+    act(() => vi.advanceTimersByTime(400));
+    expect(onDone).toHaveBeenCalledTimes(1);
+    expect(container.querySelector("[data-aqv-logo-trace]")).not.toBeInTheDocument();
+
+    act(() => vi.advanceTimersByTime(500));
+    expect(onDone).toHaveBeenCalledTimes(1);
+  });
+
 });
