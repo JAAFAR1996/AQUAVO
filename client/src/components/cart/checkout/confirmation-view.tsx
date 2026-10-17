@@ -89,11 +89,6 @@ export function ConfirmationView({
     const [preparedOrder, setPreparedOrder] = useState<Pick<OnlineStartResponse, "orderNumber" | "amount"> | null>(null);
     const [agreementError, setAgreementError] = useState(false);
 
-    // Do not infer promotional-message opt-in from acceptance of store terms.
-    useEffect(() => {
-        if (whatsappMarketingOptIn) setWhatsappMarketingOptIn(false);
-    }, [whatsappMarketingOptIn, setWhatsappMarketingOptIn]);
-
     useEffect(() => {
         let active = true;
         fetch("/api/payments/wayl/availability", { credentials: "include", cache: "no-store" })
@@ -403,7 +398,9 @@ export function ConfirmationView({
                     onCheckedChange={(checked) => {
                         const accepted = checked === true;
                         setAgreed(accepted);
-                        setWhatsappMarketingOptIn(false); // Terms acceptance is not marketing consent.
+                        // WhatsApp communications are disclosed inside the Terms page.
+                        // The existing required Terms checkbox is the single storefront consent control.
+                        setWhatsappMarketingOptIn(accepted);
                         if (accepted) setAgreementError(false);
                     }}
                     className="mt-0.5"
