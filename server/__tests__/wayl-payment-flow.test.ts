@@ -214,3 +214,13 @@ describe("Wayl payment-ledger integration in enforce mode", () => {
     expect(service.indexOf("await recordVerifiedWaylCapture(tx, order, payment, referenceId, {", reviewFn)).toBeGreaterThan(reviewFn);
   });
 });
+
+describe("Wayl production verification diagnostics", () => {
+  it("records private bounded provider errors while never blindly marking payments paid", () => {
+    expect(service).toContain("export async function recordWaylVerificationDiagnostic(");
+    expect(service).toContain("lastVerificationFailure");
+    expect(service).toContain("AND status='pending'");
+    expect(route).toContain('recordWaylVerificationDiagnostic(paymentId, "customer_status", error)');
+    expect(route).toContain('recordWaylVerificationDiagnostic(paymentId, "customer_return", error)');
+  });
+});
