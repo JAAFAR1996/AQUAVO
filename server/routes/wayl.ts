@@ -16,6 +16,7 @@ import {
   findWebhookSecretForReference,
   getVerifiedPaymentState,
   prepareOnlineOrder,
+  recordWaylVerificationDiagnostic,
   retryWaylPayment,
   startWaylPaymentForOrder,
   verifyAndSyncWaylPayment,
@@ -252,6 +253,7 @@ export function createWaylRouter() {
       res.setHeader("Cache-Control", "no-store, max-age=0");
       res.json(state);
     } catch (error) {
+      await recordWaylVerificationDiagnostic(paymentId, "customer_status", error).catch(() => {});
       const status = errorStatus(error, 502);
       res.status(status).json({ message: publicErrorMessage(error, "تعذر التحقق من حالة الدفع حالياً.") });
     }
@@ -345,6 +347,7 @@ export function createWaylRouter() {
       const state = await verifyAndSyncWaylPayment(paymentId);
       res.redirect(303, resultPath(state));
     } catch (error) {
+      await recordWaylVerificationDiagnostic(paymentId, "customer_return", error).catch(() => {});
       const status = errorStatus(error, 502);
       res.status(status).type("html").send(
         "<h1>جارٍ التحقق من عملية الدفع</h1><p>تعذر تأكيد النتيجة الآن. لا تنشئ طلباً جديداً؛ افتح صفحة حالة الدفع وأعد التحقق.</p>",
