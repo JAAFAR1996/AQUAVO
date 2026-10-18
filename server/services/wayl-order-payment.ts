@@ -718,6 +718,69 @@ export async function startWaylPaymentForOrder(
   };
 }
 
+/**
+ * Persist the proven Wayl capture as the immutable payment-ledger evidence
+ * BEFORE setting orders.payment_status='paid'. Production's DB trigger
+ * rejects that transition without a completed capture event.
+ *
+ * Use the SAME idempotency key as the delivery accounting trigger (migration
+ * 0095) so delivery recognizes and reuses this capture; it must never bill a
+ * second payment event at fulfillment.
+ */
+async function recordVerifiedWaylCapture(
+  tx: any,
+  order: Order,
+  payment: any,
+  referenceId: string,
+  context: { referenceId: string; amount: number; currency: string; status: string },
+): Promise<void> {
+  const gross = Number(order.roundedTotal ?? order.total);
+  const amount = paymentAmount(payment);
+  if (
+    context.referenceId !== referenceId ||
+    context.status.toLowerCase() !== "complete" ||
+    context.amount !== amount ||
+    amount !== gross ||
+    context.currency.toUpperCase() !== "IQD" ||
+    String(payment.currency || "IQD").toUpperCase() !== "IQD" ||
+    payment.method !== PAYMENT_METHOD
+  ) {
+    throw new Error("Verified Wayl payment does not match order ledger capture");
+  }
+
+  const eventKey = `delivery:${order.id}:wayl_capture`;
+  await tx.execute(sql`
+    INSERT INTO public.payment_events(
+      order_id,event_type,status,amount,currency,method,provider,
+      provider_transaction_id,idempotency_key,occurred_at,evidence,metadata,created_by
+    ) VALUES (
+      ${order.id},'capture','completed',${gross},'IQD','wayl','wayl',
+      ${referenceId},${eventKey},now(),
+      jsonb_build_object(
+        'source','verified_wayl_api',
+        'payment_record_id',${payment.id},
+        'reference_id',${referenceId},
+        'provider_status',${context.status},
+        'verified_at',now()
+      ),
+      jsonb_build_object('gross_collected',${gross},'currency','IQD','payment_method','wayl'),
+      'wayl_payment_finalizer'
+    ) ON CONFLICT(idempotency_key) DO NOTHING
+  `);
+  const verifiedCapture = rowsFromExecute(await tx.execute(sql`
+    SELECT id FROM public.payment_events
+    WHERE idempotency_key=${eventKey}
+      AND order_id=${order.id} AND event_type='capture'
+      AND status='completed' AND amount=${gross}
+      AND currency='IQD' AND method='wayl'
+      AND provider_transaction_id=${referenceId}
+    LIMIT 1
+  `));
+  if (verifiedCapture.length !== 1) {
+    throw new Error("WAYL_CAPTURE_LEDGER_EVENT_MISSING_OR_MISMATCH");
+  }
+}
+
 async function finalizePaidOrder(
   orderId: string,
   referenceId: string,
@@ -791,6 +854,9 @@ async function finalizePaidOrder(
         } as any).where(eq(coupons.id, order.couponId));
       }
 
+      // The ledger's BEFORE UPDATE guard requires a durable, completed capture.
+      await recordVerifiedWaylCapture(tx, order, payment, referenceId, context);
+
       let loyaltyResult: TransactionalOrderLoyaltyResult | null = null;
       const orderUpdates: Record<string, any> = {
         paymentStatus: "paid",
@@ -861,9 +927,19 @@ async function recordPaidInventoryReview(
   reviewReason: "inventory_conflict" | "paid_after_cancellation" = "inventory_conflict",
 ): Promise<void> {
   const db = dbOrThrow();
-  const { payment } = await getOrderAndPayment(orderId);
+  const { order, payment } = await getOrderAndPayment(orderId);
   const meta = safeProviderResponse(payment.providerResponse);
   await db.transaction(async (tx) => {
+    await tx.execute(sql`SELECT id FROM orders WHERE id=${orderId} FOR UPDATE`);
+    await tx.execute(sql`SELECT id FROM payments WHERE order_id=${orderId} FOR UPDATE`);
+    // Even a cancelled / out-of-stock paid order must have ledger evidence
+    // before being marked paid and flagged for refund/inventory review.
+    await recordVerifiedWaylCapture(tx, order, payment, referenceId, {
+      referenceId,
+      amount: paymentAmount(payment),
+      currency: String(payment.currency || PAYMENT_CURRENCY),
+      status: context.status,
+    });
     await tx.update(orders).set({ paymentStatus: "paid", status: "payment_review", updatedAt: new Date() } as any)
       .where(eq(orders.id, orderId));
     await tx.execute(sql`
