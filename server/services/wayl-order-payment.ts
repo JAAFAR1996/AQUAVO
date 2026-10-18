@@ -1131,15 +1131,6 @@ export async function getVerifiedPaymentState(
 }
 
 /**
- * Scheduled recovery for Wayl links whose signed webhook or customer redirect
- * did not finalize the order. Re-read Wayl itself; a dashboard screenshot,
- * checkout redirect, or local pending record is NEVER proof of payment.
- *
- * The claim timestamp is stored before the external request. This avoids
- * repeated provider calls from overlapping scheduler invocations without
- * holding a database transaction or row lock across the network.
- */
-/**
  * Private, bounded payment-verification diagnostics for failed gateway reads
  * and failed server-side finalizations. Never exposed to the customer, and
  * does not alter payment status, inventory, accounting or provider state.
@@ -1155,7 +1146,7 @@ export async function recordWaylVerificationDiagnostic(
   // Bounded operational message; never store request headers, API credentials,
   // raw webhook body or complete exception objects.
   const message = (error instanceof Error ? error.message : String(error))
-    .slice(0, 320).replace(/(sk[_-][A-Za-z0-9_-]{8,}|Bearer\\s+[^\\s]+)/g, "[redacted]");
+    .slice(0, 320).replace(/(sk[_-][A-Za-z0-9_-]{8,}|Bearer\s+[^\s]+)/g, "[redacted]");
   await db.execute(sql`
     UPDATE payments
        SET provider_response=jsonb_set(
@@ -1170,6 +1161,15 @@ export async function recordWaylVerificationDiagnostic(
   `);
 }
 
+/**
+ * Scheduled recovery for Wayl links whose signed webhook or customer redirect
+ * did not finalize the order. Re-read Wayl itself; a dashboard screenshot,
+ * checkout redirect, or local pending record is NEVER proof of payment.
+ *
+ * The claim timestamp is stored before the external request. This avoids
+ * repeated provider calls from overlapping scheduler invocations without
+ * holding a database transaction or row lock across the network.
+ */
 export async function reconcilePendingWaylPayments(limit = 1): Promise<{
   checked: number; paid: number; review: number; pending: number; errors: number;
 }> {
