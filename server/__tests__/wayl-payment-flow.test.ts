@@ -178,3 +178,14 @@ describe("availability route contract", () => {
     expect(route).toContain("res.status(503).json({ message: \"الدفع الإلكتروني غير متاح حالياً. اختر الدفع عند الاستلام وراح نكمل طلبك.\" });");
   });
 });
+
+describe('Wayl missed-webhook scheduled recovery contract', () => {
+  it('re-verifies pending Wayl payments from the gateway, never blindly marks an order paid', () => {
+    expect(service).toContain('export async function reconcilePendingWaylPayments(');
+    expect(service).toContain("AND p.status='pending'");
+    expect(service).toContain("o.status='pending_payment'");
+    expect(service).toContain('const verified = await verifyAndSyncWaylPayment(referenceId, orderId);');
+    expect(service).toContain('lastRecoveryAttemptAt');
+    expect(service).toContain('FOR UPDATE');
+  });
+});
