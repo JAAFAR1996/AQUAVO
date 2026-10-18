@@ -1053,3 +1053,61 @@ export async function getVerifiedPaymentState(
 ): Promise<VerifiedOnlinePaymentState> {
   return verifyAndSyncWaylPayment(paymentId, orderId);
 }
+
+/**
+ * Scheduled recovery for Wayl links whose signed webhook or customer redirect
+ * did not finalize the order. Re-read Wayl itself; a dashboard screenshot,
+ * checkout redirect, or local pending record is NEVER proof of payment.
+ *
+ * The claim timestamp is stored before the external request. This avoids
+ * repeated provider calls from overlapping scheduler invocations without
+ * holding a database transaction or row lock across the network.
+ */
+export async function reconcilePendingWaylPayments(limit = 1): Promise<{
+  checked: number; paid: number; review: number; pending: number; errors: number;
+}> {
+  const db = dbOrThrow();
+  const safeLimit = Math.max(1, Math.min(2, Math.trunc(limit)));
+  const pending = rowsFromExecute(await db.execute(sql`
+    SELECT o.id AS "orderId", p.transaction_id AS "referenceId"
+    FROM payments p JOIN orders o ON o.id=p.order_id
+    WHERE p.method='wayl' AND p.status='pending'
+      AND o.payment_status='pending' AND o.status='pending_payment'
+      AND p.transaction_id IS NOT NULL
+      AND p.created_at BETWEEN now() - interval '7 days' AND now() - interval '1 minute'
+      AND COALESCE(NULLIF(p.provider_response->>'lastRecoveryAttemptAt','')::timestamptz, 'epoch'::timestamptz)
+          <= now() - interval '5 minutes'
+    ORDER BY COALESCE(NULLIF(p.provider_response->>'lastRecoveryAttemptAt','')::timestamptz, 'epoch'::timestamptz), p.created_at
+    LIMIT ${safeLimit}
+  `));
+  const counts = { checked: 0, paid: 0, review: 0, pending: 0, errors: 0 };
+  for (const candidate of pending) {
+    const orderId = String(candidate.orderId || '');
+    const referenceId = String(candidate.referenceId || '');
+    if (!orderId || !referenceId) continue;
+    const claimed = rowsFromExecute(await db.execute(sql`
+      UPDATE payments SET
+        provider_response=jsonb_set(COALESCE(provider_response,'{}'::jsonb),
+          '{lastRecoveryAttemptAt}',to_jsonb(now()::text),true)
+      WHERE order_id=${orderId} AND transaction_id=${referenceId}
+        AND method='wayl' AND status='pending'
+        AND COALESCE(NULLIF(provider_response->>'lastRecoveryAttemptAt','')::timestamptz, 'epoch'::timestamptz)
+            <= now() - interval '5 minutes'
+      RETURNING id
+    `));
+    if (claimed.length === 0) continue;
+    counts.checked++;
+    try {
+      const verified = await verifyAndSyncWaylPayment(referenceId, orderId);
+      if (verified.paymentStatus === 'paid' && verified.inventoryReview) counts.review++;
+      else if (verified.paymentStatus === 'paid') counts.paid++;
+      else counts.pending++;
+    } catch (error) {
+      counts.errors++;
+      console.error(`[Wayl Recovery] verification failed for ${orderId}:`,
+        error instanceof Error ? error.message : String(error));
+      // Fail closed. The next scheduled run can safely retry this attempt.
+    }
+  }
+  return counts;
+}

@@ -11,6 +11,7 @@ import { runPendingWhatsAppCustomerTextAlerts } from "../services/whatsapp-custo
 import { runResilientFinanceAudit } from "../services/groq-finance-audit-resilient.js";
 import { smartNotifications } from "../services/smart-notifications.js";
 import { runPaymentMaintenance } from "../services/payment-maintenance.js";
+import { reconcilePendingWaylPayments } from "../services/wayl-order-payment.js";
 import { refreshBusinessSnapshot } from "../services/business-intelligence.js";
 import { refreshGrowthOs } from "../services/growth-operating-system.js";
 import {
@@ -88,6 +89,12 @@ router.get("/nightly", async (_req: Request, res: Response) => {
   console.log("[Cron] Starting nightly tasks...");
   const startTime = Date.now();
   const results: Record<string, { success: boolean; message: string; duration: number }> = {};
+  let waylRecovery: Awaited<ReturnType<typeof reconcilePendingWaylPayments>> | null = null;
+  try {
+    waylRecovery = await reconcilePendingWaylPayments(1);
+  } catch (error) {
+    console.error('[Cron] Wayl recovery before reservation cleanup failed:', error);
+  }
   let paymentMaintenance: Awaited<ReturnType<typeof runPaymentMaintenance>> | null = null;
   try {
     paymentMaintenance = await runPaymentMaintenance();
@@ -148,7 +155,7 @@ router.get("/nightly", async (_req: Request, res: Response) => {
   const totalDuration = Date.now() - startTime;
   const successCount = Object.values(results).filter((result) => result.success).length;
   const allSucceeded = successCount === tasks.length;
-  res.status(200).json({ success: allSucceeded, totalDuration, completed: `${successCount}/${tasks.length}`, paymentMaintenance, abandonedCartSessions, results });
+  res.status(200).json({ success: allSucceeded, totalDuration, completed: `${successCount}/${tasks.length}`, paymentMaintenance, waylRecovery, abandonedCartSessions, results });
 });
 
 router.get("/weekly-blog", async (_req: Request, res: Response) => {
@@ -317,6 +324,15 @@ router.get("/customer-messaging", async (_req: Request, res: Response) => {
       // Maintenance only; pending events remain durable for a later invocation.
     }
 
+    // Five-minute Neon scheduler is the recovery backstop for missed Wayl webhooks.
+    // One bounded candidate per run; a provider failure never blocks messaging.
+    let waylRecovery: Awaited<ReturnType<typeof reconcilePendingWaylPayments>> | null = null;
+    try {
+      waylRecovery = await reconcilePendingWaylPayments(1);
+    } catch (error) {
+      console.error('[Cron] Wayl payment reconciliation failed:', error);
+    }
+
     const duration = Date.now() - startTime;
     aiMonitor.log({
       event: "cron_job",
@@ -338,6 +354,7 @@ router.get("/customer-messaging", async (_req: Request, res: Response) => {
         providerEventsCleaned,
         buttonInboxEventsCleaned,
         lifecycleInboxEventsCleaned,
+        waylRecovery,
       },
     });
     return res.status(200).json({
@@ -354,6 +371,7 @@ router.get("/customer-messaging", async (_req: Request, res: Response) => {
       providerEventsCleaned,
       buttonInboxEventsCleaned,
       lifecycleInboxEventsCleaned,
+      waylRecovery,
     });
   } catch (error) {
     const duration = Date.now() - startTime;
