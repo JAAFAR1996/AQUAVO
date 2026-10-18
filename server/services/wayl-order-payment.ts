@@ -1139,6 +1139,37 @@ export async function getVerifiedPaymentState(
  * repeated provider calls from overlapping scheduler invocations without
  * holding a database transaction or row lock across the network.
  */
+/**
+ * Private, bounded payment-verification diagnostics for failed gateway reads
+ * and failed server-side finalizations. Never exposed to the customer, and
+ * does not alter payment status, inventory, accounting or provider state.
+ */
+export async function recordWaylVerificationDiagnostic(
+  referenceId: string,
+  stage: "customer_status" | "customer_return" | "scheduler",
+  error: unknown,
+): Promise<void> {
+  const db = dbOrThrow();
+  const orderId = orderIdFromReferenceId(referenceId);
+  const kind = error instanceof Error ? error.name : "UnknownError";
+  // Bounded operational message; never store request headers, API credentials,
+  // raw webhook body or complete exception objects.
+  const message = (error instanceof Error ? error.message : String(error))
+    .slice(0, 320).replace(/(sk[_-][A-Za-z0-9_-]{8,}|Bearer\\s+[^\\s]+)/g, "[redacted]");
+  await db.execute(sql`
+    UPDATE payments
+       SET provider_response=jsonb_set(
+         COALESCE(provider_response,'{}'::jsonb),
+         '{lastVerificationFailure}',
+         jsonb_build_object(
+           'stage',${stage},'kind',${kind},'message',${message},
+           'occurredAt',now()
+         ),true)
+     WHERE order_id=${orderId} AND method='wayl'
+       AND status='pending'
+  `);
+}
+
 export async function reconcilePendingWaylPayments(limit = 1): Promise<{
   checked: number; paid: number; review: number; pending: number; errors: number;
 }> {
@@ -1180,6 +1211,7 @@ export async function reconcilePendingWaylPayments(limit = 1): Promise<{
       else counts.pending++;
     } catch (error) {
       counts.errors++;
+      await recordWaylVerificationDiagnostic(referenceId, "scheduler", error).catch(() => {});
       console.error(`[Wayl Recovery] verification failed for ${orderId}:`,
         error instanceof Error ? error.message : String(error));
       // Fail closed. The next scheduled run can safely retry this attempt.
