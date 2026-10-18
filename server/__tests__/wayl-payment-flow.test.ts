@@ -189,3 +189,28 @@ describe('Wayl missed-webhook scheduled recovery contract', () => {
     expect(service).toContain('FOR UPDATE');
   });
 });
+
+describe("Wayl payment-ledger integration in enforce mode", () => {
+  it("stores the verified capture BEFORE marking the order paid", () => {
+    const captureFn = service.indexOf("async function recordVerifiedWaylCapture(");
+    const finalizeFn = service.indexOf("async function finalizePaidOrder(");
+    const captureCall = service.indexOf("await recordVerifiedWaylCapture(tx, order, payment, referenceId, context);", finalizeFn);
+    const updateOrder = service.indexOf("tx.update(orders).set(orderUpdates", captureCall);
+    expect(captureFn).toBeGreaterThan(0);
+    expect(captureCall).toBeGreaterThan(finalizeFn);
+    expect(updateOrder).toBeGreaterThan(captureCall);
+    expect(service).toContain("INSERT INTO public.payment_events(");
+    expect(service).toContain("'capture','completed'");
+  });
+
+  it("reuses delivery's idempotency key so delivery cannot double-count an online capture", () => {
+    expect(service).toContain("wayl_capture");
+    expect(service).toContain("ON CONFLICT(idempotency_key) DO NOTHING");
+    expect(service).toContain("WAYL_CAPTURE_LEDGER_EVENT_MISSING_OR_MISMATCH");
+  });
+
+  it("records the same verified capture when paid stock is unavailable or order cancelled", () => {
+    const reviewFn = service.indexOf("async function recordPaidInventoryReview(");
+    expect(service.indexOf("await recordVerifiedWaylCapture(tx, order, payment, referenceId, {", reviewFn)).toBeGreaterThan(reviewFn);
+  });
+});
