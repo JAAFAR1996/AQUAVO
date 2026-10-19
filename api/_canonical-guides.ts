@@ -8,6 +8,7 @@ import {
 import { SPA_GUIDE_PAGES } from "./_guides-content-spa.js";
 import { canonicalProductCategory, categoryProductsPath } from "../shared/seo-contract.js";
 import { withSiteEntities } from "./_seo-structured-data.js";
+import { getStaticSearchMeta } from "./_static-search-meta.js";
 
 const GUIDE_ROUTE_ALIASES: Record<string, string> = {
   "/guides/aquarium-filter-guide": "/guides/filter-choice",
@@ -334,6 +335,7 @@ function escapeHtml(value: string): string {
 }
 
 export function renderCanonicalGuidesIndexHtml(baseUrl: string, defaultImage: string): string {
+  const searchMeta = getStaticSearchMeta("ar", "/guides")!;
   const entries = canonicalGuidePaths()
     .map((path) => {
       const resolved = resolveGuidePage(path);
@@ -368,13 +370,19 @@ export function renderCanonicalGuidesIndexHtml(baseUrl: string, defaultImage: st
   return `<!doctype html>
 <html lang="ar" dir="rtl"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>أدلة أحواض الزينة بالعربي | AQUAVO</title>
-<meta name="description" content="أدلة عملية بالعربي عن تجهيز الحوض والفلاتر والسخانات وفحص الماء والصيانة والعناية بأسماك الزينة.">
+<title>${escapeHtml(searchMeta.title)}</title>
+<meta name="description" content="${escapeHtml(searchMeta.description)}">
 <link rel="canonical" href="${baseUrl}/guides">
 <meta name="robots" content="index, follow, max-image-preview:large">
-<meta property="og:title" content="أدلة أحواض الزينة بالعربي | AQUAVO">
-<meta property="og:description" content="أدلة عملية قابلة للقراءة والاقتباس عن أحواض الزينة في العراق.">
-<meta property="og:url" content="${baseUrl}/guides"><meta property="og:image" content="${defaultImage}">
+<meta property="og:title" content="${escapeHtml(searchMeta.title)}">
+<meta property="og:description" content="${escapeHtml(searchMeta.description)}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="AQUAVO">
+<meta property="og:url" content="${escapeHtml(baseUrl)}/guides"><meta property="og:image" content="${escapeHtml(defaultImage)}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${escapeHtml(searchMeta.title)}">
+<meta name="twitter:description" content="${escapeHtml(searchMeta.description)}">
+<meta name="twitter:image" content="${escapeHtml(defaultImage)}">
 ${withSiteEntities([itemList]).map((node) => `<script type="application/ld+json">${JSON.stringify(node).replace(/</g, "\\u003c")}</script>`).join("\n")}
 <style>body{font-family:Cairo,Tahoma,sans-serif;background:#0B1E28;color:#fff;line-height:1.8;margin:0;padding:32px}main{max-width:1080px;margin:auto}a{color:#67d7e5}section{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}article{border:1px solid #34505b;padding:18px;border-radius:10px;background:#102a35}h1{font-size:clamp(32px,5vw,56px)}</style>
 </head><body><main><nav><a href="/">الرئيسية</a> / الأدلة</nav><h1>أدلة AQUAVO لأحواض الزينة</h1><p>إجابات عملية تبدأ بالخلاصة ثم تشرح الخطوات والتحذيرات والاختيارات المناسبة.</p><section>${cards}</section></main></body></html>`;

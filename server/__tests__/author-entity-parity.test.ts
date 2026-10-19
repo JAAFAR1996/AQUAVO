@@ -71,27 +71,40 @@ describe("no render path hard-codes Person for an article author", () => {
 // The byline element itself, not merely a /about link somewhere on the page —
 // the shell footer links /about on every page, so a page-wide search would
 // pass without the byline being a link at all.
-const bylineElement = (html: string): string => {
-  const match = html.match(/<(a|span)[^>]*itemprop="author"[^>]*>[\s\S]*?<\/\1>/i);
-  return match?.[0] ?? "";
+const bylineElement = (html: string): Element => {
+  const document = new DOMParser().parseFromString(html, "text/html");
+  const byline = document.querySelector('article[itemtype="https://schema.org/Article"] [itemprop="author"]');
+  expect(byline, "no byline element rendered").not.toBeNull();
+  return byline!;
 };
 
 describe("visible byline and schema name the same entity", () => {
-  it("links the team byline to the page the schema url names", () => {
-    const html = renderSeoPreviewShell({ kind: "blog-post", post: post("AQUAVO Team"), related: [] });
+  it.each(["AQUAVO Team", "AQUAVO Editorial Team", "شريمب 🦐"])("types the %s byline as the same Organization as JSON-LD", (author) => {
+    const html = renderSeoPreviewShell({ kind: "blog-post", post: post(author), related: [] });
     const byline = bylineElement(html);
-    expect(byline, "no byline element rendered").not.toBe("");
-    const entity = articleAuthorEntity("AQUAVO Team");
-    expect(byline).toContain(`href="${EDITORIAL_TEAM_PROFILE_PATH}"`);
-    expect(byline).toContain(entity.name);
+    const entity = articleAuthorEntity(author);
+    // Without this nested item, an author anchor is a URL value. Schema.org
+    // author accepts an Organization or Person, not a URL or plain string.
+    expect(byline.hasAttribute("itemscope")).toBe(true);
+    expect(byline.getAttribute("itemtype")).toBe(`https://schema.org/${entity["@type"]}`);
+    expect(byline.getAttribute("itemid")).toBe(entity["@id"]);
+    expect(byline.querySelector('[itemprop="name"]')?.getAttribute("content")).toBe(entity.name);
+    expect(byline.textContent).toBe(EDITORIAL_TEAM_BYLINE);
+    const profileLink = byline.querySelector('a[itemprop="url"]');
+    expect(profileLink?.getAttribute("href")).toBe(EDITORIAL_TEAM_PROFILE_PATH);
     expect(entity.url).toBe(`https://www.aquavoiq.com${EDITORIAL_TEAM_PROFILE_PATH}`);
   });
 
-  it("leaves a named byline as plain text, linking nowhere", () => {
+  it("types a named byline as a Person while leaving the visible name unlinked", () => {
     const html = renderSeoPreviewShell({ kind: "blog-post", post: post("Jane Doe"), related: [] });
     const byline = bylineElement(html);
-    expect(byline).toContain("Jane Doe");
-    expect(byline).not.toContain("href=");
+    const entity = articleAuthorEntity("Jane Doe");
+    expect(byline.hasAttribute("itemscope")).toBe(true);
+    expect(byline.getAttribute("itemtype")).toBe(`https://schema.org/${entity["@type"]}`);
+    expect(byline.querySelector('[itemprop="name"]')?.getAttribute("content")).toBe(entity.name);
+    expect(byline.textContent).toBe("Jane Doe");
+    expect(byline.hasAttribute("itemid")).toBe(false);
+    expect(byline.querySelector('a, [itemprop="url"]')).toBeNull();
   });
 
   // The assistant persona is not a named author. It resolves to the team, so
@@ -99,9 +112,9 @@ describe("visible byline and schema name the same entity", () => {
   it("renders the assistant persona as the editorial team", () => {
     const html = renderSeoPreviewShell({ kind: "blog-post", post: post("شريمب 🦐"), related: [] });
     const byline = bylineElement(html);
-    expect(byline).toContain(EDITORIAL_TEAM_BYLINE);
-    expect(byline).not.toContain("شريمب");
-    expect(byline).toContain(`href="${EDITORIAL_TEAM_PROFILE_PATH}"`);
+    expect(byline.textContent).toBe(EDITORIAL_TEAM_BYLINE);
+    expect(byline.textContent).not.toContain("شريمب");
+    expect(byline.querySelector("a")?.getAttribute("href")).toBe(EDITORIAL_TEAM_PROFILE_PATH);
   });
 
   it("keeps the published date the post actually carries", () => {

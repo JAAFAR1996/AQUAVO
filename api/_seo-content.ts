@@ -79,6 +79,22 @@ const DEFAULT_LINKS = [
 ];
 
 export const SEO_META_OVERRIDES: Record<string, SeoMetaOverride> = {
+  "/guides": {
+    title: "أدلة أحواض الزينة بالعربي | AQUAVO",
+    description: "أدلة عملية بالعربي عن تجهيز أحواض الزينة، اختيار الفلاتر والسخانات، فحص الماء والصيانة، مع خطوات وتحذيرات وروابط تساعدك تراجع كل موضوع.",
+  },
+  "/contact": {
+    title: "تواصل مع AQUAVO",
+    description: "تواصل ويا AQUAVO للاستفسار عن الطلبات والتوصيل والدفع، أو حتى تراجع تفاصيل معدات الحوض وتختارها على أساس الحجم والاحتياج.",
+  },
+  "/fish-health-diagnosis": {
+    title: "مساعد تنظيم أعراض الأسماك | AQUAVO",
+    description: "أداة إرشادية لترتيب أعراض الأسماك وظروف الماء والملاحظات، وتساعدك تجمع المعلومات عن حالة الحوض قبل اتخاذ إجراء أو مراجعة مختص.",
+  },
+  "/fish-breeding-calculator": {
+    title: "حاسبة تفريخ أسماك الزينة | AQUAVO",
+    description: "حاسبة تعليمية لتنظيم بيانات تفريخ أسماك الزينة بحسب النوع والظروف المسجلة، حتى تراجع خطوات المتابعة والاحتياجات المرتبطة بحوض التفريخ.",
+  },
   "/": {
     title: "متجر مستلزمات أحواض الزينة في العراق | AQUAVO",
     description: "AQUAVO متجر إلكتروني عراقي متخصص في معدات ومستلزمات أحواض الزينة والمياه العذبة: فلاتر، سخانات، أغذية، إضاءة، ديكور ومعالجة مياه، مع توصيل لكل العراق.",
@@ -375,7 +391,7 @@ const SEO_CONTENT_PAGES: Record<string, SeoContentPage> = {
     topic: "أدوات حسابية تساعدك تقدّر حجم الحوض وقوة الفلتر والسخان ونسبة تغيير الماء",
     audience: "هذه الصفحة مناسبة لمن يريد قراراً أقرب للمنطق قبل شراء المعدات أو تغيير الروتين",
     action: "استخدم الحاسبة كبداية، ثم راجع الدليل التفصيلي لأن ظروف كل حوض تختلف",
-    links: ["/aquarium-wizard", "/tank-builder", "/guides/filter-choice", "/guides/heater-choice", "/guides/water-change-schedule"],
+    links: ["/journey", "/guides/filter-choice", "/guides/heater-choice", "/guides/water-change-schedule"],
   },
   "/aquarium-wizard": {
     h1: "مساعد تجهيز الحوض",
@@ -410,7 +426,7 @@ const SEO_CONTENT_PAGES: Record<string, SeoContentPage> = {
     topic: "مجموعة أدوات تعليمية تساعدك تخطط وتراجع احتياجات الحوض خطوة بخطوة",
     audience: "هذه الصفحة مناسبة لمن يريد مساعدة سريعة قبل قراءة الدليل الكامل أو تصفح المنتجات",
     action: "استخدم الأدوات كمرشد أولي، ثم تحقق من النتيجة عبر الأدلة والمواصفات الفعلية للمنتج",
-    links: ["/calculators", "/aquarium-wizard", "/tank-builder", "/fish-finder", "/guides"],
+    links: ["/calculators", "/journey", "/fish-finder", "/guides"],
   },
   "/guides/feeding-table": {
     h1: "جدول تغذية أسماك الزينة",
@@ -466,7 +482,7 @@ const SEO_CONTENT_PAGES: Record<string, SeoContentPage> = {
     topic: "ترتيب رحلة الحوض من التخطيط واختيار المعدات إلى الصيانة والمتابعة",
     audience: "هذه الصفحة مناسبة لمن يريد مساراً واضحاً بدل التنقل بين المنتجات بدون خطة",
     action: "ابدأ بخطوة التجهيز، ثم انتقل للفلتر والسخان وفحص الماء قبل إضافة أي نوع للحوض",
-    links: ["/beginner-guide", "/guides/new-aquarium-setup-iraq", "/aquarium-wizard", "/tank-builder", "/guides"],
+    links: ["/beginner-guide", "/guides/new-aquarium-setup-iraq", "/guides"],
   },
   "/guides/aquarium-salt": {
     h1: "استخدام ملح الحوض بأمان",

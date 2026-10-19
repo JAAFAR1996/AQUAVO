@@ -65,10 +65,6 @@
 .aqv-surface-ripple,
 .aqv-light-sweep,
 .aqv-skeleton,
-.aqv-runtime-home,
-.aqv-runtime-home *,
-.aqv-runtime-caustics,
-.aqv-runtime-floor,
 .aqv-runtime-proof-glass,
 .aqv-runtime-proof-glass *,
 .aqv-cart-displacement,
@@ -133,57 +129,6 @@
 }
 [data-aqv-motion-runtime="on"] .aq-site-header[data-aqv-scrolled="true"] {
   box-shadow: 0 12px 30px rgb(11 30 40 / 14%);
-}
-
-.aqv-runtime-home {
-  --aqv-depth-bg: #F6F4EF;
-  --aqv-depth-card: #FFFFFF;
-  --aqv-depth-ink: #232323;
-  --aqv-depth-muted: #6B6B6B;
-  --aqv-depth-border: #DDD8CE;
-  position: relative;
-  isolation: isolate;
-  background: var(--aqv-depth-bg) !important;
-  color: var(--aqv-depth-ink);
-  transition: background-color var(--aqv-d-base) linear, color var(--aqv-d-base) linear !important;
-}
-.aqv-runtime-home .bg-background,
-.aqv-runtime-home .bg-card,
-.aqv-runtime-home [class*="bg-card/"] {
-  background-color: var(--aqv-depth-card) !important;
-  border-color: var(--aqv-depth-border) !important;
-  transition: background-color var(--aqv-d-base) linear, border-color var(--aqv-d-base) linear, color var(--aqv-d-base) linear !important;
-}
-.aqv-runtime-home .text-foreground { color: var(--aqv-depth-ink) !important; }
-.aqv-runtime-home .text-muted-foreground { color: var(--aqv-depth-muted) !important; }
-.aqv-runtime-caustics {
-  position: sticky;
-  inset-block-start: 64px;
-  z-index: 1;
-  display: block;
-  width: 100%;
-  height: 180px;
-  margin-block-end: -180px;
-  pointer-events: none;
-  opacity: .55;
-  mix-blend-mode: screen;
-}
-.aqv-runtime-waterline {
-  position: sticky;
-  inset-block-start: 64px;
-  z-index: 35;
-  width: 100%;
-  pointer-events: none;
-}
-.aqv-runtime-floor {
-  position: absolute;
-  inset-inline: 0;
-  inset-block-end: 0;
-  height: 140px;
-  pointer-events: none;
-  opacity: 0;
-  background: linear-gradient(to bottom, transparent, rgb(201 174 140 / 38%));
-  transition: opacity var(--aqv-d-calm) linear !important;
 }
 
 .aqv-runtime-proof-glass {
@@ -254,16 +199,7 @@
   .aqv-surface-ripple { animation: none !important; }
   .aqv-light-sweep { animation-iteration-count: 1 !important; }
   .aqv-water-drop { transition-duration: var(--aqv-d-calm) !important; }
-  .aqv-runtime-caustics { display: none; }
-  .aqv-runtime-waterline { inset-block-start: 64px; }
   .aqv-journey-tank-shell { inset-block-start: 64px; margin-inline: -1rem; margin-block-end: 16px; }
-}
-
-@supports (animation-timeline: scroll()) {
-  @media (max-width: 767px) {
-    @keyframes aqv-descend { from { background-color: #F6F4EF; } to { background-color: #0B1E28; } }
-    [data-aqv-descent] { animation: aqv-descend 1s linear both !important; animation-timeline: scroll(root block); }
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {

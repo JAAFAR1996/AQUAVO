@@ -6,6 +6,7 @@ import { HTML_TEMPLATE } from "./_html-template.js";
 import { injectMeta, type PageMeta } from "./ssr-meta.js";
 import { displayAuthorName } from "../shared/author-name.js";
 import { articleAuthorEntity } from "../shared/editorial-author.js";
+import { buildArticleSeoMeta } from "../shared/article-seo.js";
 import { articleWordCount } from "../shared/article-reading.js";
 import { articleDatePublished } from "../shared/article-dates.js";
 import { directAnswer } from "../shared/article-answer.js";
@@ -164,10 +165,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     // Words in the article, not tokens in its markup.
     const wordCount = articleWordCount(post.content) || undefined;
     const description = (post.excerpt || post.title || "مقال من مدونة AQUAVO").trim();
+    const searchMeta = buildArticleSeoMeta({ ...post, slug: resolved.slug });
 
     const meta: PageMeta & { url: string; image: string } = {
-      title: `${post.title} | مدونة AQUAVO`,
-      description,
+      title: searchMeta.title,
+      description: searchMeta.description,
       ogType: "article",
       url: canonicalUrl,
       image,
