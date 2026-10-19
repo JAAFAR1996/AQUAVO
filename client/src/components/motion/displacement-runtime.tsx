@@ -13,15 +13,7 @@ import {
 } from "@/lib/motion/displacement";
 import { observeMembranes, waterlineSweep } from "@/lib/motion/membrane";
 
-const HOME_ROUTES = new Set(["/", "/ar"]);
 const CART_WATER_CAPACITY = 7;
-
-function mixHex(a: string, b: string, t: number) {
-  const read = (hex: string) => [1, 3, 5].map((start) => Number.parseInt(hex.slice(start, start + 2), 16));
-  const A = read(a);
-  const B = read(b);
-  return `rgb(${A.map((value, index) => Math.round(value + (B[index] - value) * t)).join(" ")})`;
-}
 
 function findCartCount(cart: HTMLElement) {
   const badge = Array.from(cart.querySelectorAll<HTMLElement>("span")).find((node) => /^\d+$/.test(node.textContent?.trim() ?? ""));
@@ -61,85 +53,6 @@ function setupHeader() {
   window.addEventListener("scroll", update, { passive: true });
   update();
   return () => window.removeEventListener("scroll", update);
-}
-
-function setupHomepage() {
-  const main = document.querySelector<HTMLElement>("main#main-content, main");
-  if (!main || main.dataset.aqvRuntimeHome === "true") return () => {};
-  main.dataset.aqvRuntimeHome = "true";
-  main.dataset.aqvMotion = "descent";
-  main.classList.add("aqv-runtime-home");
-
-  const line = document.createElement("div");
-  line.className = "aqv-waterline aqv-runtime-waterline";
-  line.setAttribute("aria-hidden", "true");
-  main.prepend(line);
-
-  const floor = document.createElement("div");
-  floor.className = "aqv-runtime-floor";
-  floor.setAttribute("aria-hidden", "true");
-  main.appendChild(floor);
-
-  let stopCaustics = () => {};
-  let canvas: HTMLCanvasElement | null = null;
-  if (!prefersReducedMotion() && !isCompactViewport()) {
-    canvas = document.createElement("canvas");
-    canvas.className = "aqv-runtime-caustics";
-    canvas.dataset.aqvCaustics = "true";
-    canvas.setAttribute("aria-hidden", "true");
-    line.insertAdjacentElement("afterend", canvas);
-    let depth = 0;
-    stopCaustics = mountCaustics(canvas, { depth: () => depth });
-    canvas.dataset.depthRef = "runtime";
-    const setDepth = (value: number) => { depth = value; };
-    (canvas as HTMLCanvasElement & { __aqvSetDepth?: (value: number) => void }).__aqvSetDepth = setDepth;
-  }
-
-  let previous = 0;
-  let velocity = 0;
-  const update = () => {
-    const max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
-    const raw = Math.min(1, Math.max(0, window.scrollY / max));
-    const t = raw * raw * (3 - 2 * raw);
-    velocity = (raw - previous) * 100;
-    previous = raw;
-
-    main.style.setProperty("--aqv-depth-bg", mixHex("#F6F4EF", "#0B1E28", t));
-    main.style.setProperty("--aqv-depth-card", mixHex("#FFFFFF", "#12333F", t));
-    main.style.setProperty("--aqv-depth-ink", mixHex("#232323", "#FFFFFF", t));
-    main.style.setProperty("--aqv-depth-muted", mixHex("#6B6B6B", "#A6C0C9", t));
-    main.style.setProperty("--aqv-depth-border", mixHex("#DDD8CE", "#264C58", t));
-    floor.style.opacity = String(Math.max(0, (t - 0.74) / 0.26));
-    if (canvas) {
-      (canvas as HTMLCanvasElement & { __aqvSetDepth?: (value: number) => void }).__aqvSetDepth?.(t);
-      canvas.style.opacity = String(0.58 - t * 0.44);
-    }
-  };
-
-  const offFrame = onFrame(() => {
-    velocity *= 0.9;
-    const scale = 1 + Math.min(2.4, Math.abs(velocity) * 0.055);
-    line.style.transform = `scaleY(${scale.toFixed(3)})`;
-    line.style.filter = `blur(${Math.min(1.5, Math.abs(velocity) * 0.022).toFixed(2)}px)`;
-  }, line);
-
-  window.addEventListener("scroll", update, { passive: true });
-  window.addEventListener("resize", update, { passive: true });
-  update();
-
-  return () => {
-    window.removeEventListener("scroll", update);
-    window.removeEventListener("resize", update);
-    stopCaustics();
-    offFrame();
-    line.remove();
-    floor.remove();
-    canvas?.remove();
-    main.classList.remove("aqv-runtime-home");
-    delete main.dataset.aqvRuntimeHome;
-    main.removeAttribute("data-aqv-motion");
-    ["--aqv-depth-bg", "--aqv-depth-card", "--aqv-depth-ink", "--aqv-depth-muted", "--aqv-depth-border"].forEach((name) => main.style.removeProperty(name));
-  };
 }
 
 function setupProductGlass() {
@@ -374,12 +287,10 @@ export function DisplacementRuntime() {
     const install = () => {
       if (installed) return true;
       const headerReady = Boolean(document.querySelector(".aq-site-header"));
-      const mainReady = !HOME_ROUTES.has(location) || Boolean(document.querySelector("main#main-content, main"));
-      if (!headerReady || !mainReady) return false;
+      if (!headerReady) return false;
 
       installed = true;
       cleanups = [setupHeader(), setupInteractionFeedback()];
-      if (HOME_ROUTES.has(location)) cleanups.push(setupHomepage());
       if (/^\/products\//.test(location) || /^\/product\//.test(location)) cleanups.push(setupProductGlass());
       if (location.startsWith("/order-confirmation/")) cleanups.push(setupSuccessSurface());
       return true;
