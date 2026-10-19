@@ -10,27 +10,20 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-          sparse-checkout: |
-            api
-            server
-            shared
-            client/src
-            client/public/locales
-            migrations
-            scripts
-            tests
-            generated
-            .github/workflows
-          fetch-depth: 1
+      - name: Read exact public source revision without credentials
+        shell: bash
+        run: |
+          git init .
+          git remote add origin https://github.com/JAAFAR1996/AQUAVO.git
+          git -c protocol.version=2 fetch --filter=blob:none --depth=1 origin "$GITHUB_SHA"
+          git sparse-checkout init --cone
+          git sparse-checkout set api server shared client/src client/public/locales migrations scripts tests generated .github/workflows
+          git checkout --detach FETCH_HEAD
       - name: Package tracked code only
         shell: bash
         run: |
           python3 - <<'PY'
           import pathlib, subprocess, zipfile
-          root = pathlib.Path('.')
           allowed = ('api/', 'server/', 'shared/', 'client/src/', 'client/public/locales/', 'migrations/', 'scripts/', 'tests/', 'generated/', '.github/workflows/')
           extensions = {'.ts','.tsx','.js','.jsx','.mjs','.cjs','.json','.yaml','.yml','.sql','.css','.html','.md','.py','.sh'}
           files = subprocess.check_output(['git','ls-files','-z']).decode().split('\0')
