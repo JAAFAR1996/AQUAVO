@@ -6,6 +6,7 @@ import React from 'react';
 // Mock hooks and contexts
 vi.mock('wouter', () => ({
   useLocation: () => ['/', vi.fn()],
+  useSearch: () => '',
   useRoute: () => [false, {}],
   Link: ({ children, href }: any) => <a href={href}>{children}</a>
 }));

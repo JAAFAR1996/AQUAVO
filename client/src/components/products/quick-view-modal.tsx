@@ -13,10 +13,11 @@ import { Separator } from "@/components/ui/separator";
 import { ShoppingCart, Heart, Star, ExternalLink, Package, Leaf, X } from "lucide-react";
 import { useCart } from "@/contexts/cart-context";
 import { WishlistButton } from "@/components/wishlist/wishlist-button";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { detailImage, thumbImage } from "@/lib/cloudinary";
 import { useTranslation } from "react-i18next";
 import { getProductDisplayIdentity } from "@/lib/product-display";
+import { getProductPriceDisplay } from "@/lib/product-pricing";
 
 interface QuickViewModalProps {
     product: Product | null;
@@ -28,15 +29,27 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
     const { t } = useTranslation("products");
     const [selectedImage, setSelectedImage] = useState(0);
     const { addItem } = useCart();
+    const [, setLocation] = useLocation();
 
     if (!product) return null;
 
     const images = product.images?.length ? product.images : [product.thumbnail];
-    const hasPrice = (product.price ?? 0) > 0;
+    const priceDisplay = getProductPriceDisplay(product);
+    const hasPrice = priceDisplay.price !== null;
+    const requiresVariantChoice = Boolean(product.hasVariants && product.variants?.length);
+    const displayStock = requiresVariantChoice
+        ? (product.variants ?? []).reduce((stock, variant) => stock + Math.max(0, Number(variant.stock) || 0), 0)
+        : Number(product.stock ?? 0);
+    const isOutOfStock = displayStock <= 0;
     const productDisplay = getProductDisplayIdentity(product);
 
     const handleAddToCart = async () => {
-        if (!hasPrice) return;
+        if (!hasPrice || isOutOfStock) return;
+        if (requiresVariantChoice) {
+            onClose();
+            setLocation(`/products/${product.slug}`);
+            return;
+        }
         const ok = await addItem(product);
         if (!ok) return;
     };
@@ -131,12 +144,15 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
                         <div className="flex items-baseline gap-3 justify-end mb-4">
                             {hasPrice ? (
                                 <>
+                                    {priceDisplay.isFromPrice && (
+                                        <span className="text-sm text-muted-foreground">{t("card.from")}</span>
+                                    )}
                                     <span className="text-3xl font-bold text-primary">
-                                        {formatPrice(product.price)}
+                                        {formatPrice(priceDisplay.price ?? 0)}
                                     </span>
-                                    {product.originalPrice && product.originalPrice > product.price && (
+                                    {priceDisplay.originalPrice !== null && (
                                         <span className="text-lg text-muted-foreground line-through">
-                                            {formatPrice(product.originalPrice)}
+                                            {formatPrice(priceDisplay.originalPrice)}
                                         </span>
                                     )}
                                 </>
@@ -150,8 +166,8 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
                         {/* Stock Status */}
                         <div className="flex items-center gap-2 justify-end mb-4">
                             <Package className="h-4 w-4 text-green-500" />
-                            <span className={`font-medium ${product.stock && product.stock > 0 ? "text-green-600" : "text-red-500"}`}>
-                                {product.stock && product.stock > 0 ? t("quickView.available", { count: product.stock }) : t("quickView.unavailable")}
+                            <span className={`font-medium ${isOutOfStock ? "text-red-500" : "text-green-600"}`}>
+                                {isOutOfStock ? t("quickView.unavailable") : t("quickView.available", { count: displayStock })}
                             </span>
                         </div>
 
@@ -168,10 +184,10 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
                                 size="lg"
                                 className="w-full gap-2 text-lg h-14"
                                 onClick={handleAddToCart}
-                                disabled={!hasPrice || !product.stock || product.stock <= 0}
+                                disabled={!hasPrice || isOutOfStock}
                             >
                                 <ShoppingCart className="h-5 w-5" />
-                                {!hasPrice ? t("quickView.comingSoon") : t("card.addToCart")}
+                                {!hasPrice ? t("quickView.comingSoon") : requiresVariantChoice ? t("card.chooseOption") : t("card.addToCart")}
                             </Button>
 
                             <div className="flex gap-3">

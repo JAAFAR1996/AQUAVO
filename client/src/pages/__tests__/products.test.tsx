@@ -11,6 +11,7 @@ import React from 'react';
 // Mock wouter
 vi.mock('wouter', () => ({
     useLocation: () => ['/products', vi.fn()],
+    useSearch: () => '',
     useParams: () => ({}),
     useRoute: () => [false, {}],
     Link: ({ children, href }: { children: React.ReactNode; href: string }) => (

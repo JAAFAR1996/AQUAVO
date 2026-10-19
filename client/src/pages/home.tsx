@@ -34,7 +34,7 @@ import { fetchProducts } from "@/lib/api";
 import { cardImage, cardImageSrcSet } from "@/lib/cloudinary";
 import { SHOP_CATEGORY_LINKS } from "@/lib/product-category-links";
 import { getProductDisplayIdentity } from "@/lib/product-display";
-import { getBundleCopy } from "@/lib/bundle-copy";
+import { BUNDLE_GATEWAY_COPY, getBundleCopy } from "@/lib/bundle-copy";
 
 const serviceFacts = [
   { icon: Truck, title: "facts.delivery", detail: "facts.deliveryDetail" },
@@ -77,7 +77,7 @@ type HomeBundle = {
   bundlePrice: number;
   inStock: boolean;
   requiresVariantSelection: boolean;
-  items: Array<{ productId: string }>;
+  items: Array<{ productId: string; quantity: number; required: boolean }>;
 };
 
 const isSellableProduct = (product: { price?: number | string; stock?: number; hasVariants?: boolean; variants?: Array<{ price?: number; stock?: number }> | null }) => {
@@ -91,6 +91,7 @@ export default function Home() {
   const { t } = useTranslation("home");
   const { locale, dir, href } = useLocale();
   const shippingFeeLabel = formatShippingFeeNumber(useShippingFee());
+  const bundleGatewayCopy = BUNDLE_GATEWAY_COPY[locale];
   const forwardHover = useForwardHoverClass();
   const heroCopy: HomeHeroCopy = {
     eyebrow: t("hero.eyebrow"),
@@ -139,6 +140,10 @@ export default function Home() {
     .filter((bundle) => bundle.inStock && !bundle.requiresVariantSelection)
     .sort((a, b) => (solutionPriority.get(a.slug) ?? 99) - (solutionPriority.get(b.slug) ?? 99))
     .slice(0, 3);
+  const beginnerBundles = ["betta-care-starter", "guppy-starter", "safe-water-change-pack"].flatMap((slug) => {
+    const bundle = bundles.data?.find((candidate) => candidate.slug === slug);
+    return bundle ? [bundle] : [];
+  });
 
   return (
     <div className="flex-1 overflow-x-hidden bg-background text-foreground">
@@ -244,6 +249,28 @@ export default function Home() {
           </PrecisionReveal>
         </section>
 
+        <section aria-labelledby="bundle-gateway-title" className="border-b border-border bg-primary/[0.04]">
+          <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+            <h2 id="bundle-gateway-title" className="text-lg font-bold">{bundleGatewayCopy.title}</h2>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">{bundleGatewayCopy.description}</p>
+            <nav aria-label={bundleGatewayCopy.title} className="mt-4 flex flex-wrap gap-2">
+              {beginnerBundles.map((bundle) => (
+                <Link
+                  key={bundle.id}
+                  href={`/bundles#${bundle.slug}`}
+                  className="inline-flex min-h-11 items-center rounded-full border border-primary/20 bg-background px-4 py-2 text-sm font-semibold transition-colors hover:border-primary/50 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                >
+                  {getBundleCopy(bundle.slug, locale, bundle.nameAr, bundle.descriptionAr).name}
+                </Link>
+              ))}
+              <Link href="/bundles" className="inline-flex min-h-11 items-center gap-2 rounded-full px-4 py-2 text-sm font-bold text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+                {bundleGatewayCopy.all}
+                <ArrowForward className="h-4 w-4" aria-hidden="true" />
+              </Link>
+            </nav>
+          </div>
+        </section>
+
         <section className="bg-background">
           <PrecisionReveal stagger className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
           <div className="max-w-2xl">
@@ -292,7 +319,7 @@ export default function Home() {
                   return (
                     <Link
                       key={bundle.id}
-                      href="/bundles"
+                      href={`/bundles#${bundle.slug}`}
                       className="aq-interactive-card group flex min-h-44 flex-col rounded-2xl border border-border bg-background p-5 hover:border-[#0B93A6]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                     >
                       <div className="flex items-center justify-between gap-3">
@@ -303,8 +330,9 @@ export default function Home() {
                       </div>
                       <h3 className="mt-4 text-lg font-bold leading-7 text-foreground">{copy.name}</h3>
                       <p className="mt-2 line-clamp-2 text-sm leading-6 text-muted-foreground">{copy.description}</p>
+                      {copy.scope && <p className="mt-3 text-xs font-medium leading-6 text-foreground/80">{copy.scope}</p>}
                       <div className="mt-auto flex items-end justify-between gap-3 pt-5">
-                        <span className="text-xs text-muted-foreground">{bundle.items.length} {t("solutions.parts")}</span>
+                        <span className="text-xs text-muted-foreground">{bundle.items.filter((item) => item.required).reduce((count, item) => count + Number(item.quantity), 0)} {t("solutions.parts")}</span>
                         <span className="text-base font-bold text-primary">{formatLocalizedPrice(bundle.bundlePrice, locale)}</span>
                       </div>
                     </Link>

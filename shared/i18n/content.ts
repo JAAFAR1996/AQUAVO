@@ -7,6 +7,7 @@
  * (api/ssr-meta.ts), the translation pipeline (scripts/i18n) and the admin.
  */
 import { DEFAULT_LOCALE, TRANSLATION_TARGET_LOCALES, type Locale } from "./locales.js";
+import { deriveFoodProfile, FOOD_FACT_SPEC_KEYS, foodProfileSchema } from "../food-choice.js";
 
 export type TranslatableEntityType = "product" | "blog_post" | "category" | "blog_category" | "guide";
 
@@ -246,6 +247,11 @@ export function applyProductTranslation<T extends Record<string, unknown>>(
     return { value: product, contentLocale: DEFAULT_LOCALE, translationMissing: locale !== DEFAULT_LOCALE };
   }
   const specs = { ...((product.specifications as Record<string, unknown> | undefined) ?? {}) };
+  const foodProfile = typeof product.name === "string" ? deriveFoodProfile({
+    name: product.name,
+    category: typeof product.category === "string" ? product.category : null,
+    specifications: product.specifications,
+  }) : null;
   const ts = translation.specifications ?? {};
   if (ts.benefits?.length) specs.benefits = ts.benefits;
   if (ts.usageInstructions?.length) specs.usageInstructions = ts.usageInstructions;
@@ -257,6 +263,31 @@ export function applyProductTranslation<T extends Record<string, unknown>>(
       delete specs[arabicKey];
       specs[entry.label] = entry.value;
     }
+  }
+  // Classification uses the original declared facts, not translated species
+  // names or free-form display labels. Never reuse metadata from the source row.
+  delete specs.__foodChoice;
+  if (foodProfile) {
+    const sourceSpecs = (product.specifications ?? {}) as Record<string, unknown>;
+    const translatedFact = (field: keyof typeof FOOD_FACT_SPEC_KEYS): string | null => {
+      for (const key of FOOD_FACT_SPEC_KEYS[field]) {
+        const value = sourceSpecs[key];
+        if (!nonEmpty(value)) continue;
+        const translated = ts.labelled?.[key]?.value;
+        if (nonEmpty(translated)) return translated.trim();
+        // The facts component has localized audience labels. Let it use those
+        // instead of repeating an Arabic intended-use value on an EN/CKB page.
+        if (field === "intendedFor") return null;
+        return /[\u0600-\u06FF]/.test(value) ? null : value.trim();
+      }
+      return null;
+    };
+    specs.__foodChoice = foodProfileSchema.parse({
+      ...foodProfile,
+      intendedFor: translatedFact("intendedFor"),
+      weight: translatedFact("weight"),
+      particleSize: translatedFact("particleSize"),
+    });
   }
   const variants = Array.isArray(product.variants)
     ? (product.variants as Array<Record<string, unknown>>).map((v) => {
