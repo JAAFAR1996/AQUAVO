@@ -77,10 +77,12 @@ describe("production SEO/AEO/GEO contract", () => {
 
     expect(store["@type"]).toBe("OnlineStore");
     expect(store.legalName).toContain("AL NABEA SHOP");
-    // AQUAVO took online payment live through Al-Qaseh (PR #115), so advertising
-    // cash only would now understate what checkout actually accepts. Both methods
-    // are implemented and verified server-side, so both belong here.
-    expect(store.paymentAccepted).toBe("Cash on Delivery, Online Payment");
+    // COD and Wayl online payment are both implemented. OnlineStore inherits
+    // Organization, so use acceptedPaymentMethod; the two legacy properties
+    // below belong to LocalBusiness. Currency remains on the product Offers.
+    expect(store.acceptedPaymentMethod).toBe("Cash on Delivery, Online Payment");
+    expect(store).not.toHaveProperty("paymentAccepted");
+    expect(store).not.toHaveProperty("currenciesAccepted");
     expect(store.contactPoint.hoursAvailable.opens).toBe("00:00");
 
     expect(store.alternateName).toEqual(

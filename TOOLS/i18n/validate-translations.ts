@@ -33,6 +33,7 @@ import {
   type TranslatableEntityType,
 } from "../../shared/i18n/content.js";
 import { loadGlossary, normalizeDigits } from "./_llm.js";
+import { sourceForGlossaryConcept } from "./_glossary-context.js";
 
 const args = Object.fromEntries(process.argv.slice(2).map((a) => a.replace(/^--/, "").split("=")).map(([k, v]) => [k, v ?? "true"]));
 const SCOPE = String(args.scope || "all");
@@ -176,7 +177,8 @@ function checkString(scope: "ui" | "content", locale: "en" | "ckb", where: strin
     }
     // glossary consistency (warning): concept present in the source, Sorani term absent in the target
     for (const term of glossary.terms) {
-      if (!term.ar.some((a) => containsTerm(src, a))) continue;
+      const glossarySource = sourceForGlossaryConcept(src, term.id);
+      if (!term.ar.some((a) => containsTerm(glossarySource, a))) continue;
       const wanted = [term.ckb, ...(term.ckbAlt ?? [])];
       if (!wanted.some((w) => t.includes(w))) add({ scope, locale, where, code: "glossary", severity: "warning", detail: `${term.id}: expected "${term.ckb}"` });
     }

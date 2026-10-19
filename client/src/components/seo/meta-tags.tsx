@@ -8,8 +8,9 @@ import {
   canonicalUrlFor,
 } from "@shared/seo-contract";
 import { articleAuthorEntity } from "@shared/editorial-author";
-import { DEFAULT_LOCALE, LOCALES, SUPPORTED_LOCALES, alternatesFor, localizePath, splitLocaleFromPath, type Locale } from "@shared/i18n/locales";
-import { RELEASED_LOCALES, releasedAlternatesFor } from "@shared/i18n/release";
+import { DEFAULT_LOCALE, LOCALES, SUPPORTED_LOCALES, localizePath, splitLocaleFromPath, type Locale } from "@shared/i18n/locales";
+import { RELEASED_LOCALES, isLocaleReleased } from "@shared/i18n/release";
+import { indexableAlternatesFor, isTranslatedEntityPath } from "@shared/i18n/indexability";
 import { stripBidiControls } from "@shared/i18n/bidi";
 
 /** Locale of the page on screen, read from the URL prefix (the source of truth). */
@@ -24,6 +25,23 @@ function localizedCanonical(logicalPath: string): string {
   if (locale === DEFAULT_LOCALE) return arabic;
   const u = new URL(arabic);
   return `${u.origin}${localizePath(u.pathname, locale)}${u.search}`;
+}
+
+/** A caller may supply the shared Arabic URL; the document still owns its URL locale. */
+function localizeCanonicalInput(value: string, locale: Locale, logicalPath: string): string {
+  try {
+    const input = new URL(value, AQUAVO_BASE_URL);
+    if (input.origin !== AQUAVO_BASE_URL) return input.href;
+    const canonicalPath = splitLocaleFromPath(input.pathname).path;
+    const canonical = new URL(canonicalUrlFor(canonicalPath));
+    const category = canonicalPath.replace(/\/+$/, "") === "/products"
+      ? canonicalProductCategory(input.searchParams.get("category"))
+      : undefined;
+    const search = category ? `?category=${encodeURIComponent(category)}` : "";
+    return `${canonical.origin}${localizePath(canonical.pathname, locale)}${search}`;
+  } catch {
+    return localizedCanonical(logicalPath);
+  }
 }
 
 const DEFAULT_DESCRIPTIONS: Record<Locale, string> = {
@@ -86,6 +104,8 @@ interface MetaTagsProps {
   canonicalUrl?: string;
   noIndex?: boolean;
   notFound?: boolean;
+  /** Entity locales whose reviewed/current translation coverage was checked by the server. */
+  indexableLocales?: readonly Locale[];
 }
 
 export function MetaTags({
@@ -100,10 +120,30 @@ export function MetaTags({
   canonicalUrl,
   noIndex = false,
   notFound = false,
+  indexableLocales,
 }: MetaTagsProps) {
   useEffect(() => {
     const isPreview = !isTrackingAllowed();
     const locale = currentLocale();
+    const logicalPath = splitLocaleFromPath(window.location.pathname).path;
+    const canonical = localizeCanonicalInput(canonicalUrl || url || localizedCanonical(logicalPath), locale, logicalPath);
+    const canonicalSearch = logicalPath.replace(/\/+$/, "") === "/products" ? new URL(canonical, AQUAVO_BASE_URL).search : "";
+    const entityPage = isTranslatedEntityPath(logicalPath);
+    // Retain the server's entity-specific alternate group during hydration.
+    // A previous SPA page's head is not evidence for the new entity: require
+    // the canonical and each alternate URL to match this exact document.
+    const sameDocument = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.href === canonical;
+    const inheritedLocales = entityPage && sameDocument
+      ? SUPPORTED_LOCALES.filter((candidate) => {
+        const link = document.head.querySelector<HTMLLinkElement>(`link[rel="alternate"][hreflang="${LOCALES[candidate].hreflang}"]`);
+        return link?.href === `${AQUAVO_BASE_URL}${localizePath(logicalPath, candidate)}`;
+      })
+      : undefined;
+    const eligibleLocales = indexableLocales ?? inheritedLocales;
+    const inheritedNoIndex = indexableLocales === undefined && entityPage && sameDocument &&
+      /\bnoindex\b/i.test(document.head.querySelector<HTMLMetaElement>('meta[name="robots"]')?.content ?? "");
+    const effectiveNoIndex = noIndex || !isLocaleReleased(locale) || inheritedNoIndex ||
+      (entityPage && locale !== DEFAULT_LOCALE && !eligibleLocales?.includes(locale));
     const description = descriptionProp ?? DEFAULT_DESCRIPTIONS[locale];
     const fullTitle = /\|\s*AQUAVO(?:\s|$)/i.test(title)
       ? title
@@ -140,7 +180,7 @@ export function MetaTags({
       "robots",
       notFound
         ? "noindex, follow"
-        : noIndex || isPreview
+        : effectiveNoIndex || isPreview
           ? "noindex, nofollow, noarchive"
           : "index, follow, max-image-preview:large",
     );
@@ -148,26 +188,25 @@ export function MetaTags({
     if (keywords.length > 0) setMetaTag("keywords", keywords.slice(0, 7).join(", "));
     else removeMeta('meta[name="keywords"]');
 
-    const logicalPath = splitLocaleFromPath(window.location.pathname).path;
-    const canonical = canonicalUrl || url || localizedCanonical(logicalPath);
     if (notFound) removeMeta('link[rel="canonical"]');
     else setLinkTag("canonical", canonical);
 
-    // Reciprocal alternates for every locale, or none on pages that are not indexed.
+    // Advertise only eligible versions; hydration must not restore languages
+    // the server excluded because their entity translation is still noindex.
     removeMeta('link[rel="alternate"][hreflang]');
-    if (!notFound && !noIndex && !isPreview) {
-      const { alternates, xDefault } = releasedAlternatesFor(logicalPath);
+    if (!notFound && !effectiveNoIndex && !isPreview) {
+      const { alternates, xDefault } = indexableAlternatesFor(logicalPath, eligibleLocales);
       for (const alt of alternates) {
         const link = document.createElement("link");
         link.rel = "alternate";
         link.hreflang = alt.hreflang;
-        link.href = `${AQUAVO_BASE_URL}${alt.path}`;
+        link.href = `${AQUAVO_BASE_URL}${alt.path}${canonicalSearch}`;
         document.head.appendChild(link);
       }
       const xd = document.createElement("link");
       xd.rel = "alternate";
       xd.hreflang = "x-default";
-      xd.href = `${AQUAVO_BASE_URL}${xDefault}`;
+      xd.href = `${AQUAVO_BASE_URL}${xDefault}${canonicalSearch}`;
       document.head.appendChild(xd);
     }
 
@@ -208,7 +247,7 @@ export function MetaTags({
     } else {
       removeMeta('meta[property^="product:"]');
     }
-  }, [title, descriptionProp, keywords, image, url, type, price, currency, canonicalUrl, noIndex, notFound]);
+  }, [title, descriptionProp, keywords, image, url, type, price, currency, canonicalUrl, noIndex, notFound, indexableLocales]);
 
   return null;
 }
@@ -331,8 +370,7 @@ function onlineStoreSchema() {
     email: AQUAVO_ENTITY.email,
     telephone: AQUAVO_ENTITY.telephone,
     description: AQUAVO_ENTITY.description,
-    currenciesAccepted: AQUAVO_ENTITY.currency,
-    paymentAccepted: AQUAVO_ENTITY.paymentMethod,
+    acceptedPaymentMethod: AQUAVO_ENTITY.paymentMethod,
     areaServed: { "@type": "Country", name: AQUAVO_ENTITY.countryName },
     contactPoint: {
       "@type": "ContactPoint",

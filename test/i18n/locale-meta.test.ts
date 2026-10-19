@@ -14,13 +14,24 @@ const TEMPLATE = `<!DOCTYPE html>
 </html>`;
 
 describe("hreflangLinks", () => {
-  it("emits an Arabic link, an Arabic x-default, and a link per RELEASED locale only", () => {
+  it("does not advertise product translations without indexability evidence", () => {
     const html = hreflangLinks("/products/x");
     expect(html).toContain('hreflang="ar-IQ" href="https://www.aquavoiq.com/products/x"');
     expect(html).toContain('hreflang="x-default" href="https://www.aquavoiq.com/products/x"');
-    // Unreleased locales are not advertised to crawlers (shared/i18n/release.ts).
+    expect(html).not.toContain('hreflang="en"');
+    expect(html).not.toContain('hreflang="ku-IQ"');
+  });
+
+  it("emits only the reviewed eligible entity locales, intersected with the release gate", () => {
+    const html = hreflangLinks("/products/x", "", ["ar", "en"]);
     expect(html.includes('hreflang="en" href="https://www.aquavoiq.com/en/products/x"')).toBe(isLocaleReleased("en"));
-    expect(html.includes('hreflang="ku-IQ" href="https://www.aquavoiq.com/ckb/products/x"')).toBe(isLocaleReleased("ckb"));
+    expect(html).not.toContain('hreflang="ku-IQ"');
+  });
+
+  it("continues advertising released languages for complete static pages", () => {
+    const html = hreflangLinks("/faq");
+    expect(html.includes('hreflang="en" href="https://www.aquavoiq.com/en/faq"')).toBe(isLocaleReleased("en"));
+    expect(html.includes('hreflang="ku-IQ" href="https://www.aquavoiq.com/ckb/faq"')).toBe(isLocaleReleased("ckb"));
   });
 
   it("keeps the category query string that defines a listing page", () => {
@@ -59,5 +70,14 @@ describe("applyLocaleToHtml", () => {
   it("does not annotate alternates on pages kept out of the index", () => {
     const out = applyLocaleToHtml(TEMPLATE, "en", "/checkout", "", { indexable: false });
     expect(out).not.toContain("hreflang");
+  });
+
+  it("passes the same eligible entity versions into every locale's head", () => {
+    for (const locale of ["ar", "en"] as const) {
+      const out = applyLocaleToHtml(TEMPLATE, locale, "/products/x", "", { indexableLocales: ["ar", "en"] });
+      expect(out).toContain('hreflang="ar-IQ"');
+      expect(out.includes('hreflang="en"')).toBe(isLocaleReleased("en"));
+      expect(out).not.toContain('hreflang="ku-IQ"');
+    }
   });
 });

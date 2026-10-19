@@ -125,7 +125,9 @@ describe("static pages expose their real content to a crawler", () => {
       const { html: pageHtml } = await crawl(path);
       expect(pageHtml, `${path} lost its shell summary`).toContain(copy.summary);
       for (const paragraph of copy.paragraphs ?? []) {
-        expect(pageHtml, `${path} lost a shell paragraph`).toContain(paragraph);
+        // Cloudflare email exclusions are HTML comments; the published
+        // paragraph remains the same visible text.
+        expect(pageHtml.replace(/<!--\/?email_off-->/g, ""), `${path} lost a shell paragraph`).toContain(paragraph);
       }
     }
   });

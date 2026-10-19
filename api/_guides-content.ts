@@ -484,8 +484,8 @@ export const GUIDE_CONTENT_PAGES: Record<string, GuidePage> = {
     ],
     cta: {
       text: "تقدر تتصفح معدات البداية المناسبة بـ AQUAVO مع توصيل لكل العراق ودفع عند الاستلام أو إلكترونياً.",
-      href: "/products?category=starter-kits",
-      label: "تصفح أطقم البداية",
+      href: "/bundles",
+      label: "تصفح باقات البداية",
     },
     breadcrumb: [
       { label: "الرئيسية", href: "/" },
