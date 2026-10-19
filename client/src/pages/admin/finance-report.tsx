@@ -587,6 +587,15 @@ export default function FinanceHtmlReportPage() {
     }
   }
 
+  // Do not render empty arrays as a financial report when the source failed.
+  // All hooks above remain unconditional; cached payloads are not re-certified.
+  if (report.isPending && !payload) return <main dir="rtl" className="p-6" role="status">جاري قراءة التقرير من مصدر الحسابات…</main>;
+  if (report.isError || !payload || !quality) return <main dir="rtl" className="p-6" role="alert">
+    <h1>تعذر التحقق من بيانات التقرير المالي</h1>
+    <p>لا تعرض أرصدة أو مصاريف صفرية بدلا من المصدر غير المتوفر. أعد التحقق قبل الطباعة أو اعتماد الأرقام.</p>
+    <button onClick={() => void report.refetch()}>إعادة التحقق</button>
+  </main>;
+
   return (
     <div className="acct-html-shell" dir="rtl">
       <aside className="acct-html-nav">
