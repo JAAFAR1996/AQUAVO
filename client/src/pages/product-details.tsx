@@ -17,6 +17,7 @@ import { useCart } from "@/contexts/cart-context";
 import { WishlistButton } from "@/components/wishlist/wishlist-button";
 import { CompareButton } from "@/components/products/product-comparison";
 import { useToast } from "@/hooks/use-toast";
+import { useProductView } from "@/hooks/use-product-view";
 import { ProductReviews } from "@/components/products/product-reviews";
 import { ProductImageGallery } from "@/components/products/product-image-gallery";
 import { productTransitionName } from "@/lib/motion/card-transition";
@@ -141,6 +142,8 @@ export default function ProductDetails() {
     refetchOnMount: "always",
     refetchOnWindowFocus: "always",
   });
+
+  useProductView(isError ? undefined : product?.id);
 
   // Related products are rendered by <RecommendationsSection/> below (dedicated
   // endpoints). The previous full-catalog fetch here was unused dead code and is removed.

@@ -11,6 +11,7 @@ import { useShippingFee } from "@/contexts/shipping-fee-context";
 import { useLocale } from "@/i18n/locale-context";
 import { formatIQD } from "@/lib/utils";
 import { getBundleCopy, getBundleItemPurpose } from "@/lib/bundle-copy";
+import { isNoindexPath } from "@shared/seo-contract";
 import type { Product } from "@/types";
 
 type BundleItem={
@@ -190,7 +191,7 @@ export default function BundlesPage(){
 
   return (
     <>
-      <MetaTags title={t.title} description={t.description}/>
+      <MetaTags title={t.title} description={t.description} noIndex={isNoindexPath("/bundles")}/>
       <main id="main-content" dir={dir} className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
         <section className="mb-8 max-w-3xl">
           <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-sm font-semibold text-primary">

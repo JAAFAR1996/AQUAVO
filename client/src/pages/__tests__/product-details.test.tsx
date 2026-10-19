@@ -99,6 +99,7 @@ vi.mock('@/lib/posthog', () => ({
 
 // Mock API
 vi.mock('@/lib/api', () => ({
+    recordProductView: vi.fn(async () => {}),
     fetchProductBySlug: vi.fn(() => Promise.resolve({
         id: 'test-1',
         name: 'سيفون تغيير ماء',

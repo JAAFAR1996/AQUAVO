@@ -132,6 +132,7 @@ export const PUBLIC_INDEXABLE_CATEGORY_PATHS = Object.freeze(
 
 export const NOINDEX_PUBLIC_PATHS = Object.freeze([
   "/search",
+  "/bundles",
   "/alexa-privacy",
   "/wishlist",
   "/compare",

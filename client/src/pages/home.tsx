@@ -109,6 +109,8 @@ export default function Home() {
     queryKey: ["products", "home-most-viewed", "30d"],
     queryFn: () => fetchProducts({ sortBy: "views", sortOrder: "desc" }),
     staleTime: 60_000,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
     retry: 1,
   });
   const bundles = useQuery<HomeBundle[]>({
@@ -159,6 +161,91 @@ export default function Home() {
                 <p className="mt-1 text-xs leading-5 text-foreground/60">{t(detail, detail === "facts.feeDetail" ? { fee: shippingFeeLabel } : undefined)}</p>
               </div>
             ))}
+          </PrecisionReveal>
+        </section>
+
+        <section aria-labelledby="home-most-viewed-title" className="border-b border-border bg-card">
+          <PrecisionReveal stagger className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <p className="text-sm font-bold text-primary">{t("picks.viewedEyebrow")}</p>
+                <h2 id="home-most-viewed-title" className="mt-2 text-3xl font-bold text-foreground">{t("picks.viewedTitle")}</h2>
+              </div>
+              <Link href="/products" className="text-sm font-bold text-primary hover:underline">{t("picks.viewAll")}</Link>
+            </div>
+
+            {isStorePicksLoading ? (
+              <div className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4" role="status" aria-label={t("picks.loading")}>
+                {Array.from({ length: 4 }).map((_, index) => (
+                  <div key={index} className="overflow-hidden rounded-2xl border border-border bg-card">
+                    <div className="aspect-square animate-pulse bg-muted motion-reduce:animate-none" />
+                    <div className="space-y-2 p-4">
+                      <div className="h-4 w-3/4 animate-pulse rounded bg-muted motion-reduce:animate-none" />
+                      <div className="h-4 w-1/3 animate-pulse rounded bg-muted motion-reduce:animate-none" />
+                    </div>
+                  </div>
+                ))}
+                <span className="sr-only">{t("picks.loadingDetail")}</span>
+              </div>
+            ) : isStorePicksError ? (
+              <div className="mt-8 flex flex-col items-center gap-3 rounded-2xl border border-border bg-background px-6 py-12 text-center">
+                <AlertTriangle className="h-6 w-6 text-[#C97A2E]" aria-hidden="true" />
+                <p className="max-w-md text-sm leading-6 text-muted-foreground">
+                  {t("picks.error")}
+                </p>
+                <Link href="/products" className={`${linkButton} border border-primary/40 text-primary hover:bg-[#0B93A6]/10`}>
+                  {t("picks.viewAll")}
+                  <ArrowForward className="h-4 w-4" aria-hidden="true" />
+                </Link>
+              </div>
+            ) : hasStorePicks ? (
+              <div className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
+                {storePicks.map((product) => {
+                  const productDisplay = getProductDisplayIdentity(product);
+                  return (
+                    <Link
+                      key={product.id}
+                      href={`/products/${product.slug}`}
+                      className="aq-interactive-card overflow-hidden rounded-2xl border border-border bg-card hover:border-[#0B93A6]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    >
+                      <div className="aspect-square bg-card p-3 sm:p-5">
+                        <img
+                          src={cardImage(product.images[0]) || "/brand/aquavo-v2-icon.svg"}
+                          srcSet={cardImageSrcSet(product.images[0])}
+                          sizes="(max-width: 1023px) 50vw, 25vw"
+                          alt={product.name}
+                          width={360}
+                          height={360}
+                          loading="lazy"
+                          decoding="async"
+                          className="aq-product-image h-full w-full object-contain"
+                        />
+                      </div>
+                      <div className="p-4">
+                        <p className="min-h-4 truncate text-[10px] font-bold uppercase tracking-[0.08em] text-primary/75">
+                          {productDisplay.brand ? <bdi dir="ltr">{productDisplay.brand}</bdi> : "\u00a0"}
+                        </p>
+                        <h3 className="line-clamp-2 min-h-11 text-sm font-bold leading-6 text-foreground">{productDisplay.name}</h3>
+                        <p className="mt-2 text-sm font-bold text-primary">
+                          {(product.price ?? 0) > 0 ? formatLocalizedPrice(product.price ?? 0, locale) : t("picks.seeDetails")}
+                        </p>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="mt-8 flex flex-col items-center gap-3 rounded-2xl border border-border bg-background px-6 py-12 text-center">
+                <PackageSearch className="h-6 w-6 text-primary" aria-hidden="true" />
+                <p className="max-w-md text-sm leading-6 text-muted-foreground">
+                  {t("picks.empty")}
+                </p>
+                <Link href="/products" className={`${linkButton} border border-primary/40 text-primary hover:bg-[#0B93A6]/10`}>
+                  {t("picks.viewAll")}
+                  <ArrowForward className="h-4 w-4" aria-hidden="true" />
+                </Link>
+              </div>
+            )}
           </PrecisionReveal>
         </section>
 
@@ -255,91 +342,6 @@ export default function Home() {
             </PrecisionReveal>
           </section>
         )}
-
-        <section className="border-y border-border bg-card">
-          <PrecisionReveal stagger className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-            <div className="flex flex-wrap items-end justify-between gap-4">
-              <div>
-                <p className="text-sm font-bold text-primary">{t("picks.viewedEyebrow")}</p>
-                <h2 className="mt-2 text-3xl font-bold text-foreground">{t("picks.viewedTitle")}</h2>
-              </div>
-              <Link href="/products" className="text-sm font-bold text-primary hover:underline">{t("picks.viewAll")}</Link>
-            </div>
-
-            {isStorePicksLoading ? (
-              <div className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4" role="status" aria-label={t("picks.loading")}>
-                {Array.from({ length: 4 }).map((_, index) => (
-                  <div key={index} className="overflow-hidden rounded-2xl border border-border bg-card">
-                    <div className="aspect-square animate-pulse bg-muted motion-reduce:animate-none" />
-                    <div className="space-y-2 p-4">
-                      <div className="h-4 w-3/4 animate-pulse rounded bg-muted motion-reduce:animate-none" />
-                      <div className="h-4 w-1/3 animate-pulse rounded bg-muted motion-reduce:animate-none" />
-                    </div>
-                  </div>
-                ))}
-                <span className="sr-only">{t("picks.loadingDetail")}</span>
-              </div>
-            ) : isStorePicksError ? (
-              <div className="mt-8 flex flex-col items-center gap-3 rounded-2xl border border-border bg-background px-6 py-12 text-center">
-                <AlertTriangle className="h-6 w-6 text-[#C97A2E]" aria-hidden="true" />
-                <p className="max-w-md text-sm leading-6 text-muted-foreground">
-                  {t("picks.error")}
-                </p>
-                <Link href="/products" className={`${linkButton} border border-primary/40 text-primary hover:bg-[#0B93A6]/10`}>
-                  {t("picks.viewAll")}
-                  <ArrowForward className="h-4 w-4" aria-hidden="true" />
-                </Link>
-              </div>
-            ) : hasStorePicks ? (
-              <div className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
-                {storePicks.map((product) => {
-                  const productDisplay = getProductDisplayIdentity(product);
-                  return (
-                    <Link
-                      key={product.id}
-                      href={`/products/${product.slug}`}
-                      className="aq-interactive-card overflow-hidden rounded-2xl border border-border bg-card hover:border-[#0B93A6]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                    >
-                      <div className="aspect-square bg-card p-3 sm:p-5">
-                        <img
-                          src={cardImage(product.images[0]) || "/brand/aquavo-v2-icon.svg"}
-                          srcSet={cardImageSrcSet(product.images[0])}
-                          sizes="(max-width: 1023px) 50vw, 25vw"
-                          alt={product.name}
-                          width={360}
-                          height={360}
-                          loading="lazy"
-                          decoding="async"
-                          className="aq-product-image h-full w-full object-contain"
-                        />
-                      </div>
-                      <div className="p-4">
-                        <p className="min-h-4 truncate text-[10px] font-bold uppercase tracking-[0.08em] text-primary/75">
-                          {productDisplay.brand ? <bdi dir="ltr">{productDisplay.brand}</bdi> : "\u00a0"}
-                        </p>
-                        <h3 className="line-clamp-2 min-h-11 text-sm font-bold leading-6 text-foreground">{productDisplay.name}</h3>
-                        <p className="mt-2 text-sm font-bold text-primary">
-                          {(product.price ?? 0) > 0 ? formatLocalizedPrice(product.price ?? 0, locale) : t("picks.seeDetails")}
-                        </p>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="mt-8 flex flex-col items-center gap-3 rounded-2xl border border-border bg-background px-6 py-12 text-center">
-                <PackageSearch className="h-6 w-6 text-primary" aria-hidden="true" />
-                <p className="max-w-md text-sm leading-6 text-muted-foreground">
-                  {t("picks.empty")}
-                </p>
-                <Link href="/products" className={`${linkButton} border border-primary/40 text-primary hover:bg-[#0B93A6]/10`}>
-                  {t("picks.viewAll")}
-                  <ArrowForward className="h-4 w-4" aria-hidden="true" />
-                </Link>
-              </div>
-            )}
-          </PrecisionReveal>
-        </section>
 
         <section className="bg-background">
           <PrecisionReveal stagger className="mx-auto grid max-w-7xl gap-8 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-[0.75fr_1.25fr] lg:items-end lg:px-8">

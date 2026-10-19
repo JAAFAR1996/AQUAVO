@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { fetchProductsCore as fetchProducts, fetchProductCore as fetchProduct, fetchProductBySlugCore as fetchProductBySlug } from '../api';
+import { fetchProductsCore as fetchProducts, fetchProductCore as fetchProduct, fetchProductBySlugCore as fetchProductBySlug, recordProductView } from '../api';
 
 // Mock fetch
 global.fetch = vi.fn();
@@ -121,7 +121,7 @@ describe('API Client', () => {
       const result = await fetchProduct('prod-123');
 
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringMatching(/^\/api\/products\/prod-123\?sid=cs_/),
+        '/api/products/prod-123',
         expect.objectContaining({
           credentials: 'include',
           headers: expect.objectContaining({ 'Content-Type': 'application/json' }),
@@ -199,7 +199,7 @@ describe('API Client', () => {
       const result = await fetchProductBySlug('test-product');
 
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringMatching(/^\/api\/products\/test-product\?sid=cs_/),
+        '/api/products/test-product',
         expect.objectContaining({
           credentials: 'include',
           headers: expect.objectContaining({ 'Content-Type': 'application/json' }),
@@ -310,6 +310,22 @@ describe('API Client', () => {
   });
 
   describe('Request Configuration', () => {
+    it('sends product views as a separate POST with the browser session', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(new Response(JSON.stringify({ accepted: true }), {
+        headers: { 'Content-Type': 'application/json' },
+      }));
+
+      await recordProductView('product-123', 'cs_tab_123');
+
+      expect(global.fetch).toHaveBeenCalledWith('/api/products/product-123/view', expect.objectContaining({
+        method: 'POST',
+        credentials: 'include',
+        keepalive: true,
+        headers: expect.objectContaining({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ clientSessionId: 'cs_tab_123' }),
+      }));
+    });
+
     it('should merge custom options with defaults', async () => {
       // Test that getJson would merge options correctly
       // Note: getJson is internal, but we test through public methods

@@ -27,11 +27,12 @@
  * between storage and the wire — and stubbing it lets the fixture BE the leaked production payload, so
  * a regression fails against the exact data that was exposed.
  */
-import { describe, it, expect, beforeAll, vi } from "vitest";
+import { describe, it, expect, beforeAll, beforeEach, vi } from "vitest";
 import express, { type Express } from "express";
 import request from "supertest";
 import { findForbiddenFieldPaths } from "../../shared/public-product.js";
 import productionRows from "./fixtures/production-product-rows.json" with { type: "json" };
+import { analyticsTracker } from "../services/analytics-tracker.js";
 
 /** REAL rows captured from production on 2026-08-14, cost values intact. */
 const PRODUCTION_ROWS = productionRows as unknown as Record<string, any>[];
@@ -76,7 +77,78 @@ let app: Express;
 
 beforeAll(() => {
   app = express();
+  app.use(express.json());
   app.use("/api/products", createProductRouter());
+});
+
+describe("product view telemetry over real HTTP", () => {
+  beforeEach(() => {
+    vi.mocked(analyticsTracker.trackProductView).mockReset().mockResolvedValue(undefined);
+  });
+
+  it("keeps detail GETs read-only, including prefetches with a valid legacy sid", async () => {
+    const product = PRODUCTION_ROWS[0];
+    const path = `/api/products/${product.slug}?sid=cs_browser_tab`;
+    expect((await getPublic(path)).status).toBe(200);
+    expect((await getPublic(path)).status).toBe(200);
+    expect(analyticsTracker.trackProductView).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    {},
+    { clientSessionId: "unknown" },
+    { clientSessionId: "cs_unavailable" },
+    { clientSessionId: ["cs_valid"] },
+    { clientSessionId: "cs_" + "x".repeat(65) },
+  ])("rejects invalid view payload %j without recording a view", async (body) => {
+    const response = await request(app).post(`/api/products/${PRODUCTION_ROWS[0].id}/view`).send(body);
+    expect(response.status).toBe(400);
+    expect(analyticsTracker.trackProductView).not.toHaveBeenCalled();
+  });
+
+  it("does not record products that do not exist or are no longer public", async () => {
+    const response = await request(app).post("/api/products/missing-product/view")
+      .send({ clientSessionId: "cs_browser_tab" });
+    expect(response.status).toBe(404);
+    expect(analyticsTracker.trackProductView).not.toHaveBeenCalled();
+  });
+
+  it("waits for the analytics write before acknowledging a visible product view", async () => {
+    let writeCompleted = false;
+    let repliedBeforeWrite = false;
+    vi.mocked(analyticsTracker.trackProductView).mockImplementationOnce(async () => {
+      // Yield as a real database write does. A fire-and-forget caller would
+      // serialize the response synchronously before this promise completes.
+      await Promise.resolve();
+      writeCompleted = true;
+    });
+
+    const observedApp = express();
+    observedApp.use(express.json());
+    observedApp.use((_req, res, next) => {
+      const json = res.json.bind(res);
+      res.json = (body: unknown) => {
+        repliedBeforeWrite = !writeCompleted;
+        return json(body);
+      };
+      next();
+    });
+    observedApp.use("/api/products", createProductRouter());
+
+    const response = await request(observedApp).post(`/api/products/${PRODUCTION_ROWS[0].id}/view`)
+      .send({ clientSessionId: "cs_browser_tab" });
+
+    expect(response.status).toBe(202);
+    expect(response.body).toEqual({ accepted: true });
+    expect(analyticsTracker.trackProductView).toHaveBeenCalledExactlyOnceWith({
+      userId: undefined,
+      sessionId: "cs_browser_tab",
+      productId: PRODUCTION_ROWS[0].id,
+      from: "product_page",
+    });
+    expect(writeCompleted).toBe(true);
+    expect(repliedBeforeWrite).toBe(false);
+  });
 });
 
 /** GET a path with NO credentials of any kind. Returns both the parsed body and the raw wire bytes. */
