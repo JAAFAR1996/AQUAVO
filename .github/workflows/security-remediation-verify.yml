@@ -33,6 +33,14 @@ jobs:
             for script in script/security-remediation/0*.py; do python3 "$script"; done
             printf '%s\n' "$GITHUB_SHA" > script/security-remediation/APPLIED
           fi
+          for script in script/security-remediation/followup-*.py; do
+            test -f "$script" || continue
+            marker="${script%.py}.applied"
+            if test ! -f "$marker"; then
+              python3 "$script"
+              printf '%s\n' "$GITHUB_SHA" > "$marker"
+            fi
+          done
       - name: Commit exact transformed source on repair branch only
         shell: bash
         env:
@@ -40,11 +48,13 @@ jobs:
         run: |
           test "$(git branch --show-current)" = fix/security-commerce-20261019
           git add server shared client/src api vercel.json
-          git add -f script/security-remediation/APPLIED
+          git add -u migrations
+          git add -f migrations/0101_security_commerce_boundaries*.sql
+          git add -f script/security-remediation/APPLIED script/security-remediation/*.applied
           if ! git diff --cached --quiet; then
             git config user.name 'AQUAVO repair workflow'
             git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git commit -m 'fix: apply reviewed identity and commerce boundary repairs'
+            git commit -m 'fix: apply verified security and commerce follow-up repairs'
             AUTH=$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)
             git -c http.https://github.com/.extraheader="AUTHORIZATION: basic $AUTH" push origin HEAD:refs/heads/fix/security-commerce-20261019
             unset AUTH
@@ -78,7 +88,7 @@ jobs:
       - name: Complete existing test suite
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: pnpm exec vitest run --reporter=json --outputFile=repair-results/all-tests.json > repair-results/all-tests.txt 2>&1
-      - name: Collect bounded source and verification outputs
+      - name: Collect source and verification outputs
         if: ${{ !cancelled() }}
         shell: bash
         run: |
@@ -92,7 +102,7 @@ jobs:
             for name in sorted(set(paths)):
               p=pathlib.Path(name)
               if not name or not p.is_file() or p.is_symlink() or p.name.startswith('.env'): continue
-              if p.suffix in extensions and (name.startswith(allowed) or name.startswith('migrations/0100_') or name=='vercel.json'): z.write(p,name)
+              if p.suffix in extensions and (name.startswith(allowed) or name.startswith('migrations/0101_') or name=='vercel.json'): z.write(p,name)
           PY
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
