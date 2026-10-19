@@ -35,6 +35,11 @@ export function requiredFinancialNumber(value: unknown, field: string): number {
   if (!Number.isFinite(parsed)) throw new Error(`FINANCIAL_SOURCE_INVALID:${field}`);
   return parsed;
 }
+/** A partial aggregate must not be presented as a complete cost or contribution. */
+export function completeRecordedAmount(value: unknown, missingCostOrders: unknown): number | null {
+  if (missingCostOrders !== 0) return null;
+  try { return requiredFinancialNumber(value, "recorded_amount"); } catch { return null; }
+}
 const nullableNumber = (v: unknown, key: string) => v == null ? null : requiredFinancialNumber(v, key);
 const periodChecks: Record<string, string> = {
   incomplete_cost_orders: "طلبات بكلفة غير مكتملة", missing_fulfillment_orders: "طلبات بلا كلفة تجهيز مثبتة",

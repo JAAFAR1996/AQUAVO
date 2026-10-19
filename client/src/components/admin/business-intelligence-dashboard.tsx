@@ -1,3 +1,4 @@
+import { completeRecordedAmount } from "@shared/financial-truth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, Boxes, CircleDollarSign, RefreshCw, ShoppingCart, Users } from "lucide-react";
 import { addCsrfHeader } from "@/lib/csrf";
@@ -20,6 +21,7 @@ type Overview = {
     avgOrderValue: number;
     exactOrders: number;
     estimatedOrders: number;
+    missingCostOrders: number;
   };
   customers: {
     customersTotal: number;
@@ -334,8 +336,9 @@ export function BusinessIntelligenceDashboard() {
         <Card>
           <CardHeader><CardTitle className="text-base">اقتصاد الطلبات</CardTitle></CardHeader>
           <CardContent className="space-y-2 text-sm">
-            <div className="flex justify-between"><span>COGS</span><strong>{iq(data.financials.cogs)}</strong></div>
-            <div className="flex justify-between"><span>ربح المساهمة</span><strong>{iq(data.financials.contributionProfit)}</strong></div>
+            {data.financials.missingCostOrders !== 0 ? <p role="status" className="text-muted-foreground">كلف بعض الطلبات غير مكتملة؛ لا يعرض مجموع جزئي كأنه كلفة أو ربح كامل.</p> : null}
+            <div className="flex justify-between"><span>COGS</span><strong>{iq(completeRecordedAmount(data.financials.cogs, data.financials.missingCostOrders))}</strong></div>
+            <div className="flex justify-between"><span>ربح المساهمة</span><strong>{iq(completeRecordedAmount(data.financials.contributionProfit, data.financials.missingCostOrders))}</strong></div>
             <div className="flex justify-between"><span>مصاريف تشغيلية</span><strong>{iq(data.financials.operatingExpenses)}</strong></div>
             <div className="flex justify-between"><span>متوسط الطلب</span><strong>{iq(data.financials.avgOrderValue)}</strong></div>
             <div className="flex justify-between"><span>مصالحة مالية مفتوحة</span><strong>{data.reconciliation.orderFinancialOpen}</strong></div>

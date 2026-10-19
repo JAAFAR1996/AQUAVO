@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildFinancialTruth, requiredFinancialNumber, financialPeriodChecksClear, currentFinancialCloseBlockers, type TruthRow } from "../../shared/financial-truth.js";
+import { buildFinancialTruth, requiredFinancialNumber, financialPeriodChecksClear, currentFinancialCloseBlockers, completeRecordedAmount, type TruthRow } from "../../shared/financial-truth.js";
 
 function fixture() {
   const period: TruthRow = Object.fromEntries([
@@ -85,5 +85,18 @@ describe("Global evidence retains its actual scope", () => {
     expect(currentFinancialCloseBlockers(truth)).toMatchObject({ procurement_integrity_failures: 1, settlement_integrity_failures: 2, inventory_valuation_difference: 1 });
     expect(currentFinancialCloseBlockers(truth)).not.toHaveProperty("settlements_global");
     expect(truth.profit.displayIqd).toBeNull();
+  });
+});
+
+
+describe("Partial business aggregates never masquerade as complete amounts", () => {
+  it.each([1, 3, undefined, null, -1, "0"])("suppresses an amount when cost completeness is not established (%s)", missing => {
+    expect(completeRecordedAmount(1234, missing)).toBeNull();
+  });
+  it("keeps a recorded zero but does not manufacture one from absent data", () => {
+    expect(completeRecordedAmount(0, 0)).toBe(0);
+    expect(completeRecordedAmount("1234", 0)).toBe(1234);
+    expect(completeRecordedAmount(null, 0)).toBeNull();
+    expect(completeRecordedAmount("", 0)).toBeNull();
   });
 });
