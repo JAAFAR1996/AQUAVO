@@ -31,10 +31,12 @@ jobs:
     # deployment_status fires for preview deployments too, and for every state
     # transition. Only a successful production deployment should notify search
     # engines, and a preview URL must never be submitted.
+    # Vercel qualifies this environment with the project name. Match AQUAVO's
+    # production environment explicitly to exclude aquavo-next and previews.
     if: >-
       github.event_name == 'workflow_dispatch' ||
       (github.event.deployment_status.state == 'success' &&
-       github.event.deployment.environment == 'Production')
+       github.event.deployment.environment == 'Production – aquavo')
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
