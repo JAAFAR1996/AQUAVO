@@ -73,6 +73,11 @@ export class SmartNotifications {
     try {
       const db = getDb();
       if (!db) return results;
+      const subscribers = await db.select({ userId: pushSubscriptions.userId }).from(pushSubscriptions)
+        .where(eq(pushSubscriptions.isActive, true));
+      const eligibleUsers = new Set(subscribers.map(row => row.userId).filter(Boolean));
+      // No transport permission means no candidate generation and no failed sends.
+      if (eligibleUsers.size === 0) return results;
 
       const candidates: Array<{
         userId: string;
@@ -89,6 +94,7 @@ export class SmartNotifications {
       candidates.sort((a, b) => b.priority - a.priority);
 
       for (const candidate of candidates) {
+        if (!eligibleUsers.has(candidate.userId)) continue;
         try {
           const canSend = await this.checkFrequencyCap(candidate.userId);
           if (!canSend) {

@@ -20,6 +20,9 @@ import {
     processPaymentOutboxForOrder,
 } from "../services/payment-maintenance.js";
 import { toPublicOrderItem } from "../../shared/public-product.js";
+import { toPublicOrder } from "../../shared/public-order.js";
+import { assertCheckoutReplay, checkoutRequestHash, CheckoutConflict } from "../services/checkout-security.js";
+import { persistCheckoutSession } from "../services/authenticated-session.js";
 import { apiMessage } from "../i18n/messages.js";
 import { payments } from "../../shared/schema.js";
 import { recordCheckoutWhatsAppMarketingOptIn } from "../services/whatsapp-lifecycle.js";
@@ -221,12 +224,16 @@ export function createOrderRouter(): RouterType {
                 ? parsedIdempotencyKey.data
                 : undefined;
 
+            await persistCheckoutSession(req);
+            const requestHash=checkoutRequestHash(validationResult.data);
+
             // A repeated request returns the already committed order and skips commerce
             // side effects. If that committed order already contains durable WhatsApp
             // consent evidence, retry only the repairable CRM/event projection.
             if (idempotencyKey) {
                 const existingOrder = await storage.getOrder(idempotencyKey);
                 if (existingOrder) {
+                    assertCheckoutReplay(existingOrder,{userId,sessionId:req.sessionID,requestHash});
                     if ((existingOrder as any).whatsappMarketingOptIn) {
                         try {
                             await recordCheckoutWhatsAppMarketingOptIn(existingOrder.id);
@@ -234,7 +241,7 @@ export function createOrderRouter(): RouterType {
                             // Daily repair uses the order-level evidence; never block commerce.
                         }
                     }
-                    res.status(200).json(existingOrder);
+                    res.status(200).json(toPublicOrder(existingOrder));
                     return;
                 }
             }
@@ -259,6 +266,8 @@ export function createOrderRouter(): RouterType {
                         : undefined,
                     attribution,
                     whatsappMarketingOptIn,
+                    ownerSessionId: req.sessionID,
+                    requestHash,
                 },
             );
 
@@ -301,7 +310,7 @@ export function createOrderRouter(): RouterType {
             // Audit Log (don't crash order if audit fails)
             try {
                 await storage.createAuditLog({
-                    userId: userId || null,
+                    userId: userId || undefined,
                     action: "create",
                     entityType: "order",
                     entityId: order.id,
@@ -343,23 +352,8 @@ export function createOrderRouter(): RouterType {
                 }
             }
 
-            // إضافة معلومات النقاط في الرد
-            // Use JSON.parse/stringify to strip any non-serializable values (BigInt, Decimal, circular refs)
-            let safeOrder: Record<string, unknown>;
-            try {
-                safeOrder = JSON.parse(JSON.stringify(order, (_k, v) =>
-                    typeof v === "bigint" ? Number(v) : v
-                ));
-            } catch {
-                safeOrder = {
-                    id: (order as any).id,
-                    orderNumber: (order as any).orderNumber,
-                    status: (order as any).status,
-                    total: String((order as any).total ?? 0),
-                };
-            }
-
-            const response: Record<string, unknown> = { ...safeOrder };
+            // Rebuild a public response; serialization alone does not redact data.
+            const response=toPublicOrder(order);
             if (loyaltyResult) {
                 response.loyalty = {
                     pointsEarned: loyaltyResult.purchasePoints ?? 0,
@@ -384,6 +378,7 @@ export function createOrderRouter(): RouterType {
 
             res.status(201).json(response);
         } catch (err: any) {
+            if (err instanceof CheckoutConflict || err?.status===400) { res.status(err.status).json({message:err.message}); return; }
             const rawIdempotencyKey = req.get("Idempotency-Key");
             const parsedIdempotencyKey = rawIdempotencyKey
                 ? idempotencyKeySchema.safeParse(rawIdempotencyKey)
@@ -391,7 +386,13 @@ export function createOrderRouter(): RouterType {
             if (parsedIdempotencyKey?.success) {
                 const existingOrder = await storage.getOrder(parsedIdempotencyKey.data);
                 if (existingOrder) {
-                    res.status(200).json(existingOrder);
+                    const payload=createOrderSchema.safeParse(req.body);
+                    try {
+                        if (!payload.success) throw new CheckoutConflict();
+                        assertCheckoutReplay(existingOrder,{userId:req.session?.userId,sessionId:req.sessionID,
+                          requestHash:checkoutRequestHash(payload.data)});
+                    } catch { res.status(409).json({message:new CheckoutConflict().message}); return; }
+                    res.status(200).json(toPublicOrder(existingOrder));
                     return;
                 }
             }
@@ -467,7 +468,7 @@ export function createOrderRouter(): RouterType {
             cashbackUsed: (order as any).cashbackUsed ?? 0,
             roundedTotal: (order as any).roundedTotal ? parseFloat(String((order as any).roundedTotal)) : undefined,
         };
-        return { ...order, items: enrichedItems, loyalty };
+        return { ...toPublicOrder(order), items: enrichedItems, loyalty };
     }
 
     async function loadPaymentInfo(orderIds: string[]) {

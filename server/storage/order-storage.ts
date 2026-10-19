@@ -1,4 +1,6 @@
 import { randomBytes } from "node:crypto";
+import { normalizeCheckoutLines, sessionHash } from "../services/checkout-security.js";
+import { eligibleCoupon, couponBenefit } from "../services/coupon-policy.js";
 import { type Order, type Coupon, type AuditLog, type CartItem, type Favorite, type GallerySubmission, type GalleryPrize, type Payment, type ProductVariant, type OrderLineItem, orders, coupons, auditLogs, cartItems, favorites, gallerySubmissions, galleryVotes, galleryPrizes, payments, products, settings, orderItems, returnRequests, referrals, loyaltyTransactions, loyaltyCoupons, autoOrders } from "../../shared/schema.js";
 import { eq, desc, and, sql, or, isNull, inArray } from "drizzle-orm";
 import { getDb } from "../db.js";
@@ -70,6 +72,8 @@ interface CreateOrderLoyaltyOptions {
 }
 
 interface OrderCommerceContext {
+    ownerSessionId?: string;
+    requestHash?: string;
     viewSessionId?: string;
     attribution?: Record<string, string>;
     whatsappMarketingOptIn?: boolean;
@@ -263,9 +267,12 @@ export class OrderStorage {
             const lineSnapshots: ReturnType<typeof buildProductCostSnapshot>[] = [];
 
             // Lock each product row before price/stock validation so concurrent orders cannot oversell.
-            for (const item of items) {
+            for (const item of normalizeCheckoutLines(items)) {
                 const product = await this.lockProductForUpdate(tx, item.productId);
                 if (!product) throw new Error(`Product ${item.productId} not found`);
+                if (product.isStorefrontVisible === false) throw Object.assign(new Error(CART_ERROR_NOT_PURCHASABLE), {status:400});
+                if (product.hasVariants && !item.variantId) throw Object.assign(new Error(CART_ERROR_VARIANT_REQUIRED), {status:400});
+                if (!product.hasVariants && item.variantId) throw Object.assign(new Error(CART_ERROR_VARIANT_INVALID), {status:400});
 
                 const quantity = Number(item.quantity);
                 if (!Number.isInteger(quantity) || quantity <= 0) {
@@ -310,7 +317,7 @@ export class OrderStorage {
                 // order line so later cost edits can't rewrite this order's profit.
                 // Built by the ONE canonical builder shared with the admin/WhatsApp
                 // path. Verified 0 stays 0; UNKNOWN stays NULL. Never conflated.
-                const snapshot = buildProductCostSnapshot(product, snapshotAt);
+                const snapshot = buildProductCostSnapshot(product, snapshotAt, item.variantId);
                 lineSnapshots.push(snapshot);
 
                 orderItemsData.push({
@@ -334,49 +341,15 @@ export class OrderStorage {
             let discount = 0;
             let couponId = null;
 
-            if (couponCode) {
-                const [candidateCoupon] = await tx.select().from(coupons)
-                    .where(and(eq(sql`lower(${coupons.code})`, couponCode.toLowerCase()), eq(coupons.isActive, true)))
-                    .limit(1);
-
-                if (candidateCoupon) {
-                    // Serialize redemptions for this coupon. Without a row lock,
-                    // two simultaneous orders could both observe usedCount=N and
-                    // overshoot maxUses.
-                    await tx.execute(sql`SELECT id FROM coupons WHERE id = ${candidateCoupon.id} FOR UPDATE`);
-                    const [coupon] = await tx.select().from(coupons)
-                        .where(eq(coupons.id, candidateCoupon.id))
-                        .limit(1);
-
-                    if (coupon?.isActive) {
-                        const now = new Date();
-                        const isValidDate = (!coupon.startDate || new Date(coupon.startDate) <= now) &&
-                            (!coupon.endDate || new Date(coupon.endDate) >= now);
-                        const isValidAmount = !coupon.minOrderAmount || subtotal >= Number(coupon.minOrderAmount);
-                        const isNotExhausted = !coupon.maxUses || (coupon.usedCount || 0) < coupon.maxUses;
-
-                        if (isValidDate && isValidAmount && isNotExhausted) {
-                            couponId = coupon.id;
-                            if (coupon.type === 'percentage') {
-                                discount = Math.round((subtotal * Number(coupon.value)) / 100);
-                            } else if (coupon.type === 'fixed') {
-                                discount = Number(coupon.value);
-                            } else if (coupon.type === 'free_shipping') {
-                                deliveryFee = 0;
-                                discount = 0;
-                            }
-
-                            const nextUsedCount = (coupon.usedCount || 0) + 1;
-                            const exhausted = Boolean(coupon.maxUses && nextUsedCount >= coupon.maxUses);
-                            await tx.update(coupons)
-                                .set({
-                                    usedCount: nextUsedCount,
-                                    ...(exhausted ? { isActive: false } : {}),
-                                } as any)
-                                .where(eq(coupons.id, coupon.id));
-                        }
-                    }
-                }
+            if (couponCode?.trim()) {
+                const coupon=await eligibleCoupon(tx,couponCode,{userId,subtotal});
+                couponId=coupon.id;
+                const benefit=couponBenefit(coupon,subtotal,deliveryFee);
+                discount=benefit.discount; deliveryFee=benefit.shipping;
+                const nextUsedCount=Number(coupon.usedCount ?? 0)+1;
+                await tx.update(coupons).set({usedCount:nextUsedCount,
+                  ...(coupon.maxUses!=null && nextUsedCount>=coupon.maxUses?{isActive:false}:{})})
+                  .where(eq(coupons.id,coupon.id));
             }
 
             // 4. Calculate Final Total
@@ -392,6 +365,8 @@ export class OrderStorage {
             const [newOrder] = await tx.insert(orders).values({
                 ...(idempotencyKey ? { id: idempotencyKey } : {}),
                 orderNumber: orderNumber,
+                checkoutSessionHash: commerceContext.ownerSessionId ? sessionHash(commerceContext.ownerSessionId) : undefined,
+                checkoutRequestHash: commerceContext.requestHash,
                 userId: userId ? userId : undefined,
                 items: orderItemsData,
                 total: finalTotal.toString(),
@@ -540,12 +515,13 @@ export class OrderStorage {
         return (await db.select().from(coupons).where(eq(coupons.code, code)).limit(1))[0];
     }
 
-    async getCouponsByUserId(_userId: string): Promise<Coupon[]> {
+    async getCouponsByUserId(userId: string): Promise<Coupon[]> {
         const db = this.ensureDb();
         // Return active public coupons that haven't exceeded their usage limit
         return await db.select().from(coupons)
             .where(and(
                 eq(coupons.isActive, true),
+                or(isNull(coupons.userId), eq(coupons.userId,userId)),
                 or(isNull(coupons.maxUses), sql`${coupons.usedCount} < ${coupons.maxUses}`)
             ));
     }

@@ -1245,7 +1245,7 @@ function toDetailPreloadSrcSet(url: string): string | null {
   return DETAIL_PRELOAD_WIDTHS.map((width) => {
     const candidate = url.replace(
       "/upload/",
-      `/upload/f_auto,q_auto:good,w_${width},h_${width},c_limit/`,
+      `/upload/f_auto,q_auto:best,w_${width},h_${width},c_limit/`,
     );
     return `${candidate} ${width}w`;
   }).join(", ");

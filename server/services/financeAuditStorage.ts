@@ -45,7 +45,8 @@ class FinanceAuditStorage {
 
   async saveAuditRun(
     result: FinanceAuditResult,
-    triggeredBy: string = "scheduled"
+    triggeredBy: string = "scheduled",
+    actualModel?: string
   ): Promise<string> {
     const db = this.ensureDb();
     const startedAt = new Date(result.generatedAt);
@@ -53,7 +54,7 @@ class FinanceAuditStorage {
     const overallStatus = result.error
       ? "failed"
       : (result.report?.overallStatus ?? "failed");
-    const model = process.env.FINANCE_GROQ_MODEL || "llama-3.1-8b-instant";
+    const model = actualModel?.trim() || process.env.FINANCE_GROQ_MODEL || "llama-3.1-8b-instant";
 
     const [run] = await db
       .insert(financeAuditRuns)

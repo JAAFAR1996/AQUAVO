@@ -66,13 +66,13 @@ export class UserStorage {
 
     async getUser(id: string): Promise<User | undefined> {
         const db = this.ensureDb();
-        const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
+        const result = await db.select().from(users).where(and(eq(users.id, id), isNull(users.deletedAt))).limit(1);
         return result[0];
     }
 
     async getUserByEmail(email: string): Promise<User | undefined> {
         const db = this.ensureDb();
-        const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
+        const result = await db.select().from(users).where(and(eq(users.email, email), isNull(users.deletedAt))).limit(1);
         return result[0];
     }
 

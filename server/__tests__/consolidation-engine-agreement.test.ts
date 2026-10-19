@@ -91,6 +91,7 @@ CREATE TABLE orders (
   first_touch_captured_at timestamptz,
   whatsapp_marketing_opt_in boolean NOT NULL DEFAULT false,
   whatsapp_marketing_opt_in_at timestamptz,
+  checkout_session_hash text, checkout_request_hash text,
   financially_counted boolean,
   created_at timestamp NOT NULL DEFAULT now(), updated_at timestamp NOT NULL DEFAULT now()
 );

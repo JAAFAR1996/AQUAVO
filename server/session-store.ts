@@ -1,6 +1,6 @@
 import { Store } from "express-session";
 import { getDb } from "./db.js";
-import { sessions } from "../shared/schema.js";
+import { sessions, users } from "../shared/schema.js";
 import { and, eq, gte, isNotNull, lt, sql } from "drizzle-orm";
 
 /**
@@ -61,13 +61,18 @@ export class DrizzleSessionStore extends Store {
       }
 
       const session = result[0];
+      if (!(await this.identityIsCurrent(session.sess))) {
+        await this.destroy(sid);
+        return callback(null, null);
+      }
 
       // Check if expired
       const expireDate = session.expire ? new Date(session.expire) : null;
 
       if (!expireDate || Number.isNaN(expireDate.getTime())) {
-        // Rehydrate invalid or missing expiry to avoid throwing
-        await this.touch(sid, session.sess);
+        // An invalid expiration is not authority to extend a session.
+        await this.destroy(sid);
+        return callback(null, null);
       } else if (expireDate < new Date()) {
         await this.destroy(sid);
         return callback(null, null);
@@ -86,6 +91,10 @@ export class DrizzleSessionStore extends Store {
     try {
       await this.maybeCleanup();
 
+      if (!(await this.identityIsCurrent(session))) {
+        if (callback) callback(new Error("Session authentication was revoked"));
+        return;
+      }
       const expire = this.getExpireDate(session);
 
       // Upsert session
@@ -225,6 +234,17 @@ export class DrizzleSessionStore extends Store {
     } catch (error) {
       console.error("Failed to cleanup expired sessions:", error);
     }
+  }
+
+  /** Every production route receives only a current, non-deleted identity.
+   * Missing versions (pre-upgrade sessions) intentionally require re-login.
+   */
+  private async identityIsCurrent(session: any): Promise<boolean> {
+    if (!session?.userId) return true;
+    if (!Number.isInteger(session.authVersion)) return false;
+    const [user] = await this.db!.select({ authVersion: users.authVersion, deletedAt: users.deletedAt })
+      .from(users).where(eq(users.id, session.userId)).limit(1);
+    return Boolean(user && !user.deletedAt && user.authVersion === session.authVersion);
   }
 
   /**
