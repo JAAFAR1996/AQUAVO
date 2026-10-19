@@ -1,0 +1,55 @@
+name: Security repair workbench
+on:
+  push:
+    branches: [fix/security-commerce-20261019]
+    paths: [.github/workflows/security-repair-workbench.yml]
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            api
+            server
+            shared
+            client/src
+            client/public/locales
+            migrations
+            scripts
+            tests
+            generated
+            .github/workflows
+          fetch-depth: 1
+      - name: Package tracked code only
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import pathlib, subprocess, zipfile
+          root = pathlib.Path('.')
+          allowed = ('api/', 'server/', 'shared/', 'client/src/', 'client/public/locales/', 'migrations/', 'scripts/', 'tests/', 'generated/', '.github/workflows/')
+          extensions = {'.ts','.tsx','.js','.jsx','.mjs','.cjs','.json','.yaml','.yml','.sql','.css','.html','.md','.py','.sh'}
+          files = subprocess.check_output(['git','ls-files','-z']).decode().split('\0')
+          count = 0
+          with zipfile.ZipFile('repair-source.zip','w',zipfile.ZIP_DEFLATED) as z:
+              for name in files:
+                  p = pathlib.Path(name)
+                  if not name or not p.is_file() or p.is_symlink(): continue
+                  if name.startswith('.env') or p.name.startswith('.env'): continue
+                  if p.suffix not in extensions: continue
+                  if not (name.startswith(allowed) or '/' not in name): continue
+                  z.write(p, name)
+                  count += 1
+              z.writestr('REPAIR_BASE_SHA.txt', subprocess.check_output(['git','rev-parse','HEAD']).decode())
+          print('Packaged code files:', count)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: security-repair-source
+          path: repair-source.zip
+          retention-days: 2
+          if-no-files-found: error
