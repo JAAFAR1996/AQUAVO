@@ -21,7 +21,10 @@ describe("AQUAVO Business Operating System wiring", () => {
   it("keeps legacy costs explicitly reconstructed instead of silently exact", () => {
     const service = readFileSync("server/services/business-intelligence.ts", "utf8");
     expect(service).toContain("opening_inventory_snapshot");
-    expect(service).toContain("accounting_order_id IS NOT NULL THEN 'exact' ELSE 'estimated'");
+    expect(service).toContain("accounting_order_id IS NULL THEN 'estimated'");
+    expect(service).toContain("r.exact_cost_status='exact' AND r.exact_cogs IS NOT NULL");
+    expect(service).toContain("ELSE 'incomplete' END AS basis");
+    expect(service).toContain("missing_cost_orders");
     expect(service).toContain("marketingDataPresent");
     expect(service).toContain("business_marketing_daily");
     expect(service).toContain('day === baghdadDay(-1)');

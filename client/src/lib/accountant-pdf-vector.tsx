@@ -1,3 +1,4 @@
+import { financialTruthSchema } from "@shared/financial-truth";
 /* eslint-disable jsx-a11y/alt-text */
 import React from "react";
 import {
@@ -222,7 +223,7 @@ const STATUS_AR: Record<string, string> = {
   unknown: "كلفة غير محسومة",
   exact: "مثبت",
   draft: "مسودة",
-  tax_final: "اعتماد ضريبي نهائي",
+  tax_final: "اعتماد مسجل داخليا — راجع المستند",
 };
 
 function humanStatus(value: unknown): string {
@@ -251,6 +252,7 @@ function chunks<T>(items: T[], size: number): T[][] {
 }
 
 function canonicalNetProfit(summary: AnyRow): number | null {
+  if (["incomplete_cost_orders", "missing_fulfillment_orders", "incomplete_fulfillment_orders", "payment_evidence_errors", "undocumented_expenses", "unverified_returns"].some(key => (finiteNumber(summary[key]) ?? 1) > 0)) return null;
   const fields = [
     "product_revenue",
     "rounding_adjustment",
@@ -2044,7 +2046,7 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
           <View style={styles.heroStatus}>
             <Text style={styles.heroStatusLabel}>حالة الإغلاق</Text>
             <Text style={styles.heroStatusValue}>
-              {payload.manifest?.taxFinal ? "اعتماد ضريبي نهائي" : blockers.length ? "إقفال معلّق" : "جاهز للإقفال الإداري"}
+              {payload.manifest?.taxFinal ? "اعتماد مسجل داخليا — راجع المستند" : blockers.length ? "إقفال معلّق" : "جاهز للإقفال الإداري"}
             </Text>
             <Text style={[styles.heroStatusLabel, { marginTop: 5 }]}>
               {blockers.length ? numberValue(blockers.length) + " مانع/نوع" : "لا توجد موانع مسجلة"}
@@ -2647,7 +2649,7 @@ function AccountantPdfDocument({ payload }: { payload: AnyRow }) {
           <KpiCard label="الفرع الضريبي" value={fieldValue(profile.tax_branch)} />
           <KpiCard label="العنوان المسجل" value={fieldValue(profile.registered_address)} />
           <KpiCard label="إجازة المحاسب" value={fieldValue(profile.accountant_license_number)} />
-          <KpiCard label="حالة التقرير" value={payload.manifest?.taxFinal ? "اعتماد ضريبي نهائي" : "إدارة ومراجعة داخلية"} />
+          <KpiCard label="حالة التقرير" value={payload.manifest?.taxFinal ? "اعتماد مسجل داخليا — راجع المستند" : "إدارة ومراجعة داخلية"} />
         </View>
 
         <SectionHeader title="تعريفات القراءة" />
@@ -2708,6 +2710,10 @@ export async function downloadAccountantPdfV2(
   onProgress?: (progress: AccountantPdfProgress) => void,
 ): Promise<void> {
   validateAccountantPayload(payload);
+  const quality = financialTruthSchema.safeParse(payload.dataQuality);
+  if (!quality.success || !quality.data.profit.componentsComplete) {
+    throw new Error("تعذر تصدير نتيجة مالية مكتملة: يلزم تحقق حديث ومصادر كلفة وتجهيز ومصاريف مكتملة. راجع لوحة توثيق الأرقام.");
+  }
   registerFonts();
 
   onProgress?.({ current: 0, total: 3, stage: "preparing" });

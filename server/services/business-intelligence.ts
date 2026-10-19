@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import { getDb } from "../db.js";
+import { loadFinancialTruth } from "./financial-truth.js";
 
 type Row = Record<string, unknown>;
 type Confidence = "exact" | "mixed" | "estimated";
@@ -57,6 +58,7 @@ realized_base AS (
     v.gross_collected AS exact_gross,
     v.product_revenue AS exact_product_revenue,
     v.cogs_amount AS exact_cogs,
+    v.cost_status AS exact_cost_status,
     v.delivery_subsidy AS exact_delivery_subsidy,
     v.contribution_profit AS exact_contribution
   FROM public.orders o
@@ -65,7 +67,7 @@ realized_base AS (
   WHERE COALESCE(o.is_test,false)=false
     AND o.status='delivered'
     AND o.payment_status='paid'
-    AND o.cod_received=true
+    AND (f.order_id IS NOT NULL OR o.cod_received=true)
 ),
 old_line_cost AS (
   SELECT
@@ -153,7 +155,9 @@ realized AS (
     r.order_number,
     COALESCE(r.recognized_at, r.created_at AT TIME ZONE 'UTC') AS realized_at,
     COALESCE(NULLIF(regexp_replace(r.customer_phone,'\\D','','g'),''), r.user_id, lower(r.customer_email), r.id) AS customer_key,
-    CASE WHEN r.accounting_order_id IS NOT NULL THEN 'exact' ELSE 'estimated' END AS basis,
+    CASE WHEN r.accounting_order_id IS NULL THEN 'estimated'
+      WHEN r.exact_cost_status='exact' AND r.exact_cogs IS NOT NULL AND r.exact_contribution IS NOT NULL THEN 'exact'
+      ELSE 'incomplete' END AS basis,
     CASE WHEN r.accounting_order_id IS NOT NULL THEN r.exact_gross ELSE r.total END AS gross_collected,
     CASE WHEN r.accounting_order_id IS NOT NULL THEN r.exact_product_revenue ELSE r.total-r.shipping_cost END AS product_revenue,
     CASE WHEN r.accounting_order_id IS NOT NULL THEN r.exact_cogs ELSE lc.estimated_cogs END AS cogs,
@@ -193,6 +197,8 @@ async function calculatePeriod(fromDay: string | null, toDay: string | null) {
       COUNT(*)::int AS realized_orders,
       COUNT(*) FILTER (WHERE basis='exact')::int AS exact_orders,
       COUNT(*) FILTER (WHERE basis='estimated')::int AS estimated_orders,
+      COUNT(*) FILTER (WHERE cogs IS NULL OR contribution_profit IS NULL OR basis='incomplete'
+        OR (basis='estimated' AND opening_cost_lines<old_total_lines))::int AS missing_cost_orders,
       COALESCE(SUM(gross_collected),0) AS gross_collected,
       COALESCE(SUM(product_revenue),0) AS product_revenue,
       COALESCE(SUM(cogs),0) AS cogs,
@@ -211,6 +217,7 @@ async function calculatePeriod(fromDay: string | null, toDay: string | null) {
     realizedOrders: n(row.realized_orders),
     exactOrders: n(row.exact_orders),
     estimatedOrders: n(row.estimated_orders),
+    missingCostOrders: n(row.missing_cost_orders),
     grossCollected: n(row.gross_collected),
     productRevenue: n(row.product_revenue),
     cogs: n(row.cogs),
@@ -507,16 +514,21 @@ export async function getBusinessAssessment() {
 
   const revenueGrowthPct = previous30.productRevenue > 0
     ? ((current30.productRevenue - previous30.productRevenue) / previous30.productRevenue) * 100
-    : current30.productRevenue > 0 ? 100 : 0;
+    : null; // No denominator: growth is undefined, not a fabricated 100%.
   const orderGrowthPct = previous30.realizedOrders > 0
     ? ((current30.realizedOrders - previous30.realizedOrders) / previous30.realizedOrders) * 100
-    : current30.realizedOrders > 0 ? 100 : 0;
+    : null;
 
   const dataReady =
     overview.marketing.configured
     && overview.reconciliation.orderTotalOpen === 0
     && overview.reconciliation.productCostOpen === 0
-    && overview.inventory.missingCurrentCosts === 0;
+    && overview.inventory.missingCurrentCosts === 0
+    && overview.financials.missingCostOrders === 0
+    && overview.financials.estimatedOrders === 0
+    && overview.dataQuality.status === "checks_clear"
+    && overview.dataQuality.historicalMissingCostLines === 0
+    && revenueGrowthPct !== null;
 
   const firstRealized = await getDb()!.execute(sql`
     SELECT MIN(COALESCE(v.recognized_at,o.created_at AT TIME ZONE 'UTC')) AS first_realized_at
@@ -535,7 +547,7 @@ export async function getBusinessAssessment() {
   const reasons: string[] = [];
 
   if (!dataReady) {
-    reasons.push("القياس بعده مو مكتمل: الإعلانات أو كلف المخزون أو أخطاء إجمالي الطلب تحتاج إغلاق.");
+    reasons.push("لا يصدر حكم نهائي: توجد مصادر ناقصة أو تقديرات تاريخية أو فروق لم تطابق. نمو فترة أساسها صفر غير قابل للحساب كنسبة.");
   }
   if (overview.reconciliation.orderFinancialOpen > 0) {
     reasons.push("أكو " + overview.reconciliation.orderFinancialOpen + " معاملات COD بعده تحتاج مصالحة ويا شركة التوصيل؛ هذا خطر كاش وليس سبباً وحده لرفض اقتصاد المشروع.");
@@ -545,8 +557,9 @@ export async function getBusinessAssessment() {
   }
 
   if (dataReady && overview.financials.realizedOrders >= 20) {
-    const economicsPositive = overview.financials.netOperatingProfit >= 0 && overview.financials.contributionProfit > 0;
-    const momentumHealthy = revenueGrowthPct >= -20;
+    const economicsPositive = overview.financials.netOperatingProfit != null
+      && overview.financials.netOperatingProfit >= 0 && overview.financials.contributionProfit > 0;
+    const momentumHealthy = revenueGrowthPct != null && revenueGrowthPct >= -20;
 
     if (economicsPositive && momentumHealthy) {
       status = "CONTINUE";
@@ -554,7 +567,8 @@ export async function getBusinessAssessment() {
     } else if (overview.financials.contributionProfit > 0) {
       status = "FIX";
       reasons.push("المنتج يحقق ربح مساهمة، لكن الربح التشغيلي أو الزخم يحتاج إصلاح قبل التوسع.");
-    } else if (operatingDays >= 90 && overview.financials.netOperatingProfit < 0 && revenueGrowthPct < 0) {
+    } else if (operatingDays >= 90 && overview.financials.netOperatingProfit != null
+      && overview.financials.netOperatingProfit < 0 && revenueGrowthPct != null && revenueGrowthPct < 0) {
       status = "REASSESS";
       reasons.push("بعد مدة تشغيل كافية، ربح المساهمة والربح التشغيلي والزخم كلها غير داعمة للاستمرار بنفس النموذج.");
     } else {
@@ -592,8 +606,8 @@ export async function getBusinessAssessment() {
 }
 
 export async function getBusinessOverview() {
-  const [allTime, customers, marketing, inventory] = await Promise.all([
-    calculatePeriod(null,null),customerMetrics(null),marketingMetrics(null),getInventoryHealth(10),
+  const [allTime, customers, marketing, inventory, dataQuality] = await Promise.all([
+    calculatePeriod(null,null),customerMetrics(null),marketingMetrics(null),getInventoryHealth(10),loadFinancialTruth(),
   ]);
   const db = getDb();
   if (!db) throw new Error("DATABASE_NOT_CONNECTED");
@@ -607,11 +621,17 @@ export async function getBusinessOverview() {
   const operatingExpenses = n(rowsOf(op)[0]?.operating_expenses);
   const netOperatingProfit = allTime.contributionProfit-operatingExpenses-marketing.adSpend;
   const marketingComplete = marketing.rows>0;
-  const confidence: Confidence = allTime.estimatedOrders>0 || !marketingComplete || marketing.exactRows<marketing.rows ? "mixed" : "exact";
+  const confidence: Confidence = allTime.estimatedOrders>0 || allTime.missingCostOrders>0
+    || dataQuality.status!=="checks_clear" || dataQuality.historicalMissingCostLines>0
+    || !marketingComplete || marketing.exactRows<marketing.rows ? "mixed" : "exact";
   const [findings, reconciliation] = await Promise.all([getBusinessFindings(), getReconciliationHealth()]);
   return {
     generatedAt: new Date().toISOString(),currency:"IQD",confidence,
-    financials:{...allTime,operatingExpenses,adSpend:marketing.adSpend,netOperatingProfit,recordedMarketingOnly:true},
+    dataQuality,
+    independentlyAudited: false,
+    financials:{...allTime,operatingExpenses,adSpend:marketing.adSpend,
+      netOperatingProfit:allTime.missingCostOrders>0?null:netOperatingProfit,
+      estimatedNetOperatingProfit:netOperatingProfit,recordedMarketingOnly:true},
     customers,
     inventory,
     marketing:{
@@ -715,9 +735,10 @@ export async function refreshBusinessSnapshot(dayInput?:string) {
   const blendedCac=marketing.adSpend>0&&customers.newCustomers>0 ? marketing.adSpend/customers.newCustomers : null;
   const roas=marketing.adSpend>0 ? marketing.conversionValue/marketing.adSpend : null;
   const mer=marketing.adSpend>0 ? period.productRevenue/marketing.adSpend : null;
-  const confidence:Confidence=period.estimatedOrders>0||marketing.rows===0 ? "mixed" : "exact";
+  const confidence:Confidence=period.estimatedOrders>0||period.missingCostOrders>0||marketing.rows===0 ? "mixed" : "exact";
   const details={
     methodology:"bos_v1",marketingDataPresent:marketing.rows>0,historicalAssetsBackdated:false,
+    missingCostOrders:period.missingCostOrders,independentlyAudited:false,
     legacyCostReconstruction:period.estimatedOrders>0,legacyOpeningCostLines:period.openingCostLines,legacyTotalLines:period.oldTotalLines,
   };
 

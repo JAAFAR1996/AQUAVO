@@ -1,3 +1,4 @@
+import { completeRecordedAmount } from "@shared/financial-truth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, Boxes, CircleDollarSign, RefreshCw, ShoppingCart, Users } from "lucide-react";
 import { addCsrfHeader } from "@/lib/csrf";
@@ -16,10 +17,11 @@ type Overview = {
     contributionProfit: number;
     operatingExpenses: number;
     adSpend: number;
-    netOperatingProfit: number;
+    netOperatingProfit: number | null;
     avgOrderValue: number;
     exactOrders: number;
     estimatedOrders: number;
+    missingCostOrders: number;
   };
   customers: {
     customersTotal: number;
@@ -52,8 +54,8 @@ type Assessment = {
   reasons: string[];
   operatingDays: number;
   evidence: {
-    revenueGrowthPct: number;
-    orderGrowthPct: number;
+    revenueGrowthPct: number | null;
+    orderGrowthPct: number | null;
     current30ProductRevenue: number;
     previous30ProductRevenue: number;
     current30Orders: number;
@@ -126,9 +128,9 @@ type Finding = {
 };
 
 const iq = (value: number | null | undefined) =>
-  Math.round(Number(value ?? 0)).toLocaleString("en-US") + " د.ع";
+  value == null || !Number.isFinite(value) ? "غير متوفر" : Math.round(value).toLocaleString("en-US") + " د.ع";
 const pct = (value: number | null | undefined) =>
-  Number(value ?? 0).toFixed(1) + "%";
+  value == null || !Number.isFinite(value) ? "غير قابل للحساب" : value.toFixed(1) + "%";
 
 async function jsonFetch<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, {
@@ -230,7 +232,7 @@ export function BusinessIntelligenceDashboard() {
   const data = overview.data;
   const cards = [
     {
-      title: "الربح التشغيلي المسجل",
+      title: data.confidence === "exact" ? "الربح التشغيلي حسب السجلات" : "تقدير الربح التشغيلي — غير معتمد",
       value: iq(data.financials.netOperatingProfit),
       sub: "بعد COGS والتوصيل والتجهيز والمصاريف والإعلانات المسجلة",
       icon: CircleDollarSign,
@@ -261,12 +263,12 @@ export function BusinessIntelligenceDashboard() {
         <div>
           <h2 className="text-2xl font-bold">AQUAVO Business OS</h2>
           <p className="text-sm text-muted-foreground">
-            حقيقة مالية + مخزون + عملاء + تسويق. الحسابات حتمية والـAI يقرأها فقط.
+            حسابات من السجلات المتاحة؛ تشمل تقديرات الأرشيف عند وجودها. توصيات AI ليست اعتمادا محاسبيا.
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Badge variant={data.confidence === "exact" ? "default" : "secondary"}>
-            الثقة: {data.confidence === "exact" ? "دقيقة" : "مختلطة"}
+            المصادر: {data.confidence === "exact" ? "مكتملة بالفحوص الداخلية" : "مختلطة أو تحتاج مطابقة"}
           </Badge>
           <Button variant="outline" onClick={() => refresh.mutate()} disabled={refresh.isPending}>
             <RefreshCw
@@ -277,11 +279,13 @@ export function BusinessIntelligenceDashboard() {
         </div>
       </div>
 
-      {assessment.data && (
+      {assessment.isError ? <div role="alert" className="rounded-xl border border-destructive p-4 text-sm">
+        تعذر تحديث تقدير التشغيل؛ لا يعتمد التقدير السابق كقرار حالي.
+      </div> : assessment.data && (
         <Card>
           <CardHeader className="pb-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <CardTitle className="text-base">قرار التشغيل الحالي</CardTitle>
+              <CardTitle className="text-base">تقدير التشغيل وفق البيانات المتاحة</CardTitle>
               <Badge variant={
                 assessment.data.status === "CONTINUE"
                   ? "default"
@@ -332,8 +336,9 @@ export function BusinessIntelligenceDashboard() {
         <Card>
           <CardHeader><CardTitle className="text-base">اقتصاد الطلبات</CardTitle></CardHeader>
           <CardContent className="space-y-2 text-sm">
-            <div className="flex justify-between"><span>COGS</span><strong>{iq(data.financials.cogs)}</strong></div>
-            <div className="flex justify-between"><span>ربح المساهمة</span><strong>{iq(data.financials.contributionProfit)}</strong></div>
+            {data.financials.missingCostOrders !== 0 ? <p role="status" className="text-muted-foreground">كلف بعض الطلبات غير مكتملة؛ لا يعرض مجموع جزئي كأنه كلفة أو ربح كامل.</p> : null}
+            <div className="flex justify-between"><span>COGS</span><strong>{iq(completeRecordedAmount(data.financials.cogs, data.financials.missingCostOrders))}</strong></div>
+            <div className="flex justify-between"><span>ربح المساهمة</span><strong>{iq(completeRecordedAmount(data.financials.contributionProfit, data.financials.missingCostOrders))}</strong></div>
             <div className="flex justify-between"><span>مصاريف تشغيلية</span><strong>{iq(data.financials.operatingExpenses)}</strong></div>
             <div className="flex justify-between"><span>متوسط الطلب</span><strong>{iq(data.financials.avgOrderValue)}</strong></div>
             <div className="flex justify-between"><span>مصالحة مالية مفتوحة</span><strong>{data.reconciliation.orderFinancialOpen}</strong></div>

@@ -13,6 +13,14 @@ import { execFileSync } from "node:child_process";
 // Files whose strict typecheck this effort guarantees green. Widen as legacy
 // files are cleaned up. Prefix match on the forward-slashed path.
 const OWNED = [
+  "server/services/accounting-auto-close-v2.ts",
+  "server/services/financial-truth.ts",
+  "shared/financial-truth.ts",
+  "server/services/accounting-engine.ts",
+  "server/services/business-intelligence.ts",
+  "server/routes/accounting-v2.ts",
+  "server/routes/accounting-packaging-canonical.ts",
+  "server/services/dashboard-truth.ts",
   "server/services/authenticated-session.ts",
   "server/services/checkout-security.ts",
   "server/services/coupon-policy.ts",

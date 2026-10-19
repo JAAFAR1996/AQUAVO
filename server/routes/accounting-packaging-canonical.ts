@@ -214,6 +214,7 @@ router.get("/summary", async (req: Request, res: Response, next: NextFunction): 
     let estimatedReferenceLines = 0;
     let unknownCostLines = 0;
     let packagingIncompleteOrders = 0;
+    let sourceMismatchOrders = 0;
 
     for (const order of realizedOrders) {
       const snap = fulfillment.get(order.id);
@@ -224,6 +225,7 @@ router.get("/summary", async (req: Request, res: Response, next: NextFunction): 
       totalPackaging += pack.value ?? 0;
       totalCoupons += base.couponDiscount;
       totalLoyalty += base.loyaltyDiscount;
+      if (!base.sourceReconciled) sourceMismatchOrders++;
       missingCostLines += base.missingCostLines;
       missingProductLines += base.missingProductLines;
       exactCostLines += base.exactCostLines;
@@ -292,6 +294,7 @@ router.get("/summary", async (req: Request, res: Response, next: NextFunction): 
       : 0;
 
     const productEvidenceExact =
+      sourceMismatchOrders === 0 &&
       missingCostLines === 0 &&
       missingProductLines === 0 &&
       estimatedHistoryLines === 0 &&
@@ -322,11 +325,13 @@ router.get("/summary", async (req: Request, res: Response, next: NextFunction): 
         netProfit,
         margin,
         costsComplete:
+          sourceMismatchOrders === 0 &&
           missingCostLines === 0 &&
           missingProductLines === 0 &&
           packagingEvidenceComplete,
         missingCostLines,
         missingProductLines,
+        sourceMismatchOrders,
         estimatedNetProfit: netProfit,
         exactNetProfit: allExact ? netProfit : null,
         ...taxReadiness,
