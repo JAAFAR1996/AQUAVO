@@ -93,7 +93,7 @@ describe("order creation writes BOTH line-item stores transactionally", () => {
     });
 
     it("builds its cost snapshot with the ONE canonical builder", () => {
-      expect(body).toMatch(/buildProductCostSnapshot\(product,\s*snapshotAt\)/);
+      expect(body).toMatch(/buildProductCostSnapshot\(product,\s*snapshotAt,\s*item\.variantId\)/);
       expect(body).toMatch(/toJsonbCostFields\(snapshot\)/);
       expect(body).toMatch(/toRelationalCostFields\(lineSnapshots\[idx\]\)/);
     });
@@ -122,7 +122,7 @@ describe("order creation writes BOTH line-item stores transactionally", () => {
 
     it("F-2 FIX: carries a cost snapshot into BOTH stores via the canonical builder", () => {
       expect(body).toMatch(/lockProductRowForUpdate\(tx as any,\s*item\.productId\)/);
-      expect(body).toMatch(/buildProductCostSnapshot\(locked,\s*snapshotAt\)/);
+      expect(body).toMatch(/buildProductCostSnapshot\(locked,\s*snapshotAt,\s*item\.variantId\)/);
       expect(body).toMatch(/toJsonbCostFields\(snapshot\)/);
       expect(body).toMatch(/toRelationalCostFields\(snapshot\)/);
     });

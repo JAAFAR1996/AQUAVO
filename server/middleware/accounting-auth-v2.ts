@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { users } from "../../shared/schema.js";
 import { getDb } from "../db.js";
 
@@ -43,7 +43,7 @@ export async function requireAccountingAdmin(
         role: users.role,
       })
       .from(users)
-      .where(eq(users.id, userId))
+      .where(and(eq(users.id, userId), isNull(users.deletedAt)))
       .limit(1);
 
     if (!user) {

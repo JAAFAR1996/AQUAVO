@@ -12,6 +12,7 @@
  * not the business logic itself.
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { PgDialect } from "drizzle-orm/pg-core";
 import { coupons, orderItems, orders, products, settings } from "../../shared/schema.js";
 import { getDb } from "../db.js";
 import { OrderStorage } from "../storage/order-storage.js";
@@ -45,7 +46,18 @@ function buildHarness(couponRow: Record<string, unknown> | undefined) {
     };
 
     const createTx = () => ({
-        execute: vi.fn(async () => ({ rows: [productRow] })), // lockProductForUpdate
+        execute: vi.fn(async (q:any) => {
+            const text=new PgDialect().sqlToQuery(q).sql;
+            if(text.includes("FROM products")) return {rows:[productRow]};
+            if(text.includes("FROM coupons")) {
+                const c=couponRow as any;
+                return {rows:c?[{id:c.id,code:c.code,discount_type:c.type,discount_value:c.value,
+                  is_active:c.isActive,min_order_amount:c.minOrderAmount,max_uses:c.maxUses,used_count:c.usedCount,
+                  max_uses_per_user:null,user_id:null,start_date:c.startDate,end_date:c.endDate,
+                  date_valid:(!c.startDate || new Date(c.startDate).getTime()<=Date.now()) && (!c.endDate || new Date(c.endDate).getTime()>=Date.now())}]:[]};
+            }
+            return {rows:[{online_holds:0,user_uses:0}]};
+        }),
         select: vi.fn(() => ({
             from: vi.fn((table: unknown) => {
                 if (table === settings) return makeAwaitableRows([{ value: String(DELIVERY_FEE_DEFAULT) }]);
@@ -163,19 +175,9 @@ describe("Order-total consistency: real server calculation matches checkout-disp
         expect(Number(order.total)).toBe(PRODUCT_PRICE + DELIVERY_FEE_DEFAULT - 5000); // 25,000
     });
 
-    it("an invalid (expired) coupon is silently dropped server-side — no discount, no free shipping applied, proving the server never trusts client-side validation alone", async () => {
-        const { storage } = buildHarness(
-            makeCoupon({ type: "free_shipping", endDate: new Date(Date.now() - 86400000) })
-        );
-        const order = await storage.createOrderSecure(
-            null,
-            [{ productId: "prod-1", quantity: 1 }],
-            guestCustomerInfo,
-            "EXPIREDFREESHIP",
-        );
-
-        expect(Number(order.shippingCost)).toBe(DELIVERY_FEE_DEFAULT); // full fee still charged
-        expect(Number(order.discountTotal)).toBe(0);
-        expect(Number(order.total)).toBe(PRODUCT_PRICE + DELIVERY_FEE_DEFAULT);
+    it("rejects an expired quote instead of silently charging the undiscounted total", async () => {
+        const { storage }=buildHarness(makeCoupon({type:"free_shipping",endDate:new Date(Date.now()-86400000)}));
+        await expect(storage.createOrderSecure(null,[{productId:"prod-1",quantity:1}],guestCustomerInfo,"EXPIREDFREESHIP"))
+            .rejects.toThrow("انتهت صلاحية هذا الكوبون");
     });
 });

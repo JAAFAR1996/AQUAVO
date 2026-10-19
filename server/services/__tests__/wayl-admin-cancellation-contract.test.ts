@@ -26,7 +26,8 @@ describe("admin cancellation for unpaid online-payment orders", () => {
   it("prevents a late successful payment from reviving fulfillment", () => {
     expect(paymentService).toContain("CancelledOrderPaidConflict");
     expect(paymentService).toContain('"paid_after_cancellation"');
-    expect(paymentService).toContain('status: locallyCancelled ? "cancelled"');
+    expect(paymentService).toMatch(/status:\s*locallyCancelled\s*\?\s*"cancelled"/);
+    expect(paymentService).toContain('latestOrder.status==="cancelled"');
   });
 
   it("gives admins an explicit cancel action but keeps hard-delete protected", () => {

@@ -8,13 +8,18 @@
  *   OAuth 2.1 — Authorization Code + PKCE (S256 mandatory)
  *   JWT HS256 — no external dependency, uses Node built-in crypto
  *
- * Single-owner use: one admin password guards consent.
- * Tokens live in memory (cleared on restart → re-authorize once).
+ * Single-owner consent. Hashed authorization/refresh grants persist in Postgres.
+ * Version-2 JWTs are audience/issuer/expiry checked and grant revocation is enforced.
  */
 
 import { createHmac, randomBytes, timingSafeEqual, createHash } from "crypto";
 import type { Request, Response, Router as RouterType } from "express";
 import { Router } from "express";
+import rateLimit from "express-rate-limit";
+import { normalizeOAuthScope } from "../services/oauth-policy.js";
+import { issueAuthorizationCode, exchangeAuthorizationCode, rotateRefreshToken, revokeOAuthRefreshToken } from "../services/oauth-grant-store.js";
+const oauthLimiter = rateLimit({ windowMs: 15*60*1000, limit: 20, standardHeaders:true, legacyHeaders:false });
+const ACCESS_TOKEN_SECONDS = 3600;
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
@@ -23,32 +28,8 @@ const MCP_RESOURCE = `${ISSUER}/api/mcp`;
 const JWT_SECRET = (process.env.AQUAVO_MCP_SECRET ?? process.env.AQUAVO_MCP_TOKEN ?? "").trim();
 const ADMIN_PASSWORD = (process.env.AQUAVO_MCP_ADMIN_PASSWORD ?? "").trim();
 
-// ─── In-memory stores (auth codes only — clients are stateless) ───────────────
-//
-// On Vercel serverless, in-memory Maps are NOT shared across instances.
-// → Client registration uses HMAC-signed tokens (no storage needed).
-// → Auth codes are still ephemeral (10-min TTL); user re-authorizes if expired.
-// → Refresh tokens are also ephemeral; user re-authorizes after restart.
-
-interface AuthCodeRecord {
-  clientId: string;          // the full signed client_id string
-  redirectUris: string[];    // decoded from client_id
-  codeChallenge: string;
-  codeChallengeMethod: string;
-  redirectUri: string;
-  expiresAt: number;
-  scope: string;
-}
-
-const authCodes = new Map<string, AuthCodeRecord>();
-const refreshTokenStore = new Map<string, { clientId: string; expiresAt: number }>();
-
-// Cleanup expired records every minute
-setInterval(() => {
-  const now = Date.now();
-  for (const [k, v] of authCodes) if (v.expiresAt < now) authCodes.delete(k);
-  for (const [k, v] of refreshTokenStore) if (v.expiresAt < now) refreshTokenStore.delete(k);
-}, 60_000);
+// Authorization codes and rotated refresh tokens are persisted, hashed, and
+// bound to their original client and scope in oauth-grant-store.ts.
 
 // ─── Stateless Client ID (HMAC-signed, no DB / no Map needed) ─────────────────
 //
@@ -62,9 +43,10 @@ interface ClientPayload {
 }
 
 function createClientId(redirectUris: string[], name: string): string {
+  if (!JWT_SECRET) throw new Error("OAuth signing secret unavailable");
   const payload = JSON.stringify({ r: redirectUris, n: name, t: Date.now() } satisfies ClientPayload);
   const payloadB64 = Buffer.from(payload).toString("base64url");
-  const sig = createHmac("sha256", JWT_SECRET || "fallback-insecure")
+  const sig = createHmac("sha256", JWT_SECRET)
     .update(payloadB64)
     .digest("hex")
     .slice(0, 32);
@@ -72,12 +54,13 @@ function createClientId(redirectUris: string[], name: string): string {
 }
 
 function verifyClientId(clientId: string): { redirectUris: string[]; name: string } | null {
+  if (!JWT_SECRET || typeof clientId!=="string" || clientId.length>8192) return null;
   try {
     const dot = clientId.lastIndexOf(".");
     if (dot < 0) return null;
     const payloadB64 = clientId.slice(0, dot);
     const sig = clientId.slice(dot + 1);
-    const expected = createHmac("sha256", JWT_SECRET || "fallback-insecure")
+    const expected = createHmac("sha256", JWT_SECRET)
       .update(payloadB64)
       .digest("hex")
       .slice(0, 32);
@@ -105,6 +88,7 @@ function signJwt(payload: Record<string, unknown>, expiresInSec: number): string
   const header = b64url(Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" })));
   const body = b64url(Buffer.from(JSON.stringify({
     ...payload,
+    v: 2,
     iss: ISSUER,
     aud: MCP_RESOURCE,
     iat: Math.floor(Date.now() / 1000),
@@ -114,8 +98,8 @@ function signJwt(payload: Record<string, unknown>, expiresInSec: number): string
   return `${header}.${body}.${sig}`;
 }
 
-export function verifyMcpToken(token: string): { clientId: string; scope: string } | null {
-  if (!JWT_SECRET || !token) return null;
+export function verifyMcpToken(token: string): { clientId: string; scope: string; grantId: string } | null {
+  if (!JWT_SECRET || !token || token.length>16384) return null;
   const parts = token.split(".");
   if (parts.length !== 3) return null;
   const [header, body, sig] = parts;
@@ -132,21 +116,16 @@ export function verifyMcpToken(token: string): { clientId: string; scope: string
   } catch {
     return null;
   }
-  if (typeof payload.exp === "number" && payload.exp < Math.floor(Date.now() / 1000)) return null;
-  if (payload.aud !== MCP_RESOURCE) return null;
-  return { clientId: String(payload.sub ?? "oauth-client"), scope: String(payload.scope ?? "mcp") };
-}
-
-// ─── PKCE ─────────────────────────────────────────────────────────────────────
-
-function verifyPkce(verifier: string, challenge: string, method: string): boolean {
-  if (method === "plain") {
-    try { return timingSafeEqual(Buffer.from(verifier), Buffer.from(challenge)); }
-    catch { return false; }
-  }
-  // S256 (MCP spec mandatory)
-  const hash = b64url(createHash("sha256").update(verifier).digest());
-  return hash === challenge;
+  const now=Math.floor(Date.now()/1000);
+  let jwtHeader: Record<string,unknown>;
+  try { jwtHeader=JSON.parse(Buffer.from(header,"base64url").toString()); } catch { return null; }
+  if (jwtHeader.alg!=="HS256" || jwtHeader.typ!=="JWT" || payload.v!==2) return null;
+  if (typeof payload.exp!=="number" || !Number.isFinite(payload.exp) || payload.exp<=now) return null;
+  if (typeof payload.iat!=="number" || !Number.isFinite(payload.iat) || payload.iat>now+30 || payload.exp-payload.iat>ACCESS_TOKEN_SECONDS) return null;
+  if (payload.iss!==ISSUER || payload.aud!==MCP_RESOURCE || typeof payload.sub!=="string" || !payload.sub) return null;
+  const scope=normalizeOAuthScope(payload.scope);
+  if (!scope || typeof payload.gid!=="string" || !/^[0-9a-f-]{36}$/i.test(payload.gid)) return null;
+  return { clientId:payload.sub, scope, grantId:payload.gid };
 }
 
 // ─── redirect_uri validation ──────────────────────────────────────────────────
@@ -155,6 +134,7 @@ function verifyPkce(verifier: string, challenge: string, method: string): boolea
 function isAllowedRedirectUri(uri: string): boolean {
   try {
     const u = new URL(uri);
+    if (u.username || u.password || u.hash) return false;
     if (u.protocol === "https:") return true;
     if (u.protocol === "http:") {
       const host = u.hostname;
@@ -180,16 +160,17 @@ export function handleOAuthRegister(req: Request, res: Response): void {
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
+  if (!JWT_SECRET) { res.status(503).json({error:"temporarily_unavailable"}); return; }
   const body = req.body ?? {};
   const rawUris: unknown[] = Array.isArray(body.redirect_uris) ? body.redirect_uris : [];
-  if (!rawUris.length) {
+  if (!rawUris.length || rawUris.length>10) {
     res.status(400).json({ error: "invalid_client_metadata", error_description: "redirect_uris is required" });
     return;
   }
 
   const redirectUris: string[] = [];
   for (const uri of rawUris) {
-    if (typeof uri !== "string") {
+    if (typeof uri !== "string" || uri.length>2048) {
       res.status(400).json({ error: "invalid_client_metadata", error_description: "redirect_uris must be strings" });
       return;
     }
@@ -279,11 +260,9 @@ function consentHtml(params: {
 
     <div class="scope-box">
       <div class="scope-title">الصلاحيات المطلوبة: ${esc(scope)}</div>
-      <div class="scope-item">قراءة وتعديل المنتجات والمخزون</div>
-      <div class="scope-item">قراءة وتحديث حالة الطلبات</div>
-      <div class="scope-item">قراءة بيانات الزبائن والتقارير</div>
-      <div class="scope-item">إدارة الكوبونات والمصاريف</div>
-      <div class="scope-item">الإحصائيات والتحليلات</div>
+      ${scopeItems.includes("catalog:read") ? '<div class="scope-item">قراءة الكتالوج العام فقط</div>' : ""}
+      ${scopeItems.includes("mcp:read") ? '<div class="scope-item">قراءة بيانات المتجر والطلبات والتقارير الداخلية</div>' : ""}
+      ${scopeItems.includes("mcp:write") ? '<div class="scope-item">تعديل المنتجات والمخزون والطلبات والكوبونات والمصاريف</div>' : '<div class="scope-item">لا يتضمن هذا التفويض تعديل بيانات المتجر</div>'}
     </div>
 
     ${showError ? '<div class="err">كلمة المرور غير صحيحة — حاول ثاني</div>' : ""}
@@ -345,6 +324,7 @@ export function createOAuthRouter(): RouterType {
       issuer: ISSUER,
       authorization_endpoint: `${ISSUER}/oauth/authorize`,
       token_endpoint: `${ISSUER}/oauth/token`,
+      revocation_endpoint: `${ISSUER}/oauth/revoke`,
       registration_endpoint: `${ISSUER}/oauth/register`,
       response_types_supported: ["code"],
       grant_types_supported: ["authorization_code", "refresh_token"],
@@ -387,10 +367,10 @@ export function createOAuthRouter(): RouterType {
 
   // CORS preflight for /oauth/register
   router.options("/oauth/register", handleOAuthRegisterOptions);
-  router.post("/oauth/register", handleOAuthRegister);
+  router.post("/oauth/register", oauthLimiter, handleOAuthRegister);
 
   // Admin endpoint — verify a client_id token
-  router.get("/oauth/admin/verify-client", (req: Request, res: Response) => {
+  router.get("/oauth/admin/verify-client", oauthLimiter, (req: Request, res: Response) => {
     const authHeader = req.headers["authorization"] ?? "";
     const provided = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
     if (!ADMIN_PASSWORD) { res.status(503).json({ error: "AQUAVO_MCP_ADMIN_PASSWORD not set" }); return; }
@@ -407,7 +387,12 @@ export function createOAuthRouter(): RouterType {
   // Authorization Endpoint — GET (consent page)
   router.get("/oauth/authorize", (req: Request, res: Response) => {
     const q = req.query as Record<string, string>;
-    const { client_id, redirect_uri, state = "", code_challenge, code_challenge_method = "S256", scope = "mcp", error } = q;
+    const { client_id, redirect_uri, state = "", code_challenge, code_challenge_method = "S256", scope: requestedScope = "mcp:read", error } = q;
+    const scope=normalizeOAuthScope(requestedScope);
+    if (!scope || code_challenge_method!=="S256" || !/^[A-Za-z0-9_-]{43}$/.test(code_challenge ?? "") || (q.resource && q.resource!==MCP_RESOURCE)) {
+      res.status(400).json({error:"invalid_request"}); return;
+    }
+    res.setHeader("Cache-Control","no-store");
 
     if (!client_id || !redirect_uri || !code_challenge) {
       res.status(400).send("<h1>Bad Request: missing required parameters</h1>");
@@ -445,9 +430,14 @@ export function createOAuthRouter(): RouterType {
   });
 
   // Authorization Endpoint — POST (process consent)
-  router.post("/oauth/authorize", (req: Request, res: Response) => {
+  router.post("/oauth/authorize", oauthLimiter, async (req: Request, res: Response) => {
     const body = req.body ?? {};
-    const { client_id, redirect_uri, state = "", code_challenge, code_challenge_method = "S256", scope = "mcp", password } = body;
+    const { client_id, redirect_uri, state = "", code_challenge, code_challenge_method = "S256", scope: requestedScope = "mcp:read", password } = body;
+    const scope=normalizeOAuthScope(requestedScope);
+    if (!scope || code_challenge_method!=="S256" || !/^[A-Za-z0-9_-]{43}$/.test(code_challenge ?? "") || (body.resource && body.resource!==MCP_RESOURCE)) {
+      res.status(400).json({error:"invalid_request"}); return;
+    }
+    res.setHeader("Cache-Control","no-store");
 
     if (!client_id || !redirect_uri || !code_challenge) {
       res.status(400).json({ error: "invalid_request", error_description: "Missing required parameters" });
@@ -480,16 +470,12 @@ export function createOAuthRouter(): RouterType {
       return;
     }
 
-    const code = randomBytes(32).toString("hex");
-    authCodes.set(code, {
-      clientId: client_id,
-      redirectUris: client.redirectUris,
-      codeChallenge: code_challenge,
-      codeChallengeMethod: code_challenge_method,
-      redirectUri: redirect_uri,
-      expiresAt: Date.now() + 10 * 60 * 1000,
-      scope,
-    });
+    let code: string;
+    try {
+      code=await issueAuthorizationCode({clientId:client_id,redirectUri:redirect_uri,codeChallenge:code_challenge,scope});
+    } catch {
+      res.status(503).json({error:"temporarily_unavailable"}); return;
+    }
 
     console.log(`[OAUTH] Issued auth code for client=${client_id.slice(0, 20)}...`);
     const dest = new URL(redirect_uri);
@@ -508,81 +494,42 @@ export function createOAuthRouter(): RouterType {
     res.sendStatus(204);
   });
 
-  // Token Endpoint — POST
-  router.post("/oauth/token", (req: Request, res: Response) => {
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Cache-Control", "no-store");
-
-    const body = req.body ?? {};
-    const { grant_type, code, redirect_uri, code_verifier, refresh_token } = body;
-
-    if (grant_type === "authorization_code") {
-      if (!code || !redirect_uri || !code_verifier) {
-        res.status(400).json({ error: "invalid_request", error_description: "code, redirect_uri, code_verifier required" });
-        return;
-      }
-
-      const record = authCodes.get(code);
-      if (!record || record.expiresAt < Date.now()) {
-        authCodes.delete(code);
-        res.status(400).json({ error: "invalid_grant", error_description: "Authorization code expired or already used" });
-        return;
-      }
-      if (record.redirectUri !== redirect_uri) {
-        res.status(400).json({ error: "invalid_grant", error_description: "redirect_uri mismatch" });
-        return;
-      }
-      if (!verifyPkce(String(code_verifier), record.codeChallenge, record.codeChallengeMethod)) {
-        res.status(400).json({ error: "invalid_grant", error_description: "PKCE code_verifier failed" });
-        return;
-      }
-
-      authCodes.delete(code); // one-time use
-
-      const accessToken = signJwt({ sub: record.clientId, scope: record.scope }, 24 * 3600); // 24h
-      const rfToken = randomBytes(32).toString("hex");
-      refreshTokenStore.set(rfToken, { clientId: record.clientId, expiresAt: Date.now() + 30 * 24 * 3600_000 });
-
-      console.log(`[OAUTH] Issued access token for client=${record.clientId}`);
-      res.json({
-        access_token: accessToken,
-        token_type: "Bearer",
-        expires_in: 24 * 3600,
-        refresh_token: rfToken,
-        scope: record.scope,
-      });
-      return;
+  // Client-bound one-time exchanges. Refresh never widens the original grant.
+  router.post("/oauth/token", oauthLimiter, async (req: Request,res: Response) => {
+    res.setHeader("Access-Control-Allow-Origin","*");
+    res.setHeader("Cache-Control","no-store");
+    res.setHeader("Pragma","no-cache");
+    const b=req.body ?? {};
+    if (typeof b.client_id!=="string" || !verifyClientId(b.client_id)
+      || (b.resource && b.resource!==MCP_RESOURCE)) {
+      res.status(400).json({error:"invalid_client"}); return;
     }
-
-    if (grant_type === "refresh_token") {
-      if (!refresh_token) {
-        res.status(400).json({ error: "invalid_request", error_description: "refresh_token required" });
-        return;
-      }
-      const record = refreshTokenStore.get(String(refresh_token));
-      if (!record || record.expiresAt < Date.now()) {
-        refreshTokenStore.delete(String(refresh_token));
-        res.status(400).json({ error: "invalid_grant", error_description: "Refresh token expired" });
-        return;
-      }
-      // Rotate refresh token
-      refreshTokenStore.delete(String(refresh_token));
-      const newRfToken = randomBytes(32).toString("hex");
-      refreshTokenStore.set(newRfToken, { clientId: record.clientId, expiresAt: Date.now() + 30 * 24 * 3600_000 });
-
-      const accessToken = signJwt({ sub: record.clientId, scope: "mcp" }, 24 * 3600);
-      console.log(`[OAUTH] Refreshed token for client=${record.clientId}`);
-      res.json({
-        access_token: accessToken,
-        token_type: "Bearer",
-        expires_in: 24 * 3600,
-        refresh_token: newRfToken,
-        scope: "mcp",
-      });
-      return;
+    try {
+      let grant;
+      if (b.grant_type==="authorization_code") {
+        if (typeof b.code!=="string" || typeof b.redirect_uri!=="string" || typeof b.code_verifier!=="string") {
+          res.status(400).json({error:"invalid_request"}); return;
+        }
+        grant=await exchangeAuthorizationCode({code:b.code,clientId:b.client_id,redirectUri:b.redirect_uri,verifier:b.code_verifier});
+      } else if (b.grant_type==="refresh_token") {
+        if (typeof b.refresh_token!=="string" || (b.scope!==undefined && typeof b.scope!=="string")) {
+          res.status(400).json({error:"invalid_request"}); return;
+        }
+        grant=await rotateRefreshToken({refreshToken:b.refresh_token,clientId:b.client_id,scope:b.scope});
+      } else { res.status(400).json({error:"unsupported_grant_type"}); return; }
+      if (!grant) { res.status(400).json({error:"invalid_grant"}); return; }
+      res.json({access_token:signJwt({sub:grant.clientId,scope:grant.scope,gid:grant.grantId},ACCESS_TOKEN_SECONDS),
+        token_type:"Bearer",expires_in:ACCESS_TOKEN_SECONDS,refresh_token:grant.refreshToken,scope:grant.scope});
+    } catch { res.status(503).json({error:"temporarily_unavailable"}); }
+  });
+  router.post("/oauth/revoke",oauthLimiter,async (req:Request,res:Response) => {
+    res.setHeader("Cache-Control","no-store");
+    const b=req.body ?? {};
+    if (typeof b.token!=="string" || typeof b.client_id!=="string" || !verifyClientId(b.client_id)) {
+      res.status(400).json({error:"invalid_request"}); return;
     }
-
-    res.status(400).json({ error: "unsupported_grant_type" });
+    try { await revokeOAuthRefreshToken(b.token,b.client_id); res.sendStatus(200); }
+    catch { res.status(503).json({error:"temporarily_unavailable"}); }
   });
 
   return router;

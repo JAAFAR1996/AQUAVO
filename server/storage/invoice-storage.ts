@@ -251,7 +251,7 @@ export class InvoiceStorage {
             { status: 400 },
           );
         }
-        lines.push({ raw: item, snapshot: buildProductCostSnapshot(locked, snapshotAt) });
+        lines.push({ raw: item, snapshot: buildProductCostSnapshot(locked, snapshotAt, item.variantId) });
       }
 
       // 2. Create order (only columns that exist in the Drizzle schema).

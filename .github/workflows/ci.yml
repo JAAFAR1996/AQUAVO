@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 env:
-  NODE_VERSION: 20.19.0
+  NODE_VERSION: 24.x
   PNPM_VERSION: 10.0.0
   CI: true
 
@@ -36,7 +36,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: "pnpm"
       - name: 📚 Install dependencies
-        run: pnpm install --prefer-offline
+        run: pnpm install --frozen-lockfile --prefer-offline
         timeout-minutes: 10
       - name: 🔍 TypeScript type check
         run: pnpm run check
@@ -66,7 +66,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: "pnpm"
       - name: 📚 Install dependencies
-        run: pnpm install --prefer-offline
+        run: pnpm install --frozen-lockfile --prefer-offline
         timeout-minutes: 10
       - name: 🎨 Build client (Vite)
         run: pnpm run build:client
@@ -114,7 +114,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: "pnpm"
       - name: 📚 Install dependencies
-        run: pnpm install --prefer-offline
+        run: pnpm install --frozen-lockfile --prefer-offline
         timeout-minutes: 10
       - name: 🏗️ Build (generate SSR template)
         run: pnpm run build
@@ -158,7 +158,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: "pnpm"
       - name: 📚 Install dependencies
-        run: pnpm install --prefer-offline
+        run: pnpm install --frozen-lockfile --prefer-offline
         timeout-minutes: 10
       - name: 🔍 Audit production packages (moderate)
         run: pnpm audit --prod --audit-level=moderate

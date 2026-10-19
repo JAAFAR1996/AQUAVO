@@ -73,6 +73,7 @@ beforeAll(async () => {
       first_touch_aq_campaign_id text, first_touch_captured_at timestamptz,
       whatsapp_marketing_opt_in boolean NOT NULL DEFAULT false,
       whatsapp_marketing_opt_in_at timestamptz,
+  checkout_session_hash text, checkout_request_hash text,
       financially_counted boolean DEFAULT true,
       created_at timestamptz DEFAULT now(), updated_at timestamptz DEFAULT now());`);
   await client.exec(`CREATE TABLE products (
