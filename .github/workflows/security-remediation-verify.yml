@@ -25,6 +25,7 @@ jobs:
           git sparse-checkout init --cone
           git sparse-checkout set api server shared client/src client/public migrations scripts script tests test generated TOOLS docs .github/workflows
           git checkout -B fix/security-commerce-20261019 FETCH_HEAD
+          mkdir -p repair-results
       - name: Apply reviewed source transformations only on repair branch
         shell: bash
         run: |
@@ -38,7 +39,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           test "$(git branch --show-current)" = fix/security-commerce-20261019
-          git add server shared client/src api .github/workflows/ci.yml vercel.json script/security-remediation/APPLIED
+          git add server shared client/src api vercel.json
+          git add -f script/security-remediation/APPLIED
           if ! git diff --cached --quiet; then
             git config user.name 'AQUAVO repair workflow'
             git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
@@ -47,7 +49,7 @@ jobs:
             git -c http.https://github.com/.extraheader="AUTHORIZATION: basic $AUTH" push origin HEAD:refs/heads/fix/security-commerce-20261019
             unset AUTH
           fi
-          git rev-parse HEAD > verified-revision.txt
+          git rev-parse HEAD > repair-results/verified-revision.txt
       - uses: actions/setup-node@v7
         with:
           node-version: '24.x'
@@ -55,11 +57,12 @@ jobs:
         with:
           version: 10.0.0
       - name: Install locked dependencies without application secrets
+        id: install
         run: pnpm install --frozen-lockfile
       - name: Verify types and migration governance
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         shell: bash
         run: |
-          mkdir -p repair-results
           set +e
           pnpm run check > repair-results/types.txt 2>&1; A=$?
           pnpm run check:server > repair-results/server-types.txt 2>&1; B=$?
@@ -67,29 +70,29 @@ jobs:
           printf 'types=%s server=%s migrations=%s\n' "$A" "$B" "$C" | tee repair-results/types-summary.txt
           test "$A$B$C" = 000
       - name: Exercise security services against synthetic PostgreSQL
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: pnpm exec vitest run server/__tests__/security-commerce-repair.test.ts --reporter=verbose > repair-results/security-tests.txt 2>&1
       - name: Full production build
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: pnpm run build > repair-results/build.txt 2>&1
       - name: Complete existing test suite
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: pnpm exec vitest run --reporter=json --outputFile=repair-results/all-tests.json > repair-results/all-tests.txt 2>&1
       - name: Collect bounded source and verification outputs
         if: ${{ !cancelled() }}
         shell: bash
         run: |
           mkdir -p repair-results
-          cp verified-revision.txt repair-results/ 2>/dev/null || true
           python3 - <<'PY'
           import pathlib, subprocess, zipfile
-          paths = subprocess.check_output(['git','diff-tree','--no-commit-id','--name-only','-r','HEAD']).decode().splitlines()
-          paths += [str(p) for base in ['server/security','script/security-remediation'] for p in pathlib.Path(base).glob('*') if p.is_file()]
-          paths += ['migrations/0100_security_commerce_boundaries.sql','server/__tests__/security-commerce-repair.test.ts']
+          paths = subprocess.check_output(['git','ls-files','-z']).decode().split('\0')
+          allowed = ('server/', 'shared/', 'api/', 'client/src/', 'script/security-remediation/', '.github/workflows/')
+          extensions={'.ts','.tsx','.mjs','.js','.py','.json','.sql','.yml','.yaml'}
           with zipfile.ZipFile('repair-results/changed-source.zip','w',zipfile.ZIP_DEFLATED) as z:
             for name in sorted(set(paths)):
               p=pathlib.Path(name)
-              if p.is_file() and not p.is_symlink() and not p.name.startswith('.env'): z.write(p,name)
+              if not name or not p.is_file() or p.is_symlink() or p.name.startswith('.env'): continue
+              if p.suffix in extensions and (name.startswith(allowed) or name.startswith('migrations/0100_') or name=='vercel.json'): z.write(p,name)
           PY
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
