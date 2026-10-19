@@ -30,6 +30,7 @@ on:
       - "client/src/components/seo/meta-tags.tsx"
       - "client/src/pages/product-details.tsx"
       - "client/src/pages/beginner-guide.tsx"
+      - "client/src/pages/bundles.tsx"
       - "client/src/main.tsx"
       - "shared/seo-contract.ts"
       - "shared/site-routes.ts"
@@ -41,6 +42,7 @@ on:
       - "test/seo-runtime-entry.test.ts"
       - "test/seo-production-safety.test.ts"
       - "test/seo-localized-robots.test.ts"
+      - "test/seo-bundles-robots.test.tsx"
       - "server/__tests__/ssr-locale-indexability.test.ts"
       - "server/__tests__/sitemap-locale-coverage.test.ts"
       - "shared/__tests__/product-seo.test.ts"
@@ -107,6 +109,7 @@ jobs:
           pnpm exec vitest run
           test/seo-preview-shell.test.tsx test/seo-runtime-entry.test.ts
           test/seo-production-safety.test.ts test/seo-localized-robots.test.ts
+          test/seo-bundles-robots.test.tsx
           server/__tests__/ssr-locale-indexability.test.ts
           server/__tests__/sitemap-locale-coverage.test.ts
           server/__tests__/ssr-seo-contract.test.ts
