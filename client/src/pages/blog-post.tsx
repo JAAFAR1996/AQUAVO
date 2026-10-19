@@ -11,6 +11,8 @@ import { blogHeroImage, blogThumbImage } from "@/lib/cloudinary";
 import { authorBylineText, authorProfilePath } from "@shared/editorial-author";
 import { articleReadingTimeLabel } from "@shared/article-reading";
 import { articleDatePublished } from "@shared/article-dates";
+import { buildArticleSeoMeta } from "@shared/article-seo";
+import { DEFAULT_LOCALE, splitLocaleFromPath } from "@shared/i18n/locales";
 import { useTranslation } from "react-i18next";
 import { isolateNumericRangesInHtml } from "@shared/i18n/bidi";
 import { DIRECT_ANSWER_HEADING, directAnswer } from "@shared/article-answer";
@@ -75,12 +77,14 @@ export default function BlogPost() {
     // of its category: both derived by the modules the crawler shell uses.
     const answer = directAnswer(post.content);
     const relatedProducts = relatedProductsForArticle(post, categoryProducts);
+    const locale = typeof window === "undefined" ? DEFAULT_LOCALE : splitLocaleFromPath(window.location.pathname).locale;
+    const searchMeta = buildArticleSeoMeta(post, { locale });
 
     return (
         <div className="flex-1 flex flex-col bg-background font-sans">
             <MetaTags
-                title={post.title}
-                description={post.excerpt || post.title}
+                title={searchMeta.title}
+                description={searchMeta.description}
                 image={post.imageUrl || undefined}
                 type="article"
             />

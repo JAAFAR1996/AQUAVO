@@ -13,6 +13,7 @@ import { getSeoMetaOverride } from "./_seo-content.js";
 import { AQUAVO_FAQ_ITEMS } from "../shared/faq-content.js";
 import { toPublicProduct, toPublicVariant } from "../shared/public-product.js";
 import { buildProductSeoMeta } from "../shared/product-seo.js";
+import { buildArticleSeoMeta } from "../shared/article-seo.js";
 export { buildProductMetaTitle, buildProductMetaDescription } from "../shared/product-seo.js";
 import { buildEntityStructuredData, buildProductStructuredData, withSiteEntities } from "./_seo-structured-data.js";
 import { isKnownSitePath } from "../shared/site-routes.js";
@@ -42,6 +43,7 @@ import { indexableLocalesForEntity } from "../shared/i18n/indexability.js";
 import { loadEntityTranslationRecords } from "./_translation-records.js";
 import { applyLocaleToHtml, SHELL_META } from "./_locale-meta.js";
 import { getLocalizedStaticMeta } from "./_static-meta-i18n.js";
+import { getStaticSearchMeta } from "./_static-search-meta.js";
 import { isPageTranslated } from "./_page-i18n.js";
 
 // ─── DB Setup (lightweight, no Drizzle overhead) ────────────────────────────
@@ -625,9 +627,10 @@ async function getBlogMeta(slug: string, locale: Locale = DEFAULT_LOCALE): Promi
     // updated_at records maintenance writes rather than rewrites, so no
     // modification date is published at all. See shared/article-dates.ts.
     const datePublished = articleDatePublished(post);
+    const searchMeta = buildArticleSeoMeta({ ...post, slug }, { locale });
     return {
-      title: `${post.title} | ${shell.blogSuffix}`,
-      description: post.excerpt || post.title,
+      title: searchMeta.title,
+      description: searchMeta.description,
       ogType: "article",
       indexableLocales: indexableLocalesForEntity("blog_post", postSource, translations),
       translationMissing: localizedPost.translationMissing,
@@ -799,9 +802,10 @@ async function resolveMetadata(pathname: string, notFound = false, locale: Local
       ],
     };
   }
-  // English / Kurdish static copy replaces the Arabic title+description; the
-  // structured data builders below still run on the logical path.
+  // Keep the original page copy as the schema input; search snippets can be
+  // shorter without renaming the document or its breadcrumb.
   const localizedStatic = locale === DEFAULT_LOCALE ? undefined : getLocalizedStaticMeta(locale, cleanPath);
+  const searchMeta = getStaticSearchMeta(locale, cleanPath);
 
   if (notFound) {
     return {
@@ -820,6 +824,7 @@ async function resolveMetadata(pathname: string, notFound = false, locale: Local
     const resolved = { ...meta, ...(seoOverride ?? {}), ...(localizedStatic ?? {}) };
     return {
       ...resolved,
+      ...(searchMeta ?? {}),
       // A page that builds its own graph keeps it; only the ones that defined
       // nothing get the WebPage + BreadcrumbList the crawler path already
       // publishes for them. The homepage is unaffected — it has its own.
@@ -863,8 +868,8 @@ async function resolveMetadata(pathname: string, notFound = false, locale: Local
 
   // Fallback
   return {
-    title: localizedStatic?.title || seoOverride?.title || (locale === DEFAULT_LOCALE ? DEFAULT_TITLE : shell.defaultTitle),
-    description: localizedStatic?.description || seoOverride?.description || (locale === DEFAULT_LOCALE ? DEFAULT_DESC : shell.defaultDescription),
+    title: searchMeta?.title || localizedStatic?.title || seoOverride?.title || (locale === DEFAULT_LOCALE ? DEFAULT_TITLE : shell.defaultTitle),
+    description: searchMeta?.description || localizedStatic?.description || seoOverride?.description || (locale === DEFAULT_LOCALE ? DEFAULT_DESC : shell.defaultDescription),
     keywords: localizedStatic?.keywords || seoOverride?.keywords || DEFAULT_KEYWORDS,
     url: canonicalUrlFor(cleanPath),
     noIndex,
@@ -1181,7 +1186,11 @@ function safeHttpUrl(raw: string, fallback: string): string {
 // ─── Markdown for Agents ────────────────────────────────────────────────────
 function generateMarkdown(meta: PageMeta & { url: string; image: string }, pathname: string): string {
   const lines: string[] = [];
-  lines.push(`# ${meta.title}\n`);
+  const nodes = Array.isArray(meta.jsonLd) ? meta.jsonLd : meta.jsonLd ? [meta.jsonLd] : [];
+  const articleTitle = pathname.startsWith("/blog/")
+    ? nodes.map((node) => node as Record<string, unknown>).find((node) => node["@type"] === "Article")?.headline
+    : undefined;
+  lines.push(`# ${typeof articleTitle === "string" ? articleTitle : meta.title}\n`);
   lines.push(`${meta.description}\n`);
   lines.push(`**URL:** ${meta.url}\n`);
 

@@ -12,6 +12,7 @@ import { DEFAULT_LOCALE, LOCALES, SUPPORTED_LOCALES, localizePath, splitLocaleFr
 import { RELEASED_LOCALES, isLocaleReleased } from "@shared/i18n/release";
 import { indexableAlternatesFor, isTranslatedEntityPath } from "@shared/i18n/indexability";
 import { stripBidiControls } from "@shared/i18n/bidi";
+import { getGenericStaticSearchMeta } from "@/i18n/static-meta";
 
 /** Locale of the page on screen, read from the URL prefix (the source of truth). */
 function currentLocale(): Locale {
@@ -144,10 +145,18 @@ export function MetaTags({
       /\bnoindex\b/i.test(document.head.querySelector<HTMLMetaElement>('meta[name="robots"]')?.content ?? "");
     const effectiveNoIndex = noIndex || !isLocaleReleased(locale) || inheritedNoIndex ||
       (entityPage && locale !== DEFAULT_LOCALE && !eligibleLocales?.includes(locale));
-    const description = descriptionProp ?? DEFAULT_DESCRIPTIONS[locale];
-    const fullTitle = /\|\s*AQUAVO(?:\s|$)/i.test(title)
+    // Products supplies its category-specific copy. Keep that data in the
+    // Products route instead of loading every category through MetaTags.
+    const categoryListing = Boolean(canonicalProductCategory(new URLSearchParams(canonicalSearch).get("category")));
+    const staticSearch = !notFound && !categoryListing
+      ? getGenericStaticSearchMeta(locale, logicalPath)
+      : undefined;
+    // Shipping supplies the live configured fee in its own description.
+    const description = (logicalPath === "/shipping" ? descriptionProp : undefined)
+      ?? staticSearch?.description ?? descriptionProp ?? DEFAULT_DESCRIPTIONS[locale];
+    const fullTitle = staticSearch?.title ?? (/\|\s*AQUAVO(?:\s|$)/i.test(title)
       ? title
-      : `${title} | ${TITLE_SUFFIX[locale]}`;
+      : `${title} | ${TITLE_SUFFIX[locale]}`);
     document.title = stripBidiControls(fullTitle);
 
     const setMetaTag = (name: string, content: string, property = false) => {
