@@ -9,11 +9,11 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { X, RotateCcw, Check, DollarSign, Tag, Star, Sparkles, PackageCheck, TrendingUp } from "lucide-react";
+import { X, RotateCcw, Check, DollarSign, Tag, Sparkles, PackageCheck, TrendingUp } from "lucide-react";
 import { DualRangeSlider } from "@/components/ui/dual-range-slider";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
-import { PRODUCT_DIFFICULTY_VALUES, PRODUCT_TAG_VALUES } from "@/lib/product-filter-values";
+import { PRODUCT_TAG_VALUES } from "@/lib/product-filter-values";
 
 export interface FilterState {
     priceRange: [number, number];
@@ -144,12 +144,6 @@ export function FilterModal({
         }
     };
 
-    const difficulties = [
-        { label: t("difficulty.beginner"), value: PRODUCT_DIFFICULTY_VALUES.beginner, color: "green" as const },
-        { label: t("difficulty.intermediate"), value: PRODUCT_DIFFICULTY_VALUES.intermediate, color: "orange" as const },
-        { label: t("difficulty.advanced"), value: PRODUCT_DIFFICULTY_VALUES.advanced, color: "purple" as const },
-    ];
-
     const tags = [
         { label: t("tags.new"), value: PRODUCT_TAG_VALUES.new, icon: Sparkles, color: "blue" as const },
         { label: t("tags.bestSeller"), value: PRODUCT_TAG_VALUES.bestSeller, icon: TrendingUp, color: "orange" as const },
@@ -269,20 +263,6 @@ export function FilterModal({
                         </FilterSection>
                     )}
 
-                    {/* Difficulty */}
-                    <FilterSection title={t("filters.experience")} icon={Star}>
-                        <div className="flex flex-wrap gap-3">
-                            {difficulties.map((diff) => (
-                                <FilterPill
-                                    key={diff.value}
-                                    label={diff.label}
-                                    color={diff.color}
-                                    selected={localFilters.difficulties.includes(diff.value)}
-                                    onClick={() => toggleArrayFilter("difficulties", diff.value)}
-                                />
-                            ))}
-                        </div>
-                    </FilterSection>
                 </div>
 
                 {/* Footer */}

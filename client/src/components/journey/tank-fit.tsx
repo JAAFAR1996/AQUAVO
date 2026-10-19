@@ -1,168 +1,132 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
+import { z } from "zod";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, HelpCircle, PackageSearch } from "lucide-react";
+import { Info, PackageSearch } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { i18next } from "@/i18n";
+import type { FitCandidate } from "@shared/tank-compatibility";
+import type { WizardData } from "@/types/journey";
+import { filterJourneyFitGroups, normalizeWizardData } from "./utils";
+import { JourneySupport } from "./journey-support";
 
-/**
- * What AQUAVO actually stocks for the tank the customer just described.
- *
- * The wizard already asks for litres. Until now it answered with generic aquarium rules — "1 واط لكل
- * لتر" — which name no product AQUAVO sells and can contradict the catalogue outright: that rule
- * prescribes 80W for an 80 litre tank, while AQUAVO's own 100W heater is rated by its manufacturer for
- * 50–100 litres. Sizing is 19% of every customer message AQUAVO receives, and it is currently answered
- * by a human, once per sale.
- *
- * This component shows only what the catalogue can defend. A product appears as a match ONLY when its
- * own specification states a litre range that covers this tank. Products whose specification states no
- * range are listed separately and explicitly as "size not stated" — never silently promoted into the
- * recommendation, and never hidden either.
- */
+const candidateSchema = z.object({
+    productId: z.string(), name: z.string(), slug: z.string().nullable(), category: z.string().nullable(),
+    price: z.number().finite().nullable(), variantId: z.string().nullable(), variantLabel: z.string().nullable(),
+    inStock: z.boolean(), range: z.object({ minL: z.number().nullable(), maxL: z.number().nullable() }).nullable(),
+    confidence: z.enum(["VERIFIED", "PARTIAL", "NONE"]),
+    verdict: z.enum(["FITS", "TOO_SMALL_FOR_TANK", "TOO_LARGE_FOR_TANK"]).nullable(),
+    evidence: z.string().nullable(), evidenceKey: z.string().nullable(),
+    // Older responses without equipment identity cannot establish the selected approach.
+    filterType: z.enum(["hob", "canister", "sponge", "internal"]).nullable().optional().default(null),
+    heaterWattage: z.number().nullable().optional().default(null),
+    isHeater: z.boolean().optional().default(false),
+});
+const fitResponseSchema = z.object({
+    litres: z.number().finite(),
+    groups: z.array(z.object({
+        category: z.string(), fits: z.array(candidateSchema),
+        ratedButUnsuitable: z.array(candidateSchema), noSizeEvidence: z.array(candidateSchema),
+    })),
+});
 
-type Range = { minL: number | null; maxL: number | null };
-type Candidate = {
-  productId: string;
-  name: string;
-  slug: string | null;
-  category: string | null;
-  price: number | null;
-  variantId: string | null;
-  variantLabel: string | null;
-  range: Range | null;
-  evidence: string | null;
-};
-type Group = {
-  category: string;
-  fits: Candidate[];
-  ratedButUnsuitable: (Candidate & { verdict: string })[];
-  noSizeEvidence: Candidate[];
-};
-
-const fmtPrice = (p: number | null) => (typeof p === "number" && p > 0 ? i18next.t("tools:tank-fit.s1", { v0: p.toLocaleString("en-US") }) : null);
-
-function ProductLine({ c, tone }: { c: Candidate; tone: "fit" | "unknown" }) {
-  const { t } = useTranslation("tools");
-  const href = c.slug ? `/products/${c.slug}` : `/products/${c.productId}`;
-  // wouter v3 renders the anchor itself — nesting an <a> here would emit invalid <a><a>.
-  return (
-    <Link
-      href={href}
-      className="flex items-start justify-between gap-3 rounded-lg border border-border bg-background/60 p-3 transition-colors hover:border-primary/50"
-    >
-      <span className="min-w-0 text-right">
-        <span className="block text-sm font-bold text-foreground">
-          {c.name}
-          {c.variantLabel ? <span className="text-primary"> — {c.variantLabel}</span> : null}
-        </span>
-        {/* The exact catalogue sentence the match came from. A shopper can check our work. */}
-        <span className="mt-0.5 block text-xs text-muted-foreground">
-          {c.evidence ?? t("tank-fit.s2")}
-        </span>
-      </span>
-      <span className="shrink-0 text-left">
-        {fmtPrice(c.price) ? <span className="block text-xs font-bold text-foreground">{fmtPrice(c.price)}</span> : null}
-        {tone === "fit" ? (
-          <Badge className="mt-1 bg-primary/15 text-primary hover:bg-primary/15">{t("tank-fit.s3")}</Badge>
-        ) : (
-          <Badge variant="outline" className="mt-1">{t("tank-fit.s4")}</Badge>
-        )}
-      </span>
-    </Link>
-  );
+function ProductLine({ candidate, tone }: { candidate: FitCandidate; tone: "fit" | "unknown" | "excluded" }) {
+    const { t } = useTranslation("tools");
+    const href = `/products/${encodeURIComponent(candidate.slug || candidate.productId)}`;
+    return (
+        <Link href={href} className="flex flex-wrap items-start justify-between gap-3 rounded-lg border border-border bg-background/60 p-3 text-start transition-colors hover:border-primary/50">
+            <span className="min-w-0 flex-1 basis-48">
+                <span className="block text-sm font-bold text-foreground">
+                    {candidate.name}
+                    {candidate.variantLabel && <span className="text-primary"> — {candidate.variantLabel}</span>}
+                </span>
+                <span className="mt-1 block text-xs text-muted-foreground">
+                    {candidate.evidence || t("tank-fit.s2")}
+                </span>
+                <span className="mt-1 block text-xs text-primary">{t("tank-fit.reviewProduct")}</span>
+            </span>
+            <span className="shrink-0">
+                {candidate.price !== null && candidate.price > 0 && (
+                    <span className="block text-xs font-bold text-foreground">{t("tank-fit.s1", { v0: candidate.price.toLocaleString("en-US") })}</span>
+                )}
+                <Badge variant="outline" className="mt-1 whitespace-normal text-start">
+                    {t(tone === "fit" ? "tank-fit.s3" : tone === "excluded" ? "tank-fit.excluded" : "tank-fit.s4")}
+                </Badge>
+            </span>
+        </Link>
+    );
 }
 
-export function TankFit({ litres }: { litres: number }) {
-  const { t } = useTranslation("tools");
-  const enabled = Number.isFinite(litres) && litres >= 10 && litres <= 2000;
+export function TankFit({ litres, wizardData, showSupport = true }: { litres: number; wizardData?: WizardData; showSupport?: boolean }) {
+    const { t } = useTranslation("tools");
+    const enabled = Number.isFinite(litres) && litres >= 10 && litres <= 2000;
+    const support = showSupport ? <JourneySupport wizardData={wizardData ?? normalizeWizardData({ tankLiters: litres })} /> : null;
+    const { data, isLoading, isError } = useQuery({
+        queryKey: ["products", "fit", litres],
+        queryFn: async () => {
+            const response = await fetch(`/api/products/fit?litres=${litres}`);
+            if (!response.ok) throw new Error("Fit request failed");
+            const result = fitResponseSchema.parse(await response.json());
+            if (result.litres !== litres) throw new Error("Fit response volume mismatch");
+            return result;
+        },
+        enabled, staleTime: 5 * 60 * 1000, retry: false,
+    });
 
-  const { data, isLoading, isError } = useQuery<{ litres: number; groups: Group[]; limitation: string }>({
-    queryKey: ["products", "fit", litres],
-    queryFn: async () => {
-      const r = await fetch(`/api/products/fit?litres=${litres}`);
-      if (!r.ok) throw new Error("fit request failed");
-      return r.json();
-    },
-    enabled,
-    staleTime: 5 * 60 * 1000,
-    retry: false,
-  });
-
-  if (!enabled) {
-    return (
-      <div className="rounded-xl border border-dashed border-border p-4 text-right text-sm text-muted-foreground">
-        {t("tank-fit.s5")}
-      </div>
-    );
-  }
-
-  // A failed request must not become a confident-looking answer.
-  if (isError) {
-    return (
-      <div className="rounded-xl border border-border p-4 text-right text-sm text-muted-foreground">
-        {t("tank-fit.s6")}
-      </div>
-    );
-  }
-  if (isLoading || !data) {
-    return <div className="rounded-xl border border-border p-4 text-right text-sm text-muted-foreground">{t("tank-fit.s7")}</div>;
-  }
-
-  const groups = (data.groups ?? []).filter((g) => g.fits.length > 0 || g.noSizeEvidence.length > 0);
-  const anyFit = groups.some((g) => g.fits.length > 0);
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2 text-right">
-        <PackageSearch className="h-5 w-5 text-primary" />
-        <div className="font-bold text-foreground">{t("tank-fit.s8")} {litres} {t("tank-fit.s9")}</div>
-      </div>
-
-      {!anyFit && (
-        <div className="rounded-xl border border-border bg-muted/30 p-4 text-right text-sm text-muted-foreground">
-          {t("tank-fit.s10")} {litres} {t("tank-fit.s11")}
-        </div>
-      )}
-
-      {groups.map((g) => (
-        <div key={g.category} className="space-y-2">
-          <div className="text-right text-sm font-bold text-foreground">{g.category}</div>
-
-          {g.fits.length > 0 && (
-            <div className="space-y-2">
-              {g.fits.map((c) => (
-                <ProductLine key={`${c.productId}:${c.variantId ?? "-"}`} c={c} tone="fit" />
-              ))}
+    if (!enabled || isError || isLoading || !data) {
+        return (
+            <div className="space-y-3">
+                <p className="rounded-xl border border-dashed border-border p-4 text-start text-sm text-muted-foreground" role="status">
+                    {t(!enabled ? "tank-fit.s5" : isError ? "tank-fit.s6" : "tank-fit.s7")}
+                </p>
+                {support}
             </div>
-          )}
+        );
+    }
 
-          {g.fits.length === 0 && g.noSizeEvidence.length > 0 && (
-            <div className="flex items-start gap-2 rounded-lg bg-muted/30 p-3 text-right text-xs text-muted-foreground">
-              <HelpCircle className="mt-0.5 h-4 w-4 shrink-0" />
-              <span>{t("tank-fit.s12")}</span>
+    const groups = filterJourneyFitGroups(data.groups, wizardData);
+    const anyFit = groups.some((group) => group.fits.length > 0);
+
+    return (
+        <div className="space-y-4 text-start" data-testid="journey-tank-fit">
+            <h3 className="flex items-start gap-2 font-bold text-foreground">
+                <PackageSearch className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
+                {t("tank-fit.heading", { litres })}
+            </h3>
+            <p className="text-sm text-muted-foreground">{t("tank-fit.selectionScope")}</p>
+
+            {!anyFit && <p className="rounded-xl border border-border bg-muted/30 p-4 text-sm text-muted-foreground">{t("tank-fit.noMatch", { litres })}</p>}
+
+            {groups.map((group) => (
+                <section key={group.category} className="space-y-2">
+                    <h4 className="text-sm font-bold text-foreground">
+                        {t(group.category === "التحكم بالحرارة" ? "journey-summary.s19" : "journey-summary.s18")}
+                    </h4>
+                    {group.fits.map((candidate) => <ProductLine key={`${candidate.productId}:${candidate.variantId ?? "-"}`} candidate={candidate} tone="fit" />)}
+                    {group.noSizeEvidence.length > 0 && (
+                        <details className="rounded-lg border border-border p-3" open={group.fits.length === 0}>
+                            <summary className="cursor-pointer text-sm text-muted-foreground">{t("tank-fit.unknownCount", { count: group.noSizeEvidence.length })}</summary>
+                            <p className="mt-2 text-xs text-muted-foreground">{t("tank-fit.s12")}</p>
+                            <div className="mt-2 space-y-2">
+                                {group.noSizeEvidence.slice(0, 6).map((candidate) => <ProductLine key={`${candidate.productId}:${candidate.variantId ?? "-"}`} candidate={candidate} tone="unknown" />)}
+                            </div>
+                        </details>
+                    )}
+                    {group.ratedButUnsuitable.length > 0 && (
+                        <details className="rounded-lg border border-border/60 p-3">
+                            <summary className="cursor-pointer text-xs text-muted-foreground">{t("tank-fit.excludedCount", { count: group.ratedButUnsuitable.length })}</summary>
+                            <div className="mt-2 space-y-2">
+                                {group.ratedButUnsuitable.slice(0, 4).map((candidate) => <ProductLine key={`${candidate.productId}:${candidate.variantId ?? "-"}`} candidate={candidate} tone="excluded" />)}
+                            </div>
+                        </details>
+                    )}
+                </section>
+            ))}
+
+            <div className="flex items-start gap-2 rounded-lg bg-muted/20 p-3 text-xs text-muted-foreground">
+                <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+                <p>{t("tank-fit.limitation")}</p>
             </div>
-          )}
-
-          {/* Shown, but never as a match. Hiding them would imply AQUAVO has nothing; promoting them would be a guess. */}
-          {g.noSizeEvidence.length > 0 && (
-            <details className="rounded-lg border border-border/60 p-2">
-              <summary className="cursor-pointer text-right text-xs text-muted-foreground">
-                {t("tank-fit.s13")}{g.noSizeEvidence.length}{t("tank-fit.s14")}
-              </summary>
-              <div className="mt-2 space-y-2">
-                {g.noSizeEvidence.slice(0, 6).map((c) => (
-                  <ProductLine key={`${c.productId}:${c.variantId ?? "-"}`} c={c} tone="unknown" />
-                ))}
-              </div>
-            </details>
-          )}
+            {support}
         </div>
-      ))}
-
-      <div className="flex items-start gap-2 rounded-lg bg-muted/20 p-3 text-right text-xs text-muted-foreground">
-        <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-        <span>{data.limitation}</span>
-      </div>
-    </div>
-  );
+    );
 }

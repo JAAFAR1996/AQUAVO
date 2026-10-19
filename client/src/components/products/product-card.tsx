@@ -5,13 +5,13 @@ import { Link, useLocation } from "wouter";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { DifficultyBadge } from "@/components/ui/difficulty-badge";
 import { WishlistButton } from "@/components/wishlist/wishlist-button";
 import { isWoodMonthEndSale, WoodSaleCountdown } from "@/components/products/wood-sale-countdown";
 import { useCart } from "@/contexts/cart-context";
 import { cardImage, cardImageSrcSet } from "@/lib/cloudinary";
 import { formatPrice } from "@/lib/format";
 import { getProductDisplayIdentity } from "@/lib/product-display";
+import { getProductPriceDisplay } from "@/lib/product-pricing";
 import { trackSelectItem } from "@/lib/analytics";
 import { flyProductToCart } from "@/lib/motion/fly-to-cart";
 import { isolateNumericRanges as bidi } from "@shared/i18n/bidi";
@@ -58,11 +58,8 @@ export const ProductCard = memo(function ProductCard({
     prefetchProductDestination(product.slug, product.thumbnail || product.image);
   };
 
-  const variantPrices = product.hasVariants && product.variants?.length
-    ? product.variants.map((variant) => variant.price).filter((price) => price > 0)
-    : [];
-  const variantMinPrice = variantPrices.length > 0 ? Math.min(...variantPrices) : undefined;
-  const hasPrice = (product.price ?? 0) > 0 || variantMinPrice !== undefined;
+  const priceDisplay = getProductPriceDisplay(product);
+  const hasPrice = priceDisplay.price !== null;
   const requiresVariantChoice = Boolean(product.hasVariants && product.variants?.length);
   const isOutOfStock = requiresVariantChoice
     ? product.variants?.every((variant) => (variant.stock ?? 0) <= 0) ?? true
@@ -164,7 +161,6 @@ export const ProductCard = memo(function ProductCard({
           ) : null}
           {product.isNew ? <Badge className="bg-primary text-primary-foreground">{t("tags.new")}</Badge> : null}
           {product.isBestSeller ? <Badge variant="secondary">{t("tags.bestSeller")}</Badge> : null}
-          {product.difficulty ? <DifficultyBadge level={product.difficulty} className="shrink-0 bg-[#f7f4ef]/88 backdrop-blur-md" /> : null}
           {product.ecoFriendly ? (
             <Badge variant="outline" className="gap-1 border-primary/25 bg-[#f7f4ef]/88 text-primary backdrop-blur-md">
               <Leaf className="h-3 w-3" aria-hidden="true" />
@@ -240,21 +236,19 @@ export const ProductCard = memo(function ProductCard({
             <div className="flex min-w-0 flex-wrap items-baseline gap-x-1.5">
               {hasPrice ? (
                 <>
-                  {requiresVariantChoice && variantMinPrice !== undefined ? (
+                  {priceDisplay.isFromPrice ? (
                     <span className="text-[11px] text-muted-foreground">{t("card.from")}</span>
                   ) : null}
                   <span className="whitespace-nowrap text-base font-bold text-primary sm:text-lg">
-                    {requiresVariantChoice && variantMinPrice !== undefined
-                      ? formatPrice(variantMinPrice)
-                      : formatPrice(product.price ?? 0)}
+                    {formatPrice(priceDisplay.price ?? 0)}
                   </span>
-                  {!requiresVariantChoice && (product.originalPrice ?? 0) > (product.price ?? 0) ? (
+                  {priceDisplay.originalPrice !== null && priceDisplay.savings !== null ? (
                     <>
                       <span className="whitespace-nowrap text-[11px] text-muted-foreground line-through">
-                        {formatPrice(product.originalPrice ?? 0)}
+                        {formatPrice(priceDisplay.originalPrice)}
                       </span>
                       <span className="whitespace-nowrap text-[10px] font-semibold text-primary/80">
-                        {t("card.save", { amount: formatPrice((product.originalPrice ?? 0) - (product.price ?? 0)) })}
+                        {t("card.save", { amount: formatPrice(priceDisplay.savings) })}
                       </span>
                     </>
                   ) : null}

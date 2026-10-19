@@ -24,15 +24,6 @@ import { MaintenanceSchedule } from "@/components/journey/maintenance-schedule";
 import { JourneySummary } from "@/components/journey/journey-summary";
 import { useTranslation } from "react-i18next";
 
-function readWizardStep(): string | null {
-  if (typeof window === "undefined") return null;
-  try {
-    return window.localStorage.getItem("wizardStep");
-  } catch {
-    return null;
-  }
-}
-
 function scrollBehavior(): ScrollBehavior {
   if (typeof window === "undefined") return "auto";
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
@@ -47,50 +38,30 @@ export default function JourneyPage() {
     setCurrentStep,
     wizardData,
     updateData,
+    continueJourney,
     nextStep,
     prevStep,
     saveJourney,
     resetJourney,
     savedPlan,
+    hasActiveSession,
     isLoadingSavedPlan,
-    isSaving,
-    products
+    isSaving
   } = useJourney();
 
   useEffect(() => {
     topRef.current?.scrollIntoView({ behavior: scrollBehavior() });
   }, [currentStep]);
 
-  if (isLoadingSavedPlan) return <PageLoader />;
+  if (isLoadingSavedPlan && !hasActiveSession) return <PageLoader />;
 
-  const localStep = readWizardStep();
-
-  if (savedPlan && currentStep === 0 && JSON.stringify(wizardData).length < 200) {
-    if (!localStep) {
-      return (
-        <SavedPlanView
-          plan={savedPlan}
-          onContinue={(data) => {
-            Object.entries(data).forEach(([key, value]) => {
-              updateData(key as any, value);
-            });
-          }}
-          onDelete={resetJourney}
-        />
-      );
-    }
-  }
-
-  const hasLocalSession = localStep !== null;
-  const showSavedPlan = savedPlan && !hasLocalSession && currentStep === 0;
+  const showSavedPlan = savedPlan && !hasActiveSession && currentStep === 0;
 
   if (showSavedPlan) {
     return (
       <SavedPlanView
         plan={savedPlan}
-        onContinue={(data) => {
-          Object.keys(data).forEach(key => updateData(key as any, data[key]));
-        }}
+        onContinue={continueJourney}
         onDelete={resetJourney}
       />
     );
@@ -108,7 +79,7 @@ export default function JourneyPage() {
       case 5: return <NitrogenCycle {...commonProps} />;
       case 6: return <FishSelection {...commonProps} />;
       case 7: return <MaintenanceSchedule {...commonProps} />;
-      case 8: return <JourneySummary wizardData={wizardData} products={products} />;
+      case 8: return <JourneySummary wizardData={wizardData} onReset={resetJourney} onSave={saveJourney} isSaving={isSaving} />;
       default: return <TankSelection {...commonProps} />;
     }
   };

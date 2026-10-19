@@ -1,19 +1,11 @@
 /**
  * Tank-size compatibility, derived ONLY from what the catalogue actually states.
  *
- * WHY THIS EXISTS. "شنو الفلتر/الهيتر المناسب لحوضي؟" is the single most common question AQUAVO's
- * customers ask — 38 of 201 chat messages (19%) are sizing questions, more than any other theme, and they
- * are phrased in litres. The site already asks for litres in the journey wizard and then answered with
- * GENERIC aquarium rules ("1 واط لكل لتر"), never naming a product AQUAVO sells.
- *
- * That generic rule is not harmless. For an 80 litre tank it prescribes 80W. AQUAVO's own catalogue says
- * its 100W heater covers 50–100 litres. The rule and the specification disagree, and the specification is
- * the authority — it is the manufacturer's rating for the exact SKU on the shelf.
- *
- * THE CONTRACT. Every recommendation traces to a specification string stored on the product or its
+ * Every candidate traces to a specification string stored on the product or its
  * variant. Nothing here estimates, interpolates, or falls back to a rule of thumb. A SKU with no stated
  * range is NOT assumed to fit — it is reported as having no evidence, which is a different and honest
- * answer. UNKNOWN stays UNKNOWN.
+ * answer. UNKNOWN stays UNKNOWN. VERIFIED describes a readable catalogue range, not independent
+ * verification of a manufacturer claim or approval of the customer's complete setup.
  */
 
 export type CompatibilityConfidence = "VERIFIED" | "PARTIAL" | "NONE";
@@ -90,7 +82,10 @@ function extractRanges(raw: string): TankRange[] {
     if (from) ranges.push({ minL: Number(from[1]), maxL: null });
   }
 
-  return ranges.filter((r) => (r.minL === null || r.minL > 0) && (r.maxL === null || r.maxL > 0));
+  return ranges.filter((r) =>
+    (r.minL === null || r.minL > 0) &&
+    (r.maxL === null || r.maxL > 0) &&
+    (r.minL === null || r.maxL === null || r.minL <= r.maxL));
 }
 
 /**
@@ -110,7 +105,8 @@ export function classifySpecs(specs: unknown): { range: TankRange | null; confid
     const value = bag[key];
     if (typeof value !== "string" || !value.trim()) continue;
     const ranges = extractRanges(value);
-    if (ranges.length === 1) return { range: ranges[0], confidence: "VERIFIED", evidence: value, evidenceKey: key };
+    // A lower bound with "+" does not establish capacity for every larger tank.
+    if (ranges.length === 1 && ranges[0].maxL !== null) return { range: ranges[0], confidence: "VERIFIED", evidence: value, evidenceKey: key };
     if (ranges.length > 1) return { range: null, confidence: "PARTIAL", evidence: value, evidenceKey: key };
     // Text is present but states no litres — e.g. "جميع أحجام الأحواض", "أحواض التفريخ".
     return { range: null, confidence: "PARTIAL", evidence: value, evidenceKey: key };
@@ -120,6 +116,8 @@ export function classifySpecs(specs: unknown): { range: TankRange | null; confid
 
 /** Does a stated range cover this tank? A null bound means that side is unbounded. */
 export function rangeCovers(range: TankRange, litres: number): boolean {
+  if (!Number.isFinite(litres) || litres <= 0) return false;
+  if (range.minL !== null && range.maxL !== null && range.minL > range.maxL) return false;
   if (range.minL !== null && litres < range.minL) return false;
   if (range.maxL !== null && litres > range.maxL) return false;
   return true;
@@ -139,6 +137,7 @@ export interface CandidateInput {
   name: string;
   slug?: string | null;
   category?: string | null;
+  subcategory?: string | null;
   price?: unknown;
   stock?: unknown;
   specifications?: unknown;
@@ -160,9 +159,50 @@ export interface FitCandidate {
   verdict: FitVerdict | null;
   evidence: string | null;
   evidenceKey: string | null;
+  /** Equipment identity comes from explicit names/type fields, never from tank volume or ratings. */
+  filterType: FilterType | null;
+  heaterWattage: number | null;
+  isHeater: boolean;
+}
+
+export type FilterType = "hob" | "canister" | "sponge" | "internal";
+
+function specificationText(specifications: unknown, keys: string[]): string {
+  if (!specifications || typeof specifications !== "object" || Array.isArray(specifications)) return "";
+  const bag = specifications as Record<string, unknown>;
+  return keys.map((key) => typeof bag[key] === "string" ? bag[key] : "").join(" ");
+}
+
+/** A filter medium or accessory must never substitute for a complete filter. */
+export function identifyFilterType(product: Pick<CandidateInput, "name" | "subcategory" | "specifications">): FilterType | null {
+  const text = `${product.name} ${product.subcategory ?? ""} ${specificationText(product.specifications, ["النوع", "نوع الفلتر"])}`
+    .toLowerCase().replace(/[أإآ]/g, "ا").replace(/[\u064B-\u065F\u0670]/g, "");
+  if (/(ميديا|وسائط|قطن|حلقات|مشبك|مشابك|انابيب|ماصات|كيس|كربون|قطع غيار|دواء|علاج|مطهر|مضاد|media|replacement|cartridge|clip|hose|tube|pad|floss|medication|medicine|treatment|antibiotic)/i.test(text)) return null;
+  if (!/(فلتر(?!ة)|فلاتر|\bfilters?\b)/i.test(text)) return null;
+  const types: FilterType[] = [];
+  if (/(اسفنج|sponge)/i.test(text)) types.push("sponge");
+  if (/(كانستر|كنستر|canister)/i.test(text)) types.push("canister");
+  if (/(معلق|جداري|شلال|hang[ -]*on|\bhob\b)/i.test(text)) types.push("hob");
+  if (/(داخلي|internal)/i.test(text)) types.push("internal");
+  return types.length === 1 ? types[0] : null;
+}
+
+function isHeater(product: CandidateInput): boolean {
+  const text = `${product.name} ${product.subcategory ?? ""} ${specificationText(product.specifications, ["النوع"])}`;
+  return /(?:سخان|هيتر|\bheater\b)/i.test(text) && !/(حامل|مشبك|ماصات|غطاء|دواء|علاج|مطهر|مضاد|holder|clip|cover|medication|medicine|treatment|antibiotic)/i.test(text);
+}
+
+function readWattage(specifications: unknown, label: string): number | null {
+  // A variant's own wattage/label must be used; a parent name can list several wattages.
+  const stated = specificationText(specifications, ["القدرة", "القدرة الكهربائية", "الاستطاعة"]);
+  const text = normaliseDigits(stated.trim() || label);
+  if (/\d\s*[/–—-]\s*\d/.test(text)) return null;
+  const matches = [...text.matchAll(/(\d{1,4})\s*(?:واط|وات|watts?|w\b)/gi)];
+  return matches.length === 1 && Number(matches[0][1]) > 0 ? Number(matches[0][1]) : null;
 }
 
 function toNumber(v: unknown): number | null {
+  if ((typeof v !== "number" && typeof v !== "string") || (typeof v === "string" && !v.trim())) return null;
   const n = Number(v);
   return Number.isFinite(n) ? n : null;
 }
@@ -183,16 +223,21 @@ export function expandCandidates(product: CandidateInput): FitCandidate[] {
     name: product.name,
     slug: (product.slug as string) ?? null,
     category: (product.category as string) ?? null,
-    price: toNumber(product.price),
+    filterType: identifyFilterType(product),
+    isHeater: isHeater(product),
   };
 
-  const variants = Array.isArray(product.variants) ? (product.variants as Record<string, unknown>[]) : [];
+  const variants = Array.isArray(product.variants)
+    ? product.variants.filter((v): v is Record<string, unknown> => !!v && typeof v === "object" && !Array.isArray(v))
+    : [];
   if (variants.length > 0) {
-    return variants.map((v) => {
+    return variants.filter((v) => typeof v.id === "string" && v.id.trim()).map((v) => {
       const variantLevel = classifySpecs(v.specifications);
-      const chosen = variantLevel.confidence === "VERIFIED" ? variantLevel : productLevel;
+      // An explicit but ambiguous variant statement cannot be overridden by a parent range.
+      const chosen = variantLevel.confidence !== "NONE" ? variantLevel : productLevel;
       return {
         ...base,
+        price: toNumber(v.price),
         variantId: (v.id as string) ?? null,
         variantLabel: (v.label as string) ?? null,
         inStock: (toNumber(v.stock) ?? 0) > 0,
@@ -201,12 +246,17 @@ export function expandCandidates(product: CandidateInput): FitCandidate[] {
         verdict: null,
         evidence: chosen.evidence,
         evidenceKey: chosen.evidenceKey,
+        heaterWattage: base.isHeater ? readWattage(v.specifications, typeof v.label === "string" ? v.label : "") : null,
       };
     });
   }
 
+  // A missing variant list is not permission to sell the parent's placeholder price/stock.
+  if (product.hasVariants || (Array.isArray(product.variants) && product.variants.length > 0)) return [];
+
   return [{
     ...base,
+    price: toNumber(product.price),
     variantId: null,
     variantLabel: null,
     inStock: (toNumber(product.stock) ?? 0) > 0,
@@ -215,6 +265,7 @@ export function expandCandidates(product: CandidateInput): FitCandidate[] {
     verdict: null,
     evidence: productLevel.evidence,
     evidenceKey: productLevel.evidenceKey,
+    heaterWattage: base.isHeater ? readWattage(product.specifications, product.name) : null,
   }];
 }
 
@@ -235,6 +286,7 @@ export interface CategoryFit {
  * saying nothing, and stock is already the gate the rest of Growth OS reasons about.
  */
 export function fitCatalogue(products: CandidateInput[], litres: number): CategoryFit[] {
+  if (!Number.isFinite(litres) || litres <= 0) return [];
   const byCategory = new Map<string, CategoryFit>();
 
   for (const product of products) {
@@ -245,7 +297,7 @@ export function fitCatalogue(products: CandidateInput[], litres: number): Catego
     const bucket = byCategory.get(category)!;
 
     for (const candidate of expandCandidates(product)) {
-      if (!candidate.inStock) continue;
+      if (!candidate.inStock || candidate.price === null || candidate.price <= 0) continue;
       if (candidate.confidence === "VERIFIED" && candidate.range) {
         const verdict = fitVerdict(candidate.range, litres);
         const withVerdict = { ...candidate, verdict };

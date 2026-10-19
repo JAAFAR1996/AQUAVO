@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect, useRef, lazy, Suspense } from "react";
 import { phTrackCategoryClick } from "@/lib/posthog";
 import { useInView } from "@/hooks/use-in-view";
-import { Link, useLocation } from "wouter";
+import { Link, useLocation, useSearch } from "wouter";
 import { AlertCircle, ArrowUpDown, Banknote, Clock, Headphones, RefreshCw, Sparkles, Truck, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MetaTags, ItemListSchema, BreadcrumbSchema } from "@/components/seo/meta-tags";
@@ -29,6 +29,8 @@ import { localizeCategoryName } from "@shared/i18n/categories";
 import { PRODUCT_TAG_VALUES, productDifficultyKey, productTagKey } from "@/lib/product-filter-values";
 import { getLocalizedStaticMeta } from "@/i18n/static-meta";
 import { formatShippingFeeNumber, useShippingFee } from "@/contexts/shipping-fee-context";
+import { FoodCategoryGuide } from "@/components/products/food-choice-guide";
+import { foodFilterSchema, isFoodCategory, matchesFoodFilter, type FoodFilter } from "@shared/food-choice";
 
 const FilterModal = lazy(() => import("@/components/products/filter-modal").then(m => ({ default: m.FilterModal })));
 const QuickViewModal = lazy(() => import("@/components/products/quick-view-modal").then(m => ({ default: m.QuickViewModal })));
@@ -47,8 +49,9 @@ export default function Products() {
   const { locale, dir } = useLocale();
   const shippingFeeLabel = formatShippingFeeNumber(useShippingFee());
   const [location, setLocation] = useLocation();
+  const search = useSearch();
   const { user } = useAuth();
-  const searchParams = new URLSearchParams(window.location.search);
+  const searchParams = new URLSearchParams(search);
   const initialCategory = searchParams.get("category");
   // Canonical identity of this listing, from the same builder SSR uses, so the
   // category facet survives hydration instead of collapsing to bare /products.
@@ -83,6 +86,12 @@ export default function Products() {
   );
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [foodFilter, setFoodFilter] = useState<FoodFilter>(() => {
+    const value = foodFilterSchema.safeParse(searchParams.get("food"));
+    return value.success ? value.data : "all";
+  });
+  const isFoodListing = filters.categories.length === 1 && isFoodCategory(filters.categories[0]);
+  useEffect(() => { if (!isFoodListing) setFoodFilter("all"); }, [isFoodListing]);
   const [displayCount, setDisplayCount] = useState(() => {
     try {
       const saved = sessionStorage.getItem("aq_products_display_count");
@@ -95,9 +104,11 @@ export default function Products() {
   const lastLoadAtRef = useRef(0);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(search);
     const category = params.get("category");
     const sort = params.get("sort");
+    const food = foodFilterSchema.safeParse(params.get("food"));
+    setFoodFilter(food.success ? food.data : "all");
 
     if (category) {
       setFilters(prev => ({
@@ -113,7 +124,7 @@ export default function Products() {
       }));
       setSortBy("rating-desc");
     }
-  }, [location]);
+  }, [location, search]);
 
   useEffect(() => {
     if (attributes && filters.priceRange[1] === 1000000 && attributes.maxPrice !== 1000000) {
@@ -170,6 +181,7 @@ export default function Products() {
 
   const finalProducts = useMemo(() => {
     let filtered = products.filter(product => {
+      if (isFoodListing && !matchesFoodFilter(product, foodFilter)) return false;
       if (filters.difficulties.length > 0 && (!product.difficulty || !filters.difficulties.includes(product.difficulty))) {
         return false;
       }
@@ -209,7 +221,7 @@ export default function Products() {
     filtered = filters.tags.includes("in-stock") ? sellable : [...sellable, ...unavailable];
 
     return filtered;
-  }, [products, filters.difficulties, filters.tags, sortBy, boostIds]);
+  }, [products, filters.difficulties, filters.tags, sortBy, boostIds, isFoodListing, foodFilter]);
 
   const displayedProducts = useMemo(() => {
     return finalProducts.slice(0, displayCount);
@@ -333,6 +345,7 @@ export default function Products() {
   };
 
   const clearAllFilters = () => {
+    setFoodFilter("all");
     setFilters({
       priceRange: [minPrice, maxPrice],
       categories: [],
@@ -515,6 +528,17 @@ export default function Products() {
             categoryCounts={categoryCounts}
           />
         </div>
+
+        {isFoodListing && !isLoading && !isError && (
+          <FoodCategoryGuide products={products} value={foodFilter} onChange={value => {
+            setFoodFilter(value);
+            setDisplayCount(24);
+            const params = new URLSearchParams(search);
+            params.set("category", filters.categories[0]);
+            if (value === "all") params.delete("food"); else params.set("food", value);
+            setLocation(`/products?${params.toString()}`, { replace: true });
+          }} />
+        )}
 
         <div className="aq-filter-chamber mb-4 flex flex-col gap-2 ps-3 sm:mb-6 sm:flex-row sm:items-center sm:justify-between sm:gap-4" data-tour="products-filter">
           <FilterBar
