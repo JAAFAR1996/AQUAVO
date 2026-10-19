@@ -73,15 +73,21 @@ export async function fetchProductsCore(params?: ProductQueryParams): Promise<{ 
 }
 
 export async function fetchProductCore(id: string): Promise<Product> {
-  return await getJson<Product>(
-    `/api/products/${id}?sid=${encodeURIComponent(getClientSessionId())}`
-  );
+  return await getJson<Product>(`/api/products/${id}`);
 }
 
 export async function fetchProductBySlugCore(slug: string): Promise<Product> {
-  return await getJson<Product>(
-    `/api/products/${slug}?sid=${encodeURIComponent(getClientSessionId())}`
-  );
+  return await getJson<Product>(`/api/products/${slug}`);
+}
+
+// Data requests are also used by hover prefetch and price/stock refreshes.
+// Only the visible product page sends a view event.
+export async function recordProductView(productId: string, clientSessionId: string): Promise<void> {
+  await getJson<{ accepted: boolean }>(`/api/products/${encodeURIComponent(productId)}/view`, {
+    method: "POST",
+    keepalive: true,
+    body: JSON.stringify({ clientSessionId }),
+  });
 }
 
 // Production functions - NO fallback to mock data (real database only)

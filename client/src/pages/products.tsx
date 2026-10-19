@@ -2,7 +2,7 @@ import { useMemo, useState, useEffect, useRef, lazy, Suspense } from "react";
 import { phTrackCategoryClick } from "@/lib/posthog";
 import { useInView } from "@/hooks/use-in-view";
 import { Link, useLocation } from "wouter";
-import { AlertCircle, ArrowUpDown, Banknote, Clock, Headphones, RefreshCw, Sparkles, Truck, X } from "lucide-react";
+import { AlertCircle, ArrowUpDown, Banknote, Clock, Eye, Headphones, RefreshCw, Sparkles, Truck, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MetaTags, ItemListSchema, BreadcrumbSchema } from "@/components/seo/meta-tags";
 import { productListingSeo } from "@shared/seo-contract";
@@ -534,8 +534,8 @@ export default function Products() {
                   <SelectValue placeholder={t("sort.placeholder")} />
                 </SelectTrigger>
                 <SelectContent>
-                  {user && <SelectItem value="smart">{t("sort.smart")}</SelectItem>}
                   <SelectItem value="default">{t("sort.default")}</SelectItem>
+                  {user && <SelectItem value="smart">{t("sort.smart")}</SelectItem>}
                   <SelectItem value="newest">{t("sort.newest")}</SelectItem>
                   <SelectItem value="price-asc">{t("sort.priceAsc")}</SelectItem>
                   <SelectItem value="price-desc">{t("sort.priceDesc")}</SelectItem>
@@ -615,6 +615,17 @@ export default function Products() {
           <>
             {finalProducts.length > 0 ? (
               <>
+                {sortBy === "default" && !initialSearch && (
+                  <div className="mb-5 flex flex-wrap items-end justify-between gap-2">
+                    <h2 className="flex items-center gap-2 text-xl font-bold text-foreground sm:text-2xl">
+                      <Eye className="h-5 w-5 text-primary" aria-hidden="true" />
+                      {t("mostViewed.title")}
+                    </h2>
+                    <p className="text-xs leading-6 text-muted-foreground sm:text-sm">
+                      {t("mostViewed.description")}
+                    </p>
+                  </div>
+                )}
                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:gap-6 lg:grid-cols-4 xl:grid-cols-5">
                   {displayedProducts.map((product, index) => (
                     <div key={product.id} data-tour={index === 0 ? "product-card-first" : undefined} className="h-full min-w-0">
