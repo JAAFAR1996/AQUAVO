@@ -33,9 +33,15 @@ describe("accounting expense and PDF truth contract", () => {
   it("fails closed in server accounting routes instead of fabricating numeric zero", () => {
     const registerRoute = read("server/routes/accounting-v2.ts");
     const setupRoute = read("server/routes/accounting-setup-v2.ts");
-    for (const source of [registerRoute, setupRoute]) {
-      expect(source).toContain("ACCOUNTING_NUMERIC_VALUE_MISSING");
-      expect(source).toContain("ACCOUNTING_NUMERIC_VALUE_INVALID");
+    // The register now delegates to the shared strict-number boundary. Keep
+    // validating rejection instead of tying safety to the former helper name.
+    const truthSource = read("shared/financial-truth.ts");
+    expect(registerRoute).toContain("return requiredFinancialNumber(value, field)");
+    expect(truthSource).toContain("FINANCIAL_SOURCE_MISSING");
+    expect(truthSource).toContain("FINANCIAL_SOURCE_INVALID");
+    expect(setupRoute).toContain("ACCOUNTING_NUMERIC_VALUE_MISSING");
+    expect(setupRoute).toContain("ACCOUNTING_NUMERIC_VALUE_INVALID");
+    for (const source of [registerRoute, setupRoute, truthSource]) {
       expect(source).not.toContain("Number.isFinite(number) ? number : 0");
     }
     // The schema gate must name the latest accounting migration it actually
