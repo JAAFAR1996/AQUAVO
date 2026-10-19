@@ -108,6 +108,8 @@ export default function Home() {
     queryKey: ["products", "home-most-viewed", "30d"],
     queryFn: () => fetchProducts({ sortBy: "views", sortOrder: "desc" }),
     staleTime: 60_000,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
     retry: 1,
   });
   const bundles = useQuery<HomeBundle[]>({
@@ -157,83 +159,12 @@ export default function Home() {
           </PrecisionReveal>
         </section>
 
-        <section className="bg-background">
-          <PrecisionReveal stagger className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
-          <div className="max-w-2xl">
-            <p className="text-sm font-bold text-primary">{t("categories.eyebrow")}</p>
-            <h2 className="mt-3 text-3xl font-bold leading-tight text-foreground sm:text-4xl">{t("categories.title")}</h2>
-            <p className="mt-4 leading-7 text-muted-foreground">{t("categories.description")}</p>
-          </div>
-
-          <div className="mt-9 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {categories.map(({ title, description, href, icon: Icon }) => (
-              <Link
-                key={title}
-                href={href}
-                className="aq-interactive-card group flex min-h-40 items-start gap-4 rounded-2xl border border-border bg-card p-5 hover:border-[#0B93A6]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-              >
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                  <Icon className="h-5 w-5" aria-hidden="true" />
-                </span>
-                <span>
-                  <span className="flex items-center gap-2 text-lg font-bold text-foreground">
-                    {t(title)}
-                    <ArrowForward className={`h-4 w-4 text-muted-foreground transition-transform ${forwardHover} group-hover:text-[#0B93A6]`} aria-hidden="true" />
-                  </span>
-                  <span className="mt-2 block text-sm leading-6 text-muted-foreground">{t(description)}</span>
-                </span>
-              </Link>
-            ))}
-          </div>
-          </PrecisionReveal>
-        </section>
-
-        {solutionBundles.length > 0 && (
-          <section className="border-y border-border bg-card">
-            <PrecisionReveal stagger className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-16 lg:px-8">
-              <div className="flex flex-wrap items-end justify-between gap-4">
-                <div className="max-w-2xl">
-                  <p className="text-sm font-bold text-primary">{t("solutions.eyebrow")}</p>
-                  <h2 className="mt-2 text-3xl font-bold text-foreground">{t("solutions.title")}</h2>
-                  <p className="mt-3 text-sm leading-6 text-muted-foreground">{t("solutions.description")}</p>
-                </div>
-                <Link href="/bundles" className="text-sm font-bold text-primary hover:underline">{t("solutions.viewAll")}</Link>
-              </div>
-              <div className="mt-8 grid gap-3 md:grid-cols-3">
-                {solutionBundles.map((bundle) => {
-                  const copy = getBundleCopy(bundle.slug, locale, bundle.nameAr, bundle.descriptionAr);
-                  return (
-                    <Link
-                      key={bundle.id}
-                      href="/bundles"
-                      className="aq-interactive-card group flex min-h-44 flex-col rounded-2xl border border-border bg-background p-5 hover:border-[#0B93A6]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                    >
-                      <div className="flex items-center justify-between gap-3">
-                        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                          <Boxes className="h-5 w-5" aria-hidden="true" />
-                        </span>
-                        <span className="text-xs font-semibold text-primary">{t("solutions.available")}</span>
-                      </div>
-                      <h3 className="mt-4 text-lg font-bold leading-7 text-foreground">{copy.name}</h3>
-                      <p className="mt-2 line-clamp-2 text-sm leading-6 text-muted-foreground">{copy.description}</p>
-                      <div className="mt-auto flex items-end justify-between gap-3 pt-5">
-                        <span className="text-xs text-muted-foreground">{bundle.items.length} {t("solutions.parts")}</span>
-                        <span className="text-base font-bold text-primary">{formatLocalizedPrice(bundle.bundlePrice, locale)}</span>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
-            </PrecisionReveal>
-          </section>
-        )}
-
-        <section className="border-y border-border bg-card">
+        <section aria-labelledby="home-most-viewed-title" className="border-b border-border bg-card">
           <PrecisionReveal stagger className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
                 <p className="text-sm font-bold text-primary">{t("picks.viewedEyebrow")}</p>
-                <h2 className="mt-2 text-3xl font-bold text-foreground">{t("picks.viewedTitle")}</h2>
+                <h2 id="home-most-viewed-title" className="mt-2 text-3xl font-bold text-foreground">{t("picks.viewedTitle")}</h2>
               </div>
               <Link href="/products" className="text-sm font-bold text-primary hover:underline">{t("picks.viewAll")}</Link>
             </div>
@@ -312,6 +243,77 @@ export default function Home() {
             )}
           </PrecisionReveal>
         </section>
+
+        <section className="bg-background">
+          <PrecisionReveal stagger className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+          <div className="max-w-2xl">
+            <p className="text-sm font-bold text-primary">{t("categories.eyebrow")}</p>
+            <h2 className="mt-3 text-3xl font-bold leading-tight text-foreground sm:text-4xl">{t("categories.title")}</h2>
+            <p className="mt-4 leading-7 text-muted-foreground">{t("categories.description")}</p>
+          </div>
+
+          <div className="mt-9 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {categories.map(({ title, description, href, icon: Icon }) => (
+              <Link
+                key={title}
+                href={href}
+                className="aq-interactive-card group flex min-h-40 items-start gap-4 rounded-2xl border border-border bg-card p-5 hover:border-[#0B93A6]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              >
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <Icon className="h-5 w-5" aria-hidden="true" />
+                </span>
+                <span>
+                  <span className="flex items-center gap-2 text-lg font-bold text-foreground">
+                    {t(title)}
+                    <ArrowForward className={`h-4 w-4 text-muted-foreground transition-transform ${forwardHover} group-hover:text-[#0B93A6]`} aria-hidden="true" />
+                  </span>
+                  <span className="mt-2 block text-sm leading-6 text-muted-foreground">{t(description)}</span>
+                </span>
+              </Link>
+            ))}
+          </div>
+          </PrecisionReveal>
+        </section>
+
+        {solutionBundles.length > 0 && (
+          <section className="border-y border-border bg-card">
+            <PrecisionReveal stagger className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-16 lg:px-8">
+              <div className="flex flex-wrap items-end justify-between gap-4">
+                <div className="max-w-2xl">
+                  <p className="text-sm font-bold text-primary">{t("solutions.eyebrow")}</p>
+                  <h2 className="mt-2 text-3xl font-bold text-foreground">{t("solutions.title")}</h2>
+                  <p className="mt-3 text-sm leading-6 text-muted-foreground">{t("solutions.description")}</p>
+                </div>
+                <Link href="/bundles" className="text-sm font-bold text-primary hover:underline">{t("solutions.viewAll")}</Link>
+              </div>
+              <div className="mt-8 grid gap-3 md:grid-cols-3">
+                {solutionBundles.map((bundle) => {
+                  const copy = getBundleCopy(bundle.slug, locale, bundle.nameAr, bundle.descriptionAr);
+                  return (
+                    <Link
+                      key={bundle.id}
+                      href="/bundles"
+                      className="aq-interactive-card group flex min-h-44 flex-col rounded-2xl border border-border bg-background p-5 hover:border-[#0B93A6]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                          <Boxes className="h-5 w-5" aria-hidden="true" />
+                        </span>
+                        <span className="text-xs font-semibold text-primary">{t("solutions.available")}</span>
+                      </div>
+                      <h3 className="mt-4 text-lg font-bold leading-7 text-foreground">{copy.name}</h3>
+                      <p className="mt-2 line-clamp-2 text-sm leading-6 text-muted-foreground">{copy.description}</p>
+                      <div className="mt-auto flex items-end justify-between gap-3 pt-5">
+                        <span className="text-xs text-muted-foreground">{bundle.items.length} {t("solutions.parts")}</span>
+                        <span className="text-base font-bold text-primary">{formatLocalizedPrice(bundle.bundlePrice, locale)}</span>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </PrecisionReveal>
+          </section>
+        )}
 
         <section className="bg-background">
           <PrecisionReveal stagger className="mx-auto grid max-w-7xl gap-8 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-[0.75fr_1.25fr] lg:items-end lg:px-8">

@@ -11,7 +11,7 @@
   },
   "header": {
     "title": "Set up your tank on a clear basis",
-    "subtitle": "Pick a section, sort the results and see the available information before you decide."
+    "subtitle": "Choose a section and check each product's details before you decide."
   },
   "service": {
     "label": "Delivery and payment information",
@@ -28,13 +28,17 @@
     "label": "Sort products",
     "placeholder": "Sort by",
     "smart": "For you",
-    "default": "Most viewed (last 30 days)",
+    "default": "Automatic order",
     "priceAsc": "Price: low to high",
     "priceDesc": "Price: high to low",
     "nameAsc": "Name: A to Z",
     "ratingDesc": "Highest rated",
     "byInterests": "Sorted by your interests",
     "newest": "Newest"
+  },
+  "mostViewed": {
+    "title": "Most viewed",
+    "description": "Automatically ranked by views in the last 30 days."
   },
   "chips": {
     "label": "Active filters",

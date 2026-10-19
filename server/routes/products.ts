@@ -1,5 +1,6 @@
 import type { Router as RouterType, Request, Response, NextFunction } from "express";
 import { Router } from "express";
+import { z } from "zod";
 import { storage } from "../storage/index.js";
 import { requireAuth, requireAdmin, getSession } from "../middleware/auth.js";
 import { recommendationEngine } from "../services/recommendation-engine.js";
@@ -47,6 +48,12 @@ const SIZE_RELEVANT_CATEGORIES = ["التحكم بالحرارة", "الفلتر
  * back to the express id. A client that sends nothing is no worse off than before this existed.
  */
 const CLIENT_SESSION_ID = /^cs_[A-Za-z0-9_]{1,64}$/;
+
+const productViewRequestSchema = z.object({
+    productId: z.string().min(1).max(200),
+    clientSessionId: z.string().regex(CLIENT_SESSION_ID)
+        .refine((value) => value !== "cs_unavailable"),
+});
 
 function resolveClientSessionId(req: Request, candidate: unknown): string {
     // `cs_unavailable` is what the client sends when storage is blocked. It is well-formed and
@@ -508,7 +515,42 @@ export function createProductRouter(): RouterType {
         }
     });
 
-    // Get single product (by ID or Slug)
+    // A view is emitted by a visible product page, never by hover prefetch or
+    // a data refresh. Await the write before replying so serverless runtimes
+    // cannot freeze the function while analytics is still being persisted.
+    router.post("/:productId/view", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        const body = (req.body ?? {}) as { clientSessionId?: unknown };
+        const parsed = productViewRequestSchema.safeParse({
+            productId: req.params.productId,
+            clientSessionId: body.clientSessionId,
+        });
+        if (!parsed.success) {
+            res.status(400).json({ accepted: false });
+            return;
+        }
+
+        try {
+            const product = await storage.getProduct(parsed.data.productId);
+            if (!product) {
+                res.status(404).json({ accepted: false });
+                return;
+            }
+
+            await analyticsTracker.trackProductView({
+                userId: getSession(req)?.userId,
+                sessionId: parsed.data.clientSessionId,
+                productId: product.id,
+                from: "product_page",
+            });
+            res.set("Cache-Control", "no-store");
+            res.status(202).json({ accepted: true });
+        } catch (err) {
+            next(err);
+        }
+    });
+
+    // Get single product (by ID or Slug). Fetching data must remain read-only:
+    // the same route also serves hover prefetch and live availability refreshes.
     router.get("/:idOrSlug", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { idOrSlug } = req.params as { idOrSlug: string };
@@ -530,15 +572,6 @@ export function createProductRouter(): RouterType {
             }
 
             res.set("Cache-Control", "no-store");
-
-            // Track product view (fire-and-forget)
-            const session = getSession(req);
-            analyticsTracker.trackProductView({
-                userId: session?.userId,
-                sessionId: resolveClientSessionId(req, req.query.sid),
-                productId: product.id,
-                from: (req.query.from as string) || "direct",
-            }).catch(() => {});
 
             res.json(toPublicProduct(product));
         } catch (err) {
