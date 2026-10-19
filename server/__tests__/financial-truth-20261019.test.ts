@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildFinancialTruth, requiredFinancialNumber, financialPeriodChecksClear, type TruthRow } from "../../shared/financial-truth.js";
+import { buildFinancialTruth, requiredFinancialNumber, financialPeriodChecksClear, currentFinancialCloseBlockers, type TruthRow } from "../../shared/financial-truth.js";
 
 function fixture() {
   const period: TruthRow = Object.fromEntries([
@@ -71,5 +71,19 @@ describe("Financial source truth is explicit and never manufactured", () => {
     input.inventory.difference_iqd = "0"; input.settlementSummary.affected_orders = 0; input.settlements = [];
     const truth = buildFinancialTruth(input);
     expect(truth.status).toBe("checks_clear"); expect(truth.independentlyAudited).toBe(false);
+  });
+});
+
+
+describe("Global evidence retains its actual scope", () => {
+  it("does not attribute global procurement or settlement-integrity failures to one month", () => {
+    const input = fixture(); input.period.procurement_integrity_failures = 1;
+    input.period.settlement_integrity_failures = 2;
+    const truth = buildFinancialTruth(input);
+    expect(truth.issues.find(issue => issue.key === "procurement_integrity_failures")?.scope).toBe("current");
+    expect(truth.issues.find(issue => issue.key === "settlement_integrity_failures")?.scope).toBe("current");
+    expect(currentFinancialCloseBlockers(truth)).toMatchObject({ procurement_integrity_failures: 1, settlement_integrity_failures: 2, inventory_valuation_difference: 1 });
+    expect(currentFinancialCloseBlockers(truth)).not.toHaveProperty("settlements_global");
+    expect(truth.profit.displayIqd).toBeNull();
   });
 });

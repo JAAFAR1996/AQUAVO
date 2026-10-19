@@ -1,6 +1,6 @@
 import { sql } from "drizzle-orm";
 import { getDb } from "../db.js";
-import { requiredFinancialNumber } from "../../shared/financial-truth.js";
+import { requiredFinancialNumber, currentFinancialCloseBlockers, type FinancialTruth } from "../../shared/financial-truth.js";
 import { currentFinancialMonth, readFinancialTruth } from "./financial-truth.js";
 
 type Db = NonNullable<ReturnType<typeof getDb>>;
@@ -23,12 +23,9 @@ export async function runAutomaticPeriodClose(
     const truth = await readFinancialTruth(tx, currentFinancialMonth());
     // Global valuation/source failures apply to every open close candidate.
     // Unmatched cash in a different month is checked per period by PostgreSQL.
-    const globalBlockers = Object.fromEntries(truth.issues
-      .filter(issue => issue.scope === "current" && issue.key !== "settlements_global")
-      .map(issue => [issue.key, issue.count]));
+    const globalBlockers = currentFinancialCloseBlockers(truth);
     if (Object.keys(globalBlockers).length) {
-      return (await getAutomaticPeriodCloseStatus(tx)).map(row => row.status === "already_closed" ? row
-        : { ...row, status: "blocked", blockers: { ...row.blockers, ...globalBlockers } });
+      return getAutomaticPeriodCloseStatus(tx, truth);
     }
     const result = await tx.execute(sql`
       SELECT * FROM public.auto_close_ended_accounting_periods(${actorId},${actorName}) ORDER BY period_key
@@ -38,7 +35,7 @@ export async function runAutomaticPeriodClose(
 }
 
 /** Looking at a report must not close or rewrite an accounting period. */
-export async function getAutomaticPeriodCloseStatus(db: Executor) {
+export async function getAutomaticPeriodCloseStatus(db: Executor, truth?: Pick<FinancialTruth, "issues">) {
   const result = await db.execute(sql`
     SELECT r.*,c.status AS period_close_status FROM public.v_accounting_period_readiness r
     LEFT JOIN public.accounting_period_closes c ON c.period_key=r.period_key
@@ -50,7 +47,7 @@ export async function getAutomaticPeriodCloseStatus(db: Executor) {
     "undocumented_expenses", "inventory_mismatches", "procurement_integrity_failures", "settlement_integrity_failures",
     "open_review_flags", "journal_difference"];
   return rowsOf(result).map(row => {
-    const blockers: Record<string, number> = {};
+    const blockers: Record<string, number> = truth ? currentFinancialCloseBlockers(truth) : {};
     for (const key of keys) {
       const amount = Math.abs(requiredFinancialNumber(row[key], key));
       if (amount > 0) blockers[key] = amount;

@@ -43,6 +43,7 @@ const periodChecks: Record<string, string> = {
   undocumented_expenses: "مصاريف تنتظر التوثيق", procurement_integrity_failures: "عدم تطابق المشتريات والدفتر",
   settlement_integrity_failures: "عدم تطابق مستندات التسوية", delivery_surplus_exceptions: "فرق توصيل يحتاج تفسير",
 };
+const globalReadinessChecks = new Set(["procurement_integrity_failures", "settlement_integrity_failures"]);
 const profitInputs = ["product_revenue", "rounding_adjustment", "cogs", "fulfillment_cost", "delivery_subsidy",
   "sales_returns", "actual_return_loss", "verified_expenses", "fx_net_expense"] as const;
 
@@ -62,7 +63,7 @@ export function buildFinancialTruth(input: {
     && r.snapshot_writer_enabled === "true";
   if (!engineConfigured) add("engine_not_configured", "إعدادات محرك المحاسبة غير مكتملة", "current", 1, "راجع إعدادات دفتر المخزون والدفع واللقطات قبل الاعتماد على الربح.");
   if (p) for (const [key, label] of Object.entries(periodChecks)) {
-    add(key, label, "period", count(p[key], key), "طابق السجل مع مستنده الأصلي؛ لا تغيّر المبلغ لمجرد إزالة التنبيه.");
+    add(key, label, globalReadinessChecks.has(key) ? "current" : "period", count(p[key], key), "طابق السجل مع مستنده الأصلي؛ لا تغيّر المبلغ لمجرد إزالة التنبيه.");
   }
   const differenceIqd = number(inv.difference_iqd, "difference_iqd");
   const missingStockedCosts = number(coverage.missing_stocked_costs, "missing_stocked_costs");
@@ -110,6 +111,13 @@ export function buildFinancialTruth(input: {
     historicalMissingCostLines,
     notice: "الربح ليس نقدا متاحا للسحب. اجتياز الفحوص الداخلية لا يثبت الجرد أو القبض خارج النظام ولا يمثل تدقيقا محاسبيا مستقلا. الفروق الحالية منفصلة عن شهر التقرير والأرشيف.",
   });
+}
+
+/** PostgreSQL readiness includes some global reconciliation subqueries. */
+export function currentFinancialCloseBlockers(truth: Pick<FinancialTruth, "issues">): Record<string, number> {
+  return Object.fromEntries(truth.issues
+    .filter(issue => issue.scope === "current" && issue.key !== "settlements_global")
+    .map(issue => [issue.key, issue.count]));
 }
 
 /** Unmatched receipts belonging to another month are warnings, not this month's blocker. */

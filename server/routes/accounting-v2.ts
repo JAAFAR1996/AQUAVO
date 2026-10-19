@@ -165,10 +165,10 @@ export function createAccountingV2Router() {
       const payload = await db!.transaction(async tx => {
         await tx.execute(sql`SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY`);
         await tx.execute(sql`SET LOCAL statement_timeout='15000'`);
-        const automaticClose = await getAutomaticPeriodCloseStatus(tx);
         const readinessResult = await tx.execute(sql`SELECT * FROM public.v_accounting_period_readiness WHERE period_key=${periodKey}`);
         const closeResult = await tx.execute(sql`SELECT * FROM public.accounting_period_closes WHERE period_key=${periodKey} LIMIT 1`);
         const dataQuality = await readFinancialTruth(tx, periodKey);
+        const automaticClose = await getAutomaticPeriodCloseStatus(tx, dataQuality);
         return { periodKey, dataQuality, readiness: withFinancialReadiness(rowsOf(readinessResult)[0], dataQuality),
           close: rowsOf(closeResult)[0] ? normalize(rowsOf(closeResult)[0]) : null, automaticClose };
       });
@@ -184,7 +184,6 @@ export function createAccountingV2Router() {
       const payload = await db!.transaction(async tx => {
         await tx.execute(sql`SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY`);
         await tx.execute(sql`SET LOCAL statement_timeout='15000'`);
-        const automaticClose = await getAutomaticPeriodCloseStatus(tx);
         const [ordersResult, readinessResult, balancesResult, closeResult] = await Promise.all([
         tx.execute(sql`SELECT * FROM public.v_order_accounting WHERE period_key=${periodKey} ORDER BY recognized_at,order_number`),
         tx.execute(sql`SELECT * FROM public.v_accounting_period_readiness WHERE period_key=${periodKey}`),
@@ -192,6 +191,7 @@ export function createAccountingV2Router() {
         tx.execute(sql`SELECT * FROM public.accounting_period_closes WHERE period_key=${periodKey} LIMIT 1`),
       ]);
       const dataQuality = await readFinancialTruth(tx, periodKey);
+      const automaticClose = await getAutomaticPeriodCloseStatus(tx, dataQuality);
       return {
         dataQuality,
         periodKey,
@@ -242,7 +242,6 @@ export function createAccountingV2Router() {
       const payload = await db!.transaction(async tx => {
         await tx.execute(sql`SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY`);
         await tx.execute(sql`SET LOCAL statement_timeout='20000'`);
-        const automaticClose = await getAutomaticPeriodCloseStatus(tx);
         const [profile, readiness, previousReadiness, sales, ledger, expenses, returns, settlements, opening, evidence, close, deliveryCompanies, monthlyPositions, fixedPreparationItems, liveBalances] = await Promise.all([
         tx.execute(sql`SELECT * FROM public.tax_profiles WHERE id='al-manba-aquavo'`),
         tx.execute(sql`SELECT * FROM public.v_accounting_period_readiness WHERE period_key=${periodKey}`),
@@ -355,6 +354,7 @@ export function createAccountingV2Router() {
       ]);
       const closeRow = rowsOf(close)[0];
       const dataQuality = await readFinancialTruth(tx, periodKey);
+      const automaticClose = await getAutomaticPeriodCloseStatus(tx, dataQuality);
       const packageReadiness = withFinancialReadiness(rowsOf(readiness)[0], dataQuality);
       return {
         dataQuality,

@@ -55,3 +55,11 @@ Primary technical references:
 - PostgreSQL stable-snapshot consistency: https://www.postgresql.org/docs/17/applevel-consistency.html
 - HTTP safe-method semantics: https://www.rfc-editor.org/rfc/rfc9110.html#name-safe-methods
 - Inventory cost principles (not an assertion of local compliance): https://www.ifrs.org/issued-standards/list-of-standards/ias-2-inventories/
+
+## Final source review
+
+The PostgreSQL view's procurement and settlement-integrity subqueries are global,
+not selected-month counts. Their display scope and scheduler-status blockers now
+agree with that definition. Read-only close status also includes the same current
+valuation blockers as the scheduled writer. A failed recommendation refresh does
+not keep presenting a previous recommendation as a current decision.

@@ -3,7 +3,7 @@ import { PgDialect } from "drizzle-orm/pg-core";
 const state = vi.hoisted(() => ({ issues: [] as Array<{ key: string; scope: string; count: number }>, read: vi.fn() }));
 vi.mock("../db.js", () => ({ getDb: () => null }));
 vi.mock("../services/financial-truth.js", () => ({ currentFinancialMonth: () => "2026-10", readFinancialTruth: (...args: unknown[]) => state.read(...args) }));
-import { runAutomaticPeriodClose } from "../services/accounting-auto-close-v2.js";
+import { runAutomaticPeriodClose, getAutomaticPeriodCloseStatus } from "../services/accounting-auto-close-v2.js";
 const dialect = new PgDialect();
 const checkKeys = ["incomplete_cost_orders", "missing_fulfillment_orders", "incomplete_fulfillment_orders", "payment_evidence_errors",
  "unsettled_carrier_orders", "delivery_surplus_exceptions", "unverified_returns", "undocumented_expenses", "inventory_mismatches",
@@ -40,5 +40,15 @@ describe("Scheduled close uses the same global evidence boundary as the register
   state.read.mockRejectedValue(new Error("source unavailable")); const { db, statements } = fakeDatabase();
   await expect(runAutomaticPeriodClose(db as any)).rejects.toThrow("source unavailable");
   expect(statements.some(s => s.includes("auto_close_ended_accounting_periods"))).toBe(false);
+ });
+});
+
+
+describe("Read-only close status agrees with the writer", () => {
+ it("retains current valuation blockers without calling the write function", async () => {
+  const { tx, statements } = fakeDatabase();
+  const result = await getAutomaticPeriodCloseStatus(tx as any, { issues: [{ key: "inventory_valuation_difference", label: "valuation", scope: "current", count: 1, amountIqd: -25, nextStep: "reconcile" }] });
+  expect(result[0]).toMatchObject({ status: "blocked", blockers: { inventory_valuation_difference: 1 } });
+  expect(statements.some(text => text.includes("auto_close_ended_accounting_periods"))).toBe(false);
  });
 });

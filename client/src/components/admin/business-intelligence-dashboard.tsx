@@ -277,7 +277,9 @@ export function BusinessIntelligenceDashboard() {
         </div>
       </div>
 
-      {assessment.data && (
+      {assessment.isError ? <div role="alert" className="rounded-xl border border-destructive p-4 text-sm">
+        تعذر تحديث تقدير التشغيل؛ لا يعتمد التقدير السابق كقرار حالي.
+      </div> : assessment.data && (
         <Card>
           <CardHeader className="pb-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
