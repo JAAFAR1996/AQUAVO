@@ -20,7 +20,7 @@ import { RELATED_PRODUCTS_HEADING, productCategoryForArticle } from "../shared/a
 import { CATEGORY_CHECKS_HEADING, categoryContent } from "../shared/category-content.js";
 import { categoryFaqHeading, categorySearch } from "../shared/category-search.js";
 import { localizeCategoryName } from "../shared/i18n/categories.js";
-import { authorBylineText, authorProfilePath } from "../shared/editorial-author.js";
+import { articleAuthorEntity, authorBylineText, authorProfilePath } from "../shared/editorial-author.js";
 import { DEFAULT_LOCALE, localizePath, type Locale } from "../shared/i18n/locales.js";
 import { preservePublicEmailHtml } from "../shared/public-email-html.js";
 
@@ -670,7 +670,14 @@ function ProductPage({ product, related, reviews = [] }: { product: SeoPreviewPr
           <div><dt>السعر</dt><dd>{formatPrice(product)}</dd></div>
           <div><dt>حالة المخزون</dt><dd>{isInStock(product) ? "متوفر" : "غير متوفر حالياً"}</dd></div>
           {category && <div><dt>الفئة</dt><dd><a href={categoryProductsPath(category)}>{category}</a></dd></div>}
-          {product.brand && <div><dt>العلامة</dt><dd itemProp="brand">{product.brand}</dd></div>}
+          {product.brand && (
+            <div>
+              <dt>العلامة</dt>
+              <dd itemProp="brand" itemScope itemType="https://schema.org/Brand">
+                <span itemProp="name">{product.brand}</span>
+              </dd>
+            </div>
+          )}
         </dl>
         {variants.length > 0 && (
           <section aria-labelledby="aq-variant-title">
@@ -949,12 +956,20 @@ function BlogByline({ author }: { author: string }) {
   // links to the page the Article author entity names, so a reader and a
   // crawler resolve one identity. A byline that names someone is left as the
   // post stores it, sanitised, and links nowhere.
+  const entity = articleAuthorEntity(author);
   const profile = authorProfilePath(author);
   const name = authorBylineText(author);
-  if (profile) {
-    return <a itemProp="author" href={profile}>{name}</a>;
-  }
-  return <span itemProp="author">{name}</span>;
+  return (
+    <span
+      itemProp="author"
+      itemScope
+      itemType={`https://schema.org/${entity["@type"]}`}
+      itemID={entity["@id"]}
+    >
+      <meta itemProp="name" content={entity.name} />
+      {profile ? <a itemProp="url" href={profile}>{name}</a> : name}
+    </span>
+  );
 }
 
 function BlogPostPage({ post, related, products = [] }: { post: SeoPreviewBlogPost; related: SeoPreviewBlogPost[]; products?: SeoPreviewProduct[] }) {

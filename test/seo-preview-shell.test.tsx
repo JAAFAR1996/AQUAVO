@@ -141,6 +141,33 @@ describe("SEO preview shell", () => {
     expect(html).toContain('href="/products/aquavo-test-heater"');
   });
 
+  it.each(["Houyi", "AQUAVO"])("renders %s as a nested Brand with the unchanged product name", (brand) => {
+    const product = { ...products[0], brand };
+    const html = renderSeoPreviewShell({ kind: "product", product, related: [] });
+    const document = new DOMParser().parseFromString(html, "text/html");
+    const productItem = document.querySelector('article[itemtype="https://schema.org/Product"]');
+    const brandItem = productItem?.querySelector('[itemprop="brand"]');
+
+    // A bare text value here caused Ahrefs to reject the Product microdata,
+    // even while the separately emitted Product JSON-LD was valid.
+    expect(brandItem?.hasAttribute("itemscope")).toBe(true);
+    expect(brandItem?.getAttribute("itemtype")).toBe("https://schema.org/Brand");
+    const brandName = brandItem?.querySelector('[itemprop="name"]');
+    expect(brandName?.textContent).toBe(brand);
+    expect(brandName?.closest("[itemscope]")).toBe(brandItem);
+    expect(productItem?.querySelector('h1[itemprop="name"]')?.textContent).toBe(product.name);
+    expect(brandItem?.textContent).toBe(brand);
+    expect(buildProductStructuredData(product)[0]).toMatchObject({
+      brand: { "@type": "Brand", name: brand },
+    });
+  });
+
+  it("does not invent a brand microdata entity for an unbranded product", () => {
+    const html = renderSeoPreviewShell({ kind: "product", product: products[1], related: [] });
+    const document = new DOMParser().parseFromString(html, "text/html");
+    expect(document.querySelector('[itemprop="brand"]')).toBeNull();
+  });
+
   it("builds ProductGroup markup with explicit nested variants and offers", () => {
     const schemas = buildProductStructuredData(products[2]) as Array<Record<string, any>>;
     const group = schemas[0] as Record<string, any>;

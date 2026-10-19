@@ -10,6 +10,8 @@ import { describe, expect, it, vi } from "vitest";
 
 const CLOUDINARY_THUMB =
   "https://res.cloudinary.com/dyczh8ogv/image/upload/v1781171285/aquavo/products/houyi/thermostat/i30wuasorkj9uq16k8z4.jpg";
+const CLOUDINARY_TRANSPARENT_WEBP =
+  "https://res.cloudinary.com/dyczh8ogv/image/upload/v1792394520/aquavo/products/transparent-20261019/yee-07116.webp";
 
 const PRODUCT_ROW = {
   id: "houyi-thermostat",
@@ -54,6 +56,14 @@ const IMAGELESS_ROW = {
   images: [],
 };
 
+const TRANSPARENT_ROW = {
+  ...PRODUCT_ROW,
+  id: "transparent-product",
+  slug: "transparent-product",
+  thumbnail: CLOUDINARY_TRANSPARENT_WEBP,
+  images: [CLOUDINARY_TRANSPARENT_WEBP],
+};
+
 // A genuine approved review, shaped exactly as the SSR projection returns it:
 // no user id, no ip_address, no moderation status — those are not selected.
 const REVIEW_ROW = {
@@ -68,6 +78,7 @@ const ROWS_BY_SLUG: Record<string, unknown> = {
   "houyi-thermostat": PRODUCT_ROW,
   "aquavo-driftwood-collection": RELATIVE_ROW,
   "houyi-check-valve": IMAGELESS_ROW,
+  "transparent-product": TRANSPARENT_ROW,
 };
 
 vi.mock("@neondatabase/serverless", () => ({
@@ -197,6 +208,22 @@ describe("crawler-visible product image", () => {
     expect(src).toContain("f_auto");
     expect(src).toContain("q_auto");
     expect(src).toContain("w_1000");
+  });
+
+  it("keeps transparent WebP delivery explicit in the actual product HTML", async () => {
+    const { body, status } = await render("/products/transparent-product");
+    expect(status).toBe(200);
+    const image = imgTags(body).find((tag) => tag.includes("aq-ssr-product-image")) ?? "";
+    const src = image.match(/src="([^"]+)"/)?.[1] ?? "";
+    // This exact delivery URL returns WebP even with Accept: */*. The former
+    // f_auto URL returned 1,532,078 bytes of PNG for the same transparent asset.
+    expect(src).toBe(
+      "https://res.cloudinary.com/dyczh8ogv/image/upload/f_webp,q_auto,c_limit,w_1000/v1792394520/aquavo/products/transparent-20261019/yee-07116.webp",
+    );
+    expect(image).toMatch(/\bwidth="1000"/);
+    expect(image).toMatch(/\bheight="1000"/);
+    const schemaImages = findProductSchema(body).image as string[];
+    expect(schemaImages[0]).toBe(CLOUDINARY_TRANSPARENT_WEBP);
   });
 
   it("makes a site-relative product image absolute", async () => {

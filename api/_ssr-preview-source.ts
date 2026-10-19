@@ -50,6 +50,7 @@ import {
 import { isKnownSitePath } from "../shared/site-routes.js";
 import { toPublicVariant } from "../shared/public-product.js";
 import { buildProductSeoMeta } from "../shared/product-seo.js";
+import { buildArticleSeoMeta } from "../shared/article-seo.js";
 import { blogPostSourceFields, productSourceFields } from "../shared/i18n/content.js";
 import { indexableLocalesForEntity } from "../shared/i18n/indexability.js";
 import { loadEntityTranslationRecords } from "./_translation-records.js";
@@ -69,6 +70,7 @@ import { articleFaqSchema } from "../shared/article-faq.js";
 import { productCategoryForArticle, relatedProductsForArticle } from "../shared/article-links.js";
 import { categoryFaqSchema, categorySearch } from "../shared/category-search.js";
 import { applyLocaleToHtml, SHELL_META } from "./_locale-meta.js";
+import { getStaticSearchMeta } from "./_static-search-meta.js";
 import { getLocalizedStaticMeta } from "./_static-meta-i18n.js";
 
 neonConfig.webSocketConstructor = ws;
@@ -149,6 +151,7 @@ async function localizedStaticPage(locale: Locale, pathname: string, rawCategory
 
   const localized = getLocalizedStaticMeta(locale, pathname);
   if (!localized) return null;
+  const searchMeta = getStaticSearchMeta(locale, pathname, rawCategory) ?? localized;
 
   // A category listing is the same document in every language: the buyer's
   // heading, the three questions and the product links, from
@@ -195,8 +198,8 @@ async function localizedStaticPage(locale: Locale, pathname: string, rawCategory
       path: canonicalPath,
     },
     meta: {
-      title,
-      description,
+      title: searchMeta.title,
+      description: searchMeta.description,
       canonicalPath,
       jsonLd: localizedPageGraph(locale, logicalCanonical, title, description),
     },
@@ -773,12 +776,13 @@ async function resolvePage(pathname: string, rawCategory?: string): Promise<Reso
     const blogPath = `/blog/${encodeURIComponent(post.slug)}`;
     const image = blogImage(post);
     const description = metaDescription(cleanText(post.excerpt, articlePlainText(post.content)));
+    const searchMeta = buildArticleSeoMeta(post);
     const published = articleDatePublished(post);
     return {
       page: { kind: "blog-post", post, related, products },
       meta: {
-        title: `${post.title} | مدونة AQUAVO`,
-        description,
+        title: searchMeta.title,
+        description: searchMeta.description,
         indexableLocales: indexableLocalesForEntity("blog_post", sourceFields, translations),
         canonicalPath: blogPath,
         image,
@@ -1023,7 +1027,8 @@ function injectDocument(template: string, meta: Meta, shell: string, robots: str
  * is nothing here that is not also on the page.
  */
 function markdown(page: SeoPreviewPage, meta: Meta): string {
-  const lines = [`# ${meta.title}`, "", meta.description, ""];
+  const heading = page.kind === "blog-post" ? page.post.title : meta.title;
+  const lines = [`# ${heading}`, "", meta.description, ""];
   if (meta.canonicalPath) lines.push(`Canonical: ${AQUAVO_BASE_URL}${meta.canonicalPath}`, "");
 
   const productUrl = (slug: string) => `${AQUAVO_BASE_URL}/products/${encodeURIComponent(slug)}`;
@@ -1308,6 +1313,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       await Promise.resolve(originalSsrHandler(req, res));
       return;
     }
+
+    const staticSearch = resolved.status === 200 ? getStaticSearchMeta(locale, pathname, rawCategory) : undefined;
+    if (staticSearch) resolved.meta = { ...resolved.meta, ...staticSearch };
 
     const robots = robotsValue(production, resolved.status, pathname);
     setResponseHeaders(res, robots, "semantic-v3");
