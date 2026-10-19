@@ -178,7 +178,7 @@ describe("IndexNow: the workflow fires on a real deployment", () => {
   it("submits only for a successful production deployment", () => {
     const yaml = workflow();
     expect(yaml).toContain("deployment_status.state == 'success'");
-    expect(yaml).toContain("deployment.environment == 'Production'");
+    expect(yaml).toContain("deployment.environment == 'Production – aquavo'");
   });
 
   // The ledger was an actions/cache entry and it silently never persisted:
