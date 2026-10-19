@@ -19,7 +19,7 @@ export async function requireAuth(req: any, res: any, next: any) {
 
   // Fetch user and attach to request
   const user = await storage.getUser(sess.userId);
-  if (!user) {
+  if (!user || user.deletedAt) {
     res.status(401).json({ message: "User not found" });
     return;
   }
@@ -40,7 +40,7 @@ export async function requireAdmin(req: any, res: any, next: any) {
   // Get user from database
   const user = await storage.getUser(sess.userId);
 
-  if (!user) {
+  if (!user || user.deletedAt) {
     console.log("❌ Admin access denied: User not found");
     return res.status(401).json({ message: "المستخدم غير موجود" });
   }

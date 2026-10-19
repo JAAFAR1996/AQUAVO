@@ -41,12 +41,13 @@ export async function requireAccountingAdmin(
         email: users.email,
         fullName: users.fullName,
         role: users.role,
+        deletedAt: users.deletedAt,
       })
       .from(users)
       .where(eq(users.id, userId))
       .limit(1);
 
-    if (!user) {
+    if (!user || user.deletedAt) {
       res.status(401).json({ message: "المستخدم غير موجود" });
       return;
     }

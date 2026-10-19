@@ -99,6 +99,9 @@ type SchemaTable = {
 const blockedTables = new Set([
   "sessions",
   "password_reset_tokens",
+  "commerce_request_bindings",
+  "oauth_authorizations",
+  "oauth_token_grants",
 ]);
 
 const sensitiveFieldPatterns = [
@@ -200,12 +203,12 @@ function enforceMcpRequestBoundary(req: Request, res: Response, next: NextFuncti
 // ─── Auth middleware ───────────────────────────────────────────────────────────
 // Accepts: OAuth JWT (Claude.ai web) OR static bearer token (Claude Code CLI)
 
-function mcpAuth(req: McpRequest, res: Response, next: NextFunction): void {
+async function mcpAuth(req: McpRequest, res: Response, next: NextFunction): Promise<void> {
   const auth = req.headers["authorization"] ?? "";
   const token = auth.startsWith("Bearer ") ? auth.slice(7).trim() : "";
 
   // 1. Try JWT (Claude.ai web OAuth flow)
-  const verified = token ? verifyMcpToken(token) : null;
+  const verified = token ? await verifyMcpToken(token) : null;
   if (verified) {
     req.mcpAuth = {
       clientId: verified.clientId,

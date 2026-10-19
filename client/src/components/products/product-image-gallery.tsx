@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { ChevronLeft, ChevronRight, ZoomIn, X } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -51,6 +51,13 @@ export function ProductImageGallery({
     const imageRef = useRef<HTMLDivElement>(null);
 
     const galleryImages = buildGalleryImages(images, productName);
+    const failedSources = useRef(new Set<string>());
+    const galleryIdentity = JSON.stringify(galleryImages);
+    useEffect(() => {
+        failedSources.current.clear();
+        setImageFailed(false);
+        setSelectedIndex(0);
+    }, [galleryIdentity]);
     const currentImage = galleryImages[selectedIndex] || "";
     const preserveOriginalQuality = isHouyiBlueDragonStoneProduct(productName);
     const mainImageSrc = preserveOriginalQuality ? currentImage : detailImage(currentImage);
@@ -115,6 +122,7 @@ export function ProductImageGallery({
                     ) : (
                         <>
                             <img
+                                key={currentImage}
                                 src={mainImageSrc}
                                 srcSet={mainImageSrcSet}
                                 sizes="(max-width: 512px) 100vw, 512px"
@@ -138,16 +146,14 @@ export function ProductImageGallery({
                                     const target = e.target as HTMLImageElement;
                                     if (!target.dataset.retried && target.src !== currentImage) {
                                         target.dataset.retried = "1";
+                                        target.removeAttribute("srcset");
+                                        target.removeAttribute("sizes");
                                         target.src = currentImage;
-                                    } else if (galleryImages.length > 1) {
-                                        // A stale variant image must not blank the whole PDP.
-                                        // Advance to the next gallery image, which is sourced
-                                        // from the current product gallery and is independently
-                                        // retryable. Only show unavailable when no alternative exists.
-                                        setImageFailed(false);
-                                        setSelectedIndex((prev) => (prev + 1) % galleryImages.length);
                                     } else {
-                                        setImageFailed(true);
+                                        failedSources.current.add(currentImage);
+                                        const next = galleryImages.findIndex((image) => !failedSources.current.has(image));
+                                        if (next >= 0) setSelectedIndex(next);
+                                        else setImageFailed(true);
                                     }
                                 }}
                             />

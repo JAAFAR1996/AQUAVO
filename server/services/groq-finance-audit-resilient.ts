@@ -157,7 +157,8 @@ export async function runResilientFinanceAudit(triggeredBy = "scheduled"): Promi
     const { financeAuditStorage } = await import("./financeAuditStorage.js");
     await financeAuditStorage.saveAuditRun(
       result,
-      usedModel ? `${triggeredBy}:${usedModel}` : triggeredBy,
+      triggeredBy,
+      usedModel,
     );
   } catch (storageError) {
     console.error(

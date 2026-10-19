@@ -759,6 +759,7 @@ export function getOrderItems(order: OrderRow): OrderLineItem[] {
 export interface RelationalLineSnapshot {
   orderId: string;
   productId: string;
+  variantId?: string;
   quantity: number;
   priceAtPurchase: number;
   costPrice: number | null;
@@ -812,6 +813,8 @@ export async function buildRelationalLineResolver(db: Db, orderIds: Set<string>)
     const snap: RelationalLineSnapshot = {
       orderId: r.orderId,
       productId: r.productId,
+      variantId: typeof (r.metadata as Record<string, unknown> | null)?.variantId === "string"
+        ? String((r.metadata as Record<string, unknown>).variantId) : undefined,
       quantity: Number(r.quantity) || 0,
       priceAtPurchase: toNumber(r.priceAtPurchase),
       // NULL stays NULL. A relational 0 is NOT promoted to a cost of zero
@@ -853,33 +856,22 @@ export function reconcileOrderLines(
   if (!relational || relational.length === 0) {
     return { items: jsonbItems, sourceOfTruth: "jsonb", reconciled: true };
   }
-  const jsonbPairs = jsonbItems
-    .filter((i) => !!i.productId)
-    .map((i) => ({ productId: i.productId as string, quantity: lineQuantity(i) }));
-  // Lines without a productId cannot be matched to a relational row at all.
-  const unmatchableJsonb = jsonbItems.length - jsonbPairs.length;
-  const jq = quantityByProduct(jsonbPairs);
-  const rq = quantityByProduct(relational.map((r) => ({ productId: r.productId, quantity: r.quantity })));
-  const agree =
-    unmatchableJsonb === 0 &&
-    jq.size === rq.size &&
-    [...jq].every(([pid, qty]) => rq.get(pid) === qty) &&
-    jsonbPairs.length === relational.length;
-  if (!agree) {
+  // Match immutable line identity, never the nth occurrence of a product.
+  const lineKey = (product: unknown, variant: unknown, quantity: unknown, price: unknown) =>
+    JSON.stringify([product, variant || null, Number(quantity), Number(price)]);
+  const queues = new Map<string, RelationalLineSnapshot[]>();
+  for (const row of relational) {
+    const key = lineKey(row.productId, row.variantId, row.quantity, row.priceAtPurchase);
+    queues.set(key, [...(queues.get(key) ?? []), row]);
+  }
+  const matches = jsonbItems.map((item) => !item.productId ? undefined
+    : queues.get(lineKey(item.productId, (item as { variantId?: string }).variantId,
+      lineQuantity(item), item.priceAtPurchase))?.shift());
+  if (relational.length !== jsonbItems.length || matches.some((row) => !row)) {
     return { items: jsonbItems, sourceOfTruth: "jsonb", reconciled: false };
   }
-
-  // Positional match within each productId (nth JSONB occurrence ↔ nth row).
-  const queues = new Map<string, RelationalLineSnapshot[]>();
-  for (const r of relational) {
-    const arr = queues.get(r.productId) ?? [];
-    arr.push(r);
-    queues.set(r.productId, arr);
-  }
-  const merged = jsonbItems.map((item) => {
-    const q = queues.get(item.productId as string);
-    const rel = q && q.length > 0 ? q.shift()! : undefined;
-    if (!rel) return item;
+  const merged = jsonbItems.map((item, index) => {
+    const rel = matches[index]!;
     // A relational row that asserts NOTHING (no status and no cost value) is not
     // evidence of "unknown" — it is an absence of information. Leave the JSONB
     // line untouched so a legitimate JSONB snapshot is never demoted.

@@ -1,6 +1,7 @@
 import { Store } from "express-session";
+import { sessionMatchesUser } from "./security/session-proof.js";
 import { getDb } from "./db.js";
-import { sessions } from "../shared/schema.js";
+import { sessions, users } from "../shared/schema.js";
 import { and, eq, gte, isNotNull, lt, sql } from "drizzle-orm";
 
 /**
@@ -61,6 +62,11 @@ export class DrizzleSessionStore extends Store {
       }
 
       const session = result[0];
+      if (session.sess?.userId && !(await this.validIdentity(session.sess))) {
+        await this.destroy(sid);
+        callback(null, null);
+        return;
+      }
 
       // Check if expired
       const expireDate = session.expire ? new Date(session.expire) : null;
@@ -86,6 +92,11 @@ export class DrizzleSessionStore extends Store {
     try {
       await this.maybeCleanup();
 
+      if (session?.userId && !(await this.validIdentity(session))) {
+        await this.destroy(sid);
+        if (callback) callback(Object.assign(new Error("Session was revoked; sign in again"), { status: 401 }));
+        return;
+      }
       const expire = this.getExpireDate(session);
 
       // Upsert session
@@ -230,6 +241,13 @@ export class DrizzleSessionStore extends Store {
   /**
    * Calculate expiration date from session
    */
+  private async validIdentity(session: { userId?: string; authProof?: string }): Promise<boolean> {
+    if (!session.userId) return true;
+    const [user] = await this.db!.select({ id: users.id, passwordHash: users.passwordHash, role: users.role, deletedAt: users.deletedAt })
+      .from(users).where(eq(users.id, session.userId)).limit(1);
+    return sessionMatchesUser(session, user);
+  }
+
   private getExpireDate(session: any): Date {
     let expire = new Date();
 

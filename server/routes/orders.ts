@@ -20,6 +20,9 @@ import {
     processPaymentOutboxForOrder,
 } from "../services/payment-maintenance.js";
 import { toPublicOrderItem } from "../../shared/public-product.js";
+import { toCustomerOrder } from "../../shared/public-order.js";
+import { checkoutRequestBinding, assertCheckoutReplay, type CheckoutRequestBinding } from "../services/checkout-request-binding.js";
+import { securityDb } from "../services/security-db.js";
 import { apiMessage } from "../i18n/messages.js";
 import { payments } from "../../shared/schema.js";
 import { recordCheckoutWhatsAppMarketingOptIn } from "../services/whatsapp-lifecycle.js";
@@ -163,6 +166,7 @@ export function createOrderRouter(): RouterType {
 
     // Create Order (rate-limited: 10/hour per IP)
     router.post("/", orderLimiter, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        let requestBinding: CheckoutRequestBinding | undefined;
         try {
             const sess = getSession(req);
             const userId = sess?.userId;
@@ -221,12 +225,15 @@ export function createOrderRouter(): RouterType {
                 ? parsedIdempotencyKey.data
                 : undefined;
 
+            requestBinding = await checkoutRequestBinding(req, validationResult.data);
+
             // A repeated request returns the already committed order and skips commerce
             // side effects. If that committed order already contains durable WhatsApp
             // consent evidence, retry only the repairable CRM/event projection.
             if (idempotencyKey) {
                 const existingOrder = await storage.getOrder(idempotencyKey);
                 if (existingOrder) {
+                    await assertCheckoutReplay(securityDb(), existingOrder.id, requestBinding);
                     if ((existingOrder as any).whatsappMarketingOptIn) {
                         try {
                             await recordCheckoutWhatsAppMarketingOptIn(existingOrder.id);
@@ -234,7 +241,7 @@ export function createOrderRouter(): RouterType {
                             // Daily repair uses the order-level evidence; never block commerce.
                         }
                     }
-                    res.status(200).json(existingOrder);
+                    res.status(200).json(toCustomerOrder(existingOrder));
                     return;
                 }
             }
@@ -259,6 +266,7 @@ export function createOrderRouter(): RouterType {
                         : undefined,
                     attribution,
                     whatsappMarketingOptIn,
+                    requestBinding,
                 },
             );
 
@@ -382,18 +390,21 @@ export function createOrderRouter(): RouterType {
                 console.error("[AQUAVO] Order notification failed:", err instanceof Error ? err.message : err),
             );
 
-            res.status(201).json(response);
+            res.status(201).json(toCustomerOrder(response));
         } catch (err: any) {
             const rawIdempotencyKey = req.get("Idempotency-Key");
             const parsedIdempotencyKey = rawIdempotencyKey
                 ? idempotencyKeySchema.safeParse(rawIdempotencyKey)
                 : null;
-            if (parsedIdempotencyKey?.success) {
-                const existingOrder = await storage.getOrder(parsedIdempotencyKey.data);
-                if (existingOrder) {
-                    res.status(200).json(existingOrder);
-                    return;
-                }
+            if (parsedIdempotencyKey?.success && requestBinding) {
+                try {
+                    const existingOrder = await storage.getOrder(parsedIdempotencyKey.data);
+                    if (existingOrder) {
+                        await assertCheckoutReplay(securityDb(), existingOrder.id, requestBinding);
+                        res.status(200).json(toCustomerOrder(existingOrder));
+                        return;
+                    }
+                } catch (replayError) { next(replayError); return; }
             }
             // A stock/availability rejection is a conflict with the current
             // inventory state, not a malformed request. This includes the
@@ -467,7 +478,7 @@ export function createOrderRouter(): RouterType {
             cashbackUsed: (order as any).cashbackUsed ?? 0,
             roundedTotal: (order as any).roundedTotal ? parseFloat(String((order as any).roundedTotal)) : undefined,
         };
-        return { ...order, items: enrichedItems, loyalty };
+        return toCustomerOrder({ ...order, items: enrichedItems, loyalty });
     }
 
     async function loadPaymentInfo(orderIds: string[]) {

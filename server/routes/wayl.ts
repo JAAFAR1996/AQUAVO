@@ -2,6 +2,7 @@ import { Router, type Request, type Response } from "express";
 import { sql } from "drizzle-orm";
 import { z } from "zod";
 import { getSession } from "../middleware/auth.js";
+import { checkoutRequestBinding } from "../services/checkout-request-binding.js";
 import { orderLimiter } from "../middleware/rate-limit.js";
 import { db } from "../db.js";
 import {
@@ -128,7 +129,7 @@ function paymentUrls(req: Request) {
 function resultPath(state: { paymentStatus: string; orderId: string; paymentId: string }): string {
   const page = state.paymentStatus === "paid"
     ? "success"
-    : ["failed", "cancelled", "expired"].includes(state.paymentStatus)
+    : ["failed", "cancelled", "expired", "refunded"].includes(state.paymentStatus)
       ? "failed"
       : "pending";
   const query = new URLSearchParams({ order_id: state.orderId, payment_id: state.paymentId });
@@ -191,7 +192,9 @@ export function createWaylRouter() {
       }
 
       const session = getSession(req);
+      const requestBinding = await checkoutRequestBinding(req, parsed.data);
       const prepared = await prepareOnlineOrder({
+        requestBinding,
         idempotencyKey: parsedKey.data,
         userId: session?.userId || null,
         sessionId: parsed.data.clientSessionId && CLIENT_VIEW_SESSION_ID.test(parsed.data.clientSessionId)

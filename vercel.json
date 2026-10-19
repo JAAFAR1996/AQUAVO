@@ -1,5 +1,5 @@
 {
-  "buildCommand": "pnpm run build",
+  "buildCommand": "node scripts/require-production-ci.mjs && pnpm run build",
   "outputDirectory": "dist/public",
   "installCommand": "pnpm install --frozen-lockfile",
   "framework": null,

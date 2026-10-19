@@ -1197,7 +1197,7 @@ function escapeHtml(str: string): string {
 
 // Mirrors the exact Cloudinary transform the PDP main image uses
 // (client/src/lib/cloudinary.ts `detailImage`: width 800, height 800,
-// quality auto:good, format auto, crop limit) so the SSR LCP preload targets
+// quality auto:best, format auto, crop limit) so the SSR LCP preload targets
 // the SAME asset the rendered <img> requests — otherwise the browser fetches
 // both the raw and the transformed URL and the preload goes unused.
 //
@@ -1245,7 +1245,7 @@ function toDetailPreloadSrcSet(url: string): string | null {
   return DETAIL_PRELOAD_WIDTHS.map((width) => {
     const candidate = url.replace(
       "/upload/",
-      `/upload/f_auto,q_auto:good,w_${width},h_${width},c_limit/`,
+      `/upload/f_auto,q_auto:best,w_${width},h_${width},c_limit/`,
     );
     return `${candidate} ${width}w`;
   }).join(", ");

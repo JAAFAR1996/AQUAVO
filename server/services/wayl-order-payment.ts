@@ -1,4 +1,9 @@
 import { randomBytes, randomUUID } from "node:crypto";
+import { normalizeCheckoutItems } from "../../shared/checkout-items.js";
+import { persistCheckoutBinding, assertCheckoutReplay, checkoutConflict, type CheckoutRequestBinding } from "./checkout-request-binding.js";
+import { lockEligibleCoupon, couponAmounts } from "./coupon-policy.js";
+import { projectNewOrderCosts } from "./order-cost-projection.js";
+import { applyUnpaidWaylObservation } from "./wayl-state-transition.js";
 import { and, eq, sql } from "drizzle-orm";
 import {
   coupons,
@@ -24,6 +29,7 @@ import { isCanonicalInventoryBalanceError, STOCK_ERROR_INSUFFICIENT } from "../s
 import { sendTelegramMessage } from "./order-notifications.js";
 import {
   createWaylLink,
+  WaylApiError,
   getWaylLinkByReferenceId,
   type WaylLink,
 } from "./wayl-client.js";
@@ -34,7 +40,7 @@ const ORDER_NUMBER_MAX_ATTEMPTS = 3;
 const PAYMENT_CURRENCY = "IQD";
 export const PAYMENT_METHOD = "wayl";
 
-export type AquavoPaymentStatus = "pending" | "paid" | "failed" | "cancelled" | "expired";
+export type AquavoPaymentStatus = "pending" | "paid" | "failed" | "cancelled" | "expired" | "refunded";
 
 export interface OnlineCheckoutItemInput {
   productId: string;
@@ -43,6 +49,7 @@ export interface OnlineCheckoutItemInput {
 }
 
 export interface OnlineCheckoutInput {
+  requestBinding?: CheckoutRequestBinding;
   idempotencyKey: string;
   userId: string | null;
   sessionId?: string;
@@ -165,13 +172,14 @@ async function ensureOrderReservation(orderId: string): Promise<void> {
     await tx.execute(sql`SELECT id FROM orders WHERE id=${orderId} FOR UPDATE`);
     const [order] = await tx.select().from(orders).where(eq(orders.id, orderId)).limit(1);
     if (!order) throw Object.assign(new Error("Order not found"), { status: 404 });
-    if (order.status === "cancelled" || order.paymentStatus === "cancelled") {
+    if (order.status === "cancelled") {
       throw Object.assign(new Error("هذا الطلب ملغي ولا يمكن إعادة فتح حجز الدفع أو المخزون له."), { status: 409 });
     }
+    if (["paid", "refunded"].includes(order.paymentStatus)) return;
     const lines = Array.isArray(order.items) ? order.items : [];
     if (lines.length === 0) throw Object.assign(new Error("Order has no items"), { status: 409 });
 
-    for (const line of lines) {
+    for (const line of [...lines].sort((a, b) => a.productId.localeCompare(b.productId))) {
       const product = await lockProductRowForUpdate(tx, line.productId);
       if (!product) throw Object.assign(new Error(STOCK_ERROR_INSUFFICIENT), { status: 409 });
       const quantity = Number(line.quantity);
@@ -262,7 +270,7 @@ function normalizeStatus(status: string): string {
  *   that was never verified stays "pending" and is flagged for manual review.
  * - Anything undocumented stays "pending". We never guess a payment into "paid".
  */
-export function mapWaylLinkStatus(status: string): AquavoPaymentStatus {
+export function mapWaylLinkStatus(status: string): Exclude<AquavoPaymentStatus, "refunded"> {
   const normalized = normalizeStatus(status);
   if (normalized === "complete") return "paid";
   if (normalized === "rejected") return "failed";
@@ -344,6 +352,8 @@ export async function prepareOnlineOrder(input: OnlineCheckoutInput): Promise<Pr
   const db = dbOrThrow();
   const existing = await db.select().from(orders).where(eq(orders.id, input.idempotencyKey)).limit(1);
   if (existing[0]) {
+    if (!input.requestBinding) throw checkoutConflict();
+    await assertCheckoutReplay(db, existing[0].id, input.requestBinding);
     const [existingPayment] = await db.select().from(payments).where(eq(payments.orderId, existing[0].id)).limit(1);
     if (existingPayment?.method !== PAYMENT_METHOD) {
       throw Object.assign(new Error("Idempotency key is already attached to another order"), { status: 409 });
@@ -356,6 +366,8 @@ export async function prepareOnlineOrder(input: OnlineCheckoutInput): Promise<Pr
       return await db.transaction(async (tx) => {
         const concurrent = await tx.select().from(orders).where(eq(orders.id, input.idempotencyKey)).limit(1);
         if (concurrent[0]) {
+          if (!input.requestBinding) throw checkoutConflict();
+          await assertCheckoutReplay(tx, concurrent[0].id, input.requestBinding);
           const [concurrentPayment] = await tx.select().from(payments).where(eq(payments.orderId, concurrent[0].id)).limit(1);
           if (concurrentPayment?.method !== PAYMENT_METHOD) {
             throw Object.assign(new Error("Idempotency key is already attached to another order"), { status: 409 });
@@ -367,9 +379,10 @@ export async function prepareOnlineOrder(input: OnlineCheckoutInput): Promise<Pr
         const lines: OrderLineItem[] = [];
         const snapshotAt = new Date();
 
-        for (const item of input.items) {
+        for (const item of normalizeCheckoutItems(input.items)) {
           const product = await lockProductRowForUpdate(tx, item.productId);
           if (!product) throw Object.assign(new Error(`Product ${item.productId} not found`), { status: 400 });
+          if (product.isStorefrontVisible === false || (product.hasVariants && !item.variantId)) throw Object.assign(new Error("هذا الخيار غير متاح للشراء"), { status: 400 });
           const quantity = Number(item.quantity);
           if (!Number.isInteger(quantity) || quantity <= 0) {
             throw Object.assign(new Error(`Invalid quantity for ${product.name}`), { status: 400 });
@@ -393,7 +406,7 @@ export async function prepareOnlineOrder(input: OnlineCheckoutInput): Promise<Pr
 
           const lineTotal = price * quantity;
           subtotal += lineTotal;
-          const snapshot = buildProductCostSnapshot(product, snapshotAt);
+          const snapshot = buildProductCostSnapshot(product, snapshotAt, item.variantId);
           lines.push({
             productId: product.id,
             productName: product.name,
@@ -415,23 +428,11 @@ export async function prepareOnlineOrder(input: OnlineCheckoutInput): Promise<Pr
 
         if (input.couponCode?.trim()) {
           normalizedCouponCode = input.couponCode.trim().toUpperCase();
-          const [coupon] = await tx.select().from(coupons)
-            .where(and(eq(sql`lower(${coupons.code})`, normalizedCouponCode.toLowerCase()), eq(coupons.isActive, true)))
-            .limit(1);
-          const now = new Date();
-          const valid = Boolean(coupon)
-            && (!coupon!.startDate || new Date(coupon!.startDate) <= now)
-            && (!coupon!.endDate || new Date(coupon!.endDate) >= now)
-            && (!coupon!.minOrderAmount || subtotal >= Number(coupon!.minOrderAmount))
-            && (!coupon!.maxUses || Number(coupon!.usedCount ?? 0) < Number(coupon!.maxUses));
-          if (!coupon || !valid) {
-            throw Object.assign(new Error("كود الخصم لم يعد صالحاً. أعد التحقق منه قبل الدفع."), { status: 400 });
-          }
+          const coupon = await lockEligibleCoupon(tx, normalizedCouponCode, input.userId, subtotal);
           couponId = coupon.id;
-          if (coupon.type === "percentage") discount = Math.round(subtotal * (Number(coupon.value) / 100));
-          else if (coupon.type === "fixed") discount = Number(coupon.value);
-          else if (coupon.type === "free_shipping") shippingCost = 0;
-          else throw Object.assign(new Error("نوع كود الخصم غير مدعوم"), { status: 400 });
+          const amounts = couponAmounts(coupon, subtotal, shippingCost);
+          discount = amounts.discount;
+          shippingCost = amounts.shipping;
         }
 
         const total = Math.max(0, subtotal + shippingCost - discount);
@@ -490,6 +491,8 @@ export async function prepareOnlineOrder(input: OnlineCheckoutInput): Promise<Pr
             : undefined,
         } as any).returning();
 
+        await persistCheckoutBinding(tx, order.id, input.requestBinding);
+
         const [payment] = await tx.insert(payments).values({
           orderId: order.id,
           amount: String(roundedTotal),
@@ -512,6 +515,8 @@ export async function prepareOnlineOrder(input: OnlineCheckoutInput): Promise<Pr
       if (error?.code === "23505" || error?.cause?.code === "23505") {
         const existingAfterRace = await db.select().from(orders).where(eq(orders.id, input.idempotencyKey)).limit(1);
         if (existingAfterRace[0]) {
+          if (!input.requestBinding) throw checkoutConflict();
+          await assertCheckoutReplay(db, existingAfterRace[0].id, input.requestBinding);
           const [existingPayment] = await db.select().from(payments).where(eq(payments.orderId, existingAfterRace[0].id)).limit(1);
           if (existingPayment?.method === PAYMENT_METHOD) {
             return { order: existingAfterRace[0], payment: existingPayment, reused: true };
@@ -533,6 +538,7 @@ interface ClaimedAttempt {
   currency: string;
   referenceId: string;
   webhookSecret: string;
+  recovering?: boolean;
 }
 
 /**
@@ -543,14 +549,13 @@ interface ClaimedAttempt {
  *                                webhookSecret, persist a "creating" placeholder
  *                                attempt, point transactionId at it.
  *   2. call   (no tx)            – POST /api/v1/links.
- *   3. record (tx, FOR UPDATE)  – store id/url/status on the placeholder, or drop
- *                                the placeholder and restore the previous
- *                                transactionId if the call failed.
+ *   3. record (tx, FOR UPDATE)  – merge link metadata without regressing verified
+ *                                payment state. Preserve uncertain claims.
  *
  * Concurrency: a second request that finds a live "creating" placeholder gets 409
  * (the client already blocks double clicks; this covers two tabs). A placeholder
  * older than LINK_CREATION_CLAIM_TTL_MS is treated as abandoned (process died
- * mid-call) and is replaced. Because the webhookSecret is persisted in step 1, a
+ * mid-call) and is reconciled by its existing reference, never silently replaced. Because the webhookSecret is persisted in step 1, a
  * webhook that races ahead of step 3 can still be signature-verified.
  *
  * Double-charge guard: a new link is only ever claimed when either no link exists
@@ -564,13 +569,14 @@ async function claimLinkAttempt(
 ): Promise<ClaimedAttempt | StartedWaylPayment> {
   const db = dbOrThrow();
   return db.transaction(async (tx) => {
+    await tx.execute(sql`SELECT id FROM orders WHERE id=${orderId} FOR UPDATE`);
     await tx.execute(sql`SELECT id FROM payments WHERE order_id=${orderId} FOR UPDATE`);
     const [order] = await tx.select().from(orders).where(eq(orders.id, orderId)).limit(1);
     const [payment] = await tx.select().from(payments).where(eq(payments.orderId, orderId)).limit(1);
     if (!order || !payment || payment.method !== PAYMENT_METHOD) {
       throw Object.assign(new Error("Online payment not found for this order"), { status: 404 });
     }
-    if (order.paymentStatus === "paid" || payment.status === "completed") {
+    if (["paid", "refunded"].includes(order.paymentStatus) || ["completed", "refunded"].includes(payment.status)) {
       throw Object.assign(new Error("هذا الطلب مدفوع بالفعل ولا يمكن إنشاء عملية دفع جديدة له."), { status: 409 });
     }
 
@@ -587,8 +593,16 @@ async function claimLinkAttempt(
         if (Number.isFinite(claimedAt) && now - claimedAt < LINK_CREATION_CLAIM_TTL_MS) {
           throw Object.assign(new Error("جاري تجهيز رابط الدفع لهذا الطلب. انتظر لحظات ثم أعد المحاولة."), { status: 409 });
         }
-        // Abandoned claim: the previous process died between claim and record.
-        attempts.splice(attempts.indexOf(currentAttempt), 1);
+        // A timeout is not proof that Wayl failed to create a link. Preserve
+        // its reference and signing secret, then reconcile outside this lock.
+        if (typeof currentAttempt.webhookSecret !== "string" || !currentAttempt.webhookSecret) {
+          throw Object.assign(new Error("محاولة الدفع تحتاج مراجعة آمنة قبل إعادة المحاولة."), { status: 409 });
+        }
+        currentAttempt.claimedAt = new Date(now).toISOString();
+        await tx.update(payments).set({ providerResponse: { ...previous, attempts }, updatedAt: new Date() } as any)
+          .where(eq(payments.id, payment.id));
+        return { order, paymentRowId: payment.id, amount, currency, referenceId: currentAttempt.referenceId,
+          webhookSecret: currentAttempt.webhookSecret, recovering: true };
       } else if (!options.forceNew && currentAttempt.url) {
         return {
           orderId: order.id,
@@ -634,13 +648,26 @@ async function recordLinkAttempt(
 ): Promise<void> {
   const db = dbOrThrow();
   await db.transaction(async (tx) => {
+    await tx.execute(sql`SELECT id FROM orders WHERE id=${claim.order.id} FOR UPDATE`);
     await tx.execute(sql`SELECT id FROM payments WHERE id=${claim.paymentRowId} FOR UPDATE`);
+    const [currentOrder] = await tx.select().from(orders).where(eq(orders.id, claim.order.id)).limit(1);
     const [payment] = await tx.select().from(payments).where(eq(payments.id, claim.paymentRowId)).limit(1);
     if (!payment) return;
     const previous = safeProviderResponse(payment.providerResponse);
     const attempts: any[] = Array.isArray(previous.attempts) ? [...previous.attempts] : [];
     const index = attempts.findIndex((entry: any) => entry?.referenceId === claim.referenceId);
-    if (index === -1) return;
+    if (index === -1 || attempts[index].webhookSecret !== claim.webhookSecret || !currentOrder) return;
+    const stateAlreadyResolved = payment.status === "completed" || payment.status === "refunded"
+      || ["paid", "refunded"].includes(currentOrder.paymentStatus)
+      || currentOrder.status === "cancelled" || attempts[index].status !== "creating";
+    if (stateAlreadyResolved) {
+      // A verified webhook can win the create-link race. Enrich metadata only.
+      if ("link" in outcome) {
+        attempts[index] = { ...attempts[index], linkId: outcome.link.id, url: outcome.link.url };
+        await tx.update(payments).set({ providerResponse: { ...previous, attempts }, updatedAt: new Date() } as any).where(eq(payments.id, payment.id));
+      }
+      return;
+    }
 
     if ("link" in outcome) {
       const { previousTransactionId: _drop, claimedAt: _claimedAt, ...placeholder } = attempts[index];
@@ -662,13 +689,10 @@ async function recordLinkAttempt(
       return;
     }
 
-    const restoreTo = attempts[index].previousTransactionId ?? null;
-    attempts.splice(index, 1);
-    await tx.update(payments).set({
-      transactionId: restoreTo,
-      providerResponse: { ...previous, attempts },
-      updatedAt: new Date(),
-    } as any).where(eq(payments.id, payment.id));
+    // Keep uncertain claims. Recovery first reads this same provider reference.
+    attempts[index] = { ...attempts[index], lastCreateFailureAt: new Date().toISOString() };
+    await tx.update(payments).set({ providerResponse: { ...previous, attempts }, updatedAt: new Date() } as any)
+      .where(eq(payments.id, payment.id));
   });
 }
 
@@ -686,9 +710,15 @@ export async function startWaylPaymentForOrder(
   // referenceId keeps the return handler independent of that. It is a lookup key
   // only — never proof of payment.
   const redirectionUrl = `${urls.redirectUrl}?payment_id=${encodeURIComponent(claimed.referenceId)}`;
-  let link: WaylLink;
+  let link: WaylLink | undefined;
   try {
-    link = await createWaylLink({
+    if (claimed.recovering) {
+      try { link = await getWaylLinkByReferenceId(claimed.referenceId); }
+      catch (error) {
+        if (!(error instanceof WaylApiError) || error.status !== 404) throw error;
+      }
+    }
+    link ??= await createWaylLink({
       referenceId: claimed.referenceId,
       total: claimed.amount,
       currency: claimed.currency,
@@ -705,6 +735,9 @@ export async function startWaylPaymentForOrder(
     throw error;
   }
 
+  if (!link || !isVerifiedPaymentContext({ referenceId: link.referenceId, amount: Number(link.total), currency: link.currency }, claimed)) {
+    throw Object.assign(new Error("Payment creation response does not match its claim"), { status: 502 });
+  }
   await recordLinkAttempt(claimed, { link });
 
   return {
@@ -796,7 +829,7 @@ async function finalizePaidOrder(
       if (!order || !payment) throw new Error("Order payment record disappeared during finalization");
       const providerMeta = safeProviderResponse(payment.providerResponse);
 
-      if (order.paymentStatus === "paid" && payment.status === "completed") {
+      if ((order.paymentStatus === "paid" && payment.status === "completed") || order.paymentStatus === "refunded" || payment.status === "refunded") {
         return {
           order,
           loyaltyResult: null,
@@ -805,14 +838,14 @@ async function finalizePaidOrder(
         };
       }
 
-      if (order.status === "cancelled" || order.paymentStatus === "cancelled" || payment.status === "cancelled") {
+      if (order.status === "cancelled") {
         throw new CancelledOrderPaidConflict();
       }
 
       const lines = Array.isArray(order.items) ? order.items : [];
       if (lines.length === 0) throw new PaidOrderInventoryConflict("Order has no stored line items");
 
-      for (const line of lines) {
+      for (const line of [...lines].sort((a, b) => a.productId.localeCompare(b.productId))) {
         const product = await lockProductRowForUpdate(tx, line.productId);
         if (!product) throw new PaidOrderInventoryConflict(`Product ${line.productId} is no longer available`);
         const qty = Number(line.quantity);
@@ -839,6 +872,7 @@ async function finalizePaidOrder(
             ? { variantId: line.variantId, variantLabel: line.variantLabel }
             : null,
         })) as any);
+        await projectNewOrderCosts(tx, order);
       }
 
       if (order.couponId) {
@@ -927,11 +961,14 @@ async function recordPaidInventoryReview(
   reviewReason: "inventory_conflict" | "paid_after_cancellation" = "inventory_conflict",
 ): Promise<void> {
   const db = dbOrThrow();
-  const { order, payment } = await getOrderAndPayment(orderId);
-  const meta = safeProviderResponse(payment.providerResponse);
   await db.transaction(async (tx) => {
     await tx.execute(sql`SELECT id FROM orders WHERE id=${orderId} FOR UPDATE`);
     await tx.execute(sql`SELECT id FROM payments WHERE order_id=${orderId} FOR UPDATE`);
+    const [order] = await tx.select().from(orders).where(eq(orders.id, orderId)).limit(1);
+    const [payment] = await tx.select().from(payments).where(eq(payments.orderId, orderId)).limit(1);
+    if (!order || !payment) throw new Error("Order payment unavailable");
+    if ((order.paymentStatus === "paid" && payment.status === "completed") || order.paymentStatus === "refunded") return;
+    const meta = safeProviderResponse(payment.providerResponse);
     // Even a cancelled / out-of-stock paid order must have ledger evidence
     // before being marked paid and flagged for refund/inventory review.
     await recordVerifiedWaylCapture(tx, order, payment, referenceId, {
@@ -1010,6 +1047,12 @@ export async function verifyAndSyncWaylPayment(
   // provider status (Delivered, Returned, or anything else) can move it back to
   // unpaid. If a *different* link for the same order also reports Complete, the
   // customer may have been charged twice — flag it for a refund review.
+  // A verified historical Complete must never undo a documented refund.
+  if (order.paymentStatus === "refunded" || payment.status === "refunded") {
+    return { orderId: order.id, orderNumber: order.orderNumber || order.id, amount, currency,
+      paymentId: payment.transactionId || referenceId, paymentStatus: "refunded", providerStatus: context.status,
+      orderStatus: order.status, inventoryReview: false, newlyFinalized: false };
+  }
   const locallyPaid = order.paymentStatus === "paid" && payment.status === "completed";
   if (locallyPaid) {
     if (mappedStatus === "paid" && payment.transactionId && payment.transactionId !== referenceId) {
@@ -1059,32 +1102,11 @@ export async function verifyAndSyncWaylPayment(
       inventoryReview = true;
     }
   } else {
-    const isCurrentAttempt = payment.transactionId === referenceId;
-    if (isCurrentAttempt) {
-      const locallyCancelled = order.status === "cancelled" || order.paymentStatus === "cancelled" || payment.status === "cancelled";
-      await dbOrThrow().transaction(async (tx) => {
-        await tx.update(payments).set({
-          status: locallyCancelled ? "cancelled" : (mappedStatus === "pending" ? "pending" : "failed"),
-          providerResponse: {
-            ...meta,
-            attempts: attempts.map((entry: any) => entry?.referenceId === referenceId
-              ? { ...entry, status: context.status }
-              : entry),
-            providerStatus: context.status,
-            verifiedAt: new Date().toISOString(),
-          },
-          updatedAt: new Date(),
-        } as any).where(eq(payments.id, payment.id));
-        await tx.update(orders).set({ paymentStatus: locallyCancelled ? "cancelled" : mappedStatus, updatedAt: new Date() } as any)
-          .where(eq(orders.id, order.id));
-      });
-      finalOrder = { ...order, paymentStatus: locallyCancelled ? "cancelled" : mappedStatus } as Order;
-      if (mappedStatus !== "pending") {
-        await releaseOrderReservation(order.id, `payment_${mappedStatus}`).catch((error) =>
-          console.error("[AQUAVO Wayl] reservation release failed:", error),
-        );
-      }
-    }
+    const observed = await applyUnpaidWaylObservation(dbOrThrow(), {
+      orderId: order.id, referenceId, amount, currency, providerStatus: context.status,
+      mappedStatus,
+    });
+    finalOrder = { ...order, status: observed.orderStatus, paymentStatus: observed.paymentStatus } as Order;
   }
 
   return {
@@ -1093,7 +1115,7 @@ export async function verifyAndSyncWaylPayment(
     amount,
     currency,
     paymentId: referenceId,
-    paymentStatus: mappedStatus === "paid" ? "paid" : (finalOrder.paymentStatus as AquavoPaymentStatus) || mappedStatus,
+    paymentStatus: (finalOrder.paymentStatus as AquavoPaymentStatus) || mappedStatus,
     providerStatus: context.status,
     orderStatus: finalOrder.status,
     inventoryReview: inventoryReview || finalOrder.status === "payment_review",
@@ -1115,7 +1137,7 @@ export async function retryWaylPayment(
   // documented states in which it can no longer charge the customer. Created,
   // Pending, Processing, Delivered, Returned and unknown states all refuse.
   const verified = await verifyAndSyncWaylPayment(currentPaymentId, orderId);
-  if (verified.paymentStatus === "paid") return verified;
+  if (["paid", "refunded"].includes(verified.paymentStatus)) return verified;
   if (!isTerminalNonPaidWaylStatus(verified.providerStatus)) {
     throw Object.assign(new Error("عملية الدفع ما زالت قيد التحقق لدى Wayl. انتظر قليلاً قبل إعادة المحاولة."), { status: 409 });
   }

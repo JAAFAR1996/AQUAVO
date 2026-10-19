@@ -57,6 +57,7 @@ export class SmartNotifications {
     pushFailed: number;
     emailsSent: number;
     skippedFrequencyCap: number;
+    skippedReason?: "no_active_subscriptions";
     byType: Record<string, number>;
   }> {
     console.log("[AI-Notifications] Starting AI Notification Engine...");
@@ -74,18 +75,23 @@ export class SmartNotifications {
       const db = getDb();
       if (!db) return results;
 
+      const subscribers = await db.selectDistinct({ userId: pushSubscriptions.userId })
+        .from(pushSubscriptions).where(eq(pushSubscriptions.isActive, true));
+      const eligible = new Set(subscribers.map((row) => row.userId).filter((id): id is string => Boolean(id)));
+      if (eligible.size === 0) return { ...results, skippedReason: "no_active_subscriptions" };
+
       const candidates: Array<{
         userId: string;
         payload: NotificationPayload;
         priority: number;
       }> = [];
 
-      candidates.push(...await this.gatherReplenishmentCandidates());
-      candidates.push(...await this.gatherChurnCandidates());
-      candidates.push(...await this.gatherWelcomeCandidates());
-      candidates.push(...await this.gatherCartAbandonmentCandidates());
-      candidates.push(...await this.gatherNewProductCandidates());
-      candidates.push(...await this.gatherSeasonalTipCandidates());
+      candidates.push(...await this.gatherReplenishmentCandidates(eligible));
+      candidates.push(...await this.gatherChurnCandidates(eligible));
+      candidates.push(...await this.gatherWelcomeCandidates(eligible));
+      candidates.push(...await this.gatherCartAbandonmentCandidates(eligible));
+      candidates.push(...await this.gatherNewProductCandidates(eligible));
+      candidates.push(...await this.gatherSeasonalTipCandidates(eligible));
       candidates.sort((a, b) => b.priority - a.priority);
 
       for (const candidate of candidates) {
@@ -141,7 +147,7 @@ export class SmartNotifications {
     return results;
   }
 
-  private async gatherReplenishmentCandidates(): Promise<Array<{
+  private async gatherReplenishmentCandidates(eligible: ReadonlySet<string>): Promise<Array<{
     userId: string;
     payload: NotificationPayload;
     priority: number;
@@ -177,6 +183,7 @@ export class SmartNotifications {
       }
 
       for (const [userId, pred] of byUser) {
+        if (!eligible.has(userId)) continue;
         const content = await this.generateAIContent("replenishment", {
           productName: pred.productName,
           reason: pred.reason,
@@ -201,7 +208,7 @@ export class SmartNotifications {
     return candidates;
   }
 
-  private async gatherChurnCandidates(): Promise<Array<{
+  private async gatherChurnCandidates(eligible: ReadonlySet<string>): Promise<Array<{
     userId: string;
     payload: NotificationPayload;
     priority: number;
@@ -225,7 +232,7 @@ export class SmartNotifications {
         .limit(20);
 
       for (const user of highRiskUsers) {
-        if (!user.userId) continue;
+        if (!user.userId || !eligible.has(user.userId)) continue;
 
         const recentChurn = await db
           .select({ count: count() })
@@ -263,7 +270,7 @@ export class SmartNotifications {
     return candidates;
   }
 
-  private async gatherWelcomeCandidates(): Promise<Array<{
+  private async gatherWelcomeCandidates(eligible: ReadonlySet<string>): Promise<Array<{
     userId: string;
     payload: NotificationPayload;
     priority: number;
@@ -282,7 +289,7 @@ export class SmartNotifications {
         .limit(50);
 
       for (const user of newUsers) {
-        if (!user.id) continue;
+        if (!user.id || !eligible.has(user.id)) continue;
 
         const alreadyWelcomed = await db
           .select({ count: count() })
@@ -314,7 +321,7 @@ export class SmartNotifications {
     return candidates;
   }
 
-  private async gatherCartAbandonmentCandidates(): Promise<Array<{
+  private async gatherCartAbandonmentCandidates(eligible: ReadonlySet<string>): Promise<Array<{
     userId: string;
     payload: NotificationPayload;
     priority: number;
@@ -338,7 +345,7 @@ export class SmartNotifications {
 
       const userCarts = new Map<string, string[]>();
       for (const item of cartAdders) {
-        if (!item.userId) continue;
+        if (!item.userId || !eligible.has(item.userId)) continue;
         const existing = userCarts.get(item.userId) || [];
         if (item.productId) existing.push(item.productId);
         userCarts.set(item.userId, existing);
@@ -386,7 +393,7 @@ export class SmartNotifications {
     return candidates;
   }
 
-  private async gatherNewProductCandidates(): Promise<Array<{
+  private async gatherNewProductCandidates(eligible: ReadonlySet<string>): Promise<Array<{
     userId: string;
     payload: NotificationPayload;
     priority: number;
@@ -416,7 +423,7 @@ export class SmartNotifications {
           .limit(30);
 
         for (const user of interestedUsers) {
-          if (!user.userId) continue;
+          if (!user.userId || !eligible.has(user.userId)) continue;
           const alreadyNotified = await db
             .select({ count: count() })
             .from(notificationLog)
@@ -448,7 +455,7 @@ export class SmartNotifications {
     return candidates;
   }
 
-  private async gatherSeasonalTipCandidates(): Promise<Array<{
+  private async gatherSeasonalTipCandidates(eligible: ReadonlySet<string>): Promise<Array<{
     userId: string;
     payload: NotificationPayload;
     priority: number;
@@ -476,7 +483,7 @@ export class SmartNotifications {
         .limit(100);
 
       for (const sub of subscribedUsers) {
-        if (!sub.userId) continue;
+        if (!sub.userId || !eligible.has(sub.userId)) continue;
         const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
         const alreadySent = await db
           .select({ count: count() })

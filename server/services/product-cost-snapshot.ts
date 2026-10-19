@@ -89,6 +89,7 @@ export interface LockedProductRow {
     stock: number | null;
     variants: any[] | null;
     hasVariants?: boolean;
+    isStorefrontVisible?: boolean;
     /** raw numeric text from products.cost_price — may be null */
     costPrice: string | number | null;
     packagingCost: string | number | null;
@@ -163,6 +164,7 @@ export function resolveSnapshotComponent(
 export function buildProductCostSnapshot(
     product: Partial<LockedProductRow> | Record<string, unknown>,
     now: Date = new Date(),
+    variantId?: string,
 ): ProductCostSnapshot {
     const p = product as Record<string, unknown>;
     // Accept both camelCase (Drizzle) and snake_case (raw SQL) spellings so a
@@ -172,7 +174,11 @@ export function buildProductCostSnapshot(
     const insRes = (p.insertCostResolution ?? p.insert_cost_resolution) as string | null | undefined;
 
     const rawCostPrice = p.costPrice ?? p.cost_price;
-    const costPrice = resolveSnapshotComponent(rawCostPrice, costRes);
+    const variant = variantId && Array.isArray(p.variants)
+        ? (p.variants as Record<string, unknown>[]).find((candidate) => candidate.id === variantId)
+        : undefined;
+    const variantVerified = Boolean(variant && variant.costStatus === "verified_derived" && parseCostValue(variant.costPrice) !== null);
+    const costPrice = variantVerified ? parseCostValue(variant!.costPrice) : resolveSnapshotComponent(rawCostPrice, costRes);
     const packagingCost = resolveSnapshotComponent(p.packagingCost ?? p.packaging_cost, packRes);
     const insertCost = resolveSnapshotComponent(p.insertCost ?? p.insert_cost, insRes);
 
@@ -191,7 +197,7 @@ export function buildProductCostSnapshot(
         };
     }
 
-    const complete = packagingCost !== null && insertCost !== null;
+    const complete = packagingCost !== null && insertCost !== null && (!variantId || variantVerified);
     const costStatus: CostSnapshotStatus = !complete
         ? "incomplete"
         : costPrice === 0
@@ -293,6 +299,7 @@ export async function lockProductRowForUpdate(
     const result = await tx.execute(sql`
         SELECT p.id, p.name, p.price, p.stock, p.variants,
                p.has_variants AS "hasVariants",
+               p.is_storefront_visible AS "isStorefrontVisible",
                p.cost_price AS "costPrice",
                p.packaging_cost AS "packagingCost",
                p.insert_cost AS "insertCost",

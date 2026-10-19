@@ -68,6 +68,7 @@ export interface IStorage {
             viewSessionId?: string;
             attribution?: Record<string, string>;
             whatsappMarketingOptIn?: boolean;
+            requestBinding?: import("../services/checkout-request-binding.js").CheckoutRequestBinding;
         },
     ): Promise<Order>;
     seedProductsIfNeeded(): Promise<void>;

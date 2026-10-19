@@ -18,7 +18,7 @@ function formatIQD(value: number): string {
 
 function canonicalPage(status: string): "success" | "failed" | "pending" {
   if (status === "paid") return "success";
-  if (["failed", "cancelled", "expired"].includes(status)) return "failed";
+  if (["failed", "cancelled", "expired", "refunded"].includes(status)) return "failed";
   return "pending";
 }
 
@@ -105,6 +105,9 @@ function successPage(state: VerifiedOnlinePaymentState): string {
 }
 
 function failedPage(state: VerifiedOnlinePaymentState): string {
+  if (state.paymentStatus === "refunded") {
+    return shell("تم تسجيل استرجاع المبلغ", `<section class="card"><h1>تم تسجيل استرجاع المبلغ</h1><p class="lead">هذه العملية مسترجعة حسب السجل المالي. لا تعِد الدفع لهذا الطلب. تواصل معنا لتفاصيل الاسترجاع.</p><a class="btn" href="/contact">تواصل معنا</a></section>`);
+  }
   const statusLabel = state.paymentStatus === "expired"
     ? "انتهت مهلة الدفع"
     : state.paymentStatus === "cancelled"

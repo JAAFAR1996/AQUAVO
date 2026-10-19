@@ -217,6 +217,7 @@ export class InvoiceStorage {
   private async createOrderFromInvoice(invoice: ManualInvoice): Promise<string> {
     const db = this.ensureDb();
     const { orders, orderItems } = await import("../../shared/schema.js");
+    const { projectNewOrderCosts } = await import("../services/order-cost-projection.js");
     const {
       buildProductCostSnapshot,
       lockProductRowForUpdate,
@@ -241,7 +242,7 @@ export class InvoiceStorage {
       // 1. Lock every product row FIRST and freeze its cost snapshot, inside the
       //    same transaction that will deduct its stock.
       const lines = [] as Array<{ raw: any; snapshot: ReturnType<typeof buildProductCostSnapshot> }>;
-      for (const item of invoiceLines) {
+      for (const item of [...invoiceLines].sort((a, b) => String(a.productId).localeCompare(String(b.productId)))) {
         const locked = await lockProductRowForUpdate(tx as any, item.productId);
         if (!locked) {
           // Fail closed: an invoice line pointing at a missing/deleted product
@@ -251,12 +252,12 @@ export class InvoiceStorage {
             { status: 400 },
           );
         }
-        lines.push({ raw: item, snapshot: buildProductCostSnapshot(locked, snapshotAt) });
+        lines.push({ raw: item, snapshot: buildProductCostSnapshot(locked, snapshotAt, item.variantId) });
       }
 
       // 2. Create order (only columns that exist in the Drizzle schema).
       // Carry the invoice discount onto the order so order-based reporting sees it.
-      await tx.insert(orders).values({
+      const [createdOrder] = await tx.insert(orders).values({
         id: orderId,
         orderNumber: invoice.invoiceNo,  // نفس رقم الفاتورة = نفس تسلسل طلبات الموقع
         userId: null,
@@ -293,7 +294,7 @@ export class InvoiceStorage {
         })),
         createdAt: new Date(),
         updatedAt: new Date(),
-      });
+      }).returning();
 
       // 3. Relational lines carry the SAME snapshot objects → the two stores agree.
       for (const { raw: item, snapshot } of lines) {
@@ -317,6 +318,7 @@ export class InvoiceStorage {
         // Never mutate products.stock here: that would be a second deduction
         // and is blocked when inventory_ledger_mode=enforce.
       }
+      await projectNewOrderCosts(tx, createdOrder);
     });
 
     return orderId;
