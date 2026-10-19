@@ -3,11 +3,11 @@
 DO $guard$
 BEGIN
   IF COALESCE(current_setting('aquavo.migration_checksum',true),'') !~ '^[0-9a-f]{64}$' THEN
-    RAISE EXCEPTION '0100_REQUIRES_CHECKSUM_AND_EXPLICIT_TRANSACTION';
+    RAISE EXCEPTION '0101_REQUIRES_CHECKSUM_AND_EXPLICIT_TRANSACTION';
   END IF;
-  IF EXISTS(SELECT 1 FROM public.schema_migrations WHERE version='0100_security_commerce_boundaries'
+  IF EXISTS(SELECT 1 FROM public.schema_migrations WHERE version='0101_security_commerce_boundaries'
        AND rolled_back_at IS NULL AND checksum IS DISTINCT FROM current_setting('aquavo.migration_checksum')) THEN
-    RAISE EXCEPTION '0100_MIGRATION_CHECKSUM_CONFLICT';
+    RAISE EXCEPTION '0101_MIGRATION_CHECKSUM_CONFLICT';
   END IF;
 END
 $guard$;
@@ -79,6 +79,6 @@ DROP TRIGGER IF EXISTS orders_guard_wayl_monotonic_state ON public.orders;
 CREATE TRIGGER orders_guard_wayl_monotonic_state BEFORE UPDATE OF payment_status ON public.orders
 FOR EACH ROW EXECUTE FUNCTION public.prevent_wayl_payment_regression();
 INSERT INTO public.schema_migrations(version,checksum,notes)
-VALUES('0100_security_commerce_boundaries',current_setting('aquavo.migration_checksum'),
+VALUES('0101_security_commerce_boundaries',current_setting('aquavo.migration_checksum'),
 'Credential-bound sessions, persistent hashed OAuth grants, owner-bound checkout, monotonic Wayl states. No financial backfill.')
 ON CONFLICT(version) DO UPDATE SET checksum=EXCLUDED.checksum,notes=EXCLUDED.notes,rolled_back_at=NULL,applied_at=clock_timestamp();

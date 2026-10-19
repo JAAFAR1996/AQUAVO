@@ -23,7 +23,7 @@ const verifier = "v".repeat(64);
 const challenge = createHash("sha256").update(verifier).digest("base64url");
 const resource = "https://example.invalid/api/mcp";
 const redirectUri = "https://client.example.invalid/callback";
-const migration = readFileSync("migrations/0100_security_commerce_boundaries.sql", "utf8");
+const migration = readFileSync("migrations/0101_security_commerce_boundaries.sql", "utf8");
 const checksum = createHash("sha256").update(migration).digest("hex");
 const issue = async (scope = "mcp:read") => {
   const store = new OAuthGrantStore(db);
