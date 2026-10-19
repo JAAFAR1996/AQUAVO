@@ -13,7 +13,6 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ShoppingCart, Star, Truck, RotateCcw, Shield, Info, Heart, Share2, Leaf, ShieldCheck, Check, Package, FileText, ExternalLink, Clock, Banknote, Loader2 } from "lucide-react";
-import { DifficultyBadge } from "@/components/ui/difficulty-badge";
 import { useCart } from "@/contexts/cart-context";
 import { WishlistButton } from "@/components/wishlist/wishlist-button";
 import { CompareButton } from "@/components/products/product-comparison";
@@ -49,11 +48,14 @@ import { trackViewItem } from "@/lib/analytics";
 import { phTrackViewContent, phTrackWhatsAppClick } from "@/lib/posthog";
 import { DELIVERY_DAYS } from "@/lib/constants/shipping";
 import { WhatsAppLink } from "@/components/whatsapp-link";
+import { FoodProductFacts, foodComparisonCopy } from "@/components/products/food-choice-guide";
+import { areFoodAlternatives, getFoodProfile } from "@shared/food-choice";
 import { useTranslation } from "react-i18next";
 import { useLocale } from "@/i18n/locale-context";
 import { localizeCategoryName } from "@shared/i18n/categories";
 import { formatIQD } from "@/lib/utils";
 import { getProductDisplayIdentity } from "@/lib/product-display";
+import { getProductPriceDisplay } from "@/lib/product-pricing";
 import { useShippingFee } from "@/contexts/shipping-fee-context";
 
 interface Product3DMeta {
@@ -183,15 +185,9 @@ export default function ProductDetails() {
       : null);
   }, [product?.id, hasEmbeddedVariants, product?.variants]);
 
-  const variantPrices = (hasEmbeddedVariants && product?.variants)
-    ? product.variants.map((variant) => variant.price).filter((price) => price > 0)
-    : [];
-  const variantMinPriceDetail = variantPrices.length > 0 ? Math.min(...variantPrices) : undefined;
   const requiresVariantSelection = Boolean(hasEmbeddedVariants && !selectedVariant);
-  const displayPrice = selectedVariant?.price ??
-    (hasEmbeddedVariants && variantMinPriceDetail !== undefined
-      ? variantMinPriceDetail
-      : product?.price ?? 0);
+  const priceDisplay = getProductPriceDisplay(product, selectedVariant);
+  const displayPrice = priceDisplay.price ?? 0;
 
   // Tracks which productId has already fired ViewContent — prevents double-fire
   // caused by displayPrice changing when selectedVariant initializes after product loads.
@@ -235,7 +231,7 @@ export default function ProductDetails() {
     });
   }, [product?.id, displayPrice, hasEmbeddedVariants, selectedVariant?.id]);
 
-  const displayOriginalPrice = selectedVariant?.originalPrice ?? product?.originalPrice;
+  const displayOriginalPrice = priceDisplay.originalPrice;
   const woodSaleActive = product ? isWoodMonthEndSale(product) : false;
   const displayStock = selectedVariant?.stock ?? product?.stock ?? 0;
   const isOutOfStock = hasEmbeddedVariants
@@ -485,7 +481,6 @@ export default function ProductDetails() {
                       <bdi dir="ltr">{productDisplay.brand}</bdi>
                     </span>
                   ) : null}
-                  <DifficultyBadge level={product.difficulty} />
                 </div>
 
                 <h1 className="text-xl md:text-2xl font-bold mb-4">{bidi(productDisplay.name)}</h1>
@@ -546,7 +541,7 @@ export default function ProductDetails() {
                             <span className="ms-1 text-base font-medium text-muted-foreground">{t("price.perKilo")}</span>
                           )}
                         </span>
-                        {displayOriginalPrice && displayOriginalPrice > displayPrice && (
+                        {displayOriginalPrice !== null && (
                           <span className="whitespace-nowrap text-xl text-muted-foreground line-through decoration-destructive decoration-2">
                             {formatPrice(displayOriginalPrice)}
                           </span>
@@ -620,7 +615,8 @@ export default function ProductDetails() {
                   )}
                 </div>
 
-                {decisionFacts.length > 0 && (
+                <FoodProductFacts product={product} />
+                {decisionFacts.length > 0 && (!getFoodProfile(product) || getFoodProfile(product)?.accessory) && (
                   <section className="mb-4 rounded-xl border border-primary/20 bg-primary/[0.045] p-4" aria-labelledby="decision-summary-title">
                     <h2 id="decision-summary-title" className="text-sm font-bold text-foreground">{t("decision.title")}</h2>
                     <ul className="mt-2 space-y-2">
@@ -984,10 +980,6 @@ export default function ProductDetails() {
                             <dd className="font-medium">{localizeCategoryName(product.category, locale)}</dd>
                           </div>
                           <div className="flex justify-between">
-                            <dt className="text-muted-foreground">{t("specs.difficulty")}</dt>
-                            <dd className="font-medium">{product.difficulty}</dd>
-                          </div>
-                          <div className="flex justify-between">
                             <dt className="text-muted-foreground">{t("specs.rating")}</dt>
                             <dd className="font-medium">{product.rating}/5</dd>
                           </div>
@@ -1124,6 +1116,7 @@ export default function ProductDetails() {
 
             {/* Frequently Bought Together (Real Data) */}
             <RecommendationsSection
+              currentProduct={product}
               productId={product.id}
               type="frequently-bought-together"
               title={t("related.fbt")}
@@ -1136,6 +1129,7 @@ export default function ProductDetails() {
                 bestseller list with a pulsing "live" badge is not relevant to
                 the product being viewed; the home page already has it. */}
             <RecommendationsSection
+              currentProduct={product}
               productId={product.id}
               type="similar"
               title={t("related.similar")}
@@ -1197,7 +1191,8 @@ export default function ProductDetails() {
 
 // --- New Recommendations Component ---
 
-function RecommendationsSection({ productId, type, title }: { productId: string, type: 'frequently-bought-together' | 'similar', title: string }) {
+function RecommendationsSection({ currentProduct, productId, type, title }: { currentProduct: Product; productId: string, type: 'frequently-bought-together' | 'similar', title: string }) {
+  const { locale } = useLocale();
   const { data: products, isLoading } = useQuery({
     queryKey: ['recommendations', type, productId],
     queryFn: () =>
@@ -1208,15 +1203,25 @@ function RecommendationsSection({ productId, type, title }: { productId: string,
   });
 
   if (isLoading) return <div className="mt-16"><Skeleton className="h-64 w-full" /></div>;
-  if (!products || products.length === 0) return null;
+  const food = getFoodProfile(currentProduct);
+  const relevantProducts = (products ?? []).filter(candidate => {
+    if (candidate.id === currentProduct.id) return false;
+    if (!food || food.accessory) return true;
+    if (type === "similar") return areFoodAlternatives(currentProduct, candidate);
+    const candidateFood = getFoodProfile(candidate);
+    return !candidateFood || candidateFood.accessory || areFoodAlternatives(currentProduct, candidate);
+  });
+  if (relevantProducts.length === 0) return null;
+  const foodComparison = food && !food.accessory && type === "similar" ? foodComparisonCopy(locale) : null;
 
   return (
     <div className="mt-16">
-      <h2 className="text-3xl font-bold mb-8">{title}</h2>
+      <h2 className="text-2xl sm:text-3xl font-bold mb-3">{foodComparison?.title ?? title}</h2>
+      {foodComparison && <p className="mb-5 text-sm leading-6 text-muted-foreground">{foodComparison.note}</p>}
       {/* Two columns on phones, same as the products grid: four full-width
           cards per rail is what made the page so long to scroll. Capped at 4. */}
       <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-4">
-        {products.slice(0, 4).map((product: Product) => (
+        {relevantProducts.slice(0, 4).map((product: Product) => (
           <div key={product.id} className="h-full">
             <ProductCard product={product} />
           </div>

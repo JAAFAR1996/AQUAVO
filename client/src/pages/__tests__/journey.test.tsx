@@ -1,8 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import JourneyPage from '../journey';
 import * as useJourneyHook from '@/hooks/use-journey';
+import { normalizeWizardData } from '@/components/journey/utils';
+import { STEPS } from '@/components/journey/constants';
+import { i18next } from '@/i18n';
 import React from 'react';
 
 // Mock wouter
@@ -106,12 +109,14 @@ describe('JourneyPage', () => {
     const mockPrevStep = vi.fn();
     const mockSaveJourney = vi.fn();
     const mockSetCurrentStep = vi.fn();
+    const mockContinueJourney = vi.fn();
 
     const defaultHookValues = {
         currentStep: 0,
         setCurrentStep: mockSetCurrentStep,
         wizardData: {
             tankSize: '',
+            tankLiters: 0,
             tankType: 'freshwater-community',
             location: [],
             filterType: 'hob',
@@ -124,27 +129,28 @@ describe('JourneyPage', () => {
             fishTypes: [],
             selectedSpecies: [],
             stockingLevel: 'light',
-            maintenancePreference: 'moderate',
-            startedAt: new Date().toISOString()
+            maintenancePreference: 'moderate'
         },
         updateData: mockUpdateData,
+        continueJourney: mockContinueJourney,
         nextStep: mockNextStep,
         prevStep: mockPrevStep,
         saveJourney: mockSaveJourney,
         resetJourney: vi.fn(),
         savedPlan: null,
+        hasActiveSession: false,
         isLoadingSavedPlan: false,
         isSaving: false,
-        products: []
+        steps: STEPS
     };
 
     beforeEach(() => {
         vi.clearAllMocks();
-        (useJourneyHook.useJourney as any).mockReturnValue(defaultHookValues);
+        vi.mocked(useJourneyHook.useJourney).mockReturnValue(defaultHookValues);
     });
 
     it('renders loading state when loading saved plan', () => {
-        (useJourneyHook.useJourney as any).mockReturnValue({
+        vi.mocked(useJourneyHook.useJourney).mockReturnValue({
             ...defaultHookValues,
             isLoadingSavedPlan: true
         });
@@ -172,7 +178,7 @@ describe('JourneyPage', () => {
     });
 
     it('renders Step 2 when currentStep is 1', () => {
-        (useJourneyHook.useJourney as any).mockReturnValue({
+        vi.mocked(useJourneyHook.useJourney).mockReturnValue({
             ...defaultHookValues,
             currentStep: 1
         });
@@ -191,7 +197,7 @@ describe('JourneyPage', () => {
     });
 
     it('renders Summary (Step 9) when currentStep is 8', () => {
-        (useJourneyHook.useJourney as any).mockReturnValue({
+        vi.mocked(useJourneyHook.useJourney).mockReturnValue({
             ...defaultHookValues,
             currentStep: 8,
             wizardData: { ...defaultHookValues.wizardData, tankSize: 'medium' }
@@ -199,10 +205,65 @@ describe('JourneyPage', () => {
 
         render(<JourneyPage />, { wrapper: createWrapper() });
 
-        expect(screen.getByText(/مبروك! خطتك جاهزة/i)).toBeInTheDocument();
-        expect(screen.getAllByText(/المنتجات الموصى بها/i).length).toBeGreaterThan(0);
+        expect(screen.getByRole('heading', { name: 'خطة حوضك للمراجعة' })).toBeInTheDocument();
+        expect(screen.getByText(/إكمال هالأسئلة ما يعني إن الحوض جاهز للأسماك/)).toBeInTheDocument();
+        expect(screen.getByRole('link', { name: /راجع اختياراتي على واتساب/ })).toHaveAttribute('href', expect.stringContaining('text='));
+        expect(screen.queryByText(/مبروك! خطتك جاهزة/i)).not.toBeInTheDocument();
+        expect(screen.queryByText(/أضف جميع المنتجات/)).not.toBeInTheDocument();
         // Navigation buttons should be hidden on summary
         expect(screen.queryByText(/التالي/i)).not.toBeInTheDocument();
+    });
+
+    it.each([false, true])('uses the in-memory session to decide whether to offer an account plan (active: %s)', (hasActiveSession) => {
+        vi.mocked(useJourneyHook.useJourney).mockReturnValue({
+            ...defaultHookValues,
+            hasActiveSession,
+            wizardData: { ...defaultHookValues.wizardData, tankLiters: 81 },
+            savedPlan: { data: normalizeWizardData({ tankSize: 'medium' }), currentStep: 0, createdAt: null },
+        });
+
+        render(<JourneyPage />, { wrapper: createWrapper() });
+
+        if (hasActiveSession) {
+            expect(screen.getByRole('heading', { name: /اختيار الحوض المناسب/ })).toBeInTheDocument();
+            expect(screen.getByDisplayValue('81')).toBeInTheDocument();
+            expect(screen.queryByRole('button', { name: 'متابعة من حيث توقفت' })).not.toBeInTheDocument();
+        } else {
+            expect(screen.getByRole('button', { name: 'متابعة من حيث توقفت' })).toBeInTheDocument();
+        }
+    });
+
+    it('includes the recorded dimensions, cycling, location, maintenance and fish groups in printable answers', () => {
+        vi.mocked(useJourneyHook.useJourney).mockReturnValue({
+            ...defaultHookValues,
+            currentStep: 8,
+            hasActiveSession: true,
+            wizardData: {
+                ...defaultHookValues.wizardData, tankSize: 'medium', tankLiters: 81,
+                tankLengthCm: 60, tankWidthCm: 30, tankHeightCm: 45,
+                location: ['stable-surface', 'near-power'], cyclingMethod: 'fishless',
+                maintenancePreference: 'moderate', fishTypes: ['centerpiece'], selectedSpecies: ['betta'],
+            },
+        });
+        vi.mocked(fetch).mockResolvedValueOnce(new Response(JSON.stringify({ litres: 81, groups: [] }), { status: 200 }));
+        const print = vi.fn();
+        vi.stubGlobal('print', print);
+        render(<JourneyPage />, { wrapper: createWrapper() });
+
+        const answers = screen.getByTestId('journey-recorded-answers');
+        for (const value of [
+            /60 × 30 × 45/, 'دورة نيتروجين بدون أسماك', 'صيانة متوسطة',
+            i18next.t('tools:location-setup.s6'), i18next.t('tools:location-setup.s8'),
+            i18next.t('tools:journey-labels.fishTypes.centerpiece'),
+        ]) {
+            const field = within(answers).getByText(value);
+            expect(field).toBeInTheDocument();
+            expect(field.closest('[class~="print:hidden"]')).toBeNull();
+        }
+        expect(within(answers).getByText(/بيتا/)).toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole('button', { name: i18next.t('tools:journey-summary.s68') }));
+        expect(print).toHaveBeenCalledTimes(1);
     });
 
 });

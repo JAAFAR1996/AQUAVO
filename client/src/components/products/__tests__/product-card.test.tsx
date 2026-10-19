@@ -5,6 +5,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
+import type { Product } from '@/types';
 
 vi.mock('wouter', () => ({
     useLocation: () => ['/', vi.fn()],
@@ -70,6 +71,19 @@ describe('ProductCard Component', () => {
     it('should display product name', () => {
         render(<ProductCard product={mockProduct} />, { wrapper: createWrapper() });
         expect(screen.getByText('Premium Fish Food')).toBeInTheDocument();
+    });
+
+    it('does not render a false discount when API decimal strings compare in the opposite numeric order', () => {
+        const product = {
+            ...mockProduct,
+            price: '12100',
+            originalPrice: '9775',
+        } as unknown as Product;
+        const { container } = render(<ProductCard product={product} />, { wrapper: createWrapper() });
+
+        expect(screen.getByText(/12,100/)).toBeInTheDocument();
+        expect(container.querySelector('.line-through')).not.toBeInTheDocument();
+        expect(screen.queryByText(/2,325|9,775/)).not.toBeInTheDocument();
     });
 
     it('should link to product details page', () => {
