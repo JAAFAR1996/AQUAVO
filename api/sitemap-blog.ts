@@ -4,6 +4,7 @@ import { Pool, neonConfig } from "@neondatabase/serverless";
 import ws from "ws";
 import { AQUAVO_BASE_URL } from "../shared/seo-contract.js";
 import { XHTML_NS, localizedUrlEntries, translatedLocalesByEntity } from "./_sitemap-i18n.js";
+import { blogPostSourceFields } from "../shared/i18n/content.js";
 
 neonConfig.webSocketConstructor = ws;
 
@@ -60,9 +61,12 @@ function effectiveLastmod(
 
 export default async function handler(_req: VercelRequest, res: VercelResponse): Promise<void> {
   try {
-    const { rows } = await getPool().query(
+    type BlogSitemapRow = Parameters<typeof blogPostSourceFields>[0] & {
+      id: string; slug: string; imageUrl: unknown; publishedAt: unknown; updatedAt: unknown; createdAt: unknown;
+    };
+    const { rows } = await getPool().query<BlogSitemapRow>(
       `SELECT id, slug,
-              title,
+              title, excerpt, content, category,
               image_url AS "imageUrl",
               published_at AS "publishedAt",
               updated_at AS "updatedAt",
@@ -75,7 +79,10 @@ export default async function handler(_req: VercelRequest, res: VercelResponse):
         LIMIT 50000`,
     );
 
-    const localesById = await translatedLocalesByEntity(getPool(), "blog_post", rows.map((r) => String(r.id)));
+    // Article body structure and the current Arabic category are part of the
+    // same translation gate used by the rendered page.
+    const sourceFieldsById = Object.fromEntries(rows.map((row) => [String(row.id), blogPostSourceFields(row)]));
+    const localesById = await translatedLocalesByEntity(getPool(), "blog_post", rows.map((r) => String(r.id)), sourceFieldsById);
     const entries = rows
       .filter((post) => typeof post.slug === "string" && post.slug.trim().length > 0 && !post.slug.includes("/"))
       .map((post) => {

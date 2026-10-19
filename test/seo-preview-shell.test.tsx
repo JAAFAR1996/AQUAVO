@@ -8,6 +8,10 @@ import {
   buildCollectionStructuredData,
   buildProductStructuredData,
 } from "../api/_seo-structured-data.js";
+import { PRERENDERED_PAGES } from "../api/_prerendered-pages.js";
+import { resolveGuidePage } from "../api/_canonical-guides.js";
+import { AQUAVO_ENTITY } from "../shared/seo-contract.js";
+import { preservePublicEmailHtml } from "../shared/public-email-html.js";
 
 const products: SeoPreviewProduct[] = [
   {
@@ -50,6 +54,51 @@ const products: SeoPreviewProduct[] = [
 ];
 
 describe("SEO preview shell", () => {
+  it.each(["/contact", "/privacy-policy", "/terms"])(
+    "keeps every published support email usable in the initial %s HTML",
+    (path) => {
+      const prerendered = PRERENDERED_PAGES[path];
+      expect(prerendered).toContain('href="mailto:info@aquavoiq.com"');
+      const html = renderSeoPreviewShell({
+        kind: "static",
+        path,
+        heading: "AQUAVO",
+        summary: "معلومات AQUAVO",
+        paragraphs: path === "/contact" ? ["البريد الرسمي: " + AQUAVO_ENTITY.email + "."] : [],
+        prerendered,
+      });
+      const protectedMarkup = html.match(/<!--email_off-->[\s\S]*?<!--\/email_off-->/g) || [];
+
+      expect(protectedMarkup.some((markup) => markup.includes('href="mailto:info@aquavoiq.com"'))).toBe(true);
+      expect(html.replace(/<!--email_off-->[\s\S]*?<!--\/email_off-->/g, "")).not.toContain(AQUAVO_ENTITY.email);
+      // Comments do not alter the original anchor classes, accessibility
+      // attributes, SVG icons or visible text from the page component.
+      expect(html.replace(/<!--\/?email_off-->/g, "")).toContain(prerendered);
+      expect(html).not.toContain("&lt;!--email_off--&gt;");
+    },
+  );
+
+  it("exempts only the exact public address without rewriting attributes or raw-text elements", () => {
+    const anchor = '<a class="email-button" aria-label="Email AQUAVO" href="mailto:info@aquavoiq.com?subject=Help"><span>info@aquavoiq.com</span></a>';
+    const other = '<a href="mailto:customer@example.com">customer@example.com</a>';
+    const attributes = '<p data-email="info@aquavoiq.com">customer+info@aquavoiq.com info@aquavoiq.com.example</p>';
+    const rawText = '<script type="application/ld+json">{"email":"info@aquavoiq.com"}</script><style>.x::after{content:"info@aquavoiq.com"}</style>';
+    const original = anchor + other + attributes + rawText + "<p>البريد: info@aquavoiq.com.</p>";
+    const expected = "<!--email_off-->" + anchor + "<!--/email_off-->" + other + attributes + rawText
+      + "<p>البريد: <!--email_off-->info@aquavoiq.com<!--/email_off-->.</p>";
+
+    expect(preservePublicEmailHtml(original)).toBe(expected);
+    expect(preservePublicEmailHtml(expected)).toBe(expected);
+  });
+
+  it("sends the beginner-mistakes guide CTA to the existing bundles page", () => {
+    const guide = resolveGuidePage("/guides/5-mistakes");
+    expect(guide?.page.cta).toMatchObject({
+      href: "/bundles",
+      label: "تصفح باقات البداية",
+    });
+  });
+
   it("renders a crawlable product collection with database-shaped Arabic categories", () => {
     const html = renderSeoPreviewShell({ kind: "products", products });
 

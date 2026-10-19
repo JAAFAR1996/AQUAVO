@@ -7,6 +7,7 @@ import {
   AQUAVO_SEO_RELEASE_LASTMOD,
 } from "../shared/seo-contract.js";
 import { XHTML_NS, localizedUrlEntries, translatedLocalesByEntity } from "./_sitemap-i18n.js";
+import { productSourceFields } from "../shared/i18n/content.js";
 
 neonConfig.webSocketConstructor = ws;
 
@@ -77,8 +78,12 @@ function effectiveLastmod(updatedAtValue: unknown): string {
 
 export default async function handler(_req: VercelRequest, res: VercelResponse): Promise<void> {
   try {
-    const { rows } = await getPool().query(
-      `SELECT id, slug, name, images, thumbnail, updated_at AS "updatedAt"
+    type ProductSitemapRow = Parameters<typeof productSourceFields>[0] & {
+      id: string; slug: string; images: unknown; thumbnail: unknown; updatedAt: unknown;
+    };
+    const { rows } = await getPool().query<ProductSitemapRow>(
+      `SELECT id, slug, name, description, subcategory, specifications, variants,
+              images, thumbnail, updated_at AS "updatedAt"
          FROM products
         WHERE deleted_at IS NULL
           AND slug IS NOT NULL
@@ -87,9 +92,11 @@ export default async function handler(_req: VercelRequest, res: VercelResponse):
         LIMIT 50000`,
     );
 
-    // English / Kurdish product URLs are listed only where a translation
-    // exists; the rest are served in Arabic with noindex and stay unlisted.
-    const localesById = await translatedLocalesByEntity(getPool(), "product", rows.map((r) => String(r.id)));
+    // Use the same complete Arabic source as the page renderer, including
+    // specifications and option labels, so an edited product cannot retain a
+    // stale or partial translation in the sitemap.
+    const sourceFieldsById = Object.fromEntries(rows.map((row) => [String(row.id), productSourceFields(row)]));
+    const localesById = await translatedLocalesByEntity(getPool(), "product", rows.map((r) => String(r.id)), sourceFieldsById);
     const entries = rows
       .filter((product) => typeof product.slug === "string" && /^[a-z0-9]+(?:-[a-z0-9]+)*$/i.test(product.slug))
       .map((product) => {

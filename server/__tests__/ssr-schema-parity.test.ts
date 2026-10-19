@@ -166,6 +166,16 @@ const browserHtml = () => render(browserHandler as Handler, BROWSER_UA);
 const crawlerHtml = () => render(crawlerHandler as Handler, "Googlebot/2.1");
 
 describe("both producers describe the product identically", () => {
+  it("emits the same title and description before either page hydrates", async () => {
+    const browser = new DOMParser().parseFromString(await browserHtml(), "text/html");
+    const crawler = new DOMParser().parseFromString(await crawlerHtml(), "text/html");
+    expect(browser.title).toBe(crawler.title);
+    expect(browser.title).toContain("Houyi");
+    expect(browser.title).toMatch(/ \| AQUAVO$/);
+    expect(browser.querySelector('meta[name="description"]')?.getAttribute("content"))
+      .toBe(crawler.querySelector('meta[name="description"]')?.getAttribute("content"));
+  });
+
   it("emits the same Product node from the browser path and the crawler path", async () => {
     const browser = nodeOfType(await browserHtml(), "Product");
     const crawler = nodeOfType(await crawlerHtml(), "Product");

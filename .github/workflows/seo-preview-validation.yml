@@ -9,11 +9,16 @@ on:
       - "api/_seo-preview-shell.tsx"
       - "api/_seo-structured-data.ts"
       - "api/_ssr-preview-source.ts"
+      - "api/ssr-meta.ts"
+      - "api/_locale-meta.ts"
+      - "api/_sitemap-i18n.ts"
+      - "api/_translation-records.ts"
       - "api/index.ts"
       - "api/robots.ts"
       - "api/sitemap-index.ts"
       - "api/sitemap-pages.ts"
       - "api/sitemap-products.ts"
+      - "api/sitemap-blog.ts"
       - "api/sitemap-guides.ts"
       - "api/ssr-preview.ts"
       - "api/ssr-preview-advanced.ts"
@@ -23,13 +28,22 @@ on:
       - "client/public/sitemap-recovery.xml"
       - "client/public/67d3eed08e869c3cd18bdf563d183fcc.txt"
       - "client/src/components/seo/meta-tags.tsx"
+      - "client/src/pages/product-details.tsx"
+      - "client/src/pages/beginner-guide.tsx"
       - "client/src/main.tsx"
       - "shared/seo-contract.ts"
       - "shared/site-routes.ts"
+      - "shared/product-seo.ts"
+      - "shared/i18n/indexability.ts"
+      - "shared/public-email-html.ts"
       - "reports/release-2026-07-12/seo-aeo-geo-query-map.md"
       - "test/seo-preview-shell.test.tsx"
       - "test/seo-runtime-entry.test.ts"
       - "test/seo-production-safety.test.ts"
+      - "test/seo-localized-robots.test.ts"
+      - "server/__tests__/ssr-locale-indexability.test.ts"
+      - "server/__tests__/sitemap-locale-coverage.test.ts"
+      - "shared/__tests__/product-seo.test.ts"
       - "scripts/verify-generated-ssr-runtime.ts"
       - "TOOLS/submit-indexnow.mjs"
       - "TOOLS/indexnow-core.mjs"
@@ -89,7 +103,17 @@ jobs:
         run: pnpm exec tsx scripts/verify-generated-ssr-runtime.ts
 
       - name: Run focused SEO HTML, schema, route, and safety tests
-        run: pnpm exec vitest run test/seo-preview-shell.test.tsx test/seo-runtime-entry.test.ts test/seo-production-safety.test.ts --reporter=verbose
+        run: >-
+          pnpm exec vitest run
+          test/seo-preview-shell.test.tsx test/seo-runtime-entry.test.ts
+          test/seo-production-safety.test.ts test/seo-localized-robots.test.ts
+          server/__tests__/ssr-locale-indexability.test.ts
+          server/__tests__/sitemap-locale-coverage.test.ts
+          server/__tests__/ssr-seo-contract.test.ts
+          server/__tests__/ssr-meta-entities-and-decimals.test.ts
+          server/__tests__/ssr-markdown-parity.test.ts
+          server/__tests__/ssr-schema-parity.test.ts
+          shared/__tests__/product-seo.test.ts --reporter=verbose
 
       - name: Verify IndexNow submission syntax
         run: |

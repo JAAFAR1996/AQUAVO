@@ -319,9 +319,10 @@ describe("meta descriptions are cut at a word boundary, not mid-word", () => {
     expect(text.length).toBeGreaterThan(120);
   });
 
-  it("leaves a description that already fits completely alone", async () => {
+  it("keeps short product facts and adds the published delivery and payment terms", async () => {
     const text = await description("/products/houyi-thermostat");
-    expect(text).toBe(PLAIN_PRODUCT.description);
+    expect(text).toBe(`${PLAIN_PRODUCT.description} توصيل لكل العراق، والدفع عند الاستلام أو إلكترونياً.`);
+    expect(text.length).toBeLessThanOrEqual(160);
     expect(text.endsWith("...")).toBe(false);
   });
 });

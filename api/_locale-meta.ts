@@ -12,13 +12,12 @@ import {
 import {
   DEFAULT_LOCALE,
   LOCALES,
-  SUPPORTED_LOCALES,
-  alternatesFor,
   localizePath,
   splitLocaleFromPath,
   type Locale,
 } from "../shared/i18n/locales.js";
-import { RELEASED_LOCALES, releasedAlternatesFor } from "../shared/i18n/release.js";
+import { RELEASED_LOCALES } from "../shared/i18n/release.js";
+import { indexableAlternatesFor } from "../shared/i18n/indexability.js";
 
 export { splitLocaleFromPath, localizePath };
 
@@ -32,13 +31,12 @@ export function localizedAbsoluteUrl(logicalPath: string, locale: Locale, search
 }
 
 /**
- * `<link rel="alternate" hreflang>` for every locale plus x-default. The set is
- * emitted on every locale's page, so the annotations are reciprocal by
- * construction. Query strings that define a page (category listings) are kept.
+ * `<link rel="alternate" hreflang>` for the indexable versions plus x-default.
+ * Every version receives the same entity eligibility set, so annotations stay
+ * reciprocal. Query strings that define a page (category listings) are kept.
  */
-export function hreflangLinks(logicalPath: string, search = ""): string {
-  // Only released locales are advertised to crawlers (shared/i18n/release.ts).
-  const { alternates, xDefault } = releasedAlternatesFor(logicalPath);
+export function hreflangLinks(logicalPath: string, search = "", indexableLocales?: readonly Locale[]): string {
+  const { alternates, xDefault } = indexableAlternatesFor(logicalPath, indexableLocales);
   const lines = alternates.map(
     (a) => `<link rel="alternate" hreflang="${a.hreflang}" href="${escapeAttr(`${AQUAVO_BASE_URL}${a.path}${search}`)}" />`,
   );
@@ -65,7 +63,7 @@ export function ogLocaleTags(locale: Locale): string {
  *  - hreflang links right after the canonical
  *  - the Kurdish font stylesheet (Cairo lacks Sorani glyph coverage)
  */
-export function applyLocaleToHtml(html: string, locale: Locale, logicalPath: string, search = "", options: { indexable?: boolean } = {}): string {
+export function applyLocaleToHtml(html: string, locale: Locale, logicalPath: string, search = "", options: { indexable?: boolean; indexableLocales?: readonly Locale[] } = {}): string {
   const def = LOCALES[locale];
   let out = html
     .replace(/<html\b[^>]*>/i, `<html lang="${locale}" dir="${def.dir}" data-locale="${locale}">`)
@@ -74,7 +72,7 @@ export function applyLocaleToHtml(html: string, locale: Locale, logicalPath: str
     .replace(/\s*<meta property="og:locale" content="[^"]*" \/>/i, `\n  ${ogLocaleTags(locale)}`);
 
   if (options.indexable !== false) {
-    out = out.replace(/(<link rel="canonical" href="[^"]*" \/>)/i, `$1\n  ${hreflangLinks(logicalPath, search)}`);
+    out = out.replace(/(<link rel="canonical" href="[^"]*" \/>)/i, `$1\n  ${hreflangLinks(logicalPath, search, options.indexableLocales)}`);
   }
 
   if (locale === "ckb") {

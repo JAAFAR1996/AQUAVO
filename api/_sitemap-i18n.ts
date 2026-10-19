@@ -3,14 +3,17 @@
  *
  * Google wants every language version listed as its own <url>, each carrying
  * the full set of <xhtml:link rel="alternate" hreflang> annotations. Only
- * versions that really exist are listed: English/Kurdish product and article
- * URLs appear once a translation row exists, because an untranslated page is
- * served in Arabic with noindex and must not be advertised.
+ * versions that can be indexed are listed: English/Kurdish product and article
+ * URLs require reviewed, current, complete translations. Unreviewed or partial
+ * translations may be served to visitors but must not be advertised to search.
  */
 import type { Pool } from "@neondatabase/serverless";
 import { AQUAVO_BASE_URL } from "../shared/seo-contract.js";
-import { DEFAULT_LOCALE, LOCALES, SUPPORTED_LOCALES, localizePath, type Locale } from "../shared/i18n/locales.js";
-import { RELEASED_LOCALES, isLocaleReleased } from "../shared/i18n/release.js";
+import { DEFAULT_LOCALE, LOCALES, localizePath, type Locale } from "../shared/i18n/locales.js";
+import { RELEASED_LOCALES } from "../shared/i18n/release.js";
+import { indexableLocalesForEntity, type TranslatedPageEntity } from "../shared/i18n/indexability.js";
+import type { TranslationRecord } from "../shared/i18n/content.js";
+import { loadEntityTranslationRecords } from "./_translation-records.js";
 
 export const XHTML_NS = 'xmlns:xhtml="http://www.w3.org/1999/xhtml"';
 
@@ -47,35 +50,31 @@ export function localizedUrlEntries(logicalPath: string, locales: readonly Local
 export const ALL_LOCALES: readonly Locale[] = RELEASED_LOCALES;
 
 /**
- * For each entity id, the locales whose translation is reviewed and still
- * matches the Arabic source (Arabic always). Machine or outdated rows are
- * served on the page but the URL stays noindex, so it is not listed here.
- * Fails soft: if the table is missing or the query errors, everything is Arabic-only.
+ * For each entity id, apply exactly the renderer's translation coverage rule.
+ * A source map is required: testing only status='reviewed' would advertise
+ * translations invalidated by later source edits or missing required fields.
+ * Missing source/translation rows and lookup failures remain Arabic-only.
  */
 export async function translatedLocalesByEntity(
-  pool: Pool,
-  entityType: "product" | "blog_post",
-  ids: string[],
-  /** id -> current Arabic source hash; rows whose stored hash differs are outdated and skipped. */
-  currentHashes?: Record<string, string>,
+  pool: Pool | null,
+  entityType: TranslatedPageEntity,
+  ids: readonly string[],
+  sourceFieldsById: Readonly<Record<string, Record<string, unknown>>>,
 ): Promise<Map<string, Locale[]>> {
   const map = new Map<string, Locale[]>();
   for (const id of ids) map.set(id, [DEFAULT_LOCALE]);
-  if (ids.length === 0) return map;
+  const sourceIds = [...map.keys()].filter((id) => Object.prototype.hasOwnProperty.call(sourceFieldsById, id));
+  if (sourceIds.length === 0) return map;
   try {
-    const { rows } = await pool.query<{ entity_id: string; locale: Locale }>(
-      currentHashes
-        ? `SELECT entity_id, locale FROM content_translations
-             WHERE entity_type = $1 AND entity_id = ANY($2::text[]) AND status = 'reviewed'
-               AND (source_hash IS NULL OR source_hash = ($3::jsonb ->> entity_id))`
-        : `SELECT entity_id, locale FROM content_translations
-             WHERE entity_type = $1 AND entity_id = ANY($2::text[]) AND status = 'reviewed'`,
-      currentHashes ? [entityType, ids, JSON.stringify(currentHashes)] : [entityType, ids],
-    );
-    for (const row of rows) {
-      if (!isLocaleReleased(row.locale)) continue;
-      const list = map.get(row.entity_id);
-      if (list && !list.includes(row.locale)) list.push(row.locale);
+    const records = await loadEntityTranslationRecords(pool, entityType, sourceIds);
+    const recordsById = new Map<string, TranslationRecord[]>();
+    for (const record of records) {
+      const group = recordsById.get(record.entityId) ?? [];
+      group.push(record);
+      recordsById.set(record.entityId, group);
+    }
+    for (const id of sourceIds) {
+      map.set(id, indexableLocalesForEntity(entityType, sourceFieldsById[id], recordsById.get(id) ?? []));
     }
   } catch (err) {
     console.error("sitemap: content_translations unavailable, listing Arabic only", err);
