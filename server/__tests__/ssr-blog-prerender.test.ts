@@ -85,12 +85,31 @@ describe("Cloudinary hero delivery", () => {
     expect(out).toContain("/aquavo/blog/betta.png");
   });
 
+  it("preserves WebP format, version, query and fragment when sizing a delivery URL", () => {
+    const original =
+      "https://res.cloudinary.com/dyczh8ogv/image/upload/v123/aquavo/products/product.WEBP?revision=1#main";
+    expect(cloudinaryHeroUrl(original, 1000)).toBe(
+      "https://res.cloudinary.com/dyczh8ogv/image/upload/f_webp,q_auto,c_limit,w_1000/v123/aquavo/products/product.WEBP?revision=1#main",
+    );
+  });
+
+  it.each(["?download=product.webp", "#product.webp"])(
+    "does not infer WebP format from a query or fragment: %s",
+    (suffix) => {
+      const original = `${POST.imageUrl}${suffix}`;
+      expect(cloudinaryHeroUrl(original)).toContain("/f_auto,q_auto,c_limit,w_1200/");
+    },
+  );
+
   it("leaves non-Cloudinary URLs and already-transformed URLs untouched", () => {
     const external = "https://cdn.example.test/a.png";
     expect(cloudinaryHeroUrl(external)).toBe(external);
     const tuned =
       "https://res.cloudinary.com/dyczh8ogv/image/upload/w_800,q_80/aquavo/blog/betta.png";
     expect(cloudinaryHeroUrl(tuned)).toBe(tuned);
+    const tunedWebp =
+      "https://res.cloudinary.com/dyczh8ogv/image/upload/f_auto,q_auto,c_limit,w_800/v123/product.webp";
+    expect(cloudinaryHeroUrl(tunedWebp)).toBe(tunedWebp);
   });
 });
 

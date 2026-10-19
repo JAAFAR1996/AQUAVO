@@ -1,4 +1,5 @@
 import { GUIDE_PRODUCTS_HEADING } from "../shared/guide-links.js";
+import { getStaticSearchMeta } from "./_static-search-meta.js";
 // ─── Static, fully server-rendered educational pages (high Citability) ──────
 // These pages return complete HTML from the server so every word is visible in
 // View Source / to AI answer engines (ChatGPT, Claude, Perplexity) and no-JS
@@ -845,7 +846,7 @@ const SITE_HEADER = `<header class="site">
   <a class="brand" href="/" aria-label="AQUAVO — الصفحة الرئيسية"><img src="/brand/aquavo-v2-horizontal.svg" alt="AQUAVO" width="180" height="50" /></a>
   <nav class="main" aria-label="التنقل الرئيسي">
     <a href="/products">المتجر</a>
-    <a href="/tank-builder">اختار المناسب</a>
+    <a href="/journey">اختار المناسب</a>
     <a href="/guides" class="active" aria-current="page">أدلة AQUAVO</a>
     <a href="/about">منو AQUAVO</a>
   </nav>
@@ -1126,8 +1127,7 @@ const IMPORTANT_INTERNAL_LINK_GROUPS = [
     heading: "أدوات AQUAVO",
     links: [
       { href: "/calculators", label: "حاسبات الحوض" },
-      { href: "/aquarium-wizard", label: "مساعد تجهيز الحوض" },
-      { href: "/tank-builder", label: "مصمم الحوض" },
+      { href: "/journey", label: "رحلة تجهيز الحوض" },
       { href: "/fish-finder", label: "اختيار السمك المناسب" },
       { href: "/fish-compatibility", label: "توافق الأسماك" },
       { href: "/fish-health-diagnosis", label: "تشخيص مشاكل الأسماك" },
@@ -1221,7 +1221,8 @@ export function renderImportantInternalLinksSection(): string {
  */
 export function renderGuidesIndexHtml(base: string, image: string, decorate?: JsonLdDecorator): string {
   const url = `${base}/guides`;
-  const title = "أدلة AQUAVO لأحواض الزينة — التجهيز والعناية والصيانة | AQUAVO";
+  const searchMeta = getStaticSearchMeta("ar", "/guides")!;
+  const title = searchMeta.title;
   const description =
     "فهرس أدلة AQUAVO التعليمية لأحواض الزينة في العراق: تجهيز حوض جديد، اختيار الفلتر والسخان، فحص ماء الحوض، الصيانة الأسبوعية وأخطاء المبتدئين.";
   const cards = GUIDE_INDEX_ITEMS.map(
@@ -1276,11 +1277,11 @@ export function renderGuidesIndexHtml(base: string, image: string, decorate?: Js
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <script>${THEME_BOOTSTRAP}</script>
 <title>${esc(title)}</title>
-<meta name="description" content="${esc(description)}" />
+<meta name="description" content="${esc(searchMeta.description)}" />
 <link rel="canonical" href="${esc(url)}" />
 <meta name="robots" content="index, follow, max-image-preview:large" />
 <meta property="og:title" content="${esc(title)}" />
-<meta property="og:description" content="${esc(description)}" />
+<meta property="og:description" content="${esc(searchMeta.description)}" />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="${esc(url)}" />
 <meta property="og:site_name" content="AQUAVO" />
@@ -1288,7 +1289,7 @@ export function renderGuidesIndexHtml(base: string, image: string, decorate?: Js
 <meta property="og:image" content="${esc(image)}" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="${esc(title)}" />
-<meta name="twitter:description" content="${esc(description)}" />
+<meta name="twitter:description" content="${esc(searchMeta.description)}" />
 <meta name="twitter:image" content="${esc(image)}" />
 <link rel="icon" type="image/png" sizes="512x512" href="/brand/aquavo-v2-favicon.png" />
 <meta name="theme-color" content="#0B93A6" />

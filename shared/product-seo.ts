@@ -177,7 +177,13 @@ export function buildProductMetaDescription(
   let description = descriptionExcerpt(completeSource ? source : fallbackDescription(product, locale));
   // An unusually long unbroken token is not useful as a search snippet.
   if (!description) description = descriptionExcerpt(fallbackDescription({ ...product, name: "AQUAVO", brand: null }, locale));
-  const service = SERVICE_DESCRIPTION[locale];
+  const serviceCopy = SERVICE_DESCRIPTION[locale];
+  // A very short complete opening (the spawning mop is one) can still fall
+  // below 100 characters after the service sentence. Identify whose service
+  // it is without adding product, stock or delivery-time claims.
+  const service = `${description} ${serviceCopy}`.length < 100
+    ? `${locale === "ar" ? "من AQUAVO" : "AQUAVO"}: ${serviceCopy}`
+    : serviceCopy;
   const enriched = `${description} ${service}`;
   if (description.length < SHORT_DESCRIPTION && !/(?:\.{2,}|…)$/.test(description)
     && !description.includes(service) && enriched.length <= DESCRIPTION_LIMIT) {

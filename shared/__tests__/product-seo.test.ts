@@ -57,6 +57,15 @@ describe("shared product SEO titles", () => {
 });
 
 describe("shared product SEO descriptions", () => {
+  it("gives the short spawning-mop opening a useful service snippet over 100 characters", () => {
+    const description = "جهز مكانا مخصصا لوضع البيض داخل حوض التفريخ.";
+    const meta = buildProductSeoMeta({ name: "خيوط تفريخ لوضع بيض الأسماك", description });
+    expect(meta.description).toBe(`${description} من AQUAVO: توصيل لكل العراق، والدفع عند الاستلام أو إلكترونياً.`);
+    expect(meta.description.length).toBeGreaterThanOrEqual(100);
+    expect(meta.description.length).toBeLessThanOrEqual(160);
+    expect(meta.description).not.toMatch(/متوفر|خلال 24|يضمن|ضمان/);
+  });
+
   it("enriches a short factual description using the published delivery and payment terms", () => {
     const result = buildProductMetaDescription({ name: "سيفون", description: "مزود بخرطوم بطول 1.9 متر ومضخة يدوية لبدء السحب من دون كهرباء." });
     expect(result).toBe("مزود بخرطوم بطول 1.9 متر ومضخة يدوية لبدء السحب من دون كهرباء. توصيل لكل العراق، والدفع عند الاستلام أو إلكترونياً.");

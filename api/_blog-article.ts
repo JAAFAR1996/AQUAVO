@@ -63,7 +63,11 @@ export function renderArticleBodyHtml(raw: string | null | undefined): string {
 export function cloudinaryHeroUrl(url: string, width = 1200): string {
   if (!/res\.cloudinary\.com\/[^/]+\/image\/upload\//.test(url)) return url;
   if (/\/image\/upload\/[^/]*[wqf]_[^/]*\//.test(url)) return url;
-  return url.replace(/\/image\/upload\//, `/image/upload/f_auto,q_auto,c_limit,w_${width}/`);
+  // Keep an existing WebP delivery format explicit. For transparent images,
+  // f_auto can return a large PNG when a crawler does not advertise WebP support.
+  const imagePath = url.split(/[?#]/, 1)[0];
+  const format = /\.webp$/i.test(imagePath) ? "webp" : "auto";
+  return url.replace(/\/image\/upload\//, `/image/upload/f_${format},q_auto,c_limit,w_${width}/`);
 }
 
 /**

@@ -6,6 +6,8 @@ on:
     paths:
       - "api/_canonical-guides.ts"
       - "api/_guides-content.ts"
+      - "api/_blog-article.ts"
+      - "api/_seo-content.ts"
       - "api/_seo-preview-shell.tsx"
       - "api/_seo-structured-data.ts"
       - "api/_ssr-preview-source.ts"
@@ -13,6 +15,10 @@ on:
       - "api/_locale-meta.ts"
       - "api/_sitemap-i18n.ts"
       - "api/_translation-records.ts"
+      - "api/_static-meta-i18n.ts"
+      - "api/_static-search-copy.ts"
+      - "api/_static-search-meta.ts"
+      - "api/blog-ssr.ts"
       - "api/index.ts"
       - "api/robots.ts"
       - "api/sitemap-index.ts"
@@ -29,12 +35,19 @@ on:
       - "client/public/67d3eed08e869c3cd18bdf563d183fcc.txt"
       - "client/src/components/seo/meta-tags.tsx"
       - "client/src/pages/product-details.tsx"
+      - "client/src/pages/blog-post.tsx"
+      - "client/src/i18n/static-meta.ts"
       - "client/src/pages/beginner-guide.tsx"
       - "client/src/pages/bundles.tsx"
       - "client/src/main.tsx"
       - "shared/seo-contract.ts"
       - "shared/site-routes.ts"
       - "shared/product-seo.ts"
+      - "shared/article-seo.ts"
+      - "shared/article-seo-copy.ts"
+      - "shared/category-content.ts"
+      - "shared/category-search.ts"
+      - "shared/editorial-author.ts"
       - "shared/i18n/indexability.ts"
       - "shared/public-email-html.ts"
       - "reports/release-2026-07-12/seo-aeo-geo-query-map.md"
@@ -43,9 +56,14 @@ on:
       - "test/seo-production-safety.test.ts"
       - "test/seo-localized-robots.test.ts"
       - "test/seo-bundles-robots.test.tsx"
+      - "test/seo-search-metadata.test.tsx"
+      - "server/__tests__/author-entity-parity.test.ts"
+      - "server/__tests__/ssr-product-image.test.ts"
+      - "server/__tests__/ssr-blog-prerender.test.ts"
       - "server/__tests__/ssr-locale-indexability.test.ts"
       - "server/__tests__/sitemap-locale-coverage.test.ts"
       - "shared/__tests__/product-seo.test.ts"
+      - "shared/__tests__/article-seo.test.ts"
       - "scripts/verify-generated-ssr-runtime.ts"
       - "TOOLS/submit-indexnow.mjs"
       - "TOOLS/indexnow-core.mjs"
@@ -110,13 +128,20 @@ jobs:
           test/seo-preview-shell.test.tsx test/seo-runtime-entry.test.ts
           test/seo-production-safety.test.ts test/seo-localized-robots.test.ts
           test/seo-bundles-robots.test.tsx
+          test/seo-search-metadata.test.tsx
+          server/__tests__/author-entity-parity.test.ts
+          server/__tests__/ssr-product-image.test.ts
+          server/__tests__/ssr-blog-prerender.test.ts
+          server/__tests__/guides-publishing-shell.test.ts
+          server/__tests__/alias-routes.test.ts
           server/__tests__/ssr-locale-indexability.test.ts
           server/__tests__/sitemap-locale-coverage.test.ts
           server/__tests__/ssr-seo-contract.test.ts
           server/__tests__/ssr-meta-entities-and-decimals.test.ts
           server/__tests__/ssr-markdown-parity.test.ts
           server/__tests__/ssr-schema-parity.test.ts
-          shared/__tests__/product-seo.test.ts --reporter=verbose
+          shared/__tests__/product-seo.test.ts
+          shared/__tests__/article-seo.test.ts --reporter=verbose
 
       - name: Verify IndexNow submission syntax
         run: |
