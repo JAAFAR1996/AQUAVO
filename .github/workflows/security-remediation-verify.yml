@@ -1,0 +1,100 @@
+name: Isolated security remediation verification
+on:
+  push:
+    branches: [fix/security-commerce-20261019]
+permissions:
+  contents: write
+concurrency:
+  group: aquavo-security-remediation
+  cancel-in-progress: false
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      CI: 'true'
+      PUPPETEER_SKIP_DOWNLOAD: 'true'
+    steps:
+      - name: Read exact public repair revision without application credentials
+        shell: bash
+        run: |
+          test "$GITHUB_REF" = refs/heads/fix/security-commerce-20261019
+          git init .
+          git remote add origin https://github.com/JAAFAR1996/AQUAVO.git
+          git -c protocol.version=2 fetch --filter=blob:none --depth=1 origin "$GITHUB_SHA"
+          git sparse-checkout init --cone
+          git sparse-checkout set api server shared client/src client/public migrations scripts script tests test generated TOOLS docs .github/workflows
+          git checkout -B fix/security-commerce-20261019 FETCH_HEAD
+      - name: Apply reviewed source transformations only on repair branch
+        shell: bash
+        run: |
+          if test ! -f script/security-remediation/APPLIED; then
+            for script in script/security-remediation/0*.py; do python3 "$script"; done
+            printf '%s\n' "$GITHUB_SHA" > script/security-remediation/APPLIED
+          fi
+      - name: Commit exact transformed source on repair branch only
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test "$(git branch --show-current)" = fix/security-commerce-20261019
+          git add server shared client/src api .github/workflows/ci.yml vercel.json script/security-remediation/APPLIED
+          if ! git diff --cached --quiet; then
+            git config user.name 'AQUAVO repair workflow'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git commit -m 'fix: apply reviewed identity and commerce boundary repairs'
+            AUTH=$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)
+            git -c http.https://github.com/.extraheader="AUTHORIZATION: basic $AUTH" push origin HEAD:refs/heads/fix/security-commerce-20261019
+            unset AUTH
+          fi
+          git rev-parse HEAD > verified-revision.txt
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24.x'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.0.0
+      - name: Install locked dependencies without application secrets
+        run: pnpm install --frozen-lockfile
+      - name: Verify types and migration governance
+        shell: bash
+        run: |
+          mkdir -p repair-results
+          set +e
+          pnpm run check > repair-results/types.txt 2>&1; A=$?
+          pnpm run check:server > repair-results/server-types.txt 2>&1; B=$?
+          pnpm run check:migrations > repair-results/migrations.txt 2>&1; C=$?
+          printf 'types=%s server=%s migrations=%s\n' "$A" "$B" "$C" | tee repair-results/types-summary.txt
+          test "$A$B$C" = 000
+      - name: Exercise security services against synthetic PostgreSQL
+        if: ${{ !cancelled() }}
+        run: pnpm exec vitest run server/__tests__/security-commerce-repair.test.ts --reporter=verbose > repair-results/security-tests.txt 2>&1
+      - name: Full production build
+        if: ${{ !cancelled() }}
+        run: pnpm run build > repair-results/build.txt 2>&1
+      - name: Complete existing test suite
+        if: ${{ !cancelled() }}
+        run: pnpm exec vitest run --reporter=json --outputFile=repair-results/all-tests.json > repair-results/all-tests.txt 2>&1
+      - name: Collect bounded source and verification outputs
+        if: ${{ !cancelled() }}
+        shell: bash
+        run: |
+          mkdir -p repair-results
+          cp verified-revision.txt repair-results/ 2>/dev/null || true
+          python3 - <<'PY'
+          import pathlib, subprocess, zipfile
+          paths = subprocess.check_output(['git','diff-tree','--no-commit-id','--name-only','-r','HEAD']).decode().splitlines()
+          paths += [str(p) for base in ['server/security','script/security-remediation'] for p in pathlib.Path(base).glob('*') if p.is_file()]
+          paths += ['migrations/0100_security_commerce_boundaries.sql','server/__tests__/security-commerce-repair.test.ts']
+          with zipfile.ZipFile('repair-results/changed-source.zip','w',zipfile.ZIP_DEFLATED) as z:
+            for name in sorted(set(paths)):
+              p=pathlib.Path(name)
+              if p.is_file() and not p.is_symlink() and not p.name.startswith('.env'): z.write(p,name)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: security-remediation-verification
+          path: repair-results/
+          retention-days: 3
+          if-no-files-found: warn
