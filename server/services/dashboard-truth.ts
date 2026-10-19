@@ -82,7 +82,7 @@ function formatHourRange(hour: number): string {
     const suffix = normalized >= 12 ? "مساءً" : "صباحاً";
     return `${normalized % 12 || 12} ${suffix}`;
   };
-  return `${format(hour)}–${format((hour + 3) % 24)}`;
+  return `${format(hour)}–${format((hour + 1) % 24)}`;
 }
 
 function parseCity(value: unknown): string | null {
@@ -108,7 +108,7 @@ function parseCity(value: unknown): string | null {
 // preserved unchanged here until the separate synthetic-order architecture work
 // is handled in its own final phase.
 const TEST_ORDER_SQL = sql`(
-  LOWER(COALESCE(o.source, '')) IN ('test', 'accounting_test')
+  COALESCE(o.is_test,false)=true OR LOWER(COALESCE(o.source, '')) IN ('test', 'accounting_test')
   OR COALESCE(o.order_number, '') ILIKE '%TEST%'
   OR COALESCE(o.customer_name, '') ILIKE '%اختبار%'
   OR COALESCE(o.shipping_address::text, '') ILIKE '%اختبار%'
@@ -357,14 +357,14 @@ export async function loadDashboardTruth(): Promise<DashboardTruth> {
     today:{createdAndDeliveredOrders:num(orders.verified_today),createdAndDeliveredRevenue:num(orders.revenue_today)},
     week:{deliveredOrders:num(orders.verified_week),realizedRevenue:num(orders.revenue_week)},
     definitions:{
-      revenue:"المبالغ المثبتة بأحداث دفع مكتملة للطلبات الموصلة فقط؛ الطلب الموصل بلا إثبات قبض لا يدخل بالإيراد.",
+      revenue:"صافي أحداث الدفع للطلبات الموصلة المنشأة ضمن النافذة المحددة؛ يشمل مبلغ الزبون وليس صافي الربح أو النقد المتاح. لا يساوي إيراد دفتر الأستاذ بتاريخ الاعتراف.",
       lowStock:"منتج مخزونه أكبر من صفر وأقل من أو يساوي حد التنبيه؛ النافد محسوب بشكل منفصل.",
       failureRate:"الطلبات النهائية غير الناجحة ÷ كل الطلبات النهائية خلال 30 يوماً، بعد استبعاد نمط الاختبارات الحالي.",
       trends:"مقارنة وحدات المنتجات في الطلبات الموصلة بآخر 30 يوماً مع الـ30 يوماً السابقة؛ ليست توقعاً للمستقبل.",
       inventoryCost:purchaseCostComplete
         ? "تكلفة شراء المخزون كاملة من تكاليف موثقة لكل منتج وخيار."
         : `المبلغ الظاهر تكلفة موثقة جزئياً؛ ${missingVariantCostUnits+missingNonVariantCostUnits} وحدة ما زالت بلا تكلفة مثبتة.`,
-      testOrders:"تم الحفاظ على منطق استبعاد الاختبارات الموجود قبل هذا الإصلاح بدون توسيعه؛ عزل الاختبارات الكامل مؤجل للمرحلة الأخيرة.",
+      testOrders:"تستبعد الطلبات المعلمة is_test، إضافة إلى وسوم الاختبار التاريخية؛ أرقام المبيعات ليست طلبات تجريبية.",
     },
   };
 }

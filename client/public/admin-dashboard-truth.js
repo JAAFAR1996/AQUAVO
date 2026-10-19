@@ -83,7 +83,7 @@
     const missingVariants = Number(inventory.missingVariantCostCount || 0);
     const costTitle = costComplete ? "تكلفة شراء المخزون" : "تكلفة المخزون الموثقة";
     const costDescription = costComplete
-      ? "تكلفة كل وحدة وخيار مثبتة في قاعدة البيانات"
+      ? "تكلفة الوحدات والخيارات المسجلة؛ راجع فرق التقييم قبل اعتماد رصيد المخزون"
       : `مجموع جزئي؛ ${formatter.format(missingUnits)} وحدة ضمن ${formatter.format(missingVariants)} خياراً بلا تكلفة مثبتة`;
 
     setCard(

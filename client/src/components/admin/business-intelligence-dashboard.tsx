@@ -16,7 +16,7 @@ type Overview = {
     contributionProfit: number;
     operatingExpenses: number;
     adSpend: number;
-    netOperatingProfit: number;
+    netOperatingProfit: number | null;
     avgOrderValue: number;
     exactOrders: number;
     estimatedOrders: number;
@@ -52,8 +52,8 @@ type Assessment = {
   reasons: string[];
   operatingDays: number;
   evidence: {
-    revenueGrowthPct: number;
-    orderGrowthPct: number;
+    revenueGrowthPct: number | null;
+    orderGrowthPct: number | null;
     current30ProductRevenue: number;
     previous30ProductRevenue: number;
     current30Orders: number;
@@ -126,9 +126,9 @@ type Finding = {
 };
 
 const iq = (value: number | null | undefined) =>
-  Math.round(Number(value ?? 0)).toLocaleString("en-US") + " د.ع";
+  value == null || !Number.isFinite(value) ? "غير متوفر" : Math.round(value).toLocaleString("en-US") + " د.ع";
 const pct = (value: number | null | undefined) =>
-  Number(value ?? 0).toFixed(1) + "%";
+  value == null || !Number.isFinite(value) ? "غير قابل للحساب" : value.toFixed(1) + "%";
 
 async function jsonFetch<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, {
@@ -230,7 +230,7 @@ export function BusinessIntelligenceDashboard() {
   const data = overview.data;
   const cards = [
     {
-      title: "الربح التشغيلي المسجل",
+      title: data.confidence === "exact" ? "الربح التشغيلي حسب السجلات" : "تقدير الربح التشغيلي — غير معتمد",
       value: iq(data.financials.netOperatingProfit),
       sub: "بعد COGS والتوصيل والتجهيز والمصاريف والإعلانات المسجلة",
       icon: CircleDollarSign,
@@ -261,12 +261,12 @@ export function BusinessIntelligenceDashboard() {
         <div>
           <h2 className="text-2xl font-bold">AQUAVO Business OS</h2>
           <p className="text-sm text-muted-foreground">
-            حقيقة مالية + مخزون + عملاء + تسويق. الحسابات حتمية والـAI يقرأها فقط.
+            حسابات من السجلات المتاحة؛ تشمل تقديرات الأرشيف عند وجودها. توصيات AI ليست اعتمادا محاسبيا.
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Badge variant={data.confidence === "exact" ? "default" : "secondary"}>
-            الثقة: {data.confidence === "exact" ? "دقيقة" : "مختلطة"}
+            المصادر: {data.confidence === "exact" ? "مكتملة بالفحوص الداخلية" : "مختلطة أو تحتاج مطابقة"}
           </Badge>
           <Button variant="outline" onClick={() => refresh.mutate()} disabled={refresh.isPending}>
             <RefreshCw
@@ -281,7 +281,7 @@ export function BusinessIntelligenceDashboard() {
         <Card>
           <CardHeader className="pb-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <CardTitle className="text-base">قرار التشغيل الحالي</CardTitle>
+              <CardTitle className="text-base">تقدير التشغيل وفق البيانات المتاحة</CardTitle>
               <Badge variant={
                 assessment.data.status === "CONTINUE"
                   ? "default"

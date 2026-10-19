@@ -29,7 +29,8 @@ describe("Accounting V2 reviewed fixes", () => {
     expect(api).toContain("WHERE period_key=${periodKey} AND status='closed'");
     expect(api).toContain("لا توجد بيانات جاهزية محاسبية لهذه الفترة");
     expect(api).toContain("لا يمكن إغلاق الشهر قبل معالجة الموانع");
-    expect(api).toContain("runAutomaticPeriodClose");
+    expect(api).toContain("getAutomaticPeriodCloseStatus");
+    expect(api).not.toContain("await runAutomaticPeriodClose(");
 
     const migration60 = read("migrations/0060_accounting_close_state_machine.sql");
     expect(migration60).toContain("IF NOT FOUND THEN");

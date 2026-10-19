@@ -1,3 +1,5 @@
+import { financialTruthSchema } from "@shared/financial-truth";
+import { FinancialTruthPanel } from "@/components/admin/financial-truth-panel";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import "@/styles/accounting-html-report.css";
@@ -21,7 +23,7 @@ const STATUS_AR: Record<string, string> = {
   unknown: "كلفة غير محسومة",
   exact: "مثبت",
   draft: "مسودة",
-  tax_final: "اعتماد ضريبي نهائي",
+  tax_final: "اعتماد مسجل داخليا — راجع المستند",
 };
 
 function finite(value: unknown): number | null {
@@ -125,6 +127,7 @@ function safeArray(value: unknown): Row[] {
 }
 
 function canonicalNet(summary: Row): number | null {
+  if (["incomplete_cost_orders", "missing_fulfillment_orders", "incomplete_fulfillment_orders", "payment_evidence_errors", "undocumented_expenses", "unverified_returns"].some(key => (finite(summary[key]) ?? 1) > 0)) return null;
   const fields = [
     "product_revenue",
     "rounding_adjustment",
@@ -399,7 +402,7 @@ export default function FinanceHtmlReportPage() {
       `/api/admin/accounting/v2/accountant-package?periodKey=${encodeURIComponent(periodKey)}`,
       { credentials: "include" },
     )),
-    retry: false,
+    retry: false, staleTime: 20_000, refetchInterval: 60_000,
   });
 
   useEffect(() => {
@@ -407,7 +410,7 @@ export default function FinanceHtmlReportPage() {
     return () => { document.title = "AQUAVO"; };
   }, [periodKey]);
 
-  const payload = report.data as Row | undefined;
+  const payload = (report.isError ? undefined : report.data) as Row | undefined;
   const summary = payload?.readiness ?? {};
   const previous = payload?.previousReadiness ?? null;
   const balances = safeArray(payload?.liveBalances);
@@ -431,8 +434,10 @@ export default function FinanceHtmlReportPage() {
     return map;
   }, [balances]);
 
-  const gross = grossProfit(summary);
-  const net = canonicalNet(summary);
+  const qualityResult = financialTruthSchema.safeParse(payload?.dataQuality);
+  const quality = qualityResult.success ? qualityResult.data : undefined;
+  const gross = quality?.profit.componentsComplete ? grossProfit(summary) : null;
+  const net = quality?.profit.displayIqd ?? null;
   const orderCount = finite(summary.realized_orders);
   const averageOrder = orderCount && orderCount > 0 && finite(summary.product_revenue) != null
     ? Number(summary.product_revenue) / orderCount
@@ -605,10 +610,11 @@ export default function FinanceHtmlReportPage() {
           </div>
           <div className="acct-html-toolbar__actions">
             <input type="month" min="2026-08" max={baghdadMonth()} value={periodKey} onChange={(event) => changePeriod(event.target.value)} />
-            <button className="acct-html-btn acct-html-btn--primary" onClick={() => window.print()}>طباعة / حفظ PDF</button>
+            <button className="acct-html-btn acct-html-btn--primary" disabled={!quality || report.isError || report.isFetching} onClick={() => window.print()}>طباعة / حفظ PDF</button>
           </div>
         </div>
 
+        <FinancialTruthPanel periodKey={periodKey} data={quality} />
         <header className="acct-html-cover" id="executive">
           <div className="acct-html-cover__topline">
             <div>
@@ -630,7 +636,7 @@ export default function FinanceHtmlReportPage() {
             </div>
             <div className={`acct-html-close-status ${blockers.length ? "is-warning" : "is-ok"}`}>
               <span>حالة الفترة</span>
-              <strong>{payload?.manifest?.taxFinal ? "اعتماد ضريبي نهائي" : closeStatus === "closed" ? "مغلقة إدارياً" : blockers.length ? "إقفال معلّق" : "جاهزة للإقفال الإداري"}</strong>
+              <strong>{payload?.manifest?.taxFinal ? "اعتماد مسجل داخليا — راجع المستند" : closeStatus === "closed" ? "مغلقة إدارياً" : blockers.length ? "إقفال معلّق" : "جاهزة للإقفال الإداري"}</strong>
               <small>{blockers.length ? `${numberValue(blockers.length)} نوع استثناء مفتوح` : "لا توجد موانع إغلاق مسجلة"}</small>
             </div>
           </div>
@@ -673,7 +679,7 @@ export default function FinanceHtmlReportPage() {
             </div>
             <div className="acct-html-card">
               <div className="acct-html-card__head"><h3>جسر الربحية</h3><span>الأثر على الفترة</span></div>
-              <Waterfall summary={summary} net={net} />
+              {quality?.profit.componentsComplete ? <Waterfall summary={summary} net={net} /> : <p>جسر الربحية غير مكتمل؛ لا يرسم باستخدام كلف افتراضية صفرية.</p>}
             </div>
           </div>
 
@@ -1020,7 +1026,7 @@ export default function FinanceHtmlReportPage() {
               ["الفرع الضريبي", profile.tax_branch],
               ["العنوان المسجل", profile.registered_address],
               ["إجازة المحاسب", profile.accountant_license_number],
-              ["حالة التقرير", payload?.manifest?.taxFinal ? "اعتماد ضريبي نهائي" : "إدارة ومراجعة داخلية"],
+              ["حالة التقرير", payload?.manifest?.taxFinal ? "اعتماد مسجل داخليا — راجع المستند" : "إدارة ومراجعة داخلية"],
             ].map(([label, value]) => (
               <div className="acct-html-profile" key={String(label)}>
                 <span>{String(label)}</span>

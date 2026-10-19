@@ -1,14 +1,17 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
+import { financialTruthSchema } from "@shared/financial-truth";
+import { FinancialTruthPanel } from "@/components/admin/financial-truth-panel";
 import { FinanceSmartCarrierCenterV2 } from "@/components/admin/finance-smart-carrier-center-v2";
 import { FinanceAccountingOperationsLiteV2 } from "@/components/admin/finance-accounting-operations-lite-v2";
 import { downloadAccountantPdfV2, type AccountantPdfProgress } from "@/lib/accountant-pdf-v2";
 
 const CUTOVER_MONTH = "2026-08";
 const REQUIRED_BALANCE_CODES = ["1000", "1010", "1100", "1200", "3100"] as const;
-const money = z.coerce.number().finite();
-const blockerSchema = z.object({ key: z.string(), label: z.string(), count: z.coerce.number().finite() });
+// null/blank must never become 0 at the browser boundary.
+const money = z.union([z.number().finite(), z.string().trim().min(1).refine(value => Number.isFinite(Number(value)))]).transform(Number);
+const blockerSchema = z.object({ key: z.string(), label: z.string(), count: money });
 const readinessSchema = z.object({
   product_revenue: money,
   rounding_adjustment: money,
@@ -22,10 +25,10 @@ const readinessSchema = z.object({
   verified_expenses: money,
   fx_net_expense: money,
   journal_difference: money,
-  realized_orders: z.coerce.number().finite(),
-  procurement_integrity_failures: z.coerce.number().finite().optional(),
-  settlement_integrity_failures: z.coerce.number().finite().optional(),
-  governance_review_flags: z.coerce.number().finite().optional(),
+  realized_orders: money,
+  procurement_integrity_failures: money.optional(),
+  settlement_integrity_failures: money.optional(),
+  governance_review_flags: money.optional(),
   blockers: z.array(blockerSchema),
   administrativeCloseReady: z.boolean(),
 }).passthrough();
@@ -45,16 +48,20 @@ const registerSchema = z.object({
   cutover: z.string(), archiveBeforeCutover: z.boolean(), summary: readinessSchema,
   orders: z.array(orderSchema), liveBalances: z.array(balanceSchema),
   close: z.record(z.string(), z.unknown()).nullable(), automaticClose: z.array(autoCloseSchema),
+  dataQuality: financialTruthSchema,
 });
 const archiveSummarySchema = z.object({
   success: z.boolean(),
   data: z.object({
     totalRevenue: money,
-    totalCogs: money,
-    totalPackaging: money,
-    netProfit: money,
-    deliveredCount: z.coerce.number().finite(),
-    totalOrders: z.coerce.number().finite(),
+    totalCogs: money.nullable(),
+    totalPackaging: money.nullable(),
+    netProfit: money.nullable(),
+    exactNetProfit: money.nullable().optional(),
+    estimatedNetProfit: money.nullable().optional(),
+    costsComplete: z.boolean().optional(),
+    deliveredCount: money,
+    totalOrders: money,
     salesReturnDeduction: money.optional(),
     actualReturnLoss: money.optional(),
   }).passthrough(),
@@ -89,7 +96,7 @@ function formatIqd(value: number | null | undefined): string {
   return `${Math.round(value).toLocaleString("en-US")} د.ع`;
 }
 
-function Card({ label, value, note }: { label: string; value: number | undefined; note?: string }) {
+function Card({ label, value, note }: { label: string; value: number | null | undefined; note?: string }) {
   const missing = value == null || !Number.isFinite(value);
   return (
     <div style={{ border: `1px solid ${missing ? "#92400e" : "#1e3a5f"}`, borderRadius: 12, padding: 14, background: "#0d1f3c" }}>
@@ -98,26 +105,6 @@ function Card({ label, value, note }: { label: string; value: number | undefined
       {note ? <div style={{ color: "#64748b", fontSize: 11, marginTop: 4 }}>{note}</div> : null}
     </div>
   );
-}
-
-function archiveSummary(data: z.infer<typeof archiveSummarySchema>["data"]): Summary {
-  return {
-    product_revenue: data.totalRevenue,
-    rounding_adjustment: 0,
-    merchant_net: data.totalRevenue,
-    delivery_subsidy: 0,
-    delivery_surplus: 0,
-    cogs: data.totalCogs,
-    fulfillment_cost: data.totalPackaging,
-    sales_returns: Number(data.salesReturnDeduction ?? 0),
-    actual_return_loss: Number(data.actualReturnLoss ?? 0),
-    verified_expenses: 0,
-    fx_net_expense: 0,
-    journal_difference: 0,
-    realized_orders: data.deliveredCount,
-    blockers: [],
-    administrativeCloseReady: false,
-  };
 }
 
 export function FinanceAccountingRegisterV2() {
@@ -136,6 +123,8 @@ export function FinanceAccountingRegisterV2() {
     ))),
     enabled: !isArchive,
     retry: false,
+    refetchInterval: 60_000,
+    staleTime: 20_000,
   });
   const archive = useQuery({
     queryKey: ["accounting-archive-summary", periodKey],
@@ -151,23 +140,21 @@ export function FinanceAccountingRegisterV2() {
     retry: false,
   });
 
-  const summary = isArchive
-    ? (archive.data ? archiveSummary(archive.data.data) : undefined)
-    : register.data?.summary;
+  const summary = isArchive || register.isError ? undefined : register.data?.summary;
+  const archiveData = archive.isError ? undefined : archive.data?.data;
+  const archiveCostExact = archiveData?.costsComplete === true && archiveData.exactNetProfit != null;
   const closeRecord = isArchive ? null : register.data?.close;
   const balances = useMemo(() => new Map((register.data?.liveBalances ?? []).map((item) => [item.code, item.balance])), [register.data]);
   const missingBalanceCodes = useMemo(() => isArchive
     ? []
     : REQUIRED_BALANCE_CODES.filter((code) => !balances.has(code)), [balances, isArchive]);
   const balancesComplete = missingBalanceCodes.length === 0;
-  const netProfit = useMemo(() => {
-    if (!summary) return undefined;
-    return summary.product_revenue + summary.rounding_adjustment
-      - summary.cogs - summary.fulfillment_cost - summary.delivery_subsidy
-      - summary.sales_returns - summary.actual_return_loss - summary.verified_expenses - summary.fx_net_expense;
-  }, [summary]);
+  // The backend returns the one reconciled source snapshot. Do not turn missing
+  // costs into a seemingly complete profit using a second browser formula.
+  const netProfit = isArchive || register.isError ? undefined : register.data?.dataQuality.profit.displayIqd;
 
   async function downloadPackagePdf() {
+    if (isArchive) { setPdfError("تصدير الأرشيف متوقف إلى أن تكتمل أدلة الكلفة؛ الملخص المعروض ليس تقريرا نهائيا."); return; }
     if (!summary) return;
     if (!isArchive && !balancesComplete) {
       setPdfError(`لا يمكن إنشاء PDF: حسابات دفتر الأستاذ ناقصة (${missingBalanceCodes.join(", ")})`);
@@ -175,21 +162,8 @@ export function FinanceAccountingRegisterV2() {
     }
     setPdfPending(true); setPdfProgress({ current: 0, total: 0, stage: "preparing" }); setPdfError(null);
     try {
-      if (isArchive) {
-        await downloadAccountantPdfV2({
-          manifest: {
-            packageVersion: "historical-archive-v1", periodKey, generatedAt: new Date().toISOString(),
-            legalName: "محل المنبع", legalNameEn: "AL NABEA SHOP", brand: "AQUAVO",
-            timezone: "Asia/Baghdad", currency: "IQD", taxFinal: false, archive: true,
-          },
-          readiness: summary,
-          liveBalances: [], sales: [], journal: [], expenses: [], returns: [], settlements: [],
-          close: null,
-        }, setPdfProgress);
-      } else {
-        const response = await fetch(`/api/admin/accounting/v2/accountant-package?periodKey=${encodeURIComponent(periodKey)}`, { credentials: "include" });
-        await downloadAccountantPdfV2(await readJson(response) as Record<string, unknown>, setPdfProgress);
-      }
+      const response = await fetch(`/api/admin/accounting/v2/accountant-package?periodKey=${encodeURIComponent(periodKey)}`, { credentials: "include" });
+      await downloadAccountantPdfV2(await readJson(response) as Record<string, unknown>, setPdfProgress);
     } catch (error) {
       setPdfError(error instanceof Error ? error.message : "فشل إنشاء ملف PDF");
     } finally {
@@ -204,9 +178,9 @@ export function FinanceAccountingRegisterV2() {
   const periodStatus = isArchive
     ? "أرشيف تاريخي للقراءة فقط - لا يدخل في قيود Accounting V2"
     : closeStatus === "tax_final"
-      ? "الفترة معتمدة ضريبياً ومقفلة"
+      ? "الفترة معلمة بالاعتماد داخل السجل؛ راجع مستند الاعتماد"
       : closeStatus === "closed"
-        ? "الفترة مغلقة إدارياً تلقائياً"
+        ? "الفترة مغلقة إداريا وفق السجل"
         : isCurrent
           ? "الفترة الحالية مفتوحة؛ تُغلق تلقائياً بعد آخر يوم من الشهر بتوقيت بغداد"
           : isPast && summary?.blockers.length
@@ -265,6 +239,19 @@ export function FinanceAccountingRegisterV2() {
         </div>
       ) : null}
 
+      <FinancialTruthPanel periodKey={periodKey} data={!isArchive && !register.isError ? register.data?.dataQuality : undefined} />
+
+      {isArchive && archiveData ? <section className="rounded-xl border p-4" data-testid="historical-financial-summary">
+        <h3 className="font-bold">ملخص تاريخي — ليس ربحا معتمدا</h3>
+        <div className="mt-3 grid gap-3 sm:grid-cols-3">
+          <Card label="إيراد الأرشيف المسجل" value={archiveData.totalRevenue} />
+          <Card label="كلفة الأرشيف المثبتة" value={archiveCostExact ? archiveData.totalCogs : null} note={archiveCostExact ? "من لقطات البنود المتاحة" : "لا نحول الكلفة الناقصة إلى صفر"} />
+          <Card label="الربح التاريخي المثبت" value={archiveCostExact ? archiveData.exactNetProfit : null} note="لا يثبت النقد المتاح للسحب" />
+        </div>
+        {!archiveCostExact && archiveData.estimatedNetProfit != null ? <p className="mt-3 text-sm">تقدير غير معتمد وفق البيانات المتاحة: {formatIqd(archiveData.estimatedNetProfit)}. لا يعوض فواتير الكلفة الناقصة.</p> : null}
+        <p className="mt-3 text-sm">الأرشيف لا يملأ المصاريف أو دعم التوصيل أو اليومية بأصفار افتراضية. تصديره المالي النهائي متوقف إلى حين استكمال الأدلة.</p>
+      </section> : null}
+
       {summary ? (
         <>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(170px,1fr))", gap: 10 }}>
@@ -274,7 +261,7 @@ export function FinanceAccountingRegisterV2() {
             <Card label="دعم التوصيل" value={summary.delivery_subsidy} />
             <Card label="كلفة المنتجات" value={summary.cogs} />
             <Card label="كلفة التجهيز" value={summary.fulfillment_cost} />
-            <Card label="صافي الربح الإداري" value={netProfit} note={isArchive ? "بحسب البيانات التاريخية المتاحة" : "يشمل التقريب ويستبعد فروقات التوصيل المعلقة؛ قبل TAX FINAL"} />
+            <Card label="الربح الدفتري حسب السجلات" value={netProfit} note={register.data?.dataQuality.profit.label ?? "تعذر التحقق من اكتمال مصادر الربح"} />
           </div>
 
           {!isArchive ? (
@@ -282,9 +269,9 @@ export function FinanceAccountingRegisterV2() {
               <section style={{ border: "1px solid #1e3a5f", borderRadius: 12, padding: 14, background: "#071720" }}>
                 <h3 style={{ color: "#fff", margin: "0 0 10px", fontSize: 15 }}>الأرصدة الحية — محسوبة من دفتر الأستاذ</h3>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 10 }}>
-                  <Card label="النقد في الصندوق" value={balances.get("1000")} note="افتتاحي + تسويات − دفعات ومصاريف" />
-                  <Card label="الحساب البنكي" value={balances.get("1010")} note="من الحركات البنكية المسجلة" />
-                  <Card label="COD عند شركات التوصيل" value={balances.get("1100")} note="المسلّم غير المستلم نقداً" />
+                  <Card label="رصيد الصندوق الدفتري" value={balances.get("1000")} note="افتتاحي + تسويات − دفعات ومصاريف" />
+                  <Card label="رصيد البنك المسجل" value={balances.get("1010")} note="من الحركات البنكية المسجلة" />
+                  <Card label="رصيد تسويات التوصيل الدفتري" value={balances.get("1100")} note="لا يثبت وحده أن الناقل مدين؛ راجع الربط مع وصولات القبض" />
                   <Card label="مخزون المنتجات" value={balances.get("1200")} note="قيمة المخزون الدفترية" />
                   <Card label="رأس مال المالك" value={balances.get("3100")} />
                   <Card label="فرق اليومية" value={summary.journal_difference} note="يجب أن يبقى صفراً" />
@@ -293,7 +280,7 @@ export function FinanceAccountingRegisterV2() {
 
               <section style={{ border: `1px solid ${summary.blockers.length ? "#7c2d12" : "#14532d"}`, borderRadius: 12, padding: 14, background: summary.blockers.length ? "#2b160b" : "#082f1d" }}>
                 <h3 style={{ color: "#fff", fontSize: 14, margin: 0 }}>
-                  {summary.blockers.length ? `موانع الإغلاق التلقائي (${summary.blockers.length})` : isCurrent ? "لا توجد مشاكل حالياً — الإغلاق ينتظر نهاية الشهر" : "الفترة جاهزة للإغلاق التلقائي"}
+                  {summary.blockers.length ? `موانع الإغلاق التلقائي (${summary.blockers.length})` : isCurrent ? "لا تظهر موانع بالفحوص الحالية — ليس تدقيقا مستقلا" : "الفترة جاهزة للإغلاق التلقائي"}
                 </h3>
                 {summary.blockers.length ? <div style={{ display: "grid", gap: 6, marginTop: 10 }}>{summary.blockers.map((item) => (
                   <div key={item.key} style={{ color: "#fed7aa", fontSize: 12 }}>• {item.label}: {item.count}</div>

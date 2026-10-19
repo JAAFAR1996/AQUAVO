@@ -50,6 +50,7 @@ import { NotificationLogPanel } from "@/components/admin/notification-log-panel"
 import SecurityManagement from "@/components/admin/security-management";
 import AnalyticsDashboard from "@/components/admin/analytics-dashboard";
 import { BusinessIntelligenceDashboard } from "@/components/admin/business-intelligence-dashboard";
+import { FinancialTruthPanel } from "@/components/admin/financial-truth-panel";
 import { PriceSuggestionsPanel } from "@/components/admin/price-suggestions-panel";
 import { AIInsightsPanel } from "@/components/admin/ai-insights-panel";
 import { AIChatPanel } from "@/components/admin/ai-chat-panel";
@@ -783,6 +784,7 @@ export default function AdminDashboard() {
         </Card>
       </div>
 
+      <FinancialTruthPanel compact />
       <Tabs
         dir="rtl"
         value={activeSection}

@@ -745,9 +745,9 @@ export function getOrderItems(order: OrderRow): OrderLineItem[] {
 //      charged and it is never overridden here.
 //   2. `order_items_relational` is the COST-SNAPSHOT source of truth whenever
 //      rows exist for the order AND they reconcile with the JSONB lines
-//      (same multiset of productId → total quantity).
+//      (unambiguous product, variant and quantity matches).
 //   3. Reconciled: the relational cost snapshot REPLACES the JSONB cost fields,
-//      matched positionally within each productId (nth occurrence ↔ nth row).
+//      matched by identity, never by database row position.
 //      A relational row that says `unknown` therefore stays `unknown` and the
 //      resolver fallback is NOT consulted for it.
 //   4. Not reconciled (row counts or quantities disagree): nothing is merged —
@@ -759,6 +759,7 @@ export function getOrderItems(order: OrderRow): OrderLineItem[] {
 export interface RelationalLineSnapshot {
   orderId: string;
   productId: string;
+  variantId?: string | null;
   quantity: number;
   priceAtPurchase: number;
   costPrice: number | null;
@@ -812,6 +813,9 @@ export async function buildRelationalLineResolver(db: Db, orderIds: Set<string>)
     const snap: RelationalLineSnapshot = {
       orderId: r.orderId,
       productId: r.productId,
+      variantId: r.metadata && typeof r.metadata === "object" && !Array.isArray(r.metadata)
+        && typeof (r.metadata as Record<string, unknown>).variantId === "string"
+        ? String((r.metadata as Record<string, unknown>).variantId) : null,
       quantity: Number(r.quantity) || 0,
       priceAtPurchase: toNumber(r.priceAtPurchase),
       // NULL stays NULL. A relational 0 is NOT promoted to a cost of zero
@@ -836,67 +840,39 @@ export interface ReconciledLines {
   reconciled: boolean;
 }
 
-/** Multiset key: productId → summed quantity. */
-function quantityByProduct(pairs: Array<{ productId: string; quantity: number }>): Map<string, number> {
-  const m = new Map<string, number>();
-  for (const p of pairs) m.set(p.productId, (m.get(p.productId) ?? 0) + p.quantity);
-  return m;
-}
-
-/**
- * Apply the source-of-truth policy above. PURE — no I/O, fully testable.
+/** Resolve each cost to its product/variant/quantity, never SELECT row order.
+ * Missing legacy variant metadata can be matched only when that product occurs
+ * once in both stores. Ambiguous evidence is reported, not assigned arbitrarily.
  */
 export function reconcileOrderLines(
-  jsonbItems: OrderLineItem[],
-  relational: RelationalLineSnapshot[] | undefined,
+  jsonbItems: OrderLineItem[], relational: RelationalLineSnapshot[] | undefined,
 ): ReconciledLines {
-  if (!relational || relational.length === 0) {
-    return { items: jsonbItems, sourceOfTruth: "jsonb", reconciled: true };
+  if (!relational?.length) return { items: jsonbItems, sourceOfTruth: "jsonb", reconciled: true };
+  const failure = (): ReconciledLines => ({ items: jsonbItems, sourceOfTruth: "jsonb", reconciled: false });
+  if (jsonbItems.length !== relational.length || jsonbItems.some(item => !item.productId)) return failure();
+  const counts = new Map<string, number>();
+  for (const item of jsonbItems) counts.set(item.productId!, (counts.get(item.productId!) ?? 0) + 1);
+  const remaining = [...relational];
+  const normalizedVariant = (value: string | null | undefined) => value?.trim() || null;
+  const costSignature = (r: RelationalLineSnapshot) => JSON.stringify([r.costPrice, r.packagingCost, r.insertCost, r.costStatus, r.costSource]);
+  const merged: OrderLineItem[] = [];
+  for (const item of jsonbItems) {
+    const sameProduct = remaining.filter(r => r.productId === item.productId && r.quantity === lineQuantity(item));
+    let candidates = sameProduct.filter(r => normalizedVariant(r.variantId) === normalizedVariant(item.variantId));
+    if (!candidates.length && counts.get(item.productId!) === 1 && sameProduct.length === 1
+      && (!normalizedVariant(item.variantId) || !normalizedVariant(sameProduct[0].variantId))) candidates = sameProduct;
+    if (!candidates.length) return failure();
+    if (candidates.length > 1) {
+      const samePrice = candidates.filter(r => r.priceAtPurchase === toNumber(item.priceAtPurchase));
+      if (samePrice.length) candidates = samePrice;
+      if (new Set(candidates.map(costSignature)).size > 1) return failure();
+    }
+    const rel = candidates[0];
+    remaining.splice(remaining.indexOf(rel), 1);
+    const asserts = rel.costStatus != null || rel.costPrice != null || rel.packagingCost != null || rel.insertCost != null;
+    merged.push(asserts ? { ...item, costPrice: rel.costPrice, packagingCost: rel.packagingCost,
+      insertCost: rel.insertCost, costStatus: rel.costStatus ?? "unknown", costSource: rel.costSource ?? "none" } : item);
   }
-  const jsonbPairs = jsonbItems
-    .filter((i) => !!i.productId)
-    .map((i) => ({ productId: i.productId as string, quantity: lineQuantity(i) }));
-  // Lines without a productId cannot be matched to a relational row at all.
-  const unmatchableJsonb = jsonbItems.length - jsonbPairs.length;
-  const jq = quantityByProduct(jsonbPairs);
-  const rq = quantityByProduct(relational.map((r) => ({ productId: r.productId, quantity: r.quantity })));
-  const agree =
-    unmatchableJsonb === 0 &&
-    jq.size === rq.size &&
-    [...jq].every(([pid, qty]) => rq.get(pid) === qty) &&
-    jsonbPairs.length === relational.length;
-  if (!agree) {
-    return { items: jsonbItems, sourceOfTruth: "jsonb", reconciled: false };
-  }
-
-  // Positional match within each productId (nth JSONB occurrence ↔ nth row).
-  const queues = new Map<string, RelationalLineSnapshot[]>();
-  for (const r of relational) {
-    const arr = queues.get(r.productId) ?? [];
-    arr.push(r);
-    queues.set(r.productId, arr);
-  }
-  const merged = jsonbItems.map((item) => {
-    const q = queues.get(item.productId as string);
-    const rel = q && q.length > 0 ? q.shift()! : undefined;
-    if (!rel) return item;
-    // A relational row that asserts NOTHING (no status and no cost value) is not
-    // evidence of "unknown" — it is an absence of information. Leave the JSONB
-    // line untouched so a legitimate JSONB snapshot is never demoted.
-    const asserts =
-      rel.costStatus != null || rel.costPrice != null || rel.packagingCost != null || rel.insertCost != null;
-    if (!asserts) return item;
-    return {
-      ...item,
-      // cost evidence is taken WHOLESALE from the relational snapshot — never a
-      // field-by-field mix of the two stores.
-      costPrice: rel.costPrice,
-      packagingCost: rel.packagingCost,
-      insertCost: rel.insertCost,
-      costStatus: rel.costStatus ?? "unknown",
-      costSource: rel.costSource ?? "none",
-    } satisfies OrderLineItem;
-  });
   return { items: merged, sourceOfTruth: "relational", reconciled: true };
 }
 
@@ -1478,7 +1454,7 @@ export function calcOrderProfit(
     shipping,
     netProfit,
     margin,
-    costsComplete: missingCostLines === 0 && missingProductLines === 0,
+    costsComplete: missingCostLines === 0 && missingProductLines === 0 && reconciliation.reconciled,
     missingCostLines,
     missingProductLines,
     estimatedCostLines,
