@@ -25,8 +25,11 @@ describe("Accounting V3 external handoff hardening", () => {
   });
 
   it("uses the canonical profit formula including rounding and FX expense", () => {
-    expect(financeUi).toContain('summary.product_revenue + summary.rounding_adjustment');
-    expect(financeUi).toContain('summary.fx_net_expense');
+    expect(financeUi).toContain('dataQuality.profit.displayIqd');
+    const truth = source('shared/financial-truth.ts');
+    expect(truth).toContain('product_revenue');
+    expect(truth).toContain('rounding_adjustment');
+    expect(truth).toContain('fx_net_expense');
     expect(financeUi).not.toContain('summary.product_revenue - summary.cogs - summary.fulfillment_cost');
   });
 

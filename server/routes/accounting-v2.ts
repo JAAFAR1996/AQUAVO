@@ -1,10 +1,12 @@
+import { financialPeriodChecksClear, requiredFinancialNumber, type FinancialTruth } from "../../shared/financial-truth.js";
 import { Router, type NextFunction, type Request, type Response } from "express";
 import { sql } from "drizzle-orm";
 import { z } from "zod";
 import { getDb } from "../db.js";
 import { requireAccountingAdmin } from "../middleware/accounting-auth-v2.js";
 import { actorFromRequest } from "../services/accountingAuditTrail.js";
-import { runAutomaticPeriodClose } from "../services/accounting-auto-close-v2.js";
+import { getAutomaticPeriodCloseStatus } from "../services/accounting-auto-close-v2.js";
+import { loadFinancialTruth, readFinancialTruth } from "../services/financial-truth.js";
 
 const periodKeySchema = z.string().regex(/^20\d{2}-(0[1-9]|1[0-2])$/);
 const closeBodySchema = z.object({ periodKey: periodKeySchema }).strict();
@@ -20,10 +22,7 @@ function rowsOf<T extends DbRow = DbRow>(result: unknown): T[] {
   return Array.isArray(rows) ? rows : [];
 }
 function numeric(value: unknown, field: string): number {
-  if (value == null || value === "") throw new Error(`ACCOUNTING_NUMERIC_VALUE_MISSING:${field}`);
-  const number = Number(value);
-  if (!Number.isFinite(number)) throw new Error(`ACCOUNTING_NUMERIC_VALUE_INVALID:${field}`);
-  return number;
+  return requiredFinancialNumber(value, field);
 }
 function normalize(row: DbRow): DbRow {
   const moneyFields = new Set([
@@ -116,9 +115,28 @@ function readinessPayload(row: DbRow | undefined) {
   return { ...normalized, blockers, administrativeCloseReady: blockers.length === 0 };
 }
 
+function withFinancialReadiness(row: DbRow | undefined, truth: FinancialTruth) {
+  const payload = readinessPayload(row);
+  const existing = new Set(payload.blockers.map(blocker => blocker.key));
+  for (const issue of truth.issues) {
+    if (issue.scope !== "historical" && issue.key !== "settlements_global" && !existing.has(issue.key)) {
+      payload.blockers.push({ key: issue.key, label: `${issue.label} (${issue.scope === "current" ? "الوضع الحالي" : "الفترة"})`, count: issue.count });
+    }
+  }
+  payload.administrativeCloseReady = payload.administrativeCloseReady && financialPeriodChecksClear(truth);
+  return payload;
+}
+
 export function createAccountingV2Router() {
   const router = Router();
   router.use(requireAccountingAdmin);
+  router.use((_req, res, next) => { res.setHeader("Cache-Control", "private, no-store"); next(); });
+  router.get("/v2/truth", async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const periodKey = req.query.periodKey == null ? undefined : periodKeySchema.parse(req.query.periodKey);
+      res.json(await loadFinancialTruth(periodKey));
+    } catch (error) { next(error); }
+  });
 
   router.get("/v2/health", async (_req: Request, res: Response, next: NextFunction) => {
     try {
@@ -126,6 +144,9 @@ export function createAccountingV2Router() {
       await assertV2Schema(db);
       res.json({
         ready: true,
+        readinessScope: "schema_only",
+        independentlyAudited: false,
+        financialReadinessEndpoint: "/api/admin/accounting/v2/truth",
         cutover: "2026-08-01",
         timezone: "Asia/Baghdad",
         currency: "IQD",
@@ -141,17 +162,17 @@ export function createAccountingV2Router() {
       const periodKey = periodKeySchema.parse(req.query.periodKey);
       const db = getDb();
       await assertV2Schema(db);
-      const automaticClose = await runAutomaticPeriodClose(db!);
-      const [readinessResult, closeResult] = await Promise.all([
-        db!.execute(sql`SELECT * FROM public.v_accounting_period_readiness WHERE period_key=${periodKey}`),
-        db!.execute(sql`SELECT * FROM public.accounting_period_closes WHERE period_key=${periodKey} LIMIT 1`),
-      ]);
-      res.json({
-        periodKey,
-        readiness: readinessPayload(rowsOf(readinessResult)[0]),
-        close: rowsOf(closeResult)[0] ? normalize(rowsOf(closeResult)[0]) : null,
-        automaticClose,
+      const payload = await db!.transaction(async tx => {
+        await tx.execute(sql`SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY`);
+        await tx.execute(sql`SET LOCAL statement_timeout='15000'`);
+        const readinessResult = await tx.execute(sql`SELECT * FROM public.v_accounting_period_readiness WHERE period_key=${periodKey}`);
+        const closeResult = await tx.execute(sql`SELECT * FROM public.accounting_period_closes WHERE period_key=${periodKey} LIMIT 1`);
+        const dataQuality = await readFinancialTruth(tx, periodKey);
+        const automaticClose = await getAutomaticPeriodCloseStatus(tx, dataQuality);
+        return { periodKey, dataQuality, readiness: withFinancialReadiness(rowsOf(readinessResult)[0], dataQuality),
+          close: rowsOf(closeResult)[0] ? normalize(rowsOf(closeResult)[0]) : null, automaticClose };
       });
+      res.json(payload);
     } catch (error) { next(error); }
   });
 
@@ -160,26 +181,33 @@ export function createAccountingV2Router() {
       const periodKey = periodKeySchema.parse(req.query.periodKey);
       const db = getDb();
       await assertV2Schema(db);
-      const automaticClose = await runAutomaticPeriodClose(db!);
-      const [ordersResult, readinessResult, balancesResult, closeResult] = await Promise.all([
-        db!.execute(sql`SELECT * FROM public.v_order_accounting WHERE period_key=${periodKey} ORDER BY recognized_at,order_number`),
-        db!.execute(sql`SELECT * FROM public.v_accounting_period_readiness WHERE period_key=${periodKey}`),
-        db!.execute(sql`SELECT * FROM public.v_accounting_live_balances ORDER BY code`),
-        db!.execute(sql`SELECT * FROM public.accounting_period_closes WHERE period_key=${periodKey} LIMIT 1`),
+      const payload = await db!.transaction(async tx => {
+        await tx.execute(sql`SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY`);
+        await tx.execute(sql`SET LOCAL statement_timeout='15000'`);
+        const [ordersResult, readinessResult, balancesResult, closeResult] = await Promise.all([
+        tx.execute(sql`SELECT * FROM public.v_order_accounting WHERE period_key=${periodKey} ORDER BY recognized_at,order_number`),
+        tx.execute(sql`SELECT * FROM public.v_accounting_period_readiness WHERE period_key=${periodKey}`),
+        tx.execute(sql`SELECT * FROM public.v_accounting_live_balances ORDER BY code`),
+        tx.execute(sql`SELECT * FROM public.accounting_period_closes WHERE period_key=${periodKey} LIMIT 1`),
       ]);
-      res.json({
+      const dataQuality = await readFinancialTruth(tx, periodKey);
+      const automaticClose = await getAutomaticPeriodCloseStatus(tx, dataQuality);
+      return {
+        dataQuality,
         periodKey,
         policyVersion: ACTIVE_ACCOUNTING_POLICY,
         timezone: "Asia/Baghdad",
         currency: "IQD",
         cutover: "2026-08-01",
         archiveBeforeCutover: true,
-        summary: readinessPayload(rowsOf(readinessResult)[0]),
+        summary: withFinancialReadiness(rowsOf(readinessResult)[0], dataQuality),
         orders: rowsOf(ordersResult).map(normalize),
         liveBalances: rowsOf(balancesResult).map(normalize),
         close: rowsOf(closeResult)[0] ? normalize(rowsOf(closeResult)[0]) : null,
         automaticClose,
+      };
       });
+      res.json(payload);
     } catch (error) { next(error); }
   });
 
@@ -211,14 +239,13 @@ export function createAccountingV2Router() {
       const periodKey = periodKeySchema.parse(req.query.periodKey);
       const db = getDb();
       await assertV2Schema(db);
-      const automaticClose = await runAutomaticPeriodClose(db!);
-      const [
-        profile, readiness, previousReadiness, sales, ledger, expenses, returns, settlements, opening,
-        evidence, close, deliveryCompanies, monthlyPositions, fixedPreparationItems, liveBalances,
-      ] = await Promise.all([
-        db!.execute(sql`SELECT * FROM public.tax_profiles WHERE id='al-manba-aquavo'`),
-        db!.execute(sql`SELECT * FROM public.v_accounting_period_readiness WHERE period_key=${periodKey}`),
-        db!.execute(sql`
+      const payload = await db!.transaction(async tx => {
+        await tx.execute(sql`SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY`);
+        await tx.execute(sql`SET LOCAL statement_timeout='20000'`);
+        const [profile, readiness, previousReadiness, sales, ledger, expenses, returns, settlements, opening, evidence, close, deliveryCompanies, monthlyPositions, fixedPreparationItems, liveBalances] = await Promise.all([
+        tx.execute(sql`SELECT * FROM public.tax_profiles WHERE id='al-manba-aquavo'`),
+        tx.execute(sql`SELECT * FROM public.v_accounting_period_readiness WHERE period_key=${periodKey}`),
+        tx.execute(sql`
           SELECT *
           FROM public.v_accounting_period_readiness
           WHERE period_key=to_char(
@@ -226,7 +253,7 @@ export function createAccountingV2Router() {
             'YYYY-MM'
           )
         `),
-        db!.execute(sql`
+        tx.execute(sql`
           SELECT
             va.*,
             o.created_at AS order_created_at,
@@ -279,7 +306,7 @@ export function createAccountingV2Router() {
           WHERE va.period_key=${periodKey}
           ORDER BY va.recognized_at,va.order_number
         `),
-        db!.execute(sql`
+        tx.execute(sql`
           SELECT j.id,j.entry_number,j.entry_date,j.period_key,j.source_type,j.source_id,
                  j.event_kind,j.description,j.status,j.total_debit,j.total_credit,
                  j.reversal_of_entry_id,j.evidence,
@@ -293,27 +320,27 @@ export function createAccountingV2Router() {
           WHERE j.period_key=${periodKey}
           GROUP BY j.id ORDER BY j.entry_date,j.entry_number
         `),
-        db!.execute(sql`SELECT * FROM public.expenses WHERE deleted_at IS NULL AND to_char(COALESCE(expense_occurred_at,expense_date AT TIME ZONE 'Asia/Baghdad') AT TIME ZONE 'Asia/Baghdad','YYYY-MM')=${periodKey} ORDER BY expense_occurred_at,created_at`),
-        db!.execute(sql`SELECT * FROM public.order_return_events WHERE to_char(updated_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Baghdad','YYYY-MM')=${periodKey} ORDER BY updated_at,created_at`),
-        db!.execute(sql`SELECT s.* FROM public.cash_settlements s WHERE to_char(COALESCE(s.received_at,s.updated_at) AT TIME ZONE 'Asia/Baghdad','YYYY-MM')=${periodKey} ORDER BY COALESCE(s.received_at,s.updated_at)`),
-        db!.execute(sql`
+        tx.execute(sql`SELECT * FROM public.expenses WHERE deleted_at IS NULL AND to_char(COALESCE(expense_occurred_at,expense_date AT TIME ZONE 'Asia/Baghdad') AT TIME ZONE 'Asia/Baghdad','YYYY-MM')=${periodKey} ORDER BY expense_occurred_at,created_at`),
+        tx.execute(sql`SELECT * FROM public.order_return_events WHERE to_char(updated_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Baghdad','YYYY-MM')=${periodKey} ORDER BY updated_at,created_at`),
+        tx.execute(sql`SELECT s.* FROM public.cash_settlements s WHERE to_char(COALESCE(s.received_at,s.updated_at) AT TIME ZONE 'Asia/Baghdad','YYYY-MM')=${periodKey} ORDER BY COALESCE(s.received_at,s.updated_at)`),
+        tx.execute(sql`
           SELECT oi.*,p.name AS product_name,p.slug AS product_slug
           FROM public.opening_inventory_snapshot oi
           LEFT JOIN public.products p ON p.id=oi.product_id
           WHERE oi.cutover_id='aquavo-2026-08-01'
           ORDER BY COALESCE(p.name,oi.product_id),oi.variant_id
         `),
-        db!.execute(sql`SELECT * FROM public.evidence_files WHERE to_char(created_at AT TIME ZONE 'Asia/Baghdad','YYYY-MM')<=${periodKey} ORDER BY created_at,id`),
-        db!.execute(sql`SELECT * FROM public.accounting_period_closes WHERE period_key=${periodKey} LIMIT 1`),
-        db!.execute(sql`SELECT id,company_key,name,default_fee,active,is_default,notes FROM public.delivery_companies ORDER BY is_default DESC,active DESC,name`),
-        db!.execute(sql`
+        tx.execute(sql`SELECT * FROM public.evidence_files WHERE to_char(created_at AT TIME ZONE 'Asia/Baghdad','YYYY-MM')<=${periodKey} ORDER BY created_at,id`),
+        tx.execute(sql`SELECT * FROM public.accounting_period_closes WHERE period_key=${periodKey} LIMIT 1`),
+        tx.execute(sql`SELECT id,company_key,name,default_fee,active,is_default,notes FROM public.delivery_companies ORDER BY is_default DESC,active DESC,name`),
+        tx.execute(sql`
           SELECT p.*,c.name AS delivery_company_name
           FROM public.accounting_monthly_positions p
           LEFT JOIN public.delivery_companies c ON c.id=p.delivery_company_id
           WHERE p.period_key=${periodKey} AND p.status='confirmed'
           ORDER BY p.position_type,c.name
         `),
-        db!.execute(sql`
+        tx.execute(sql`
           SELECT m.id,m.name,m.current_unit_cost,pi.quantity,
                  (m.current_unit_cost*pi.quantity)::numeric AS line_cost,p.version,p.expected_cost
           FROM public.packaging_profile_families f
@@ -323,10 +350,14 @@ export function createAccountingV2Router() {
           WHERE f.active=true AND COALESCE((f.applies_to->>'default')::boolean,false)=true
           ORDER BY m.name
         `),
-        db!.execute(sql`SELECT * FROM public.v_accounting_live_balances ORDER BY code`),
+        tx.execute(sql`SELECT * FROM public.v_accounting_live_balances ORDER BY code`),
       ]);
       const closeRow = rowsOf(close)[0];
-      res.json({
+      const dataQuality = await readFinancialTruth(tx, periodKey);
+      const automaticClose = await getAutomaticPeriodCloseStatus(tx, dataQuality);
+      const packageReadiness = withFinancialReadiness(rowsOf(readiness)[0], dataQuality);
+      return {
+        dataQuality,
         manifest: {
           packageVersion: ACCOUNTANT_PACKAGE_VERSION,
           policyVersion: ACTIVE_ACCOUNTING_POLICY,
@@ -343,7 +374,7 @@ export function createAccountingV2Router() {
           balanceNotice: "Live balances are derived from the immutable double-entry ledger; missing values are never replaced with zero.",
         },
         profile: rowsOf(profile)[0] ?? null,
-        readiness: readinessPayload(rowsOf(readiness)[0]),
+        readiness: packageReadiness,
         previousReadiness: rowsOf(previousReadiness)[0] ? readinessPayload(rowsOf(previousReadiness)[0]) : null,
         close: closeRow ? normalize(closeRow) : null,
         automaticClose,
@@ -358,7 +389,9 @@ export function createAccountingV2Router() {
         monthlyPositions: rowsOf(monthlyPositions).map(normalize),
         fixedPreparationItems: rowsOf(fixedPreparationItems).map(normalize),
         evidenceIndex: rowsOf(evidence).map(normalize),
+      };
       });
+      res.json(payload);
     } catch (error) { next(error); }
   });
 
@@ -367,25 +400,28 @@ export function createAccountingV2Router() {
       const { periodKey } = closeBodySchema.parse(req.body);
       const db = getDb();
       await assertV2Schema(db);
-      const readinessResult = await db!.execute(sql`SELECT * FROM public.v_accounting_period_readiness WHERE period_key=${periodKey}`);
-      const readiness = readinessPayload(rowsOf(readinessResult)[0]);
-      if (!readiness.administrativeCloseReady) {
-        res.status(409).json({ message: "لا يمكن إغلاق الشهر قبل معالجة الموانع", blockers: readiness.blockers });
-        return;
-      }
       const actor = actorFromRequest(req);
-      const result = await db!.execute(sql`
-        INSERT INTO public.accounting_period_closes(period_key,period_start,period_end,status,closed_by,closed_by_name,snapshot_json,closed_at)
-        VALUES(${periodKey},to_date(${periodKey}||'-01','YYYY-MM-DD'),(to_date(${periodKey}||'-01','YYYY-MM-DD')+interval '1 month'),'closed',${actor.id},${actor.name},jsonb_build_object('manual_fallback',true),clock_timestamp())
-        ON CONFLICT(period_key) DO UPDATE SET
-          status='closed',closed_by=EXCLUDED.closed_by,closed_by_name=EXCLUDED.closed_by_name,
-          closed_at=clock_timestamp(),reopened_by=NULL,reopened_reason=NULL,reopened_at=NULL
-        WHERE public.accounting_period_closes.status='reopened'
-        RETURNING *
-      `);
-      const row = rowsOf(result)[0];
-      if (!row) { res.status(409).json({ message: "الفترة مغلقة أو معتمدة ضريبياً" }); return; }
-      res.status(201).json(normalize(row));
+      const result = await db!.transaction(async tx => {
+        await tx.execute(sql`SET TRANSACTION ISOLATION LEVEL SERIALIZABLE`);
+        await tx.execute(sql`SET LOCAL statement_timeout='20000'`);
+        const source = await tx.execute(sql`SELECT * FROM public.v_accounting_period_readiness WHERE period_key=${periodKey}`);
+        const truth = await readFinancialTruth(tx, periodKey);
+        const readiness = withFinancialReadiness(rowsOf(source)[0], truth);
+        if (!readiness.administrativeCloseReady) return { blocked: true as const, readiness, truth };
+        const written = await tx.execute(sql`
+          INSERT INTO public.accounting_period_closes(period_key,period_start,period_end,status,closed_by,closed_by_name,snapshot_json,closed_at)
+          VALUES(${periodKey},to_date(${periodKey}||'-01','YYYY-MM-DD'),(to_date(${periodKey}||'-01','YYYY-MM-DD')+interval '1 month'),'closed',${actor.id},${actor.name},jsonb_build_object('manual_fallback',true),clock_timestamp())
+          ON CONFLICT(period_key) DO UPDATE SET
+            status='closed',closed_by=EXCLUDED.closed_by,closed_by_name=EXCLUDED.closed_by_name,
+            closed_at=clock_timestamp(),reopened_by=NULL,reopened_reason=NULL,reopened_at=NULL
+          WHERE public.accounting_period_closes.status='reopened'
+          RETURNING *
+        `);
+        return { blocked: false as const, row: rowsOf(written)[0] };
+      });
+      if (result.blocked) { res.status(409).json({ message: "لا يمكن إغلاق الشهر قبل معالجة الموانع", blockers: result.readiness.blockers, dataQuality: result.truth }); return; }
+      if (!result.row) { res.status(409).json({ message: "الفترة مغلقة أو معتمدة داخل السجل" }); return; }
+      res.status(201).json(normalize(result.row));
     } catch (error) { next(error); }
   });
 
@@ -414,15 +450,22 @@ export function createAccountingV2Router() {
       const db = getDb();
       await assertV2Schema(db);
       const actor = actorFromRequest(req);
-      const result = await db!.execute(sql`
-        UPDATE public.accounting_period_closes
-        SET status='tax_final',closed_by=${actor.id},closed_by_name=${actor.name},closed_at=clock_timestamp()
-        WHERE period_key=${periodKey} AND status='closed'
-        RETURNING *
-      `);
-      const row = rowsOf(result)[0];
-      if (!row) { res.status(409).json({ message: "أغلق الفترة إدارياً أولاً، ولا تعتمد فترة معاد فتحها" }); return; }
-      res.json(normalize(row));
+      const result = await db!.transaction(async tx => {
+        await tx.execute(sql`SET TRANSACTION ISOLATION LEVEL SERIALIZABLE`);
+        await tx.execute(sql`SET LOCAL statement_timeout='20000'`);
+        const truth = await readFinancialTruth(tx, periodKey);
+        if (!financialPeriodChecksClear(truth)) return { blocked: true as const, truth };
+        const written = await tx.execute(sql`
+          UPDATE public.accounting_period_closes
+          SET status='tax_final',closed_by=${actor.id},closed_by_name=${actor.name},closed_at=clock_timestamp()
+          WHERE period_key=${periodKey} AND status='closed'
+          RETURNING *
+        `);
+        return { blocked: false as const, row: rowsOf(written)[0] };
+      });
+      if (result.blocked) { res.status(409).json({ message: "لا يمكن اعتماد الفترة مع وجود فروق أو مصادر غير مكتملة", dataQuality: result.truth }); return; }
+      if (!result.row) { res.status(409).json({ message: "أغلق الفترة إدارياً أولاً، ولا تعتمد فترة معاد فتحها" }); return; }
+      res.json(normalize(result.row));
     } catch (error) { next(error); }
   });
 

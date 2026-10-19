@@ -80,7 +80,8 @@ describe("Accounting V2 automation", () => {
     expect(register).toContain("liveBalances");
     expect(register).toContain("الإغلاق التلقائي");
     expect(register).not.toContain("إغلاق إداري للشهر");
-    expect(api).toContain("runAutomaticPeriodClose");
+    expect(api).toContain("getAutomaticPeriodCloseStatus");
+    expect(api).not.toContain("await runAutomaticPeriodClose(");
     expect(api).toContain("v_accounting_live_balances");
     expect(cron).toContain("automaticClose");
     expect(cron).toContain("runAutomaticPeriodClose");

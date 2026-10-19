@@ -12,7 +12,7 @@ export default function FinancePage() {
           مركز المالية — AQUAVO
         </h1>
         <p style={{ color: "#94a3b8", fontSize: 12, margin: "5px 0 0" }}>
-          النظام المحاسبي الرسمي من 1 آب 2026 — للإدارة فقط
+          السجل المحاسبي الإداري من 1 آب 2026 — مع بيان حالة التوثيق والمطابقة
         </p>
       </div>
 

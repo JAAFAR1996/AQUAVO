@@ -7,10 +7,10 @@ import {
   mapWaylLinkStatus,
 } from "../services/wayl-order-payment.js";
 
-const service = readFileSync("server/services/wayl-order-payment.ts", "utf8");
-const route = readFileSync("server/routes/wayl.ts", "utf8");
-const vercelEntry = readFileSync("api/index.ts", "utf8");
-const localEntry = readFileSync("server/index.ts", "utf8");
+const service = readFileSync("server/services/wayl-order-payment.ts", "utf8").replace(/\r\n/g, "\n");
+const route = readFileSync("server/routes/wayl.ts", "utf8").replace(/\r\n/g, "\n");
+const vercelEntry = readFileSync("api/index.ts", "utf8").replace(/\r\n/g, "\n");
+const localEntry = readFileSync("server/index.ts", "utf8").replace(/\r\n/g, "\n");
 
 describe("Wayl status mapping (documented lifecycle only)", () => {
   it.each([
