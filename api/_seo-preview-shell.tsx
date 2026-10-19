@@ -22,6 +22,7 @@ import { categoryFaqHeading, categorySearch } from "../shared/category-search.js
 import { localizeCategoryName } from "../shared/i18n/categories.js";
 import { authorBylineText, authorProfilePath } from "../shared/editorial-author.js";
 import { DEFAULT_LOCALE, localizePath, type Locale } from "../shared/i18n/locales.js";
+import { preservePublicEmailHtml } from "../shared/public-email-html.js";
 
 export type SeoPreviewVariant = {
   id?: string;
@@ -43,6 +44,7 @@ export type SeoPreviewProduct = {
   currency?: string | null;
   brand?: string | null;
   category?: string | null;
+  subcategory?: string | null;
   stock?: string | number | null;
   thumbnail?: string | null;
   images?: unknown;
@@ -55,6 +57,7 @@ export type SeoPreviewProduct = {
 };
 
 export type SeoPreviewBlogPost = {
+  id?: string;
   slug: string;
   title: string;
   excerpt?: string | null;
@@ -1088,5 +1091,5 @@ function SeoPreviewShell({ page, locale = DEFAULT_LOCALE }: { page: SeoPreviewPa
 }
 
 export function renderSeoPreviewShell(page: SeoPreviewPage, locale: Locale = DEFAULT_LOCALE): string {
-  return renderToStaticMarkup(<SeoPreviewShell page={page} locale={locale} />);
+  return preservePublicEmailHtml(renderToStaticMarkup(<SeoPreviewShell page={page} locale={locale} />));
 }

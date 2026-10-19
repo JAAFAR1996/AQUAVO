@@ -38,6 +38,7 @@ import { GuideLinksSection } from "@/components/seo/guide-links-section";
 
 import { BackToTop } from "@/components/back-to-top";
 import { MetaTags } from "@/components/seo/meta-tags";
+import { buildProductSeoMeta } from "@shared/product-seo";
 import { fetchFrequentlyBoughtTogether, fetchSimilarProducts } from "@/lib/recommendations";
 import { ProductCard } from "@/components/products/product-card";
 import { isWoodMonthEndSale, WoodSaleCountdown } from "@/components/products/wood-sale-countdown";
@@ -371,6 +372,7 @@ export default function ProductDetails() {
     ["رمال", "أحجار", "حصى"].includes(product.subcategory ?? "") ||
     ["houyi-activated-carbon", "houyi-ceramic-ring", "houyi-breathing-ring-white"].includes(product.slug);
   const productDisplay = getProductDisplayIdentity(product);
+  const productMeta = buildProductSeoMeta(product, { locale });
   const decisionSpecs = (product.specifications ?? {}) as Record<string, unknown>;
   const decisionCardBenefit =
     typeof decisionSpecs.__cardBenefit === "string" ? decisionSpecs.__cardBenefit.trim() : "";
@@ -382,8 +384,8 @@ export default function ProductDetails() {
   return (
     <div className="flex-1 flex flex-col bg-background">
       <MetaTags
-        title={product.name}
-        description={product.specs?.substring(0, 160) || t("meta.description", { name: product.name })}
+        title={productMeta.title}
+        description={productMeta.description}
         image={product.image || product.thumbnail || 'https://www.aquavoiq.com/og-image.jpg'}
         type="product"
         price={product.price}

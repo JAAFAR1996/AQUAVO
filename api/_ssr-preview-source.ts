@@ -49,6 +49,10 @@ import {
 } from "../shared/seo-contract.js";
 import { isKnownSitePath } from "../shared/site-routes.js";
 import { toPublicVariant } from "../shared/public-product.js";
+import { buildProductSeoMeta } from "../shared/product-seo.js";
+import { blogPostSourceFields, productSourceFields } from "../shared/i18n/content.js";
+import { indexableLocalesForEntity } from "../shared/i18n/indexability.js";
+import { loadEntityTranslationRecords } from "./_translation-records.js";
 import { authorBylineText } from "../shared/editorial-author.js";
 import { categoryContent } from "../shared/category-content.js";
 import { articleAuthorEntity } from "../shared/editorial-author.js";
@@ -81,6 +85,7 @@ type Meta = {
   ogType?: "website" | "article" | "product";
   jsonLd?: object | object[];
   notFound?: boolean;
+  indexableLocales?: readonly Locale[];
 };
 
 type ResolvedPage = {
@@ -431,7 +436,7 @@ function sanitizeSeoProductVariants<T extends { variants?: unknown }>(row: T): T
 async function loadProduct(slug: string): Promise<SeoPreviewProduct | null> {
   const { rows } = await getPool().query(
     `SELECT id, slug, name, description, price, original_price AS "originalPrice",
-            currency, brand, category, stock, thumbnail, images,
+            currency, brand, category, subcategory, stock, thumbnail, images,
             has_variants AS "hasVariants", variants, rating,
             review_count AS "reviewCount", specifications
        FROM products
@@ -487,7 +492,7 @@ async function loadProductReviews(productId: string | undefined): Promise<SeoPre
 }
 
 
-const BLOG_COLUMNS = `slug, title, excerpt, content, category, author,
+const BLOG_COLUMNS = `id, slug, title, excerpt, content, category, author,
             read_time AS "readTime", image_url AS "imageUrl",
             published_at AS "publishedAt", created_at AS "createdAt"`;
 
@@ -692,7 +697,13 @@ async function resolvePage(pathname: string, rawCategory?: string): Promise<Reso
         status: 404,
       };
     }
-    const related = (await loadProducts(canonicalProductCategory(product.category)))
+    const [relatedProducts, reviews, translations, shippingFee] = await Promise.all([
+      loadProducts(canonicalProductCategory(product.category)),
+      loadProductReviews(product.id),
+      loadEntityTranslationRecords(getPool(), "product", product.id ? [product.id] : []),
+      loadShippingFee(),
+    ]);
+    const related = relatedProducts
       .filter((item) => item.slug !== product.slug)
       .slice(0, 6);
     const productPath = `/products/${encodeURIComponent(product.slug)}`;
@@ -700,16 +711,18 @@ async function resolvePage(pathname: string, rawCategory?: string): Promise<Reso
     // real reviews, but this page rendered none of them, so a crawler was shown
     // a rating with nothing behind it. Google asks that a review snippet be
     // backed by a review the visitor can actually see on the page.
-    const reviews = await loadProductReviews(product.id);
+    const sourceFields = productSourceFields(product as Parameters<typeof productSourceFields>[0]);
+    const productMeta = buildProductSeoMeta(product as Parameters<typeof buildProductSeoMeta>[0]);
     return {
       page: { kind: "product", product, related, reviews },
       meta: {
-        title: `${product.name} | AQUAVO العراق`,
-        description: metaDescription(cleanText(product.description, `معلومات ومواصفات ${product.name} من AQUAVO.`)),
+        title: productMeta.title,
+        description: productMeta.description,
+        indexableLocales: indexableLocalesForEntity("product", sourceFields, translations),
         canonicalPath: productPath,
         image: productImage(product),
         ogType: "product",
-        jsonLd: buildProductStructuredData(product, { shippingFee: await loadShippingFee() }),
+        jsonLd: buildProductStructuredData(product, { shippingFee }),
       },
       status: 200,
     };
@@ -745,7 +758,11 @@ async function resolvePage(pathname: string, rawCategory?: string): Promise<Reso
         status: 404,
       };
     }
-    const related = (await loadBlogPosts(6, post.slug));
+    const [related, translations] = await Promise.all([
+      loadBlogPosts(6, post.slug),
+      loadEntityTranslationRecords(getPool(), "blog_post", post.id ? [post.id] : []),
+    ]);
+    const sourceFields = blogPostSourceFields(post as Parameters<typeof blogPostSourceFields>[0]);
     // Products of the category the article is about, in stock and priced,
     // so the post links into the catalogue the way products link into the
     // guides. One query only when a category clearly leads.
@@ -762,6 +779,7 @@ async function resolvePage(pathname: string, rawCategory?: string): Promise<Reso
       meta: {
         title: `${post.title} | مدونة AQUAVO`,
         description,
+        indexableLocales: indexableLocalesForEntity("blog_post", sourceFields, translations),
         canonicalPath: blogPath,
         image,
         ogType: "article",
@@ -1189,7 +1207,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     // machine or outdated translations stay noindex. Never turn them into a
     // semantic 404 just because the URL has a language prefix.
     if (locale !== DEFAULT_LOCALE) {
-      setResponseHeaders(res, robotsValue(false, 200, pathname), "localized-delegate-v3");
+      // The stable handler can restrict an unreviewed translation. Starting
+      // every production request with noindex would also block reviewed pages
+      // because successful stable responses deliberately retain this header.
+      setResponseHeaders(res, robotsValue(production, 200, pathname), "localized-delegate-v3");
       await Promise.resolve(originalSsrHandler(req, res));
       return;
     }
@@ -1308,7 +1329,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       locale,
       pathname,
       hreflangSearch,
-      { indexable: robots.startsWith("index") },
+      { indexable: robots.startsWith("index"), indexableLocales: resolved.meta.indexableLocales },
     );
     res.status(resolved.status).setHeader("Content-Type", "text/html; charset=utf-8");
     res.send(html);

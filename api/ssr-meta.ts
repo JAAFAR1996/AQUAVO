@@ -12,6 +12,8 @@ import { HOME_HERO_HTML } from "./_home-hero-html.js";
 import { getSeoMetaOverride } from "./_seo-content.js";
 import { AQUAVO_FAQ_ITEMS } from "../shared/faq-content.js";
 import { toPublicProduct, toPublicVariant } from "../shared/public-product.js";
+import { buildProductSeoMeta } from "../shared/product-seo.js";
+export { buildProductMetaTitle, buildProductMetaDescription } from "../shared/product-seo.js";
 import { buildEntityStructuredData, buildProductStructuredData, withSiteEntities } from "./_seo-structured-data.js";
 import { isKnownSitePath } from "../shared/site-routes.js";
 import { AQUAVO_ENTITY, AQUAVO_PRODUCT_CATEGORIES, canonicalProductCategory, canonicalUrlFor, categoryProductsPath, isNoindexPath, productListingSeo } from "../shared/seo-contract.js";
@@ -35,8 +37,9 @@ import {
   sourceHash,
   type BlogPostTranslationData,
   type ProductTranslationData,
-  type TranslationRecord,
 } from "../shared/i18n/content.js";
+import { indexableLocalesForEntity } from "../shared/i18n/indexability.js";
+import { loadEntityTranslationRecords } from "./_translation-records.js";
 import { applyLocaleToHtml, SHELL_META } from "./_locale-meta.js";
 import { getLocalizedStaticMeta } from "./_static-meta-i18n.js";
 import { isPageTranslated } from "./_page-i18n.js";
@@ -65,26 +68,6 @@ async function loadShippingFee(): Promise<number> {
   }
 }
 
-/** One translated record for an entity, or null (Arabic requests never query). */
-async function loadTranslation<T>(entityType: TranslationRecord["entityType"], entityId: string, locale: Locale): Promise<TranslationRecord<T> | null> {
-  if (locale === DEFAULT_LOCALE) return null;
-  const db = getPool();
-  if (!db) return null;
-  try {
-    const { rows } = await db.query(
-      `SELECT data, status, source_hash AS "sourceHash" FROM content_translations WHERE entity_type = $1 AND entity_id = $2 AND locale = $3 LIMIT 1`,
-      [entityType, entityId, locale],
-    );
-    if (!rows.length) return null;
-    return { entityType, entityId, locale, data: rows[0].data as T, status: rows[0].status === "reviewed" ? "reviewed" : "machine", sourceHash: rows[0].sourceHash ?? null };
-  } catch (err) {
-    // The table is created by migrations/add_content_translations.sql; until
-    // it exists every locale falls back to Arabic and is marked as such.
-    console.error("SSR meta: translation query error", err);
-    return null;
-  }
-}
-
 // ─── HTML template (imported from build-generated file) ─────────────────────
 function getTemplate(): string {
   return HTML_TEMPLATE;
@@ -107,6 +90,8 @@ export interface PageMeta {
   jsonLd?: object | object[];
   notFound?: boolean;
   noIndex?: boolean;
+  /** Released, reviewed, current translations eligible for this document's alternates. */
+  indexableLocales?: readonly Locale[];
   /**
    * The product this page is about, already reduced to its public shape, for
    * the client to hydrate from instead of re-fetching what the server just
@@ -473,79 +458,6 @@ for (const g of GUIDE_META) {
 }
 
 // ─── Fetch dynamic metadata from DB ─────────────────────────────────────────
-interface ProductDescriptionInput {
-  name: string;
-  brand?: string | null;
-  description?: string | null;
-  specifications?: Record<string, unknown> | null;
-}
-
-function includesTerm(value: string, term: string): boolean {
-  return value.toLocaleLowerCase("en").includes(term.trim().toLocaleLowerCase("en"));
-}
-
-function factualProductLabel(product: ProductDescriptionInput): string {
-  const details: string[] = [product.name.trim()];
-  const brand = product.brand?.trim();
-  if (brand && !includesTerm(product.name, brand)) details.push(brand);
-
-  const specs = product.specifications ?? {};
-  const modelOrSize = ["model", "Model", "الموديل", "size", "Size", "الحجم"]
-    .map((key) => specs[key])
-    .find((value) => typeof value === "string" || typeof value === "number");
-  if (modelOrSize != null && !includesTerm(details.join(" "), String(modelOrSize))) {
-    details.push(String(modelOrSize).trim());
-  }
-  return details.filter(Boolean).join(" ");
-}
-
-function productDescriptionFallback(product: ProductDescriptionInput): string {
-  return `${factualProductLabel(product)} من معدات ومستلزمات أحواض الزينة المتوفرة لدى AQUAVO. راجع تفاصيل المنتج لاختيار ما يناسب احتياج حوضك.`;
-}
-
-/** Build a concise snippet from complete factual sentences; never cut a sentence mid-way. */
-export function buildProductMetaDescription(product: ProductDescriptionInput): string {
-  const normalized = (product.description ?? "").replace(/\s+/g, " ").trim();
-  if (!normalized || /(?:\.{2,}|…)$/.test(normalized)) return productDescriptionFallback(product);
-
-  // A decimal point is not a sentence end. The bare /[^.!؟]+[.!؟]+/ split cut
-  // "لا نعامل رقم 0.1°C كدقة قياس مؤكدة" down to "لا نعامل رقم 0." — inverting
-  // the claim into "we do not treat the number 0". Mask the inner decimal
-  // points, split on what is left, then restore them. 14 of the 112 catalogue
-  // descriptions contain a decimal, so the blast radius grows with the
-  // catalogue rather than staying at the two products visibly wrong today.
-  const DECIMAL_MASK = "\u0000";
-  const completeSentences =
-    normalized
-      .replace(/(\d)\.(\d)/g, `$1${DECIMAL_MASK}$2`)
-      .match(/[^.!؟]+[.!؟]+/g)
-      ?.map((sentence) => sentence.split(DECIMAL_MASK).join(".").trim()) ?? [];
-  if (completeSentences.length === 0) {
-    return normalized.length <= 155 ? `${normalized}.` : productDescriptionFallback(product);
-  }
-
-  let result = "";
-  for (const sentence of completeSentences) {
-    const candidate = result ? `${result} ${sentence}` : sentence;
-    if (candidate.length > 160) break;
-    result = candidate;
-  }
-  return result || productDescriptionFallback(product);
-}
-
-/** Append the site name exactly once and avoid repeating a product brand already in its name. */
-export function buildProductMetaTitle(name: string, brand?: string | null): string {
-  const cleanName = name.replace(/\s*[|\-–—]\s*AQUAVO\s*$/i, "").trim();
-  const cleanBrand = brand?.trim();
-  // Own-brand products carry brand "AQUAVO", which the "| AQUAVO" suffix below
-  // already states. Appending it as a brand too produced "… - AQUAVO | AQUAVO".
-  const isSiteBrand = !!cleanBrand && /^aquavo$/i.test(cleanBrand);
-  const productTitle = cleanBrand && !isSiteBrand && !includesTerm(cleanName, cleanBrand)
-    ? `${cleanName} - ${cleanBrand}`
-    : cleanName;
-  return `${productTitle} | AQUAVO`;
-}
-
 async function getProductMeta(slug: string, locale: Locale = DEFAULT_LOCALE): Promise<(PageMeta & { productImage?: string }) | null> {
   const db = getPool();
   if (!db) return null;
@@ -575,10 +487,11 @@ async function getProductMeta(slug: string, locale: Locale = DEFAULT_LOCALE): Pr
       [slug]
     );
     if (rows.length === 0) return null;
-    const translation = await loadTranslation<ProductTranslationData>("product", String(rows[0].id), locale);
+    const translations = await loadEntityTranslationRecords(db, "product", [String(rows[0].id)]);
+    const translation = translations.find((record) => record.locale === locale);
     const productSource = productSourceFields(rows[0] as { name: string; description: string; subcategory?: string | null; specifications?: Record<string, unknown> | null; variants?: Array<{ id: string; label: string }> | null });
     const productCoverage = locale === DEFAULT_LOCALE ? undefined : coverageOf(translation, sourceHash(productSource), productSource);
-    const localized = applyProductTranslation(rows[0] as Record<string, unknown>, productCoverage === "partial" ? undefined : translation?.data, locale);
+    const localized = applyProductTranslation(rows[0] as Record<string, unknown>, productCoverage === "partial" ? undefined : translation?.data as unknown as ProductTranslationData | undefined, locale);
     const p = localized.value as typeof rows[0];
     // The `variants` jsonb carries costPrice/costStatus/costBasis/costEvidence, written by
     // migrations/0073_accounting_final_hardening.sql and absent from the ProductVariant type. Nothing
@@ -587,12 +500,12 @@ async function getProductMeta(slug: string, locale: Locale = DEFAULT_LOCALE): Pr
     // basis of the whole catalogue. Sanitize at the source instead of relying on every downstream
     // renderer to keep being careful.
     const variants = Array.isArray(p.variants) ? p.variants.map(toPublicVariant) : [];
-    const desc = buildProductMetaDescription({
+    const productMeta = buildProductSeoMeta({
       name: p.name,
       brand: p.brand,
       description: p.description,
       specifications: p.specifications,
-    });
+    }, { locale });
     const rawImage = (p.images && p.images.length > 0 ? p.images[0] : p.thumbnail) || DEFAULT_IMAGE;
     const primaryImage = rawImage.startsWith("http") ? rawImage : `${BASE}${rawImage}`;
     // The same public boundary GET /api/products/:slug goes through. Reusing
@@ -603,8 +516,9 @@ async function getProductMeta(slug: string, locale: Locale = DEFAULT_LOCALE): Pr
     // a future migration cannot ride along into the page.
     const publicProduct = toPublicProduct(p);
     return {
-      title: buildProductMetaTitle(p.name, p.brand),
-      description: desc,
+      title: productMeta.title,
+      description: productMeta.description,
+      indexableLocales: indexableLocalesForEntity("product", productSource, translations),
       keywords: locale === "en"
         ? `${p.name}, ${p.brand || "AQUAVO"}, buy online Iraq, aquarium supplies`
         : `${p.name}، ${p.category || "مستلزمات احواض"}، ${p.brand || "AQUAVO"}، شراء اونلاين العراق`,
@@ -689,16 +603,17 @@ async function getBlogMeta(slug: string, locale: Locale = DEFAULT_LOCALE): Promi
       // is_published. This query threw 42703 on every blog request that reached
       // the stable handler, which is how a blog post lost its title and Article
       // schema entirely whenever the semantic renderer fell back to here.
-      `SELECT id, title, excerpt, image_url AS "imageUrl", author,
+      `SELECT id, title, excerpt, image_url AS "imageUrl", author, category,
               published_at AS "publishedAt", created_at AS "createdAt", content
          FROM blog_posts WHERE slug = $1 AND is_published = TRUE LIMIT 1`,
       [slug]
     );
     if (rows.length === 0) return null;
-    const translation = await loadTranslation<BlogPostTranslationData>("blog_post", String(rows[0].id), locale);
+    const translations = await loadEntityTranslationRecords(db, "blog_post", [String(rows[0].id)]);
+    const translation = translations.find((record) => record.locale === locale);
     const postSource = blogPostSourceFields(rows[0] as { title: string; excerpt: string; content: string; category?: string | null });
     const postCoverage = locale === DEFAULT_LOCALE ? undefined : coverageOf(translation, sourceHash(postSource), postSource);
-    const localizedPost = applyBlogPostTranslation(rows[0] as Record<string, unknown>, postCoverage === "partial" ? undefined : translation?.data, locale);
+    const localizedPost = applyBlogPostTranslation(rows[0] as Record<string, unknown>, postCoverage === "partial" ? undefined : translation?.data as unknown as BlogPostTranslationData | undefined, locale);
     const post = localizedPost.value as typeof rows[0];
     const shell = SHELL_META[locale];
     const blogBase = `${BASE}${localizePath("/blog", locale)}`;
@@ -714,6 +629,7 @@ async function getBlogMeta(slug: string, locale: Locale = DEFAULT_LOCALE): Promi
       title: `${post.title} | ${shell.blogSuffix}`,
       description: post.excerpt || post.title,
       ogType: "article",
+      indexableLocales: indexableLocalesForEntity("blog_post", postSource, translations),
       translationMissing: localizedPost.translationMissing,
       translationUnreviewed: postCoverage !== undefined && !isIndexableCoverage(postCoverage),
       jsonLd: [
@@ -1438,10 +1354,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       // second half true.
       if (!isLocaleReleased(locale)) meta.noIndex = true;
     }
-    const localizedHtml = applyLocaleToHtml(injectMeta(template, meta), locale, pathname, pathname === "/products" ? search : "", {
+    const localizedHtml = applyLocaleToHtml(injectMeta(template, meta), locale, pathname, pathname === "/products" ? new URL(meta.url).search : "", {
       indexable: !meta.noIndex && !meta.notFound,
+      indexableLocales: meta.indexableLocales,
     });
     const html = injectHomeHero(localizedHtml, pathname);
+    // Apply the same eligibility to HTML and Markdown responses. This also
+    // overrides the semantic wrapper's production default for unreviewed copy.
+    if (meta.noIndex || meta.notFound) res.setHeader("X-Robots-Tag", "noindex, nofollow, noarchive");
 
     // Markdown for Agents: If Accept: text/markdown, return markdown version
     const acceptHeader = (req.headers.accept || "").toLowerCase();
@@ -1454,10 +1374,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     res.setHeader("Content-Type", "text/html; charset=utf-8");
     res.setHeader("Cache-Control", commerceCacheControl(pathname));
-    if (meta.noIndex) res.setHeader("X-Robots-Tag", "noindex, nofollow, noarchive");
     return res.status(status).send(html);
   } catch (err) {
     console.error("SSR meta handler error:", err);
+    // A generic error fallback is not proof that a localized entity is ready
+    // for indexing, even when the production wrapper started as indexable.
+    res.setHeader("X-Robots-Tag", "noindex, nofollow, noarchive");
     // Fallback: serve template with defaults
     try {
       const template = getTemplate();

@@ -487,8 +487,7 @@ export function buildEntityStructuredData(
       image: AQUAVO_ENTITY.logoUrl,
       email: AQUAVO_ENTITY.email,
       telephone: AQUAVO_ENTITY.telephone,
-      currenciesAccepted: AQUAVO_ENTITY.currency,
-      paymentAccepted: AQUAVO_ENTITY.paymentMethod,
+      acceptedPaymentMethod: AQUAVO_ENTITY.paymentMethod,
       areaServed: {
         "@type": "Country",
         name: AQUAVO_ENTITY.countryName,

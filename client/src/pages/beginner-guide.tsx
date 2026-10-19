@@ -56,10 +56,10 @@ import { i18next } from "@/i18n";
 // DATA
 // ─────────────────────────────────────────────────
 const SCENES = [
-  { id: 0, image: "/guide-images/1-1-1-1-1.png", label: i18next.t("guides:beginner-guide.s1"),    step: "01", rgb: "10,100,120",  freq: 180 },
-  { id: 1, image: "/guide-images/2-2-2-2-2.png", label: i18next.t("guides:beginner-guide.s2"), step: "02", rgb: "8,70,145",    freq: 220 },
-  { id: 2, image: "/guide-images/3-3-3-3-3.png", label: i18next.t("guides:beginner-guide.s3"),step: "03", rgb: "20,90,40",    freq: 260 },
-  { id: 3, image: "/guide-images/4-4-4-4-4.png", label: i18next.t("guides:beginner-guide.s4"),step: "04", rgb: "0,140,190",   freq: 140 },
+  { id: 0, image: "/guide-images/1-1-1-1-1.webp", label: i18next.t("guides:beginner-guide.s1"),    step: "01", rgb: "10,100,120",  freq: 180 },
+  { id: 1, image: "/guide-images/2-2-2-2-2.webp", label: i18next.t("guides:beginner-guide.s2"), step: "02", rgb: "8,70,145",    freq: 220 },
+  { id: 2, image: "/guide-images/3-3-3-3-3.webp", label: i18next.t("guides:beginner-guide.s3"),step: "03", rgb: "20,90,40",    freq: 260 },
+  { id: 3, image: "/guide-images/4-4-4-4-4.webp", label: i18next.t("guides:beginner-guide.s4"),step: "04", rgb: "0,140,190",   freq: 140 },
   { id: 4, image: "/guide-images/5-5-5-5-5.png", label: i18next.t("guides:beginner-guide.s5"), step: "05", rgb: "90,200,20",   freq: 440 },
 ] as const;
 
