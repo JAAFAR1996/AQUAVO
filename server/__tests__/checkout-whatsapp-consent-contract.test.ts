@@ -15,6 +15,7 @@ describe("checkout WhatsApp consent contract",()=>{
   });
 
   it("keeps WhatsApp disclosure in the terms while the single checkbox records acceptance",()=>{
+    const view=read("client/src/components/cart/checkout/confirmation-view.tsx");
     const ar=read("client/src/locales/ar/checkout.json");
     const en=read("client/src/locales/en/checkout.json");
     const ckb=read("client/src/locales/ckb/checkout.json");

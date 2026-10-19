@@ -13,6 +13,20 @@ import { execFileSync } from "node:child_process";
 // Files whose strict typecheck this effort guarantees green. Widen as legacy
 // files are cleaned up. Prefix match on the forward-slashed path.
 const OWNED = [
+  "server/services/authenticated-session.ts",
+  "server/services/checkout-security.ts",
+  "server/services/coupon-policy.ts",
+  "server/services/oauth-policy.ts",
+  "server/services/oauth-grant-store.ts",
+  "server/session-store.ts",
+  "server/routes/oauth.ts",
+  "server/routes/users.ts",
+  "server/routes/orders.ts",
+  "server/routes/wayl.ts",
+  "server/routes/coupons.ts",
+  "server/middleware/accounting-auth-v2.ts",
+  "server/services/product-cost-snapshot.ts",
+  "shared/public-order.ts",
   "server/storage/invoice-storage.ts",
   // Commerce-critical paths: new strict errors here must block CI even while
   // unrelated legacy server debt is burned down incrementally.

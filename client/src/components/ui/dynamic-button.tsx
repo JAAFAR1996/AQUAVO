@@ -66,6 +66,7 @@ export const DynamicButton = forwardRef<HTMLButtonElement, DynamicButtonProps>(
     return (
       <motion.button
         {...props}
+        aria-label={props["aria-label"] ?? children}
         ref={buttonRef}
         type={type}
         initial={false}

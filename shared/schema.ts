@@ -44,6 +44,7 @@ export const users = pgTable("users", {
   id: text("id").primaryKey().default(sql`gen_random_uuid()`),
   email: text("email").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
+  authVersion: integer("auth_version").notNull().default(0),
   fullName: text("full_name"),
   phone: text("phone"),
   birthDate: timestamp("birth_date"),
@@ -220,6 +221,10 @@ export const orders = pgTable("orders", {
   firstTouchUtmCampaign: text("first_touch_utm_campaign"),
   firstTouchAqCampaignId: text("first_touch_aq_campaign_id"),
   firstTouchCapturedAt: timestamp("first_touch_captured_at", { withTimezone: true }),
+
+  // Internal replay authentication; never included in customer responses.
+  checkoutSessionHash: text("checkout_session_hash"),
+  checkoutRequestHash: text("checkout_request_hash"),
 
   // Explicit optional consent for proactive replenishment/marketing on WhatsApp.
   // False means this order did not add consent; it is not an opt-out signal.

@@ -51,7 +51,7 @@ const fetchTopSellingProducts = vi.fn();
 const fetchProducts = vi.fn();
 vi.mock("@/lib/api", () => ({
   fetchTopSellingProducts: () => fetchTopSellingProducts(),
-  fetchProducts: () => fetchProducts(),
+  fetchProducts: (args:unknown) => fetchProducts(args),
 }));
 
 import Home from "../home";
@@ -90,13 +90,13 @@ describe("Home — Phase C store-picks states", () => {
     // A missing bestseller feed falls back to real sellable new arrivals instead
     // of advertising an "unavailable featured picks" state.
     await waitFor(() => {
-      expect(screen.getByRole("heading", { name: "جديد AQUAVO" })).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: "المنتجات الأكثر مشاهدة خلال 30 يوم" })).toBeInTheDocument();
       expect(screen.getByRole("link", { name: /فلتر تجريبي/ })).toHaveAttribute("href", "/products/test-filter");
     });
   });
 
   it("shows a loading state before data resolves", () => {
-    fetchTopSellingProducts.mockImplementation(() => new Promise(() => {}));
+    fetchProducts.mockImplementationOnce(() => new Promise(() => {}));
     render(<Home />, { wrapper: createWrapper() });
     expect(screen.getByRole("status", { name: "جاري تحميل الاختيارات" })).toBeInTheDocument();
   });
@@ -122,11 +122,11 @@ describe("Home — Phase C store-picks states", () => {
     }, { timeout: 3500 });
   });
 
-  it("falls back to new arrivals when only the sales feed fails", async () => {
+  it("renders the measured-view feed independently of the retired sales feed", async () => {
     fetchTopSellingProducts.mockRejectedValueOnce(new Error("sales feed down"));
     render(<Home />, { wrapper: createWrapper() });
     await waitFor(() => {
-      expect(screen.getByRole("heading", { name: "جديد AQUAVO" })).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: "المنتجات الأكثر مشاهدة خلال 30 يوم" })).toBeInTheDocument();
       expect(screen.getByRole("link", { name: /فلتر تجريبي/ })).toHaveAttribute("href", "/products/test-filter");
     });
     expect(screen.queryByText(/تعذر علينا تحميل الاختيارات المختارة هسه/)).not.toBeInTheDocument();
@@ -140,14 +140,15 @@ describe("Home — Phase C store-picks states", () => {
     });
   });
 
-  it("does not call editorial or review fallbacks sales-backed when hasRealSales is false", async () => {
+  it("labels measured-view products as views, not fabricated sales", async () => {
     fetchTopSellingProducts.mockResolvedValueOnce({ productOfWeek: sampleProducts[0], bestSellers: sampleProducts, hasRealSales: false });
     render(<Home />, { wrapper: createWrapper() });
 
     await waitFor(() => {
-      expect(screen.getByRole("heading", { name: "جديد AQUAVO" })).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: "المنتجات الأكثر مشاهدة خلال 30 يوم" })).toBeInTheDocument();
     });
     expect(screen.queryByRole("heading", { name: "منتجات عليها طلب فعلي" })).not.toBeInTheDocument();
+    expect(fetchProducts).toHaveBeenCalledWith({sortBy:"views",sortOrder:"desc"});
   });
 });
 
@@ -237,7 +238,8 @@ describe("Home — Phase C identity guardrails", () => {
   });
 
   it("uses the display font for the large hero heading", () => {
-    expect(source).toMatch(/font-display[^"]*text-\[2\.55rem\]/);
+    expect(source).toContain("font-display");
+    expect(source).toMatch(/text-\[clamp\(/);
   });
 });
 

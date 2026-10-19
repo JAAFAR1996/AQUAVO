@@ -142,6 +142,7 @@ const PRE_MIGRATION_SCHEMA = `
     first_touch_captured_at timestamptz,
     whatsapp_marketing_opt_in boolean NOT NULL DEFAULT false,
     whatsapp_marketing_opt_in_at timestamptz,
+  checkout_session_hash text, checkout_request_hash text,
     financially_counted boolean,
     created_at timestamp DEFAULT now(),
     updated_at timestamp DEFAULT now()

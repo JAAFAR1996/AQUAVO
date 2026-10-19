@@ -32,6 +32,7 @@ import {
 import { getDb } from "../db.js";
 import * as schema from "../../shared/schema.js";
 import { handleOAuthRegister, handleOAuthRegisterOptions, verifyMcpToken } from "./oauth.js";
+import { isOAuthGrantActive } from "../services/oauth-grant-store.js";
 import { clearProductsCache } from "./products.js";
 import {
   setCanonicalProductStock,
@@ -61,7 +62,7 @@ import { toMoney } from "../../shared/order-financials.js";
 const BASE_URL = (process.env.AQUAVO_BASE_URL ?? "https://www.aquavoiq.com").replace(/\/$/, "");
 const MCP_RESOURCE = `${BASE_URL}/api/mcp`;
 const STATIC_TOKEN = process.env.AQUAVO_MCP_TOKEN?.trim();
-const STATIC_SCOPES = process.env.AQUAVO_MCP_STATIC_SCOPES ?? "mcp:read mcp:write";
+const STATIC_SCOPES = process.env.AQUAVO_MCP_STATIC_SCOPES ?? "mcp:read";
 const MCP_AUDIT_USER_ID = process.env.AQUAVO_MCP_AUDIT_USER_ID?.trim();
 const DEFAULT_ALLOWED_ORIGINS = [
   "https://claude.ai",
@@ -99,6 +100,9 @@ type SchemaTable = {
 const blockedTables = new Set([
   "sessions",
   "password_reset_tokens",
+  "oauth_authorization_codes",
+  "oauth_grants",
+  "oauth_refresh_tokens",
 ]);
 
 const sensitiveFieldPatterns = [
@@ -200,13 +204,18 @@ function enforceMcpRequestBoundary(req: Request, res: Response, next: NextFuncti
 // ─── Auth middleware ───────────────────────────────────────────────────────────
 // Accepts: OAuth JWT (Claude.ai web) OR static bearer token (Claude Code CLI)
 
-function mcpAuth(req: McpRequest, res: Response, next: NextFunction): void {
+async function mcpAuth(req: McpRequest, res: Response, next: NextFunction): Promise<void> {
   const auth = req.headers["authorization"] ?? "";
   const token = auth.startsWith("Bearer ") ? auth.slice(7).trim() : "";
 
   // 1. Try JWT (Claude.ai web OAuth flow)
   const verified = token ? verifyMcpToken(token) : null;
+  let grantActive=false;
   if (verified) {
+    try { grantActive=await isOAuthGrantActive(verified.grantId,verified.clientId,verified.scope); }
+    catch { res.status(503).json({error:"Authorization temporarily unavailable"}); return; }
+  }
+  if (verified && grantActive) {
     req.mcpAuth = {
       clientId: verified.clientId,
       mode: "oauth",

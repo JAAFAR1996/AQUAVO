@@ -2,6 +2,7 @@ import { Router, type Request, type Response } from "express";
 import { sql } from "drizzle-orm";
 import { z } from "zod";
 import { getSession } from "../middleware/auth.js";
+import { persistCheckoutSession } from "../services/authenticated-session.js";
 import { orderLimiter } from "../middleware/rate-limit.js";
 import { db } from "../db.js";
 import {
@@ -190,10 +191,12 @@ export function createWaylRouter() {
         return;
       }
 
+      await persistCheckoutSession(req);
       const session = getSession(req);
       const prepared = await prepareOnlineOrder({
         idempotencyKey: parsedKey.data,
         userId: session?.userId || null,
+        ownerSessionId: req.sessionID,
         sessionId: parsed.data.clientSessionId && CLIENT_VIEW_SESSION_ID.test(parsed.data.clientSessionId)
           ? parsed.data.clientSessionId
           : (req as any).sessionID,

@@ -12,9 +12,10 @@ import { getDb } from "../db.js";
 import { eq } from "drizzle-orm";
 import { apiMessage } from "../i18n/messages.js";
 import crypto from "crypto";
+import { establishAuthenticatedSession } from "../services/authenticated-session.js";
 
 function sanitizeUser(user: Record<string, any>) {
-    const { passwordHash, verificationToken, verificationTokenExpiresAt, ...safe } = user;
+    const { passwordHash, authVersion, verificationToken, verificationTokenExpiresAt, ...safe } = user;
     return safe;
 }
 
@@ -128,8 +129,7 @@ export function createUserRouter(): RouterType {
                 }
             }
 
-            const sess = getSession(req);
-            if (sess) sess.userId = user.id;
+            await establishAuthenticatedSession(req, user);
             res.status(201).json(sanitizeUser(user));
         } catch (err) {
             next(err);
@@ -187,8 +187,7 @@ export function createUserRouter(): RouterType {
                 console.error("Error recording login attempt:", logErr);
             }
 
-            const sess = getSession(req);
-            if (sess) sess.userId = user.id;
+            await establishAuthenticatedSession(req, user);
             await storage.createAuditLog({
                 userId: user.id,
                 action: "login",
@@ -206,6 +205,7 @@ export function createUserRouter(): RouterType {
         if ((req as any).session) {
             (req as any).session.destroy((err: any) => {
                 if (err) return next(err);
+                res.clearCookie("sid", { path: "/" });
                 res.json({ message: "Logged out" });
             });
         } else {
@@ -379,6 +379,9 @@ export function createUserRouter(): RouterType {
             }
 
             await storage.updateUser(sess.userId, { passwordHash: hashPassword(newPassword) });
+            // The DB atomically revoked all sessions. Do not resave this one.
+            await new Promise<void>((resolve,reject) => req.session.destroy(err => err ? reject(err) : resolve()));
+            res.clearCookie("sid", { path: "/" });
             res.json(apiMessage(req, "passwordChanged"));
         } catch (err) { next(err); }
     });

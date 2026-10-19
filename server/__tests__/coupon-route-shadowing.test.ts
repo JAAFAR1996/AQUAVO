@@ -8,6 +8,7 @@
 import express from "express";
 import request from "supertest";
 import { describe, it, expect, vi, beforeAll, beforeEach } from "vitest";
+import { PgDialect } from "drizzle-orm/pg-core";
 
 const mockGetCouponByCode = vi.fn();
 
@@ -26,6 +27,7 @@ vi.mock("../utils/email.js", () => ({ sendPasswordResetEmail: vi.fn() }));
 vi.mock("../middleware/rate-limit.js", () => ({
     authLimiter: (_req: unknown, _res: unknown, next: () => void) => next(),
     passwordResetLimiter: (_req: unknown, _res: unknown, next: () => void) => next(),
+    apiLimiter: (_req: unknown, _res: unknown, next: () => void) => next(),
 }));
 vi.mock("../utils/auth.js", () => ({
     hashPassword: vi.fn(),
@@ -34,7 +36,17 @@ vi.mock("../utils/auth.js", () => ({
 vi.mock("../storage/security-storage.js", () => ({
     SecurityStorage: class {},
 }));
-vi.mock("../db.js", () => ({ getDb: vi.fn() }));
+vi.mock("../db.js", () => ({ getDb: () => ({transaction: async (fn:any)=>fn({execute:async(q:any)=>{
+    const text=new PgDialect().sqlToQuery(q).sql;
+    if (text.includes("FROM coupons")) {
+      const c=await mockGetCouponByCode();
+      return {rows:c?[{id:c.id,code:c.code,discount_type:c.type,discount_value:c.value,is_active:c.isActive,
+        start_date:c.startDate,end_date:c.endDate,min_order_amount:c.minOrderAmount,max_uses:c.maxUses,
+        used_count:c.usedCount,max_uses_per_user:null,user_id:null,
+        date_valid:(!c.startDate || new Date(c.startDate).getTime()<=Date.now()) && (!c.endDate || new Date(c.endDate).getTime()>=Date.now())}]:[]};
+    }
+    return {rows:[{online_holds:0,user_uses:0}]};
+  }})}) }));
 
 // Import route modules once (in beforeAll) rather than per-test — the dynamic
 // import + module graph resolution is comparatively expensive and, under
