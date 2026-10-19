@@ -90,7 +90,7 @@ describe("Home — Phase C store-picks states", () => {
     // A missing bestseller feed falls back to real sellable new arrivals instead
     // of advertising an "unavailable featured picks" state.
     await waitFor(() => {
-      expect(screen.getByRole("heading", { name: "المنتجات الأكثر مشاهدة خلال 30 يوم" })).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: "الأكثر مشاهدة" })).toBeInTheDocument();
       expect(screen.getByRole("link", { name: /فلتر تجريبي/ })).toHaveAttribute("href", "/products/test-filter");
     });
   });
@@ -126,7 +126,7 @@ describe("Home — Phase C store-picks states", () => {
     fetchTopSellingProducts.mockRejectedValueOnce(new Error("sales feed down"));
     render(<Home />, { wrapper: createWrapper() });
     await waitFor(() => {
-      expect(screen.getByRole("heading", { name: "المنتجات الأكثر مشاهدة خلال 30 يوم" })).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: "الأكثر مشاهدة" })).toBeInTheDocument();
       expect(screen.getByRole("link", { name: /فلتر تجريبي/ })).toHaveAttribute("href", "/products/test-filter");
     });
     expect(screen.queryByText(/تعذر علينا تحميل الاختيارات المختارة هسه/)).not.toBeInTheDocument();
@@ -145,8 +145,9 @@ describe("Home — Phase C store-picks states", () => {
     render(<Home />, { wrapper: createWrapper() });
 
     await waitFor(() => {
-      expect(screen.getByRole("heading", { name: "المنتجات الأكثر مشاهدة خلال 30 يوم" })).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: "الأكثر مشاهدة" })).toBeInTheDocument();
     });
+    expect(screen.getByText("خلال آخر 30 يوم")).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "منتجات عليها طلب فعلي" })).not.toBeInTheDocument();
     expect(fetchProducts).toHaveBeenCalledWith({sortBy:"views",sortOrder:"desc"});
   });
