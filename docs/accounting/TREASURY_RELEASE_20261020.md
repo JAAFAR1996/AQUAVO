@@ -6,7 +6,8 @@
 - Add physical cash/bank/wallet accounts; card is a **funding-account alias** and never a second account balance.
 - Owner confirms each physical account's opening balance and timestamp. Missing = unknown, never zero.
 - Manual receipts, withdrawals, transfers and Wayl payout allocations are an **append-only treasury subledger**, not GL entries.
-- Only completed, real, non-archived Wayl/Al-Qaseh payments missing an allocation appear in payout queue.
+- Only completed, real, non-archived Wayl/Al-Qaseh payments missing an allocation and without refund/chargeback events appear in the regular payout queue.
+- Refund/chargeback payments remain visible as exceptions even if previously allocated. The bank cashbook must not auto-deduct without verified bank/provider evidence; operator must reconcile a real outgoing movement.
 - Actual bank balance requires a statement/cash-count reconciliation. Confirmed payment does not imply bank receipt.
 
 ## Pre-release gates (production)

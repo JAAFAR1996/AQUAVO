@@ -20,7 +20,7 @@ type Movement = {
 };
 type GatewayPayment = {
   payment_id:string;order_number:string|null;order_id:string;
-  amount:number;method:string;order_status:string;
+  amount:number;method:string;order_status:string;has_payout?:boolean;
 };
 type Overview = {
   accounts:Account[];ledgerReference:MoneyLine[];movements:Movement[];
@@ -304,10 +304,10 @@ export function FinanceTreasury(){
 
     {(overview.data?.gatewayNeedsReview?.length??0)>0&&<section style={{...panelStyle,borderColor:"#92400e"}}>
       <h3 style={{margin:0,fontSize:16,color:"#fcd34d"}}>دفعات إلكترونية عليها استرجاع أو اعتراض — تحتاج مراجعة</h3>
-      <p style={infoStyle}>استبعدنا هاي الدفعات من مبلغ «بانتظار التحويل» حتى ما نعرض فلوس قد تكون مسترجعة.
-        ما نقدر نسوي تسوية تلقائية لها قبل المطابقة مع Wayl وكشف البنك.</p>
+      <p style={infoStyle}>استبعدنا الدفعات المرتجعة من مبلغ «بانتظار التحويل» حتى ما نعرض فلوس مو متوفرة.
+        إذا الدفعة مسوّاة سابقاً، لازم تراجع هل صار استرداد فعلي وانخصم من البنك وتثبت حركته؛ ما نخصم تلقائياً بدون دليل.</p>
       {overview.data?.gatewayNeedsReview.map(p=><div key={p.payment_id} style={{fontSize:12,padding:"6px 0",borderBottom:"1px solid #28505c"}}>
-        {p.order_number??p.order_id.slice(0,8)} — {currency(p.amount)} — {p.method} — مراجعة الاسترجاع
+        {p.order_number??p.order_id.slice(0,8)} — {currency(p.amount)} — {p.method} — {p.has_payout?"مربوطة بتسوية سابقة؛ تحقق من حركة الاسترداد":"لم تثبت تسويتها؛ تحتاج مراجعة"}
       </div>)}
     </section>}
     <section style={panelStyle}>

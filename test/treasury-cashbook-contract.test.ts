@@ -44,6 +44,8 @@ describe("AQUAVO money-location cashbook contracts", () => {
     expect(route).toContain("event_type IN ('refund','chargeback')");
     expect(route).toContain('payment.payment_status==="refunded"');
     expect(ui).toContain("دفعات إلكترونية عليها استرجاع أو اعتراض");
+    expect(route).toContain("(ga.payment_id IS NOT NULL) AS has_payout");
+    expect(ui).toContain('p.has_payout?"مربوطة بتسوية سابقة');
   });
 
   it("requires the Wayl fee to be explicitly confirmed, not inferred as zero", () => {

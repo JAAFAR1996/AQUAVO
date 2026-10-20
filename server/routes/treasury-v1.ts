@@ -213,6 +213,7 @@ export function createTreasuryV1Router() {
         const gatewayReviewResult = await tx.execute(sql`
           SELECT p.id AS payment_id,p.order_id,o.order_number,p.amount,p.method,
                  o.status AS order_status,o.payment_status,
+                 (ga.payment_id IS NOT NULL) AS has_payout,
                  CASE WHEN EXISTS (
                    SELECT 1 FROM public.payment_events pe WHERE pe.order_id=p.order_id
                      AND pe.status='completed' AND pe.event_type IN ('refund','chargeback')
@@ -221,7 +222,6 @@ export function createTreasuryV1Router() {
           LEFT JOIN public.treasury_gateway_allocations ga ON ga.payment_id=p.id
           WHERE p.status IN ('completed','refunded') AND p.method IN ('wayl','alqaseh')
             AND o.is_test IS DISTINCT FROM true AND o.archived_at IS NULL
-            AND ga.payment_id IS NULL
             AND (o.payment_status='refunded' OR p.status='refunded'
               OR EXISTS (
                 SELECT 1 FROM public.payment_events pe WHERE pe.order_id=p.order_id
