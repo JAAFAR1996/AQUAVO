@@ -99,6 +99,809 @@
       "variantLabels": {}
     }
   },
+  "as-aquarium-light-hanging-bracket": {
+    "entityId": "as-aquarium-light-hanging-bracket",
+    "slug": "as-aquarium-light-hanging-bracket",
+    "sourceHash": "3a964d5c07d546b8",
+    "translatedBy": "ChatGPT GPT-6 draft; human review required",
+    "translatedAt": "2026-10-20T08:50:00Z",
+    "data": {
+      "name": "Aquarium Light Hanging Bracket",
+      "description": "An adjustable bracket for hanging aquarium lighting. Its metal bases clamp onto the glass rim, allowing you to adjust the hanging height and horizontal reach.\n\nIncludes a transparent Crystal Clip light holder, adjustable from 6.5 to 11 cm according to the maker's drawing. Two options: aluminium 20×40 cm and stainless steel 25×40 cm.\n\nThe first size is the horizontal arm length; 40 cm is the total vertical rod length. The actual lamp height depends on how the bracket and suspension cable are adjusted.",
+      "subcategory": "Lighting brackets",
+      "seoTitle": "Aquarium Light Hanging Bracket | AQUAVO",
+      "seoDescription": "Aquarium light hanging bracket with glass-rim mounts and adjustable height and reach. Includes 6.5–11 cm Crystal Clip; two metal options.",
+      "specifications": {
+        "benefits": [],
+        "usageInstructions": [],
+        "safetyWarnings": [],
+        "__cardBenefit": "Adjustable bracket for suspended aquarium lighting.",
+        "labelled": {
+          "التعديل": {
+            "label": "Adjustment",
+            "value": "Hanging height and horizontal reach are adjustable"
+          },
+          "المرفقات": {
+            "label": "Included parts",
+            "value": "Transparent light clip (Crystal Clip)"
+          },
+          "الاستخدام": {
+            "label": "Intended use",
+            "value": "Suspended aquarium lighting"
+          },
+          "طريقة التثبيت": {
+            "label": "Mounting method",
+            "value": "Metal bases clamped to the glass rim"
+          },
+          "ملاحظة القياس": {
+            "label": "Measurement note",
+            "value": "40 cm is the full vertical rod length"
+          },
+          "عرض ماسك الإنارة": {
+            "label": "Light clip width",
+            "value": "Adjustable from 6.5 to 11 cm"
+          },
+          "المقاسات والخامات": {
+            "label": "Sizes and materials",
+            "value": "20×40 cm — aluminium alloy; 25×40 cm — stainless steel"
+          },
+          "فتحة ماسك الإنارة العمودية": {
+            "label": "Vertical light clip opening",
+            "value": "2 cm according to maker's drawing"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "botanical-almond-bark-10": {
+    "entityId": "botanical-almond-bark-10",
+    "slug": "almond-bark-10",
+    "sourceHash": "f6f8a66fec548e55",
+    "translatedBy": "ChatGPT GPT-6 draft; human review required",
+    "translatedAt": "2026-10-20T08:50:00Z",
+    "data": {
+      "name": "Natural Almond Bark for Aquariums — 10 Pieces",
+      "description": "Natural bark pieces add a relatively durable grazing surface and plant texture alongside aquarium wood and leaves. They diversify the habitat and offer extra surface for biofilm to develop over time.",
+      "subcategory": "Natural botanicals",
+      "seoTitle": "Natural Almond Bark for Aquariums — 10 Pieces | AQUAVO",
+      "seoDescription": "Natural almond bark pieces support grazing surfaces and habitat variety alongside aquarium wood and leaves. Plant material for gradual use.",
+      "specifications": {
+        "benefits": [
+          "Offers extra grazing surfaces where biofilm can form",
+          "Enriches the habitat and encourages natural behaviour",
+          "Adds botanical structure that lasts longer than delicate leaves",
+          "Complements wood and other botanical material"
+        ],
+        "usageInstructions": [
+          "Rinse the bark thoroughly before use",
+          "Start with a few pieces",
+          "Monitor the water and pieces during the first weeks"
+        ],
+        "safetyWarnings": [
+          "Exact almond species will be confirmed when the shipment arrives",
+          "Do not use it as a treatment for any disease",
+          "May alter some water parameters depending on material and quantity"
+        ],
+        "__cardBenefit": "Durable natural bark adds grazing area and texture.",
+        "labelled": {
+          "العدد": {
+            "label": "Quantity",
+            "value": "10 pieces"
+          },
+          "النوع": {
+            "label": "Type",
+            "value": "Natural dried almond bark"
+          },
+          "وحدة البيع": {
+            "label": "Selling unit",
+            "value": "Bag"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "botanical-arjuna-pods-10": {
+    "entityId": "botanical-arjuna-pods-10",
+    "slug": "arjuna-pods-10",
+    "sourceHash": "16de2b490e7fba11",
+    "translatedBy": "ChatGPT GPT-6 draft; human review required",
+    "translatedAt": "2026-10-20T08:50:00Z",
+    "data": {
+      "name": "Natural Arjuna Pods for Aquariums — 10 Pieces",
+      "description": "Dried arjuna pods introduce natural plant structure and grazing surfaces to the aquarium. They add detail to the bottom, encourage exploration and slowly break down among other botanical materials.",
+      "subcategory": "Natural botanicals",
+      "seoTitle": "Natural Arjuna Pods for Aquariums — 10 Pieces | AQUAVO",
+      "seoDescription": "Dried arjuna pods offer botanical structure and grazing surfaces in aquariums. Add gradually and monitor their breakdown during maintenance.",
+      "specifications": {
+        "benefits": [
+          "Adds natural plant structure and detail to the tank floor",
+          "Offers extra grazing surfaces where biofilm can form",
+          "Encourages exploration and natural behaviour",
+          "Fits alongside leaves and wood in natural tank layouts"
+        ],
+        "usageInstructions": [
+          "Rinse the pieces thoroughly before use",
+          "Add gradually based on aquarium size",
+          "Monitor stability and decomposition during maintenance"
+        ],
+        "safetyWarnings": [
+          "Pieces may initially float",
+          "Do not crowd the aquarium with a large amount of botanicals at once",
+          "Inspect pieces before use and discard damaged ones"
+        ],
+        "__cardBenefit": "Natural pods enrich the substrate with grazing surfaces.",
+        "labelled": {
+          "العدد": {
+            "label": "Quantity",
+            "value": "10 pieces"
+          },
+          "النوع": {
+            "label": "Type",
+            "value": "Natural dried arjuna pods"
+          },
+          "وحدة البيع": {
+            "label": "Selling unit",
+            "value": "Bag"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "botanical-banana-leaf-stems-10": {
+    "entityId": "botanical-banana-leaf-stems-10",
+    "slug": "banana-leaf-stems-10",
+    "sourceHash": "6b5b0d23328a5f2f",
+    "translatedBy": "ChatGPT GPT-6 draft; human review required",
+    "translatedAt": "2026-10-20T08:50:00Z",
+    "data": {
+      "name": "Natural Banana Leaf Stems for Aquariums — 10 Pieces",
+      "description": "Dried banana-leaf stems add plant-based grazing surfaces and natural detail between wood and leaves. They provide more surface variety and encourage exploration as biofilm develops over time.",
+      "subcategory": "Natural botanicals",
+      "seoTitle": "Natural Banana Leaf Stems for Aquariums — 10 Piec | AQUAVO",
+      "seoDescription": "Dried banana leaf stems provide grazing surfaces and natural structure. Add a few pieces at first and monitor gradual breakdown.",
+      "specifications": {
+        "benefits": [
+          "Offers extra grazing surfaces where biofilm can form",
+          "Diversifies the habitat and encourages exploration",
+          "Adds plant details between wood and leaves",
+          "Breaks down gradually as part of a botanical aquarium habitat"
+        ],
+        "usageInstructions": [
+          "Rinse pieces with clean water",
+          "Introduce only a few pieces at first",
+          "Watch decomposition and remove excess debris when needed"
+        ],
+        "safetyWarnings": [
+          "Natural pieces may vary in shape",
+          "Do not add a large quantity at once",
+          "Not a substitute for staple food"
+        ],
+        "__cardBenefit": "Natural banana stems offer surfaces to graze.",
+        "labelled": {
+          "العدد": {
+            "label": "Quantity",
+            "value": "10 pieces"
+          },
+          "النوع": {
+            "label": "Type",
+            "value": "Dried banana leaf stems"
+          },
+          "وحدة البيع": {
+            "label": "Selling unit",
+            "value": "Bag"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "botanical-banana-leaves-4x4-10": {
+    "entityId": "botanical-banana-leaves-4x4-10",
+    "slug": "banana-leaves-4x4-10",
+    "sourceHash": "9d05a01ea21c2b92",
+    "translatedBy": "ChatGPT GPT-6 draft; human review required",
+    "translatedAt": "2026-10-20T08:50:00Z",
+    "data": {
+      "name": "Natural Banana Leaf Squares — 4×4 in, 10 Pieces",
+      "description": "Dried banana-leaf squares of approximately uniform size are easy to distribute across an aquarium. They provide natural leaf cover and grazing surfaces and add plant material for exploration.",
+      "subcategory": "Natural botanicals",
+      "seoTitle": "Natural Banana Leaf Squares — 4×4 in, 10 Pieces | AQUAVO",
+      "seoDescription": "Banana leaf squares, approximately 4×4 in, provide natural leaf cover and grazing surfaces in aquariums. Pack of 10 dried pieces.",
+      "specifications": {
+        "benefits": [
+          "Provides natural plant cover inside the aquarium",
+          "Offers grazing surfaces where biofilm can form",
+          "Enriches the habitat and encourages exploration",
+          "The cut size is easy to distribute in different aquariums"
+        ],
+        "usageInstructions": [
+          "Rinse pieces with clean water",
+          "Distribute a small number of pieces in the tank",
+          "Watch decomposition and remove excess debris when needed"
+        ],
+        "safetyWarnings": [
+          "4×4 in describes cut pieces, not whole banana leaves",
+          "Do not add a large mass of organic material all at once",
+          "Water colour may change to different degrees"
+        ],
+        "__cardBenefit": "Easy-to-place leaf squares for cover and grazing.",
+        "labelled": {
+          "العدد": {
+            "label": "Quantity",
+            "value": "10 pieces"
+          },
+          "النوع": {
+            "label": "Type",
+            "value": "Natural dried banana leaf squares"
+          },
+          "المقاس": {
+            "label": "Size",
+            "value": "Approx. 4×4 in (10.2×10.2 cm)"
+          },
+          "وحدة البيع": {
+            "label": "Selling unit",
+            "value": "Bag"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "botanical-casuarina-pods-10": {
+    "entityId": "botanical-casuarina-pods-10",
+    "slug": "casuarina-pods-10",
+    "sourceHash": "a559607ecff13dbe",
+    "translatedBy": "ChatGPT GPT-6 draft; human review required",
+    "translatedAt": "2026-10-20T08:50:00Z",
+    "data": {
+      "name": "Natural Casuarina Cones for Aquariums — 10 Pieces",
+      "description": "Dried casuarina cones are aquarium botanicals that gradually release plant compounds and provide small grazing surfaces. They add natural detail and diversify the aquatic habitat.",
+      "subcategory": "Natural botanicals",
+      "seoTitle": "Natural Casuarina Cones for Aquariums — 10 Pieces | AQUAVO",
+      "seoDescription": "Dried casuarina cones add small grazing surfaces and slowly release plant compounds. These are casuarina, not alder cones.",
+      "specifications": {
+        "benefits": [
+          "Offers small grazing surfaces for biofilm development",
+          "Gradually releases plant compounds into the water",
+          "Enriches the habitat and encourages natural behaviour",
+          "Adds natural details between wood and leaves"
+        ],
+        "usageInstructions": [
+          "Rinse the cones before use",
+          "Start with a few cones appropriate to aquarium size",
+          "Monitor their effect on water and inhabitants during first use"
+        ],
+        "safetyWarnings": [
+          "Do not confuse with alder cones; these are casuarina cones",
+          "Do not use a large quantity at once",
+          "Monitor pH and KH if the water has low alkalinity"
+        ],
+        "__cardBenefit": "Small natural cones enrich grazing surfaces.",
+        "labelled": {
+          "العدد": {
+            "label": "Quantity",
+            "value": "10 pieces"
+          },
+          "النوع": {
+            "label": "Type",
+            "value": "Natural dried casuarina cones"
+          },
+          "وحدة البيع": {
+            "label": "Selling unit",
+            "value": "Bag"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "botanical-catappa-leaves-10": {
+    "entityId": "botanical-catappa-leaves-10",
+    "slug": "catappa-leaves-10",
+    "sourceHash": "1da4c6681509e932",
+    "translatedBy": "ChatGPT GPT-6 draft; human review required",
+    "translatedAt": "2026-10-20T08:50:00Z",
+    "data": {
+      "name": "Natural Catappa Leaves for Aquariums — 10 Leaves",
+      "description": "Dried catappa leaves gradually release tannins and plant compounds into aquarium water. In a stable aquarium, they may support fish well-being, bring out natural colours and help reduce signs of stress while offering grazing surfaces.",
+      "subcategory": "Natural botanicals",
+      "seoTitle": "Natural Catappa Leaves for Aquariums — 10 Leaves | AQUAVO",
+      "seoDescription": "Dried Indian almond (catappa) leaves slowly release tannins and add grazing surfaces. Begin with a small quantity and monitor pH and KH.",
+      "specifications": {
+        "benefits": [
+          "May support general fish vitality in a stable tank",
+          "May help show natural colours",
+          "May help reduce signs of stress in a stable aquarium",
+          "Supports a natural habitat for breeding and grazing"
+        ],
+        "usageInstructions": [
+          "Rinse leaves with clean water",
+          "Start with a small amount suited to aquarium size",
+          "Monitor pH, KH and water quality during initial use",
+          "Replace or remove leaves as they decompose according to tank needs"
+        ],
+        "safetyWarnings": [
+          "Tannins may change water colour",
+          "May affect pH, especially when KH is low",
+          "Not a replacement for treatment or routine maintenance"
+        ],
+        "__cardBenefit": "Catappa leaves may support fish well-being and colour.",
+        "labelled": {
+          "الطول": {
+            "label": "Length",
+            "value": "Approx. 11–18 cm"
+          },
+          "العدد": {
+            "label": "Quantity",
+            "value": "10 leaves"
+          },
+          "النوع": {
+            "label": "Type",
+            "value": "Natural dried catappa leaves"
+          },
+          "وحدة البيع": {
+            "label": "Selling unit",
+            "value": "Bag"
+          },
+          "الاسم العلمي": {
+            "label": "Scientific name",
+            "value": "Terminalia catappa"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "botanical-cinnamon-bark-5": {
+    "entityId": "botanical-cinnamon-bark-5",
+    "slug": "cinnamon-bark-5",
+    "sourceHash": "1ae2b1ac10784d86",
+    "translatedBy": "ChatGPT GPT-6 draft; human review required",
+    "translatedAt": "2026-10-20T08:50:00Z",
+    "data": {
+      "name": "Natural Cinnamon Bark for Aquariums — 5 Pieces",
+      "description": "Natural cinnamon bark pieces in the aquarium-botanical range add distinctive structure and grazing surfaces. Suitable use and dosage are still being verified against the incoming shipment and must be confirmed before sales are enabled.",
+      "subcategory": "Natural botanicals",
+      "seoTitle": "Natural Cinnamon Bark for Aquariums — 5 Pieces | AQUAVO",
+      "seoDescription": "Dried cinnamon bark from a botanical aquarium range. Species, processing and safe usage are still under verification; do not use pending review.",
+      "specifications": {
+        "benefits": [
+          "Adds different plant texture and structure",
+          "Offers extra grazing surfaces where biofilm can form",
+          "Diversifies the habitat and encourages exploration"
+        ],
+        "usageInstructions": [
+          "Rinse the pieces thoroughly before use",
+          "Use a limited amount only after verifying the shipment instructions",
+          "Monitor inhabitants and water quality during first use"
+        ],
+        "safetyWarnings": [
+          "Pending verification before sale: cinnamon species and processing still need confirmation",
+          "Do not substitute cinnamon oils or concentrated extracts",
+          "Do not rely on it as a disease treatment"
+        ],
+        "__cardBenefit": "Cinnamon bark for habitat variety; use under review.",
+        "labelled": {
+          "العدد": {
+            "label": "Quantity",
+            "value": "5 pieces"
+          },
+          "النوع": {
+            "label": "Type",
+            "value": "Natural dried cinnamon bark"
+          },
+          "وحدة البيع": {
+            "label": "Selling unit",
+            "value": "Bag"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "botanical-coco-palm-bract-10": {
+    "entityId": "botanical-coco-palm-bract-10",
+    "slug": "coco-palm-bract-10",
+    "sourceHash": "1c86e85deddbffa5",
+    "translatedBy": "ChatGPT GPT-6 draft; human review required",
+    "translatedAt": "2026-10-20T08:50:00Z",
+    "data": {
+      "name": "Natural Coconut Palm Bracts — 10 Pieces",
+      "description": "Natural coconut-palm material adds texture, cover and opportunities to explore an aquarium. It offers grazing surfaces and helps create a varied habitat for creatures that use wood, leaves and other botanical pieces.",
+      "subcategory": "Natural botanicals",
+      "seoTitle": "Natural Coconut Palm Bracts — 10 Pieces | AQUAVO",
+      "seoDescription": "Natural coconut palm pieces add cover, structure and grazing area in an aquarium. Check stability and avoid sharp edges before use.",
+      "specifications": {
+        "benefits": [
+          "Adds natural structure and cover to the aquarium",
+          "Provides additional grazing and biofilm surfaces",
+          "Encourages exploration and natural behaviour",
+          "Complements wood, leaves and other botanical arrangements"
+        ],
+        "usageInstructions": [
+          "Rinse the pieces thoroughly before use",
+          "Place securely without blocking water movement",
+          "Check stability and clean debris when needed"
+        ],
+        "safetyWarnings": [
+          "The exact plant part will be confirmed after receiving the shipment",
+          "Check for sharp edges",
+          "Do not use a piece that could trap an animal inside a narrow opening"
+        ],
+        "__cardBenefit": "Natural palm cover adds grazing surfaces.",
+        "labelled": {
+          "العدد": {
+            "label": "Quantity",
+            "value": "10 pieces"
+          },
+          "النوع": {
+            "label": "Type",
+            "value": "Natural coconut palm material"
+          },
+          "وحدة البيع": {
+            "label": "Selling unit",
+            "value": "Bag"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "botanical-cocoa-leaves-10": {
+    "entityId": "botanical-cocoa-leaves-10",
+    "slug": "cocoa-leaves-10",
+    "sourceHash": "480b0d9260258e00",
+    "translatedBy": "ChatGPT GPT-6 draft; human review required",
+    "translatedAt": "2026-10-20T08:50:00Z",
+    "data": {
+      "name": "Natural Cocoa Leaves for Aquariums — 10 Leaves",
+      "description": "Dried cocoa leaves add a more natural leaf-litter environment, with surfaces for grazing and exploration as the material decomposes gradually. They help diversify the habitat for inhabitants that use botanical leaf litter.",
+      "subcategory": "Natural botanicals",
+      "seoTitle": "Natural Cocoa Leaves for Aquariums — 10 Leaves | AQUAVO",
+      "seoDescription": "Dried cocoa leaves introduce natural leaf litter and extra grazing surfaces in aquariums. Add gradually and monitor water conditions.",
+      "specifications": {
+        "benefits": [
+          "Supports a richer natural plant habitat",
+          "Offers extra grazing surfaces where biofilm can form",
+          "May encourage exploration and natural behaviour",
+          "Adds plant matter that gradually decomposes in the tank"
+        ],
+        "usageInstructions": [
+          "Rinse the leaves with clean water before use",
+          "Start with a few leaves and watch the tank response",
+          "Let leaves decompose gradually or remove them during maintenance as needed"
+        ],
+        "safetyWarnings": [
+          "Water colour may change as botanicals gradually decompose",
+          "Do not add a large quantity at once in a small tank",
+          "Not a substitute for balanced feeding, treatment or routine maintenance"
+        ],
+        "__cardBenefit": "Cocoa leaves provide botanical cover and grazing surfaces.",
+        "labelled": {
+          "الطول": {
+            "label": "Length",
+            "value": "Approx. 11–18 cm"
+          },
+          "العدد": {
+            "label": "Quantity",
+            "value": "10 leaves"
+          },
+          "النوع": {
+            "label": "Type",
+            "value": "Natural dried cocoa leaves"
+          },
+          "وحدة البيع": {
+            "label": "Selling unit",
+            "value": "Bag"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "botanical-cocoa-pod": {
+    "entityId": "botanical-cocoa-pod",
+    "slug": "cocoa-pod",
+    "sourceHash": "86e33ae8412fbbd6",
+    "translatedBy": "ChatGPT GPT-6 draft; human review required",
+    "translatedAt": "2026-10-20T08:50:00Z",
+    "data": {
+      "name": "Natural Cocoa Pod Shell for Aquariums",
+      "description": "A dried cocoa-pod shell provides distinct natural plant structure and opportunities to explore the aquarium. Its shape can offer cover and grazing surfaces when the openings are safely sized for the tank inhabitants.",
+      "subcategory": "Natural botanicals",
+      "seoTitle": "Natural Cocoa Pod Shell for Aquariums | AQUAVO",
+      "seoDescription": "Dried cocoa pod shell offers plant structure, cover and grazing surfaces. Check openings and edges before placing it in an aquarium.",
+      "specifications": {
+        "benefits": [
+          "Adds natural cover and structure to the aquarium",
+          "Offers extra grazing surfaces where biofilm can form",
+          "Encourages exploration and natural behaviour",
+          "Creates a focal detail in wood-and-leaf layouts"
+        ],
+        "usageInstructions": [
+          "Rinse the piece thoroughly before use",
+          "Inspect openings and edges before placing in the tank",
+          "Secure it and leave ample space for inhabitants to move"
+        ],
+        "safetyWarnings": [
+          "Number of pieces per bag will be verified upon receipt",
+          "Do not use as a shelter for animals larger than its openings",
+          "Check for sharp or loose sections"
+        ],
+        "__cardBenefit": "Cocoa shell adds natural cover and grazing space.",
+        "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "Natural dried cocoa pod shell"
+          },
+          "وحدة البيع": {
+            "label": "Selling unit",
+            "value": "Bag"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "botanical-coconut-curls-10": {
+    "entityId": "botanical-coconut-curls-10",
+    "slug": "coconut-curls-10",
+    "sourceHash": "1ba11f79ffb7fa67",
+    "translatedBy": "ChatGPT GPT-6 draft; human review required",
+    "translatedAt": "2026-10-20T08:50:00Z",
+    "data": {
+      "name": "Natural Coconut Curls for Aquariums — 10 Pieces",
+      "description": "Dried coconut curls add coiled natural structure and extra surfaces for grazing and exploration. They diversify the aquarium floor and give biofilm varied surfaces on which to grow.",
+      "subcategory": "Natural botanicals",
+      "seoTitle": "Natural Coconut Curls for Aquariums — 10 Pieces | AQUAVO",
+      "seoDescription": "Dried coconut curls add coiled natural texture and grazing area to aquarium layouts. Rinse and monitor the pieces as they break down.",
+      "specifications": {
+        "benefits": [
+          "Adds natural structure and spaces to explore",
+          "Provides additional grazing and biofilm surfaces",
+          "Enriches the habitat and encourages natural behaviour",
+          "Complements wood, leaves and other botanical arrangements"
+        ],
+        "usageInstructions": [
+          "Rinse the pieces thoroughly",
+          "Place them without obstructing water flow",
+          "Monitor stability and decomposition during maintenance"
+        ],
+        "safetyWarnings": [
+          "Natural pieces may differ in shape and size",
+          "Check for sharp edges",
+          "Do not pile up pieces in ways that may trap inhabitants"
+        ],
+        "__cardBenefit": "Coiled coconut pieces for natural grazing habitat.",
+        "labelled": {
+          "العدد": {
+            "label": "Quantity",
+            "value": "10 pieces"
+          },
+          "النوع": {
+            "label": "Type",
+            "value": "Natural dried coconut curls"
+          },
+          "وحدة البيع": {
+            "label": "Selling unit",
+            "value": "Bag"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "botanical-guava-leaves-10": {
+    "entityId": "botanical-guava-leaves-10",
+    "slug": "guava-leaves-10",
+    "sourceHash": "806d6d856f6dfbdf",
+    "translatedBy": "ChatGPT GPT-6 draft; human review required",
+    "translatedAt": "2026-10-20T08:50:00Z",
+    "data": {
+      "name": "Natural Guava Leaves for Aquariums — 10 Leaves",
+      "description": "Dried guava leaves provide natural plant material and added grazing surfaces. They diversify the habitat and encourage exploration; biofilm can develop on the leaves over time for grazing inhabitants.",
+      "subcategory": "Natural botanicals",
+      "seoTitle": "Natural Guava Leaves for Aquariums — 10 Leaves | AQUAVO",
+      "seoDescription": "Dried guava leaves add natural leaf litter and grazing area. Introduce gradually and monitor water quality as they break down.",
+      "specifications": {
+        "benefits": [
+          "Supports a diverse, natural botanical habitat",
+          "Offers extra grazing surfaces where biofilm can form",
+          "May encourage exploration and natural behaviour",
+          "Adds variety to the leaf litter on the tank floor"
+        ],
+        "usageInstructions": [
+          "Rinse leaves with clean water",
+          "Start with a small quantity spread through the tank",
+          "Monitor decomposition and water quality during use"
+        ],
+        "safetyWarnings": [
+          "Do not treat as medicine or a substitute for treatment",
+          "Water response varies with quantity and filtration",
+          "Do not add a large mass of organic material all at once"
+        ],
+        "__cardBenefit": "Guava leaves add plant variety and grazing surfaces.",
+        "labelled": {
+          "الطول": {
+            "label": "Length",
+            "value": "Approx. 11–15 cm"
+          },
+          "العدد": {
+            "label": "Quantity",
+            "value": "10 leaves"
+          },
+          "النوع": {
+            "label": "Type",
+            "value": "Natural dried guava leaves"
+          },
+          "وحدة البيع": {
+            "label": "Selling unit",
+            "value": "Bag"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "botanical-jackfruit-leaves-10": {
+    "entityId": "botanical-jackfruit-leaves-10",
+    "slug": "jackfruit-leaves-10",
+    "sourceHash": "10b650f6d1adfeb2",
+    "translatedBy": "ChatGPT GPT-6 draft; human review required",
+    "translatedAt": "2026-10-20T08:50:00Z",
+    "data": {
+      "name": "Natural Jackfruit Leaves for Aquariums — 10 Leaves",
+      "description": "Dried jackfruit leaves create a natural leaf-litter layer, with extra cover and grazing surfaces. They encourage exploration and slowly contribute natural plant matter as they decompose in the aquarium.",
+      "subcategory": "Natural botanicals",
+      "seoTitle": "Natural Jackfruit Leaves for Aquariums — 10 Leave | AQUAVO",
+      "seoDescription": "Dried jackfruit leaves create aquarium leaf litter, cover and grazing surfaces. Add gradually and remove excess decaying debris.",
+      "specifications": {
+        "benefits": [
+          "Provides natural cover and extra places to explore",
+          "Offers grazing surfaces where biofilm can form",
+          "Enriches the habitat and encourages natural behaviour",
+          "Breaks down gradually within the natural leaf-litter layer"
+        ],
+        "usageInstructions": [
+          "Rinse leaves before adding them to the tank",
+          "Start with a few leaves spread over the bottom",
+          "Watch decomposition and clean excess debris during routine maintenance"
+        ],
+        "safetyWarnings": [
+          "Leaves may naturally vary in size, shape and colour",
+          "Avoid adding a large amount at once",
+          "Leaves are not a treatment for disease"
+        ],
+        "__cardBenefit": "Jackfruit leaf cover encourages natural grazing.",
+        "labelled": {
+          "الطول": {
+            "label": "Length",
+            "value": "Approx. 11–18 cm"
+          },
+          "العدد": {
+            "label": "Quantity",
+            "value": "10 leaves"
+          },
+          "النوع": {
+            "label": "Type",
+            "value": "Natural dried jackfruit leaves"
+          },
+          "وحدة البيع": {
+            "label": "Selling unit",
+            "value": "Bag"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "botanical-lotus-pods-10": {
+    "entityId": "botanical-lotus-pods-10",
+    "slug": "lotus-pods-10",
+    "sourceHash": "14b5d79b65f67dc9",
+    "translatedBy": "ChatGPT GPT-6 draft; human review required",
+    "translatedAt": "2026-10-20T08:50:00Z",
+    "data": {
+      "name": "Natural Lotus Seed Pods — 9–11 cm, 10 Pieces",
+      "description": "Dried lotus seed pods bring distinct cavities and three-dimensional plant structure to aquarium layouts. They offer extra surfaces for grazing and exploration while diversifying the aquarium habitat.",
+      "subcategory": "Natural botanicals",
+      "seoTitle": "Natural Lotus Seed Pods — 9–11 cm, 10 Pieces | AQUAVO",
+      "seoDescription": "Natural dried lotus seed pods, approximately 9–11 cm, add three-dimensional texture and grazing surfaces to aquariums. Pack of 10.",
+      "specifications": {
+        "benefits": [
+          "Adds natural three-dimensional structure and detail",
+          "Provides additional grazing and biofilm surfaces",
+          "Encourages exploration and natural behaviour",
+          "Complements wood and leaves in natural aquarium layouts"
+        ],
+        "usageInstructions": [
+          "Rinse the pieces thoroughly before use",
+          "Add an amount suited to the aquarium without crowding",
+          "Secure the pieces if they need time to become waterlogged"
+        ],
+        "safetyWarnings": [
+          "Ensure openings do not trap an animal larger than the opening",
+          "Inspect each piece and remove sharp edges before use",
+          "Some pieces may float at first"
+        ],
+        "__cardBenefit": "Porous lotus pods add 3D botanical structure.",
+        "labelled": {
+          "العدد": {
+            "label": "Quantity",
+            "value": "10 pieces"
+          },
+          "النوع": {
+            "label": "Type",
+            "value": "Dried lotus seed pods"
+          },
+          "المقاس": {
+            "label": "Size",
+            "value": "Approx. 9–11 cm"
+          },
+          "وحدة البيع": {
+            "label": "Selling unit",
+            "value": "Bag"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "botanical-mulberry-leaves-10": {
+    "entityId": "botanical-mulberry-leaves-10",
+    "slug": "mulberry-leaves-10",
+    "sourceHash": "03892e323c3ac39e",
+    "translatedBy": "ChatGPT GPT-6 draft; human review required",
+    "translatedAt": "2026-10-20T08:50:00Z",
+    "data": {
+      "name": "Natural Mulberry Leaves for Aquariums — 10 Leaves",
+      "description": "Dried mulberry leaves can be a supplemental plant-based food and grazing surface as they soften underwater. They offer dietary variety for animals that feed on plant material and biofilm; a complete staple diet remains essential.",
+      "subcategory": "Natural botanicals",
+      "seoTitle": "Natural Mulberry Leaves for Aquariums — 10 Leaves | AQUAVO",
+      "seoDescription": "Dried mulberry leaves can supplement suitable herbivorous aquarium diets and provide biofilm grazing surfaces. Not a substitute for staple food.",
+      "specifications": {
+        "benefits": [
+          "Offers supplemental plant-based nutrition",
+          "Offers grazing surfaces where biofilm can form",
+          "Adds dietary variety and supports natural grazing",
+          "Breaks down gradually and can be removed when needed"
+        ],
+        "usageInstructions": [
+          "Rinse the leaf before use",
+          "Offer a small amount and monitor consumption",
+          "Remove uneaten debris if it starts to affect tank cleanliness"
+        ],
+        "safetyWarnings": [
+          "Not a replacement for a species-appropriate balanced diet",
+          "Monitor water quality when introducing new botanicals",
+          "Natural leaf length may vary slightly"
+        ],
+        "__cardBenefit": "Mulberry leaves are a supplemental plant food.",
+        "labelled": {
+          "الطول": {
+            "label": "Length",
+            "value": "Approx. 11–15 cm"
+          },
+          "العدد": {
+            "label": "Quantity",
+            "value": "10 leaves"
+          },
+          "النوع": {
+            "label": "Type",
+            "value": "Natural dried mulberry leaves"
+          },
+          "وحدة البيع": {
+            "label": "Selling unit",
+            "value": "Bag"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
   "general-air-stone": {
     "entityId": "general-air-stone",
     "slug": "general-air-stone",
@@ -2693,6 +3496,310 @@
           "أفضل استخدام": {
             "label": "Best use",
             "value": "Aquascape pathways and front areas"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "luby-brush-set-202610": {
+    "entityId": "luby-brush-set-202610",
+    "slug": "aquarium-cleaning-brushes-5pcs",
+    "sourceHash": "3c86eeefaa18ef3d",
+    "data": {
+      "name": "Hose and Tube Cleaning Brush Set — 5 Pieces",
+      "description": "Reach dirt inside hoses, tubes and connectors with the right brush for each opening. This set includes 5 brushes of different lengths and diameters to help remove deposits during aquarium equipment maintenance.\n\nBrush lengths range from 10 to 35 cm, with cleaning-head diameters from 1 to 2 cm. Choose a brush to match the opening diameter and the distance you need to reach, then rinse the part after cleaning.\n\nComing soon to AQUAVO\nWe will announce the price and open orders when the product becomes available.",
+      "subcategory": "Cleaning Tools",
+      "seoTitle": "Hose and Tube Cleaning Brushes — 5 Pieces | AQUAVO",
+      "seoDescription": "5 aquarium cleaning brushes, 10–35 cm long with 1–2 cm heads, for hoses, tubes and connectors. Coming soon to AQUAVO; ordering is not open yet.",
+      "specifications": {
+        "benefits": [
+          "Five lengths from 10 to 35 cm",
+          "Different head diameters to suit the opening",
+          "Loops at the wire ends for easier holding and hanging"
+        ],
+        "usageInstructions": [
+          "Disconnect equipment from the power supply before taking it apart and cleaning it.",
+          "Choose a head that fits the opening and passes through without excessive pressure.",
+          "Move the brush gently to remove deposits.",
+          "Rinse the part and brush with water after cleaning and leave them to dry."
+        ],
+        "safetyWarnings": [
+          "Avoid forcing the wire into glass tubes or tight bends.",
+          "Use tools free from soap and household cleaning-product residues."
+        ],
+        "__cardBenefit": "5 sizes to reach inside hoses, tubes and connectors",
+        "labelled": {
+          "عدد القطع": {
+            "label": "Number of Pieces",
+            "value": "5 brushes"
+          },
+          "وحدة البيع": {
+            "label": "Unit of Sale",
+            "value": "Complete set"
+          },
+          "مقاس الفرشاة الأولى": {
+            "label": "First Brush Size",
+            "value": "Length 35 cm × head diameter 2 cm"
+          },
+          "مقاس الفرشاة الثالثة": {
+            "label": "Third Brush Size",
+            "value": "Length 25 cm × head diameter 1.5 cm"
+          },
+          "مقاس الفرشاة الثانية": {
+            "label": "Second Brush Size",
+            "value": "Length 30 cm × head diameter 2 cm"
+          },
+          "مقاس الفرشاة الخامسة": {
+            "label": "Fifth Brush Size",
+            "value": "Length 10 cm × head diameter 2 cm"
+          },
+          "مقاس الفرشاة الرابعة": {
+            "label": "Fourth Brush Size",
+            "value": "Length 15 cm × head diameter 1 cm"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "luby-dd60-202610": {
+    "entityId": "luby-dd60-202610",
+    "slug": "air-driven-egg-incubator",
+    "sourceHash": "86f6b85a5464c8dc",
+    "data": {
+      "name": "Air-Driven Fish Egg Incubator — Approx. 23 cm High",
+      "description": "Watch eggs develop inside a transparent incubator attached to the aquarium glass. Air-driven water movement helps keep non-adhesive eggs moving gently, with adjustable airflow to suit the egg type and stage of development.\n\nThe incubator is approximately 23 cm high and its body is 6 cm in diameter. It is used with an external air pump and suits fish-breeding setups that require eggs to be incubated outside the parents' mouths.\n\nComing soon to AQUAVO\nWe will announce the price and open orders when the product becomes available.",
+      "subcategory": "Incubators",
+      "seoTitle": "Air-Driven Egg Incubator — Approx. 23 cm | AQUAVO",
+      "seoDescription": "Air-driven incubator for suitable non-adhesive fish eggs, approx. 23 cm high and 6 cm in diameter. Uses an external air pump. Coming soon to AQUAVO.",
+      "specifications": {
+        "benefits": [
+          "Transparent body makes it easy to monitor the eggs",
+          "Attaches inside the tank with suction cups",
+          "Adjustable airflow helps control egg movement"
+        ],
+        "usageInstructions": [
+          "Rinse the incubator and secure it inside the tank.",
+          "Connect the air hose to an external pump and adjust the flow first.",
+          "Use it for non-adhesive eggs suited to this type of incubator, and set gentle movement according to the species and stage.",
+          "Check the eggs and the cleanliness of the water-flow openings daily."
+        ],
+        "safetyWarnings": [
+          "Avoid a flow that knocks the eggs against the incubator walls.",
+          "Place the air pump above water level or use a non-return valve fitted in the correct direction."
+        ],
+        "__cardBenefit": "Monitor eggs in a transparent incubator with gentle water movement",
+        "labelled": {
+          "التثبيت": {
+            "label": "Mounting",
+            "value": "Suction cups on the aquarium glass"
+          },
+          "التشغيل": {
+            "label": "Operation",
+            "value": "Air-driven, using an external air pump"
+          },
+          "الارتفاع": {
+            "label": "Height",
+            "value": "Approximately 23 cm"
+          },
+          "قطر الجسم": {
+            "label": "Body Diameter",
+            "value": "6 cm"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "luby-gyhs03-202610": {
+    "entityId": "luby-gyhs03-202610",
+    "slug": "aquarium-water-changer-3m",
+    "sourceHash": "063dd773a3a8a7b1",
+    "data": {
+      "name": "Tap-Driven Aquarium Water Changer — 3 m Hose",
+      "description": "Change your aquarium water with less effort and reduce bucket carrying. This kit connects to a tap and uses water flow to help draw water out of the tank, without an electric pump.\n\nThe hose is 3 m long with an inner diameter of 12 mm. The kit includes a control unit and 3 connection adapters shown in the kit photo. Choose the adapter that matches your tap outlet, then connect the hose between the unit and the tank within its working reach.\n\nComing soon to AQUAVO\nWe will announce the price and open orders when the product becomes available.",
+      "subcategory": "Cleaning Tools",
+      "seoTitle": "Tap-Driven Aquarium Water Changer, 3 m Hose | AQUAVO",
+      "seoDescription": "Tap-driven aquarium water changer with a 3 m hose, 12 mm inner diameter and 3 adapters. No electric pump needed. Coming soon to AQUAVO.",
+      "specifications": {
+        "benefits": [
+          "3 m hose",
+          "Operates without an electric pump",
+          "Built-in valve to control the operating mode",
+          "Multiple connection adapters to choose the size that matches the tap"
+        ],
+        "usageInstructions": [
+          "Choose an adapter that matches the tap outlet and secure the water-changing unit firmly.",
+          "Connect the hose and secure its end inside the tank.",
+          "Adjust the valve according to the unit's instructions and start with a low flow.",
+          "Monitor the water level throughout the process and stop the flow at the required amount."
+        ],
+        "safetyWarnings": [
+          "When adding new water, adjust its temperature and treat it for chlorine and chloramine according to the water conditioner's instructions.",
+          "Secure the end of the hose away from small fish."
+        ],
+        "__cardBenefit": "Change aquarium water with less effort and reduce bucket carrying",
+        "labelled": {
+          "التشغيل": {
+            "label": "Operation",
+            "value": "Without electricity, using water flow from the tap"
+          },
+          "لون الوحدة": {
+            "label": "Unit Colour",
+            "value": "Black"
+          },
+          "طول الصوندة": {
+            "label": "Hose Length",
+            "value": "3 m"
+          },
+          "محتويات الطقم": {
+            "label": "Kit Contents",
+            "value": "Water-changing unit, hose and 3 connection adapters"
+          },
+          "مادة جسم الوحدة": {
+            "label": "Unit Body Material",
+            "value": "Plastic"
+          },
+          "القطر الداخلي للصوندة": {
+            "label": "Hose Inner Diameter",
+            "value": "12 mm"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "luby-slq123-202610": {
+    "entityId": "luby-slq123-202610",
+    "slug": "fish-spawning-mop",
+    "sourceHash": "c1105d12c9ffbd8e",
+    "data": {
+      "name": "Fish Spawning Mop",
+      "description": "Prepare a dedicated egg-laying spot in the breeding tank. Hanging green strands provide a surface for fish that lay their eggs among plants and fibres, and help create a clear place to inspect and monitor eggs.\n\nA small piece made of gathered strands with a loop at the top, for use as part of a breeding setup suited to the fish species.\n\nComing soon to AQUAVO\nWe will announce the price and open orders when the product becomes available.",
+      "subcategory": "Breeding Tools",
+      "seoTitle": "Fish Spawning Mop | AQUAVO",
+      "seoDescription": "Green hanging strands with a top loop provide an egg-laying surface for suitable fish species. One piece. Coming soon to AQUAVO; orders are not open yet.",
+      "specifications": {
+        "benefits": [
+          "Multiple strands provide surfaces for egg laying",
+          "A separate piece that is easy to inspect and monitor"
+        ],
+        "usageInstructions": [
+          "Rinse the piece with clean water before use.",
+          "Position it to suit the spawning behaviour of the fish species.",
+          "Inspect it gently to check for eggs.",
+          "Clean it between uses according to the care instructions for the material."
+        ],
+        "safetyWarnings": [
+          "Keep dedicated clean tools for the breeding tank and avoid soap and cleaning-product residues."
+        ],
+        "__cardBenefit": "A dedicated place for laying eggs among the strands",
+        "labelled": {
+          "الشكل": {
+            "label": "Shape",
+            "value": "Hanging green strands with a top loop"
+          },
+          "وحدة البيع": {
+            "label": "Unit of Sale",
+            "value": "1 piece"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "luby-suction-clips-202610": {
+    "entityId": "luby-suction-clips-202610",
+    "slug": "aquarium-suction-clips",
+    "sourceHash": "8b4b4cb0bb978a16",
+    "data": {
+      "name": "Suction Cup Hose Clips — 3 Sizes and Two Colours",
+      "description": "Organise hoses inside the tank and secure them to the glass with a suction cup and clip. The design helps keep the hose in the desired position and makes removal and rearrangement easy.\n\nComes in three sizes—small, medium and large—and two colours: black and white. Choose the size according to the hose's outer diameter.\n\nComing soon to AQUAVO\nWe will announce the price and open orders when the product becomes available.",
+      "subcategory": "Suction and Mounting",
+      "seoTitle": "Suction Cup Hose Clips — 3 Sizes, Two Colours | AQUAVO",
+      "seoDescription": "Hose clips with suction cups for smooth aquarium glass, in 3 sizes and black or white. Sold individually. Coming soon to AQUAVO; orders are not open yet.",
+      "specifications": {
+        "benefits": [
+          "Attaches to smooth glass without adhesive",
+          "A clip holds the hose and keeps its route organised",
+          "Three sizes and two colours"
+        ],
+        "usageInstructions": [
+          "Clean the mounting area on the glass and the suction cup.",
+          "Wet the suction cup and press it onto a smooth surface.",
+          "Secure the hose in the clip that matches its diameter.",
+          "Check that it is secure after installation and during aquarium maintenance."
+        ],
+        "safetyWarnings": [
+          "Replace the suction cup if it loses its flexibility or grip."
+        ],
+        "__cardBenefit": "Organise the hose and secure it in the desired position on the glass",
+        "labelled": {
+          "الألوان": {
+            "label": "Colours",
+            "value": "Black / White"
+          },
+          "التثبيت": {
+            "label": "Mounting",
+            "value": "Suction cup with clip"
+          },
+          "المقاسات": {
+            "label": "Sizes",
+            "value": "Small / Medium / Large"
+          },
+          "وحدة البيع": {
+            "label": "Unit of Sale",
+            "value": "1 piece"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "luby-zs177-202610": {
+    "entityId": "luby-zs177-202610",
+    "slug": "fish-spawning-cone-21cm",
+    "sourceHash": "92e543a8e7688664",
+    "data": {
+      "name": "Discus Spawning Cone — 21 cm High",
+      "description": "Give discus a dedicated surface for laying eggs in the breeding tank. The upright cone design creates a clear spot for monitoring the eggs and the pair's care of them.\n\nThe cone is 21 cm high, with overall dimensions of 15×15×21 cm, a round base and a surrounding rim. Place it on a stable surface inside the tank, leaving room around it for the fish to move.\n\nComing soon to AQUAVO\nWe will announce the price and open orders when the product becomes available.",
+      "subcategory": "Breeding Tools",
+      "seoTitle": "Discus Spawning Cone — 21 cm High | AQUAVO",
+      "seoDescription": "A brown discus spawning cone, 21 cm high and 15×15×21 cm overall, with a round base and surrounding rim. One piece. Coming soon to AQUAVO.",
+      "specifications": {
+        "benefits": [
+          "A cone design provides an upright surface for egg laying",
+          "A round base for placement on a level bottom",
+          "Clearly stated size: 21 cm high"
+        ],
+        "usageInstructions": [
+          "Rinse the cone with clean water.",
+          "Place it securely in the breeding tank in a suitable position for the pair.",
+          "Leave room around it for the fish to move.",
+          "Clean it gently between breeding cycles."
+        ],
+        "safetyWarnings": [
+          "Check the edges before use.",
+          "Follow the supplier's disinfection instructions; do not boil it or use disinfectants until the material's compatibility has been confirmed."
+        ],
+        "__cardBenefit": "A dedicated surface for laying and monitoring eggs in the breeding tank",
+        "labelled": {
+          "اللون": {
+            "label": "Colour",
+            "value": "Brown"
+          },
+          "الارتفاع": {
+            "label": "Height",
+            "value": "21 cm"
+          },
+          "وحدة البيع": {
+            "label": "Unit of Sale",
+            "value": "1 piece"
+          },
+          "الأبعاد الإجمالية": {
+            "label": "Overall Dimensions",
+            "value": "15×15×21 cm"
           }
         }
       },
@@ -5741,310 +6848,6 @@
           "المقاسات": {
             "label": "Sizes",
             "value": "60×30 cm / 60×40 cm / 100×50 cm"
-          }
-        }
-      },
-      "variantLabels": {}
-    }
-  },
-  "luby-brush-set-202610": {
-    "entityId": "luby-brush-set-202610",
-    "slug": "aquarium-cleaning-brushes-5pcs",
-    "sourceHash": "3c86eeefaa18ef3d",
-    "data": {
-      "name": "Hose and Tube Cleaning Brush Set — 5 Pieces",
-      "description": "Reach dirt inside hoses, tubes and connectors with the right brush for each opening. This set includes 5 brushes of different lengths and diameters to help remove deposits during aquarium equipment maintenance.\n\nBrush lengths range from 10 to 35 cm, with cleaning-head diameters from 1 to 2 cm. Choose a brush to match the opening diameter and the distance you need to reach, then rinse the part after cleaning.\n\nComing soon to AQUAVO\nWe will announce the price and open orders when the product becomes available.",
-      "subcategory": "Cleaning Tools",
-      "seoTitle": "Hose and Tube Cleaning Brushes — 5 Pieces | AQUAVO",
-      "seoDescription": "5 aquarium cleaning brushes, 10–35 cm long with 1–2 cm heads, for hoses, tubes and connectors. Coming soon to AQUAVO; ordering is not open yet.",
-      "specifications": {
-        "benefits": [
-          "Five lengths from 10 to 35 cm",
-          "Different head diameters to suit the opening",
-          "Loops at the wire ends for easier holding and hanging"
-        ],
-        "usageInstructions": [
-          "Disconnect equipment from the power supply before taking it apart and cleaning it.",
-          "Choose a head that fits the opening and passes through without excessive pressure.",
-          "Move the brush gently to remove deposits.",
-          "Rinse the part and brush with water after cleaning and leave them to dry."
-        ],
-        "safetyWarnings": [
-          "Avoid forcing the wire into glass tubes or tight bends.",
-          "Use tools free from soap and household cleaning-product residues."
-        ],
-        "__cardBenefit": "5 sizes to reach inside hoses, tubes and connectors",
-        "labelled": {
-          "عدد القطع": {
-            "label": "Number of Pieces",
-            "value": "5 brushes"
-          },
-          "وحدة البيع": {
-            "label": "Unit of Sale",
-            "value": "Complete set"
-          },
-          "مقاس الفرشاة الأولى": {
-            "label": "First Brush Size",
-            "value": "Length 35 cm × head diameter 2 cm"
-          },
-          "مقاس الفرشاة الثالثة": {
-            "label": "Third Brush Size",
-            "value": "Length 25 cm × head diameter 1.5 cm"
-          },
-          "مقاس الفرشاة الثانية": {
-            "label": "Second Brush Size",
-            "value": "Length 30 cm × head diameter 2 cm"
-          },
-          "مقاس الفرشاة الخامسة": {
-            "label": "Fifth Brush Size",
-            "value": "Length 10 cm × head diameter 2 cm"
-          },
-          "مقاس الفرشاة الرابعة": {
-            "label": "Fourth Brush Size",
-            "value": "Length 15 cm × head diameter 1 cm"
-          }
-        }
-      },
-      "variantLabels": {}
-    }
-  },
-  "luby-slq123-202610": {
-    "entityId": "luby-slq123-202610",
-    "slug": "fish-spawning-mop",
-    "sourceHash": "c1105d12c9ffbd8e",
-    "data": {
-      "name": "Fish Spawning Mop",
-      "description": "Prepare a dedicated egg-laying spot in the breeding tank. Hanging green strands provide a surface for fish that lay their eggs among plants and fibres, and help create a clear place to inspect and monitor eggs.\n\nA small piece made of gathered strands with a loop at the top, for use as part of a breeding setup suited to the fish species.\n\nComing soon to AQUAVO\nWe will announce the price and open orders when the product becomes available.",
-      "subcategory": "Breeding Tools",
-      "seoTitle": "Fish Spawning Mop | AQUAVO",
-      "seoDescription": "Green hanging strands with a top loop provide an egg-laying surface for suitable fish species. One piece. Coming soon to AQUAVO; orders are not open yet.",
-      "specifications": {
-        "benefits": [
-          "Multiple strands provide surfaces for egg laying",
-          "A separate piece that is easy to inspect and monitor"
-        ],
-        "usageInstructions": [
-          "Rinse the piece with clean water before use.",
-          "Position it to suit the spawning behaviour of the fish species.",
-          "Inspect it gently to check for eggs.",
-          "Clean it between uses according to the care instructions for the material."
-        ],
-        "safetyWarnings": [
-          "Keep dedicated clean tools for the breeding tank and avoid soap and cleaning-product residues."
-        ],
-        "__cardBenefit": "A dedicated place for laying eggs among the strands",
-        "labelled": {
-          "الشكل": {
-            "label": "Shape",
-            "value": "Hanging green strands with a top loop"
-          },
-          "وحدة البيع": {
-            "label": "Unit of Sale",
-            "value": "1 piece"
-          }
-        }
-      },
-      "variantLabels": {}
-    }
-  },
-  "luby-suction-clips-202610": {
-    "entityId": "luby-suction-clips-202610",
-    "slug": "aquarium-suction-clips",
-    "sourceHash": "8b4b4cb0bb978a16",
-    "data": {
-      "name": "Suction Cup Hose Clips — 3 Sizes and Two Colours",
-      "description": "Organise hoses inside the tank and secure them to the glass with a suction cup and clip. The design helps keep the hose in the desired position and makes removal and rearrangement easy.\n\nComes in three sizes—small, medium and large—and two colours: black and white. Choose the size according to the hose's outer diameter.\n\nComing soon to AQUAVO\nWe will announce the price and open orders when the product becomes available.",
-      "subcategory": "Suction and Mounting",
-      "seoTitle": "Suction Cup Hose Clips — 3 Sizes, Two Colours | AQUAVO",
-      "seoDescription": "Hose clips with suction cups for smooth aquarium glass, in 3 sizes and black or white. Sold individually. Coming soon to AQUAVO; orders are not open yet.",
-      "specifications": {
-        "benefits": [
-          "Attaches to smooth glass without adhesive",
-          "A clip holds the hose and keeps its route organised",
-          "Three sizes and two colours"
-        ],
-        "usageInstructions": [
-          "Clean the mounting area on the glass and the suction cup.",
-          "Wet the suction cup and press it onto a smooth surface.",
-          "Secure the hose in the clip that matches its diameter.",
-          "Check that it is secure after installation and during aquarium maintenance."
-        ],
-        "safetyWarnings": [
-          "Replace the suction cup if it loses its flexibility or grip."
-        ],
-        "__cardBenefit": "Organise the hose and secure it in the desired position on the glass",
-        "labelled": {
-          "الألوان": {
-            "label": "Colours",
-            "value": "Black / White"
-          },
-          "التثبيت": {
-            "label": "Mounting",
-            "value": "Suction cup with clip"
-          },
-          "المقاسات": {
-            "label": "Sizes",
-            "value": "Small / Medium / Large"
-          },
-          "وحدة البيع": {
-            "label": "Unit of Sale",
-            "value": "1 piece"
-          }
-        }
-      },
-      "variantLabels": {}
-    }
-  },
-  "luby-gyhs03-202610": {
-    "entityId": "luby-gyhs03-202610",
-    "slug": "aquarium-water-changer-3m",
-    "sourceHash": "063dd773a3a8a7b1",
-    "data": {
-      "name": "Tap-Driven Aquarium Water Changer — 3 m Hose",
-      "description": "Change your aquarium water with less effort and reduce bucket carrying. This kit connects to a tap and uses water flow to help draw water out of the tank, without an electric pump.\n\nThe hose is 3 m long with an inner diameter of 12 mm. The kit includes a control unit and 3 connection adapters shown in the kit photo. Choose the adapter that matches your tap outlet, then connect the hose between the unit and the tank within its working reach.\n\nComing soon to AQUAVO\nWe will announce the price and open orders when the product becomes available.",
-      "subcategory": "Cleaning Tools",
-      "seoTitle": "Tap-Driven Aquarium Water Changer, 3 m Hose | AQUAVO",
-      "seoDescription": "Tap-driven aquarium water changer with a 3 m hose, 12 mm inner diameter and 3 adapters. No electric pump needed. Coming soon to AQUAVO.",
-      "specifications": {
-        "benefits": [
-          "3 m hose",
-          "Operates without an electric pump",
-          "Built-in valve to control the operating mode",
-          "Multiple connection adapters to choose the size that matches the tap"
-        ],
-        "usageInstructions": [
-          "Choose an adapter that matches the tap outlet and secure the water-changing unit firmly.",
-          "Connect the hose and secure its end inside the tank.",
-          "Adjust the valve according to the unit's instructions and start with a low flow.",
-          "Monitor the water level throughout the process and stop the flow at the required amount."
-        ],
-        "safetyWarnings": [
-          "When adding new water, adjust its temperature and treat it for chlorine and chloramine according to the water conditioner's instructions.",
-          "Secure the end of the hose away from small fish."
-        ],
-        "__cardBenefit": "Change aquarium water with less effort and reduce bucket carrying",
-        "labelled": {
-          "التشغيل": {
-            "label": "Operation",
-            "value": "Without electricity, using water flow from the tap"
-          },
-          "لون الوحدة": {
-            "label": "Unit Colour",
-            "value": "Black"
-          },
-          "طول الصوندة": {
-            "label": "Hose Length",
-            "value": "3 m"
-          },
-          "محتويات الطقم": {
-            "label": "Kit Contents",
-            "value": "Water-changing unit, hose and 3 connection adapters"
-          },
-          "مادة جسم الوحدة": {
-            "label": "Unit Body Material",
-            "value": "Plastic"
-          },
-          "القطر الداخلي للصوندة": {
-            "label": "Hose Inner Diameter",
-            "value": "12 mm"
-          }
-        }
-      },
-      "variantLabels": {}
-    }
-  },
-  "luby-zs177-202610": {
-    "entityId": "luby-zs177-202610",
-    "slug": "fish-spawning-cone-21cm",
-    "sourceHash": "92e543a8e7688664",
-    "data": {
-      "name": "Discus Spawning Cone — 21 cm High",
-      "description": "Give discus a dedicated surface for laying eggs in the breeding tank. The upright cone design creates a clear spot for monitoring the eggs and the pair's care of them.\n\nThe cone is 21 cm high, with overall dimensions of 15×15×21 cm, a round base and a surrounding rim. Place it on a stable surface inside the tank, leaving room around it for the fish to move.\n\nComing soon to AQUAVO\nWe will announce the price and open orders when the product becomes available.",
-      "subcategory": "Breeding Tools",
-      "seoTitle": "Discus Spawning Cone — 21 cm High | AQUAVO",
-      "seoDescription": "A brown discus spawning cone, 21 cm high and 15×15×21 cm overall, with a round base and surrounding rim. One piece. Coming soon to AQUAVO.",
-      "specifications": {
-        "benefits": [
-          "A cone design provides an upright surface for egg laying",
-          "A round base for placement on a level bottom",
-          "Clearly stated size: 21 cm high"
-        ],
-        "usageInstructions": [
-          "Rinse the cone with clean water.",
-          "Place it securely in the breeding tank in a suitable position for the pair.",
-          "Leave room around it for the fish to move.",
-          "Clean it gently between breeding cycles."
-        ],
-        "safetyWarnings": [
-          "Check the edges before use.",
-          "Follow the supplier's disinfection instructions; do not boil it or use disinfectants until the material's compatibility has been confirmed."
-        ],
-        "__cardBenefit": "A dedicated surface for laying and monitoring eggs in the breeding tank",
-        "labelled": {
-          "اللون": {
-            "label": "Colour",
-            "value": "Brown"
-          },
-          "الارتفاع": {
-            "label": "Height",
-            "value": "21 cm"
-          },
-          "وحدة البيع": {
-            "label": "Unit of Sale",
-            "value": "1 piece"
-          },
-          "الأبعاد الإجمالية": {
-            "label": "Overall Dimensions",
-            "value": "15×15×21 cm"
-          }
-        }
-      },
-      "variantLabels": {}
-    }
-  },
-  "luby-dd60-202610": {
-    "entityId": "luby-dd60-202610",
-    "slug": "air-driven-egg-incubator",
-    "sourceHash": "86f6b85a5464c8dc",
-    "data": {
-      "name": "Air-Driven Fish Egg Incubator — Approx. 23 cm High",
-      "description": "Watch eggs develop inside a transparent incubator attached to the aquarium glass. Air-driven water movement helps keep non-adhesive eggs moving gently, with adjustable airflow to suit the egg type and stage of development.\n\nThe incubator is approximately 23 cm high and its body is 6 cm in diameter. It is used with an external air pump and suits fish-breeding setups that require eggs to be incubated outside the parents' mouths.\n\nComing soon to AQUAVO\nWe will announce the price and open orders when the product becomes available.",
-      "subcategory": "Incubators",
-      "seoTitle": "Air-Driven Egg Incubator — Approx. 23 cm | AQUAVO",
-      "seoDescription": "Air-driven incubator for suitable non-adhesive fish eggs, approx. 23 cm high and 6 cm in diameter. Uses an external air pump. Coming soon to AQUAVO.",
-      "specifications": {
-        "benefits": [
-          "Transparent body makes it easy to monitor the eggs",
-          "Attaches inside the tank with suction cups",
-          "Adjustable airflow helps control egg movement"
-        ],
-        "usageInstructions": [
-          "Rinse the incubator and secure it inside the tank.",
-          "Connect the air hose to an external pump and adjust the flow first.",
-          "Use it for non-adhesive eggs suited to this type of incubator, and set gentle movement according to the species and stage.",
-          "Check the eggs and the cleanliness of the water-flow openings daily."
-        ],
-        "safetyWarnings": [
-          "Avoid a flow that knocks the eggs against the incubator walls.",
-          "Place the air pump above water level or use a non-return valve fitted in the correct direction."
-        ],
-        "__cardBenefit": "Monitor eggs in a transparent incubator with gentle water movement",
-        "labelled": {
-          "التثبيت": {
-            "label": "Mounting",
-            "value": "Suction cups on the aquarium glass"
-          },
-          "التشغيل": {
-            "label": "Operation",
-            "value": "Air-driven, using an external air pump"
-          },
-          "الارتفاع": {
-            "label": "Height",
-            "value": "Approximately 23 cm"
-          },
-          "قطر الجسم": {
-            "label": "Body Diameter",
-            "value": "6 cm"
           }
         }
       },
