@@ -69,6 +69,7 @@ async function readLedger() {
 
 const RELEASE_STATE_PATH = process.env.INDEXNOW_RELEASE_STATE ?? ".indexnow-release.json";
 const DEPLOY_SHA = process.env.INDEXNOW_DEPLOY_SHA ?? "";
+const RELEASE_EVENT = process.env.INDEXNOW_RELEASE_EVENT ?? "";
 const REPOSITORY = process.env.INDEXNOW_REPOSITORY ?? "";
 
 function validSha(value) {
@@ -114,7 +115,7 @@ async function changedFilesSince(previousSha, currentSha) {
 }
 
 async function checkpointRelease() {
-  if (!validSha(DEPLOY_SHA)) return;
+  if (RELEASE_EVENT !== "deployment_status" || !validSha(DEPLOY_SHA)) return;
   await writeFile(RELEASE_STATE_PATH, JSON.stringify({ sha: DEPLOY_SHA, repository: REPOSITORY }, null, 2) + "\n", "utf8");
 }
 
@@ -135,11 +136,11 @@ async function main() {
   const ledger = await readLedger();
   const today = new Date().toISOString().slice(0, 10);
 
-  const previousReleaseSha = await readReleaseState();
+  const previousReleaseSha = RELEASE_EVENT === "deployment_status" ? await readReleaseState() : null;
   const changedFiles = previousReleaseSha
     ? await changedFilesSince(previousReleaseSha, DEPLOY_SHA)
     : [];
-  if (!previousReleaseSha && validSha(DEPLOY_SHA)) {
+  if (RELEASE_EVENT === "deployment_status" && !previousReleaseSha && validSha(DEPLOY_SHA)) {
     console.log("First release-aware run: establishing a baseline; sitemap recency remains active.");
   }
   const datedUrls = selectChangedUrls(entries, { ledger, today, windowDays: WINDOW_DAYS });
