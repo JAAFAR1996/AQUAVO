@@ -67,6 +67,43 @@ export function selectChangedUrls(entries, { ledger = {}, today, windowDays = 7 
   return [...chosen.keys()].sort().slice(0, MAX_URLS_PER_POST);
 }
 
+/** 
+ * Shared SEO and editorial source files can change a whole group of pages
+ * without updating their old sitemap <lastmod>. Match only known source paths,
+ * and never treat an arbitrary code/style change as a reason to spam IndexNow.
+ *
+ * Changes to CMS product/article records are still detected via sitemap dates.
+ * Extend this map whenever the source of a new SEO-rendered page is added.
+ */
+export function releaseScopesForFiles(filenames) {
+  const groups = new Set();
+  for (const filename of filenames) {
+    if (/^(api\/ssr-meta\.ts|api\/_ssr-preview-source\.ts|api\/_seo-preview-shell\.tsx|client\/src\/components\/seo\/meta-tags\.tsx)$/.test(filename)) {
+      for (const group of ["pages", "products", "guides", "blog"]) groups.add(group);
+      continue;
+    }
+    if (/^(api\/_static-search-(copy|meta)\.ts|api\/_static-meta-i18n\.ts|client\/src\/i18n\/static-meta\.ts)$/.test(filename)) groups.add("pages");
+    if (/^(api\/_canonical-guides\.ts|api\/_guides-content(?:-spa)?\.ts|api\/_seo-content\.ts|shared\/guide-links\.ts|client\/src\/components\/seo\/guide-related-products\.tsx|client\/src\/locales\/(ar|en|ckb)\/guides\.json)$/.test(filename)) groups.add("guides");
+    if (/^(api\/_blog-article\.ts|api\/blog-ssr\.ts|shared\/article-seo(?:-copy)?\.ts|client\/src\/pages\/blog-post\.tsx)$/.test(filename)) groups.add("blog");
+    if (/^shared\/product-seo\.ts$/.test(filename)) groups.add("products");
+    if (/^shared\/category-(content|search)\.ts$/.test(filename)) groups.add("pages");
+  }
+  return [...groups].sort();
+}
+
+/** Only canonical sitemap URLs can be submitted, never guessed paths or previews. */
+export function selectReleaseChangedUrls(sitemapGroups, filenames) {
+  const groups = releaseScopesForFiles(filenames);
+  const urls = new Set();
+  for (const group of groups) {
+    for (const { loc } of sitemapGroups[group] ?? []) {
+      if (!loc || (!loc.startsWith(`${BASE_URL}/`) && loc !== `${BASE_URL}/`)) continue;
+      urls.add(loc);
+    }
+  }
+  return [...urls].sort().slice(0, MAX_URLS_PER_POST);
+}
+
 /** The ledger to persist after a successful submission. */
 export function nextLedger(previous, entries, submitted) {
   const byLoc = new Map(entries.map((e) => [e.loc, e.lastmod]));
