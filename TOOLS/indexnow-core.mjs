@@ -78,12 +78,21 @@ export function selectChangedUrls(entries, { ledger = {}, today, windowDays = 7 
 export function releaseScopesForFiles(filenames) {
   const groups = new Set();
   for (const filename of filenames) {
-    if (/^(api\/ssr-meta\.ts|api\/_ssr-preview-source\.ts|api\/_seo-preview-shell\.tsx|client\/src\/components\/seo\/meta-tags\.tsx)$/.test(filename)) {
+    if (/^(api\/ssr-meta\.ts|api\/_ssr-preview-source\.ts|api\/_seo-preview-shell\.tsx|api\/_seo-structured-data\.ts|api\/_locale-meta\.ts|shared\/seo-contract\.ts|shared\/i18n\/indexability\.ts|client\/src\/components\/seo\/meta-tags\.tsx)$/.test(filename)) {
       for (const group of ["pages", "products", "guides", "blog"]) groups.add(group);
       continue;
     }
     if (/^(api\/_static-search-(copy|meta)\.ts|api\/_static-meta-i18n\.ts|client\/src\/i18n\/static-meta\.ts)$/.test(filename)) groups.add("pages");
-    if (/^(api\/_canonical-guides\.ts|api\/_guides-content(?:-spa)?\.ts|api\/_seo-content\.ts|shared\/guide-links\.ts|client\/src\/components\/seo\/guide-related-products\.tsx|client\/src\/locales\/(ar|en|ckb)\/guides\.json)$/.test(filename)) groups.add("guides");
+    if (filename === "api/_seo-content.ts") {
+      groups.add("pages");
+      groups.add("guides");
+    }
+    if (filename === "shared/guide-links.ts") {
+      groups.add("pages");
+      groups.add("products");
+      groups.add("guides");
+    }
+    if (/^(api\/_canonical-guides\.ts|api\/_guides-content(?:-spa)?\.ts|client\/src\/components\/seo\/guide-related-products\.tsx|client\/src\/locales\/(ar|en|ckb)\/guides\.json)$/.test(filename)) groups.add("guides");
     if (/^(api\/_blog-article\.ts|api\/blog-ssr\.ts|shared\/article-seo(?:-copy)?\.ts|client\/src\/pages\/blog-post\.tsx)$/.test(filename)) groups.add("blog");
     if (/^shared\/product-seo\.ts$/.test(filename)) groups.add("products");
     if (/^shared\/category-(content|search)\.ts$/.test(filename)) groups.add("pages");
