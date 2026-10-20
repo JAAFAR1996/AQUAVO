@@ -188,5 +188,31 @@ export function productCategoryForGuide(path: string): string | undefined {
   return GUIDE_PRIMARY_CATEGORY[path.replace(/\/+$/, "")];
 }
 
+/**
+ * Only products independently checked for the specific guide's purpose may
+ * appear in these sensitive recommendation blocks. A broad category includes
+ * medications and bacteria starters which are NOT dechlorinators.
+ *
+ * Audit 2026-10-20: yyh-039 is sold as a chlorine remover. No claim about
+ * chloramine removal is made unless the supplier label verifies it.
+ */
+const GUIDE_PRODUCT_ALLOWLISTS: Readonly<Record<string, readonly string[]>> = Object.freeze({
+  "/guides/water-conditioner-guide": Object.freeze(["yyh-039"]),
+});
+
+export function approvedProductSlugsForGuide(path: string): readonly string[] | undefined {
+  return GUIDE_PRODUCT_ALLOWLISTS[path.split("?", 1)[0].replace(/\/+$/, "")];
+}
+
+/** Apply the same relevance rule to the crawler page and interactive cards. */
+export function productsAppropriateForGuide<T extends { slug?: string | null }>(
+  path: string,
+  products: readonly T[],
+): T[] {
+  const approved = approvedProductSlugsForGuide(path);
+  if (!approved) return [...products];
+  return products.filter((product) => Boolean(product.slug) && approved.includes(String(product.slug)));
+}
+
 /** Heading above the guide's product block, wherever it is rendered. */
 export const GUIDE_PRODUCTS_HEADING = "منتجات مرتبطة بهذا الدليل";
