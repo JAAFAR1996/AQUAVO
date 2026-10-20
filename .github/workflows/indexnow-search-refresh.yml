@@ -44,8 +44,10 @@ jobs:
       # Reading previous runs and their artifacts to recover the ledger.
       actions: read
     steps:
-      - name: Checkout main
+      - name: Checkout deployed commit
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.deployment.sha || github.sha }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -75,11 +77,19 @@ jobs:
           else
             echo "No previous ledger; the recency window bounds this run."
           fi
+          if [ -f .indexnow-release.json ]; then
+            echo "Previous acknowledged release checkpoint restored."
+          else
+            echo "No previous release checkpoint; first run establishes the baseline."
+          fi
 
       - name: Submit changed URLs to IndexNow
         env:
           INDEXNOW_WINDOW_DAYS: ${{ github.event.inputs.window_days || '7' }}
           INDEXNOW_DRY_RUN: ${{ github.event.inputs.dry_run || '0' }}
+          INDEXNOW_DEPLOY_SHA: ${{ github.event.deployment.sha || github.sha }}
+          INDEXNOW_REPOSITORY: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
         run: node TOOLS/submit-indexnow.mjs
 
       # Written only when the submission succeeded, so a failed or rate-limited
@@ -88,7 +98,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: indexnow-ledger
-          path: .indexnow-ledger.json
+          path: |
+            .indexnow-ledger.json
+            .indexnow-release.json
           # The ledger is a dotfile and upload-artifact skips hidden files by
           # default. Without this it logged "No files were found with the
           # provided path" and uploaded nothing, while if-no-files-found:ignore
