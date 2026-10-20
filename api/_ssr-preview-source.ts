@@ -28,7 +28,7 @@ import {
   buildProductStructuredData,
   withSiteEntities,
 } from "./_seo-structured-data.js";
-import { productCategoryForGuide } from "../shared/guide-links.js";
+import { productCategoryForGuide, productsAppropriateForGuide } from "../shared/guide-links.js";
 import type { GuideProduct } from "./_guides-content.js";
 import {
   canonicalGuidePath,
@@ -1260,7 +1260,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       let guideProducts: GuideProduct[] = [];
       if (guideCategory) {
         try {
-          guideProducts = guideProductsFromRows(await loadProducts(guideCategory));
+          guideProducts = guideProductsFromRows(
+            productsAppropriateForGuide(resolvedGuide.canonicalPath, await loadProducts(guideCategory)),
+          );
         } catch (err) {
           console.error("[semantic-v3] guide products unavailable", err instanceof Error ? err.message : err);
         }

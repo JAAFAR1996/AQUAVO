@@ -1,6 +1,6 @@
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { GUIDE_PRODUCTS_HEADING, productCategoryForGuide } from "@shared/guide-links";
+import { GUIDE_PRODUCTS_HEADING, productCategoryForGuide, productsAppropriateForGuide } from "@shared/guide-links";
 import { ProductCard } from "@/components/products/product-card";
 import type { Product } from "@/types";
 
@@ -15,7 +15,8 @@ import type { Product } from "@/types";
  */
 export function GuideRelatedProducts() {
   const [location] = useLocation();
-  const category = productCategoryForGuide(location.split("?")[0]);
+  const guidePath = location.split("?")[0];
+  const category = productCategoryForGuide(guidePath);
   const { data: products = [] } = useQuery<Product[]>({
     queryKey: ["/api/products", { category }],
     queryFn: async () => {
@@ -26,7 +27,9 @@ export function GuideRelatedProducts() {
     },
     enabled: !!category,
   });
-  const visible = products.filter((p) => Number(p.stock ?? 0) > 0 && Number(p.price ?? 0) > 0).slice(0, 3);
+  const visible = productsAppropriateForGuide(guidePath, products)
+    .filter((p) => Number(p.stock ?? 0) > 0 && Number(p.price ?? 0) > 0)
+    .slice(0, 3);
   if (!category || visible.length === 0) return null;
 
   return (
