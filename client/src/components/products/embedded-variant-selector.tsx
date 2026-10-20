@@ -23,6 +23,10 @@ function cleanSpecificationValue(value: unknown): string | null {
   return normalized.length > 0 ? normalized : null;
 }
 
+function canSelectVariant(variant: ProductVariant): boolean {
+  return variant.stock > 0 || Number(variant.price) <= 0;
+}
+
 function getVariantChoiceLabel(
   variant: ProductVariant,
   customerFacingDimensionKey: string | undefined,
@@ -68,6 +72,7 @@ export function EmbeddedVariantSelector({
         {sortedVariants.map((variant) => {
           const selected = variant.id === selectedVariant.id;
           const inStock = variant.stock > 0;
+          const selectable = canSelectVariant(variant);
           const choiceLabel = getVariantChoiceLabel(variant, customerFacingDimensionKey);
 
           return (
@@ -75,7 +80,7 @@ export function EmbeddedVariantSelector({
               key={variant.id}
               type="button"
               onClick={() => onVariantSelect(variant)}
-              disabled={!inStock}
+              disabled={!selectable}
               aria-pressed={selected}
               aria-label={!inStock ? t("variants.unavailableAria", { label: choiceLabel }) : choiceLabel}
               className={cn(
@@ -83,7 +88,7 @@ export function EmbeddedVariantSelector({
                 selected
                   ? "border-primary bg-primary text-primary-foreground"
                   : "border-border bg-background text-foreground hover:border-primary/50",
-                !inStock && "cursor-not-allowed opacity-45 line-through",
+                !selectable && "cursor-not-allowed opacity-45 line-through",
               )}
             >
               {selected && <Check className="ml-1 inline h-3.5 w-3.5" aria-hidden="true" />}
@@ -104,10 +109,10 @@ export function EmbeddedVariantSelector({
         <span className="inline-flex items-center gap-2">
           <Tag className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
           <span className="text-muted-foreground">{t("variants.price")}</span>
-          <span className="font-bold text-primary">{formatIQD(Number(selectedVariant.price))}</span>
+          <span className="font-bold text-primary">{Number(selectedVariant.price) > 0 ? formatIQD(Number(selectedVariant.price)) : t("price.soon")}</span>
         </span>
 
-        {selectedVariant.originalPrice && selectedVariant.originalPrice > selectedVariant.price && (
+        {Number(selectedVariant.price) > 0 && selectedVariant.originalPrice && selectedVariant.originalPrice > selectedVariant.price && (
           <>
             <span className="text-sm text-muted-foreground line-through">
               {formatIQD(Number(selectedVariant.originalPrice))}
@@ -149,6 +154,7 @@ export function EmbeddedVariantSelectorCompact({
     <div className="flex flex-wrap gap-2" dir={dir} role="group" aria-label={t("variants.options")}>
       {variants.map((variant) => {
         const selected = variant.id === selectedVariantId;
+        const selectable = canSelectVariant(variant);
         const choiceLabel = getVariantChoiceLabel(variant, customerFacingDimensionKey);
 
         return (
@@ -156,7 +162,7 @@ export function EmbeddedVariantSelectorCompact({
             key={variant.id}
             type="button"
             onClick={() => onVariantSelect(variant)}
-            disabled={variant.stock <= 0}
+            disabled={!selectable}
             aria-pressed={selected}
             aria-label={variant.stock <= 0 ? t("variants.unavailableAria", { label: choiceLabel }) : choiceLabel}
             className={cn(
@@ -164,7 +170,7 @@ export function EmbeddedVariantSelectorCompact({
               selected
                 ? "bg-primary text-primary-foreground"
                 : "bg-muted text-muted-foreground hover:text-foreground",
-              variant.stock <= 0 && "cursor-not-allowed opacity-45",
+              !selectable && "cursor-not-allowed opacity-45",
             )}
           >
             {choiceLabel}
@@ -174,3 +180,4 @@ export function EmbeddedVariantSelectorCompact({
     </div>
   );
 }
+
