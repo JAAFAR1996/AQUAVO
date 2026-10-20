@@ -6,7 +6,6 @@ import type { ProductVariant } from "@/types";
 import {
   chooseVariantForSelection,
   extractVariantDimensions,
-  isDimensionValueAvailable,
   selectionFromVariant,
 } from "@/lib/variant-dimensions";
 import { useTranslation } from "react-i18next";
@@ -31,6 +30,10 @@ function cleanSpecificationValue(value: unknown): string | null {
   if (typeof value !== "string" && typeof value !== "number") return null;
   const normalized = String(value).trim();
   return normalized.length > 0 ? normalized : null;
+}
+
+function canSelectVariant(variant: ProductVariant): boolean {
+  return variant.stock > 0 || Number(variant.price) <= 0;
 }
 
 function getAquariumModel(variant: ProductVariant): string | null {
@@ -115,7 +118,7 @@ export function MultiDimensionVariantSelector({
   const selectValue = (dimensionKey: string, value: string) => {
     const nextSelection = { ...selection, [dimensionKey]: value };
     const nextVariant = chooseVariantForSelection(
-      variants,
+      variants.filter(canSelectVariant),
       nextSelection,
       dimensions,
       dimensionKey,
@@ -152,7 +155,7 @@ export function MultiDimensionVariantSelector({
                 if (!measurement) return null;
 
                 const selected = variant.id === selectedVariant?.id;
-                const available = variant.stock > 0;
+                const available = canSelectVariant(variant);
 
                 return (
                   <button
@@ -203,11 +206,10 @@ export function MultiDimensionVariantSelector({
                 <div className="flex flex-wrap gap-2">
                   {dimension.values.map((value) => {
                     const selected = selectedValue === value;
-                    const available = isDimensionValueAvailable({
-                      variants,
-                      dimensionKey: dimension.key,
-                      value,
-                    });
+                    const available = variants.some((variant) =>
+                      canSelectVariant(variant) &&
+                      cleanSpecificationValue(variant.specifications?.[dimension.key]) === value,
+                    );
 
                     return (
                       <button
@@ -249,7 +251,7 @@ export function MultiDimensionVariantSelector({
           <div className="flex items-center gap-2">
             <Tag className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
             <span className="text-muted-foreground">{t("variants.price")}</span>
-            <span className="font-bold text-primary">{formatIQD(Number(selectedVariant.price))}</span>
+            <span className="font-bold text-primary">{Number(selectedVariant.price) > 0 ? formatIQD(Number(selectedVariant.price)) : t("price.soon")}</span>
           </div>
           <div className="flex items-center gap-2 sm:justify-end">
             {selectedVariant.stock > 0 ? (
@@ -266,3 +268,4 @@ export function MultiDimensionVariantSelector({
     </div>
   );
 }
+
