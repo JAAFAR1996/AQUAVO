@@ -11,6 +11,8 @@ import {
   nextLedger,
   parseSitemapEntries,
   selectChangedUrls,
+  releaseScopesForFiles,
+  selectReleaseChangedUrls,
   // @ts-expect-error - plain ESM module, run by node in CI without a build step
 } from "../../TOOLS/indexnow-core.mjs";
 
@@ -228,5 +230,59 @@ describe("IndexNow: nothing still points at the old script path", () => {
       resolve(process.cwd(), ".github/workflows/seo-preview-validation.yml"), "utf8");
     expect(yaml).toContain("node --check TOOLS/submit-indexnow.mjs");
     expect(yaml).toContain("node --check TOOLS/indexnow-core.mjs");
+  });
+});
+
+describe("IndexNow: shared SEO source changes since the last acknowledged release", () => {
+  const groups = {
+    pages: [{ loc: `${BASE_URL}/`, lastmod: "2026-09-24" }],
+    products: [{ loc: `${BASE_URL}/products/verified`, lastmod: "2026-08-01" }],
+    guides: [{ loc: `${BASE_URL}/guides/water-conditioner-guide`, lastmod: "2026-08-25" }],
+    blog: [
+      { loc: `${BASE_URL}/blog/example`, lastmod: "2026-02-15" },
+      { loc: "https://unrelated.example/blog", lastmod: "2026-02-15" },
+    ],
+  };
+
+  it("detects guide edits even when the lastmod is months old", () => {
+    expect(releaseScopesForFiles(["api/_guides-content.ts", "shared/guide-links.ts"])).toEqual(["guides"]);
+    expect(selectReleaseChangedUrls(groups, ["api/_guides-content.ts"]))
+      .toEqual([`${BASE_URL}/guides/water-conditioner-guide`]);
+  });
+
+  it("only marks blog URLs when article SEO changes", () => {
+    expect(selectReleaseChangedUrls(groups, ["shared/article-seo.ts"]))
+      .toEqual([`${BASE_URL}/blog/example`]);
+  });
+
+  it("covers all indexable sitemap groups for shared SSR metadata changes", () => {
+    expect(selectReleaseChangedUrls(groups, ["api/ssr-meta.ts"])).toEqual([
+      `${BASE_URL}/`,
+      `${BASE_URL}/blog/example`,
+      `${BASE_URL}/guides/water-conditioner-guide`,
+      `${BASE_URL}/products/verified`,
+    ]);
+  });
+
+  it("ignores unrelated styles, builds and unknown files instead of resubmitting everything", () => {
+    expect(selectReleaseChangedUrls(groups, ["client/src/components/header.tsx", "client/src/main.css", "TOOLS/indexnow-core.mjs"]))
+      .toEqual([]);
+  });
+
+  it("never sends an off-domain URL, even when it appears in a sitemap", () => {
+    expect(selectReleaseChangedUrls({ blog: groups.blog }, ["api/_blog-article.ts"]))
+      .toEqual([`${BASE_URL}/blog/example`]);
+  });
+
+  it("pins the commit on both the workflow and its durable checkpoint", () => {
+    const yaml = readFileSync(resolve(process.cwd(), ".github/workflows/indexnow-search-refresh.yml"), "utf8");
+    const script = readFileSync(resolve(process.cwd(), "TOOLS/submit-indexnow.mjs"), "utf8");
+    expect(yaml).toContain("INDEXNOW_DEPLOY_SHA:");
+    expect(yaml).toContain("INDEXNOW_REPOSITORY:");
+    expect(yaml).toContain("GH_TOKEN:");
+    expect(yaml).toContain(".indexnow-release.json");
+    expect(script).toContain("changedFilesSince(");
+    expect(script).toContain("selectReleaseChangedUrls(");
+    expect(script).toContain("checkpointRelease(");
   });
 });
