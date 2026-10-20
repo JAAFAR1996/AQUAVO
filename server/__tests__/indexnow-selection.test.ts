@@ -278,11 +278,13 @@ describe("IndexNow: shared SEO source changes since the last acknowledged releas
     const yaml = readFileSync(resolve(process.cwd(), ".github/workflows/indexnow-search-refresh.yml"), "utf8");
     const script = readFileSync(resolve(process.cwd(), "TOOLS/submit-indexnow.mjs"), "utf8");
     expect(yaml).toContain("INDEXNOW_DEPLOY_SHA:");
+    expect(yaml).toContain("INDEXNOW_RELEASE_EVENT:");
     expect(yaml).toContain("INDEXNOW_REPOSITORY:");
     expect(yaml).toContain("GH_TOKEN:");
     expect(yaml).toContain(".indexnow-release.json");
     expect(script).toContain("changedFilesSince(");
     expect(script).toContain("selectReleaseChangedUrls(");
     expect(script).toContain("checkpointRelease(");
+    expect(script).toContain('RELEASE_EVENT !== "deployment_status"');
   });
 });
