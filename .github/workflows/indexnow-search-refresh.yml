@@ -88,6 +88,7 @@ jobs:
           INDEXNOW_WINDOW_DAYS: ${{ github.event.inputs.window_days || '7' }}
           INDEXNOW_DRY_RUN: ${{ github.event.inputs.dry_run || '0' }}
           INDEXNOW_DEPLOY_SHA: ${{ github.event.deployment.sha || github.sha }}
+          INDEXNOW_RELEASE_EVENT: ${{ github.event_name }}
           INDEXNOW_REPOSITORY: ${{ github.repository }}
           GH_TOKEN: ${{ github.token }}
         run: node TOOLS/submit-indexnow.mjs
