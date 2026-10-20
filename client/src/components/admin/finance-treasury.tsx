@@ -24,7 +24,7 @@ type GatewayPayment = {
 };
 type Overview = {
   accounts:Account[];ledgerReference:MoneyLine[];movements:Movement[];
-  gatewayUnmatched:GatewayPayment[];gatewayUnmatchedCount:number;
+  gatewayUnmatched:GatewayPayment[];gatewayNeedsReview:GatewayPayment[];gatewayUnmatchedCount:number;
   gatewayUnmatchedGross:number|null;gatewayFeesRecorded:number|null;
 };
 type TreasuryForm = "accounts"|"movements"|"gateway-settlements"|"reconciliations";
@@ -96,7 +96,7 @@ export function FinanceTreasury(){
   const [evidence,setEvidence]=useState("");
   const [paymentId,setPaymentId]=useState("");
   const [gatewayDestination,setGatewayDestination]=useState("");
-  const [gatewayFee,setGatewayFee]=useState("0");
+  const [gatewayFee,setGatewayFee]=useState("");
   const [gatewayReference,setGatewayReference]=useState("");
   const [gatewayEvidence,setGatewayEvidence]=useState("");
   const [reconcileAccount,setReconcileAccount]=useState("");
@@ -137,8 +137,8 @@ export function FinanceTreasury(){
           ["COD لدى التوصيل",ledger.get("1100"),"ذمم؛ مو فلوس بالصندوق"],
           ["مدفوع إلكترونياً دون إثبات تحويل",overview.data?.gatewayUnmatchedGross,
             `${overview.data?.gatewayUnmatchedCount??0} دفعة تحتاج مطابقة`],
-          ["الحسابات المتتبعة",available.length?balanceTotal:null,
-            missing?`${missing} حساب بلا رصيد افتتاحي؛ الإجمالي غير مكتمل`:
+          ["الحسابات المتتبعة",base.length>0&&missing===0?balanceTotal:null,
+            missing?`${missing} حساب بلا رصيد افتتاحي؛ ما نعرض إجمالي ناقص`:
             base.length?"مجموع حسابات فعلية؛ لا يُجمع مع اليومية":"أضف حساباً ورصيداً افتتاحياً أولاً"],
         ].map(([title,value,detail])=><div key={String(title)} style={{...panelStyle,gap:5}}>
           <span style={infoStyle}>{title}</span>
@@ -159,8 +159,8 @@ export function FinanceTreasury(){
           return <article key={a.id} style={{border:"1px solid #2a5264",padding:12,borderRadius:9,display:"grid",gap:5}}>
             <strong>{a.name}{a.last_four?` •••• ${a.last_four}`:""}</strong>
             <span style={infoStyle}>{accountKind[a.kind]}{alias?` — مرتبط بـ ${linked?.name??"حساب غير معروف"}`:""}</span>
-            <span style={{fontWeight:700,fontSize:18}}>{alias?"نفس رصيد الحساب المرتبط":currency(a.tracked_balance)}</span>
-            {alias?<span style={infoStyle}>مو رصيد مستقل، ما يدخل بالمجموع.</span>
+            <span style={{fontWeight:700,fontSize:18}}>{alias?currency(linked?.tracked_balance):currency(a.tracked_balance)}</span>
+            {alias?<span style={infoStyle}>رصيد الحساب المرتبط نفسه، مو رصيد إضافي وما يدخل بالمجموع مرتين.</span>
             :a.opening_balance===null?<span style={{...infoStyle,color:"#fcd34d"}}>الرصيد الافتتاحي غير مثبت</span>
             :<span style={infoStyle}>افتتاحي {currency(a.opening_balance)} — {new Date(a.opening_at!).toLocaleDateString("ar-IQ")}</span>}
             {!alias&&<span style={{...infoStyle,color:matched?"#a7f3d0":"#fcd34d"}}>
@@ -255,6 +255,7 @@ export function FinanceTreasury(){
       </form>}
 
       {form==="gateway-settlements"&&<form onSubmit={e=>{e.preventDefault();
+        if(gatewayFee.trim()===""){setFailure("حدد العمولة من كشف Wayl حتى لو صفر مثبت");return;}
         submit("gateway-settlements",{paymentId,toAccountId:gatewayDestination,
           feeAmount:Number(gatewayFee),occurredAt:dateIso(movementAt),
           reference:gatewayReference,evidenceNote:gatewayEvidence});}} style={{display:"grid",gap:10}}>
@@ -264,7 +265,7 @@ export function FinanceTreasury(){
               {p.order_number??p.order_id.slice(0,8)} — {currency(p.amount)} — {p.method}</option>)}</select></Field>
         <Field label="الحساب الذي استلم الحوالة فعلياً"><select required style={fieldStyle} value={gatewayDestination} onChange={e=>setGatewayDestination(e.target.value)}>
           <option value="">اختر البنك أو المحفظة</option>{bankOptions.map(a=><option key={a.id} value={a.id}>{a.name}</option>)}</select></Field>
-        <Field label="عمولة البوابة المثبتة (دينار)"><input required type="number" min="0" step="1" style={fieldStyle} value={gatewayFee} onChange={e=>setGatewayFee(e.target.value)}/></Field>
+        <Field label="عمولة البوابة المثبتة (دينار) — اكتب 0 فقط إذا متأكد"><input required type="number" min="0" step="1" style={fieldStyle} value={gatewayFee} onChange={e=>setGatewayFee(e.target.value)}/></Field>
         <Field label="وقت وصول الحوالة"><input required type="datetime-local" style={fieldStyle} value={movementAt} onChange={e=>setMovementAt(e.target.value)}/></Field>
         <Field label="المرجع البنكي / رقم التسوية"><input required minLength={3} style={fieldStyle} value={gatewayReference} onChange={e=>setGatewayReference(e.target.value)}/></Field>
         <Field label="دليل التحويل / تفاصيل كشف الحساب"><textarea required minLength={5} style={fieldStyle} value={gatewayEvidence} onChange={e=>setGatewayEvidence(e.target.value)} /></Field>
@@ -301,14 +302,23 @@ export function FinanceTreasury(){
       {(overview.data?.gatewayUnmatchedCount??0)>80&&<p style={infoStyle}>الجدول يعرض آخر 80 دفعة؛ الإجمالي يشمل جميع الدفعات.</p>}
     </section>
 
+    {(overview.data?.gatewayNeedsReview?.length??0)>0&&<section style={{...panelStyle,borderColor:"#92400e"}}>
+      <h3 style={{margin:0,fontSize:16,color:"#fcd34d"}}>دفعات إلكترونية عليها استرجاع أو اعتراض — تحتاج مراجعة</h3>
+      <p style={infoStyle}>استبعدنا هاي الدفعات من مبلغ «بانتظار التحويل» حتى ما نعرض فلوس قد تكون مسترجعة.
+        ما نقدر نسوي تسوية تلقائية لها قبل المطابقة مع Wayl وكشف البنك.</p>
+      {overview.data?.gatewayNeedsReview.map(p=><div key={p.payment_id} style={{fontSize:12,padding:"6px 0",borderBottom:"1px solid #28505c"}}>
+        {p.order_number??p.order_id.slice(0,8)} — {currency(p.amount)} — {p.method} — مراجعة الاسترجاع
+      </div>)}
+    </section>}
     <section style={panelStyle}>
       <h3 style={{margin:0,fontSize:16}}>آخر حركات الخزينة</h3>
       <div style={{overflowX:"auto"}}><table style={{width:"100%",minWidth:650,borderCollapse:"collapse",fontSize:12}}>
         <thead><tr><th>الوقت</th><th>الحركة</th><th>من</th><th>إلى</th><th>المبلغ</th><th>الوصف</th></tr></thead>
         <tbody>{overview.data?.movements.map(m=><tr key={m.id}>
           <td>{new Date(m.occurred_at).toLocaleString("ar-IQ",{timeZone:"Asia/Baghdad"})}</td>
-          <td>{movementKind[m.kind]??m.kind}</td><td>{m.instrument_name??m.from_name??"خارجي"}</td>
-          <td>{m.to_name??"خارجي"}</td><td>{currency(m.amount)}</td><td>{m.note}</td>
+          <td>{movementKind[m.kind]??m.kind}</td><td>{m.from_name??"خارجي"}</td>
+          <td>{m.to_name??"خارجي"}</td><td>{currency(m.amount)}</td>
+          <td>{m.note}{m.instrument_name?` (بواسطة ${m.instrument_name})`:""}</td>
         </tr>)}</tbody>
       </table></div>
       {overview.data?.movements.length===0&&<p style={infoStyle}>ماكو حركات يدوية مسجلة بعد.</p>}

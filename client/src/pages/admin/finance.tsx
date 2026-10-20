@@ -17,7 +17,7 @@ export default function FinancePage() {
         </p>
       </div>
 
-      <Tabs defaultValue="treasury" dir="rtl">
+      <Tabs defaultValue="accounting-register" dir="rtl">
         <TabsList style={{
           background: "#0d1f3c",
           border: "1px solid #1e3a5f",

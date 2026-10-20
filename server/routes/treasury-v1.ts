@@ -192,6 +192,11 @@ export function createTreasuryV1Router() {
           WHERE p.status='completed' AND p.method IN ('wayl','alqaseh')
             AND o.is_test IS DISTINCT FROM true AND o.archived_at IS NULL
             AND ga.payment_id IS NULL
+            AND o.payment_status IS DISTINCT FROM 'refunded'
+            AND NOT EXISTS (
+              SELECT 1 FROM public.payment_events pe WHERE pe.order_id=p.order_id
+                AND pe.status='completed' AND pe.event_type IN ('refund','chargeback')
+            )
           ORDER BY p.created_at DESC LIMIT 80`);
         const gatewayTotal = await tx.execute(sql`
           SELECT count(*) AS count,COALESCE(sum(p.amount),0) AS total
@@ -199,7 +204,30 @@ export function createTreasuryV1Router() {
           LEFT JOIN public.treasury_gateway_allocations ga ON ga.payment_id=p.id
           WHERE p.status='completed' AND p.method IN ('wayl','alqaseh')
             AND o.is_test IS DISTINCT FROM true AND o.archived_at IS NULL
-            AND ga.payment_id IS NULL`);
+            AND ga.payment_id IS NULL
+            AND o.payment_status IS DISTINCT FROM 'refunded'
+            AND NOT EXISTS (
+              SELECT 1 FROM public.payment_events pe WHERE pe.order_id=p.order_id
+                AND pe.status='completed' AND pe.event_type IN ('refund','chargeback')
+            )`);
+        const gatewayReviewResult = await tx.execute(sql`
+          SELECT p.id AS payment_id,p.order_id,o.order_number,p.amount,p.method,
+                 o.status AS order_status,o.payment_status,
+                 CASE WHEN EXISTS (
+                   SELECT 1 FROM public.payment_events pe WHERE pe.order_id=p.order_id
+                     AND pe.status='completed' AND pe.event_type IN ('refund','chargeback')
+                 ) THEN 'refund_or_chargeback' ELSE 'refunded_status' END AS reason
+          FROM public.payments p JOIN public.orders o ON o.id=p.order_id
+          LEFT JOIN public.treasury_gateway_allocations ga ON ga.payment_id=p.id
+          WHERE p.status IN ('completed','refunded') AND p.method IN ('wayl','alqaseh')
+            AND o.is_test IS DISTINCT FROM true AND o.archived_at IS NULL
+            AND ga.payment_id IS NULL
+            AND (o.payment_status='refunded' OR p.status='refunded'
+              OR EXISTS (
+                SELECT 1 FROM public.payment_events pe WHERE pe.order_id=p.order_id
+                  AND pe.status='completed' AND pe.event_type IN ('refund','chargeback')
+              ))
+          ORDER BY p.created_at DESC LIMIT 80`);
         const fees = await tx.execute(sql`
           SELECT COALESCE(sum(fee_amount),0) AS fee_amount
           FROM public.treasury_gateway_allocations`);
@@ -208,6 +236,7 @@ export function createTreasuryV1Router() {
           ledgerReference: rows(glResult).map(normalize),
           movements: rows(movementResult).map(normalize),
           gatewayUnmatched: rows(gatewayResult).map(normalize),
+          gatewayNeedsReview: rows(gatewayReviewResult).map(normalize),
           gatewayUnmatchedCount: Number(rows(gatewayTotal)[0]?.count ?? 0),
           gatewayUnmatchedGross: numberOrNull(rows(gatewayTotal)[0]?.total),
           gatewayFeesRecorded: numberOrNull(rows(fees)[0]?.fee_amount),
@@ -342,13 +371,22 @@ export function createTreasuryV1Router() {
       await assertSchema(db);
       const result=await db.transaction(async tx=>{
         const payment=rows(await tx.execute(sql`
-          SELECT p.id,p.amount,p.currency,p.method,p.status,o.is_test,o.archived_at
+          SELECT p.id,p.amount,p.currency,p.method,p.status,o.is_test,o.archived_at,
+                 o.payment_status,o.id AS order_id
           FROM public.payments p JOIN public.orders o ON o.id=p.order_id
-          WHERE p.id=${v.paymentId} FOR UPDATE OF p`))[0];
+          WHERE p.id=${v.paymentId} FOR UPDATE OF p,o`))[0];
         if(!payment || payment.status!=="completed" || !["wayl","alqaseh"].includes(String(payment.method))
-           || payment.is_test===true || payment.archived_at || payment.currency!=="IQD"){
+           || payment.is_test===true || payment.archived_at || payment.currency!=="IQD"
+           || payment.payment_status==="refunded"){
           throw bad("الدفعة غير مؤهلة للتسوية المالية",409);
         }
+        const reversal = rows(await tx.execute(sql`
+          SELECT id FROM public.payment_events
+          WHERE order_id=${payment.order_id}
+            AND status='completed'
+            AND event_type IN ('refund','chargeback')
+          LIMIT 1`))[0];
+        if(reversal) throw bad("هاي الدفعة مرتبطة باسترجاع أو اعتراض؛ تحتاج مراجعة مالية قبل التسوية",409);
         const existing=rows(await tx.execute(sql`
           SELECT payment_id FROM public.treasury_gateway_allocations WHERE payment_id=${v.paymentId}`))[0];
         if(existing) throw bad("هذه الدفعة تمت مطابقتها سابقا ولا يمكن تكرارها",409);

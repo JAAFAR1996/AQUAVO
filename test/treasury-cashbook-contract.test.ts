@@ -19,7 +19,8 @@ describe("AQUAVO money-location cashbook contracts", () => {
     expect(route).toContain("a.kind='card' OR a.opening_balance IS NULL THEN NULL");
     expect(route).toContain("first.kind === \"card\"");
     expect(route).toContain("from.id === to.id");
-    expect(ui).toContain("مو رصيد مستقل، ما يدخل بالمجموع");
+    expect(ui).toContain("ما يدخل بالمجموع مرتين");
+    expect(ui).toContain("currency(linked?.tracked_balance)");
   });
 
   it("does not replace unknown opening balance with a fabricated zero", () => {
@@ -38,6 +39,19 @@ describe("AQUAVO money-location cashbook contracts", () => {
     expect(route).toContain("gateway_payout");
   });
 
+  it("holds refunds and chargebacks for review instead of assuming a payout", () => {
+    expect(route).toContain("gatewayNeedsReview:");
+    expect(route).toContain("event_type IN ('refund','chargeback')");
+    expect(route).toContain('payment.payment_status==="refunded"');
+    expect(ui).toContain("دفعات إلكترونية عليها استرجاع أو اعتراض");
+  });
+
+  it("requires the Wayl fee to be explicitly confirmed, not inferred as zero", () => {
+    expect(ui).toContain('const [gatewayFee,setGatewayFee]=useState("");');
+    expect(ui).toContain('if(gatewayFee.trim()==="")');
+    expect(route).toContain("const nonnegativeAmount =");
+  });
+
   it("does not create a second general ledger, revenue, or expense journal", () => {
     expect(route).not.toMatch(/INSERT INTO public\.(journal_lines|journal_entries|order_accounting_facts)/i);
     expect(migration).not.toMatch(/ALTER TABLE public\.(journal_lines|journal_entries|orders)/i);
@@ -53,7 +67,8 @@ describe("AQUAVO money-location cashbook contracts", () => {
   });
 
   it("makes money location a first-class finance tab", () => {
-    expect(finance).toContain('defaultValue="treasury"');
+    expect(finance).toContain('defaultValue="accounting-register"');
+    expect(finance).toContain('<TabsTrigger value="treasury">');
     expect(finance).toContain('<FinanceTreasury />');
   });
 });
