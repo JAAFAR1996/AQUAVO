@@ -1,5 +1,6 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FinanceAccountingRegisterV2 } from "@/components/admin/finance-accounting-register-v2";
+import { FinanceTreasury } from "@/components/admin/finance-treasury";
 import { FinanceAutomaticReturnsV2 } from "@/components/admin/finance-automatic-returns-v2";
 import { FinanceAuditTrail } from "@/components/admin/finance-audit-trail";
 import { PackagingSection } from "@/components/admin/packaging";
@@ -27,11 +28,16 @@ export default function FinancePage() {
           gap: 6,
           flexWrap: "wrap",
         }}>
+          <TabsTrigger value="treasury">الخزينة — وين فلوسي؟</TabsTrigger>
           <TabsTrigger value="accounting-register">السجل المحاسبي والإغلاق التلقائي</TabsTrigger>
           <TabsTrigger value="packaging" data-testid="tab-packaging">التغليف والكراتين</TabsTrigger>
           <TabsTrigger value="return-events">الراجعات التلقائية</TabsTrigger>
           <TabsTrigger value="audit-trail">سجل التدقيق</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="treasury">
+          <FinanceTreasury />
+        </TabsContent>
 
         <TabsContent value="accounting-register">
           <FinanceAccountingRegisterV2 />
