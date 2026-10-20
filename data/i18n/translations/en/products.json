@@ -6050,5 +6050,808 @@
       },
       "variantLabels": {}
     }
+  },
+  "as-aquarium-light-hanging-bracket": {
+    "entityId": "as-aquarium-light-hanging-bracket",
+    "slug": "as-aquarium-light-hanging-bracket",
+    "sourceHash": "3a964d5c07d546b8",
+    "translatedBy": "ChatGPT GPT-6 draft; human review required",
+    "translatedAt": "2026-10-20T08:50:00Z",
+    "data": {
+      "name": "Aquarium Light Hanging Bracket",
+      "description": "An adjustable bracket for hanging aquarium lighting. Its metal bases clamp onto the glass rim, allowing you to adjust the hanging height and horizontal reach.\n\nIncludes a transparent Crystal Clip light holder, adjustable from 6.5 to 11 cm according to the maker's drawing. Two options: aluminium 20×40 cm and stainless steel 25×40 cm.\n\nThe first size is the horizontal arm length; 40 cm is the total vertical rod length. The actual lamp height depends on how the bracket and suspension cable are adjusted.",
+      "subcategory": "Lighting brackets",
+      "seoTitle": "Aquarium Light Hanging Bracket | AQUAVO",
+      "seoDescription": "Aquarium light hanging bracket with glass-rim mounts and adjustable height and reach. Includes 6.5–11 cm Crystal Clip; two metal options.",
+      "specifications": {
+        "benefits": [],
+        "usageInstructions": [],
+        "safetyWarnings": [],
+        "__cardBenefit": "Adjustable bracket for suspended aquarium lighting.",
+        "labelled": {
+          "التعديل": {
+            "label": "Adjustment",
+            "value": "Hanging height and horizontal reach are adjustable"
+          },
+          "المرفقات": {
+            "label": "Included parts",
+            "value": "Transparent light clip (Crystal Clip)"
+          },
+          "الاستخدام": {
+            "label": "Intended use",
+            "value": "Suspended aquarium lighting"
+          },
+          "طريقة التثبيت": {
+            "label": "Mounting method",
+            "value": "Metal bases clamped to the glass rim"
+          },
+          "ملاحظة القياس": {
+            "label": "Measurement note",
+            "value": "40 cm is the full vertical rod length"
+          },
+          "عرض ماسك الإنارة": {
+            "label": "Light clip width",
+            "value": "Adjustable from 6.5 to 11 cm"
+          },
+          "المقاسات والخامات": {
+            "label": "Sizes and materials",
+            "value": "20×40 cm — aluminium alloy; 25×40 cm — stainless steel"
+          },
+          "فتحة ماسك الإنارة العمودية": {
+            "label": "Vertical light clip opening",
+            "value": "2 cm according to maker's drawing"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "botanical-almond-bark-10": {
+    "entityId": "botanical-almond-bark-10",
+    "slug": "almond-bark-10",
+    "sourceHash": "f6f8a66fec548e55",
+    "translatedBy": "ChatGPT GPT-6 draft; human review required",
+    "translatedAt": "2026-10-20T08:50:00Z",
+    "data": {
+      "name": "Natural Almond Bark for Aquariums — 10 Pieces",
+      "description": "Natural bark pieces add a relatively durable grazing surface and plant texture alongside aquarium wood and leaves. They diversify the habitat and offer extra surface for biofilm to develop over time.",
+      "subcategory": "Natural botanicals",
+      "seoTitle": "Natural Almond Bark for Aquariums — 10 Pieces | AQUAVO",
+      "seoDescription": "Natural almond bark pieces support grazing surfaces and habitat variety alongside aquarium wood and leaves. Plant material for gradual use.",
+      "specifications": {
+        "benefits": [
+          "Offers extra grazing surfaces where biofilm can form",
+          "Enriches the habitat and encourages natural behaviour",
+          "Adds botanical structure that lasts longer than delicate leaves",
+          "Complements wood and other botanical material"
+        ],
+        "usageInstructions": [
+          "Rinse the bark thoroughly before use",
+          "Start with a few pieces",
+          "Monitor the water and pieces during the first weeks"
+        ],
+        "safetyWarnings": [
+          "Exact almond species will be confirmed when the shipment arrives",
+          "Do not use it as a treatment for any disease",
+          "May alter some water parameters depending on material and quantity"
+        ],
+        "__cardBenefit": "Durable natural bark adds grazing area and texture.",
+        "labelled": {
+          "العدد": {
+            "label": "Quantity",
+            "value": "10 pieces"
+          },
+          "النوع": {
+            "label": "Type",
+            "value": "Natural dried almond bark"
+          },
+          "وحدة البيع": {
+            "label": "Selling unit",
+            "value": "Bag"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "botanical-arjuna-pods-10": {
+    "entityId": "botanical-arjuna-pods-10",
+    "slug": "arjuna-pods-10",
+    "sourceHash": "16de2b490e7fba11",
+    "translatedBy": "ChatGPT GPT-6 draft; human review required",
+    "translatedAt": "2026-10-20T08:50:00Z",
+    "data": {
+      "name": "Natural Arjuna Pods for Aquariums — 10 Pieces",
+      "description": "Dried arjuna pods introduce natural plant structure and grazing surfaces to the aquarium. They add detail to the bottom, encourage exploration and slowly break down among other botanical materials.",
+      "subcategory": "Natural botanicals",
+      "seoTitle": "Natural Arjuna Pods for Aquariums — 10 Pieces | AQUAVO",
+      "seoDescription": "Dried arjuna pods offer botanical structure and grazing surfaces in aquariums. Add gradually and monitor their breakdown during maintenance.",
+      "specifications": {
+        "benefits": [
+          "Adds natural plant structure and detail to the tank floor",
+          "Offers extra grazing surfaces where biofilm can form",
+          "Encourages exploration and natural behaviour",
+          "Fits alongside leaves and wood in natural tank layouts"
+        ],
+        "usageInstructions": [
+          "Rinse the pieces thoroughly before use",
+          "Add gradually based on aquarium size",
+          "Monitor stability and decomposition during maintenance"
+        ],
+        "safetyWarnings": [
+          "Pieces may initially float",
+          "Do not crowd the aquarium with a large amount of botanicals at once",
+          "Inspect pieces before use and discard damaged ones"
+        ],
+        "__cardBenefit": "Natural pods enrich the substrate with grazing surfaces.",
+        "labelled": {
+          "العدد": {
+            "label": "Quantity",
+            "value": "10 pieces"
+          },
+          "النوع": {
+            "label": "Type",
+            "value": "Natural dried arjuna pods"
+          },
+          "وحدة البيع": {
+            "label": "Selling unit",
+            "value": "Bag"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "botanical-banana-leaf-stems-10": {
+    "entityId": "botanical-banana-leaf-stems-10",
+    "slug": "banana-leaf-stems-10",
+    "sourceHash": "6b5b0d23328a5f2f",
+    "translatedBy": "ChatGPT GPT-6 draft; human review required",
+    "translatedAt": "2026-10-20T08:50:00Z",
+    "data": {
+      "name": "Natural Banana Leaf Stems for Aquariums — 10 Pieces",
+      "description": "Dried banana-leaf stems add plant-based grazing surfaces and natural detail between wood and leaves. They provide more surface variety and encourage exploration as biofilm develops over time.",
+      "subcategory": "Natural botanicals",
+      "seoTitle": "Natural Banana Leaf Stems for Aquariums — 10 Piec | AQUAVO",
+      "seoDescription": "Dried banana leaf stems provide grazing surfaces and natural structure. Add a few pieces at first and monitor gradual breakdown.",
+      "specifications": {
+        "benefits": [
+          "Offers extra grazing surfaces where biofilm can form",
+          "Diversifies the habitat and encourages exploration",
+          "Adds plant details between wood and leaves",
+          "Breaks down gradually as part of a botanical aquarium habitat"
+        ],
+        "usageInstructions": [
+          "Rinse pieces with clean water",
+          "Introduce only a few pieces at first",
+          "Watch decomposition and remove excess debris when needed"
+        ],
+        "safetyWarnings": [
+          "Natural pieces may vary in shape",
+          "Do not add a large quantity at once",
+          "Not a substitute for staple food"
+        ],
+        "__cardBenefit": "Natural banana stems offer surfaces to graze.",
+        "labelled": {
+          "العدد": {
+            "label": "Quantity",
+            "value": "10 pieces"
+          },
+          "النوع": {
+            "label": "Type",
+            "value": "Dried banana leaf stems"
+          },
+          "وحدة البيع": {
+            "label": "Selling unit",
+            "value": "Bag"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "botanical-banana-leaves-4x4-10": {
+    "entityId": "botanical-banana-leaves-4x4-10",
+    "slug": "banana-leaves-4x4-10",
+    "sourceHash": "9d05a01ea21c2b92",
+    "translatedBy": "ChatGPT GPT-6 draft; human review required",
+    "translatedAt": "2026-10-20T08:50:00Z",
+    "data": {
+      "name": "Natural Banana Leaf Squares — 4×4 in, 10 Pieces",
+      "description": "Dried banana-leaf squares of approximately uniform size are easy to distribute across an aquarium. They provide natural leaf cover and grazing surfaces and add plant material for exploration.",
+      "subcategory": "Natural botanicals",
+      "seoTitle": "Natural Banana Leaf Squares — 4×4 in, 10 Pieces | AQUAVO",
+      "seoDescription": "Banana leaf squares, approximately 4×4 in, provide natural leaf cover and grazing surfaces in aquariums. Pack of 10 dried pieces.",
+      "specifications": {
+        "benefits": [
+          "Provides natural plant cover inside the aquarium",
+          "Offers grazing surfaces where biofilm can form",
+          "Enriches the habitat and encourages exploration",
+          "The cut size is easy to distribute in different aquariums"
+        ],
+        "usageInstructions": [
+          "Rinse pieces with clean water",
+          "Distribute a small number of pieces in the tank",
+          "Watch decomposition and remove excess debris when needed"
+        ],
+        "safetyWarnings": [
+          "4×4 in describes cut pieces, not whole banana leaves",
+          "Do not add a large mass of organic material all at once",
+          "Water colour may change to different degrees"
+        ],
+        "__cardBenefit": "Easy-to-place leaf squares for cover and grazing.",
+        "labelled": {
+          "العدد": {
+            "label": "Quantity",
+            "value": "10 pieces"
+          },
+          "النوع": {
+            "label": "Type",
+            "value": "Natural dried banana leaf squares"
+          },
+          "المقاس": {
+            "label": "Size",
+            "value": "Approx. 4×4 in (10.2×10.2 cm)"
+          },
+          "وحدة البيع": {
+            "label": "Selling unit",
+            "value": "Bag"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "botanical-casuarina-pods-10": {
+    "entityId": "botanical-casuarina-pods-10",
+    "slug": "casuarina-pods-10",
+    "sourceHash": "a559607ecff13dbe",
+    "translatedBy": "ChatGPT GPT-6 draft; human review required",
+    "translatedAt": "2026-10-20T08:50:00Z",
+    "data": {
+      "name": "Natural Casuarina Cones for Aquariums — 10 Pieces",
+      "description": "Dried casuarina cones are aquarium botanicals that gradually release plant compounds and provide small grazing surfaces. They add natural detail and diversify the aquatic habitat.",
+      "subcategory": "Natural botanicals",
+      "seoTitle": "Natural Casuarina Cones for Aquariums — 10 Pieces | AQUAVO",
+      "seoDescription": "Dried casuarina cones add small grazing surfaces and slowly release plant compounds. These are casuarina, not alder cones.",
+      "specifications": {
+        "benefits": [
+          "Offers small grazing surfaces for biofilm development",
+          "Gradually releases plant compounds into the water",
+          "Enriches the habitat and encourages natural behaviour",
+          "Adds natural details between wood and leaves"
+        ],
+        "usageInstructions": [
+          "Rinse the cones before use",
+          "Start with a few cones appropriate to aquarium size",
+          "Monitor their effect on water and inhabitants during first use"
+        ],
+        "safetyWarnings": [
+          "Do not confuse with alder cones; these are casuarina cones",
+          "Do not use a large quantity at once",
+          "Monitor pH and KH if the water has low alkalinity"
+        ],
+        "__cardBenefit": "Small natural cones enrich grazing surfaces.",
+        "labelled": {
+          "العدد": {
+            "label": "Quantity",
+            "value": "10 pieces"
+          },
+          "النوع": {
+            "label": "Type",
+            "value": "Natural dried casuarina cones"
+          },
+          "وحدة البيع": {
+            "label": "Selling unit",
+            "value": "Bag"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "botanical-catappa-leaves-10": {
+    "entityId": "botanical-catappa-leaves-10",
+    "slug": "catappa-leaves-10",
+    "sourceHash": "1da4c6681509e932",
+    "translatedBy": "ChatGPT GPT-6 draft; human review required",
+    "translatedAt": "2026-10-20T08:50:00Z",
+    "data": {
+      "name": "Natural Catappa Leaves for Aquariums — 10 Leaves",
+      "description": "Dried catappa leaves gradually release tannins and plant compounds into aquarium water. In a stable aquarium, they may support fish well-being, bring out natural colours and help reduce signs of stress while offering grazing surfaces.",
+      "subcategory": "Natural botanicals",
+      "seoTitle": "Natural Catappa Leaves for Aquariums — 10 Leaves | AQUAVO",
+      "seoDescription": "Dried Indian almond (catappa) leaves slowly release tannins and add grazing surfaces. Begin with a small quantity and monitor pH and KH.",
+      "specifications": {
+        "benefits": [
+          "May support general fish vitality in a stable tank",
+          "May help show natural colours",
+          "May help reduce signs of stress in a stable aquarium",
+          "Supports a natural habitat for breeding and grazing"
+        ],
+        "usageInstructions": [
+          "Rinse leaves with clean water",
+          "Start with a small amount suited to aquarium size",
+          "Monitor pH, KH and water quality during initial use",
+          "Replace or remove leaves as they decompose according to tank needs"
+        ],
+        "safetyWarnings": [
+          "Tannins may change water colour",
+          "May affect pH, especially when KH is low",
+          "Not a replacement for treatment or routine maintenance"
+        ],
+        "__cardBenefit": "Catappa leaves may support fish well-being and colour.",
+        "labelled": {
+          "الطول": {
+            "label": "Length",
+            "value": "Approx. 11–18 cm"
+          },
+          "العدد": {
+            "label": "Quantity",
+            "value": "10 leaves"
+          },
+          "النوع": {
+            "label": "Type",
+            "value": "Natural dried catappa leaves"
+          },
+          "وحدة البيع": {
+            "label": "Selling unit",
+            "value": "Bag"
+          },
+          "الاسم العلمي": {
+            "label": "Scientific name",
+            "value": "Terminalia catappa"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "botanical-cinnamon-bark-5": {
+    "entityId": "botanical-cinnamon-bark-5",
+    "slug": "cinnamon-bark-5",
+    "sourceHash": "1ae2b1ac10784d86",
+    "translatedBy": "ChatGPT GPT-6 draft; human review required",
+    "translatedAt": "2026-10-20T08:50:00Z",
+    "data": {
+      "name": "Natural Cinnamon Bark for Aquariums — 5 Pieces",
+      "description": "Natural cinnamon bark pieces in the aquarium-botanical range add distinctive structure and grazing surfaces. Suitable use and dosage are still being verified against the incoming shipment and must be confirmed before sales are enabled.",
+      "subcategory": "Natural botanicals",
+      "seoTitle": "Natural Cinnamon Bark for Aquariums — 5 Pieces | AQUAVO",
+      "seoDescription": "Dried cinnamon bark from a botanical aquarium range. Species, processing and safe usage are still under verification; do not use pending review.",
+      "specifications": {
+        "benefits": [
+          "Adds different plant texture and structure",
+          "Offers extra grazing surfaces where biofilm can form",
+          "Diversifies the habitat and encourages exploration"
+        ],
+        "usageInstructions": [
+          "Rinse the pieces thoroughly before use",
+          "Use a limited amount only after verifying the shipment instructions",
+          "Monitor inhabitants and water quality during first use"
+        ],
+        "safetyWarnings": [
+          "Pending verification before sale: cinnamon species and processing still need confirmation",
+          "Do not substitute cinnamon oils or concentrated extracts",
+          "Do not rely on it as a disease treatment"
+        ],
+        "__cardBenefit": "Cinnamon bark for habitat variety; use under review.",
+        "labelled": {
+          "العدد": {
+            "label": "Quantity",
+            "value": "5 pieces"
+          },
+          "النوع": {
+            "label": "Type",
+            "value": "Natural dried cinnamon bark"
+          },
+          "وحدة البيع": {
+            "label": "Selling unit",
+            "value": "Bag"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "botanical-coco-palm-bract-10": {
+    "entityId": "botanical-coco-palm-bract-10",
+    "slug": "coco-palm-bract-10",
+    "sourceHash": "1c86e85deddbffa5",
+    "translatedBy": "ChatGPT GPT-6 draft; human review required",
+    "translatedAt": "2026-10-20T08:50:00Z",
+    "data": {
+      "name": "Natural Coconut Palm Bracts — 10 Pieces",
+      "description": "Natural coconut-palm material adds texture, cover and opportunities to explore an aquarium. It offers grazing surfaces and helps create a varied habitat for creatures that use wood, leaves and other botanical pieces.",
+      "subcategory": "Natural botanicals",
+      "seoTitle": "Natural Coconut Palm Bracts — 10 Pieces | AQUAVO",
+      "seoDescription": "Natural coconut palm pieces add cover, structure and grazing area in an aquarium. Check stability and avoid sharp edges before use.",
+      "specifications": {
+        "benefits": [
+          "Adds natural structure and cover to the aquarium",
+          "Provides additional grazing and biofilm surfaces",
+          "Encourages exploration and natural behaviour",
+          "Complements wood, leaves and other botanical arrangements"
+        ],
+        "usageInstructions": [
+          "Rinse the pieces thoroughly before use",
+          "Place securely without blocking water movement",
+          "Check stability and clean debris when needed"
+        ],
+        "safetyWarnings": [
+          "The exact plant part will be confirmed after receiving the shipment",
+          "Check for sharp edges",
+          "Do not use a piece that could trap an animal inside a narrow opening"
+        ],
+        "__cardBenefit": "Natural palm cover adds grazing surfaces.",
+        "labelled": {
+          "العدد": {
+            "label": "Quantity",
+            "value": "10 pieces"
+          },
+          "النوع": {
+            "label": "Type",
+            "value": "Natural coconut palm material"
+          },
+          "وحدة البيع": {
+            "label": "Selling unit",
+            "value": "Bag"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "botanical-cocoa-leaves-10": {
+    "entityId": "botanical-cocoa-leaves-10",
+    "slug": "cocoa-leaves-10",
+    "sourceHash": "480b0d9260258e00",
+    "translatedBy": "ChatGPT GPT-6 draft; human review required",
+    "translatedAt": "2026-10-20T08:50:00Z",
+    "data": {
+      "name": "Natural Cocoa Leaves for Aquariums — 10 Leaves",
+      "description": "Dried cocoa leaves add a more natural leaf-litter environment, with surfaces for grazing and exploration as the material decomposes gradually. They help diversify the habitat for inhabitants that use botanical leaf litter.",
+      "subcategory": "Natural botanicals",
+      "seoTitle": "Natural Cocoa Leaves for Aquariums — 10 Leaves | AQUAVO",
+      "seoDescription": "Dried cocoa leaves introduce natural leaf litter and extra grazing surfaces in aquariums. Add gradually and monitor water conditions.",
+      "specifications": {
+        "benefits": [
+          "Supports a richer natural plant habitat",
+          "Offers extra grazing surfaces where biofilm can form",
+          "May encourage exploration and natural behaviour",
+          "Adds plant matter that gradually decomposes in the tank"
+        ],
+        "usageInstructions": [
+          "Rinse the leaves with clean water before use",
+          "Start with a few leaves and watch the tank response",
+          "Let leaves decompose gradually or remove them during maintenance as needed"
+        ],
+        "safetyWarnings": [
+          "Water colour may change as botanicals gradually decompose",
+          "Do not add a large quantity at once in a small tank",
+          "Not a substitute for balanced feeding, treatment or routine maintenance"
+        ],
+        "__cardBenefit": "Cocoa leaves provide botanical cover and grazing surfaces.",
+        "labelled": {
+          "الطول": {
+            "label": "Length",
+            "value": "Approx. 11–18 cm"
+          },
+          "العدد": {
+            "label": "Quantity",
+            "value": "10 leaves"
+          },
+          "النوع": {
+            "label": "Type",
+            "value": "Natural dried cocoa leaves"
+          },
+          "وحدة البيع": {
+            "label": "Selling unit",
+            "value": "Bag"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "botanical-cocoa-pod": {
+    "entityId": "botanical-cocoa-pod",
+    "slug": "cocoa-pod",
+    "sourceHash": "86e33ae8412fbbd6",
+    "translatedBy": "ChatGPT GPT-6 draft; human review required",
+    "translatedAt": "2026-10-20T08:50:00Z",
+    "data": {
+      "name": "Natural Cocoa Pod Shell for Aquariums",
+      "description": "A dried cocoa-pod shell provides distinct natural plant structure and opportunities to explore the aquarium. Its shape can offer cover and grazing surfaces when the openings are safely sized for the tank inhabitants.",
+      "subcategory": "Natural botanicals",
+      "seoTitle": "Natural Cocoa Pod Shell for Aquariums | AQUAVO",
+      "seoDescription": "Dried cocoa pod shell offers plant structure, cover and grazing surfaces. Check openings and edges before placing it in an aquarium.",
+      "specifications": {
+        "benefits": [
+          "Adds natural cover and structure to the aquarium",
+          "Offers extra grazing surfaces where biofilm can form",
+          "Encourages exploration and natural behaviour",
+          "Creates a focal detail in wood-and-leaf layouts"
+        ],
+        "usageInstructions": [
+          "Rinse the piece thoroughly before use",
+          "Inspect openings and edges before placing in the tank",
+          "Secure it and leave ample space for inhabitants to move"
+        ],
+        "safetyWarnings": [
+          "Number of pieces per bag will be verified upon receipt",
+          "Do not use as a shelter for animals larger than its openings",
+          "Check for sharp or loose sections"
+        ],
+        "__cardBenefit": "Cocoa shell adds natural cover and grazing space.",
+        "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "Natural dried cocoa pod shell"
+          },
+          "وحدة البيع": {
+            "label": "Selling unit",
+            "value": "Bag"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "botanical-coconut-curls-10": {
+    "entityId": "botanical-coconut-curls-10",
+    "slug": "coconut-curls-10",
+    "sourceHash": "1ba11f79ffb7fa67",
+    "translatedBy": "ChatGPT GPT-6 draft; human review required",
+    "translatedAt": "2026-10-20T08:50:00Z",
+    "data": {
+      "name": "Natural Coconut Curls for Aquariums — 10 Pieces",
+      "description": "Dried coconut curls add coiled natural structure and extra surfaces for grazing and exploration. They diversify the aquarium floor and give biofilm varied surfaces on which to grow.",
+      "subcategory": "Natural botanicals",
+      "seoTitle": "Natural Coconut Curls for Aquariums — 10 Pieces | AQUAVO",
+      "seoDescription": "Dried coconut curls add coiled natural texture and grazing area to aquarium layouts. Rinse and monitor the pieces as they break down.",
+      "specifications": {
+        "benefits": [
+          "Adds natural structure and spaces to explore",
+          "Provides additional grazing and biofilm surfaces",
+          "Enriches the habitat and encourages natural behaviour",
+          "Complements wood, leaves and other botanical arrangements"
+        ],
+        "usageInstructions": [
+          "Rinse the pieces thoroughly",
+          "Place them without obstructing water flow",
+          "Monitor stability and decomposition during maintenance"
+        ],
+        "safetyWarnings": [
+          "Natural pieces may differ in shape and size",
+          "Check for sharp edges",
+          "Do not pile up pieces in ways that may trap inhabitants"
+        ],
+        "__cardBenefit": "Coiled coconut pieces for natural grazing habitat.",
+        "labelled": {
+          "العدد": {
+            "label": "Quantity",
+            "value": "10 pieces"
+          },
+          "النوع": {
+            "label": "Type",
+            "value": "Natural dried coconut curls"
+          },
+          "وحدة البيع": {
+            "label": "Selling unit",
+            "value": "Bag"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "botanical-guava-leaves-10": {
+    "entityId": "botanical-guava-leaves-10",
+    "slug": "guava-leaves-10",
+    "sourceHash": "806d6d856f6dfbdf",
+    "translatedBy": "ChatGPT GPT-6 draft; human review required",
+    "translatedAt": "2026-10-20T08:50:00Z",
+    "data": {
+      "name": "Natural Guava Leaves for Aquariums — 10 Leaves",
+      "description": "Dried guava leaves provide natural plant material and added grazing surfaces. They diversify the habitat and encourage exploration; biofilm can develop on the leaves over time for grazing inhabitants.",
+      "subcategory": "Natural botanicals",
+      "seoTitle": "Natural Guava Leaves for Aquariums — 10 Leaves | AQUAVO",
+      "seoDescription": "Dried guava leaves add natural leaf litter and grazing area. Introduce gradually and monitor water quality as they break down.",
+      "specifications": {
+        "benefits": [
+          "Supports a diverse, natural botanical habitat",
+          "Offers extra grazing surfaces where biofilm can form",
+          "May encourage exploration and natural behaviour",
+          "Adds variety to the leaf litter on the tank floor"
+        ],
+        "usageInstructions": [
+          "Rinse leaves with clean water",
+          "Start with a small quantity spread through the tank",
+          "Monitor decomposition and water quality during use"
+        ],
+        "safetyWarnings": [
+          "Do not treat as medicine or a substitute for treatment",
+          "Water response varies with quantity and filtration",
+          "Do not add a large mass of organic material all at once"
+        ],
+        "__cardBenefit": "Guava leaves add plant variety and grazing surfaces.",
+        "labelled": {
+          "الطول": {
+            "label": "Length",
+            "value": "Approx. 11–15 cm"
+          },
+          "العدد": {
+            "label": "Quantity",
+            "value": "10 leaves"
+          },
+          "النوع": {
+            "label": "Type",
+            "value": "Natural dried guava leaves"
+          },
+          "وحدة البيع": {
+            "label": "Selling unit",
+            "value": "Bag"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "botanical-jackfruit-leaves-10": {
+    "entityId": "botanical-jackfruit-leaves-10",
+    "slug": "jackfruit-leaves-10",
+    "sourceHash": "10b650f6d1adfeb2",
+    "translatedBy": "ChatGPT GPT-6 draft; human review required",
+    "translatedAt": "2026-10-20T08:50:00Z",
+    "data": {
+      "name": "Natural Jackfruit Leaves for Aquariums — 10 Leaves",
+      "description": "Dried jackfruit leaves create a natural leaf-litter layer, with extra cover and grazing surfaces. They encourage exploration and slowly contribute natural plant matter as they decompose in the aquarium.",
+      "subcategory": "Natural botanicals",
+      "seoTitle": "Natural Jackfruit Leaves for Aquariums — 10 Leave | AQUAVO",
+      "seoDescription": "Dried jackfruit leaves create aquarium leaf litter, cover and grazing surfaces. Add gradually and remove excess decaying debris.",
+      "specifications": {
+        "benefits": [
+          "Provides natural cover and extra places to explore",
+          "Offers grazing surfaces where biofilm can form",
+          "Enriches the habitat and encourages natural behaviour",
+          "Breaks down gradually within the natural leaf-litter layer"
+        ],
+        "usageInstructions": [
+          "Rinse leaves before adding them to the tank",
+          "Start with a few leaves spread over the bottom",
+          "Watch decomposition and clean excess debris during routine maintenance"
+        ],
+        "safetyWarnings": [
+          "Leaves may naturally vary in size, shape and colour",
+          "Avoid adding a large amount at once",
+          "Leaves are not a treatment for disease"
+        ],
+        "__cardBenefit": "Jackfruit leaf cover encourages natural grazing.",
+        "labelled": {
+          "الطول": {
+            "label": "Length",
+            "value": "Approx. 11–18 cm"
+          },
+          "العدد": {
+            "label": "Quantity",
+            "value": "10 leaves"
+          },
+          "النوع": {
+            "label": "Type",
+            "value": "Natural dried jackfruit leaves"
+          },
+          "وحدة البيع": {
+            "label": "Selling unit",
+            "value": "Bag"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "botanical-lotus-pods-10": {
+    "entityId": "botanical-lotus-pods-10",
+    "slug": "lotus-pods-10",
+    "sourceHash": "14b5d79b65f67dc9",
+    "translatedBy": "ChatGPT GPT-6 draft; human review required",
+    "translatedAt": "2026-10-20T08:50:00Z",
+    "data": {
+      "name": "Natural Lotus Seed Pods — 9–11 cm, 10 Pieces",
+      "description": "Dried lotus seed pods bring distinct cavities and three-dimensional plant structure to aquarium layouts. They offer extra surfaces for grazing and exploration while diversifying the aquarium habitat.",
+      "subcategory": "Natural botanicals",
+      "seoTitle": "Natural Lotus Seed Pods — 9–11 cm, 10 Pieces | AQUAVO",
+      "seoDescription": "Natural dried lotus seed pods, approximately 9–11 cm, add three-dimensional texture and grazing surfaces to aquariums. Pack of 10.",
+      "specifications": {
+        "benefits": [
+          "Adds natural three-dimensional structure and detail",
+          "Provides additional grazing and biofilm surfaces",
+          "Encourages exploration and natural behaviour",
+          "Complements wood and leaves in natural aquarium layouts"
+        ],
+        "usageInstructions": [
+          "Rinse the pieces thoroughly before use",
+          "Add an amount suited to the aquarium without crowding",
+          "Secure the pieces if they need time to become waterlogged"
+        ],
+        "safetyWarnings": [
+          "Ensure openings do not trap an animal larger than the opening",
+          "Inspect each piece and remove sharp edges before use",
+          "Some pieces may float at first"
+        ],
+        "__cardBenefit": "Porous lotus pods add 3D botanical structure.",
+        "labelled": {
+          "العدد": {
+            "label": "Quantity",
+            "value": "10 pieces"
+          },
+          "النوع": {
+            "label": "Type",
+            "value": "Dried lotus seed pods"
+          },
+          "المقاس": {
+            "label": "Size",
+            "value": "Approx. 9–11 cm"
+          },
+          "وحدة البيع": {
+            "label": "Selling unit",
+            "value": "Bag"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "botanical-mulberry-leaves-10": {
+    "entityId": "botanical-mulberry-leaves-10",
+    "slug": "mulberry-leaves-10",
+    "sourceHash": "03892e323c3ac39e",
+    "translatedBy": "ChatGPT GPT-6 draft; human review required",
+    "translatedAt": "2026-10-20T08:50:00Z",
+    "data": {
+      "name": "Natural Mulberry Leaves for Aquariums — 10 Leaves",
+      "description": "Dried mulberry leaves can be a supplemental plant-based food and grazing surface as they soften underwater. They offer dietary variety for animals that feed on plant material and biofilm; a complete staple diet remains essential.",
+      "subcategory": "Natural botanicals",
+      "seoTitle": "Natural Mulberry Leaves for Aquariums — 10 Leaves | AQUAVO",
+      "seoDescription": "Dried mulberry leaves can supplement suitable herbivorous aquarium diets and provide biofilm grazing surfaces. Not a substitute for staple food.",
+      "specifications": {
+        "benefits": [
+          "Offers supplemental plant-based nutrition",
+          "Offers grazing surfaces where biofilm can form",
+          "Adds dietary variety and supports natural grazing",
+          "Breaks down gradually and can be removed when needed"
+        ],
+        "usageInstructions": [
+          "Rinse the leaf before use",
+          "Offer a small amount and monitor consumption",
+          "Remove uneaten debris if it starts to affect tank cleanliness"
+        ],
+        "safetyWarnings": [
+          "Not a replacement for a species-appropriate balanced diet",
+          "Monitor water quality when introducing new botanicals",
+          "Natural leaf length may vary slightly"
+        ],
+        "__cardBenefit": "Mulberry leaves are a supplemental plant food.",
+        "labelled": {
+          "الطول": {
+            "label": "Length",
+            "value": "Approx. 11–15 cm"
+          },
+          "العدد": {
+            "label": "Quantity",
+            "value": "10 leaves"
+          },
+          "النوع": {
+            "label": "Type",
+            "value": "Natural dried mulberry leaves"
+          },
+          "وحدة البيع": {
+            "label": "Selling unit",
+            "value": "Bag"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
   }
 }

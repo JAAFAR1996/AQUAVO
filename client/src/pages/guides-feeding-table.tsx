@@ -14,19 +14,10 @@ export default function GuideFeedingTable() {
         <section className="fd-hero">
           <span className="fd-badge">{t("guides-feeding-table.s1")}</span>
 
-          {/* Two-minute visual timer */}
-          <div className="fd-timer" aria-hidden="true">
-            <svg viewBox="0 0 120 120" className="fd-timer-svg">
-              <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(99,102,241,0.12)" strokeWidth="6"/>
-              <circle cx="60" cy="60" r="52" fill="none" stroke="#6366F1" strokeWidth="6"
-                strokeDasharray="326.7" strokeDashoffset="81.7"
-                strokeLinecap="round"
-                transform="rotate(-90 60 60)"/>
-            </svg>
-            <div className="fd-timer-inner">
-              <span className="fd-timer-num">{t("guides-feeding-table.s2")}</span>
-              <span className="fd-timer-lbl">{t("guides-feeding-table.s3")}</span>
-            </div>
+          {/* Portion guidance, not a universal two-minute feeding timer. */}
+          <div className="fd-portion" role="note">
+            <strong>{t("guides-feeding-table.s2")}</strong>
+            <span>{t("guides-feeding-table.s3")}</span>
           </div>
 
           <h1>{t("guides-feeding-table.s4")}</h1>
@@ -90,7 +81,7 @@ export default function GuideFeedingTable() {
                 <p>{t("guides-feeding-table.s31")}</p>
               </div>
             </div>
-            <div className="fd-timing-row fd-timing-never">
+            <div className="fd-timing-row">
               <div className="fd-timing-time">{t("guides-feeding-table.s32")}</div>
               <div className="fd-timing-desc">
                 <strong>{t("guides-feeding-table.s33")}</strong>
@@ -218,21 +209,16 @@ export default function GuideFeedingTable() {
           font-size: 0.78rem; color: #64748B;
         }
 
-        /* Timer */
-        .fd-timer {
-          width: 130px; height: 130px; margin: 0 auto 2rem;
-          position: relative; display: flex; align-items: center; justify-content: center;
+        /* Portion guide — no arbitrary two-minute countdown. */
+        .fd-portion {
+          display: inline-flex; align-items: center; justify-content: center; gap: 0.45rem;
+          margin: 0 auto 2rem; padding: 0.8rem 1.4rem;
+          border: 1px solid rgba(99,102,241,0.32);
+          background: rgba(99,102,241,0.08); border-radius: 999px;
+          color: #E2E8F0; line-height: 1.3;
         }
-        .fd-timer-svg {
-          position: absolute; inset: 0; width: 100%; height: 100%;
-        }
-        .fd-timer-inner {
-          display: flex; flex-direction: column; align-items: center; z-index: 1;
-        }
-        .fd-timer-num {
-          font-size: 2.8rem; font-weight: 900; color: #E2E8F0; line-height: 1;
-        }
-        .fd-timer-lbl { font-size: 0.72rem; color: #818CF8; letter-spacing: 1px; }
+        .fd-portion strong { font-size: 1.3rem; font-weight: 800; }
+        .fd-portion span { font-size: 1rem; color: #A5B4FC; }
 
         /* Section */
         .fd-title {
@@ -269,16 +255,11 @@ export default function GuideFeedingTable() {
           border: 1px solid rgba(255,255,255,0.06);
           border-radius: 10px; padding: 1rem;
         }
-        .fd-timing-never {
-          background: rgba(239,68,68,0.04);
-          border-color: rgba(239,68,68,0.12);
-        }
         .fd-timing-time {
           min-width: 52px; text-align: center;
           font-size: 0.72rem; font-weight: 700; color: #818CF8;
           letter-spacing: 1px; padding-top: 2px;
         }
-        .fd-timing-never .fd-timing-time { color: #F87171; }
         .fd-timing-desc strong { display: block; color: #E2E8F0; font-size: 0.95rem; margin-bottom: 0.25rem; }
         .fd-timing-desc p { font-size: 0.85rem; color: #64748B; margin: 0; line-height: 1.6; }
 
