@@ -6,7 +6,7 @@ import { HTML_TEMPLATE } from "./_html-template.js";
 import { GUIDE_CONTENT_PAGES, renderGuidesIndexHtml, renderGuidesIndexMarkdown } from "./_guides-content.js";
 import { guideProductsFromRows, renderCanonicalGuideHtml, renderCanonicalGuideMarkdown, resolveGuidePage } from "./_canonical-guides.js";
 import type { GuideProduct } from "./_guides-content.js";
-import { productCategoryForGuide } from "../shared/guide-links.js";
+import { approvedProductSlugsForGuide, productCategoryForGuide, productsAppropriateForGuide } from "../shared/guide-links.js";
 import { SPA_GUIDE_PAGES } from "./_guides-content-spa.js";
 import { HOME_HERO_HTML } from "./_home-hero-html.js";
 import { getSeoMetaOverride } from "./_seo-content.js";
@@ -577,19 +577,22 @@ async function getProductMeta(slug: string, locale: Locale = DEFAULT_LOCALE): Pr
  * category. A missing pool or a query error yields none; the guide still
  * renders. Never throws into the handler.
  */
-async function loadGuideProducts(category: string | undefined): Promise<GuideProduct[]> {
+async function loadGuideProducts(category: string | undefined, guidePath: string): Promise<GuideProduct[]> {
   const db = getPool();
   if (!category || !db) return [];
+  const approvedSlugs = approvedProductSlugsForGuide(guidePath);
   try {
     const { rows } = await db.query(
       `SELECT slug, name, price, stock FROM products
         WHERE deleted_at IS NULL AND category = $1 AND slug IS NOT NULL AND slug <> ''
           AND stock > 0 AND price::numeric > 0
+          AND ($2::text[] IS NULL OR slug = ANY($2::text[]))
         ORDER BY updated_at DESC NULLS LAST, name ASC
         LIMIT 12`,
-      [category],
+      [category, approvedSlugs ?? null],
     );
-    return guideProductsFromRows(rows as Array<{ slug: string; name: string; price: string; stock: number }>);
+    return guideProductsFromRows(productsAppropriateForGuide(guidePath,
+      rows as Array<{ slug: string; name: string; price: string; stock: number }>));
   } catch (err) {
     console.error("SSR meta: guide products query error", err);
     return [];
@@ -1297,7 +1300,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const acceptHeader = (req.headers.accept || "").toLowerCase();
       // Up to three in-stock products of the guide's category, so the reader
       // who has just learned how to choose is shown something to choose from.
-      const guideProducts = await loadGuideProducts(productCategoryForGuide(resolvedGuide.canonicalPath));
+      const guideProducts = await loadGuideProducts(productCategoryForGuide(resolvedGuide.canonicalPath), resolvedGuide.canonicalPath);
       res.setHeader("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
       if (acceptHeader.includes("text/markdown")) {
         res.setHeader("Content-Type", "text/markdown; charset=utf-8");
