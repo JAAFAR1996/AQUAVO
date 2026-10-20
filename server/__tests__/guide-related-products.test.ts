@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { canonicalGuidePaths, guideProductsFromRows, renderCanonicalGuideHtml, renderCanonicalGuideMarkdown, resolveGuidePage } from "../../api/_canonical-guides";
-import { GUIDE_PRIMARY_CATEGORY, GUIDE_PRODUCTS_HEADING, productCategoryForGuide } from "../../shared/guide-links";
+import { GUIDE_PRIMARY_CATEGORY, GUIDE_PRODUCTS_HEADING, approvedProductSlugsForGuide, productCategoryForGuide, productsAppropriateForGuide } from "../../shared/guide-links";
 import { AQUAVO_PRODUCT_CATEGORIES } from "../../shared/seo-contract";
 
 /**
@@ -72,5 +72,40 @@ describe("React guide routes", () => {
     expect(routes.length).toBeGreaterThanOrEqual(20);
     const missing = routes.filter((m) => !m[0].includes("<GuideRelatedProducts />")).map((m) => m[1]);
     expect(missing).toEqual([]);
+  });
+});
+
+describe("dechlorinator guide recommendations must not be unrelated treatments", () => {
+  it("shows only the reviewed chlorine remover, not antibiotics, dye or bacteria", () => {
+    const guide = "/guides/water-conditioner-guide";
+    const rows = [
+      { slug: "c2-1016", name: "بكتيريا نافعة", stock: 8, price: 16450 },
+      { slug: "yyh-207", name: "أزرق الميثيلين", stock: 7, price: 11800 },
+      { slug: "yyh-039", name: "مزيل كلور ومعالج مياه", stock: 3, price: 9499 },
+      { slug: "c2-1005", name: "كبسولات بكتيريا", stock: 13, price: 8600 },
+    ];
+    expect(approvedProductSlugsForGuide(guide)).toEqual(["yyh-039"]);
+    expect(productsAppropriateForGuide(guide, rows).map((row) => row.slug)).toEqual(["yyh-039"]);
+    expect(guideProductsFromRows(productsAppropriateForGuide(guide, rows)).map((row) => row.slug)).toEqual(["yyh-039"]);
+  });
+
+  it("keeps ordinary category guides unchanged, and hides unreviewed substitutions", () => {
+    const rows = [{ slug: "yyh-207" }, { slug: "c2-1005" }];
+    expect(productsAppropriateForGuide("/guides/water-conditioner-guide", rows)).toEqual([]);
+    expect(productsAppropriateForGuide("/guides/filter-choice", rows)).toEqual(rows);
+  });
+
+  it("uses the curated filter in both crawler and visitor renderers", () => {
+    const root = process.cwd();
+    const files = [
+      "api/ssr-meta.ts",
+      "api/_ssr-preview-source.ts",
+      "client/src/components/seo/guide-related-products.tsx",
+    ];
+    for (const file of files) {
+      expect(readFileSync(resolve(root, file), "utf8"), file).toContain("productsAppropriateForGuide");
+    }
+    expect(readFileSync(resolve(root, "api/ssr-meta.ts"), "utf8"))
+      .toContain("slug = ANY($2::text[])");
   });
 });
