@@ -245,7 +245,8 @@ describe("IndexNow: shared SEO source changes since the last acknowledged releas
   };
 
   it("detects guide edits even when the lastmod is months old", () => {
-    expect(releaseScopesForFiles(["api/_guides-content.ts", "shared/guide-links.ts"])).toEqual(["guides"]);
+    expect(releaseScopesForFiles(["api/_guides-content.ts"])).toEqual(["guides"]);
+    expect(releaseScopesForFiles(["shared/guide-links.ts"])).toEqual(["guides", "pages", "products"]);
     expect(selectReleaseChangedUrls(groups, ["api/_guides-content.ts"]))
       .toEqual([`${BASE_URL}/guides/water-conditioner-guide`]);
   });
@@ -262,6 +263,16 @@ describe("IndexNow: shared SEO source changes since the last acknowledged releas
       `${BASE_URL}/guides/water-conditioner-guide`,
       `${BASE_URL}/products/verified`,
     ]);
+  });
+
+  it("covers static pages, guides and products when shared guide links change", () => {
+    expect(selectReleaseChangedUrls(groups, ["shared/guide-links.ts"])).toEqual([
+      `${BASE_URL}/`,
+      `${BASE_URL}/guides/water-conditioner-guide`,
+      `${BASE_URL}/products/verified`,
+    ]);
+    expect(releaseScopesForFiles(["api/_seo-content.ts"])).toEqual(["guides", "pages"]);
+    expect(releaseScopesForFiles(["shared/seo-contract.ts"])).toEqual(["blog", "guides", "pages", "products"]);
   });
 
   it("ignores unrelated styles, builds and unknown files instead of resubmitting everything", () => {
