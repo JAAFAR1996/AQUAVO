@@ -19,6 +19,7 @@ import { readFile, writeFile } from "node:fs/promises";
 
 import {
   INDEXNOW_ENDPOINT,
+  MAX_URLS_PER_POST,
   INDEXNOW_KEY,
   INDEXNOW_KEY_LOCATION,
   SITEMAPS,
@@ -27,6 +28,7 @@ import {
   nextLedger,
   parseSitemapEntries,
   selectChangedUrls,
+  selectReleaseChangedUrls,
 } from "./indexnow-core.mjs";
 
 const LEDGER_PATH = process.env.INDEXNOW_LEDGER ?? ".indexnow-ledger.json";
@@ -64,22 +66,90 @@ async function readLedger() {
   }
 }
 
+
+const RELEASE_STATE_PATH = process.env.INDEXNOW_RELEASE_STATE ?? ".indexnow-release.json";
+const DEPLOY_SHA = process.env.INDEXNOW_DEPLOY_SHA ?? "";
+const REPOSITORY = process.env.INDEXNOW_REPOSITORY ?? "";
+
+function validSha(value) {
+  return /^[a-f0-9]{40}$/.test(value ?? "");
+}
+
+async function readReleaseState() {
+  try {
+    const state = JSON.parse(await readFile(RELEASE_STATE_PATH, "utf8"));
+    return validSha(state?.sha) && state.repository === REPOSITORY ? state.sha : null;
+  } catch {
+    return null;
+  }
+}
+
+// GitHub's compare API identifies source changes across deployments. A failed
+// or truncated comparison MUST NOT advance the checkpoint or silently drop URLs.
+async function changedFilesSince(previousSha, currentSha) {
+  if (!validSha(previousSha) || !validSha(currentSha) || previousSha === currentSha) return [];
+  if (REPOSITORY !== "JAAFAR1996/AQUAVO" || !process.env.GH_TOKEN) {
+    throw new Error("Release diff requires the authorized AQUAVO repository and GH_TOKEN");
+  }
+  const url = "https://api.github.com/repos/" + REPOSITORY + "/compare/" + previousSha + "..." + currentSha;
+  const response = await fetch(url, {
+    headers: {
+      accept: "application/vnd.github+json",
+      authorization: "Bearer " + process.env.GH_TOKEN,
+      "user-agent": "AQUAVO-IndexNow/2.1",
+      "x-github-api-version": "2022-11-28",
+    },
+  });
+  if (!response.ok) throw new Error("GitHub release comparison returned " + response.status);
+  const comparison = await response.json();
+  if (!["ahead", "identical"].includes(comparison.status)) {
+    throw new Error("Unexpected release comparison direction: " + comparison.status);
+  }
+  if (!Array.isArray(comparison.files) || comparison.files.length >= 300 || comparison.total_commits > 250) {
+    throw new Error("GitHub release diff exceeds the safe comparison limit");
+  }
+  const filenames = comparison.files.map((item) => item.filename).filter((name) => typeof name === "string");
+  console.log("Release diff: " + filenames.length + " source file(s) since the last acknowledged deployment.");
+  return filenames;
+}
+
+async function checkpointRelease() {
+  if (!validSha(DEPLOY_SHA)) return;
+  await writeFile(RELEASE_STATE_PATH, JSON.stringify({ sha: DEPLOY_SHA, repository: REPOSITORY }, null, 2) + "\n", "utf8");
+}
+
 async function main() {
   await assertKeyIsLive();
 
   const entries = [];
+  const sitemapGroups = {};
   for (const sitemap of SITEMAPS) {
     const found = parseSitemapEntries(await fetchText(sitemap));
+    const group = new URL(sitemap).pathname.match(/^\/sitemap-(pages|products|guides|blog)\.xml$/)?.[1];
+    if (!group) throw new Error("Unexpected sitemap name: " + sitemap);
+    sitemapGroups[group] = found;
     console.log(`${sitemap}: ${found.length} URL(s)`);
     entries.push(...found);
   }
 
   const ledger = await readLedger();
   const today = new Date().toISOString().slice(0, 10);
-  const urls = selectChangedUrls(entries, { ledger, today, windowDays: WINDOW_DAYS });
+
+  const previousReleaseSha = await readReleaseState();
+  const changedFiles = previousReleaseSha
+    ? await changedFilesSince(previousReleaseSha, DEPLOY_SHA)
+    : [];
+  if (!previousReleaseSha && validSha(DEPLOY_SHA)) {
+    console.log("First release-aware run: establishing a baseline; sitemap recency remains active.");
+  }
+  const datedUrls = selectChangedUrls(entries, { ledger, today, windowDays: WINDOW_DAYS });
+  const releaseUrls = selectReleaseChangedUrls(sitemapGroups, changedFiles);
+  console.log("New sitemap dates: " + datedUrls.length + "; shared source changes: " + releaseUrls.length);
+  const urls = [...new Set([...datedUrls, ...releaseUrls])].sort().slice(0, MAX_URLS_PER_POST);
 
   if (urls.length === 0) {
-    console.log("Nothing changed within the window that has not already been submitted.");
+    console.log("No new sitemap timestamps or SEO source changes to submit.");
+    if (!DRY_RUN) await checkpointRelease();
     return;
   }
   console.log(`Submitting ${urls.length} changed URL(s):`);
@@ -102,6 +172,7 @@ async function main() {
   if (verdict.ok) {
     await writeFile(LEDGER_PATH, `${JSON.stringify(nextLedger(ledger, entries, urls), null, 2)}\n`, "utf8");
     console.log(`Ledger updated with ${urls.length} URL(s).`);
+    await checkpointRelease();
     return;
   }
   if (verdict.retryable) {
