@@ -1,0 +1,3394 @@
+[
+  {
+    "id": "houyi-dophin-skimmer",
+    "name": "سكيمر سطح DoPhin لإزالة الطبقة الزيتية",
+    "slug": "houyi-dophin-electric-skimmer",
+    "before": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "كاشطات سطحية"
+    },
+    "after": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "سكيمر سطح"
+    },
+    "changed": true
+  },
+  {
+    "id": "yee-c1-1082-5",
+    "name": "طعام أسماك الزينة عالي البروتين — 115 غرام",
+    "slug": "c1-1082",
+    "before": {
+      "category": "طعام الأسماك",
+      "categoryId": "1e3c6ec2-1bdf-4c60-a02f-b24aedb7fb8d",
+      "subcategory": "أعلاف عامة"
+    },
+    "after": {
+      "category": "طعام الأسماك",
+      "categoryId": "1e3c6ec2-1bdf-4c60-a02f-b24aedb7fb8d",
+      "subcategory": "أعلاف عامة"
+    },
+    "changed": false
+  },
+  {
+    "id": "aquavo-driftwood-dw-01",
+    "name": "خشب طبيعي للأحواض والأكواسكيب — DW-01",
+    "slug": "aquavo-driftwood-dw-01",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أخشاب طبيعية"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أخشاب طبيعية"
+    },
+    "changed": false
+  },
+  {
+    "id": "botanical-almond-bark-10",
+    "name": "لحاء اللوز الطبيعي للأحواض — 10 قطع",
+    "slug": "almond-bark-10",
+    "before": {
+      "category": "معالجة المياه",
+      "categoryId": "6fb87a1a-333e-4844-af5d-c032289363ed",
+      "subcategory": "مواد طبيعية"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أوراق وقشور طبيعية"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-gauze-isolation-net",
+    "name": "شبكة عزل الأسماك داخل الحوض",
+    "slug": "houyi-gauze-isolation-net",
+    "before": {
+      "category": "العزل والتفريخ",
+      "categoryId": "ea147ea7-d8e1-4956-bee9-222a3db91538",
+      "subcategory": "عزل الأسماك"
+    },
+    "after": {
+      "category": "العزل والتفريخ",
+      "categoryId": "ea147ea7-d8e1-4956-bee9-222a3db91538",
+      "subcategory": "حاضنات وعزل"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-planting-ring",
+    "name": "حلقة سيراميك لتثبيت النباتات في القاع",
+    "slug": "houyi-planting-ring",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "إكسسوارات"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أدوات وتثبيت النباتات"
+    },
+    "changed": true
+  },
+  {
+    "id": "botanical-banana-leaf-stems-10",
+    "name": "سيقان أوراق الموز الطبيعية للأحواض — 10 قطع",
+    "slug": "banana-leaf-stems-10",
+    "before": {
+      "category": "معالجة المياه",
+      "categoryId": "6fb87a1a-333e-4844-af5d-c032289363ed",
+      "subcategory": "مواد طبيعية"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أوراق وقشور طبيعية"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-silicone-121",
+    "name": "سيليكون شفاف لتجميع وإصلاح الأحواض",
+    "slug": "houyi-silicone-121",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "لواصق"
+    },
+    "after": {
+      "category": "أحواض",
+      "categoryId": "754e2ef5-7d30-49d9-a46a-e0f35466efcf",
+      "subcategory": "إكسسوارات الأحواض"
+    },
+    "changed": true
+  },
+  {
+    "id": "aquavo-driftwood-dw-11",
+    "name": "خشب طبيعي للأحواض والأكواسكيب — DW-11",
+    "slug": "aquavo-driftwood-dw-11",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أخشاب طبيعية"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أخشاب طبيعية"
+    },
+    "changed": false
+  },
+  {
+    "id": "botanical-banana-leaves-4x4-10",
+    "name": "قطع أوراق الموز الطبيعية للأحواض — 4×4 إنش، 10 قطع",
+    "slug": "banana-leaves-4x4-10",
+    "before": {
+      "category": "معالجة المياه",
+      "categoryId": "6fb87a1a-333e-4844-af5d-c032289363ed",
+      "subcategory": "مواد طبيعية"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أوراق وقشور طبيعية"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-moss-glue-5g",
+    "name": "غراء أكواسكيب لتثبيت الموس — 5 غرام",
+    "slug": "houyi-moss-glue-5g",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "إكسسوارات"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أدوات وتثبيت النباتات"
+    },
+    "changed": true
+  },
+  {
+    "id": "botanical-catappa-leaves-10",
+    "name": "أوراق الكاتابا الطبيعية للأحواض — 10 أوراق",
+    "slug": "catappa-leaves-10",
+    "before": {
+      "category": "معالجة المياه",
+      "categoryId": "6fb87a1a-333e-4844-af5d-c032289363ed",
+      "subcategory": "مواد طبيعية"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أوراق وقشور طبيعية"
+    },
+    "changed": true
+  },
+  {
+    "id": "sunsun-air-pump",
+    "name": "مضخة هواء SUNSUN — منفذان",
+    "slug": "sunsun-air-pump",
+    "before": {
+      "category": "التهوية والأكسجين",
+      "categoryId": "7cb8fbad-24cf-4b5b-b5e9-8da34a18a533",
+      "subcategory": "مضخات هواء"
+    },
+    "after": {
+      "category": "التهوية والأكسجين",
+      "categoryId": "7cb8fbad-24cf-4b5b-b5e9-8da34a18a533",
+      "subcategory": "مضخات هواء"
+    },
+    "changed": false
+  },
+  {
+    "id": "yee-02856a",
+    "name": "مسحوق معالجة للحالات البكتيرية — 10 أكياس",
+    "slug": "yyh-006",
+    "before": {
+      "category": "معالجة المياه",
+      "categoryId": "6fb87a1a-333e-4844-af5d-c032289363ed",
+      "subcategory": "علاج الأمراض"
+    },
+    "after": {
+      "category": "معالجة المياه",
+      "categoryId": "6fb87a1a-333e-4844-af5d-c032289363ed",
+      "subcategory": "علاج الأمراض"
+    },
+    "changed": false
+  },
+  {
+    "id": "botanical-cinnamon-bark-5",
+    "name": "لحاء القرفة الطبيعي للأحواض — 5 قطع",
+    "slug": "cinnamon-bark-5",
+    "before": {
+      "category": "معالجة المياه",
+      "categoryId": "6fb87a1a-333e-4844-af5d-c032289363ed",
+      "subcategory": "مواد طبيعية"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أوراق وقشور طبيعية"
+    },
+    "changed": true
+  },
+  {
+    "id": "botanical-coco-palm-bract-10",
+    "name": "قطع نخيل جوز الهند الطبيعية للأحواض — 10 قطع",
+    "slug": "coco-palm-bract-10",
+    "before": {
+      "category": "معالجة المياه",
+      "categoryId": "6fb87a1a-333e-4844-af5d-c032289363ed",
+      "subcategory": "مواد طبيعية"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أوراق وقشور طبيعية"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-net-bag",
+    "name": "كيس شبكي لميديا الفلتر",
+    "slug": "houyi-net-bag",
+    "before": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "مواد الفلترة"
+    },
+    "after": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "ميديا الفلترة"
+    },
+    "changed": true
+  },
+  {
+    "id": "yee-1-5-1-7",
+    "name": "سخان ستانلس قابل لضبط الحرارة — 50 / 100 / 200 واط",
+    "slug": "yee-3006",
+    "before": {
+      "category": "التحكم بالحرارة",
+      "categoryId": "1165697b-96b0-4582-ab30-dba0e9233c4e",
+      "subcategory": "سخانات"
+    },
+    "after": {
+      "category": "التحكم بالحرارة",
+      "categoryId": "1165697b-96b0-4582-ab30-dba0e9233c4e",
+      "subcategory": "سخانات"
+    },
+    "changed": false
+  },
+  {
+    "id": "houyi-cleaning-towel",
+    "name": "منشفة مايكروفايبر لتنظيف زجاج الحوض",
+    "slug": "houyi-cleaning-towel",
+    "before": {
+      "category": "الصيانة والتنظيف",
+      "categoryId": "9cfde3f2-3b10-4c7d-a596-baaeced2f091",
+      "subcategory": "أدوات التنظيف"
+    },
+    "after": {
+      "category": "الصيانة والتنظيف",
+      "categoryId": "9cfde3f2-3b10-4c7d-a596-baaeced2f091",
+      "subcategory": "تنظيف الكزاز"
+    },
+    "changed": true
+  },
+  {
+    "id": "botanical-coconut-curls-10",
+    "name": "لفائف جوز الهند الطبيعية للأحواض — 10 قطع",
+    "slug": "coconut-curls-10",
+    "before": {
+      "category": "معالجة المياه",
+      "categoryId": "6fb87a1a-333e-4844-af5d-c032289363ed",
+      "subcategory": "مواد طبيعية"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أوراق وقشور طبيعية"
+    },
+    "changed": true
+  },
+  {
+    "id": "yee-17831",
+    "name": "ميديا فلترة 6 في 1 — 500 غرام",
+    "slug": "ylc-409",
+    "before": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "مواد الفلترة"
+    },
+    "after": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "ميديا الفلترة"
+    },
+    "changed": true
+  },
+  {
+    "id": "yee-c1-1125-1",
+    "name": "طعام سرطان الناسك مجفّف — 55 غرام",
+    "slug": "c1-1125",
+    "before": {
+      "category": "طعام الأسماك",
+      "categoryId": "1e3c6ec2-1bdf-4c60-a02f-b24aedb7fb8d",
+      "subcategory": "أعلاف متخصصة"
+    },
+    "after": {
+      "category": "طعام الأسماك",
+      "categoryId": "1e3c6ec2-1bdf-4c60-a02f-b24aedb7fb8d",
+      "subcategory": "أعلاف متخصصة"
+    },
+    "changed": false
+  },
+  {
+    "id": "yee-06255",
+    "name": "حوض Ultra Clear فائق الشفافية بدون إطار — 6 مقاسات",
+    "slug": "yxl-003",
+    "before": {
+      "category": "أحواض",
+      "categoryId": "754e2ef5-7d30-49d9-a46a-e0f35466efcf",
+      "subcategory": "أحواض زجاجية"
+    },
+    "after": {
+      "category": "أحواض",
+      "categoryId": "754e2ef5-7d30-49d9-a46a-e0f35466efcf",
+      "subcategory": "أحواض زجاجية"
+    },
+    "changed": false
+  },
+  {
+    "id": "yee-c1-1086-1",
+    "name": "أرتيميا مجففة بالتجميد — 18 غرام",
+    "slug": "c1-1086",
+    "before": {
+      "category": "طعام الأسماك",
+      "categoryId": "1e3c6ec2-1bdf-4c60-a02f-b24aedb7fb8d",
+      "subcategory": "طعام حي ومجفف"
+    },
+    "after": {
+      "category": "طعام الأسماك",
+      "categoryId": "1e3c6ec2-1bdf-4c60-a02f-b24aedb7fb8d",
+      "subcategory": "أرتيميا وأغذية مجففة"
+    },
+    "changed": true
+  },
+  {
+    "id": "botanical-guava-leaves-10",
+    "name": "أوراق الجوافة الطبيعية للأحواض — 10 أوراق",
+    "slug": "guava-leaves-10",
+    "before": {
+      "category": "معالجة المياه",
+      "categoryId": "6fb87a1a-333e-4844-af5d-c032289363ed",
+      "subcategory": "مواد طبيعية"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أوراق وقشور طبيعية"
+    },
+    "changed": true
+  },
+  {
+    "id": "yee-c4-1008-1",
+    "name": "صندوق ولادة وحماية صغار الأسماك — عائم وشفاف",
+    "slug": "c4-1008",
+    "before": {
+      "category": "العزل والتفريخ",
+      "categoryId": "ea147ea7-d8e1-4956-bee9-222a3db91538",
+      "subcategory": "صناديق عزل"
+    },
+    "after": {
+      "category": "العزل والتفريخ",
+      "categoryId": "ea147ea7-d8e1-4956-bee9-222a3db91538",
+      "subcategory": "حاضنات وعزل"
+    },
+    "changed": true
+  },
+  {
+    "id": "botanical-lotus-pods-10",
+    "name": "رؤوس بذور اللوتس الطبيعية — 9–11 سم، 10 قطع",
+    "slug": "lotus-pods-10",
+    "before": {
+      "category": "معالجة المياه",
+      "categoryId": "6fb87a1a-333e-4844-af5d-c032289363ed",
+      "subcategory": "مواد طبيعية"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أوراق وقشور طبيعية"
+    },
+    "changed": true
+  },
+  {
+    "id": "yee-c2-1016-2",
+    "name": "بكتيريا نافعة وبروبيوتيك للأحواض — 400 أو 760 مل",
+    "slug": "c2-1016",
+    "before": {
+      "category": "معالجة المياه",
+      "categoryId": "6fb87a1a-333e-4844-af5d-c032289363ed",
+      "subcategory": "معالجات المياه"
+    },
+    "after": {
+      "category": "معالجة المياه",
+      "categoryId": "6fb87a1a-333e-4844-af5d-c032289363ed",
+      "subcategory": "بكتيريا نافعة"
+    },
+    "changed": true
+  },
+  {
+    "id": "botanical-mulberry-leaves-10",
+    "name": "أوراق التوت الطبيعية للأحواض — 10 أوراق",
+    "slug": "mulberry-leaves-10",
+    "before": {
+      "category": "معالجة المياه",
+      "categoryId": "6fb87a1a-333e-4844-af5d-c032289363ed",
+      "subcategory": "مواد طبيعية"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أوراق وقشور طبيعية"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-medium-cotton",
+    "name": "قطن تثبيت للموس والنباتات — 50 غرام",
+    "slug": "houyi-medium-cotton",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "تثبيت النباتات"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أدوات وتثبيت النباتات"
+    },
+    "changed": true
+  },
+  {
+    "id": "botanical-casuarina-pods-10",
+    "name": "مخاريط الكازوارينا الطبيعية للأحواض — 10 قطع",
+    "slug": "casuarina-pods-10",
+    "before": {
+      "category": "معالجة المياه",
+      "categoryId": "6fb87a1a-333e-4844-af5d-c032289363ed",
+      "subcategory": "مواد طبيعية"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أوراق وقشور طبيعية"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-hose-brush",
+    "name": "فرشاة تنظيف خراطيم الفلتر مزدوجة — 1.55 متر",
+    "slug": "houyi-hose-brush",
+    "before": {
+      "category": "الصيانة والتنظيف",
+      "categoryId": "9cfde3f2-3b10-4c7d-a596-baaeced2f091",
+      "subcategory": "أدوات التنظيف"
+    },
+    "after": {
+      "category": "الصيانة والتنظيف",
+      "categoryId": "9cfde3f2-3b10-4c7d-a596-baaeced2f091",
+      "subcategory": "تنظيف الصوندات"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-blue-dragon-stone",
+    "name": "حجر التنين الأزرق (دراقون ستون) — 1 كغم",
+    "slug": "houyi-blue-dragon-stone",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أحجار"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أحجار طبيعية"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-decorative-sands-2-5kg",
+    "name": "رمال ديكورية بألوان ومقاسات متعددة — 2.5 كغم",
+    "slug": "houyi-decorative-sands-2-5kg",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "رمال"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "رمل وحصى"
+    },
+    "changed": true
+  },
+  {
+    "id": "yee-02938a",
+    "name": "أزرق الميثيلين للأحواض — 235 مل",
+    "slug": "yyh-053",
+    "before": {
+      "category": "معالجة المياه",
+      "categoryId": "6fb87a1a-333e-4844-af5d-c032289363ed",
+      "subcategory": "علاج الأمراض"
+    },
+    "after": {
+      "category": "معالجة المياه",
+      "categoryId": "6fb87a1a-333e-4844-af5d-c032289363ed",
+      "subcategory": "علاج الأمراض"
+    },
+    "changed": false
+  },
+  {
+    "id": "yee-c4-1117-1",
+    "name": "مكنسة قاع كهربائية للأحواض — 20 واط",
+    "slug": "mknsh-rml-khrbayyh-20-wat",
+    "before": {
+      "category": "الصيانة والتنظيف",
+      "categoryId": "9cfde3f2-3b10-4c7d-a596-baaeced2f091",
+      "subcategory": "الصيانة والتنظيف"
+    },
+    "after": {
+      "category": "الصيانة والتنظيف",
+      "categoryId": "9cfde3f2-3b10-4c7d-a596-baaeced2f091",
+      "subcategory": "تغيير المي وتنظيف القاع"
+    },
+    "changed": true
+  },
+  {
+    "id": "yee-c5-1144-1a",
+    "name": "سيفون تنظيف الحوض وتغيير الماء — 1.5 أو 1.7 متر",
+    "slug": "yee-c5-1144-1a",
+    "before": {
+      "category": "الصيانة والتنظيف",
+      "categoryId": "9cfde3f2-3b10-4c7d-a596-baaeced2f091",
+      "subcategory": "أدوات التنظيف"
+    },
+    "after": {
+      "category": "الصيانة والتنظيف",
+      "categoryId": "9cfde3f2-3b10-4c7d-a596-baaeced2f091",
+      "subcategory": "تغيير المي وتنظيف القاع"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-hose-clamp",
+    "name": "مشابك تثبيت خرطوم على حافة الحوض",
+    "slug": "mshbk-tthbyt-khrtwm-ala-alhwd",
+    "before": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "مشابك تثبيت"
+    },
+    "after": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "تثبيت وحماية المداخل"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-telescopic-fishnet",
+    "name": "شبكة صيد تلسكوبية — ستانلس ستيل",
+    "slug": "houyi-telescopic-fishnet",
+    "before": {
+      "category": "العزل والتفريخ",
+      "categoryId": "ea147ea7-d8e1-4956-bee9-222a3db91538",
+      "subcategory": "شباك صيد"
+    },
+    "after": {
+      "category": "العزل والتفريخ",
+      "categoryId": "ea147ea7-d8e1-4956-bee9-222a3db91538",
+      "subcategory": "شباك صيد"
+    },
+    "changed": false
+  },
+  {
+    "id": "yee-c3-1010-3",
+    "name": "اختبار سائل للأمونيا أو النتريت — 60 أو 100 فحص",
+    "slug": "c3-1010",
+    "before": {
+      "category": "الفحص والمراقبة",
+      "categoryId": "db9d816c-ac55-4cef-8f6b-01490072163c",
+      "subcategory": "أدوات فحص المياه"
+    },
+    "after": {
+      "category": "الفحص والمراقبة",
+      "categoryId": "db9d816c-ac55-4cef-8f6b-01490072163c",
+      "subcategory": "أدوات فحص المياه"
+    },
+    "changed": false
+  },
+  {
+    "id": "houyi-feeding-cup",
+    "name": "كوب تغذية أسماك بماصة شفط",
+    "slug": "houyi-feeding-cup",
+    "before": {
+      "category": "طعام الأسماك",
+      "categoryId": "1e3c6ec2-1bdf-4c60-a02f-b24aedb7fb8d",
+      "subcategory": "أدوات التغذية"
+    },
+    "after": {
+      "category": "طعام الأسماك",
+      "categoryId": "1e3c6ec2-1bdf-4c60-a02f-b24aedb7fb8d",
+      "subcategory": "أدوات التغذية"
+    },
+    "changed": false
+  },
+  {
+    "id": "houyi-nylon-fishing-net",
+    "name": "شبكة صيد نايلون ناعمة",
+    "slug": "houyi-nylon-fishing-net",
+    "before": {
+      "category": "العزل والتفريخ",
+      "categoryId": "ea147ea7-d8e1-4956-bee9-222a3db91538",
+      "subcategory": "شباك صيد"
+    },
+    "after": {
+      "category": "العزل والتفريخ",
+      "categoryId": "ea147ea7-d8e1-4956-bee9-222a3db91538",
+      "subcategory": "شباك صيد"
+    },
+    "changed": false
+  },
+  {
+    "id": "yee-c1-1113-2",
+    "name": "طعام للأسماك صغيرة الفم — 75 غرام",
+    "slug": "c1-1113",
+    "before": {
+      "category": "طعام الأسماك",
+      "categoryId": "1e3c6ec2-1bdf-4c60-a02f-b24aedb7fb8d",
+      "subcategory": "أعلاف عامة"
+    },
+    "after": {
+      "category": "طعام الأسماك",
+      "categoryId": "1e3c6ec2-1bdf-4c60-a02f-b24aedb7fb8d",
+      "subcategory": "أعلاف عامة"
+    },
+    "changed": false
+  },
+  {
+    "id": "as-aquarium-light-hanging-bracket",
+    "name": "حامل تعليق إنارة الحوض",
+    "slug": "as-aquarium-light-hanging-bracket",
+    "before": {
+      "category": "الإضاءة",
+      "categoryId": "12108ef0-0174-4096-9b6c-cd386563037d",
+      "subcategory": "حوامل الإضاءة"
+    },
+    "after": {
+      "category": "الإضاءة",
+      "categoryId": "12108ef0-0174-4096-9b6c-cd386563037d",
+      "subcategory": "حوامل الإضاءة"
+    },
+    "changed": false
+  },
+  {
+    "id": "hygger-hg153-202610",
+    "name": "فلتر داخلي لتنقية الماء مع تهوية وتدفق قابل للتعديل",
+    "slug": "hygger-internal-filter-aeration-adjustable-flow",
+    "before": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "فلاتر داخلية"
+    },
+    "after": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "فلاتر كاملة"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-acrylic-tool-rack",
+    "name": "حامل أدوات أكواسكيب على حافة الحوض — أكريليك شفاف",
+    "slug": "houyi-acrylic-tool-rack",
+    "before": {
+      "category": "الصيانة والتنظيف",
+      "categoryId": "9cfde3f2-3b10-4c7d-a596-baaeced2f091",
+      "subcategory": "تنظيم وتخزين"
+    },
+    "after": {
+      "category": "الصيانة والتنظيف",
+      "categoryId": "9cfde3f2-3b10-4c7d-a596-baaeced2f091",
+      "subcategory": "تنظيم وتخزين"
+    },
+    "changed": false
+  },
+  {
+    "id": "houyi-pine-bark-stone-10-40cm",
+    "name": "حجر باين بارك ذو التجاويف — 10–40 سم",
+    "slug": "houyi-pine-bark-stone-10-40cm",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أحجار"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أحجار طبيعية"
+    },
+    "changed": true
+  },
+  {
+    "id": "botanical-jackfruit-leaves-10",
+    "name": "أوراق الجاك فروت الطبيعية للأحواض — 10 أوراق",
+    "slug": "jackfruit-leaves-10",
+    "before": {
+      "category": "معالجة المياه",
+      "categoryId": "6fb87a1a-333e-4844-af5d-c032289363ed",
+      "subcategory": "مواد طبيعية"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أوراق وقشور طبيعية"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-petrified-wood-stone",
+    "name": "حجر الخشب المتحجر لتنسيق يجمع مظهر الخشب والصخر",
+    "slug": "houyi-petrified-wood-stone",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أحجار"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أحجار طبيعية"
+    },
+    "changed": true
+  },
+  {
+    "id": "botanical-arjuna-pods-10",
+    "name": "ثمار الأرجونا الطبيعية للأحواض — 10 قطع",
+    "slug": "arjuna-pods-10",
+    "before": {
+      "category": "معالجة المياه",
+      "categoryId": "6fb87a1a-333e-4844-af5d-c032289363ed",
+      "subcategory": "مواد طبيعية"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أوراق وقشور طبيعية"
+    },
+    "changed": true
+  },
+  {
+    "id": "yee-c4-1123-1a",
+    "name": "شرائط فحص مياه الأحواض 9 في 1 — 50 شريط",
+    "slug": "c4-1123",
+    "before": {
+      "category": "الفحص والمراقبة",
+      "categoryId": "db9d816c-ac55-4cef-8f6b-01490072163c",
+      "subcategory": "أدوات فحص المياه"
+    },
+    "after": {
+      "category": "الفحص والمراقبة",
+      "categoryId": "db9d816c-ac55-4cef-8f6b-01490072163c",
+      "subcategory": "أدوات فحص المياه"
+    },
+    "changed": false
+  },
+  {
+    "id": "qanvee-lh-600-replacement-sponge",
+    "name": "إسفنج بديل QANVEE LH-600",
+    "slug": "qanvee-lh-600-replacement-sponge",
+    "before": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "مواد الفلترة"
+    },
+    "after": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "قطع غيار الفلاتر"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-ceramic-ring",
+    "name": "حلقات سيراميك للفلترة البيولوجية — 1 كغم",
+    "slug": "houyi-ceramic-ring",
+    "before": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "مواد الفلترة"
+    },
+    "after": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "ميديا الفلترة"
+    },
+    "changed": true
+  },
+  {
+    "id": "yee-22015a",
+    "name": "شبك مغناطيسي لمنع قفز الأسماك — 100×40 سم",
+    "slug": "ykl-086",
+    "before": {
+      "category": "العزل والتفريخ",
+      "categoryId": "ea147ea7-d8e1-4956-bee9-222a3db91538",
+      "subcategory": "وسائل حماية الأسماك"
+    },
+    "after": {
+      "category": "أحواض",
+      "categoryId": "754e2ef5-7d30-49d9-a46a-e0f35466efcf",
+      "subcategory": "إكسسوارات الأحواض"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-sucker-buckle",
+    "name": "ماصات تثبيت معدات الحوض على الزجاج",
+    "slug": "houyi-sucker-buckle",
+    "before": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "شفط وتثبيت"
+    },
+    "after": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "تثبيت وحماية المداخل"
+    },
+    "changed": true
+  },
+  {
+    "id": "yee-21519",
+    "name": "سخان YEE معدني صغير مع شاشة — 25 واط",
+    "slug": "yee-10080",
+    "before": {
+      "category": "التحكم بالحرارة",
+      "categoryId": "1165697b-96b0-4582-ab30-dba0e9233c4e",
+      "subcategory": "سخانات"
+    },
+    "after": {
+      "category": "التحكم بالحرارة",
+      "categoryId": "1165697b-96b0-4582-ab30-dba0e9233c4e",
+      "subcategory": "سخانات"
+    },
+    "changed": false
+  },
+  {
+    "id": "houyi-acrylic-pipe-clamp",
+    "name": "مشبك أكريليك لتثبيت أنابيب الفلتر",
+    "slug": "houyi-acrylic-pipe-clamp",
+    "before": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "مشابك تثبيت"
+    },
+    "after": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "تثبيت وحماية المداخل"
+    },
+    "changed": true
+  },
+  {
+    "id": "seachem-prime-250ml",
+    "name": "معالج مياه Seachem Prime — 250 مل",
+    "slug": "seachem-prime-250ml",
+    "before": {
+      "category": "معالجة المياه",
+      "categoryId": "6fb87a1a-333e-4844-af5d-c032289363ed",
+      "subcategory": "معالجات المياه"
+    },
+    "after": {
+      "category": "معالجة المياه",
+      "categoryId": "6fb87a1a-333e-4844-af5d-c032289363ed",
+      "subcategory": "مزيلات كلور ومعالجات المي"
+    },
+    "changed": true
+  },
+  {
+    "id": "yee-c4-1490-1",
+    "name": "شبكة صيد أسماك صغيرة بمقبض فايبر غلاس — YEE",
+    "slug": "c4-1490",
+    "before": {
+      "category": "العزل والتفريخ",
+      "categoryId": "ea147ea7-d8e1-4956-bee9-222a3db91538",
+      "subcategory": "شباك صيد"
+    },
+    "after": {
+      "category": "العزل والتفريخ",
+      "categoryId": "ea147ea7-d8e1-4956-bee9-222a3db91538",
+      "subcategory": "شباك صيد"
+    },
+    "changed": false
+  },
+  {
+    "id": "shrimp-feeding-tube-35cm",
+    "name": "بوري إطعام الروبيان مع حامل — 35 سم",
+    "slug": "shrimp-feeding-tube-35cm",
+    "before": {
+      "category": "طعام الأسماك",
+      "categoryId": "1e3c6ec2-1bdf-4c60-a02f-b24aedb7fb8d",
+      "subcategory": "أدوات التغذية"
+    },
+    "after": {
+      "category": "طعام الأسماك",
+      "categoryId": "1e3c6ec2-1bdf-4c60-a02f-b24aedb7fb8d",
+      "subcategory": "أدوات التغذية"
+    },
+    "changed": false
+  },
+  {
+    "id": "yee-c6-1017-202610",
+    "name": "قاعدة حماية أسفل الحوض YEE — سوداء 6 ملم، 3 مقاسات",
+    "slug": "c6-1017",
+    "before": {
+      "category": "أحواض",
+      "categoryId": "754e2ef5-7d30-49d9-a46a-e0f35466efcf",
+      "subcategory": "قواعد حماية الأحواض"
+    },
+    "after": {
+      "category": "أحواض",
+      "categoryId": "754e2ef5-7d30-49d9-a46a-e0f35466efcf",
+      "subcategory": "قواعد حماية الأحواض"
+    },
+    "changed": false
+  },
+  {
+    "id": "yee-07116",
+    "name": "ميديا فلترة بيولوجية سيراميكية — أشكال مختلطة",
+    "slug": "yff-042",
+    "before": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "مواد الفلترة"
+    },
+    "after": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "ميديا الفلترة"
+    },
+    "changed": true
+  },
+  {
+    "id": "yee-c4-1562-1",
+    "name": "ميزان حرارة عمودي للأحواض YEE — أبيض",
+    "slug": "c4-1562",
+    "before": {
+      "category": "الفحص والمراقبة",
+      "categoryId": "db9d816c-ac55-4cef-8f6b-01490072163c",
+      "subcategory": "موازين حرارة"
+    },
+    "after": {
+      "category": "الفحص والمراقبة",
+      "categoryId": "db9d816c-ac55-4cef-8f6b-01490072163c",
+      "subcategory": "موازين حرارة"
+    },
+    "changed": false
+  },
+  {
+    "id": "sunsun-eh-external-heaters",
+    "name": "سخانات خارجية SUNSUN EH",
+    "slug": "sunsun-eh-external-heaters",
+    "before": {
+      "category": "التحكم بالحرارة",
+      "categoryId": "1165697b-96b0-4582-ab30-dba0e9233c4e",
+      "subcategory": "سخانات"
+    },
+    "after": {
+      "category": "التحكم بالحرارة",
+      "categoryId": "1165697b-96b0-4582-ab30-dba0e9233c4e",
+      "subcategory": "سخانات"
+    },
+    "changed": false
+  },
+  {
+    "id": "hygger-hg239-202610",
+    "name": "جهاز فحص ماء رقمي 5 في 1",
+    "slug": "hygger-five-in-one-water-meter",
+    "before": {
+      "category": "الفحص والمراقبة",
+      "categoryId": "db9d816c-ac55-4cef-8f6b-01490072163c",
+      "subcategory": "أدوات فحص المياه"
+    },
+    "after": {
+      "category": "الفحص والمراقبة",
+      "categoryId": "db9d816c-ac55-4cef-8f6b-01490072163c",
+      "subcategory": "أدوات فحص المياه"
+    },
+    "changed": false
+  },
+  {
+    "id": "yee-06741a",
+    "name": "مسحوق أصفر للأحواض YEE — 50 غرام",
+    "slug": "ywh-050",
+    "before": {
+      "category": "معالجة المياه",
+      "categoryId": "6fb87a1a-333e-4844-af5d-c032289363ed",
+      "subcategory": "مستحضرات الأحواض"
+    },
+    "after": {
+      "category": "معالجة المياه",
+      "categoryId": "6fb87a1a-333e-4844-af5d-c032289363ed",
+      "subcategory": "مستحضرات الأحواض"
+    },
+    "changed": false
+  },
+  {
+    "id": "houyi-moss-line",
+    "name": "خيط شفاف لتثبيت الموس على الخشب والحجر",
+    "slug": "houyi-moss-line",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "تثبيت النباتات"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أدوات وتثبيت النباتات"
+    },
+    "changed": true
+  },
+  {
+    "id": "yee-06834",
+    "name": "أملاح معادن وفيتامينات للأحواض — 500 غرام",
+    "slug": "yan-804",
+    "before": {
+      "category": "معالجة المياه",
+      "categoryId": "6fb87a1a-333e-4844-af5d-c032289363ed",
+      "subcategory": "أملاح ومعادن"
+    },
+    "after": {
+      "category": "معالجة المياه",
+      "categoryId": "6fb87a1a-333e-4844-af5d-c032289363ed",
+      "subcategory": "أملاح ومعادن"
+    },
+    "changed": false
+  },
+  {
+    "id": "yee-21467a",
+    "name": "منظف زجاج مغناطيسي كبير وقوي YEE",
+    "slug": "cls-149",
+    "before": {
+      "category": "الصيانة والتنظيف",
+      "categoryId": "9cfde3f2-3b10-4c7d-a596-baaeced2f091",
+      "subcategory": "أدوات التنظيف"
+    },
+    "after": {
+      "category": "الصيانة والتنظيف",
+      "categoryId": "9cfde3f2-3b10-4c7d-a596-baaeced2f091",
+      "subcategory": "تنظيف الكزاز"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-fat-injection",
+    "name": "سرنجة تغذية وتسميد دقيقة للأحواض",
+    "slug": "houyi-fat-injection",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "التسميد"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أدوات وتثبيت النباتات"
+    },
+    "changed": true
+  },
+  {
+    "id": "botanical-cocoa-pod",
+    "name": "قشرة ثمرة الكاكاو الطبيعية للأحواض",
+    "slug": "cocoa-pod",
+    "before": {
+      "category": "معالجة المياه",
+      "categoryId": "6fb87a1a-333e-4844-af5d-c032289363ed",
+      "subcategory": "مواد طبيعية"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أوراق وقشور طبيعية"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-white-sand",
+    "name": "رمل أبيض للأحواض والأكواسكيب",
+    "slug": "houyi-white-sand",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "رمال"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "رمل وحصى"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-moss-glue-20g",
+    "name": "غراء أكواسكيب لتثبيت الموس — 20 غرام",
+    "slug": "houyi-moss-glue-20g",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "إكسسوارات"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أدوات وتثبيت النباتات"
+    },
+    "changed": true
+  },
+  {
+    "id": "yee-71934",
+    "name": "مجموعة ميديا فلترة 16 في 1 — 2.5 كغم",
+    "slug": "ylc-410",
+    "before": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "مواد الفلترة"
+    },
+    "after": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "ميديا الفلترة"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-chubby-thermometer",
+    "name": "ميزان حرارة عريض للأحواض — سهل القراءة",
+    "slug": "houyi-chubby-thermometer",
+    "before": {
+      "category": "الفحص والمراقبة",
+      "categoryId": "db9d816c-ac55-4cef-8f6b-01490072163c",
+      "subcategory": "موازين حرارة"
+    },
+    "after": {
+      "category": "الفحص والمراقبة",
+      "categoryId": "db9d816c-ac55-4cef-8f6b-01490072163c",
+      "subcategory": "موازين حرارة"
+    },
+    "changed": false
+  },
+  {
+    "id": "houyi-foam-glue",
+    "name": "معجون ملء وإخفاء فواصل الديكور — لون الخشب",
+    "slug": "houyi-foam-glue",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "إكسسوارات"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أدوات وتثبيت النباتات"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-stainless-shunt",
+    "name": "موزع هواء ستانلس بتحكم مستقل — 4 أو 6 منافذ",
+    "slug": "houyi-stainless-shunt",
+    "before": {
+      "category": "التهوية والأكسجين",
+      "categoryId": "7cb8fbad-24cf-4b5b-b5e9-8da34a18a533",
+      "subcategory": "موزعات الهواء"
+    },
+    "after": {
+      "category": "التهوية والأكسجين",
+      "categoryId": "7cb8fbad-24cf-4b5b-b5e9-8da34a18a533",
+      "subcategory": "صوندات ووصلات الهواء"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-suction-thermometer",
+    "name": "ميزان حرارة زجاجي للأحواض — مع ماصة تثبيت",
+    "slug": "houyi-suction-thermometer",
+    "before": {
+      "category": "الفحص والمراقبة",
+      "categoryId": "db9d816c-ac55-4cef-8f6b-01490072163c",
+      "subcategory": "موازين حرارة"
+    },
+    "after": {
+      "category": "الفحص والمراقبة",
+      "categoryId": "db9d816c-ac55-4cef-8f6b-01490072163c",
+      "subcategory": "موازين حرارة"
+    },
+    "changed": false
+  },
+  {
+    "id": "houyi-tool-kit",
+    "name": "طقم أدوات أكواسكيب — 5 قطع",
+    "slug": "houyi-tool-kit",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أدوات أكواسكيب"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أدوات وتثبيت النباتات"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-activated-carbon",
+    "name": "كربون نشط لفلترة مياه الأحواض",
+    "slug": "houyi-activated-carbon",
+    "before": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "مواد الفلترة"
+    },
+    "after": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "ميديا الفلترة"
+    },
+    "changed": true
+  },
+  {
+    "id": "green-filter-hose",
+    "name": "صوندة ماء خضراء للفلتر",
+    "slug": "green-filter-hose",
+    "before": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "خراطيم وأنابيب"
+    },
+    "after": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "بواري وصوندات الفلتر"
+    },
+    "changed": true
+  },
+  {
+    "id": "hygger-hg135-202610",
+    "name": "إضاءة LED غاطسة للحوض مع مؤقت — 21 واط",
+    "slug": "hygger-submersible-led-light-21w",
+    "before": {
+      "category": "الإضاءة",
+      "categoryId": "12108ef0-0174-4096-9b6c-cd386563037d",
+      "subcategory": "إضاءة LED"
+    },
+    "after": {
+      "category": "الإضاءة",
+      "categoryId": "12108ef0-0174-4096-9b6c-cd386563037d",
+      "subcategory": "إضاءة LED"
+    },
+    "changed": false
+  },
+  {
+    "id": "houyi-breathing-ring-white",
+    "name": "حلقات سيراميك مسامية بيضاء للفلترة البيولوجية — 1 كغم",
+    "slug": "houyi-breathing-ring-white",
+    "before": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "مواد الفلترة"
+    },
+    "after": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "ميديا الفلترة"
+    },
+    "changed": true
+  },
+  {
+    "id": "yee-c1-1134-6",
+    "name": "طعام جولدفش ورانشو — 500 غرام",
+    "slug": "c1-1134",
+    "before": {
+      "category": "طعام الأسماك",
+      "categoryId": "1e3c6ec2-1bdf-4c60-a02f-b24aedb7fb8d",
+      "subcategory": "أعلاف الذهبية"
+    },
+    "after": {
+      "category": "طعام الأسماك",
+      "categoryId": "1e3c6ec2-1bdf-4c60-a02f-b24aedb7fb8d",
+      "subcategory": "أعلاف الذهبية"
+    },
+    "changed": false
+  },
+  {
+    "id": "yee-c1-1082-2a",
+    "name": "طعام لصغار الأسماك والأنواع صغيرة الفم — 210 غرام",
+    "slug": "yee-all-in-one-microparticles-02mm-210g",
+    "before": {
+      "category": "طعام الأسماك",
+      "categoryId": "1e3c6ec2-1bdf-4c60-a02f-b24aedb7fb8d",
+      "subcategory": "أعلاف عامة"
+    },
+    "after": {
+      "category": "طعام الأسماك",
+      "categoryId": "1e3c6ec2-1bdf-4c60-a02f-b24aedb7fb8d",
+      "subcategory": "أعلاف عامة"
+    },
+    "changed": false
+  },
+  {
+    "id": "houyi-polished-driftwood",
+    "name": "خشب طبيعي مصقول للأكواسكيب — 13 إلى 30 سم",
+    "slug": "houyi-polished-driftwood",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أخشاب طبيعية"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أخشاب طبيعية"
+    },
+    "changed": false
+  },
+  {
+    "id": "yee-07509",
+    "name": "تربة أكواسكيب للنباتات المائية — 1.5 أو 3 لتر",
+    "slug": "yff-049",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "تربة نباتية"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "تربة مغذية"
+    },
+    "changed": true
+  },
+  {
+    "id": "yee-c2-1005-1",
+    "name": "كبسولات بكتيريا نافعة للأحواض — 50 أو 100 كبسولة",
+    "slug": "c2-1005",
+    "before": {
+      "category": "معالجة المياه",
+      "categoryId": "6fb87a1a-333e-4844-af5d-c032289363ed",
+      "subcategory": "بكتيريا نافعة"
+    },
+    "after": {
+      "category": "معالجة المياه",
+      "categoryId": "6fb87a1a-333e-4844-af5d-c032289363ed",
+      "subcategory": "بكتيريا نافعة"
+    },
+    "changed": false
+  },
+  {
+    "id": "qanvee-qs-200a-sponge-filter",
+    "name": "فلتر إسفنجي هوائي QANVEE QS-200A",
+    "slug": "qanvee-qs-200a-sponge-filter",
+    "before": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "فلاتر إسفنجية"
+    },
+    "after": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "فلاتر كاملة"
+    },
+    "changed": true
+  },
+  {
+    "id": "glass-filter-outlet-horn",
+    "name": "بوري كزاز Horn لإرجاع ماء الفلتر",
+    "slug": "glass-filter-outlet-horn",
+    "before": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "أنابيب الفلتر"
+    },
+    "after": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "بواري وصوندات الفلتر"
+    },
+    "changed": true
+  },
+  {
+    "id": "hygger-hg006-202610",
+    "name": "شرائط فحص ماء الحوض 8 في 1 — 50 شريط",
+    "slug": "hygger-eight-in-one-test-strips-50",
+    "before": {
+      "category": "الفحص والمراقبة",
+      "categoryId": "db9d816c-ac55-4cef-8f6b-01490072163c",
+      "subcategory": "أدوات فحص المياه"
+    },
+    "after": {
+      "category": "الفحص والمراقبة",
+      "categoryId": "db9d816c-ac55-4cef-8f6b-01490072163c",
+      "subcategory": "أدوات فحص المياه"
+    },
+    "changed": false
+  },
+  {
+    "id": "qanvee-k-quick-connections",
+    "name": "وصلات فصل سريع QANVEE K لصوندة الفلتر",
+    "slug": "qanvee-k-quick-connections",
+    "before": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "وصلات وصمامات"
+    },
+    "after": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "وصلات ومحابس"
+    },
+    "changed": true
+  },
+  {
+    "id": "qanvee-lh-600-moving-bed-filter",
+    "name": "فلتر ميديا متحركة QANVEE LH-600 مع مواد الفلترة",
+    "slug": "qanvee-lh-600-moving-bed-filter",
+    "before": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "فلاتر هوائية"
+    },
+    "after": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "فلاتر كاملة"
+    },
+    "changed": true
+  },
+  {
+    "id": "qanvee-qs-200-200a-replacement-sponge",
+    "name": "إسفنج بديل QANVEE لفلاتر QS-200 وQS-200A",
+    "slug": "qanvee-qs-200-200a-replacement-sponge",
+    "before": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "مواد الفلترة"
+    },
+    "after": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "قطع غيار الفلاتر"
+    },
+    "changed": true
+  },
+  {
+    "id": "sobo-wp-3400-submersible-pump",
+    "name": "مضخة ماء غاطسة SOBO WP-3400",
+    "slug": "sobo-wp-3400-submersible-pump",
+    "before": {
+      "category": "التهوية والأكسجين",
+      "categoryId": "7cb8fbad-24cf-4b5b-b5e9-8da34a18a533",
+      "subcategory": "تدوير المياه"
+    },
+    "after": {
+      "category": "التهوية والأكسجين",
+      "categoryId": "7cb8fbad-24cf-4b5b-b5e9-8da34a18a533",
+      "subcategory": "مضخات ماء وصانعات تيار"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-connectors-4mm",
+    "name": "وصلات خرطوم هواء 4 ملم — T / Y / مستقيم",
+    "slug": "houyi-connectors-4mm",
+    "before": {
+      "category": "التهوية والأكسجين",
+      "categoryId": "7cb8fbad-24cf-4b5b-b5e9-8da34a18a533",
+      "subcategory": "إكسسوارات"
+    },
+    "after": {
+      "category": "التهوية والأكسجين",
+      "categoryId": "7cb8fbad-24cf-4b5b-b5e9-8da34a18a533",
+      "subcategory": "صوندات ووصلات الهواء"
+    },
+    "changed": true
+  },
+  {
+    "id": "sunsun-ybf-500-waste-separator-filter",
+    "name": "فلتر فصل الفضلات SUNSUN YBF-500",
+    "slug": "sunsun-ybf-500-waste-separator-filter",
+    "before": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "فلاتر معلقة"
+    },
+    "after": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "فلاتر كاملة"
+    },
+    "changed": true
+  },
+  {
+    "id": "suspended-shrimp-feeding-bowl",
+    "name": "صحن إطعام روبيان معلق على كزاز الحوض",
+    "slug": "suspended-shrimp-feeding-bowl",
+    "before": {
+      "category": "طعام الأسماك",
+      "categoryId": "1e3c6ec2-1bdf-4c60-a02f-b24aedb7fb8d",
+      "subcategory": "أدوات التغذية"
+    },
+    "after": {
+      "category": "طعام الأسماك",
+      "categoryId": "1e3c6ec2-1bdf-4c60-a02f-b24aedb7fb8d",
+      "subcategory": "أدوات التغذية"
+    },
+    "changed": false
+  },
+  {
+    "id": "voonline-filter-intake-guards",
+    "name": "واقي شبكي VOONLINE لمدخل الفلتر",
+    "slug": "voonline-filter-intake-guards",
+    "before": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "شفط وتثبيت"
+    },
+    "after": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "تثبيت وحماية المداخل"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-golden-sand",
+    "name": "رمل ذهبي لمظهر دافئ في الحوض",
+    "slug": "houyi-golden-sand",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "رمال"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "رمل وحصى"
+    },
+    "changed": true
+  },
+  {
+    "id": "glass-filter-outlet-double-cut",
+    "name": "بوري كزاز Double Cut لإرجاع ماء الفلتر",
+    "slug": "glass-filter-outlet-double-cut",
+    "before": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "أنابيب الفلتر"
+    },
+    "after": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "بواري وصوندات الفلتر"
+    },
+    "changed": true
+  },
+  {
+    "id": "nano-usb-clip-light-3w",
+    "name": "إنارة نانو بمشبك وتوصيل USB — 3 واط",
+    "slug": "nano-usb-clip-light-3w",
+    "before": {
+      "category": "الإضاءة",
+      "categoryId": "12108ef0-0174-4096-9b6c-cd386563037d",
+      "subcategory": "إضاءة LED"
+    },
+    "after": {
+      "category": "الإضاءة",
+      "categoryId": "12108ef0-0174-4096-9b6c-cd386563037d",
+      "subcategory": "إضاءة LED"
+    },
+    "changed": false
+  },
+  {
+    "id": "houyi-shrimp-wood-5-60cm",
+    "name": "خشب شريمب لتفاصيل طبيعية في الحوض — 5–60 سم",
+    "slug": "houyi-shrimp-wood-5-60cm",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أخشاب"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أخشاب طبيعية"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-green-white-filter-cotton",
+    "name": "لباد فلترة أخضر وأبيض لالتقاط الرواسب",
+    "slug": "houyi-green-white-filter-cotton",
+    "before": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "مواد الفلترة"
+    },
+    "after": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "قطن وإسفنج الفلترة"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-biochemical-filter-foam",
+    "name": "إسفنج فلترة بيولوجي قابل للقص",
+    "slug": "houyi-biochemical-filter-foam",
+    "before": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "مواد الفلترة"
+    },
+    "after": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "قطن وإسفنج الفلترة"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-landscaping-driftwood-80-120cm",
+    "name": "خشب درفتوود كبير للأكواسكيب — 80–120 سم",
+    "slug": "houyi-landscaping-driftwood-80-120cm",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أخشاب"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أخشاب طبيعية"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-flake-stone",
+    "name": "حجر فليك الطبقي لبناء مستويات في الأكواسكيب",
+    "slug": "houyi-flake-stone",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أحجار"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أحجار طبيعية"
+    },
+    "changed": true
+  },
+  {
+    "id": "tian-yuan-water-valves",
+    "name": "محابس ماء Tian Yuan Man Bu بمقاسات أطراف متعددة",
+    "slug": "tian-yuan-water-valves",
+    "before": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "وصلات وصمامات"
+    },
+    "after": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "وصلات ومحابس"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-black-sand",
+    "name": "رمل أسود لتباين واضح مع النباتات",
+    "slug": "houyi-black-sand",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "رمال"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "رمل وحصى"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-black-slate",
+    "name": "حجر الأردواز الأسود لتباين صخري واضح",
+    "slug": "houyi-black-slate",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أحجار"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أحجار طبيعية"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-yellow-golden-stone",
+    "name": "حجر يلو غولدن لإضافة درجات دافئة إلى الحوض",
+    "slug": "houyi-yellow-golden-stone",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أحجار"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أحجار طبيعية"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-maple-stone",
+    "name": "حجر مابل بملمس طبيعي للأكواسكيب",
+    "slug": "houyi-maple-stone",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أحجار"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أحجار طبيعية"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-melaleuca-stone-20-60cm",
+    "name": "حجر ميلاليوكا الطبقي — نحو 20–60 سم",
+    "slug": "houyi-melaleuca-stone-20-60cm",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أحجار"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أحجار طبيعية"
+    },
+    "changed": true
+  },
+  {
+    "id": "dr-tank-gh-increaser-250ml",
+    "name": "محسن الصلابة العامة Dr.Tank GH Increaser — 250 مل",
+    "slug": "dr-tank-gh-increaser-250ml",
+    "before": {
+      "category": "معالجة المياه",
+      "categoryId": "6fb87a1a-333e-4844-af5d-c032289363ed",
+      "subcategory": "أملاح ومعادن"
+    },
+    "after": {
+      "category": "معالجة المياه",
+      "categoryId": "6fb87a1a-333e-4844-af5d-c032289363ed",
+      "subcategory": "أملاح ومعادن"
+    },
+    "changed": false
+  },
+  {
+    "id": "hygger-hg085-202610",
+    "name": "هيتر تيتانيوم بتحكم خارجي وحساس حرارة — 200 واط",
+    "slug": "hygger-titanium-heater-200w",
+    "before": {
+      "category": "التحكم بالحرارة",
+      "categoryId": "1165697b-96b0-4582-ab30-dba0e9233c4e",
+      "subcategory": "سخانات"
+    },
+    "after": {
+      "category": "التحكم بالحرارة",
+      "categoryId": "1165697b-96b0-4582-ab30-dba0e9233c4e",
+      "subcategory": "سخانات"
+    },
+    "changed": false
+  },
+  {
+    "id": "hygger-hc028-202610",
+    "name": "تربة مغذية للأحواض المزروعة",
+    "slug": "hygger-planted-aquarium-soil",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "تربة نباتية"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "تربة مغذية"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-black-gold-stone",
+    "name": "حجر بلاك غولد لتكوينات صخرية داكنة",
+    "slug": "houyi-black-gold-stone",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أحجار"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أحجار طبيعية"
+    },
+    "changed": true
+  },
+  {
+    "id": "hygger-hg143-202610",
+    "name": "مضخة غاطسة بتدفق قابل للتعديل — 2500 لتر/ساعة",
+    "slug": "hygger-adjustable-submersible-water-pump-2500",
+    "before": {
+      "category": "التهوية والأكسجين",
+      "categoryId": "7cb8fbad-24cf-4b5b-b5e9-8da34a18a533",
+      "subcategory": "تدوير المياه"
+    },
+    "after": {
+      "category": "التهوية والأكسجين",
+      "categoryId": "7cb8fbad-24cf-4b5b-b5e9-8da34a18a533",
+      "subcategory": "مضخات ماء وصانعات تيار"
+    },
+    "changed": true
+  },
+  {
+    "id": "hygger-hg919-202610",
+    "name": "مضخة غاطسة لتغيير ماء الحوض — 4000 لتر/ساعة",
+    "slug": "hygger-water-change-submersible-pump-4000",
+    "before": {
+      "category": "التهوية والأكسجين",
+      "categoryId": "7cb8fbad-24cf-4b5b-b5e9-8da34a18a533",
+      "subcategory": "تدوير المياه"
+    },
+    "after": {
+      "category": "الصيانة والتنظيف",
+      "categoryId": "9cfde3f2-3b10-4c7d-a596-baaeced2f091",
+      "subcategory": "تغيير المي وتنظيف القاع"
+    },
+    "changed": true
+  },
+  {
+    "id": "hygger-hg101-202610",
+    "name": "فلتر خارجي متعدد المراحل مع UV لتقليل الماء الأخضر",
+    "slug": "hygger-external-canister-filter-uv",
+    "before": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "فلاتر خارجية"
+    },
+    "after": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "فلاتر كاملة"
+    },
+    "changed": true
+  },
+  {
+    "id": "hygger-hg130-202610",
+    "name": "صانع تيار مغناطيسي للحوض — 6 واط",
+    "slug": "hygger-magnetic-wavemaker-6w-no-switch",
+    "before": {
+      "category": "التهوية والأكسجين",
+      "categoryId": "7cb8fbad-24cf-4b5b-b5e9-8da34a18a533",
+      "subcategory": "تدوير المياه"
+    },
+    "after": {
+      "category": "التهوية والأكسجين",
+      "categoryId": "7cb8fbad-24cf-4b5b-b5e9-8da34a18a533",
+      "subcategory": "مضخات ماء وصانعات تيار"
+    },
+    "changed": true
+  },
+  {
+    "id": "hygger-hg978-202610",
+    "name": "إضاءة LED للحوض بدورة نهار وليل ومؤقت",
+    "slug": "hygger-day-night-led-light",
+    "before": {
+      "category": "الإضاءة",
+      "categoryId": "12108ef0-0174-4096-9b6c-cd386563037d",
+      "subcategory": "إضاءة LED"
+    },
+    "after": {
+      "category": "الإضاءة",
+      "categoryId": "12108ef0-0174-4096-9b6c-cd386563037d",
+      "subcategory": "إضاءة LED"
+    },
+    "changed": false
+  },
+  {
+    "id": "hygger-hc004-202610",
+    "name": "خلفية سوداء للحوض تثبت على الكزاز بدون غراء",
+    "slug": "hygger-black-static-aquarium-background",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "خلفيات الأحواض"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "ديكورات وخلفيات"
+    },
+    "changed": true
+  },
+  {
+    "id": "hygger-hc020-202610",
+    "name": "مخبأ للروبيان بشكل الخشب — قطعتان",
+    "slug": "hygger-resin-shrimp-hideout-2pcs",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "مخابئ وديكورات"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "ديكورات وخلفيات"
+    },
+    "changed": true
+  },
+  {
+    "id": "hygger-hg030-202610",
+    "name": "طقم أدوات تنسيق وقص نباتات الحوض مع حامل",
+    "slug": "hygger-aquascaping-tools-kit",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أدوات أكواسكيب"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أدوات وتثبيت النباتات"
+    },
+    "changed": true
+  },
+  {
+    "id": "hygger-hg124-202610",
+    "name": "منظف كزاز مغناطيسي عائم بشفرتين",
+    "slug": "hygger-floating-magnetic-glass-cleaner",
+    "before": {
+      "category": "الصيانة والتنظيف",
+      "categoryId": "9cfde3f2-3b10-4c7d-a596-baaeced2f091",
+      "subcategory": "أدوات التنظيف"
+    },
+    "after": {
+      "category": "الصيانة والتنظيف",
+      "categoryId": "9cfde3f2-3b10-4c7d-a596-baaeced2f091",
+      "subcategory": "تنظيف الكزاز"
+    },
+    "changed": true
+  },
+  {
+    "id": "hygger-hgy0001-202610",
+    "name": "عدة تنظيف الحوض 6 في 1 بمقبض قابل للتمديد",
+    "slug": "hygger-aquarium-cleaning-kit-6-in-1",
+    "before": {
+      "category": "الصيانة والتنظيف",
+      "categoryId": "9cfde3f2-3b10-4c7d-a596-baaeced2f091",
+      "subcategory": "أدوات التنظيف"
+    },
+    "after": {
+      "category": "الصيانة والتنظيف",
+      "categoryId": "9cfde3f2-3b10-4c7d-a596-baaeced2f091",
+      "subcategory": "أطقم تنظيف متعددة"
+    },
+    "changed": true
+  },
+  {
+    "id": "hygger-hg087-202610",
+    "name": "مضخة هواء قابلة للشحن بمخرج واحد — 1.5 واط",
+    "slug": "hygger-rechargeable-air-pump-1-5w",
+    "before": {
+      "category": "التهوية والأكسجين",
+      "categoryId": "7cb8fbad-24cf-4b5b-b5e9-8da34a18a533",
+      "subcategory": "مضخات هواء"
+    },
+    "after": {
+      "category": "التهوية والأكسجين",
+      "categoryId": "7cb8fbad-24cf-4b5b-b5e9-8da34a18a533",
+      "subcategory": "مضخات هواء"
+    },
+    "changed": false
+  },
+  {
+    "id": "hygger-hg946-202610",
+    "name": "مضخة هواء قوية بمخرجين وتحكم بالتدفق — 10 واط",
+    "slug": "hygger-dual-outlet-air-pump-10w",
+    "before": {
+      "category": "التهوية والأكسجين",
+      "categoryId": "7cb8fbad-24cf-4b5b-b5e9-8da34a18a533",
+      "subcategory": "مضخات هواء"
+    },
+    "after": {
+      "category": "التهوية والأكسجين",
+      "categoryId": "7cb8fbad-24cf-4b5b-b5e9-8da34a18a533",
+      "subcategory": "مضخات هواء"
+    },
+    "changed": false
+  },
+  {
+    "id": "hygger-hg958-202610",
+    "name": "مضخة هواء بمخرجين وتحكم بالتدفق — 5 واط",
+    "slug": "hygger-dual-outlet-air-pump-5w",
+    "before": {
+      "category": "التهوية والأكسجين",
+      "categoryId": "7cb8fbad-24cf-4b5b-b5e9-8da34a18a533",
+      "subcategory": "مضخات هواء"
+    },
+    "after": {
+      "category": "التهوية والأكسجين",
+      "categoryId": "7cb8fbad-24cf-4b5b-b5e9-8da34a18a533",
+      "subcategory": "مضخات هواء"
+    },
+    "changed": false
+  },
+  {
+    "id": "yee-01831",
+    "name": "أملاح معادن وفيتامينات للأحواض — علبة 500 غرام",
+    "slug": "yan-915",
+    "before": {
+      "category": "معالجة المياه",
+      "categoryId": "6fb87a1a-333e-4844-af5d-c032289363ed",
+      "subcategory": "أملاح ومعادن"
+    },
+    "after": {
+      "category": "معالجة المياه",
+      "categoryId": "6fb87a1a-333e-4844-af5d-c032289363ed",
+      "subcategory": "أملاح ومعادن"
+    },
+    "changed": false
+  },
+  {
+    "id": "hygger-hg019-202610",
+    "name": "هيتر رقمي للأحواض بتحكم خارجي",
+    "slug": "hygger-digital-quartz-heater",
+    "before": {
+      "category": "التحكم بالحرارة",
+      "categoryId": "1165697b-96b0-4582-ab30-dba0e9233c4e",
+      "subcategory": "سخانات"
+    },
+    "after": {
+      "category": "التحكم بالحرارة",
+      "categoryId": "1165697b-96b0-4582-ab30-dba0e9233c4e",
+      "subcategory": "سخانات"
+    },
+    "changed": false
+  },
+  {
+    "id": "hygger-hg957-202610",
+    "name": "إضاءة نباتات للحوض ببرمجة يومية وشاشة تحكم",
+    "slug": "hygger-programmable-planted-aquarium-light",
+    "before": {
+      "category": "الإضاءة",
+      "categoryId": "12108ef0-0174-4096-9b6c-cd386563037d",
+      "subcategory": "إضاءة LED"
+    },
+    "after": {
+      "category": "الإضاءة",
+      "categoryId": "12108ef0-0174-4096-9b6c-cd386563037d",
+      "subcategory": "إضاءة LED"
+    },
+    "changed": false
+  },
+  {
+    "id": "yee-c1-1073-1a",
+    "name": "طعام أسماك البيتا (الفايتر) — 130 غرام",
+    "slug": "alf-albyta-almqatl-230-jm",
+    "before": {
+      "category": "طعام الأسماك",
+      "categoryId": "1e3c6ec2-1bdf-4c60-a02f-b24aedb7fb8d",
+      "subcategory": "أعلاف متخصصة"
+    },
+    "after": {
+      "category": "طعام الأسماك",
+      "categoryId": "1e3c6ec2-1bdf-4c60-a02f-b24aedb7fb8d",
+      "subcategory": "أعلاف متخصصة"
+    },
+    "changed": false
+  },
+  {
+    "id": "yee-02517",
+    "name": "حاضنة هوائية لصغار الأسماك — غرفتان منفصلتان",
+    "slug": "ysl-506",
+    "before": {
+      "category": "العزل والتفريخ",
+      "categoryId": "ea147ea7-d8e1-4956-bee9-222a3db91538",
+      "subcategory": "حاضنات"
+    },
+    "after": {
+      "category": "العزل والتفريخ",
+      "categoryId": "ea147ea7-d8e1-4956-bee9-222a3db91538",
+      "subcategory": "حاضنات وعزل"
+    },
+    "changed": true
+  },
+  {
+    "id": "qanvee-q3-scraper-66cm",
+    "name": "كاشطة طحالب QANVEE Q3 — 66 سم مع 10 شفرات",
+    "slug": "qanvee-q3-scraper-66cm",
+    "before": {
+      "category": "الصيانة والتنظيف",
+      "categoryId": "9cfde3f2-3b10-4c7d-a596-baaeced2f091",
+      "subcategory": "أدوات التنظيف"
+    },
+    "after": {
+      "category": "الصيانة والتنظيف",
+      "categoryId": "9cfde3f2-3b10-4c7d-a596-baaeced2f091",
+      "subcategory": "تنظيف الكزاز"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-control-valve",
+    "name": "صمام تحكم بتدفق الهواء — 4 ملم",
+    "slug": "houyi-control-valve-4mm",
+    "before": {
+      "category": "التهوية والأكسجين",
+      "categoryId": "7cb8fbad-24cf-4b5b-b5e9-8da34a18a533",
+      "subcategory": "إكسسوارات"
+    },
+    "after": {
+      "category": "التهوية والأكسجين",
+      "categoryId": "7cb8fbad-24cf-4b5b-b5e9-8da34a18a533",
+      "subcategory": "صوندات ووصلات الهواء"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-oxygenation-tube",
+    "name": "خرطوم هواء للأحواض — 4 متر",
+    "slug": "houyi-oxygenation-tube",
+    "before": {
+      "category": "التهوية والأكسجين",
+      "categoryId": "7cb8fbad-24cf-4b5b-b5e9-8da34a18a533",
+      "subcategory": "خراطيم وأنابيب"
+    },
+    "after": {
+      "category": "التهوية والأكسجين",
+      "categoryId": "7cb8fbad-24cf-4b5b-b5e9-8da34a18a533",
+      "subcategory": "صوندات ووصلات الهواء"
+    },
+    "changed": true
+  },
+  {
+    "id": "dr-tank-plus-aqua-substrate-250-tablets",
+    "name": "أقراص تربة Dr.Tank PLUS AQUA SUBSTRATE — نحو 250 قرص",
+    "slug": "dr-tank-plus-aqua-substrate-250-tablets",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "التسميد"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أسمدة النباتات"
+    },
+    "changed": true
+  },
+  {
+    "id": "yee-1-8-5-9",
+    "name": "حلقة تغذية دائرية YEE — أزرق",
+    "slug": "yee-3602",
+    "before": {
+      "category": "طعام الأسماك",
+      "categoryId": "1e3c6ec2-1bdf-4c60-a02f-b24aedb7fb8d",
+      "subcategory": "إكسسوارات التغذية"
+    },
+    "after": {
+      "category": "طعام الأسماك",
+      "categoryId": "1e3c6ec2-1bdf-4c60-a02f-b24aedb7fb8d",
+      "subcategory": "أدوات التغذية"
+    },
+    "changed": true
+  },
+  {
+    "id": "botanical-cocoa-leaves-10",
+    "name": "أوراق الكاكاو الطبيعية للأحواض — 10 أوراق",
+    "slug": "cocoa-leaves-10",
+    "before": {
+      "category": "معالجة المياه",
+      "categoryId": "6fb87a1a-333e-4844-af5d-c032289363ed",
+      "subcategory": "مواد طبيعية"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أوراق وقشور طبيعية"
+    },
+    "changed": true
+  },
+  {
+    "id": "yee-17390",
+    "name": "فلتر جداري صغير YEE Green Wave — 3 واط",
+    "slug": "yeb-751",
+    "before": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "فلاتر معلقة"
+    },
+    "after": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "فلاتر كاملة"
+    },
+    "changed": true
+  },
+  {
+    "id": "yee-05150a-05149a",
+    "name": "إسفنج فلترة أسود — 50×30×2 سم، خشن أو متوسط",
+    "slug": "yll-053-054",
+    "before": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "مواد الفلترة"
+    },
+    "after": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "قطن وإسفنج الفلترة"
+    },
+    "changed": true
+  },
+  {
+    "id": "yee-02712",
+    "name": "مغذي أسماك أوتوماتيكي YEE — 3 سرعات",
+    "slug": "ysq-730",
+    "before": {
+      "category": "طعام الأسماك",
+      "categoryId": "1e3c6ec2-1bdf-4c60-a02f-b24aedb7fb8d",
+      "subcategory": "إكسسوارات التغذية"
+    },
+    "after": {
+      "category": "طعام الأسماك",
+      "categoryId": "1e3c6ec2-1bdf-4c60-a02f-b24aedb7fb8d",
+      "subcategory": "أدوات التغذية"
+    },
+    "changed": true
+  },
+  {
+    "id": "luby-dd60-202610",
+    "name": "حاضنة بيض أسماك هوائية — ارتفاع نحو 23 سم",
+    "slug": "air-driven-egg-incubator",
+    "before": {
+      "category": "العزل والتفريخ",
+      "categoryId": "ea147ea7-d8e1-4956-bee9-222a3db91538",
+      "subcategory": "حاضنات"
+    },
+    "after": {
+      "category": "العزل والتفريخ",
+      "categoryId": "ea147ea7-d8e1-4956-bee9-222a3db91538",
+      "subcategory": "حاضنات وعزل"
+    },
+    "changed": true
+  },
+  {
+    "id": "luby-zs177-202610",
+    "name": "مخروط لوضع بيض الديسكس — ارتفاع 21 سم",
+    "slug": "fish-spawning-cone-21cm",
+    "before": {
+      "category": "العزل والتفريخ",
+      "categoryId": "ea147ea7-d8e1-4956-bee9-222a3db91538",
+      "subcategory": "أدوات التفريخ"
+    },
+    "after": {
+      "category": "العزل والتفريخ",
+      "categoryId": "ea147ea7-d8e1-4956-bee9-222a3db91538",
+      "subcategory": "أدوات التفريخ"
+    },
+    "changed": false
+  },
+  {
+    "id": "luby-gyhs03-202610",
+    "name": "طقم تغيير ماء الحوض بالبوري — صوندة 3 متر",
+    "slug": "aquarium-water-changer-3m",
+    "before": {
+      "category": "الصيانة والتنظيف",
+      "categoryId": "9cfde3f2-3b10-4c7d-a596-baaeced2f091",
+      "subcategory": "أدوات التنظيف"
+    },
+    "after": {
+      "category": "الصيانة والتنظيف",
+      "categoryId": "9cfde3f2-3b10-4c7d-a596-baaeced2f091",
+      "subcategory": "تغيير المي وتنظيف القاع"
+    },
+    "changed": true
+  },
+  {
+    "id": "luby-slq123-202610",
+    "name": "خيوط تفريخ لوضع بيض الأسماك",
+    "slug": "fish-spawning-mop",
+    "before": {
+      "category": "العزل والتفريخ",
+      "categoryId": "ea147ea7-d8e1-4956-bee9-222a3db91538",
+      "subcategory": "أدوات التفريخ"
+    },
+    "after": {
+      "category": "العزل والتفريخ",
+      "categoryId": "ea147ea7-d8e1-4956-bee9-222a3db91538",
+      "subcategory": "أدوات التفريخ"
+    },
+    "changed": false
+  },
+  {
+    "id": "houyi-chaohu-sand-2-5mm",
+    "name": "رمل تشاوهو لتنسيق الممرات — 2–5 مم",
+    "slug": "houyi-chaohu-sand-2-5mm",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "رمال"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "رمل وحصى"
+    },
+    "changed": true
+  },
+  {
+    "id": "luby-brush-set-202610",
+    "name": "طقم فراشي تنظيف الصوندات والأنابيب — 5 قطع",
+    "slug": "aquarium-cleaning-brushes-5pcs",
+    "before": {
+      "category": "الصيانة والتنظيف",
+      "categoryId": "9cfde3f2-3b10-4c7d-a596-baaeced2f091",
+      "subcategory": "أدوات التنظيف"
+    },
+    "after": {
+      "category": "الصيانة والتنظيف",
+      "categoryId": "9cfde3f2-3b10-4c7d-a596-baaeced2f091",
+      "subcategory": "تنظيف الصوندات"
+    },
+    "changed": true
+  },
+  {
+    "id": "luby-suction-clips-202610",
+    "name": "ماصات بمشبك لتثبيت الصوندات — 3 مقاسات ولونان",
+    "slug": "aquarium-suction-clips",
+    "before": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "شفط وتثبيت"
+    },
+    "after": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "تثبيت وحماية المداخل"
+    },
+    "changed": true
+  },
+  {
+    "id": "general-air-stone",
+    "name": "حجر هواء أسطواني لتوزيع الفقاعات — مقاسات متعددة",
+    "slug": "general-air-stone",
+    "before": {
+      "category": "التهوية والأكسجين",
+      "categoryId": "7cb8fbad-24cf-4b5b-b5e9-8da34a18a533",
+      "subcategory": "أحجار هواء"
+    },
+    "after": {
+      "category": "التهوية والأكسجين",
+      "categoryId": "7cb8fbad-24cf-4b5b-b5e9-8da34a18a533",
+      "subcategory": "أحجار هواء"
+    },
+    "changed": false
+  },
+  {
+    "id": "houyi-acrylic-pump-compartment",
+    "name": "حجرة أكريليك لتنظيم ميديا الفلتر — شفافة",
+    "slug": "houyi-acrylic-pump-compartment",
+    "before": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "حجرات الفلترة"
+    },
+    "after": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "ميديا الفلترة"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-green-slate",
+    "name": "حجر الأردواز الأخضر لتفاصيل صخرية مسطحة",
+    "slug": "houyi-green-slate",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أحجار"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أحجار طبيعية"
+    },
+    "changed": true
+  },
+  {
+    "id": "yee-17699a",
+    "name": "طوب فلترة بيولوجي مسامي",
+    "slug": "yaa-009",
+    "before": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "مواد الفلترة"
+    },
+    "after": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "ميديا الفلترة"
+    },
+    "changed": true
+  },
+  {
+    "id": "yee-16940",
+    "name": "معالج مياه للأحواض — 500 مل",
+    "slug": "yyh-173",
+    "before": {
+      "category": "معالجة المياه",
+      "categoryId": "6fb87a1a-333e-4844-af5d-c032289363ed",
+      "subcategory": "معالجات المياه"
+    },
+    "after": {
+      "category": "معالجة المياه",
+      "categoryId": "6fb87a1a-333e-4844-af5d-c032289363ed",
+      "subcategory": "معالجات المياه"
+    },
+    "changed": false
+  },
+  {
+    "id": "houyi-chicken-bone-stone",
+    "name": "حجر تشيكن بون لتفاصيل صخرية متنوعة",
+    "slug": "houyi-chicken-bone-stone",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أحجار"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أحجار طبيعية"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-tortoise-stone",
+    "name": "حجر تورتويس بسطح متشقق للأكواسكيب",
+    "slug": "houyi-tortoise-stone",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أحجار"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أحجار طبيعية"
+    },
+    "changed": true
+  },
+  {
+    "id": "yee-19429",
+    "name": "مزيل طحالب للأحواض — 500 مل",
+    "slug": "yyh-189",
+    "before": {
+      "category": "معالجة المياه",
+      "categoryId": "6fb87a1a-333e-4844-af5d-c032289363ed",
+      "subcategory": "مكافحة الطحالب"
+    },
+    "after": {
+      "category": "معالجة المياه",
+      "categoryId": "6fb87a1a-333e-4844-af5d-c032289363ed",
+      "subcategory": "مكافحة الطحالب"
+    },
+    "changed": false
+  },
+  {
+    "id": "houyi-river-pebbles-1-4cm",
+    "name": "حصى نهري لتفاصيل القاع — نحو 1–4 سم",
+    "slug": "houyi-river-pebbles-1-4cm",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أحجار"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "رمل وحصى"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-myanmar-petrified-wood-stone",
+    "name": "حجر الخشب المتحجر — صنف ميانمار",
+    "slug": "houyi-myanmar-petrified-wood-stone",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أحجار"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أحجار طبيعية"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-longan-leaves-50pcs",
+    "name": "أوراق لونغان لتنسيق قاع طبيعي — 50 ورقة",
+    "slug": "houyi-longan-leaves-50pcs",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "مواد طبيعية"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أوراق وقشور طبيعية"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-fruit-shells-35pcs",
+    "name": "تشكيلة قشور ثمار للأكواسكيب — نحو 35 قطعة",
+    "slug": "houyi-fruit-shells-35pcs",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "مواد طبيعية"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أوراق وقشور طبيعية"
+    },
+    "changed": true
+  },
+  {
+    "id": "aquarium-clear-lid-supports",
+    "name": "حوامل أكريليك شفافة لغطاء الحوض",
+    "slug": "aquarium-clear-lid-supports",
+    "before": {
+      "category": "أحواض",
+      "categoryId": "754e2ef5-7d30-49d9-a46a-e0f35466efcf",
+      "subcategory": "إكسسوارات الأحواض"
+    },
+    "after": {
+      "category": "أحواض",
+      "categoryId": "754e2ef5-7d30-49d9-a46a-e0f35466efcf",
+      "subcategory": "إكسسوارات الأحواض"
+    },
+    "changed": false
+  },
+  {
+    "id": "glass-filter-intake-u",
+    "name": "بوري كزاز U لسحب ماء الفلتر",
+    "slug": "glass-filter-intake-u",
+    "before": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "أنابيب الفلتر"
+    },
+    "after": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "بواري وصوندات الفلتر"
+    },
+    "changed": true
+  },
+  {
+    "id": "sobo-wp-4000-submersible-pump",
+    "name": "مضخة ماء غاطسة SOBO WP-4000",
+    "slug": "sobo-wp-4000-submersible-pump",
+    "before": {
+      "category": "التهوية والأكسجين",
+      "categoryId": "7cb8fbad-24cf-4b5b-b5e9-8da34a18a533",
+      "subcategory": "تدوير المياه"
+    },
+    "after": {
+      "category": "التهوية والأكسجين",
+      "categoryId": "7cb8fbad-24cf-4b5b-b5e9-8da34a18a533",
+      "subcategory": "مضخات ماء وصانعات تيار"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-brine-shrimp-hatchery-250ml",
+    "name": "حاضنة بيض أرتيميا صغيرة — 250 مل",
+    "slug": "houyi-brine-shrimp-hatchery-250ml",
+    "before": {
+      "category": "العزل والتفريخ",
+      "categoryId": "ea147ea7-d8e1-4956-bee9-222a3db91538",
+      "subcategory": "أدوات التفريخ"
+    },
+    "after": {
+      "category": "العزل والتفريخ",
+      "categoryId": "ea147ea7-d8e1-4956-bee9-222a3db91538",
+      "subcategory": "أدوات التفريخ"
+    },
+    "changed": false
+  },
+  {
+    "id": "yee-19768a",
+    "name": "أزرق الميثيلين للأحواض — 600 مل",
+    "slug": "yyh-207",
+    "before": {
+      "category": "معالجة المياه",
+      "categoryId": "6fb87a1a-333e-4844-af5d-c032289363ed",
+      "subcategory": "علاج الأمراض"
+    },
+    "after": {
+      "category": "معالجة المياه",
+      "categoryId": "6fb87a1a-333e-4844-af5d-c032289363ed",
+      "subcategory": "علاج الأمراض"
+    },
+    "changed": false
+  },
+  {
+    "id": "yee-c1-1127-1",
+    "name": "طعام جولدفش ورانشو بالسبيرولينا — 290 غرام",
+    "slug": "c1-1127",
+    "before": {
+      "category": "طعام الأسماك",
+      "categoryId": "1e3c6ec2-1bdf-4c60-a02f-b24aedb7fb8d",
+      "subcategory": "أعلاف الذهبية"
+    },
+    "after": {
+      "category": "طعام الأسماك",
+      "categoryId": "1e3c6ec2-1bdf-4c60-a02f-b24aedb7fb8d",
+      "subcategory": "أعلاف الذهبية"
+    },
+    "changed": false
+  },
+  {
+    "id": "sobo-aq-500-submersible-pump",
+    "name": "مضخة ماء غاطسة SOBO AQ-500",
+    "slug": "sobo-aq-500-submersible-pump",
+    "before": {
+      "category": "التهوية والأكسجين",
+      "categoryId": "7cb8fbad-24cf-4b5b-b5e9-8da34a18a533",
+      "subcategory": "تدوير المياه"
+    },
+    "after": {
+      "category": "التهوية والأكسجين",
+      "categoryId": "7cb8fbad-24cf-4b5b-b5e9-8da34a18a533",
+      "subcategory": "مضخات ماء وصانعات تيار"
+    },
+    "changed": true
+  },
+  {
+    "id": "qanvee-nano-q-scraper-41cm",
+    "name": "كاشطة طحالب QANVEE NANO-Q — 41 سم مع 10 شفرات",
+    "slug": "qanvee-nano-q-scraper-41cm",
+    "before": {
+      "category": "الصيانة والتنظيف",
+      "categoryId": "9cfde3f2-3b10-4c7d-a596-baaeced2f091",
+      "subcategory": "أدوات التنظيف"
+    },
+    "after": {
+      "category": "الصيانة والتنظيف",
+      "categoryId": "9cfde3f2-3b10-4c7d-a596-baaeced2f091",
+      "subcategory": "تنظيف الكزاز"
+    },
+    "changed": true
+  },
+  {
+    "id": "yee-03326",
+    "name": "مضخة هواء YEE صغيرة — 3 واط",
+    "slug": "ytz-300",
+    "before": {
+      "category": "التهوية والأكسجين",
+      "categoryId": "7cb8fbad-24cf-4b5b-b5e9-8da34a18a533",
+      "subcategory": "مضخات هواء"
+    },
+    "after": {
+      "category": "التهوية والأكسجين",
+      "categoryId": "7cb8fbad-24cf-4b5b-b5e9-8da34a18a533",
+      "subcategory": "مضخات هواء"
+    },
+    "changed": false
+  },
+  {
+    "id": "yee-c4-1103-4",
+    "name": "سخان حوض أسود قابل لضبط الحرارة — 100 واط",
+    "slug": "c4-1103",
+    "before": {
+      "category": "التحكم بالحرارة",
+      "categoryId": "1165697b-96b0-4582-ab30-dba0e9233c4e",
+      "subcategory": "سخانات"
+    },
+    "after": {
+      "category": "التحكم بالحرارة",
+      "categoryId": "1165697b-96b0-4582-ab30-dba0e9233c4e",
+      "subcategory": "سخانات"
+    },
+    "changed": false
+  },
+  {
+    "id": "dr-tank-plus-complete-250ml",
+    "name": "سماد نباتات Dr.Tank PLUS COMPLETE — 250 مل",
+    "slug": "dr-tank-plus-complete-250ml",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "التسميد"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أسمدة النباتات"
+    },
+    "changed": true
+  },
+  {
+    "id": "yee-12420",
+    "name": "علاج الإيك والبقع البيضاء للأسماك — 300 مل",
+    "slug": "yyh-125",
+    "before": {
+      "category": "معالجة المياه",
+      "categoryId": "6fb87a1a-333e-4844-af5d-c032289363ed",
+      "subcategory": "علاج الأمراض"
+    },
+    "after": {
+      "category": "معالجة المياه",
+      "categoryId": "6fb87a1a-333e-4844-af5d-c032289363ed",
+      "subcategory": "علاج الأمراض"
+    },
+    "changed": false
+  },
+  {
+    "id": "yee-c1-1065-1",
+    "name": "طعام كوي الفراشة — 300 غرام",
+    "slug": "c1-1065",
+    "before": {
+      "category": "طعام الأسماك",
+      "categoryId": "1e3c6ec2-1bdf-4c60-a02f-b24aedb7fb8d",
+      "subcategory": "أعلاف متخصصة"
+    },
+    "after": {
+      "category": "طعام الأسماك",
+      "categoryId": "1e3c6ec2-1bdf-4c60-a02f-b24aedb7fb8d",
+      "subcategory": "أعلاف متخصصة"
+    },
+    "changed": false
+  },
+  {
+    "id": "sunsun-xbl-hang-on-filters",
+    "name": "فلاتر معلقة SUNSUN XBL",
+    "slug": "sunsun-xbl-hang-on-filters",
+    "before": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "فلاتر معلقة"
+    },
+    "after": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "فلاتر كاملة"
+    },
+    "changed": true
+  },
+  {
+    "id": "sunsun-hbl-301-hang-on-filter",
+    "name": "فلتر معلق SUNSUN HBL-301",
+    "slug": "sunsun-hbl-301-hang-on-filter",
+    "before": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "فلاتر معلقة"
+    },
+    "after": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "فلاتر كاملة"
+    },
+    "changed": true
+  },
+  {
+    "id": "dophin-cf600-external-canister-filter",
+    "name": "فلتر خارجي DoPhin CF600",
+    "slug": "dophin-cf600-external-canister-filter",
+    "before": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "فلاتر خارجية"
+    },
+    "after": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "فلاتر كاملة"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-mesh",
+    "name": "شبكة ستانلس لتثبيت الموس — 8×8 سم",
+    "slug": "houyi-mesh",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "إكسسوارات النباتات"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أدوات وتثبيت النباتات"
+    },
+    "changed": true
+  },
+  {
+    "id": "sobo-aq-submersible-pumps",
+    "name": "مضخات ماء غاطسة SOBO AQ",
+    "slug": "sobo-aq-submersible-pumps",
+    "before": {
+      "category": "التهوية والأكسجين",
+      "categoryId": "7cb8fbad-24cf-4b5b-b5e9-8da34a18a533",
+      "subcategory": "تدوير المياه"
+    },
+    "after": {
+      "category": "التهوية والأكسجين",
+      "categoryId": "7cb8fbad-24cf-4b5b-b5e9-8da34a18a533",
+      "subcategory": "مضخات ماء وصانعات تيار"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-wave-pump",
+    "name": "ويف ميكر SOBO — مضخة تدوير مياه الحوض",
+    "slug": "houyi-wave-pump",
+    "before": {
+      "category": "التهوية والأكسجين",
+      "categoryId": "7cb8fbad-24cf-4b5b-b5e9-8da34a18a533",
+      "subcategory": "تدوير المياه"
+    },
+    "after": {
+      "category": "التهوية والأكسجين",
+      "categoryId": "7cb8fbad-24cf-4b5b-b5e9-8da34a18a533",
+      "subcategory": "مضخات ماء وصانعات تيار"
+    },
+    "changed": true
+  },
+  {
+    "id": "yee-c1-1124-1",
+    "name": "طعام بيتا (فايتر) — 15 غرام",
+    "slug": "c1-1124",
+    "before": {
+      "category": "طعام الأسماك",
+      "categoryId": "1e3c6ec2-1bdf-4c60-a02f-b24aedb7fb8d",
+      "subcategory": "أعلاف متخصصة"
+    },
+    "after": {
+      "category": "طعام الأسماك",
+      "categoryId": "1e3c6ec2-1bdf-4c60-a02f-b24aedb7fb8d",
+      "subcategory": "أعلاف متخصصة"
+    },
+    "changed": false
+  },
+  {
+    "id": "houyi-stream-sand",
+    "name": "رمل جداول طبيعي للأكواسكيب — 2–6 ملم",
+    "slug": "houyi-stream-sand",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "رمال"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "رمل وحصى"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-champagne-tree-body",
+    "name": "جذع شامبين لتكوين مشهد شجري في الحوض",
+    "slug": "houyi-champagne-tree-body",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أخشاب"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أخشاب طبيعية"
+    },
+    "changed": true
+  },
+  {
+    "id": "yee-11578",
+    "name": "ميديا فلترة بيولوجية مسامية — 500 غرام",
+    "slug": "nyh-006",
+    "before": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "مواد الفلترة"
+    },
+    "after": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "ميديا الفلترة"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-white-cotton",
+    "name": "قطن فلترة أبيض للأحواض — 30×50 سم",
+    "slug": "houyi-white-cotton",
+    "before": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "مواد الفلترة"
+    },
+    "after": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "قطن وإسفنج الفلترة"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-volcanic-stone-red",
+    "name": "حجر بركاني أحمر",
+    "slug": "houyi-volcanic-stone-red",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أحجار"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أحجار طبيعية"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-water-changer-siphon",
+    "name": "سيفون تنظيف القاع وتغيير الماء — 1.9 متر",
+    "slug": "houyi-water-changer-siphon",
+    "before": {
+      "category": "الصيانة والتنظيف",
+      "categoryId": "9cfde3f2-3b10-4c7d-a596-baaeced2f091",
+      "subcategory": "أدوات التنظيف"
+    },
+    "after": {
+      "category": "الصيانة والتنظيف",
+      "categoryId": "9cfde3f2-3b10-4c7d-a596-baaeced2f091",
+      "subcategory": "تغيير المي وتنظيف القاع"
+    },
+    "changed": true
+  },
+  {
+    "id": "yee-07154",
+    "name": "حجر هواء كروي — 50 ملم",
+    "slug": "ygg-135",
+    "before": {
+      "category": "التهوية والأكسجين",
+      "categoryId": "7cb8fbad-24cf-4b5b-b5e9-8da34a18a533",
+      "subcategory": "ملحقات التهوية"
+    },
+    "after": {
+      "category": "التهوية والأكسجين",
+      "categoryId": "7cb8fbad-24cf-4b5b-b5e9-8da34a18a533",
+      "subcategory": "أحجار هواء"
+    },
+    "changed": true
+  },
+  {
+    "id": "yee-13343",
+    "name": "مزيل ترسبات كلسية لزجاج ومعدات الحوض — 200 مل",
+    "slug": "pyd-200",
+    "before": {
+      "category": "الصيانة والتنظيف",
+      "categoryId": "9cfde3f2-3b10-4c7d-a596-baaeced2f091",
+      "subcategory": "منظفات"
+    },
+    "after": {
+      "category": "الصيانة والتنظيف",
+      "categoryId": "9cfde3f2-3b10-4c7d-a596-baaeced2f091",
+      "subcategory": "تنظيف الكزاز"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-koi-fish-net",
+    "name": "شبكة صيد كوي تلسكوبية — ألمنيوم",
+    "slug": "houyi-koi-fish-net",
+    "before": {
+      "category": "العزل والتفريخ",
+      "categoryId": "ea147ea7-d8e1-4956-bee9-222a3db91538",
+      "subcategory": "شباك صيد"
+    },
+    "after": {
+      "category": "العزل والتفريخ",
+      "categoryId": "ea147ea7-d8e1-4956-bee9-222a3db91538",
+      "subcategory": "شباك صيد"
+    },
+    "changed": false
+  },
+  {
+    "id": "yee-03446a",
+    "name": "بيض أرتيميا منزوع القشرة جاهز للتغذية — 80 غرام",
+    "slug": "yyy-078",
+    "before": {
+      "category": "طعام الأسماك",
+      "categoryId": "1e3c6ec2-1bdf-4c60-a02f-b24aedb7fb8d",
+      "subcategory": "طعام حي ومجفف"
+    },
+    "after": {
+      "category": "طعام الأسماك",
+      "categoryId": "1e3c6ec2-1bdf-4c60-a02f-b24aedb7fb8d",
+      "subcategory": "أرتيميا وأغذية مجففة"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-moss-glue-50g",
+    "name": "غراء أكواسكيب لتثبيت الموس — 50 غرام",
+    "slug": "ghraa-tthbyt-50-ghram",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "إكسسوارات"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أدوات وتثبيت النباتات"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-mountain-wood",
+    "name": "خشب ماونتن لتكوين نقطة بصرية — 20–50 سم",
+    "slug": "houyi-mountain-wood",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أخشاب"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أخشاب طبيعية"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-5-in-1-cleaning-tool",
+    "name": "طقم تنظيف وصيانة الأحواض 5 في 1",
+    "slug": "houyi-5-in-1-cleaning-tool",
+    "before": {
+      "category": "الصيانة والتنظيف",
+      "categoryId": "9cfde3f2-3b10-4c7d-a596-baaeced2f091",
+      "subcategory": "أدوات التنظيف"
+    },
+    "after": {
+      "category": "الصيانة والتنظيف",
+      "categoryId": "9cfde3f2-3b10-4c7d-a596-baaeced2f091",
+      "subcategory": "أطقم تنظيف متعددة"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-base-fertilizer",
+    "name": "سماد تأسيسي لتربة الأحواض المزروعة",
+    "slug": "houyi-base-fertilizer",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "التسميد"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أسمدة النباتات"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-led-light",
+    "name": "ميزان حرارة رقمي للأحواض — شاشة LED",
+    "slug": "houyi-thermostat",
+    "before": {
+      "category": "الفحص والمراقبة",
+      "categoryId": "db9d816c-ac55-4cef-8f6b-01490072163c",
+      "subcategory": "موازين حرارة"
+    },
+    "after": {
+      "category": "الفحص والمراقبة",
+      "categoryId": "db9d816c-ac55-4cef-8f6b-01490072163c",
+      "subcategory": "موازين حرارة"
+    },
+    "changed": false
+  },
+  {
+    "id": "houyi-check-valve",
+    "name": "صمام عدم رجوع لخرطوم الهواء — 4 ملم",
+    "slug": "houyi-check-valve",
+    "before": {
+      "category": "التهوية والأكسجين",
+      "categoryId": "7cb8fbad-24cf-4b5b-b5e9-8da34a18a533",
+      "subcategory": "إكسسوارات"
+    },
+    "after": {
+      "category": "التهوية والأكسجين",
+      "categoryId": "7cb8fbad-24cf-4b5b-b5e9-8da34a18a533",
+      "subcategory": "صوندات ووصلات الهواء"
+    },
+    "changed": true
+  },
+  {
+    "id": "yee-02771",
+    "name": "حاضنة أكريليك لصغار الأسماك — 20×10×10 سم",
+    "slug": "ykl-018",
+    "before": {
+      "category": "العزل والتفريخ",
+      "categoryId": "ea147ea7-d8e1-4956-bee9-222a3db91538",
+      "subcategory": "حاضنات"
+    },
+    "after": {
+      "category": "العزل والتفريخ",
+      "categoryId": "ea147ea7-d8e1-4956-bee9-222a3db91538",
+      "subcategory": "حاضنات وعزل"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-moss-tree",
+    "name": "شجرة موس جاهزة للأكواسكيب",
+    "slug": "houyi-moss-tree",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أخشاب طبيعية"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أخشاب طبيعية"
+    },
+    "changed": false
+  },
+  {
+    "id": "houyi-dutch-sand",
+    "name": "رمل هولندي للأكواسكيب",
+    "slug": "houyi-dutch-sand",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "رمال"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "رمل وحصى"
+    },
+    "changed": true
+  },
+  {
+    "id": "general-sponge-filter-xy180",
+    "name": "فلتر إسفنجي هوائي بتيار لطيف — للروبيان وصغار الأسماك",
+    "slug": "general-sponge-filter-xy180",
+    "before": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "فلاتر إسفنجية"
+    },
+    "after": {
+      "category": "الفلترة والتنقية",
+      "categoryId": "3c8cc237-0c0c-4ff5-9bfc-9dd16fb120fb",
+      "subcategory": "فلاتر كاملة"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-volcanic-stone-black",
+    "name": "حجر بركاني أسود",
+    "slug": "houyi-volcanic-stone-black",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أحجار"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أحجار طبيعية"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-terminalia-leaves",
+    "name": "أوراق كاتابا للأحواض (اللوز الهندي)",
+    "slug": "houyi-terminalia-leaves",
+    "before": {
+      "category": "معالجة المياه",
+      "categoryId": "6fb87a1a-333e-4844-af5d-c032289363ed",
+      "subcategory": "مواد طبيعية"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "أوراق وقشور طبيعية"
+    },
+    "changed": true
+  },
+  {
+    "id": "yee-02924",
+    "name": "مزيل كلور ومعالج مياه الأحواض — 535 مل",
+    "slug": "yyh-039",
+    "before": {
+      "category": "معالجة المياه",
+      "categoryId": "6fb87a1a-333e-4844-af5d-c032289363ed",
+      "subcategory": "معالجات المياه"
+    },
+    "after": {
+      "category": "معالجة المياه",
+      "categoryId": "6fb87a1a-333e-4844-af5d-c032289363ed",
+      "subcategory": "مزيلات كلور ومعالجات المي"
+    },
+    "changed": true
+  },
+  {
+    "id": "yee-c1-1066-2",
+    "name": "طعام روبيان الزينة — 260 غرام",
+    "slug": "c1-1066",
+    "before": {
+      "category": "طعام الأسماك",
+      "categoryId": "1e3c6ec2-1bdf-4c60-a02f-b24aedb7fb8d",
+      "subcategory": "طعام الروبيان"
+    },
+    "after": {
+      "category": "طعام الأسماك",
+      "categoryId": "1e3c6ec2-1bdf-4c60-a02f-b24aedb7fb8d",
+      "subcategory": "طعام الروبيان"
+    },
+    "changed": false
+  },
+  {
+    "id": "houyi-air-distributor",
+    "name": "موزع هواء بتحكم مستقل لكل خط — 4 أو 6 منافذ",
+    "slug": "houyi-air-distributor",
+    "before": {
+      "category": "التهوية والأكسجين",
+      "categoryId": "7cb8fbad-24cf-4b5b-b5e9-8da34a18a533",
+      "subcategory": "موزعات الهواء"
+    },
+    "after": {
+      "category": "التهوية والأكسجين",
+      "categoryId": "7cb8fbad-24cf-4b5b-b5e9-8da34a18a533",
+      "subcategory": "صوندات ووصلات الهواء"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-river-sand",
+    "name": "رمل نهري طبيعي للأحواض والأكواسكيب",
+    "slug": "houyi-river-sand",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "رمال"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "رمل وحصى"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-south-american-sand",
+    "name": "رمل جنوب أمريكي بألوان منفصلة",
+    "slug": "houyi-south-american-sand",
+    "before": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "رمال"
+    },
+    "after": {
+      "category": "تربة وديكور",
+      "categoryId": "b71fc5b0-00d9-4c98-b9f0-47cefeeb2d78",
+      "subcategory": "رمل وحصى"
+    },
+    "changed": true
+  },
+  {
+    "id": "houyi-tracheal-suction",
+    "name": "ماصة تثبيت خرطوم الهواء على الزجاج",
+    "slug": "houyi-tracheal-suction",
+    "before": {
+      "category": "التهوية والأكسجين",
+      "categoryId": "7cb8fbad-24cf-4b5b-b5e9-8da34a18a533",
+      "subcategory": "إكسسوارات"
+    },
+    "after": {
+      "category": "التهوية والأكسجين",
+      "categoryId": "7cb8fbad-24cf-4b5b-b5e9-8da34a18a533",
+      "subcategory": "صوندات ووصلات الهواء"
+    },
+    "changed": true
+  },
+  {
+    "id": "yee-19939",
+    "name": "مزيل طحالب للأحواض — 600 مل",
+    "slug": "mzyl-thalb-600-ml",
+    "before": {
+      "category": "معالجة المياه",
+      "categoryId": "6fb87a1a-333e-4844-af5d-c032289363ed",
+      "subcategory": "معالجات المياه"
+    },
+    "after": {
+      "category": "معالجة المياه",
+      "categoryId": "6fb87a1a-333e-4844-af5d-c032289363ed",
+      "subcategory": "مكافحة الطحالب"
+    },
+    "changed": true
+  }
+]
