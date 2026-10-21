@@ -1,6 +1,31 @@
 import { describe, expect, it } from "vitest";
 import { sourceForGlossaryConcept } from "../../TOOLS/i18n/_glossary-context.js";
 
+describe("Arabic charging-port glossary context", () => {
+  it.each(["USB", "USB-C"])("recognizes the charging specification %s", (specificationValue) => {
+    expect(sourceForGlossaryConcept("الشحن", "delivery", { specificationValue })).toBe("");
+  });
+  it("still checks an isolated shipping label without a charging-port value", () => {
+    expect(sourceForGlossaryConcept("الشحن", "delivery")).toBe("الشحن");
+    expect(sourceForGlossaryConcept("الشحن", "delivery", { specificationValue: "إلى بغداد" })).toBe("الشحن");
+  });
+  it("retains shipping prose even beside a charging-port value", () => {
+    const source = "الشحن إلى جميع المحافظات";
+    expect(sourceForGlossaryConcept(source, "delivery", { specificationValue: "USB-C" })).toBe(source);
+  });
+  it("preserves unrelated glossary concepts", () => {
+    expect(sourceForGlossaryConcept("الشحن", "payment", { specificationValue: "USB-C" })).toBe("الشحن");
+  });
+});
+
+it("distinguishes pushing suspended particles from a later payment reference", () => {
+  const source = "يساعد على دفع العوالق نحو الفلتر؛ الدفع عند الاستلام متاح.";
+  const financial = sourceForGlossaryConcept(source, "payment");
+  expect(financial).not.toContain("دفع العوالق");
+  expect(financial).toContain("الدفع عند الاستلام");
+  expect(sourceForGlossaryConcept(source, "filter")).toBe(source);
+});
+
 describe("Arabic payment glossary context", () => {
   it("does not interpret pushing a brush wire as paying money", () => {
     expect(sourceForGlossaryConcept("تجنب دفع السلك بقوة داخل الأنابيب الزجاجية أو الانحناءات الضيقة.", "payment")).not.toContain("دفع");

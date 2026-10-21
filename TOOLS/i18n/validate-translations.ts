@@ -33,7 +33,7 @@ import {
   type TranslatableEntityType,
 } from "../../shared/i18n/content.js";
 import { loadGlossary, normalizeDigits } from "./_llm.js";
-import { sourceForGlossaryConcept } from "./_glossary-context.js";
+import { sourceForGlossaryConcept, type GlossaryContext } from "./_glossary-context.js";
 
 const args = Object.fromEntries(process.argv.slice(2).map((a) => a.replace(/^--/, "").split("=")).map(([k, v]) => [k, v ?? "true"]));
 const SCOPE = String(args.scope || "all");
@@ -144,7 +144,7 @@ function containsTerm(text: string, term: string): boolean {
 }
 
 /** Validate one target string against its Arabic source. Returns codes it added. */
-function checkString(scope: "ui" | "content", locale: "en" | "ckb", where: string, src: string, tgt: unknown, enValue?: string): void {
+function checkString(scope: "ui" | "content", locale: "en" | "ckb", where: string, src: string, tgt: unknown, enValue?: string, glossaryContext?: GlossaryContext): void {
   if (typeof tgt !== "string" || !tgt.trim()) { add({ scope, locale, where, code: "empty", severity: "error", detail: "" }); return; }
   const t = tgt;
   if (placeholders(src) !== placeholders(t)) add({ scope, locale, where, code: "placeholder", severity: "error", detail: `${placeholders(src)} vs ${placeholders(t)}` });
@@ -177,7 +177,7 @@ function checkString(scope: "ui" | "content", locale: "en" | "ckb", where: strin
     }
     // glossary consistency (warning): concept present in the source, Sorani term absent in the target
     for (const term of glossary.terms) {
-      const glossarySource = sourceForGlossaryConcept(src, term.id);
+      const glossarySource = sourceForGlossaryConcept(src, term.id, glossaryContext);
       if (!term.ar.some((a) => containsTerm(glossarySource, a))) continue;
       const wanted = [term.ckb, ...(term.ckbAlt ?? [])];
       if (!wanted.some((w) => t.includes(w))) add({ scope, locale, where, code: "glossary", severity: "warning", detail: `${term.id}: expected "${term.ckb}"` });
@@ -351,7 +351,10 @@ function validateEntity(
           if (srcAlts && locale === "ckb" && tgtAlts === 0) { /* fine: translated */ }
         }
       } else {
-        checkString("content", locale, `${where}#${path}`, src, tgt, typeof enValue === "string" ? enValue : undefined);
+        const glossaryContext = entityType === "product" && path === `labelled.${src}.label`
+          ? { specificationValue: (fields.labelled as Record<string, unknown> | undefined)?.[src] }
+          : undefined;
+        checkString("content", locale, `${where}#${path}`, src, tgt, typeof enValue === "string" ? enValue : undefined, glossaryContext);
       }
     }
     if (!findings.slice(before).some((f) => f.severity === "error")) contentStats[key].valid++;
