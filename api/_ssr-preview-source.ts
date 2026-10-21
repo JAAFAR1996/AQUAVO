@@ -1,6 +1,10 @@
 import "../server/suppress.js";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { Pool, neonConfig } from "@neondatabase/serverless";
+import { and, asc, desc, eq, gt, isNotNull, isNull, ne } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/neon-serverless";
+import { products } from "../shared/schema.js";
+import { isProductComingSoon } from "../shared/product-availability.js";
 import ws from "ws";
 import { HTML_TEMPLATE } from "./_html-template.js";
 import originalSsrHandler from "./ssr-meta.js";
@@ -9,7 +13,7 @@ import {
   formatMoney,
   formatPrice,
   getActiveVariants,
-  isInStock,
+  productStockLabel,
   renderSeoPreviewShell,
   SEO_FAQ_ITEMS,
   type SeoPreviewPage,
@@ -407,24 +411,39 @@ function productImage(product: SeoPreviewProduct): string {
   return `${AQUAVO_BASE_URL}${candidate.startsWith("/") ? "" : "/"}${candidate}`;
 }
 
+const seoProductListColumns = {
+  id: products.id,
+  slug: products.slug,
+  name: products.name,
+  description: products.description,
+  price: products.price,
+  originalPrice: products.originalPrice,
+  currency: products.currency,
+  brand: products.brand,
+  category: products.category,
+  stock: products.stock,
+  thumbnail: products.thumbnail,
+  images: products.images,
+  hasVariants: products.hasVariants,
+  variants: products.variants,
+  rating: products.rating,
+  reviewCount: products.reviewCount,
+  specifications: products.specifications,
+};
+
 async function loadProducts(category?: string): Promise<SeoPreviewProduct[]> {
-  const values: unknown[] = [];
-  const categoryClause = category ? "AND category = $1" : "";
-  if (category) values.push(category);
-  const { rows } = await getPool().query(
-    `SELECT id, slug, name, description, price, original_price AS "originalPrice",
-            currency, brand, category, stock, thumbnail, images,
-            has_variants AS "hasVariants", variants, rating,
-            review_count AS "reviewCount"
-       FROM products
-      WHERE deleted_at IS NULL
-        AND slug IS NOT NULL
-        AND slug <> ''
-        ${categoryClause}
-      ORDER BY updated_at DESC NULLS LAST, name ASC
-      LIMIT 250`,
-    values,
-  );
+  // Include display metadata for listings, with the same bounded public column
+  // projection. Reuse the existing pool; this remains a read-only query.
+  const rows = await drizzle(getPool()).select(seoProductListColumns)
+    .from(products)
+    .where(and(
+      isNull(products.deletedAt),
+      isNotNull(products.slug),
+      ne(products.slug, ""),
+      category ? eq(products.category, category) : undefined,
+    ))
+    .orderBy(asc(isNull(products.updatedAt)), desc(products.updatedAt), asc(products.name))
+    .limit(250);
   // Same reasoning as ssr-meta: strip the internal keys hidden in the variants jsonb before this data
   // reaches any renderer. These rows are turned into HTML and markdown for crawlers and LLM fetchers.
   return rows.map(sanitizeSeoProductVariants) as SeoPreviewProduct[];
@@ -540,20 +559,17 @@ async function loadBlogPost(slug: string): Promise<SeoPreviewBlogPost | null> {
  * values are printed.
  */
 async function loadDealProducts(): Promise<SeoPreviewProduct[]> {
-  const { rows } = await getPool().query(
-    `SELECT id, slug, name, description, price, original_price AS "originalPrice",
-            currency, brand, category, stock, thumbnail, images,
-            has_variants AS "hasVariants", variants, rating,
-            review_count AS "reviewCount"
-       FROM products
-      WHERE deleted_at IS NULL
-        AND slug IS NOT NULL
-        AND slug <> ''
-        AND original_price IS NOT NULL
-        AND original_price::numeric > price::numeric
-      ORDER BY updated_at DESC NULLS LAST, name ASC
-      LIMIT 250`,
-  );
+  const rows = await drizzle(getPool()).select(seoProductListColumns)
+    .from(products)
+    .where(and(
+      isNull(products.deletedAt),
+      isNotNull(products.slug),
+      ne(products.slug, ""),
+      isNotNull(products.originalPrice),
+      gt(products.originalPrice, products.price),
+    ))
+    .orderBy(asc(isNull(products.updatedAt)), desc(products.updatedAt), asc(products.name))
+    .limit(250);
   return rows.map(sanitizeSeoProductVariants) as SeoPreviewProduct[];
 }
 
@@ -1022,7 +1038,7 @@ function injectDocument(template: string, meta: Meta, shell: string, robots: str
  * representation got less than one that ignored it.
  *
  * Every fact below is read from the same page object the HTML shell renders,
- * through the same helpers (`formatPrice`, `isInStock`, `articlePlainText`),
+ * through the same helpers (`formatPrice`, `productStockLabel`, `articlePlainText`),
  * so the two cannot state different prices or a different stock status. There
  * is nothing here that is not also on the page.
  */
@@ -1037,7 +1053,7 @@ function markdown(page: SeoPreviewPage, meta: Meta): string {
     // Price and availability inline, so a listing is usable without following
     // every link.
     for (const product of page.products) {
-      const stock = isInStock(product) ? "متوفر" : "غير متوفر حالياً";
+      const stock = productStockLabel(product);
       lines.push(`- [${product.name}](${productUrl(product.slug)}) — ${formatPrice(product)} — ${stock}`);
     }
   } else if (page.kind === "product") {
@@ -1045,7 +1061,7 @@ function markdown(page: SeoPreviewPage, meta: Meta): string {
     const category = canonicalProductCategory(product.category);
     lines.push("## المواصفات", "");
     lines.push(`- السعر: ${formatPrice(product)}`);
-    lines.push(`- التوفر: ${isInStock(product) ? "متوفر" : "غير متوفر حالياً"}`);
+    lines.push(`- التوفر: ${productStockLabel(product)}`);
     if (product.brand) lines.push(`- العلامة: ${product.brand}`);
     if (category) lines.push(`- الفئة: ${category}`);
     lines.push(`- التوصيل: ${formatMoney(AQUAVO_ENTITY.deliveryFee, AQUAVO_ENTITY.currency)} لكل العراق`);
@@ -1055,7 +1071,7 @@ function markdown(page: SeoPreviewPage, meta: Meta): string {
       lines.push("", "## الخيارات المتاحة", "");
       for (const variant of variants) {
         const price = formatMoney(numberValue(variant.price) ?? 0, product.currency || AQUAVO_ENTITY.currency);
-        const stock = (numberValue(variant.stock) ?? 0) > 0 ? "متوفر" : "غير متوفر حالياً";
+        const stock = isProductComingSoon(product) ? "قريبًا" : (numberValue(variant.stock) ?? 0) > 0 ? "متوفر" : "غير متوفر حالياً";
         lines.push(`- ${variant.label}: ${price} — ${stock}`);
       }
     }

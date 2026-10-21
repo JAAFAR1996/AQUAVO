@@ -16,6 +16,7 @@ interface MultiDimensionVariantSelectorProps {
   variants: ProductVariant[];
   selectedVariantId: string;
   onVariantSelect: (variant: ProductVariant) => void;
+  comingSoon?: boolean;
 }
 
 const AQUARIUM_MEASUREMENTS_BY_MODEL: Record<string, string> = {
@@ -83,6 +84,7 @@ export function MultiDimensionVariantSelector({
   variants,
   selectedVariantId,
   onVariantSelect,
+  comingSoon = false,
 }: MultiDimensionVariantSelectorProps) {
   const { t } = useTranslation("product");
   const dimensions = useMemo(() => extractVariantDimensions(variants), [variants]);
@@ -161,7 +163,7 @@ export function MultiDimensionVariantSelector({
                     onClick={() => available && onVariantSelect(variant)}
                     disabled={!available}
                     aria-pressed={selected}
-                    aria-label={!available ? t("variants.measurementUnavailableAria", { value: measurement }) : t("variants.measurementAria", { value: measurement })}
+                    aria-label={!available ? comingSoon ? `${t("variants.measurementAria", { value: measurement })} — ${t("price.soon")}` : t("variants.measurementUnavailableAria", { value: measurement }) : t("variants.measurementAria", { value: measurement })}
                     className={cn(
                       "min-h-11 rounded-full border-2 px-4 py-2 text-sm font-medium transition-colors",
                       selected
@@ -216,7 +218,7 @@ export function MultiDimensionVariantSelector({
                         onClick={() => selectValue(dimension.key, value)}
                         disabled={!available}
                         aria-pressed={selected}
-                        aria-label={!available ? t("variants.dimensionUnavailableAria", { label: dimension.label, value }) : t("variants.dimensionAria", { label: dimension.label, value })}
+                        aria-label={!available ? comingSoon ? `${t("variants.dimensionAria", { label: dimension.label, value })} — ${t("price.soon")}` : t("variants.dimensionUnavailableAria", { label: dimension.label, value }) : t("variants.dimensionAria", { label: dimension.label, value })}
                         className={cn(
                           "min-h-11 rounded-full border-2 px-4 py-2 text-sm font-medium transition-colors",
                           selected
@@ -258,7 +260,7 @@ export function MultiDimensionVariantSelector({
                 <span className="text-emerald-600 dark:text-emerald-400">{t("variants.available", { count: selectedVariant.stock })}</span>
               </>
             ) : (
-              <span className="text-destructive">{t("variants.optionUnavailable")}</span>
+              <span className="text-destructive">{comingSoon ? t("price.soon") : t("variants.optionUnavailable")}</span>
             )}
           </div>
         </div>

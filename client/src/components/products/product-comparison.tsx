@@ -15,6 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { thumbImage } from "@/lib/cloudinary";
+import { isProductComingSoon } from "@shared/product-availability";
 import {
     Table,
     TableBody,
@@ -284,7 +285,7 @@ export function ComparisonDrawer({ products }: ComparisonDrawerProps) {
                                                 className="relative flex-shrink-0 w-[4.25rem] h-[4.25rem]"
                                             >
                                                 <img
-                                                    src={thumbImage(product.image || product.thumbnail)}
+                                                    src={thumbImage(product.image || product.thumbnail) || "/brand/aquavo-v2-icon.svg"}
                                                     alt={product.name}
                                                     className="w-full h-full object-contain rounded-xl border bg-background"
                                                     loading="lazy"
@@ -329,7 +330,7 @@ export function ComparisonDrawer({ products }: ComparisonDrawerProps) {
                                     {comparedProducts.slice(0, 3).map((product, i) => (
                                         <img
                                             key={product.id}
-                                            src={thumbImage(product.image || product.thumbnail)}
+                                            src={thumbImage(product.image || product.thumbnail) || "/brand/aquavo-v2-icon.svg"}
                                             alt=""
                                             aria-hidden="true"
                                             className="w-9 h-9 rounded-full border-2 border-card object-cover bg-background"
@@ -367,6 +368,7 @@ export function ProductComparisonTable({
     onRemove,
 }: ProductComparisonTableProps) {
   const { t: tr } = useTranslation("pages");
+  const { t: productText } = useTranslation("products");
     const { addItem } = useCart();
     const { toast } = useToast();
 
@@ -424,7 +426,7 @@ export function ProductComparisonTable({
                                     )}
                                     <div className="text-center">
                                         <img
-                                            src={thumbImage(product.image || product.thumbnail)}
+                                            src={thumbImage(product.image || product.thumbnail) || "/brand/aquavo-v2-icon.svg"}
                                             alt={product.name}
                                             className="w-24 h-24 object-contain mx-auto mb-2"
                                             loading="lazy"
@@ -526,7 +528,7 @@ export function ProductComparisonTable({
                                     {stock > 0 ? (
                                         <Badge className="bg-green-500">{tr("product-comparison.s31")}{stock <= 5 ? ` (${stock})` : ""}</Badge>
                                     ) : (
-                                        <Badge variant="destructive">{tr("product-comparison.s32")}</Badge>
+                                        <Badge variant="destructive">{isProductComingSoon(product) ? productText("card.soon") : tr("product-comparison.s32")}</Badge>
                                     )}
                                 </TableCell>
                             );
@@ -610,7 +612,7 @@ export function ProductComparisonTable({
                                         <Link href={`/products/${product.slug}`}>
                                             <Button variant="outline" className="gap-2" disabled={stock <= 0}>
                                                 <ArrowRight className="w-4 h-4" />
-                                                {tr("product-comparison.s40")}
+                                                {isProductComingSoon(product) ? productText("card.soon") : tr("product-comparison.s40")}
                                             </Button>
                                         </Link>
                                     </TableCell>
@@ -624,7 +626,7 @@ export function ProductComparisonTable({
                                         disabled={stock <= 0}
                                     >
                                         <ShoppingCart className="w-4 h-4" />
-                                        {tr("product-comparison.s41")}
+                                        {isProductComingSoon(product) ? productText("card.soon") : tr("product-comparison.s41")}
                                     </Button>
                                 </TableCell>
                             );

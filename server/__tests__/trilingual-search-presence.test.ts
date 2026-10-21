@@ -1,3 +1,4 @@
+import { adaptNeonProductListQuery } from "./helpers/neon-product-list-query";
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -64,11 +65,11 @@ vi.mock("@neondatabase/serverless", () => ({
   neonConfig: {},
   Pool: vi.fn().mockImplementation(function FakePool() {
     return {
-      query: vi.fn(async (sql: string, values?: unknown[]) => {
+      query: vi.fn(adaptNeonProductListQuery(async (sql: string, values?: unknown[]) => {
         if (!/FROM\s+products/i.test(sql)) return { rows: [] };
         const category = values?.[0];
         return { rows: category ? PRODUCT_ROWS.filter((r) => r.category === category) : PRODUCT_ROWS };
-      }),
+      })),
     };
   }),
 }));

@@ -7,6 +7,7 @@ import { Check, Ruler, Zap, Thermometer } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useLocale } from "@/i18n/locale-context";
 import { formatLocalizedPrice } from "@/i18n/format";
+import { isProductComingSoon } from "@shared/product-availability";
 
 interface ProductVariantSelectorProps {
     /** المنتج الحالي المعروض */
@@ -112,6 +113,7 @@ export function ProductVariantSelector({
                         const label = getVariantLabel(variant);
                         const tankSize = getTankSize(variant);
                         const inStock = (variant.stock ?? 0) > 0;
+                        const unavailableLabel = isProductComingSoon(variant) ? t("price.soon") : t("variantSelector.outOfStock");
                         const price = typeof variant.price === "number"
                             ? variant.price
                             : parseFloat(String(variant.price)) || 0;
@@ -121,7 +123,7 @@ export function ProductVariantSelector({
                                 key={variant.id}
                                 href={`/products/${variant.slug}`}
                                 aria-current={isSelected ? "page" : undefined}
-                                aria-label={t("variantSelector.ariaOption", { label, tank: tankSize ? `، ${tankSize}` : "", price: formatLocalizedPrice(price, locale), stock: !inStock ? `، ${t("variantSelector.outOfStock")}` : "" })}
+                                aria-label={t("variantSelector.ariaOption", { label, tank: tankSize ? `، ${tankSize}` : "", price: formatLocalizedPrice(price, locale), stock: !inStock ? `، ${unavailableLabel}` : "" })}
                                 className={cn(
                                     "block relative rounded-xl border-2 p-4 transition-all duration-200",
                                     "hover:border-primary/50 hover:shadow-md",
@@ -168,7 +170,7 @@ export function ProductVariantSelector({
                                 {/* حالة المخزون */}
                                 {!inStock && (
                                     <Badge variant="secondary" className="absolute bottom-2 left-1/2 -translate-x-1/2 text-[10px]" aria-hidden="true">
-                                        {t("variantSelector.outOfStock")}
+                                        {unavailableLabel}
                                     </Badge>
                                 )}
                             </Link>

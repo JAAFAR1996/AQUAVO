@@ -56,6 +56,7 @@ import { localizeCategoryName } from "@shared/i18n/categories";
 import { formatIQD } from "@/lib/utils";
 import { getProductDisplayIdentity } from "@/lib/product-display";
 import { getProductPriceDisplay } from "@/lib/product-pricing";
+import { isProductComingSoon } from "@shared/product-availability";
 import { useShippingFee } from "@/contexts/shipping-fee-context";
 
 interface Product3DMeta {
@@ -234,6 +235,7 @@ export default function ProductDetails() {
   const displayOriginalPrice = priceDisplay.originalPrice;
   const woodSaleActive = product ? isWoodMonthEndSale(product) : false;
   const displayStock = selectedVariant?.stock ?? product?.stock ?? 0;
+  const isComingSoon = isProductComingSoon(product);
   const isOutOfStock = hasEmbeddedVariants
     ? product?.variants?.every((variant) => (variant.stock ?? 0) <= 0) ?? true
     : (product?.stock ?? 0) <= 0;
@@ -571,6 +573,7 @@ export default function ProductDetails() {
                       variants={product.variants}
                       selectedVariantId={selectedVariant?.id || ""}
                       onVariantSelect={setSelectedVariant}
+                      comingSoon={isComingSoon}
                     />
                     {/* Single-dimension products (for example: one fixed color + multiple sizes)
                         are handled here. The selector itself hides when the variant set truly has
@@ -579,6 +582,7 @@ export default function ProductDetails() {
                       variants={product.variants}
                       selectedVariantId={selectedVariant?.id || ""}
                       onVariantSelect={setSelectedVariant}
+                      comingSoon={isComingSoon}
                       productCategory={product.category}
                     />
                   </div>
@@ -596,7 +600,9 @@ export default function ProductDetails() {
 
                 {/* Stock Status */}
                 <div className="flex items-center gap-2 mb-4" role="status">
-                  {requiresVariantSelection ? (
+                  {isComingSoon ? (
+                    <span className="text-sm font-medium text-muted-foreground">{t("price.soon")}</span>
+                  ) : requiresVariantSelection ? (
                     <span className="text-sm font-medium text-muted-foreground">{t("stock.chooseVariant")}</span>
                   ) : displayStock > 0 ? (
                     <>
@@ -807,7 +813,7 @@ export default function ProductDetails() {
                   <div className="mb-6 space-y-2">
                     <Button size="lg" variant="outline" className="w-full gap-2 h-12" disabled aria-disabled="true">
                       <Package className="w-5 h-5" aria-hidden="true" />
-                      {t("stock.unavailable")}
+                      {isComingSoon ? t("price.soon") : t("stock.unavailable")}
                     </Button>
                     <WhatsAppLink
                       source="product"

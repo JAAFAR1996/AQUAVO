@@ -1,3 +1,4 @@
+import { adaptNeonProductListQuery } from "./helpers/neon-product-list-query";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -20,7 +21,7 @@ const QUERY = vi.fn();
 vi.mock("@neondatabase/serverless", () => ({
   neonConfig: {},
   Pool: class {
-    query = QUERY;
+    query = adaptNeonProductListQuery(QUERY);
   },
 }));
 

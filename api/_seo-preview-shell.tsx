@@ -23,6 +23,7 @@ import { localizeCategoryName } from "../shared/i18n/categories.js";
 import { articleAuthorEntity, authorBylineText, authorProfilePath } from "../shared/editorial-author.js";
 import { DEFAULT_LOCALE, localizePath, type Locale } from "../shared/i18n/locales.js";
 import { preservePublicEmailHtml } from "../shared/public-email-html.js";
+import { isProductComingSoon } from "../shared/product-availability.js";
 
 export type SeoPreviewVariant = {
   id?: string;
@@ -147,6 +148,7 @@ export function formatMoney(value: number, currency = "IQD"): string {
 export function formatPrice(product: SeoPreviewProduct): string {
   const range = priceRange(product);
   if (!range) return "السعر غير منشور حالياً";
+  if (isProductComingSoon(product) && range.min <= 0) return "السعر يحدد عند التوفر";
   if (range.min !== range.max) {
     return `من ${formatMoney(range.min, product.currency || "IQD")} إلى ${formatMoney(range.max, product.currency || "IQD")}`;
   }
@@ -157,6 +159,12 @@ export function isInStock(product: SeoPreviewProduct): boolean {
   const variants = getActiveVariants(product);
   if (variants.length > 0) return variants.some((variant) => (numberValue(variant.stock) ?? 0) > 0);
   return (numberValue(product.stock) ?? 0) > 0;
+}
+
+/** A visible label only: structured offers still report the actual stock. */
+export function productStockLabel(product: SeoPreviewProduct): string {
+  if (isProductComingSoon(product)) return "قريبًا";
+  return isInStock(product) ? "متوفر" : "غير متوفر حالياً";
 }
 
 export function cleanText(value: string | null | undefined, fallback: string): string {
@@ -220,7 +228,7 @@ function ProductLinks({ products, limit }: { products: SeoPreviewProduct[]; limi
               )}
               <strong>{product.name}</strong>
               <span>{formatPrice(product)}</span>
-              <small>{isInStock(product) ? "متوفر" : "غير متوفر حالياً"}</small>
+              <small>{productStockLabel(product)}</small>
             </a>
           </li>
         );
@@ -668,7 +676,7 @@ function ProductPage({ product, related, reviews = [] }: { product: SeoPreviewPr
         <p itemProp="description">{description}</p>
         <dl className="aq-ssr-facts">
           <div><dt>السعر</dt><dd>{formatPrice(product)}</dd></div>
-          <div><dt>حالة المخزون</dt><dd>{isInStock(product) ? "متوفر" : "غير متوفر حالياً"}</dd></div>
+          <div><dt>حالة المخزون</dt><dd>{productStockLabel(product)}</dd></div>
           {category && <div><dt>الفئة</dt><dd><a href={categoryProductsPath(category)}>{category}</a></dd></div>}
           {product.brand && (
             <div>
@@ -688,7 +696,7 @@ function ProductPage({ product, related, reviews = [] }: { product: SeoPreviewPr
                 <li key={variant.id || `${variant.label}-${index}`}>
                   <strong>{variant.label}</strong>
                   <span>{formatMoney(numberValue(variant.price) || 0, product.currency || "IQD")}</span>
-                  <small>{(numberValue(variant.stock) ?? 0) > 0 ? "متوفر" : "غير متوفر حالياً"}</small>
+                  <small>{isProductComingSoon(product) ? "قريبًا" : (numberValue(variant.stock) ?? 0) > 0 ? "متوفر" : "غير متوفر حالياً"}</small>
                 </li>
               ))}
             </ul>

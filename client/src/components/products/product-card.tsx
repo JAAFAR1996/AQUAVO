@@ -12,6 +12,7 @@ import { cardImage, cardImageSrcSet } from "@/lib/cloudinary";
 import { formatPrice } from "@/lib/format";
 import { getProductDisplayIdentity } from "@/lib/product-display";
 import { getProductPriceDisplay } from "@/lib/product-pricing";
+import { isProductComingSoon } from "@shared/product-availability";
 import { trackSelectItem } from "@/lib/analytics";
 import { flyProductToCart } from "@/lib/motion/fly-to-cart";
 import { isolateNumericRanges as bidi } from "@shared/i18n/bidi";
@@ -60,6 +61,7 @@ export const ProductCard = memo(function ProductCard({
 
   const priceDisplay = getProductPriceDisplay(product);
   const hasPrice = priceDisplay.price !== null;
+  const isComingSoon = isProductComingSoon(product);
   const requiresVariantChoice = Boolean(product.hasVariants && product.variants?.length);
   const isOutOfStock = requiresVariantChoice
     ? product.variants?.every((variant) => (variant.stock ?? 0) <= 0) ?? true
@@ -125,7 +127,7 @@ export const ProductCard = memo(function ProductCard({
   const imageSrc = cardImage(rawImage) || "/brand/aquavo-v2-icon.svg";
   const imageSrcSet = cardImageSrcSet(rawImage);
 
-  const primaryActionLabel = !hasPrice
+  const primaryActionLabel = !hasPrice || isComingSoon
     ? t("card.soon")
     : isOutOfStock
       ? t("card.outOfStock")
@@ -133,7 +135,7 @@ export const ProductCard = memo(function ProductCard({
         ? t("card.chooseOption")
         : t("card.addToCart");
 
-  const primaryActionAriaLabel = !hasPrice
+  const primaryActionAriaLabel = !hasPrice || isComingSoon
     ? t("card.soonAria", { name: product.name })
     : isOutOfStock
       ? t("card.outOfStockAria", { name: product.name })

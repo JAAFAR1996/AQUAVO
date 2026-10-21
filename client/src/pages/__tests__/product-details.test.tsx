@@ -272,6 +272,28 @@ describe('Product Details Page', () => {
         });
     });
 
+    it('announces incoming stock without changing saved option prices or permitting purchase', async () => {
+        const original = await fetchProductBySlug('test-product');
+        if (!original) throw new Error('Missing fixture');
+        const product = {
+            ...original,
+            stock: 0,
+            specifications: { __availabilityStatus: 'coming_soon', 'المقاسات القادمة': '2 متر' },
+            variants: original.variants?.map((variant) => ({ ...variant, stock: 0 })),
+        };
+        const before = JSON.stringify(product);
+        vi.mocked(fetchProductBySlug).mockResolvedValueOnce(product);
+        render(<ProductDetails />, { wrapper: createWrapper() });
+        await screen.findByRole('heading', { level: 1, name: product.name });
+        const incomingButtons = screen.getAllByRole('button', { name: /قريب/ });
+        expect(incomingButtons.length).toBeGreaterThanOrEqual(3);
+        for (const button of incomingButtons) expect(button).toBeDisabled();
+        expect(screen.getAllByText(/28,000/).length).toBeGreaterThan(0);
+        expect(screen.queryByRole('button', { name: 'أضف إلى السلة' })).not.toBeInTheDocument();
+        expect(mockAddItem).not.toHaveBeenCalled();
+        expect(JSON.stringify(product)).toBe(before);
+    });
+
     it('does not invent authenticity or warranty claims for a non-YEE product', async () => {
         render(<ProductDetails />, { wrapper: createWrapper() });
         expect(await screen.findByRole('heading', { level: 1, name: 'سيفون تغيير ماء' })).toBeInTheDocument();
