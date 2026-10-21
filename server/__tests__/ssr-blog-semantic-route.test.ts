@@ -1,3 +1,4 @@
+import { adaptNeonProductListQuery } from "./helpers/neon-product-list-query";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { describe, expect, it, vi } from "vitest";
 
@@ -25,11 +26,11 @@ vi.mock("@neondatabase/serverless", () => ({
   neonConfig: {},
   Pool: vi.fn().mockImplementation(function FakePool() {
     return {
-      query: vi.fn(async (sql: string) => {
+      query: vi.fn(adaptNeonProductListQuery(async (sql: string) => {
         if (sql.includes("FROM blog_posts")) return { rows: [BLOG_ROW] };
         if (sql.includes("FROM products")) return { rows: [] };
         return { rows: [] };
-      }),
+      })),
     };
   }),
 }));

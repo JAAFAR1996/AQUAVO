@@ -141,6 +141,27 @@ describe('ProductCard Component', () => {
         expect(screen.getByRole('button', { name: /أضف Premium Fish Food إلى سلة المشتريات/ })).toBeEnabled();
     });
 
+    it('shows incoming status at the saved sale price and keeps purchase disabled', () => {
+        const product = { ...mockProduct, stock: 0, specifications: { __availabilityStatus: 'coming_soon' } };
+        const before = JSON.stringify(product);
+        render(<ProductCard product={product} />, { wrapper: createWrapper() });
+        expect(screen.getByRole('button', { name: /قريب/ })).toBeDisabled();
+        expect(screen.getByText(/25,000/)).toBeInTheDocument();
+        expect(JSON.stringify(product)).toBe(before);
+    });
+
+    it('gives real stock priority over a stale incoming marker', () => {
+        render(<ProductCard product={{ ...mockProduct, specifications: { __availabilityStatus: 'coming_soon' } }} />, { wrapper: createWrapper() });
+        expect(screen.getByRole('button', { name: /أضف Premium Fish Food إلى سلة المشتريات/ })).toBeEnabled();
+        expect(screen.queryByRole('button', { name: /قريب/ })).not.toBeInTheDocument();
+    });
+
+    it('does not relabel an unrelated sold-out product', () => {
+        render(<ProductCard product={{ ...mockProduct, stock: 0 }} />, { wrapper: createWrapper() });
+        expect(screen.getByRole('button', { name: /نفدت الكمية/ })).toBeDisabled();
+        expect(screen.queryByRole('button', { name: /قريب/ })).not.toBeInTheDocument();
+    });
+
     // ---- Phase D: product-status accessibility ----
 
     it('exposes meaningful status badges to the accessibility tree (not aria-hidden)', () => {

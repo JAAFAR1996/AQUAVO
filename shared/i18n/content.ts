@@ -64,6 +64,7 @@ export interface TranslationRecord<T = Record<string, unknown>> {
 
 /** Keys of a product's `specifications` that are structural, never language. */
 const NON_LINGUISTIC_SPEC_KEYS = new Set([
+  "__availabilityStatus",
   "__model3d",
   "__gallery",
   "__video",
@@ -259,6 +260,7 @@ export function applyProductTranslation<T extends Record<string, unknown>>(
   if (nonEmpty(ts.__cardBenefit)) specs.__cardBenefit = ts.__cardBenefit;
   if (ts.labelled) {
     for (const [arabicKey, entry] of Object.entries(ts.labelled)) {
+      if (NON_LINGUISTIC_SPEC_KEYS.has(arabicKey)) continue;
       if (!(arabicKey in specs)) continue;
       delete specs[arabicKey];
       specs[entry.label] = entry.value;

@@ -6853,5 +6853,1824 @@
       },
       "variantLabels": {}
     }
+  },
+  "hygger-hg957-202610": {
+    "entityId": "hygger-hg957-202610",
+    "slug": "hygger-programmable-planted-aquarium-light",
+    "sourceHash": "a3e9391fd7e7ede1",
+    "translatedBy": "ChatGPT:manually-authored",
+    "translatedAt": "2026-10-21T15:21:03.145147+00:00",
+    "data": {
+      "name": "Hygger HG957 Programmable Planted Aquarium Light with Control Display",
+      "description": "Set your planted aquarium lighting around your schedule, with gradual sunrise and sunset and adjustable brightness. The built-in display makes the lighting program easy to set and review.\n\nAvailable in 36 and 48 W versions for planted aquariums. Use the built-in display to set the clock, day and night program, and ten brightness levels, with gradual switching on and off. Choose the size to suit your tank length and keep the light mounted above the water.\n\nHygger — Models: HG957-36W-UK, HG957-48W-UK.",
+      "subcategory": "LED lighting",
+      "specifications": {
+        "benefits": [
+          "Provides full-spectrum lighting to support plant photosynthesis and show the aquarium colors clearly.",
+          "Set daytime and night lighting times from the display instead of switching the light manually every day.",
+          "Gradual switching on and off reduces sudden changes in lighting.",
+          "Ten brightness levels let you adjust the lighting to the plant type and tank depth."
+        ],
+        "usageInstructions": [
+          "Choose the size to suit the tank length.",
+          "Mount the light above the water and adjust the brackets.",
+          "Set the local time, then the day and night program or your custom program.",
+          "Adjust duration and brightness gradually according to plant and algae growth, and reset the clock after a power outage."
+        ],
+        "safetyWarnings": [
+          "Mount the light above the water and do not submerge it; keep the adapter and controller dry.",
+          "Keep the adapter away from moisture and do not use the light if the strip or cable is damaged."
+        ],
+        "__cardBenefit": "A daily lighting program for plants with a built-in control display",
+        "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "Full-spectrum LED for freshwater planted aquariums"
+          },
+          "التحكم": {
+            "label": "Controls",
+            "value": "LCD display and buttons built into the light"
+          },
+          "السطوع": {
+            "label": "Brightness",
+            "value": "10 levels"
+          },
+          "البرامج": {
+            "label": "Programs",
+            "value": "Automatic cycle and a custom time and brightness program"
+          },
+          "التثبيت": {
+            "label": "Mounting",
+            "value": "Two extendable metal brackets"
+          },
+          "الموديل": {
+            "label": "Model",
+            "value": "HG957"
+          },
+          "الخيارات": {
+            "label": "Options",
+            "value": "36 W — for tanks 61–76 cm long | 48 W — for tanks 76–91 cm long"
+          },
+          "دخل المحول": {
+            "label": "Adapter input",
+            "value": "100–240 V AC; 20 V DC output for both sizes"
+          },
+          "رموز الخيارات": {
+            "label": "Option codes",
+            "value": "HG957-36W-UK | HG957-48W-UK"
+          },
+          "محتويات العبوة": {
+            "label": "Package contents",
+            "value": "Light unit with built-in control panel; AC/DC adapter; two metal mounting brackets; user manual"
+          },
+          "مواصفات خيار 36 واط": {
+            "label": "36 W option specifications",
+            "value": "Power: 36 W; suitable tank length: 61–76.2 cm; light dimensions: 60 × 10 × 2.2 cm; stated luminous flux: 1984 lumens; LED count: 112"
+          },
+          "مواصفات خيار 48 واط": {
+            "label": "48 W option specifications",
+            "value": "Power: 48 W; suitable tank length: 76.2–91.44 cm; light dimensions: 75 × 10 × 2.2 cm; stated luminous flux: 2365 lumens; LED count: 144"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "hygger-hg019-202610": {
+    "entityId": "hygger-hg019-202610",
+    "slug": "hygger-digital-quartz-heater",
+    "sourceHash": "0982018103a8b487",
+    "translatedBy": "ChatGPT:manually-authored",
+    "translatedAt": "2026-10-21T15:21:03.145147+00:00",
+    "data": {
+      "name": "Hygger HG019 Digital Aquarium Heater with External Control",
+      "description": "Helps keep the water temperature stable and lets you monitor it on a digital display. Adjust the setting with a button outside the aquarium, with protection against low water and overheating.\n\nChoose 300, 800, or 1200 W according to the aquarium needs. The quartz-glass heating element sits inside a protective cover, with a setting range of 15 to 34 °C. Keep the heater fully submerged and the adjustment unit outside the water.\n\nHygger — Models: HG019-300W-UK, HG019-800W-UK, HG019-1200W-UK.",
+      "subcategory": "Heaters",
+      "specifications": {
+        "benefits": [
+          "Maintains the set temperature without manually switching the heater on and off.",
+          "A display shows the water temperature for easy checking.",
+          "External control makes temperature adjustment easy without putting your hand in the aquarium.",
+          "Out-of-water and overheating protection adds a layer of safety when used correctly."
+        ],
+        "usageInstructions": [
+          "Choose the power according to tank size, room temperature, and the required temperature.",
+          "Mount the heater fully submerged, horizontally or vertically, in a place with good water circulation.",
+          "Set the temperature and monitor it with a separate thermometer.",
+          "Disconnect the power and wait 15 minutes before removing it or changing the water."
+        ],
+        "safetyWarnings": [
+          "Do not bury it in sand or expose any part to air while it is operating.",
+          "Keep the controller and plug outside the water.",
+          "Automatic protection does not replace correct submersion and monitoring the aquarium temperature."
+        ],
+        "__cardBenefit": "Controlled temperature and a digital display with adjustment outside the aquarium",
+        "labelled": {
+          "التحكم": {
+            "label": "Controls",
+            "value": "Digital display and external adjustment unit"
+          },
+          "الخامة": {
+            "label": "Material",
+            "value": "Quartz-glass heating element with a protective cover"
+          },
+          "القدرات": {
+            "label": "Power options",
+            "value": "300, 800, or 1200 W depending on the selected option"
+          },
+          "الموديل": {
+            "label": "Model",
+            "value": "HG019"
+          },
+          "الخيارات": {
+            "label": "Options",
+            "value": "300 W | 800 W | 1200 W"
+          },
+          "الكهرباء": {
+            "label": "Power supply",
+            "value": "UK version, 220–240 V, 50 Hz"
+          },
+          "الاستخدام": {
+            "label": "Usage",
+            "value": "Freshwater or saltwater aquariums"
+          },
+          "ضبط الحرارة": {
+            "label": "Temperature setting",
+            "value": "15–34 °C"
+          },
+          "رموز الخيارات": {
+            "label": "Option codes",
+            "value": "HG019-300W-UK | HG019-800W-UK | HG019-1200W-UK"
+          },
+          "محتويات العبوة": {
+            "label": "Package contents",
+            "value": "Digital heater with controller; two suction-cup mounting sets; user manual"
+          },
+          "مواصفات خيار 300 واط": {
+            "label": "300 W option specifications",
+            "value": "Power: 300 W; heater dimensions: 22.9 × 8.6 × 3 cm; temperature setting range: 15–34 °C; controls: external adjustment button and digital display on the heater; power supply: 220–240 V, 50 Hz, UK plug"
+          },
+          "مواصفات خيار 800 واط": {
+            "label": "800 W option specifications",
+            "value": "Power: 800 W; heater dimensions: 29 × 8.6 × 3 cm; temperature setting range: 15–34 °C; controls: external adjustment button and digital display on the heater; power supply: 220–240 V, 50 Hz, UK plug"
+          },
+          "مواصفات خيار 1200 واط": {
+            "label": "1200 W option specifications",
+            "value": "Power: 1200 W; heater dimensions: 29 × 8.6 × 3 cm; temperature setting range: 15–34 °C; controls: external adjustment button and digital display on the heater; power supply: 220–240 V, 50 Hz, UK plug"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "hygger-hg958-202610": {
+    "entityId": "hygger-hg958-202610",
+    "slug": "hygger-dual-outlet-air-pump-5w",
+    "sourceHash": "c962f5eb888fd551",
+    "translatedBy": "ChatGPT:manually-authored",
+    "translatedAt": "2026-10-21T15:21:03.145147+00:00",
+    "data": {
+      "name": "Hygger HG958 Dual-Outlet Adjustable Air Pump — 5 W",
+      "description": "Run two air stones or two sponge filters from one pump and adjust the bubbles to the aquarium needs. Rubber feet help reduce vibration.\n\nA 5 W pump with two outlets and a maximum rated flow of approximately 605 L/h. Install it outside the aquarium and connect tubing to an air stone or sponge filter. Actual bubble output depends on water depth, tubing length, and accessory resistance.\n\nHygger — Model: HG958-UK.",
+      "subcategory": "Air pumps",
+      "specifications": {
+        "benefits": [
+          "Two outlets let you distribute air to two points in the tank or run two air-powered accessories.",
+          "A control knob makes it easy to decrease or increase the bubbles.",
+          "Supports water aeration and surface movement when connected to a suitable air stone.",
+          "Rubber feet and an insulated housing help reduce vibration and noise."
+        ],
+        "usageInstructions": [
+          "Place it outside the aquarium on a dry, level surface.",
+          "Connect the tubing to the air stone or sponge filter.",
+          "If the pump is below water level, fit a check valve in the correct direction.",
+          "Adjust the flow and clean the air intake and air stone regularly."
+        ],
+        "safetyWarnings": [
+          "The pump is not submersible and must not be placed in water.",
+          "Actual flow decreases with depth and resistance from the tubing and air stone.",
+          "Suitable tubing, an air stone or sponge filter, and a check valve are required for operation."
+        ],
+        "__cardBenefit": "Run two aeration points from one pump with adjustable airflow",
+        "labelled": {
+          "التحكم": {
+            "label": "Controls",
+            "value": "Airflow adjustment knob"
+          },
+          "القدرة": {
+            "label": "Power",
+            "value": "5 W"
+          },
+          "الأبعاد": {
+            "label": "Dimensions",
+            "value": "12 × 10 × 8.9 cm"
+          },
+          "الموديل": {
+            "label": "Model",
+            "value": "HG958"
+          },
+          "الكهرباء": {
+            "label": "Power supply",
+            "value": "220–240 V, 50 Hz, UK plug"
+          },
+          "رمز المنتج": {
+            "label": "Product code",
+            "value": "HG958-UK"
+          },
+          "مخارج الهواء": {
+            "label": "Air outlets",
+            "value": "2"
+          },
+          "التحكم بالهواء": {
+            "label": "Airflow control",
+            "value": "Adjustable"
+          },
+          "محتويات العبوة": {
+            "label": "Package contents",
+            "value": "Air pump; user manual"
+          },
+          "عدد مخارج الهواء": {
+            "label": "Number of air outlets",
+            "value": "Two outlets"
+          },
+          "التدفق الاسمي الأقصى": {
+            "label": "Maximum rated flow",
+            "value": "Approximately 605 L/h according to the manufacturer"
+          },
+          "التدفق الاسمي المعلن": {
+            "label": "Stated rated flow",
+            "value": "605 L/h"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "hygger-hg946-202610": {
+    "entityId": "hygger-hg946-202610",
+    "slug": "hygger-dual-outlet-air-pump-10w",
+    "sourceHash": "38831b136a9ccf89",
+    "translatedBy": "ChatGPT:manually-authored",
+    "translatedAt": "2026-10-21T15:21:03.145147+00:00",
+    "data": {
+      "name": "Hygger HG946 Powerful Dual-Outlet Adjustable Air Pump — 10 W",
+      "description": "Provides a rated airflow of up to approximately 965 L/h, with two outlets and a control knob. Helps you distribute air to aeration equipment according to the aquarium needs.\n\nPower is 10 W and the maximum rated flow is approximately 965 L/h. Adjust airflow with the knob and distribute it through two outlets, allowing for water depth and the number of accessories. Place the pump outside the aquarium in a dry location and protect it against water flowing back through the tubing.\n\nHygger — Model: HG946-10W-UK.",
+      "subcategory": "Air pumps",
+      "specifications": {
+        "benefits": [
+          "Rated flow reaches approximately 965 L/h according to the manufacturer for suitable aeration accessories.",
+          "Two outlets make it easier to distribute air to more than one point.",
+          "Adjust the bubbles with the knob to suit the aquarium.",
+          "Feet and internal mounting reduce vibration transferred to the surface."
+        ],
+        "usageInstructions": [
+          "Set it outside the aquarium on a dry, level surface.",
+          "Connect the tubing and aeration accessories.",
+          "Use check valves if the pump is below water level, or place it 25 cm above water level.",
+          "Adjust the flow and clean the air intake filter and air stones regularly."
+        ],
+        "safetyWarnings": [
+          "This is not a water pump and must not be submerged.",
+          "Depth, tubing branches, and air stone resistance reduce actual flow.",
+          "Do not choose it on tank size alone; the number and depth of accessories also matter."
+        ],
+        "__cardBenefit": "Powerful dual-outlet airflow for larger aeration setups",
+        "labelled": {
+          "التحكم": {
+            "label": "Controls",
+            "value": "Flow adjustment knob"
+          },
+          "القدرة": {
+            "label": "Power",
+            "value": "10 W"
+          },
+          "الأبعاد": {
+            "label": "Dimensions",
+            "value": "19 × 13 × 9.9 cm"
+          },
+          "الموديل": {
+            "label": "Model",
+            "value": "HG946"
+          },
+          "الكهرباء": {
+            "label": "Power supply",
+            "value": "220–240 V, 50 Hz, UK plug"
+          },
+          "رمز المنتج": {
+            "label": "Product code",
+            "value": "HG946-10W-UK"
+          },
+          "مخارج الهواء": {
+            "label": "Air outlets",
+            "value": "2"
+          },
+          "التحكم بالهواء": {
+            "label": "Airflow control",
+            "value": "Adjustable"
+          },
+          "محتويات العبوة": {
+            "label": "Package contents",
+            "value": "Air pump; user manual"
+          },
+          "عدد مخارج الهواء": {
+            "label": "Number of air outlets",
+            "value": "Two outlets"
+          },
+          "التدفق الاسمي الأقصى": {
+            "label": "Maximum rated flow",
+            "value": "Approximately 965 L/h according to the manufacturer"
+          },
+          "التدفق الاسمي المعلن": {
+            "label": "Stated rated flow",
+            "value": "965 L/h"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "hygger-hg087-202610": {
+    "entityId": "hygger-hg087-202610",
+    "slug": "hygger-rechargeable-air-pump-1-5w",
+    "sourceHash": "fb2b8a2ea6a3dcee",
+    "translatedBy": "ChatGPT:manually-authored",
+    "translatedAt": "2026-10-21T15:21:03.145147+00:00",
+    "data": {
+      "name": "Hygger HG087 Rechargeable Single-Outlet Air Pump — 1.5 W",
+      "description": "Provides portable aeration for an aquarium or during transport, with a rechargeable battery and adjustable airflow. A practical option for backup aeration when needed.\n\nThe 1.5 W version has one air outlet, a 1600 mAh battery, and a rated flow of approximately 1.5 L/min. Choose continuous or intermittent operation and adjust the airflow. Test battery operation and check the charge before relying on it for backup aeration.\n\nHygger — Model: HG087-1.5W-UK.",
+      "subcategory": "Air pumps",
+      "specifications": {
+        "benefits": [
+          "A rechargeable battery allows aeration without a direct mains connection.",
+          "Its small size makes it easy to carry and use when transporting fish or preparing backup aeration.",
+          "Adjust airflow and choose continuous or intermittent operation.",
+          "Single-outlet accessories are included for connecting the air stone with tubing and a check valve."
+        ],
+        "usageInstructions": [
+          "Charge the battery before use.",
+          "Place the pump outside the water in a dry location and connect the tubing, valve, and air stone.",
+          "Choose the appropriate flow and operating mode.",
+          "Test battery operation before relying on it as a backup, and check the charge regularly."
+        ],
+        "safetyWarnings": [
+          "The pump is not submersible; keep it outside the water.",
+          "Runtime varies with airflow, depth, and battery condition."
+        ],
+        "__cardBenefit": "Portable aeration with a rechargeable battery and one outlet",
+        "labelled": {
+          "الشحن": {
+            "label": "Charging",
+            "value": "USB-C"
+          },
+          "القدرة": {
+            "label": "Power",
+            "value": "1.5 W"
+          },
+          "الأبعاد": {
+            "label": "Dimensions",
+            "value": "11 × 6.5 × 4 cm"
+          },
+          "المخارج": {
+            "label": "Outlets",
+            "value": "One outlet"
+          },
+          "الموديل": {
+            "label": "Model",
+            "value": "HG087"
+          },
+          "البطارية": {
+            "label": "Battery",
+            "value": "1600 mAh"
+          },
+          "رمز المنتج": {
+            "label": "Product code",
+            "value": "HG087-1.5W-UK"
+          },
+          "سعة البطارية": {
+            "label": "Battery capacity",
+            "value": "1600 mAh"
+          },
+          "مدة البطارية": {
+            "label": "Battery runtime",
+            "value": "Up to 20 hours continuously or 28 hours intermittently, according to the manufacturer and operating conditions"
+          },
+          "التدفق الاسمي": {
+            "label": "Rated flow",
+            "value": "Approximately 1.5 L/min"
+          },
+          "محتويات العبوة": {
+            "label": "Package contents",
+            "value": "Rechargeable air pump; one airline tube; one check valve; one air stone; USB-C cable; USB adapter; user manual"
+          },
+          "عدد مخارج الهواء": {
+            "label": "Number of air outlets",
+            "value": "One outlet"
+          },
+          "التدفق الاسمي المعلن": {
+            "label": "Stated rated flow",
+            "value": "1.5 L/min"
+          },
+          "التشغيل المتقطع بالبطارية": {
+            "label": "Intermittent battery operation",
+            "value": "Up to 28 hours depending on operating conditions"
+          },
+          "التشغيل المستمر بالبطارية": {
+            "label": "Continuous battery operation",
+            "value": "Up to 20 hours depending on operating conditions"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "hygger-hgy0001-202610": {
+    "entityId": "hygger-hgy0001-202610",
+    "slug": "hygger-aquarium-cleaning-kit-6-in-1",
+    "sourceHash": "7159633535b21935",
+    "translatedBy": "ChatGPT:manually-authored",
+    "translatedAt": "2026-10-21T15:21:03.145147+00:00",
+    "data": {
+      "name": "Hygger HGY0001 6-in-1 Aquarium Cleaning Kit with Extendable Handle",
+      "description": "Clean glass, corners, and pipes and arrange gravel with one kit. The handle extends to reach deeper areas, and you can switch between six heads to suit the task.\n\nIncludes a net, scraper, flat sponge, corner sponge, pipe brush, and gravel rake. The handle is approximately 60 to 90 cm long depending on extension, helping you reach deeper areas and change heads for each task. Keep the blade away from silicone and sand while cleaning.\n\nHygger — Model: HGY0001-M.",
+      "subcategory": "Cleaning tools",
+      "specifications": {
+        "benefits": [
+          "Remove algae from glass and reach corners with a flat sponge and a corner sponge.",
+          "The extendable handle reduces the need to put your hand in the water.",
+          "The pipe brush helps remove dirt from wide pipes and equipment openings.",
+          "A net for lifting debris and a rake for arranging gravel complete daily maintenance tasks."
+        ],
+        "usageInstructions": [
+          "Fit the appropriate head, adjust the handle length, and tighten the connection.",
+          "Move the sponge gently in one direction; use the scraper at a steady angle with its face flat against the glass.",
+          "Keep the blade away from silicone and grains of sand.",
+          "Wash the heads after use and dry the blade before covering and storing it."
+        ],
+        "safetyWarnings": [
+          "The scraper blade is sharp; keep the kit away from children.",
+          "For acrylic, check that the head is suitable before use and do not use a blade that could scratch the surface."
+        ],
+        "__cardBenefit": "Six heads for cleaning glass, corners, and pipes and arranging gravel",
+        "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "Manual cleaning kit with interchangeable heads"
+          },
+          "الوصول": {
+            "label": "Reach",
+            "value": "For tanks up to approximately 80 cm deep, depending on how it is used"
+          },
+          "التنظيف": {
+            "label": "Cleaning",
+            "value": "Aquarium glass, corners, wide pipes, and gravel arrangement"
+          },
+          "الموديل": {
+            "label": "Model",
+            "value": "HGY0001"
+          },
+          "رمز المنتج": {
+            "label": "Product code",
+            "value": "HGY0001-M"
+          },
+          "طول المقبض": {
+            "label": "Handle length",
+            "value": "Approximately 59.4–89.9 cm"
+          },
+          "عدد الرؤوس": {
+            "label": "Number of heads",
+            "value": "6 heads plus the handle"
+          },
+          "نوع التشغيل": {
+            "label": "Operation type",
+            "value": "Manual"
+          },
+          "السطح المناسب": {
+            "label": "Suitable surface",
+            "value": "Aquarium glass"
+          },
+          "محتويات العبوة": {
+            "label": "Package contents",
+            "value": "Extendable handle with connectors; small net; algae scraper; pipe cleaning brush; gravel rake; flat sponge; corner sponge; user manual"
+          },
+          "عدد رؤوس التنظيف": {
+            "label": "Number of cleaning heads",
+            "value": "6 interchangeable heads"
+          },
+          "عمق الحوض المناسب": {
+            "label": "Suitable tank depth",
+            "value": "Up to approximately 80 cm"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "hygger-hg124-202610": {
+    "entityId": "hygger-hg124-202610",
+    "slug": "hygger-floating-magnetic-glass-cleaner",
+    "sourceHash": "2c1a65ff6bea86a3",
+    "translatedBy": "ChatGPT:manually-authored",
+    "translatedAt": "2026-10-21T15:21:03.145147+00:00",
+    "data": {
+      "name": "Hygger HG124 Floating Magnetic Glass Cleaner with Two Blades",
+      "description": "Clean algae from the inside of aquarium glass while keeping your hand outside. Two plastic blades help remove deposits, and the inner piece floats if it separates so you can retrieve it easily.\n\nChoose from three sizes according to glass thickness: S for up to 6 mm, M for 6 to 13 mm, and L for 13 to 20 mm. Before every use, check the cleaning surface for grains of sand that could scratch the glass.\n\nHygger — Models: HG124-S, HG124-M, HG124-L.",
+      "subcategory": "Cleaning tools",
+      "specifications": {
+        "benefits": [
+          "Clean the inside of the aquarium by moving the handle from outside.",
+          "Two removable blades help remove attached algae.",
+          "The inner part floats if it separates, so you do not need to look for it among the gravel.",
+          "The soft outer side wipes dust and fingerprints from the glass."
+        ],
+        "usageInstructions": [
+          "Measure the aquarium glass thickness and choose the appropriate size.",
+          "Separate the two parts with a twisting motion and fit the blades in place.",
+          "Bring the parts together gradually from opposite sides of the glass, keeping fingers away from the contact surfaces.",
+          "Move the cleaner gently, clean both surfaces after use, and put a cardboard spacer between them for storage."
+        ],
+        "safetyWarnings": [
+          "Before every use, make sure the cleaning surface is free of sand and gravel to avoid scratching the glass.",
+          "The magnet is strong; keep it away from children and do not let the parts snap shut on fingers.",
+          "According to the manufacturer instructions, people with a pacemaker or implanted defibrillator must not use it."
+        ],
+        "__cardBenefit": "Clean algae from the inside while keeping your hand outside the aquarium",
+        "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "Manual floating magnetic cleaner"
+          },
+          "الشفرات": {
+            "label": "Blades",
+            "value": "Removable plastic blades; 4 blades in total"
+          },
+          "الموديل": {
+            "label": "Model",
+            "value": "HG124"
+          },
+          "الخيارات": {
+            "label": "Options",
+            "value": "Small — for glass up to 6 mm | Medium — for 6–13 mm glass | Large — for 13–20 mm glass"
+          },
+          "نوع الماء": {
+            "label": "Water type",
+            "value": "Freshwater or saltwater"
+          },
+          "اختيار المقاس": {
+            "label": "Size selection",
+            "value": "According to glass thickness in mm"
+          },
+          "رموز الخيارات": {
+            "label": "Option codes",
+            "value": "HG124-S | HG124-M | HG124-L"
+          },
+          "الجهة الخارجية": {
+            "label": "Outer side",
+            "value": "Soft surface and grip handle"
+          },
+          "محتويات العبوة": {
+            "label": "Package contents",
+            "value": "Floating inner cleaning piece; magnetic outer handle; 4 plastic blades in total: two for use and two spares; user manual"
+          },
+          "مواصفات خيار وسط": {
+            "label": "Medium option specifications",
+            "value": "Suitable glass thickness: 6–13 mm; approximate body dimensions: 13.7 × 5 × 7.5 cm; inner part: floats when the magnet separates; plastic blades: 4 blades: 2 for use and 2 spares; operation: manual with a magnet"
+          },
+          "مواصفات خيار صغير": {
+            "label": "Small option specifications",
+            "value": "Suitable glass thickness: up to 6 mm; approximate body dimensions: 11 × 3.8 × 7 cm; inner part: floats when the magnet separates; plastic blades: 4 blades: 2 for use and 2 spares; operation: manual with a magnet"
+          },
+          "مواصفات خيار كبير": {
+            "label": "Large option specifications",
+            "value": "Suitable glass thickness: 13–20 mm; approximate body dimensions: 15 × 6 × 7.6 cm; inner part: floats when the magnet separates; plastic blades: 4 blades: 2 for use and 2 spares; operation: manual with a magnet"
+          },
+          "جهة التنظيف الداخلية": {
+            "label": "Inner cleaning side",
+            "value": "Cleaning surface with two blades"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "hygger-hg030-202610": {
+    "entityId": "hygger-hg030-202610",
+    "slug": "hygger-aquascaping-tools-kit",
+    "sourceHash": "b5ac206f15e3e7b7",
+    "translatedBy": "ChatGPT:manually-authored",
+    "translatedAt": "2026-10-21T15:21:03.145147+00:00",
+    "data": {
+      "name": "Hygger HG030 Aquascaping and Plant Trimming Tool Set with Holder",
+      "description": "Helps you plant, trim excess growth, and level the substrate precisely. Four stainless steel tools in practical lengths, with a holder, cleaning cloth, and bag to keep them organized after use.\n\nThe set includes curved scissors, straight tweezers, curved tweezers, and a substrate leveling tool, plus an acrylic holder, cleaning cloth, and storage bag. Useful for precise planted aquarium care; wash and dry the tools after use before returning them to the holder or bag.\n\nHygger — Model: HG030.",
+      "subcategory": "Aquascaping tools",
+      "specifications": {
+        "benefits": [
+          "Plant and reposition plants easily with straight and curved tweezers.",
+          "Trim excess leaves and stems with curved scissors that reach narrow spaces.",
+          "Arrange soil and sand and adjust the surface slope with the leveling tool.",
+          "A holder and bag keep the tools organized, especially after washing and drying."
+        ],
+        "usageInstructions": [
+          "Use the tweezers to plant and move small details without pulling the roots.",
+          "Trim the required parts with the scissors, then collect the cuttings from the water.",
+          "Move the leveling tool gently over the substrate surface.",
+          "Wash and dry the tools completely, and replace the tip covers before storing them in the bag."
+        ],
+        "safetyWarnings": [
+          "The scissors and tips are sharp; keep them away from children.",
+          "Stainless steel needs cleaning and drying after use; do not leave the tools submerged or damp inside the bag.",
+          "Do not use the tools to cut rocks, wires, or hard branches."
+        ],
+        "__cardBenefit": "Plant, trim, and arrange plants with four stainless steel tools",
+        "labelled": {
+          "الخامة": {
+            "label": "Material",
+            "value": "Stainless steel; acrylic holder"
+          },
+          "الموديل": {
+            "label": "Model",
+            "value": "HG030"
+          },
+          "رمز المنتج": {
+            "label": "Product code",
+            "value": "HG030"
+          },
+          "أبعاد الحامل": {
+            "label": "Holder dimensions",
+            "value": "Approximately 14.2 × 5 × 1.7 cm"
+          },
+          "قطعة التنظيف": {
+            "label": "Cleaning cloth",
+            "value": "Approximately 19 × 19 cm"
+          },
+          "محتويات العبوة": {
+            "label": "Package contents",
+            "value": "Curved scissors; straight tweezers; curved tweezers; soil and sand leveling tool; acrylic holder; cleaning cloth; drawstring storage bag"
+          },
+          "طول المقص المنحني": {
+            "label": "Curved scissors length",
+            "value": "Approximately 24.9 cm"
+          },
+          "طول الملقط المنحني": {
+            "label": "Curved tweezers length",
+            "value": "Approximately 26.7 cm"
+          },
+          "طول الملقط المستقيم": {
+            "label": "Straight tweezers length",
+            "value": "Approximately 27 cm"
+          },
+          "عدد الأدوات المعدنية": {
+            "label": "Number of metal tools",
+            "value": "4 tools"
+          },
+          "طول أداة تسوية التربة": {
+            "label": "Substrate leveling tool length",
+            "value": "Approximately 32 cm"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "hygger-hc020-202610": {
+    "entityId": "hygger-hc020-202610",
+    "slug": "hygger-resin-shrimp-hideout-2pcs",
+    "sourceHash": "420b15f8939a5ace",
+    "translatedBy": "ChatGPT:manually-authored",
+    "translatedAt": "2026-10-21T15:21:03.145147+00:00",
+    "data": {
+      "name": "Hygger HC020 Wood-Style Shrimp Hideouts — Two Pieces",
+      "description": "Provides cavities for hiding and a surface for shrimp to explore, adding a cholla-wood look to the aquarium. Made of resin, with two pieces per pack, each 15 cm long.\n\nThe pack contains two molded resin pieces with cholla-wood detailing, each 15 cm long and approximately 5 cm wide. Place them among plants or near the edge of the aquarium, making sure the openings suit the animals using them and the entrances stay clear.\n\nHygger — Model: HC020-2PCS.",
+      "subcategory": "Hideouts and decor",
+      "specifications": {
+        "benefits": [
+          "Provides corners and cavities for shrimp and small fish that fit the openings.",
+          "Adds the look of cholla wood with hollow details to the aquascape.",
+          "Easy to place after washing, among plants or at the edges of the aquarium.",
+          "You can remove it, clean it with a soft brush, and return it to its place."
+        ],
+        "usageInstructions": [
+          "Rinse the pieces with clean water to remove dust from transport.",
+          "Place them securely among plants or at the aquarium edge, keeping the entrances open.",
+          "Make sure any fish using the hideout can pass comfortably through the openings.",
+          "When algae or dirt builds up, clean with a soft brush and clean water."
+        ],
+        "safetyWarnings": [
+          "This is resin decor; do not use it as food for species that need natural wood.",
+          "Inspect the piece during cleaning and remove it from use if it breaks or develops a harmful edge.",
+          "Do not use soap or household detergents to clean decor that goes in the water."
+        ],
+        "__cardBenefit": "Hollow cholla-wood-style hideouts for shrimp",
+        "labelled": {
+          "اللون": {
+            "label": "Color",
+            "value": "Brown"
+          },
+          "النوع": {
+            "label": "Type",
+            "value": "Hollow aquarium decor and hideout"
+          },
+          "الخامة": {
+            "label": "Material",
+            "value": "Synthetic resin"
+          },
+          "الكمية": {
+            "label": "Quantity",
+            "value": "Two pieces per pack"
+          },
+          "الموديل": {
+            "label": "Model",
+            "value": "HC020"
+          },
+          "عدد القطع": {
+            "label": "Number of pieces",
+            "value": "Two pieces"
+          },
+          "رمز المنتج": {
+            "label": "Product code",
+            "value": "HC020-2PCS"
+          },
+          "طول القطعة": {
+            "label": "Piece length",
+            "value": "15 cm"
+          },
+          "عرض القطعة": {
+            "label": "Piece width",
+            "value": "5 cm"
+          },
+          "محتويات العبوة": {
+            "label": "Package contents",
+            "value": "Two cholla-wood-style resin hideouts"
+          },
+          "المقاس لكل قطعة": {
+            "label": "Size per piece",
+            "value": "Approximately 15 cm long × 5 cm wide"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "hygger-hg153-202610": {
+    "entityId": "hygger-hg153-202610",
+    "slug": "hygger-internal-filter-aeration-adjustable-flow",
+    "sourceHash": "f8d7981cc862d87c",
+    "translatedBy": "ChatGPT:manually-authored",
+    "translatedAt": "2026-10-21T15:21:03.145147+00:00",
+    "data": {
+      "name": "Hygger HG153 Internal Filter with Aeration and Adjustable Flow",
+      "description": "Collects suspended debris and circulates water inside the aquarium, with a washable sponge and adjustable air intake. Choose the spray bar or flat outlet to suit your aquarium and adjust the flow as needed.\n\nChoose the 10 W version with a rated flow of 800 L/h, or the 18 W version with a rated flow of 1200 L/h. Suction cups hold it inside the aquarium, with a choice of spray bar or flat outlet. Keep the end of the airline outside the water for aeration to work, and clean the sponge in water removed from the aquarium.\n\nHygger — Models: HG153-10W-UK, HG153-18W-UK.",
+      "subcategory": "Internal filters",
+      "specifications": {
+        "benefits": [
+          "Traps debris in the sponge so it is easy to remove during cleaning.",
+          "Combines filtration, water movement, and aeration in one internal unit.",
+          "Distributes water through a directional spray bar, with a flat outlet option and an airline for air intake.",
+          "Adjust water flow and air so movement suits the aquarium size and the fish needs.",
+          "Comes apart for cleaning and attaches to glass with suction cups."
+        ],
+        "usageInstructions": [
+          "Choose the power according to aquarium size and fish stocking density; the stated aquarium sizes are manufacturer recommendations.",
+          "Fit the suction cups, selected outlet, and airline, then secure the filter inside the aquarium with the pump fully submerged.",
+          "Keep the air intake tube end outside the water if using aeration, and adjust air and flow gradually.",
+          "Watch the fish and direct the outlet so the current is not stronger than they need.",
+          "Disconnect the power before taking the filter apart; clean the sponge in aquarium water when dirt builds up or flow drops."
+        ],
+        "safetyWarnings": [
+          "Do not run the pump outside the water or with blocked intake openings.",
+          "Use suitable intake protection if the aquarium contains fish fry or small shrimp.",
+          "Disconnect the power before putting your hand in the water or cleaning the unit; keep the plug dry and make a drip loop before the socket.",
+          "Check the voltage and frequency label on the unit before connecting it.",
+          "Choosing a filter does not replace monitoring water quality and partial water changes according to the aquarium needs."
+        ],
+        "__cardBenefit": "Filtration, aeration, and water movement with adjustable flow",
+        "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "Submersible internal filter with sponge and air intake"
+          },
+          "التحكم": {
+            "label": "Controls",
+            "value": "Adjustable water flow and airflow; directional spray bar"
+          },
+          "التثبيت": {
+            "label": "Mounting",
+            "value": "Suction cups on the glass inside the aquarium"
+          },
+          "التوافق": {
+            "label": "Compatibility",
+            "value": "Freshwater and saltwater aquariums according to the manufacturer manual"
+          },
+          "الموديل": {
+            "label": "Model",
+            "value": "HG153"
+          },
+          "الخيارات": {
+            "label": "Options",
+            "value": "10 W — for 55–110 L tanks | 18 W — for 110–300 L tanks"
+          },
+          "الكهرباء": {
+            "label": "Power supply",
+            "value": "UK version, 220–240 V, 50 Hz"
+          },
+          "طول السلك": {
+            "label": "Cable length",
+            "value": "1.8 m"
+          },
+          "رموز الخيارات": {
+            "label": "Option codes",
+            "value": "HG153-10W-UK | HG153-18W-UK"
+          },
+          "محتويات العبوة": {
+            "label": "Package contents",
+            "value": "Filter with sponge, pump, and power cable; 4 suction cups; spray bar; airline; flat water outlet; user manual"
+          },
+          "مواصفات خيار 10 واط": {
+            "label": "10 W option specifications",
+            "value": "Power: 10 W; stated rated flow: 800 L/h; manufacturer-recommended tank volume: 55–110 L; dimensions: 6 × 5 × 21.5 cm; cable length: 1.8 m; power supply: 220–240 V, 50 Hz, UK plug"
+          },
+          "مواصفات خيار 18 واط": {
+            "label": "18 W option specifications",
+            "value": "Power: 18 W; stated rated flow: 1200 L/h; manufacturer-recommended tank volume: 110–300 L; dimensions: 7 × 5 × 25.5 cm; cable length: 1.8 m; power supply: 220–240 V, 50 Hz, UK plug"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "hygger-hg101-202610": {
+    "entityId": "hygger-hg101-202610",
+    "slug": "hygger-external-canister-filter-uv",
+    "sourceHash": "19ab4ab15bbfd921",
+    "translatedBy": "ChatGPT:manually-authored",
+    "translatedAt": "2026-10-21T15:21:03.145147+00:00",
+    "data": {
+      "name": "Hygger HG101 Multi-Stage External Filter with UV for Green Water",
+      "description": "Provides multi-stage filtration outside the aquarium, with sponge, activated carbon, and ceramic rings. The enclosed UV unit helps reduce the suspended algae that cause green water, and water is drawn into the filter at the press of a button after the connections are installed.\n\nChoose a rated pump flow of 1200 or 1800 L/h. Each option has three media baskets and a UV lamp with a corresponding power rating. Keep the filter body outside the aquarium and below water level; actual flow is affected by the media, tank height, and tubing length. The UV benefit applies to the suspended algae that cause green water.\n\nHygger — Models: HG101-1200(UV)-UK, HG101-1800L(UV)-UK.",
+      "subcategory": "External filters",
+      "specifications": {
+        "benefits": [
+          "Collects suspended debris and provides space for filter media in three removable baskets.",
+          "Sponge traps debris, activated carbon helps adsorb some dissolved substances, and ceramic provides a surface for beneficial bacteria.",
+          "UV helps reduce suspended algae in the water, with a separate on/off button.",
+          "Electric priming makes it easier to start drawing water after the filter is correctly installed.",
+          "A detachable inlet/outlet unit makes maintenance easier, with adjustable water flow."
+        ],
+        "usageInstructions": [
+          "Place the filter body outside the aquarium below water level, and secure inlet and outlet connections without kinking the tubing.",
+          "Rinse new media to remove manufacturing dust and arrange the baskets without compressing or overfilling them.",
+          "Check the lid seal and locking clips, open the water valves, and begin priming according to the manual.",
+          "Check the connections during startup and adjust the outlet to provide suitable water movement.",
+          "Switch UV on with its button when needed, following the manual; the manufacturer recommends two hours daily, then switching it off.",
+          "Disconnect the power and close the valves before opening the filter; clean biological media in aquarium water without soap."
+        ],
+        "safetyWarnings": [
+          "Do not run the UV lamp outside its enclosed housing or look directly at it while it is on.",
+          "Disconnect the power and let the lamp cool before maintenance; handle the glass sleeve carefully.",
+          "UV helps with suspended algae; it does not remove all algae, sterilize the aquarium 100%, or automatically treat fish diseases.",
+          "The filter does not replace water changes or ammonia and nitrite monitoring, and it needs an established bacterial cycle.",
+          "Do not raise the filter above aquarium water level or run it with an exposed intake or loose connections.",
+          "Recommended tank volumes depend on fish stocking density and waste load; check the unit voltage label before use."
+        ],
+        "__cardBenefit": "External filtration with three baskets and UV to reduce green water",
+        "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "External canister filter with an enclosed UV unit"
+          },
+          "التحكم": {
+            "label": "Controls",
+            "value": "Flow adjustment and a separate UV lamp button"
+          },
+          "التوافق": {
+            "label": "Compatibility",
+            "value": "Freshwater and saltwater aquariums according to the manual"
+          },
+          "الموديل": {
+            "label": "Model",
+            "value": "HG101"
+          },
+          "الخيارات": {
+            "label": "Options",
+            "value": "1200 L/h — 25 W pump and 7 W UV | 1800 L/h — 35 W pump and 9 W UV"
+          },
+          "الكهرباء": {
+            "label": "Power supply",
+            "value": "UK version, 220–240 V, 50 Hz"
+          },
+          "سلال الفلترة": {
+            "label": "Filter baskets",
+            "value": "3 baskets in each of the 1200 and 1800 options"
+          },
+          "رموز الخيارات": {
+            "label": "Option codes",
+            "value": "HG101-1200(UV)-UK | HG101-1800L(UV)-UK"
+          },
+          "مراحل الوسائط": {
+            "label": "Media stages",
+            "value": "Coarse sponge, activated carbon, and ceramic rings"
+          },
+          "ملاحظة التدفق": {
+            "label": "Flow note",
+            "value": "Figures are maximum pump flow; actual flow decreases with media, tank height, and tubing length"
+          },
+          "محتويات العبوة": {
+            "label": "Package contents",
+            "value": "External filter with three media baskets; coarse sponge, activated carbon, and ceramic rings in the standard configuration; UV lamp with protective sleeve; inlet and outlet hoses, each 1.5 m long; intake pipe with strainer, spray bar, and mounting fittings; user manual"
+          },
+          "التهيئة الأولية": {
+            "label": "Initial priming",
+            "value": "Electric water priming starts with a button after connecting the inlet and outlet"
+          },
+          "مواصفات خيار 1200 لتر/ساعة": {
+            "label": "1200 L/h option specifications",
+            "value": "Pump power: 25 W; UV lamp power: 7 W; stated maximum flow: 1200 L/h; manufacturer-recommended tank volume: up to approximately 190 L; number of media baskets: 3; power supply: 220–240 V, 50 Hz, UK plug; filter dimensions: 18 × 18 × 36 cm"
+          },
+          "مواصفات خيار 1800 لتر/ساعة": {
+            "label": "1800 L/h option specifications",
+            "value": "Pump power: 35 W; UV lamp power: 9 W; stated maximum flow: 1800 L/h; manufacturer-recommended tank volume: up to approximately 490 L; number of media baskets: 3; power supply: 220–240 V, 50 Hz, UK plug; filter dimensions: 27 × 27 × 35 cm"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "hygger-hg919-202610": {
+    "entityId": "hygger-hg919-202610",
+    "slug": "hygger-water-change-submersible-pump-4000",
+    "sourceHash": "ca9293722a62ad6e",
+    "translatedBy": "ChatGPT:manually-authored",
+    "translatedAt": "2026-10-21T15:21:03.145147+00:00",
+    "data": {
+      "name": "Hygger HG919 Submersible Aquarium Water-Change Pump — 4000 L/h",
+      "description": "Draws water from the bottom of the aquarium and pushes it through a hose to a drain, making water changes easier in larger tanks. Runs at 90 W with a rated flow of up to 4000 L/h, a carrying handle, and a bottom intake.\n\nUse it to change and transfer freshwater, monitoring the water level throughout operation. Fit a suitable hose and secure the discharge end before connecting the power. Disconnect the pump before the water falls below its operating level. Height and hose length reduce actual flow.\n\nHygger — Model: HG919-4000-UK.",
+      "subcategory": "Water circulation",
+      "specifications": {
+        "benefits": [
+          "Makes water removal during maintenance easier and reduces the need to carry buckets.",
+          "A bottom intake helps draw water from a low level inside the tank.",
+          "A rated flow of 4000 L/h suits water-transfer tasks that need strong pumping.",
+          "A top handle and suction cups make carrying and mounting easier.",
+          "The intake cover opens to access the impeller and remove flow obstructions."
+        ],
+        "usageInstructions": [
+          "Prepare a hose that fits the outlet and secure the discharge end before starting.",
+          "Place and secure the pump in water, keeping its intake free of gravel or other blocking materials.",
+          "Fully submerge the pump before connecting it to power and monitor the flow and hose connections.",
+          "Stay by the aquarium while transferring water and disconnect the pump at the required level, before it runs dry.",
+          "Disconnect the power before removing the pump, and clean the intake and impeller regularly."
+        ],
+        "safetyWarnings": [
+          "Do not rely on thermal protection as a water-level sensor or shutoff timer; the pump may restart automatically after cooling.",
+          "Do not let it run dry or unattended while draining the aquarium.",
+          "Protect fish fry and shrimp from approaching the intake.",
+          "Disconnect the power before touching the water or taking the pump apart; keep the plug dry and form a drip loop in the cable.",
+          "Do not use it for other liquids or if the cable is damaged, and check the voltage marked on the unit."
+        ],
+        "__cardBenefit": "Easier water changes in larger tanks with strong pumping and a bottom intake",
+        "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "Submersible pump with bottom water intake"
+          },
+          "القدرة": {
+            "label": "Power",
+            "value": "90 W"
+          },
+          "الحماية": {
+            "label": "Protection",
+            "value": "Thermal shutoff if the motor overheats, with restart after cooling"
+          },
+          "الموديل": {
+            "label": "Model",
+            "value": "HG919"
+          },
+          "الكهرباء": {
+            "label": "Power supply",
+            "value": "220–240 V, 50 Hz, UK plug"
+          },
+          "طول السلك": {
+            "label": "Cable length",
+            "value": "1.8 m"
+          },
+          "الاستخدام": {
+            "label": "Usage",
+            "value": "Changing and transferring freshwater aquarium water"
+          },
+          "رمز المنتج": {
+            "label": "Product code",
+            "value": "HG919-4000-UK"
+          },
+          "مدخل الماء": {
+            "label": "Water intake",
+            "value": "Bottom intake"
+          },
+          "التدفق الاسمي": {
+            "label": "Rated flow",
+            "value": "Up to 4000 L/h; actual flow decreases with pumping height and hose length"
+          },
+          "محتويات العبوة": {
+            "label": "Package contents",
+            "value": "Water pump with bottom intake and handle; water outlet connectors; suction cups; user manual"
+          },
+          "التدفق الاسمي المعلن": {
+            "label": "Stated rated flow",
+            "value": "4000 L/h"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "hygger-hg143-202610": {
+    "entityId": "hygger-hg143-202610",
+    "slug": "hygger-adjustable-submersible-water-pump-2500",
+    "sourceHash": "f90893555760ab1f",
+    "translatedBy": "ChatGPT:manually-authored",
+    "translatedAt": "2026-10-21T15:21:03.145147+00:00",
+    "data": {
+      "name": "Hygger HG143 Adjustable Submersible Pump — 2500 L/h",
+      "description": "Moves water between the aquarium and filtration or powers a small waterfall, with flow control on the bottom of the pump. Provides a rated flow of 2500 L/h at 45 W and comes with two interchangeable outlet connectors in 16 or 19 mm sizes.\n\nMaximum pumping head is 2.5 m, with 16 and 19 mm outlet connectors and suction cups for mounting. Flow decreases as height or hose resistance increases, so arrange the connections according to the performance you need. The pump operates fully submerged.\n\nHygger — Model: HG143-2500-UK.",
+      "subcategory": "Water circulation",
+      "specifications": {
+        "benefits": [
+          "Adjust water output with the bottom control dial to suit the aquarium setup.",
+          "Rated flow of up to 2500 L/h for aquariums, filtration, and small waterfalls.",
+          "Choose between 16 and 19 mm outlet connectors to match the hose used.",
+          "A bottom intake and suction cups help secure the pump and draw in water.",
+          "A top handle and removable cover make lifting and cleaning easier."
+        ],
+        "usageInstructions": [
+          "Choose the outlet connector that fits your hose and secure it firmly before operation.",
+          "Secure the pump in the water, keeping its intake clear and away from gravel that could block it.",
+          "Set the bottom flow control before operation, and fully submerge the pump before connecting power. Disconnect it before making further adjustments.",
+          "Check for leaks and watch water movement after starting; choose a pumping height that suits the required performance.",
+          "Disconnect the power before removing it, and clean the bottom cover and impeller when dirt builds up."
+        ],
+        "safetyWarnings": [
+          "Do not run it dry; thermal protection does not replace submerging the pump and monitoring water level.",
+          "If it stops because of heat, disconnect it and find the cause of blockage or low water before restarting.",
+          "Do not direct a strong current at small fish or animals that cannot tolerate water movement; protect the intake when needed.",
+          "Disconnect the power before putting your hand in the water, keep the plug dry, and form a drip loop in the cable.",
+          "Check the voltage label on the unit and do not use it if the cable or plug is damaged."
+        ],
+        "__cardBenefit": "Adjustable water flow for filtration and small waterfalls",
+        "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "Submersible pump with bottom intake and adjustable flow"
+          },
+          "القدرة": {
+            "label": "Power",
+            "value": "45 W"
+          },
+          "الأبعاد": {
+            "label": "Dimensions",
+            "value": "13 × 10.3 × 12.3 cm"
+          },
+          "التوافق": {
+            "label": "Compatibility",
+            "value": "Freshwater and saltwater according to the manual"
+          },
+          "الموديل": {
+            "label": "Model",
+            "value": "HG143"
+          },
+          "الكهرباء": {
+            "label": "Power supply",
+            "value": "220–240 V, 50 Hz, UK plug"
+          },
+          "طول السلك": {
+            "label": "Cable length",
+            "value": "1.8 m"
+          },
+          "رمز المنتج": {
+            "label": "Product code",
+            "value": "HG143-2500-UK"
+          },
+          "التدفق الاسمي": {
+            "label": "Rated flow",
+            "value": "Up to 2500 L/h"
+          },
+          "مقاسات المخرج": {
+            "label": "Outlet sizes",
+            "value": "16 or 19 mm"
+          },
+          "محتويات العبوة": {
+            "label": "Package contents",
+            "value": "Pump with bottom water intake; 16 and 19 mm outlet connectors; suction cups; user manual"
+          },
+          "أقصى ارتفاع للضخ": {
+            "label": "Maximum pumping head",
+            "value": "2.5 m; flow decreases as height increases"
+          },
+          "أقطار وصلات المخرج": {
+            "label": "Outlet connector diameters",
+            "value": "16 or 19 mm"
+          },
+          "التدفق الاسمي المعلن": {
+            "label": "Stated rated flow",
+            "value": "2500 L/h"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "hygger-hg239-202610": {
+    "entityId": "hygger-hg239-202610",
+    "slug": "hygger-five-in-one-water-meter",
+    "sourceHash": "8f5d06c06a21da8e",
+    "translatedBy": "ChatGPT:manually-authored",
+    "translatedAt": "2026-10-21T15:21:03.145147+00:00",
+    "data": {
+      "name": "Hygger HG239 5-in-1 Digital Water Meter",
+      "description": "Monitor aquarium water pH, dissolved salts, conductivity, and temperature with one device. A digital display and reading-hold button help you compare results easily between tests.\n\nUseful for comparing source water with aquarium water and tracking changes, with a HOLD button to freeze the reading and three-point pH calibration. The stated salinity range reaches 9999 ppm, so it is not suitable for measuring typical marine aquarium salinity. Ammonia, nitrite, nitrate, and hardness require their own dedicated tests.\n\nHygger — Model: HG239-UK.",
+      "subcategory": "Water testing tools",
+      "specifications": {
+        "benefits": [
+          "Combines pH, TDS, EC, salinity, and temperature measurements so you can track aquarium water changes in one place.",
+          "Freeze the result with HOLD and read it after removing the probe from the water sample.",
+          "Select the measurement with MODE, with a temperature display and switching between Celsius and Fahrenheit.",
+          "Supports three-point pH calibration and automatic temperature compensation within the specified operating range."
+        ],
+        "usageInstructions": [
+          "Before measurement or calibration, soak the probe tip in water for two minutes as directed by the manual.",
+          "Take a water sample in a clean cup, turn on the meter, and select the required test with MODE.",
+          "Lower only the probe tip to the marked immersion line, move it gently, and wait for the reading to stabilize.",
+          "Press HOLD to freeze the result. Change the temperature unit by holding HOLD/TEMP for 3 seconds.",
+          "After testing, rinse the probe with distilled water and replace the protective cap. Keep the buttons and power compartment dry.",
+          "Prepare each pH calibration sachet in a separate container with 250 ml of pure water and dissolve it completely. Do not mix the sachets together.",
+          "Rinse the probe between solutions and select pH mode. Put the probe in the required solution and hold CAL for about 3 seconds; wait for the value to flash three times to confirm calibration.",
+          "The included calibration values are 4.00, 6.86, and 9.18. Follow the manual for your version when ordering the steps.",
+          "Recalibrate after prolonged storage, heavy use, or probe replacement. Calibration solutions are for testing outside the aquarium and must not be added to its water."
+        ],
+        "safetyWarnings": [
+          "Immerse only the probe tip; do not pass the marked line or submerge the meter body.",
+          "The stated salinity range reaches 9999 ppm; choose a higher-range meter if your sample salinity exceeds this limit.",
+          "This meter does not measure ammonia, nitrite, nitrate, GH, or KH; dedicated tests are needed for these parameters.",
+          "Protect the probe from impacts and prolonged drying, and do not rely on an unstable reading before cleaning and calibration."
+        ],
+        "__cardBenefit": "Monitor pH, dissolved salts, conductivity, and temperature with one device",
+        "labelled": {
+          "مدى EC": {
+            "label": "EC range",
+            "value": "0–9999 µS/cm, with a display increment of 1 µS/cm"
+          },
+          "مدى pH": {
+            "label": "pH range",
+            "value": "0.00–14.00, with a display increment of 0.01"
+          },
+          "مدى TDS": {
+            "label": "TDS range",
+            "value": "0–9999 parts per million (ppm), with a display increment of 1 ppm"
+          },
+          "التحكم": {
+            "label": "Controls",
+            "value": "Power on/off, measurement mode selection, reading hold, and calibration"
+          },
+          "الموديل": {
+            "label": "Model",
+            "value": "HG239"
+          },
+          "رمز المنتج": {
+            "label": "Product code",
+            "value": "HG239-UK"
+          },
+          "مدى الحرارة": {
+            "label": "Temperature range",
+            "value": "0.1–60 °C"
+          },
+          "مدى الملوحة": {
+            "label": "Salinity range",
+            "value": "0–9999 ppm according to the manufacturer table"
+          },
+          "وظائف القياس": {
+            "label": "Measurement functions",
+            "value": "pH, total dissolved solids (TDS), electrical conductivity (EC), salinity, and temperature"
+          },
+          "تعويض الحرارة": {
+            "label": "Temperature compensation",
+            "value": "Automatic ATC within 0.1–60 °C"
+          },
+          "محتويات العبوة": {
+            "label": "Package contents",
+            "value": "Water meter with protective probe cap; 3 pH calibration powder sachets at values 4.00, 6.86, and 9.18; user manual"
+          },
+          "الأبعاد التقريبية": {
+            "label": "Approximate dimensions",
+            "value": "18.35 × 4 × 2 cm"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "hygger-hc028-202610": {
+    "entityId": "hygger-hc028-202610",
+    "slug": "hygger-planted-aquarium-soil",
+    "sourceHash": "5969a9c73a78c1bb",
+    "translatedBy": "ChatGPT:manually-authored",
+    "translatedAt": "2026-10-21T15:21:03.145147+00:00",
+    "data": {
+      "name": "Hygger HC028 Nutrient Soil for Planted Aquariums",
+      "description": "A dark granular soil that helps anchor plant roots and create a tidy planted aquarium base. Use it directly without washing, in 6 or 8 kg packs according to the area you want to cover.\n\nChoose a 6 or 8 kg pack according to the tank base area and required soil depth. Spread it during aquarium setup without rinsing and fill gently to avoid disturbing the granules. Monitor ammonia, nitrite, and pH during setup, and wait for the aquarium cycle to stabilize before adding fish or shrimp.\n\nHygger — Models: HC028-6KG, HC028-8KG.",
+      "subcategory": "Plant substrate",
+      "specifications": {
+        "benefits": [
+          "Provides a base for rooted plants and helps you shape the substrate slope and aquascape details.",
+          "Contains nutrients to support plants according to the manufacturer formulation, with a granular structure that allows roots to spread.",
+          "Ready to place in the aquarium without pre-rinsing, preserving the granules and nutrients.",
+          "Its dark color creates a subdued base that highlights plants and decor."
+        ],
+        "usageInstructions": [
+          "Plan the planting area and base shape before adding the soil, then spread it in the empty aquarium without washing.",
+          "Arrange the decor and plant roots gently, avoiding crushing or firmly compressing the granules.",
+          "Fill slowly onto a plate or another surface that softens the water flow so the soil is not scattered.",
+          "Run the filtration and monitor ammonia, nitrite, and pH during setup. Change water according to the readings and pack instructions.",
+          "Wait until the aquarium cycle is complete and test results stabilize before adding fish or shrimp; clear water alone is not enough."
+        ],
+        "safetyWarnings": [
+          "This soil is for aquarium setup; do not add a large amount directly to an inhabited tank because the initial nutrients may change water readings.",
+          "It may affect pH and hardness; the result depends on source water, quantity, and water changes, so test rather than relying on a fixed figure.",
+          "Do not wash the soil or rub the granules; gently remove surface waste during maintenance.",
+          "The amount needed depends on tank base length, width, and required layer depth, not water volume alone."
+        ],
+        "__cardBenefit": "A nutrient base that anchors plant roots and highlights the aquascape",
+        "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "Processed natural soil formed into dark, porous granules"
+          },
+          "الموديل": {
+            "label": "Model",
+            "value": "HC028"
+          },
+          "الخيارات": {
+            "label": "Options",
+            "value": "6 kg | 8 kg"
+          },
+          "المغذيات": {
+            "label": "Nutrients",
+            "value": "Nutrient soil for plants; additional fertilization needs depend on the aquarium and plants"
+          },
+          "الاستخدام": {
+            "label": "Usage",
+            "value": "Establishing the base of freshwater planted aquariums"
+          },
+          "رموز الخيارات": {
+            "label": "Option codes",
+            "value": "HC028-6KG | HC028-8KG"
+          },
+          "محتويات العبوة": {
+            "label": "Package contents",
+            "value": "One bag of soil in the selected weight; plants and decor shown in photos are for illustration"
+          },
+          "مواصفات خيار 6 كغم": {
+            "label": "6 kg option specifications",
+            "value": "Net weight: 6 kg; usage: soil for freshwater planted aquariums; preparation: use directly without washing; color: dark"
+          },
+          "مواصفات خيار 8 كغم": {
+            "label": "8 kg option specifications",
+            "value": "Net weight: 8 kg; usage: soil for freshwater planted aquariums; preparation: use directly without washing; color: dark"
+          },
+          "المقاسات المتوفرة": {
+            "label": "Available sizes",
+            "value": "6 kg and 8 kg; measured by weight"
+          },
+          "الغسل قبل الاستخدام": {
+            "label": "Washing before use",
+            "value": "Do not wash"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "hygger-hg135-202610": {
+    "entityId": "hygger-hg135-202610",
+    "slug": "hygger-submersible-led-light-21w",
+    "sourceHash": "c35025d5ed979e91",
+    "translatedBy": "ChatGPT:manually-authored",
+    "translatedAt": "2026-10-21T15:21:03.145147+00:00",
+    "data": {
+      "name": "Hygger HG135 Submersible Aquarium LED Light with Timer — 21 W",
+      "description": "Add lighting inside the aquarium or under the lid and highlight its details without a large fixture above it. Suction-cup mounting, with a timer and brightness and color controls.\n\nPower is 21 W and length is approximately 58.3 cm. Mount it with suction cups inside the aquarium or under the lid. Choose a 4, 6, 8, 10, or 12 hour timer, or the gradual lighting cycle. The light strip is submersible; keep the controller and adapter outside the water.\n\nHygger — Model: HG135-21W-UK.",
+      "subcategory": "LED lighting",
+      "specifications": {
+        "benefits": [
+          "The submersible design gives you flexibility in positioning the light inside the aquarium.",
+          "Organizes daily operation with a timer or a gradual day and night cycle.",
+          "Adjust brightness and color to suit the aquarium appearance and its plants.",
+          "A slim shape mounts with suction cups and is easy to conceal under the lid."
+        ],
+        "usageInstructions": [
+          "Clean the suction-cup mounting area and position the strip to spread light across the aquarium.",
+          "Keep the adapter and controller outside the water.",
+          "Choose the timer and brightness or the day and night cycle, and check the timing after a power outage.",
+          "Disconnect the power before moving or cleaning the light."
+        ],
+        "safetyWarnings": [
+          "Submersibility applies to the light strip only; do not submerge the adapter or controller.",
+          "Whether the light is sufficient depends on tank depth, plant type, and mounting position."
+        ],
+        "__cardBenefit": "Flexible submersible lighting with a timer and adjustable brightness",
+        "labelled": {
+          "الطول": {
+            "label": "Length",
+            "value": "Approximately 58.3 cm; width 4 cm and thickness 1.1 cm"
+          },
+          "التحكم": {
+            "label": "Controls",
+            "value": "10 brightness levels, color options, and a 24/7 cycle"
+          },
+          "القدرة": {
+            "label": "Power",
+            "value": "21 W"
+          },
+          "المؤقت": {
+            "label": "Timer",
+            "value": "4, 6, 8, 10, or 12 hours"
+          },
+          "التثبيت": {
+            "label": "Mounting",
+            "value": "Suction cups; inside the aquarium or above water depending on installation"
+          },
+          "الموديل": {
+            "label": "Model",
+            "value": "HG135"
+          },
+          "دخل المحول": {
+            "label": "Adapter input",
+            "value": "100–240 V AC; 20 V DC output"
+          },
+          "رمز المنتج": {
+            "label": "Product code",
+            "value": "HG135-21W-UK"
+          },
+          "عدد وحدات LED": {
+            "label": "LED count",
+            "value": "150"
+          },
+          "مقاومة الماء": {
+            "label": "Water resistance",
+            "value": "IP68 submersible light unit"
+          },
+          "أبعاد الإضاءة": {
+            "label": "Light dimensions",
+            "value": "58.3 × 4 × 1.1 cm"
+          },
+          "محتويات العبوة": {
+            "label": "Package contents",
+            "value": "Light unit; wired controller; mounting suction cups; user manual"
+          },
+          "التدفق الضوئي المعلن": {
+            "label": "Stated luminous flux",
+            "value": "1050 lumens"
+          },
+          "طول الحوض الموصى به من الشركة": {
+            "label": "Manufacturer-recommended tank length",
+            "value": "61–109 cm"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "hygger-hg085-202610": {
+    "entityId": "hygger-hg085-202610",
+    "slug": "hygger-titanium-heater-200w",
+    "sourceHash": "e762778accfb371c",
+    "translatedBy": "ChatGPT:manually-authored",
+    "translatedAt": "2026-10-21T15:21:03.145147+00:00",
+    "data": {
+      "name": "Hygger HG085 Titanium Heater with External Control and Sensor — 200 W",
+      "description": "Helps maintain a stable aquarium temperature, with a titanium tube and a separate sensor. Set the temperature and view the water reading on a controller outside the aquarium.\n\nPower is 200 W, with settings from 20 to 32 °C. Place the temperature sensor in moving water away from the heating tube for better monitoring of aquarium temperature. Choose the power according to tank volume and the temperature difference from the room; a separate thermometer remains useful for checking.\n\nHygger — Model: HG085-200W-UK.",
+      "subcategory": "Heaters",
+      "specifications": {
+        "benefits": [
+          "Maintains the set temperature by automatically switching heating on and off.",
+          "Adjust the temperature from outside the aquarium without putting your hand in the water.",
+          "A corrosion-resistant titanium tube for freshwater and saltwater use.",
+          "A separate sensor lets you measure temperature away from the direct heating area."
+        ],
+        "usageInstructions": [
+          "Mount the heater and sensor fully submerged with good water movement.",
+          "Keep the sensor away from the heater in an area with flowing water.",
+          "Set the temperature on the controller and check it with a separate thermometer.",
+          "Disconnect the power and wait 15 minutes before changing water or removing the heater."
+        ],
+        "safetyWarnings": [
+          "Do not bury the heater in sand or run it outside water; keep the controller dry.",
+          "Power selection depends on tank size and the temperature difference from the room.",
+          "Match the unit voltage to the power supply before connecting it."
+        ],
+        "__cardBenefit": "External aquarium temperature adjustment with a titanium tube and separate sensor",
+        "labelled": {
+          "التحكم": {
+            "label": "Controls",
+            "value": "External controller with a separate temperature probe"
+          },
+          "القدرة": {
+            "label": "Power",
+            "value": "200 W"
+          },
+          "الأبعاد": {
+            "label": "Dimensions",
+            "value": "Approximately 27 cm long and 2.3 cm in diameter"
+          },
+          "الموديل": {
+            "label": "Model",
+            "value": "HG085"
+          },
+          "الاستخدام": {
+            "label": "Usage",
+            "value": "Freshwater or saltwater"
+          },
+          "رمز المنتج": {
+            "label": "Product code",
+            "value": "HG085-200W-UK"
+          },
+          "ضبط الحرارة": {
+            "label": "Temperature setting",
+            "value": "20–32 °C"
+          },
+          "أنبوب التسخين": {
+            "label": "Heating tube",
+            "value": "TA2 titanium with a Teflon coating"
+          },
+          "محتويات العبوة": {
+            "label": "Package contents",
+            "value": "Heater with controller and temperature sensor; 3 mounting suction cups; user manual"
+          },
+          "مدى ضبط الحرارة": {
+            "label": "Temperature setting range",
+            "value": "20–32 °C"
+          },
+          "طول قضيب التسخين": {
+            "label": "Heating rod length",
+            "value": "27 cm"
+          },
+          "قطر قضيب التسخين": {
+            "label": "Heating rod diameter",
+            "value": "2.3 cm"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "hygger-hg130-202610": {
+    "entityId": "hygger-hg130-202610",
+    "slug": "hygger-magnetic-wavemaker-6w-no-switch",
+    "sourceHash": "4b43a2d187ca5f49",
+    "translatedBy": "openai:assistant-on-user-request",
+    "translatedAt": "2026-10-21T15:17:34.793972+00:00",
+    "data": {
+      "name": "Magnetic Aquarium Wavemaker — 6 W",
+      "description": "Moves water inside the aquarium and helps reduce stagnant areas, with an adjustable head and a magnetic base that attaches to the glass. This is the 6-watt version without an inline switch or controller; it runs when connected to power.\n\nIts power is 6 watts, and it attaches to glass up to 10 mm thick. Change the head direction and position to distribute movement according to your aquarium layout. It runs continuously when connected to power, so choose a position that does not displace sand or direct a current stronger than the fish need.\n\nHygger — model: HG130-6W-NON-SWITCH-UK.",
+      "subcategory": "Water circulation",
+      "specifications": {
+        "benefits": [
+          "Helps distribute water movement into aquarium corners that receive insufficient flow.",
+          "The head can be aimed to suit the rocks, plants and filter position.",
+          "When directed appropriately, it helps move suspended debris towards the filter intake and agitates the water surface.",
+          "A magnetic base makes it easier to attach and reposition on glass up to 10 mm thick.",
+          "A ceramic shaft is suitable for freshwater and saltwater according to the manufacturer."
+        ],
+        "usageInstructions": [
+          "Check that aquarium glass is no thicker than 10 mm and the mounting area is clean.",
+          "Hold the pump inside the aquarium and slide the outer magnet along the glass until it meets the base without striking it.",
+          "Fully submerge the pump and aim the head away from fine sand or animals that cannot tolerate direct current.",
+          "Connect power and monitor water movement and the fish. Disconnect power before changing the direction or position.",
+          "Disconnect power before removing it or cleaning the propeller and cover, and clean the intake openings regularly."
+        ],
+        "safetyWarnings": [
+          "Do not run it out of water or put your finger near the propeller during operation.",
+          "The magnet is strong; bring the pieces together along the glass to protect fingers and glass from pinching or impact.",
+          "Protect the intake with suitable sponge if the aquarium contains young fish, shrimp or anemones, and clean it so it does not restrict flow.",
+          "Disconnect power before putting your hand in the water, and keep the plug dry with a drip loop in the cable.",
+          "Monitor whether the current suits the inhabitants; pump power alone does not determine suitability for every aquarium."
+        ],
+        "__cardBenefit": "Directs water movement and reduces stagnant corners inside the aquarium",
+        "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "Internal circulation pump with a magnetic base"
+          },
+          "الخامة": {
+            "label": "Material",
+            "value": "Ceramic shaft"
+          },
+          "القدرة": {
+            "label": "Power",
+            "value": "6 W"
+          },
+          "النسخة": {
+            "label": "Version",
+            "value": "NON-SWITCH; without an inline switch or controller"
+          },
+          "التثبيت": {
+            "label": "Mounting",
+            "value": "Magnetic"
+          },
+          "التوافق": {
+            "label": "Compatibility",
+            "value": "Freshwater and saltwater aquariums"
+          },
+          "الموديل": {
+            "label": "Model",
+            "value": "HG130"
+          },
+          "الكهرباء": {
+            "label": "Electrical specifications",
+            "value": "220–240 V, 50 Hz, UK plug"
+          },
+          "رمز المنتج": {
+            "label": "Product code",
+            "value": "HG130-6W-NON-SWITCH-UK"
+          },
+          "اتجاه التدفق": {
+            "label": "Flow direction",
+            "value": "Adjustable head according to its position in the aquarium"
+          },
+          "اتجاه التيار": {
+            "label": "Current direction",
+            "value": "Adjustable"
+          },
+          "نسخة التشغيل": {
+            "label": "Operating version",
+            "value": "Without an inline switch or separate controller"
+          },
+          "محتويات العبوة": {
+            "label": "Pack contents",
+            "value": "Wavemaker pump with magnetic base; user manual"
+          },
+          "أقصى سماكة للكزاز": {
+            "label": "Maximum glass thickness",
+            "value": "10 mm according to the 6-watt version manual"
+          },
+          "سماكة الكزاز المناسبة": {
+            "label": "Suitable glass thickness",
+            "value": "Up to 10 mm"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "hygger-hg978-202610": {
+    "entityId": "hygger-hg978-202610",
+    "slug": "hygger-day-night-led-light",
+    "sourceHash": "3263b3368e421d4c",
+    "translatedBy": "openai:assistant-on-user-request",
+    "translatedAt": "2026-10-21T15:17:34.793972+00:00",
+    "data": {
+      "name": "Aquarium LED Light with a Day/Night Cycle and Timer",
+      "description": "Highlights fish and plant colours and schedules aquarium lighting at a fixed time. Choose brightness and colour, or run an automatic gradual day/night cycle.\n\nSelect power according to aquarium length: 18, 22, 26 or 36 watts. Extendable brackets rest on both ends, and you can use a day/night cycle or set a 6-, 10- or 12-hour timer. Plant needs vary by species and water depth, so adjust brightness and duration gradually.\n\nHygger — models: HG978-18W-UK, HG978-22W-UK, HG978-26W-UK, HG978-36W-UK.",
+      "subcategory": "LED lighting",
+      "specifications": {
+        "benefits": [
+          "Full-spectrum lighting reveals aquarium details and the colours of fish and plants.",
+          "A day/night programme or a 6-, 10- or 12-hour timer removes the need for daily manual switching.",
+          "Adjust lighting to your plants and aquarium with five actual brightness levels.",
+          "Extendable brackets help secure the appropriate size on both ends of the aquarium."
+        ],
+        "usageInstructions": [
+          "Measure aquarium length and select the corresponding power option.",
+          "Position the light above the aquarium and extend the brackets until they rest securely on both ends.",
+          "Start with brightness and duration suited to your plants, then adjust according to growth and algae appearance.",
+          "Choose a timer or day/night cycle, and reset the programme timing after a power interruption."
+        ],
+        "safetyWarnings": [
+          "Intended for freshwater and planted aquariums.",
+          "Keep the adapter and controller away from water, and disconnect power before cleaning.",
+          "Aquarium length determines mounting size; plant needs are affected by aquarium depth and plant species."
+        ],
+        "__cardBenefit": "Gradual lighting automatically schedules the aquarium day and night",
+        "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "Full-spectrum LED lighting for freshwater and planted aquariums"
+          },
+          "التحكم": {
+            "label": "Control",
+            "value": "Wired controller; 24/7 day/night mode and custom mode"
+          },
+          "الخامة": {
+            "label": "Material",
+            "value": "Aluminium body and extendable mounting brackets"
+          },
+          "السطوع": {
+            "label": "Brightness",
+            "value": "10%, 25%, 50%, 75% and 100%"
+          },
+          "المؤقت": {
+            "label": "Timer",
+            "value": "6, 10 or 12 hours"
+          },
+          "الموديل": {
+            "label": "Model",
+            "value": "HG978"
+          },
+          "الخيارات": {
+            "label": "Options",
+            "value": "18 W — aquarium length 46–61 cm | 22 W — aquarium length 61–76 cm | 26 W — aquarium length 76–91 cm | 36 W — aquarium length 91–107 cm"
+          },
+          "دخل المحول": {
+            "label": "Adapter input",
+            "value": "100–240 V AC; 20 V DC output"
+          },
+          "رموز الخيارات": {
+            "label": "Option codes",
+            "value": "HG978-18W-UK | HG978-22W-UK | HG978-26W-UK | HG978-36W-UK"
+          },
+          "محتويات العبوة": {
+            "label": "Pack contents",
+            "value": "Light unit; AC/DC power adapter; two adjustable mounting brackets; user manual"
+          },
+          "مواصفات خيار 18 واط": {
+            "label": "18 W option specifications",
+            "value": "Power: 18 W; suitable aquarium length: 45.72–60.96 cm; stated luminous flux: 1075 lumens; LED count: 98"
+          },
+          "مواصفات خيار 22 واط": {
+            "label": "22 W option specifications",
+            "value": "Power: 22 W; suitable aquarium length: 60.96–76.2 cm; stated luminous flux: 1583 lumens; LED count: 115"
+          },
+          "مواصفات خيار 26 واط": {
+            "label": "26 W option specifications",
+            "value": "Power: 26 W; suitable aquarium length: 76.2–91.44 cm; stated luminous flux: 1662 lumens; LED count: 138"
+          },
+          "مواصفات خيار 36 واط": {
+            "label": "36 W option specifications",
+            "value": "Power: 36 W; suitable aquarium length: 91.44–106.68 cm; stated luminous flux: 2778 lumens; LED count: 158"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "hygger-hg006-202610": {
+    "entityId": "hygger-hg006-202610",
+    "slug": "hygger-eight-in-one-test-strips-50",
+    "sourceHash": "2d82d5d325913de5",
+    "translatedBy": "openai:assistant-on-user-request",
+    "translatedAt": "2026-10-21T15:17:34.793972+00:00",
+    "data": {
+      "name": "8-in-1 Aquarium Water Test Strips — 50 Strips",
+      "description": "A quick test combines eight aquarium-water indicators on one strip. Dip it for two seconds and compare its colours with the bottle chart after approximately 30 seconds to monitor changes in your care routine.\n\nThe indicators are pH, GH, ammonia nitrogen, nitrate, nitrite, total chlorine, KH and total alkalinity. The bottle contains 50 single-use strips. The colour result is approximate: compare it with the chart on the same bottle within the specified time, and confirm unexpected readings with a dedicated test.\n\nHygger — model: HG006-50.",
+      "subcategory": "Water testing tools",
+      "specifications": {
+        "benefits": [
+          "Gives a quick overview of eight indicators from one water sample.",
+          "No electrical device or mixing drops is needed; the test uses colour comparison with the bottle chart.",
+          "A bottle of 50 strips allows repeated tests and monitoring of changes over time.",
+          "Suitable for routine freshwater and saltwater aquarium testing according to the manufacturer, using appropriate limits for your aquarium type."
+        ],
+        "usageInstructions": [
+          "Take a water sample in a clean cup. Remove one strip with dry hands without touching the test pads, and close the bottle immediately.",
+          "Immerse the test pads in the sample for two seconds, then remove the strip.",
+          "Keep the strip horizontal and gently remove excess water so liquids from the pads do not mix.",
+          "Compare colours with the chart on the same bottle in clear light at the specified time, approximately 30 seconds.",
+          "Discard the strip after use and record the result for comparison with the next test."
+        ],
+        "safetyWarnings": [
+          "The colour reading is approximate; confirm an unexpected result with a dedicated test before making a major aquarium decision.",
+          "Do not read delayed colour changes after two minutes or rely on the colour at the pad edges.",
+          "Keep the bottle closed in a dry place away from sunlight and humidity, leaving the desiccant packet inside.",
+          "Use the strips before the expiry date printed on your bottle.",
+          "The manufacturer describes the ammonia indicator as ammonia nitrogen; do not treat it as a separate measurement of free ammonia, NH3."
+        ],
+        "__cardBenefit": "Eight aquarium-water indicators in a quick colour test",
+        "labelled": {
+          "الموديل": {
+            "label": "Model",
+            "value": "HG006"
+          },
+          "المؤشرات": {
+            "label": "Indicators",
+            "value": "pH, GH, ammonia nitrogen, nitrate NO3, nitrite NO2, total chlorine, KH and total alkalinity"
+          },
+          "مدة الغمر": {
+            "label": "Immersion time",
+            "value": "Two seconds"
+          },
+          "رمز المنتج": {
+            "label": "Product code",
+            "value": "HG006-50"
+          },
+          "عدد الشرائط": {
+            "label": "Strip count",
+            "value": "50 single-use strips"
+          },
+          "وقت القراءة": {
+            "label": "Reading time",
+            "value": "Approximately 30 seconds; follow the supplied label timing"
+          },
+          "طريقة القراءة": {
+            "label": "Reading method",
+            "value": "Approximate colour comparison with the bottle chart"
+          },
+          "محتويات العبوة": {
+            "label": "Pack contents",
+            "value": "Bottle containing 50 test strips; colour chart on the bottle; desiccant inside the bottle, to remain in place"
+          },
+          "وحدة العسر والقلوية": {
+            "label": "Hardness and alkalinity unit",
+            "value": "mg/L according to the bottle chart"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "hygger-hc004-202610": {
+    "entityId": "hygger-hc004-202610",
+    "slug": "hygger-black-static-aquarium-background",
+    "sourceHash": "f81334f3c418fb7d",
+    "translatedBy": "openai:assistant-on-user-request",
+    "translatedAt": "2026-10-21T15:17:34.793972+00:00",
+    "data": {
+      "name": "Black Aquarium Background That Attaches to Glass Without Glue",
+      "description": "Hides the view and cables behind the aquarium and makes fish and plant colours stand out visually. An opaque black background attaches from the outside without glue and can be trimmed to match the glass.\n\nMade from matte black PVC, it uses static cling on the outside of the glass. There are four sizes, and excess material can be trimmed to fit. Measure the back panel height and length before choosing, and protect aquarium water from the application solution during installation.\n\nHygger — models: HC004-S, HC004-M, HC004-L, HC004-XL.",
+      "subcategory": "Aquarium backgrounds",
+      "specifications": {
+        "benefits": [
+          "Keeps attention on the aquarium layout rather than objects behind it.",
+          "The black background visually highlights the contrast in fish and plant colours.",
+          "Attaches by static cling without a glue layer, and can be removed and reapplied.",
+          "A water-resistant, easy-to-wipe surface that can be trimmed to aquarium size."
+        ],
+        "usageInstructions": [
+          "Measure the back panel height and length, and remove dust from the outside glass.",
+          "Prepare the application solution according to the booklet: one drop of detergent in approximately 500 ml of water, protecting aquarium water from spray.",
+          "Remove the clear protective film and spray the glass and application side, then attach the background from the outside.",
+          "Push water and bubbles out with the scraper from the centre towards the edges, then trim the excess."
+        ],
+        "safetyWarnings": [
+          "Install on the outside of the aquarium only; do not let soapy water or detergent enter the tank.",
+          "Bubbles usually need re-wetting and smoothing; do not add your own glue."
+        ],
+        "__cardBenefit": "A black background hides cables and highlights aquarium details",
+        "labelled": {
+          "اللون": {
+            "label": "Colour",
+            "value": "Opaque black with a matte finish"
+          },
+          "الخامة": {
+            "label": "Material",
+            "value": "PVC film"
+          },
+          "التثبيت": {
+            "label": "Attachment",
+            "value": "Static cling without glue"
+          },
+          "التعديل": {
+            "label": "Adjustment",
+            "value": "Excess material can be trimmed to size"
+          },
+          "السماكة": {
+            "label": "Thickness",
+            "value": "Approximately 0.23 mm according to the manufacturer"
+          },
+          "الموديل": {
+            "label": "Model",
+            "value": "HC004"
+          },
+          "الخيارات": {
+            "label": "Options",
+            "value": "Height 30 × length 100 cm | height 45 × length 120 cm | height 50 × length 150 cm | height 60 × length 200 cm"
+          },
+          "مكان التثبيت": {
+            "label": "Attachment position",
+            "value": "Outside of the aquarium glass"
+          },
+          "رموز الخيارات": {
+            "label": "Option codes",
+            "value": "HC004-S | HC004-M | HC004-L | HC004-XL"
+          },
+          "محتويات العبوة": {
+            "label": "Pack contents",
+            "value": "One background in the chosen size; small spray bottle; small scraper for removing bubbles; user manual"
+          },
+          "مواصفات خيار ارتفاع 30 × طول 100 سم": {
+            "label": "Height 30 × length 100 cm option specifications",
+            "value": "Height: 30 cm; material: PVC; colour: matte black; thickness: 0.23 mm; attachment: outside the glass without glue; background length: 100 cm"
+          },
+          "مواصفات خيار ارتفاع 45 × طول 120 سم": {
+            "label": "Height 45 × length 120 cm option specifications",
+            "value": "Height: 45 cm; material: PVC; colour: matte black; thickness: 0.23 mm; attachment: outside the glass without glue; background length: 120 cm"
+          },
+          "مواصفات خيار ارتفاع 50 × طول 150 سم": {
+            "label": "Height 50 × length 150 cm option specifications",
+            "value": "Height: 50 cm; material: PVC; colour: matte black; thickness: 0.23 mm; attachment: outside the glass without glue; background length: 150 cm"
+          },
+          "مواصفات خيار ارتفاع 60 × طول 200 سم": {
+            "label": "Height 60 × length 200 cm option specifications",
+            "value": "Height: 60 cm; material: PVC; colour: matte black; thickness: 0.23 mm; attachment: outside the glass without glue; background length: 200 cm"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
   }
 }

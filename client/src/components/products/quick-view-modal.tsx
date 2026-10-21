@@ -18,6 +18,7 @@ import { detailImage, thumbImage } from "@/lib/cloudinary";
 import { useTranslation } from "react-i18next";
 import { getProductDisplayIdentity } from "@/lib/product-display";
 import { getProductPriceDisplay } from "@/lib/product-pricing";
+import { isProductComingSoon } from "@shared/product-availability";
 
 interface QuickViewModalProps {
     product: Product | null;
@@ -33,9 +34,11 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
 
     if (!product) return null;
 
-    const images = product.images?.length ? product.images : [product.thumbnail];
+    const images = (product.images?.length ? product.images : [product.thumbnail])
+        .filter((image) => typeof image === "string" && image.trim().length > 0);
     const priceDisplay = getProductPriceDisplay(product);
     const hasPrice = priceDisplay.price !== null;
+    const isComingSoon = isProductComingSoon(product);
     const requiresVariantChoice = Boolean(product.hasVariants && product.variants?.length);
     const displayStock = requiresVariantChoice
         ? (product.variants ?? []).reduce((stock, variant) => stock + Math.max(0, Number(variant.stock) || 0), 0)
@@ -92,7 +95,7 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
                         {/* Main Image */}
                         <div className="aspect-square flex items-center justify-center">
                             <img
-                                src={detailImage(images[selectedImage])}
+                                src={detailImage(images[selectedImage] || images[0]) || "/brand/aquavo-v2-icon.svg"}
                                 alt={product.name}
                                 className="max-w-full max-h-full object-contain"
                                 loading="eager"
@@ -167,7 +170,7 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
                         <div className="flex items-center gap-2 justify-end mb-4">
                             <Package className="h-4 w-4 text-green-500" />
                             <span className={`font-medium ${isOutOfStock ? "text-red-500" : "text-green-600"}`}>
-                                {isOutOfStock ? t("quickView.unavailable") : t("quickView.available", { count: displayStock })}
+                                {isComingSoon ? t("card.soon") : isOutOfStock ? t("quickView.unavailable") : t("quickView.available", { count: displayStock })}
                             </span>
                         </div>
 
@@ -187,7 +190,7 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
                                 disabled={!hasPrice || isOutOfStock}
                             >
                                 <ShoppingCart className="h-5 w-5" />
-                                {!hasPrice ? t("quickView.comingSoon") : requiresVariantChoice ? t("card.chooseOption") : t("card.addToCart")}
+                                {isComingSoon ? t("card.soon") : !hasPrice ? t("quickView.comingSoon") : requiresVariantChoice ? t("card.chooseOption") : t("card.addToCart")}
                             </Button>
 
                             <div className="flex gap-3">

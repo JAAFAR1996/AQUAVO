@@ -41,4 +41,13 @@ describe("ProductSpecificationsTable", () => {
         const { container } = render(<ProductSpecificationsTable specifications={{}} />);
         expect(container).toBeEmptyDOMElement();
     });
+
+    it("hides availability metadata while showing incoming sizes as normal specifications", () => {
+        const { container } = render(<ProductSpecificationsTable specifications={{
+            __availabilityStatus: "coming_soon", "المقاسات القادمة": "30 سم",
+        }} />);
+        expect(container.textContent).not.toMatch(/__availabilityStatus|coming_soon/);
+        expect(screen.getByText("المقاسات القادمة")).toBeInTheDocument();
+        expect(screen.getByText("30 سم")).toBeInTheDocument();
+    });
 });

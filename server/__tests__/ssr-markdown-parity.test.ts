@@ -1,3 +1,4 @@
+import { adaptNeonProductListQuery } from "./helpers/neon-product-list-query";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { describe, expect, it, vi } from "vitest";
 import { EDITORIAL_TEAM_BYLINE } from "../../shared/editorial-author";
@@ -55,6 +56,27 @@ const PLAIN_PRODUCT = {
   variants: null,
 };
 
+const INCOMING_PRODUCT = {
+  ...VARIANT_PRODUCT,
+  id: "incoming-filter",
+  slug: "incoming-filter",
+  name: "فلتر قادم للحوض",
+  stock: 0,
+  variants: VARIANT_PRODUCT.variants.map((variant) => ({ ...variant, stock: 0 })),
+  specifications: { __availabilityStatus: "coming_soon", "المقاسات القادمة": "30 سم" },
+};
+
+const UNPRICED_INCOMING_PRODUCT = {
+  ...INCOMING_PRODUCT,
+  id: "unpriced-incoming-filter",
+  slug: "unpriced-incoming-filter",
+  name: "فلتر قادم بانتظار السعر",
+  price: "0",
+  originalPrice: null,
+  hasVariants: false,
+  variants: null,
+};
+
 // A description comfortably past the 160-character meta limit, so the meta tag
 // has to be cut. Production cut every such description at exactly 160
 // characters, mid-word, with nothing marking the elision.
@@ -101,17 +123,19 @@ const PRODUCTS: Record<string, unknown> = {
   [PLAIN_PRODUCT.slug]: PLAIN_PRODUCT,
   [VARIANT_PRODUCT.slug]: VARIANT_PRODUCT,
   [LONG_DESCRIPTION_PRODUCT.slug]: LONG_DESCRIPTION_PRODUCT,
+  [INCOMING_PRODUCT.slug]: INCOMING_PRODUCT,
+  [UNPRICED_INCOMING_PRODUCT.slug]: UNPRICED_INCOMING_PRODUCT,
 };
 
 vi.mock("@neondatabase/serverless", () => ({
   neonConfig: {},
   Pool: vi.fn().mockImplementation(function FakePool() {
     return {
-      query: vi.fn(async (sql: string, values?: unknown[]) => {
+      query: vi.fn(adaptNeonProductListQuery(async (sql: string, values?: unknown[]) => {
         if (sql.includes("FROM products")) {
           const slug = typeof values?.[0] === "string" ? values[0] : null;
           if (slug) return { rows: PRODUCTS[slug] ? [PRODUCTS[slug]] : [] };
-          return { rows: [PLAIN_PRODUCT, VARIANT_PRODUCT] };
+          return { rows: [PLAIN_PRODUCT, VARIANT_PRODUCT, INCOMING_PRODUCT, UNPRICED_INCOMING_PRODUCT] };
         }
         if (sql.includes("FROM reviews")) {
           // Only the product that actually has reviews returns any.
@@ -123,7 +147,7 @@ vi.mock("@neondatabase/serverless", () => ({
           return { rows: [BLOG_ROW] };
         }
         return { rows: [] };
-      }),
+      })),
     };
   }),
 }));
@@ -257,6 +281,31 @@ describe("article markdown contains the article", () => {
 });
 
 describe("listing markdown is usable without following every link", () => {
+  it("does not advertise a zero price for explicitly incoming unpriced products", async () => {
+    const before = JSON.stringify(UNPRICED_INCOMING_PRODUCT);
+    const listing = await md("/products");
+    const line = listing.body.split("\n").find((entry) => entry.includes(UNPRICED_INCOMING_PRODUCT.name));
+    expect(line).toContain("السعر يحدد عند التوفر");
+    expect(line).toContain("قريبًا");
+    const detail = await md(`/products/${UNPRICED_INCOMING_PRODUCT.slug}`);
+    expect(detail.body).toContain("- السعر: السعر يحدد عند التوفر");
+    expect(detail.body).not.toMatch(/(?:^|\s)[0٠] د\.ع/);
+    expect(JSON.stringify(UNPRICED_INCOMING_PRODUCT)).toBe(before);
+  });
+
+  it("shows incoming metadata through the real ORM listing and detail handlers", async () => {
+    const before = JSON.stringify(INCOMING_PRODUCT);
+    const listing = await md("/products");
+    const line = listing.body.split("\n").find((entry) => entry.includes(INCOMING_PRODUCT.name));
+    expect(line).toContain("قريبًا");
+    const detail = await md(`/products/${INCOMING_PRODUCT.slug}`);
+    expect(detail.body).toContain("- التوفر: قريبًا");
+    expect(detail.body).not.toContain("غير متوفر حالياً");
+    expect(detail.body).not.toMatch(/__availabilityStatus|coming_soon/);
+    expect(detail.body).toContain("د.ع");
+    expect(JSON.stringify(INCOMING_PRODUCT)).toBe(before);
+  });
+
   it("gives each product a price and a stock state", async () => {
     const { body } = await md("/products");
     const line = body.split("\n").find((l) => l.includes("ميزان حرارة رقمي")) ?? "";

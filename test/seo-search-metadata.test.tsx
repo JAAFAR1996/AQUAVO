@@ -1,3 +1,4 @@
+import { adaptNeonProductListQuery } from "../server/__tests__/helpers/neon-product-list-query";
 import { readFileSync } from "node:fs";
 import type { AnchorHTMLAttributes, ReactNode } from "react";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
@@ -8,7 +9,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({ query: vi.fn(), translations: vi.fn() }));
 vi.mock("@neondatabase/serverless", () => ({
   neonConfig: {},
-  Pool: vi.fn().mockImplementation(function FakePool() { return { query: mocks.query }; }),
+  Pool: vi.fn().mockImplementation(function FakePool() { return { query: adaptNeonProductListQuery(mocks.query) }; }),
 }));
 vi.mock("../api/_translation-records", () => ({ loadEntityTranslationRecords: mocks.translations }));
 vi.mock("wouter", () => ({

@@ -15,6 +15,7 @@ interface EmbeddedVariantSelectorProps {
   onVariantSelect: (variant: ProductVariant) => void;
   title?: string;
   productCategory?: string;
+  comingSoon?: boolean;
 }
 
 function cleanSpecificationValue(value: unknown): string | null {
@@ -42,6 +43,7 @@ export function EmbeddedVariantSelector({
   selectedVariantId,
   onVariantSelect,
   title,
+  comingSoon = false,
 }: EmbeddedVariantSelectorProps) {
   const { t } = useTranslation("product");
   const dimensions = useMemo(() => extractVariantDimensions(variants), [variants]);
@@ -77,7 +79,7 @@ export function EmbeddedVariantSelector({
               onClick={() => onVariantSelect(variant)}
               disabled={!inStock}
               aria-pressed={selected}
-              aria-label={!inStock ? t("variants.unavailableAria", { label: choiceLabel }) : choiceLabel}
+              aria-label={!inStock ? comingSoon ? `${choiceLabel} — ${t("price.soon")}` : t("variants.unavailableAria", { label: choiceLabel }) : choiceLabel}
               className={cn(
                 "min-h-11 rounded-full border-2 px-4 py-2 text-sm font-medium transition-colors",
                 selected
@@ -125,7 +127,7 @@ export function EmbeddedVariantSelector({
               {t("variants.available", { count: selectedVariant.stock })}
             </span>
           ) : (
-            <span className="text-destructive">{t("variants.unavailable")}</span>
+            <span className="text-destructive">{comingSoon ? t("price.soon") : t("variants.unavailable")}</span>
           )}
         </span>
       </div>
@@ -137,6 +139,7 @@ export function EmbeddedVariantSelectorCompact({
   variants,
   selectedVariantId,
   onVariantSelect,
+  comingSoon = false,
 }: Omit<EmbeddedVariantSelectorProps, "title" | "productCategory">) {
   const { t } = useTranslation("product");
   const { dir } = useLocale();
@@ -158,7 +161,7 @@ export function EmbeddedVariantSelectorCompact({
             onClick={() => onVariantSelect(variant)}
             disabled={variant.stock <= 0}
             aria-pressed={selected}
-            aria-label={variant.stock <= 0 ? t("variants.unavailableAria", { label: choiceLabel }) : choiceLabel}
+            aria-label={variant.stock <= 0 ? comingSoon ? `${choiceLabel} — ${t("price.soon")}` : t("variants.unavailableAria", { label: choiceLabel }) : choiceLabel}
             className={cn(
               "min-h-11 rounded-full px-3 py-1.5 text-sm font-medium transition-colors",
               selected

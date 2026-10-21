@@ -6,6 +6,7 @@ import {
   productSourceFields,
   sourceHash,
 } from "../content";
+import { isProductComingSoon } from "../../product-availability";
 
 const product = {
   id: "yee-hob-400",
@@ -81,6 +82,34 @@ describe("applyProductTranslation", () => {
     const r = applyProductTranslation(product, { name: "  ", description: "x" }, "ckb");
     expect(r.translationMissing).toBe(true);
   });
+
+  it("preserves coming-soon metadata when applying translated display labels", () => {
+    const incoming = {
+      ...product,
+      stock: 0,
+      variants: null,
+      specifications: { ...product.specifications, __availabilityStatus: "coming_soon" },
+    };
+    const localized = applyProductTranslation(incoming, {
+      name: "Incoming filter",
+      description: "An aquarium filter",
+      specifications: {
+        labelled: {
+          __availabilityStatus: { label: "Availability", value: "Coming soon" },
+          power: { label: "Power", value: "99W" },
+          "قوة التدفق": { label: "Flow rate", value: "400 L/h" },
+        },
+      },
+    }, "en");
+    expect(isProductComingSoon(localized.value)).toBe(true);
+    expect(localized.value.specifications).toMatchObject({
+      __availabilityStatus: "coming_soon",
+      power: "5W",
+      "Flow rate": "400 L/h",
+    });
+    expect(localized.value.specifications).not.toHaveProperty("Availability");
+    expect(localized.value.specifications).not.toHaveProperty("Power");
+  });
 });
 
 describe("applyBlogPostTranslation", () => {
@@ -99,6 +128,16 @@ describe("source hashing and coverage", () => {
     const c = sourceHash(productSourceFields({ ...product, specifications: { ...product.specifications, power: "10W" } }));
     expect(a).not.toBe(b);
     expect(a).toBe(c);
+  });
+
+  it("does not require translations for the internal coming-soon marker", () => {
+    const source = productSourceFields(product);
+    const incomingSource = productSourceFields({
+      ...product,
+      specifications: { ...product.specifications, __availabilityStatus: "coming_soon" },
+    });
+    expect(incomingSource).toEqual(source);
+    expect(incomingSource.labelled).not.toHaveProperty("__availabilityStatus");
   });
 
   it("derives complete / machine / outdated / missing", () => {
