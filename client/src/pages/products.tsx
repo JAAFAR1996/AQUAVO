@@ -32,6 +32,8 @@ import { formatShippingFeeNumber, useShippingFee } from "@/contexts/shipping-fee
 import { FoodCategoryGuide } from "@/components/products/food-choice-guide";
 import { foodFilterSchema, isFoodCategory, matchesFoodFilter, type FoodFilter } from "@shared/food-choice";
 
+import { catalogSubcategories, activeCatalogSubcategory } from "@shared/catalog-subcategories";
+
 const FilterModal = lazy(() => import("@/components/products/filter-modal").then(m => ({ default: m.FilterModal })));
 const QuickViewModal = lazy(() => import("@/components/products/quick-view-modal").then(m => ({ default: m.QuickViewModal })));
 const ComparisonDrawer = lazy(() => import("@/components/products/product-comparison").then(m => ({ default: m.ComparisonDrawer })));
@@ -178,9 +180,31 @@ export default function Products() {
   });
 
   const products = data?.products ?? [];
+  const selectedCategory = filters.categories.length === 1 ? filters.categories[0] : null;
+  const subcategoryOptions = useMemo(
+    () => selectedCategory ? catalogSubcategories(products, selectedCategory) : [],
+    [products, selectedCategory],
+  );
+  const selectedSubcategory = activeCatalogSubcategory(
+    searchParams.get("subcategory"), initialCategory, filters.categories, subcategoryOptions,
+  );
+  const facetCopy = locale === "en"
+    ? { title: "What do you need in this category?", all: "All types" }
+    : locale === "ckb"
+      ? { title: "لە ئەم بەشەدا پێویستت بە چییە؟", all: "هەموو جۆرەکان" }
+      : { title: "شنو تحتاج من هذا القسم؟", all: "كل الأنواع" };
+  const selectSubcategory = (value: string | null) => {
+    if (!selectedCategory) return;
+    const params = new URLSearchParams(search);
+    params.set("category", selectedCategory);
+    if (value) params.set("subcategory", value); else params.delete("subcategory");
+    setDisplayCount(24);
+    setLocation(`/products?${params.toString()}`);
+  };
 
   const finalProducts = useMemo(() => {
     let filtered = products.filter(product => {
+      if (selectedSubcategory && product.subcategory?.trim() !== selectedSubcategory) return false;
       if (isFoodListing && !matchesFoodFilter(product, foodFilter)) return false;
       if (filters.difficulties.length > 0 && (!product.difficulty || !filters.difficulties.includes(product.difficulty))) {
         return false;
@@ -221,7 +245,7 @@ export default function Products() {
     filtered = filters.tags.includes("in-stock") ? sellable : [...sellable, ...unavailable];
 
     return filtered;
-  }, [products, filters.difficulties, filters.tags, sortBy, boostIds, isFoodListing, foodFilter]);
+  }, [products, filters.difficulties, filters.tags, sortBy, boostIds, isFoodListing, foodFilter, selectedSubcategory]);
 
   const displayedProducts = useMemo(() => {
     return finalProducts.slice(0, displayCount);
@@ -335,12 +359,17 @@ export default function Products() {
   }, [filters, minPrice, maxPrice]);
 
   const handleCategoryToggle = (category: string) => {
-    setFilters(prev => ({
-      ...prev,
-      categories: prev.categories.includes(category)
-        ? prev.categories.filter(c => c !== category)
-        : [...prev.categories, category],
-    }));
+    const categories = filters.categories.includes(category)
+      ? filters.categories.filter(c => c !== category)
+      : [...filters.categories, category];
+    setFilters(prev => ({ ...prev, categories }));
+    const params = new URLSearchParams(search);
+    params.delete("subcategory");
+    params.delete("food");
+    if (categories.length === 1) params.set("category", categories[0]);
+    else params.delete("category");
+    setDisplayCount(24);
+    setLocation(`/products${params.size ? `?${params.toString()}` : ""}`);
     phTrackCategoryClick(category);
   };
 
@@ -528,6 +557,24 @@ export default function Products() {
             categoryCounts={categoryCounts}
           />
         </div>
+
+        {selectedCategory && !isFoodListing && subcategoryOptions.length > 1 && !isLoading && !isError && (
+          <section className="mb-5 rounded-xl border border-border bg-card p-3 sm:p-4" aria-labelledby="catalog-types-title">
+            <h2 id="catalog-types-title" className="mb-3 text-sm font-semibold">{facetCopy.title}</h2>
+            <div className="flex flex-wrap gap-2">
+              {[{ value: "", count: subcategoryOptions.reduce((sum, option) => sum + option.count, 0) }, ...subcategoryOptions].map(option => {
+                const selected = (selectedSubcategory ?? "") === option.value;
+                return (
+                  <button key={option.value} type="button" aria-pressed={selected}
+                    onClick={() => selectSubcategory(option.value || null)}
+                    className={`min-h-11 rounded-lg border px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${selected ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-foreground hover:border-primary"}`}>
+                    {option.value || facetCopy.all}<span className="ms-2 text-xs opacity-80">{option.count}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        )}
 
         {isFoodListing && !isLoading && !isError && (
           <FoodCategoryGuide products={products} value={foodFilter} onChange={value => {
