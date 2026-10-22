@@ -51,6 +51,13 @@ order-level consent evidence.
 An explicit later WhatsApp opt-out wins over an older opt-in. Unchecked checkout state is
 not treated as opt-out.
 
+Manual WhatsApp invoices use the same consent rule without pretending they came from the
+website checkout. The public invoice confirmation surface discloses that confirming the
+order opts the customer into AQUAVO WhatsApp order follow-up and related offers. When that
+explicit confirmation flag is present, the created order stores durable consent evidence
+and the append-only consent ledger records source `whatsapp`. Older invoice clients that
+omit the flag can still confirm the order but do not gain marketing eligibility.
+
 ## Day-7 care
 
 Template: `aquavo_day7_care_v1`  

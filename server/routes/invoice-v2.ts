@@ -11,6 +11,7 @@ import {
   toRelationalCostFields,
 } from "../services/product-cost-snapshot.js";
 import { getSchemaReadiness, assertOrderCreationReady } from "../services/schema-readiness.js";
+import { recordWhatsAppInvoiceMarketingOptIn } from "../services/whatsapp-lifecycle.js";
 
 function rowsOf<T>(result: unknown): T[] {
   if (Array.isArray(result)) return result as T[];
@@ -40,6 +41,12 @@ export function createInvoiceV2Router() {
     }
 
     try {
+      // The public invoice confirmation UI explicitly discloses that confirming
+      // the WhatsApp order opts the customer into AQUAVO order follow-up and
+      // related offers on WhatsApp. Older clients that omit this flag still
+      // confirm the order, but are not treated as marketing-opted-in.
+      const whatsappMarketingOptIn = req.body?.whatsappMarketingOptIn === true;
+
       const outcome = await db.transaction(async (tx) => {
         const lockedResult = await tx.execute(sql`
           SELECT * FROM manual_invoices WHERE token=${req.params.token} FOR UPDATE
@@ -159,6 +166,8 @@ export function createInvoiceV2Router() {
             country: "IQ",
           } : null,
           source: "whatsapp",
+          whatsappMarketingOptIn,
+          whatsappMarketingOptInAt: whatsappMarketingOptIn ? snapshotAt : undefined,
           items: lines.map(({ raw, snapshot }) => ({
             productId: raw.productId,
             productName: raw.name,
@@ -202,6 +211,17 @@ export function createInvoiceV2Router() {
 
         return { kind: "confirmed" as const, orderId, invoiceNo: confirmed.invoiceNo };
       });
+
+      if (outcome.kind === "confirmed" && whatsappMarketingOptIn) {
+        try {
+          // Consent projection is deliberately post-commit: a CRM/ledger outage
+          // must never roll back a valid customer order. The order-level flag is
+          // durable evidence and the repair worker can reconstruct projection.
+          await recordWhatsAppInvoiceMarketingOptIn(outcome.orderId);
+        } catch {
+          // Non-blocking by design; order truth already committed.
+        }
+      }
 
       if (outcome.kind === "expired") {
         res.status(410).json({ success: false, message: "انتهت صلاحية الفاتورة", invoiceNo: outcome.invoiceNo });
