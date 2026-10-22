@@ -71,8 +71,9 @@ export default function InvoiceView() {
     try {
       const r = await fetch(`/api/invoice/${token}/confirm`, {
         method: "POST",
-        headers: addCsrfHeader(),
+        headers: addCsrfHeader({ "Content-Type": "application/json" }),
         credentials: "include",
+        body: JSON.stringify({ whatsappMarketingOptIn: true }),
       });
       const d = await r.json();
       if (d.success) {
@@ -259,6 +260,9 @@ export default function InvoiceView() {
           {/* أزرار الإجراء */}
           {invoice.status === "sent" && !actionDone && (
             <div style={{ marginTop: 24 }}>
+              <div style={{ marginBottom: 12, padding: "10px 12px", borderRadius: 10, background: "rgba(11,147,166,0.06)", border: "1px solid rgba(11,147,166,0.18)", color: "#94a3b8", fontSize: 12, lineHeight: 1.8 }}>
+                {t("invoice-view.s42")}
+              </div>
               <button
                 style={s.btnOk}
                 onClick={handleConfirm}
