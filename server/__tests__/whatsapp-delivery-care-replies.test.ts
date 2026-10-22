@@ -34,12 +34,22 @@ type ReplyMetadata = Record<string, unknown>;
 
 type FakeState = {
   metadata_merge_failures_remaining: number;
+  support_tickets: Map<string, {
+    id: string;
+    conversation_id: string;
+    user_id: string | null;
+    customer_name: string | null;
+    customer_email: string | null;
+  }>;
   job: {
     id: string;
     order_id: string;
     provider_message_id: string;
     status: string;
     customer_phone: string;
+    user_id: string | null;
+    customer_name: string | null;
+    customer_email: string | null;
     metadata: {
       delivery_care_reply?: ReplyMetadata;
     };
@@ -71,7 +81,30 @@ function createFakeDb(state: FakeState) {
           order_id: state.job.order_id,
           metadata: state.job.metadata,
           customer_phone: state.job.customer_phone,
+          user_id: state.job.user_id,
+          customer_name: state.job.customer_name,
+          customer_email: state.job.customer_email,
         }];
+      }
+
+      if (text.includes("INSERT INTO public.support_tickets")) {
+        const id = String(values[0] ?? "");
+        const conversationId = String(values[1] ?? "");
+        const incoming = {
+          id,
+          conversation_id: conversationId,
+          user_id: values[2] == null ? null : String(values[2]),
+          customer_name: values[3] == null ? null : String(values[3]),
+          customer_email: values[4] == null ? null : String(values[4]),
+        };
+        const existing = state.support_tickets.get(id);
+        state.support_tickets.set(id, existing ? {
+          ...existing,
+          user_id: existing.user_id ?? incoming.user_id,
+          customer_name: existing.customer_name ?? incoming.customer_name,
+          customer_email: existing.customer_email ?? incoming.customer_email,
+        } : incoming);
+        return [];
       }
 
       if (text.includes("NOT (COALESCE(metadata, '{}'::jsonb) ? 'delivery_care_reply')")) {
@@ -182,12 +215,16 @@ function createFakeDb(state: FakeState) {
 function makeState(): FakeState {
   return {
     metadata_merge_failures_remaining: 0,
+    support_tickets: new Map(),
     job: {
       id: "job-1",
       order_id: "order-1",
       provider_message_id: "wamid.delivery-care",
       status: "completed",
       customer_phone: "9647721310937",
+      user_id: "user-1",
+      customer_name: "زبون أكوافوا",
+      customer_email: "customer@example.com",
       metadata: {},
     },
   };
@@ -270,6 +307,33 @@ describe("delivery-care Quick Reply runtime safety", () => {
     expect(replyStatus(state)).toBe("sent");
     expect(state.job.metadata.delivery_care_reply?.auto_reply_attempts).toBe(1);
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("creates one idempotent support ticket when the customer reports a delivery issue", async () => {
+    const state = makeState();
+    (getDb as any).mockReturnValue(createFakeDb(state));
+    vi.stubGlobal("fetch", vi.fn());
+
+    const issue = makeEvent({
+      payload: "aquavo_delivery_issue_v1",
+      buttonText: "عندي ملاحظة عالطلب",
+    });
+
+    const first = await handleDeliveryCareButtonReply(issue);
+    expect(first.status).toBe("disabled");
+    expect(first.supportTicketId).toBe("whatsapp-delivery-issue:order-1");
+    expect(state.support_tickets.size).toBe(1);
+    expect(state.support_tickets.get("whatsapp-delivery-issue:order-1")).toEqual({
+      id: "whatsapp-delivery-issue:order-1",
+      conversation_id: "whatsapp_delivery_issue:order-1",
+      user_id: "user-1",
+      customer_name: "زبون أكوافوا",
+      customer_email: "customer@example.com",
+    });
+
+    const duplicate = await handleDeliveryCareButtonReply(issue);
+    expect(duplicate.status).toBe("disabled");
+    expect(state.support_tickets.size).toBe(1);
   });
 
   it("never redirects a deferred reply to a phone that was edited after the verified callback", async () => {
