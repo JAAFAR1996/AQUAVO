@@ -43,10 +43,16 @@ vi.mock('@/contexts/comparison-context', () => ({
 }));
 
 vi.mock('@/lib/api', () => ({
-    fetchProducts: vi.fn(() => Promise.resolve({
-        products: [{ id: '1', name: 'Fish Food', price: 15000, slug: 'fish-food' }],
-        total: 1
-    }))
+    searchProducts: vi.fn(() => Promise.resolve([])),
+    fetchSmartSearch: vi.fn(() => Promise.resolve({ products: [], semantic: false })),
+}));
+
+vi.mock('@/hooks/use-fish-data', () => ({
+    useFishData: () => ({ data: [], isLoading: false, isFetching: false, isSuccess: true }),
+}));
+
+vi.mock('@/hooks/use-listing-restoration', () => ({
+    useListingRestoration: () => ({ containerRef: { current: null }, isRestoring: false }),
 }));
 
 import SearchResults from '../search-results';

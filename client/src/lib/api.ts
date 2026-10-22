@@ -146,11 +146,14 @@ export async function fetchTopSellingProducts(): Promise<{
   }
 }
 
-export async function searchProducts(query: string): Promise<Product[]> {
+type SearchRequestOptions = { throwOnError?: boolean };
+
+export async function searchProducts(query: string, options: SearchRequestOptions = {}): Promise<Product[]> {
   try {
     const res = await getJson<{ products: Product[] }>(`/api/products?search=${encodeURIComponent(query)}&limit=100`);
     return res.products;
   } catch (err) {
+    if (options.throwOnError) throw err;
     console.error("Search API failed:", err);
     return [];
   }
@@ -177,7 +180,7 @@ export async function fetchPredictedNeeds(): Promise<{
   }
 }
 
-export async function fetchSmartSearch(query: string): Promise<{ products: Product[]; semantic: boolean }> {
+export async function fetchSmartSearch(query: string, options: SearchRequestOptions = {}): Promise<{ products: Product[]; semantic: boolean }> {
   if (!query || query.trim().length < 2) return { products: [], semantic: false };
   try {
     // `sid` is the per-tab view-session id, the same one page_views carries. It is sent so the
@@ -186,7 +189,8 @@ export async function fetchSmartSearch(query: string): Promise<{ products: Produ
     return await getJson<{ products: Product[]; semantic: boolean }>(
       `/api/products/smart-search?q=${encodeURIComponent(query)}&sid=${encodeURIComponent(getClientSessionId())}`
     );
-  } catch {
+  } catch (err) {
+    if (options.throwOnError) throw err;
     return { products: [], semantic: false };
   }
 }

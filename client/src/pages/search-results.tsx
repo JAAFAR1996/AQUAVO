@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link, useLocation } from "wouter";
+import { Link, useLocation, useSearch } from "wouter";
+import { z } from "zod";
 import {
   ArrowLeft,
   FileText,
@@ -24,6 +25,7 @@ import { ProductCard } from "@/components/products/product-card";
 import { FishCard } from "@/components/fish/fish-card";
 import { FishDetailModal } from "@/components/fish/fish-detail-modal";
 import { useFishData } from "@/hooks/use-fish-data";
+import { useListingRestoration } from "@/hooks/use-listing-restoration";
 import { fetchSmartSearch, searchProducts } from "@/lib/api";
 import {
   buildUnifiedSiteSearchResults,
@@ -35,8 +37,18 @@ import { metaTrackSearch } from "@/lib/meta-pixel";
 import type { FishSpecies } from "@/data/freshwater-fish";
 import { useTranslation } from "react-i18next";
 
-type FilterType = "all" | "products" | "fish" | "pages";
-type SortType = "relevance" | "price-asc" | "price-desc" | "rating";
+const searchNavigationSchema = z.object({
+  q: z.string().trim().catch(""),
+  type: z.enum(["all", "products", "fish", "pages"]).catch("all"),
+  sort: z.enum(["relevance", "price-asc", "price-desc", "rating"]).catch("relevance"),
+  page: z.string()
+    .regex(/^[1-9]\d*$/)
+    .transform(Number)
+    .pipe(z.number().int().positive().safe())
+    .catch(1),
+});
+
+type SearchNavigationState = z.infer<typeof searchNavigationSchema>;
 
 type SearchPageItem =
   | { type: "site"; result: SiteSearchResult; score: number }
@@ -44,8 +56,21 @@ type SearchPageItem =
 
 const RESULTS_PER_PAGE = 12;
 
-function readQueryFromLocation(): string {
-  return new URLSearchParams(window.location.search).get("q")?.trim() ?? "";
+function searchLocation(search: string, state: SearchNavigationState): string {
+  const params = new URLSearchParams(search);
+  const values = {
+    q: state.q,
+    type: state.type === "all" ? "" : state.type,
+    sort: state.sort === "relevance" ? "" : state.sort,
+    page: state.page === 1 ? "" : String(state.page),
+  };
+  for (const [key, value] of Object.entries(values)) {
+    if (value) params.set(key, value);
+    else params.delete(key);
+  }
+  const nextSearch = params.toString();
+  // Wouter applies the active locale's router base to this path.
+  return `/search${nextSearch ? `?${nextSearch}` : ""}`;
 }
 
 function fishSearchScore(fish: FishSpecies, query: string): number {
@@ -61,39 +86,62 @@ function fishSearchScore(fish: FishSpecies, query: string): number {
 
 export default function SearchResults() {
   const { t } = useTranslation("search");
-  const [location, setLocation] = useLocation();
-  const [searchQuery, setSearchQuery] = useState(readQueryFromLocation);
-  const [draftQuery, setDraftQuery] = useState(readQueryFromLocation);
-  const [filterType, setFilterType] = useState<FilterType>("all");
-  const [sortBy, setSortBy] = useState<SortType>("relevance");
-  const [currentPage, setCurrentPage] = useState(1);
+  const [, setLocation] = useLocation();
+  const search = useSearch();
+  const navigationState = useMemo(() => {
+    const params = new URLSearchParams(search);
+    return searchNavigationSchema.parse({
+      q: params.get("q"),
+      type: params.get("type"),
+      sort: params.get("sort"),
+      page: params.get("page"),
+    });
+  }, [search]);
+  const { q: searchQuery, type: filterType, sort: sortBy, page: currentPage } = navigationState;
+  const [draftQuery, setDraftQuery] = useState(searchQuery);
   const [selectedFish, setSelectedFish] = useState<FishSpecies | null>(null);
   const trackedQueryRef = useRef("");
 
   useEffect(() => {
-    const next = readQueryFromLocation();
-    setSearchQuery(next);
-    setDraftQuery(next);
-    setCurrentPage(1);
-  }, [location]);
+    setDraftQuery(searchQuery);
+  }, [searchQuery]);
 
-  const { data: productMatches = [], isLoading: productsLoading } = useQuery({
+  const {
+    data: productMatches = [],
+    isLoading: productsLoading,
+    isPending: productsPending,
+    isFetching: productsFetching,
+    isSuccess: productsLoaded,
+  } = useQuery({
     queryKey: ["search-products", searchQuery],
-    queryFn: () => searchProducts(searchQuery),
+    queryFn: () => searchProducts(searchQuery, { throwOnError: true }),
     enabled: searchQuery.length > 0,
     staleTime: 60 * 1000,
     retry: false,
   });
 
-  const { data: smartData, isFetching: smartLoading } = useQuery({
-    queryKey: ["smart-search", searchQuery],
-    queryFn: () => fetchSmartSearch(searchQuery),
+  const {
+    data: smartData,
+    isPending: smartPending,
+    isFetching: smartLoading,
+    isSuccess: smartLoaded,
+  } = useQuery({
+    // The quick-search overlay caches an empty fallback on request failure.
+    // Keep validated results separate so that fallback cannot clamp this page.
+    queryKey: ["smart-search", searchQuery, { throwOnError: true }],
+    queryFn: () => fetchSmartSearch(searchQuery, { throwOnError: true }),
     enabled: searchQuery.length >= 2,
     staleTime: 60 * 1000,
     retry: false,
   });
 
-  const { data: fishData = [], isLoading: fishLoading } = useFishData();
+  const {
+    data: fishData = [],
+    isLoading: fishLoading,
+    isPending: fishPending,
+    isFetching: fishFetching,
+    isSuccess: fishLoaded,
+  } = useFishData();
 
   const siteResults = useMemo(
     () =>
@@ -158,9 +206,44 @@ export default function SearchResults() {
     currentPage * RESULTS_PER_PAGE,
   );
 
+  const usesSiteResults = filterType !== "fish";
+  const usesFishResults = filterType === "all" || filterType === "fish";
+  const requestsSettled = !searchQuery || (
+    (!usesSiteResults || (
+      !productsPending && !productsFetching
+      && (searchQuery.length < 2 || (!smartPending && !smartLoading))
+    ))
+    && (!usesFishResults || (!fishPending && !fishFetching))
+  );
+  // A failed source cannot establish the final number of pages. It can still
+  // leave a usable page of results, whose saved position should be restored.
+  const safeToClamp = requestsSettled && (!searchQuery || (
+    (!usesSiteResults || (productsLoaded && (searchQuery.length < 2 || smartLoaded)))
+    && (!usesFishResults || fishLoaded)
+  ));
+  const isLoading = searchQuery.length > 0 && (
+    (usesSiteResults && (productsLoading || (currentPage > totalPages && smartLoading)))
+    || (usesFishResults && fishLoading)
+  );
+  const restorationReady = requestsSettled && !isLoading && currentPage <= totalPages;
+
   useEffect(() => {
-    setCurrentPage(1);
-  }, [filterType, sortBy, searchQuery]);
+    if (!safeToClamp || currentPage <= totalPages) return;
+    setLocation(searchLocation(search, { ...navigationState, page: totalPages }), { replace: true });
+  }, [safeToClamp, currentPage, totalPages, search, navigationState, setLocation]);
+
+  const { containerRef } = useListingRestoration({
+    kind: "search",
+    state: {},
+    ready: restorationReady,
+    contentKey: paginatedResults.map((item) => item.type === "fish"
+      ? `fish:${item.fish.id}`
+      : `${item.result.type}:${item.result.id}`).join(","),
+  });
+
+  const updateNavigation = (changes: Partial<SearchNavigationState>) => {
+    setLocation(searchLocation(search, { ...navigationState, ...changes }));
+  };
 
   useEffect(() => {
     if (!searchQuery || productMatches.length === 0 || trackedQueryRef.current === searchQuery) return;
@@ -172,25 +255,16 @@ export default function SearchResults() {
 
   const submitSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const next = draftQuery.trim();
-    if (!next) {
-      setSearchQuery("");
-      setLocation("/search");
-      return;
-    }
-    setLocation(`/search?q=${encodeURIComponent(next)}`);
+    updateNavigation({ q: draftQuery.trim(), page: 1 });
   };
 
   const clearSearch = () => {
     setDraftQuery("");
-    setSearchQuery("");
-    setLocation("/search");
+    updateNavigation({ q: "", page: 1 });
   };
 
-  const isLoading = searchQuery.length > 0 && (productsLoading || fishLoading);
-
   return (
-    <div className="flex flex-1 flex-col bg-background" dir="rtl">
+    <div ref={containerRef} className="flex flex-1 flex-col bg-background" dir="rtl">
       <MetaTags
         title={searchQuery ? t("search-results.s1", { v0: searchQuery }) : t("search-results.s2")}
         description={searchQuery ? t("search-results.s3", { v0: searchQuery }) : t("search-results.s4")}
@@ -239,7 +313,9 @@ export default function SearchResults() {
                   <button
                     key={value}
                     type="button"
-                    onClick={() => setFilterType(value)}
+                    onClick={() => {
+                      if (value !== filterType) updateNavigation({ type: value, page: 1 });
+                    }}
                     aria-pressed={filterType === value}
                     className={`min-h-10 rounded-full border px-4 text-sm font-bold transition-colors ${
                       filterType === value
@@ -252,8 +328,10 @@ export default function SearchResults() {
                 ))}
               </div>
 
-              <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortType)}>
-                <SelectTrigger className="h-11 w-full sm:w-[220px]">
+              <Select value={sortBy} onValueChange={(value) => updateNavigation({
+                sort: searchNavigationSchema.shape.sort.parse(value), page: 1,
+              })}>
+                <SelectTrigger className="h-11 w-full sm:w-[220px]" aria-label={t("search-results.s17")}>
                   <SelectValue placeholder={t("search-results.s17")} />
                 </SelectTrigger>
                 <SelectContent>
@@ -308,21 +386,22 @@ export default function SearchResults() {
                 {t("search-results.s30")}
               </p>
               <div className="mt-5 flex flex-wrap justify-center gap-3">
-                <Button variant="outline" onClick={() => setFilterType("all")}>{t("search-results.s31")}</Button>
+                <Button variant="outline" onClick={() => updateNavigation({ type: "all", page: 1 })}>{t("search-results.s31")}</Button>
                 <Link href="/products"><Button>{t("search-results.s32")}</Button></Link>
               </div>
             </div>
           ) : (
             <>
               <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {paginatedResults.map((item, index) => {
+                {paginatedResults.map((item) => {
                   if (item.type === "fish") {
                     return (
-                      <FishCard
-                        key={`fish-${item.fish.scientificName}-${index}`}
-                        fish={item.fish}
-                        onClick={() => setSelectedFish(item.fish)}
-                      />
+                      <div key={`fish-${item.fish.id}`} data-listing-item={`fish:${item.fish.id}`}>
+                        <FishCard
+                          fish={item.fish}
+                          onClick={() => setSelectedFish(item.fish)}
+                        />
+                      </div>
                     );
                   }
 
@@ -332,7 +411,7 @@ export default function SearchResults() {
                   }
 
                   return (
-                    <Link key={`page-${result.id}-${result.url}`} href={result.url} className="group block h-full">
+                    <Link key={`page-${result.id}-${result.url}`} href={result.url} className="group block h-full" data-listing-item={`page:${result.id}`}>
                       <article className="flex h-full min-h-56 flex-col rounded-2xl border border-border bg-card p-5 transition-colors group-hover:border-primary/50">
                         <span className="grid h-11 w-11 place-items-center rounded-xl bg-primary/10 text-primary">
                           <FileText className="h-5 w-5" aria-hidden="true" />
@@ -353,7 +432,7 @@ export default function SearchResults() {
                 <nav className="mt-10 flex items-center justify-center gap-2" aria-label={t("search-results.s34")}>
                   <Button
                     variant="outline"
-                    onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                    onClick={() => updateNavigation({ page: Math.max(1, currentPage - 1) })}
                     disabled={currentPage === 1}
                   >
                     {t("search-results.s35")}
@@ -363,8 +442,8 @@ export default function SearchResults() {
                   </span>
                   <Button
                     variant="outline"
-                    onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
-                    disabled={currentPage === totalPages}
+                    onClick={() => updateNavigation({ page: Math.min(totalPages, currentPage + 1) })}
+                    disabled={currentPage >= totalPages}
                   >
                     {t("search-results.s38")}
                   </Button>
