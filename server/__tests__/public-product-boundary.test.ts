@@ -49,7 +49,13 @@ function leakedProductRow() {
     isNew: false,
     isBestSeller: true,
     isProductOfWeek: false,
-    specifications: { الحجم: "صغير" },
+    specifications: {
+      الحجم: "صغير",
+      "الموديل": "BASE-SECRET",
+      "Model No.": "BASE-SECRET-2",
+      "__model3d": { src: "/models/driftwood/dw-01/model.glb", pieceCode: "DW-01" },
+      "رمز القطعة": "DW-01",
+    },
     hasVariants: true,
     createdAt: new Date("2026-05-01T00:00:00Z"),
     updatedAt: new Date("2026-08-01T00:00:00Z"),
@@ -66,8 +72,10 @@ function leakedProductRow() {
     costResolutionAt: new Date("2026-08-03T11:04:18.689Z"),
     variants: [
       {
-        id: "v1", label: "صغير", price: 15000, originalPrice: 18000, stock: 4,
-        sku: "DW-S", isDefault: true, specifications: {}, image: "v1.webp",
+        id: "v1", label: "INTERNAL-MODEL-DW-S — صغير", price: 15000, originalPrice: 18000, stock: 4,
+        sku: "INTERNAL-MODEL-DW-S", isDefault: true,
+        specifications: { الحجم: "صغير", موديل: "INTERNAL-MODEL-DW-S", "رمز القطعة": "DW-01" },
+        image: "v1.webp",
         // written into the jsonb by migrations/0073_accounting_final_hardening.sql — invisible to
         // the ProductVariant TypeScript interface, which is why a type-level fix would not have worked
         costPrice: 4889, costStatus: "verified_derived",
@@ -89,6 +97,33 @@ describe("public product DTO — the leaked fields are gone", () => {
     for (const key of SENSITIVE_KEYS) {
       expect(pub, `${key} is still present in the public response`).not.toHaveProperty(key);
     }
+  });
+
+  it("hides commercial model/SKU metadata but preserves real customer choice and 3D metadata", () => {
+    const pub = toPublicProduct(leakedProductRow())!;
+    const variant = (pub.variants as Record<string, unknown>[])[0];
+
+    expect(pub.specifications).not.toHaveProperty("الموديل");
+    expect(pub.specifications).not.toHaveProperty("Model No.");
+    expect(pub.specifications).toHaveProperty("__model3d");
+    expect(pub.specifications).toHaveProperty("رمز القطعة", "DW-01");
+
+    expect(variant).not.toHaveProperty("sku");
+    expect(variant.specifications).toEqual({ الحجم: "صغير", "رمز القطعة": "DW-01" });
+    expect(variant.label).toBe("صغير");
+  });
+
+  it("never falls back to exposing a model-only label", () => {
+    const pub = toPublicVariant({
+      id: "m1",
+      label: "C4.1123+",
+      sku: "C4.1123+",
+      price: 1000,
+      stock: 1,
+      specifications: { "Model": "C4.1123+", "الحجم": "كبير" },
+    }, 2);
+    expect(pub.label).toBe("كبير");
+    expect(JSON.stringify(pub)).not.toContain("C4.1123+");
   });
 
   it("drops the internal keys hidden inside the variants jsonb", () => {
@@ -120,7 +155,11 @@ describe("public product DTO — the leaked fields are gone", () => {
     expect(pub.rating).toBe("4.5");
     expect(pub.reviewCount).toBe(3);
     expect(pub.hasVariants).toBe(true);
-    expect(pub.specifications).toEqual({ الحجم: "صغير" });
+    expect(pub.specifications).toEqual({
+      الحجم: "صغير",
+      "__model3d": { src: "/models/driftwood/dw-01/model.glb", pieceCode: "DW-01" },
+      "رمز القطعة": "DW-01",
+    });
     expect(pub.slug).toBe("aquavo-driftwood-collection");
     expect(pub.name).toBeTruthy();
     expect(pub.brand).toBe("AQUAVO");
