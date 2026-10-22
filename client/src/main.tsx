@@ -13,6 +13,7 @@ import { DisplacementRuntime } from "./components/motion/displacement-runtime";
 import { initializeClientEnvSideEffects } from "./lib/config/env";
 import { captureAttributionFromUrl } from "./lib/attribution";
 import { installChunkLoadRecovery, recoverFromDynamicImportError } from "./lib/chunk-recovery";
+import { installListingNavigation } from "./lib/listing-navigation";
 
 // Recover automatically when an already-open tab references a hashed chunk removed by a newer deploy.
 installChunkLoadRecovery();
@@ -105,6 +106,10 @@ try {
 void bootstrapI18n(splitLocaleFromPath(window.location.pathname).locale)
   .then(() => import("./App"))
   .then(({ default: App }) => {
+    // App imports Wouter first; capture the outgoing listing before its
+    // history notifications can replace the DOM.
+    const disposeListingNavigation = installListingNavigation();
+    import.meta.hot?.dispose(disposeListingNavigation);
     createRoot(document.getElementById("root")!).render(
   <>
     <App />

@@ -32,6 +32,7 @@ import { SkipToMainLink } from "@/components/ui/skip-to-main";
 import { GuideRelatedProducts } from "@/components/seo/guide-related-products";
 import { LanguageSwitcher } from "@/components/ui/language-switcher";
 import { PageTransition } from "@/components/ui/page-transition";
+import { ListingNavigationBoundary, NavigationScrollReset } from "@/components/listing-navigation";
 
 // Persistent chrome — rendered once in the shell around the Router
 import Navbar from "@/components/navbar";
@@ -259,7 +260,7 @@ function Router() {
         {() => (
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <PageTransition><Products /></PageTransition>
+              <ListingNavigationBoundary><PageTransition><Products /></PageTransition></ListingNavigationBoundary>
             </Suspense>
           </ErrorBoundary>
         )}
@@ -644,7 +645,7 @@ function Router() {
         {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><PageTransition><Wishlist /></PageTransition></Suspense></ErrorBoundary>)}
       </Route>
       <Route path="/search">
-        {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><PageTransition><SearchResults /></PageTransition></Suspense></ErrorBoundary>)}
+        {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><ListingNavigationBoundary><PageTransition><SearchResults /></PageTransition></ListingNavigationBoundary></Suspense></ErrorBoundary>)}
       </Route>
 
       {/* Lazy loaded compare page */}
@@ -1069,6 +1070,7 @@ function AppShell() {
                   <DeferredThirdPartyAnalytics />
                   <DeferredSentryInit />
                   <PageViewTracker />
+                  <NavigationScrollReset />
                   {/* Skip to main content for keyboard navigation */}
                   {group !== 'bare' && (
                     <SkipToMainLink />
@@ -1152,7 +1154,7 @@ function AppShell() {
 // The per-tab view-session id now lives in lib/client-session.ts so the search path can use the
 // SAME id. See that file for why the key is not `aq_sid`.
 
-// Track page views on route changes + scroll to top + dwell time
+// Track page views on route changes + dwell time
 function PageViewTracker() {
   const [location] = useLocation();
 
@@ -1183,13 +1185,6 @@ function PageViewTracker() {
     viewIdRef.current = null;
   }, []);
 
-  // Disable browser's automatic scroll restoration
-  useEffect(() => {
-    if ('scrollRestoration' in window.history) {
-      window.history.scrollRestoration = 'manual';
-    }
-  }, []);
-
   // Handle tab visibility changes (send duration when tab is hidden/closed)
   useEffect(() => {
     const handleVisChange = () => {
@@ -1204,33 +1199,8 @@ function PageViewTracker() {
     const prevLocation = locationRef.current;
     if (prevLocation !== location) {
       sendDuration();
-
-      // Save scroll position when leaving /products so we can restore it on Back
-      if (prevLocation === '/products' || prevLocation.startsWith('/products?')) {
-        try {
-          sessionStorage.setItem('aq_products_scroll', String(window.scrollY));
-        } catch { /* ignore */ }
-      }
     }
     locationRef.current = location;
-
-    // Skip scroll-to-top when navigating back to /products from a product detail page.
-    // The products page will restore scroll position itself.
-    const isBackToProducts =
-      (location === '/products' || location.startsWith('/products?')) &&
-      (prevLocation.startsWith('/products/') || prevLocation.startsWith('/product/'));
-
-    let timer: ReturnType<typeof setTimeout>;
-    if (isBackToProducts) {
-      // Don't scroll to top — products.tsx will restore the saved scroll position
-      timer = setTimeout(() => { /* intentionally empty */ }, 100);
-    } else {
-      // Normal forward navigation: scroll to top immediately
-      window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
-      timer = setTimeout(() => {
-        window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
-      }, 100);
-    }
 
     trackPageView(location);
     phTrackPageView(location);
@@ -1308,7 +1278,6 @@ function PageViewTracker() {
     window.addEventListener("pagehide", handlePageHide);
 
     return () => {
-      clearTimeout(timer);
       window.clearTimeout(visitTimer);
       window.clearTimeout(presenceTimer);
       window.clearInterval(heartbeatTimer);

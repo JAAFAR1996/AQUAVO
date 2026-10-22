@@ -1,6 +1,9 @@
-import { useMemo, useState, useEffect, useRef, lazy, Suspense } from "react";
+import { useMemo, useState, useEffect, useRef, useCallback, lazy, Suspense, type SetStateAction } from "react";
+import { z } from "zod";
 import { phTrackCategoryClick } from "@/lib/posthog";
 import { useInView } from "@/hooks/use-in-view";
+import { useListingRestoration } from "@/hooks/use-listing-restoration";
+import { readListingState } from "@/lib/listing-navigation";
 import { Link, useLocation, useSearch } from "wouter";
 import { AlertCircle, ArrowUpDown, Banknote, Clock, Eye, Headphones, RefreshCw, Sparkles, Truck, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -36,7 +39,27 @@ const FilterModal = lazy(() => import("@/components/products/filter-modal").then
 const QuickViewModal = lazy(() => import("@/components/products/quick-view-modal").then(m => ({ default: m.QuickViewModal })));
 const ComparisonDrawer = lazy(() => import("@/components/products/product-comparison").then(m => ({ default: m.ComparisonDrawer })));
 
-type SortOption = "default" | "newest" | "smart" | "price-asc" | "price-desc" | "name-asc" | "rating-desc";
+const sortOptionSchema = z.enum(["default", "newest", "smart", "price-asc", "price-desc", "name-asc", "rating-desc"]);
+const listingStateSchema = z.object({
+  filters: z.object({
+    priceRange: z.tuple([z.number().finite().nonnegative(), z.number().finite().nonnegative()])
+      .refine(([min, max]) => min <= max),
+    categories: z.array(z.string()),
+    brands: z.array(z.string()),
+    difficulties: z.array(z.string()),
+    tags: z.array(z.string()),
+  }),
+  sortBy: sortOptionSchema,
+  foodFilter: foodFilterSchema,
+  displayCount: z.number().int().min(24).max(Number.MAX_SAFE_INTEGER),
+});
+type ProductsListingState = z.infer<typeof listingStateSchema>;
+
+function sameFilters(left: FilterState, right: FilterState): boolean {
+  return left.priceRange[0] === right.priceRange[0] && left.priceRange[1] === right.priceRange[1]
+    && (["categories", "brands", "difficulties", "tags"] as const).every(key =>
+      left[key].length === right[key].length && left[key].every(value => right[key].includes(value)));
+}
 
 type ActiveFilterChip = {
   id: string;
@@ -48,7 +71,7 @@ export default function Products() {
   const { t } = useTranslation("products");
   const { locale, dir } = useLocale();
   const shippingFeeLabel = formatShippingFeeNumber(useShippingFee());
-  const [location, setLocation] = useLocation();
+  const [, setLocation] = useLocation();
   const search = useSearch();
   const { user } = useAuth();
   const searchParams = new URLSearchParams(search);
@@ -60,7 +83,7 @@ export default function Products() {
   const initialSort = searchParams.get("sort");
   const isRecommendedView = searchParams.get("recommended") === "1";
 
-  const { data: attributes } = useQuery({
+  const { data: attributes, isLoading: isAttributesLoading, isFetching: isAttributesFetching } = useQuery({
     queryKey: ["product-attributes"],
     queryFn: fetchProductAttributes,
     staleTime: 60_000,
@@ -73,69 +96,52 @@ export default function Products() {
   const minPrice = attributes?.minPrice || 0;
   const maxPrice = attributes?.maxPrice || 1000000;
 
-  const [filters, setFilters] = useState<FilterState>({
-    priceRange: [0, 1000000],
-    categories: initialCategory ? [initialCategory] : [],
-    brands: [],
-    difficulties: [],
-    tags: initialSort === "best-selling" ? [PRODUCT_TAG_VALUES.bestSeller] : [],
-  });
+  const [listing, setListing] = useState<ProductsListingState & { priceRangeInitialized: boolean }>(() => {
+    const restored = readListingState("products", value => {
+      const parsed = listingStateSchema.safeParse(value);
+      return parsed.success ? parsed.data : undefined;
+    });
+    if (restored) return { ...restored, priceRangeInitialized: true };
 
-  const [sortBy, setSortBy] = useState<SortOption>(
-    initialSort === "best-selling" ? "rating-desc" : (isRecommendedView && user ? "smart" : "default")
-  );
+    const food = foodFilterSchema.safeParse(searchParams.get("food"));
+    return {
+      filters: {
+        priceRange: [0, 1000000],
+        categories: initialCategory ? [initialCategory] : [],
+        brands: [],
+        difficulties: [],
+        tags: initialSort === "best-selling" ? [PRODUCT_TAG_VALUES.bestSeller] : [],
+      },
+      sortBy: initialSort === "best-selling" ? "rating-desc" : (isRecommendedView && user ? "smart" : "default"),
+      foodFilter: isFoodCategory(initialCategory) && food.success ? food.data : "all",
+      displayCount: 24,
+      priceRangeInitialized: false,
+    };
+  });
+  const { filters, sortBy, foodFilter, displayCount } = listing;
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
-  const [foodFilter, setFoodFilter] = useState<FoodFilter>(() => {
-    const value = foodFilterSchema.safeParse(searchParams.get("food"));
-    return value.success ? value.data : "all";
-  });
   const isFoodListing = filters.categories.length === 1 && isFoodCategory(filters.categories[0]);
-  useEffect(() => { if (!isFoodListing) setFoodFilter("all"); }, [isFoodListing]);
-  const [displayCount, setDisplayCount] = useState(() => {
-    try {
-      const saved = sessionStorage.getItem("aq_products_display_count");
-      if (saved) return Math.max(24, parseInt(saved, 10));
-    } catch { /* ignore */ }
-    return 24;
-  });
-
-  const scrollRestored = useRef(false);
   const lastLoadAtRef = useRef(0);
 
   useEffect(() => {
-    const params = new URLSearchParams(search);
-    const category = params.get("category");
-    const sort = params.get("sort");
-    const food = foodFilterSchema.safeParse(params.get("food"));
-    setFoodFilter(food.success ? food.data : "all");
-
-    if (category) {
-      setFilters(prev => ({
+    if (!attributes || !Number.isFinite(attributes.minPrice) || !Number.isFinite(attributes.maxPrice)) return;
+    setListing(prev => {
+      if (prev.priceRangeInitialized) return prev;
+      // Resolve the default range once. A restored or user-selected range must
+      // survive attribute refetches without resetting the loaded product count.
+      const isDefaultRange = prev.filters.priceRange[0] === 0 && prev.filters.priceRange[1] === 1000000;
+      return {
         ...prev,
-        categories: [category],
-      }));
-    }
-
-    if (sort === "best-selling") {
-      setFilters(prev => ({
-        ...prev,
-        tags: prev.tags.includes(PRODUCT_TAG_VALUES.bestSeller) ? prev.tags : [...prev.tags, PRODUCT_TAG_VALUES.bestSeller],
-      }));
-      setSortBy("rating-desc");
-    }
-  }, [location, search]);
-
-  useEffect(() => {
-    if (attributes && filters.priceRange[1] === 1000000 && attributes.maxPrice !== 1000000) {
-      setFilters(prev => ({
-        ...prev,
-        priceRange: [attributes.minPrice, attributes.maxPrice],
-      }));
-    }
+        priceRangeInitialized: true,
+        filters: isDefaultRange
+          ? { ...prev.filters, priceRange: [attributes.minPrice, attributes.maxPrice] }
+          : prev.filters,
+      };
+    });
   }, [attributes]);
 
-  const { data: boostData } = useQuery({
+  const { data: boostData, isLoading: isBoostLoading, isFetching: isBoostFetching } = useQuery({
     queryKey: ["personalized-order"],
     queryFn: fetchPersonalizedOrder,
     staleTime: 5 * 60 * 1000,
@@ -167,7 +173,7 @@ export default function Products() {
     return params;
   }, [filters, sortBy, initialSearch, minPrice, maxPrice]);
 
-  const { data, isLoading: isProductsLoading, isError, refetch: refetchProducts } = useQuery({
+  const { data, isLoading: isProductsLoading, isFetching: isProductsFetching, isError, refetch: refetchProducts } = useQuery({
     queryKey: ["products", queryParams],
     queryFn: () => fetchProducts(queryParams),
     staleTime: 15_000,
@@ -227,6 +233,15 @@ export default function Products() {
     return finalProducts.slice(0, displayCount);
   }, [finalProducts, displayCount]);
 
+  const { containerRef, isRestoring } = useListingRestoration({
+    kind: "products",
+    state: { filters, sortBy, foodFilter, displayCount },
+    ready: !isProductsLoading && !isProductsFetching && !isError
+      && !isAttributesLoading && !isAttributesFetching
+      && (!(user && sortBy === "smart") || (!isBoostLoading && !isBoostFetching)),
+    contentKey: displayedProducts.map(product => product.id).join(","),
+  });
+
   const trackedListSignature = useRef("");
   useEffect(() => {
     const signature = displayedProducts.map((product) => product.id).join(",");
@@ -243,65 +258,20 @@ export default function Products() {
 
   const hasMore = displayCount < finalProducts.length;
 
-  useEffect(() => {
-    if (finalProducts.length === 0) return;
-    if (scrollRestored.current) return;
-    scrollRestored.current = true;
-
-    const savedScroll = sessionStorage.getItem("aq_products_scroll");
-    if (!savedScroll) return;
-
-    try { sessionStorage.removeItem("aq_products_scroll"); } catch { /* ignore */ }
-
-    const targetY = parseInt(savedScroll, 10);
-    if (!targetY || targetY < 10) return;
-
-    const attempt = (retries: number) => {
-      if (window.scrollY >= targetY - 50) return;
-      window.scrollTo({ top: targetY, behavior: "instant" as ScrollBehavior });
-      if (retries > 0 && window.scrollY < targetY - 50) {
-        requestAnimationFrame(() => attempt(retries - 1));
-      }
-    };
-
-    const t = setTimeout(() => attempt(15), 50);
-    return () => clearTimeout(t);
-  }, [finalProducts.length]);
-
-  useEffect(() => {
-    try {
-      sessionStorage.setItem("aq_products_display_count", String(displayCount));
-    } catch { /* ignore */ }
-  }, [displayCount]);
-
-  useEffect(() => {
-    const handleClick = (e: MouseEvent) => {
-      const target = (e.target as HTMLElement).closest("a[href]");
-      if (!target) return;
-      const href = (target as HTMLAnchorElement).href;
-      if (!href.includes("/products/") && !href.includes("/product/")) {
-        try {
-          sessionStorage.removeItem("aq_products_scroll");
-          sessionStorage.removeItem("aq_products_display_count");
-        } catch { /* ignore */ }
-      }
-    };
-    document.addEventListener("click", handleClick);
-    return () => document.removeEventListener("click", handleClick);
-  }, []);
-
-  const loadMore = () => {
+  const loadMore = useCallback(() => {
+    if (isRestoring || isProductsLoading || isProductsFetching) return;
     const now = Date.now();
     if (now - lastLoadAtRef.current < 400) return;
     lastLoadAtRef.current = now;
-    setDisplayCount(prev => Math.min(prev + 24, finalProducts.length));
-  };
+    setListing(prev => prev.displayCount >= finalProducts.length ? prev
+      : { ...prev, displayCount: Math.min(prev.displayCount + 24, finalProducts.length) });
+  }, [finalProducts.length, isRestoring, isProductsLoading, isProductsFetching]);
 
   const { ref: sentinelRef, inView: sentinelInView } = useInView({ threshold: 0.5, once: false });
 
   useEffect(() => {
-    if (sentinelInView && hasMore) loadMore();
-  }, [sentinelInView, hasMore]);
+    if (!isRestoring && sentinelInView && hasMore) loadMore();
+  }, [sentinelInView, hasMore, isRestoring, loadMore]);
 
   const isLoading = isProductsLoading;
 
@@ -334,8 +304,35 @@ export default function Products() {
     return count;
   }, [filters, minPrice, maxPrice]);
 
+  const applyFilters = useCallback((next: SetStateAction<FilterState>) => {
+    setListing(prev => {
+      const updated = typeof next === "function" ? next(prev.filters) : next;
+      if (sameFilters(prev.filters, updated)) return prev;
+      return {
+        ...prev,
+        filters: updated,
+        foodFilter: updated.categories.length === 1 && isFoodCategory(updated.categories[0]) ? prev.foodFilter : "all",
+        displayCount: 24,
+      };
+    });
+  }, []);
+
+  const changeSort = (value: string) => {
+    const parsed = sortOptionSchema.safeParse(value);
+    if (!parsed.success) return;
+    setListing(prev => prev.sortBy === parsed.data ? prev : { ...prev, sortBy: parsed.data, displayCount: 24 });
+  };
+
+  const changeFoodFilter = (value: FoodFilter) => {
+    setListing(prev => prev.foodFilter === value ? prev : { ...prev, foodFilter: value, displayCount: 24 });
+    const params = new URLSearchParams(search);
+    params.set("category", filters.categories[0]);
+    if (value === "all") params.delete("food"); else params.set("food", value);
+    setLocation(`/products?${params.toString()}`, { replace: true });
+  };
+
   const handleCategoryToggle = (category: string) => {
-    setFilters(prev => ({
+    applyFilters(prev => ({
       ...prev,
       categories: prev.categories.includes(category)
         ? prev.categories.filter(c => c !== category)
@@ -345,15 +342,16 @@ export default function Products() {
   };
 
   const clearAllFilters = () => {
-    setFoodFilter("all");
-    setFilters({
+    const clearedFilters: FilterState = {
       priceRange: [minPrice, maxPrice],
       categories: [],
       brands: [],
       difficulties: [],
       tags: [],
-    });
-    setSortBy("default");
+    };
+    setListing(prev => sameFilters(prev.filters, clearedFilters) && prev.foodFilter === "all" && prev.sortBy === "default"
+      ? prev
+      : { ...prev, filters: clearedFilters, foodFilter: "all", sortBy: "default", displayCount: 24 });
     if (window.location.search) setLocation("/products");
   };
 
@@ -364,7 +362,7 @@ export default function Products() {
       chips.push({
         id: `category:${category}`,
         label: category,
-        onRemove: () => setFilters(prev => ({
+        onRemove: () => applyFilters(prev => ({
           ...prev,
           categories: prev.categories.filter(item => item !== category),
         })),
@@ -375,7 +373,7 @@ export default function Products() {
       chips.push({
         id: `brand:${brand}`,
         label: brand,
-        onRemove: () => setFilters(prev => ({
+        onRemove: () => applyFilters(prev => ({
           ...prev,
           brands: prev.brands.filter(item => item !== brand),
         })),
@@ -386,7 +384,7 @@ export default function Products() {
       chips.push({
         id: `difficulty:${difficulty}`,
         label: difficulty,
-        onRemove: () => setFilters(prev => ({
+        onRemove: () => applyFilters(prev => ({
           ...prev,
           difficulties: prev.difficulties.filter(item => item !== difficulty),
         })),
@@ -397,7 +395,7 @@ export default function Products() {
       chips.push({
         id: `tag:${tag}`,
         label: tag === "in-stock" ? t("tags.inStock") : tag,
-        onRemove: () => setFilters(prev => ({
+        onRemove: () => applyFilters(prev => ({
           ...prev,
           tags: prev.tags.filter(item => item !== tag),
         })),
@@ -410,7 +408,7 @@ export default function Products() {
       chips.push({
         id: "price",
         label: `${numberFormat.format(filters.priceRange[0])}–${numberFormat.format(filters.priceRange[1])} ${currencyLabel(locale)}`,
-        onRemove: () => setFilters(prev => ({
+        onRemove: () => applyFilters(prev => ({
           ...prev,
           priceRange: [minPrice, maxPrice],
         })),
@@ -426,7 +424,7 @@ export default function Products() {
     }
 
     return chips;
-  }, [filters, initialSearch, minPrice, maxPrice, setLocation, t]);
+  }, [filters, initialSearch, minPrice, maxPrice, setLocation, applyFilters, locale, t]);
 
   const breadcrumbItems = [
     { name: t("breadcrumb.home"), url: "https://www.aquavoiq.com" },
@@ -451,7 +449,7 @@ export default function Products() {
   }, [displayedProducts]);
 
   return (
-    <div className="flex flex-1 flex-col bg-background font-sans transition-colors duration-300">
+    <div ref={containerRef} className="flex flex-1 flex-col bg-background font-sans transition-colors duration-300">
       <MetaTags
         title={listingSeo.category ? (categorySearch(listingSeo.category, locale)?.title ?? (locale === "ar" ? listingSeo.title : `${localizeCategoryName(listingSeo.category, locale)} | AQUAVO`)) : t("meta.title")}
         description={
@@ -530,20 +528,13 @@ export default function Products() {
         </div>
 
         {isFoodListing && !isLoading && !isError && (
-          <FoodCategoryGuide products={products} value={foodFilter} onChange={value => {
-            setFoodFilter(value);
-            setDisplayCount(24);
-            const params = new URLSearchParams(search);
-            params.set("category", filters.categories[0]);
-            if (value === "all") params.delete("food"); else params.set("food", value);
-            setLocation(`/products?${params.toString()}`, { replace: true });
-          }} />
+          <FoodCategoryGuide products={products} value={foodFilter} onChange={changeFoodFilter} />
         )}
 
         <div className="aq-filter-chamber mb-4 flex flex-col gap-2 ps-3 sm:mb-6 sm:flex-row sm:items-center sm:justify-between sm:gap-4" data-tour="products-filter">
           <FilterBar
             filters={filters}
-            onFiltersChange={setFilters}
+            onFiltersChange={applyFilters}
             onOpenFilterModal={() => setIsFilterModalOpen(true)}
             activeFiltersCount={activeFiltersCount}
             maxPrice={maxPrice}
@@ -553,7 +544,7 @@ export default function Products() {
           <div className="flex items-center justify-between gap-2 sm:justify-end sm:gap-3">
             <div className="flex items-center gap-1 sm:gap-2">
               <ArrowUpDown className="h-3 w-3 text-muted-foreground sm:h-4 sm:w-4" aria-hidden="true" />
-              <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
+              <Select value={sortBy} onValueChange={changeSort}>
                 <SelectTrigger aria-label={t("sort.label")} className="h-11 w-[140px] text-xs sm:w-[170px] sm:text-sm">
                   <SelectValue placeholder={t("sort.placeholder")} />
                 </SelectTrigger>
@@ -725,7 +716,7 @@ export default function Products() {
             isOpen={isFilterModalOpen}
             onClose={() => setIsFilterModalOpen(false)}
             filters={filters}
-            onApplyFilters={setFilters}
+            onApplyFilters={applyFilters}
             availableBrands={availableBrands}
             maxPrice={maxPrice}
             minPrice={minPrice}
