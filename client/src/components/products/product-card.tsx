@@ -44,13 +44,15 @@ export const ProductCard = memo(function ProductCard({
   const [imgLoaded, setImgLoaded] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [imageSourceIndex, setImageSourceIndex] = useState(0);
+  const [useOriginalImage, setUseOriginalImage] = useState(false);
 
   // A failed thumbnail should not permanently replace an available product gallery
   // with the brand icon. New media paths may briefly fail during deployment.
   useEffect(() => {
     setImageSourceIndex(0);
+    setUseOriginalImage(false);
     setImgLoaded(false);
-  }, [product.id, product.thumbnail, product.image]);
+  }, [product.id, product.thumbnail, product.image, product.images?.[0]]);
   const motionActive = !prefersReducedMotion();
   const imgRef = useRef<HTMLImageElement>(null);
   const navLockRef = useRef(false);
@@ -124,8 +126,8 @@ export const ProductCard = memo(function ProductCard({
     ),
   ));
   const rawImage = imageSources[imageSourceIndex] || "";
-  const imageSrc = cardImage(rawImage) || "/brand/aquavo-v2-icon.svg";
-  const imageSrcSet = cardImageSrcSet(rawImage);
+  const imageSrc = (useOriginalImage ? rawImage : cardImage(rawImage)) || "/brand/aquavo-v2-icon.svg";
+  const imageSrcSet = useOriginalImage ? undefined : cardImageSrcSet(rawImage);
 
   const primaryActionLabel = !hasPrice || isComingSoon
     ? t("card.soon")
@@ -200,8 +202,17 @@ export const ProductCard = memo(function ProductCard({
             onDragStart={(event) => event.preventDefault()}
             onLoad={() => setImgLoaded(true)}
             onError={(event) => {
+              // An optimized delivery variant can fail independently of the
+              // original image. Try the original (without srcSet) before
+              // discarding a real product photo or showing the brand icon.
+              if (!useOriginalImage && rawImage && imageSrc !== rawImage) {
+                setImgLoaded(false);
+                setUseOriginalImage(true);
+                return;
+              }
               if (imageSourceIndex < imageSources.length - 1) {
                 setImgLoaded(false);
+                setUseOriginalImage(false);
                 setImageSourceIndex((index) => index + 1);
                 return;
               }
