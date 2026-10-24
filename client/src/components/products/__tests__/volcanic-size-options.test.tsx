@@ -21,7 +21,7 @@ describe("VolcanicSizeOptions legacy-SKU preview", () => {
       true, false, true, true,
     ]);
     expect(choices[1]).toBeChecked();
-    expect(screen.getByText("متوفر (17 قطعة)")).toBeInTheDocument();
+    expect(screen.getByText("متوفر (17 كيلو)")).toBeInTheDocument();
     expect(screen.getByText(/الصور الحالية توضح مقاس 3–5 سم/)).toBeInTheDocument();
   });
 
