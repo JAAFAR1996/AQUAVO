@@ -40,7 +40,7 @@ export function VolcanicSizeOptions({ product }: { product: VolcanicSizeProduct 
 
   const inStock = Number(product.stock ?? 0) > 0;
   const currentState = inStock
-    ? t("stock.available", { count: product.stock })
+    ? t("volcanicSizes.inStockKg", { count: product.stock })
     : isProductComingSoon(product)
       ? t("price.soon")
       : t("stock.unavailable");
