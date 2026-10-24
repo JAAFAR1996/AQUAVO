@@ -22,7 +22,8 @@ describe("VolcanicSizeOptions legacy-SKU preview", () => {
     ]);
     expect(choices[1]).toBeChecked();
     expect(screen.getByText("متوفر (17 كيلو)")).toBeInTheDocument();
-    expect(screen.getByText(/الصور الحالية توضح مقاس 3–5 سم/)).toBeInTheDocument();
+    expect(screen.getByText(/الصورة الرئيسية تخص مقاس 3–5 سم/)).toBeInTheDocument();
+    expect(screen.getByText(/وجود الصورة لا يعني أن المقاس متوفر للبيع/)).toBeInTheDocument();
   });
 
   it("marks the old black 3–5 cm product as coming soon without inventing availability", () => {
