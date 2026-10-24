@@ -28,17 +28,17 @@ const receiptSchema=z.object({
   eventKey:z.string().trim().min(1).max(200),
   status:z.enum(["emitted","blocked","failed"]),
   clientValueIqd:z.number().nonnegative().nullable().optional(),
-  details:z.record(z.unknown()).optional(),
+  details:z.record(z.string(), z.unknown()).optional(),
 }).strict();
 
 const profileSchema=z.object({
   tankVolumeLiters:z.number().positive().max(100000).nullable().optional(),
-  tankDimensions:z.record(z.unknown()).optional(),
+  tankDimensions:z.record(z.string(), z.unknown()).optional(),
   livestock:z.array(z.unknown()).optional(),
   plants:z.array(z.unknown()).optional(),
-  filterSetup:z.record(z.unknown()).optional(),
-  heaterSetup:z.record(z.unknown()).optional(),
-  waterProfile:z.record(z.unknown()).optional(),
+  filterSetup:z.record(z.string(), z.unknown()).optional(),
+  heaterSetup:z.record(z.string(), z.unknown()).optional(),
+  waterProfile:z.record(z.string(), z.unknown()).optional(),
   goals:z.array(z.unknown()).optional(),
   notes:z.string().max(2000).nullable().optional(),
   source:z.enum(["admin","customer","import","conversation"]).optional(),
@@ -54,7 +54,7 @@ const expenseSchema=z.object({
   vendor:z.string().trim().max(200).nullable().optional(),
   description:z.string().trim().max(1000).nullable().optional(),
   source:z.string().trim().min(2).max(100),
-  evidence:z.record(z.unknown()).optional(),
+  evidence:z.record(z.string(), z.unknown()).optional(),
 }).strict();
 
 export function createGrowthPublicRouter(){
