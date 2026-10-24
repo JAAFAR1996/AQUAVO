@@ -38,14 +38,14 @@ export function clampJourneyStep(value: unknown): number {
 
 /** Both historical {data: JSON} plans and current flat API rows are supported. */
 export function normalizeSavedPlan(value: unknown): SavedJourneyPlan | null {
-    const result = z.record(z.unknown()).safeParse(value);
+    const result = z.record(z.string(), z.unknown()).safeParse(value);
     if (!result.success) return null;
     const record = result.data;
     let data: unknown = record.data ?? record;
     if (typeof data === "string") {
         try { data = JSON.parse(data); } catch { data = {}; }
     }
-    const inner = z.record(z.unknown()).safeParse(data);
+    const inner = z.record(z.string(), z.unknown()).safeParse(data);
     const createdAt = typeof record.createdAt === "string" && Number.isFinite(Date.parse(record.createdAt))
         ? record.createdAt : null;
     return {
