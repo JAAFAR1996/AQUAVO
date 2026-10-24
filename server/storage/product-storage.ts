@@ -1,9 +1,14 @@
 import { type Product, type Review, type ReviewRating, type Discount, type FishSpecies, products, reviews, reviewRatings, discounts, fishSpecies, categories, orderItems, orders, productViews } from "../../shared/schema.js";
-import { eq, desc, and, gte, lte, sql, isNull, notInArray, gt, inArray, or } from "drizzle-orm";
+import { eq, desc, and, gte, lte, sql, isNull, isNotNull, notInArray, gt, inArray, or } from "drizzle-orm";
 import { getDb } from "../db.js";
 import { randomUUID } from "crypto";
 import { normalizeProductCostWrite } from "../services/product-cost-snapshot.js";
 import { preserveInternalVariantFields } from "../../shared/public-product.js";
+
+/** Display-only fallback for already authorized historical order lines. Never use for commerce. */
+export type ArchivedOrderProductMetadata = Pick<Product, "id" | "name" | "thumbnail" | "images"> & {
+    variants: Array<{ id: string; image?: string }>;
+};
 
 export interface ProductFilters {
     category?: string | string[];
@@ -224,6 +229,23 @@ export class ProductStorage {
         // Preserve the order of the input IDs
         const productMap = new Map(result.map(p => [p.id, p]));
         return ids.map(id => productMap.get(id)).filter((p): p is Product => p !== undefined);
+    }
+
+    /** Caller must derive IDs from an existing order after checking access to that order. */
+    async getArchivedOrderProductMetadataByIds(ids: string[]): Promise<ArchivedOrderProductMetadata[]> {
+        if (ids.length === 0) return [];
+        const db = this.ensureDb();
+        const rows = await db.select({
+            id: products.id, name: products.name, thumbnail: products.thumbnail,
+            images: products.images, variants: products.variants,
+        }).from(products).where(and(inArray(products.id, ids), isNotNull(products.deletedAt)));
+        return rows.map((product) => ({
+            ...product,
+            // Do not carry prices, stock, costs or historical internal variant metadata.
+            variants: Array.isArray(product.variants)
+                ? product.variants.map((variant) => ({ id: variant.id, image: variant.image }))
+                : [],
+        }));
     }
 
     async getProductBySlug(slug: string): Promise<Product | undefined> {

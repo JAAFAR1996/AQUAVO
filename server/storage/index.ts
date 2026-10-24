@@ -1,6 +1,6 @@
 import { User, InsertUser, Product, Order, Review, ReviewRating, Discount, AuditLog, Coupon, CartItem, Favorite, FishSpecies, GallerySubmission, GalleryPrize, NewsletterSubscription, Category, OrderItem, Payment, UserAddress, InsertUserAddress, JourneyPlan } from "../../shared/schema.js";
 import { UserStorage } from "./user-storage.js";
-import { ProductStorage, ProductFilters } from "./product-storage.js";
+import { ProductStorage, ProductFilters, type ArchivedOrderProductMetadata } from "./product-storage.js";
 import { OrderStorage } from "./order-storage.js";
 import { SettingsStorage } from "./settings-storage.js";
 import { driftwoodProducts } from "../data/driftwood-products.js";
@@ -17,6 +17,7 @@ export interface IStorage {
     getProductAttributes(): Promise<{ categories: string[], brands: string[], minPrice: number, maxPrice: number }>;
     getProduct(id: string): Promise<Product | undefined>;
     getProductsByIds(ids: string[]): Promise<Product[]>;
+    getArchivedOrderProductMetadataByIds(ids: string[]): Promise<ArchivedOrderProductMetadata[]>;
     getProductBySlug(slug: string): Promise<Product | undefined>;
     createProduct(product: Partial<Product>): Promise<Product>;
     updateProduct(id: string, updates: Partial<Product>): Promise<Product | undefined>;
@@ -181,6 +182,7 @@ class CombinedStorage implements IStorage {
     getProductAttributes = this.productStorage.getProductAttributes.bind(this.productStorage);
     getProduct = this.productStorage.getProduct.bind(this.productStorage);
     getProductsByIds = this.productStorage.getProductsByIds.bind(this.productStorage);
+    getArchivedOrderProductMetadataByIds = this.productStorage.getArchivedOrderProductMetadataByIds.bind(this.productStorage);
     getProductBySlug = this.productStorage.getProductBySlug.bind(this.productStorage);
     createProduct = this.productStorage.createProduct.bind(this.productStorage);
     updateProduct = this.productStorage.updateProduct.bind(this.productStorage);

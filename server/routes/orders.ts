@@ -433,6 +433,13 @@ export function createOrderRouter(): RouterType {
             try {
                 const products = await storage.getProductsByIds(allIds);
                 products.forEach((p: any) => productMap.set(p.id, p));
+                // These IDs come only from the stored order, after authentication and
+                // ownership checks. Soft-archived products stay unavailable to commerce.
+                const missingIds = allIds.filter((id) => !productMap.has(id));
+                if (missingIds.length > 0) {
+                    const archivedMetadata = await storage.getArchivedOrderProductMetadataByIds(missingIds);
+                    archivedMetadata.forEach((metadata) => productMap.set(metadata.id, metadata));
+                }
             } catch { /* non-blocking — fall back to item IDs */ }
         }
 
@@ -457,7 +464,7 @@ export function createOrderRouter(): RouterType {
             return toPublicOrderItem({
                 ...item,
                 productName: item.productName || product?.name || item.productId,
-                priceAtPurchase: item.priceAtPurchase || (product?.price ? String(product.price) : "0"),
+                priceAtPurchase: item.priceAtPurchase ?? (product?.price ? String(product.price) : "0"),
                 image,
             });
         });
