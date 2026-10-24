@@ -151,3 +151,29 @@ describe("source hashing and coverage", () => {
     expect(coverageOf({ ...base, data: { name: "Heater" }, status: "reviewed", sourceHash: hash }, hash)).toBe("partial");
   });
 });
+
+
+describe("archived options and locale coverage", () => {
+  const active = { id: "current", label: "صغير", price: 1000 };
+  const archived = { id: "legacy", label: "قديم", price: 900, isArchived: true, costPrice: 600 };
+  const source = { name: "منتج", description: "وصف", variants: [active, archived] };
+  const translation = { name: "Product", description: "Description", variantLabels: { current: "Small" } };
+
+  it("requires labels only for active options without changing their source hash", () => {
+    const fields = productSourceFields(source);
+    expect(fields.variantLabels).toEqual({ current: "صغير" });
+    expect(sourceHash(fields)).toBe(sourceHash(productSourceFields({ ...source, variants: [active] })));
+    expect(coverageOf({ entityType: "product", entityId: "p", locale: "en", status: "reviewed", sourceHash: sourceHash(fields), data: translation }, sourceHash(fields), fields)).toBe("complete");
+    expect(coverageOf({ entityType: "product", entityId: "p", locale: "en", status: "reviewed", sourceHash: sourceHash(fields), data: { ...translation, variantLabels: {} } }, sourceHash(fields), fields)).toBe("partial");
+  });
+
+  it.each(["en", "ckb"] as const)("localizes active %s labels while preserving historical identities unchanged", (locale) => {
+    const before = JSON.stringify(source);
+    const result = applyProductTranslation(source, { ...translation, variantLabels: { ...translation.variantLabels, legacy: "Do not rewrite history" } }, locale);
+    expect(result.contentLocale).toBe(locale);
+    expect(result.translationMissing).toBe(false);
+    expect(result.value.variants[0].label).toBe("Small");
+    expect(result.value.variants[1]).toBe(archived);
+    expect(JSON.stringify(source)).toBe(before);
+  });
+});

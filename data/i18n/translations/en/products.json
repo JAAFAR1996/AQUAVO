@@ -582,7 +582,9 @@
         }
       },
       "variantLabels": {
-        "1kg": "1kg"
+        "1kg": "1kg",
+        "pickling": "Pickling",
+        "unpicked": "Unpicked"
       }
     }
   },
@@ -1017,7 +1019,10 @@
           }
         }
       },
-      "variantLabels": {}
+      "variantLabels": {
+        "current-5kg": "Current bag — 5 kg",
+        "1mm": "1 mm grains — Coming soon"
+      }
     }
   },
   "houyi-fat-injection": {
@@ -2154,7 +2159,10 @@
           }
         }
       },
-      "variantLabels": {}
+      "variantLabels": {
+        "2-6mm": "2–6 mm",
+        "5-8mm": "5–8 mm — Coming soon"
+      }
     }
   },
   "houyi-sucker-buckle": {
@@ -2484,7 +2492,12 @@
           }
         }
       },
-      "variantLabels": {}
+      "variantLabels": {
+        "1-2cm": "Small — 1–2 cm",
+        "3-5cm": "Medium — 3–5 cm",
+        "5-8cm": "Large — 5–8 cm",
+        "10-30cm": "Extra large — 10–30 cm"
+      }
     }
   },
   "houyi-volcanic-stone-red": {
@@ -2538,7 +2551,12 @@
           }
         }
       },
-      "variantLabels": {}
+      "variantLabels": {
+        "1-2cm": "Small — 1–2 cm",
+        "3-5cm": "Medium — 3–5 cm",
+        "5-8cm": "Large — 5–8 cm",
+        "10-30cm": "Extra large — 10–30 cm"
+      }
     }
   },
   "houyi-water-changer-siphon": {
@@ -2674,7 +2692,10 @@
           }
         }
       },
-      "variantLabels": {}
+      "variantLabels": {
+        "30x50cm": "30×50 cm",
+        "120x30x2": "Approx. 120×30×2 — unit not specified"
+      }
     }
   },
   "houyi-white-sand": {
@@ -7798,7 +7819,11 @@
           }
         }
       },
-      "variantLabels": {}
+      "variantLabels": {
+        "15-15mm": "15/15 mm ends",
+        "15-19mm": "15/19 mm ends",
+        "19-19mm": "19/19 mm ends"
+      }
     }
   },
   "aquarium-clear-lid-supports": {
@@ -7845,7 +7870,12 @@
           }
         }
       },
-      "variantLabels": {}
+      "variantLabels": {
+        "6mm": "For 6 mm glass",
+        "8mm": "For 8 mm glass",
+        "10mm": "For 10 mm glass",
+        "12mm": "For 12 mm glass"
+      }
     }
   },
   "voonline-filter-intake-guards": {
@@ -7896,7 +7926,10 @@
           }
         }
       },
-      "variantLabels": {}
+      "variantLabels": {
+        "12mm": "12 mm",
+        "16mm": "16 mm"
+      }
     }
   },
   "glass-filter-intake-u": {
@@ -7948,7 +7981,10 @@
           }
         }
       },
-      "variantLabels": {}
+      "variantLabels": {
+        "12mm": "12 mm",
+        "16mm": "16 mm"
+      }
     }
   },
   "glass-filter-outlet-horn": {
@@ -8000,7 +8036,10 @@
           }
         }
       },
-      "variantLabels": {}
+      "variantLabels": {
+        "12mm": "12 mm",
+        "16mm": "16 mm"
+      }
     }
   },
   "green-filter-hose": {
@@ -8048,7 +8087,10 @@
           }
         }
       },
-      "variantLabels": {}
+      "variantLabels": {
+        "12mm": "12 mm inner diameter",
+        "16mm": "16 mm inner diameter"
+      }
     }
   },
   "houyi-brine-shrimp-hatchery-250ml": {
@@ -8563,7 +8605,10 @@
           }
         }
       },
-      "variantLabels": {}
+      "variantLabels": {
+        "k-12-16": "K-12/16",
+        "k-16-22": "K-16/22"
+      }
     }
   },
   "dr-tank-plus-complete-250ml": {
@@ -8810,7 +8855,11 @@
           }
         }
       },
-      "variantLabels": {}
+      "variantLabels": {
+        "xbl-300": "XBL-300 — 300 L/h",
+        "xbl-500": "XBL-500 — 500 L/h",
+        "xbl-600": "XBL-600 — 500 L/h"
+      }
     }
   },
   "sunsun-hbl-301-hang-on-filter": {
@@ -8904,7 +8953,10 @@
           }
         }
       },
-      "variantLabels": {}
+      "variantLabels": {
+        "eh-300": "EH-300",
+        "eh-500": "EH-500"
+      }
     }
   },
   "houyi-decorative-sands-2-5kg": {
@@ -8952,7 +9004,12 @@
           }
         }
       },
-      "variantLabels": {}
+      "variantLabels": {
+        "pink": "Pink — 0.2–0.5 mm",
+        "peach": "Peach Blossom — 0.5–1 mm",
+        "grey": "Grey Jade — 0.5–1 mm",
+        "snowflake": "Snowflake White — 0.8–1.2 mm"
+      }
     }
   },
   "dophin-cf600-external-canister-filter": {
@@ -9046,7 +9103,10 @@
           }
         }
       },
-      "variantLabels": {}
+      "variantLabels": {
+        "aq-1000": "AQ-1000 — 15 W",
+        "aq-1500": "AQ-1500 — 25 W"
+      }
     }
   },
   "glass-filter-outlet-double-cut": {
@@ -9098,7 +9158,10 @@
           }
         }
       },
-      "variantLabels": {}
+      "variantLabels": {
+        "12mm": "12 mm",
+        "16mm": "16 mm"
+      }
     }
   },
   "nano-usb-clip-light-3w": {
@@ -9294,6 +9357,10 @@
           "نوع الترشيح": {
             "label": "Filtration type",
             "value": "Mechanical"
+          },
+          "الأبعاد التقريبية": {
+            "label": "Approximate dimensions",
+            "value": "120×30×0.8 — as listed on the invoice; unit not specified."
           }
         }
       },
@@ -9338,6 +9405,10 @@
           "نوع الترشيح": {
             "label": "Filtration type",
             "value": "Mechanical and biological after colonisation"
+          },
+          "الأبعاد التقريبية": {
+            "label": "Approximate dimensions",
+            "value": "45×45×4 — as listed on the invoice; unit not specified."
           }
         }
       },
@@ -9477,7 +9548,10 @@
           }
         }
       },
-      "variantLabels": {}
+      "variantLabels": {
+        "brown": "Brown",
+        "red": "Red"
+      }
     }
   },
   "houyi-mountain-wood": {

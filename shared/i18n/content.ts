@@ -6,6 +6,7 @@
  * Used by the API (server/services/content-localizer.ts), the crawler HTML
  * (api/ssr-meta.ts), the translation pipeline (scripts/i18n) and the admin.
  */
+import { isVariantActive } from "../variant-commerce.js";
 import { DEFAULT_LOCALE, TRANSLATION_TARGET_LOCALES, type Locale } from "./locales.js";
 import { deriveFoodProfile, FOOD_FACT_SPEC_KEYS, foodProfileSchema } from "../food-choice.js";
 
@@ -91,7 +92,7 @@ export function productSourceFields(row: {
   description: string;
   subcategory?: string | null;
   specifications?: Record<string, unknown> | null;
-  variants?: Array<{ id: string; label: string }> | null;
+  variants?: Array<{ id: string; label: string; isArchived?: boolean }> | null;
 }): Record<string, unknown> {
   const specs = (row.specifications ?? {}) as Record<string, unknown>;
   const labelled: Record<string, unknown> = {};
@@ -109,7 +110,7 @@ export function productSourceFields(row: {
     safetyWarnings: Array.isArray(specs.safetyWarnings) ? specs.safetyWarnings : [],
     cardBenefit: typeof specs.__cardBenefit === "string" ? specs.__cardBenefit : "",
     labelled,
-    variantLabels: Object.fromEntries((row.variants ?? []).map((v) => [v.id, v.label])),
+    variantLabels: Object.fromEntries((row.variants ?? []).filter(isVariantActive).map((v) => [v.id, v.label])),
   };
 }
 
@@ -293,6 +294,8 @@ export function applyProductTranslation<T extends Record<string, unknown>>(
   }
   const variants = Array.isArray(product.variants)
     ? (product.variants as Array<Record<string, unknown>>).map((v) => {
+        // Historical identities stay intact but never require storefront translation.
+        if (!isVariantActive(v)) return v;
         const label = translation.variantLabels?.[String(v.id)];
         return nonEmpty(label) ? { ...v, label } : v;
       })
