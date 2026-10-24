@@ -1890,7 +1890,7 @@ export const insertImageAnalysisSchema = z.object({
     detected: z.array(z.string()),
     confidence: z.number().min(0).max(1),
     suggestions: z.array(z.string()),
-    details: z.record(z.any()).optional(),
+    details: z.record(z.string(), z.any()).optional(),
   }).optional(),
   recommendedProducts: z.array(z.string()).optional(),
   processingTimeMs: z.number().optional(),
@@ -2286,7 +2286,7 @@ export const insertAIAgentSettingSchema = z.object({
     maxActionsPerDay: z.number().optional(),
     priority: z.number().optional(),
     fallbackMessage: z.string().optional(),
-    customSettings: z.record(z.any()).optional(),
+    customSettings: z.record(z.string(), z.any()).optional(),
   }).optional(),
 });
 
@@ -2298,7 +2298,7 @@ export const updateAIAgentSettingSchema = z.object({
     maxActionsPerDay: z.number().optional(),
     priority: z.number().optional(),
     fallbackMessage: z.string().optional(),
-    customSettings: z.record(z.any()).optional(),
+    customSettings: z.record(z.string(), z.any()).optional(),
   }).optional(),
 });
 
@@ -2709,7 +2709,7 @@ export const insertLoyaltyTransactionSchema = z.object({
   balanceAfter: z.number().int(),
   orderId: z.string().optional(),
   description: z.string().min(1),
-  metadata: z.record(z.any()).optional(),
+  metadata: z.record(z.string(), z.any()).optional(),
 });
 
 export type LoyaltyTransaction = typeof loyaltyTransactions.$inferSelect;
