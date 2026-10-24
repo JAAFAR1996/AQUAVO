@@ -26,6 +26,7 @@ import { ExplodedProductView } from "@/components/products/exploded-product-view
 import { FrequentlyBoughtTogether } from "@/components/products/frequently-bought-together";
 import { ProductVariantSelector } from "@/components/products/product-variant-selector";
 import { EmbeddedVariantSelector } from "@/components/products/embedded-variant-selector";
+import { VolcanicSizeOptions } from "@/components/products/volcanic-size-options";
 import { MultiDimensionVariantSelector } from "@/components/products/multi-dimension-variant-selector";
 import { ProductSpecificationsTable } from "@/components/products/product-specifications-table";
 // bidi(): hyphenated ranges reverse inside RTL copy ("50-150" read as "150-50").
@@ -587,6 +588,12 @@ export default function ProductDetails() {
                     />
                   </div>
                 )}
+
+                {/* For existing lava stones, show the 4 real supplier sizes as
+                    customer-facing choices without changing historical base-SKU
+                    stock/return identities. Once true variants are enabled,
+                    the embedded selector above takes over. */}
+                {!hasEmbeddedVariants && <VolcanicSizeOptions product={product} />}
 
                 {/* Product Variants - Legacy (separate products) */}
                 {!hasEmbeddedVariants && legacyVariants && legacyVariants.length > 1 && (
