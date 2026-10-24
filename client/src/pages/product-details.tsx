@@ -26,6 +26,7 @@ import { ExplodedProductView } from "@/components/products/exploded-product-view
 import { FrequentlyBoughtTogether } from "@/components/products/frequently-bought-together";
 import { ProductVariantSelector } from "@/components/products/product-variant-selector";
 import { EmbeddedVariantSelector } from "@/components/products/embedded-variant-selector";
+import { VolcanicSizeOptions } from "@/components/products/volcanic-size-options";
 import { MultiDimensionVariantSelector } from "@/components/products/multi-dimension-variant-selector";
 import { ProductSpecificationsTable } from "@/components/products/product-specifications-table";
 // bidi(): hyphenated ranges reverse inside RTL copy ("50-150" read as "150-50").
@@ -372,6 +373,8 @@ export default function ProductDetails() {
     product.name.includes("كيلو") ||
     ["رمال", "أحجار", "حصى"].includes(product.subcategory ?? "") ||
     ["houyi-activated-carbon", "houyi-ceramic-ring", "houyi-breathing-ring-white"].includes(product.slug);
+  const isVolcanicStone = product.id === "houyi-volcanic-stone-red" ||
+    product.id === "houyi-volcanic-stone-black";
   const productDisplay = getProductDisplayIdentity(product);
   const productMeta = buildProductSeoMeta(product, { locale });
   const decisionSpecs = (product.specifications ?? {}) as Record<string, unknown>;
@@ -588,6 +591,12 @@ export default function ProductDetails() {
                   </div>
                 )}
 
+                {/* For existing lava stones, show the 4 real supplier sizes as
+                    customer-facing choices without changing historical base-SKU
+                    stock/return identities. Once true variants are enabled,
+                    the embedded selector above takes over. */}
+                {!hasEmbeddedVariants && <VolcanicSizeOptions product={product} />}
+
                 {/* Product Variants - Legacy (separate products) */}
                 {!hasEmbeddedVariants && legacyVariants && legacyVariants.length > 1 && (
                   <div className="mb-6">
@@ -608,7 +617,9 @@ export default function ProductDetails() {
                     <>
                       <Check className="w-4 h-4 text-green-500" aria-hidden="true" />
                       <span className="text-sm font-medium text-green-600 dark:text-green-400">
-                        {t("stock.available", { count: displayStock })}
+                        {isVolcanicStone
+                          ? t("volcanicSizes.inStockKg", { count: displayStock })
+                          : t("stock.available", { count: displayStock })}
                       </span>
                     </>
                   ) : (

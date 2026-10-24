@@ -28,7 +28,7 @@ const marketingSchema = z.object({
   conversionValueIqd: z.number().nonnegative().optional(),
   source: z.string().trim().min(2).max(100),
   confidence: z.enum(["exact", "estimated", "unknown"]).optional(),
-  evidence: z.record(z.unknown()).optional(),
+  evidence: z.record(z.string(), z.unknown()).optional(),
 }).strict();
 
 const eventSchema = z.object({
@@ -37,7 +37,7 @@ const eventSchema = z.object({
   entityType: z.string().trim().min(1).max(80).nullable().optional(),
   entityId: z.string().trim().min(1).max(200).nullable().optional(),
   title: z.string().trim().min(2).max(300),
-  details: z.record(z.unknown()).optional(),
+  details: z.record(z.string(), z.unknown()).optional(),
   source: z.string().trim().min(2).max(100),
   severity: z.enum(["info", "warning", "critical"]).optional(),
   fingerprint: z.string().trim().min(3).max(300),

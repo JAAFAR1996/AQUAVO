@@ -71,7 +71,7 @@ router.post("/api/journey/plans", async (req: Request, res: Response, next: Next
             res.status(400).json({
                 success: false,
                 error: "Invalid plan data",
-                details: error.errors,
+                details: error.issues,
             });
             return;
         }

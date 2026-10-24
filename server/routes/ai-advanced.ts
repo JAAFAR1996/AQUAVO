@@ -107,7 +107,7 @@ const upload = multer({
 const analyzeImageByUrlSchema = z.object({
   imageUrl: z.string().url("رابط الصورة غير صالح"),
   analysisType: z.enum(["fish", "tank", "problem", "health"], {
-    errorMap: () => ({ message: "نوع التحليل غير صالح" }),
+    error: () => "نوع التحليل غير صالح",
   }),
   userId: z.string().optional(),
   sessionId: z.string().optional(),
@@ -145,7 +145,7 @@ router.post("/visual/analyze-url", requireAuth as any, async (req, res) => {
       return res.status(400).json({
         success: false,
         error: "بيانات غير صالحة",
-        details: error.errors,
+        details: error.issues,
       });
     }
 

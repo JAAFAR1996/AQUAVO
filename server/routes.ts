@@ -222,7 +222,7 @@ export async function registerRoutes(httpServer: Server, app: express.Applicatio
     console.error("API Error:", err);
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal server error";
-    if (err.name === "ZodError") { res.status(400).json({ message: "Validation error", errors: err.errors }); return; }
+    if (err.name === "ZodError") { res.status(400).json({ message: "Validation error", errors: err.issues }); return; }
     res.status(status).json({ message });
   });
   app.use("/api", (_req: express.Request, res: express.Response) => {

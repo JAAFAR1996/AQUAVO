@@ -177,7 +177,7 @@ router.post("/apply", submitLimiter, async (req: Request, res: Response) => {
     if (!parsed.success) {
       return res.status(400).json({
         success: false,
-        message: parsed.error.errors[0]?.message || "بيانات غير صحيحة",
+        message: parsed.error.issues[0]?.message || "بيانات غير صحيحة",
       });
     }
     const input = parsed.data;
