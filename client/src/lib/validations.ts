@@ -112,7 +112,7 @@ export const checkoutSchema = z.object({
 
   // Payment
   paymentMethod: z.enum(['cod', 'online'], {
-    errorMap: () => ({ message: i18next.t("common:validations.s23") }),
+    error: () => i18next.t("common:validations.s23"),
   }),
 
   // Notes
@@ -182,7 +182,7 @@ export const couponSchema = z.object({
     .trim()
     .toUpperCase(),
   type: z.enum(['percentage', 'fixed', 'free_shipping'], {
-    errorMap: () => ({ message: i18next.t("common:validations.s42") }),
+    error: () => i18next.t("common:validations.s42"),
   }),
   value: z.number().positive(i18next.t("common:validations.s43")),
   minOrderAmount: z.number().nonnegative(i18next.t("common:validations.s44")).optional(),
