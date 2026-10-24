@@ -84,7 +84,7 @@ export function createLoyaltyRouter(): RouterType {
             if (!validation.success) {
                 return res.status(400).json({
                     error: "بيانات غير صالحة",
-                    details: validation.error.errors,
+                    details: validation.error.issues,
                 });
             }
 
@@ -180,7 +180,7 @@ export function createLoyaltyRouter(): RouterType {
             if (!validation.success) {
                 return res.status(400).json({
                     error: "بيانات غير صالحة",
-                    details: validation.error.errors,
+                    details: validation.error.issues,
                 });
             }
 
