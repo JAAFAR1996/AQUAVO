@@ -37,7 +37,7 @@ const createOrderItemSchema = z.object({
         (value) => typeof value === "string" && value.trim() === "" ? undefined : value,
         z.string().min(1, "Variant ID cannot be empty").max(100, "Variant ID too long").optional()
     ),
-}).strict("Order items may only include productId, quantity, and optional variantId");
+}).strict(); // Zod 4: extra object keys are still rejected; strict() no longer accepts a message.
 
 const createOrderCustomerSchema = z.object({
     name: z.string().min(2, "Name must be at least 2 characters").max(100, "Name too long"),
