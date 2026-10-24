@@ -1,6 +1,3 @@
-import { useEffect } from "react";
-import { createRoot } from "react-dom/client";
-import { bootstrapI18n } from "./i18n";
 import { splitLocaleFromPath } from "@shared/i18n/locales";
 import "./index.css";
 import "./styles/aquavo-ui-fixes.css";
@@ -8,8 +5,6 @@ import "./styles/mobile-product-cleanup.css";
 import "./styles/motion-tokens.css";
 import "./styles/experience-polish.css";
 import "./styles/experience-safety.css";
-import { FirstDiveIntro } from "./components/effects/first-dive-intro";
-import { DisplacementRuntime } from "./components/motion/displacement-runtime";
 import { initializeClientEnvSideEffects } from "./lib/config/env";
 import { captureAttributionFromUrl } from "./lib/attribution";
 import { installChunkLoadRecovery, recoverFromDynamicImportError } from "./lib/chunk-recovery";
@@ -34,6 +29,9 @@ captureAttributionFromUrl();
 function armSemanticShellHandoff(): () => void {
   const semanticRoot = document.getElementById("seo-root");
   const clientRoot = document.getElementById("root");
+  // Existing SSR children are not evidence of a client commit. The shared
+  // root's effect completes this handoff once hydration has actually finished.
+  if (clientRoot?.dataset.aqSsr === "home") return () => undefined;
   if (!semanticRoot || !clientRoot || typeof MutationObserver === "undefined") {
     return () => undefined;
   }
@@ -63,36 +61,6 @@ function armSemanticShellHandoff(): () => void {
 
 const stopSemanticShellHandoff = armSemanticShellHandoff();
 
-// Keep an effect-level fallback as a second guard. No-JS users and crawlers retain
-// the semantic document; JS users lose it only after the real app has committed.
-function SemanticShellCleanup() {
-  useEffect(() => {
-    const semanticRoot = document.getElementById("seo-root");
-    const clientRoot = document.getElementById("root");
-    clientRoot?.setAttribute("data-aq-client-ready", "true");
-    if (!semanticRoot) {
-      stopSemanticShellHandoff();
-      return;
-    }
-
-    let secondFrame = 0;
-    const firstFrame = window.requestAnimationFrame(() => {
-      secondFrame = window.requestAnimationFrame(() => {
-        semanticRoot.remove();
-        stopSemanticShellHandoff();
-      });
-    });
-
-    return () => {
-      window.cancelAnimationFrame(firstFrame);
-      if (secondFrame) window.cancelAnimationFrame(secondFrame);
-      stopSemanticShellHandoff();
-    };
-  }, []);
-
-  return null;
-}
-
 // The previous init screen blocked first paint for a fixed half-second. Keep its
 // legacy branch bypassed while FirstDiveIntro runs over an already rendered app.
 try {
@@ -103,21 +71,15 @@ try {
 
 // The URL locale's bundles must be in place before any application module
 // evaluates: module-level copy resolves through i18next.t at import time.
-void bootstrapI18n(splitLocaleFromPath(window.location.pathname).locale)
-  .then(() => import("./App"))
-  .then(({ default: App }) => {
+void import("./i18n")
+  .then(({ bootstrapI18n }) => bootstrapI18n(splitLocaleFromPath(window.location.pathname).locale))
+  .then(() => import("./storefront-root"))
+  .then(({ mountStorefront }) => {
     // App imports Wouter first; capture the outgoing listing before its
     // history notifications can replace the DOM.
     const disposeListingNavigation = installListingNavigation();
     import.meta.hot?.dispose(disposeListingNavigation);
-    createRoot(document.getElementById("root")!).render(
-  <>
-    <App />
-    <SemanticShellCleanup />
-    <FirstDiveIntro />
-    <DisplacementRuntime />
-  </>,
-    );
+    mountStorefront(document.getElementById("root")!, stopSemanticShellHandoff);
   })
   .catch((error) => {
     if (!recoverFromDynamicImportError(error)) {
