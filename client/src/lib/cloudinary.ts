@@ -20,6 +20,22 @@ interface ImageOptions {
 }
 
 /**
+ * Existing Cloudinary URLs may already contain one or more transformations
+ * (for example, a crop extracted from a 3x3 product gallery atlas). Only
+ * output-format/quality/size steps count as already optimized. A source crop
+ * must run before any card or detail image resizing.
+ */
+function hasCloudinaryOutputTransform(url: string): boolean {
+  const uploadIndex = url.indexOf("/upload/");
+  if (uploadIndex === -1) return false;
+
+  const tail = url.slice(uploadIndex + "/upload/".length);
+  const version = /\/v\d+\//.exec(tail);
+  const steps = (version ? tail.slice(0, version.index) : tail).split("/");
+  return steps.some((step) => /^(?:f_|q_|w_)/.test(step));
+}
+
+/**
  * Injects Cloudinary transformation parameters into a Cloudinary URL.
  * Non-Cloudinary URLs are returned as-is.
  */
@@ -30,10 +46,9 @@ export function optimizeCloudinaryUrl(
   if (!url || typeof url !== "string") return "";
   if (!url.includes("res.cloudinary.com")) return preferLocalWebp(url);
 
-  // Don't double-transform already-transformed URLs
-  if (url.includes("/upload/f_") || url.includes("/upload/w_") || url.includes("/upload/q_")) {
-    return url;
-  }
+  // Preserve existing output optimization, but allow a source crop to be
+  // followed by the card/detail transformation instead of preceding the crop.
+  if (hasCloudinaryOutputTransform(url)) return url;
 
   const {
     width,
@@ -53,7 +68,25 @@ export function optimizeCloudinaryUrl(
   if (background) parts.push(`b_${background}`);
 
   const transformStr = parts.join(",");
-  return url.replace("/upload/", `/upload/${transformStr}/`);
+  const uploadMarker = "/upload/";
+  const uploadIndex = url.indexOf(uploadMarker);
+  if (uploadIndex === -1) return url;
+
+  const assetStart = uploadIndex + uploadMarker.length;
+  const assetPath = url.slice(assetStart);
+  const version = /\/v\d+\//.exec(assetPath);
+
+  if (version) {
+    // Cloudinary executes chained transformations left-to-right. Prepending
+    // the resize would shrink a 3x3 atlas before its x/y crop, causing
+    // "Invalid crop coordinates" and broken listing/card thumbnails.
+    const sourceTransforms = assetPath.slice(0, version.index);
+    const prefix = sourceTransforms ? `${sourceTransforms}/` : "";
+    return `${url.slice(0, assetStart)}${prefix}${transformStr}${assetPath.slice(version.index)}`;
+  }
+
+  // Preserve standard handling for unversioned Cloudinary source URLs.
+  return url.replace(uploadMarker, `${uploadMarker}${transformStr}/`);
 }
 
 /** Product listing card image — 400×400 WebP, auto quality */
@@ -228,9 +261,7 @@ function buildCloudinarySrcSet(
 ): string | undefined {
   if (!url || typeof url !== "string") return undefined;
   if (!url.includes("res.cloudinary.com")) return undefined;
-  if (url.includes("/upload/f_") || url.includes("/upload/w_") || url.includes("/upload/q_")) {
-    return undefined;
-  }
+  if (hasCloudinaryOutputTransform(url)) return undefined;
 
   // Both cardImage and detailImage transform to a square (width === height),
   // so each srcset entry mirrors that 1:1 aspect at its own size.
