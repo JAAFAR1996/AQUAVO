@@ -132,6 +132,27 @@ async function main() {
       throw new Error("Volcanic-rock orders still in flight; do not migrate their inventory identities");
     }
 
+    // Historical delivered orders were sold against a base SKU (no variantId).
+    // A later return would credit that *old* base ledger. Once has_variants=true,
+    // the stock projection ignores base returns, so the returned goods disappear
+    // from the storefront. Never enable true variants without first deploying
+    // and testing a compatible historical-return identity mapping.
+    const deliveredBaseOrders = await tx.execute(sql`
+      SELECT COUNT(DISTINCT o.id)::int AS count
+      FROM order_items_relational oi
+      JOIN orders o ON o.id = oi.order_id
+      WHERE oi.product_id IN (${PRODUCT_IDS[0]}, ${PRODUCT_IDS[1]})
+        AND COALESCE(NULLIF(oi.metadata->>'variantId', ''), NULL) IS NULL
+        AND o.status = 'delivered'
+        AND COALESCE(o.is_test, false) = false
+    `) as { rows?: Array<{ count: number | string }> };
+    if (Number(deliveredBaseOrders.rows?.[0]?.count ?? 0) > 0) {
+      throw new Error(
+        "REAL_VARIANT_MIGRATION_BLOCKED: historical base-SKU delivered orders may return. " +
+        "Use the safe storefront-only size preview until a tested return-mapping migration is approved.",
+      );
+    }
+
     // Prior 1kg ledger identities can exist historically, but must have zero
     // residual stock before creating new size-specific variant IDs.
     const oldBalances = await tx.execute(sql`
