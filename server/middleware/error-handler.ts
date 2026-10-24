@@ -60,7 +60,7 @@ export function errorHandler(
   if (err instanceof ZodError) {
     return res.status(400).json({
       error: 'خطأ في البيانات المدخلة',
-      details: isDevelopment ? err.errors : undefined
+      details: isDevelopment ? err.issues : undefined
     });
   }
 
