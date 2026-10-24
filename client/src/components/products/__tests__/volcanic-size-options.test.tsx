@@ -39,6 +39,27 @@ describe("VolcanicSizeOptions legacy-SKU preview", () => {
     expect(screen.getAllByText("قريباً")).toHaveLength(4);
   });
 
+  it("accepts both English and Sorani localized size fields", () => {
+    const { container, rerender } = render(<VolcanicSizeOptions product={{
+      ...red,
+      specifications: { "Piece Size": "3–5 cm" },
+    }} />);
+    expect(screen.getAllByRole("radio")).toHaveLength(4);
+    expect(container).not.toBeEmptyDOMElement();
+
+    rerender(<VolcanicSizeOptions product={{
+      ...red,
+      specifications: { "Piece size": "3–5 cm" },
+    }} />);
+    expect(screen.getAllByRole("radio")).toHaveLength(4);
+
+    rerender(<VolcanicSizeOptions product={{
+      ...red,
+      specifications: { "قەبارەی پارچەکان": "3–5 سم" },
+    }} />);
+    expect(screen.getAllByRole("radio")).toHaveLength(4);
+  });
+
   it("never duplicates the canonical embedded selector when real variants exist", () => {
     const { container } = render(<VolcanicSizeOptions product={{ ...red, hasVariants: true }} />);
     expect(container).toBeEmptyDOMElement();
