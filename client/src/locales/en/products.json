@@ -155,5 +155,9 @@
   "helper": {
     "text": "Not sure what your tank needs? Do not piece the setup together by guesswork.",
     "action": "Build my tank setup"
+  },
+  "anatomy": {
+    "title": "Explore the product parts",
+    "photoUnavailable": "Product photo unavailable"
   }
 }

@@ -305,7 +305,15 @@
     "s38": "Eco-Friendly",
     "s39": "Action",
     "s40": "Choose Option",
-    "s41": "Add to Cart"
+    "s41": "Add to Cart",
+    "unknown": "Not specified",
+    "selectedOption": "Selected option",
+    "chooseOption": "Choose an option to compare",
+    "productLevel": "Product-level information",
+    "passportHint": "Compare option specifications. Highlighted rows show known differences; not specified means the information is unavailable.",
+    "passports": "Product specification passports",
+    "photoUnavailable": "Photo unavailable for this option",
+    "different": "Different"
   },
   "sustainability": {
     "s1": "Practical Aquarium Sustainability",

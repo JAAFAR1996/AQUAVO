@@ -1,4 +1,5 @@
-import { isVariantPurchasable } from "@shared/variant-commerce";
+import { isVariantActive, isVariantComingSoon, isVariantPurchasable } from "@shared/variant-commerce";
+import { getSelectedVariantContent } from "@/lib/selected-variant-content";
 import { getProductPriceDisplay } from "@/lib/product-pricing";
 import { useMemo, useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
@@ -38,14 +39,15 @@ import { useCart } from "@/contexts/cart-context";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { formatPrice } from "@/lib/format";
-import type { Product } from "@/types";
+import type { Product, ProductVariant } from "@/types";
+import { comparisonPhoto, comparisonSpecifications, selectedComparisonVariant, specificationValuesDiffer } from "./comparison-passport";
 
 // --- Comparison helpers (mirror product-details + specifications-table logic) ---
 
 // Real price for a product: use lowest variant price when it has variants,
 // otherwise the base price. Returns original price only when it's a real discount.
-function getComparePrice(p: Product): { price: number; original?: number; fromVariant: boolean } {
-    const display = getProductPriceDisplay(p);
+function getComparePrice(p: Product, variant?: ProductVariant): { price: number; original?: number; fromVariant: boolean } {
+    const display = getProductPriceDisplay(p, variant);
     return { price: display.price ?? 0, original: display.originalPrice ?? undefined, fromVariant: display.isFromPrice };
 }
 
@@ -56,9 +58,9 @@ const COMPARE_EXCLUDE_SPEC_KEYS = [
 ];
 
 // Normalize a product's specifications into a flat label->value map.
-function getCompareSpecs(p: Product): Record<string, string> {
+function getCompareSpecs(p: Product, variant?: ProductVariant): Record<string, string> {
     const out: Record<string, string> = {};
-    const specs = p.specifications;
+    const specs = comparisonSpecifications(p, variant);
     if (!specs || typeof specs !== "object") return out;
     for (const [key, value] of Object.entries(specs)) {
         if (key.startsWith("__")) continue;
@@ -358,13 +360,23 @@ export function ComparisonDrawer({ products }: ComparisonDrawerProps) {
 interface ProductComparisonTableProps {
     products: Product[];
     onRemove?: (productId: string) => void;
+    selectedVariantIds?: Readonly<Record<string, string>>;
 }
 
 export function ProductComparisonTable({
     products,
     onRemove,
+    selectedVariantIds,
 }: ProductComparisonTableProps) {
-  const { t: tr } = useTranslation("pages");
+  const { t: tr, i18n } = useTranslation("pages");
+    const [localVariants, setLocalVariants] = useState<Record<string, string>>({});
+    const arabic = i18n.language?.startsWith("ar");
+    const unknown = tr("product-comparison.unknown", { defaultValue: arabic ? "مو مذكور" : "Not specified" });
+    const selectedOption = tr("product-comparison.selectedOption", { defaultValue: arabic ? "الخيار المحدد" : "Selected option" });
+    const chooseOption = tr("product-comparison.chooseOption", { defaultValue: arabic ? "اختار الخيار للمقارنة" : "Choose an option to compare" });
+    const selectedFor = (product: Product) => selectedComparisonVariant(product, localVariants[product.id] ?? selectedVariantIds?.[product.id]);
+    const contentFor = (product: Product) => getSelectedVariantContent(product, selectedFor(product));
+    const productLevel = tr("product-comparison.productLevel", { defaultValue: arabic ? "عن المنتج بشكل عام" : "Product-level information" });
   const { t: productText } = useTranslation("products");
     const { addItem } = useCart();
     const { toast } = useToast();
@@ -392,8 +404,8 @@ export function ProductComparisonTable({
     }
 
     // Collect the union of all spec keys across compared products
-    const specMaps = products.map(getCompareSpecs);
-    const allSpecKeys = Array.from(new Set(specMaps.flatMap((m) => Object.keys(m))));
+    const specMaps = products.map(product => getCompareSpecs(product, selectedFor(product)));
+    const allSpecKeys = Array.from(new Set([...products.flatMap(product => Object.keys(getCompareSpecs(product))), ...specMaps.flatMap(specs => Object.keys(specs))]));
 
     const difficultyLabels: Record<string, string> = {
         easy: tr("product-comparison.s19"),
@@ -403,37 +415,50 @@ export function ProductComparisonTable({
     };
 
     return (
-        <div className="overflow-x-auto">
-            <Table>
+        <div className="rounded-3xl border border-border bg-background p-3 text-foreground sm:p-5">
+            <p className="mb-4 text-sm text-muted-foreground">{tr("product-comparison.passportHint", { defaultValue: arabic ? "قارن مواصفات الخيارات. الصفوف الملوّنة تبيّن الاختلافات الموثّقة؛ مو مذكور يعني المعلومة مو متوفرة." : "Compare option specifications. Highlighted rows show known differences; not specified means the information is unavailable." })}</p>
+            <Table className="table-fixed">
+                <caption className="sr-only">{tr("product-comparison.passports", { defaultValue: arabic ? "بطاقات مواصفات المنتجات" : "Product specification passports" })}</caption>
                 <TableHeader>
                     <TableRow>
-                        <TableHead className="w-40">{tr("product-comparison.s23")}</TableHead>
+                        <TableHead scope="col" className="w-28 text-start sm:w-40">{tr("product-comparison.s23")}</TableHead>
                         {products.map((product) => (
-                            <TableHead key={product.id} className="min-w-[200px]">
+                            <TableHead scope="col" key={product.id} className="w-40 p-3 align-top text-start sm:w-52">
                                 <div className="relative">
                                     {onRemove && (
                                         <Button
                                             variant="ghost"
                                             size="icon"
-                                            className="absolute -top-2 -right-2 h-6 w-6"
+                                            className="absolute -top-2 -end-2 h-11 w-11"
+                                            aria-label={tr("product-comparison.s12", { v0: contentFor(product).name })}
                                             onClick={() => onRemove(product.id)}
                                         >
                                             <X className="w-3 h-3" />
                                         </Button>
                                     )}
                                     <div className="text-center">
-                                        <img
-                                            src={thumbImage(product.image || product.thumbnail) || "/brand/aquavo-v2-icon.svg"}
-                                            alt={product.name}
+                                        {comparisonPhoto(product, selectedFor(product)) ? <img
+                                            key={comparisonPhoto(product, selectedFor(product))}
+                                            src={thumbImage(comparisonPhoto(product, selectedFor(product)))}
+                                            alt={contentFor(product).name}
                                             className="w-24 h-24 object-contain mx-auto mb-2"
                                             loading="lazy"
                                             decoding="async"
-                                        />
+                                        /> : <p className="flex min-h-24 items-center justify-center text-xs text-muted-foreground">{tr("product-comparison.photoUnavailable", { defaultValue: arabic ? "صورة هذا الخيار مو متوفرة" : "Photo unavailable for this option" })}</p>}
                                         <Link href={`/products/${product.slug}`}>
                                             <span className="font-medium hover:text-primary line-clamp-2">
-                                                {product.name}
+                                                {contentFor(product).name}
                                             </span>
                                         </Link>
+                                        {product.hasVariants && (
+                                            <label className="mt-3 block text-start text-xs">
+                                                <span className="mb-1 block">{selectedOption}</span>
+                                                <select aria-label={`${selectedOption}: ${contentFor(product).name}`} value={selectedFor(product)?.id ?? ""} onChange={(event) => setLocalVariants(previous => ({ ...previous, [product.id]: event.target.value }))} className="min-h-11 w-full rounded-lg border border-input bg-background px-2 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                                                    <option value="">{chooseOption}</option>
+                                                    {(product.variants ?? []).filter(isVariantActive).map(variant => <option key={variant.id} value={variant.id}>{variant.label}</option>)}
+                                                </select>
+                                            </label>
+                                        )}
                                     </div>
                                 </div>
                             </TableHead>
@@ -443,9 +468,9 @@ export function ProductComparisonTable({
                 <TableBody>
                     {/* Price Row — real prices, with discount + "starting from" for variants */}
                     <TableRow>
-                        <TableCell className="font-medium">{tr("product-comparison.s24")}</TableCell>
+                        <TableHead scope="row" className="font-medium text-start">{tr("product-comparison.s24")}</TableHead>
                         {products.map((product) => {
-                            const { price, original, fromVariant } = getComparePrice(product);
+                            const { price, original, fromVariant } = getComparePrice(product, selectedFor(product));
                             return (
                                 <TableCell key={product.id} className="text-center">
                                     {price > 0 ? (
@@ -461,7 +486,7 @@ export function ProductComparisonTable({
                                             )}
                                         </div>
                                     ) : (
-                                        <span className="text-muted-foreground">-</span>
+                                        <span className="text-muted-foreground">{i18next.t("product:price.pending")}</span>
                                     )}
                                 </TableCell>
                             );
@@ -470,7 +495,7 @@ export function ProductComparisonTable({
 
                     {/* Rating Row */}
                     <TableRow>
-                        <TableCell className="font-medium">{tr("product-comparison.s26")}</TableCell>
+                        <TableHead scope="row" className="font-medium text-start">{tr("product-comparison.s26")}<span className="mt-1 block text-xs font-normal text-muted-foreground">{productLevel}</span></TableHead>
                         {products.map((product) => (
                             <TableCell key={product.id} className="text-center">
                                 {(product.reviewCount ?? 0) > 0 ? (
@@ -490,17 +515,17 @@ export function ProductComparisonTable({
 
                     {/* Brand Row */}
                     <TableRow>
-                        <TableCell className="font-medium">{tr("product-comparison.s28")}</TableCell>
+                        <TableHead scope="row" className="font-medium text-start">{tr("product-comparison.s28")}</TableHead>
                         {products.map((product) => (
                             <TableCell key={product.id} className="text-center">
-                                {product.brand || "-"}
+                                {product.brand || unknown}
                             </TableCell>
                         ))}
                     </TableRow>
 
                     {/* Category Row */}
                     <TableRow>
-                        <TableCell className="font-medium">{tr("product-comparison.s29")}</TableCell>
+                        <TableHead scope="row" className="font-medium text-start">{tr("product-comparison.s29")}</TableHead>
                         {products.map((product) => (
                             <TableCell key={product.id} className="text-center">
                                 <div className="flex flex-col items-center gap-1">
@@ -515,17 +540,20 @@ export function ProductComparisonTable({
 
                     {/* Stock Row */}
                     <TableRow>
-                        <TableCell className="font-medium">{tr("product-comparison.s30")}</TableCell>
+                        <TableHead scope="row" className="font-medium text-start">{tr("product-comparison.s30")}</TableHead>
                         {products.map((product) => {
-                            const stock = product.hasVariants
+                            const selected = selectedFor(product);
+                            const stock = selected ? selected.stock : product.hasVariants
                                 ? (product.variants ?? []).reduce((sum, v) => sum + (isVariantPurchasable(v) ? (v.stock ?? 0) : 0), 0)
                                 : (product.stock ?? 0);
                             return (
                                 <TableCell key={product.id} className="text-center">
-                                    {stock > 0 ? (
+                                    {selected?.priceStatus === "pending" ? (
+                                        <Badge variant="secondary">{i18next.t("product:price.pending")}</Badge>
+                                    ) : stock > 0 && (!selected || isVariantPurchasable(selected)) ? (
                                         <Badge className="bg-green-500">{tr("product-comparison.s31")}{stock <= 5 ? ` (${stock})` : ""}</Badge>
                                     ) : (
-                                        <Badge variant="destructive">{isProductComingSoon(product) ? productText("card.soon") : tr("product-comparison.s32")}</Badge>
+                                        <Badge variant="destructive">{(selectedFor(product) ? isVariantComingSoon(selectedFor(product)) : isProductComingSoon(product)) ? productText("card.soon") : tr("product-comparison.s32")}</Badge>
                                     )}
                                 </TableCell>
                             );
@@ -535,12 +563,12 @@ export function ProductComparisonTable({
                     {/* Difficulty Row — only when at least one product has it */}
                     {products.some((p) => p.difficulty) && (
                         <TableRow>
-                            <TableCell className="font-medium">{tr("product-comparison.s33")}</TableCell>
+                            <TableHead scope="row" className="font-medium text-start">{tr("product-comparison.s33")}<span className="mt-1 block text-xs font-normal text-muted-foreground">{productLevel}</span></TableHead>
                             {products.map((product) => (
                                 <TableCell key={product.id} className="text-center">
                                     {product.difficulty
                                         ? (difficultyLabels[product.difficulty] || product.difficulty)
-                                        : <span className="text-muted-foreground">-</span>}
+                                        : <span className="text-muted-foreground">{unknown}</span>}
                                 </TableCell>
                             ))}
                         </TableRow>
@@ -548,11 +576,13 @@ export function ProductComparisonTable({
 
                     {/* Dynamic Specification Rows — union of all product specs */}
                     {allSpecKeys.map((key) => (
-                        <TableRow key={`spec-${key}`}>
-                            <TableCell className="font-medium">{key}</TableCell>
+                        <TableRow key={`spec-${key}`} className={cn(specificationValuesDiffer(specMaps.map(specs => specs[key])) && "bg-primary/5")}>
+                            <TableHead scope="row" className="font-medium text-start">{key}
+                                {specificationValuesDiffer(specMaps.map(specs => specs[key])) && <span className="mt-1 block text-xs text-primary">{tr("product-comparison.different", { defaultValue: arabic ? "مختلف" : "Different" })}</span>}
+                            </TableHead>
                             {products.map((product, i) => (
-                                <TableCell key={product.id} className="text-center text-sm">
-                                    {specMaps[i][key] ?? <span className="text-muted-foreground">-</span>}
+                                <TableCell key={product.id} className="break-words text-center text-sm">
+                                    {specMaps[i][key] ?? <span className="text-muted-foreground">{unknown}</span>}
                                 </TableCell>
                             ))}
                         </TableRow>
@@ -561,12 +591,12 @@ export function ProductComparisonTable({
                     {/* Description Row */}
                     {products.some((p) => p.description) && (
                         <TableRow>
-                            <TableCell className="font-medium align-top">{tr("product-comparison.s34")}</TableCell>
+                            <TableHead scope="row" className="font-medium align-top text-start">{tr("product-comparison.s34")}<span className="mt-1 block text-xs font-normal text-muted-foreground">{productLevel}</span></TableHead>
                             {products.map((product) => (
-                                <TableCell key={product.id} className="text-sm text-muted-foreground align-top text-right">
-                                    {product.description
-                                        ? <span className="line-clamp-4">{product.description}</span>
-                                        : "-"}
+                                <TableCell key={product.id} className="text-sm text-muted-foreground align-top text-start">
+                                    {contentFor(product).description
+                                        ? <span className="line-clamp-4">{contentFor(product).description}</span>
+                                        : unknown}
                                 </TableCell>
                             ))}
                         </TableRow>
@@ -574,7 +604,7 @@ export function ProductComparisonTable({
 
                     {/* Badges Row */}
                     <TableRow>
-                        <TableCell className="font-medium">{tr("product-comparison.s35")}</TableCell>
+                        <TableHead scope="row" className="font-medium text-start">{tr("product-comparison.s35")}<span className="mt-1 block text-xs font-normal text-muted-foreground">{productLevel}</span></TableHead>
                         {products.map((product) => (
                             <TableCell key={product.id} className="text-center">
                                 <div className="flex flex-wrap gap-1 justify-center">
@@ -588,7 +618,7 @@ export function ProductComparisonTable({
                                         <Badge className="bg-green-600">{tr("product-comparison.s38")}</Badge>
                                     )}
                                     {!product.isNew && !product.isBestSeller && !product.ecoFriendly && (
-                                        <span className="text-muted-foreground">-</span>
+                                        <span className="text-muted-foreground">{unknown}</span>
                                     )}
                                 </div>
                             </TableCell>
@@ -597,9 +627,10 @@ export function ProductComparisonTable({
 
                     {/* Add to Cart Row */}
                     <TableRow>
-                        <TableCell className="font-medium">{tr("product-comparison.s39")}</TableCell>
+                        <TableHead scope="row" className="font-medium text-start">{tr("product-comparison.s39")}</TableHead>
                         {products.map((product) => {
-                            const stock = product.hasVariants
+                            const selected = selectedFor(product);
+                            const stock = selected ? selected.stock : product.hasVariants
                                 ? (product.variants ?? []).reduce((sum, v) => sum + (isVariantPurchasable(v) ? (v.stock ?? 0) : 0), 0)
                                 : (product.stock ?? 0);
                             // Variant products need an option selected — send to the detail page.
@@ -607,9 +638,9 @@ export function ProductComparisonTable({
                                 return (
                                     <TableCell key={product.id} className="text-center">
                                         <Link href={`/products/${product.slug}`}>
-                                            <Button variant="outline" className="gap-2" disabled={stock <= 0}>
+                                            <Button variant="outline" className="gap-2" disabled={stock <= 0 || Boolean(selected && !isVariantPurchasable(selected))}>
                                                 <ArrowRight className="w-4 h-4" />
-                                                {isProductComingSoon(product) ? productText("card.soon") : tr("product-comparison.s40")}
+                                                {(selectedFor(product) ? isVariantComingSoon(selectedFor(product)) : isProductComingSoon(product)) ? productText("card.soon") : tr("product-comparison.s40")}
                                             </Button>
                                         </Link>
                                     </TableCell>
@@ -620,10 +651,10 @@ export function ProductComparisonTable({
                                     <Button
                                         className="gap-2"
                                         onClick={() => handleAddToCart(product)}
-                                        disabled={stock <= 0}
+                                        disabled={stock <= 0 || Boolean(selected && !isVariantPurchasable(selected))}
                                     >
                                         <ShoppingCart className="w-4 h-4" />
-                                        {isProductComingSoon(product) ? productText("card.soon") : tr("product-comparison.s41")}
+                                        {(selectedFor(product) ? isVariantComingSoon(selectedFor(product)) : isProductComingSoon(product)) ? productText("card.soon") : tr("product-comparison.s41")}
                                     </Button>
                                 </TableCell>
                             );

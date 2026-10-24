@@ -74,3 +74,45 @@ describe("selected variant content", () => {
     expect(isVariantPurchasable(archived)).toBe(false);
   });
 });
+
+const cottonSmall = { id: "30x50cm", label: "30×50 سم", price: 4498, stock: 9, specifications: { "المقاس": "30×50 سم" } };
+const cottonIncoming = { id: "120x30x2", label: "120×30×2 تقريبا — وحدة القياس غير مذكورة", price: null, stock: 0, priceStatus: "pending", availabilityStatus: "coming_soon", specifications: { "المقاس": "120×30×2 تقريبا", "بيان المقاس": "حسب الفاتورة؛ وحدة القياس غير مذكورة" } };
+const cotton = { slug: "houyi-white-cotton", name: "قطن فلترة أبيض للأحواض — 30×50 سم", hasVariants: true, description: "قطن فلتر أبيض بمقاس 30×50 سم للترشيح.\n\nيمكن قصه ليتناسب مع حجرة الفلتر.", specifications: { "القياس": "30×50 سم", benefits: ["قطعة 30×50 سم", "قابل للقص"], safetyWarnings: ["لا تستخدم الصابون"] }, variants: [cottonSmall, cottonIncoming] };
+
+describe("reviewed white-cotton size presentation", () => {
+  it("keeps the selected label and unknown-unit warning, never inferring centimeters", () => {
+    const result = getSelectedVariantContent(cotton, cottonIncoming);
+    expect(result.name).toBe(`قطن فلترة أبيض للأحواض — ${cottonIncoming.label}`);
+    expect(JSON.stringify(result)).not.toContain("30×50");
+    expect(result.specifications["القياس"]).toBe("120×30×2 تقريبا");
+    expect(result.specifications["بيان المقاس"]).toBe("حسب الفاتورة؛ وحدة القياس غير مذكورة");
+    expect(result.description).toBe("يمكن قصه ليتناسب مع حجرة الفلتر.");
+    expect(result.specifications.benefits).toEqual(["قابل للقص"]);
+    expect(result.specifications.safetyWarnings).toEqual(["لا تستخدم الصابون"]);
+  });
+  it("keeps verified original-size copy only for the selected original option", () => {
+    expect(getSelectedVariantContent(cotton, cottonSmall).name).toBe(cotton.name);
+    expect(getSelectedVariantContent(cotton).name).toBe("قطن فلترة أبيض للأحواض");
+  });
+  it("uses a current known label without deriving missing specs or units", () => {
+    const unknown = { id: cottonIncoming.id, label: cottonIncoming.label };
+    const result = getSelectedVariantContent({ ...cotton, variants: [unknown] }, unknown);
+    expect(result.name).toContain("وحدة القياس غير مذكورة");
+    expect(result.specifications["القياس"]).toBeUndefined();
+  });
+  it("does not use archived labels or change canonical commercial records", () => {
+    const before = JSON.stringify(cotton);
+    const archived = { ...cottonIncoming, isArchived: true };
+    expect(getSelectedVariantContent({ ...cotton, variants: [archived] }, archived).name).toBe("قطن فلترة أبيض للأحواض");
+    getSelectedVariantContent(cotton, cottonIncoming);
+    expect(JSON.stringify(cotton)).toBe(before);
+    expect(isVariantPurchasable(cottonIncoming)).toBe(false);
+    expect(isVariantPurchasable(cottonSmall, 10)).toBe(false);
+    expect(isVariantPurchasable(cottonSmall)).toBe(true);
+  });
+  it("clears translated parent dimensions without changing unrelated products", () => {
+    const translated = { ...cotton, name: "White Filter Cotton - 30x50 cm", description: "Cotton 30x50 cm. Can be cut.", specifications: { labelled: { "القياس": { label: "Size", value: "30x50 cm" } } } };
+    expect(JSON.stringify(getSelectedVariantContent(translated, cottonIncoming))).not.toContain("30x50");
+    expect(getSelectedVariantContent({ ...translated, slug: "other-cotton" }, cottonIncoming).name).toBe(translated.name);
+  });
+});

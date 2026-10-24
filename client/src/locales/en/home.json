@@ -118,5 +118,51 @@
     "viewAll": "View all bundles",
     "parts": "items",
     "available": "Available now"
+  },
+  "lookbook": {
+    "eyebrow": "Ideas for your aquarium",
+    "title": "Find inspiration. Make it yours.",
+    "introduction": "Explore the atmosphere you like, then choose equipment for your aquarium’s needs.",
+    "disclosure": "AI-generated inspiration, not a customer project or a kit for sale. Fish and plants are not part of our product range.",
+    "imageAlt": "AI-generated aquarium concept, not a photograph of actual products",
+    "imageUnavailable": "The image is unavailable. You can still explore the categories below.",
+    "sceneTitle": "A quiet corner, shaped by you",
+    "sceneDescription": "Actual equipment choices depend on your aquarium’s size and setup.",
+    "scenes": {
+      "sunlit-aquascape-concept": {
+        "title": "A quiet corner, shaped by you",
+        "description": "An illustrative concept combining natural light and green details.",
+        "imageAlt": "AI-generated sunlit aquarium concept, not actual products"
+      },
+      "open-sand-concept": {
+        "title": "Open sand layout",
+        "description": "An illustrative concept with open sand and detail along the edges.",
+        "imageAlt": "AI-generated open sand aquarium layout, not actual products"
+      },
+      "woodland-concept": {
+        "title": "Woodland layout",
+        "description": "An illustrative concept balancing branching wood with open space.",
+        "imageAlt": "AI-generated woodland aquarium layout, not actual products"
+      }
+    },
+    "navigationLabel": "Explore categories",
+    "navigationNote": "These are general category links, not identifications of the objects pictured.",
+    "categories": {
+      "decor": {
+        "title": "Explore decor",
+        "description": "Start with shapes and details that suit your taste."
+      },
+      "lighting": {
+        "title": "Explore lighting",
+        "description": "Compare options for your aquarium’s dimensions and needs."
+      },
+      "filters": {
+        "title": "Explore filters",
+        "description": "Let your aquarium’s needs guide your choice."
+      }
+    },
+    "journeyTitle": "Like the idea? Not sure where to start?",
+    "journeyDescription": "Continue with the existing aquarium setup journey, step by step.",
+    "journeyAction": "Start your aquarium setup"
   }
 }

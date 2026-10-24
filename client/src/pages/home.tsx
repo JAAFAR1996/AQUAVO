@@ -23,6 +23,7 @@ import {
 import { Link } from "wouter";
 import { useTranslation } from "react-i18next";
 
+import { DeferredVisualExploration } from "@/components/home/deferred-visual-exploration";
 import { BackToTop } from "@/components/back-to-top";
 import { MetaTags } from "@/components/seo/meta-tags";
 import { HomeHero, type HomeHeroCopy } from "@/components/home/home-hero";
@@ -354,6 +355,8 @@ export default function Home() {
             </PrecisionReveal>
           </section>
         )}
+
+        <DeferredVisualExploration />
 
         <section className="bg-background">
           <PrecisionReveal stagger className="mx-auto grid max-w-7xl gap-8 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-[0.75fr_1.25fr] lg:items-end lg:px-8">
