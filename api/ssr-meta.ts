@@ -1003,9 +1003,9 @@ export function injectMeta(html: string, meta: PageMeta & { url: string; image: 
       );
   }
 
-  // Performance: strip unused modulepreloads (vendor-charts only for admin, vendor-animation deferred)
-  result = result.replace(/<link rel="modulepreload"[^>]*vendor-charts[^>]*>\n?/g, '');
-  result = result.replace(/<link rel="modulepreload"[^>]*vendor-animation[^>]*>\n?/g, '');
+  // Keep Vite's dependency-derived modulepreloads intact. Chunk names do not
+  // indicate whether a dependency is deferred: the storefront uses animation
+  // too. Lazy routes remain controlled by their import() boundaries.
 
   // Performance: strip old unused preconnects from stale template
   result = result.replace(/<link rel="dns-prefetch"[^>]*images\.unsplash[^>]*>\n?/g, '');

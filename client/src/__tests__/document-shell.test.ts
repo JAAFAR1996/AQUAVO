@@ -18,7 +18,8 @@ describe("document shell", () => {
 
     expect(html).toContain('content="#0B93A6"');
     expect(html).toContain('/brand/aquavo-v2-favicon.png');
-    expect(html).toContain("family=Inter");
+    const fonts = readFileSync(resolve(process.cwd(), "client/src/styles/storefront-fonts.css"), "utf8");
+    expect(fonts).toContain("font-family: 'Inter'");
     expect(html).not.toContain("Outfit");
     // First-time visitors and read failures default to Light (no dark flash).
     expect(html).toContain("var resolved = 'light'");
@@ -55,18 +56,25 @@ describe("document shell", () => {
     expect(home).toContain(`sizes="${imagesizesMatch![1]}"`);
   });
 
-  it("loads each font family via a single Google Fonts stylesheet request (no duplicates)", () => {
+  it("loads the same font families from the app CSS without duplicate external requests", () => {
     const html = readFileSync(resolve(process.cwd(), "client/index.html"), "utf8");
+    const css = readFileSync(resolve(process.cwd(), "client/src/index.css"), "utf8");
+    const fonts = readFileSync(resolve(process.cwd(), "client/src/styles/storefront-fonts.css"), "utf8");
 
     const stylesheetLinks = Array.from(
       html.matchAll(/<link\b(?=[^>]*\bfonts\.googleapis\.com)(?=[^>]*rel="stylesheet")[^>]*>/g)
     );
-    // One live <link rel="stylesheet"> plus its <noscript> fallback copy is expected;
-    // more than that means a duplicate/blocking font request was introduced.
-    expect(stylesheetLinks.length).toBe(2);
+    // Local @font-face declarations work with and without JavaScript. There is
+    // no second external stylesheet (or noscript request) to block first paint.
+    expect(stylesheetLinks.length).toBe(0);
+    expect(css.match(/@import "\.\/styles\/storefront-fonts\.css"/g)).toHaveLength(1);
+    for (const family of ["Cairo", "Changa", "Inter"]) {
+      expect(fonts).toContain(`font-family: '${family}'`);
+    }
+    expect(fonts).not.toMatch(/url\(https?:/);
 
     const preconnects = Array.from(html.matchAll(/<link rel="preconnect" href="https:\/\/fonts\.(googleapis|gstatic)\.com"[^>]*>/g));
-    expect(preconnects.length).toBe(2);
+    expect(preconnects.length).toBe(0);
   });
 
   it("ships the approved v2 logo assets through the web manifest", () => {
