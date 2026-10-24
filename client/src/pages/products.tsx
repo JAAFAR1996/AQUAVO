@@ -646,7 +646,7 @@ export default function Products() {
                     <div key={product.id} data-tour={index === 0 ? "product-card-first" : undefined} className="h-full min-w-0">
                       <ProductCard
                         product={product}
-                        priority={index < 8}
+                        priority={index < 4}
                         onQuickView={(p) => setQuickViewProduct(p)}
                       />
                     </div>

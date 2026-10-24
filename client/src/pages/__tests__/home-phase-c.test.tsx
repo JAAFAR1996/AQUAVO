@@ -103,6 +103,10 @@ describe("Home — Phase C store-picks states", () => {
 
   it("uses a positive store-navigation empty state only when both bestseller and latest-product feeds are empty", async () => {
     fetchTopSellingProducts.mockResolvedValueOnce({ productOfWeek: null, bestSellers: [], hasRealSales: false });
+    // The optimized homepage first reads 12 candidate products and falls back
+    // to the full list when those contain fewer than four sellable items.
+    // Both responses must be empty for the empty-state contract to apply.
+    fetchProducts.mockResolvedValueOnce({ products: [] });
     fetchProducts.mockResolvedValueOnce({ products: [] });
     render(<Home />, { wrapper: createWrapper() });
     await waitFor(() => {
