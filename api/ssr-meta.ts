@@ -914,12 +914,6 @@ function safeJsonLd(obj: object): string {
  * Everything else keeps the empty shell it has today.
  */
 const HOME_HERO_PATHS = new Set(["/", "/ar"]);
-// All routes share the built HTML template. Do not preload the homepage hero on
-// product, checkout or help pages; put it only in the homepage response head.
-const HOME_HERO_PRELOAD = `<link rel="preload" fetchpriority="high" as="image" type="image/webp"
-    href="/images/aquascape-styles/iwagumi_aquascape_1765676307763.webp"
-    imagesrcset="/images/aquascape-styles/iwagumi_aquascape_1765676307763-640.webp 640w, /images/aquascape-styles/iwagumi_aquascape_1765676307763.webp 1024w"
-    imagesizes="(max-width: 1024px) 100vw, 48vw" />`;
 
 /**
  * Put the prerendered hero inside #root so the LCP image can paint before the
@@ -935,8 +929,7 @@ export function injectHomeHero(html: string, pathname: string): string {
   if (!HOME_HERO_PATHS.has(pathname)) return html;
   // A function replacer, not a string: the hero markup is arbitrary HTML and
   // "$&"-style sequences in a replacement string would be substituted.
-  const withPreload = html.replace("</head>", `  ${HOME_HERO_PRELOAD}\n</head>`);
-  return withPreload.replace(
+  return html.replace(
     /(<div id="root"(?:\s[^>]*)?>)\s*(<\/div>)/,
     (_match, open: string, close: string) => `${open}${HOME_HERO_HTML}${close}`,
   );

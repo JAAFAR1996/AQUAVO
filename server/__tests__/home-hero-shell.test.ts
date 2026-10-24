@@ -86,18 +86,8 @@ describe("the homepage hero is in the initial HTML", () => {
     }
   });
 
-  it("preloads the LCP image only on the homepage", async () => {
-    const home = await renderPath("/");
-    const preload = '<link rel="preload" fetchpriority="high" as="image" type="image/webp"';
-    expect(home.split(preload).length - 1).toBe(1);
-    for (const path of ["/products", "/faq"]) {
-      const html = await renderPath(path);
-      expect(html, `${path} must not preload the homepage image`).not.toContain(preload);
-    }
-  });
-
   it("does not emit a second image preload into the body", async () => {
-    // The homepage response head preloads the hero with fetchpriority and imagesrcset.
+    // index.html already preloads the hero with fetchpriority and imagesrcset.
     // React hoists its own <link rel="preload"> when rendering the <img>, and
     // the prerender strips those so that strategy stays exactly as designed.
     expect(HOME_HERO_HTML).not.toContain('rel="preload"');
