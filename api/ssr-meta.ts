@@ -10,6 +10,7 @@ import { approvedProductSlugsForGuide, productCategoryForGuide, productsAppropri
 import { SPA_GUIDE_PAGES } from "./_guides-content-spa.js";
 import { HOME_HERO_HTML } from "./_home-hero-html.js";
 import { HOME_SHELL_HTML } from "./_home-shell-html.js";
+import { injectHomeStyles } from "./_home-styles.js";
 import { getSeoMetaOverride } from "./_seo-content.js";
 import { AQUAVO_FAQ_ITEMS } from "../shared/faq-content.js";
 import { toPublicProduct, toPublicVariant } from "../shared/public-product.js";
@@ -938,7 +939,7 @@ export function injectHomeHero(html: string, pathname: string, locale: Locale = 
       ? `${open.replace(/>$/, ' data-aq-ssr="home">')}${HOME_SHELL_HTML}${close}`
       : `${open}${HOME_HERO_HTML}${close}`,
   );
-  return shell;
+  return hydratable && shell !== html ? injectHomeStyles(shell) : shell;
 }
 
 export function injectMeta(html: string, meta: PageMeta & { url: string; image: string }): string {

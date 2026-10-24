@@ -90,6 +90,8 @@ script/*
 !script/prerender-static-pages.ts
 !script/dompurify-static-stub.ts
 !script/wouter-static-link.tsx
+!script/i18n-static-resources.ts
+!script/prerender-home-styles.ts
 tmp_*.mjs
 tmp-*.mjs
 tmp-*.ts
@@ -152,6 +154,7 @@ api/_html-template.ts
 api/_html-template.js
 api/_home-hero-html.ts
 api/_home-shell-html.ts
+api/_home-critical-css.ts
 api/_prerendered-pages.ts
 generated/ssr-preview-runtime.js
 

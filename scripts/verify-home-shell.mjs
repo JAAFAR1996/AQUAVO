@@ -5,14 +5,18 @@ import { readFile } from "node:fs/promises";
 import { resolve, extname } from "node:path";
 import { gzipSync } from "node:zlib";
 import { chromium } from "@playwright/test";
+import { tsImport } from "tsx/esm/api";
+
+const { injectHomeStyles } = await tsImport("../api/_home-styles.ts", import.meta.url);
 
 const publicDir = resolve("dist/public");
 const template = await readFile("dist/ssr-template/index.html", "utf8");
 const generated = await readFile("api/_home-shell-html.ts", "utf8");
 const generatedValue = (name) => JSON.parse(generated.match(new RegExp(`export const ${name} = ([^\\n]+);`))[1]);
 const shell = generatedValue("HOME_SHELL_HTML");
-const home = template.replace(/(<div id="root"[^>]*>)\s*(<\/div>)/,
+const fullStyleHome = template.replace(/(<div id="root"[^>]*>)\s*(<\/div>)/,
   (_, open, close) => open.replace(/>$/, ' data-aq-ssr="home">') + shell + close);
+const home = injectHomeStyles(fullStyleHome);
 const types = { ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".webp": "image/webp", ".woff2": "font/woff2", ".png": "image/png" };
 const server = createServer(async (req, res) => {
   try {
@@ -30,7 +34,7 @@ const server = createServer(async (req, res) => {
     let bytes;
     let type;
     if (!extname(url.pathname)) {
-      bytes = Buffer.from(url.pathname === "/" ? home : template);
+      bytes = Buffer.from(url.pathname === "/" ? (url.searchParams.has("full-css") ? fullStyleHome : home) : template);
       type = "text/html";
     } else {
       const path = resolve(publicDir, `.${url.pathname}`);
@@ -84,9 +88,29 @@ try {
         let releaseScript;
         const scriptsReady = new Promise(done => { releaseScript = done; });
         await page.route("**/entries/*.js", async route => { await scriptsReady; await route.continue(); });
+        let releaseStyles;
+        const stylesReady = new Promise(done => { releaseStyles = done; });
+        await page.route("**/assets/index-*.css", async route => { await stylesReady; await route.continue(); });
+
+        // Compare the extracted styles against the complete original stylesheet
+        // with both pages using the same temporary system-font fallback.
+        const reference = await browser.newPage({ viewport: { width, height: 900 }, colorScheme: "dark", reducedMotion: "reduce" });
+        await reference.addInitScript(theme => localStorage.setItem("theme", theme), theme);
+        await reference.route("**/*", route => new URL(route.request().url()).origin === base ? route.continue() : route.abort());
+        await reference.route("**/entries/*.js", route => route.abort());
+        await reference.route("**/*.woff2", route => route.abort());
+        await reference.goto(`${base}/?full-css=1`, { waitUntil: "load" });
+        const fallbackGeometry = await geometry(reference);
         await page.goto(base, { waitUntil: "commit" });
         const image = page.locator(".aq-waterline-hero .aq-proof-window > img");
         await image.waitFor({ state: "visible" });
+        assert.deepEqual(await geometry(page), fallbackGeometry, `${width}/${theme}: critical CSS must match full CSS before fonts arrive`);
+        await reference.close();
+        releaseStyles();
+        await page.waitForFunction(() => {
+          const stylesheet = document.querySelector("link[data-aq-deferred-style]");
+          return stylesheet?.sheet && stylesheet.media === "all";
+        });
         await page.evaluate(() => document.fonts.ready);
         const originalImage = await image.elementHandle();
         const initialGeometry = await geometry(page);
@@ -108,9 +132,77 @@ try {
         await page.waitForFunction(() => !document.querySelector(".aq-waterline-hero"));
         await page.goBack();
         await image.waitFor({ state: "visible" });
+        for (const section of await page.locator(".aq-home-content > section").all()) {
+          await section.scrollIntoViewIfNeeded();
+          assert(await section.evaluate(node => node.getBoundingClientRect().height > 0), "an offscreen section did not render on scroll");
+        }
+        await page.locator(".aq-site-footer").scrollIntoViewIfNeeded();
+        assert(await page.locator(".aq-site-footer").getByText("info@aquavoiq.com", { exact: true }).isVisible(), "footer content must remain accessible");
         assert.deepEqual(errors, [], `${width}/${theme}: browser errors`);
-        console.log(`PASS ${width}px ${theme}: stable first-screen geometry, retained LCP node, theme/storage, cart, navigation/back`);
+        console.log(`PASS ${width}px ${theme}: critical/full CSS match, stable hydration, original LCP node, cart, navigation/back and all sections/footer`);
       } finally { await browser.close(); }
     }
   }
+
+  const browser = await chromium.launch({
+    executablePath: process.env.AQUAVO_BROWSER_EXECUTABLE || undefined,
+    args: ["--no-sandbox", "--no-zygote", "--disable-dev-shm-usage"],
+  });
+  try {
+    for (const width of [412, 1365]) {
+      const context = await browser.newContext({ javaScriptEnabled: false, viewport: { width, height: 900 } });
+      await context.route("**/*", route => new URL(route.request().url()).origin === base ? route.continue() : route.abort());
+      const reference = await context.newPage();
+      const page = await context.newPage();
+      await reference.goto(`${base}/?full-css=1`);
+      await page.goto(base);
+      await reference.evaluate(() => document.fonts.ready);
+      await page.evaluate(() => document.fonts.ready);
+      assert.deepEqual(await geometry(page), await geometry(reference), `${width}: no-JavaScript stylesheet fallback`);
+      assert(await page.evaluate(() => !!document.querySelector("noscript link[rel=stylesheet]")?.sheet), "no-JavaScript full CSS did not load");
+      await page.locator(".aq-site-footer").scrollIntoViewIfNeeded();
+      assert(await page.locator(".aq-site-footer").getByText("info@aquavoiq.com", { exact: true }).isVisible());
+      console.log(`PASS ${width}px: complete styles and footer without JavaScript`);
+      await context.close();
+    }
+
+    for (const locale of ["ar", "en", "ckb"]) {
+      const tools = JSON.parse(await readFile(`client/src/locales/${locale}/tools.json`, "utf8"));
+      const guides = JSON.parse(await readFile(`client/src/locales/${locale}/guides.json`, "utf8"));
+      const context = await browser.newContext({ reducedMotion: "reduce", viewport: { width: 1365, height: 900 } });
+      await context.addInitScript(() => localStorage.setItem("aquavo_first_dive_seen_v2", "1"));
+      await context.route("**/*", route => new URL(route.request().url()).origin === base ? route.continue() : route.abort());
+      const page = await context.newPage();
+      const errors = [];
+      page.on("pageerror", error => errors.push(error.message));
+      const prefix = locale === "ar" ? "" : `/${locale}`;
+      for (const [path, title] of [
+        ["/guides/filter-choice", guides["guides-filter-choice"].s9],
+        ["/calculators", tools.calculators.s1],
+        ["/journey", tools.journey.s7],
+      ]) {
+        await page.goto(`${base}${prefix}${path}`);
+        await page.getByRole("heading", { level: 1, name: title, exact: true }).waitFor();
+        assert.equal(await page.locator("html").getAttribute("lang"), locale);
+        assert.doesNotMatch(await page.locator("body").innerText(), /(?:guides-filter-choice|calculators|tank-size-calculator|journey|journey-progress|step-size)\.s\d+/);
+        if (path === "/calculators") {
+          const inputs = page.locator('[role="tabpanel"] input[type="number"]');
+          for (const [index, value] of ["50", "30", "40"].entries()) await inputs.nth(index).fill(value);
+          await page.getByRole("button", { name: tools["tank-size-calculator"].s16, exact: true }).click();
+          await page.getByText("60 L", { exact: true }).waitFor();
+        }
+      }
+      // Hover can evaluate the journey module before React mounts it; its
+      // module-level labels must already have the Arabic fallback registered.
+      await page.goto(`${base}${prefix || "/"}`);
+      const journey = page.locator(`a[href="${prefix}/journey"]`).first();
+      await journey.hover();
+      await journey.click();
+      await page.getByRole("heading", { level: 1, name: tools.journey.s7, exact: true }).waitFor();
+      assert.doesNotMatch(await page.locator('[data-tour="journey-progress"]').innerText(), /\.s\d+/);
+      assert.deepEqual(errors, [], `${locale}: deferred translation browser errors`);
+      console.log(`PASS ${locale}: guides, functional calculator, journey and hover navigation keep translated copy`);
+      await context.close();
+    }
+  } finally { await browser.close(); }
 } finally { await new Promise(done => server.close(done)); }
