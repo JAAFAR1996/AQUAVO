@@ -140,8 +140,7 @@ function DeferredOnboardingTour() {
     const isTargetPage = [
       '/fish-health-diagnosis',
       '/calculators',
-      '/community-gallery',
-      '/journey'
+      '/community-gallery'
     ].includes(path);
 
     if (!isTargetPage) {
@@ -169,7 +168,9 @@ function DeferredOnboardingTour() {
     };
   }, [location]);
 
-  if (!shouldLoad) return null;
+  // A route change renders before effects run. Never mount the global tour on
+  // journey, even if a previous route's deferred timer has just completed.
+  if (!shouldLoad || location === '/journey') return null;
   return <OnboardingTour />;
 }
 

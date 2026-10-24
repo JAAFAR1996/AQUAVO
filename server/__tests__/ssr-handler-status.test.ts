@@ -53,6 +53,6 @@ describe("SSR metadata response status", () => {
     expect(html).not.toContain('rel="canonical"');
     expect(html).not.toContain('property="og:');
     expect(html).not.toContain('name="twitter:');
-    expect(html).not.toContain("iwagumi_aquascape");
+    expect(html).not.toContain("aquavo-concept-20261024");
   });
 });

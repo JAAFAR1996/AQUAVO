@@ -146,6 +146,8 @@ describe('JourneyPage', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
+        // Step behavior tests run after the independently tested welcome dialog.
+        localStorage.setItem('aquavo_journey_intro_seen_v3', '1');
         vi.mocked(useJourneyHook.useJourney).mockReturnValue(defaultHookValues);
     });
 

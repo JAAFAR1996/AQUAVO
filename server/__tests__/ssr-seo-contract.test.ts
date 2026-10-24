@@ -67,7 +67,7 @@ const PRELOAD_TEMPLATE = `
   <meta name="description" content="__META_DESCRIPTION__">
   <meta name="keywords" content="__META_KEYWORDS__">
   <link rel="canonical" href="__META_URL__">
-  <link rel="preload" fetchpriority="high" as="image" href="/images/aquascape-styles/iwagumi_aquascape_1765676307763.webp">
+  <link rel="preload" fetchpriority="high" as="image" href="/images/hero/aquavo-concept-20261024.webp">
   <!-- Open Graph / Facebook -->
   <meta property="og:title" content="__META_TITLE__">
   <meta property="og:description" content="__META_DESCRIPTION__">
@@ -178,7 +178,7 @@ describe("SEO metadata contracts", () => {
     const other = injectMeta(PRELOAD_TEMPLATE, { ...base, url: "https://www.aquavoiq.com/shipping" });
 
     expect(home.match(/rel="preload"[^>]*as="image"/g)).toHaveLength(1);
-    expect(home).toContain("iwagumi_aquascape");
+    expect(home).toContain("aquavo-concept-20261024");
     expect(product.match(/rel="preload"[^>]*as="image"/g)).toHaveLength(1);
     // The preload must target the SAME transformed asset the PDP <img> renders
     // (client/src/lib/cloudinary.ts `detailImage`), not the raw original.
@@ -186,9 +186,9 @@ describe("SEO metadata contracts", () => {
       'href="https://res.cloudinary.com/aquavo/image/upload/f_auto,q_auto:best,w_800,h_800,c_limit/v1/product.webp"'
     );
     expect(product).not.toContain('href="https://res.cloudinary.com/aquavo/image/upload/v1/product.webp"');
-    expect(product).not.toContain("iwagumi_aquascape");
+    expect(product).not.toContain("aquavo-concept-20261024");
     expect(other).not.toMatch(/rel="preload"[^>]*as="image"/);
-    expect(other).not.toContain("iwagumi_aquascape");
+    expect(other).not.toContain("aquavo-concept-20261024");
   });
 });
 

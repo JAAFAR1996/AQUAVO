@@ -7,7 +7,7 @@ import handler from "../../api/ssr-meta";
 /**
  * Hero LCP preload parity (Phase H).
  *
- * The home hero <img> renders at sizes="(max-width: 1024px) 100vw, 48vw"
+ * The home hero <img> renders at sizes="(max-width: 1280px) 100vw, 1280px"
  * (client/src/pages/home.tsx). Both the static client preload
  * (client/index.html) and the production SSR-injected preload
  * (api/ssr-meta.ts) must advertise the SAME imagesizes so the browser's
@@ -15,9 +15,9 @@ import handler from "../../api/ssr-meta";
  * to 66vw must fail these tests.
  */
 
-const HERO_HREF = "/images/aquascape-styles/iwagumi_aquascape_1765676307763.webp";
+const HERO_HREF = "/images/hero/aquavo-concept-20261024.webp";
 const HERO_SRCSET =
-  "/images/aquascape-styles/iwagumi_aquascape_1765676307763-640.webp 640w, /images/aquascape-styles/iwagumi_aquascape_1765676307763.webp 1024w";
+  "/images/hero/aquavo-concept-20261024-640.webp 640w, /images/hero/aquavo-concept-20261024-1024.webp 1024w, /images/hero/aquavo-concept-20261024.webp 1672w";
 
 function createRequest(url: string): VercelRequest {
   return { url, headers: { accept: "text/html" } } as unknown as VercelRequest;
@@ -42,7 +42,7 @@ describe("hero LCP preload sizing parity", () => {
     const html = readFileSync(resolve(process.cwd(), "client/index.html"), "utf-8");
     const preload = html.match(/<link[^>]*rel=["']preload["'][^>]*as=["']image["'][^>]*>/i)?.[0] ?? "";
     expect(preload).toContain(HERO_HREF);
-    expect(preload).toContain("100vw, 48vw");
+    expect(preload).toContain("100vw, 1280px");
     expect(preload).not.toContain("66vw");
   });
 
@@ -52,7 +52,7 @@ describe("hero LCP preload sizing parity", () => {
     const html = getBody();
     const preload = html.match(/<link[^>]*rel=["']preload["'][^>]*as=["']image["'][^>]*>/i)?.[0] ?? "";
     expect(preload).toContain(HERO_HREF);
-    expect(preload).toContain("100vw, 48vw");
+    expect(preload).toContain("100vw, 1280px");
     expect(html).not.toContain("66vw");
   });
 

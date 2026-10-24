@@ -93,7 +93,6 @@ export default function JourneyPage() {
         description={t("journey.s3")}
         keywords={[t("journey.s4"), t("journey.s5"), t("journey.s6"), "AQUAVO"]}
       />
-      <JourneyFirstVisitIntro />
 
       <div className="bg-primary/5 border-b border-primary/10 py-8 md:py-12 mb-8 pt-24">
         <div className="container text-center">
@@ -103,6 +102,7 @@ export default function JourneyPage() {
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             {t("journey.s8")}
           </p>
+          <JourneyFirstVisitIntro />
         </div>
       </div>
 

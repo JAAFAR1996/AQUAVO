@@ -58,6 +58,7 @@ import { useLocale } from "@/i18n/locale-context";
 import { localizeCategoryName } from "@shared/i18n/categories";
 import { formatIQD } from "@/lib/utils";
 import { getProductDisplayIdentity } from "@/lib/product-display";
+import { getSelectedVariantContent } from "@/lib/selected-variant-content";
 import { getProductPriceDisplay } from "@/lib/product-pricing";
 import { isProductComingSoon } from "@shared/product-availability";
 import { useShippingFee } from "@/contexts/shipping-fee-context";
@@ -304,8 +305,8 @@ export default function ProductDetails() {
     if (!product) return;
 
     const shareData = {
-      title: product.name,
-      text: hasPrice ? t("share.text", { name: product.name, price: formatIQD(displayPrice) }) : product.name,
+      title: selectedContent.name,
+      text: hasPrice ? t("share.text", { name: selectedContent.name, price: formatIQD(displayPrice) }) : selectedContent.name,
       url: window.location.href,
     };
 
@@ -385,9 +386,10 @@ export default function ProductDetails() {
     ["houyi-activated-carbon", "houyi-ceramic-ring", "houyi-breathing-ring-white"].includes(product.slug);
   const isVolcanicStone = product.id === "houyi-volcanic-stone-red" ||
     product.id === "houyi-volcanic-stone-black";
-  const productDisplay = getProductDisplayIdentity(product);
+  const selectedContent = getSelectedVariantContent(product, selectedVariant);
+  const productDisplay = getProductDisplayIdentity({ ...product, name: selectedContent.name });
   const productMeta = buildProductSeoMeta(product, { locale });
-  const decisionSpecs = (product.specifications ?? {}) as Record<string, unknown>;
+  const decisionSpecs = selectedContent.specifications;
   const decisionCardBenefit =
     typeof decisionSpecs.__cardBenefit === "string" ? decisionSpecs.__cardBenefit.trim() : "";
   const decisionBenefits = Array.isArray(decisionSpecs.benefits)
@@ -460,7 +462,7 @@ export default function ProductDetails() {
                     <Product3DViewer
                       src={product3DMeta.src}
                       poster={product3DMeta.poster}
-                      productName={product.name}
+                      productName={selectedContent.name}
                       pieceCode={exactPieceCode}
                     />
                     {/* الصور الفوتوغرافية تحت كمرجع */}
@@ -469,7 +471,7 @@ export default function ProductDetails() {
                         images={
                           galleryImages
                         }
-                        productName={product.name}
+                        productName={selectedContent.name}
                       />
                     </div>
                   </>
@@ -478,7 +480,7 @@ export default function ProductDetails() {
                     images={
                       galleryImages
                     }
-                    productName={product.name}
+                    productName={selectedContent.name}
                     heroTransitionName={heroTransitionName}
                   />
                 )}
@@ -677,11 +679,11 @@ export default function ProductDetails() {
                 {/* Description — progressive disclosure for long text */}
                 <div className="text-muted-foreground text-sm leading-relaxed mb-6" style={{ whiteSpace: 'pre-line' }}>
                   {bidi(
-                    (product.description?.length ?? 0) > 400 && !descriptionExpanded
-                      ? (product.description?.slice(0, 400) ?? "") + "..."
-                      : product.description ?? "",
+                    (selectedContent.description?.length ?? 0) > 400 && !descriptionExpanded
+                      ? (selectedContent.description?.slice(0, 400) ?? "") + "..."
+                      : selectedContent.description ?? "",
                   )}
-                  {(product.description?.length ?? 0) > 400 && (
+                  {(selectedContent.description?.length ?? 0) > 400 && (
                     <button
                       onClick={() => setDescriptionExpanded((v) => !v)}
                       className="block mt-2 text-primary hover:text-primary/80 font-medium underline underline-offset-2 transition-colors text-sm"
@@ -809,7 +811,7 @@ export default function ProductDetails() {
                       productId={product.id}
                       productName={product.name}
                       category={product.category}
-                      message={t("whatsapp.message", { name: product.name, url: window.location.href })}
+                      message={t("whatsapp.message", { name: selectedContent.name, url: window.location.href })}
                       className="flex items-center justify-center gap-2 w-full h-11 rounded-md border border-green-600/30 text-green-600 hover:bg-green-50 dark:hover:bg-green-950/20 text-sm font-medium transition-colors"
                       onClick={() => { void import("@/lib/analytics").then(m => m.trackWhatsAppClick("product", product.name)); }}
                     >
@@ -837,7 +839,7 @@ export default function ProductDetails() {
                       productId={product.id}
                       productName={product.name}
                       category={product.category}
-                      message={t("whatsapp.availabilityMessage", { name: product.name, url: window.location.href })}
+                      message={t("whatsapp.availabilityMessage", { name: selectedContent.name, url: window.location.href })}
                       className="flex h-11 w-full items-center justify-center rounded-md border border-green-600/30 px-4 text-sm font-semibold text-green-700 transition-colors hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-950/20"
                     >
                       {t("whatsapp.askAvailability")}
@@ -963,11 +965,11 @@ export default function ProductDetails() {
                       </div>
 
                       {/* Only show benefits if they exist in database */}
-                      {Array.isArray(product.specifications?.benefits) && product.specifications.benefits.length > 0 && (
+                      {decisionBenefits.length > 0 && (
                         <div className="space-y-4">
                           <h3 className="font-bold text-start">{t("benefits.keyBenefits")}</h3>
                           <ul className="space-y-2 text-sm text-muted-foreground" dir={dir}>
-                            {product.specifications.benefits.map((benefit: string, index: number) => (
+                            {decisionBenefits.map((benefit: string, index: number) => (
                               <li key={index} className="flex items-start gap-2 text-start">
                                 <div className="w-2 h-2 bg-primary rounded-full mt-1.5 flex-shrink-0"></div>
                                 <span>{bidi(benefit)}</span>
@@ -1011,10 +1013,10 @@ export default function ProductDetails() {
                     </div>
 
                     {/* Custom Specifications Table */}
-                    {product.specifications && Object.keys(product.specifications).length > 0 && (
+                    {Object.keys(selectedContent.specifications).length > 0 && (
                       <div className="mt-6">
                         <ProductSpecificationsTable
-                          specifications={product.specifications}
+                          specifications={selectedContent.specifications}
                           category={product.category}
                         />
                       </div>

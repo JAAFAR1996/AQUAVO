@@ -35,6 +35,7 @@ import { fetchProducts } from "@/lib/api";
 import { cardImage, cardImageSrcSet } from "@/lib/cloudinary";
 import { SHOP_CATEGORY_LINKS } from "@/lib/product-category-links";
 import { getProductDisplayIdentity } from "@/lib/product-display";
+import { BundleContentsPreview, type BundlePreviewItem } from "@/components/products/bundle-contents-preview";
 import { BUNDLE_GATEWAY_COPY, getBundleCopy } from "@/lib/bundle-copy";
 
 const serviceFacts = [
@@ -45,12 +46,12 @@ const serviceFacts = [
 ] as const;
 
 const categories = [
-  { title: "categories.filters", description: "categories.filtersDesc", href: SHOP_CATEGORY_LINKS.filters, icon: CircleGauge },
-  { title: "categories.heaters", description: "categories.heatersDesc", href: SHOP_CATEGORY_LINKS.heaters, icon: Heater },
-  { title: "categories.lighting", description: "categories.lightingDesc", href: SHOP_CATEGORY_LINKS.lighting, icon: Lightbulb },
-  { title: "categories.water", description: "categories.waterDesc", href: SHOP_CATEGORY_LINKS.waterTreatment, icon: Droplets },
-  { title: "categories.food", description: "categories.foodDesc", href: SHOP_CATEGORY_LINKS.food, icon: Utensils },
-  { title: "categories.tanks", description: "categories.tanksDesc", href: "/products", icon: Boxes },
+  { title: "categories.filters", image: "https://res.cloudinary.com/dyczh8ogv/image/upload/v1792832033/aquavo/products/master-v4-four-reviewed-20261024/general-sponge-filter-xy180/01_Hero.webp", description: "categories.filtersDesc", href: SHOP_CATEGORY_LINKS.filters, icon: CircleGauge },
+  { title: "categories.heaters", image: "https://res.cloudinary.com/dyczh8ogv/image/upload/v1792396141/aquavo/products/transparent-20261019/yee-c4-1103-4.webp", description: "categories.heatersDesc", href: SHOP_CATEGORY_LINKS.heaters, icon: Heater },
+  { title: "categories.lighting", image: "https://res.cloudinary.com/dyczh8ogv/image/upload/v1792621970/aquavo/products/background-removed-20261022/nano-usb-clip-light-3w.png", description: "categories.lightingDesc", href: SHOP_CATEGORY_LINKS.lighting, icon: Lightbulb },
+  { title: "categories.water", image: "https://res.cloudinary.com/dyczh8ogv/image/upload/v1792820419/aquavo/products/master-v4-reviewed-20261024/yee-02924/01_Hero.webp", description: "categories.waterDesc", href: SHOP_CATEGORY_LINKS.waterTreatment, icon: Droplets },
+  { title: "categories.food", image: "https://res.cloudinary.com/dyczh8ogv/image/upload/v1792395618/aquavo/products/transparent-20261019/yee-c1-1124-1.webp", description: "categories.foodDesc", href: SHOP_CATEGORY_LINKS.food, icon: Utensils },
+  { title: "categories.tanks", image: "https://res.cloudinary.com/dyczh8ogv/image/upload/v1792394502/aquavo/products/transparent-20261019/yee-06255.webp", description: "categories.tanksDesc", href: "/products", icon: Boxes },
 ] as const;
 
 const valuePoints = [
@@ -78,7 +79,7 @@ type HomeBundle = {
   bundlePrice: number;
   inStock: boolean;
   requiresVariantSelection: boolean;
-  items: Array<{ productId: string; quantity: number; required: boolean }>;
+  items: BundlePreviewItem[];
 };
 
 const isSellableProduct = (product: { price?: number | string; stock?: number; hasVariants?: boolean; variants?: VariantCommerceSource[] | null }) => {
@@ -102,6 +103,7 @@ export default function Home() {
     journey: t("hero.journey"),
     help: t("hero.help"),
     imageAlt: t("hero.imageAlt"),
+    sceneNote: t("hero.sceneNote"),
     methodLabel: t("hero.methodLabel"),
     methodTitle: t("hero.methodTitle"),
   };
@@ -145,7 +147,7 @@ export default function Home() {
     ["betta-care-starter", 5],
   ]);
   const solutionBundles = (bundles.data ?? [])
-    .filter((bundle) => bundle.inStock && !bundle.requiresVariantSelection)
+    .filter((bundle) => bundle.inStock && !bundle.requiresVariantSelection && Number.isFinite(Number(bundle.bundlePrice)) && Number(bundle.bundlePrice) > 0)
     .sort((a, b) => (solutionPriority.get(a.slug) ?? 99) - (solutionPriority.get(b.slug) ?? 99))
     .slice(0, 3);
   const beginnerBundles = ["betta-care-starter", "guppy-starter", "safe-water-change-pack"].flatMap((slug) => {
@@ -287,18 +289,19 @@ export default function Home() {
             <p className="mt-4 leading-7 text-muted-foreground">{t("categories.description")}</p>
           </div>
 
-          <div className="mt-9 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {categories.map(({ title, description, href, icon: Icon }) => (
+          <div className="mt-9 grid grid-cols-2 gap-3 lg:grid-cols-4">
+            {categories.map(({ title, description, href, image, icon: Icon }, index) => (
               <Link
                 key={title}
                 href={href}
-                className="aq-interactive-card group flex min-h-40 items-start gap-4 rounded-2xl border border-border bg-card p-5 hover:border-[#0B93A6]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                className={`aq-interactive-card group flex flex-col overflow-hidden rounded-2xl border border-border bg-card hover:border-primary/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${index === 0 || index === 5 ? "lg:col-span-2" : ""}`}
               >
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                  <Icon className="h-5 w-5" aria-hidden="true" />
+                <span className="flex h-36 items-center justify-center bg-primary/[0.035] p-4 sm:h-48 lg:h-56">
+                  <img src={cardImage(image)} alt="" width={400} height={300} loading="lazy" decoding="async" className="h-full w-full object-contain" />
                 </span>
-                <span>
-                  <span className="flex items-center gap-2 text-lg font-bold text-foreground">
+                <span className="block p-4 sm:p-5">
+                  <span className="flex flex-wrap items-center gap-2 text-base font-bold text-foreground sm:text-lg">
+                    <Icon className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
                     {t(title)}
                     <ArrowForward className={`h-4 w-4 text-muted-foreground transition-transform ${forwardHover} group-hover:text-[#0B93A6]`} aria-hidden="true" />
                   </span>
@@ -339,6 +342,7 @@ export default function Home() {
                       <h3 className="mt-4 text-lg font-bold leading-7 text-foreground">{copy.name}</h3>
                       <p className="mt-2 line-clamp-2 text-sm leading-6 text-muted-foreground">{copy.description}</p>
                       {copy.scope && <p className="mt-3 text-xs font-medium leading-6 text-foreground/80">{copy.scope}</p>}
+                      <BundleContentsPreview items={bundle.items} locale={locale} />
                       <div className="mt-auto flex items-end justify-between gap-3 pt-5">
                         <span className="text-xs text-muted-foreground">{bundle.items.filter((item) => item.required).reduce((count, item) => count + Number(item.quantity), 0)} {t("solutions.parts")}</span>
                         <span className="text-base font-bold text-primary">{formatLocalizedPrice(bundle.bundlePrice, locale)}</span>

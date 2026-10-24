@@ -7,6 +7,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { getSpeciesById, type FishSpeciesInfo } from "@/components/journey/fish-species-data";
 import type { WizardData } from "@/types/journey";
@@ -14,46 +15,49 @@ import { useTranslation } from "react-i18next";
 import { i18next } from "@/i18n";
 
 const JOURNEY_INTRO_KEY = "aquavo_journey_intro_seen_v3";
-const LEGACY_JOURNEY_TOUR_KEY = "aquavo_tour_seen_journey";
-
+/** One local dialog owns journey help. The legacy global tour never runs here. */
 export function JourneyFirstVisitIntro() {
-  const { t } = useTranslation("tools");
-  const [eligible, setEligible] = useState(false);
+  const { t, i18n } = useTranslation("tools");
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
     try {
-      // Retire the older multi-step Joyride tour before its deferred mount runs.
-      window.localStorage.setItem(LEGACY_JOURNEY_TOUR_KEY, "true");
-      if (window.localStorage.getItem(JOURNEY_INTRO_KEY) === "1") return;
-      window.localStorage.setItem(JOURNEY_INTRO_KEY, "1");
-      setEligible(true);
+      setOpen(window.localStorage.getItem(JOURNEY_INTRO_KEY) !== "1");
     } catch {
-      // Storage-restricted browsers skip the optional explanation.
+      // Optional automatic help is skipped when storage is restricted.
+      // The explicit help button remains available without storage.
     }
   }, []);
 
-  useEffect(() => {
-    if (!eligible) return;
-    const timer = window.setTimeout(() => setOpen(true), 420);
-    return () => window.clearTimeout(timer);
-  }, [eligible]);
-
-  if (!eligible) return null;
+  const handleOpenChange = (nextOpen: boolean) => {
+    setOpen(nextOpen);
+    if (!nextOpen) {
+      try {
+        window.localStorage.setItem(JOURNEY_INTRO_KEY, "1");
+      } catch {
+        // Dismissal and focus restoration must still work without storage.
+      }
+    }
+  };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogTrigger asChild>
+        <Button variant="outline" className="mt-5 aqv-press">
+          {t("journey-experience.help")}
+        </Button>
+      </DialogTrigger>
       <DialogContent
-        dir="rtl"
+        dir={i18n.dir()}
         data-aqv-motion="journey-intro"
-        className="aqv-journey-intro max-w-md overflow-hidden border-primary/25 p-0"
+        className="aqv-journey-intro max-w-md overflow-hidden border-primary/25 p-0 motion-reduce:animate-none"
       >
         <div className="aqv-journey-intro__visual" aria-hidden="true">
           <img src="/brand/aquavo-v2-icon.svg" alt="" width={48} height={48} />
           <span />
         </div>
-        <div className="space-y-5 px-6 pb-6 pt-2 text-right">
-          <DialogHeader className="text-right sm:text-right">
+        <div className="space-y-5 px-6 pb-6 pt-2 text-start">
+          <DialogHeader className="text-start sm:text-start">
             <DialogTitle className="text-2xl font-black text-primary">
               {t("journey-experience.s1")}
             </DialogTitle>
@@ -61,7 +65,7 @@ export function JourneyFirstVisitIntro() {
               {t("journey-experience.s2")}
             </DialogDescription>
           </DialogHeader>
-          <Button className="h-12 w-full font-bold aqv-press" onClick={() => setOpen(false)}>
+          <Button className="h-12 w-full font-bold aqv-press" onClick={() => handleOpenChange(false)}>
             {t("journey-experience.s3")}
           </Button>
         </div>

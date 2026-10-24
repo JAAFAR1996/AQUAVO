@@ -187,12 +187,12 @@ describe("Home — Phase C structure and landmarks", () => {
 
   it("preserves the hero LCP contract", () => {
     render(<Home />, { wrapper: createWrapper() });
-    const heroImage = screen.getByAltText("حوض عرض مائي مرتب بإضاءة هادئة");
+    const heroImage = screen.getByAltText("مشهد إلهامي مولد بالذكاء الاصطناعي لحوض مزروع، مو صورة منتج للبيع");
     expect(heroImage).toHaveAttribute("fetchpriority", "high");
     expect(heroImage).not.toHaveAttribute("loading", "lazy");
-    expect(heroImage).toHaveAttribute("width", "1024");
-    expect(heroImage).toHaveAttribute("height", "1024");
-    expect(heroImage.getAttribute("sizes")).toBe("(max-width: 1024px) 100vw, 48vw");
+    expect(heroImage).toHaveAttribute("width", "1672");
+    expect(heroImage).toHaveAttribute("height", "941");
+    expect(heroImage.getAttribute("sizes")).toBe("(max-width: 1280px) 100vw, 1280px");
     expect(heroImage.getAttribute("sizes")).not.toContain("66vw");
   });
 
@@ -200,13 +200,14 @@ describe("Home — Phase C structure and landmarks", () => {
     const { container } = render(<Home />, { wrapper: createWrapper() });
     const hero = container.querySelector(".aq-waterline-hero");
     const copy = hero?.querySelector(".aq-hero-copy");
-    const photo = hero?.querySelector(".aq-proof-window")?.parentElement;
+    const photo = hero?.querySelector(".aq-proof-window");
     const links = Array.from(hero?.querySelectorAll(".aq-hero-actions a") ?? []);
 
     // Mobile prioritizes store navigation, while desktop preserves text-left/image-right.
-    expect(hero).toHaveClass("pt-4", "lg:pt-28");
-    expect(copy).toHaveClass("order-1", "lg:order-1");
-    expect(photo).toHaveClass("order-2", "lg:order-2");
+    expect(hero).toHaveClass("py-4");
+    expect(hero).not.toHaveClass("lg:pt-28");
+    expect(copy).toHaveClass("relative", "lg:absolute");
+    expect(photo?.querySelector("figcaption")).toHaveTextContent("مشهد إلهامي مولد بالذكاء الاصطناعي");
     expect(links).toHaveLength(2);
     expect(links[0]).toHaveAttribute("href", "/products");
     expect(links[0]).toHaveClass("bg-primary", "min-h-12");

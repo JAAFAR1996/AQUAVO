@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { Boxes, CheckCircle2, ShoppingCart } from "lucide-react";
+import { Boxes, CheckCircle2, ImageOff, ShoppingCart } from "lucide-react";
 import { MetaTags } from "@/components/seo/meta-tags";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,8 @@ import { useLocale } from "@/i18n/locale-context";
 import { formatIQD } from "@/lib/utils";
 import { getBundleCopy, getBundleItemPurpose } from "@/lib/bundle-copy";
 import { isNoindexPath } from "@shared/seo-contract";
+import { cardImage } from "@/lib/cloudinary";
+import { isVariantPurchasable, positiveVariantPrice } from "@shared/variant-commerce";
 import type { Product } from "@/types";
 
 type BundleItem={
@@ -56,6 +58,7 @@ const COPY={
     shipping:"توصيل الطلب",total:"مجموع الباقة التقريبي ويه التوصيل",shippingNote:"التوصيل ينحسب مرة وحدة للطلب، حتى لو جمعت أكثر من باقة.",
     help:"ساعدني أتأكد من الاختيار",selectOptions:"حدد الخيارات من صفحات القطع",cart:"شوف السلة",
     productsFailed:"تعذر تحميل تفاصيل القطع. حدّث الصفحة حتى تكدر تضيف الباقة.",
+    missingPhoto:"صورة الخيار مو متوفرة هسه",pendingPrice:"السعر بعده مو مؤكد",
     loading:"جاري تحميل الباقات…",empty:"ماكو باقات متاحة حالياً.",failed:"تعذر تحميل الباقات حالياً.",
   },
   en:{
@@ -70,6 +73,7 @@ const COPY={
     shipping:"Order delivery",total:"Estimated bundle total with delivery",shippingNote:"Delivery is charged once per order, even if you combine several bundles.",
     help:"Help me check my selection",selectOptions:"Choose options on the product pages",cart:"View cart",
     productsFailed:"Item details could not be loaded. Refresh the page to add a bundle.",
+    missingPhoto:"Option photo not available yet",pendingPrice:"Price not confirmed yet",
     loading:"Loading bundles…",empty:"No bundles are available right now.",failed:"Bundles could not be loaded right now.",
   },
   ckb:{
@@ -84,6 +88,7 @@ const COPY={
     shipping:"گەیاندنی داواکاری",total:"کۆی نزیکەیی پاکێج لەگەڵ گەیاندن",shippingNote:"کرێی گەیاندن تەنها جارێک بۆ هەر داواکارییە، تەنانەت ئەگەر چەند پاکێجێک کۆبکەیتەوە.",
     help:"یارمەتیم بدە لە هەڵبژاردنەکەم دڵنیا بمەوە",selectOptions:"هەڵبژاردەکان لە پەڕەی بەرهەمەکان دیاری بکە",cart:"سەبەتە ببینە",
     productsFailed:"وردەکاری پارچەکان بار نەکران. پەڕەکە نوێ بکەرەوە بۆ زیادکردنی پاکێج.",
+    missingPhoto:"وێنەی هەڵبژاردە ئێستا بەردەست نییە",pendingPrice:"نرخ هێشتا پشتڕاست نەکراوەتەوە",
     loading:"پاکێجەکان بار دەکرێن…",empty:"ئێستا هیچ پاکێجێک بەردەست نییە.",failed:"ئێستا نەتوانرا پاکێجەکان بار بکرێن.",
   },
 } as const;
@@ -102,9 +107,9 @@ function toProduct(raw:Record<string,unknown>):Product{
 }
 
 function productForBundleItem(base:Product,item:BundleItem):Product|null{
-  if(!item.variantId) return base;
+  if(!item.variantId) return !base.hasVariants && positiveVariantPrice(base.price) !== null ? base : null;
   const variant=base.variants?.find((candidate)=>candidate.id===item.variantId);
-  if(!variant || Number(variant.price)<=0 || Number(variant.stock)<=0) return null;
+  if(!variant || !isVariantPurchasable(variant, Number(item.quantity))) return null;
   return {
     ...base,
     price:Number(variant.price),
@@ -213,40 +218,61 @@ export default function BundlesPage(){
           {bundles.data?.map((bundle)=>{
             const localized=getBundleCopy(bundle.slug,locale,bundle.nameAr,bundle.descriptionAr);
             const hasOptional=bundle.items.some((item)=>!item.required);
+            const requiredItems=bundle.items.filter((item)=>item.required);
+            const readyToAdd=requiredItems.length>0 && requiredItems.every((item)=>{
+              const base=productMap.get(item.productId);
+              const product=base?productForBundleItem(base,item):null;
+              return product && Number.isSafeInteger(Number(item.quantity)) && Number(item.quantity)>0 && Number(product.stock)>=Number(item.quantity);
+            });
+            const pricesConfirmed=bundle.items.length>0 && bundle.items.every((item)=>{
+              const base=productMap.get(item.productId);
+              if(item.variantId){
+                const variant=base?.variants?.find((candidate)=>candidate.id===item.variantId);
+                return variant && variant.priceStatus!=="pending" && positiveVariantPrice(variant.price)!==null;
+              }
+              return base && positiveVariantPrice(base.price)!==null;
+            }) && positiveVariantPrice(bundle.bundlePrice)!==null;
             return (
-              <Card key={bundle.id} id={bundle.slug} tabIndex={-1} aria-labelledby={bundle.slug+"-title"} className="scroll-mt-28 overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
-                <CardHeader>
+              <Card key={bundle.id} id={bundle.slug} tabIndex={-1} aria-labelledby={bundle.slug+"-title"} className="scroll-mt-28 overflow-hidden rounded-3xl border-border bg-card shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+                <CardHeader className="border-b border-border bg-primary/[0.035]">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <CardTitle id={bundle.slug+"-title"} role="heading" aria-level={2} className="text-xl">{localized.name}</CardTitle>
                       <p className="mt-2 text-sm leading-7 text-muted-foreground">{localized.description}</p>
                       {localized.scope&&<p className="mt-3 rounded-lg bg-primary/5 px-3 py-2 text-sm font-medium leading-6">{localized.scope}</p>}
                     </div>
-                    <Badge variant={bundle.inStock?"default":"secondary"}>
-                      {bundle.inStock?t.available:t.unavailable}
+                    <Badge variant={bundle.inStock&&readyToAdd?"default":"secondary"}>
+                      {products.isLoading?t.loading:bundle.inStock&&readyToAdd?t.available:t.unavailable}
                     </Badge>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-5">
                   <h3 className="text-sm font-bold">{t.components}</h3>
-                  <div className="grid gap-2 sm:grid-cols-2">
+                  <div className="grid grid-cols-2 gap-3">
                     {bundle.items.map((item)=>{
                       const base=productMap.get(item.productId);
                       const variant=base?.variants?.find((candidate)=>candidate.id===item.variantId);
                       const purpose=getBundleItemPurpose(item.productId,locale);
                       const variantLabel=variant?.label ?? item.variantLabel;
+                      // A parent photo cannot stand in for an unphotographed size/model.
+                      const image=item.variantId
+                        ? (variant?.images?.[0] ?? (variant?.images?.length===0?null:variant?.image))
+                        : (base?.thumbnail || base?.images?.[0] || item.thumbnail);
+                      const price=item.variantId?variant?.price:(base?.price ?? item.price);
+                      const hasPrice=positiveVariantPrice(price)!==null && variant?.priceStatus!=="pending";
                       return (
                         <Link key={item.productId+"::"+(item.variantId ?? "")} href={"/products/"+item.slug}
-                          className="flex items-start gap-3 rounded-xl border p-3 transition-colors hover:border-primary/40 hover:bg-primary/[0.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
-                          <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-muted">
-                            {item.thumbnail?<img src={item.thumbnail} alt="" className="h-full w-full object-cover" loading="lazy"/>:null}
+                          className="flex flex-col overflow-hidden rounded-2xl border border-border transition-colors hover:border-primary/40 hover:bg-primary/[0.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+                          <div className="relative flex h-36 items-center justify-center bg-background p-4 sm:h-44">
+                            {image?<img src={cardImage(image)} alt="" width={240} height={180} className="h-full w-full object-contain" loading="lazy" decoding="async"/>:<span className="flex flex-col items-center gap-2 text-center text-xs text-muted-foreground"><ImageOff aria-hidden="true" className="h-6 w-6"/>{t.missingPhoto}</span>}
+                            <span className="absolute end-2 top-2 rounded-full border border-border bg-card px-2 py-1 text-xs font-bold"><bdi>×{new Intl.NumberFormat(intl).format(item.quantity)}</bdi></span>
                           </div>
-                          <div className="min-w-0">
-                            <p className="line-clamp-2 text-sm font-semibold">{base?.name ?? item.name}</p>
+                          <div className="min-w-0 p-3">
+                            <p className="text-sm font-semibold leading-6">{base?.name ?? item.name}</p>
                             {purpose&&<p className="mt-1 text-xs leading-5 text-muted-foreground">{purpose}</p>}
                             {variantLabel&&<p className="mt-1 text-xs font-medium">{variantLabel}</p>}
                             <p className="mt-2 text-xs text-muted-foreground">{t.quantity}: <bdi>{new Intl.NumberFormat(intl).format(item.quantity)}</bdi> · {item.required?t.included:t.optional}</p>
-                            <p className="mt-1 text-xs text-muted-foreground">{t.unitPrice}: <bdi>{formatIQD(Number(variant?.price ?? base?.price ?? item.price ?? 0))}</bdi></p>
+                            <p className="mt-1 text-xs text-muted-foreground">{t.unitPrice}: <bdi>{hasPrice?formatIQD(Number(price)):t.pendingPrice}</bdi></p>
                           </div>
                         </Link>
                       );
@@ -262,13 +288,13 @@ export default function BundlesPage(){
                   )}
                   <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-4">
                     <dl className="w-full space-y-2 text-sm">
-                      <div className="flex justify-between gap-3"><dt className="text-muted-foreground">{hasOptional?t.allComponents:t.price}</dt><dd className="font-semibold"><bdi>{formatIQD(bundle.bundlePrice)}</bdi></dd></div>
+                      <div className="flex justify-between gap-3"><dt className="text-muted-foreground">{hasOptional?t.allComponents:t.price}</dt><dd className="font-semibold"><bdi>{pricesConfirmed?formatIQD(bundle.bundlePrice):t.pendingPrice}</bdi></dd></div>
                       <div className="flex justify-between gap-3"><dt className="text-muted-foreground">{t.shipping}</dt><dd><bdi>{formatIQD(shippingFee)}</bdi></dd></div>
-                      {!hasOptional&&<div className="flex flex-wrap justify-between gap-3 border-t pt-2"><dt className="font-medium">{t.total}</dt><dd className="text-lg font-bold text-primary"><bdi>{formatIQD(Number(bundle.bundlePrice)+shippingFee)}</bdi></dd></div>}
+                      {!hasOptional&&<div className="flex flex-wrap justify-between gap-3 border-t pt-2"><dt className="font-medium">{t.total}</dt><dd className="text-lg font-bold text-primary"><bdi>{pricesConfirmed?formatIQD(Number(bundle.bundlePrice)+shippingFee):t.pendingPrice}</bdi></dd></div>}
                     </dl>
                     <p className="w-full text-xs leading-6 text-muted-foreground">{hasOptional?t.optionalTotal:t.shippingNote}</p>
                     <Button onClick={()=>void addBundle(bundle)}
-                      disabled={!bundle.inStock||bundle.requiresVariantSelection||Boolean(adding)||products.isLoading||products.isError}>
+                      disabled={!bundle.inStock||bundle.requiresVariantSelection||!readyToAdd||Boolean(adding)||products.isLoading||products.isError}>
                       {added===bundle.id?<CheckCircle2 className="me-2 h-4 w-4"/>:<ShoppingCart className="me-2 h-4 w-4"/>}
                       {added===bundle.id?t.added:bundle.requiresVariantSelection?t.selectOptions:bundle.inStock?t.add:t.unavailable}
                     </Button>

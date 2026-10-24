@@ -73,7 +73,7 @@ export async function prerenderHomeHero(): Promise<string> {
   if (!html.startsWith("<section")) {
     throw new Error(`prerendered home hero should start with <section>, got: ${html.slice(0, 80)}`);
   }
-  if (!html.includes("iwagumi_aquascape_1765676307763.webp")) {
+  if (!html.includes("aquavo-concept-20261024.webp")) {
     throw new Error("prerendered home hero is missing the LCP image");
   }
 

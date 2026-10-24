@@ -143,57 +143,6 @@ export function OnboardingTour() {
                 },
             ];
         }
-        // 4. YOUR JOURNEY PAGE STEPS (رحلتك)
-        else if (path === '/journey') {
-            pageSteps = [
-                {
-                    target: 'body',
-                    content: (
-                        <div className="text-right font-sans" dir="rtl">
-                            <h2 className="text-xl font-extrabold mb-2 text-primary">{t("onboarding-tour.s19")}</h2>
-                            <p className="text-muted-foreground leading-relaxed text-sm">
-                                {t("onboarding-tour.s20")}
-                            </p>
-                        </div>
-                    ),
-                    placement: 'center',
-                    skipBeacon: true,
-                },
-                {
-                    target: '[data-tour="journey-progress"]',
-                    content: (
-                        <div className="text-right font-sans" dir="rtl">
-                            <h3 className="font-bold mb-2 text-primary">{t("onboarding-tour.s21")}</h3>
-                            <p className="text-muted-foreground leading-relaxed text-sm">
-                                {t("onboarding-tour.s22")}
-                            </p>
-                        </div>
-                    ),
-                },
-                {
-                    target: '[data-tour="journey-content"]',
-                    content: (
-                        <div className="text-right font-sans" dir="rtl">
-                            <h3 className="font-bold mb-2 text-primary">{t("onboarding-tour.s23")}</h3>
-                            <p className="text-muted-foreground leading-relaxed text-sm">
-                                {t("onboarding-tour.s24")}
-                            </p>
-                        </div>
-                    ),
-                },
-                {
-                    target: '[data-tour="journey-nav"]',
-                    content: (
-                        <div className="text-right font-sans" dir="rtl">
-                            <h3 className="font-bold mb-2 text-primary">{t("onboarding-tour.s25")}</h3>
-                            <p className="text-muted-foreground leading-relaxed text-sm">
-                                {t("onboarding-tour.s26")}
-                            </p>
-                        </div>
-                    ),
-                },
-            ];
-        }
 
         setSteps(pageSteps);
 
@@ -259,7 +208,9 @@ export function OnboardingTour() {
         }
     };
 
-    if (steps.length === 0) return null;
+    // Do not display stale steps during navigation from another tour page.
+    // Journey owns its own accessible, replayable introduction.
+    if (location === '/journey' || steps.length === 0) return null;
 
     return (
         <Joyride

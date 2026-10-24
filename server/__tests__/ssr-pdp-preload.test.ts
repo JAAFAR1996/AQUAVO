@@ -18,7 +18,7 @@ const TEMPLATE = `
   <title>__META_TITLE__</title>
   <meta name="description" content="__META_DESCRIPTION__">
   <link rel="canonical" href="__META_URL__">
-  <link rel="preload" fetchpriority="high" as="image" href="/images/aquascape-styles/iwagumi_aquascape_1765676307763.webp">
+  <link rel="preload" fetchpriority="high" as="image" href="/images/hero/aquavo-concept-20261024.webp">
   <!-- Open Graph / Facebook -->
   <meta property="og:title" content="__META_TITLE__">
   <meta property="og:type" content="__META_OG_TYPE__">
@@ -181,7 +181,7 @@ describe("Home hero preload is unaffected by the PDP preload fix", () => {
       url: "https://www.aquavoiq.com/",
       image: "https://www.aquavoiq.com/brand/aquavo-v2-horizontal.png",
     });
-    expect(html).toContain("iwagumi_aquascape_1765676307763.webp");
+    expect(html).toContain("aquavo-concept-20261024.webp");
     expect(html).not.toContain("66vw");
     const preloads = html.match(/<link[^>]*rel="preload"[^>]*as="image"[^>]*>/g) ?? [];
     expect(preloads).toHaveLength(1);

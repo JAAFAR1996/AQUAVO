@@ -53,12 +53,12 @@ const HERO_SOURCE = readFileSync(
 describe("the homepage hero is in the initial HTML", () => {
   it("puts the LCP image in the served document", async () => {
     const html = await renderPath("/");
-    expect(html).toContain("iwagumi_aquascape_1765676307763.webp");
+    expect(html).toContain("aquavo-concept-20261024.webp");
     expect(html).toContain('fetchpriority="high"');
     // The exact geometry attributes, so the image reserves its box before load.
-    expect(html).toContain('width="1024"');
-    expect(html).toContain('height="1024"');
-    expect(html).toContain('sizes="(max-width: 1024px) 100vw, 48vw"');
+    expect(html).toContain('width="1672"');
+    expect(html).toContain('height="941"');
+    expect(html).toContain('sizes="(max-width: 1280px) 100vw, 1280px"');
   });
 
   it("ships the complete home tree with an explicit hydration marker", async () => {
@@ -125,7 +125,7 @@ describe("the homepage hero is in the initial HTML", () => {
       "اختَر تجهيزات تناسب حوضك",
       "تسوّق المنتجات",
       "جهّز حوضك",
-      "الحوض أولاً، القطعة بعدها",
+      "مشهد إلهامي مولد بالذكاء الاصطناعي",
     ]) {
       expect(HERO_SOURCE, `component should contain ${copy}`).toContain(copy);
       expect(html, `served hero should contain ${copy}`).toContain(copy);

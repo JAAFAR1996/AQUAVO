@@ -6,6 +6,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
+import type { Product } from '@/types';
 
 const mockAddItem = vi.hoisted(() => vi.fn());
 const mockToast = vi.hoisted(() => vi.fn());
@@ -282,6 +283,36 @@ describe('Product Details Page', () => {
         expect(screen.getByRole('button', { name: 'أضف إلى السلة' })).not.toBeDisabled();
         await user.click(screen.getByRole('button', { name: /2 متر.*قريب/ }));
         expect(screen.getAllByText('يحدد لاحقا').length).toBeGreaterThan(0);
+        expect(screen.queryByRole('button', { name: 'أضف إلى السلة' })).not.toBeInTheDocument();
+        expect(mockAddItem).not.toHaveBeenCalled();
+    });
+
+    it('keeps selected stream-sand title, image alt and benefits consistent while pending-price purchase remains blocked', async () => {
+        const user = await import('@testing-library/user-event').then((m) => m.default.setup());
+        const original = await fetchProductBySlug('test-product');
+        if (!original) throw new Error('Missing fixture');
+        const product = {
+            ...original, slug: 'houyi-stream-sand', name: 'رمل جداول طبيعي — 2–6 ملم',
+            description: 'رمل بحبيبات 2–6 ملم. اغسله قبل الاستخدام.',
+            specifications: { 'حجم الحبيبات': '2–6 ملم', benefits: ['حبيبات طبيعية بحجم 2–6 ملم', 'لون طبيعي'] },
+            variants: [
+                { id: '2-6mm', label: '2–6 ملم', price: 3649, stock: 17, specifications: { 'المقاس': '2–6 ملم' }, images: ['/small.jpg'] },
+                { id: '5-8mm', label: '5–8 ملم', price: null, stock: 0, priceStatus: 'pending' as const, availabilityStatus: 'coming_soon' as const, specifications: { 'المقاس': '5–8 ملم' }, images: ['/large.jpg'] },
+            ],
+        };
+        vi.mocked(fetchProductBySlug).mockResolvedValueOnce(product as unknown as Product);
+        render(<ProductDetails />, { wrapper: createWrapper() });
+        await user.click(await screen.findByRole('button', { name: /5–8 ملم/ }));
+        expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('رمل جداول طبيعي');
+        expect(screen.getByRole('heading', { level: 1 }).textContent).toContain('5');
+        expect(screen.getByRole('heading', { level: 1 }).textContent).not.toContain('2');
+        const largeImage = screen.getAllByRole('img', { name: /5–8 ملم/ })[0];
+        expect(largeImage).toHaveAttribute('alt', expect.stringContaining('5–8 ملم'));
+        expect(screen.queryByText('حبيبات طبيعية بحجم 2–6 ملم')).not.toBeInTheDocument();
+        expect(screen.getByText('اغسله قبل الاستخدام.')).toBeInTheDocument();
+        await user.click(screen.getByRole('tab', { name: 'المواصفات الفنية' }));
+        expect(screen.getByRole('tabpanel').textContent).not.toContain('2');
+        expect(screen.getByRole('tabpanel').textContent).toContain('5');
         expect(screen.queryByRole('button', { name: 'أضف إلى السلة' })).not.toBeInTheDocument();
         expect(mockAddItem).not.toHaveBeenCalled();
     });

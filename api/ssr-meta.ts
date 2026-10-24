@@ -1054,7 +1054,7 @@ export function injectMeta(html: string, meta: PageMeta & { url: string; image: 
     const preloadImage = escapeHtml(safeHttpUrl(toBlogHeroPreloadImage(meta.image), DEFAULT_IMAGE));
     imagePreload = `<link rel="preload" as="image" href="${preloadImage}" fetchpriority="high">`;
   } else if (isHomePage) {
-    imagePreload = `<link rel="preload" fetchpriority="high" as="image" type="image/webp" href="/images/aquascape-styles/iwagumi_aquascape_1765676307763.webp" imagesrcset="/images/aquascape-styles/iwagumi_aquascape_1765676307763-640.webp 640w, /images/aquascape-styles/iwagumi_aquascape_1765676307763.webp 1024w" imagesizes="(max-width: 1024px) 100vw, 48vw">`;
+    imagePreload = `<link rel="preload" fetchpriority="high" as="image" type="image/webp" href="/images/hero/aquavo-concept-20261024.webp" imagesrcset="/images/hero/aquavo-concept-20261024-640.webp 640w, /images/hero/aquavo-concept-20261024-1024.webp 1024w, /images/hero/aquavo-concept-20261024.webp 1672w" imagesizes="(max-width: 1280px) 100vw, 1280px">`;
   }
   if (imagePreload) {
     // The preload above is stripped unconditionally, so re-inserting it is not
