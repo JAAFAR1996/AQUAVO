@@ -198,7 +198,7 @@ export function createOrderRouter(): RouterType {
             if (!validationResult.success) {
                 res.status(400).json({
                     ...apiMessage(req, "invalidOrder"),
-                    errors: validationResult.error.errors.map(e => ({
+                    errors: validationResult.error.issues.map(e => ({
                         field: e.path.join('.'),
                         message: e.message
                     }))
