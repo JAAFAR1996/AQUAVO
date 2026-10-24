@@ -11,6 +11,7 @@ import userEvent from "@testing-library/user-event";
 
 import { EmbeddedVariantSelector } from "../embedded-variant-selector";
 import { type ProductVariant } from "@/types";
+import { formatIQD } from "@/lib/utils";
 
 const variants: ProductVariant[] = [
     { id: "v-small", label: "صغير", price: 20000, stock: 5 } as ProductVariant,
@@ -28,6 +29,41 @@ const spongeFilterVariants: ProductVariant[] = [
 ];
 
 describe("EmbeddedVariantSelector", () => {
+    it("renders volcanic-rock sizes in physical order without advertising unknown prices", () => {
+        const rockSizes: ProductVariant[] = [
+            { id: "size-3-5cm", label: "متوسط (3–5 سم)", price: 3851, stock: 17, isDefault: true,
+              specifications: { "الحجم": "متوسط (3–5 سم)", "حجم القطعة": "3–5 سم" } },
+            { id: "size-10-30cm", label: "كبير جدا (10–30 سم) — قريبا", price: 0, stock: 0,
+              specifications: { "الحجم": "كبير جدا (10–30 سم) — قريبا", "حجم القطعة": "10–30 سم" } },
+            { id: "size-1-2cm", label: "صغير (1–2 سم) — قريبا", price: 0, stock: 0,
+              specifications: { "الحجم": "صغير (1–2 سم) — قريبا", "حجم القطعة": "1–2 سم" } },
+            { id: "size-5-8cm", label: "كبير (5–8 سم) — قريبا", price: 0, stock: 0,
+              specifications: { "الحجم": "كبير (5–8 سم) — قريبا", "حجم القطعة": "5–8 سم" } },
+        ];
+        render(
+            <EmbeddedVariantSelector
+                variants={rockSizes}
+                selectedVariantId=""
+                onVariantSelect={vi.fn()}
+            />
+        );
+        const buttons = screen.getAllByRole("button");
+        expect(buttons.map(button => button.textContent)).toEqual([
+            expect.stringContaining("1–2"),
+            expect.stringContaining("3–5"),
+            expect.stringContaining("5–8"),
+            expect.stringContaining("10–30"),
+        ]);
+        expect(buttons[0]).toBeDisabled();
+        expect(buttons[1]).toBeEnabled();
+        expect(buttons[2]).toBeDisabled();
+        expect(buttons[3]).toBeDisabled();
+        // Even though the first size is not priced, show the known-price 3–5 cm
+        // reference rather than a fabricated 0-IQD offer.
+        expect(screen.getByText(formatIQD(3851))).toBeInTheDocument();
+        expect(screen.queryByText(formatIQD(0))).not.toBeInTheDocument();
+    });
+
     it("marks the selected variant as pressed and others as not pressed", () => {
         render(
             <EmbeddedVariantSelector
