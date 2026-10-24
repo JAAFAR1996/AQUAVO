@@ -145,7 +145,7 @@ router.post("/visual/analyze-url", requireAuth as any, async (req, res) => {
       return res.status(400).json({
         success: false,
         error: "بيانات غير صالحة",
-        details: error.errors,
+        details: error.issues,
       });
     }
 
