@@ -84,10 +84,13 @@ export function EmbeddedVariantSelector({
 
       <div className="flex flex-wrap gap-2" role="group" aria-labelledby="embedded-variant-title">
         {sortedVariants.map((variant) => {
-          const selected = variant.id === selectedVariant.id;
+          const selected = Boolean(selectedVariantId) && variant.id === selectedVariant.id;
           const inStock = variant.stock > 0;
           const choiceLabel = getVariantChoiceLabel(variant, customerFacingDimensionKey);
           const unpricedUpcoming = !inStock && Number(variant.price) <= 0;
+          const upcomingAriaLabel = choiceLabel.includes(t("price.soon"))
+            ? choiceLabel
+            : `${choiceLabel} — ${t("price.soon")}`;
 
           return (
             <button
@@ -96,7 +99,7 @@ export function EmbeddedVariantSelector({
               onClick={() => onVariantSelect(variant)}
               disabled={!inStock}
               aria-pressed={selected}
-              aria-label={!inStock ? (comingSoon || unpricedUpcoming) ? `${choiceLabel} — ${t("price.soon")}` : t("variants.unavailableAria", { label: choiceLabel }) : choiceLabel}
+              aria-label={!inStock ? (comingSoon || unpricedUpcoming) ? upcomingAriaLabel : t("variants.unavailableAria", { label: choiceLabel }) : choiceLabel}
               className={cn(
                 "min-h-11 rounded-full border-2 px-4 py-2 text-sm font-medium transition-colors",
                 selected
