@@ -113,10 +113,11 @@ export default defineConfig({
     // "hidden" generates .map files but does NOT serve them publicly.
     // Sentry reads them during upload (if configured later); browsers never get them.
     sourcemap: isProduction ? "hidden" : true,
-    // Disable automatic modulepreload hints — they force browser to fetch
-    // ALL chunks (including vendor-charts 110KB, vendor-animation 44KB) on every page.
-    // Chunks will still load on-demand when their importing code executes.
-    modulePreload: false,
+    // Vite preloads the entry's static dependencies, not every lazy route.
+    // It also fetches a dynamic import's dependencies in parallel when that
+    // import runs. Disabling this serializes the bootstrap -> App -> vendor
+    // chain and route navigation, especially on higher-latency connections.
+    modulePreload: true,
     // Enable CSS code splitting for better caching
     cssCodeSplit: true,
     minify: "oxc",
