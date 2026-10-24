@@ -21,12 +21,12 @@ import {
 import { AddPreparationCostForm, PreparationCostEditor } from "./packaging-forms";
 
 const requiredNonNegativeQuantitySchema = z.string().trim().min(1)
-  .pipe(z.coerce.number().finite().min(0));
+  .pipe(z.coerce.number<string>().finite().min(0));
 const requiredPositiveQuantitySchema = z.string().trim().min(1)
-  .pipe(z.coerce.number().finite().positive());
+  .pipe(z.coerce.number<string>().finite().positive());
 const optionalNonNegativeQuantitySchema = z.union([
   z.literal(""),
-  z.string().trim().min(1).pipe(z.coerce.number().finite().min(0)),
+  z.string().trim().min(1).pipe(z.coerce.number<string>().finite().min(0)),
 ]).transform((value) => value === "" ? null : value);
 
 function errorText(value: unknown): string {
