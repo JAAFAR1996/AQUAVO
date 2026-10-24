@@ -108,7 +108,14 @@ export default function Home() {
   // The first home product collection uses measured rolling 30-day views.
   const viewedProducts = useQuery({
     queryKey: ["products", "home-most-viewed", "30d"],
-    queryFn: () => fetchProducts({ sortBy: "views", sortOrder: "desc" }),
+    queryFn: async () => {
+      // The homepage displays only four sellable picks, not the full catalogue.
+      // Fall back to the complete list if 12 candidates cannot supply all four,
+      // preserving results when older or variant-only items are unavailable.
+      const firstPage = await fetchProducts({ sortBy: "views", sortOrder: "desc", limit: 12 });
+      if (firstPage.products.filter(isSellableProduct).length >= 4) return firstPage;
+      return fetchProducts({ sortBy: "views", sortOrder: "desc" });
+    },
     staleTime: 60_000,
     refetchOnMount: true,
     refetchOnWindowFocus: true,

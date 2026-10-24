@@ -1,5 +1,5 @@
 import { type Product, type Review, type ReviewRating, type Discount, type FishSpecies, products, reviews, reviewRatings, discounts, fishSpecies, categories, orderItems, orders, productViews } from "../../shared/schema.js";
-import { eq, desc, and, gte, lte, sql, isNull, isNotNull, notInArray, gt, inArray, or } from "drizzle-orm";
+import { eq, desc, and, gte, lte, sql, isNull, isNotNull, notInArray, gt, inArray, or, getTableColumns } from "drizzle-orm";
 import { getDb } from "../db.js";
 import { randomUUID } from "crypto";
 import { normalizeProductCostWrite } from "../services/product-cost-snapshot.js";
@@ -73,7 +73,26 @@ export class ProductStorage {
 
     async getProducts(filters?: ProductFilters): Promise<Product[]> {
         const db = this.ensureDb();
-        let query = db.select().from(products);
+        // One grouped pass over recent visits, instead of a separate DISTINCT
+        // aggregate for every catalogue product. Keep Product[] unchanged.
+        const popularityRank = filters?.sortBy === 'views'
+            ? db.select({
+                productId: productViews.productId,
+                views: sql<number>`COUNT(DISTINCT ${productViews.sessionId})`.as('views'),
+            })
+                .from(productViews)
+                .where(and(
+                    gte(productViews.viewedAt, sql`NOW() - INTERVAL '30 days'`),
+                    sql`${productViews.sessionId} ~ '^cs_[A-Za-z0-9_]{1,64}$'`,
+                ))
+                .groupBy(productViews.productId)
+                .as('recent_product_views')
+            : null;
+
+        let query = db.select(getTableColumns(products)).from(products);
+        if (popularityRank) {
+            query = query.leftJoin(popularityRank, eq(popularityRank.productId, products.id)) as any;
+        }
 
         const conditions = [];
 
@@ -147,13 +166,8 @@ export class ProductStorage {
         // 30 days: one vote per valid browser session per product. API-only
         // requests without a client session are not treated as a shopper view.
         if (filters?.sortBy === 'views') {
-            const recentBrowserViews = sql<number>`(
-                SELECT COUNT(DISTINCT ${productViews.sessionId})
-                FROM ${productViews}
-                WHERE ${productViews.productId} = ${products.id}
-                  AND ${productViews.viewedAt} >= NOW() - INTERVAL '30 days'
-                  AND ${productViews.sessionId} ~ '^cs_[A-Za-z0-9_]{1,64}$'
-            )`;
+            // Rows with no recent visits have the same zero count as before.
+            const recentBrowserViews = sql<number>`COALESCE(${popularityRank!.views}, 0)`;
             query = filters.sortOrder === 'asc'
                 ? query.orderBy(desc(availabilityRank), recentBrowserViews, desc(products.createdAt), products.id) as any
                 : query.orderBy(desc(availabilityRank), desc(recentBrowserViews), desc(products.createdAt), products.id) as any;
