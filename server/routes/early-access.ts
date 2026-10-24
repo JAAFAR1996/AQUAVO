@@ -127,7 +127,7 @@ router.post("/register", async (req: Request, res: Response) => {
         if (!validation.success) {
             return res.status(400).json({
                 success: false,
-                message: validation.error.errors[0]?.message || "Invalid input",
+                message: validation.error.issues[0]?.message || "Invalid input",
                 spotsRemaining: 0,
             });
         }
