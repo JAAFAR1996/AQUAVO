@@ -1,3 +1,4 @@
+import { isVariantActive, isVariantComingSoon, positiveVariantPrice } from "@shared/variant-commerce";
 import { useMemo } from "react";
 import { Check, Sparkles, Tag } from "lucide-react";
 
@@ -39,23 +40,24 @@ function getVariantChoiceLabel(
 }
 
 export function EmbeddedVariantSelector({
-  variants,
+  variants: allVariants,
   selectedVariantId,
   onVariantSelect,
   title,
   comingSoon = false,
 }: EmbeddedVariantSelectorProps) {
   const { t } = useTranslation("product");
+  const variants = useMemo(() => allVariants.filter(isVariantActive), [allVariants]);
   const dimensions = useMemo(() => extractVariantDimensions(variants), [variants]);
   const sortedVariants = useMemo(
-    () => [...variants].sort((a, b) => Number(a.price) - Number(b.price)),
+    () => variants,
     [variants],
   );
 
-  if (!variants || variants.length <= 1 || isMultiDimensionVariantSet(variants)) return null;
+  if (!variants || variants.length === 0 || isMultiDimensionVariantSet(variants)) return null;
 
-  const selectedVariant = sortedVariants.find((variant) => variant.id === selectedVariantId) ?? sortedVariants[0];
-  const selectedModel = cleanSpecificationValue(selectedVariant.specifications?.الموديل);
+  const selectedVariant = sortedVariants.find((variant) => variant.id === selectedVariantId);
+  const selectedModel = cleanSpecificationValue(selectedVariant?.specifications?.الموديل);
   const customerFacingDimensionKey = dimensions.length === 1 ? dimensions[0].key : undefined;
   const detectedTitle = dimensions[0]?.label ? t("variants.choose", { label: dimensions[0].label }) : t("variants.chooseOption");
 
@@ -68,7 +70,7 @@ export function EmbeddedVariantSelector({
 
       <div className="flex flex-wrap gap-2" role="group" aria-labelledby="embedded-variant-title">
         {sortedVariants.map((variant) => {
-          const selected = variant.id === selectedVariant.id;
+          const selected = variant.id === selectedVariant?.id;
           const inStock = variant.stock > 0;
           const choiceLabel = getVariantChoiceLabel(variant, customerFacingDimensionKey);
 
@@ -77,15 +79,14 @@ export function EmbeddedVariantSelector({
               key={variant.id}
               type="button"
               onClick={() => onVariantSelect(variant)}
-              disabled={!inStock}
               aria-pressed={selected}
-              aria-label={!inStock ? comingSoon ? `${choiceLabel} — ${t("price.soon")}` : t("variants.unavailableAria", { label: choiceLabel }) : choiceLabel}
+              aria-label={!inStock ? (comingSoon || isVariantComingSoon(variant)) ? `${choiceLabel} — ${t("price.soon")}` : t("variants.unavailableAria", { label: choiceLabel }) : choiceLabel}
               className={cn(
                 "min-h-11 rounded-full border-2 px-4 py-2 text-sm font-medium transition-colors",
                 selected
                   ? "border-primary bg-primary text-primary-foreground"
                   : "border-border bg-background text-foreground hover:border-primary/50",
-                !inStock && "cursor-not-allowed opacity-45 line-through",
+                !inStock && "opacity-70",
               )}
             >
               {selected && <Check className="ml-1 inline h-3.5 w-3.5" aria-hidden="true" />}
@@ -95,7 +96,7 @@ export function EmbeddedVariantSelector({
         })}
       </div>
 
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-border pt-3 text-sm" aria-live="polite">
+      {selectedVariant ? <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-border pt-3 text-sm" aria-live="polite">
         {selectedModel && (
           <span className="inline-flex items-center gap-2">
             <span className="text-muted-foreground">{t("variants.model")}</span>
@@ -106,10 +107,10 @@ export function EmbeddedVariantSelector({
         <span className="inline-flex items-center gap-2">
           <Tag className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
           <span className="text-muted-foreground">{t("variants.price")}</span>
-          <span className="font-bold text-primary">{formatIQD(Number(selectedVariant.price))}</span>
+          <span className="font-bold text-primary">{positiveVariantPrice(selectedVariant.price) !== null && selectedVariant.priceStatus !== "pending" ? formatIQD(Number(selectedVariant.price)) : t("price.pending")}</span>
         </span>
 
-        {selectedVariant.originalPrice && selectedVariant.originalPrice > selectedVariant.price && (
+        {selectedVariant.price != null && selectedVariant.price > 0 && selectedVariant.originalPrice && selectedVariant.originalPrice > selectedVariant.price && (
           <>
             <span className="text-sm text-muted-foreground line-through">
               {formatIQD(Number(selectedVariant.originalPrice))}
@@ -127,26 +128,27 @@ export function EmbeddedVariantSelector({
               {t("variants.available", { count: selectedVariant.stock })}
             </span>
           ) : (
-            <span className="text-destructive">{comingSoon ? t("price.soon") : t("variants.unavailable")}</span>
+            <span className="text-destructive">{comingSoon || isVariantComingSoon(selectedVariant) ? t("price.soon") : t("variants.unavailable")}</span>
           )}
         </span>
-      </div>
+      </div> : <p className="text-sm text-muted-foreground">{t("variants.chooseOption")}</p>}
     </div>
   );
 }
 
 export function EmbeddedVariantSelectorCompact({
-  variants,
+  variants: allVariants,
   selectedVariantId,
   onVariantSelect,
   comingSoon = false,
 }: Omit<EmbeddedVariantSelectorProps, "title" | "productCategory">) {
   const { t } = useTranslation("product");
+  const variants = useMemo(() => allVariants.filter(isVariantActive), [allVariants]);
   const { dir } = useLocale();
   const dimensions = useMemo(() => extractVariantDimensions(variants), [variants]);
   const customerFacingDimensionKey = dimensions.length === 1 ? dimensions[0].key : undefined;
 
-  if (!variants || variants.length <= 1) return null;
+  if (!variants || variants.length === 0) return null;
 
   return (
     <div className="flex flex-wrap gap-2" dir={dir} role="group" aria-label={t("variants.options")}>
@@ -159,15 +161,14 @@ export function EmbeddedVariantSelectorCompact({
             key={variant.id}
             type="button"
             onClick={() => onVariantSelect(variant)}
-            disabled={variant.stock <= 0}
             aria-pressed={selected}
-            aria-label={variant.stock <= 0 ? comingSoon ? `${choiceLabel} — ${t("price.soon")}` : t("variants.unavailableAria", { label: choiceLabel }) : choiceLabel}
+            aria-label={variant.stock <= 0 ? (comingSoon || isVariantComingSoon(variant)) ? `${choiceLabel} — ${t("price.soon")}` : t("variants.unavailableAria", { label: choiceLabel }) : choiceLabel}
             className={cn(
               "min-h-11 rounded-full px-3 py-1.5 text-sm font-medium transition-colors",
               selected
                 ? "bg-primary text-primary-foreground"
                 : "bg-muted text-muted-foreground hover:text-foreground",
-              variant.stock <= 0 && "cursor-not-allowed opacity-45",
+              variant.stock <= 0 && "opacity-70",
             )}
           >
             {choiceLabel}

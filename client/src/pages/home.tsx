@@ -1,3 +1,4 @@
+import { isVariantPurchasable, type VariantCommerceSource } from "@shared/variant-commerce";
 import { useQuery } from "@tanstack/react-query";
 import {
   AlertTriangle,
@@ -80,9 +81,9 @@ type HomeBundle = {
   items: Array<{ productId: string; quantity: number; required: boolean }>;
 };
 
-const isSellableProduct = (product: { price?: number | string; stock?: number; hasVariants?: boolean; variants?: Array<{ price?: number; stock?: number }> | null }) => {
+const isSellableProduct = (product: { price?: number | string; stock?: number; hasVariants?: boolean; variants?: VariantCommerceSource[] | null }) => {
   if (product.hasVariants && product.variants?.length) {
-    return product.variants.some((variant) => Number(variant.price ?? 0) > 0 && Number(variant.stock ?? 0) > 0);
+    return product.variants.some((variant) => isVariantPurchasable(variant));
   }
   return Number(product.price ?? 0) > 0 && Number(product.stock ?? 0) > 0;
 };

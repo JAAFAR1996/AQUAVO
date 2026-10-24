@@ -80,6 +80,10 @@ export const PUBLIC_VARIANT_FIELDS = [
   "isDefault",
   "specifications",
   "image",
+  "images",
+  "priceStatus",
+  "availabilityStatus",
+  "isArchived",
   "slug",
 ] as const;
 

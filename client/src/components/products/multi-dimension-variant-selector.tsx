@@ -1,3 +1,4 @@
+import { isVariantActive, isVariantComingSoon, positiveVariantPrice } from "@shared/variant-commerce";
 import { useEffect, useMemo, useState } from "react";
 import { Check, Palette, Ruler, Sparkles, Tag } from "lucide-react";
 
@@ -81,22 +82,23 @@ function DimensionIcon({ dimensionKey }: { dimensionKey: string }) {
 }
 
 export function MultiDimensionVariantSelector({
-  variants,
+  variants: allVariants,
   selectedVariantId,
   onVariantSelect,
   comingSoon = false,
 }: MultiDimensionVariantSelectorProps) {
   const { t } = useTranslation("product");
+  const variants = useMemo(() => allVariants.filter(isVariantActive), [allVariants]);
   const dimensions = useMemo(() => extractVariantDimensions(variants), [variants]);
   const selectedVariant = useMemo(
-    () => variants.find((variant) => variant.id === selectedVariantId) ?? variants[0],
+    () => variants.find((variant) => variant.id === selectedVariantId),
     [variants, selectedVariantId],
   );
   const aquariumMeasurementSet = useMemo(
     () => isAquariumMeasurementSet(variants),
     [variants],
   );
-  const selectedMeasurement = aquariumMeasurementSet
+  const selectedMeasurement = aquariumMeasurementSet && selectedVariant
     ? getAquariumMeasurement(selectedVariant)
     : null;
   const selectedCapacity = aquariumMeasurementSet
@@ -160,16 +162,15 @@ export function MultiDimensionVariantSelector({
                   <button
                     key={variant.id}
                     type="button"
-                    onClick={() => available && onVariantSelect(variant)}
-                    disabled={!available}
+                    onClick={() => onVariantSelect(variant)}
                     aria-pressed={selected}
-                    aria-label={!available ? comingSoon ? `${t("variants.measurementAria", { value: measurement })} — ${t("price.soon")}` : t("variants.measurementUnavailableAria", { value: measurement }) : t("variants.measurementAria", { value: measurement })}
+                    aria-label={!available ? (comingSoon || isVariantComingSoon(variant)) ? `${t("variants.measurementAria", { value: measurement })} — ${t("price.soon")}` : t("variants.measurementUnavailableAria", { value: measurement }) : t("variants.measurementAria", { value: measurement })}
                     className={cn(
                       "min-h-11 rounded-full border-2 px-4 py-2 text-sm font-medium transition-colors",
                       selected
                         ? "border-primary bg-primary text-primary-foreground"
                         : "border-border bg-background text-foreground hover:border-primary/50",
-                      !available && "cursor-not-allowed opacity-40 line-through",
+                      !available && "opacity-70",
                     )}
                   >
                     {selected && <Check className="ml-1 inline h-3.5 w-3.5" aria-hidden="true" />}
@@ -216,15 +217,14 @@ export function MultiDimensionVariantSelector({
                         key={value}
                         type="button"
                         onClick={() => selectValue(dimension.key, value)}
-                        disabled={!available}
-                        aria-pressed={selected}
-                        aria-label={!available ? comingSoon ? `${t("variants.dimensionAria", { label: dimension.label, value })} — ${t("price.soon")}` : t("variants.dimensionUnavailableAria", { label: dimension.label, value }) : t("variants.dimensionAria", { label: dimension.label, value })}
+                            aria-pressed={selected}
+                        aria-label={!available ? (comingSoon || variants.some(v => isVariantComingSoon(v) && String(v.specifications?.[dimension.key]) === value)) ? `${t("variants.dimensionAria", { label: dimension.label, value })} — ${t("price.soon")}` : t("variants.dimensionUnavailableAria", { label: dimension.label, value }) : t("variants.dimensionAria", { label: dimension.label, value })}
                         className={cn(
                           "min-h-11 rounded-full border-2 px-4 py-2 text-sm font-medium transition-colors",
                           selected
                             ? "border-primary bg-primary text-primary-foreground"
                             : "border-border bg-background text-foreground hover:border-primary/50",
-                          !available && "cursor-not-allowed opacity-40 line-through",
+                          !available && "opacity-70",
                         )}
                       >
                         {selected && <Check className="ml-1 inline h-3.5 w-3.5" aria-hidden="true" />}
@@ -251,7 +251,7 @@ export function MultiDimensionVariantSelector({
           <div className="flex items-center gap-2">
             <Tag className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
             <span className="text-muted-foreground">{t("variants.price")}</span>
-            <span className="font-bold text-primary">{formatIQD(Number(selectedVariant.price))}</span>
+            <span className="font-bold text-primary">{positiveVariantPrice(selectedVariant.price) !== null && selectedVariant.priceStatus !== "pending" ? formatIQD(Number(selectedVariant.price)) : t("price.pending")}</span>
           </div>
           <div className="flex items-center gap-2 sm:justify-end">
             {selectedVariant.stock > 0 ? (
@@ -260,7 +260,7 @@ export function MultiDimensionVariantSelector({
                 <span className="text-emerald-600 dark:text-emerald-400">{t("variants.available", { count: selectedVariant.stock })}</span>
               </>
             ) : (
-              <span className="text-destructive">{comingSoon ? t("price.soon") : t("variants.optionUnavailable")}</span>
+              <span className="text-destructive">{comingSoon || isVariantComingSoon(selectedVariant) ? t("price.soon") : t("variants.optionUnavailable")}</span>
             )}
           </div>
         </div>

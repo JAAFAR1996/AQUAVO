@@ -1,3 +1,4 @@
+import { isVariantPurchasable } from "../../shared/variant-commerce.js";
 import { eq, desc, and } from "drizzle-orm";
 import { getDb } from "../db.js";
 import { randomUUID, randomBytes } from "crypto";
@@ -114,7 +115,7 @@ export class InvoiceStorage {
 
     const [updated] = await db.update(manualInvoices)
       .set(updates as any)
-      .where(eq(manualInvoices.id, id))
+      .where(and(eq(manualInvoices.id, id), eq(manualInvoices.status, "draft")))
       .returning();
     return updated;
   }
@@ -127,11 +128,33 @@ export class InvoiceStorage {
 
     const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000); // 48 ساعة
 
-    const [updated] = await db.update(manualInvoices)
-      .set({ status: "sent", sentAt: new Date(), expiresAt, updatedAt: new Date() } as any)
-      .where(eq(manualInvoices.id, id))
-      .returning();
-    return updated;
+    // A saved draft may predate a product's option setup. Validate its exact
+    // current identity before exposing a confirmation link; never silently map
+    // its old null variant to a different size or rewrite its agreed price.
+    const { lockProductRowForUpdate } = await import("../services/product-cost-snapshot.js");
+    return await db.transaction(async (tx) => {
+      const [locked] = await tx.select().from(manualInvoices)
+        .where(eq(manualInvoices.id, id)).for("update");
+      if (!locked || locked.status !== "draft") return undefined;
+      const lines = Array.isArray(locked.items) ? locked.items : [];
+      for (const line of lines) {
+        const product = await lockProductRowForUpdate(tx, line.productId);
+        if (!product || (product.hasVariants && !line.variantId) || (!product.hasVariants && line.variantId)) {
+          throw Object.assign(new Error("راجع خيارات منتجات الفاتورة قبل الإرسال"), { status: 409 });
+        }
+        if (line.variantId) {
+          const variant = (Array.isArray(product.variants) ? product.variants : []).find((candidate) => candidate.id === line.variantId);
+          if (!isVariantPurchasable(variant, Number(line.quantity))) {
+            throw Object.assign(new Error("خيار في الفاتورة غير متاح؛ راجعه قبل الإرسال"), { status: 409 });
+          }
+        }
+      }
+      const [updated] = await tx.update(manualInvoices)
+        .set({ status: "sent", sentAt: new Date(), expiresAt, updatedAt: new Date() } as any)
+        .where(and(eq(manualInvoices.id, id), eq(manualInvoices.status, "draft")))
+        .returning();
+      return updated;
+    });
   }
 
   /** تأكيد الفاتورة من العميل → ينقص المخزون */
@@ -250,6 +273,15 @@ export class InvoiceStorage {
             new Error(`المنتج غير موجود ضمن الفاتورة (${item.productId})`),
             { status: 400 },
           );
+        }
+        if ((locked.hasVariants && !item.variantId) || (!locked.hasVariants && item.variantId)) {
+          throw Object.assign(new Error("اختيار المنتج غير صالح؛ أعد اختيار النوع المطلوب"), { status: 400 });
+        }
+        if (item.variantId) {
+          const variant = (Array.isArray(locked.variants) ? locked.variants : []).find((candidate) => candidate.id === item.variantId);
+          if (!isVariantPurchasable(variant, Number(item.quantity))) {
+            throw Object.assign(new Error("الخيار المحدد غير متاح للشراء"), { status: 409 });
+          }
         }
         lines.push({ raw: item, snapshot: buildProductCostSnapshot(locked, snapshotAt, item.variantId) });
       }

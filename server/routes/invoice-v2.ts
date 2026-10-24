@@ -1,3 +1,4 @@
+import { isVariantPurchasable } from "../../shared/variant-commerce.js";
 import { randomUUID } from "node:crypto";
 import { Router, type NextFunction, type Request, type Response } from "express";
 import { eq, sql } from "drizzle-orm";
@@ -116,9 +117,12 @@ export function createInvoiceV2Router() {
           const unitPrice = money(raw.unitPrice, `سعر ${product.name}`);
           if (unitPrice <= 0) throw Object.assign(new Error(`سعر ${product.name} يجب أن يكون أكبر من صفر`), { status: 400 });
 
+          if ((product.hasVariants && !raw.variantId) || (!product.hasVariants && raw.variantId)) {
+            throw Object.assign(new Error("اختيار المنتج غير صالح؛ أعد اختيار النوع المطلوب"), { status: 400 });
+          }
           if (raw.variantId) {
             const variant = (Array.isArray(product.variants) ? product.variants : []).find((v: any) => v.id === raw.variantId);
-            if (!variant || Number(variant.stock ?? 0) < quantity) {
+            if (!isVariantPurchasable(variant, quantity)) {
               throw Object.assign(new Error(`الكمية المطلوبة غير متوفرة (${product.name} — ${raw.variantLabel ?? raw.variantId})`), { status: 409 });
             }
           } else if (Number(product.stock ?? 0) < quantity) {

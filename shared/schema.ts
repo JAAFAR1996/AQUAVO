@@ -8,12 +8,17 @@ import { z } from "zod";
 export interface ProductVariant {
   id: string;                         // Unique variant ID (e.g., "S", "M", "L", "18W")
   label: string;                      // Display label (e.g., "30×100 سم", "18 واط")
-  price: number;                      // Price for this variant
+  price: number | null;                      // Price for this variant
   originalPrice?: number;             // Original price for discounts
   stock: number;                      // Stock for this variant
   sku?: string;                       // Optional SKU code
   isDefault?: boolean;                // Is this the default/popular variant
   specifications?: Record<string, any>; // Variant-specific specs (tank size, etc.)
+  images?: string[];                 // Explicit [] means no verified photo
+  priceStatus?: "pending";
+  availabilityStatus?: "coming_soon";
+  isArchived?: boolean;              // Historical identity, excluded from new sales
+  image?: string;
 }
 
 export interface OrderLineItem {

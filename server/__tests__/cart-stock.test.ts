@@ -249,3 +249,52 @@ describe("PUT /api/cart/:itemId route", () => {
         expect(removeFromCart).toHaveBeenCalledWith("user-1", "item-1");
     });
 });
+
+describe("preview-only variant commerce protection", () => {
+    const previewStates = [
+        { isArchived: true },
+        { availabilityStatus: "coming_soon" },
+        { priceStatus: "pending" },
+        { price: null },
+    ];
+
+    afterEach(() => vi.restoreAllMocks());
+
+    it.each(previewStates)("rejects a preview-only option at guest preflight: %j", async (state) => {
+        vi.spyOn(storage, "getProductsByIds").mockResolvedValue([{
+            id: "preview-product", name: "Preview", slug: "preview", price: "5000", stock: 40,
+            hasVariants: true,
+            variants: [{ id: "preview", label: "Preview", price: 1000, stock: 5, ...state }],
+        } as never]);
+        const app = express();
+        app.use(express.json());
+        app.use("/api/cart", createCartRouter());
+        const response = await request(app).post("/api/cart/preflight").send({
+            items: [{ productId: "preview-product", variantId: "preview", quantity: 1 }],
+        });
+        expect(response.status).toBe(200);
+        expect(response.body.items[0].valid).toBe(false);
+    });
+
+    it.each(previewStates)("rejects adding a preview-only option despite positive sibling stock: %j", async (state) => {
+        const product = {
+            id: "preview-product", name: "Preview", price: "5000", stock: 40, hasVariants: true,
+            variants: [{ id: "preview", label: "Preview", price: 1000, stock: 5, ...state }],
+        };
+        vi.mocked(getDb).mockReturnValue(makeFakeDb(undefined, product) as never);
+        const orderStorage = new OrderStorage();
+        await expect(orderStorage.addToCart("user", "preview-product", 1, 1, "Forged", "preview"))
+            .rejects.toThrow("الخيار المحدد لم يعد متاحاً");
+    });
+
+    it.each(previewStates)("rejects incrementing an old cart's preview-only option: %j", async (state) => {
+        const cartItem = { id: "preview-item", userId: "user", productId: "preview-product", variantId: "preview", quantity: 1 };
+        const product = {
+            id: "preview-product", name: "Preview", price: "5000", stock: 40, hasVariants: true,
+            variants: [{ id: "preview", label: "Preview", price: 1000, stock: 5, ...state }],
+        };
+        vi.mocked(getDb).mockReturnValue(makeFakeDb(cartItem, product) as never);
+        await expect(new OrderStorage().updateCartItem("user", "preview-item", 2))
+            .rejects.toThrow("الخيار المحدد لم يعد متاحاً");
+    });
+});

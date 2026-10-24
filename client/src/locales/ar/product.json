@@ -37,7 +37,8 @@
   "price": {
     "soon": "قريباً",
     "perKilo": " / كيلو",
-    "from": "يبدأ من"
+    "from": "يبدأ من",
+    "pending": "يحدد لاحقا"
   },
   "stock": {
     "available": "متوفر ({{count}} قطعة)",

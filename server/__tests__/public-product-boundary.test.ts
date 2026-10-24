@@ -101,6 +101,23 @@ describe("public product DTO — the leaked fields are gone", () => {
     expect(variant).toMatchObject({ id: "v1", label: "صغير", price: 15000, stock: 4, image: "v1.webp" });
   });
 
+  it("preserves option preview metadata but never exposes archived source or costs", () => {
+    const row = { ...leakedProductRow(), variants: [{
+      id: "pending", label: "قياس جديد", price: null, stock: 0,
+      images: [], priceStatus: "pending", availabilityStatus: "coming_soon", isArchived: false,
+      archivedSourceSnapshot: { costPrice: 123, supplier: "private" },
+      costPrice: 123, costEvidence: { supplier: "private" },
+    }] };
+    const pub = toPublicProduct(row)!;
+    expect(pub.variants).toEqual([{
+      id: "pending", label: "قياس جديد", price: null, stock: 0,
+      images: [], priceStatus: "pending", availabilityStatus: "coming_soon", isArchived: false,
+    }]);
+    expect(findForbiddenFieldPaths(pub)).toEqual([]);
+    expect(JSON.stringify(pub)).not.toContain("archivedSourceSnapshot");
+    expect(JSON.stringify(pub)).not.toContain("private");
+  });
+
   it("leaves NO forbidden-looking key anywhere in the response tree, at any depth", () => {
     const pub = toPublicProduct(leakedProductRow());
     expect(findForbiddenFieldPaths(pub)).toEqual([]);

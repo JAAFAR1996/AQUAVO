@@ -2,8 +2,7 @@
  * EmbeddedVariantSelector accessibility tests (Phase E).
  *
  * Variant options are toggle-like buttons, not links, so they must expose
- * aria-pressed reflecting the current selection and mark unavailable
- * (out-of-stock) options as disabled with a discernible reason.
+ * aria-pressed reflecting the current selection and keep unavailable options previewable with a discernible reason.
  */
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
@@ -40,7 +39,7 @@ describe("EmbeddedVariantSelector", () => {
         expect(screen.getByRole("button", { name: /كبير/ })).toHaveAttribute("aria-pressed", "false");
     });
 
-    it("disables an out-of-stock variant and tells screen readers why", () => {
+    it("keeps an out-of-stock option previewable with an unavailable label", () => {
         render(
             <EmbeddedVariantSelector
                 variants={variants}
@@ -49,7 +48,7 @@ describe("EmbeddedVariantSelector", () => {
             />
         );
         const outOfStock = screen.getByRole("button", { name: "كبير، غير متوفر" });
-        expect(outOfStock).toBeDisabled();
+        expect(outOfStock).not.toBeDisabled();
     });
 
     it("calls onVariantSelect with the chosen variant on click", async () => {
@@ -114,4 +113,21 @@ describe("EmbeddedVariantSelector", () => {
         await user.click(screen.getByRole("button", { name: "كبير" }));
         expect(onVariantSelect).toHaveBeenCalledWith(spongeFilterVariants[1]);
     });
+});
+
+ describe("pending and archived options", () => {
+ it("does not imply an initial selection or price", () => {
+  render(<EmbeddedVariantSelector variants={variants} selectedVariantId="" onVariantSelect={vi.fn()} />);
+  for (const button of screen.getAllByRole("button")) expect(button).toHaveAttribute("aria-pressed", "false");
+ });
+ it("shows pending price and lets an incoming option be previewed by keyboard", async () => {
+  const incoming: ProductVariant = { id: "incoming", label: "قادم", price: null, stock: 0, priceStatus: "pending", availabilityStatus: "coming_soon" };
+  const onSelect = vi.fn();
+  render(<EmbeddedVariantSelector variants={[incoming, { ...variants[0], isArchived: true }]} selectedVariantId="incoming" onVariantSelect={onSelect} />);
+  expect(screen.getByText("يحدد لاحقا")).toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "صغير" })).not.toBeInTheDocument();
+  const button = screen.getByRole("button", { name: /قادم/ });
+  button.focus(); await userEvent.setup().keyboard("{Enter}");
+  expect(onSelect).toHaveBeenCalledWith(incoming);
+ });
 });

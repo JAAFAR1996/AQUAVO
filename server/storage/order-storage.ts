@@ -1,3 +1,4 @@
+import { isVariantActive, isVariantComingSoon, positiveVariantPrice } from "../../shared/variant-commerce.js";
 import { randomBytes } from "node:crypto";
 import { normalizeCheckoutLines, sessionHash } from "../services/checkout-security.js";
 import { eligibleCoupon, couponBenefit } from "../services/coupon-policy.js";
@@ -285,7 +286,7 @@ export class OrderStorage {
                 if (item.variantId) {
                     const variants = Array.isArray(product.variants) ? product.variants : [];
                     const selectedVariant = variants.find((variant) => variant.id === item.variantId);
-                    if (!selectedVariant) {
+                    if (!selectedVariant || !isVariantActive(selectedVariant) || isVariantComingSoon(selectedVariant) || selectedVariant.priceStatus === "pending") {
                         throw new Error(`Invalid variant ${item.variantId} for ${product.name}`);
                     }
 
@@ -621,7 +622,7 @@ export class OrderStorage {
 
             const stale =
                 Boolean((product as any).deletedAt)
-                || (hasVariants && (!variantId || !selectedVariant))
+                || (hasVariants && (!variantId || !selectedVariant || !isVariantActive(selectedVariant)))
                 || (!hasVariants && Boolean(variantId));
 
             if (stale) {
@@ -636,12 +637,12 @@ export class OrderStorage {
                 // cannot show an obsolete variant price/label while checkout
                 // charges the live canonical price.
                 ...(selectedVariant ? {
-                    variantPrice: String(selectedVariant.price),
+                    variantPrice: selectedVariant.priceStatus === "pending" || positiveVariantPrice(selectedVariant.price) === null ? null : String(selectedVariant.price),
                     variantLabel: selectedVariant.label,
                 } : {}),
                 product: {
                     ...toPublicProduct(product),
-                    price: selectedVariant?.price ?? product.price,
+                    price: selectedVariant ? (selectedVariant.priceStatus === "pending" ? null : selectedVariant.price) : product.price,
                     name: selectedVariant?.label
                         ? `${product.name} (${selectedVariant.label})`
                         : product.name,
@@ -692,7 +693,7 @@ export class OrderStorage {
         if (hasVariants) {
             if (!variantId) throw new Error(CART_ERROR_VARIANT_REQUIRED);
             const selected = variants.find((v) => v.id === variantId);
-            if (!selected) throw new Error(CART_ERROR_VARIANT_INVALID);
+            if (!selected || !isVariantActive(selected) || isVariantComingSoon(selected) || selected.priceStatus === "pending" || positiveVariantPrice(selected.price) === null) throw new Error(CART_ERROR_VARIANT_INVALID);
             effectiveStock = Number(selected.stock ?? 0);
             canonicalVariantPrice = Number(selected.price ?? 0);
             canonicalVariantLabel = selected.label;
@@ -781,7 +782,7 @@ export class OrderStorage {
                 if (hasVariants) {
                     if (!existing.variantId) throw new Error(CART_ERROR_VARIANT_REQUIRED);
                     const selected = variants.find((v) => v.id === existing.variantId);
-                    if (!selected) throw new Error(CART_ERROR_VARIANT_INVALID);
+                    if (!selected || !isVariantActive(selected) || isVariantComingSoon(selected) || selected.priceStatus === "pending" || positiveVariantPrice(selected.price) === null) throw new Error(CART_ERROR_VARIANT_INVALID);
                     effectiveStock = Number(selected.stock ?? 0);
                 } else if (existing.variantId) {
                     throw new Error(CART_ERROR_VARIANT_INVALID);

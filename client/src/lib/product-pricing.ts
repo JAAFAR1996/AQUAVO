@@ -1,7 +1,11 @@
+import { isVariantActive } from "@shared/variant-commerce";
 interface PriceSource {
   price?: unknown;
   originalPrice?: unknown;
   stock?: unknown;
+  isArchived?: unknown;
+  availabilityStatus?: unknown;
+  priceStatus?: unknown;
 }
 
 interface ProductPriceSource extends PriceSource {
@@ -30,7 +34,7 @@ export function getProductPriceDisplay(
   product: ProductPriceSource | null | undefined,
   selectedVariant?: PriceSource | null,
 ): ProductPriceDisplay {
-  const variants = product?.hasVariants ? product.variants ?? [] : [];
+  const variants = product?.hasVariants ? (product.variants ?? []).filter(isVariantActive) : [];
 
   if (!selectedVariant && product?.hasVariants) {
     const available = variants.filter(variant => positivePrice(variant.price) !== null && positivePrice(variant.stock) !== null);
@@ -38,7 +42,7 @@ export function getProductPriceDisplay(
     // buy. Entirely unavailable products can still show their listed prices.
     const priceOptions = available.length > 0 ? available : variants;
     const prices = priceOptions
-      .map((variant) => positivePrice(variant.price))
+      .map((variant) => variant.priceStatus === "pending" ? null : positivePrice(variant.price))
       .filter((price): price is number => price !== null);
 
     // A "from" price represents multiple options, so a parent or another
@@ -52,7 +56,7 @@ export function getProductPriceDisplay(
   }
 
   const source = selectedVariant ?? product;
-  const price = positivePrice(source?.price);
+  const price = source?.isArchived === true || source?.priceStatus === "pending" ? null : positivePrice(source?.price);
   const referencePrice = positivePrice(source?.originalPrice);
   const originalPrice = price !== null && referencePrice !== null && referencePrice > price
     ? referencePrice
