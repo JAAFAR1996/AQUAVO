@@ -47,14 +47,30 @@ export function EmbeddedVariantSelector({
 }: EmbeddedVariantSelectorProps) {
   const { t } = useTranslation("product");
   const dimensions = useMemo(() => extractVariantDimensions(variants), [variants]);
-  const sortedVariants = useMemo(
-    () => [...variants].sort((a, b) => Number(a.price) - Number(b.price)),
-    [variants],
-  );
+  const sortedVariants = useMemo(() => {
+    // When every variant specifies a physical rock size, show the dimensions
+    // from small to large. Price=0 means unpriced, NOT a cheap product.
+    const areStoneSizes = variants.length > 0 && variants.every((variant) =>
+      /^\d+\s*[–-]\s*\d+\s*سم$/.test(String(variant.specifications?.["حجم القطعة"] ?? "")),
+    );
+    if (areStoneSizes) {
+      return [...variants].sort((a, b) =>
+        parseInt(String(a.specifications?.["حجم القطعة"])) -
+        parseInt(String(b.specifications?.["حجم القطعة"])),
+      );
+    }
+    return [...variants].sort((a, b) => Number(a.price) - Number(b.price));
+  }, [variants]);
 
   if (!variants || variants.length <= 1 || isMultiDimensionVariantSet(variants)) return null;
 
-  const selectedVariant = sortedVariants.find((variant) => variant.id === selectedVariantId) ?? sortedVariants[0];
+  // Empty selection must never show a 0-IQD price when another SKU has a
+  // real, known price (for example, upcoming volcanic-rock sizes).
+  const selectedVariant = sortedVariants.find((variant) => variant.id === selectedVariantId)
+    ?? sortedVariants.find((variant) => variant.stock > 0 && Number(variant.price) > 0)
+    ?? sortedVariants.find((variant) => variant.isDefault && Number(variant.price) > 0)
+    ?? sortedVariants.find((variant) => Number(variant.price) > 0)
+    ?? sortedVariants[0];
   const selectedModel = cleanSpecificationValue(selectedVariant.specifications?.الموديل);
   const customerFacingDimensionKey = dimensions.length === 1 ? dimensions[0].key : undefined;
   const detectedTitle = dimensions[0]?.label ? t("variants.choose", { label: dimensions[0].label }) : t("variants.chooseOption");
@@ -71,6 +87,7 @@ export function EmbeddedVariantSelector({
           const selected = variant.id === selectedVariant.id;
           const inStock = variant.stock > 0;
           const choiceLabel = getVariantChoiceLabel(variant, customerFacingDimensionKey);
+          const unpricedUpcoming = !inStock && Number(variant.price) <= 0;
 
           return (
             <button
@@ -79,13 +96,13 @@ export function EmbeddedVariantSelector({
               onClick={() => onVariantSelect(variant)}
               disabled={!inStock}
               aria-pressed={selected}
-              aria-label={!inStock ? comingSoon ? `${choiceLabel} — ${t("price.soon")}` : t("variants.unavailableAria", { label: choiceLabel }) : choiceLabel}
+              aria-label={!inStock ? (comingSoon || unpricedUpcoming) ? `${choiceLabel} — ${t("price.soon")}` : t("variants.unavailableAria", { label: choiceLabel }) : choiceLabel}
               className={cn(
                 "min-h-11 rounded-full border-2 px-4 py-2 text-sm font-medium transition-colors",
                 selected
                   ? "border-primary bg-primary text-primary-foreground"
                   : "border-border bg-background text-foreground hover:border-primary/50",
-                !inStock && "cursor-not-allowed opacity-45 line-through",
+                !inStock && (unpricedUpcoming ? "cursor-not-allowed opacity-60" : "cursor-not-allowed opacity-45 line-through"),
               )}
             >
               {selected && <Check className="ml-1 inline h-3.5 w-3.5" aria-hidden="true" />}
@@ -106,7 +123,9 @@ export function EmbeddedVariantSelector({
         <span className="inline-flex items-center gap-2">
           <Tag className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
           <span className="text-muted-foreground">{t("variants.price")}</span>
-          <span className="font-bold text-primary">{formatIQD(Number(selectedVariant.price))}</span>
+          <span className="font-bold text-primary">
+            {Number(selectedVariant.price) > 0 ? formatIQD(Number(selectedVariant.price)) : t("price.soon")}
+          </span>
         </span>
 
         {selectedVariant.originalPrice && selectedVariant.originalPrice > selectedVariant.price && (
