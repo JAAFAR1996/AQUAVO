@@ -42,9 +42,9 @@ interface HomeHeroProps {
  * It lives in its own component with no hooks, no data fetching and no context
  * so that script/prerender-home-hero.ts can render the very same tree to static
  * HTML at build time. api/ssr-meta.ts injects that HTML inside #root, which
- * lets the hero image paint before the React bundle has executed. main.tsx
- * mounts with createRoot().render(), and that clears the container first, so
- * this component replaces the prerendered copy rather than duplicating it.
+ * lets the hero image paint before the React bundle has executed. Arabic home
+ * now prerenders the full StorefrontRoot and hydrates it, preserving this image
+ * node. The hero-only fallback on other locales still uses createRoot().
  *
  * Keep this component free of hooks, browser globals and imported state — the
  * prerender runs in Node. client/src/components/home/__tests__ pins that.

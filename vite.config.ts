@@ -135,6 +135,14 @@ export default defineConfig({
         codeSplitting: {
           groups: [
             {
+              // Reserve React (including jsx-runtime) before recursive vendor
+              // grouping can pull it into animation/UI chunks. Otherwise even
+              // a tiny bootstrap importing React has to fetch Framer Motion.
+              name: "vendor-react",
+              test: (id) => getVendorChunkName(id) === "vendor-react",
+              priority: 100,
+            },
+            {
               name: getVendorChunkName,
               test: (id) => id.includes("commonjsHelpers") || id.includes("node_modules"),
             },

@@ -9,6 +9,7 @@ import type { GuideProduct } from "./_guides-content.js";
 import { approvedProductSlugsForGuide, productCategoryForGuide, productsAppropriateForGuide } from "../shared/guide-links.js";
 import { SPA_GUIDE_PAGES } from "./_guides-content-spa.js";
 import { HOME_HERO_HTML } from "./_home-hero-html.js";
+import { HOME_SHELL_HTML } from "./_home-shell-html.js";
 import { getSeoMetaOverride } from "./_seo-content.js";
 import { AQUAVO_FAQ_ITEMS } from "../shared/faq-content.js";
 import { toPublicProduct, toPublicVariant } from "../shared/public-product.js";
@@ -916,23 +917,28 @@ function safeJsonLd(obj: object): string {
 const HOME_HERO_PATHS = new Set(["/", "/ar"]);
 
 /**
- * Put the prerendered hero inside #root so the LCP image can paint before the
- * React bundle executes. main.tsx mounts with createRoot().render(), which
- * clears the container on its first render, so React replaces this markup
- * rather than duplicating it and no hydration comparison ever happens.
+ * The Arabic home receives the complete anonymous React tree. Hydration keeps
+ * its original image node instead of throwing it away and recording a second,
+ * much later LCP. Other locales retain the existing hero-only client path.
  *
  * The match is deliberately anchored to the empty #root element: if the shell
  * ever ships with content of its own this becomes a no-op instead of silently
  * dropping it. server/__tests__/home-hero-shell.test.ts pins both halves.
  */
-export function injectHomeHero(html: string, pathname: string): string {
+export function injectHomeHero(html: string, pathname: string, locale: Locale = DEFAULT_LOCALE): string {
   if (!HOME_HERO_PATHS.has(pathname)) return html;
+  // The build renders Router at "/". The legacy /ar alias and other locales
+  // must keep their own client navigation state, rather than hydrate that tree.
+  const hydratable = locale === DEFAULT_LOCALE && pathname === "/";
   // A function replacer, not a string: the hero markup is arbitrary HTML and
   // "$&"-style sequences in a replacement string would be substituted.
-  return html.replace(
+  const shell = html.replace(
     /(<div id="root"(?:\s[^>]*)?>)\s*(<\/div>)/,
-    (_match, open: string, close: string) => `${open}${HOME_HERO_HTML}${close}`,
+    (_match, open: string, close: string) => hydratable
+      ? `${open.replace(/>$/, ' data-aq-ssr="home">')}${HOME_SHELL_HTML}${close}`
+      : `${open}${HOME_HERO_HTML}${close}`,
   );
+  return shell;
 }
 
 export function injectMeta(html: string, meta: PageMeta & { url: string; image: string }): string {
@@ -1370,7 +1376,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       indexable: !meta.noIndex && !meta.notFound,
       indexableLocales: meta.indexableLocales,
     });
-    const html = injectHomeHero(localizedHtml, pathname);
+    const html = injectHomeHero(localizedHtml, pathname, locale);
     // Apply the same eligibility to HTML and Markdown responses. This also
     // overrides the semantic wrapper's production default for unreviewed copy.
     if (meta.noIndex || meta.notFound) res.setHeader("X-Robots-Tag", "noindex, nofollow, noarchive");

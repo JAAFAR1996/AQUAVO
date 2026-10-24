@@ -2,6 +2,7 @@ import { build as esbuild } from "esbuild";
 import { build as viteBuild } from "vite";
 import { rm, readFile, rename, mkdir, writeFile } from "fs/promises";
 import { generateHomeHeroModule } from "./prerender-home-hero.js";
+import { generateHomeShellModule } from "./prerender-home-shell.js";
 import { generateStaticPagesModule } from "./prerender-static-pages.js";
 
 // server deps to bundle to reduce openat(2) syscalls
@@ -67,6 +68,8 @@ async function buildAll() {
   // component rather than a second copy of the markup.
   console.log("prerendering home hero...");
   await generateHomeHeroModule();
+  console.log("prerendering hydratable home shell...");
+  await generateHomeShellModule();
 
   // Prerender the hook-free static pages so the crawler sees the same content
   // a visitor does. See script/prerender-static-pages.ts.

@@ -1313,8 +1313,8 @@ function markInitLoaderSeen() {
 }
 
 // Aurora init loader shown once per session (first paint only), then AppShell takes over
-function App() {
-  const [initDone, setInitDone] = useState(hasSeenInitLoader);
+function App({ hasInitialShell = false }: { hasInitialShell?: boolean }) {
+  const [initDone, setInitDone] = useState(() => hasInitialShell || hasSeenInitLoader());
   const handleInitDone = useCallback(() => {
     markInitLoaderSeen();
     setInitDone(true);

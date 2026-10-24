@@ -13,9 +13,11 @@ import { useTranslation } from "react-i18next";
 export function ThemeSwitcher() {
   const { t } = useTranslation("common");
   // First-time visitors default to Light; saved preferences still win.
-  // Read synchronously so the dropdown label matches the theme the head bootstrap
-  // script already applied, with no flicker/mismatch.
+  // The head bootstrap applies the saved page colors before paint. The icon
+  // starts at the same light snapshot as SSR, then follows storage on mount.
+  // Reading storage during hydration would replace the server's SVG subtree.
   const [theme, setTheme] = useState<ThemeOption>(() => {
+    if (typeof document !== "undefined" && document.getElementById("root")?.dataset.aqSsr === "home") return "light";
     try {
       return (localStorage.getItem("theme") as ThemeOption | null) || "light";
     } catch {

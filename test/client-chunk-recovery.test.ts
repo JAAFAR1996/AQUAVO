@@ -28,7 +28,11 @@ describe("client stale chunk recovery", () => {
   it("installs stale-chunk recovery before the app bootstrap import", () => {
     const main = read("client/src/main.tsx");
     expect(main).toContain("installChunkLoadRecovery();");
-    expect(main.indexOf("installChunkLoadRecovery();")).toBeLessThan(main.indexOf('import("./App")'));
+    for (const module of ["./i18n", "./storefront-root"]) {
+      const importCall = `import("${module}")`;
+      expect(main).toContain(importCall);
+      expect(main.indexOf("installChunkLoadRecovery();")).toBeLessThan(main.indexOf(importCall));
+    }
     expect(main).toContain("recoverFromDynamicImportError(error)");
   });
 });

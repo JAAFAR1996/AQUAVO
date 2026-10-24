@@ -3,8 +3,9 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
-import browserHandler from "../../api/ssr-meta";
+import browserHandler, { injectHomeHero } from "../../api/ssr-meta";
 import { HOME_HERO_HTML } from "../../api/_home-hero-html";
+import { HOME_SHELL_HTML } from "../../api/_home-shell-html";
 
 /**
  * The homepage served an empty <div id="root">, so the hero image — the LCP
@@ -60,11 +61,34 @@ describe("the homepage hero is in the initial HTML", () => {
     expect(html).toContain('sizes="(max-width: 1024px) 100vw, 48vw"');
   });
 
-  it("renders the hero inside #root so React replaces it on mount", async () => {
+  it("ships the complete home tree with an explicit hydration marker", async () => {
     const html = await renderPath("/");
     const root = html.match(/<div id="root"(?:\s[^>]*)?>([\s\S]*?)<\/div>\s*<script/);
     expect(root, "expected a #root element containing the hero").not.toBeNull();
     expect(root?.[1]).toContain("aq-waterline-hero");
+    expect(html).toContain('data-aq-ssr="home"');
+    expect(root?.[1]).toContain("aq-site-header");
+    expect(root?.[1]).toContain(HOME_SHELL_HTML);
+  });
+
+  it("keeps partial, localized and nonempty roots out of the hydration path", () => {
+    const template = `<html><head><link rel="stylesheet" href="/styles.css"></head><body><div id="root"></div></body></html>`;
+    for (const [pathname, locale] of [["/ar", "ar"], ["/", "en"], ["/", "ckb"]] as const) {
+      const html = injectHomeHero(template, pathname, locale);
+      expect(html).not.toContain('data-aq-ssr="home"');
+      expect(html).toContain(HOME_HERO_HTML);
+      expect(html).toContain('rel="stylesheet" href="/styles.css"');
+    }
+    const occupied = template.replace('<div id="root"></div>', '<div id="root"><p>existing content</p></div>');
+    expect(injectHomeHero(occupied, "/")).toBe(occupied);
+  });
+
+  it("includes working links and complete navigation before JavaScript", async () => {
+    const html = await renderPath("/");
+    expect(html).toContain('href="/products"');
+    expect(html).toContain('href="/journey"');
+    expect(html).toContain('href="/order-tracking"');
+    expect(html).toContain('rel="stylesheet"');
   });
 
   it("reserves the sticky header's space so mounting cannot shift the hero", async () => {

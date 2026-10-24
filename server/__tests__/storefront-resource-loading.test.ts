@@ -12,10 +12,16 @@ const sources = JSON.parse(readFileSync(resolve(fontDir, "SOURCES.json"), "utf8"
 };
 
 describe("storefront resource loading without visual changes", () => {
-  it("preloads existing startup chunks without eagerly loading optional routes", () => {
+  it("keeps bootstrap small and leaves application modules behind locale initialization", () => {
     const template = readFileSync(resolve(root, "dist/ssr-template/index.html"), "utf8");
     const hints = template.match(/<link\b[^>]*rel="modulepreload"[^>]*>/g) ?? [];
-    expect(hints.length).toBeGreaterThan(0);
+    const entry = template.match(/<script\b[^>]*src="([^"]+\/entries\/[^\"]+|\/entries\/[^\"]+)"/)?.[1];
+    expect(entry).toBeTruthy();
+    const entryCode = readFileSync(resolve(root, "dist/public", entry!.replace(/^\//, "")), "utf8");
+    // A tiny bootstrap captures attribution and guards chunk recovery before
+    // fetching i18n/App. It must not eagerly drag React/Motion into first paint.
+    expect(Buffer.byteLength(entryCode)).toBeLessThan(30_000);
+    expect(entryCode).not.toMatch(/import\s*\{[^}]+\}\s*from["'][^"']*vendor-(?:react|animation)/);
     for (const hint of hints) {
       const href = hint.match(/href="([^"]+)"/)?.[1];
       expect(href).toBeTruthy();
