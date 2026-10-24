@@ -11,10 +11,10 @@ const VOLCANIC_PRODUCT_IDS = new Set([
 ]);
 
 const STONE_SIZES = [
-  { key: "small", range: "1–2 سم", current: false },
-  { key: "medium", range: "3–5 سم", current: true },
-  { key: "large", range: "5–8 سم", current: false },
-  { key: "extraLarge", range: "10–30 سم", current: false },
+  { key: "small", range: "1–2", current: false },
+  { key: "medium", range: "3–5", current: true },
+  { key: "large", range: "5–8", current: false },
+  { key: "extraLarge", range: "10–30", current: false },
 ] as const;
 
 /**
@@ -30,10 +30,20 @@ const STONE_SIZES = [
 export function VolcanicSizeOptions({ product }: { product: VolcanicSizeProduct }) {
   const { t } = useTranslation("product");
 
+  // The API translates specification keys on /en and /ckb pages. These are
+  // the real current names in content_translations, not guessed UI labels.
+  const specifications = product.specifications ?? {};
+  const verifiedCurrentSize = [
+    specifications["حجم القطع"],
+    specifications["Piece Size"],
+    specifications["Piece size"],
+    specifications["قەبارەی پارچەکان"],
+  ].some((value) => typeof value === "string" && /^3\s*[–-]\s*5\s*(?:سم|cm)$/i.test(value.trim()));
+
   if (
     !VOLCANIC_PRODUCT_IDS.has(product.id) ||
     product.hasVariants ||
-    product.specifications?.["حجم القطع"] !== "3–5 سم"
+    !verifiedCurrentSize
   ) {
     return null;
   }
@@ -62,7 +72,7 @@ export function VolcanicSizeOptions({ product }: { product: VolcanicSizeProduct 
               <input
                 type="radio"
                 name={`volcanic-size-${product.id}`}
-                value={size.range}
+                value={`${size.range} ${t("volcanicSizes.unit")}`}
                 checked={size.current}
                 disabled={!selectable}
                 readOnly
@@ -71,7 +81,7 @@ export function VolcanicSizeOptions({ product }: { product: VolcanicSizeProduct 
               <span className={cn("font-semibold", size.current && "text-primary")}>
                 {t(`volcanicSizes.${size.key}`)}
               </span>
-              <bdi dir="ltr" className="font-medium">{size.range}</bdi>
+              <bdi dir="ltr" className="font-medium">{size.range} {t("volcanicSizes.unit")}</bdi>
               <span className="text-xs text-muted-foreground">
                 {size.current ? currentState : t("price.soon")}
               </span>
