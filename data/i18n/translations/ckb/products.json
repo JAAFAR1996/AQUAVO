@@ -582,7 +582,9 @@
         }
       },
       "variantLabels": {
-        "1kg": "1 کگم"
+        "1kg": "1 کگم",
+        "pickling": "چارەسەرکراو — Pickling",
+        "unpicked": "چارەسەرنەکراو — Unpicked"
       }
     }
   },
@@ -1017,7 +1019,10 @@
           }
         }
       },
-      "variantLabels": {}
+      "variantLabels": {
+        "current-5kg": "پاکەتی ئێستا — 5 کگ",
+        "1mm": "دانەی 1 ملم — بەم زووانە"
+      }
     }
   },
   "houyi-fat-injection": {
@@ -2154,7 +2159,10 @@
           }
         }
       },
-      "variantLabels": {}
+      "variantLabels": {
+        "2-6mm": "2–6 ملم",
+        "5-8mm": "5–8 ملم — بەم زووانە"
+      }
     }
   },
   "houyi-sucker-buckle": {
@@ -2484,7 +2492,12 @@
           }
         }
       },
-      "variantLabels": {}
+      "variantLabels": {
+        "1-2cm": "بچووک — 1–2 سم",
+        "3-5cm": "مامناوەند — 3–5 سم",
+        "5-8cm": "گەورە — 5–8 سم",
+        "10-30cm": "زۆر گەورە — 10–30 سم"
+      }
     }
   },
   "houyi-volcanic-stone-red": {
@@ -2538,7 +2551,12 @@
           }
         }
       },
-      "variantLabels": {}
+      "variantLabels": {
+        "1-2cm": "بچووک — 1–2 سم",
+        "3-5cm": "مامناوەند — 3–5 سم",
+        "5-8cm": "گەورە — 5–8 سم",
+        "10-30cm": "زۆر گەورە — 10–30 سم"
+      }
     }
   },
   "houyi-water-changer-siphon": {
@@ -2674,7 +2692,10 @@
           }
         }
       },
-      "variantLabels": {}
+      "variantLabels": {
+        "30x50cm": "30×50 سم",
+        "120x30x2": "نزیکەی 120×30×2 — یەکە دیاری نەکراوە"
+      }
     }
   },
   "houyi-white-sand": {
@@ -7810,7 +7831,11 @@
           }
         }
       },
-      "variantLabels": {}
+      "variantLabels": {
+        "15-15mm": "کۆتاییەکانی 15/15 ملم",
+        "15-19mm": "کۆتاییەکانی 15/19 ملم",
+        "19-19mm": "کۆتاییەکانی 19/19 ملم"
+      }
     }
   },
   "aquarium-clear-lid-supports": {
@@ -7857,7 +7882,12 @@
           }
         }
       },
-      "variantLabels": {}
+      "variantLabels": {
+        "6mm": "بۆ شووشەی 6 ملم",
+        "8mm": "بۆ شووشەی 8 ملم",
+        "10mm": "بۆ شووشەی 10 ملم",
+        "12mm": "بۆ شووشەی 12 ملم"
+      }
     }
   },
   "voonline-filter-intake-guards": {
@@ -7908,7 +7938,10 @@
           }
         }
       },
-      "variantLabels": {}
+      "variantLabels": {
+        "12mm": "12 ملم",
+        "16mm": "16 ملم"
+      }
     }
   },
   "glass-filter-intake-u": {
@@ -7960,7 +7993,10 @@
           }
         }
       },
-      "variantLabels": {}
+      "variantLabels": {
+        "12mm": "12 ملم",
+        "16mm": "16 ملم"
+      }
     }
   },
   "glass-filter-outlet-horn": {
@@ -8012,7 +8048,10 @@
           }
         }
       },
-      "variantLabels": {}
+      "variantLabels": {
+        "12mm": "12 ملم",
+        "16mm": "16 ملم"
+      }
     }
   },
   "green-filter-hose": {
@@ -8060,7 +8099,10 @@
           }
         }
       },
-      "variantLabels": {}
+      "variantLabels": {
+        "12mm": "تیرەی ناوەوە 12 ملم",
+        "16mm": "تیرەی ناوەوە 16 ملم"
+      }
     }
   },
   "houyi-brine-shrimp-hatchery-250ml": {
@@ -8575,7 +8617,10 @@
           }
         }
       },
-      "variantLabels": {}
+      "variantLabels": {
+        "k-12-16": "K-12/16",
+        "k-16-22": "K-16/22"
+      }
     }
   },
   "dr-tank-plus-complete-250ml": {
@@ -8822,7 +8867,11 @@
           }
         }
       },
-      "variantLabels": {}
+      "variantLabels": {
+        "xbl-300": "XBL-300 — 300 لیتر/کاتژمێر",
+        "xbl-500": "XBL-500 — 500 لیتر/کاتژمێر",
+        "xbl-600": "XBL-600 — 500 لیتر/کاتژمێر"
+      }
     }
   },
   "sunsun-hbl-301-hang-on-filter": {
@@ -8916,7 +8965,10 @@
           }
         }
       },
-      "variantLabels": {}
+      "variantLabels": {
+        "eh-300": "EH-300",
+        "eh-500": "EH-500"
+      }
     }
   },
   "houyi-decorative-sands-2-5kg": {
@@ -8964,7 +9016,12 @@
           }
         }
       },
-      "variantLabels": {}
+      "variantLabels": {
+        "pink": "پەمەیی — 0.2–0.5 ملم",
+        "peach": "گوڵی خۆخ — 0.5–1 ملم",
+        "grey": "یەشمی خۆڵەمێشی — 0.5–1 ملم",
+        "snowflake": "سپیی بەفر — 0.8–1.2 ملم"
+      }
     }
   },
   "dophin-cf600-external-canister-filter": {
@@ -9058,7 +9115,10 @@
           }
         }
       },
-      "variantLabels": {}
+      "variantLabels": {
+        "aq-1000": "AQ-1000 — 15 وات",
+        "aq-1500": "AQ-1500 — 25 وات"
+      }
     }
   },
   "glass-filter-outlet-double-cut": {
@@ -9110,7 +9170,10 @@
           }
         }
       },
-      "variantLabels": {}
+      "variantLabels": {
+        "12mm": "12 ملم",
+        "16mm": "16 ملم"
+      }
     }
   },
   "nano-usb-clip-light-3w": {
@@ -9306,6 +9369,10 @@
           "نوع الترشيح": {
             "label": "جۆری فلتەرکردن",
             "value": "میکانیکی"
+          },
+          "الأبعاد التقريبية": {
+            "label": "ڕەهەندە نزیکەییەکان",
+            "value": "120×30×0.8 — بەپێی پسووڵەکە؛ یەکەی پێوانە دیاری نەکراوە."
           }
         }
       },
@@ -9350,6 +9417,10 @@
           "نوع الترشيح": {
             "label": "جۆری فلتەرکردن",
             "value": "میکانیکی و دوای نیشتەجێبوونی بەکتریا زیندەیی"
+          },
+          "الأبعاد التقريبية": {
+            "label": "ڕەهەندە نزیکەییەکان",
+            "value": "45×45×4 — بەپێی پسووڵەکە؛ یەکەی پێوانە دیاری نەکراوە."
           }
         }
       },
@@ -9489,7 +9560,10 @@
           }
         }
       },
-      "variantLabels": {}
+      "variantLabels": {
+        "brown": "قاوەیی",
+        "red": "سوور"
+      }
     }
   },
   "houyi-mountain-wood": {

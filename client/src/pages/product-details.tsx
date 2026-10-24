@@ -1,3 +1,5 @@
+import { isVariantActive, isVariantPurchasable, isVariantComingSoon } from "@shared/variant-commerce";
+import { getVariantGallery } from "@/lib/variant-gallery";
 import { useState, useEffect, useRef } from "react";
 import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
@@ -173,7 +175,8 @@ export default function ProductDetails() {
   }, [product?.id]);
 
   // Use embedded variants if available, otherwise use legacy
-  const hasEmbeddedVariants = product?.hasVariants && product?.variants && product.variants.length > 0;
+  const hasEmbeddedVariants = Boolean(product?.hasVariants);
+  const activeVariants = product?.variants?.filter(isVariantActive) ?? [];
 
   // Customers explicitly select a size; do not add an unrequested SKU.
   // Reconcile a prior selection against fresh server prices and inventory.
@@ -183,7 +186,7 @@ export default function ProductDetails() {
       return;
     }
     setSelectedVariant((current) => current
-      ? (product.variants!.find((variant) => variant.id === current.id) ?? null)
+      ? (product.variants!.find((variant) => variant.id === current.id && isVariantActive(variant)) ?? null)
       : null);
   }, [product?.id, hasEmbeddedVariants, product?.variants]);
 
@@ -236,9 +239,9 @@ export default function ProductDetails() {
   const displayOriginalPrice = priceDisplay.originalPrice;
   const woodSaleActive = product ? isWoodMonthEndSale(product) : false;
   const displayStock = selectedVariant?.stock ?? product?.stock ?? 0;
-  const isComingSoon = isProductComingSoon(product);
+  const isComingSoon = isVariantComingSoon(selectedVariant) || isProductComingSoon(product);
   const isOutOfStock = hasEmbeddedVariants
-    ? product?.variants?.every((variant) => (variant.stock ?? 0) <= 0) ?? true
+    ? !selectedVariant || !isVariantPurchasable(selectedVariant)
     : (product?.stock ?? 0) <= 0;
   const displayModel = selectedVariant?.specifications?.['الموديل'] ?? product?.specifications?.['الموديل'];
   const product3DMeta = readProduct3DMeta(product?.specifications);
@@ -246,9 +249,16 @@ export default function ProductDetails() {
   // أي منتج لديه سعر أكبر من صفر يمكن شراؤه
   const isPurchasableBrand = true; // Removed brand restriction — all brands are available
   const hasPrice = displayPrice > 0;
+  const canPurchase = !requiresVariantSelection && !isOutOfStock && hasPrice && !isComingSoon
+    && (hasEmbeddedVariants ? isVariantPurchasable(selectedVariant, quantity) : quantity <= displayStock);
+  const galleryImages = product ? getVariantGallery(product, selectedVariant, hasEmbeddedVariants ? activeVariants : undefined) : [];
+
+  useEffect(() => {
+    setQuantity(current => Math.min(current, Math.max(1, displayStock)));
+  }, [selectedVariant?.id, displayStock]);
 
   const handleAddToCart = () => {
-    if (product && !requiresVariantSelection && !isOutOfStock && hasPrice) {
+    if (product && canPurchase) {
       // IMPORTANT: Always use the BASE product ID for cart API
       // The variant-specific ID (e.g. "yxl-003-small") doesn't exist in DB
       const variantLabel = selectedVariant?.label || "";
@@ -257,7 +267,7 @@ export default function ProductDetails() {
         ? {
           ...product,
           name: product.name,
-          price: selectedVariant.price,
+          price: displayPrice,
           id: product.id, // ← Always use base product ID (NOT variant composite ID)
           // Metadata for cart-context to pass to server
           _variantLabel: variantLabel || undefined,
@@ -295,7 +305,7 @@ export default function ProductDetails() {
 
     const shareData = {
       title: product.name,
-      text: t("share.text", { name: product.name, price: formatIQD(Number(product.price)) }),
+      text: hasPrice ? t("share.text", { name: product.name, price: formatIQD(displayPrice) }) : product.name,
       url: window.location.href,
     };
 
@@ -392,7 +402,7 @@ export default function ProductDetails() {
         description={productMeta.description}
         image={product.image || product.thumbnail || 'https://www.aquavoiq.com/og-image.jpg'}
         type="product"
-        price={product.price}
+        price={priceDisplay.price ?? undefined}
       />
 
       <main id="main-content" className="flex-1 py-8 md:py-12" dir={dir}>
@@ -457,9 +467,7 @@ export default function ProductDetails() {
                     <div className="mt-4">
                       <ProductImageGallery
                         images={
-                          selectedVariant?.image
-                            ? [selectedVariant.image, ...product.images.filter(img => img !== selectedVariant.image)]
-                            : (product.images && product.images.length > 0 ? product.images : (product.thumbnail ? [product.thumbnail] : (product.image ? [product.image] : [])))
+                          galleryImages
                         }
                         productName={product.name}
                       />
@@ -468,9 +476,7 @@ export default function ProductDetails() {
                 ) : (
                   <ProductImageGallery
                     images={
-                      selectedVariant?.image
-                        ? [selectedVariant.image, ...product.images.filter(img => img !== selectedVariant.image)]
-                        : (product.images && product.images.length > 0 ? product.images : (product.thumbnail ? [product.thumbnail] : (product.image ? [product.image] : [])))
+                      galleryImages
                     }
                     productName={product.name}
                     heroTransitionName={heroTransitionName}
@@ -563,7 +569,7 @@ export default function ProductDetails() {
                     </>
                   ) : (
                     <div className="flex items-center gap-2">
-                      <span className="text-2xl font-bold text-muted-foreground">{t("price.soon")}</span>
+                      <span className="text-2xl font-bold text-muted-foreground">{t(hasEmbeddedVariants ? "price.pending" : "price.soon")}</span>
                     </div>
                   )}
                 </div>
@@ -573,19 +579,19 @@ export default function ProductDetails() {
                   <div className="mb-6">
                     {/* Try MultiDimensionVariantSelector first (for color + size products) */}
                     <MultiDimensionVariantSelector
-                      variants={product.variants}
+                      variants={activeVariants}
                       selectedVariantId={selectedVariant?.id || ""}
                       onVariantSelect={setSelectedVariant}
-                      comingSoon={isComingSoon}
+                      comingSoon={isProductComingSoon(product)}
                     />
                     {/* Single-dimension products (for example: one fixed color + multiple sizes)
                         are handled here. The selector itself hides when the variant set truly has
                         multiple changing dimensions, so a constant color must not suppress sizes. */}
                     <EmbeddedVariantSelector
-                      variants={product.variants}
+                      variants={activeVariants}
                       selectedVariantId={selectedVariant?.id || ""}
                       onVariantSelect={setSelectedVariant}
-                      comingSoon={isComingSoon}
+                      comingSoon={isProductComingSoon(product)}
                       productCategory={product.category}
                     />
                   </div>
@@ -766,8 +772,8 @@ export default function ProductDetails() {
                             : <ShoppingCart />}
                         className={`h-12 w-full min-w-0 rounded-lg text-lg font-semibold ${isAddedToCart ? "border-green-600 bg-green-600 hover:bg-green-700" : ""}`}
                         onClick={handleAddToCart}
-                        disabled={isAddingToCart || requiresVariantSelection || isOutOfStock || !hasPrice}
-                        aria-disabled={isAddingToCart || requiresVariantSelection || isOutOfStock || !hasPrice}
+                        disabled={isAddingToCart || !canPurchase}
+                        aria-disabled={isAddingToCart || !canPurchase}
                         aria-busy={isAddingToCart}
                       >
                         {isAddingToCart ? t("cart.adding") : isAddedToCart ? t("cart.added") : requiresVariantSelection ? t("cart.chooseVariant") : t("cart.add")}
@@ -1163,7 +1169,7 @@ export default function ProductDetails() {
       <BackToTop />
 
       {/* P1.8: Sticky mobile Add to Cart bar */}
-      {product && hasPrice && !isOutOfStock && !requiresVariantSelection && isPrimaryAddPastViewport && !isEditingText && (
+      {product && canPurchase && isPrimaryAddPastViewport && !isEditingText && (
         <div className="aq-sticky-purchase fixed bottom-0 left-0 right-0 z-40 md:hidden bg-background/95 backdrop-blur border-t border-border p-3 flex items-center gap-3 safe-bottom">
           <div className="flex-1 min-w-0">
             <p className="text-sm font-bold text-primary truncate">
@@ -1247,4 +1253,3 @@ function RecommendationsSection({ currentProduct, productId, type, title }: { cu
     </div>
   );
 }
-

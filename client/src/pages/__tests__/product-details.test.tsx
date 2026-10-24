@@ -265,6 +265,27 @@ describe('Product Details Page', () => {
         );
     });
 
+    it('previews an unpriced incoming option after a stocked selection without allowing purchase', async () => {
+        const { default: userEvent } = await import('@testing-library/user-event');
+        const user = userEvent.setup();
+        const original = await fetchProductBySlug('test-product');
+        if (!original) throw new Error('Missing fixture');
+        const product = { ...original, variants: [
+            { id: 'ready', label: '1.5 متر', price: 28000, stock: 10, images: ['/images/ready.jpg'] },
+            { id: 'pending', label: '2 متر', price: null, stock: 0, priceStatus: 'pending' as const,
+              availabilityStatus: 'coming_soon' as const, images: [] },
+        ] };
+        vi.mocked(fetchProductBySlug).mockResolvedValueOnce(product);
+        render(<ProductDetails />, { wrapper: createWrapper() });
+        await screen.findByRole('heading', { level: 1, name: product.name });
+        await user.click(screen.getByRole('button', { name: /1.5 متر/ }));
+        expect(screen.getByRole('button', { name: 'أضف إلى السلة' })).not.toBeDisabled();
+        await user.click(screen.getByRole('button', { name: /2 متر.*قريب/ }));
+        expect(screen.getAllByText('يحدد لاحقا').length).toBeGreaterThan(0);
+        expect(screen.queryByRole('button', { name: 'أضف إلى السلة' })).not.toBeInTheDocument();
+        expect(mockAddItem).not.toHaveBeenCalled();
+    });
+
     it('should not render a page-level WhatsApp widget', async () => {
         render(<ProductDetails />, { wrapper: createWrapper() });
         await waitFor(() => {
@@ -285,9 +306,9 @@ describe('Product Details Page', () => {
         vi.mocked(fetchProductBySlug).mockResolvedValueOnce(product);
         render(<ProductDetails />, { wrapper: createWrapper() });
         await screen.findByRole('heading', { level: 1, name: product.name });
-        const incomingButtons = screen.getAllByRole('button', { name: /قريب/ });
-        expect(incomingButtons.length).toBeGreaterThanOrEqual(3);
-        for (const button of incomingButtons) expect(button).toBeDisabled();
+        const incomingButtons = screen.getAllByRole('button', { name: /متر.*قريب/ });
+        expect(incomingButtons).toHaveLength(2);
+        for (const button of incomingButtons) expect(button).not.toBeDisabled();
         expect(screen.getAllByText(/28,000/).length).toBeGreaterThan(0);
         expect(screen.queryByRole('button', { name: 'أضف إلى السلة' })).not.toBeInTheDocument();
         expect(mockAddItem).not.toHaveBeenCalled();

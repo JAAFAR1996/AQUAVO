@@ -1,3 +1,4 @@
+import { isVariantActive, isVariantComingSoon, isVariantPurchasable, positiveVariantPrice } from "../shared/variant-commerce.js";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import {
@@ -26,6 +27,10 @@ import { preservePublicEmailHtml } from "../shared/public-email-html.js";
 import { isProductComingSoon } from "../shared/product-availability.js";
 
 export type SeoPreviewVariant = {
+  images?: string[];
+  isArchived?: boolean;
+  priceStatus?: "pending";
+  availabilityStatus?: "coming_soon";
   id?: string;
   label?: string;
   price?: string | number | null;
@@ -124,18 +129,16 @@ function numberValue(value: string | number | null | undefined): number | null {
 
 export function getActiveVariants(product: SeoPreviewProduct): SeoPreviewVariant[] {
   if (!product.hasVariants || !Array.isArray(product.variants)) return [];
-  return product.variants.filter((variant) => {
-    const price = numberValue(variant.price);
-    return Boolean(variant.label) && price !== null && price > 0;
-  });
+  return product.variants.filter((variant) => isVariantActive(variant) && Boolean(variant.label));
 }
 
 function priceRange(product: SeoPreviewProduct): { min: number; max: number } | null {
   const variantPrices = getActiveVariants(product)
-    .map((variant) => numberValue(variant.price))
+    .map((variant) => variant.priceStatus === "pending" ? null : positiveVariantPrice(variant.price))
     .filter((value): value is number => value !== null);
+  // Preserve legacy base-product display; option prices alone use the strict positive-price contract.
   const basePrice = numberValue(product.price);
-  const prices = variantPrices.length > 0 ? variantPrices : basePrice !== null ? [basePrice] : [];
+  const prices = product.hasVariants ? variantPrices : basePrice !== null ? [basePrice] : [];
   if (prices.length === 0) return null;
   return { min: Math.min(...prices), max: Math.max(...prices) };
 }
@@ -147,7 +150,7 @@ export function formatMoney(value: number, currency = "IQD"): string {
 
 export function formatPrice(product: SeoPreviewProduct): string {
   const range = priceRange(product);
-  if (!range) return "السعر غير منشور حالياً";
+  if (!range) return isProductComingSoon(product) ? "السعر يحدد عند التوفر" : "السعر غير منشور حالياً";
   if (isProductComingSoon(product) && range.min <= 0) return "السعر يحدد عند التوفر";
   if (range.min !== range.max) {
     return `من ${formatMoney(range.min, product.currency || "IQD")} إلى ${formatMoney(range.max, product.currency || "IQD")}`;
@@ -157,7 +160,7 @@ export function formatPrice(product: SeoPreviewProduct): string {
 
 export function isInStock(product: SeoPreviewProduct): boolean {
   const variants = getActiveVariants(product);
-  if (variants.length > 0) return variants.some((variant) => (numberValue(variant.stock) ?? 0) > 0);
+  if (product.hasVariants) return variants.some((variant) => isVariantPurchasable(variant));
   return (numberValue(product.stock) ?? 0) > 0;
 }
 
@@ -695,8 +698,8 @@ function ProductPage({ product, related, reviews = [] }: { product: SeoPreviewPr
               {variants.map((variant, index) => (
                 <li key={variant.id || `${variant.label}-${index}`}>
                   <strong>{variant.label}</strong>
-                  <span>{formatMoney(numberValue(variant.price) || 0, product.currency || "IQD")}</span>
-                  <small>{isProductComingSoon(product) ? "قريبًا" : (numberValue(variant.stock) ?? 0) > 0 ? "متوفر" : "غير متوفر حالياً"}</small>
+                  <span>{variant.priceStatus !== "pending" && positiveVariantPrice(variant.price) !== null ? formatMoney(positiveVariantPrice(variant.price)!, product.currency || "IQD") : "السعر يحدد لاحقا"}</span>
+                  <small>{isProductComingSoon(product) || isVariantComingSoon(variant) ? "قريبًا" : isVariantPurchasable(variant) ? "متوفر" : "غير متوفر حالياً"}</small>
                 </li>
               ))}
             </ul>

@@ -66,13 +66,17 @@ export interface GallerySubmission {
 export interface ProductVariant {
   id: string;                         // Unique variant ID (e.g., "S", "M", "L", "18W")
   label: string;                      // Display label (e.g., "30×100 سم", "18 واط")
-  price: number;                      // Price for this variant
+  price: number | null;                      // Price for this variant
   originalPrice?: number;             // Original price for discounts
   stock: number;                      // Stock for this variant
   sku?: string;                       // Optional SKU code
   isDefault?: boolean;                // Is this the default/popular variant
   image?: string;                     // Variant-specific image (shown when selected)
   specifications?: Record<string, any>; // Variant-specific specs
+  images?: string[];                 // Explicit [] means no verified photo
+  priceStatus?: "pending";
+  availabilityStatus?: "coming_soon";
+  isArchived?: boolean;              // Historical identity, excluded from new sales
 }
 
 export interface Product {
@@ -120,4 +124,3 @@ export interface FishFinderResult {
   fishType: string;
   recommendedProducts: Product[];
 }
-

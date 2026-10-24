@@ -37,7 +37,8 @@
   "price": {
     "soon": "Coming soon",
     "perKilo": " / kg",
-    "from": "From"
+    "from": "From",
+    "pending": "Price to be confirmed"
   },
   "stock": {
     "available": "In stock ({{count}} pcs)",

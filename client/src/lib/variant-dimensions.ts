@@ -1,3 +1,4 @@
+import { isVariantActive } from "@shared/variant-commerce";
 import type { ProductVariant } from "@/types";
 
 export interface VariantDimension {
@@ -67,7 +68,9 @@ function countPreservedSelections(
 }
 
 export function extractVariantDimensions(variants: ProductVariant[]): VariantDimension[] {
-  if (!Array.isArray(variants) || variants.length < 2) return [];
+  if (!Array.isArray(variants)) return [];
+  variants = variants.filter(isVariantActive);
+  if (variants.length < 2) return [];
 
   return DIMENSION_PRIORITY.flatMap((key) => {
     const values = Array.from(
@@ -117,10 +120,9 @@ export function chooseVariantForSelection(
   dimensions: VariantDimension[],
   preferredDimensionKey?: string,
 ): ProductVariant | undefined {
-  const exactAvailable = variants.find(
-    (variant) => variant.stock > 0 && variantMatchesSelection(variant, selection, dimensions),
-  );
-  if (exactAvailable) return exactAvailable;
+  variants = variants.filter(isVariantActive);
+  const exact = variants.find((variant) => variantMatchesSelection(variant, selection, dimensions));
+  if (exact) return exact;
 
   // Some product dimensions describe the same physical variant rather than a
   // Cartesian combination (for example aquarium capacity + measurements). In
@@ -132,8 +134,7 @@ export function chooseVariantForSelection(
       const matchingVariants = variants.filter((variant) =>
         matchesDimensionValue(variant, preferredDimensionKey, preferredValue),
       );
-      const availableMatches = matchingVariants.filter((variant) => variant.stock > 0);
-      const candidates = availableMatches.length > 0 ? availableMatches : matchingVariants;
+      const candidates = matchingVariants;
 
       let bestCandidate = candidates[0];
       let bestScore = bestCandidate
@@ -157,10 +158,7 @@ export function chooseVariantForSelection(
     }
   }
 
-  const exact = variants.find((variant) => variantMatchesSelection(variant, selection, dimensions));
-  if (exact) return exact;
-
-  return variants.find((variant) => variant.stock > 0) ?? variants[0];
+  return undefined;
 }
 
 export function isDimensionValueAvailable({

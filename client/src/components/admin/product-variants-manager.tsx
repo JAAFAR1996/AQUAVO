@@ -63,7 +63,7 @@ export function ProductVariantsManager({
 
   // Inline editing state
   const [editingPriceId, setEditingPriceId] = useState<string | null>(null);
-  const [tempPrice, setTempPrice] = useState<number>(0);
+  const [tempPrice, setTempPrice] = useState<number | null>(null);
 
   // Form state for variant editor
   const [formData, setFormData] = useState<Partial<ProductVariant>>({
@@ -131,7 +131,9 @@ export function ProductVariantsManager({
   };
 
   const handleSaveVariant = () => {
-    if (!formData.id || !formData.label || !formData.price) {
+    const pendingPrice = formData.price == null && formData.priceStatus === "pending"
+      && formData.availabilityStatus === "coming_soon" && Number(formData.stock) === 0;
+    if (!formData.id || !formData.label || (!pendingPrice && !(Number(formData.price) > 0))) {
       toast({
         title: "خطأ",
         description: "الرجاء ملء جميع الحقول المطلوبة",
@@ -141,14 +143,20 @@ export function ProductVariantsManager({
     }
 
     const newVariant: ProductVariant = {
+      ...editingVariant,
+      ...formData,
       id: formData.id,
       label: formData.label,
-      price: Number(formData.price),
+      price: pendingPrice ? null : Number(formData.price),
       originalPrice: formData.originalPrice ? Number(formData.originalPrice) : undefined,
       stock: Number(formData.stock || 0),
       isDefault: formData.isDefault || false,
       image: formData.image,
       specifications: formData.specifications || {},
+      images: formData.images,
+      availabilityStatus: formData.availabilityStatus,
+      isArchived: formData.isArchived,
+      priceStatus: pendingPrice ? "pending" : undefined,
     };
 
     if (editingVariant) {
@@ -239,7 +247,7 @@ export function ProductVariantsManager({
     if (draggedImage) {
       // Update variant image
       const newVariants = variants.map((v) =>
-        v.id === variantId ? { ...v, image: draggedImage } : v
+        v.id === variantId ? { ...v, image: draggedImage, ...(Array.isArray(v.images) ? { images: [draggedImage, ...v.images.filter((image) => image !== draggedImage)] } : {}) } : v
       );
       setVariants(newVariants);
 
@@ -267,7 +275,7 @@ export function ProductVariantsManager({
 
   const handlePriceSave = (variantId: string) => {
     const newVariants = variants.map((v) =>
-      v.id === variantId ? { ...v, price: tempPrice } : v
+      v.id === variantId ? { ...v, price: tempPrice, priceStatus: tempPrice != null && tempPrice > 0 ? undefined : v.priceStatus } : v
     );
     setVariants(newVariants);
     setEditingPriceId(null);
@@ -431,7 +439,7 @@ export function ProductVariantsManager({
                             <div className="flex items-center gap-2">
                               <Input
                                 type="number"
-                                value={tempPrice}
+                                value={tempPrice ?? ""}
                                 onChange={handlePriceChange}
                                 onKeyDown={(e) => handlePriceKeyDown(e, variant.id)}
                                 onBlur={() => handlePriceSave(variant.id)}
@@ -552,7 +560,7 @@ export function ProductVariantsManager({
                       <Input
                         id="variant-price"
                         type="number"
-                        value={formData.price}
+                        value={formData.price ?? ""}
                         onChange={(e) =>
                           setFormData({ ...formData, price: Number(e.target.value) })
                         }
@@ -597,7 +605,7 @@ export function ProductVariantsManager({
                       images={productImages}
                       selectedImage={formData.image || ""}
                       onSelect={(imageUrl) =>
-                        setFormData({ ...formData, image: imageUrl })
+                        setFormData({ ...formData, image: imageUrl, ...(Array.isArray(formData.images) ? { images: [imageUrl, ...formData.images.filter((image) => image !== imageUrl)].filter(Boolean) } : {}) })
                       }
                       onImageDragStart={handleImageDragStart}
                       onImageDragEnd={handleImageDragEnd}

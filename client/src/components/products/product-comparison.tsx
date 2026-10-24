@@ -1,3 +1,5 @@
+import { isVariantPurchasable } from "@shared/variant-commerce";
+import { getProductPriceDisplay } from "@/lib/product-pricing";
 import { useMemo, useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Link } from "wouter";
@@ -43,13 +45,8 @@ import type { Product } from "@/types";
 // Real price for a product: use lowest variant price when it has variants,
 // otherwise the base price. Returns original price only when it's a real discount.
 function getComparePrice(p: Product): { price: number; original?: number; fromVariant: boolean } {
-    const variantPrices = (p.hasVariants && p.variants?.length)
-        ? p.variants.map((v) => v.price).filter((n) => n > 0)
-        : [];
-    const minVariant = variantPrices.length ? Math.min(...variantPrices) : undefined;
-    const price = minVariant ?? p.price ?? 0;
-    const original = p.originalPrice && p.originalPrice > price ? p.originalPrice : undefined;
-    return { price, original, fromVariant: minVariant !== undefined };
+    const display = getProductPriceDisplay(p);
+    return { price: display.price ?? 0, original: display.originalPrice ?? undefined, fromVariant: display.isFromPrice };
 }
 
 // Keys that are shown elsewhere (or not real technical specs) — excluded from the spec rows.
@@ -456,7 +453,7 @@ export function ProductComparisonTable({
                                             {fromVariant && (
                                                 <span className="text-[10px] text-muted-foreground">{tr("product-comparison.s25")}</span>
                                             )}
-                                            <span className="font-bold text-lg text-primary">{formatPrice(price)}</span>
+                                            <span className="font-bold text-lg text-primary">{price > 0 ? formatPrice(price) : i18next.t("product:price.pending")}</span>
                                             {original && (
                                                 <span className="text-xs text-muted-foreground line-through">
                                                     {formatPrice(original)}
@@ -520,8 +517,8 @@ export function ProductComparisonTable({
                     <TableRow>
                         <TableCell className="font-medium">{tr("product-comparison.s30")}</TableCell>
                         {products.map((product) => {
-                            const stock = product.hasVariants && product.variants?.length
-                                ? product.variants.reduce((sum, v) => sum + (v.stock ?? 0), 0)
+                            const stock = product.hasVariants
+                                ? (product.variants ?? []).reduce((sum, v) => sum + (isVariantPurchasable(v) ? (v.stock ?? 0) : 0), 0)
                                 : (product.stock ?? 0);
                             return (
                                 <TableCell key={product.id} className="text-center">
@@ -602,11 +599,11 @@ export function ProductComparisonTable({
                     <TableRow>
                         <TableCell className="font-medium">{tr("product-comparison.s39")}</TableCell>
                         {products.map((product) => {
-                            const stock = product.hasVariants && product.variants?.length
-                                ? product.variants.reduce((sum, v) => sum + (v.stock ?? 0), 0)
+                            const stock = product.hasVariants
+                                ? (product.variants ?? []).reduce((sum, v) => sum + (isVariantPurchasable(v) ? (v.stock ?? 0) : 0), 0)
                                 : (product.stock ?? 0);
                             // Variant products need an option selected — send to the detail page.
-                            if (product.hasVariants && product.variants?.length) {
+                            if (product.hasVariants) {
                                 return (
                                     <TableCell key={product.id} className="text-center">
                                         <Link href={`/products/${product.slug}`}>

@@ -70,7 +70,7 @@ describe("MultiDimensionVariantSelector", () => {
             />
         );
         const blue = screen.getByRole("button", { name: /اللون أزرق/ });
-        expect(blue).toBeDisabled();
+        expect(blue).not.toBeDisabled();
         expect(blue).toHaveAccessibleName("اللون أزرق، مو متوفر هسه");
     });
 
@@ -133,7 +133,7 @@ describe("MultiDimensionVariantSelector", () => {
             />
         );
 
-        expect(screen.getByRole("button", { name: /القياسات 40×23×25 سم/ })).toBeDisabled();
+        expect(screen.getByRole("button", { name: /القياسات 40×23×25 سم/ })).not.toBeDisabled();
         await user.click(screen.getByRole("button", { name: "القياسات 40×40×40 سم" }));
         expect(onVariantSelect).toHaveBeenCalledWith(aquariumVariants[4]);
     });

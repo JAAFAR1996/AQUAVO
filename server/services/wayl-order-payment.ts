@@ -1,3 +1,4 @@
+import { isVariantPurchasable } from "../../shared/variant-commerce.js";
 import { randomBytes, randomUUID } from "node:crypto";
 import { assertCheckoutReplay, checkoutRequestHash, normalizeCheckoutLines, sessionHash } from "./checkout-security.js";
 import { eligibleCoupon, couponBenefit } from "./coupon-policy.js";
@@ -176,13 +177,15 @@ async function ensureOrderReservation(orderId: string): Promise<void> {
 
     for (const line of normalizeCheckoutLines(lines)) {
       const product = await lockProductRowForUpdate(tx, line.productId);
-      if (!product) throw Object.assign(new Error(STOCK_ERROR_INSUFFICIENT), { status: 409 });
+      if (!product || (product.hasVariants && !line.variantId) || (!product.hasVariants && line.variantId)) {
+        throw Object.assign(new Error(STOCK_ERROR_INSUFFICIENT), { status: 409 });
+      }
       const quantity = Number(line.quantity);
       const reservedElsewhere = await activeReservedQuantity(tx, line.productId, line.variantId, orderId);
       if (line.variantId) {
         const variants = Array.isArray(product.variants) ? product.variants : [];
         const variant = variants.find((candidate: any) => candidate.id === line.variantId);
-        if (!variant || Number(variant.stock ?? 0) - reservedElsewhere < quantity) {
+        if (!isVariantPurchasable(variant, quantity) || Number(variant?.stock ?? 0) - reservedElsewhere < quantity) {
           throw Object.assign(new Error(STOCK_ERROR_INSUFFICIENT), { status: 409 });
         }
       } else if (Number(product.stock ?? 0) - reservedElsewhere < quantity) {
@@ -390,7 +393,7 @@ export async function prepareOnlineOrder(input: OnlineCheckoutInput): Promise<Pr
           if (item.variantId) {
             const variants = Array.isArray(product.variants) ? product.variants : [];
             const variant = variants.find((candidate: any) => candidate.id === item.variantId);
-            if (!variant) throw Object.assign(new Error(`Invalid variant ${item.variantId} for ${product.name}`), { status: 400 });
+            if (!variant || !isVariantPurchasable(variant, quantity)) throw Object.assign(new Error(`Invalid or unavailable variant ${item.variantId} for ${product.name}`), { status: 400 });
             const reservedElsewhere = await activeReservedQuantity(tx, product.id, item.variantId, input.idempotencyKey);
             if (Number(variant.stock ?? 0) - reservedElsewhere < quantity) throw Object.assign(new Error(STOCK_ERROR_INSUFFICIENT), { status: 409 });
             price = parsePositivePrice(variant.price, `Variant ${variant.label}`);

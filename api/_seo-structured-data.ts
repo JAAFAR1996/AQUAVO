@@ -1,3 +1,4 @@
+import { isVariantActive, isVariantComingSoon, positiveVariantPrice } from "../shared/variant-commerce.js";
 import type { SeoPreviewProduct, SeoPreviewVariant } from "./_seo-preview-shell.js";
 import {
   AQUAVO_BASE_URL,
@@ -82,6 +83,14 @@ function resolveVariantImage(
 }
 
 function productImages(product: SeoPreviewProduct, variant?: SeoPreviewVariant): string[] {
+  // An explicitly registered option gallery is authoritative, including an empty
+  // one. Never borrow another finish/color's photos for a variant with no proof.
+  const previewVariant = variant ?? (product.hasVariants && Array.isArray(product.variants)
+    ? product.variants.find((entry) => isVariantActive(entry) && Array.isArray(entry.images))
+    : undefined);
+  if (previewVariant && Array.isArray(previewVariant.images)) {
+    return [...new Set(previewVariant.images.filter((item): item is string => typeof item === "string").map(absoluteImage).filter((item): item is string => Boolean(item)))].slice(0, 10);
+  }
   const gallery = [product.thumbnail, ...(Array.isArray(product.images) ? product.images : [])]
     .filter((item): item is string => typeof item === "string")
     .map(absoluteImage)
@@ -167,10 +176,7 @@ function shippingDetails(shippingFee = AQUAVO_ENTITY.deliveryFee): object {
 
 function activeVariants(product: SeoPreviewProduct): SeoPreviewVariant[] {
   if (!product.hasVariants || !Array.isArray(product.variants)) return [];
-  return product.variants.filter((variant) => {
-    const price = numberValue(variant.price);
-    return Boolean(variant.label) && price !== null && price > 0;
-  });
+  return product.variants.filter((variant) => isVariantActive(variant) && Boolean(variant.label));
 }
 
 function defaultVariant(product: SeoPreviewProduct): SeoPreviewVariant | undefined {
@@ -314,14 +320,16 @@ export function buildProductStructuredData(
           name: "الخيار",
           value: variant.label,
         },
-        offers: buildOffer(url, variant.price, currency, variant.stock, shippingFee),
+        offers: buildOffer(url, variant.priceStatus === "pending" || isVariantComingSoon(variant) ? null : positiveVariantPrice(variant.price), currency, variant.stock, shippingFee),
       })),
       aggregateRating: rating,
     };
   } else {
     const selected = defaultVariant(product);
-    const productPrice = selected?.price ?? product.price;
-    const productStock = selected?.stock ?? product.stock;
+    const productPrice = product.hasVariants
+      ? (selected && selected.priceStatus !== "pending" && !isVariantComingSoon(selected) ? positiveVariantPrice(selected.price) : null)
+      : product.price;
+    const productStock = product.hasVariants ? selected?.stock ?? 0 : product.stock;
     const sku = selected?.sku || (selected?.id ? `${productGroupID}-${selected.id}` : productGroupID);
     mainSchema = {
       "@context": "https://schema.org",

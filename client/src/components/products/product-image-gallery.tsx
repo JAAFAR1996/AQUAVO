@@ -26,14 +26,8 @@ function buildGalleryImages(images: string[], productName: string): string[] {
         ? images.filter((image) => image && image.length > 0)
         : [];
 
-    const isHouyiBlueDragonStone = isHouyiBlueDragonStoneProduct(productName);
-
-    if (!isHouyiBlueDragonStone || sourceImages.length < 2) return sourceImages;
-
-    // The first supplier image is the scale/ruler shot. Keep only the real
-    // product photos and move that scale image to the end so the gallery opens
-    // with a cleaner product view, then shows the remaining angle, then scale.
-    return [...sourceImages.slice(1), sourceImages[0]];
+    // Respect curated per-option order; do not rotate by product name.
+    return sourceImages;
 }
 
 export function ProductImageGallery({

@@ -1,3 +1,4 @@
+import { isVariantPurchasable } from "@shared/variant-commerce";
 import { memo, useEffect, useRef, useState, type MouseEvent } from "react";
 import { Leaf, Package, ShoppingCart } from "lucide-react";
 import { Link, useLocation } from "wouter";
@@ -62,9 +63,9 @@ export const ProductCard = memo(function ProductCard({
   const priceDisplay = getProductPriceDisplay(product);
   const hasPrice = priceDisplay.price !== null;
   const isComingSoon = isProductComingSoon(product);
-  const requiresVariantChoice = Boolean(product.hasVariants && product.variants?.length);
+  const requiresVariantChoice = Boolean(product.hasVariants);
   const isOutOfStock = requiresVariantChoice
-    ? product.variants?.every((variant) => (variant.stock ?? 0) <= 0) ?? true
+    ? !product.variants?.some((variant) => isVariantPurchasable(variant))
     : (product.stock ?? 0) <= 0;
   const cardBenefit =
     typeof product.specifications?.__cardBenefit === "string"

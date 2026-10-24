@@ -1,3 +1,4 @@
+import { isVariantActive, isVariantComingSoon } from "../../shared/variant-commerce.js";
 import type { Router as RouterType, Request, Response, NextFunction } from "express";
 import { Router } from "express";
 import { storage } from "../storage/index.js";
@@ -91,7 +92,7 @@ export function createCartRouter(): RouterType {
                         };
                     }
                     const variant = variants.find((candidate) => candidate?.id === line.variantId);
-                    if (!variant) {
+                    if (!variant || !isVariantActive(variant)) {
                         return {
                             productId: product.id,
                             variantId: line.variantId,
@@ -104,7 +105,7 @@ export function createCartRouter(): RouterType {
                             reason: "VARIANT_INVALID",
                         };
                     }
-                    price = Number(variant.price ?? 0);
+                    price = variant.priceStatus === "pending" || isVariantComingSoon(variant) ? 0 : Number(variant.price ?? 0);
                     stock = Number(variant.stock ?? 0);
                     variantLabel = typeof variant.label === "string" ? variant.label : null;
                 } else if (line.variantId) {
