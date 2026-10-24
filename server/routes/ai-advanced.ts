@@ -107,7 +107,7 @@ const upload = multer({
 const analyzeImageByUrlSchema = z.object({
   imageUrl: z.string().url("رابط الصورة غير صالح"),
   analysisType: z.enum(["fish", "tank", "problem", "health"], {
-    errorMap: () => ({ message: "نوع التحليل غير صالح" }),
+    error: () => "نوع التحليل غير صالح",
   }),
   userId: z.string().optional(),
   sessionId: z.string().optional(),
