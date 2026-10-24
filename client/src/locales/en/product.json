@@ -251,6 +251,7 @@
     "large": "Large",
     "extraLarge": "Extra large",
     "imageNote": "The current photos show 3–5 cm stones. Other sizes are coming soon and cannot be ordered yet.",
-    "inStockKg": "In stock ({{count}} kg)"
+    "inStockKg": "In stock ({{count}} kg)",
+    "unit": "cm"
   }
 }
