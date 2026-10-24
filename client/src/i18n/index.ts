@@ -1,13 +1,14 @@
 /**
  * i18next runtime for the storefront.
  *
- * Arabic (the source language) is registered synchronously at import time so
- * `i18next.t(...)` works even for module-level constants. The URL locale's
+ * Shared Arabic copy is registered synchronously at import time. The large
+ * tools/guides dictionaries load before their lazy feature modules evaluate,
+ * so `i18next.t(...)` also works for their module-level constants. The URL locale's
  * bundles are loaded by `bootstrapI18n()` in main.tsx BEFORE the application
  * modules are imported, so every module — page, component, plain helper —
  * evaluates with the right language already in place. Each locale/namespace
- * pair is its own JSON chunk; a visitor downloads only their locale (plus the
- * small Arabic fallback).
+ * pair is its own JSON chunk; a visitor downloads only their locale and the
+ * Arabic fallback needed by the active feature.
  */
 import i18next, { type InitOptions, type PostProcessorModule } from "i18next";
 import { initReactI18next } from "react-i18next";
@@ -26,8 +27,6 @@ import arSearch from "../locales/ar/search.json";
 import arErrors from "../locales/ar/errors.json";
 import arPages from "../locales/ar/pages.json";
 import arSeo from "../locales/ar/seo.json";
-import arTools from "../locales/ar/tools.json";
-import arGuides from "../locales/ar/guides.json";
 
 export const NAMESPACES = [
   "common",
@@ -48,7 +47,7 @@ export const NAMESPACES = [
 ] as const;
 export type Namespace = (typeof NAMESPACES)[number];
 
-const AR_RESOURCES: Record<Namespace, Record<string, unknown>> = {
+const AR_RESOURCES: Partial<Record<Namespace, Record<string, unknown>>> = {
   common: arCommon,
   nav: arNav,
   home: arHome,
@@ -62,9 +61,32 @@ const AR_RESOURCES: Record<Namespace, Record<string, unknown>> = {
   errors: arErrors,
   pages: arPages,
   seo: arSeo,
-  tools: arTools,
-  guides: arGuides,
 };
+
+// These two large dictionaries belong to lazy features, not the home shell.
+// Load them before evaluating the feature module: some copy is translated at
+// module scope, so registering it only after render would cache missing keys.
+const deferredArabic = {
+  tools: () => import("../locales/ar/tools.json"),
+  guides: () => import("../locales/ar/guides.json"),
+};
+export type DeferredArabicNamespace = keyof typeof deferredArabic;
+const pendingArabic = new Map<DeferredArabicNamespace, Promise<void>>();
+
+export async function loadArabicNamespaces(namespaces: readonly DeferredArabicNamespace[]): Promise<void> {
+  await Promise.all(namespaces.map((namespace) => {
+    if (i18next.hasResourceBundle(DEFAULT_LOCALE, namespace)) return;
+    const pending = pendingArabic.get(namespace);
+    if (pending) return pending;
+    const request = deferredArabic[namespace]()
+      .then(({ default: resources }) => {
+        i18next.addResourceBundle(DEFAULT_LOCALE, namespace, resources, true, true);
+      })
+      .finally(() => { pendingArabic.delete(namespace); });
+    pendingArabic.set(namespace, request);
+    return request;
+  }));
+}
 
 /**
  * Static glob so Vite code-splits each locale/namespace pair.
@@ -79,10 +101,10 @@ const AR_RESOURCES: Record<Namespace, Record<string, unknown>> = {
  *
  * Vite still statically analyses the call inside the try, so code-splitting is
  * unchanged in the app bundle. Arabic is explicitly excluded from the glob
- * because every Arabic namespace is already statically imported above; matching
- * it here as well creates ineffective dynamic-import warnings and duplicate
- * import edges. Outside Vite the map is empty, which is harmless because
- * prerendering renders Arabic from those static imports.
+ * because Arabic uses the explicit shared imports and deferredArabic loaders;
+ * matching it here as well creates duplicate import edges. Outside Vite the
+ * map is empty; static page generation registers all Arabic resources before
+ * importing page components.
  */
 let bundles: Record<string, () => Promise<{ default: Record<string, unknown> }>>;
 try {

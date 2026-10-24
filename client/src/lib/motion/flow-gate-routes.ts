@@ -67,7 +67,11 @@ export function sectionDepth(href: string): number {
 const SECTION_CHUNK: Record<string, () => Promise<unknown>> = {
   "/products": () => import("@/pages/products"),
   "/about": () => import("@/pages/about"),
-  "/journey": () => import("@/pages/journey"),
+  "/journey": async () => {
+    const { loadArabicNamespaces } = await import("@/i18n");
+    await loadArabicNamespaces(["tools"]);
+    return import("@/pages/journey");
+  },
   "/tank-builder": () => import("@/pages/aquarium-wizard"),
   "/order-tracking": () => import("@/pages/order-tracking"),
   "/profile": () => import("@/pages/profile"),

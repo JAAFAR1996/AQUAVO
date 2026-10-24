@@ -147,6 +147,7 @@ export async function prerenderStaticPages(): Promise<Record<string, string>> {
     [
       'import { renderToStaticMarkup } from "react-dom/server";',
       'import { createElement } from "react";',
+      'import "../script/i18n-static-resources";',
       imports,
       "const PAGES = {",
       table,

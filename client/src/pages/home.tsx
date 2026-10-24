@@ -157,7 +157,7 @@ export default function Home() {
     <div className="flex-1 overflow-x-hidden bg-background text-foreground">
       <MetaTags title={t("meta.title")} description={t("meta.description")} />
 
-      <main id="main-content" dir={dir}>
+      <main id="main-content" className="aq-home-content" dir={dir}>
         <HomeHero copy={heroCopy} dir={dir} />
 
         <section aria-label={t("guarantees")} className="border-b border-border bg-background">
