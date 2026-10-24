@@ -373,6 +373,8 @@ export default function ProductDetails() {
     product.name.includes("كيلو") ||
     ["رمال", "أحجار", "حصى"].includes(product.subcategory ?? "") ||
     ["houyi-activated-carbon", "houyi-ceramic-ring", "houyi-breathing-ring-white"].includes(product.slug);
+  const isVolcanicStone = product.id === "houyi-volcanic-stone-red" ||
+    product.id === "houyi-volcanic-stone-black";
   const productDisplay = getProductDisplayIdentity(product);
   const productMeta = buildProductSeoMeta(product, { locale });
   const decisionSpecs = (product.specifications ?? {}) as Record<string, unknown>;
@@ -615,7 +617,9 @@ export default function ProductDetails() {
                     <>
                       <Check className="w-4 h-4 text-green-500" aria-hidden="true" />
                       <span className="text-sm font-medium text-green-600 dark:text-green-400">
-                        {t("stock.available", { count: displayStock })}
+                        {isVolcanicStone
+                          ? t("volcanicSizes.inStockKg", { count: displayStock })
+                          : t("stock.available", { count: displayStock })}
                       </span>
                     </>
                   ) : (
