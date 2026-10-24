@@ -42,7 +42,7 @@ router.post("/", async (req: Request, res: Response, next: NextFunction): Promis
     res.status(201).json({ success: true, data: inv });
   } catch (err: any) {
     if (err?.name === "ZodError") {
-      res.status(400).json({ success: false, message: "بيانات غير صحيحة", errors: err.errors });
+      res.status(400).json({ success: false, message: "بيانات غير صحيحة", errors: err.issues });
       return;
     }
     next(err);
