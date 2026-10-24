@@ -29,12 +29,16 @@ describe("SEO production safety invariants", () => {
   it("mounts the client separately from server semantic HTML", () => {
     const serverSource = runtimeSource();
     const clientSource = read("client/src/main.tsx");
+    const rootSource = read("client/src/storefront-root.tsx");
 
     expect(serverSource).toContain('<div id="seo-root"');
     expect(serverSource).toContain('<div id="root"');
     expect(clientSource).toContain('document.getElementById("seo-root")');
-    expect(clientSource).toContain('createRoot(document.getElementById("root")!)');
-    expect(clientSource).not.toContain('createRoot(document.getElementById("seo-root")');
+    expect(clientSource).toContain('mountStorefront(document.getElementById("root")!');
+    expect(rootSource).toContain('container.dataset.aqSsr === "home"');
+    expect(rootSource).toContain('if (hasInitialShell) return hydrateRoot(container, app)');
+    expect(rootSource).toContain('createRoot(container)');
+    expect(rootSource).not.toMatch(/(?:createRoot|hydrateRoot)\(document\.getElementById\("seo-root"\)/);
   });
 
   it("contains no physical-store coordinates or map claims in client schemas", () => {
