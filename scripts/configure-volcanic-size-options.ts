@@ -114,6 +114,37 @@ async function main() {
     `);
     const current = getRows(locked);
     assertReady(current);
+
+    // A pending shipment or return can still reverse its original base SKU.
+    // Do not switch identities while those orders are in flight.
+    const pending = await tx.execute(sql`
+      SELECT COUNT(*)::int AS count FROM orders o
+      WHERE COALESCE(o.status, '') NOT IN ('delivered', 'returned', 'cancelled', 'rejected')
+        AND EXISTS (
+          SELECT 1 FROM jsonb_array_elements(
+            CASE WHEN jsonb_typeof(o.items) = 'array' THEN o.items ELSE '[]'::jsonb END
+          ) AS line(item)
+          WHERE COALESCE(line.item->>'productId', line.item->>'product_id')
+            IN (${PRODUCT_IDS[0]}, ${PRODUCT_IDS[1]})
+        )
+    `) as { rows?: Array<{ count: number | string }> };
+    if (Number(pending.rows?.[0]?.count ?? 0) !== 0) {
+      throw new Error("Volcanic-rock orders still in flight; do not migrate their inventory identities");
+    }
+
+    // Prior 1kg ledger identities can exist historically, but must have zero
+    // residual stock before creating new size-specific variant IDs.
+    const oldBalances = await tx.execute(sql`
+      SELECT product_id, variant_id, SUM(quantity_delta)::int AS qty
+      FROM inventory_movements
+      WHERE product_id IN (${PRODUCT_IDS[0]}, ${PRODUCT_IDS[1]})
+        AND variant_id IS NOT NULL
+      GROUP BY product_id, variant_id HAVING SUM(quantity_delta) <> 0
+    `) as { rows?: Array<{ product_id: string; variant_id: string; qty: number }> };
+    if (oldBalances.rows?.length) {
+      throw new Error("Old variant inventory balance is not zero; reconcile before adding new sizes");
+    }
+
     for (const product of current) {
       const beforeStock = Number(product.stock);
       await setCanonicalVariantConfiguration(
