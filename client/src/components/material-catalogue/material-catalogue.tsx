@@ -184,7 +184,7 @@ export function MaterialCatalogue({ items, language = 'ar', selectedId: initialS
         {t[value]}<span className="text-[10px] tabular-nums opacity-70">{count}</span>
       </button>;
     })}</div>
-    {selected && <div id={detailId} ref={detailRef} tabIndex={-1} aria-label={`${t.selected}: ${selected.name}`} className="scroll-mt-24 focus:outline-none"><MaterialDetail key={selected.id} item={selected} language={language} t={t} /></div>}
+    {selected && <div id={detailId} ref={detailRef} tabIndex={-1} aria-label={t.selected} className="scroll-mt-24 focus:outline-none"><MaterialDetail key={selected.id} item={selected} language={language} t={t} /></div>}
     <div className="border-t border-border pt-6">
       <h3 className="mb-4 text-sm font-semibold">{t.others}</h3>
       <div role="group" aria-label={t.others} className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">{visible.map(item => <button type="button" key={item.id} aria-pressed={selected?.id === item.id} aria-controls={detailId} onClick={() => selectMaterial(item.id)} className={`group min-w-0 overflow-hidden rounded-xl border text-start ${focus} ${selected?.id === item.id ? 'border-primary bg-primary/10 ring-1 ring-primary' : 'border-border bg-background hover:border-primary/50'}`}>
