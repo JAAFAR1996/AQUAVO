@@ -474,7 +474,12 @@ export default function AdminDashboard() {
       if (error instanceof TypeError && error.message.includes("fetch")) {
         toast({ title: "خطأ في الاتصال", description: "تأكد من اتصالك بالإنترنت وأن الخادم يعمل.", variant: "destructive" });
       } else {
-        toast({ title: "خطأ", description: `حدث خطأ أثناء تحديث المنتج: ${error.message}`, variant: "destructive" });
+        // SQL driver failures may include a raw statement, placeholders and
+        // internal identifiers. Never render these details in an admin toast.
+        const message = /^(?:Failed query:|NeonDbError:|Query failed:)/i.test(error.message.trim())
+          ? "تعذر إكمال تعديل المنتج بسبب خطأ في قاعدة البيانات. راجع حالة المخزون قبل إعادة المحاولة."
+          : error.message;
+        toast({ title: "خطأ", description: `حدث خطأ أثناء تحديث المنتج: ${message}`, variant: "destructive" });
       }
     },
   });
