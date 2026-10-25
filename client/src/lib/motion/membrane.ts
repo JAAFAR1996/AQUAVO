@@ -38,11 +38,11 @@ function ensure(root?: Element | null): IntersectionObserver | null {
 function reveal(el: HTMLElement) {
   el.dataset.aqvMembrane = "done";
   if (prefersReducedMotion() || typeof el.animate !== "function") return;
-  const blur = isCompactViewport() ? 0 : MOTION.blur.membrane;
+  // Keep text legible: a short opacity/translate reveal, without clipping or blur.
   el.animate(
     [
-      { clipPath: "inset(0 0 100% 0)", opacity: 0, filter: `blur(${blur}px)`, transform: `translateY(${MOTION.delta.rise}px)` },
-      { clipPath: "inset(0 0 0% 0)", opacity: 1, filter: "blur(0px)", transform: "translateY(0)" },
+      { opacity: 0.65, transform: `translateY(${isCompactViewport() ? 6 : 10}px)` },
+      { opacity: 1, transform: "translateY(0)" },
     ],
     { duration: MOTION.dur.calm, easing: MOTION.ease.meniscus }
   );

@@ -137,7 +137,7 @@ export function ProductImageGallery({
 
     return (
         <div
-            className={cn("space-y-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:space-y-4", className)}
+            className={cn("aq-motion-gallery space-y-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:space-y-4", className)}
             dir={dir}
             onKeyDown={handleKeyDown}
             tabIndex={0}

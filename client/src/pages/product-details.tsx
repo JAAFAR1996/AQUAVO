@@ -583,7 +583,7 @@ export default function ProductDetails() {
 
                 {/* Product Variants - Check for multi-dimensional first, then embedded */}
                 {hasEmbeddedVariants && product.variants && (
-                  <div className="mb-6">
+                  <div className="aq-motion-options mb-6">
                     {/* Try MultiDimensionVariantSelector first (for color + size products) */}
                     <MultiDimensionVariantSelector
                       variants={activeVariants}
