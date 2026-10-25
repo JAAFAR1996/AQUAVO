@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useEffect, useId, useState } from "react";
 import {
     Dialog,
     DialogContent,
     DialogHeader,
     DialogTitle,
     DialogFooter,
-    DialogClose
+    DialogClose,
+    DialogDescription
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -33,6 +34,7 @@ interface FilterModalProps {
     minPrice?: number;
     brandCounts?: Map<string, number>;
     resultCount?: number;
+    getResultCount?: (filters: FilterState) => Promise<number>;
 }
 
 // Pill button for selections
@@ -77,7 +79,7 @@ function FilterPill({
             className={cn(
                 "inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium",
                 "border-2 transition-all duration-200",
-                "hover:shadow-md active:scale-95",
+                "hover:shadow-md active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 motion-reduce:transition-none motion-reduce:transform-none",
                 colorClasses[color]
             )}
         >
@@ -129,11 +131,42 @@ export function FilterModal({
     maxPrice,
     minPrice = 0,
     brandCounts,
-    resultCount = 0,
+    resultCount,
+    getResultCount,
 }: FilterModalProps) {
     const { t } = useTranslation("products");
     // Local state for pending changes
     const [localFilters, setLocalFilters] = useState<FilterState>(filters);
+    const [showAllBrands, setShowAllBrands] = useState(false);
+    const brandsId = useId();
+    const [preview, setPreview] = useState<{ filters: FilterState; count?: number; failed?: boolean }>();
+
+    useEffect(() => {
+        if (!isOpen) return;
+        setLocalFilters(filters);
+        setShowAllBrands(false);
+    }, [isOpen, filters]);
+
+    useEffect(() => {
+        if (!isOpen || !getResultCount) return;
+        let cancelled = false;
+        const timer = window.setTimeout(() => {
+            void getResultCount(localFilters).then(count => {
+                if (!cancelled) setPreview({ filters: localFilters, count });
+            }).catch(() => {
+                if (!cancelled) setPreview({ filters: localFilters, failed: true });
+            });
+        }, 200);
+        return () => { cancelled = true; window.clearTimeout(timer); };
+    }, [isOpen, localFilters, getResultCount]);
+
+    const currentPreview = preview?.filters === localFilters ? preview : undefined;
+    const previewPending = Boolean(getResultCount && !currentPreview);
+    const count = getResultCount ? currentPreview?.count : resultCount;
+    // Selected brands remain visible even when they fall beyond the initial eight.
+    const firstBrands = availableBrands.filter((brand, index) => index < 8 || localFilters.brands.includes(brand));
+    const hasHiddenBrands = availableBrands.length - firstBrands.length > 1;
+    const visibleBrands = showAllBrands || !hasHiddenBrands ? availableBrands : firstBrands;
 
     // Sync with parent when dialog opens
     const handleOpenChange = (open: boolean) => {
@@ -199,7 +232,7 @@ export function FilterModal({
 
     return (
         <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-            <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0">
+            <DialogContent className="max-w-2xl max-h-[90dvh] flex flex-col overflow-hidden p-0 [&>button]:hidden">
                 {/* Header */}
                 <DialogHeader className="px-6 py-4 border-b border-border flex-shrink-0">
                     <div className="flex items-center justify-between">
@@ -211,10 +244,11 @@ export function FilterModal({
                         <DialogTitle className="text-lg font-bold">{t("filters.button")}</DialogTitle>
                         <div className="w-10" /> {/* Spacer for alignment */}
                     </div>
+                    <DialogDescription className="sr-only">{t("filters.subtitle")}</DialogDescription>
                 </DialogHeader>
 
                 {/* Content - Scrollable */}
-                <div className="flex-1 overflow-y-auto px-6">
+                <div className="min-h-0 flex-1 overflow-y-auto px-6">
                     {/* Price Range */}
                     <FilterSection title={t("filters.priceRange")} icon={DollarSign}>
                         <div className="px-2">
@@ -249,8 +283,8 @@ export function FilterModal({
                     {/* Brands */}
                     {availableBrands.length > 0 && (
                         <FilterSection title={t("filters.brands")} icon={Tag}>
-                            <div className="flex flex-wrap gap-2">
-                                {availableBrands.map((brand) => (
+                            <div id={brandsId} className="flex flex-wrap gap-2">
+                                {visibleBrands.map((brand) => (
                                     <FilterPill
                                         key={brand}
                                         label={brand}
@@ -260,6 +294,13 @@ export function FilterModal({
                                     />
                                 ))}
                             </div>
+                            {hasHiddenBrands && (
+                                <Button type="button" variant="ghost" className="mt-3 min-h-11 text-primary underline underline-offset-4"
+                                    aria-expanded={showAllBrands} aria-controls={brandsId}
+                                    onClick={() => setShowAllBrands(value => !value)}>
+                                    {showAllBrands ? t("filters.fewerBrands") : t("filters.moreBrands", { count: availableBrands.length - firstBrands.length })}
+                                </Button>
+                            )}
                         </FilterSection>
                     )}
 
@@ -267,23 +308,29 @@ export function FilterModal({
 
                 {/* Footer */}
                 <DialogFooter className="px-6 py-4 border-t border-border flex-shrink-0">
-                    <div className="flex items-center justify-between w-full">
+                    <div className="w-full space-y-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2 w-full">
                         <Button
                             variant="ghost"
                             onClick={handleClearAll}
                             className="text-sm underline underline-offset-4 hover:no-underline"
                             disabled={activeFiltersCount === 0}
                         >
-                            <RotateCcw className="w-4 h-4 ml-2" />
+                            <RotateCcw className="w-4 h-4 me-2" aria-hidden="true" />
                             {t("filters.clearAll")}
                         </Button>
                         <Button
                             onClick={handleApply}
                             size="lg"
-                            className="px-8 rounded-xl bg-gradient-to-r from-primary to-accent hover:opacity-90"
+                            className="px-8 rounded-xl bg-foreground text-background hover:bg-foreground/90"
+                            aria-busy={previewPending}
                         >
-                            {t("filters.showResults", { count: resultCount })}
+                            <span aria-live="polite" aria-atomic="true">
+                                {previewPending ? t("filters.counting") : count !== undefined ? t("filters.showResults", { count }) : t("filters.applyDraft")}
+                            </span>
                         </Button>
+                    </div>
+                    {currentPreview?.failed && <p role="status" className="text-sm text-muted-foreground">{t("filters.countError")}</p>}
                     </div>
                 </DialogFooter>
             </DialogContent>

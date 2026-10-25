@@ -91,7 +91,12 @@
     "experience": "مستوى الخبرة",
     "active": "{{count}} فلتر نشط",
     "selected": "{{count}} مختار",
-    "showResults": "عرض {{count}} منتج"
+    "showResults": "عرض {{count}} منتج",
+    "moreBrands": "عرض باقي الماركات ({{count}})",
+    "fewerBrands": "عرض ماركات أقل",
+    "counting": "جاري حساب النتائج…",
+    "countError": "ما قدرنا نحسب العدد هسه. تگدر تطبّق الفلاتر وتشوف النتائج.",
+    "applyDraft": "عرض النتائج"
   },
   "card": {
     "added": "تمت الإضافة",

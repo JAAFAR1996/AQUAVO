@@ -77,6 +77,39 @@ describe("ProductImageGallery", () => {
         expect(screen.getByRole("img", { name: "فلتر اختبار - صورة 1" })).toBeInTheDocument();
     });
 
+    it("keeps keyboard activation of a thumbnail from also opening the lightbox", async () => {
+        const user = userEvent.setup();
+        render(<ProductImageGallery images={images} productName="فلتر اختبار" />);
+        screen.getByRole('button', { name: 'عرض الصورة 2' }).focus();
+        await user.keyboard('{Enter}');
+        expect(screen.getByText('2 / 3')).toBeVisible();
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+
+    it("stops retrying when every original image fails and recovers for a new option", () => {
+        const { rerender } = render(<ProductImageGallery images={images.slice(0, 2)} productName="فلتر اختبار" />);
+        for (const index of [1, 2]) {
+            const image = screen.getByAltText(`فلتر اختبار - صورة ${index}`);
+            fireEvent.error(image); // Optimized source -> original.
+            fireEvent.error(image); // Original failed -> skip without looping.
+        }
+        expect(screen.queryByRole('img', { name: /فلتر اختبار - صورة [12]$/ })).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: 'الصورة التالية' })).not.toBeInTheDocument();
+        rerender(<ProductImageGallery images={['/images/recovered.jpg']} productName="فلتر اختبار" />);
+        expect(screen.getByRole('img', { name: 'فلتر اختبار - صورة 1' })).toHaveAttribute('src', '/images/recovered.webp');
+    });
+
+    it("resets the selected photo and zoom when a product option supplies a new gallery", async () => {
+        const user = userEvent.setup();
+        const { rerender } = render(<ProductImageGallery images={images} productName="فلتر اختبار" />);
+        await user.click(screen.getByRole('button', { name: 'عرض الصورة 3' }));
+        await user.click(screen.getByRole('img', { name: 'فلتر اختبار - صورة 3' }));
+        expect(screen.getByRole('dialog')).toBeVisible();
+        rerender(<ProductImageGallery images={['/images/option.jpg']} productName="فلتر اختبار" />);
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+        expect(screen.getByRole('img', { name: 'فلتر اختبار - صورة 1' })).toHaveAttribute('src', '/images/option.webp');
+    });
+
     // WCAG 2.5.5 touch-target regression guard.
     //
     // These pin each control's *effective* rendered size rather than the literal

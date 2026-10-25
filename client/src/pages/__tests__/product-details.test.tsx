@@ -159,6 +159,12 @@ describe('Product Details Page', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         mockAddItem.mockResolvedValue(true);
+        // Sections now mount reviews on desktop; return the real endpoint shape.
+        const fallbackFetch = globalThis.fetch;
+        vi.stubGlobal('fetch', vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+            if (String(input).includes('/reviews')) return Promise.resolve(new Response('[]', { status: 200 }));
+            return fallbackFetch(input, init);
+        }));
     });
 
     afterEach(() => {
@@ -320,7 +326,7 @@ describe('Product Details Page', () => {
         expect(await screen.findByRole('heading', { level: 1, name: 'سيفون تغيير ماء' })).toBeInTheDocument();
         expect(screen.queryByText(/أصلي 100%/i)).not.toBeInTheDocument();
         expect(screen.queryByText(/ضمان الجودة/i)).not.toBeInTheDocument();
-        expect(screen.getByText('معلومات المنتج')).toBeInTheDocument();
+        expect(screen.getAllByText('معلومات المنتج').length).toBeGreaterThan(0);
     });
 
     // ---- Phase E: purchase confidence + CTA accessibility ----
@@ -330,7 +336,7 @@ describe('Product Details Page', () => {
         await screen.findByRole('heading', { level: 1, name: 'سيفون تغيير ماء' });
 
         expect(screen.getByText(/الدفع عند الاستلام أو إلكترونياً/)).toBeInTheDocument();
-        expect(screen.getByText(/5,000 د.ع/)).toBeInTheDocument();
+        expect(screen.getByText(/التوصيل: 5,000 د.ع لكل العراق/)).toBeInTheDocument();
         expect(screen.getByText(/دعم AQUAVO متوفر 24\/7/)).toBeInTheDocument();
     });
 
