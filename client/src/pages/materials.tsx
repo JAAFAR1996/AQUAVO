@@ -14,7 +14,7 @@ export default function MaterialsPage(){
  const products=query.data?.products||[];
  const items=adaptMaterialProducts(products);
  const hasItems=items.length>0 || adaptWoodProducts(products).length>0;
- return <main dir={dir} className="mx-auto w-full max-w-7xl space-y-12 px-4 py-10 sm:px-6 lg:px-8"><MetaTags title={t.title} description={t.intro} noindex />
+ return <main dir={dir} className="mx-auto w-full max-w-7xl space-y-12 px-4 py-10 sm:px-6 lg:px-8"><MetaTags title={t.title} description={t.intro} noIndex />
  <header className="max-w-3xl space-y-4"><h1 className="font-display text-3xl font-bold sm:text-5xl">{t.title}</h1><p className="leading-8 text-muted-foreground">{t.intro}</p><nav className="flex flex-wrap gap-3"><a href="#materials" className="inline-flex min-h-11 items-center rounded-full border border-border px-4 focus-visible:ring-2 focus-visible:ring-primary">{t.materials}</a><a href="#wood" className="inline-flex min-h-11 items-center rounded-full border border-border px-4 focus-visible:ring-2 focus-visible:ring-primary">{t.wood}</a></nav></header>
  {query.isLoading&&<p role="status">{t.loading}</p>}{query.isError&&<div role="alert"><p>{t.error}</p><button type="button" onClick={()=>query.refetch()} className="mt-3 min-h-11 rounded-full border border-border px-5">{t.retry}</button></div>}
  {!query.isLoading&&!query.isError&&!hasItems&&<div role="status" className="rounded-2xl border border-border p-6"><p>{t.empty}</p><Link href="/products" className="mt-3 inline-flex min-h-11 items-center rounded-full border border-border px-5 focus-visible:ring-2 focus-visible:ring-primary">{t.browse}</Link></div>}

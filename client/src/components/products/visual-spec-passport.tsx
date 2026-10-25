@@ -31,7 +31,7 @@ export function VisualSpecPassport({ product, variant, language = 'ar' }: { prod
     <p className="text-xs font-bold text-primary">{t.title}</p>
     {product.hasVariants && !variant && <p className="mt-2 text-xs text-muted-foreground">{t.choose}</p>}
     {facts.axes && <figure className="mt-3">
-      <svg viewBox="0 0 240 155" role="img" aria-labelledby={id} className="h-36 w-full text-primary" dir="ltr">
+      <svg viewBox="0 0 240 155" role="img" aria-labelledby={id} className="h-36 w-full text-primary" style={{ direction: 'ltr' }}>
         <title id={id}>{t.dimensions}: {facts.dimension}</title>
         <path d="M60 45H155V105H60Z M60 45L92 25H187V85L155 105 M155 45L187 25" fill="none" stroke="currentColor" strokeWidth="1.5" />
         <path d="M60 118H155 M48 45V105 M164 114L196 94" fill="none" stroke="currentColor" strokeDasharray="3 3" />

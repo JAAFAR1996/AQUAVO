@@ -18,7 +18,7 @@ function WoodImage({ src, alt, missing }: { src: string; alt: string; missing: s
 function WoodZoomContent({ item, photo, t, language }: { item: WoodGalleryItem; photo: WoodPhoto; t: WoodGalleryCopy; language: WoodGalleryLanguage }) {
   const [zoom, setZoom] = useState(1);
   return <DialogContent dir={language === 'en' ? 'ltr' : 'rtl'} className="max-w-4xl gap-4 bg-card p-4 text-card-foreground sm:p-6">
-    <div className="space-y-2 pe-12 text-start">
+    <div className="space-y-2 pr-12 text-start">
       <DialogTitle className="font-display text-xl leading-relaxed"><bdi>{item.pieceCode}</bdi> · {t[photo.role]}</DialogTitle>
       <DialogDescription>{t.zoomHint}</DialogDescription>
     </div>
