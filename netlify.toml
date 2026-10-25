@@ -1,0 +1,5 @@
+# DISPOSABLE REVIEW HARNESS. Do not merge this commit into main.
+# No production build, domains, environment variables, or account settings are changed.
+[context.deploy-preview]
+  command = "node preview/build.mjs"
+  publish = "dist/public"
