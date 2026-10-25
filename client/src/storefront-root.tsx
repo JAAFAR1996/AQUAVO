@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { createRoot, hydrateRoot } from "react-dom/client";
 import App from "./App";
-import { FirstDiveIntro } from "./components/effects/first-dive-intro";
 import { DisplacementRuntime } from "./components/motion/displacement-runtime";
 
 export function mountStorefront(container: HTMLElement, onReady: () => void) {
@@ -27,7 +26,6 @@ export function StorefrontRoot({ hasInitialShell = false, onReady }: {
 
   return <>
     <App hasInitialShell={hasInitialShell} />
-    <FirstDiveIntro />
     <DisplacementRuntime />
   </>;
 }

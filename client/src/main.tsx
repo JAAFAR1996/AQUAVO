@@ -10,6 +10,7 @@ import { captureAttributionFromUrl } from "./lib/attribution";
 import { installChunkLoadRecovery, recoverFromDynamicImportError } from "./lib/chunk-recovery";
 import { installListingNavigation } from "./lib/listing-navigation";
 import { waitForStorefrontStyles } from "./lib/storefront-style-ready";
+import { startFirstDiveIntro } from "./components/effects/first-dive-intro";
 
 // Recover automatically when an already-open tab references a hashed chunk removed by a newer deploy.
 installChunkLoadRecovery();
@@ -22,6 +23,7 @@ initializeClientEnvSideEffects();
 // App.tsx) — waiting for that would mean reading ?fbclid=... from a URL the SPA may already have
 // rewritten. This only writes to localStorage; it sends nothing and loads nothing.
 captureAttributionFromUrl();
+startFirstDiveIntro();
 
 // Arm the semantic-to-client handoff before React starts. The previous cleanup
 // depended only on a React effect, so a delayed/suspended first commit could leave
@@ -63,7 +65,7 @@ function armSemanticShellHandoff(): () => void {
 const stopSemanticShellHandoff = armSemanticShellHandoff();
 
 // The previous init screen blocked first paint for a fixed half-second. Keep its
-// legacy branch bypassed while FirstDiveIntro runs over an already rendered app.
+// legacy branch bypassed while the first-visit reveal runs during bootstrap.
 try {
   window.sessionStorage.setItem("aq_init", "1");
 } catch {

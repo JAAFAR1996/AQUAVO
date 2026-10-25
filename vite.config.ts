@@ -25,22 +25,12 @@ const getVendorChunkName = (id: string): string | null => {
     return "vendor-react";
   }
 
-  if (
-    [
-      "@radix-ui/react-dialog",
-      "@radix-ui/react-dropdown-menu",
-      "@radix-ui/react-select",
-      "@radix-ui/react-tabs",
-      "@radix-ui/react-tooltip",
-      "@radix-ui/react-popover",
-      "@radix-ui/react-accordion",
-    ].some(includesPackage)
-  ) {
-    return "vendor-ui";
-  }
-
+  // Keep the small icon set together to avoid dozens of tiny request chains.
   if (includesPackage("lucide-react")) return "vendor-icons";
-  if (includesPackage("framer-motion")) return "vendor-animation";
+
+  // Let automatic splitting keep UI controls and animation features
+  // with their actual importers. Grouping a whole package here also captures
+  // modules used only by lazy routes and makes the home download them.
 
   // Only packages the eager entry actually needs belong here. `vendor-utils`
   // is a static import of the entry, so anything named here is downloaded,

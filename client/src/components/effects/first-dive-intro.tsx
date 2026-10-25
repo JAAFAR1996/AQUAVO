@@ -1,37 +1,34 @@
-import { useEffect, useState } from "react";
-
 const FIRST_DIVE_KEY = "aquavo_first_dive_seen_v2";
 
 /**
  * One non-blocking brand reveal for the visitor's first-ever browser visit.
- * App content renders underneath immediately; the surface split is decorative,
- * pointer-transparent and permanently suppressed after its first run.
+ * Start with the small bootstrap, while the application modules load. Starting
+ * this from a React effect covered the already-painted home a second time after
+ * hydration. The same mark, surface split, duration and once-only rule remain.
+ * The temporary node lives outside React's root, so hydration cannot replace it.
  */
-export function FirstDiveIntro() {
-  const [visible, setVisible] = useState(false);
+export function startFirstDiveIntro(): void {
+  try {
+    if (window.localStorage.getItem(FIRST_DIVE_KEY) === "1") return;
+    window.localStorage.setItem(FIRST_DIVE_KEY, "1");
+  } catch {
+    return;
+  }
+  if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
 
-  useEffect(() => {
-    try {
-      if (window.localStorage.getItem(FIRST_DIVE_KEY) === "1") return;
-      window.localStorage.setItem(FIRST_DIVE_KEY, "1");
-      setVisible(true);
-    } catch {
-      // Storage-restricted browsers simply skip the decorative first visit.
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!visible) return;
-    const timer = window.setTimeout(() => setVisible(false), 920);
-    return () => window.clearTimeout(timer);
-  }, [visible]);
-
-  if (!visible) return null;
-
-  return (
-    <div className="aqv-first-dive" data-aqv-motion="first-dive" aria-hidden="true">
-      <img className="aqv-first-dive__mark" src="/brand/aquavo-v2-icon.svg" alt="" width={68} height={68} />
-      <span className="aqv-first-dive__line" />
-    </div>
-  );
+  const surface = document.createElement("div");
+  surface.className = "aqv-first-dive";
+  surface.dataset.aqvMotion = "first-dive";
+  surface.setAttribute("aria-hidden", "true");
+  const mark = document.createElement("img");
+  mark.className = "aqv-first-dive__mark";
+  mark.src = "/brand/aquavo-v2-icon.svg";
+  mark.alt = "";
+  mark.width = 68;
+  mark.height = 68;
+  const line = document.createElement("span");
+  line.className = "aqv-first-dive__line";
+  surface.append(mark, line);
+  document.body.appendChild(surface);
+  window.setTimeout(() => surface.remove(), 920);
 }
