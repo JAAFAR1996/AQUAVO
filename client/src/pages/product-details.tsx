@@ -12,6 +12,8 @@ import { DynamicButton } from "@/components/ui/dynamic-button";
 import { Badge } from "@/components/ui/badge";
 import { formatNumber, formatPrice } from "@/lib/format";
 import { Card, CardContent } from "@/components/ui/card";
+import { productChoiceFacts } from "@/lib/product-choice-facts";
+import { ProductChoiceSummary } from "@/components/products/product-choice-summary";
 import { ProductInformationSection } from "@/components/products/product-information-section";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ShoppingCart, Star, Truck, RotateCcw, Shield, Info, Heart, Share2, Leaf, Check, Package, FileText, ExternalLink, Clock, Banknote, Loader2 } from "lucide-react";
@@ -100,6 +102,7 @@ export default function ProductDetails() {
   const [quantity, setQuantity] = useState(1);
   const [isAddedToCart, setIsAddedToCart] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const addPendingRef = useRef(false);
   const primaryAddRef = useRef<HTMLDivElement>(null);
   const [isPrimaryAddPastViewport, setIsPrimaryAddPastViewport] = useState(false);
   const [isEditingText, setIsEditingText] = useState(false);
@@ -278,7 +281,8 @@ export default function ProductDetails() {
       // addItem validates stock against the server and fires AddToCart analytics
       // (Meta/TikTok/GA/PostHog) ONLY on success — and shows the Arabic error toast
       // itself when blocked. Gate the success UI on the result.
-      if (isAddingToCart) return;
+      if (addPendingRef.current) return;
+      addPendingRef.current = true;
       setIsAddingToCart(true);
       void (async () => {
         try {
@@ -287,6 +291,7 @@ export default function ProductDetails() {
           setIsAddedToCart(true);
           setTimeout(() => setIsAddedToCart(false), 2000);
         } finally {
+          addPendingRef.current = false;
           setIsAddingToCart(false);
         }
       })();
@@ -388,6 +393,7 @@ export default function ProductDetails() {
   const productDisplay = getProductDisplayIdentity(product);
   const productMeta = buildProductSeoMeta(product, { locale });
   const decisionSpecs = (product.specifications ?? {}) as Record<string, unknown>;
+  const choiceFacts = productChoiceFacts(decisionSpecs, selectedVariant?.specifications, requiresVariantSelection);
   const decisionCardBenefit =
     typeof decisionSpecs.__cardBenefit === "string" ? decisionSpecs.__cardBenefit.trim() : "";
   const decisionBenefits = Array.isArray(decisionSpecs.benefits)
@@ -482,6 +488,7 @@ export default function ProductDetails() {
                     heroTransitionName={heroTransitionName}
                   />
                 )}
+                <ProductChoiceSummary facts={choiceFacts} dimensions variantLabel={selectedVariant?.label} />
               </div>
 
               {/* Product Info */}
@@ -612,6 +619,8 @@ export default function ProductDetails() {
                     />
                   </div>
                 )}
+
+                <ProductChoiceSummary facts={choiceFacts} variantLabel={selectedVariant?.label} />
 
                 {/* Stock Status */}
                 <div className="flex items-center gap-2 mb-4" role="status">

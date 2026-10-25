@@ -258,9 +258,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const notifyCartAdded = (name: string, quantity: number) => {
     toast({
       title: t("toaster.added"),
-      description: quantity > 1
-        ? t("toaster.addedQty", { v0: quantity, v1: name })
-        : t("toaster.addedDetail", { v0: name }),
+      description: t("toaster.addedQty", { v0: quantity, v1: name }),
       swipeCart: true,
       cartAction: true,
     });

@@ -257,5 +257,10 @@
   },
   "information": {
     "navigation": "Product information navigation"
+  },
+  "choice": {
+    "title": "Before you choose",
+    "dimensions": "Listed product dimensions",
+    "scaleNote": "Photos are not to scale. Compare these measurements with the installation space before ordering."
   }
 }

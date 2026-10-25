@@ -49,6 +49,17 @@ export function ProductImageGallery({
     const [isZoomed, setIsZoomed] = useState(false);
     const [zoomPosition, setZoomPosition] = useState({ x: 50, y: 50 });
     const [lightboxOpen, setLightboxOpen] = useState(false);
+    const thumbsRef = useRef<HTMLDivElement>(null);
+    useEffect(() => {
+        const strip = thumbsRef.current;
+        const selected = strip?.children[selectedIndex] as HTMLElement | undefined;
+        if (!strip || !selected) return;
+        const bounds = strip.getBoundingClientRect();
+        const item = selected.getBoundingClientRect();
+        // Scroll only the strip, never move the product page vertically.
+        if (item.left < bounds.left) strip.scrollLeft += item.left - bounds.left;
+        else if (item.right > bounds.right) strip.scrollLeft += item.right - bounds.right;
+    }, [selectedIndex, images]);
     const imageRef = useRef<HTMLDivElement>(null);
 
     const galleryImages = buildGalleryImages(images);
@@ -239,7 +250,7 @@ export function ProductImageGallery({
             )}
 
             {galleryImages.length > 1 && (
-                <div className="flex gap-2 overflow-x-auto pb-1 sm:pb-2 scrollbar-thin" role="group" aria-label={t("gallery.thumbs", { name: productName })}>
+                <div ref={thumbsRef} className="flex gap-2 overflow-x-auto pb-1 sm:pb-2 scrollbar-thin" role="group" aria-label={t("gallery.thumbs", { name: productName })}>
                     {galleryImages.map((image, index) => (
                         <button
                             key={`${image}-${index}`}
