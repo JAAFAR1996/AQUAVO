@@ -47,7 +47,7 @@ const server = createServer(async (req, res) => {
       return;
     }
     const path = resolve(publicDir, `.${url.pathname}`);
-    if (!path.startsWith(`${publicDir}/`)) { res.writeHead(403).end(); return; }
+    if (path !== publicDir && !path.startsWith(`${publicDir}/`)) { res.writeHead(403).end(); return; }
     const isPage = !extname(url.pathname);
     res.setHeader("Content-Type", isPage ? "text/html" : types[extname(path)] || "application/octet-stream");
     res.end(isPage ? template : await readFile(path));
