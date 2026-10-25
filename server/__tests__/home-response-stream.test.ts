@@ -16,6 +16,7 @@ function responseRecorder() {
   const response = {
     headersSent: false,
     writableEnded: false,
+    destroy: vi.fn(),
     setHeader: vi.fn((key: string, value: unknown) => {
       if (response.headersSent) throw new Error("Headers already sent");
       headers.set(key.toLowerCase(), value);
@@ -124,5 +125,20 @@ describe("homepage streams before its merchant shipping lookup", () => {
       expect(r.response.send).toHaveBeenCalledOnce();
       if (url === "/products") expect(r.headers.get("cache-control")).toBe("private, no-store, max-age=0");
     }
+  });
+
+  it("aborts a failed partial response instead of caching incomplete HTML or sending a second page", async () => {
+    const r = responseRecorder();
+    const error = new Error("fixture interrupted stream");
+    r.response.write.mockImplementation(() => {
+      r.response.headersSent = true;
+      throw error;
+    });
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    await handler(request(), r.response as unknown as VercelResponse);
+    expect(r.response.destroy).toHaveBeenCalledWith(error);
+    expect(r.response.end).not.toHaveBeenCalled();
+    expect(r.response.send).not.toHaveBeenCalled();
+    expect(query).not.toHaveBeenCalled();
   });
 });

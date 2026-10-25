@@ -1423,7 +1423,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     console.error("SSR meta handler error:", err);
     // A client disconnect or streaming failure cannot start a second response.
     if (res.headersSent) {
-      if (!res.writableEnded) res.end();
+      // Do not let the CDN treat a truncated document as a successful cache fill.
+      if (!res.writableEnded) res.destroy(err instanceof Error ? err : undefined);
       return;
     }
     // A generic error fallback is not proof that a localized entity is ready
