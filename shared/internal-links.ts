@@ -34,7 +34,7 @@ export const ROUTES: readonly string[] = [
   "/compare", "/contact", "/cultural-twin", "/deals", "/bundles", "/encyclopedia", "/faq",
   "/fish-breeding-calculator", "/fish-compatibility", "/fish-doctor", "/fish-encyclopedia", "/guides",
   "/fish-finder", "/fish-health", "/fish-health-diagnosis", "/fish-patients",
-  "/forgot-password", "/invest", "/journey", "/links", "/login", "/order-tracking",
+  "/forgot-password", "/invest", "/journey", "/links", "/login", "/materials", "/order-tracking",
   "/partners", "/privacy-policy", "/products", "/profile", "/register", "/return-policy",
   "/returns", "/search", "/shipping", "/sustainability", "/tank-builder",
   "/temperature-guide", "/terms", "/verify-certificate", "/why-aquavo", "/wishlist",
