@@ -3,6 +3,8 @@
   'use strict';
   const originalFetch = window.fetch.bind(window);
   const snapshot = originalFetch('/preview-data/catalogue.json').then(r => { if (!r.ok) throw Error('Snapshot unavailable'); return r.json(); });
+  // Existing localized storefront labels mapped to public snapshot categories.
+  const categoryAliases = {"الفلترة والتنقية": "الفلترة والتنقية", "التحكم بالحرارة": "التحكم بالحرارة", "الإضاءة": "الإضاءة", "معالجة المياه": "معالجة المياه", "طعام الأسماك": "طعام الأسماك", "التربة والديكور": "تربة وديكور", "التهوية والأكسجين": "التهوية والأكسجين", "Filtration & purification": "الفلترة والتنقية", "Temperature control": "التحكم بالحرارة", "Lighting": "الإضاءة", "Water treatment": "معالجة المياه", "Fish food": "طعام الأسماك", "Substrate & décor": "تربة وديكور", "Ventilation and Oxygenation": "التهوية والأكسجين", "فلتەرکردن و پاککردنەوە": "الفلترة والتنقية", "کۆنترۆڵی پلەی گەرمی": "التحكم بالحرارة", "ڕووناکی": "الإضاءة", "ئامادەکردنی ئاو": "معالجة المياه", "خۆراکی ماسی": "طعام الأسماك", "خاک و دیکۆر": "تربة وديكور", "هەواگۆڕکێ و ئۆکسجین": "التهوية والأكسجين"};
   const response = (data, status = 200) => new Response(JSON.stringify(data), {status, headers: {'Content-Type':'application/json'}});
   const blockedPath = p => /^\/(checkout|login|register|auth|account|admin|orders?|payment|cart)(\/|$)/i.test(p);
   const blocked = () => response({error:'Visual preview only. Purchases, login and submissions are disabled.'}, 403);
@@ -18,7 +20,7 @@
     if (p === '/api/products') {
       let result = products;
       const q = url.searchParams;
-      if (q.get('category')) result = result.filter(p=>p.category === q.get('category'));
+      if (q.get('category')) result = result.filter(p=>p.category === (categoryAliases[q.get('category')] || q.get('category')));
       if (q.get('brand')) result = result.filter(p=>p.brand === q.get('brand'));
       if (q.get('search')) result = result.filter(p=>(p.name+' '+p.brand+' '+p.description).toLowerCase().includes(q.get('search').toLowerCase()));
       return response({products:result});
