@@ -1,4 +1,3 @@
-export { SearchAutocomplete } from "./search-autocomplete";
 export {
     ProductFiltersAdvanced,
     ProductSortDropdown,
