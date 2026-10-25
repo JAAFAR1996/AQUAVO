@@ -182,6 +182,15 @@ try {
         ["/journey", tools.journey.s7],
       ]) {
         await page.goto(`${base}${prefix}${path}`);
+        if (path === "/journey") {
+          // The accessible first-visit intro intentionally hides background
+          // headings. Exercise dismissal before checking translated page copy.
+          const intro = page.getByRole("dialog");
+          await intro.waitFor();
+          assert.equal(await intro.count(), 1, `${locale}: only one journey intro`);
+          await intro.getByRole("button", { name: tools["journey-experience"].s3, exact: true }).click();
+          await intro.waitFor({ state: "hidden" });
+        }
         await page.getByRole("heading", { level: 1, name: title, exact: true }).waitFor();
         assert.equal(await page.locator("html").getAttribute("lang"), locale);
         assert.doesNotMatch(await page.locator("body").innerText(), /(?:guides-filter-choice|calculators|tank-size-calculator|journey|journey-progress|step-size)\.s\d+/);
