@@ -1,3 +1,4 @@
+import postcss from "postcss";
 /**
  * The Guides publishing boundary is cross-document (SPA <-> server-rendered
  * /guides). Both surfaces must opt into cross-document View Transitions with the
@@ -29,7 +30,11 @@ describe("Flow Gate — Guides cross-document boundary", () => {
 
   it("both surfaces disable the transition under reduced motion", () => {
     // SPA: inside a reduced-motion media block.
-    const reduced = appCss.slice(appCss.lastIndexOf("@media (prefers-reduced-motion: reduce)"));
+    const reducedBlocks: string[] = [];
+    postcss.parse(appCss).walkAtRules("media", rule => {
+      if (rule.params === "(prefers-reduced-motion: reduce)") reducedBlocks.push(rule.toString());
+    });
+    const reduced = reducedBlocks.join("\n");
     expect(reduced).toContain("navigation: none");
     // Guides shell.
     expect(guidesHtml).toContain("@media (prefers-reduced-motion: reduce){@view-transition{navigation:none}}");

@@ -75,6 +75,15 @@ try {
     page.on("pageerror", error => errors.push(error.message));
     await context.route("**/*", route => new URL(route.request().url()).origin === base ? route.continue() : route.abort());
     await page.addInitScript(theme => { localStorage.setItem("theme", theme); localStorage.setItem("aquavo_first_dive_seen_v2", "1"); }, theme);
+    await page.goto(`${base}${prefix}/`);
+    const heroPhrase = page.locator(".aq-title-phrase");
+    await expect(heroPhrase).toBeVisible();
+    await expect(heroPhrase).toHaveCSS("animation-name", motion === "reduce" ? "none" : "aq-phrase-settle");
+    const homeCard = page.locator(".aq-interactive-card").first();
+    await homeCard.scrollIntoViewIfNeeded();
+    await homeCard.hover();
+    if (motion === "reduce") await expect(homeCard).toHaveCSS("transform", "none");
+    assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), "home has horizontal overflow");
     await page.goto(`${base}${prefix}/products/fixture-gallery`);
     await expect(page.getByRole("heading", { name: product.name, level: 1 })).toBeVisible({ timeout: 20000 }).catch(async error => {
       console.log(JSON.stringify({errors, body: (await page.locator("body").innerText()).slice(0, 2500)}));
@@ -83,7 +92,7 @@ try {
     });
     const viewport = page.getByTestId("product-gallery-viewport");
     await expect(viewport).toBeVisible();
-    await page.getByRole("button", { name: "1.5 متر", exact: true }).click();
+    await page.getByRole("button", { name: "150 سم", exact: true }).click();
     await expect(page.getByRole("button", { name: productCopy.gallery.showImage.replace("{{index}}", "1") })).toHaveAttribute("aria-pressed", "true");
     await expect(page.getByRole("region", { name: productCopy.choice.dimensions })).toContainText("150 سم");
     await expect(page.getByRole("region", { name: productCopy.choice.title })).toContainText("مضخة اختبار");
@@ -120,7 +129,7 @@ try {
     await expect(closeZoom).toHaveCSS("color", "rgb(255, 255, 255)");
     await page.keyboard.press("Escape");
     await expect(page.getByRole("dialog")).toHaveCount(0);
-    await page.getByRole("button", { name: "1.7 متر", exact: true }).click();
+    await page.getByRole("button", { name: "170 سم", exact: true }).click();
     await expect(page.getByRole("region", { name: productCopy.choice.dimensions })).toContainText("170 سم");
     await expect(page.getByRole("region", { name: productCopy.choice.dimensions })).not.toContainText("150 سم");
     await expect(viewport.locator("img")).toHaveCount(1);
