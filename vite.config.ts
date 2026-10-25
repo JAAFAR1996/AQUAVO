@@ -5,6 +5,7 @@ import path from "path";
 import { metaImagesPlugin } from "./vite-plugin-meta-images";
 import viteCompression from "vite-plugin-compression";
 import { visualizer } from "rollup-plugin-visualizer";
+import { startFirstDiveIntro } from "./client/src/components/effects/first-dive-intro";
 
 const isProduction = process.env.NODE_ENV === "production";
 
@@ -64,6 +65,19 @@ export default defineConfig({
     react(),
     tailwindcss(),
     metaImagesPlugin(),
+    {
+      name: "aquavo-first-visit-reveal",
+      apply: "build",
+      // A classic inline script runs during HTML parsing. An external bootstrap
+      // can arrive after the visible SSR home on a slow link and cover it again.
+      // Reuse the tested function instead of maintaining a second copy.
+      transformIndexHtml: () => [{
+        tag: "script",
+        attrs: { "data-aq-first-visit": "" },
+        children: `(${startFirstDiveIntro.toString()})();`,
+        injectTo: "body",
+      }],
+    },
     // Gzip compression for 60-80% file size reduction
     viteCompression({
       algorithm: "gzip",

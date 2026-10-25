@@ -1,14 +1,14 @@
-const FIRST_DIVE_KEY = "aquavo_first_dive_seen_v2";
-
 /**
  * One non-blocking brand reveal for the visitor's first-ever browser visit.
- * Start with the small bootstrap, while the application modules load. Starting
+ * Start in the HTML, before external application modules load. Starting
  * this from a React effect covered the already-painted home a second time after
  * hydration. Keep the same mark, surface split and once-only rule, with a
  * shorter 420ms reveal so the decoration cannot prolong the first visit.
  * The temporary node lives outside React's root, so hydration cannot replace it.
  */
 export function startFirstDiveIntro(): void {
+  // Keep this function self-contained: Vite also embeds it directly in HTML.
+  const FIRST_DIVE_KEY = "aquavo_first_dive_seen_v2";
   try {
     if (window.localStorage.getItem(FIRST_DIVE_KEY) === "1") return;
     window.localStorage.setItem(FIRST_DIVE_KEY, "1");

@@ -163,7 +163,7 @@ try {
     freshPage.on("request", request => requests.push(request.url()));
     let releaseApplication;
     const applicationReady = new Promise(done => { releaseApplication = done; });
-    await freshPage.route("**/chunks/i18n-*.js", async route => { await applicationReady; await route.continue(); });
+    await freshPage.route("**/entries/*.js", async route => { await applicationReady; await route.continue(); });
     let releaseFullStyles;
     const fullStylesReady = new Promise(done => { releaseFullStyles = done; });
     await freshPage.route("**/assets/index-*.css", async route => { await fullStylesReady; await route.continue(); });
