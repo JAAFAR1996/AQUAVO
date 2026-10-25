@@ -58,6 +58,14 @@
     notice.style.cssText='position:relative;z-index:9999;padding:10px 16px;background:#fff;color:#111;border-bottom:2px solid currentColor;font:14px/1.6 system-ui;text-align:center';
     document.body.prepend(notice);
     const disableCommerce = () => {
+      // Netlify's optional review drawer is blocked by our strict frame CSP.
+      // Remove only that provider toolbar, not application content or security rules.
+      for (const frame of document.querySelectorAll('iframe[title="Netlify Drawer"]')) {
+        try {
+          const source = new URL(frame.src);
+          if (source.origin === 'https://app.netlify.com' && source.pathname === '/cdp/') frame.remove();
+        } catch { /* Keep unknown frames untouched. */ }
+      }
       for (const button of document.querySelectorAll('button')) {
         if (/إضافة.*(سلة|السلة)|أضف.*(سلة|السلة)|add.*to cart|زیادکردن.*(سەبەت|سەبەتە)|زیاد.*سەبەت|buy now|اشتري الآن|إتمام الطلب|checkout/i.test(button.textContent || '')) {
           button.disabled = true; button.title = 'معاينة فقط: الشراء معطّل';
