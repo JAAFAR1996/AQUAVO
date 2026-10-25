@@ -111,7 +111,12 @@ try {
           const stylesheet = document.querySelector("link[data-aq-deferred-style]");
           return stylesheet?.sheet && stylesheet.media === "all";
         });
-        await page.evaluate(() => document.fonts.ready);
+        await page.evaluate(async () => {
+          // Force stylesheet layout before awaiting FontFaceSet.ready. Without
+          // it, an already-resolved promise can precede newly discovered fonts.
+          document.body.getBoundingClientRect();
+          await document.fonts.ready;
+        });
         const originalImage = await image.elementHandle();
         const initialGeometry = await geometry(page);
         assert.equal(await page.locator('a[data-tour="hero-cta"]').getAttribute("href"), "/products");
@@ -149,6 +154,49 @@ try {
     args: ["--no-sandbox", "--no-zygote", "--disable-dev-shm-usage"],
   });
   try {
+    // A slow application download must not postpone the first-visit reveal
+    // until after the server-rendered home is already visible.
+    const firstVisit = await browser.newContext({ viewport: { width: 412, height: 900 }, reducedMotion: "no-preference" });
+    await firstVisit.route("**/*", route => new URL(route.request().url()).origin === base ? route.continue() : route.abort());
+    const freshPage = await firstVisit.newPage();
+    const requests = [];
+    freshPage.on("request", request => requests.push(request.url()));
+    let releaseApplication;
+    const applicationReady = new Promise(done => { releaseApplication = done; });
+    await freshPage.route("**/entries/*.js", async route => { await applicationReady; await route.continue(); });
+    let releaseFullStyles;
+    const fullStylesReady = new Promise(done => { releaseFullStyles = done; });
+    await freshPage.route("**/assets/index-*.css", async route => { await fullStylesReady; await route.continue(); });
+    await freshPage.goto(base, { waitUntil: "commit" });
+    await freshPage.locator(".aqv-first-dive").waitFor({ state: "attached" });
+    await freshPage.waitForFunction(() => {
+      const mark = document.querySelector(".aqv-first-dive img");
+      return mark?.complete && mark.naturalWidth > 0;
+    });
+    assert.equal(await freshPage.locator(".aqv-first-dive").evaluate(node => getComputedStyle(node).position), "fixed");
+    assert.notEqual(await freshPage.locator(".aqv-first-dive").evaluate(node => getComputedStyle(node, "::before").animationName), "none", "intro animation must work with critical CSS alone");
+    await freshPage.locator(".aqv-first-dive").waitFor({ state: "detached" });
+    assert.notEqual(await freshPage.locator("#root").getAttribute("data-aq-client-ready"), "true");
+    releaseFullStyles();
+    releaseApplication();
+    await freshPage.waitForFunction(() => document.getElementById("root")?.dataset.aqClientReady === "true");
+    assert.equal(await freshPage.locator(".aqv-first-dive").count(), 0, "hydration must not restart the reveal");
+    assert.equal(requests.some(url => /\/chunks\/(?:birthday-celebration|tools)-/.test(url)), false, "guests must not download birthday UI or its tools dictionary");
+    console.log("PASS first visit: complete styled reveal before delayed hydration; no late cover or guest birthday download");
+    await firstVisit.close();
+
+    // Eligibility gates loading, never the existing authenticated feature.
+    const birthday = await browser.newContext({ reducedMotion: "reduce" });
+    await birthday.route("**/*", route => new URL(route.request().url()).origin === base ? route.continue() : route.abort());
+    await birthday.route("**/api/user", route => route.fulfill({ json: { id: "test-customer", role: "customer", email: "test@example.invalid", fullName: "Test Customer" } }));
+    await birthday.route("**/api/birthday/status", route => route.fulfill({ json: { isBirthday: true, discount: 10, coupon: { code: "BIRTHDAY-TEST" } } }));
+    const birthdayPage = await birthday.newPage();
+    await birthdayPage.goto(base);
+    await birthdayPage.getByRole("dialog").filter({ hasText: "BIRTHDAY-TEST" }).waitFor();
+    assert.equal(await birthdayPage.evaluate(() => localStorage.getItem(`aquavo_bday_seen_${new Date().getFullYear()}`)), "1");
+    console.log("PASS signed-in birthday: deferred translations, gift dialog and coupon remain available");
+    await birthday.close();
+
     for (const width of [412, 1365]) {
       const context = await browser.newContext({ javaScriptEnabled: false, viewport: { width, height: 900 } });
       await context.route("**/*", route => new URL(route.request().url()).origin === base ? route.continue() : route.abort());

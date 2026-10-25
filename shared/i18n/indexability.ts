@@ -4,16 +4,11 @@
  * product/article pages indexable.
  */
 import { coverageOf, isIndexableCoverage, sourceHash, type TranslationRecord } from "./content.js";
-import { DEFAULT_LOCALE, SUPPORTED_LOCALES, splitLocaleFromPath, type Locale } from "./locales.js";
-import { isLocaleReleased, releasedAlternatesFor } from "./release.js";
+import { DEFAULT_LOCALE, SUPPORTED_LOCALES, type Locale } from "./locales.js";
+import { isLocaleReleased } from "./release.js";
+export { isTranslatedEntityPath, indexableAlternatesFor } from "./alternate-paths.js";
 
 export type TranslatedPageEntity = "product" | "blog_post";
-
-/** Product/article detail pages require entity-level translation evidence. */
-export function isTranslatedEntityPath(logicalPath: string): boolean {
-  const { path } = splitLocaleFromPath(logicalPath.split(/[?#]/, 1)[0]);
-  return /^\/(?:products|blog)\/[^/]+\/?$/.test(path);
-}
 
 /**
  * The same reviewed, current and field-complete rule used by the page renderer.
@@ -35,24 +30,4 @@ export function indexableLocalesForEntity(
       isIndexableCoverage(coverageOf(record, currentHash, sourceFields)),
     );
   });
-}
-
-/**
- * Static UI pages use the locale release gate. Entity pages additionally need
- * the eligible locale set from their translation records; unknown eligibility
- * must never advertise all released languages. Arabic remains the x-default.
- */
-export function indexableAlternatesFor(
-  logicalPath: string,
-  indexableLocales?: readonly Locale[],
-): ReturnType<typeof releasedAlternatesFor> {
-  const released = releasedAlternatesFor(logicalPath);
-  const eligible = indexableLocales ?? (isTranslatedEntityPath(logicalPath) ? [DEFAULT_LOCALE] : undefined);
-  if (!eligible) return released;
-  return {
-    ...released,
-    alternates: released.alternates.filter((alternate) =>
-      alternate.locale === DEFAULT_LOCALE || eligible.includes(alternate.locale),
-    ),
-  };
 }

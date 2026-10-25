@@ -9,7 +9,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { CartProvider } from "@/contexts/cart-context";
 import { WishlistProvider } from "@/contexts/wishlist-context";
-import { AuthProvider } from "@/contexts/auth-context";
+import { AuthProvider, useAuth } from "@/contexts/auth-context";
 import { ShippingFeeProvider } from "@/contexts/shipping-fee-context";
 import { RequireAdmin } from "@/components/auth/require-admin";
 import { FlowGateProvider } from "@/lib/motion/flow-gate-context";
@@ -30,7 +30,7 @@ import { NavbarPreferencesProvider } from "@/hooks/use-navbar-preferences";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { LocaleProvider } from "@/i18n/locale-context";
 import { SkipToMainLink } from "@/components/ui/skip-to-main";
-import { GuideRelatedProducts } from "@/components/seo/guide-related-products";
+const GuideRelatedProducts = lazy(() => import("@/components/seo/guide-related-products").then(m => ({ default: m.GuideRelatedProducts })));
 import { LanguageSwitcher } from "@/components/ui/language-switcher";
 import { PageTransition } from "@/components/ui/page-transition";
 import { ListingNavigationBoundary, NavigationScrollReset } from "@/components/listing-navigation";
@@ -128,6 +128,14 @@ const InstallPrompt = lazy(() => import("@/components/pwa/pwa-components").then(
 const BirthdayCelebration = lazyWithTranslations(["tools"], () => import("@/components/birthday/birthday-celebration").then(m => ({ default: m.BirthdayCelebration })));
 const OfflineIndicator = lazy(() => import("@/components/pwa/pwa-components").then(m => ({ default: m.OfflineIndicator })));
 const UpdateBanner = lazy(() => import("@/components/pwa/pwa-components").then(m => ({ default: m.UpdateBanner })));
+
+// Check the cheap eligibility condition before rendering the lazy component.
+// Guests cannot receive a birthday coupon and need neither this component nor
+// the tools dictionary. Signing in still mounts the complete celebration.
+function AuthenticatedBirthdayCelebration() {
+  const { user } = useAuth();
+  return user ? <BirthdayCelebration /> : null;
+}
 
 // Deferred OnboardingTour: checks localStorage BEFORE importing heavy Joyride library.
 // Returns null immediately for returning users (zero JS cost).
@@ -1101,7 +1109,7 @@ function AppShell() {
                   <Toaster />
                   {!isStandalonePage && (
                     <Suspense fallback={null}>
-                      <BirthdayCelebration />
+                      <AuthenticatedBirthdayCelebration />
                     </Suspense>
                   )}
                   {!isStandalonePage && (

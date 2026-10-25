@@ -1,8 +1,22 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import "./loaders.css";
 import "../../styles/flow-gate-copy.css";
 import { i18next } from "@/i18n";
-import { LogoTraceLoader } from "./logo-trace-loader";
+import type { LogoTraceLoaderProps } from "./logo-trace-loader";
+
+// The server-rendered home does not show a route loader. Fetch its animation
+// engine only when a pending route actually renders one, keeping the same
+// trace/fill animation and completion callback once the module is available.
+const AnimatedLogo = lazy(() => import("./logo-trace-loader").then(module => ({ default: module.LogoTraceLoader })));
+
+function LogoTraceLoader(props: LogoTraceLoaderProps) {
+  const size = props.size ?? 132;
+  return (
+    <Suspense fallback={<img src="/brand/aquavo-v2-icon.svg" width={size} height={Math.round(size * 339.54 / 599.50)} alt="" className={props.className} />}>
+      <AnimatedLogo {...props} />
+    </Suspense>
+  );
+}
 
 /**
  * Suspense fallback for lazy routes. The marker is present from the first

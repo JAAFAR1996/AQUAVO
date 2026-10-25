@@ -19,7 +19,9 @@ export async function generateHomeStylesModule(template: string, shell: string):
     path: resolve("dist/public"), publicPath: "/", remote: false,
     preload: "media", pruneSource: false, reduceInlineStyles: false,
     mergeStylesheets: false, inlineFonts: false, preloadFonts: false,
-    allowRules: [/^:root/, /^html\.light\b/, /^html\.dark\b/, /^\.dark$/], logLevel: "warn",
+    // The first-visit reveal starts before hydration and lives outside #root.
+    // Include its existing styles even though the server tree omits that node.
+    allowRules: [/^:root/, /^html\.light\b/, /^html\.dark\b/, /^\.dark$/, /\.aqv-first-dive/], logLevel: "warn",
   }).process(document);
   const css = [...result.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/g)]
     .map(match => match[1]).filter(style => !initialStyles.has(style)).join("\n");

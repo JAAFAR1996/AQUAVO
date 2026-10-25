@@ -45,9 +45,13 @@ describe('PageLoader (branded route transition)', () => {
     expect(clearSpy).toHaveBeenCalled();
     clearSpy.mockRestore();
   });
-  it('finishes the legacy init only after the filled mark is ready and calls onDone once', () => {
+  it('finishes the legacy init only after the filled mark is ready and calls onDone once', async () => {
     const onDone = vi.fn();
     const { container } = render(<AppInitLoader onDone={onDone} />);
+
+    // The animation is now fetched only when a loader is shown. Let that
+    // import commit before advancing its trace/fill timers.
+    await act(async () => { await vi.dynamicImportSettled(); });
 
     // Previous implementation removed the mark after 320ms, before fill.
     act(() => vi.advanceTimersByTime(320));

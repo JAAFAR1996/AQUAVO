@@ -10,7 +10,7 @@ import {
 import { articleAuthorEntity } from "@shared/editorial-author";
 import { DEFAULT_LOCALE, LOCALES, SUPPORTED_LOCALES, localizePath, splitLocaleFromPath, type Locale } from "@shared/i18n/locales";
 import { RELEASED_LOCALES, isLocaleReleased } from "@shared/i18n/release";
-import { indexableAlternatesFor, isTranslatedEntityPath } from "@shared/i18n/indexability";
+import { indexableAlternatesFor, isTranslatedEntityPath } from "@shared/i18n/alternate-paths";
 import { stripBidiControls } from "@shared/i18n/bidi";
 import { getGenericStaticSearchMeta } from "@/i18n/static-meta";
 

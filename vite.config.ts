@@ -2,11 +2,14 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
+import { readFileSync } from "node:fs";
 import { metaImagesPlugin } from "./vite-plugin-meta-images";
 import viteCompression from "vite-plugin-compression";
 import { visualizer } from "rollup-plugin-visualizer";
+import { startFirstDiveIntro } from "./client/src/components/effects/first-dive-intro";
 
 const isProduction = process.env.NODE_ENV === "production";
+const firstDiveMark = `data:image/svg+xml,${encodeURIComponent(readFileSync(path.resolve(import.meta.dirname, "client/public/brand/aquavo-v2-icon.svg"), "utf8"))}`;
 
 const getVendorChunkName = (id: string): string | null => {
   if (id.includes("commonjsHelpers")) return "vendor-commonjs";
@@ -25,22 +28,12 @@ const getVendorChunkName = (id: string): string | null => {
     return "vendor-react";
   }
 
-  if (
-    [
-      "@radix-ui/react-dialog",
-      "@radix-ui/react-dropdown-menu",
-      "@radix-ui/react-select",
-      "@radix-ui/react-tabs",
-      "@radix-ui/react-tooltip",
-      "@radix-ui/react-popover",
-      "@radix-ui/react-accordion",
-    ].some(includesPackage)
-  ) {
-    return "vendor-ui";
-  }
-
+  // Keep the small icon set together to avoid dozens of tiny request chains.
   if (includesPackage("lucide-react")) return "vendor-icons";
-  if (includesPackage("framer-motion")) return "vendor-animation";
+
+  // Let automatic splitting keep UI controls and animation features
+  // with their actual importers. Grouping a whole package here also captures
+  // modules used only by lazy routes and makes the home download them.
 
   // Only packages the eager entry actually needs belong here. `vendor-utils`
   // is a static import of the entry, so anything named here is downloaded,
@@ -74,6 +67,21 @@ export default defineConfig({
     react(),
     tailwindcss(),
     metaImagesPlugin(),
+    {
+      name: "aquavo-first-visit-reveal",
+      apply: "build",
+      // A classic inline script runs during HTML parsing. An external bootstrap
+      // can arrive after the visible SSR home on a slow link and cover it again.
+      // Reuse the tested function instead of maintaining a second copy.
+      transformIndexHtml: () => [{
+        tag: "script",
+        attrs: { "data-aq-first-visit": "" },
+        // Embed the unmodified vector: its network request must not outlast
+        // the short reveal on a slow connection.
+        children: `(${startFirstDiveIntro.toString()})(${JSON.stringify(firstDiveMark)});`,
+        injectTo: "body",
+      }],
+    },
     // Gzip compression for 60-80% file size reduction
     viteCompression({
       algorithm: "gzip",

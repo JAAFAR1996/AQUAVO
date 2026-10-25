@@ -162,7 +162,7 @@
   height: 51%;
   z-index: -1;
   background: #0B1E28;
-  animation-duration: 860ms !important;
+  animation-duration: 420ms !important;
   animation-timing-function: cubic-bezier(.16, 1, .3, 1) !important;
   animation-fill-mode: forwards !important;
 }
@@ -184,7 +184,7 @@
   height: 68px;
   opacity: 0;
   filter: drop-shadow(0 16px 28px rgb(0 0 0 / 26%));
-  animation: aqv-first-dive-mark 780ms var(--aqv-e-meniscus) forwards !important;
+  animation: aqv-first-dive-mark 380ms var(--aqv-e-meniscus) forwards !important;
 }
 
 /* The line spans its final width and is scaled, rather than being grown by
@@ -202,7 +202,7 @@
   transform-origin: center;
   background: linear-gradient(90deg, transparent, #C4F7FF 24%, #0B93A6 50%, #C4F7FF 76%, transparent);
   box-shadow: 0 0 24px rgb(196 247 255 / 70%);
-  animation: aqv-first-dive-line 760ms var(--aqv-e-meniscus) forwards !important;
+  animation: aqv-first-dive-line 370ms var(--aqv-e-meniscus) forwards !important;
 }
 
 @keyframes aqv-first-dive-line {

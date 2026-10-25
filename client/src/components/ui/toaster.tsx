@@ -10,7 +10,9 @@ import {
 } from "@/components/ui/toast"
 import { useTranslation } from "react-i18next";
 import { CheckCircle2 } from "lucide-react";
-import SwipeToast from "@/components/ui/swipe-toast";
+import { lazy, Suspense } from "react";
+
+const SwipeToast = lazy(() => import("@/components/ui/swipe-toast"));
 
 export function Toaster() {
   const { t, i18n } = useTranslation("common");
@@ -29,9 +31,25 @@ export function Toaster() {
   return (
     <ToastProvider>
       {toasts.map(function ({ id, title, description, action, cartAction, swipeCart, ...props }) {
+        const standardToast = (
+          <Toast key={id} {...props}>
+            <div className="grid gap-1">
+              {title && <ToastTitle>{title}</ToastTitle>}
+              {description && <ToastDescription>{description}</ToastDescription>}
+            </div>
+            {action}
+            {!action && (cartAction || swipeCart) ? (
+              <ToastAction altText={t("toaster.s1")} className="border-primary/40 text-primary hover:bg-primary/10" onClick={() => openCart(id)}>
+                {t("toaster.s1")}
+              </ToastAction>
+            ) : null}
+            <ToastClose />
+          </Toast>
+        );
         if (swipeCart) {
           return (
             <div key={id} dir={i18n.dir()}>
+              <Suspense fallback={standardToast}>
               <SwipeToast
                 title={title}
                 description={description}
@@ -54,30 +72,11 @@ export function Toaster() {
                 closeButton
                 closeLabel={t("toaster.close")}
               />
+              </Suspense>
             </div>
           );
         }
-        return (
-          <Toast key={id} {...props}>
-            <div className="grid gap-1">
-              {title && <ToastTitle>{title}</ToastTitle>}
-              {description && (
-                <ToastDescription>{description}</ToastDescription>
-              )}
-            </div>
-            {action}
-            {!action && cartAction ? (
-              <ToastAction
-                altText={t("toaster.s1")}
-                className="border-primary/40 text-primary hover:bg-primary/10"
-                onClick={() => openCart(id)}
-              >
-                {t("toaster.s1")}
-              </ToastAction>
-            ) : null}
-            <ToastClose />
-          </Toast>
-        )
+        return standardToast;
       })}
       <ToastViewport />
     </ToastProvider>
