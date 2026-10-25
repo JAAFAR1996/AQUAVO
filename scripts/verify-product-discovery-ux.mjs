@@ -112,6 +112,10 @@ try {
     }).toBeLessThan(2);
     await viewport.click({ position: { x: 90, y: 90 } });
     await expect(page.getByRole("dialog")).toBeVisible();
+    const closeZoom = page.getByRole("dialog").getByRole("button", { name: productCopy.gallery.close, exact: true });
+    await expect(closeZoom).toHaveCSS("color", "rgb(255, 255, 255)");
+    await closeZoom.hover();
+    await expect(closeZoom).toHaveCSS("color", "rgb(255, 255, 255)");
     await page.keyboard.press("Escape");
     await expect(page.getByRole("dialog")).toHaveCount(0);
     await page.getByRole("button", { name: "1.7 متر", exact: true }).click();

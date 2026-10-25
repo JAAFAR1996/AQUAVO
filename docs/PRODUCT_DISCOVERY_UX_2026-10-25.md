@@ -18,7 +18,10 @@ No product records, prices, stock, variant identities, checkout logic, schema, o
 - Broad storefront suite: 154 files / 1,330 tests passed with `TZ=UTC`.
 - Final focused regression suite: 7 files / 75 tests passed, including draft cancellation, out-of-order responses, preview failure, zero results, gallery fallback, variant metadata/cart behavior and listing restoration.
 - Production-build browser runner: `node scripts/verify-product-discovery-ux.mjs`. Six scenarios cover Arabic mobile/desktop, English mobile, Kurdish tablet, single-photo products and a blocked optional swipe chunk. These use loopback-only synthetic fixtures and block external requests. Screenshots were inspected; no live orders or inventory operations were performed. This runner is included in the existing CI build job after Chromium installation.
-- The full repository run was attempted but is not certified locally: a spawned `tsx` test cannot open its IPC socket in this execution environment, and one worker exited. Missing sparse-checkout fixtures were restored and their suites rerun. This limitation also affects the unmodified baseline subprocess test. GitHub CI remains the complete repository gate before merge.
+- The full repository run was attempted but is not certified locally: a spawned `tsx` test cannot open its IPC socket in this execution environment, and one worker exited. Missing sparse-checkout fixtures were restored and their suites rerun. This limitation also affects the unmodified baseline subprocess test.
+- GitHub CI subsequently passed the complete suite on `74fad3dcf5d33957eb3fe5d1130a0410fe6b81d2`: 417 files / 4,515 tests passed, with one file / seven tests skipped. Production build, all six browser scenarios, lint/types, security, SEO preview and both locale SEO/SSR checks also passed.
+- Final visual review corrected lightbox button contrast in the light theme, including hover. The follow-up was rebuilt and passed all 16 gallery unit tests and six browser scenarios; the browser gate now checks the close button's rendered color before and after hover. Check the latest commit's CI before merge.
+- The i18n translation validator still emits the same structured findings as baseline PR #338, and Netlify deploy preview fails on both PRs. Neither existing check was bypassed.
 
 ## Loading cost
 

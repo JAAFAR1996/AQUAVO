@@ -284,7 +284,7 @@ export function ProductImageGallery({
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="absolute top-4 right-4 z-50 text-foreground dark:text-white hover:bg-white/20 h-11 w-11"
+                            className="absolute top-4 right-4 z-50 text-white hover:text-white hover:bg-white/20 h-11 w-11"
                             onClick={() => setLightboxOpen(false)}
                             aria-label={t("gallery.close")}
                         >
@@ -292,7 +292,7 @@ export function ProductImageGallery({
                         </Button>
 
                         {imageFailed || galleryImages.length === 0 ? (
-                            <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center select-none text-foreground dark:text-white">
+                            <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center select-none text-white">
                                 <span className="text-lg font-medium font-cairo">{t("gallery.unavailable")}</span>
                             </div>
                         ) : (
@@ -311,7 +311,7 @@ export function ProductImageGallery({
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className={cn("absolute top-1/2 -translate-y-1/2 text-white hover:bg-white/20 w-12 h-12", dir === "rtl" ? "right-4" : "left-4")}
+                                    className={cn("absolute top-1/2 -translate-y-1/2 text-white hover:text-white hover:bg-white/20 w-12 h-12", dir === "rtl" ? "right-4" : "left-4")}
                                     onClick={handlePrevious}
                                     aria-label={t("gallery.prev")}
                                 >
@@ -320,7 +320,7 @@ export function ProductImageGallery({
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className={cn("absolute top-1/2 -translate-y-1/2 text-white hover:bg-white/20 w-12 h-12", dir === "rtl" ? "left-4" : "right-4")}
+                                    className={cn("absolute top-1/2 -translate-y-1/2 text-white hover:text-white hover:bg-white/20 w-12 h-12", dir === "rtl" ? "left-4" : "right-4")}
                                     onClick={handleNext}
                                     aria-label={t("gallery.next")}
                                 >
