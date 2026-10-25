@@ -1395,3 +1395,20 @@ html[dir="ltr"] body {
   from { transform: scale(.82); }
   to { transform: scale(1); }
 }
+
+/* Complete the filter and progressive-gallery interactions without delaying input. */
+.aq-filter-result { display: inline-block; font-variant-numeric: tabular-nums; }
+@media (prefers-reduced-motion: no-preference) {
+  .aq-filter-chip {
+    transition: background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease !important;
+  }
+  .aq-filter-chip[aria-pressed="true"] { box-shadow: 0 0 0 3px rgb(11 147 166 / .12); }
+  .aq-filter-result { animation: aq-result-update 160ms ease-out !important; }
+  .aq-motion-gallery [data-swipe-ready="false"] > div {
+    transition: transform 220ms cubic-bezier(.2,.72,.2,1) !important;
+  }
+}
+@keyframes aq-result-update {
+  from { opacity: .6; }
+  to { opacity: 1; }
+}
