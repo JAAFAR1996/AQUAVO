@@ -9,6 +9,7 @@ import { initializeClientEnvSideEffects } from "./lib/config/env";
 import { captureAttributionFromUrl } from "./lib/attribution";
 import { installChunkLoadRecovery, recoverFromDynamicImportError } from "./lib/chunk-recovery";
 import { installListingNavigation } from "./lib/listing-navigation";
+import { waitForStorefrontStyles } from "./lib/storefront-style-ready";
 
 // Recover automatically when an already-open tab references a hashed chunk removed by a newer deploy.
 installChunkLoadRecovery();
@@ -74,7 +75,8 @@ try {
 void import("./i18n")
   .then(({ bootstrapI18n }) => bootstrapI18n(splitLocaleFromPath(window.location.pathname).locale))
   .then(() => import("./storefront-root"))
-  .then(({ mountStorefront }) => {
+  .then(async ({ mountStorefront }) => {
+    await waitForStorefrontStyles();
     // App imports Wouter first; capture the outgoing listing before its
     // history notifications can replace the DOM.
     const disposeListingNavigation = installListingNavigation();

@@ -94,7 +94,7 @@ export default function Footer() {
   };
 
   return (
-    <footer className="mt-auto border-t border-border bg-background text-foreground" dir={dir}>
+    <footer className="aq-site-footer mt-auto border-t border-border bg-background text-foreground" dir={dir}>
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <section className="grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-2 lg:grid-cols-4" aria-label={t("footer.serviceInfo")}>
           {trustFacts.map((fact) => {

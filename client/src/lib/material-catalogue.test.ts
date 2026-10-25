@@ -56,3 +56,62 @@ describe('verified material evidence gates', () => {
     for (const invalid of [{ ...piece, individuallyTracked: false }, { ...piece, kind: 'ai-generated' }, { ...piece, productId: 'other' }, { ...piece, image: '' }, { ...piece, source: '' }]) expect(verifiedMaterialEvidence(product.id, { piece: invalid }).piece).toBeUndefined();
   });
 });
+
+describe('populated material catalogue facts and options', () => {
+  it('preserves all distinct safe gallery images without inventing physical evidence', () => {
+    const [item] = adaptMaterialProducts([{ ...product, thumbnail: '/hero.jpg', image: '/hero.jpg', images: ['/hero.jpg', 'https://example.test/detail.webp', 'javascript:bad', '//other.test/image.jpg'], specifications: { 'حجم الحبيبات': '1–2 ملم بحسب بيانات المنتج', 'وحدة البيع': 'كغم', costPrice: 99, __private: 'hidden' } }]);
+    expect(item.gallery).toEqual(['/hero.jpg', 'https://example.test/detail.webp']);
+    expect(item.facts).toEqual([{ key: 'حجم الحبيبات', label: 'حجم الحبيبات', value: '1–2 ملم بحسب بيانات المنتج', kind: 'grain' }, { key: 'وحدة البيع', label: 'وحدة البيع', value: 'كغم', kind: 'saleUnit' }]);
+    expect(item.facts.some(fact => fact.kind === 'weight')).toBe(false);
+    expect(item.measurements).toEqual([]);
+    expect(item.pair).toBeUndefined();
+  });
+  it('does not infer a 5kg weight from the Dutch legacy variant ID', () => {
+    const [item] = adaptMaterialProducts([{ ...product, hasVariants: true, variants: [
+      { id: 'current-5kg', label: '1 ملم — يباع بالكيلو', isDefault: true, price: 3849, stock: 1, images: ['/dutch.jpg'], specifications: { 'حجم الحبيبات': '1 ملم', 'وحدة البيع': '1 كغم' } },
+      { id: '5kg', label: '5 كغ', price: 10000, stock: 0, isArchived: true },
+    ] }]);
+    expect(item.variants).toHaveLength(1);
+    expect(item.variants[0]).toMatchObject({ id: 'current-5kg', label: '1 ملم — يباع بالكيلو', price: 3849, availability: 'available', gallery: ['/dutch.jpg'] });
+    expect(item.variants[0].facts.some(fact => fact.kind === 'weight')).toBe(false);
+    expect(item.variants[0].facts.map(fact => fact.value)).toEqual(['1 ملم', '1 كغم']);
+  });
+  it('never reuses parent or another option imagery and respects explicitly empty images', () => {
+    const [item] = adaptMaterialProducts([{ ...product, hasVariants: true, variants: [
+      { id: 'own', label: 'Own', price: 100, stock: 1, image: '/own.jpg' },
+      { id: 'empty', label: 'Empty', price: 100, stock: 1, image: '/must-not-use.jpg', images: [] },
+      { id: 'missing', label: 'Missing', price: 100, stock: 1 },
+      { id: 'old', label: 'Archived', price: 100, stock: 1, isArchived: true, images: ['/old.jpg'] },
+    ] }]);
+    expect(item.variants.map(variant => variant.gallery)).toEqual([['/own.jpg'], [], []]);
+    expect(item.variants.some(variant => variant.id === 'old')).toBe(false);
+  });
+  it('uses the selected stream option dimensions and removes conflicting parent title size', () => {
+    const [item] = adaptMaterialProducts([{ ...product, slug: 'houyi-stream-sand', name: 'رمل جداول طبيعي للأكواسكيب — 2–6 ملم', hasVariants: true, specifications: { 'حجم الحبيبات': '2–6 ملم' }, variants: [
+      { id: '5-8mm', label: '5–8 ملم — قريبا', price: 999, priceStatus: 'pending', availabilityStatus: 'coming_soon', stock: 0, specifications: { 'المقاس': '5–8 ملم' }, images: ['/exact-5-8.jpg'] },
+    ] }]);
+    expect(item.variants[0]).toMatchObject({ name: 'رمل جداول طبيعي للأكواسكيب — 5–8 ملم', price: null, comingSoon: true, availability: 'comingSoon' });
+    expect(item.variants[0].facts.map(fact => fact.value)).toEqual(['5–8 ملم']);
+  });
+  it('retains source approximations and unit uncertainty without coercion', () => {
+    const [item] = adaptMaterialProducts([{ ...product, specifications: { 'نطاق المقاس التقريبي': '20–60 سم', 'بيان المقاس': 'وحدة القياس غير مذكورة', 'الوزن': 5 } }]);
+    expect(item.facts.map(fact => [fact.label, fact.value])).toEqual([['نطاق المقاس التقريبي', '20–60 سم'], ['بيان المقاس', 'وحدة القياس غير مذكورة'], ['الوزن', '5']]);
+    expect(item.measurements).toEqual([]);
+  });
+  it('uses provided public labelled translations only for allowlisted keys', () => {
+    const [item] = adaptMaterialProducts([{ ...product, specifications: { 'حجم الحبيبات': '1 ملم', labelled: { 'حجم الحبيبات': { label: 'Grain size', value: '1 mm' }, costPrice: { label: 'Do not expose', value: '90' } } } as unknown as MaterialProductSource['specifications'] }]);
+    expect(item.facts).toEqual([{ key: 'حجم الحبيبات', label: 'Grain size', value: '1 mm', kind: 'grain' }]);
+  });
+  it('never presents a stocked pending-price option as available or exposes its price', () => {
+    const [item] = adaptMaterialProducts([{ ...product, hasVariants: true, variants: [{ id: 'pending', label: 'Pending', stock: 5, price: 990, priceStatus: 'pending' }] }]);
+    expect(item.variants[0]).toMatchObject({ price: null, availability: 'unknown' });
+  });
+});
+
+describe('localized catalogue identity', () => {
+  it('keeps known materials classified when subcategory labels are translated differently', () => {
+    expect(adaptMaterialProducts([{ ...product, id: 'houyi-dutch-sand', subcategory: 'Decorative aquarium sand' }])[0].kind).toBe('sand');
+    expect(adaptMaterialProducts([{ ...product, id: 'houyi-black-slate', subcategory: 'بەردی جوانکاری' }])[0].kind).toBe('stone');
+    expect(adaptMaterialProducts([{ ...product, id: 'general-air-stone', subcategory: 'Air stones' }])).toEqual([]);
+  });
+});

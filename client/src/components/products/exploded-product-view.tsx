@@ -1,3 +1,4 @@
+import type { VerifiedExternalAnnotations } from "@/lib/verified-external-annotations";
 import { useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { Product } from "@/types";
@@ -5,28 +6,30 @@ import { cn } from "@/lib/utils";
 
 interface ExplodedProductViewProps {
     product: Product;
+    annotations?: VerifiedExternalAnnotations;
 }
 
 /** A photo annotation, not an invented cutaway: only supplied part data is shown. */
-export function ExplodedProductView({ product }: ExplodedProductViewProps) {
+export function ExplodedProductView({ product, annotations }: ExplodedProductViewProps) {
     const { t, i18n } = useTranslation("products");
     const instanceId = useId();
     const [selectedId, setSelectedId] = useState<string | null>(null);
     const [failedImage, setFailedImage] = useState<string | null>(null);
-    const parts = product.explodedViewParts ?? [];
-    const photo = product.image || product.thumbnail || product.images?.[0];
+    const parts = annotations?.parts ?? product.explodedViewParts ?? [];
+    const photo = annotations?.imageUrl || product.image || product.thumbnail || product.images?.[0];
     const arabic = i18n.language?.startsWith("ar");
     if (parts.length === 0) return null;
 
     return (
         <section aria-labelledby={`${instanceId}-title`} className="rounded-3xl border border-border bg-background p-4 text-foreground sm:p-6">
             <h3 id={`${instanceId}-title`} className="mb-5 text-xl font-bold">
-                {t("anatomy.title", { defaultValue: arabic ? "تعرّف على أجزاء المنتج" : "Explore the product parts" })}
+                {annotations?.title ?? t("anatomy.title", { defaultValue: arabic ? "تعرّف على أجزاء المنتج" : "Explore the product parts" })}
             </h3>
+            {annotations && <p className="mb-5 text-sm leading-7 text-muted-foreground">{annotations.note} {annotations.sourceLabel}</p>}
             <div className="grid gap-6 md:grid-cols-2">
-                <div className="relative aspect-square self-start overflow-hidden md:aspect-video rounded-2xl border border-border bg-card">
+                <div className={cn("relative self-start overflow-hidden rounded-2xl border border-border bg-card", !annotations && "aspect-square md:aspect-video")} style={annotations ? { aspectRatio: `${annotations.imageWidth}/${annotations.imageHeight}` } : undefined}>
                     {photo && failedImage !== photo ? (
-                        <img src={photo} alt={product.name} className="absolute inset-0 h-full w-full object-contain p-8" loading="lazy" decoding="async" onError={() => setFailedImage(photo)} />
+                        <img src={photo} alt={product.name} width={annotations?.imageWidth} height={annotations?.imageHeight} className={cn("absolute inset-0 h-full w-full object-contain", !annotations && "p-8")} loading="lazy" decoding="async" onError={() => setFailedImage(photo)} />
                     ) : (
                         <p className="p-8 text-center text-muted-foreground">{t("anatomy.photoUnavailable", { defaultValue: arabic ? "صورة المنتج مو متوفرة" : "Product photo unavailable" })}</p>
                     )}

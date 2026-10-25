@@ -5,3 +5,15 @@
     transition-duration: 1ms !important;
   }
 }
+/* Keep all sections in the document while skipping layout and paint well below
+   the viewport. The browser renders them before they become visible and
+   remembers their measured height after the first visit. */
+.aq-home-content > section:not(.aq-waterline-hero) {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 600px;
+}
+
+.aq-site-footer {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 700px;
+}

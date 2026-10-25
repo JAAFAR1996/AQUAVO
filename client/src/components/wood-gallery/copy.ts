@@ -1,0 +1,43 @@
+export const woodGalleryCopy = {
+  ar: {
+    eyebrow: 'صور الكتالوج · أخشاب برمز مستقل', title: 'اختار خشبة إلها شخصيتها',
+    intro: 'شوف كل قطعة بصورتها ورمزها، وافتح تفاصيلها حتى تتأكد من التوفر قبل ما تختار.',
+    source: 'حسب وصف المنتج، الصورة تمثل نفس القطعة اللي تستلمها. التكبير للصورة بس، مو مقياس للحجم الحقيقي.',
+    catalogue: 'صورة الكتالوج', ruler: 'صورة مع مسطرة', 'second-angle': 'زاوية ثانية موثّقة', 'in-use': 'نفس القطعة داخل الحوض',
+    available: 'متوفرة هسه', unavailable: 'مو متوفرة هسه', 'coming-soon': 'قريباً', pending: 'السعر بانتظار التأكيد',
+    currency: 'د.ع', view: 'شوف تفاصيل القطعة', zoom: 'كبّر الصورة', missing: 'الصورة مو متوفرة هسه',
+    noMeasurements: 'القياسات مو موثّقة بعد', measurements: 'قياسات موثّقة',
+    evidenceTitle: 'شنو موثّق لهالقطعة؟', noRuler: 'ماكو صورة موثّقة مع مسطرة بعد', noSecond: 'ماكو زاوية ثانية موثّقة بعد', noUse: 'ماكو صورة موثّقة لنفس القطعة داخل الحوض بعد',
+    evidenceSource: 'المصدر', zoomIn: 'تكبير الصورة', zoomOut: 'تصغير الصورة', reset: 'رجّع الصورة',
+    zoomHint: 'هذا تكبير للصورة فقط، مو الحجم الحقيقي. بعد التكبير، مرّر حتى تشوف التفاصيل.',
+    imageRegion: 'الصورة المكبّرة؛ مرّر أو استخدم أسهم الكيبورد حتى تشوف التفاصيل', photos: 'صور القطعة',
+  },
+  en: {
+    eyebrow: 'Catalogue photos · Individually coded wood', title: 'Find a piece with character',
+    intro: 'Explore each piece by its own photo and code. Open its product page to check availability before choosing.',
+    source: 'The product description identifies the photo as the piece you receive. Image zoom is not a physical-size reference.',
+    catalogue: 'Catalogue photo', ruler: 'Ruler photo', 'second-angle': 'Verified second angle', 'in-use': 'Same piece in an aquarium',
+    available: 'Available now', unavailable: 'Currently unavailable', 'coming-soon': 'Coming soon', pending: 'Price awaiting confirmation',
+    currency: 'IQD', view: 'View piece details', zoom: 'Enlarge image', missing: 'Photo not available',
+    noMeasurements: 'Measurements not yet verified', measurements: 'Verified measurements',
+    evidenceTitle: 'What is documented for this piece?', noRuler: 'No verified ruler photo yet', noSecond: 'No verified second angle yet', noUse: 'No verified in-aquarium photo of this piece yet',
+    evidenceSource: 'Source', zoomIn: 'Zoom image in', zoomOut: 'Zoom image out', reset: 'Reset image',
+    zoomHint: 'Image zoom only, not actual size. Scroll after zooming to explore details.',
+    imageRegion: 'Enlarged image; scroll or use arrow keys to explore details', photos: 'Piece photos',
+  },
+  ckb: {
+    eyebrow: 'وێنەکانی کاتالۆگ · دار بە کۆدی تایبەت', title: 'پارچە دارێک بە شێوەی تایبەت هەڵبژێرە',
+    intro: 'هەر پارچەیەک بە وێنە و کۆدی خۆی ببینە. پێش هەڵبژاردن، بەردەستبوونی لە پەڕەی بەرهەم بپشکنە.',
+    source: 'بەپێی وەسفی بەرهەم، وێنەکە هەمان پارچەیە کە وەریدەگریت. گەورەکردنی وێنە پێوەری قەبارەی ڕاستەقینە نییە.',
+    catalogue: 'وێنەی کاتالۆگ', ruler: 'وێنە لەگەڵ پێوەر', 'second-angle': 'گۆشەی دووەمی پشتڕاستکراو', 'in-use': 'هەمان پارچە لە ناو ئەکواریۆم',
+    available: 'ئێستا بەردەستە', unavailable: 'ئێستا بەردەست نییە', 'coming-soon': 'بەم نزیکانە', pending: 'نرخ چاوەڕوانی پشتڕاستکردنەوەیە',
+    currency: 'د.ع', view: 'وردەکاریی پارچەکە ببینە', zoom: 'وێنەکە گەورە بکە', missing: 'وێنە بەردەست نییە',
+    noMeasurements: 'پێوانەکان هێشتا پشتڕاست نەکراونەتەوە', measurements: 'پێوانە پشتڕاستکراوەکان',
+    evidenceTitle: 'چی بۆ ئەم پارچەیە تۆمار کراوە؟', noRuler: 'هێشتا وێنەی پشتڕاستکراو لەگەڵ پێوەر نییە', noSecond: 'هێشتا گۆشەی دووەمی پشتڕاستکراو نییە', noUse: 'هێشتا وێنەی پشتڕاستکراوی ئەم پارچەیە لە ناو ئەکواریۆم نییە',
+    evidenceSource: 'سەرچاوە', zoomIn: 'گەورەکردنی وێنە', zoomOut: 'بچووککردنەوەی وێنە', reset: 'گەڕاندنەوەی وێنە',
+    zoomHint: 'تەنها گەورەکردنی وێنەیە، نەک قەبارەی ڕاستەقینە. دوای گەورەکردن، بۆ بینینی وردەکارییەکان بجوڵێنە.',
+    imageRegion: 'وێنەی گەورەکراو؛ بۆ بینینی وردەکارییەکان بجوڵێنە یان تیری تەختەکلیل بەکاربهێنە', photos: 'وێنەکانی پارچە',
+  },
+};
+export type WoodGalleryLanguage = keyof typeof woodGalleryCopy;
+export type WoodGalleryCopy = typeof woodGalleryCopy[WoodGalleryLanguage];

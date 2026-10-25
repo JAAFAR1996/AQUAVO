@@ -1,3 +1,5 @@
+import { LookbookGear } from "./lookbook-gear";
+import type { InspirationProductSource } from "@/lib/inspiration-board";
 import { useState } from "react";
 import { ArrowLeft, ArrowRight, ImageOff } from "lucide-react";
 import { Link } from "wouter";
@@ -92,14 +94,31 @@ function ConceptImage({ scene, copy }: { scene: ConceptScene; copy: ConceptLookb
 }
 
 /** No carousel, autoplay, scroll interception, commerce claims, or product hotspots. */
+function ConceptDetails({ scene, language }: { scene: ConceptScene; language: "ar" | "en" | "ckb" }) {
+  const [open, setOpen] = useState(false);
+  const copy = {
+    ar: { action: "شوف تفاصيل التصوّر", note: "تفاصيل مكبّرة من نفس الصورة المولّدة، مو صور خامات فعلية أو قياسات.", alt: "تفصيل من التصوّر الإلهامي المولّد بالذكاء الاصطناعي" },
+    en: { action: "Explore concept details", note: "Enlarged details from the same generated illustration, not actual material photos or measurements.", alt: "Detail of the AI-generated inspiration image" },
+    ckb: { action: "وردەکاریی بیرۆکەکە ببینە", note: "وردەکاریی گەورەکراوی هەمان وێنەی دروستکراون، نە وێنەی ماددەی ڕاستەقینە و نە پێوانەن.", alt: "وردەکاریی وێنەی ئیلهامبەخشی دروستکراو بە زیرەکی دەستکرد" },
+  }[language];
+  return <details className="rounded-xl border border-border p-3" onToggle={event => setOpen(event.currentTarget.open)}>
+    <summary className="min-h-11 cursor-pointer py-2 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">{copy.action}</summary>
+    {open && <><div className="mt-2 grid grid-cols-2 gap-2">{["25% 50%", "55% 65%"].map(position => <div key={position} className="aspect-[4/3] overflow-hidden rounded-lg"><img src={scene.src} alt={copy.alt} width={240} height={180} loading="lazy" decoding="async" className="h-full w-full object-cover" style={{ objectPosition: position, transform: "scale(1.8)", transformOrigin: position }} /></div>)}</div><p className="mt-2 text-xs leading-6 text-muted-foreground">{copy.note}</p></>}
+  </details>;
+}
+
 export function ConceptLookbook({
   copy = CONCEPT_LOOKBOOK_COPY_AR,
   scenes = CONCEPT_SCENES,
   dir = "rtl",
+  products,
+  language = "ar",
 }: {
   copy?: ConceptLookbookCopy;
   scenes?: readonly ConceptScene[];
   dir?: "rtl" | "ltr";
+  products?: readonly InspirationProductSource[];
+  language?: "ar" | "en" | "ckb";
 }) {
   const Forward = dir === "rtl" ? ArrowLeft : ArrowRight;
   return (
@@ -119,6 +138,8 @@ export function ConceptLookbook({
                   <p className="border-s-2 border-primary ps-3 text-sm font-medium leading-7 text-foreground">{copy.disclosure}</p>
                   <h3 className="font-display text-xl font-bold text-foreground">{copy.scenes?.[scene.id]?.title ?? copy.sceneTitle}</h3>
                   <p className="text-sm leading-7 text-muted-foreground">{copy.scenes?.[scene.id]?.description ?? copy.sceneDescription}</p>
+                  <ConceptDetails scene={scene} language={language} />
+                  {products && <LookbookGear sceneId={scene.id} products={products} language={language} />}
                 </figcaption>
               </figure>
             ))}

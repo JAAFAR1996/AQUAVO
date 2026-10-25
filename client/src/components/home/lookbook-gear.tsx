@@ -1,0 +1,16 @@
+import { Link } from 'wouter';
+import { cardImage } from '@/lib/cloudinary';
+import { buildInspirationBoard, type InspirationProductSource, type InspirationSelection } from '@/lib/inspiration-board';
+const SELECTIONS: Record<string, readonly InspirationSelection[]> = {
+ 'sunlit-aquascape-concept':[{productId:'houyi-stream-sand',variantId:'2-6mm',material:'sand'},{productId:'houyi-volcanic-stone-red',variantId:'3-5cm',material:'stone'}],
+ 'open-sand-concept':[{productId:'houyi-dutch-sand',variantId:'current-5kg',material:'sand'},{productId:'houyi-volcanic-stone-red',variantId:'3-5cm',material:'stone'}],
+ 'woodland-concept':[{productId:'aquavo-driftwood-dw-01',material:'wood'},{productId:'aquavo-driftwood-dw-11',material:'wood'}],
+};
+const COPY={ar:{title:'اختيارات كتالوج لهذا الطابع',note:'بدائل للتصفح، مو نفس قطع الصورة ولا ضمان توافق أو باقة كاملة. افتح صفحة المنتج لاختيار المقاس.',unavailable:'راجع التوفر والتفاصيل',listed:'مُدرج كمتوفر',journey:'خطّط خطوات التجهيز',bundle:'راجع الباقات'},en:{title:'Catalogue ideas for this look',note:'Browsing alternatives, not the pictured objects, a compatibility guarantee or a complete kit. Choose the option on its product page.',unavailable:'Check availability and details',listed:'Listed as available',journey:'Plan your aquarium',bundle:'Review bundles'},ckb:{title:'هەڵبژاردەکانی کەتەلۆگ بۆ ئەم شێوازە',note:'جێگرەوەی گەڕانن، نە پارچەکانی وێنەکەن و نە گەرەنتی گونجان یان پاکێجی تەواو. لە پەڕەی بەرهەم هەڵبژاردەکە دیاری بکە.',unavailable:'بەردەستی و وردەکاری بپشکنە',listed:'وەک بەردەست تۆمارکراوە',journey:'حەوزەکەت پلاندانان بکە',bundle:'پاکێجەکان ببینە'}} as const;
+export function LookbookGear({sceneId,products,language}:{sceneId:string;products:readonly InspirationProductSource[];language:keyof typeof COPY}){
+ const items=buildInspirationBoard(products,SELECTIONS[sceneId]||[]).filter(item=>item.href&&item.name);const t=COPY[language];
+ return <div className="space-y-3 border-t border-border pt-4"><p className="text-sm font-bold">{t.title}</p><p className="text-xs leading-6 text-muted-foreground">{t.note}</p>
+ <ul className="grid grid-cols-2 gap-2">{items.map(item=><li key={item.key}><Link href={item.href!} className="flex h-full flex-col rounded-xl border border-border p-2 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">{item.image&&<img src={cardImage(item.image)} alt="" width={160} height={120} className="mb-2 aspect-[4/3] w-full object-contain" loading="lazy" decoding="async"/>}<span className="font-medium leading-5">{item.name}</span>{item.variantLabel&&<span className="mt-1 leading-5">{item.variantLabel}</span>}<span className="mt-2 text-muted-foreground">{item.availability==='listed'?t.listed:t.unavailable}</span></Link></li>)}</ul>
+ <div className="flex flex-wrap gap-2"><Link href="/journey" className="inline-flex min-h-11 items-center rounded-full border border-border px-3 text-xs font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">{t.journey}</Link><Link href="/bundles" className="inline-flex min-h-11 items-center rounded-full border border-border px-3 text-xs font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">{t.bundle}</Link></div>
+ </div>;
+}

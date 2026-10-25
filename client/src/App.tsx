@@ -1,6 +1,7 @@
 import { Switch, Route, Redirect, useLocation } from "wouter";
 import { lazy, Suspense, useEffect, useState, useRef, useCallback, type ReactNode } from "react";
 import { MotionConfig } from "framer-motion";
+import { lazyWithTranslations } from "@/i18n/lazy-with-translations";
 import { PageLoader, AppInitLoader } from "@/components/ui/loaders";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -43,64 +44,65 @@ import { layoutGroup } from "@/lib/layout-group";
 import Home from "@/pages/home";
 const Products = lazy(() => import("@/pages/products"));
 const Deals = lazy(() => import("@/pages/deals"));
+const Materials = lazy(() => import("@/pages/materials"));
 const Bundles = lazy(() => import("@/pages/bundles"));
 
 // Lazy load ALL non-critical pages for better performance (code splitting)
 const NotFound = lazy(() => import("@/pages/404"));
-const Journey = lazy(() => import("@/pages/journey"));
+const Journey = lazyWithTranslations(["tools"], () => import("@/pages/journey"));
 const AdminDashboard = lazy(() => import("@/pages/admin-dashboard"));
-const FishBreedingCalculator = lazy(() => import("@/pages/fish-breeding-calculator"));
-const FishEncyclopedia = lazy(() => import("@/pages/fish-encyclopedia"));
-const FishFinder = lazy(() => import("@/pages/fish-finder"));
-const CommunityGallery = lazy(() => import("@/pages/community-gallery"));
+const FishBreedingCalculator = lazyWithTranslations(["tools"], () => import("@/pages/fish-breeding-calculator"));
+const FishEncyclopedia = lazyWithTranslations(["tools"], () => import("@/pages/fish-encyclopedia"));
+const FishFinder = lazyWithTranslations(["tools"], () => import("@/pages/fish-finder"));
+const CommunityGallery = lazyWithTranslations(["tools"], () => import("@/pages/community-gallery"));
 const ProductDetails = lazy(() => import("@/pages/product-details"));
-const AiDriftwoodExperiment = lazy(() => import("@/pages/ai-driftwood-experiment"));
+const AiDriftwoodExperiment = lazyWithTranslations(["tools"], () => import("@/pages/ai-driftwood-experiment"));
 const Profile = lazy(() => import("@/pages/profile"));
 const FAQ = lazy(() => import("@/pages/faq"));
-const Calculators = lazy(() => import("@/pages/calculators"));
-const FishHealthDiagnosis = lazy(() => import("@/pages/fish-health-diagnosis"));
+const Calculators = lazyWithTranslations(["tools"], () => import("@/pages/calculators"));
+const FishHealthDiagnosis = lazyWithTranslations(["tools"], () => import("@/pages/fish-health-diagnosis"));
 const Blog = lazy(() => import("@/pages/blog"));
 const BlogPost = lazy(() => import("@/pages/blog-post"));
 const OrderConfirmation = lazy(() => import("@/pages/order-confirmation"));
 const CheckoutPage = lazy(() => import("@/pages/checkout"));
 const Register = lazy(() => import("@/pages/register"));
-const Compare = lazy(() => import("@/pages/compare"));
+const Compare = lazyWithTranslations(["tools"], () => import("@/pages/compare"));
 const AquariumWizard = lazy(() => import("@/pages/aquarium-wizard"));
-const FishCompatibility = lazy(() => import("@/pages/fish-compatibility"));
+const FishCompatibility = lazyWithTranslations(["tools"], () => import("@/pages/fish-compatibility"));
 const MergeProductsPage = lazy(() => import("@/pages/admin/merge-products"));
 const AdminAI = lazy(() => import("@/pages/admin/admin-ai"));
 const InvestPage = lazy(() => import("@/pages/invest"));
 const PartnersPage = lazy(() => import("@/pages/partners"));
 const AdminPartnersPage = lazy(() => import("@/pages/admin/partners"));
-const AITools = lazy(() => import("@/pages/ai-tools"));
-const BeginnerGuide = lazy(() => import("@/pages/beginner-guide"));
+const AITools = lazyWithTranslations(["tools"], () => import("@/pages/ai-tools"));
+const BeginnerGuide = lazyWithTranslations(["guides"], () => import("@/pages/beginner-guide"));
 const FinancePage = lazy(() => import("@/pages/admin/finance"));
 const FinanceHtmlReportPage = lazy(() => import("@/pages/admin/finance-report"));
 const Wishlist = lazy(() => import("@/pages/wishlist"));
-const SearchResults = lazy(() => import("@/pages/search-results"));
+const SearchResults = lazyWithTranslations(["tools"], () => import("@/pages/search-results"));
 const Sustainability = lazy(() => import("@/pages/sustainability"));
-const GuidesIndex = lazy(() => import("@/pages/guides-index"));
-const EcoFriendlyGuide = lazy(() => import("@/pages/guides-eco-friendly"));
-const Guide5Mistakes = lazy(() => import("@/pages/guides-5-mistakes"));
-const GuideFishHiding = lazy(() => import("@/pages/guides-fish-hiding"));
-const GuideWaterMyths = lazy(() => import("@/pages/guides-water-myths"));
-const GuideEssentialTools = lazy(() => import("@/pages/guides-essential-tools"));
-const GuideWaterChangeSchedule = lazy(() => import("@/pages/guides-water-change-schedule"));
-const GuideTankRescuePlan = lazy(() => import("@/pages/guides-tank-rescue-plan"));
-const GuideFeedingTable = lazy(() => import("@/pages/guides-feeding-table"));
-const GuideFilterChoice = lazy(() => import("@/pages/guides-filter-choice"));
-const GuideTemperatureGuide = lazy(() => import("@/pages/guides-temperature-guide"));
-const GuideHappyFishSigns = lazy(() => import("@/pages/guides-happy-fish-signs"));
-const GuideAquariumSalt = lazy(() => import("@/pages/guides-aquarium-salt"));
-const GuideFilterMedia = lazy(() => import("@/pages/guides-filter-media"));
-const GuideAlgaeControl = lazy(() => import("@/pages/guides-algae-control"));
-const GuideWhiteScale = lazy(() => import("@/pages/guides-white-scale"));
-const GuideQuarantine = lazy(() => import("@/pages/guides-quarantine"));
-const GuideHeaterChoice = lazy(() => import("@/pages/guides-heater-choice"));
-const GuideTreatmentBasics = lazy(() => import("@/pages/guides-treatment-basics"));
-const GuideNewAquariumSetup = lazy(() => import("@/pages/guides-new-aquarium-setup"));
-const GuideWaterTestGuide = lazy(() => import("@/pages/guides-water-test-guide"));
-const GuideDecorStones = lazy(() => import("@/pages/guides-decor-stones"));
+const GuidesIndex = lazyWithTranslations(["guides"], () => import("@/pages/guides-index"));
+const EcoFriendlyGuide = lazyWithTranslations(["guides"], () => import("@/pages/guides-eco-friendly"));
+const Guide5Mistakes = lazyWithTranslations(["guides"], () => import("@/pages/guides-5-mistakes"));
+const GuideFishHiding = lazyWithTranslations(["guides"], () => import("@/pages/guides-fish-hiding"));
+const GuideWaterMyths = lazyWithTranslations(["guides"], () => import("@/pages/guides-water-myths"));
+const GuideEssentialTools = lazyWithTranslations(["guides"], () => import("@/pages/guides-essential-tools"));
+const GuideWaterChangeSchedule = lazyWithTranslations(["guides"], () => import("@/pages/guides-water-change-schedule"));
+const GuideTankRescuePlan = lazyWithTranslations(["guides"], () => import("@/pages/guides-tank-rescue-plan"));
+const GuideFeedingTable = lazyWithTranslations(["guides"], () => import("@/pages/guides-feeding-table"));
+const GuideFilterChoice = lazyWithTranslations(["guides"], () => import("@/pages/guides-filter-choice"));
+const GuideTemperatureGuide = lazyWithTranslations(["guides"], () => import("@/pages/guides-temperature-guide"));
+const GuideHappyFishSigns = lazyWithTranslations(["guides"], () => import("@/pages/guides-happy-fish-signs"));
+const GuideAquariumSalt = lazyWithTranslations(["guides"], () => import("@/pages/guides-aquarium-salt"));
+const GuideFilterMedia = lazyWithTranslations(["guides"], () => import("@/pages/guides-filter-media"));
+const GuideAlgaeControl = lazyWithTranslations(["guides"], () => import("@/pages/guides-algae-control"));
+const GuideWhiteScale = lazyWithTranslations(["guides"], () => import("@/pages/guides-white-scale"));
+const GuideQuarantine = lazyWithTranslations(["guides"], () => import("@/pages/guides-quarantine"));
+const GuideHeaterChoice = lazyWithTranslations(["guides"], () => import("@/pages/guides-heater-choice"));
+const GuideTreatmentBasics = lazyWithTranslations(["guides"], () => import("@/pages/guides-treatment-basics"));
+const GuideNewAquariumSetup = lazyWithTranslations(["guides"], () => import("@/pages/guides-new-aquarium-setup"));
+const GuideWaterTestGuide = lazyWithTranslations(["guides"], () => import("@/pages/guides-water-test-guide"));
+const GuideDecorStones = lazyWithTranslations(["guides"], () => import("@/pages/guides-decor-stones"));
 const About = lazy(() => import("@/pages/about"));
 const WhyAquavo = lazy(() => import("@/pages/why-aquavo"));
 const ReturnPolicy = lazy(() => import("@/pages/return-policy"));
@@ -113,18 +115,18 @@ const AdminLogin = lazy(() => import("@/pages/admin-login"));
 const Shipping = lazy(() => import("@/pages/shipping"));
 const Login = lazy(() => import("@/pages/login"));
 const ForgotPassword = lazy(() => import("@/pages/forgot-password"));
-const FishPatientsPage = lazy(() => import("@/pages/fish-patients"));
-const CulturalTwin = lazy(() => import("@/pages/cultural-twin"));
+const FishPatientsPage = lazyWithTranslations(["tools"], () => import("@/pages/fish-patients"));
+const CulturalTwin = lazyWithTranslations(["tools"], () => import("@/pages/cultural-twin"));
 const LinksPage = lazy(() => import("@/pages/links"));
-const TemperatureGuide = lazy(() => import("@/pages/temperature-guide"));
+const TemperatureGuide = lazyWithTranslations(["guides"], () => import("@/pages/temperature-guide"));
 const InvoiceView = lazy(() => import("@/pages/invoice-view"));
 const Contact = lazy(() => import("@/pages/contact"));
 
 // Lazy load heavy global components
-const AIChatBot = lazy(() => import("@/components/chat/ai-chat-bot").then(m => ({ default: m.AIChatBot })));
+const AIChatBot = lazyWithTranslations(["tools"], () => import("@/components/chat/ai-chat-bot").then(m => ({ default: m.AIChatBot })));
 const OnboardingTour = lazy(() => import("@/components/onboarding-tour").then(m => ({ default: m.OnboardingTour })));
 const InstallPrompt = lazy(() => import("@/components/pwa/pwa-components").then(m => ({ default: m.InstallPrompt })));
-const BirthdayCelebration = lazy(() => import("@/components/birthday/birthday-celebration").then(m => ({ default: m.BirthdayCelebration })));
+const BirthdayCelebration = lazyWithTranslations(["tools"], () => import("@/components/birthday/birthday-celebration").then(m => ({ default: m.BirthdayCelebration })));
 const OfflineIndicator = lazy(() => import("@/components/pwa/pwa-components").then(m => ({ default: m.OfflineIndicator })));
 const UpdateBanner = lazy(() => import("@/components/pwa/pwa-components").then(m => ({ default: m.UpdateBanner })));
 
@@ -276,6 +278,8 @@ function Router() {
           </ErrorBoundary>
         )}
       </Route>
+
+      <Route path="/materials">{() => <ErrorBoundary><Suspense fallback={<PageLoader />}><PageTransition><Materials /></PageTransition></Suspense></ErrorBoundary>}</Route>
 
       <Route path="/bundles">
         {() => (

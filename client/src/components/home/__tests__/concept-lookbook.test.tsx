@@ -31,7 +31,7 @@ describe("AI illustrative lookbook", () => {
     const user = userEvent.setup();
     render(<ConceptLookbook />);
     for (const link of screen.getAllByRole("link")) {
-      await user.tab();
+      for (let step = 0; step < 12 && document.activeElement !== link; step++) await user.tab();
       expect(link).toHaveFocus();
       expect(link).toHaveClass("focus-visible:ring-2");
     }
@@ -49,6 +49,14 @@ describe("AI illustrative lookbook", () => {
     render(<ConceptLookbook scenes={[CONCEPT_SCENES[0], { ...CONCEPT_SCENES[0], id: "future-test-fixture", src: "/test-only.webp" }]} />);
     expect(screen.getAllByRole("figure")).toHaveLength(2);
     expect(screen.getAllByText(copy.disclosure)).toHaveLength(2);
+  });
+
+  it("labels expanded detail crops as the same AI illustration, not physical evidence", async () => {
+    const user = userEvent.setup();
+    render(<ConceptLookbook language="en" />);
+    await user.click(screen.getAllByText("Explore concept details")[0]);
+    expect(await screen.findByText("Enlarged details from the same generated illustration, not actual material photos or measurements.")).toBeVisible();
+    expect(screen.getAllByAltText("Detail of the AI-generated inspiration image")).toHaveLength(2);
   });
 
   it("retains disclosure and navigation if no images are supplied", () => {
