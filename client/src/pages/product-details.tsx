@@ -11,10 +11,10 @@ import { Button } from "@/components/ui/button";
 import { DynamicButton } from "@/components/ui/dynamic-button";
 import { Badge } from "@/components/ui/badge";
 import { formatNumber, formatPrice } from "@/lib/format";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
+import { ProductInformationSection } from "@/components/products/product-information-section";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ShoppingCart, Star, Truck, RotateCcw, Shield, Info, Heart, Share2, Leaf, ShieldCheck, Check, Package, FileText, ExternalLink, Clock, Banknote, Loader2 } from "lucide-react";
+import { ShoppingCart, Star, Truck, RotateCcw, Shield, Info, Heart, Share2, Leaf, Check, Package, FileText, ExternalLink, Clock, Banknote, Loader2 } from "lucide-react";
 import { useCart } from "@/contexts/cart-context";
 import { WishlistButton } from "@/components/wishlist/wishlist-button";
 import { CompareButton } from "@/components/products/product-comparison";
@@ -903,112 +903,51 @@ export default function ProductDetails() {
               </div>
             </div>
 
-            {/* Detailed Information Tabs */}
-            <Tabs defaultValue="benefits" className="mb-12">
-              <TabsList className="w-full justify-start gap-2 flex-wrap h-auto p-2">
-                <TabsTrigger value="benefits" className="rounded-full">{t("tabs.benefits")}</TabsTrigger>
-                <TabsTrigger value="specs" className="rounded-full">{t("tabs.specs")}</TabsTrigger>
-                <TabsTrigger value="reviews" className="rounded-full">{t("tabs.reviews", { count: product.reviewCount ?? 0 })}</TabsTrigger>
-                <TabsTrigger value="shipping" className="rounded-full">{t("tabs.shipping")}</TabsTrigger>
-                <TabsTrigger value="usage" className="rounded-full">{t("tabs.usage")}</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="benefits" className="mt-6">
-                <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-transparent">
-                  <CardHeader>
-                    <h2 className="flex items-center gap-2 text-primary font-semibold leading-none tracking-tight">
-                      <Leaf className="w-5 h-5" aria-hidden="true" />
-                      {t("benefits.title")}
-                    </h2>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid md:grid-cols-2 gap-6">
-                      <div className="space-y-4">
-                        <div className="flex items-start gap-3 p-3 bg-card dark:bg-slate-900 rounded-lg border">
-                          <div className="w-10 h-10 bg-green-500/10 rounded-full flex items-center justify-center flex-shrink-0">
-                            <ShieldCheck className="w-5 h-5 text-green-600" aria-hidden="true" />
-                          </div>
-                          <div>
-                            <h3 className="font-bold text-sm">
-                              {product3DMeta ? t("benefits.clearDecision") : t("benefits.infoBefore")}
-                            </h3>
-                            <p className="text-sm text-muted-foreground">
-                              {product3DMeta
-                                ? t("benefits.clearDecisionDetail")
-                                : t("benefits.infoBeforeDetail")}
-                            </p>
-                          </div>
-                        </div>
-                        {/* Only show rating if there are reviews */}
-                        {product.reviewCount > 0 && (
-                          <div className="flex items-start gap-3 p-3 bg-card dark:bg-slate-900 rounded-lg border">
-                            <div className="w-10 h-10 bg-blue-500/10 rounded-full flex items-center justify-center flex-shrink-0">
-                              <Star className="w-5 h-5 text-blue-600" aria-hidden="true" />
-                            </div>
-                            <div>
-                              <h3 className="font-bold text-sm">{t("benefits.highRating")}</h3>
-                              <p className="text-sm text-muted-foreground">{t("benefits.highRatingDetail", { rating: product.rating, count: product.reviewCount })}</p>
-                            </div>
-                          </div>
-                        )}
-                        <div className="flex items-start gap-3 p-3 bg-card dark:bg-slate-900 rounded-lg border">
-                          <div className="w-10 h-10 bg-amber-500/10 rounded-full flex items-center justify-center flex-shrink-0">
-                            <Truck className="w-5 h-5 text-amber-600" aria-hidden="true" />
-                          </div>
-                          <div>
-                            <h3 className="font-bold text-sm">{t("benefits.fastDelivery")}</h3>
-                            <p className="text-sm text-muted-foreground">{t("benefits.fastDeliveryDetail")}</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Only show benefits if they exist in database */}
-                      {Array.isArray(product.specifications?.benefits) && product.specifications.benefits.length > 0 && (
-                        <div className="space-y-4">
-                          <h3 className="font-bold text-start">{t("benefits.keyBenefits")}</h3>
-                          <ul className="space-y-2 text-sm text-muted-foreground" dir={dir}>
-                            {product.specifications.benefits.map((benefit: string, index: number) => (
-                              <li key={index} className="flex items-start gap-2 text-start">
-                                <div className="w-2 h-2 bg-primary rounded-full mt-1.5 flex-shrink-0"></div>
-                                <span>{bidi(benefit)}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
+            <div className="mb-12 space-y-4" key={product.id}>
+              <nav aria-label={t("information.navigation")} className="hidden flex-wrap gap-2 md:flex">
+                {[
+                  ["benefits", t("tabs.benefits")], ["specs", t("tabs.specs")],
+                  ["usage", t("tabs.usage")], ["shipping", t("tabs.shipping")],
+                  ["reviews", t("tabs.reviews", { count: product.reviewCount ?? 0 })],
+                ].map(([id, label]) => (
+                  <a key={id} href={`#product-info-${id}`} className="rounded-full border border-border px-4 py-2 text-sm hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">{label}</a>
+                ))}
+              </nav>
+              <ProductInformationSection id="product-info-benefits" title={t("benefits.title")} icon={<Leaf className="h-5 w-5 text-primary" aria-hidden="true" />} defaultOpen>
+                <div className="space-y-4" dir={dir}>
+                  {decisionBenefits.length > 0 ? (
+                    <ul className={decisionBenefits.length > 2 ? "grid gap-3 sm:grid-cols-2 lg:grid-cols-3" : decisionBenefits.length === 2 ? "grid gap-3 sm:grid-cols-2" : "grid gap-3"}>
+                      {decisionBenefits.map((benefit, index) => (
+                        <li key={`${index}-${benefit}`} className="flex items-start gap-3 rounded-lg border border-primary/20 bg-primary/5 p-4 text-sm leading-7">
+                          <Check className="mt-1 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+                          <span>{bidi(benefit)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm leading-7 text-muted-foreground">{t("benefits.infoBeforeDetail")}</p>
+                  )}
+                </div>
+              </ProductInformationSection>
+              <ProductInformationSection id="product-info-specs" title={t("specs.title")} icon={<Info className="h-5 w-5 text-primary" aria-hidden="true" />} defaultOpen>
+                <div className="space-y-4" dir={dir}>
+                  <h3 className="font-semibold">{t("specs.info")}</h3>
+                  <dl className={product.reviewCount > 0 ? "grid gap-4 sm:grid-cols-3" : "grid gap-4 sm:grid-cols-2"}>
+                    <div className="space-y-1 rounded-lg bg-muted/50 p-4">
+                      <dt className="text-sm text-muted-foreground">{t("specs.brand")}</dt>
+                      <dd className="font-medium">{product.brand}</dd>
                     </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="specs" className="mt-6">
-                <Card>
-                  <CardHeader>
-                    <h2 className="flex items-center gap-2 font-semibold leading-none tracking-tight">
-                      <Info className="w-5 h-5" aria-hidden="true" />
-                      {t("specs.title")}
-                    </h2>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid md:grid-cols-2 gap-6">
-                      <div>
-                        <h3 className="font-semibold mb-2">{t("specs.info")}</h3>
-                        <dl className="space-y-2">
-                          <div className="flex justify-between">
-                            <dt className="text-muted-foreground">{t("specs.brand")}</dt>
-                            <dd className="font-medium">{product.brand}</dd>
-                          </div>
-                          <div className="flex justify-between">
-                            <dt className="text-muted-foreground">{t("specs.category")}</dt>
-                            <dd className="font-medium">{localizeCategoryName(product.category, locale)}</dd>
-                          </div>
-                          <div className="flex justify-between">
-                            <dt className="text-muted-foreground">{t("specs.rating")}</dt>
-                            <dd className="font-medium">{product.rating}/5</dd>
-                          </div>
-                        </dl>
-                      </div>
+                    <div className="space-y-1 rounded-lg bg-muted/50 p-4">
+                      <dt className="text-sm text-muted-foreground">{t("specs.category")}</dt>
+                      <dd className="font-medium">{localizeCategoryName(product.category, locale)}</dd>
                     </div>
+                    {product.reviewCount > 0 && (
+                      <div className="space-y-1 rounded-lg bg-muted/50 p-4">
+                        <dt className="text-sm text-muted-foreground">{t("specs.rating")}</dt>
+                        <dd className="font-medium">{product.rating}/5</dd>
+                      </div>
+                    )}
+                  </dl>
 
                     {/* Custom Specifications Table */}
                     {product.specifications && Object.keys(product.specifications).length > 0 && (
@@ -1019,77 +958,10 @@ export default function ProductDetails() {
                         />
                       </div>
                     )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="reviews" className="mt-6">
-                <Card>
-                  <CardHeader>
-                    <h2 className="flex items-center gap-2 font-semibold leading-none tracking-tight">
-                      <Star className="w-5 h-5 fill-amber-400 text-amber-400" aria-hidden="true" />
-                      {t("reviews.title")}
-                    </h2>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-
-
-                    {/* Sample Reviews */}
-                    <div className="space-y-4">
-                      <ProductReviews
-                        productId={product.id}
-                        productName={product.name}
-                      />
-                    </div>
-
-                    <Alert className="bg-blue-50 border-blue-200">
-                      <Info className="h-4 w-4 text-blue-600" aria-hidden="true" />
-                      <AlertDescription className="text-sm text-blue-900">
-                        {t("reviews.cta")}
-                      </AlertDescription>
-                    </Alert>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="shipping" className="mt-6">
-                <Card>
-                  <CardHeader>
-                    <h2 className="flex items-center gap-2 font-semibold leading-none tracking-tight">
-                      <Truck className="w-5 h-5" aria-hidden="true" />
-                      {t("shipping.title")}
-                    </h2>
-                  </CardHeader>
-                  <CardContent className="space-y-4" dir={dir}>
-                    <div>
-                      <h3 className="font-semibold mb-2 text-start">{t("shipping.policyTitle")}</h3>
-                      <ul className="list-disc space-y-1 text-muted-foreground text-start ps-5">
-                        <li>{t("shipping.flat", { fee: formatIQD(shippingFee) })}</li>
-                        <li>{t("shipping.time", { days: DELIVERY_DAYS })}</li>
-                      </ul>
-                    </div>
-                    <div>
-                      <h3 className="font-semibold mb-2 text-start">{t("shipping.exchangeTitle")}</h3>
-                      <ul className="list-disc space-y-1 text-muted-foreground text-start ps-5">
-                        <li>{t("shipping.exchange1")}</li>
-                        <li>{t("shipping.exchange2")}</li>
-                        <li>{t("shipping.exchange3")}</li>
-                        <li>{t("shipping.exchange4")}</li>
-                      </ul>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="usage" className="mt-6">
-                <Card>
-                  <CardHeader>
-                    <h2 className="flex items-center gap-2 font-semibold leading-none tracking-tight">
-                      <Shield className="w-5 h-5" aria-hidden="true" />
-                      {t("usage.title")}
-                    </h2>
-                  </CardHeader>
-                  <CardContent className="space-y-4" dir={dir}>
+                </div>
+              </ProductInformationSection>
+              <ProductInformationSection id="product-info-usage" title={t("usage.title")} icon={<Shield className="h-5 w-5 text-primary" aria-hidden="true" />} defaultOpen={Boolean((Array.isArray(decisionSpecs.safetyWarnings) && decisionSpecs.safetyWarnings.length) || decisionSpecs["تحذيرات"])}>
+                <div className="grid gap-6 md:grid-cols-2" dir={dir}>
                     <div>
                       <h3 className="font-semibold mb-2 text-start">{t("usage.howTo")}</h3>
                       {Array.isArray(product.specifications?.usageInstructions) && product.specifications.usageInstructions.length > 0 ? (
@@ -1132,10 +1004,49 @@ export default function ProductDetails() {
                         </ul>
                       )}
                     </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
+                </div>
+              </ProductInformationSection>
+              <ProductInformationSection id="product-info-shipping" title={t("shipping.title")} icon={<Truck className="h-5 w-5 text-primary" aria-hidden="true" />}>
+                <div className="grid gap-6 md:grid-cols-2" dir={dir}>
+                    <div>
+                      <h3 className="font-semibold mb-2 text-start">{t("shipping.policyTitle")}</h3>
+                      <ul className="list-disc space-y-1 text-muted-foreground text-start ps-5">
+                        <li>{t("shipping.flat", { fee: formatIQD(shippingFee) })}</li>
+                        <li>{t("shipping.time", { days: DELIVERY_DAYS })}</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold mb-2 text-start">{t("shipping.exchangeTitle")}</h3>
+                      <ul className="list-disc space-y-1 text-muted-foreground text-start ps-5">
+                        <li>{t("shipping.exchange1")}</li>
+                        <li>{t("shipping.exchange2")}</li>
+                        <li>{t("shipping.exchange3")}</li>
+                        <li>{t("shipping.exchange4")}</li>
+                      </ul>
+                    </div>
+                </div>
+              </ProductInformationSection>
+              <ProductInformationSection id="product-info-reviews" title={t("reviews.title")} icon={<Star className="h-5 w-5 text-primary" aria-hidden="true" />}>
+                <div className="space-y-4" dir={dir}>
+
+
+                    {/* Customer reviews from the existing API */}
+                    <div className="space-y-4">
+                      <ProductReviews
+                        productId={product.id}
+                        productName={product.name}
+                      />
+                    </div>
+
+                    <Alert className="bg-blue-50 border-blue-200">
+                      <Info className="h-4 w-4 text-blue-600" aria-hidden="true" />
+                      <AlertDescription className="text-sm text-blue-900">
+                        {t("reviews.cta")}
+                      </AlertDescription>
+                    </Alert>
+                </div>
+              </ProductInformationSection>
+            </div>
 
             {/* Frequently Bought Together (Real Data) */}
             <RecommendationsSection

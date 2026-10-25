@@ -91,7 +91,12 @@
     "experience": "Experience level",
     "active": "{{count}} active filters",
     "selected": "{{count}} selected",
-    "showResults": "Show {{count}} products"
+    "showResults": "Show {{count}} products",
+    "moreBrands": "Show remaining brands ({{count}})",
+    "fewerBrands": "Show fewer brands",
+    "counting": "Counting results…",
+    "countError": "We could not count the results. You can still apply these filters.",
+    "applyDraft": "Show results"
   },
   "card": {
     "added": "Added",

@@ -18,7 +18,8 @@ import { categorySearch } from "@shared/category-search";
 import { FilterBar } from "@/components/products/filter-bar";
 import type { FilterState } from "@/components/products/filter-modal";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { buildProductQuery, filterListingProducts, isListingProductSellable } from "@/lib/product-listing-filters";
 import { fetchProducts, fetchProductAttributes, fetchPersonalizedOrder } from "@/lib/api";
 import { ProductCardSkeleton } from "@/components/ui/loading-skeleton";
 import { BackToTop } from "@/components/back-to-top";
@@ -33,7 +34,7 @@ import { PRODUCT_TAG_VALUES, productDifficultyKey, productTagKey } from "@/lib/p
 import { getLocalizedStaticMeta } from "@/i18n/static-meta";
 import { formatShippingFeeNumber, useShippingFee } from "@/contexts/shipping-fee-context";
 import { FoodCategoryGuide } from "@/components/products/food-choice-guide";
-import { foodFilterSchema, isFoodCategory, matchesFoodFilter, type FoodFilter } from "@shared/food-choice";
+import { foodFilterSchema, isFoodCategory, type FoodFilter } from "@shared/food-choice";
 
 const FilterModal = lazy(() => import("@/components/products/filter-modal").then(m => ({ default: m.FilterModal })));
 const QuickViewModal = lazy(() => import("@/components/products/quick-view-modal").then(m => ({ default: m.QuickViewModal })));
@@ -74,6 +75,7 @@ export default function Products() {
   const [, setLocation] = useLocation();
   const search = useSearch();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const searchParams = new URLSearchParams(search);
   const initialCategory = searchParams.get("category");
   // Canonical identity of this listing, from the same builder SSR uses, so the
@@ -150,28 +152,20 @@ export default function Products() {
 
   const boostIds = boostData?.boostIds ?? [];
 
-  const queryParams = useMemo(() => {
-    const params: import("@/types").ProductQueryParams = {};
+  const queryParams = useMemo(
+    () => buildProductQuery(filters, minPrice, maxPrice, sortBy, initialSearch),
+    [filters, sortBy, initialSearch, minPrice, maxPrice],
+  );
 
-    if (filters.categories.length > 0) params.category = filters.categories;
-    if (filters.brands.length > 0) params.brand = filters.brands;
-    if (filters.priceRange[0] > minPrice) params.minPrice = filters.priceRange[0];
-    if (filters.priceRange[1] < maxPrice) params.maxPrice = filters.priceRange[1];
-
-    if (initialSearch) params.search = initialSearch;
-
-    if (filters.tags.includes(PRODUCT_TAG_VALUES.new)) params.isNew = true;
-    if (filters.tags.includes(PRODUCT_TAG_VALUES.bestSeller)) params.isBestSeller = true;
-
-    if (sortBy === "price-asc") { params.sortBy = "price"; params.sortOrder = "asc"; }
-    else if (sortBy === "price-desc") { params.sortBy = "price"; params.sortOrder = "desc"; }
-    else if (sortBy === "name-asc") { params.sortBy = "name"; params.sortOrder = "asc"; }
-    else if (sortBy === "rating-desc") { params.sortBy = "rating"; params.sortOrder = "desc"; }
-    else if (sortBy === "default") { params.sortBy = "views"; params.sortOrder = "desc"; }
-    else { params.sortBy = "createdAt"; params.sortOrder = "desc"; }
-
-    return params;
-  }, [filters, sortBy, initialSearch, minPrice, maxPrice]);
+  const getDraftResultCount = useCallback(async (draft: FilterState) => {
+    const params = buildProductQuery(draft, minPrice, maxPrice, sortBy, initialSearch);
+    const result = await queryClient.fetchQuery({
+      queryKey: ["products", params],
+      queryFn: () => fetchProducts(params),
+      staleTime: 15_000,
+    });
+    return filterListingProducts(result.products, draft, foodFilter).length;
+  }, [queryClient, minPrice, maxPrice, sortBy, initialSearch, foodFilter]);
 
   const { data, isLoading: isProductsLoading, isFetching: isProductsFetching, isError, refetch: refetchProducts } = useQuery({
     queryKey: ["products", queryParams],
@@ -186,16 +180,7 @@ export default function Products() {
   const products = data?.products ?? [];
 
   const finalProducts = useMemo(() => {
-    let filtered = products.filter(product => {
-      if (isFoodListing && !matchesFoodFilter(product, foodFilter)) return false;
-      if (filters.difficulties.length > 0 && (!product.difficulty || !filters.difficulties.includes(product.difficulty))) {
-        return false;
-      }
-      if (filters.tags.includes(PRODUCT_TAG_VALUES.eco) && !product.ecoFriendly) {
-        return false;
-      }
-      return true;
-    });
+    let filtered = filterListingProducts(products, filters, foodFilter);
 
     if (sortBy === "smart" && boostIds.length > 0) {
       const boostSet = new Set(boostIds);
@@ -206,28 +191,13 @@ export default function Products() {
       filtered = [...boosted, ...rest];
     }
 
-    const hasPrice = (p: Product) => {
-      if ((p.price ?? 0) > 0) return true;
-      if (p.hasVariants && p.variants?.length) {
-        return p.variants.some(v => (v.price ?? 0) > 0);
-      }
-      return false;
-    };
-    const isInStock = (p: Product) => {
-      if (p.hasVariants && p.variants?.length) {
-        return p.variants.some(v => (v.stock ?? 0) > 0 && (v.price ?? 0) > 0);
-      }
-      return (p.stock ?? 0) > 0;
-    };
-
-    // Preserve the selected order inside each group, but never let an item that
-    // cannot currently be purchased displace a sellable product above the fold.
-    const sellable = filtered.filter(p => hasPrice(p) && isInStock(p));
-    const unavailable = filtered.filter(p => !(hasPrice(p) && isInStock(p)));
-    filtered = filters.tags.includes("in-stock") ? sellable : [...sellable, ...unavailable];
+    // Keep the selected order within each group, preserving existing listing behavior.
+    const sellable = filtered.filter(isListingProductSellable);
+    const unavailable = filtered.filter(p => !isListingProductSellable(p));
+    filtered = [...sellable, ...unavailable];
 
     return filtered;
-  }, [products, filters.difficulties, filters.tags, sortBy, boostIds, isFoodListing, foodFilter]);
+  }, [products, filters, sortBy, boostIds, foodFilter]);
 
   const displayedProducts = useMemo(() => {
     return finalProducts.slice(0, displayCount);
@@ -280,16 +250,6 @@ export default function Products() {
     products.forEach(product => {
       if (product.category) {
         counts.set(product.category, (counts.get(product.category) || 0) + 1);
-      }
-    });
-    return counts;
-  }, [products]);
-
-  const brandCounts = useMemo(() => {
-    const counts = new Map<string, number>();
-    products.forEach(product => {
-      if (product.brand) {
-        counts.set(product.brand, (counts.get(product.brand) || 0) + 1);
       }
     });
     return counts;
@@ -720,8 +680,7 @@ export default function Products() {
             availableBrands={availableBrands}
             maxPrice={maxPrice}
             minPrice={minPrice}
-            brandCounts={brandCounts}
-            resultCount={finalProducts.length}
+            getResultCount={getDraftResultCount}
           />
         )}
       </Suspense>
