@@ -6,7 +6,7 @@
  * shorter 420ms reveal so the decoration cannot prolong the first visit.
  * The temporary node lives outside React's root, so hydration cannot replace it.
  */
-export function startFirstDiveIntro(): void {
+export function startFirstDiveIntro(markSource = "/brand/aquavo-v2-icon.svg"): void {
   // Keep this function self-contained: Vite also embeds it directly in HTML.
   const FIRST_DIVE_KEY = "aquavo_first_dive_seen_v2";
   try {
@@ -23,7 +23,7 @@ export function startFirstDiveIntro(): void {
   surface.setAttribute("aria-hidden", "true");
   const mark = document.createElement("img");
   mark.className = "aqv-first-dive__mark";
-  mark.src = "/brand/aquavo-v2-icon.svg";
+  mark.src = markSource;
   mark.alt = "";
   mark.width = 68;
   mark.height = 68;

@@ -2,12 +2,14 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
+import { readFileSync } from "node:fs";
 import { metaImagesPlugin } from "./vite-plugin-meta-images";
 import viteCompression from "vite-plugin-compression";
 import { visualizer } from "rollup-plugin-visualizer";
 import { startFirstDiveIntro } from "./client/src/components/effects/first-dive-intro";
 
 const isProduction = process.env.NODE_ENV === "production";
+const firstDiveMark = `data:image/svg+xml,${encodeURIComponent(readFileSync(path.resolve(import.meta.dirname, "client/public/brand/aquavo-v2-icon.svg"), "utf8"))}`;
 
 const getVendorChunkName = (id: string): string | null => {
   if (id.includes("commonjsHelpers")) return "vendor-commonjs";
@@ -74,7 +76,9 @@ export default defineConfig({
       transformIndexHtml: () => [{
         tag: "script",
         attrs: { "data-aq-first-visit": "" },
-        children: `(${startFirstDiveIntro.toString()})();`,
+        // Embed the unmodified vector: its network request must not outlast
+        // the short reveal on a slow connection.
+        children: `(${startFirstDiveIntro.toString()})(${JSON.stringify(firstDiveMark)});`,
         injectTo: "body",
       }],
     },

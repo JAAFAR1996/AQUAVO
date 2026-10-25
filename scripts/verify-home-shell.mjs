@@ -169,6 +169,10 @@ try {
     await freshPage.route("**/assets/index-*.css", async route => { await fullStylesReady; await route.continue(); });
     await freshPage.goto(base, { waitUntil: "commit" });
     await freshPage.locator(".aqv-first-dive").waitFor({ state: "attached" });
+    await freshPage.waitForFunction(() => {
+      const mark = document.querySelector(".aqv-first-dive img");
+      return mark?.complete && mark.naturalWidth > 0;
+    });
     assert.equal(await freshPage.locator(".aqv-first-dive").evaluate(node => getComputedStyle(node).position), "fixed");
     assert.notEqual(await freshPage.locator(".aqv-first-dive").evaluate(node => getComputedStyle(node, "::before").animationName), "none", "intro animation must work with critical CSS alone");
     await freshPage.locator(".aqv-first-dive").waitFor({ state: "detached" });
