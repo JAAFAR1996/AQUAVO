@@ -24,15 +24,16 @@ function createRequest(url: string): VercelRequest {
 }
 
 function createResponse() {
-  let body: unknown;
+  let body = "";
   const response = {
     setHeader: vi.fn(),
     status: vi.fn(() => response),
     send: vi.fn((value: unknown) => {
-      body = value;
+      body = String(value);
       return response;
     }),
-    end: vi.fn(() => response),
+    write: vi.fn((value: string) => { body += value; return true; }),
+    end: vi.fn((value?: string) => { body += value ?? ""; return response; }),
   };
   return { response: response as unknown as VercelResponse, getBody: () => String(body ?? "") };
 }

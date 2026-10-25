@@ -55,7 +55,8 @@ async function render(url: string): Promise<string> {
       body = String(value);
       return response;
     }),
-    end: vi.fn(() => response),
+    write: vi.fn((value: string) => { body += value; return true; }),
+    end: vi.fn((value?: string) => { body += value ?? ""; return response; }),
   };
   await handler(request(url), response as unknown as VercelResponse);
   return body;

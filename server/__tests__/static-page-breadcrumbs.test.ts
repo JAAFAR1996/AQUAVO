@@ -30,7 +30,8 @@ async function render(path: string): Promise<string> {
       body = String(value);
       return res;
     }),
-    end: vi.fn(() => res),
+    write: vi.fn((value: string) => { body += value; return true; }),
+    end: vi.fn((value?: string) => { body += value ?? ""; return res; }),
   };
   await handler(
     { url: path, headers: { host: "www.aquavoiq.com", accept: "text/html" } } as unknown as VercelRequest,

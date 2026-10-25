@@ -92,6 +92,8 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium
       - name: Verify home hydration and interactions
         run: node scripts/verify-home-shell.mjs
+      - name: Verify home paints before the shipping database responds
+        run: node --import tsx scripts/verify-home-stream.mjs
       - name: Verify product discovery interactions
         run: node scripts/verify-product-discovery-ux.mjs
       - name: 📦 Upload build artifacts
