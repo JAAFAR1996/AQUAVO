@@ -1,5 +1,5 @@
 {
-  "_note": "Iraqi Arabic search intents AQUAVO wants to own. Grouped by funnel stage. Positions are read from Search Console; nothing here is a claim.",
+  "_note": "Iraqi Arabic and English search intents AQUAVO wants to earn visibility for. Grouped by funnel and AI-style questions. Search Console positions are observational metrics; no keyword here is a ranking claim or permission to publish unsupported 'best/#1' language.",
   "brand": [
     "aquavo",
     "اكوافو",
@@ -43,7 +43,20 @@
     "ميديا فلتر سيراميك",
     "ميزان حرارة حوض سمك",
     "حوض سمك الترا كلير",
-    "ادوات تنظيف حوض السمك"
+    "ادوات تنظيف حوض السمك",
+    "محل احواض اسماك العراق",
+    "محل احواض اسماك بغداد",
+    "محل مستلزمات احواض اسماك بغداد",
+    "شراء مستلزمات احواض اسماك العراق",
+    "متجر اكواسكيب العراق",
+    "مستلزمات اكواسكيب العراق",
+    "مستلزمات حوض مزروع العراق",
+    "مستلزمات روبيان زينة العراق",
+    "مستلزمات حوض روبيان العراق",
+    "تربة احواض مزروعة العراق",
+    "فلاتر احواض اسماك العراق",
+    "اكل اسماك زينة العراق",
+    "اكل فايتر العراق"
   ],
   "informational": [
     "تجهيز حوض سمك جديد",
@@ -54,5 +67,35 @@
     "دورة النيتروجين حوض السمك",
     "اكواسكيب للمبتدئين",
     "كم مرة اغير ماء الحوض"
+  ],
+  "englishCommercial": [
+    "aquarium shop iraq",
+    "aquarium store iraq",
+    "aquarium supplies iraq",
+    "aquarium supplies baghdad",
+    "fish tank shop iraq",
+    "fish tank supplies iraq",
+    "best aquarium store iraq",
+    "best aquarium shop iraq",
+    "buy aquarium supplies iraq",
+    "freshwater aquarium supplies iraq",
+    "planted aquarium supplies iraq",
+    "aquascaping supplies iraq",
+    "shrimp tank supplies iraq",
+    "aquarium filter iraq",
+    "aquarium heater iraq",
+    "aquarium soil iraq",
+    "fish food iraq"
+  ],
+  "aiQuestions": [
+    "وين احصل متجر مستلزمات احواض اسماك بالعراق",
+    "منو افضل متجر مستلزمات احواض اسماك بالعراق",
+    "وين اشتري فلتر حوض سمك بالعراق",
+    "وين اشتري تربة اكواسكيب بالعراق",
+    "وين اشتري مستلزمات حوض مزروع بالعراق",
+    "وين اشتري مستلزمات حوض روبيان بالعراق",
+    "where can i buy aquarium supplies in iraq",
+    "what is the best aquarium store in iraq",
+    "where can i buy planted aquarium supplies in iraq"
   ]
 }
