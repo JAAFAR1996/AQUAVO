@@ -24,7 +24,7 @@ describe("first-visit reveal during bootstrap", () => {
     expect(document.querySelector(".aqv-first-dive img")).toHaveAttribute("src", "/brand/aquavo-v2-icon.svg");
     startFirstDiveIntro();
     expect(document.querySelectorAll(".aqv-first-dive")).toHaveLength(1);
-    vi.advanceTimersByTime(920);
+    vi.advanceTimersByTime(480);
     expect(document.querySelector(".aqv-first-dive")).toBeNull();
     expect(document.querySelector("h1")).toBe(serverHeading);
     startFirstDiveIntro();

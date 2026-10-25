@@ -4,7 +4,8 @@ const FIRST_DIVE_KEY = "aquavo_first_dive_seen_v2";
  * One non-blocking brand reveal for the visitor's first-ever browser visit.
  * Start with the small bootstrap, while the application modules load. Starting
  * this from a React effect covered the already-painted home a second time after
- * hydration. The same mark, surface split, duration and once-only rule remain.
+ * hydration. Keep the same mark, surface split and once-only rule, with a
+ * shorter 420ms reveal so the decoration cannot prolong the first visit.
  * The temporary node lives outside React's root, so hydration cannot replace it.
  */
 export function startFirstDiveIntro(): void {
@@ -30,5 +31,5 @@ export function startFirstDiveIntro(): void {
   line.className = "aqv-first-dive__line";
   surface.append(mark, line);
   document.body.appendChild(surface);
-  window.setTimeout(() => surface.remove(), 920);
+  window.setTimeout(() => surface.remove(), 480);
 }
