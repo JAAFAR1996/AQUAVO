@@ -15,9 +15,9 @@
 .inspiration-scene__background{display:block;width:100%;height:auto;border-radius:16px}
 .inspiration-scene__layer{position:absolute;display:block;border-radius:8px;outline-offset:5px;color:hsl(var(--primary-foreground));text-decoration:none}
 .inspiration-scene__layer img{display:block;width:100%;height:auto;max-width:none;object-fit:contain;pointer-events:none}
-.inspiration-scene__layer--wood{width:46%;left:28%;top:2%;z-index:2}
-.inspiration-scene__layer--sand{width:31%;left:10%;top:26%;z-index:3}
-.inspiration-scene__layer--pump{width:18%;left:74%;top:22%;z-index:4}
+.inspiration-scene__layer--wood{width:40%;left:36%;top:14%;z-index:2}
+.inspiration-scene__layer--sand{width:21%;left:15%;top:42.3%;z-index:3}
+.inspiration-scene__layer--pump{width:11%;left:8.5%;top:25%;z-index:4}
 .inspiration-scene__hotspot{position:absolute;display:flex;width:44px;height:44px;align-items:center;justify-content:center;border:1px solid hsl(var(--primary-foreground) / .7);border-radius:50%;background:hsl(var(--primary));color:hsl(var(--primary-foreground));font-family:var(--font-interface,inherit);font-size:13px;font-weight:700;box-shadow:0 0 0 5px hsl(var(--primary-foreground) / .16),0 3px 15px hsl(var(--background) / .2)}
 .inspiration-scene__layer--wood .inspiration-scene__hotspot{left:58%;top:56%}
 .inspiration-scene__layer--sand .inspiration-scene__hotspot{left:29%;top:63%}
