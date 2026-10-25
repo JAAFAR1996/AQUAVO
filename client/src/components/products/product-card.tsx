@@ -145,7 +145,7 @@ export const ProductCard = memo(function ProductCard({
         : t("card.addToCartAria", { name: product.name });
 
   return (
-    <Card data-listing-item={`product:${product.id}`} className="group relative flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-[#ddd9d2] bg-[#f7f4ef] text-start shadow-[0_4px_14px_rgba(35,42,43,0.07)] transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-[#d2ccc3] hover:shadow-[0_10px_26px_rgba(35,42,43,0.11)]">
+    <Card data-listing-item={`product:${product.id}`} className="aq-motion-card group relative flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-[#ddd9d2] bg-[#f7f4ef] text-start shadow-[0_4px_14px_rgba(35,42,43,0.07)] transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-[#d2ccc3] hover:shadow-[0_10px_26px_rgba(35,42,43,0.11)]">
       <div className="pointer-events-none absolute inset-x-3 top-3 z-30 flex items-start justify-between gap-2">
         <div className="pointer-events-auto">
           <WishlistButton
