@@ -32,8 +32,12 @@ async function renderPath(path: string): Promise<string> {
       body = String(value);
       return response;
     }),
+    write: vi.fn((value: unknown) => {
+      body += String(value);
+      return true;
+    }),
     end: vi.fn((value?: unknown) => {
-      if (value !== undefined) body = String(value);
+      if (value !== undefined) body += String(value);
       return response;
     }),
   };

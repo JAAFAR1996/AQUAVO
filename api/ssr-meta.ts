@@ -942,7 +942,7 @@ export function injectHomeHero(html: string, pathname: string, locale: Locale = 
   return hydratable && shell !== html ? injectHomeStyles(shell) : shell;
 }
 
-export function injectMeta(html: string, meta: PageMeta & { url: string; image: string }): string {
+function structuredDataScripts(meta: PageMeta): string {
   let jsonLdScript = "";
   if (!meta.notFound) {
     // Same treatment as the prerendered route: whatever this page's builder
@@ -964,6 +964,12 @@ export function injectMeta(html: string, meta: PageMeta & { url: string; image: 
       .map((ld) => `<script type="application/ld+json">${safeJsonLd(ld)}</script>`)
       .join("\n  ");
   }
+
+  return jsonLdScript;
+}
+
+export function injectMeta(html: string, meta: PageMeta & { url: string; image: string }): string {
+  const jsonLdScript = structuredDataScripts(meta);
 
   // Validate + escape URLs before they land in href/src/content attributes (XSS / scheme injection guard)
   const safeUrl = escapeHtml(safeHttpUrl(meta.url, BASE));
@@ -1338,7 +1344,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const template = getTemplate();
     const status = isKnownSitePath(pathname, Object.keys(GUIDE_CONTENT_PAGES)) ? 200 : 404;
     const meta = await resolveMetadata(pathname, status === 404, locale, rawCategory);
-    if (pathname === "/" && locale === DEFAULT_LOCALE && !meta.notFound) {
+    const streamHome = pathname === "/" && locale === DEFAULT_LOCALE && !meta.notFound && !acceptMd;
+    if (pathname === "/" && locale === DEFAULT_LOCALE && !meta.notFound && !streamHome) {
       meta.jsonLd = buildEntityStructuredData({
         includeMerchantPolicies: true,
         shippingFee: await loadShippingFee(),
@@ -1373,7 +1380,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       // second half true.
       if (!isLocaleReleased(locale)) meta.noIndex = true;
     }
-    const localizedHtml = applyLocaleToHtml(injectMeta(template, meta), locale, pathname, pathname === "/products" ? new URL(meta.url).search : "", {
+    // The visible home is build-generated and independent of the live shipping
+    // setting. Send it immediately; its single, current merchant graph follows
+    // in the same HTML response once the setting has been read. JSON-LD is valid
+    // in the body too, so it must not block the hero behind a database round trip.
+    const renderTemplate = streamHome
+      ? template.replace(/<!--__JSON_LD__-->|__JSON_LD__/g, "")
+      : template;
+    const localizedHtml = applyLocaleToHtml(injectMeta(renderTemplate, meta), locale, pathname, pathname === "/products" ? new URL(meta.url).search : "", {
       indexable: !meta.noIndex && !meta.notFound,
       indexableLocales: meta.indexableLocales,
     });
@@ -1393,9 +1407,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     res.setHeader("Content-Type", "text/html; charset=utf-8");
     res.setHeader("Cache-Control", commerceCacheControl(pathname));
+    if (streamHome) {
+      const bodyEnd = html.lastIndexOf("</body>");
+      if (bodyEnd < 0) throw new Error("Homepage template is missing its closing body tag");
+      res.status(status);
+      res.write(html.slice(0, bodyEnd));
+      meta.jsonLd = buildEntityStructuredData({
+        includeMerchantPolicies: true,
+        shippingFee: await loadShippingFee(),
+      });
+      return res.end(`${structuredDataScripts(meta)}\n${html.slice(bodyEnd)}`);
+    }
     return res.status(status).send(html);
   } catch (err) {
     console.error("SSR meta handler error:", err);
+    // A client disconnect or streaming failure cannot start a second response.
+    if (res.headersSent) {
+      if (!res.writableEnded) res.end();
+      return;
+    }
     // A generic error fallback is not proof that a localized entity is ready
     // for indexing, even when the production wrapper started as indexable.
     res.setHeader("X-Robots-Tag", "noindex, nofollow, noarchive");
