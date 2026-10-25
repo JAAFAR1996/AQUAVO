@@ -123,8 +123,9 @@ async function render(
       body = String(value);
       return response;
     }),
+    write: vi.fn((value: string) => { body += value; return true; }),
     end: vi.fn((value?: unknown) => {
-      if (value !== undefined) body = String(value);
+      if (value !== undefined) body += String(value);
       return response;
     }),
   };
@@ -486,8 +487,9 @@ describe("a guide is the same document whether a crawler or a person asks", () =
         body = String(value);
         return response;
       }),
+      write: vi.fn((value: string) => { body += value; return true; }),
       end: vi.fn((value?: unknown) => {
-        if (value !== undefined) body = String(value);
+        if (value !== undefined) body += String(value);
         return response;
       }),
     };
@@ -545,8 +547,9 @@ describe("one brand identity, and no retired schema types", () => {
         body = String(value);
         return response;
       }),
+      write: vi.fn((value: string) => { body += value; return true; }),
       end: vi.fn((value?: unknown) => {
-        if (value !== undefined) body = String(value);
+        if (value !== undefined) body += String(value);
         return response;
       }),
     };
