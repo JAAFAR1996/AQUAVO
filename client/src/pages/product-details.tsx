@@ -1,7 +1,6 @@
-import { getVerifiedExternalAnnotations } from "@/lib/verified-external-annotations";
 import { isVariantActive, isVariantPurchasable, isVariantComingSoon } from "@shared/variant-commerce";
 import { getVariantGallery } from "@/lib/variant-gallery";
-import { useState, useEffect, useRef } from "react";
+import { lazy, Suspense, useState, useEffect, useRef } from "react";
 import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { type Product, type ProductVariant } from "@/types";
@@ -25,7 +24,7 @@ import { ProductReviews } from "@/components/products/product-reviews";
 import { ProductImageGallery } from "@/components/products/product-image-gallery";
 import { productTransitionName } from "@/lib/motion/card-transition";
 import { Product3DViewer } from "@/components/products/product-3d-viewer";
-import { ExplodedProductView } from "@/components/products/exploded-product-view";
+const AnnotatedProductView = lazy(() => import("@/components/products/annotated-product-view"));
 import { FrequentlyBoughtTogether } from "@/components/products/frequently-bought-together";
 import { ProductVariantSelector } from "@/components/products/product-variant-selector";
 import { EmbeddedVariantSelector } from "@/components/products/embedded-variant-selector";
@@ -388,7 +387,6 @@ export default function ProductDetails() {
   const isVolcanicStone = product.id === "houyi-volcanic-stone-red" ||
     product.id === "houyi-volcanic-stone-black";
   const selectedContent = getSelectedVariantContent(product, selectedVariant);
-  const verifiedAnnotations = getVerifiedExternalAnnotations(product, { photoUrl: product.image || product.thumbnail || product.images?.[0], selectedVariantId: selectedVariant?.id, locale });
   const productDisplay = getProductDisplayIdentity({ ...product, name: selectedContent.name });
   const productMeta = buildProductSeoMeta(product, { locale });
   const decisionSpecs = selectedContent.specifications;
@@ -438,9 +436,9 @@ export default function ProductDetails() {
             </Breadcrumb>
 
             {/* Product Header */}
-            {(verifiedAnnotations || (product.explodedViewParts && product.explodedViewParts.length > 0)) && (
+            {(product.id === "luby-gyhs03-202610" || (product.explodedViewParts && product.explodedViewParts.length > 0)) && (
               <div className="mb-12">
-                <ExplodedProductView product={product} annotations={verifiedAnnotations ?? undefined} />
+                <Suspense fallback={<Skeleton className="h-80 w-full rounded-3xl" aria-hidden="true" />}><AnnotatedProductView product={product} selectedVariantId={selectedVariant?.id} locale={locale} /></Suspense>
               </div>
             )}
 
