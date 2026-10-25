@@ -83,6 +83,9 @@ export class AnalyticsTracker {
           sessionId: data.sessionId,
           userId: data.userId || null,
           status: 'active',
+          // No authoritative cart amount is computed for analytics sessions.
+          // Explicit null prevents PostgreSQL's legacy DEFAULT 0 from inventing a free cart.
+          totalValue: null,
           updatedAt: new Date()
         })
         .onConflictDoUpdate({
@@ -90,6 +93,7 @@ export class AnalyticsTracker {
           set: {
             userId: data.userId || null,
             status: 'active',
+            totalValue: null,
             updatedAt: new Date()
           }
         });
@@ -130,6 +134,7 @@ export class AnalyticsTracker {
           sessionId: data.sessionId,
           userId: data.userId || null,
           status: 'active',
+          totalValue: null,
           updatedAt: new Date(),
         })
         .onConflictDoUpdate({
@@ -137,6 +142,7 @@ export class AnalyticsTracker {
           set: {
             userId: data.userId || null,
             status: 'active',
+            totalValue: null,
             updatedAt: new Date(),
           },
         });
@@ -162,6 +168,7 @@ export class AnalyticsTracker {
           sessionId: data.sessionId,
           userId: data.userId || null,
           status: 'active',
+          totalValue: null,
           updatedAt: new Date(),
         })
         .onConflictDoUpdate({
@@ -169,6 +176,7 @@ export class AnalyticsTracker {
           set: {
             userId: data.userId || null,
             status: 'active',
+            totalValue: null,
             updatedAt: new Date(),
           },
         });
