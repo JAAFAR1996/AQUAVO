@@ -54,6 +54,20 @@ describe("customer lifecycle integrity", () => {
     expect(migration).toContain("updated_at < now() - interval '24 hours'");
   });
 
+  it("tracks bounded anonymous cart subtotals without using them as checkout pricing", () => {
+    expect(cartContext).toContain('"/api/analytics/cart-value"');
+    expect(cartContext).toContain("Number.isSafeInteger(subtotal)");
+    expect(cartContext).toContain("getClientSessionId()");
+    expect(cartContext).toContain("hadCartItemsForAnalytics.current");
+    expect(analyticsRoute).toContain('router.post("/cart-value", apiLimiter');
+    expect(analyticsRoute).toContain("CLIENT_VIEW_SESSION_ID.test(body.clientSessionId)");
+    expect(analyticsRoute).toContain("Number.isSafeInteger(subtotal)");
+    expect(analyticsRoute).toContain("subtotal > 100_000_000");
+    expect(analyticsTracker).toContain("async recordCartValueSnapshot");
+    expect(analyticsTracker).toContain("totalValue: data.totalValue");
+    expect(analyticsTracker).toContain("This value originates in the browser and is NEVER used to charge customers");
+  });
+
   it("persists the same attribution contract for Wayl orders", () => {
     expect(confirmation).toContain("clientSessionId: getClientSessionId()");
     expect(confirmation).toContain("attribution: orderAttributionPayload()");
