@@ -22,6 +22,7 @@ export interface SwipeToastProps {
   description?: ReactNode;
   icon?: ReactNode;
   actionLabel?: ReactNode;
+  continueLabel?: string;
   onAction?: () => void;
   open?: boolean;
   onClose?: (reason: SwipeToastCloseReason) => void;
@@ -82,6 +83,7 @@ const SwipeToast: React.FC<SwipeToastProps> = ({
   description = '',
   icon,
   actionLabel = '',
+  continueLabel,
   onAction,
   open = true,
   onClose,
@@ -355,6 +357,8 @@ const SwipeToast: React.FC<SwipeToastProps> = ({
               <span className="swipe-toast__title">{title}</span>
               {description ? <span className="swipe-toast__desc">{description}</span> : null}
             </span>
+            <span className="swipe-toast__actions">
+            {continueLabel && <button type="button" className="swipe-toast__action" onClick={() => close('close')}>{continueLabel}</button>}
             {actionLabel ? (
               <button
                 type="button"
@@ -367,6 +371,7 @@ const SwipeToast: React.FC<SwipeToastProps> = ({
                 {actionLabel}
               </button>
             ) : null}
+            </span>
             {closeButton ? (
               <button type="button" className="swipe-toast__close" aria-label={closeLabel} onClick={() => close('close')}>
                 <X size={13} strokeWidth={2.5} />

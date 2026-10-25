@@ -14,10 +14,10 @@ const product = {
   image: "/ux-fixture/one.svg", thumbnail: "/ux-fixture/one.svg",
   images: ["/ux-fixture/one.svg", "/ux-fixture/two.svg", "/ux-fixture/three.svg"],
   description: "وصف تجريبي للفحص المحلي فقط", hasVariants: true,
-  specifications: { benefits: ["فائدة موثقة أولى", "فائدة موثقة ثانية"], safetyWarnings: ["تحذير محفوظ في بيانات المنتج"] },
+  specifications: { "يحتاج": "مضخة اختبار", "الأبعاد": "قياس عام لا يعرض للخيار", benefits: ["فائدة موثقة أولى", "فائدة موثقة ثانية"], safetyWarnings: ["تحذير محفوظ في بيانات المنتج"] },
   variants: [
-    { id: "small", label: "1.5 متر", price: 10000, stock: 8, images: ["/ux-fixture/one.svg", "/ux-fixture/two.svg", "/ux-fixture/three.svg"] },
-    { id: "large", label: "1.7 متر", price: 15000, stock: 3, images: ["/ux-fixture/large.svg"] },
+    { id: "small", label: "1.5 متر", specifications: { "الأبعاد": "150 سم" }, price: 10000, stock: 8, images: ["/ux-fixture/one.svg", "/ux-fixture/two.svg", "/ux-fixture/three.svg"] },
+    { id: "large", label: "1.7 متر", specifications: { "الأبعاد": "170 سم" }, price: 15000, stock: 3, images: ["/ux-fixture/large.svg"] },
   ],
 };
 const catalogue = brands.map((brand, index) => ({ ...product, id: `fixture-${index}`, slug: `fixture-${index}`, name: `منتج ${index + 1}`, brand, hasVariants: false, variants: [], stock: index === 11 ? 0 : 8 }));
@@ -47,7 +47,7 @@ const server = createServer(async (req, res) => {
       return;
     }
     const path = resolve(publicDir, `.${url.pathname}`);
-    if (!path.startsWith(`${publicDir}/`)) { res.writeHead(403).end(); return; }
+    if (path !== publicDir && !path.startsWith(`${publicDir}/`)) { res.writeHead(403).end(); return; }
     const isPage = !extname(url.pathname);
     res.setHeader("Content-Type", isPage ? "text/html" : types[extname(path)] || "application/octet-stream");
     res.end(isPage ? template : await readFile(path));
@@ -75,6 +75,15 @@ try {
     page.on("pageerror", error => errors.push(error.message));
     await context.route("**/*", route => new URL(route.request().url()).origin === base ? route.continue() : route.abort());
     await page.addInitScript(theme => { localStorage.setItem("theme", theme); localStorage.setItem("aquavo_first_dive_seen_v2", "1"); }, theme);
+    await page.goto(`${base}${prefix}/`);
+    const heroPhrase = page.locator(".aq-title-phrase");
+    await expect(heroPhrase).toBeVisible();
+    await expect(heroPhrase).toHaveCSS("animation-name", motion === "reduce" ? "none" : "aq-phrase-settle");
+    const homeCard = page.locator(".aq-interactive-card").first();
+    await homeCard.scrollIntoViewIfNeeded();
+    await homeCard.hover();
+    if (motion === "reduce") await expect(homeCard).toHaveCSS("transform", "none");
+    assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), "home has horizontal overflow");
     await page.goto(`${base}${prefix}/products/fixture-gallery`);
     await expect(page.getByRole("heading", { name: product.name, level: 1 })).toBeVisible({ timeout: 20000 }).catch(async error => {
       console.log(JSON.stringify({errors, body: (await page.locator("body").innerText()).slice(0, 2500)}));
@@ -83,8 +92,10 @@ try {
     });
     const viewport = page.getByTestId("product-gallery-viewport");
     await expect(viewport).toBeVisible();
-    await page.getByRole("button", { name: "1.5 متر", exact: true }).click();
+    await page.getByRole("button", { name: "150 سم", exact: true }).click();
     await expect(page.getByRole("button", { name: productCopy.gallery.showImage.replace("{{index}}", "1") })).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByRole("region", { name: productCopy.choice.dimensions })).toContainText("150 سم");
+    await expect(page.getByRole("region", { name: productCopy.choice.title })).toContainText("مضخة اختبار");
     await viewport.scrollIntoViewIfNeeded();
     await expect(viewport).toHaveAttribute("data-swipe-ready", "true");
     if (mobile) {
@@ -118,7 +129,9 @@ try {
     await expect(closeZoom).toHaveCSS("color", "rgb(255, 255, 255)");
     await page.keyboard.press("Escape");
     await expect(page.getByRole("dialog")).toHaveCount(0);
-    await page.getByRole("button", { name: "1.7 متر", exact: true }).click();
+    await page.getByRole("button", { name: "170 سم", exact: true }).click();
+    await expect(page.getByRole("region", { name: productCopy.choice.dimensions })).toContainText("170 سم");
+    await expect(page.getByRole("region", { name: productCopy.choice.dimensions })).not.toContainText("150 سم");
     await expect(viewport.locator("img")).toHaveCount(1);
     await expect(viewport.locator("img")).toHaveAttribute("src", /large.svg$/);
     await expect(page.getByText(/15,000/).first()).toBeVisible();

@@ -284,3 +284,6 @@
     width: min(var(--st-w), calc(100vw - 32px));
   }
 }
+
+.swipe-toast__actions { display: flex; flex-direction: column; gap: 8px; flex: none; }
+.swipe-toast__actions .swipe-toast__action { min-height: 36px; height: auto; white-space: normal; max-width: 110px; }

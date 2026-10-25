@@ -39,7 +39,7 @@ function QuickFilterChip({
             onClick={onClick}
             aria-pressed={selected}
             className={cn(
-                "inline-flex min-h-11 flex-shrink-0 items-center gap-1 rounded-full border px-2.5 py-1.5 text-xs font-medium transition-colors sm:gap-1.5 sm:px-4 sm:py-2 sm:text-sm",
+                "aq-filter-chip inline-flex min-h-11 flex-shrink-0 items-center gap-1 rounded-full border px-2.5 py-1.5 text-xs font-medium transition-colors sm:gap-1.5 sm:px-4 sm:py-2 sm:text-sm",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                 selected
                     ? "border-primary bg-primary text-primary-foreground"

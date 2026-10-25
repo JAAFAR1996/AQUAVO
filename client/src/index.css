@@ -1335,3 +1335,80 @@ html[dir="ltr"] body {
     bottom: calc(5.25rem + env(safe-area-inset-bottom, 0px));
   }
 }
+
+/* Deliberately scoped motion opt-in: retain the static global fallback. */
+.aq-motion-hero .aq-title-phrase { display: inline-block; }
+.aq-motion-hero .aq-proof-window { border-color: rgb(11 147 166 / .28); }
+@media (prefers-reduced-motion: no-preference) {
+  .aq-motion-hero .aq-title-phrase {
+    animation: aq-phrase-settle 650ms cubic-bezier(.2,.72,.2,1) both !important;
+    transform-origin: center bottom;
+  }
+  .aq-motion-hero .aq-hero-actions a,
+  .aq-home-content .aq-interactive-card,
+  .aq-motion-card,
+  .aq-motion-card img,
+  .aq-home-content .aq-product-image {
+    transition-property: transform, border-color, background-color, box-shadow !important;
+    transition-duration: 220ms !important;
+    transition-timing-function: cubic-bezier(.2,.72,.2,1) !important;
+  }
+  .aq-motion-hero .aq-hero-actions a:active,
+  .aq-motion-card button:active { transform: translateY(1px); }
+  .aq-motion-hero .aq-hero-actions a svg {
+    transition: transform 220ms ease !important;
+  }
+  .aq-motion-hero .aq-hero-actions a:hover svg { transform: translateX(-3px); }
+  [dir="ltr"] .aq-motion-hero .aq-hero-actions a:hover svg { transform: translateX(3px); }
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .aq-home-content .aq-interactive-card:hover,
+  .aq-motion-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 32px rgb(11 30 40 / .12);
+    border-color: rgb(11 147 166 / .55);
+  }
+  .aq-motion-card:hover img,
+  .aq-interactive-card:hover .aq-product-image { transform: scale(1.025); }
+}
+@keyframes aq-phrase-settle {
+  from { transform: perspective(800px) rotateX(-12deg) translateY(7px); }
+  to { transform: perspective(800px) rotateX(0) translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .aq-motion-card:hover, .aq-motion-card img,
+  .aq-home-content .aq-interactive-card:hover { transform: none !important; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .aq-motion-gallery button[aria-pressed], .aq-motion-options button[aria-pressed] {
+    transition: background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease !important;
+  }
+  .aq-motion-gallery button[aria-pressed="true"], .aq-motion-options button[aria-pressed="true"] {
+    box-shadow: 0 0 0 3px rgb(11 147 166 / .13);
+  }
+  .swipe-toast[data-phase="open"] .swipe-toast__icon {
+    animation: aq-success-settle 280ms ease-out both !important;
+  }
+}
+@keyframes aq-success-settle {
+  from { transform: scale(.82); }
+  to { transform: scale(1); }
+}
+
+/* Complete the filter and progressive-gallery interactions without delaying input. */
+.aq-filter-result { display: inline-block; font-variant-numeric: tabular-nums; }
+@media (prefers-reduced-motion: no-preference) {
+  .aq-filter-chip {
+    transition: background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease !important;
+  }
+  .aq-filter-chip[aria-pressed="true"] { box-shadow: 0 0 0 3px rgb(11 147 166 / .12); }
+  .aq-filter-result { animation: aq-result-update 160ms ease-out !important; }
+  .aq-motion-gallery [data-swipe-ready="false"] > div {
+    transition: transform 220ms cubic-bezier(.2,.72,.2,1) !important;
+  }
+}
+@keyframes aq-result-update {
+  from { opacity: .6; }
+  to { opacity: 1; }
+}

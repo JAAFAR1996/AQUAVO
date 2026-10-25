@@ -77,7 +77,7 @@ function FilterPill({
             onClick={onClick}
             aria-pressed={selected}
             className={cn(
-                "inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium",
+                "aq-filter-chip inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium",
                 "border-2 transition-all duration-200",
                 "hover:shadow-md active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 motion-reduce:transition-none motion-reduce:transform-none",
                 colorClasses[color]
@@ -326,7 +326,9 @@ export function FilterModal({
                             aria-busy={previewPending}
                         >
                             <span aria-live="polite" aria-atomic="true">
+                                <span className="aq-filter-result" key={previewPending ? "pending" : count ?? "unavailable"}>
                                 {previewPending ? t("filters.counting") : count !== undefined ? t("filters.showResults", { count }) : t("filters.applyDraft")}
+                                </span>
                             </span>
                         </Button>
                     </div>

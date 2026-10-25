@@ -32,6 +32,9 @@ describe("deferred cart confirmation animation", () => {
     expect(dismiss).toHaveBeenCalledWith("cart-confirmation");
     await waitFor(() => expect(container.querySelector(".swipe-toast")).not.toBeNull());
     expect(screen.getByRole("status")).toHaveTextContent("Product added");
+    fireEvent.click(screen.getByRole("button", { name: "تابع التسوق" }));
+    expect(dismiss).toHaveBeenCalledWith("cart-confirmation");
+    expect(openCart).toHaveBeenCalledTimes(1);
     fireEvent.click(screen.getByRole("button", { name: /السلة/ }));
     expect(openCart).toHaveBeenCalledTimes(2);
   });

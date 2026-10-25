@@ -43,6 +43,7 @@ export function Toaster() {
                 {t("toaster.s1")}
               </ToastAction>
             ) : null}
+            {(cartAction || swipeCart) && <ToastAction altText={t("toaster.continueShopping")} onClick={() => dismiss(id)}>{t("toaster.continueShopping")}</ToastAction>}
             <ToastClose />
           </Toast>
         );
@@ -55,6 +56,7 @@ export function Toaster() {
                 description={description}
                 icon={<CheckCircle2 aria-hidden="true" />}
                 actionLabel={t("toaster.s1")}
+                continueLabel={t("toaster.continueShopping")}
                 onAction={() => openCart(id)}
                 onClose={() => dismiss(id)}
                 open={props.open !== false}
@@ -66,7 +68,7 @@ export function Toaster() {
                 slideMs={400}
                 settleBounce={0.2}
                 swipeDistance={40}
-                duration={4000}
+                duration={8000}
                 fuse="bottom"
                 pauseOnHover
                 closeButton

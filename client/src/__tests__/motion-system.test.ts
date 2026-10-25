@@ -1,3 +1,4 @@
+import postcss from "postcss";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -14,7 +15,11 @@ describe("AQUAVO Minimal Precision motion system", () => {
   });
 
   it("provides a no-animation reduced-motion equivalent", () => {
-    const reducedMotion = css.slice(css.lastIndexOf("@media (prefers-reduced-motion: reduce)"));
+    const reducedBlocks: string[] = [];
+    postcss.parse(css).walkAtRules("media", rule => {
+      if (rule.params === "(prefers-reduced-motion: reduce)") reducedBlocks.push(rule.toString());
+    });
+    const reducedMotion = reducedBlocks.join("\n");
     expect(reducedMotion).toContain("animation: none !important");
     expect(reducedMotion).toContain(".aq-waterline-hero::after");
     expect(reducedMotion).toContain("opacity: 1");

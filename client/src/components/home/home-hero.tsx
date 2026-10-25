@@ -53,7 +53,7 @@ interface HomeHeroProps {
 export function HomeHero({ copy = HOME_HERO_COPY_AR, dir = "rtl" }: HomeHeroProps) {
   const Forward = dir === "rtl" ? ArrowLeft : ArrowRight;
   return (
-      <section className="aq-waterline-hero relative isolate overflow-hidden border-b border-border bg-background pt-4 sm:pt-14 lg:pt-28">
+      <section className="aq-motion-hero aq-waterline-hero relative isolate overflow-hidden border-b border-border bg-background pt-4 sm:pt-14 lg:pt-28">
         <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_78%_22%,rgba(11,147,166,0.2),transparent_34%),radial-gradient(circle_at_18%_70%,rgba(11,100,166,0.14),transparent_30%)]" />
         <div className="mx-auto grid max-w-7xl items-center gap-8 px-4 pb-8 pt-4 sm:gap-10 sm:px-6 sm:pb-16 lg:grid-cols-[1.02fr_0.98fr] lg:gap-16 lg:px-8 lg:pb-20 lg:pt-12">
           <div className="aq-hero-copy order-1 text-start lg:order-1">
@@ -62,7 +62,7 @@ export function HomeHero({ copy = HOME_HERO_COPY_AR, dir = "rtl" }: HomeHeroProp
               {copy.eyebrow}
             </p>
             <h1 className="aq-hero-title max-w-3xl font-display text-[clamp(1.9rem,7vw,2.55rem)] font-bold leading-[1.12] text-foreground sm:text-5xl lg:text-[3.55rem]">
-              {copy.title}
+              <span className="aq-title-phrase">{copy.title}</span>
             </h1>
             <p className="aq-hero-support mt-3 max-w-2xl text-base leading-7 text-foreground/70 sm:mt-6 sm:text-lg sm:leading-8">
               {copy.description}
