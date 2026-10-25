@@ -12,7 +12,7 @@ function CatalogueLayer({ item, copy, disclosureId, warningId }: {
 }) {
   const [failed, setFailed] = useState(false);
   if (!item.href || !item.image || failed) return null;
-  const imageSizes = item.role === 'wood' ? '(min-width: 1440px) 589px, 46vw' : item.role === 'sand' ? '(min-width: 1440px) 397px, 31vw' : '(min-width: 1440px) 231px, 18vw';
+  const imageSizes = item.role === 'wood' ? '(min-width: 1440px) 512px, 40vw' : item.role === 'sand' ? '(min-width: 1440px) 269px, 21vw' : '(min-width: 1440px) 141px, 11vw';
   const name = `${item.name}${item.variantLabel ? ` · ${item.variantLabel}` : ''}`;
   return <Link href={item.href} className={`inspiration-scene__layer inspiration-scene__layer--${item.role}`}
     data-product-id={item.productId} data-variant-id={item.variantId} data-scene-layer={item.role}
