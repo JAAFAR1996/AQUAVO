@@ -174,9 +174,10 @@ try {
       await expect.poll(() => enhancements.length).toBeGreaterThan(0);
       await page.getByRole("button", { name: "عرض الصورة 2", exact: true }).click();
       await expect(viewport.locator('[aria-hidden="false"] img')).toHaveAttribute("src", /two.svg$/);
-      const selected = await viewport.locator('[aria-hidden="false"]').boundingBox();
-      const frame = await viewport.boundingBox();
-      assert(Math.abs(selected.x - frame.x) < 2, "fallback buttons must move the visible photo");
+      await expect.poll(() => viewport.evaluate(root => {
+        const selected = root.querySelector('[aria-hidden="false"]');
+        return selected ? Math.abs(selected.getBoundingClientRect().x - root.getBoundingClientRect().x) : Infinity;
+      }), { message: "fallback buttons must move the visible photo" }).toBeLessThan(2);
     }
     await viewport.click({ position: { x: 90, y: 90 } });
     await expect(page.getByRole("dialog")).toBeVisible();
