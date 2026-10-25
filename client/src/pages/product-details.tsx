@@ -1,3 +1,4 @@
+import { getVerifiedExternalAnnotations } from "@/lib/verified-external-annotations";
 import { isVariantActive, isVariantPurchasable, isVariantComingSoon } from "@shared/variant-commerce";
 import { getVariantGallery } from "@/lib/variant-gallery";
 import { useState, useEffect, useRef } from "react";
@@ -387,6 +388,7 @@ export default function ProductDetails() {
   const isVolcanicStone = product.id === "houyi-volcanic-stone-red" ||
     product.id === "houyi-volcanic-stone-black";
   const selectedContent = getSelectedVariantContent(product, selectedVariant);
+  const verifiedAnnotations = getVerifiedExternalAnnotations(product, { photoUrl: product.image || product.thumbnail || product.images?.[0], selectedVariantId: selectedVariant?.id, locale });
   const productDisplay = getProductDisplayIdentity({ ...product, name: selectedContent.name });
   const productMeta = buildProductSeoMeta(product, { locale });
   const decisionSpecs = selectedContent.specifications;
@@ -436,9 +438,9 @@ export default function ProductDetails() {
             </Breadcrumb>
 
             {/* Product Header */}
-            {product.explodedViewParts && product.explodedViewParts.length > 0 && (
+            {(verifiedAnnotations || (product.explodedViewParts && product.explodedViewParts.length > 0)) && (
               <div className="mb-12">
-                <ExplodedProductView product={product} />
+                <ExplodedProductView product={product} annotations={verifiedAnnotations ?? undefined} />
               </div>
             )}
 

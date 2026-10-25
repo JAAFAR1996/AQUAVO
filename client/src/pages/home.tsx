@@ -1,3 +1,5 @@
+import { BundleComposition } from "@/components/products/bundle-composition";
+import { NeedsPhotoBento } from "@/components/home/needs-photo-bento";
 import { isVariantPurchasable, type VariantCommerceSource } from "@shared/variant-commerce";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -36,7 +38,7 @@ import { fetchProducts } from "@/lib/api";
 import { cardImage, cardImageSrcSet } from "@/lib/cloudinary";
 import { SHOP_CATEGORY_LINKS } from "@/lib/product-category-links";
 import { getProductDisplayIdentity } from "@/lib/product-display";
-import { BundleContentsPreview, type BundlePreviewItem } from "@/components/products/bundle-contents-preview";
+import { type BundlePreviewItem } from "@/components/products/bundle-contents-preview";
 import { BUNDLE_GATEWAY_COPY, getBundleCopy } from "@/lib/bundle-copy";
 
 const serviceFacts = [
@@ -160,7 +162,7 @@ export default function Home() {
     <div className="flex-1 overflow-x-hidden bg-background text-foreground">
       <MetaTags title={t("meta.title")} description={t("meta.description")} />
 
-      <main id="main-content" dir={dir}>
+      <main id="main-content" className="aq-home-content" dir={dir}>
         <HomeHero copy={heroCopy} dir={dir} />
 
         <section aria-label={t("guarantees")} className="border-b border-border bg-background">
@@ -290,27 +292,10 @@ export default function Home() {
             <p className="mt-4 leading-7 text-muted-foreground">{t("categories.description")}</p>
           </div>
 
-          <div className="mt-9 grid grid-cols-2 gap-3 lg:grid-cols-4">
-            {categories.map(({ title, description, href, image, icon: Icon }, index) => (
-              <Link
-                key={title}
-                href={href}
-                className={`aq-interactive-card group flex flex-col overflow-hidden rounded-2xl border border-border bg-card hover:border-primary/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${index === 0 || index === 5 ? "lg:col-span-2" : ""}`}
-              >
-                <span className="flex h-36 items-center justify-center bg-primary/[0.035] p-4 sm:h-48 lg:h-56">
-                  <img src={cardImage(image)} alt="" width={400} height={300} loading="lazy" decoding="async" className="h-full w-full object-contain" />
-                </span>
-                <span className="block p-4 sm:p-5">
-                  <span className="flex flex-wrap items-center gap-2 text-base font-bold text-foreground sm:text-lg">
-                    <Icon className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
-                    {t(title)}
-                    <ArrowForward className={`h-4 w-4 text-muted-foreground transition-transform ${forwardHover} group-hover:text-[#0B93A6]`} aria-hidden="true" />
-                  </span>
-                  <span className="mt-2 block text-sm leading-6 text-muted-foreground">{t(description)}</span>
-                </span>
-              </Link>
-            ))}
-          </div>
+          <NeedsPhotoBento language={locale} />
+          <nav className="mt-5 flex flex-wrap gap-2" aria-label={t("categories.title")}>
+            {categories.map(({ title, href, icon: Icon }) => <Link key={title} href={href} className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border px-4 py-2 text-sm font-medium hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"><Icon aria-hidden="true" className="h-4 w-4 text-primary" />{t(title)}</Link>)}
+          </nav>
           </PrecisionReveal>
         </section>
 
@@ -343,7 +328,7 @@ export default function Home() {
                       <h3 className="mt-4 text-lg font-bold leading-7 text-foreground">{copy.name}</h3>
                       <p className="mt-2 line-clamp-2 text-sm leading-6 text-muted-foreground">{copy.description}</p>
                       {copy.scope && <p className="mt-3 text-xs font-medium leading-6 text-foreground/80">{copy.scope}</p>}
-                      <BundleContentsPreview items={bundle.items} locale={locale} />
+                      <BundleComposition items={bundle.items} language={locale} />
                       <div className="mt-auto flex items-end justify-between gap-3 pt-5">
                         <span className="text-xs text-muted-foreground">{bundle.items.filter((item) => item.required).reduce((count, item) => count + Number(item.quantity), 0)} {t("solutions.parts")}</span>
                         <span className="text-base font-bold text-primary">{formatLocalizedPrice(bundle.bundlePrice, locale)}</span>

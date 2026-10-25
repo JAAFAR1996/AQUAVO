@@ -1,3 +1,4 @@
+import { VisualSpecPassport } from "./visual-spec-passport";
 import { isVariantActive, isVariantComingSoon, isVariantPurchasable } from "@shared/variant-commerce";
 import { getSelectedVariantContent } from "@/lib/selected-variant-content";
 import { getProductPriceDisplay } from "@/lib/product-pricing";
@@ -459,6 +460,7 @@ export function ProductComparisonTable({
                                                 </select>
                                             </label>
                                         )}
+                                        <VisualSpecPassport product={product} variant={selectedFor(product)} language={i18n.language?.startsWith("ckb") ? "ckb" : arabic ? "ar" : "en"} />
                                     </div>
                                 </div>
                             </TableHead>

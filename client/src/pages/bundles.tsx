@@ -1,3 +1,4 @@
+import { BundleComposition } from "@/components/products/bundle-composition";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
@@ -247,6 +248,7 @@ export default function BundlesPage(){
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-5">
+                  <BundleComposition items={bundle.items} language={locale} products={productMap} />
                   <h3 className="text-sm font-bold">{t.components}</h3>
                   <div className="grid grid-cols-2 gap-3">
                     {bundle.items.map((item)=>{
