@@ -12,6 +12,7 @@ import { addCsrfHeader } from "@/lib/csrf";
 import { getOrderIdempotencyKey } from "@/lib/order-idempotency";
 import { PaymentMethodCard } from "./payment-method-card";
 import { ArrowLeft, Loader2, Lock, LockKeyhole, RotateCcw, ShieldCheck, Truck } from "lucide-react";
+import { useLocale } from "@/i18n/locale-context";
 import { useTranslation } from "react-i18next";
 import { isolateNumericRanges as bidi } from "@shared/i18n/bidi";
 import { getClientSessionId } from "@/lib/client-session";
@@ -82,6 +83,7 @@ export function ConfirmationView({
     setWhatsappMarketingOptIn,
 }: ConfirmationViewProps) {
     const { t } = useTranslation("checkout");
+    const { href } = useLocale();
     const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cod");
     const [onlinePreparing, setOnlinePreparing] = useState(false);
     const [onlineError, setOnlineError] = useState("");
@@ -398,16 +400,22 @@ export function ConfirmationView({
                     onCheckedChange={(checked) => {
                         const accepted = checked === true;
                         setAgreed(accepted);
-                        // WhatsApp communications are disclosed inside the Terms page.
-                        // The existing required Terms checkbox is the single storefront consent control.
-                        setWhatsappMarketingOptIn(accepted);
                         if (accepted) setAgreementError(false);
                     }}
                     className="mt-0.5"
                     disabled={busy}
                 />
                 <label htmlFor="agree" className="text-sm cursor-pointer leading-relaxed text-muted-foreground">
-                    {t("confirm.agreePrefix")}{" "}<a href="/terms" target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-2 hover:text-primary/80 font-medium" onClick={(e) => e.stopPropagation()}>{t("confirm.terms")}</a>{" "}{t("confirm.agreeSuffix")}
+                    {t("confirm.agreePrefix")}{" "}<a href={href("/terms")} target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-2 hover:text-primary/80 font-medium" onClick={(e) => e.stopPropagation()}>{t("confirm.terms")}</a>{" "}{t("confirm.agreeSuffix")}
+                </label>
+            </div>
+            <div className="flex items-start gap-3 py-2">
+                <Checkbox id="whatsapp-marketing" checked={whatsappMarketingOptIn}
+                    onCheckedChange={(checked) => setWhatsappMarketingOptIn(checked === true)}
+                    disabled={busy} className="mt-0.5" />
+                <label htmlFor="whatsapp-marketing" className="cursor-pointer text-sm leading-relaxed text-muted-foreground">
+                    {t("confirm.whatsappOptIn")}
+                    <span className="mt-1 block text-xs">{t("confirm.whatsappOptInHint")}</span>
                 </label>
             </div>
             {agreementError && (
