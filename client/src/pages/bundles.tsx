@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useCart } from "@/contexts/cart-context";
-import { useShippingFee } from "@/contexts/shipping-fee-context";
+import { isVariantActive, isVariantPurchasable } from "@shared/variant-commerce";
 import { useLocale } from "@/i18n/locale-context";
 import { formatIQD } from "@/lib/utils";
 import { getBundleCopy, getBundleItemPurpose } from "@/lib/bundle-copy";
@@ -45,6 +45,7 @@ type ProductResponse={products?:Array<Record<string,unknown>>};
 
 const COPY={
   ar:{
+    choose:"اختار الخيار",itemUnavailable:"هذي القطعة غير متوفرة بالكمية المطلوبة",partial:"ما انضافت الباقة كاملة. راجع السلة قبل المحاولة مرة ثانية.",cartLimit:"الكمية المطلوبة ويه الموجودة بالسلة أكثر من المتوفر. راجع السلة.",
     title:"باقات AQUAVO",
     description:"اختار حسب احتياج حوضك، وشوف شنو مشمول بكل باقة وشنو تسوي كل قطعة قبل ما تضيفها للسلة.",
     note:"عندك بعض القطع؟ تكدر تفتح صفحة أي قطعة وتطلب الباقي وحده.",
@@ -54,11 +55,12 @@ const COPY={
     optionalNote:"الإضافات الاختيارية مو ضمن زر إضافة الباقة؛ تختارها من صفحة المنتج إذا تحتاجها.",
     allComponents:"سعر كل القطع المعروضة",optionalTotal:"المجموع النهائي يعتمد على القطع اللي تختارها بالسلة.",
     shipping:"توصيل الطلب",total:"مجموع الباقة التقريبي ويه التوصيل",shippingNote:"التوصيل ينحسب مرة وحدة للطلب، حتى لو جمعت أكثر من باقة.",
-    help:"ساعدني أتأكد من الاختيار",selectOptions:"حدد الخيارات من صفحات القطع",cart:"شوف السلة",
+    help:"ساعدني أتأكد من الاختيار",selectOptions:"اختار خيارات القطع أعلاه",cart:"شوف السلة",
     productsFailed:"تعذر تحميل تفاصيل القطع. حدّث الصفحة حتى تكدر تضيف الباقة.",
     loading:"جاري تحميل الباقات…",empty:"ماكو باقات متاحة حالياً.",failed:"تعذر تحميل الباقات حالياً.",
   },
   en:{
+    choose:"Choose an option",itemUnavailable:"This item is unavailable in the required quantity",partial:"The full bundle was not added. Review your cart before trying again.",cartLimit:"This quantity plus the items already in your cart exceeds current stock. Review your cart.",
     title:"AQUAVO Bundles",
     description:"Start with your aquarium's needs. See what each bundle includes and what each item does before adding it to your cart.",
     note:"Already own some of these items? Open any product page to order just the pieces you need.",
@@ -68,11 +70,12 @@ const COPY={
     optionalNote:"Optional extras are not added with the bundle button. Choose them on their product pages if you need them.",
     allComponents:"Total for all displayed items",optionalTotal:"Your final total depends on the items you select in your cart.",
     shipping:"Order delivery",total:"Estimated bundle total with delivery",shippingNote:"Delivery is charged once per order, even if you combine several bundles.",
-    help:"Help me check my selection",selectOptions:"Choose options on the product pages",cart:"View cart",
+    help:"Help me check my selection",selectOptions:"Choose item options above",cart:"View cart",
     productsFailed:"Item details could not be loaded. Refresh the page to add a bundle.",
     loading:"Loading bundles…",empty:"No bundles are available right now.",failed:"Bundles could not be loaded right now.",
   },
   ckb:{
+    choose:"هەڵبژاردەیەک دیاری بکە",itemUnavailable:"ئەم پارچەیە بە ژمارەی پێویست بەردەست نییە",partial:"هەموو پاکێجەکە زیاد نەکرا. پێش هەوڵدانەوە سەبەتەکەت بپشکنە.",cartLimit:"ئەم ژمارەیە لەگەڵ ئەوەی لە سەبەتەدایە لە کۆگا زیاترە. سەبەتەکەت بپشکنە.",
     title:"پاکێجەکانی AQUAVO",
     description:"بەپێی پێویستی حەوزەکەت هەڵبژێرە. پێش زیادکردن بۆ سەبەتە، بزانە هەر پاکێجێک چی لەخۆدەگرێت و هەر پارچەیەک چی دەکات.",
     note:"هەندێک لە پارچەکانت هەیە؟ پەڕەی بەرهەمەکە بکەرەوە و تەنها ئەوە داوا بکە کە پێویستتە.",
@@ -82,7 +85,7 @@ const COPY={
     optionalNote:"زیادە هەڵبژاردەییەکان بە دوگمەی پاکێج زیاد ناکرێن. ئەگەر پێویستت بوون لە پەڕەی بەرهەمەکان هەڵیانبژێرە.",
     allComponents:"کۆی نرخی هەموو پارچە پیشاندراوەکان",optionalTotal:"کۆی کۆتایی بەو پارچانەوە بەستراوە کە لە سەبەتەکەت هەڵیاندەبژێریت.",
     shipping:"گەیاندنی داواکاری",total:"کۆی نزیکەیی پاکێج لەگەڵ گەیاندن",shippingNote:"کرێی گەیاندن تەنها جارێک بۆ هەر داواکارییە، تەنانەت ئەگەر چەند پاکێجێک کۆبکەیتەوە.",
-    help:"یارمەتیم بدە لە هەڵبژاردنەکەم دڵنیا بمەوە",selectOptions:"هەڵبژاردەکان لە پەڕەی بەرهەمەکان دیاری بکە",cart:"سەبەتە ببینە",
+    help:"یارمەتیم بدە لە هەڵبژاردنەکەم دڵنیا بمەوە",selectOptions:"هەڵبژاردەکانی پارچەکان لە سەرەوە دیاری بکە",cart:"سەبەتە ببینە",
     productsFailed:"وردەکاری پارچەکان بار نەکران. پەڕەکە نوێ بکەرەوە بۆ زیادکردنی پاکێج.",
     loading:"پاکێجەکان بار دەکرێن…",empty:"ئێستا هیچ پاکێجێک بەردەست نییە.",failed:"ئێستا نەتوانرا پاکێجەکان بار بکرێن.",
   },
@@ -102,9 +105,9 @@ function toProduct(raw:Record<string,unknown>):Product{
 }
 
 function productForBundleItem(base:Product,item:BundleItem):Product|null{
-  if(!item.variantId) return base;
+  if(!item.variantId) return base.hasVariants || base.variants?.some(isVariantActive) || !isVariantPurchasable(base, Number(item.quantity)) ? null : base;
   const variant=base.variants?.find((candidate)=>candidate.id===item.variantId);
-  if(!variant || Number(variant.price)<=0 || Number(variant.stock)<=0) return null;
+  if(!variant || !isVariantPurchasable(variant, Number(item.quantity))) return null;
   return {
     ...base,
     price:Number(variant.price),
@@ -115,10 +118,11 @@ function productForBundleItem(base:Product,item:BundleItem):Product|null{
 }
 
 export default function BundlesPage(){
-  const {locale,dir,intl}=useLocale();
+  const {locale,dir,intl,href}=useLocale();
   const t=COPY[locale];
-  const {addItem,addItems}=useCart();
-  const shippingFee=useShippingFee();
+  const {addItem,addItems,items:cartItems}=useCart();
+  const [selections,setSelections]=useState<Record<string,string>>({});
+  const [bundleError,setBundleError]=useState<{id:string;message:string}|null>(null);
   const [adding,setAdding]=useState<string|null>(null);
   const [added,setAdded]=useState<string|null>(null);
 
@@ -159,8 +163,15 @@ export default function BundlesPage(){
     return ()=>window.cancelAnimationFrame(frame);
   },[bundles.data]);
 
-  const addBundle=async(bundle:Bundle)=>{
-    if(!bundle.inStock || bundle.requiresVariantSelection || adding) return;
+  const selectedBundle=(bundle:Bundle):Bundle=>({
+    ...bundle,
+    items:bundle.items.map((item,index)=>({...item,variantId:selections[bundle.id+":"+index] || item.variantId})),
+  });
+
+  const addBundle=async(original:Bundle)=>{
+    if(adding) return;
+    setBundleError(null);
+    const bundle=selectedBundle(original);
     const required=bundle.items.filter((item)=>item.required);
     const resolved:Array<{product:Product;quantity:number}>=[];
     for(const item of required){
@@ -168,6 +179,12 @@ export default function BundlesPage(){
       const product=base?productForBundleItem(base,item):null;
       const quantity=Number(item.quantity);
       if(!product||!Number.isSafeInteger(quantity)||quantity<1||Number(product.stock)<quantity) return;
+      const variantId=item.variantId ?? "";
+      const existing=cartItems.filter((line)=>line.productId===item.productId && (line.variantId ?? "")===variantId).reduce((sum,line)=>sum+line.quantity,0);
+      if(existing+quantity>Number(product.stock)){
+        setBundleError({id:bundle.id,message:t.cartLimit});
+        return;
+      }
       resolved.push({product,quantity});
     }
     if(resolved.length===0) return;
@@ -185,7 +202,11 @@ export default function BundlesPage(){
       if(count===resolved.length){
         setAdded(bundle.id);
         window.setTimeout(()=>setAdded((current)=>current===bundle.id?null:current),2500);
+      }else{
+        setBundleError({id:bundle.id,message:t.partial});
       }
+    }catch{
+      setBundleError({id:bundle.id,message:t.partial});
     }finally{setAdding(null);}
   };
 
@@ -210,9 +231,25 @@ export default function BundlesPage(){
         )}
 
         <div className="grid gap-5 md:grid-cols-2">
-          {bundles.data?.map((bundle)=>{
+          {bundles.data?.map((original)=>{
+            const bundle=selectedBundle(original);
             const localized=getBundleCopy(bundle.slug,locale,bundle.nameAr,bundle.descriptionAr);
             const hasOptional=bundle.items.some((item)=>!item.required);
+            const required=bundle.items.filter((item)=>item.required);
+            const needsChoice=required.some((item)=>{
+              const base=productMap.get(item.productId);
+              return !item.variantId && (base?.hasVariants || base?.variants?.some(isVariantActive));
+            });
+            const ready=required.length>0 && required.every((item)=>{
+              const base=productMap.get(item.productId);
+              const product=base?productForBundleItem(base,item):null;
+              return product && Number(product.price)>0 && Number(product.stock)>=Number(item.quantity);
+            });
+            const componentTotal=required.reduce((sum,item)=>{
+              const base=productMap.get(item.productId);
+              const variant=base?.variants?.find((candidate)=>candidate.id===item.variantId);
+              return sum+Number(variant?.price ?? base?.price ?? item.price ?? 0)*Number(item.quantity);
+            },0);
             return (
               <Card key={bundle.id} id={bundle.slug} tabIndex={-1} aria-labelledby={bundle.slug+"-title"} className="scroll-mt-28 overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
                 <CardHeader>
@@ -222,21 +259,22 @@ export default function BundlesPage(){
                       <p className="mt-2 text-sm leading-7 text-muted-foreground">{localized.description}</p>
                       {localized.scope&&<p className="mt-3 rounded-lg bg-primary/5 px-3 py-2 text-sm font-medium leading-6">{localized.scope}</p>}
                     </div>
-                    <Badge variant={bundle.inStock?"default":"secondary"}>
-                      {bundle.inStock?t.available:t.unavailable}
+                    <Badge variant={ready?"default":"secondary"}>
+                      {needsChoice?t.selectOptions:ready?t.available:t.unavailable}
                     </Badge>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-5">
                   <h3 className="text-sm font-bold">{t.components}</h3>
                   <div className="grid gap-2 sm:grid-cols-2">
-                    {bundle.items.map((item)=>{
+                    {bundle.items.map((item,index)=>{
                       const base=productMap.get(item.productId);
                       const variant=base?.variants?.find((candidate)=>candidate.id===item.variantId);
                       const purpose=getBundleItemPurpose(item.productId,locale);
                       const variantLabel=variant?.label ?? item.variantLabel;
                       return (
-                        <Link key={item.productId+"::"+(item.variantId ?? "")} href={"/products/"+item.slug}
+                        <div key={item.productId+"::"+index}>
+                        <Link href={href("/products/"+item.slug)}
                           className="flex items-start gap-3 rounded-xl border p-3 transition-colors hover:border-primary/40 hover:bg-primary/[0.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
                           <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-muted">
                             {item.thumbnail?<img src={item.thumbnail} alt="" className="h-full w-full object-cover" loading="lazy"/>:null}
@@ -249,6 +287,27 @@ export default function BundlesPage(){
                             <p className="mt-1 text-xs text-muted-foreground">{t.unitPrice}: <bdi>{formatIQD(Number(variant?.price ?? base?.price ?? item.price ?? 0))}</bdi></p>
                           </div>
                         </Link>
+                        {item.required && base?.variants?.some(isVariantActive) && (
+                          <select aria-label={(base?.name ?? item.name)+" — "+t.choose}
+                            className="mt-2 min-h-11 w-full rounded-lg border border-border bg-background px-3 text-sm"
+                            value={item.variantId ?? ""}
+                            onChange={(event)=>{
+                              setSelections((current)=>({...current,[bundle.id+":"+index]:event.target.value}));
+                              setAdded(null);
+                              setBundleError(null);
+                            }}>
+                            <option value="" disabled>{t.choose}</option>
+                            {base.variants.filter(isVariantActive).map((option)=>(
+                              <option key={option.id} value={option.id} disabled={!isVariantPurchasable(option,Number(item.quantity))}>
+                                {option.label} — {formatIQD(Number(option.price ?? 0))}{!isVariantPurchasable(option,Number(item.quantity))?" — "+t.unavailable:""}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                        {item.required && base && !needsChoice && !productForBundleItem(base,item) && (
+                          <p className="mt-1 text-xs text-destructive">{t.itemUnavailable}</p>
+                        )}
+                        </div>
                       );
                     })}
                   </div>
@@ -257,22 +316,21 @@ export default function BundlesPage(){
                     <div className="rounded-xl bg-muted/50 p-3 text-sm leading-7">
                       <p>{localized.fitNote}</p>
                       {localized.installationNote&&<p className="mt-2 text-xs leading-6 text-muted-foreground">{localized.installationNote}</p>}
-                      <Link href="/contact" className="mt-2 inline-flex min-h-11 items-center font-semibold text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">{t.help}</Link>
+                      <Link href={href("/contact")} className="mt-2 inline-flex min-h-11 items-center font-semibold text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">{t.help}</Link>
                     </div>
                   )}
                   <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-4">
                     <dl className="w-full space-y-2 text-sm">
-                      <div className="flex justify-between gap-3"><dt className="text-muted-foreground">{hasOptional?t.allComponents:t.price}</dt><dd className="font-semibold"><bdi>{formatIQD(bundle.bundlePrice)}</bdi></dd></div>
-                      <div className="flex justify-between gap-3"><dt className="text-muted-foreground">{t.shipping}</dt><dd><bdi>{formatIQD(shippingFee)}</bdi></dd></div>
-                      {!hasOptional&&<div className="flex flex-wrap justify-between gap-3 border-t pt-2"><dt className="font-medium">{t.total}</dt><dd className="text-lg font-bold text-primary"><bdi>{formatIQD(Number(bundle.bundlePrice)+shippingFee)}</bdi></dd></div>}
+                      <div className="flex justify-between gap-3"><dt className="text-muted-foreground">{t.price}</dt><dd className="font-semibold"><bdi>{needsChoice?t.selectOptions:formatIQD(componentTotal)}</bdi></dd></div>
                     </dl>
-                    <p className="w-full text-xs leading-6 text-muted-foreground">{hasOptional?t.optionalTotal:t.shippingNote}</p>
+                    <p className="w-full text-xs leading-6 text-muted-foreground">{t.shippingNote}</p>
                     <Button onClick={()=>void addBundle(bundle)}
-                      disabled={!bundle.inStock||bundle.requiresVariantSelection||Boolean(adding)||products.isLoading||products.isError}>
+                      disabled={!ready||needsChoice||Boolean(adding)||products.isLoading||products.isError}>
                       {added===bundle.id?<CheckCircle2 className="me-2 h-4 w-4"/>:<ShoppingCart className="me-2 h-4 w-4"/>}
-                      {added===bundle.id?t.added:bundle.requiresVariantSelection?t.selectOptions:bundle.inStock?t.add:t.unavailable}
+                      {added===bundle.id?t.added:needsChoice?t.selectOptions:ready?t.add:t.unavailable}
                     </Button>
-                    {added===bundle.id&&<Link href="/cart" className="inline-flex min-h-11 items-center text-sm font-semibold text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">{t.cart}</Link>}
+                    {bundleError?.id===bundle.id&&<p role="alert" className="w-full text-sm text-destructive">{bundleError.message}</p>}
+                    {(added===bundle.id||bundleError?.id===bundle.id)&&<Link href={href("/cart")} className="inline-flex min-h-11 items-center text-sm font-semibold text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">{t.cart}</Link>}
                   </div>
                 </CardContent>
               </Card>
