@@ -429,8 +429,8 @@ export default function Products() {
           items={itemListItems}
         />
       )}
-      <main id="main-content" className="container mx-auto flex-1 px-3 pb-12 pt-24 sm:px-4 sm:pt-28" dir={dir}>
-        <div className="mb-5 space-y-1 text-center sm:mb-6 sm:space-y-2">
+      <main id="main-content" className="container mx-auto flex-1 px-3 pb-12 pt-6 sm:px-4 sm:pt-12" dir={dir}>
+        <div className="mb-3 space-y-1 text-start sm:text-center sm:mb-6 sm:space-y-2">
           {/* A single category shows its own heading, the same words the
               crawler shell uses; the generic line stays for the full listing. */}
           <h1 className="text-2xl font-bold text-foreground sm:text-4xl">
@@ -441,7 +441,7 @@ export default function Products() {
 
         <section
           aria-label={t("service.label")}
-          className="mb-5 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-border bg-border text-xs sm:grid-cols-4 sm:text-sm"
+          className="mb-3 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-border bg-border text-xs sm:grid-cols-4 sm:text-sm"
         >
           <div className="flex min-h-11 items-center justify-center gap-2 bg-card px-3 py-2 text-center">
             <Banknote className="h-4 w-4 text-primary" aria-hidden="true" />
@@ -471,14 +471,14 @@ export default function Products() {
           </div>
         )}
 
-        <div className="mb-5 flex flex-col gap-3 rounded-xl border border-primary/20 bg-primary/[0.045] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-border pb-2">
           <p className="text-sm leading-6 text-muted-foreground">{t("helper.text")}</p>
-          <Link href="/journey" className="shrink-0 text-sm font-bold text-primary underline-offset-4 hover:underline">
+          <Link href="/journey" className="inline-flex min-h-11 shrink-0 items-center text-sm font-bold text-primary underline-offset-4 hover:underline">
             {t("helper.action")}
           </Link>
         </div>
 
-        <div className="mb-5 overflow-hidden rounded-xl border border-border/70">
+        <div className="mb-3 overflow-hidden rounded-xl border border-border/70">
           <CategoryScrollBar
             categories={availableCategories}
             selectedCategories={filters.categories}
