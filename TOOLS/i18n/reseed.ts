@@ -82,7 +82,7 @@ for (const locale of LOCALES) {
       if (e.sourceHash !== src.hash) { bucket.outdated.push(label); continue; }
       if (!translationCompleteness(type, e.data, src.fields).complete) { bucket.skipped.push(`${label} (incomplete)`); continue; }
       const ex = existing.get(`${locale}|${type}|${e.entityId}`);
-      const planned: Planned = { locale, type, id: e.entityId, slug: label, data: e.data, hash: e.sourceHash, by: e.translatedBy };
+      const planned: Planned = { locale, type, id: e.entityId, slug: label, data: e.data, hash: e.sourceHash, by: e.translatedBy || "repository:product-translation-sync" };
       if (!ex) { bucket.insert.push(planned); continue; }
       if (ex.status === "reviewed") { bucket.reviewed.push(label); continue; }
       // Postgres stores jsonb with its own key order, so compare canonically.
