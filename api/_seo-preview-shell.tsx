@@ -1,4 +1,5 @@
 import { isVariantActive, isVariantComingSoon, isVariantPurchasable, positiveVariantPrice } from "../shared/variant-commerce.js";
+import { getPublicProductPriceRange } from "../shared/public-price.js";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import {
@@ -133,14 +134,8 @@ export function getActiveVariants(product: SeoPreviewProduct): SeoPreviewVariant
 }
 
 function priceRange(product: SeoPreviewProduct): { min: number; max: number } | null {
-  const variantPrices = getActiveVariants(product)
-    .map((variant) => variant.priceStatus === "pending" ? null : positiveVariantPrice(variant.price))
-    .filter((value): value is number => value !== null);
-  // Preserve legacy base-product display; option prices alone use the strict positive-price contract.
-  const basePrice = numberValue(product.price);
-  const prices = product.hasVariants ? variantPrices : basePrice !== null ? [basePrice] : [];
-  if (prices.length === 0) return null;
-  return { min: Math.min(...prices), max: Math.max(...prices) };
+  // Identical source and eligibility rules to the interactive storefront.
+  return getPublicProductPriceRange(product);
 }
 
 export function formatMoney(value: number, currency = "IQD"): string {

@@ -127,11 +127,16 @@ const PRODUCTS: Record<string, unknown> = {
   [UNPRICED_INCOMING_PRODUCT.slug]: UNPRICED_INCOMING_PRODUCT,
 };
 
+let configuredShippingFee = "5000";
+
 vi.mock("@neondatabase/serverless", () => ({
   neonConfig: {},
   Pool: vi.fn().mockImplementation(function FakePool() {
     return {
       query: vi.fn(adaptNeonProductListQuery(async (sql: string, values?: unknown[]) => {
+        if (sql.includes("FROM settings WHERE key='shipping_fee'")) {
+          return { rows: [{ value: configuredShippingFee }] };
+        }
         if (sql.includes("FROM products")) {
           const slug = typeof values?.[0] === "string" ? values[0] : null;
           if (slug) return { rows: PRODUCTS[slug] ? [PRODUCTS[slug]] : [] };
@@ -204,6 +209,17 @@ describe("product markdown carries the facts the HTML carries", () => {
     expect(body).toContain("Houyi");
     // 5,000 IQD flat across Iraq — the real published rate.
     expect(body).toMatch(/٥٬٠٠٠|5,000|5٬000/);
+  });
+
+  it("reuses the current merchant shipping fee in Markdown instead of a build-time constant", async () => {
+    configuredShippingFee = "7500";
+    try {
+      const { body } = await md("/products/houyi-thermostat");
+      expect(body).toMatch(/٧٬٥٠٠|7,500|7٬500/);
+      expect(body).not.toMatch(/٥٬٠٠٠|5,000|5٬000/);
+    } finally {
+      configuredShippingFee = "5000";
+    }
   });
 
   it("carries the full description, not the truncated meta snippet", async () => {

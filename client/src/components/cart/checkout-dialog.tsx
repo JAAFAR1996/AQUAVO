@@ -1,3 +1,4 @@
+import { DEFAULT_CUSTOMER_SHIPPING_FEE_IQD } from "@shared/store-policy";
 import { useState, useEffect, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -94,7 +95,7 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
     refetchOnMount: "always",
     refetchOnWindowFocus: "always",
   });
-  const SHIPPING_FEE = shippingConfig?.shippingFee ?? 5000;
+  const SHIPPING_FEE = shippingConfig?.shippingFee ?? DEFAULT_CUSTOMER_SHIPPING_FEE_IQD;
   const [step, setStep] = useState<'info' | 'confirm'>('info');
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({
     name: '',

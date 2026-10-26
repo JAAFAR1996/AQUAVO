@@ -268,9 +268,9 @@ export class ProductStorage {
         return result[0];
     }
 
-    private async resolveCategoryId(categoryName: string): Promise<string | undefined> {
+    private async resolveCategoryId(categoryName: string, dbOverride?: any): Promise<string | undefined> {
         if (!categoryName) return undefined;
-        const db = this.ensureDb();
+        const db = dbOverride ?? this.ensureDb();
 
         // 1. Try to find existing category
         const existing = await db.select().from(categories)
@@ -281,26 +281,25 @@ export class ProductStorage {
             return existing[0].id;
         }
 
-        // 2. If not found, create it (Auto-seed for migration)
-        try {
-            const newCategory = await db.insert(categories).values({
-                name: categoryName,
-                displayName: categoryName, // Fallback to same name
-                slug: categoryName.toLowerCase().replace(/\s+/g, '-'),
-                description: `Auto-generated category for ${categoryName}`
-            }).returning();
-            return newCategory[0].id;
-        } catch (e) {
-            // Check for race condition or unique constraint error, retry fetch
-            const retry = await db.select().from(categories)
-                .where(sql`lower(${categories.name}) = lower(${categoryName})`)
-                .limit(1);
-            return retry[0]?.id;
-        }
+        // A conflicting insert must not abort a transaction that also saves
+        // product metadata and inventory. Resolve concurrent category creation
+        // with ON CONFLICT DO NOTHING, then read the established category.
+        const inserted = await db.insert(categories).values({
+            name: categoryName,
+            displayName: categoryName,
+            slug: categoryName.toLowerCase().replace(/\s+/g, '-'),
+            description: `Auto-generated category for ${categoryName}`,
+        }).onConflictDoNothing().returning();
+        if (inserted.length > 0) return inserted[0].id;
+
+        const concurrent = await db.select().from(categories)
+            .where(sql`lower(${categories.name}) = lower(${categoryName})`)
+            .limit(1);
+        return concurrent[0]?.id;
     }
 
-    private async ensureUniqueSlug(slug: string, excludeId?: string): Promise<string> {
-        const db = this.ensureDb();
+    private async ensureUniqueSlug(slug: string, excludeId?: string, dbOverride?: any): Promise<string> {
+        const db = dbOverride ?? this.ensureDb();
         let currentSlug = slug;
         let counter = 1;
 
@@ -323,8 +322,8 @@ export class ProductStorage {
         }
     }
 
-    async createProduct(product: Partial<Product>): Promise<Product> {
-        const db = this.ensureDb();
+    async createProduct(product: Partial<Product>, dbOverride?: any): Promise<Product> {
+        const db = dbOverride ?? this.ensureDb();
 
         // ProductStorage owns catalogue metadata, not inventory quantities.
         // New identities may only be created at zero; callers that need initial
@@ -337,12 +336,12 @@ export class ProductStorage {
         }
         // Dual Write Logic: Ensure categoryId is set if category is provided
         if (product.category && !product.categoryId) {
-            product.categoryId = await this.resolveCategoryId(product.category) || null;
+            product.categoryId = await this.resolveCategoryId(product.category, db) || null;
         }
 
         // Ensure unique slug
         if (product.slug) {
-            product.slug = await this.ensureUniqueSlug(product.slug);
+            product.slug = await this.ensureUniqueSlug(product.slug, undefined, db);
         }
 
         // Sanitize numeric fields - convert empty strings to undefined
@@ -364,8 +363,8 @@ export class ProductStorage {
         return result[0];
     }
 
-    async updateProduct(id: string, updates: Partial<Product>): Promise<Product | undefined> {
-        const db = this.ensureDb();
+    async updateProduct(id: string, updates: Partial<Product>, dbOverride?: any): Promise<Product | undefined> {
+        const db = dbOverride ?? this.ensureDb();
 
         // Stock and variant structure are canonical-inventory concerns. Keeping
         // this invariant here prevents a future route/service from accidentally
@@ -379,7 +378,7 @@ export class ProductStorage {
         }
         // Dual Write Logic: Update categoryId if category changes
         if (updates.category) {
-            const newCategoryId = await this.resolveCategoryId(updates.category);
+            const newCategoryId = await this.resolveCategoryId(updates.category, db);
             if (newCategoryId) {
                 updates.categoryId = newCategoryId;
             }
@@ -387,7 +386,7 @@ export class ProductStorage {
 
         // Ensure unique slug if it's being updated
         if (updates.slug) {
-            updates.slug = await this.ensureUniqueSlug(updates.slug, id);
+            updates.slug = await this.ensureUniqueSlug(updates.slug, id, db);
         }
 
         // Sanitize numeric fields - convert empty strings to undefined

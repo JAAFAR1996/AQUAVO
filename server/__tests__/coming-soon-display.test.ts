@@ -82,7 +82,7 @@ describe("incoming display metadata crosses public boundaries without changing o
       expect(html).not.toContain(formatMoney(0));
     }
     expect(formatPrice(incoming)).toBe(formatMoney(17500));
-    expect(formatPrice({ ...unpriced, specifications: {} })).toBe(formatMoney(0));
+    expect(formatPrice({ ...unpriced, specifications: {} })).toBe("السعر غير منشور حالياً");
     expect(buildProductStructuredData(unpriced)[0]).not.toHaveProperty("offers", expect.anything());
     expect(JSON.stringify(unpriced)).toBe(before);
   });

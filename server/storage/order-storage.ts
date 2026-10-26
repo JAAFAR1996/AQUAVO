@@ -1,3 +1,4 @@
+import { customerShippingFee } from "../../shared/store-policy.js";
 import { isVariantActive, isVariantComingSoon, positiveVariantPrice } from "../../shared/variant-commerce.js";
 import { randomBytes } from "node:crypto";
 import { normalizeCheckoutLines, sessionHash } from "../services/checkout-security.js";
@@ -335,8 +336,7 @@ export class OrderStorage {
 
             // 2. Calculate Delivery Fee — reads from settings DB (fallback 5000)
             const shippingRow = await tx.select().from(settings).where(eq(settings.key, "shipping_fee")).limit(1);
-            const configuredFee = Number(shippingRow[0]?.value ?? 5000);
-            let deliveryFee = Number.isFinite(configuredFee) && configuredFee > 0 ? configuredFee : 5000;
+            let deliveryFee = customerShippingFee(shippingRow[0]?.value);
 
             // 3. Apply Coupon
             let discount = 0;
