@@ -1447,7 +1447,8 @@
     "s10": "Saving...",
     "s11": "Save Draft",
     "s12": "Finish and View Plan",
-    "s13": "Next"
+    "s13": "Next",
+    "existingTank": "Already have a tank and need one item? Browse products"
   },
   "filter-calculator": {
     "s1": "Filter Calculator",

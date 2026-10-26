@@ -149,6 +149,7 @@ export function normalizeSearchText(value: unknown): string {
  * contains one of the complete phrases; never infer from product descriptions.
  */
 const PRODUCT_NAME_ALIASES: readonly (readonly string[])[] = [
+  ["فلتر", "فلاتر", "filter"],
   ["فلتر اسفنجي", "سفنجه فلتر", "sponge filter"],
   ["مضخه هواء", "منفاخ هواء", "air pump"],
   ["خرطوم هواء", "لي هواء", "air hose", "airline tubing"],
@@ -173,11 +174,6 @@ export function fuzzySearchMatch(value: unknown, query: string): boolean {
   const tokens = needle.split(" ").filter(Boolean);
   if (tokens.length > 1 && tokens.every((token) => text.includes(token))) return true;
 
-  let cursor = 0;
-  for (const char of text) {
-    if (char === needle[cursor]) cursor += 1;
-    if (cursor === needle.length) return true;
-  }
   return false;
 }
 
@@ -186,8 +182,6 @@ function searchableProductText(product: Product): string {
     product.name,
     product.brand,
     product.category,
-    product.description,
-    product.specs,
     product.slug,
     aliasesForProductName(product.name),
   ].join(" ");
@@ -200,7 +194,13 @@ function productScore(product: Product, query: string, semanticRank?: number): n
   const category = normalizeSearchText(product.category);
   const description = normalizeSearchText(product.description);
 
-  let score = semanticRank == null ? 0 : Math.max(25, 60 - semanticRank * 3);
+  const kind = PRODUCT_NAME_ALIASES.find(phrases => phrases.some(phrase => normalizeSearchText(phrase) === normalizedQuery));
+  // Synonyms for a product kind have equal relevance: "هيتر" must not bury a
+  // stocked "سخان" beneath an unavailable item merely named with the other word.
+  if (kind && kind.some(phrase => name.includes(normalizeSearchText(phrase)))) {
+    return 100 + ((product.stock ?? 0) > 0 ? 30 : 0);
+  }
+  let score = semanticRank == null ? 0 : Math.max(0, 3 - semanticRank);
   if (!normalizedQuery) return score;
   if (name === normalizedQuery) score += 80;
   if (name.startsWith(normalizedQuery)) score += 45;
@@ -210,7 +210,8 @@ function productScore(product: Product, query: string, semanticRank?: number): n
   if (description.includes(normalizedQuery)) score += 6;
   if (fuzzySearchMatch(aliasesForProductName(product.name), normalizedQuery)) score += 14;
   if (fuzzySearchMatch(searchableProductText(product), normalizedQuery)) score += 4;
-  if ((product.stock ?? 0) > 0) score += 7;
+  if ((product.stock ?? 0) > 0) score += 20;
+  if (normalizeSearchText(product.slug) === normalizedQuery) score += 200;
   return score;
 }
 
@@ -262,7 +263,9 @@ export function buildUnifiedSiteSearchResults({
   const productMap = new Map<string, SiteSearchResult>();
 
   semanticProducts.forEach((product, index) => {
-    productMap.set(product.id, productResult(product, normalizedQuery, index));
+    if (fuzzySearchMatch(searchableProductText(product), normalizedQuery)) {
+      productMap.set(product.id, productResult(product, normalizedQuery, index));
+    }
   });
 
   catalogProducts.forEach((product) => {

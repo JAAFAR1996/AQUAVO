@@ -1,3 +1,4 @@
+import { Link } from "wouter";
 import { useRef, useEffect } from "react";
 import { ArrowRight, ArrowLeft, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -103,6 +104,9 @@ export default function JourneyPage() {
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             {t("journey.s8")}
           </p>
+          <Link href="/products" className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-primary underline underline-offset-4">
+            {t("journey.existingTank")}
+          </Link>
         </div>
       </div>
 

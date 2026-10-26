@@ -94,7 +94,7 @@ try {
     });
     const viewport = page.getByTestId("product-gallery-viewport");
     await expect(viewport).toBeVisible();
-    await page.getByRole("button", { name: "150 سم", exact: true }).click();
+    await page.getByRole("button", { name: locale === "ar" ? "150 سم" : locale === "en" ? "1.5 m" : "1.5 مەتر", exact: true }).click();
     await expect(page.getByRole("button", { name: productCopy.gallery.showImage.replace("{{index}}", "1") })).toHaveAttribute("aria-pressed", "true");
     await expect(page.getByRole("region", { name: productCopy.choice.dimensions })).toContainText("150 سم");
     await expect(page.getByRole("region", { name: productCopy.choice.title })).toContainText("مضخة اختبار");
@@ -131,7 +131,7 @@ try {
     await expect(closeZoom).toHaveCSS("color", "rgb(255, 255, 255)");
     await page.keyboard.press("Escape");
     await expect(page.getByRole("dialog")).toHaveCount(0);
-    await page.getByRole("button", { name: "170 سم", exact: true }).click();
+    await page.getByRole("button", { name: locale === "ar" ? "170 سم" : locale === "en" ? "1.7 m" : "1.7 مەتر", exact: true }).click();
     await expect(page.getByRole("region", { name: productCopy.choice.dimensions })).toContainText("170 سم");
     await expect(page.getByRole("region", { name: productCopy.choice.dimensions })).not.toContainText("150 سم");
     await expect(viewport.locator("img")).toHaveCount(1);
