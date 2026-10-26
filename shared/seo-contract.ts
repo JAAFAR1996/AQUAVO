@@ -1,3 +1,4 @@
+import { DEFAULT_CUSTOMER_SHIPPING_FEE_IQD } from "./store-policy.js";
 export const AQUAVO_BASE_URL = "https://www.aquavoiq.com";
 export const AQUAVO_SEO_RELEASE_LASTMOD = "2026-08-25";
 
@@ -13,7 +14,7 @@ export const AQUAVO_ENTITY = Object.freeze({
   countryCode: "IQ",
   countryName: "Iraq",
   currency: "IQD",
-  deliveryFee: 5000,
+  deliveryFee: DEFAULT_CUSTOMER_SHIPPING_FEE_IQD,
   deliveryMaxDays: 1,
   paymentMethod: "Cash on Delivery, Online Payment",
   supportAvailability: "24/7",
