@@ -11,7 +11,6 @@ import { Button } from "@/components/ui/button";
 import { DynamicButton } from "@/components/ui/dynamic-button";
 import { Badge } from "@/components/ui/badge";
 import { formatNumber, formatPrice } from "@/lib/format";
-import { Card, CardContent } from "@/components/ui/card";
 import { productChoiceFacts } from "@/lib/product-choice-facts";
 import { ProductChoiceSummary } from "@/components/products/product-choice-summary";
 import { ProductInformationSection } from "@/components/products/product-information-section";
@@ -63,6 +62,7 @@ import { getProductDisplayIdentity } from "@/lib/product-display";
 import { getProductPriceDisplay } from "@/lib/product-pricing";
 import { isProductComingSoon } from "@shared/product-availability";
 import { useShippingFee } from "@/contexts/shipping-fee-context";
+import { productIntro, visibleProductSpecs } from "@/lib/product-decision";
 
 interface Product3DMeta {
   src: string;
@@ -125,7 +125,6 @@ export default function ProductDetails() {
     };
   }, []);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
-  const [descriptionExpanded, setDescriptionExpanded] = useState(false);
   // Unique hero name so a card → PDP shared-image transition can target this
   // product's main image. Inert unless a view transition is actually running.
   const heroTransitionName = slug ? productTransitionName(slug) : undefined;
@@ -393,13 +392,17 @@ export default function ProductDetails() {
   const productDisplay = getProductDisplayIdentity(product);
   const productMeta = buildProductSeoMeta(product, { locale });
   const decisionSpecs = (product.specifications ?? {}) as Record<string, unknown>;
-  const choiceFacts = productChoiceFacts(decisionSpecs, selectedVariant?.specifications, requiresVariantSelection);
+  const displaySpecs = visibleProductSpecs(decisionSpecs, selectedVariant?.specifications, product.slug);
+  const choiceFacts = productChoiceFacts(visibleProductSpecs(decisionSpecs, undefined, product.slug), selectedVariant ? visibleProductSpecs({}, selectedVariant.specifications, product.slug) : undefined, requiresVariantSelection);
   const decisionCardBenefit =
     typeof decisionSpecs.__cardBenefit === "string" ? decisionSpecs.__cardBenefit.trim() : "";
   const decisionBenefits = Array.isArray(decisionSpecs.benefits)
     ? decisionSpecs.benefits.filter((value): value is string => typeof value === "string" && value.trim().length > 0)
     : [];
-  const decisionFacts = Array.from(new Set([decisionCardBenefit, ...decisionBenefits].filter(Boolean))).slice(0, 3);
+  const intro = productIntro(product.description, decisionCardBenefit);
+  const safetyWarnings = Array.isArray(displaySpecs.safetyWarnings)
+    ? displaySpecs.safetyWarnings.filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
+    : typeof displaySpecs['تحذيرات'] === 'string' ? [displaySpecs['تحذيرات']] : [];
 
   return (
     <div className="flex-1 flex flex-col bg-background">
@@ -488,11 +491,10 @@ export default function ProductDetails() {
                     heroTransitionName={heroTransitionName}
                   />
                 )}
-                <ProductChoiceSummary facts={choiceFacts} dimensions variantLabel={selectedVariant?.label} />
               </div>
 
               {/* Product Info */}
-              <div className="flex flex-col">
+              <div className="flex min-w-0 flex-col">
                 <div className="flex items-center gap-2 mb-2">
                   {productDisplay.brand ? (
                     <span className="text-primary font-semibold text-sm uppercase tracking-[0.06em]">
@@ -502,6 +504,7 @@ export default function ProductDetails() {
                 </div>
 
                 <h1 className="text-xl md:text-2xl font-bold mb-4">{bidi(productDisplay.name)}</h1>
+                {intro && <p data-testid="product-intro" className="mb-6 text-base leading-8 text-muted-foreground">{bidi(intro)}</p>}
 
                 {product3DMeta && (
                   <div className="mb-4 flex flex-wrap gap-2">
@@ -600,6 +603,8 @@ export default function ProductDetails() {
                       onVariantSelect={setSelectedVariant}
                       comingSoon={isProductComingSoon(product)}
                       productCategory={product.category}
+                      productSlug={product.slug}
+                      showSelectionDetails={false}
                     />
                   </div>
                 )}
@@ -621,6 +626,8 @@ export default function ProductDetails() {
                 )}
 
                 <ProductChoiceSummary facts={choiceFacts} variantLabel={selectedVariant?.label} />
+                <ProductChoiceSummary facts={choiceFacts} dimensions variantLabel={selectedVariant?.label} />
+                {product.slug === 'yee-3006' && <p className="mb-4 border-s-2 border-primary ps-4 text-sm leading-7 text-muted-foreground">{t('clarity.heater')}</p>}
 
                 {/* Stock Status */}
                 <div className="flex items-center gap-2 mb-4" role="status">
@@ -648,25 +655,16 @@ export default function ProductDetails() {
                 </div>
 
                 <FoodProductFacts product={product} />
-                {decisionFacts.length > 0 && (!getFoodProfile(product) || getFoodProfile(product)?.accessory) && (
-                  <section className="mb-4 rounded-xl border border-primary/20 bg-primary/[0.045] p-4" aria-labelledby="decision-summary-title">
-                    <h2 id="decision-summary-title" className="text-sm font-bold text-foreground">{t("decision.title")}</h2>
-                    <ul className="mt-2 space-y-2">
-                      {decisionFacts.map((fact) => (
-                        <li key={fact} className="flex items-start gap-2 text-sm leading-6 text-muted-foreground">
-                          <Check className="mt-1 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
-                          <span>{bidi(fact)}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </section>
-                )}
+                {safetyWarnings.length > 0 && <aside className="mb-5 text-sm leading-7 text-muted-foreground" aria-label={t('clarity.beforeUse')}>
+                  <p><span className="font-semibold text-foreground">{t('clarity.beforeUse')}: </span>{bidi(safetyWarnings[0])}</p>
+                  {safetyWarnings.length > 1 && <a href="#product-info-usage" className="underline underline-offset-4" onClick={() => document.getElementById('product-info-usage')?.querySelector<HTMLButtonElement>('button[data-state="closed"]')?.click()}>{t('usage.safety')}</a>}
+                </aside>}
 
                 {/* Purchase confidence — real, verifiable facts only (Cash on
                     Delivery, flat shipping fee, 24/7 support), surfaced right
                     above the quantity/CTA controls. */}
                 <ul
-                  className="flex flex-col gap-1 mb-4 p-3 rounded-lg bg-muted/30 border border-border/50 list-none"
+                  className="flex flex-col gap-2 mb-4 pt-5 border-t border-border list-none"
                   aria-label={t("trust.label")}
                 >
                   <li className="flex items-center gap-2 text-sm">
@@ -683,22 +681,10 @@ export default function ProductDetails() {
                   </li>
                 </ul>
 
-                {/* Description — progressive disclosure for long text */}
-                <div className="text-muted-foreground text-sm leading-relaxed mb-6" style={{ whiteSpace: 'pre-line' }}>
-                  {bidi(
-                    (product.description?.length ?? 0) > 400 && !descriptionExpanded
-                      ? (product.description?.slice(0, 400) ?? "") + "..."
-                      : product.description ?? "",
-                  )}
-                  {(product.description?.length ?? 0) > 400 && (
-                    <button
-                      onClick={() => setDescriptionExpanded((v) => !v)}
-                      className="block mt-2 text-primary hover:text-primary/80 font-medium underline underline-offset-2 transition-colors text-sm"
-                    >
-                      {descriptionExpanded ? t("description.less") : t("description.more")}
-                    </button>
-                  )}
-                </div>
+                {canPurchase && <div className="mb-5 text-sm" aria-live="polite">
+                  <p className="flex flex-wrap justify-between gap-2"><span>{t('clarity.total')}</span><strong data-testid="product-delivered-total">{formatPrice(displayPrice * quantity + shippingFee)}</strong></p>
+                  <p className="mt-1 text-xs leading-6 text-muted-foreground">{t('clarity.totalNote')}</p>
+                </div>}
 
                 {product3DMeta && (
                   <ul className="mb-6 grid gap-2 rounded-lg border border-primary/20 bg-primary/5 p-3 text-sm list-none">
@@ -854,48 +840,10 @@ export default function ProductDetails() {
                   </div>
                 )}
 
-                {/* Quick Info */}
-                <Card className="border-primary/20">
-                  <CardContent className="pt-6">
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      <div className="flex items-center gap-3">
-                        <div className="bg-primary/10 p-2 rounded-full">
-                          <Truck className="w-5 h-5 text-primary" aria-hidden="true" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium">{t("highlights.delivery", { days: DELIVERY_DAYS })}</p>
-                          <p className="text-xs text-muted-foreground">{t("highlights.deliveryDetail")}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <div className="bg-primary/10 p-2 rounded-full">
-                          <RotateCcw className="w-5 h-5 text-primary" aria-hidden="true" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium">{t("highlights.exchange")}</p>
-                          <p className="text-xs text-muted-foreground">{t("highlights.exchangeDetail")}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <div className="bg-primary/10 p-2 rounded-full">
-                          <Shield className="w-5 h-5 text-primary" aria-hidden="true" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium">
-                            {product3DMeta ? t("highlights.samePiece") : t("highlights.info")}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {product3DMeta ? t("highlights.samePieceDetail") : t("highlights.infoDetail")}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
 
                 {/* YEE Certificate of Authenticity - Trust Signal */}
                 {product?.brand?.toLowerCase() === 'yee' && (
-                  <Link href="/verify-certificate/yee" className="flex items-center gap-3 p-3 rounded-lg bg-gradient-to-s from-yellow-50 to-amber-50 dark:from-yellow-950/20 dark:to-amber-950/20 border border-yellow-200 dark:border-yellow-800/40 hover:border-yellow-400 dark:hover:border-yellow-600 transition-all group mt-4 cursor-pointer">
+                  <Link href="/verify-certificate/yee" className="flex items-center gap-3 py-3 text-muted-foreground hover:text-foreground mt-2 cursor-pointer">
                     <div className="w-10 h-10 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center flex-shrink-0">
                       <FileText className="w-5 h-5 text-yellow-600" aria-hidden="true" />
                     </div>
@@ -912,7 +860,7 @@ export default function ProductDetails() {
               </div>
             </div>
 
-            <div className="mb-12 space-y-4" key={product.id}>
+            <div className="mt-8 mb-12 space-y-0 border-t border-border" key={product.id}>
               <nav aria-label={t("information.navigation")} className="hidden flex-wrap gap-2 md:flex">
                 {[
                   ["benefits", t("tabs.benefits")], ["specs", t("tabs.specs")],
@@ -922,7 +870,7 @@ export default function ProductDetails() {
                   <a key={id} href={`#product-info-${id}`} className="rounded-full border border-border px-4 py-2 text-sm hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">{label}</a>
                 ))}
               </nav>
-              <ProductInformationSection id="product-info-benefits" title={t("benefits.title")} icon={<Leaf className="h-5 w-5 text-primary" aria-hidden="true" />} defaultOpen>
+              <ProductInformationSection id="product-info-benefits" title={t("benefits.title")} icon={<Leaf className="h-5 w-5 text-primary" aria-hidden="true" />}>
                 <div className="space-y-4" dir={dir}>
                   {decisionBenefits.length > 0 ? (
                     <ul className={decisionBenefits.length > 2 ? "grid gap-3 sm:grid-cols-2 lg:grid-cols-3" : decisionBenefits.length === 2 ? "grid gap-3 sm:grid-cols-2" : "grid gap-3"}>
@@ -938,8 +886,9 @@ export default function ProductDetails() {
                   )}
                 </div>
               </ProductInformationSection>
-              <ProductInformationSection id="product-info-specs" title={t("specs.title")} icon={<Info className="h-5 w-5 text-primary" aria-hidden="true" />} defaultOpen>
+              <ProductInformationSection id="product-info-specs" title={t("specs.title")} icon={<Info className="h-5 w-5 text-primary" aria-hidden="true" />}>
                 <div className="space-y-4" dir={dir}>
+                  <p className="whitespace-pre-line text-sm leading-7 text-muted-foreground">{bidi(product.description ?? '')}</p>
                   <h3 className="font-semibold">{t("specs.info")}</h3>
                   <dl className={product.reviewCount > 0 ? "grid gap-4 sm:grid-cols-3" : "grid gap-4 sm:grid-cols-2"}>
                     <div className="space-y-1 rounded-lg bg-muted/50 p-4">
@@ -962,14 +911,14 @@ export default function ProductDetails() {
                     {product.specifications && Object.keys(product.specifications).length > 0 && (
                       <div className="mt-6">
                         <ProductSpecificationsTable
-                          specifications={product.specifications}
+                          specifications={displaySpecs}
                           category={product.category}
                         />
                       </div>
                     )}
                 </div>
               </ProductInformationSection>
-              <ProductInformationSection id="product-info-usage" title={t("usage.title")} icon={<Shield className="h-5 w-5 text-primary" aria-hidden="true" />} defaultOpen={Boolean((Array.isArray(decisionSpecs.safetyWarnings) && decisionSpecs.safetyWarnings.length) || decisionSpecs["تحذيرات"])}>
+              <ProductInformationSection id="product-info-usage" title={t("usage.title")} icon={<Shield className="h-5 w-5 text-primary" aria-hidden="true" />}>
                 <div className="grid gap-6 md:grid-cols-2" dir={dir}>
                     <div>
                       <h3 className="font-semibold mb-2 text-start">{t("usage.howTo")}</h3>
