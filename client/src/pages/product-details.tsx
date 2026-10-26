@@ -629,6 +629,10 @@ export default function ProductDetails() {
                 <ProductChoiceSummary facts={choiceFacts} dimensions variantLabel={selectedVariant?.label} />
                 {product.slug === 'yee-3006' && <p className="mb-4 border-s-2 border-primary ps-4 text-sm leading-7 text-muted-foreground">{t('clarity.heater')}</p>}
 
+                {product.variants && product.variants.length > 0 && (
+                  <Link href="/contact" className="mb-3 inline-flex min-h-11 items-center text-sm font-medium text-primary underline underline-offset-4">{t("clarity.selectionHelp")}</Link>
+                )}
+
                 {/* Stock Status */}
                 <div className="flex items-center gap-2 mb-4" role="status">
                   {isComingSoon ? (
@@ -679,6 +683,7 @@ export default function ProductDetails() {
                     <Banknote className="w-4 h-4" aria-hidden="true" />
                     <span>{t("trust.payment")}</span>
                   </li>
+                  <li><Link href="/return-policy" className="inline-flex min-h-11 items-center text-sm text-primary underline underline-offset-4">{t("clarity.warrantyPolicy")}</Link></li>
                 </ul>
 
                 {product3DMeta && (
@@ -1081,7 +1086,7 @@ export default function ProductDetails() {
 function RecommendationsSection({ currentProduct, productId, type, title }: { currentProduct: Product; productId: string, type: 'frequently-bought-together' | 'similar', title: string }) {
   const { locale } = useLocale();
   const { data: products, isLoading } = useQuery({
-    queryKey: ['recommendations', type, productId],
+    queryKey: ['recommendations', type, productId, locale],
     queryFn: () =>
       type === 'frequently-bought-together'
         ? fetchFrequentlyBoughtTogether(productId)
