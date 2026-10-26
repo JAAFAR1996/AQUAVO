@@ -317,18 +317,8 @@ class CombinedStorage implements IStorage {
                 return products.filter(p => (p.stock ?? 0) > 0 && parseFloat(String(p.price ?? 0)) > 0);
             }
 
-            // Fallback: Get products from the same category
-            const product = await this.productStorage.getProduct(productId);
-            if (!product) return [];
-
-            const categoryProducts = await this.productStorage.getProducts({
-                category: product.category,
-                limit: 6
-            });
-
-            return categoryProducts
-                .filter(p => p.id !== productId && (p.stock ?? 0) > 0 && parseFloat(String(p.price ?? 0)) > 0)
-                .slice(0, 4);
+            // No co-purchase evidence: do not present category alternatives as social proof.
+            return [];
         } catch (error) {
             console.error('Error getting frequently bought together:', error);
             return [];
@@ -349,7 +339,8 @@ class CombinedStorage implements IStorage {
                     // Get product details in batch (single query)
                     const productIds = similarByEmbedding.map((s: any) => s.productId);
                     const products = await this.productStorage.getProductsByIds(productIds);
-                    return products.filter(p => (p.stock ?? 0) > 0 && parseFloat(String(p.price ?? 0)) > 0);
+                    const relevant = products.filter(p => p.id !== productId && p.category === product.category && (!product.subcategory || p.subcategory === product.subcategory) && (p.stock ?? 0) > 0 && parseFloat(String(p.price ?? 0)) > 0);
+                    if (relevant.length > 0) return relevant;
                 }
             } catch (embeddingError) {
                 console.log('[Storage] Embedding similarity not available, using fallback');
@@ -376,7 +367,7 @@ class CombinedStorage implements IStorage {
                     (p.stock ?? 0) > 0 && hasRealPrice(p)
             );
 
-            return [...sameSubcategory, ...sameCategory].slice(0, 5);
+            return (product.subcategory ? sameSubcategory : [...sameSubcategory, ...sameCategory]).slice(0, 5);
         } catch (error) {
             console.error('Error getting similar products:', error);
             return [];
