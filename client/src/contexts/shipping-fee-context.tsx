@@ -1,14 +1,12 @@
 import { createContext, useContext, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { customerShippingFee, DEFAULT_CUSTOMER_SHIPPING_FEE_IQD } from "@shared/store-policy";
 
-export const DEFAULT_SHIPPING_FEE_IQD = 5000;
+export const DEFAULT_SHIPPING_FEE_IQD = DEFAULT_CUSTOMER_SHIPPING_FEE_IQD;
 
 const ShippingFeeContext = createContext<number>(DEFAULT_SHIPPING_FEE_IQD);
 
-function normalizeShippingFee(value: unknown): number {
-  const fee = Number(value);
-  return Number.isFinite(fee) && fee > 0 ? fee : DEFAULT_SHIPPING_FEE_IQD;
-}
+const normalizeShippingFee = customerShippingFee;
 
 export function ShippingFeeProvider({ children }: { children: ReactNode }) {
   const { data } = useQuery<{ shippingFee: number }>({
