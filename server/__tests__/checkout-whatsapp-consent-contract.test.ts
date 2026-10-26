@@ -5,16 +5,18 @@ import { resolve } from "node:path";
 const read=(path:string)=>readFileSync(resolve(process.cwd(),path),"utf8");
 
 describe("checkout WhatsApp consent contract",()=>{
-  it("uses the existing terms checkbox as the single consent control",()=>{
+  it("keeps required terms and optional marketing consent independent",()=>{
     const view=read("client/src/components/cart/checkout/confirmation-view.tsx");
     expect(view).toContain('id="agree"');
     expect(view).toContain("setAgreed(accepted)");
-    expect(view).toContain("setWhatsappMarketingOptIn(accepted)");
+    expect(view).not.toContain("setWhatsappMarketingOptIn(accepted)");
+    expect(view).toContain("setWhatsappMarketingOptIn(checked === true)");
     expect(view).not.toContain("setWhatsappMarketingOptIn(false)");
-    expect(view).not.toContain('id="whatsapp-marketing-opt-in"');
+    expect(view).toContain('id="whatsapp-marketing"');
+    expect(read("client/src/components/cart/checkout-dialog.tsx")).toContain("useState(false)");
   });
 
-  it("keeps WhatsApp disclosure in the terms while the single checkbox records acceptance",()=>{
+  it("keeps marketing wording separate from the required terms label",()=>{
     const view=read("client/src/components/cart/checkout/confirmation-view.tsx");
     const ar=read("client/src/locales/ar/checkout.json");
     const en=read("client/src/locales/en/checkout.json");
@@ -25,7 +27,8 @@ describe("checkout WhatsApp consent contract",()=>{
     expect(JSON.parse(en).confirm.agreeSuffix).not.toMatch(/WhatsApp|offers/i);
     expect(JSON.parse(ckb).confirm.agreeSuffix).not.toMatch(/واتسئاپ|پێشنیار/);
     expect(ckb).toContain("AQUAVO");
-    expect(view).toContain("setWhatsappMarketingOptIn(accepted)");
+    expect(view).not.toContain("setWhatsappMarketingOptIn(accepted)");
+    expect(view).toContain("setWhatsappMarketingOptIn(checked === true)");
   });
 
   it("keeps WhatsApp communication terms inside the terms page",()=>{
