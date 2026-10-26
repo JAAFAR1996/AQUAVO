@@ -1,3 +1,4 @@
+import { getProductPriceDisplay } from "../shared/public-price.js";
 import "../server/suppress.js";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { Pool, neonConfig } from "@neondatabase/serverless";
@@ -1070,7 +1071,8 @@ function markdown(page: SeoPreviewPage, meta: Meta): string {
     if (variants.length > 0) {
       lines.push("", "## الخيارات المتاحة", "");
       for (const variant of variants) {
-        const price = formatMoney(numberValue(variant.price) ?? 0, product.currency || AQUAVO_ENTITY.currency);
+        const amount = getProductPriceDisplay(product, variant).price;
+        const price = amount === null ? "السعر غير منشور حالياً" : formatMoney(amount, product.currency || AQUAVO_ENTITY.currency);
         const stock = isProductComingSoon(product) ? "قريبًا" : (numberValue(variant.stock) ?? 0) > 0 ? "متوفر" : "غير متوفر حالياً";
         lines.push(`- ${variant.label}: ${price} — ${stock}`);
       }
