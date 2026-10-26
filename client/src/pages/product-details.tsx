@@ -681,11 +681,6 @@ export default function ProductDetails() {
                   </li>
                 </ul>
 
-                {canPurchase && <div className="mb-5 text-sm" aria-live="polite">
-                  <p className="flex flex-wrap justify-between gap-2"><span>{t('clarity.total')}</span><strong data-testid="product-delivered-total">{formatPrice(displayPrice * quantity + shippingFee)}</strong></p>
-                  <p className="mt-1 text-xs leading-6 text-muted-foreground">{t('clarity.totalNote')}</p>
-                </div>}
-
                 {product3DMeta && (
                   <ul className="mb-6 grid gap-2 rounded-lg border border-primary/20 bg-primary/5 p-3 text-sm list-none">
                     <li className="flex items-start gap-2">
