@@ -246,6 +246,16 @@ export async function getAttributionHealth() {
       COUNT(*) FILTER(WHERE s.status='delivered' AND NOT s.realized)::int AS delivered_uncollected_orders,
       COUNT(*) FILTER(
         WHERE s.realized AND a.cost_status='exact' AND a.contribution_profit IS NOT NULL
+        AND EXISTS (
+          SELECT 1 FROM public.order_fulfillment_events e
+          WHERE e.order_id=s.id AND e.workflow_state='confirmed'
+            AND e.cost_status='exact' AND e.actual_cost IS NOT NULL
+        )
+        AND EXISTS (
+          SELECT 1 FROM public.order_fulfillment_events e
+          WHERE e.order_id=s.id AND e.workflow_state='confirmed'
+            AND e.cost_status='exact' AND e.actual_cost IS NOT NULL
+        )
       )::int AS cost_complete_realized_orders,
       CASE WHEN COUNT(*) FILTER(WHERE s.realized) =
         COUNT(*) FILTER(
