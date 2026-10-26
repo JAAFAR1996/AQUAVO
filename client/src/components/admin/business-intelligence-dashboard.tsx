@@ -424,7 +424,7 @@ export function BusinessIntelligenceDashboard() {
               <CardTitle className="text-base">من أي حملة إجت الطلبات المسلمة والمحصلة؟</CardTitle>
               <p className="text-xs text-muted-foreground">
                 آخر {growth.data.attribution.campaignWindowDays} يوم حسب تاريخ إنشاء الطلب؛
-                المساهمة قبل الإعلانات والمصاريف العامة فقط. "غير معروف" ما يعني زيارة مباشرة.
+                المساهمة قبل الإعلانات والمصاريف العامة فقط، وبعد اكتمال دليل التغليف. "غير معروف" ما يعني زيارة مباشرة.
               </p>
             </CardHeader>
             <CardContent className="overflow-x-auto">
@@ -452,7 +452,7 @@ export function BusinessIntelligenceDashboard() {
                 </tbody>
               </table>
               <p className="mt-2 text-xs text-muted-foreground">
-                لا نحسب CAC أو ROAS أو صافي الربح من هذا الجدول إلى أن ترتبط كلفة الإعلان والمصاريف والمرتجعات بنفس الطلبات.
+                النتائج حسب حالات التحصيل المسجلة بالنظام، مو إثبات كشف شركة التوصيل أو البنك. لا نحسب CAC أو ROAS أو صافي الربح قبل مطابقة الإعلان والمصاريف والمرتجعات.
               </p>
             </CardContent>
           </Card>
