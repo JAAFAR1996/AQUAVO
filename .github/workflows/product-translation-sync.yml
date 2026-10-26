@@ -1,0 +1,55 @@
+name: Product Translation Sync
+on:
+  workflow_dispatch:
+    inputs:
+      apply:
+        description: "Write eligible product translations (false is dry run)"
+        required: true
+        default: false
+        type: boolean
+      confirm:
+        description: "For writes type SYNC_PRODUCT_TRANSLATIONS"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: product-translation-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    if: ${{ !inputs.apply || inputs.confirm == 'SYNC_PRODUCT_TRANSLATIONS' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.0.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Validate translation files and product contracts
+        run: pnpm exec vitest run test/i18n
+      - name: Dry-run product synchronization
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: pnpm exec tsx TOOLS/i18n/reseed.ts --entity=products --locale=en,ckb
+      - name: Apply owner-approved product translations only
+        if: ${{ inputs.apply }}
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: pnpm exec tsx TOOLS/i18n/reseed.ts --entity=products --locale=en,ckb --commit
+      - name: Upload synchronization counts and product identifiers
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: product-translation-sync-${{ github.run_id }}
+          path: reports/i18n/reseed-plan.json
+          retention-days: 30
