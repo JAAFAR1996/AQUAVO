@@ -21,6 +21,9 @@ const migration = read("migrations/0090_customer_lifecycle_integrity.sql");
 const schema = read("shared/schema.ts");
 const waylRoute = read("server/routes/wayl.ts");
 const waylService = read("server/services/wayl-order-payment.ts");
+const growthOs = read("server/services/growth-operating-system.ts");
+const growthDashboard = read("client/src/components/admin/business-intelligence-dashboard.tsx");
+const appShell = read("client/src/App.tsx");
 const migrationRunner = read("script/apply-0090-customer-lifecycle-migration.ts");
 
 describe("customer lifecycle integrity", () => {
@@ -60,6 +63,26 @@ describe("customer lifecycle integrity", () => {
     expect(waylRoute).toContain("attribution: parsed.data.attribution");
     expect(waylService).toContain("viewSessionId: input.sessionId");
     expect(waylService).toContain("aqSid: input.attribution?.aq_sid");
+  });
+
+  it("captures tagged SPA navigation in addition to the initial external landing", () => {
+    expect(appShell).toContain("captureAttributionFromUrl();");
+    expect(appShell).toContain("trackPageView(location)");
+  });
+
+  it("reports realized campaign orders only after delivery and cash collection", () => {
+    expect(growthOs).toContain("campaign_attributed_orders");
+    expect(growthOs).toContain("campaignAttributionCoveragePct");
+    expect(growthOs).toContain("campaignOutcomes");
+    expect(growthOs).toContain("o.status='delivered' AND o.payment_status='paid'");
+    expect(growthOs).toContain("o.cod_received=true OR EXISTS");
+    expect(growthOs).toContain("COALESCE(o.is_test,false)=false");
+    expect(growthOs).toContain("a.cost_status='exact'");
+    expect(growthOs).toContain("a.contribution_profit IS NOT NULL");
+    expect(growthOs).toContain("ELSE NULL");
+    expect(growthDashboard).toContain("الطلبات المرتبطة بحملة");
+    expect(growthDashboard).toContain("الحملة");
+    expect(growthDashboard).toContain("كلفة غير مكتملة");
   });
 
   it("aligns customer_profiles with the phone-centric production identity model", () => {

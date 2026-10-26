@@ -77,6 +77,15 @@ type GrowthOverview = {
     realizedOrders: number;
     attributedOrders: number;
     attributionCoveragePct: number;
+    campaignAttributedOrders: number;
+    campaignAttributionCoveragePct: number;
+    campaignWindowDays: number;
+    campaignOutcomes: Array<{
+      source: string; medium: string; campaign: string; creative: string;
+      createdOrders: number; realizedOrders: number; cancelledOrders: number;
+      returnedOrders: number; deliveredUncollectedOrders: number;
+      costCompleteRealizedOrders: number; preAdContributionIqd: number | null;
+    }>;
     googleClickOrders: number;
     metaClickOrders: number;
     googleMeasuredOrders: number;
@@ -387,9 +396,10 @@ export function BusinessIntelligenceDashboard() {
           </div>
 
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-            <Card><CardHeader className="pb-2"><CardTitle className="text-sm">Attribution</CardTitle></CardHeader><CardContent>
-              <div className="text-2xl font-bold">{pct(growth.data.attribution.attributionCoveragePct)}</div>
-              <p className="text-xs text-muted-foreground">{growth.data.attribution.attributedOrders} من {growth.data.attribution.realizedOrders} طلب</p>
+            <Card><CardHeader className="pb-2"><CardTitle className="text-sm">الطلبات المرتبطة بحملة</CardTitle></CardHeader><CardContent>
+              <div className="text-2xl font-bold">{pct(growth.data.attribution.campaignAttributionCoveragePct)}</div>
+              <p className="text-xs text-muted-foreground">{growth.data.attribution.campaignAttributedOrders} من {growth.data.attribution.realizedOrders} طلب مسلّم ومحصل</p>
+              <p className="mt-1 text-xs text-muted-foreground">معرّف زيارة فقط: {growth.data.attribution.attributedOrders} طلب ({pct(growth.data.attribution.attributionCoveragePct)}) — مو دليل على مصدر إعلان.</p>
             </CardContent></Card>
             <Card><CardHeader className="pb-2"><CardTitle className="text-sm">Google Purchase</CardTitle></CardHeader><CardContent>
               <div className="text-2xl font-bold">{pct(growth.data.attribution.googlePurchaseMeasurementCoveragePct)}</div>
@@ -408,6 +418,44 @@ export function BusinessIntelligenceDashboard() {
               <p className="text-xs text-muted-foreground">Day 7: {growth.data.lifecycle.summary.day7Ready} · Reorder: {growth.data.lifecycle.summary.repurchaseReady}</p>
             </CardContent></Card>
           </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">من أي حملة إجت الطلبات المسلمة والمحصلة؟</CardTitle>
+              <p className="text-xs text-muted-foreground">
+                آخر {growth.data.attribution.campaignWindowDays} يوم حسب تاريخ إنشاء الطلب؛
+                المساهمة قبل الإعلانات والمصاريف العامة فقط، وبعد اكتمال دليل التغليف. "غير معروف" ما يعني زيارة مباشرة.
+              </p>
+            </CardHeader>
+            <CardContent className="overflow-x-auto">
+              <table className="w-full min-w-[640px] text-sm">
+                <thead><tr className="border-b text-right text-muted-foreground">
+                  <th className="p-2 font-medium">المصدر</th>
+                  <th className="p-2 font-medium">الحملة</th>
+                  <th className="p-2 font-medium">الطلبات المنشأة</th>
+                  <th className="p-2 font-medium">المسلمة والمحصلة</th>
+                  <th className="p-2 font-medium">المساهمة قبل التسويق</th>
+                </tr></thead>
+                <tbody>
+                  {(growth.data.attribution.campaignOutcomes ?? []).map((row, index) => (
+                    <tr className="border-b last:border-b-0" key={row.source + row.campaign + row.creative + index}>
+                      <td className="p-2">{row.source === "unattributed" ? "غير معروف" : row.source}</td>
+                      <td className="p-2">{row.campaign === "unattributed" ? "حملة غير معروفة" : row.campaign}</td>
+                      <td className="p-2">{row.createdOrders}</td>
+                      <td className="p-2">{row.realizedOrders}</td>
+                      <td className="p-2">{row.preAdContributionIqd == null ? "كلفة غير مكتملة" : iq(row.preAdContributionIqd)}</td>
+                    </tr>
+                  ))}
+                  {growth.data.attribution.campaignOutcomes?.length === 0 && (
+                    <tr><td colSpan={5} className="p-3 text-muted-foreground">لا توجد طلبات ضمن الفترة المحددة.</td></tr>
+                  )}
+                </tbody>
+              </table>
+              <p className="mt-2 text-xs text-muted-foreground">
+                النتائج حسب حالات التحصيل المسجلة بالنظام، مو إثبات كشف شركة التوصيل أو البنك. لا نحسب CAC أو ROAS أو صافي الربح قبل مطابقة الإعلان والمصاريف والمرتجعات.
+              </p>
+            </CardContent>
+          </Card>
 
           <div className="grid gap-4 lg:grid-cols-3">
             <Card><CardHeader><CardTitle className="text-base">حركة المخزون</CardTitle></CardHeader><CardContent className="space-y-2 text-sm">

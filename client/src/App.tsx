@@ -21,6 +21,7 @@ const SpeedInsights = lazy(() => import("@vercel/speed-insights/react").then(m =
 
 import { initGA, trackPageView } from "@/lib/analytics";
 import { getClientSessionId } from "@/lib/client-session";
+import { captureAttributionFromUrl } from "@/lib/attribution";
 import { initPostHog, phTrackPageView } from "@/lib/posthog";
 import { useMetaPixelInit, useMetaPageView } from "@/hooks/use-meta-pixel";
 import { useDeviceDetection } from "@/hooks/use-device-detection";
@@ -1211,6 +1212,9 @@ function PageViewTracker() {
     }
     locationRef.current = location;
 
+    // Bootstrap catches an external tagged arrival. This also catches tagged links
+    // opened by client-side navigation without a document reload.
+    captureAttributionFromUrl();
     trackPageView(location);
     phTrackPageView(location);
 
