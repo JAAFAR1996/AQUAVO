@@ -167,7 +167,7 @@ export function MultiDimensionVariantSelector({
                     type="button"
                     onClick={() => onVariantSelect(variant)}
                     aria-pressed={selected}
-                    aria-label={!available ? (comingSoon || isVariantComingSoon(variant)) ? `${t("variants.measurementAria", { value: measurement })} — ${t("price.soon")}` : t("variants.measurementUnavailableAria", { value: measurement }) : t("variants.measurementAria", { value: measurement })}
+                    aria-label={!available ? (comingSoon || isVariantComingSoon(variant)) ? `${t("variants.measurementAria", { value: variantDisplayValue(measurement, locale) })} — ${t("price.soon")}` : t("variants.measurementUnavailableAria", { value: variantDisplayValue(measurement, locale) }) : t("variants.measurementAria", { value: variantDisplayValue(measurement, locale) })}
                     className={cn(
                       "min-h-11 rounded-full border-2 px-4 py-2 text-sm font-medium transition-colors",
                       selected
@@ -217,7 +217,7 @@ export function MultiDimensionVariantSelector({
 
                     return (
                       <button
-                        key={variantDisplayValue(value, locale)}
+                        key={value}
                         type="button"
                         onClick={() => selectValue(dimension.key, value)}
                             aria-pressed={selected}
@@ -231,7 +231,7 @@ export function MultiDimensionVariantSelector({
                         )}
                       >
                         {selected && <Check className="ml-1 inline h-3.5 w-3.5" aria-hidden="true" />}
-                        {value}
+                        {variantDisplayValue(value, locale)}
                       </button>
                     );
                   })}
