@@ -395,8 +395,8 @@
     "entityId": "houyi-activated-carbon",
     "slug": "houyi-activated-carbon",
     "sourceHash": "84a6a91876413bb0",
-    "translatedBy": "groq:openai/gpt-oss-120b",
-    "translatedAt": "2026-09-18T22:49:53.425Z",
+    "translatedBy": "openai:assistant-on-user-request",
+    "translatedAt": "2026-10-26T20:00:00Z",
     "data": {
       "name": "Activated Carbon for Aquarium Water Filtration",
       "description": "Active carbon is used as a chemical filtration media to help reduce odors, yellowing, and adsorbable compounds. It is placed in a mesh bag in the water flow path after mechanical filtration.\n\nThe effectiveness and service life of the carbon depend on the amount of carbon and the water load; replace it when its efficiency declines rather than relying on a fixed duration for all tanks. Remove it during treatment if the medication is adsorbable or if the instructions recommend it.",
@@ -432,6 +432,10 @@
           "نوع الترشيح": {
             "label": "Filtration type",
             "value": "Chemical — adsorption"
+          },
+          "ملاحظة الصور": {
+            "label": "Image note",
+            "value": "Usage images are illustrative; the media bag and filter basket are not included."
           }
         }
       },
@@ -978,7 +982,7 @@
     "slug": "houyi-dutch-sand",
     "sourceHash": "5dd10e9472218f2a",
     "translatedBy": "openai:assistant-on-user-request",
-    "translatedAt": "2026-10-21T15:08:28.976867+00:00",
+    "translatedAt": "2026-10-26T20:00:00Z",
     "data": {
       "name": "Houyi Dutch Aquascape Sand",
       "description": "Decorative sand with a natural color gradient, suitable for planted tank layouts and aquascapes. It can be used as a surface layer or as part of the substrate design.\n\nRinse thoroughly before use to remove dust, and if the tank is sensitive to pH or GH/KH changes, test the water after adding it. Rooted plants require an appropriate nutrient source if the substrate is unfertilized.",
@@ -1011,16 +1015,16 @@
           },
           "وحدة البيع": {
             "label": "Sale unit",
-            "value": "5 kg"
+            "value": "1 kg"
           },
-          "القياس القادم": {
-            "label": "Upcoming size",
-            "value": "1 mm grains — coming soon"
+          "حجم الحبيبات": {
+            "label": "Grain size",
+            "value": "1 mm"
           }
         }
       },
       "variantLabels": {
-        "current-5kg": "Current bag — 5 kg",
+        "current-5kg": "1 mm — sold per 1 kg",
         "1mm": "1 mm grains — Coming soon"
       }
     }
@@ -1347,51 +1351,47 @@
   "houyi-led-light": {
     "entityId": "houyi-led-light",
     "slug": "houyi-thermostat",
-    "sourceHash": "d9991c6ddaa9be89",
-    "translatedBy": "groq:openai/gpt-oss-120b",
-    "translatedAt": "2026-09-18T22:58:06.303Z",
+    "sourceHash": "5e360f1328929b49",
+    "translatedBy": "openai:assistant-on-user-request",
+    "translatedAt": "2026-10-26T20:00:00Z",
     "data": {
-      "name": "Houyi Digital Aquarium Thermometer — LED Display",
-      "description": "A digital thermometer placed inside the aquarium water that displays the temperature directly and helps monitor its changes throughout the day.\n\nDo not treat the 0.1°C reading as a guaranteed measurement accuracy unless the packaging states so; it may be the display precision. Use it for daily monitoring and compare the reading with another thermometer if an illogical result appears.",
+      "name": "Digital Aquarium Thermometer",
+      "description": "A compact digital thermometer with an easy-to-read display and suction-cup mounting, helping you monitor aquarium temperature and notice changes throughout the day.\n\nInstall it in a visible position according to the package instructions, away from the heater itself. Wait for the reading to stabilize and compare with another thermometer if a result seems implausible.",
       "subcategory": "Thermometers",
-      "seoTitle": "Houyi Digital Aquarium Thermometer with LED Display | AQUAVO",
-      "seoDescription": "Accurately monitor aquarium temperature with the Houyi digital thermometer, featuring an LED display and a sensor. Easy to install for daily checks.",
+      "seoTitle": "Digital Aquarium Thermometer | AQUAVO",
+      "seoDescription": "Compact digital thermometer with a clear display and suction-cup mounting for monitoring aquarium temperature.",
       "specifications": {
         "benefits": [
-          "Clear digital display for temperature monitoring",
-          "Separate sensor placed inside the water",
-          "Helps notice aquarium temperature changes",
+          "Clear digital display for monitoring temperature",
+          "Compact body with suction-cup mounting",
+          "Helps you notice changes in aquarium temperature",
           "Easy to install and use"
         ],
         "usageInstructions": [
-          "Place the sensor inside the water, away from the heater",
-          "Mount the display outside the tank in a dry location",
-          "Wait until the reading stabilizes",
-          "Compare with another thermometer if an illogical reading appears"
+          "Install the thermometer in a visible position according to the package instructions",
+          "Keep the measuring position away from the heater itself",
+          "Wait for the reading to stabilize",
+          "Compare with another thermometer if a reading seems implausible"
         ],
         "safetyWarnings": [
-          "Do not submerge the display in water",
-          "Inspect the cable and sensor before use",
-          "Replace the battery if the display dims or the reading is unstable",
-          "Do not rely on a single thermometer when temperature is critical for the inhabitants"
+          "Follow the package instructions when installing or opening the device",
+          "Check the device body and suction cup before use",
+          "Compare with another thermometer if readings are unstable or implausible",
+          "Do not rely on a single thermometer if temperature is critical to the inhabitants"
         ],
-        "__cardBenefit": "External LED display with a water‑immersed sensor for temperature monitoring",
+        "__cardBenefit": "Clear digital reading for monitoring aquarium temperature",
         "labelled": {
           "النوع": {
             "label": "Type",
-            "value": "Digital thermometer with sensor"
+            "value": "Compact digital thermometer"
           },
           "الشاشة": {
             "label": "Display",
-            "value": "Illuminated digital LED"
+            "value": "Digital with clear numbers"
           },
-          "نطاق القياس": {
-            "label": "Measurement range",
-            "value": "-50 to +70 °C"
-          },
-          "طول سلك المستشعر": {
-            "label": "Sensor cable length",
-            "value": "1 metre"
+          "التثبيت": {
+            "label": "Mounting",
+            "value": "Suction cup"
           },
           "العلامة التجارية": {
             "label": "Brand",
@@ -1694,38 +1694,46 @@
   "houyi-moss-tree": {
     "entityId": "houyi-moss-tree",
     "slug": "houyi-moss-tree",
-    "sourceHash": "6fb8cdeb4f788fb3",
-    "translatedBy": "groq:openai/gpt-oss-120b",
-    "translatedAt": "2026-09-18T22:35:19.258Z",
+    "sourceHash": "d72845da8fb9efc2",
+    "translatedBy": "openai:assistant-on-user-request",
+    "translatedAt": "2026-10-26T20:00:00Z",
     "data": {
-      "name": "Houyi Moss Tree Ready for Aquascape",
-      "description": "Ready-to-use moss tree for aquascaping provides a vibrant green focal point, easy to install, trim, and maintain, enhancing natural décor in any aquarium.",
+      "name": "Wooden Tree for Aquascaping and Attaching Moss",
+      "description": "A branching wooden structure for creating a tree shape in an aquascape. Moss can be attached to suit the design. The piece comes with wooden branches and no live moss; moss is added separately.\n\nRinse the piece and secure it inside the aquarium. If you add moss, provide care appropriate to its type and trim it when needed.",
       "subcategory": "Natural Wood",
-      "seoTitle": "Houyi Moss Tree Ready for Aquascape | AQUAVO",
-      "seoDescription": "Ready-to-use moss tree for aquascaping provides a vibrant green focal point, easy to install, trim, and maintain, enhancing natural décor in any aquarium.",
+      "seoTitle": "Wooden Aquascape Tree — Moss Not Included | AQUAVO",
+      "seoDescription": "Branching wooden tree for aquascaping and attaching moss. Live moss is not included and can be added separately.",
       "specifications": {
         "benefits": [
-          "Ready-made arrangement provides a moss tree shape in the tank",
-          "Provides a suitable visual point for aquascape",
-          "Moss can be trimmed to maintain shape",
-          "Adds small surfaces and hideouts within the design"
+          "A wooden tree shape that can be arranged inside the aquarium",
+          "Branches suitable for attaching moss to suit the design",
+          "Provides a visual focal point for an aquascape",
+          "Adds surfaces and small shelters within the design"
         ],
         "usageInstructions": [
-          "Rinse the piece gently before inserting",
-          "Place it in a stable, suitable spot for the design",
-          "Monitor moss growth and condition over time",
-          "Trim excess parts as needed"
+          "Rinse the piece gently before placing it in the aquarium",
+          "Position it securely in a place suited to the design",
+          "Attach moss to the branches if you wish to add it",
+          "Monitor any added moss and trim excess growth when needed"
         ],
         "safetyWarnings": [
-          "Secure the piece firmly before adding fish",
-          "Ensure there are no sharp edges or loose parts",
-          "Adjust lighting and fertilization according to moss type, not a fixed schedule"
+          "Secure the piece before adding fish",
+          "Check for sharp edges or loose parts",
+          "If adding moss, adjust lighting and fertilization to its type rather than a fixed schedule"
         ],
-        "__cardBenefit": "Ready green point that gives a moss tree shape within the aquascape",
+        "__cardBenefit": "Tree-shaped wooden branches for aquascaping and attaching moss",
         "labelled": {
           "النوع": {
             "label": "Type",
-            "value": "Ready moss tree for arrangement"
+            "value": "Wooden tree for aquascaping"
+          },
+          "الموس الحي": {
+            "label": "Live moss",
+            "value": "Not included. Added separately."
+          },
+          "الحجم التقريبي": {
+            "label": "Approximate size",
+            "value": "20 to 30 cm according to the supplier file"
           }
         }
       },
@@ -1986,8 +1994,8 @@
     "entityId": "houyi-river-sand",
     "slug": "houyi-river-sand",
     "sourceHash": "210891a27de815e0",
-    "translatedBy": "groq:openai/gpt-oss-120b",
-    "translatedAt": "2026-09-18T22:49:15.927Z",
+    "translatedBy": "openai:assistant-on-user-request",
+    "translatedAt": "2026-10-26T20:00:00Z",
     "data": {
       "name": "Houyi Natural River Sand for Aquariums and Aquascapes",
       "description": "Natural river sand with fine, graded grains for use as a decorative substrate in tanks. Rinse thoroughly before use to reduce dust and fine particles.\n\nBecause the mineral composition of natural sand can vary between batches, we do not assume it is chemically inert; if your inhabitants are sensitive to pH or GH/KH, test the water after preparation.",
@@ -2021,6 +2029,10 @@
           "حجم الحبيبات": {
             "label": "Grain size",
             "value": "1–2 mm according to product data"
+          },
+          "ملاحظة الصور": {
+            "label": "Image note",
+            "value": "Illustrative image of the sand; color and grain shape may vary naturally."
           }
         }
       },
@@ -7124,7 +7136,7 @@
     "slug": "houyi-black-slate",
     "sourceHash": "c9066e29a288e38f",
     "translatedBy": "openai:assistant-on-user-request",
-    "translatedAt": "2026-10-21T15:08:28.976867+00:00",
+    "translatedAt": "2026-10-26T20:00:00Z",
     "data": {
       "name": "Black Slate for Distinct Rock Contrast",
       "description": "Black slate adds dark areas and rock lines to the aquarium layout. Depending on their shape, pieces can be oriented horizontally or vertically to highlight plants and surrounding light-coloured areas.\n\nWash the stone and remove dust and trapped soil, then secure it before filling the tank. Natural pieces vary in shape and colour, so choose their arrangement to suit the available space and monitor water chemistry if the aquarium is sensitive to changes.",
@@ -7153,6 +7165,10 @@
           "النوع": {
             "label": "Type",
             "value": "Natural decorative stone"
+          },
+          "ملاحظة الصور": {
+            "label": "Image note",
+            "value": "Images illustrate the product and its presentation; usage tools, aquarium and plants are not included. Natural details of wood and stone may vary between pieces."
           }
         }
       },
@@ -7288,7 +7304,7 @@
     "slug": "houyi-pine-bark-stone-10-40cm",
     "sourceHash": "b0154980ca21ccc4",
     "translatedBy": "openai:assistant-on-user-request",
-    "translatedAt": "2026-10-21T15:08:28.976867+00:00",
+    "translatedAt": "2026-10-26T20:00:00Z",
     "data": {
       "name": "Pine Bark Stone with Cavities — 10–40 cm",
       "description": "Pine Bark stone has a surface with distinct cavities and a size range of 10–40 cm, depending on the piece. It helps create a prominent rock mass or a group of varying heights within an aquascape.\n\nWash the stone and remove dust and trapped soil, then secure it before filling the tank. Natural pieces vary in shape and colour, so choose their arrangement to suit the available space and monitor water chemistry if the aquarium is sensitive to changes.",
@@ -7321,6 +7337,10 @@
           "نطاق المقاس": {
             "label": "Size range",
             "value": "10–40 cm"
+          },
+          "ملاحظة الصور": {
+            "label": "Image note",
+            "value": "Images illustrate the product and its presentation; usage tools, aquarium and plants are not included. Natural details of wood and stone may vary between pieces."
           }
         }
       },
@@ -7730,12 +7750,12 @@
   "houyi-fruit-shells-35pcs": {
     "entityId": "houyi-fruit-shells-35pcs",
     "slug": "houyi-fruit-shells-35pcs",
-    "sourceHash": "b3f51d0f179fe9e7",
+    "sourceHash": "ad0d71401d2c9f2e",
     "translatedBy": "openai:assistant-on-user-request",
-    "translatedAt": "2026-10-21T15:08:28.976867+00:00",
+    "translatedAt": "2026-10-26T20:00:00Z",
     "data": {
       "name": "Assorted Fruit Shells for Aquascaping — Approximately 35 Pieces",
-      "description": "An assortment of natural fruit shells adds varied shapes to the aquarium floor. The pack contains approximately 35 pieces and suits arrangements with leaves and wood for a scene rich in detail.\n\nInspect the pieces and prepare them with water outside the aquarium before adding a small amount. Monitor their condition over time and remove excess debris during maintenance, leaving suitable gaps for inhabitants to move and for cleaning the substrate.",
+      "description": "An assortment of natural fruit shells adds varied shapes to the aquarium floor. The pack contains approximately 35 pieces and suits arrangements with leaves and wood for a scene rich in detail.\n\nInspect the pieces and prepare them with water outside the aquarium before adding a small amount. Monitor their condition over time and remove excess debris during maintenance, leaving suitable gaps for inhabitants to move and for cleaning the substrate.\n\nThe assortment contents and piece count are approximate; images do not guarantee identical shell types or distribution in every pack.\n\nImages are illustrative and generated from product references, not actual photographs of the stocked item or a guarantee of accessories shown. Match the actual item and packaging before purchase and use.",
       "subcategory": "Natural materials",
       "seoTitle": "Assorted Fruit Shells for Aquascaping — Approximately 35 Pieces | AQUAVO",
       "seoDescription": "An assortment of natural fruit shells adds varied shapes to the aquarium floor. The pack contains approximately 35 pieces and suits arrangements with leaves",
@@ -7774,12 +7794,12 @@
   "tian-yuan-water-valves": {
     "entityId": "tian-yuan-water-valves",
     "slug": "tian-yuan-water-valves",
-    "sourceHash": "1b51fda8bac80d6e",
+    "sourceHash": "a77c0fe6d0848b5a",
     "translatedBy": "openai:assistant-on-user-request",
-    "translatedAt": "2026-10-21T15:08:28.976867+00:00",
+    "translatedAt": "2026-10-26T20:00:00Z",
     "data": {
       "name": "Tian Yuan Man Bu Water Valves with Multiple Connector Sizes",
-      "description": "Tian Yuan Man Bu valves control water passage through aquarium hose and organise connections. Upcoming options have connector outer diameters of 15/15 mm, 19/19 mm and 15/19 mm, so you can choose the connection suited to your water line.\n\nCompare the connectors with the hose's internal diameter before installation; these figures refer to the valve connectors. Disconnect the pump during installation, then open the water path and inspect the connections before restarting.",
+      "description": "Tian Yuan Man Bu valves control water passage through aquarium hose and organise connections. Upcoming options have connector outer diameters of 15/15 mm, 19/19 mm and 15/19 mm, so you can choose the connection suited to your water line.\n\nCompare the connectors with the hose's internal diameter before installation; these figures refer to the valve connectors. Disconnect the pump during installation, then open the water path and inspect the connections before restarting.\n\nImages show 19/19 mm followed by 15/19 mm. The 15/15 mm option is not pictured. These are outer diameters of the valve connectors, not a guaranteed hose size.\n\nImages are illustrative and generated from product references, not actual photographs of the stocked item or a guarantee of accessories shown. Match the actual item and packaging before purchase and use.",
       "subcategory": "Connectors and valves",
       "seoTitle": "Tian Yuan Man Bu Water Valves with Multiple Connector Sizes | AQUAVO",
       "seoDescription": "Tian Yuan Man Bu valves control water passage through aquarium hose and organise connections. Upcoming options have connector outer diameters of 15/15 mm,",
@@ -7935,12 +7955,12 @@
   "glass-filter-intake-u": {
     "entityId": "glass-filter-intake-u",
     "slug": "glass-filter-intake-u",
-    "sourceHash": "8ea7cb255e97cc8b",
+    "sourceHash": "779f923893b4dc42",
     "translatedBy": "openai:assistant-on-user-request",
-    "translatedAt": "2026-10-21T15:08:28.976867+00:00",
+    "translatedAt": "2026-10-26T20:00:00Z",
     "data": {
       "name": "U-Shaped Glass Filter Intake Pipe",
-      "description": "A clear U-shaped glass pipe draws water from the aquarium to an external filter, with little visual prominence among plants and decor. The upcoming designated sizes are 12 and 16 mm.\n\nMatch the actual connection diameter and pipe length to the hose and aquarium rim before installation. Secure it gently and inspect the connections, avoiding pressure or twisting when attaching or removing the hose.",
+      "description": "A clear U-shaped glass pipe draws water from the aquarium to an external filter, with little visual prominence among plants and decor. The upcoming designated sizes are 12 and 16 mm.\n\nMatch the actual connection diameter and pipe length to the hose and aquarium rim before installation. Secure it gently and inspect the connections, avoiding pressure or twisting when attaching or removing the hose.\n\nImages show the 16 mm item size only. The 12 mm option listed in the range is not pictured. Measure the item and hose before installation.\n\nImages are illustrative and generated from product references, not actual photographs of the stocked item or a guarantee of accessories shown. Match the actual item and packaging before purchase and use.",
       "subcategory": "Filter pipes",
       "seoTitle": "U-Shaped Glass Filter Intake Pipe | AQUAVO",
       "seoDescription": "A clear U-shaped glass pipe draws water from the aquarium to an external filter, with little visual prominence among plants and decor. The upcoming designated",
@@ -7990,12 +8010,12 @@
   "glass-filter-outlet-horn": {
     "entityId": "glass-filter-outlet-horn",
     "slug": "glass-filter-outlet-horn",
-    "sourceHash": "c4fdb5a1dee646d7",
+    "sourceHash": "aa0991bedaa0c532",
     "translatedBy": "openai:assistant-on-user-request",
-    "translatedAt": "2026-10-21T15:08:28.976867+00:00",
+    "translatedAt": "2026-10-26T20:00:00Z",
     "data": {
       "name": "Horn Glass Filter Return Pipe",
-      "description": "A clear Horn glass pipe returns water from an external filter to the aquarium and directs flow through its outlet. The upcoming designated sizes are 12 and 16 mm, so you can choose the connection that matches your equipment.\n\nCompare the actual diameter, pipe length and bend clearance with the hose and aquarium rim. Fit the piece gently with suitable holders, then inspect the connections and flow direction.",
+      "description": "A clear Horn glass pipe returns water from an external filter to the aquarium and directs flow through its outlet. The upcoming designated sizes are 12 and 16 mm, so you can choose the connection that matches your equipment.\n\nCompare the actual diameter, pipe length and bend clearance with the hose and aquarium rim. Fit the piece gently with suitable holders, then inspect the connections and flow direction.\n\nImages show the 16 mm item size only. The 12 mm option listed in the range is not pictured. Measure the item and hose before installation.\n\nImages are illustrative and generated from product references, not actual photographs of the stocked item or a guarantee of accessories shown. Match the actual item and packaging before purchase and use.",
       "subcategory": "Filter pipes",
       "seoTitle": "Horn Glass Filter Return Pipe | AQUAVO",
       "seoDescription": "A clear Horn glass pipe returns water from an external filter to the aquarium and directs flow through its outlet. The upcoming designated sizes are 12 and 16",
@@ -8096,12 +8116,12 @@
   "houyi-brine-shrimp-hatchery-250ml": {
     "entityId": "houyi-brine-shrimp-hatchery-250ml",
     "slug": "houyi-brine-shrimp-hatchery-250ml",
-    "sourceHash": "86aa4df6161b62a8",
+    "sourceHash": "cb7276b2e918d6fc",
     "translatedBy": "openai:assistant-on-user-request",
-    "translatedAt": "2026-10-21T15:08:28.976867+00:00",
+    "translatedAt": "2026-10-26T20:00:00Z",
     "data": {
       "name": "Small Brine Shrimp Egg Hatcher — 250 ml",
-      "description": "A small 250 ml vessel for hatching brine shrimp eggs and preparing newly hatched shrimp for feeding. Its clear body helps you observe egg movement in the water and inspect the hatch.\n\nPrepare water, salt and suitable aeration according to the instructions for the eggs being used. The hatcher is a hatching tool; hatch rate and timing depend on egg quality, water temperature, salinity and aeration.",
+      "description": "A small 250 ml vessel for hatching brine shrimp eggs and preparing newly hatched shrimp for feeding. Its clear body helps you observe egg movement in the water and inspect the hatch.\n\nPrepare water, salt and suitable aeration according to the instructions for the eggs being used. The hatcher is a hatching tool; hatch rate and timing depend on egg quality, water temperature, salinity and aeration.\n\nImages show the small 250 ml HOUYI hatcher. The usage scene is illustrative and does not confirm inclusion of the holder or air pump.\n\nImages are illustrative and generated from product references, not actual photographs of the stocked item or a guarantee of accessories shown. Match the actual item and packaging before purchase and use.",
       "subcategory": "Breeding tools",
       "seoTitle": "Small Brine Shrimp Egg Hatcher — 250 ml | AQUAVO",
       "seoDescription": "A small 250 ml vessel for hatching brine shrimp eggs and preparing newly hatched shrimp for feeding. Its clear body helps you observe egg movement in the water",
@@ -8568,12 +8588,12 @@
   "qanvee-k-quick-connections": {
     "entityId": "qanvee-k-quick-connections",
     "slug": "qanvee-k-quick-connections",
-    "sourceHash": "92275b1a5602fe30",
+    "sourceHash": "cb6a78d14d70bd2b",
     "translatedBy": "openai:assistant-on-user-request",
-    "translatedAt": "2026-10-21T15:08:28.976867+00:00",
+    "translatedAt": "2026-10-26T20:00:00Z",
     "data": {
       "name": "QANVEE K Quick-Disconnect Fittings for Filter Hose",
-      "description": "QANVEE K fittings make it easier to disconnect and reconnect a water line during filter maintenance. Upcoming options are K-12/16 for 12/16 mm hose and K-16/22 for 16/22 mm hose.\n\nMatch the hose's internal and external diameters to the fitting. Stop the pump and close the valves before disconnecting. After reconnecting, open the water path and check that the locks are secure and there are no leaks.",
+      "description": "QANVEE K fittings make it easier to disconnect and reconnect a water line during filter maintenance. Upcoming options are K-12/16 for 12/16 mm hose and K-16/22 for 16/22 mm hose.\n\nMatch the hose's internal and external diameters to the fitting. Stop the pump and close the valves before disconnecting. After reconnecting, open the water path and check that the locks are secure and there are no leaks.\n\nThe gallery shows the earlier QANVEE K range followed by K-16/22. This model fits a hose with a 16 mm internal and 22 mm external diameter; it is not a reducer between the two sizes.\n\nImages are illustrative and generated from product references, not actual photographs of the stocked item or a guarantee of accessories shown. Match the actual item and packaging before purchase and use.",
       "subcategory": "Connectors and valves",
       "seoTitle": "QANVEE K Quick-Disconnect Fittings for Filter Hose | AQUAVO",
       "seoDescription": "QANVEE K fittings make it easier to disconnect and reconnect a water line during filter maintenance. Upcoming options are K-12/16 for 12/16 mm hose and K-16/22",
@@ -8818,12 +8838,12 @@
   "sunsun-xbl-hang-on-filters": {
     "entityId": "sunsun-xbl-hang-on-filters",
     "slug": "sunsun-xbl-hang-on-filters",
-    "sourceHash": "0f51ea9a99498dea",
+    "sourceHash": "c370f299020151ab",
     "translatedBy": "openai:assistant-on-user-request",
-    "translatedAt": "2026-10-21T15:08:28.976867+00:00",
+    "translatedAt": "2026-10-26T20:00:00Z",
     "data": {
       "name": "SUNSUN XBL Hang-On Filters",
-      "description": "SUNSUN XBL filters hang on the aquarium's side and support biological filtration and surface skimming. Upcoming models are XBL-300 with a nominal flow of 300 litres per hour, XBL-500 with 500 litres per hour and XBL-600 with 500 litres per hour.\n\nMatch the bracket and installation space to the aquarium, secure the intake and return pipes and prime the filter with water before starting. Monitor water level and clean the inlet and media when flow decreases.",
+      "description": "SUNSUN XBL filters hang on the aquarium's side and support biological filtration and surface skimming. Upcoming models are XBL-300 with a nominal flow of 300 litres per hour, XBL-500 with 500 litres per hour and XBL-600 with 500 litres per hour.\n\nMatch the bracket and installation space to the aquarium, secure the intake and return pipes and prime the filter with water before starting. Monitor water level and clean the inlet and media when flow decreases.\n\nGallery images are ordered by model: XBL-300, XBL-500, then XBL-600. Specific XBL-600 warning: a reference image showed a 110V/60Hz label; the stocked batch voltage is unconfirmed. Do not assume compatibility with 220–240V before inspecting the actual label.\n\nImages are illustrative and generated from product references, not actual photographs of the stocked item or a guarantee of accessories shown. Match the actual item and packaging before purchase and use.",
       "subcategory": "Hang-on filters",
       "seoTitle": "SUNSUN XBL Hang-On Filters | AQUAVO",
       "seoDescription": "SUNSUN XBL filters hang on the aquarium's side and support biological filtration and surface skimming. Upcoming models are XBL-300 with a nominal flow of 300",
@@ -8908,12 +8928,12 @@
   "sunsun-eh-external-heaters": {
     "entityId": "sunsun-eh-external-heaters",
     "slug": "sunsun-eh-external-heaters",
-    "sourceHash": "3fcc58fc94695162",
+    "sourceHash": "2d2da74e712885fc",
     "translatedBy": "openai:assistant-on-user-request",
-    "translatedAt": "2026-10-21T15:08:28.976867+00:00",
+    "translatedAt": "2026-10-26T20:00:00Z",
     "data": {
       "name": "SUNSUN EH External Heaters",
-      "description": "SUNSUN EH heaters are installed outside the aquarium on the filter's water return line. The upcoming models are EH-300 and EH-500, each with a digital screen to monitor temperature and adjust the setting.\n\nInstall the heater upright according to its manual, secure the connections and confirm water flow before connecting power. Monitor aquarium temperature with an independent thermometer, and disconnect the heater when flow stops or during maintenance.",
+      "description": "SUNSUN EH heaters are installed outside the aquarium on the filter's water return line. The upcoming models are EH-300 and EH-500, each with a digital screen to monitor temperature and adjust the setting.\n\nInstall the heater upright according to its manual, secure the connections and confirm water flow before connecting power. Monitor aquarium temperature with an independent thermometer, and disconnect the heater when flow stops or during maintenance.\n\nGallery images are ordered by model: EH-300 then EH-500. Check the supply voltage and actual device label; the heater is installed outside the aquarium and must not be submerged.\n\nImages are illustrative and generated from product references, not actual photographs of the stocked item or a guarantee of accessories shown. Match the actual item and packaging before purchase and use.",
       "subcategory": "Heaters",
       "seoTitle": "SUNSUN EH External Heaters | AQUAVO",
       "seoDescription": "SUNSUN EH heaters are installed outside the aquarium on the filter's water return line. The upcoming models are EH-300 and EH-500, each with a digital screen",
@@ -9066,12 +9086,12 @@
   "sobo-aq-submersible-pumps": {
     "entityId": "sobo-aq-submersible-pumps",
     "slug": "sobo-aq-submersible-pumps",
-    "sourceHash": "9e31375e98eeabd2",
+    "sourceHash": "e9af3b6d40b981d3",
     "translatedBy": "openai:assistant-on-user-request",
-    "translatedAt": "2026-10-21T15:08:28.976867+00:00",
+    "translatedAt": "2026-10-26T20:00:00Z",
     "data": {
       "name": "SOBO AQ Submersible Water Pumps",
-      "description": "SOBO AQ submersible pumps circulate water through the aquarium or filtration system. Upcoming options are AQ-1000 at 15 watts with a nominal flow of 1000 litres per hour, and AQ-1500 at 25 watts with a nominal flow of 1500 litres per hour.\n\nInstall the pump underwater and keep its inlet away from sand and deposits. Match the connections and electrical specifications, and check flow after installation because pumping height and pipe resistance affect actual performance.",
+      "description": "SOBO AQ submersible pumps circulate water through the aquarium or filtration system. Upcoming options are AQ-1000 at 15 watts with a nominal flow of 1000 litres per hour, and AQ-1500 at 25 watts with a nominal flow of 1500 litres per hour.\n\nInstall the pump underwater and keep its inlet away from sand and deposits. Match the connections and electrical specifications, and check flow after installation because pumping height and pipe resistance affect actual performance.\n\nImages show SOBO AQ-1500 only; the AQ-1000 model listed in the range is not pictured in this batch.\n\nImages are illustrative and generated from product references, not actual photographs of the stocked item or a guarantee of accessories shown. Match the actual item and packaging before purchase and use.",
       "subcategory": "Water circulation",
       "seoTitle": "SOBO AQ Submersible Water Pumps | AQUAVO",
       "seoDescription": "SOBO AQ submersible pumps circulate water through the aquarium or filtration system. Upcoming options are AQ-1000 at 15 watts with a nominal flow of 1000",
@@ -9112,12 +9132,12 @@
   "glass-filter-outlet-double-cut": {
     "entityId": "glass-filter-outlet-double-cut",
     "slug": "glass-filter-outlet-double-cut",
-    "sourceHash": "93cdedf4925d5f14",
+    "sourceHash": "d105e737d95087e9",
     "translatedBy": "openai:assistant-on-user-request",
-    "translatedAt": "2026-10-21T15:08:28.976867+00:00",
+    "translatedAt": "2026-10-26T20:00:00Z",
     "data": {
       "name": "Double Cut Glass Filter Return Pipe",
-      "description": "A clear Double Cut glass pipe returns water from an external filter and directs it within the aquarium. The upcoming designated sizes are 12 and 16 mm, with a double-cut outlet as indicated by the product designation.\n\nMatch the actual connection, pipe length and bend to the hose and aquarium. Fit the piece gently and check its stability and for leaks, then start the filter and inspect flow direction.",
+      "description": "A clear Double Cut glass pipe returns water from an external filter and directs it within the aquarium. The upcoming designated sizes are 12 and 16 mm, with a double-cut outlet as indicated by the product designation.\n\nMatch the actual connection, pipe length and bend to the hose and aquarium. Fit the piece gently and check its stability and for leaks, then start the filter and inspect flow direction.\n\nImages show the 16 mm item size only. The 12 mm option listed in the range is not pictured. Measure the item and hose before installation.\n\nImages are illustrative and generated from product references, not actual photographs of the stocked item or a guarantee of accessories shown. Match the actual item and packaging before purchase and use.",
       "subcategory": "Filter pipes",
       "seoTitle": "Double Cut Glass Filter Return Pipe | AQUAVO",
       "seoDescription": "A clear Double Cut glass pipe returns water from an external filter and directs it within the aquarium. The upcoming designated sizes are 12 and 16 mm, with a",
@@ -9372,7 +9392,7 @@
     "slug": "houyi-biochemical-filter-foam",
     "sourceHash": "cdb36ead4b1e427d",
     "translatedBy": "openai:assistant-on-user-request",
-    "translatedAt": "2026-10-21T15:08:28.976867+00:00",
+    "translatedAt": "2026-10-26T20:00:00Z",
     "data": {
       "name": "Cut-to-Fit Biological Filter Sponge",
       "description": "Porous black filter sponge combines particle capture with a surface that beneficial bacteria can colonise as the filtration system matures. It can be cut to suit its designated chamber while allowing water through its structure.\n\nRinse the sponge before first use, then gently clean it when dirty with water removed from the aquarium. Maintain flow and avoid replacing all established biological media at the same time.",
@@ -9409,6 +9429,10 @@
           "الأبعاد التقريبية": {
             "label": "Approximate dimensions",
             "value": "45×45×4 — as listed on the invoice; unit not specified."
+          },
+          "ملاحظة الصور": {
+            "label": "Image note",
+            "value": "Images illustrate the foam sheet, cutting and use; the basket, scissors, bucket and aquarium are not included."
           }
         }
       },
@@ -9559,7 +9583,7 @@
     "slug": "houyi-mountain-wood",
     "sourceHash": "05b07ce9a4310ecb",
     "translatedBy": "openai:assistant-on-user-request",
-    "translatedAt": "2026-10-21T15:08:28.976867+00:00",
+    "translatedAt": "2026-10-26T20:00:00Z",
     "data": {
       "name": "Mountain Wood for an Aquascape Focal Point — 20–50 cm",
       "description": "Mountain wood in the 20–50 cm range creates a prominent aquascape element. Orient the piece to guide the layout and arrange plants and stones around it according to the wood's shape and available space.\n\nClean the wood and soak it if needed, then secure it in a stable position before introducing aquarium inhabitants. Sinking time and the degree of water staining vary between pieces, and the natural shape details also differ from the photos.",
@@ -9596,6 +9620,10 @@
           "نطاق المقاس": {
             "label": "Size range",
             "value": "20–50 cm"
+          },
+          "ملاحظة الصور": {
+            "label": "Image note",
+            "value": "Images illustrate the product and its presentation; usage tools, aquarium and plants are not included. Natural details of wood and stone may vary between pieces."
           }
         }
       },
@@ -11415,6 +11443,222 @@
           "مواصفات خيار ارتفاع 60 × طول 200 سم": {
             "label": "Height 60 × length 200 cm option specifications",
             "value": "Height: 60 cm; material: PVC; colour: matte black; thickness: 0.23 mm; attachment: outside the glass without glue; background length: 200 cm"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "houyi-south-american-sand-red": {
+    "entityId": "houyi-south-american-sand-red",
+    "slug": "houyi-south-american-sand-red",
+    "sourceHash": "443ae5a195ddd97f",
+    "translatedBy": "openai:assistant-on-user-request",
+    "translatedAt": "2026-10-26T20:00:00Z",
+    "data": {
+      "name": "Red South American Sand",
+      "description": "Red South American Sand from Houyi. This product is specific to this type, and the displayed images belong to it. Coming soon; the selling price will be set when available.",
+      "subcategory": "Sand",
+      "specifications": {
+        "labelled": {
+          "اللون": {
+            "label": "Color",
+            "value": "Red"
+          },
+          "وحدة البيع": {
+            "label": "Sale unit",
+            "value": "kg"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "houyi-south-american-sand-brown": {
+    "entityId": "houyi-south-american-sand-brown",
+    "slug": "houyi-south-american-sand-brown",
+    "sourceHash": "9e1682e3cb0d1d8b",
+    "translatedBy": "openai:assistant-on-user-request",
+    "translatedAt": "2026-10-26T20:00:00Z",
+    "data": {
+      "name": "Brown South American Sand",
+      "description": "Brown South American Sand from Houyi. This product is specific to this type, and the displayed images belong to it. Coming soon; the selling price will be set when available.",
+      "subcategory": "Sand",
+      "specifications": {
+        "labelled": {
+          "اللون": {
+            "label": "Color",
+            "value": "Brown"
+          },
+          "وحدة البيع": {
+            "label": "Sale unit",
+            "value": "kg"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "houyi-blue-dragon-stone-unpicked": {
+    "entityId": "houyi-blue-dragon-stone-unpicked",
+    "slug": "houyi-blue-dragon-stone-unpicked",
+    "sourceHash": "c495669a67ad773c",
+    "translatedBy": "openai:assistant-on-user-request",
+    "translatedAt": "2026-10-26T20:00:00Z",
+    "data": {
+      "name": "Blue Dragon Stone — Unpicked",
+      "description": "Blue Dragon Stone — Unpicked from Houyi. This product is specific to this type, and the displayed images belong to it. Coming soon; the selling price will be set when available.",
+      "subcategory": "Stones",
+      "specifications": {
+        "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "Untreated — Unpicked"
+          },
+          "وحدة البيع": {
+            "label": "Sale unit",
+            "value": "kg"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "houyi-blue-dragon-stone-pickling": {
+    "entityId": "houyi-blue-dragon-stone-pickling",
+    "slug": "houyi-blue-dragon-stone-pickling",
+    "sourceHash": "638e6034af587a78",
+    "translatedBy": "openai:assistant-on-user-request",
+    "translatedAt": "2026-10-26T20:00:00Z",
+    "data": {
+      "name": "Blue Dragon Stone — Pickling",
+      "description": "Blue Dragon Stone — Pickling from Houyi. This product is specific to this type, and the displayed images belong to it. Coming soon; the selling price will be set when available.",
+      "subcategory": "Stones",
+      "specifications": {
+        "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "Treated — Pickling"
+          },
+          "وحدة البيع": {
+            "label": "Sale unit",
+            "value": "kg"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "houyi-snowflake-white-sand-2-5kg": {
+    "entityId": "houyi-snowflake-white-sand-2-5kg",
+    "slug": "houyi-snowflake-white-sand-2-5kg",
+    "sourceHash": "ec9fc33acb8719de",
+    "translatedBy": "openai:assistant-on-user-request",
+    "translatedAt": "2026-10-26T20:00:00Z",
+    "data": {
+      "name": "Snowflake White Decorative Sand — 2.5 kg",
+      "description": "Snowflake White Decorative Sand — 2.5 kg from Houyi. Grain size: 0.8–1.2 mm. This product is specific to this type, and the displayed images belong to it. Coming soon; the selling price will be set when available.",
+      "subcategory": "Sand",
+      "specifications": {
+        "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "Snowflake White"
+          },
+          "وزن العبوة": {
+            "label": "Pack weight",
+            "value": "2.5 kg"
+          },
+          "حجم الحبيبات": {
+            "label": "Grain size",
+            "value": "0.8–1.2 mm"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "houyi-peach-blossom-sand-2-5kg": {
+    "entityId": "houyi-peach-blossom-sand-2-5kg",
+    "slug": "houyi-peach-blossom-sand-2-5kg",
+    "sourceHash": "313a5c75a25f464b",
+    "translatedBy": "openai:assistant-on-user-request",
+    "translatedAt": "2026-10-26T20:00:00Z",
+    "data": {
+      "name": "Peach Blossom Decorative Sand — 2.5 kg",
+      "description": "Peach Blossom Decorative Sand — 2.5 kg from Houyi. Grain size: 0.5–1 mm. This product is specific to this type, and the displayed images belong to it. Coming soon; the selling price will be set when available.",
+      "subcategory": "Sand",
+      "specifications": {
+        "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "Peach Blossom"
+          },
+          "وزن العبوة": {
+            "label": "Pack weight",
+            "value": "2.5 kg"
+          },
+          "حجم الحبيبات": {
+            "label": "Grain size",
+            "value": "0.5–1 mm"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "houyi-pink-sand-2-5kg": {
+    "entityId": "houyi-pink-sand-2-5kg",
+    "slug": "houyi-pink-sand-2-5kg",
+    "sourceHash": "e86f799a0684f83a",
+    "translatedBy": "openai:assistant-on-user-request",
+    "translatedAt": "2026-10-26T20:00:00Z",
+    "data": {
+      "name": "Pink Decorative Sand — 2.5 kg",
+      "description": "Pink Decorative Sand — 2.5 kg from Houyi. Grain size: 0.2–0.5 mm. This product is specific to this type, and the displayed images belong to it. Coming soon; the selling price will be set when available.",
+      "subcategory": "Sand",
+      "specifications": {
+        "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "Pink"
+          },
+          "وزن العبوة": {
+            "label": "Pack weight",
+            "value": "2.5 kg"
+          },
+          "حجم الحبيبات": {
+            "label": "Grain size",
+            "value": "0.2–0.5 mm"
+          }
+        }
+      },
+      "variantLabels": {}
+    }
+  },
+  "houyi-grey-jade-sand-2-5kg": {
+    "entityId": "houyi-grey-jade-sand-2-5kg",
+    "slug": "houyi-grey-jade-sand-2-5kg",
+    "sourceHash": "7e179ce70fdcea67",
+    "translatedBy": "openai:assistant-on-user-request",
+    "translatedAt": "2026-10-26T20:00:00Z",
+    "data": {
+      "name": "Grey Jade Decorative Sand — 2.5 kg",
+      "description": "Grey Jade Decorative Sand — 2.5 kg from Houyi. Grain size: 0.5–1 mm. This product is specific to this type, and the displayed images belong to it. Coming soon; the selling price will be set when available.",
+      "subcategory": "Sand",
+      "specifications": {
+        "labelled": {
+          "النوع": {
+            "label": "Type",
+            "value": "Grey Jade"
+          },
+          "وزن العبوة": {
+            "label": "Pack weight",
+            "value": "2.5 kg"
+          },
+          "حجم الحبيبات": {
+            "label": "Grain size",
+            "value": "0.5–1 mm"
           }
         }
       },
