@@ -253,6 +253,25 @@ describe("attribution — the durable join key", () => {
     expect(JSON.stringify(payload)).not.toMatch(PII_VALUE);
   });
 
+  it("keeps AIR-01 organic source through checkout even after URL parameters disappear", () => {
+    const landing = new URL(window.location.href);
+    landing.search = "?utm_source=instagram&utm_medium=organic_social&utm_campaign=air_01_202610&utm_content=reel_problem&aq_campaign_id=air_01_202610";
+    window.history.replaceState({}, "", landing.toString());
+    captureAttributionFromUrl();
+
+    // Client-side checkout has no campaign query parameters, but order data must retain the source.
+    window.history.replaceState({}, "", "/checkout");
+    captureAttributionFromUrl();
+    const payload = orderAttributionPayload();
+    expect(payload.utm_source).toBe("instagram");
+    expect(payload.utm_medium).toBe("organic_social");
+    expect(payload.utm_campaign).toBe("air_01_202610");
+    expect(payload.utm_content).toBe("reel_problem");
+    expect(payload.aq_campaign_id).toBe("air_01_202610");
+    expect(payload.first_touch_utm_campaign).toBe("air_01_202610");
+    expect(payload.aq_sid).toBeTruthy();
+  });
+
   it("bounds an attacker-controlled parameter rather than storing it whole", () => {
     const u = new URL(window.location.href);
     u.search = `?utm_source=${"x".repeat(5000)}`;
