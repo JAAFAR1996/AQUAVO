@@ -112,7 +112,9 @@ describe("localized product discovery", () => {
       expect(variant.offers.url).toBe(url);
     }
     for (const item of crumbs.itemListElement) {
-      expect(item.item).toContain(`https://www.aquavoiq.com/${locale}/`);
+      const target = new URL(item.item);
+      expect(target.origin).toBe("https://www.aquavoiq.com");
+      expect(target.pathname.split("/")[1]).toBe(locale);
     }
   });
 
