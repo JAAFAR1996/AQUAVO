@@ -194,5 +194,6 @@ export function variantDisplayValue(value: string, locale: string): string {
   return value.replace(/واط/g, locale === "en" ? "W" : "وات")
     .replace(/لتر/g, locale === "en" ? "L" : "لیتر")
     .replace(/سم/g, locale === "en" ? "cm" : "سم")
-    .replace(/ملم/g, locale === "en" ? "mm" : "ملم");
+    .replace(/ملم/g, locale === "en" ? "mm" : "ملم")
+    .replace(/متر/g, locale === "en" ? "m" : "مەتر");
 }
