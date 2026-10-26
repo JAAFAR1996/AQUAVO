@@ -1,3 +1,4 @@
+import { customerShippingFee, DEFAULT_CUSTOMER_SHIPPING_FEE_IQD } from "../shared/store-policy.js";
 import type { Server } from "http";
 import express from "express";
 import { createProductRouter } from "./routes/products.js";
@@ -90,11 +91,9 @@ export async function registerRoutes(httpServer: Server, app: express.Applicatio
     res.set("Cache-Control", "no-store");
     try {
       const stored = await storage.getSetting("shipping_fee");
-      const parsed = Number(stored ?? 5000);
-      const shippingFee = Number.isFinite(parsed) && parsed > 0 ? parsed : 5000;
-      res.json({ shippingFee });
+      res.json({ shippingFee: customerShippingFee(stored) });
     } catch {
-      res.json({ shippingFee: 5000 });
+      res.json({ shippingFee: DEFAULT_CUSTOMER_SHIPPING_FEE_IQD });
     }
   });
 
