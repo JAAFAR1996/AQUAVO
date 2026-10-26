@@ -287,7 +287,7 @@ export default function BundlesPage(){
                             <p className="mt-1 text-xs text-muted-foreground">{t.unitPrice}: <bdi>{formatIQD(Number(variant?.price ?? base?.price ?? item.price ?? 0))}</bdi></p>
                           </div>
                         </Link>
-                        {item.required && base?.variants?.some(isVariantActive) && (
+                        {item.required && !original.items[index].variantId && base?.variants?.some(isVariantActive) && (
                           <select aria-label={(base?.name ?? item.name)+" — "+t.choose}
                             className="mt-2 min-h-11 w-full rounded-lg border border-border bg-background px-3 text-sm"
                             value={item.variantId ?? ""}
@@ -304,7 +304,7 @@ export default function BundlesPage(){
                             ))}
                           </select>
                         )}
-                        {item.required && base && !needsChoice && !productForBundleItem(base,item) && (
+                        {item.required && base && (item.variantId || !(base.hasVariants || base.variants?.some(isVariantActive))) && !productForBundleItem(base,item) && (
                           <p className="mt-1 text-xs text-destructive">{t.itemUnavailable}</p>
                         )}
                         </div>
