@@ -168,7 +168,7 @@ export async function getAttributionHealth() {
 
   const result = await db.execute(sql`
     WITH realized AS (
-      SELECT o.id,o.aq_sid,o.attribution_gclid,o.attribution_fbclid
+      SELECT o.id,o.aq_sid,o.attribution_gclid,o.attribution_fbclid,o.attribution_utm_campaign,o.aq_campaign_id
       FROM public.orders o
       WHERE COALESCE(o.is_test,false)=false
         AND o.status='delivered'
@@ -197,6 +197,7 @@ export async function getAttributionHealth() {
     SELECT
       COUNT(*)::int AS realized_orders,
       COUNT(*) FILTER (WHERE r.aq_sid IS NOT NULL)::int AS attributed_orders,
+      COUNT(*) FILTER (WHERE NULLIF(r.attribution_utm_campaign,'') IS NOT NULL OR NULLIF(r.aq_campaign_id,'') IS NOT NULL)::int AS campaign_attributed_orders,
       COUNT(*) FILTER (WHERE r.attribution_gclid IS NOT NULL)::int AS google_click_orders,
       COUNT(*) FILTER (WHERE r.attribution_fbclid IS NOT NULL)::int AS meta_click_orders,
       COUNT(g.order_id)::int AS google_measured_orders,
@@ -210,6 +211,74 @@ export async function getAttributionHealth() {
   const googleMeasured = n(row.google_measured_orders);
   const metaMeasured = n(row.meta_measured_orders);
   const attributed = n(row.attributed_orders);
+  const campaignAttributed = n(row.campaign_attributed_orders);
+
+  // Diagnose the last 90 days by the order's original campaign snapshot, NEVER by
+  // timestamp proximity or the platform's "Purchase" event (which is order creation).
+  // Missing campaign IDs are deliberately grouped as "unattributed", not "direct".
+  // Every contribution below is BEFORE ads and overhead; NULL means cost data incomplete.
+  const campaignResult = await db.execute(sql`
+    WITH scoped AS (
+      SELECT o.id, o.status,
+        COALESCE(NULLIF(o.attribution_utm_source,''),'unattributed') AS source,
+        COALESCE(NULLIF(o.attribution_utm_medium,''),'unknown') AS medium,
+        COALESCE(NULLIF(o.attribution_utm_campaign,''),NULLIF(o.aq_campaign_id,''),'unattributed') AS campaign,
+        COALESCE(NULLIF(o.attribution_utm_content,''),'unknown') AS creative,
+        (
+          o.status='delivered' AND o.payment_status='paid' AND (
+            o.cod_received=true OR EXISTS (
+              SELECT 1 FROM public.payments p
+              WHERE p.order_id=o.id AND p.method IN ('wayl','alqaseh')
+                AND p.status='completed'
+            )
+          )
+        ) AS realized
+      FROM public.orders o
+      WHERE COALESCE(o.is_test,false)=false
+        AND o.archived_at IS NULL
+        AND o.created_at >= (now() AT TIME ZONE 'Asia/Baghdad') - INTERVAL '90 days'
+    )
+    SELECT s.source,s.medium,s.campaign,s.creative,
+      COUNT(*)::int AS created_orders,
+      COUNT(*) FILTER(WHERE s.realized)::int AS realized_orders,
+      COUNT(*) FILTER(WHERE s.status='cancelled')::int AS cancelled_orders,
+      COUNT(*) FILTER(WHERE s.status='returned')::int AS returned_orders,
+      COUNT(*) FILTER(WHERE s.status='delivered' AND NOT s.realized)::int AS delivered_uncollected_orders,
+      COUNT(*) FILTER(
+        WHERE s.realized AND a.cost_status='exact' AND a.contribution_profit IS NOT NULL
+      )::int AS cost_complete_realized_orders,
+      CASE WHEN COUNT(*) FILTER(WHERE s.realized) =
+        COUNT(*) FILTER(
+          WHERE s.realized AND a.cost_status='exact' AND a.contribution_profit IS NOT NULL
+        )
+        THEN COALESCE(SUM(a.contribution_profit) FILTER(WHERE s.realized),0)
+        ELSE NULL
+      END AS pre_ad_contribution_iqd
+    FROM scoped s
+    LEFT JOIN LATERAL (
+      SELECT a.cost_status,a.contribution_profit
+      FROM public.v_order_accounting a
+      WHERE a.order_id=s.id
+      ORDER BY a.recognized_at DESC
+      LIMIT 1
+    ) a ON s.realized
+    GROUP BY s.source,s.medium,s.campaign,s.creative
+    ORDER BY COUNT(*) FILTER(WHERE s.realized) DESC,COUNT(*) DESC
+    LIMIT 30
+  `);
+  const campaignOutcomes = rowsOf(campaignResult).map((entry) => ({
+    source: String(entry.source ?? "unattributed"),
+    medium: String(entry.medium ?? "unknown"),
+    campaign: String(entry.campaign ?? "unattributed"),
+    creative: String(entry.creative ?? "unknown"),
+    createdOrders: n(entry.created_orders),
+    realizedOrders: n(entry.realized_orders),
+    cancelledOrders: n(entry.cancelled_orders),
+    returnedOrders: n(entry.returned_orders),
+    deliveredUncollectedOrders: n(entry.delivered_uncollected_orders),
+    costCompleteRealizedOrders: n(entry.cost_complete_realized_orders),
+    preAdContributionIqd: entry.pre_ad_contribution_iqd == null ? null : n(entry.pre_ad_contribution_iqd),
+  }));
 
   const provider = await db.execute(sql`
     SELECT
@@ -224,6 +293,10 @@ export async function getAttributionHealth() {
     realizedOrders: realized,
     attributedOrders: attributed,
     attributionCoveragePct: realized > 0 ? attributed / realized * 100 : 0,
+    campaignAttributedOrders: campaignAttributed,
+    campaignAttributionCoveragePct: realized > 0 ? campaignAttributed / realized * 100 : 0,
+    campaignOutcomes,
+    campaignWindowDays: 90,
     googleClickOrders: n(row.google_click_orders),
     metaClickOrders: n(row.meta_click_orders),
     googleMeasuredOrders: googleMeasured,
