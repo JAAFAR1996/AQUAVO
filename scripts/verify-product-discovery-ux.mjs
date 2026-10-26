@@ -136,7 +136,11 @@ try {
     await expect(viewport.locator("img")).toHaveAttribute("src", /large.svg$/);
     await expect(page.getByText(/15,000/).first()).toBeVisible();
     await expect(page.getByRole("tablist")).toHaveCount(0);
-    await expect(page.getByText("تحذير محفوظ في بيانات المنتج")).toBeVisible();
+    // The critical warning is repeated in the full usage section on desktop.
+    // Assert the purchase-area warning, not an ambiguous page-wide text match.
+    await expect(page.getByRole("complementary", { name: productCopy.clarity.beforeUse })
+      .getByText("تحذير محفوظ في بيانات المنتج", { exact: false })).toBeVisible();
+    await expect(page.getByTestId("product-delivered-total")).toContainText("20,000");
     const shipping = page.locator("#product-info-shipping");
     const trigger = shipping.getByRole("button");
     await shipping.scrollIntoViewIfNeeded();
