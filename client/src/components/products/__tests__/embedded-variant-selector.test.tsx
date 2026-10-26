@@ -27,6 +27,19 @@ const spongeFilterVariants: ProductVariant[] = [
 ];
 
 describe("EmbeddedVariantSelector", () => {
+    it("puts an explicit catalogue hint inside an option without changing its SKU", async () => {
+        const onSelect = vi.fn();
+        const option: ProductVariant = { id: 'test', label: 'نتريت', stock: 1, price: 12000, specifications: { 'عدد الاختبارات': '50 اختبار' } };
+        render(<EmbeddedVariantSelector variants={[option]} selectedVariantId="" onVariantSelect={onSelect} productSlug="c3-1010" />);
+        await userEvent.setup().click(screen.getByRole('button', { name: 'نتريت — 50 اختبار' }));
+        expect(onSelect).toHaveBeenCalledWith(option);
+    });
+    it("does not promote disputed heater litre ranges as a verified recommendation", () => {
+        const option: ProductVariant = { id: '100w', label: '100 واط', stock: 1, price: 15000, specifications: { 'حجم الحوض المناسب': '50–100 لتر' } };
+        render(<EmbeddedVariantSelector variants={[option]} selectedVariantId="" onVariantSelect={vi.fn()} productSlug="yee-3006" />);
+        expect(screen.getByRole('button', { name: '100 واط' })).toBeInTheDocument();
+        expect(screen.queryByText(/لتر/)).not.toBeInTheDocument();
+    });
     it("marks the selected variant as pressed and others as not pressed", () => {
         render(
             <EmbeddedVariantSelector

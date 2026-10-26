@@ -1,4 +1,10 @@
 {
+  "clarity": {
+    "total": "This item including delivery",
+    "totalNote": "Based on the selected quantity; the full cart total is confirmed at checkout.",
+    "heater": "Heater sizing depends on water volume and room temperature, not watts alone. Send us both to help choose the right option.",
+    "beforeUse": "Before use"
+  },
   "notFound": {
     "title": "Product not found",
     "description": "Sorry, we could not find the product you asked for.",

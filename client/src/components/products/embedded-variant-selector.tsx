@@ -1,6 +1,6 @@
 import { isVariantActive, isVariantComingSoon, positiveVariantPrice } from "@shared/variant-commerce";
 import { useMemo } from "react";
-import { Check, Sparkles, Tag } from "lucide-react";
+import { Check, Tag } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -9,6 +9,8 @@ import { extractVariantDimensions, isMultiDimensionVariantSet } from "@/lib/vari
 import { useTranslation } from "react-i18next";
 import { formatIQD } from "@/lib/utils";
 import { useLocale } from "@/i18n/locale-context";
+import { variantChoiceHint } from "@/lib/product-decision";
+import { isolateNumericRanges as bidi } from "@shared/i18n/bidi";
 
 interface EmbeddedVariantSelectorProps {
   variants: ProductVariant[];
@@ -17,6 +19,8 @@ interface EmbeddedVariantSelectorProps {
   title?: string;
   productCategory?: string;
   comingSoon?: boolean;
+  productSlug?: string;
+  showSelectionDetails?: boolean;
 }
 
 function cleanSpecificationValue(value: unknown): string | null {
@@ -45,8 +49,11 @@ export function EmbeddedVariantSelector({
   onVariantSelect,
   title,
   comingSoon = false,
+  productSlug,
+  showSelectionDetails = true,
 }: EmbeddedVariantSelectorProps) {
   const { t } = useTranslation("product");
+  const { dir } = useLocale();
   const variants = useMemo(() => allVariants.filter(isVariantActive), [allVariants]);
   const dimensions = useMemo(() => extractVariantDimensions(variants), [variants]);
   const sortedVariants = useMemo(
@@ -62,9 +69,8 @@ export function EmbeddedVariantSelector({
   const detectedTitle = dimensions[0]?.label ? t("variants.choose", { label: dimensions[0].label }) : t("variants.chooseOption");
 
   return (
-    <div className="space-y-3 rounded-xl border border-border bg-card p-4" dir="rtl">
+    <div className="space-y-3" dir={dir}>
       <div className="flex items-center gap-2">
-        <Sparkles className="h-4 w-4 text-primary" aria-hidden="true" />
         <span className="text-sm font-bold" id="embedded-variant-title">{title || detectedTitle}</span>
       </div>
 
@@ -73,6 +79,8 @@ export function EmbeddedVariantSelector({
           const selected = variant.id === selectedVariant?.id;
           const inStock = variant.stock > 0;
           const choiceLabel = getVariantChoiceLabel(variant, customerFacingDimensionKey);
+          const hint = variantChoiceHint(variant.specifications, productSlug);
+          const accessibleLabel = hint ? `${choiceLabel} — ${hint}` : choiceLabel;
 
           return (
             <button
@@ -80,23 +88,26 @@ export function EmbeddedVariantSelector({
               type="button"
               onClick={() => onVariantSelect(variant)}
               aria-pressed={selected}
-              aria-label={!inStock ? (comingSoon || isVariantComingSoon(variant)) ? `${choiceLabel} — ${t("price.soon")}` : t("variants.unavailableAria", { label: choiceLabel }) : choiceLabel}
+              aria-label={!inStock ? (comingSoon || isVariantComingSoon(variant)) ? `${accessibleLabel} — ${t("price.soon")}` : t("variants.unavailableAria", { label: accessibleLabel }) : accessibleLabel}
               className={cn(
-                "min-h-11 rounded-full border-2 px-4 py-2 text-sm font-medium transition-colors",
+                "min-h-12 max-w-full rounded-md border px-4 py-3 text-start text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                hint && "w-full flex flex-wrap items-center justify-between gap-2",
                 selected
-                  ? "border-primary bg-primary text-primary-foreground"
+                  ? "border-primary bg-primary/10 text-foreground"
                   : "border-border bg-background text-foreground hover:border-primary/50",
                 !inStock && "opacity-70",
               )}
             >
               {selected && <Check className="ml-1 inline h-3.5 w-3.5" aria-hidden="true" />}
-              {choiceLabel}
+              <span>{bidi(choiceLabel)}</span>
+              {hint && <span className="text-xs leading-6 text-muted-foreground">{bidi(hint)}</span>}
+              {!inStock && <span className="ms-2 text-xs text-muted-foreground">{comingSoon || isVariantComingSoon(variant) ? t("price.soon") : t("variants.unavailable")}</span>}
             </button>
           );
         })}
       </div>
 
-      {selectedVariant ? <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-border pt-3 text-sm" aria-live="polite">
+      {showSelectionDetails && (selectedVariant ? <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-border pt-3 text-sm" aria-live="polite">
         {selectedModel && (
           <span className="inline-flex items-center gap-2">
             <span className="text-muted-foreground">{t("variants.model")}</span>
@@ -131,7 +142,7 @@ export function EmbeddedVariantSelector({
             <span className="text-destructive">{comingSoon || isVariantComingSoon(selectedVariant) ? t("price.soon") : t("variants.unavailable")}</span>
           )}
         </span>
-      </div> : <p className="text-sm text-muted-foreground">{t("variants.chooseOption")}</p>}
+      </div> : <p className="text-sm text-muted-foreground">{t("variants.chooseOption")}</p>)}
     </div>
   );
 }

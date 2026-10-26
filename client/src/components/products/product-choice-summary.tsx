@@ -6,7 +6,7 @@ export function ProductChoiceSummary({ facts, dimensions = false, variantLabel }
   const { t } = useTranslation('product');
   const rows = facts.filter(f => dimensions ? f.kind === 'size' : f.kind !== 'size');
   if (!rows.length) return null;
-  return <section className="my-4 rounded-xl border border-border bg-muted/30 p-4" aria-label={t(dimensions ? 'choice.dimensions' : 'choice.title')}>
+  return <section className="my-4 border-s-2 border-primary ps-4" aria-label={t(dimensions ? 'choice.dimensions' : 'choice.title')}>
     <h2 className="text-sm font-bold">{t(dimensions ? 'choice.dimensions' : 'choice.title')}</h2>
     {variantLabel && <p className="mt-1 text-sm text-primary">{bidi(variantLabel)}</p>}
     <dl className="mt-3 space-y-2 text-sm">
