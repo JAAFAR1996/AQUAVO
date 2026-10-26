@@ -1,3 +1,4 @@
+import type { Locale } from "./i18n/locales.js";
 import { canonicalProductCategory } from "./seo-contract.js";
 
 /**
@@ -124,6 +125,71 @@ export const CATEGORY_GUIDE_LINKS: Readonly<Record<string, readonly string[]>> =
   ]),
 });
 
+const LOCALIZED_GUIDE_LABELS: Record<"en" | "ckb", Readonly<Record<string, string>>> = {
+  "en": {
+    "/guides/5-mistakes": "Beginner aquarium mistakes and how to avoid them",
+    "/guides/algae-control": "Controlling aquarium algae",
+    "/guides/aquarium-decor-stones-guide": "Aquarium decor and stones in Iraq",
+    "/guides/aquarium-maintenance-checklist": "Aquarium maintenance checklist",
+    "/guides/aquarium-salt": "Aquarium salt: correct use",
+    "/guides/aquarium-water-test-guide": "Testing aquarium water: ammonia, nitrite, nitrate and pH",
+    "/guides/aquarium-weekly-maintenance": "Weekly aquarium maintenance schedule",
+    "/guides/cloudy-water-causes": "Why is aquarium water cloudy?",
+    "/guides/eco-friendly": "The nitrogen cycle and aquarium care",
+    "/guides/essential-tools": "Essential tools for every aquarium owner",
+    "/guides/feeding-table": "Aquarium fish feeding schedule",
+    "/guides/filter-choice": "How to choose an aquarium filter",
+    "/guides/filter-maintenance": "How to clean an aquarium filter",
+    "/guides/filter-media": "Filter media and the correct order",
+    "/guides/fish-gasping-surface": "Why are fish gasping at the surface?",
+    "/guides/fish-hiding": "Why fish hide",
+    "/guides/happy-fish-signs": "Signs of healthy fish",
+    "/guides/heater-choice": "How to choose a heater for your aquarium",
+    "/guides/new-aquarium-setup-iraq": "Setting up a new aquarium in Iraq, step by step",
+    "/guides/quarantine": "The quarantine tank",
+    "/guides/tank-rescue-plan": "A 30-day aquarium recovery plan",
+    "/guides/temperature-guide": "Aquarium water temperature",
+    "/guides/treatment-basics": "Treatment basics before medication",
+    "/guides/water-change-schedule": "Aquarium water-change schedule",
+    "/guides/water-conditioner-guide": "Aquarium dechlorinator and why it matters",
+    "/guides/water-myths": "Aquarium water myths",
+    "/guides/white-scale": "White deposits on aquarium glass"
+  },
+  "ckb": {
+    "/guides/5-mistakes": "هەڵەکانی دەستپێکەران لە حەوزی ماسی و چۆنیەتی خۆپاراستن لێیان",
+    "/guides/algae-control": "کۆنترۆڵکردنی ئەلگی حەوز",
+    "/guides/aquarium-decor-stones-guide": "ڕێنمایی دیکۆر و بەردی حەوز لە عێراق",
+    "/guides/aquarium-maintenance-checklist": "لیستی چاودێری حەوزی ماسی",
+    "/guides/aquarium-salt": "خوێی حەوز: بەکارهێنانی دروست",
+    "/guides/aquarium-water-test-guide": "پشکنینی ئاوی حەوز: ئەمۆنیا، نایترایت، نایترات و pH",
+    "/guides/aquarium-weekly-maintenance": "خشتەی چاودێری هەفتانەی حەوز",
+    "/guides/cloudy-water-causes": "بۆچی ئاوی حەوز لێڵ دەبێت؟",
+    "/guides/eco-friendly": "سووڕی نایترۆجین و چاودێری حەوز",
+    "/guides/essential-tools": "پێداویستییە سەرەکییەکان بۆ هەر خاوەن حەوزێک",
+    "/guides/feeding-table": "خشتەی خواردنی ماسییەکانی حەوز",
+    "/guides/filter-choice": "چۆن فلتەری گونجاو بۆ حەوز هەڵبژێریت",
+    "/guides/filter-maintenance": "چۆن فلتەری حەوز پاک بکەیتەوە",
+    "/guides/filter-media": "میدیای فلتەر و ڕیزبەندیی دروستی",
+    "/guides/fish-gasping-surface": "بۆچی ماسی لە ڕووی ئاو هەناسە دەدات؟",
+    "/guides/fish-hiding": "بۆچی ماسی خۆی دەشارێتەوە",
+    "/guides/happy-fish-signs": "نیشانەکانی ماسی تەندروست",
+    "/guides/heater-choice": "چۆن گەرمکەرەوەی گونجاو بۆ حەوز هەڵبژێریت",
+    "/guides/new-aquarium-setup-iraq": "ئامادەکردنی حەوزێکی نوێ لە عێراق، هەنگاو بە هەنگاو",
+    "/guides/quarantine": "حەوزی جیاکردنەوە",
+    "/guides/tank-rescue-plan": "پلانی چاککردنەوەی حەوز لە 30 ڕۆژدا",
+    "/guides/temperature-guide": "پلەی گەرمی ئاوی حەوز",
+    "/guides/treatment-basics": "بنەماکانی چارەسەر پێش دەرمان",
+    "/guides/water-change-schedule": "خشتەی گۆڕینی ئاوی حەوز",
+    "/guides/water-conditioner-guide": "لابەری کلۆری ئاوی حەوز و گرنگییەکەی",
+    "/guides/water-myths": "باوەڕە هەڵەکان دەربارەی ئاوی حەوز",
+    "/guides/white-scale": "نیشتووە سپییەکان لەسەر شووشەی حەوز"
+  }
+};
+
+export function guideLinksHeading(locale: Locale = "ar"): string {
+  return locale === "en" ? "Related guides" : locale === "ckb" ? "ڕێنماییە پەیوەندیدارەکان" : GUIDE_LINKS_HEADING;
+}
+
 export type GuideLink = { href: string; label: string };
 
 /**
@@ -133,12 +199,12 @@ export type GuideLink = { href: string; label: string };
  * a default list — a page that shows guides picked for some other category is
  * worse than a page that shows none.
  */
-export function guidesForCategory(category: string | null | undefined): GuideLink[] {
+export function guidesForCategory(category: string | null | undefined, locale: Locale = "ar"): GuideLink[] {
   const canonical = canonicalProductCategory(category);
   if (!canonical) return [];
   const paths = CATEGORY_GUIDE_LINKS[canonical];
   if (!paths) return [];
-  return paths.map((href) => ({ href, label: GUIDE_LINK_LABELS[href] ?? href }));
+  return paths.map((href) => ({ href, label: (locale === "ar" ? GUIDE_LINK_LABELS[href] : LOCALIZED_GUIDE_LABELS[locale][href]) ?? GUIDE_LINK_LABELS[href] ?? href }));
 }
 
 /** Heading used above the block, wherever it is rendered. */
