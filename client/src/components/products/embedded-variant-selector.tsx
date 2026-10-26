@@ -1,3 +1,4 @@
+import { variantDimensionLabel, variantDisplayValue } from "@/lib/variant-display";
 import { isVariantActive, isVariantComingSoon, positiveVariantPrice } from "@shared/variant-commerce";
 import { useMemo } from "react";
 import { Check, Tag } from "lucide-react";
@@ -32,7 +33,9 @@ function cleanSpecificationValue(value: unknown): string | null {
 function getVariantChoiceLabel(
   variant: ProductVariant,
   customerFacingDimensionKey: string | undefined,
+  locale: string,
 ): string {
+  if (locale !== "ar" && variant.label) return variantDisplayValue(variant.label, locale);
   if (customerFacingDimensionKey) {
     const dimensionValue = cleanSpecificationValue(
       variant.specifications?.[customerFacingDimensionKey],
@@ -53,7 +56,7 @@ export function EmbeddedVariantSelector({
   showSelectionDetails = true,
 }: EmbeddedVariantSelectorProps) {
   const { t } = useTranslation("product");
-  const { dir } = useLocale();
+  const { dir, locale } = useLocale();
   const variants = useMemo(() => allVariants.filter(isVariantActive), [allVariants]);
   const dimensions = useMemo(() => extractVariantDimensions(variants), [variants]);
   const sortedVariants = useMemo(
@@ -66,7 +69,7 @@ export function EmbeddedVariantSelector({
   const selectedVariant = sortedVariants.find((variant) => variant.id === selectedVariantId);
   const selectedModel = cleanSpecificationValue(selectedVariant?.specifications?.الموديل);
   const customerFacingDimensionKey = dimensions.length === 1 ? dimensions[0].key : undefined;
-  const detectedTitle = dimensions[0]?.label ? t("variants.choose", { label: dimensions[0].label }) : t("variants.chooseOption");
+  const detectedTitle = dimensions[0]?.label ? t("variants.choose", { label: variantDimensionLabel(dimensions[0].key, locale) }) : t("variants.chooseOption");
 
   return (
     <div className="space-y-3" dir={dir}>
@@ -78,8 +81,8 @@ export function EmbeddedVariantSelector({
         {sortedVariants.map((variant) => {
           const selected = variant.id === selectedVariant?.id;
           const inStock = variant.stock > 0;
-          const choiceLabel = getVariantChoiceLabel(variant, customerFacingDimensionKey);
-          const hint = variantChoiceHint(variant.specifications, productSlug);
+          const choiceLabel = getVariantChoiceLabel(variant, customerFacingDimensionKey, locale);
+          const hint = locale === "ar" ? variantChoiceHint(variant.specifications, productSlug) : undefined;
           const accessibleLabel = hint ? `${choiceLabel} — ${hint}` : choiceLabel;
 
           return (
@@ -155,7 +158,7 @@ export function EmbeddedVariantSelectorCompact({
 }: Omit<EmbeddedVariantSelectorProps, "title" | "productCategory">) {
   const { t } = useTranslation("product");
   const variants = useMemo(() => allVariants.filter(isVariantActive), [allVariants]);
-  const { dir } = useLocale();
+  const { dir, locale } = useLocale();
   const dimensions = useMemo(() => extractVariantDimensions(variants), [variants]);
   const customerFacingDimensionKey = dimensions.length === 1 ? dimensions[0].key : undefined;
 
@@ -165,7 +168,7 @@ export function EmbeddedVariantSelectorCompact({
     <div className="flex flex-wrap gap-2" dir={dir} role="group" aria-label={t("variants.options")}>
       {variants.map((variant) => {
         const selected = variant.id === selectedVariantId;
-        const choiceLabel = getVariantChoiceLabel(variant, customerFacingDimensionKey);
+        const choiceLabel = getVariantChoiceLabel(variant, customerFacingDimensionKey, locale);
 
         return (
           <button
