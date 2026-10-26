@@ -1,3 +1,4 @@
+import { localizeCategoryName } from "@shared/i18n/categories";
 import {
     Ruler,
     Scale,
@@ -121,7 +122,7 @@ export function ProductSpecificationsTable({
     className,
 }: ProductSpecificationsTableProps) {
     const { t } = useTranslation("products");
-    const { dir } = useLocale();
+    const { dir, locale } = useLocale();
     const specs = normalizeSpecifications(specifications).map((spec) => ({
         ...spec,
         value: spec.value === "__YES__" ? t("specs.yes") : spec.value === "__NO__" ? t("specs.no") : spec.value,
@@ -139,7 +140,7 @@ export function ProductSpecificationsTable({
                     <span>{t("specs.title")}</span>
                     {category && (
                         <Badge variant="secondary" className="ms-2 text-xs">
-                            {category}
+                            {localizeCategoryName(category, locale)}
                         </Badge>
                     )}
                 </CardTitle>
