@@ -535,63 +535,6 @@
       "variantLabels": {}
     }
   },
-  "houyi-blue-dragon-stone": {
-    "entityId": "houyi-blue-dragon-stone",
-    "slug": "houyi-blue-dragon-stone",
-    "sourceHash": "c3c26c086db4a906",
-    "translatedBy": "openai:assistant-on-user-request",
-    "translatedAt": "2026-10-21T15:08:28.976867+00:00",
-    "data": {
-      "name": "Houyi Blue Dragon Stone - 1kg",
-      "description": "Add a striking rock formation to your aquarium with natural stones that vary in shape and gray-blue gradients. Suitable for building focal points, pathways, and rocky details within aquascapes.\n\nWash the stone before use and secure it on a stable base. If your aquarium is sensitive to pH or GH/KH, test the stone and water after setup.",
-      "subcategory": "Stones",
-      "seoTitle": "Houyi Dragon Stone Decor | AQUAVO",
-      "seoDescription": "Natural Houyi Dragon Stone for aquascaping. Unique gray-blue pieces add focal points to freshwater tanks. 1kg pack.",
-      "specifications": {
-        "benefits": [
-          "Each piece is natural and unique in shape",
-          "Gray and blue colors for rock arrangements",
-          "Suitable for building focal points and aquascape formations",
-          "Can be combined with sand and wood according to the design"
-        ],
-        "usageInstructions": [
-          "Wash the stone with water and a brush before use",
-          "Try arranging the rocks outside the aquarium first",
-          "Secure large pieces on a stable base",
-          "Test the water after setup if inhabitants are sensitive to chemistry"
-        ],
-        "safetyWarnings": [
-          "Edges may be sharp; inspect before use",
-          "Secure stones well to prevent falling on the glass",
-          "Do not assume stone is chemically inert without testing if the aquarium is sensitive"
-        ],
-        "__cardBenefit": "A unique natural piece that builds a strong rocky visual point in the aquarium",
-        "labelled": {
-          "النوع": {
-            "label": "Type",
-            "value": "Natural stone for decor"
-          },
-          "الوزن": {
-            "label": "Weight",
-            "value": "1kg"
-          },
-          "الاستخدام": {
-            "label": "Usage",
-            "value": "Aquascaping and freshwater aquarium arrangement"
-          },
-          "الخيارات القادمة": {
-            "label": "Upcoming options",
-            "value": "Pickling and Unpicked versions — coming soon; configuration details will be announced when available"
-          }
-        }
-      },
-      "variantLabels": {
-        "1kg": "1kg",
-        "pickling": "Pickling",
-        "unpicked": "Unpicked"
-      }
-    }
-  },
   "houyi-breathing-ring-white": {
     "entityId": "houyi-breathing-ring-white",
     "slug": "houyi-breathing-ring-white",
@@ -8979,59 +8922,6 @@
       }
     }
   },
-  "houyi-decorative-sands-2-5kg": {
-    "entityId": "houyi-decorative-sands-2-5kg",
-    "slug": "houyi-decorative-sands-2-5kg",
-    "sourceHash": "e7d0c7a5961ace43",
-    "translatedBy": "openai:assistant-on-user-request",
-    "translatedAt": "2026-10-21T15:08:28.976867+00:00",
-    "data": {
-      "name": "Decorative Sands in Multiple Colours and Sizes — 2.5 kg",
-      "description": "Decorative sands in 2.5 kg packs for arranging paths and the aquarium floor. Upcoming options are Pink Sand in pink, 0.2–0.5 mm; Peach Blossom in pink, 0.5–1 mm; Grey Jade in grey, 0.5–1 mm; and Snowflake White in white, 0.8–1.2 mm.\n\nRinse the sand with water, spread it according to your layout and fill the aquarium slowly. Choose the colour and grain size to suit the decor and bottom-dwelling inhabitants, and monitor pH and GH/KH after setup in sensitive aquariums.",
-      "subcategory": "Sand",
-      "seoTitle": "Decorative Sands in Multiple Colours and Sizes — 2.5 kg | AQUAVO",
-      "seoDescription": "Decorative sands in 2.5 kg packs for arranging paths and the aquarium floor. Upcoming options are Pink Sand in pink, 0.2–0.5 mm; Peach Blossom in pink, 0.5–1",
-      "specifications": {
-        "benefits": [
-          "Varied colours and grain sizes for arranging paths and the aquarium floor.",
-          "Can be visually combined with rocks, wood and plants.",
-          "Each pack of the listed options weighs 2.5 kg."
-        ],
-        "usageInstructions": [
-          "Rinse the grains with water only to remove dust before arranging them in the aquarium.",
-          "Spread them according to the substrate layout and leave suitable space for maintenance.",
-          "Pour water gently over a plate or barrier to keep the layer in place.",
-          "Remove surface debris without siphoning out the grains."
-        ],
-        "safetyWarnings": [
-          "Check the edges and texture before using with sensitive bottom-dwelling fish.",
-          "Do not use soap or detergents on aquarium materials.",
-          "Monitor pH and GH/KH after adding it to sensitive aquariums."
-        ],
-        "__cardBenefit": "Choose the substrate colour and grain size — 2.5 kg pack",
-        "labelled": {
-          "النوع": {
-            "label": "Type",
-            "value": "Decorative aquarium sand"
-          },
-          "وزن العبوة": {
-            "label": "Pack weight",
-            "value": "2.5 kg"
-          },
-          "الخيارات القادمة": {
-            "label": "Upcoming options",
-            "value": "Pink Sand, pink 0.2–0.5 mm; Peach Blossom, pink 0.5–1 mm; Grey Jade, grey 0.5–1 mm; Snowflake White, white 0.8–1.2 mm — coming soon"
-          }
-        }
-      },
-      "variantLabels": {
-        "pink": "Pink — 0.2–0.5 mm",
-        "peach": "Peach Blossom — 0.5–1 mm",
-        "grey": "Grey Jade — 0.5–1 mm",
-        "snowflake": "Snowflake White — 0.8–1.2 mm"
-      }
-    }
-  },
   "dophin-cf600-external-canister-filter": {
     "entityId": "dophin-cf600-external-canister-filter",
     "slug": "dophin-cf600-external-canister-filter",
@@ -9529,53 +9419,6 @@
         }
       },
       "variantLabels": {}
-    }
-  },
-  "houyi-south-american-sand": {
-    "entityId": "houyi-south-american-sand",
-    "slug": "houyi-south-american-sand",
-    "sourceHash": "5c40825248864cbe",
-    "translatedBy": "openai:assistant-on-user-request",
-    "translatedAt": "2026-10-21T15:08:28.976867+00:00",
-    "data": {
-      "name": "South American Sand in Separate Colour Options",
-      "description": "South American sand for arranging the aquarium floor and paths between plants and wood. Upcoming options are brown and red, each sold as a separate colour so you can choose the tone that suits your layout.\n\nRinse it with water to remove dust, then spread it and fill the aquarium slowly. Check that the grain texture suits bottom-dwelling inhabitants, and monitor pH and GH/KH after setup in sensitive aquariums.",
-      "subcategory": "Sand",
-      "seoTitle": "South American Sand in Separate Colour Options | AQUAVO",
-      "seoDescription": "South American sand for arranging the aquarium floor and paths between plants and wood. Upcoming options are brown and red, each sold as a separate colour so",
-      "specifications": {
-        "benefits": [
-          "Two separate colours for choosing a suitable tone.",
-          "Can be distributed along paths and open areas.",
-          "Complements rocks, wood and plants according to the layout."
-        ],
-        "usageInstructions": [
-          "Rinse the grains with water only to remove dust before arranging them in the aquarium.",
-          "Spread them according to the substrate layout and leave suitable space for maintenance.",
-          "Pour water gently over a plate or barrier to keep the layer in place.",
-          "Remove surface debris without siphoning out the grains."
-        ],
-        "safetyWarnings": [
-          "Check the edges and texture before using with sensitive bottom-dwelling fish.",
-          "Do not use soap or detergents on aquarium materials.",
-          "Monitor pH and GH/KH after adding it to sensitive aquariums."
-        ],
-        "__cardBenefit": "Choose brown or red for the aquarium floor",
-        "labelled": {
-          "النوع": {
-            "label": "Type",
-            "value": "Decorative aquarium sand"
-          },
-          "الألوان القادمة": {
-            "label": "Upcoming colours",
-            "value": "Brown — coming soon; red — coming soon"
-          }
-        }
-      },
-      "variantLabels": {
-        "brown": "Brown",
-        "red": "Red"
-      }
     }
   },
   "houyi-mountain-wood": {
