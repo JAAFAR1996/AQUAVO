@@ -78,11 +78,14 @@ export default function Navbar() {
   const [location, setLocation] = useLocation();
   const { t } = useTranslation("nav");
   const { t: tc } = useTranslation("common");
+  const { t: checkoutT } = useTranslation("checkout");
   const { locale, dir, href } = useLocale();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const { items: cartItems, removeItem, updateQuantity, totalItems, totalPrice } = useCart();
+  const cartPayable = Math.ceil(Math.max(0, totalPrice + shippingFee) / 250) * 250;
+  const cartRounding = cartPayable - Math.max(0, totalPrice + shippingFee);
   const { totalItems: wishlistCount } = useWishlist();
   const { user, logout } = useAuth();
   const flowGateNav = useFlowGateNav();
@@ -557,9 +560,12 @@ export default function Navbar() {
                              <dt className="text-muted-foreground">{t("cart.delivery")}</dt>
                              <dd className="font-medium text-foreground">{price(shippingFee)}</dd>
                            </div>
+                           {cartRounding > 0 && <div className="flex items-center justify-between gap-4 text-xs text-muted-foreground">
+                             <dt>{checkoutT("summary.rounding")}</dt><dd>+{price(cartRounding)}</dd>
+                           </div>}
                            <div className="flex items-center justify-between gap-4 border-t border-border pt-3">
                              <dt className="text-base font-bold">{t("cart.total")}</dt>
-                             <dd className="text-xl font-bold text-foreground" aria-live="polite">{price(totalPrice + shippingFee)}</dd>
+                             <dd className="text-xl font-bold text-foreground" aria-live="polite">{price(cartPayable)}</dd>
                            </div>
                          </dl>
                          <p className="mt-2 text-center text-xs leading-5 text-muted-foreground">{t("cart.totalNote")}</p>
