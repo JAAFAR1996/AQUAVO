@@ -566,7 +566,7 @@ async function getProductMeta(slug: string, locale: Locale = DEFAULT_LOCALE): Pr
         variants,
         rating: p.rating,
         reviewCount: p.reviewCount,
-      }, { shippingFee: await loadShippingFee() }),
+      }, { shippingFee: await loadShippingFee(), locale, contentLocale: localized.contentLocale }),
     };
   } catch (err) {
     console.error("SSR meta: product query error", err);

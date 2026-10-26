@@ -1,3 +1,5 @@
+import { DEFAULT_LOCALE, LOCALES, localizePath, type Locale } from "../shared/i18n/locales.js";
+import { localizeCategoryName } from "../shared/i18n/categories.js";
 import { isVariantActive, isVariantComingSoon, positiveVariantPrice } from "../shared/variant-commerce.js";
 import type { SeoPreviewProduct, SeoPreviewVariant } from "./_seo-preview-shell.js";
 import {
@@ -273,15 +275,19 @@ function variantIdentityProperties(label: string, variesBy: string[]): Record<st
 
 export function buildProductStructuredData(
   product: SeoPreviewProduct,
-  options: { shippingFee?: number } = {},
+  options: { shippingFee?: number; locale?: Locale; contentLocale?: Locale } = {},
 ): object[] {
+  const locale = options.locale ?? DEFAULT_LOCALE;
+  const contentLocale = options.contentLocale ?? locale;
+  const pageUrl = (path: string) => `${AQUAVO_BASE_URL}${localizePath(path, locale)}`;
   const shippingFee = normalizedShippingFee(options.shippingFee);
-  const url = `${AQUAVO_BASE_URL}/products/${encodeURIComponent(product.slug)}`;
+  const url = pageUrl(`/products/${encodeURIComponent(product.slug)}`);
   const currency = product.currency || AQUAVO_ENTITY.currency;
   const description = cleanText(product.description, `معلومات ومواصفات ${product.name} من AQUAVO.`);
   const variants = activeVariants(product);
   const rating = aggregateRating(product);
-  const category = canonicalProductCategory(product.category) || undefined;
+  const categoryKey = canonicalProductCategory(product.category);
+  const category = categoryKey ? localizeCategoryName(categoryKey, contentLocale) : undefined;
   const brand = product.brand ? { "@type": "Brand", name: product.brand } : undefined;
   const productGroupID = product.id || product.slug;
 
@@ -317,7 +323,7 @@ export function buildProductStructuredData(
         ...variantIdentityProperties(variant.label || "", variesBy),
         additionalProperty: {
           "@type": "PropertyValue",
-          name: "الخيار",
+          name: contentLocale === "en" ? "Option" : contentLocale === "ckb" ? "هەڵبژاردە" : "الخيار",
           value: variant.label,
         },
         offers: buildOffer(url, variant.priceStatus === "pending" || isVariantComingSoon(variant) ? null : positiveVariantPrice(variant.price), currency, variant.stock, shippingFee),
@@ -356,7 +362,7 @@ export function buildProductStructuredData(
       url,
       name: product.name,
       description,
-      inLanguage: "ar-IQ",
+      inLanguage: LOCALES[contentLocale].languageTag,
       dateModified: AQUAVO_SEO_RELEASE_LASTMOD,
       isPartOf: { "@id": `${AQUAVO_BASE_URL}/#website` },
       mainEntity: { "@id": mainEntityId },
@@ -369,14 +375,14 @@ export function buildProductStructuredData(
       // exists and that the product is genuinely reachable through. It is
       // omitted rather than invented when a product has no canonical category.
       itemListElement: [
-        { "@type": "ListItem", position: 1, name: "الرئيسية", item: AQUAVO_BASE_URL },
-        { "@type": "ListItem", position: 2, name: "المنتجات", item: `${AQUAVO_BASE_URL}/products` },
+        { "@type": "ListItem", position: 1, name: locale === "en" ? "Home" : locale === "ckb" ? "سەرەکی" : "الرئيسية", item: locale === DEFAULT_LOCALE ? AQUAVO_BASE_URL : pageUrl("/") },
+        { "@type": "ListItem", position: 2, name: locale === "en" ? "Products" : locale === "ckb" ? "بەرهەمەکان" : "المنتجات", item: pageUrl("/products") },
         ...(category
           ? [{
               "@type": "ListItem",
               position: 3,
               name: category,
-              item: `${AQUAVO_BASE_URL}${categoryProductsPath(category)}`,
+              item: pageUrl(categoryProductsPath(categoryKey!)),
             }]
           : []),
         { "@type": "ListItem", position: category ? 4 : 3, name: product.name, item: url },

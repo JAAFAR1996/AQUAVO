@@ -32,6 +32,7 @@ const SEARCH_OVERRIDES: Partial<Record<Locale, Record<string, Partial<LocalizedS
       "description": "Read how AQUAVO collects, uses and protects customer information when you browse the site, place an order or contact the store."
     },
     "/contact": {
+      "title": "Contact AQUAVO — Aquarium Equipment Support in Iraq",
       "description": "Contact AQUAVO about orders, delivery, payment or aquarium equipment details, and ask about products that match your tank's size and needs."
     },
     "/fish-breeding-calculator": {
@@ -69,6 +70,9 @@ const SEARCH_OVERRIDES: Partial<Record<Locale, Record<string, Partial<LocalizedS
     }
   },
   "ar": {
+    "/contact": { "title": "تواصل ويه AQUAVO — دعم الطلبات ومعدات الأحواض" },
+    "/terms": { "title": "شروط الاستخدام والشراء من AQUAVO لمستلزمات الأحواض" },
+    "/privacy-policy": { "title": "سياسة الخصوصية وحماية بيانات الزبائن | AQUAVO" },
     "/shipping": {
       "description": "تفاصيل توصيل طلبات AQUAVO لكل العراق، وخيارات الدفع عند الاستلام أو إلكترونياً، ومكان ظهور رسوم التوصيل وتفاصيل الطلب قبل التأكيد."
     }

@@ -3530,18 +3530,18 @@
   "yee-07154": {
     "entityId": "yee-07154",
     "slug": "ygg-135",
-    "sourceHash": "644fe89e95275a34",
-    "translatedBy": "gemini:gemini-2.5-flash-lite",
-    "translatedAt": "2026-09-19T12:18:29.755Z",
+    "sourceHash": "e8b3364e2e0a10bc",
+    "translatedBy": "openai:assistant-source-alignment",
+    "translatedAt": "2026-10-26T21:02:00Z",
     "data": {
-      "name": "YEE Spherical Air Stone - 50mm",
-      "description": "A spherical air diffuser with a 50mm diameter that converts the airflow from an air pump into bubbles distributed around its porous surface, helping to agitate the water surface and improve aeration.\n\nConnect it to a suitable air pump and place it inside the aquarium. Clean it when bubble output weakens or becomes unevenly distributed.",
+      "name": "YEE Disc Air Stone - 50mm",
+      "description": "A disc-shaped air diffuser with a 50mm diameter that converts the airflow from an air pump into bubbles distributed around its porous surface, helping to agitate the water surface and improve aeration.\n\nConnect it to a suitable air pump and place it inside the aquarium. Clean it when bubble output weakens or becomes unevenly distributed.",
       "subcategory": "Air Accessories",
-      "seoTitle": "YEE Spherical Air Stone - 50mm | AQUAVO",
-      "seoDescription": "YEE 50mm spherical air stone diffuses air into fine bubbles, enhancing aquarium aeration and water circulation. Connect to your air pump.",
+      "seoTitle": "YEE Disc Air Stone - 50mm | AQUAVO",
+      "seoDescription": "YEE 50 mm disc air stone distributes air through its porous surface to help aeration and water movement. Use with a suitable air pump.",
       "specifications": {
         "benefits": [
-          "Distributes air over a spherical surface",
+          "Distributes air over a disc-shaped surface",
           "Aids aeration and water movement",
           "50mm diameter",
           "Designed for use with a suitable air pump"
@@ -3557,7 +3557,7 @@
           "Do not use pressure higher than recommended for the diffuser or pump",
           "Replace if it remains clogged or cracked after cleaning"
         ],
-        "__cardBenefit": "Distributes air over a spherical surface to agitate water and improve aeration",
+        "__cardBenefit": "Distributes air over a disc-shaped surface to agitate water and improve aeration",
         "labelled": {
           "القطر": {
             "label": "Diameter",
@@ -3565,7 +3565,7 @@
           },
           "النوع": {
             "label": "Type",
-            "value": "Spherical air diffuser"
+            "value": "Disc air diffuser"
           }
         }
       },

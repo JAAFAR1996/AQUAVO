@@ -60,11 +60,14 @@ function canonical(value: unknown): string {
 }
 
 const FILES: Record<string, TranslatableEntityType> = { products: "product", blog_posts: "blog_post", blog_categories: "blog_category" };
+if (args.entity && !(args.entity in FILES)) throw new Error("Unsupported entity filter");
+if (LOCALES.some((locale) => locale !== "en" && locale !== "ckb")) throw new Error("Only en and ckb may be synchronized");
+
 interface Planned { locale: string; type: TranslatableEntityType; id: string; slug: string; data: Record<string, unknown>; hash: string; by: string }
 const plan: Record<string, { insert: Planned[]; change: Planned[]; identical: number; reviewed: string[]; outdated: string[]; skipped: string[] }> = {};
 
 for (const locale of LOCALES) {
-  for (const [file, type] of Object.entries(FILES)) {
+  for (const [file, type] of Object.entries(FILES).filter(([file]) => !args.entity || file === args.entity)) {
     const p = resolve("data/i18n/translations", locale, `${file}.json`);
     if (!existsSync(p)) continue;
     const store = JSON.parse(readFileSync(p, "utf8")) as Record<string, { entityId: string; slug?: string; sourceHash: string; translatedBy: string; data: Record<string, unknown> }>;
@@ -79,7 +82,7 @@ for (const locale of LOCALES) {
       if (e.sourceHash !== src.hash) { bucket.outdated.push(label); continue; }
       if (!translationCompleteness(type, e.data, src.fields).complete) { bucket.skipped.push(`${label} (incomplete)`); continue; }
       const ex = existing.get(`${locale}|${type}|${e.entityId}`);
-      const planned: Planned = { locale, type, id: e.entityId, slug: label, data: e.data, hash: e.sourceHash, by: e.translatedBy };
+      const planned: Planned = { locale, type, id: e.entityId, slug: label, data: e.data, hash: e.sourceHash, by: e.translatedBy || "repository:product-translation-sync" };
       if (!ex) { bucket.insert.push(planned); continue; }
       if (ex.status === "reviewed") { bucket.reviewed.push(label); continue; }
       // Postgres stores jsonb with its own key order, so compare canonically.
