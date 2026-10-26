@@ -3,14 +3,6 @@ import { describe, expect, it } from "vitest";
 
 // Public catalog IDs and literal measurement tokens only; no inventory or cost evidence.
 const requiredOptions: Record<string, Record<string, string[]>> = {
-  "houyi-south-american-sand": {
-    "brown": [],
-    "red": []
-  },
-  "houyi-blue-dragon-stone": {
-    "pickling": [],
-    "unpicked": []
-  },
   "tian-yuan-water-valves": {
     "15-15mm": [
       "15",
@@ -111,24 +103,6 @@ const requiredOptions: Record<string, Record<string, string[]>> = {
       "500"
     ]
   },
-  "houyi-decorative-sands-2-5kg": {
-    "pink": [
-      "0.2",
-      "0.5"
-    ],
-    "peach": [
-      "0.5",
-      "1"
-    ],
-    "grey": [
-      "0.5",
-      "1"
-    ],
-    "snowflake": [
-      "0.8",
-      "1.2"
-    ]
-  },
   "sobo-aq-submersible-pumps": {
     "aq-1000": [
       "1000",
@@ -187,7 +161,8 @@ const requiredOptions: Record<string, Record<string, string[]>> = {
   },
   "houyi-dutch-sand": {
     "current-5kg": [
-      "5"
+      "1",
+      "1"
     ],
     "1mm": [
       "1"
@@ -205,13 +180,13 @@ const requiredOptions: Record<string, Record<string, string[]>> = {
     ]
   }
 };
-type Translation = { data: { variantLabels?: Record<string, string>; specifications?: { labelled?: Record<string, { label: string; value: string }> } } };
+type Translation = { data: { name?: string; variantLabels?: Record<string, string>; specifications?: { labelled?: Record<string, { label: string; value: string }> } } };
 const catalog = (locale: string): Record<string, Translation> => JSON.parse(readFileSync(`data/i18n/translations/${locale}/products.json`, "utf8"));
 const numbers = (value: string) => value.match(/\d+(?:\.\d+)?/g) ?? [];
 
 describe("verified catalog option locale labels", () => {
-  it("covers exactly the 48 required active catalog IDs", () => {
-    expect(Object.values(requiredOptions).reduce((sum, options) => sum + Object.keys(options).length, 0)).toBe(48);
+  it("covers the 40 variant options remaining after eight options became separate products", () => {
+    expect(Object.values(requiredOptions).reduce((sum, options) => sum + Object.keys(options).length, 0)).toBe(40);
   });
   it.each(["en", "ckb"])("preserves every required option and literal measurement in %s", (locale) => {
     const products = catalog(locale);
@@ -221,6 +196,32 @@ describe("verified catalog option locale labels", () => {
         expect(label, `${locale}/${productId}/${optionId}`).toBeTruthy();
         expect(numbers(label!), `${locale}/${productId}/${optionId}`).toEqual(measurements);
       }
+    }
+  });
+
+  it.each(["en", "ckb"])("preserves eight standalone products and their verified measurements in %s", (locale) => {
+    const products = catalog(locale);
+    const standalone: Record<string, string[] | null> = {
+      "houyi-south-american-sand-brown": null,
+      "houyi-south-american-sand-red": null,
+      "houyi-blue-dragon-stone-pickling": null,
+      "houyi-blue-dragon-stone-unpicked": null,
+      "houyi-pink-sand-2-5kg": ["0.2", "0.5"],
+      "houyi-peach-blossom-sand-2-5kg": ["0.5", "1"],
+      "houyi-grey-jade-sand-2-5kg": ["0.5", "1"],
+      "houyi-snowflake-white-sand-2-5kg": ["0.8", "1.2"],
+    };
+    for (const [id, grains] of Object.entries(standalone)) {
+      const data = products[id]?.data;
+      expect(data?.name, `${locale}/${id}`).toBeTruthy();
+      expect(Object.keys(data?.variantLabels ?? {})).toHaveLength(0);
+      if (grains) {
+        expect(numbers(data!.specifications!.labelled!["حجم الحبيبات"].value)).toEqual(grains);
+        expect(numbers(data!.specifications!.labelled!["وزن العبوة"].value)).toEqual(["2.5"]);
+      }
+    }
+    for (const retired of ["houyi-south-american-sand", "houyi-blue-dragon-stone", "houyi-decorative-sands-2-5kg"]) {
+      expect(products[retired]).toBeUndefined();
     }
   });
   it.each(["en", "ckb"])("does not invent units for the incoming cotton dimensions in %s", (locale) => {

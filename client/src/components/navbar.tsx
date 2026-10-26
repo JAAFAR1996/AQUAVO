@@ -147,7 +147,7 @@ export default function Navbar() {
         aria-label={t("mainNav")}
         dir={dir}
       >
-        <div className="mx-auto flex h-16 max-w-7xl items-center gap-2 px-3 sm:px-5 lg:px-6">
+        <div className="mx-auto flex h-16 max-w-7xl items-center gap-1 px-2 sm:gap-2 sm:px-5 lg:px-6">
           <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
             <SheetTrigger asChild>
               <Button
@@ -202,6 +202,17 @@ export default function Navbar() {
                   })}
                 </div>
 
+                <div className="mt-3 border-t border-border pt-3 sm:hidden">
+                  <Link
+                    href={user ? "/profile" : "/login"}
+                    onClick={() => setIsMenuOpen(false)}
+                    className="flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-foreground/5"
+                  >
+                    <User className="h-4 w-4 text-primary" aria-hidden="true" />
+                    {t(user ? "account.profile" : "account.login")}
+                  </Link>
+                </div>
+
                 <div className="mt-5 border-t border-border pt-5">
                   <p className="px-3 text-xs leading-6 text-muted-foreground">
                     {t("deliveryNote")}
@@ -224,14 +235,14 @@ export default function Navbar() {
             </SheetContent>
           </Sheet>
 
-          <Link href="/" aria-label={t("homeLink")} className="shrink-0" onClick={flowGateNav("/")}>
+          <Link href="/" aria-label={t("homeLink")} className="min-w-0 shrink sm:shrink-0" onClick={flowGateNav("/")}>
             <img
               data-aqv-brand-mark
               src="/brand/aquavo-v2-horizontal.svg"
               alt="AQUAVO"
               width="180"
               height="50"
-              className="h-8 w-auto max-w-28 object-contain sm:h-9 sm:max-w-36"
+              className="h-auto w-24 max-w-full object-contain sm:h-9 sm:w-auto sm:max-w-36"
             />
           </Link>
 
@@ -310,7 +321,7 @@ export default function Navbar() {
             </DropdownMenu>
           </div>
 
-          <div className="ms-auto flex items-center gap-1 sm:gap-2">
+          <div className="ms-auto flex shrink-0 items-center gap-1 sm:gap-2">
             <button
               type="button"
               onClick={() => setIsSearchOpen(true)}
@@ -387,7 +398,7 @@ export default function Navbar() {
             >
               <Heart className="h-5 w-5" aria-hidden="true" />
               {wishlistCount > 0 && (
-                <span className="absolute -end-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-white">
+                <span className="absolute end-0 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-white">
                   {wishlistCount}
                 </span>
               )}
@@ -404,7 +415,7 @@ export default function Navbar() {
                 >
                   <ShoppingCart className="h-5 w-5" aria-hidden="true" />
                   {totalItems > 0 && (
-                    <span className="absolute -end-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-white">
+                    <span className="absolute end-0 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-white">
                       {totalItems}
                     </span>
                   )}

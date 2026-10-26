@@ -60,6 +60,8 @@ const output = resolve(process.env.AQUAVO_UX_ARTIFACTS || "/tmp/aquavo-product-u
 await mkdir(output, { recursive: true });
 try {
   for (const scenario of [
+    { locale: "ar", width: 320, mobile: true, motion: "reduce", theme: "light" },
+    { locale: "en", width: 320, mobile: true, motion: "reduce", theme: "light" },
     { locale: "ar", width: 390, mobile: true, motion: "reduce", theme: "light" },
     { locale: "ar", width: 1365, mobile: false, motion: "no-preference", theme: "dark" },
     { locale: "en", width: 390, mobile: true, motion: "no-preference", theme: "light" },
@@ -140,7 +142,17 @@ try {
     // Assert the purchase-area warning, not an ambiguous page-wide text match.
     await expect(page.getByRole("complementary", { name: productCopy.clarity.beforeUse })
       .getByText("تحذير محفوظ في بيانات المنتج", { exact: false })).toBeVisible();
-    await expect(page.getByTestId("product-delivered-total")).toContainText("20,000");
+    await expect(page.getByTestId("product-delivered-total")).toHaveCount(0);
+    await page.getByRole("button", { name: productCopy.cart.add, exact: true }).click();
+    await expect(page.getByTestId("notification-toast")).toHaveCount(1);
+    await expect(page.locator(".swipe-toast")).toHaveCount(0);
+    const toastBox = await page.getByTestId("notification-toast").boundingBox();
+    assert(toastBox.x >= 0 && toastBox.x + toastBox.width <= width + 1, "confirmation overflows viewport");
+    await page.getByTestId("notification-toast").locator("[toast-close]").click();
+    const headerControls = await page.locator(".aq-site-header button:visible, .aq-site-header a:visible").evaluateAll(elements =>
+      elements.map(el => { const r = el.getBoundingClientRect(); return { left: r.left, right: r.right }; })
+    );
+    assert(headerControls.every(r => r.left >= -1 && r.right <= width + 1), "header controls overflow");
     const shipping = page.locator("#product-info-shipping");
     const trigger = shipping.getByRole("button");
     await shipping.scrollIntoViewIfNeeded();

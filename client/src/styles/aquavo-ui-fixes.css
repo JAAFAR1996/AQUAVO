@@ -40,24 +40,6 @@ html.light {
   box-shadow: none;
 }
 
-/* Keep account/login reachable on phones; the original sm-only rule hid it. */
-@media (max-width: 639px) {
-  .aq-site-header [aria-label="تسجيل الدخول"],
-  .aq-site-header [aria-label="قائمة الحساب الشخصي"] {
-    display: inline-flex;
-    width: 44px;
-    min-width: 44px;
-    min-height: 44px;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-  }
-
-  .aq-site-header a[aria-label="تسجيل الدخول"] > span {
-    display: none;
-  }
-}
-
 /*
  * Product page mobile cleanup: the fixed bottom cart bar duplicated the
  * primary add-to-cart control inside the page and collided with the floating

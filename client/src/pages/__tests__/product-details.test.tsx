@@ -292,20 +292,21 @@ describe('Product Details Page', () => {
         expect(mockAddItem).not.toHaveBeenCalled();
     });
 
-    it('updates the delivered total and preserves selection after a failed add', async () => {
+    it('shows product price without a delivered total and preserves selection after a failed add', async () => {
         const user = await import('@testing-library/user-event').then(m => m.default.setup());
         mockAddItem.mockResolvedValue(false);
         render(<ProductDetails />, { wrapper: createWrapper() });
         await screen.findByRole('heading', { level: 1, name: 'سيفون تغيير ماء' });
         expect(screen.queryByTestId('product-delivered-total')).not.toBeInTheDocument();
         await user.click(screen.getByRole('button', { name: '1.7 متر' }));
-        expect(screen.getByTestId('product-delivered-total')).toHaveTextContent('37,000');
+        expect(screen.queryByTestId('product-delivered-total')).not.toBeInTheDocument();
+        expect(screen.getAllByText(/32,000/).length).toBeGreaterThan(0);
         await user.click(screen.getByRole('button', { name: 'زيادة الكمية' }));
-        expect(screen.getByTestId('product-delivered-total')).toHaveTextContent('69,000');
+        expect(screen.queryByTestId('product-delivered-total')).not.toBeInTheDocument();
         await user.click(screen.getByRole('button', { name: 'أضف إلى السلة' }));
         await waitFor(() => expect(screen.getByRole('button', { name: 'أضف إلى السلة' })).toBeEnabled());
         expect(screen.getByRole('button', { name: '1.7 متر' })).toHaveAttribute('aria-pressed', 'true');
-        expect(screen.getByTestId('product-delivered-total')).toHaveTextContent('69,000');
+        expect(screen.queryByTestId('product-delivered-total')).not.toBeInTheDocument();
     });
 
     it('should not render a page-level WhatsApp widget', async () => {
