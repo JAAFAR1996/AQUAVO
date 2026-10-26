@@ -21,7 +21,7 @@ export function OnboardingTour() {
     // Set steps and run state based on the current location
     useEffect(() => {
         let pageSteps: Step[] = [];
-        const path = location;
+        const path = location.replace(/^\/(en|ckb)(?=\/|$)/, '') || '/';
 
         // 1. FISH DOCTOR PAGE STEPS (طبيب الأسماك)
         if (path === '/fish-health-diagnosis') {
@@ -143,62 +143,14 @@ export function OnboardingTour() {
                 },
             ];
         }
-        // 4. YOUR JOURNEY PAGE STEPS (رحلتك)
-        else if (path === '/journey') {
-            pageSteps = [
-                {
-                    target: 'body',
-                    content: (
-                        <div className="text-right font-sans" dir="rtl">
-                            <h2 className="text-xl font-extrabold mb-2 text-primary">{t("onboarding-tour.s19")}</h2>
-                            <p className="text-muted-foreground leading-relaxed text-sm">
-                                {t("onboarding-tour.s20")}
-                            </p>
-                        </div>
-                    ),
-                    placement: 'center',
-                    skipBeacon: true,
-                },
-                {
-                    target: '[data-tour="journey-progress"]',
-                    content: (
-                        <div className="text-right font-sans" dir="rtl">
-                            <h3 className="font-bold mb-2 text-primary">{t("onboarding-tour.s21")}</h3>
-                            <p className="text-muted-foreground leading-relaxed text-sm">
-                                {t("onboarding-tour.s22")}
-                            </p>
-                        </div>
-                    ),
-                },
-                {
-                    target: '[data-tour="journey-content"]',
-                    content: (
-                        <div className="text-right font-sans" dir="rtl">
-                            <h3 className="font-bold mb-2 text-primary">{t("onboarding-tour.s23")}</h3>
-                            <p className="text-muted-foreground leading-relaxed text-sm">
-                                {t("onboarding-tour.s24")}
-                            </p>
-                        </div>
-                    ),
-                },
-                {
-                    target: '[data-tour="journey-nav"]',
-                    content: (
-                        <div className="text-right font-sans" dir="rtl">
-                            <h3 className="font-bold mb-2 text-primary">{t("onboarding-tour.s25")}</h3>
-                            <p className="text-muted-foreground leading-relaxed text-sm">
-                                {t("onboarding-tour.s26")}
-                            </p>
-                        </div>
-                    ),
-                },
-            ];
-        }
+        // Journey owns its introduction; never stack two modal tours.
 
         setSteps(pageSteps);
 
         if (pageSteps.length > 0) {
-            setRun(true);
+            try {
+                setRun(localStorage.getItem(`aquavo_tour_seen_${path.split('/')[1]}`) !== 'true' && localStorage.getItem('aquavo_tours_dismissed') !== 'true');
+            } catch { setRun(false); }
         } else {
             setRun(false);
         }
