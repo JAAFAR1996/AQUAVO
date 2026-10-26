@@ -299,7 +299,7 @@ export default function BundlesPage(){
                             <option value="" disabled>{t.choose}</option>
                             {base.variants.filter(isVariantActive).map((option)=>(
                               <option key={option.id} value={option.id} disabled={!isVariantPurchasable(option,Number(item.quantity))}>
-                                {option.label} — {formatIQD(Number(option.price ?? 0))}{!isVariantPurchasable(option,Number(item.quantity))?" — "+t.unavailable:""}
+                                {option.label}{Number(option.price)>0 && option.priceStatus!=="pending" ? " — "+formatIQD(Number(option.price)) : ""}{!isVariantPurchasable(option,Number(item.quantity))?" — "+t.unavailable:""}
                               </option>
                             ))}
                           </select>

@@ -6,7 +6,7 @@ import BundlesPage from "../bundles";
 const state=vi.hoisted(()=>({
   addItems:vi.fn(),addItem:vi.fn(),
   products:[{id:"filter",slug:"filter",name:"Sponge filter",price:3000,stock:5,hasVariants:true,
-    variants:[{id:"small",label:"Small",price:3000,stock:5},{id:"large",label:"Large",price:4000,stock:0},{id:"archived",label:"Old",price:1000,stock:9,isArchived:true}]}],
+    variants:[{id:"small",label:"Small",price:3000,stock:5},{id:"large",label:"Large",price:4000,stock:0},{id:"archived",label:"Old",price:1000,stock:9,isArchived:true},{id:"pending",label:"Pending size",price:0,stock:0,priceStatus:"pending"}]}],
   bundles:[{id:"kit",slug:"filter-maintenance-pack",nameAr:"Kit",descriptionAr:"",bundlePrice:3000,inStock:true,requiresVariantSelection:true,
     items:[{productId:"filter",variantId:null,variantLabel:null,quantity:1,required:true,name:"Sponge filter",slug:"filter",price:3000,stock:5,hasVariants:true}]}]
 }));
@@ -25,6 +25,9 @@ describe("bundle option purchase flow",()=>{
   expect(screen.getByRole("button",{name:"Choose item options above"})).toBeDisabled();
   expect(screen.getByRole("option",{name:/Large/})).toBeDisabled();
   expect(screen.queryByRole("option",{name:/Old/})).not.toBeInTheDocument();
+  const pending=screen.getByRole("option",{name:/Pending size/});
+  expect(pending).toBeDisabled();
+  expect(pending.textContent).not.toMatch(/0/);
   await user.selectOptions(select,"small");
   const add=screen.getByRole("button",{name:"Add bundle to cart"});
   expect(add).toBeEnabled();
