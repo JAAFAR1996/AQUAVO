@@ -1,9 +1,10 @@
 import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 // A structural guard for a commerce-critical integration point.
 // Full transaction rollback requires the Preview DB integration test gate.
-const source = readFileSync(new URL("../routes/admin.ts", import.meta.url), "utf8");
+const source = readFileSync(resolve(process.cwd(), "server/routes/admin.ts"), "utf8");
 const createRoute = source.split('router.post("/products",')[1]?.split('router.patch("/products/:id"')[0] ?? "";
 const updateRoute = source.split('router.patch("/products/:id"')[1]?.split('router.delete("/products/:id"')[0] ?? "";
 
