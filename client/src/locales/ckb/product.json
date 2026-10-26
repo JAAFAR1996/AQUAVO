@@ -49,7 +49,7 @@
   "stock": {
     "available": "بەردەستە ({{count}} دانە)",
     "unavailable": "ئێستا بەردەست نییە",
-    "chooseVariant": "قەبارە هەڵبژێرە بۆ دڵنیابوون لە بڕی بەردەست"
+    "chooseVariant": "بەردەستی بە هەڵبژاردەکەوە بەستراوە"
   },
   "trust": {
     "label": "زانیاری کڕین و متمانە",
@@ -79,7 +79,7 @@
     "addShort": "بۆ سەبەتە زیاد بکە",
     "stickyQty": "بڕ {{quantity}}",
     "stickyVariantQty": "{{variant}} · بڕ {{quantity}}",
-    "chooseVariant": "قەبارە هەڵبژێرە"
+    "chooseVariant": "سەرەتا هەڵبژاردەیەک هەڵبژێرە"
   },
   "share": {
     "label": "هاوبەشکردنی بەرهەم",

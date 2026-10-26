@@ -49,7 +49,7 @@
   "stock": {
     "available": "In stock ({{count}} pcs)",
     "unavailable": "Currently out of stock",
-    "chooseVariant": "Choose a size to check stock"
+    "chooseVariant": "Availability depends on the selected option"
   },
   "trust": {
     "label": "Purchase and trust information",
@@ -79,7 +79,7 @@
     "addShort": "Add to cart",
     "stickyQty": "Quantity {{quantity}}",
     "stickyVariantQty": "{{variant}} · Qty {{quantity}}",
-    "chooseVariant": "Choose a size"
+    "chooseVariant": "Choose an option first"
   },
   "share": {
     "label": "Share product",

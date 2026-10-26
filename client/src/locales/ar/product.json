@@ -49,7 +49,7 @@
   "stock": {
     "available": "متوفر ({{count}} قطعة)",
     "unavailable": "غير متوفر حالياً",
-    "chooseVariant": "اختَر المقاس حتى تتأكد من المخزون"
+    "chooseVariant": "التوفر حسب النسخة المختارة"
   },
   "trust": {
     "label": "معلومات الشراء والثقة",
@@ -79,7 +79,7 @@
     "addShort": "أضف للسلة",
     "stickyQty": "الكمية {{quantity}}",
     "stickyVariantQty": "{{variant}} · الكمية {{quantity}}",
-    "chooseVariant": "اختَر المقاس"
+    "chooseVariant": "اختار النسخة أولاً"
   },
   "share": {
     "label": "مشاركة المنتج",

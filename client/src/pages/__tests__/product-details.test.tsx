@@ -255,7 +255,7 @@ describe('Product Details Page', () => {
         render(<ProductDetails />, { wrapper: createWrapper() });
 
         await screen.findByRole('heading', { level: 1, name: 'اختبار سائل للأمونيا أو النتريت' });
-        expect(screen.getByRole('button', { name: 'اختَر المقاس' })).toBeDisabled();
+        expect(screen.getByRole('button', { name: 'اختار النسخة أولاً' })).toBeDisabled();
         expect(mockAddItem).not.toHaveBeenCalled();
         await user.click(screen.getByRole('button', { name: 'اختبار النتريت' }));
         await user.click(screen.getByRole('button', { name: 'أضف إلى السلة' }));
@@ -485,6 +485,6 @@ describe('Product Details Page', () => {
         expect(await screen.findByRole('heading', { level: 1, name: 'سيفون تغيير ماء' })).toBeInTheDocument();
         expect(screen.getByRole('main')).toBeInTheDocument();
         expect(screen.getByRole('button', { name: '1.7 متر' })).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: 'اختَر المقاس' })).toBeDisabled();
+        expect(screen.getByRole('button', { name: 'اختار النسخة أولاً' })).toBeDisabled();
     });
 });
