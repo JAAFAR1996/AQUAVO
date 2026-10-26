@@ -3,6 +3,7 @@ import { Router } from "express";
 import { storage } from "../storage/index.js";
 import { requireAdmin, getSession } from "../middleware/auth.js";
 import { insertProductSchema } from "../../shared/schema.js";
+import { canonicalProductGallery, primaryImageFirst } from "../../shared/product-gallery.js";
 import { broadcastDiscountForProduct } from "./newsletter.js";
 import { embeddingGenerator } from "../services/embedding-generator.js";
 import { clearProductsCache } from "./products.js";
@@ -1245,16 +1246,15 @@ export function createAdminRouter(): RouterType {
             delete data.imageBase64;
 
             if (thumbnailUrl) {
-                data.thumbnail = thumbnailUrl;
-                data.images = [thumbnailUrl, ...processedImages.filter(img => img !== thumbnailUrl)];
+                data.images = primaryImageFirst(processedImages, thumbnailUrl);
             } else {
-                data.images = processedImages;
-                if (data.images.length > 0) {
-                    if (!data.thumbnail || data.thumbnail.trim() === "" || data.thumbnail.startsWith('data:')) {
-                        data.thumbnail = data.images[0];
-                    }
+                data.images = canonicalProductGallery(processedImages);
+                if (data.images.length === 0 && typeof data.thumbnail === "string" && data.thumbnail.trim()) {
+                    data.images = primaryImageFirst(data.images, data.thumbnail);
                 }
             }
+            // Image order is authoritative; thumbnail is its saved projection.
+            if (data.images.length > 0) data.thumbnail = data.images[0];
 
             // Enforce validation to make sure everything is a Cloudinary URL or allowed local path
             validateImageUrls(data.thumbnail, data.images);
@@ -1388,20 +1388,20 @@ export function createAdminRouter(): RouterType {
             delete updates.imageBase64;
 
             if (thumbnailUrl) {
-                updates.thumbnail = thumbnailUrl;
-                const currentImages = (updates.images !== undefined)
+                const currentImages = updates.images !== undefined
                     ? processedImages
-                    : (existingProduct.images ? [...existingProduct.images] : []);
-
-                updates.images = [thumbnailUrl, ...currentImages.filter((img: string) => img !== thumbnailUrl && !img.startsWith('data:'))];
-            } else {
-                if (updates.images !== undefined) {
-                    updates.images = processedImages;
-                    const currentThumbnail = updates.thumbnail !== undefined ? updates.thumbnail : existingProduct.thumbnail;
-                    if (!currentThumbnail || currentThumbnail.trim() === "" || currentThumbnail.startsWith('data:')) {
-                        updates.thumbnail = processedImages[0] || existingProduct.thumbnail;
-                    }
+                    : (existingProduct.images ?? []);
+                updates.images = primaryImageFirst(currentImages, thumbnailUrl);
+            } else if (updates.images !== undefined) {
+                updates.images = canonicalProductGallery(processedImages);
+            } else if (updates.thumbnail && updates.thumbnail !== existingProduct.thumbnail) {
+                updates.images = primaryImageFirst(existingProduct.images, updates.thumbnail);
+            }
+            if (updates.images !== undefined) {
+                if (updates.images.length === 0) {
+                    throw new OperationalError("يجب إبقاء صورة واحدة على الأقل للمنتج", 400);
                 }
+                updates.thumbnail = updates.images[0];
             }
 
             // Enforce validation to make sure everything is a Cloudinary URL or allowed local path
