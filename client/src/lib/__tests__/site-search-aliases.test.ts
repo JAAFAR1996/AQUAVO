@@ -39,3 +39,27 @@ describe("store search aliases", () => {
     expect(result.some((item) => item.id === "food")).toBe(false);
   });
 });
+
+describe("search relevance regression", () => {
+  it("rejects incidental description mentions and irrelevant semantic results", () => {
+    const heater = product("yee-3006", "سخان YEE");
+    const food = {...product("food", "أكل أسماك"), description: "لا تضع الطعام قرب الهيتر"};
+    const results = buildUnifiedSiteSearchResults({query:"هيتر",catalogProducts:[heater,food],semanticProducts:[food,heater]});
+    expect(results.filter(r=>r.type==="product").map(r=>r.id)).toEqual(["yee-3006"]);
+  });
+  it("does not use scattered letters as a product match", () => {
+    const results=buildUnifiedSiteSearchResults({query:"هيتر",catalogProducts:[product("random","هواء يتوفر تركيب")]});
+    expect(results.filter(r=>r.type==="product")).toHaveLength(0);
+  });
+  it("ranks stocked equivalent kinds before unavailable ones", () => {
+    const sold={...product("sold","سخان Hygger"),stock:0};
+    const available=product("available","سخان YEE");
+    const results=buildUnifiedSiteSearchResults({query:"هيتر",catalogProducts:[sold,available],semanticProducts:[sold]});
+    expect(results.filter(r=>r.type==="product")[0].id).toBe("available");
+  });
+  it("preserves an exact SKU match even when out of stock", () => {
+    const exact={...product("yee-3006","سخان"),stock:0};
+    const results=buildUnifiedSiteSearchResults({query:"yee-3006",catalogProducts:[exact,product("other","YEE 3006 accessory")]});
+    expect(results.filter(r=>r.type==="product")[0].id).toBe("yee-3006");
+  });
+});
