@@ -52,7 +52,7 @@ describe("search relevance regression", () => {
     expect(results.filter(r=>r.type==="product")).toHaveLength(0);
   });
   it("ranks stocked equivalent kinds before unavailable ones", () => {
-    const sold={...product("sold","سخان Hygger"),stock:0};
+    const sold={...product("sold","هيتر رقمي Hygger"),stock:0};
     const available=product("available","سخان YEE");
     const results=buildUnifiedSiteSearchResults({query:"هيتر",catalogProducts:[sold,available],semanticProducts:[sold]});
     expect(results.filter(r=>r.type==="product")[0].id).toBe("available");
