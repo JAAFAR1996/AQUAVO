@@ -1,3 +1,5 @@
+import { useLocale } from "@/i18n/locale-context";
+import { variantDimensionLabel, variantDisplayValue } from "@/lib/variant-display";
 import { isVariantActive, isVariantComingSoon, positiveVariantPrice } from "@shared/variant-commerce";
 import { useEffect, useMemo, useState } from "react";
 import { Check, Palette, Ruler, Sparkles, Tag } from "lucide-react";
@@ -88,6 +90,7 @@ export function MultiDimensionVariantSelector({
   comingSoon = false,
 }: MultiDimensionVariantSelectorProps) {
   const { t } = useTranslation("product");
+  const { locale, dir } = useLocale();
   const variants = useMemo(() => allVariants.filter(isVariantActive), [allVariants]);
   const dimensions = useMemo(() => extractVariantDimensions(variants), [variants]);
   const selectedVariant = useMemo(
@@ -131,7 +134,7 @@ export function MultiDimensionVariantSelector({
   };
 
   return (
-    <div className="space-y-5 rounded-xl border border-border bg-card p-4" dir="rtl">
+    <div className="space-y-5 rounded-xl border border-border bg-card p-4" dir={dir}>
       <div className="flex items-center gap-2">
         <Sparkles className="h-4 w-4 text-primary" aria-hidden="true" />
         <span className="text-sm font-bold">{t("variants.chooseSpecs")}</span>
@@ -144,7 +147,7 @@ export function MultiDimensionVariantSelector({
               <Ruler className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
               <span>{t("variants.measurements")}</span>
               {selectedMeasurement && (
-                <span className="font-bold text-primary">: {selectedMeasurement}</span>
+                <span className="font-bold text-primary">: {variantDisplayValue(selectedMeasurement, locale)}</span>
               )}
             </legend>
 
@@ -174,7 +177,7 @@ export function MultiDimensionVariantSelector({
                     )}
                   >
                     {selected && <Check className="ml-1 inline h-3.5 w-3.5" aria-hidden="true" />}
-                    {measurement}
+                    {variantDisplayValue(measurement, locale)}
                   </button>
                 );
               })}
@@ -184,7 +187,7 @@ export function MultiDimensionVariantSelector({
           {selectedCapacity && (
             <div className="flex items-center justify-between rounded-lg border border-border bg-background px-4 py-3 text-sm" aria-live="polite">
               <span className="text-muted-foreground">{t("variants.capacity")}</span>
-              <span className="font-bold text-primary">{selectedCapacity}</span>
+              <span className="font-bold text-primary">{variantDisplayValue(selectedCapacity, locale)}</span>
             </div>
           )}
         </>
@@ -198,8 +201,8 @@ export function MultiDimensionVariantSelector({
               <fieldset key={dimension.key} className="space-y-2.5">
                 <legend id={labelId} className="flex items-center gap-2 text-sm font-medium">
                   <DimensionIcon dimensionKey={dimension.key} />
-                  <span>{dimension.label}</span>
-                  {selectedValue && <span className="font-bold text-primary">: {selectedValue}</span>}
+                  <span>{variantDimensionLabel(dimension.key, locale)}</span>
+                  {selectedValue && <span className="font-bold text-primary">: {variantDisplayValue(selectedValue, locale)}</span>}
                 </legend>
 
                 {/* See above: the <fieldset>/<legend> pair is the group. */}
@@ -214,11 +217,11 @@ export function MultiDimensionVariantSelector({
 
                     return (
                       <button
-                        key={value}
+                        key={variantDisplayValue(value, locale)}
                         type="button"
                         onClick={() => selectValue(dimension.key, value)}
                             aria-pressed={selected}
-                        aria-label={!available ? (comingSoon || variants.some(v => isVariantComingSoon(v) && String(v.specifications?.[dimension.key]) === value)) ? `${t("variants.dimensionAria", { label: dimension.label, value })} — ${t("price.soon")}` : t("variants.dimensionUnavailableAria", { label: dimension.label, value }) : t("variants.dimensionAria", { label: dimension.label, value })}
+                        aria-label={!available ? (comingSoon || variants.some(v => isVariantComingSoon(v) && String(v.specifications?.[dimension.key]) === value)) ? `${t("variants.dimensionAria", { label: variantDimensionLabel(dimension.key, locale), value: variantDisplayValue(value, locale) })} — ${t("price.soon")}` : t("variants.dimensionUnavailableAria", { label: variantDimensionLabel(dimension.key, locale), value: variantDisplayValue(value, locale) }) : t("variants.dimensionAria", { label: variantDimensionLabel(dimension.key, locale), value: variantDisplayValue(value, locale) })}
                         className={cn(
                           "min-h-11 rounded-full border-2 px-4 py-2 text-sm font-medium transition-colors",
                           selected
