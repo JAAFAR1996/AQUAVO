@@ -149,6 +149,7 @@ export function normalizeSearchText(value: unknown): string {
  * contains one of the complete phrases; never infer from product descriptions.
  */
 const PRODUCT_NAME_ALIASES: readonly (readonly string[])[] = [
+  ["فلتر", "فلاتر", "filter"],
   ["فلتر اسفنجي", "سفنجه فلتر", "sponge filter"],
   ["مضخه هواء", "منفاخ هواء", "air pump"],
   ["خرطوم هواء", "لي هواء", "air hose", "airline tubing"],
@@ -193,6 +194,12 @@ function productScore(product: Product, query: string, semanticRank?: number): n
   const category = normalizeSearchText(product.category);
   const description = normalizeSearchText(product.description);
 
+  const kind = PRODUCT_NAME_ALIASES.find(phrases => phrases.some(phrase => normalizeSearchText(phrase) === normalizedQuery));
+  // Synonyms for a product kind have equal relevance: "هيتر" must not bury a
+  // stocked "سخان" beneath an unavailable item merely named with the other word.
+  if (kind && kind.some(phrase => name.includes(normalizeSearchText(phrase)))) {
+    return 100 + ((product.stock ?? 0) > 0 ? 30 : 0);
+  }
   let score = semanticRank == null ? 0 : Math.max(0, 3 - semanticRank);
   if (!normalizedQuery) return score;
   if (name === normalizedQuery) score += 80;
