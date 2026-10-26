@@ -1,5 +1,7 @@
 import { i18next } from "@/i18n";
-export const DELIVERY_FEE = 5000;
+import { DEFAULT_CUSTOMER_SHIPPING_FEE_IQD } from "@shared/store-policy";
+/** Legacy fallback only; interactive prices come from /api/settings/shipping. */
+export const DELIVERY_FEE = DEFAULT_CUSTOMER_SHIPPING_FEE_IQD;
 export const BAGHDAD_SHIPPING = DELIVERY_FEE;
 export const OTHER_GOVERNORATES_SHIPPING = DELIVERY_FEE;
 export const DELIVERY_DAYS = i18next.t("pages:shipping.s18");

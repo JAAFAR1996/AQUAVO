@@ -3,6 +3,7 @@ import { Router } from "express";
 import { storage } from "../storage/index.js";
 import { requireAdmin, getSession } from "../middleware/auth.js";
 import { insertProductSchema } from "../../shared/schema.js";
+import { canonicalProductGallery, primaryImageFirst } from "../../shared/product-gallery.js";
 import { broadcastDiscountForProduct } from "./newsletter.js";
 import { embeddingGenerator } from "../services/embedding-generator.js";
 import { clearProductsCache } from "./products.js";
@@ -13,7 +14,7 @@ import { z } from "zod";
 import { orderCollectedAmount, isRealizedStatus } from "../../shared/order-financials.js";
 import {
     users, orders, pageViews, searchQueries, productViews, cartItems,
-    favorites, reviews, churnPredictions, customerProfiles, products,
+    favorites, reviews, churnPredictions, customerProfiles, products, auditLogs,
 } from "../../shared/schema.js";
 import { OperationalError } from "../middleware/error-handler.js";
 import { getDb } from "../db.js";
@@ -1245,16 +1246,15 @@ export function createAdminRouter(): RouterType {
             delete data.imageBase64;
 
             if (thumbnailUrl) {
-                data.thumbnail = thumbnailUrl;
-                data.images = [thumbnailUrl, ...processedImages.filter(img => img !== thumbnailUrl)];
+                data.images = primaryImageFirst(processedImages, thumbnailUrl);
             } else {
-                data.images = processedImages;
-                if (data.images.length > 0) {
-                    if (!data.thumbnail || data.thumbnail.trim() === "" || data.thumbnail.startsWith('data:')) {
-                        data.thumbnail = data.images[0];
-                    }
+                data.images = canonicalProductGallery(processedImages);
+                if (data.images.length === 0 && typeof data.thumbnail === "string" && data.thumbnail.trim()) {
+                    data.images = primaryImageFirst(data.images, data.thumbnail);
                 }
             }
+            // Image order is authoritative; thumbnail is its saved projection.
+            if (data.images.length > 0) data.thumbnail = data.images[0];
 
             // Enforce validation to make sure everything is a Cloudinary URL or allowed local path
             validateImageUrls(data.thumbnail, data.images);
@@ -1279,53 +1279,53 @@ export function createAdminRouter(): RouterType {
                     ? { variants: requestedVariants.map((variant: any) => ({ ...variant, stock: 0 })) }
                     : {}),
             };
-            let product = await storage.createProduct(createPayload);
-
             const db = getDb();
             if (!db) {
                 throw new OperationalError("قاعدة البيانات غير مهيأة", 503);
             }
             const adminId = getSession(req)?.userId || "admin";
-            let inventoryResult: InventoryAdjustmentResult | InventoryAdjustmentResult[] | null = null;
 
-            if (requestedHasVariants && requestedVariants.length > 0) {
-                const variantResult = await db.transaction(async (tx: any) =>
-                    setCanonicalVariantConfiguration(
+            // Identity, variant/base ledger changes and audit are one atomic save.
+            // An error (including low-level ledger or audit failures) rolls back
+            // every DB write, rather than leaving an incomplete new product.
+            const product = await db.transaction(async (tx: any) => {
+                const created = await storage.createProduct(createPayload, tx);
+                let inventoryResult: InventoryAdjustmentResult | InventoryAdjustmentResult[] | null = null;
+                if (requestedHasVariants && requestedVariants.length > 0) {
+                    const variantResult = await setCanonicalVariantConfiguration(
                         tx,
                         { clientId: adminId, mode: "admin" },
-                        product.id,
+                        created.id,
                         true,
                         requestedVariants,
-                    ),
-                );
-                inventoryResult = variantResult.stock_adjustments;
-            } else if (requestedStock > 0) {
-                inventoryResult = await db.transaction(async (tx: any) =>
-                    setCanonicalProductStock(
+                    );
+                    inventoryResult = variantResult.stock_adjustments;
+                } else if (requestedStock > 0) {
+                    inventoryResult = await setCanonicalProductStock(
                         tx,
                         { clientId: adminId, mode: "admin" },
-                        product.id,
+                        created.id,
                         requestedStock,
                         null,
-                    ),
-                );
-            }
+                    );
+                }
 
-            product = await storage.getProduct(product.id) ?? product;
+                await tx.insert(auditLogs).values({
+                    userId: adminId,
+                    action: "create",
+                    entityType: "product",
+                    entityId: created.id,
+                    changes: { ...(parsed as any), inventoryResult },
+                });
+                const [complete] = await tx.select().from(products)
+                    .where(eq(products.id, created.id)).limit(1);
+                return complete ?? created;
+            });
             clearProductsCache();
 
             // Auto-generate embedding for new product (fire-and-forget)
             embeddingGenerator.generateProductEmbedding(product.id).catch((err) => {
                 console.error(`[Admin] Failed to auto-generate embedding for product ${product.id}:`, err);
-            });
-
-            // Audit Log
-            await storage.createAuditLog({
-                userId: adminId,
-                action: "create",
-                entityType: "product",
-                entityId: product.id,
-                changes: { ...(parsed as any), inventoryResult }
             });
 
             res.status(201).json(product);
@@ -1349,6 +1349,9 @@ export function createAdminRouter(): RouterType {
             if (!existingProduct) {
                 res.status(404).json({ message: "Product not found" });
                 return;
+            }
+            if (requestedStock !== undefined && existingProduct.hasVariants) {
+                throw new OperationalError("هذا المنتج لديه خيارات؛ عدّل مخزون كل خيار من شاشة الخيارات", 400);
             }
 
             const folder = getCloudinaryFolder(updates.brand || existingProduct.brand, updates.slug || existingProduct.slug || id);
@@ -1388,50 +1391,62 @@ export function createAdminRouter(): RouterType {
             delete updates.imageBase64;
 
             if (thumbnailUrl) {
-                updates.thumbnail = thumbnailUrl;
-                const currentImages = (updates.images !== undefined)
+                const currentImages = updates.images !== undefined
                     ? processedImages
-                    : (existingProduct.images ? [...existingProduct.images] : []);
-
-                updates.images = [thumbnailUrl, ...currentImages.filter((img: string) => img !== thumbnailUrl && !img.startsWith('data:'))];
-            } else {
-                if (updates.images !== undefined) {
-                    updates.images = processedImages;
-                    const currentThumbnail = updates.thumbnail !== undefined ? updates.thumbnail : existingProduct.thumbnail;
-                    if (!currentThumbnail || currentThumbnail.trim() === "" || currentThumbnail.startsWith('data:')) {
-                        updates.thumbnail = processedImages[0] || existingProduct.thumbnail;
-                    }
+                    : (existingProduct.images ?? []);
+                updates.images = primaryImageFirst(currentImages, thumbnailUrl);
+            } else if (updates.images !== undefined) {
+                updates.images = canonicalProductGallery(processedImages);
+            } else if (updates.thumbnail && updates.thumbnail !== existingProduct.thumbnail) {
+                updates.images = primaryImageFirst(existingProduct.images, updates.thumbnail);
+            }
+            if (updates.images !== undefined) {
+                if (updates.images.length === 0) {
+                    throw new OperationalError("يجب إبقاء صورة واحدة على الأقل للمنتج", 400);
                 }
+                updates.thumbnail = updates.images[0];
             }
 
             // Enforce validation to make sure everything is a Cloudinary URL or allowed local path
             validateImageUrls(updates.thumbnail as string | undefined, updates.images as string[] | undefined);
 
-            let product = await storage.updateProduct(id, updates);
-            if (!product) {
-                res.status(404).json({ message: "Product not found" });
-                return;
+            const db = getDb();
+            if (!db) {
+                throw new OperationalError("قاعدة البيانات غير مهيأة", 503);
             }
+            const adminId = getSession(req)?.userId || "admin";
 
-            let stockAdjustment: InventoryAdjustmentResult | null = null;
-            if (requestedStock !== undefined && !existingProduct.hasVariants) {
-                const db = getDb();
-                if (!db) {
-                    res.status(503).json({ message: "قاعدة البيانات غير مهيأة" });
-                    return;
+            const product = await db.transaction(async (tx: any) => {
+                const changed = await storage.updateProduct(id, updates, tx);
+                if (!changed) {
+                    throw new OperationalError("Product not found", 404);
                 }
-                const adminId = getSession(req)?.userId || "admin";
-                stockAdjustment = await db.transaction(async (tx: any) =>
-                    setCanonicalProductStock(
+
+                let stockAdjustment: InventoryAdjustmentResult | null = null;
+                if (requestedStock !== undefined) {
+                    stockAdjustment = await setCanonicalProductStock(
                         tx,
                         { clientId: adminId, mode: "admin" },
                         id,
                         requestedStock,
                         null,
-                    ),
-                );
-                product = await storage.getProduct(id) ?? product;
-            }
+                    );
+                }
+
+                await tx.insert(auditLogs).values({
+                    userId: adminId,
+                    action: "update",
+                    entityType: "product",
+                    entityId: changed.id,
+                    changes: {
+                        ...updates,
+                        ...(stockAdjustment ? { stock: requestedStock, stockAdjustment } : {}),
+                    },
+                });
+                const [complete] = await tx.select().from(products)
+                    .where(eq(products.id, id)).limit(1);
+                return complete ?? changed;
+            });
             clearProductsCache(); // compatibility no-op; public product APIs are no-store
 
             // Re-generate embedding on product update (name/description/category change)
@@ -1440,20 +1455,6 @@ export function createAdminRouter(): RouterType {
                     console.error(`[Admin] Failed to re-generate embedding for product ${product.id}:`, err);
                 });
             }
-
-            // Audit Log
-            await storage.createAuditLog({
-                userId: getSession(req)?.userId || "admin",
-                action: "update",
-                entityType: "product",
-                entityId: product.id,
-                changes: {
-                    ...updates,
-                    ...(requestedStock !== undefined && !existingProduct.hasVariants
-                        ? { stock: requestedStock, stockAdjustment }
-                        : {}),
-                }
-            });
 
             // Check if price was provided in updates
             if (updates.price) {

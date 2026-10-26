@@ -7,8 +7,10 @@ import {
 } from "../api/_canonical-guides.js";
 import {
   PUBLIC_INDEXABLE_PATHS,
+  AQUAVO_ENTITY,
   isNoindexPath,
 } from "../shared/seo-contract.js";
+import { DEFAULT_CUSTOMER_SHIPPING_FEE_IQD } from "../shared/store-policy.js";
 
 const read = (path: string) => readFileSync(resolve(process.cwd(), path), "utf8");
 const runtimeSource = () => {
@@ -77,7 +79,9 @@ describe("SEO production safety invariants", () => {
       read("client/public/llms-full.txt"),
     ].join("\n");
 
-    expect(contract).toContain("deliveryFee: 5000");
+    expect(DEFAULT_CUSTOMER_SHIPPING_FEE_IQD).toBe(5000);
+    expect(AQUAVO_ENTITY.deliveryFee).toBe(DEFAULT_CUSTOMER_SHIPPING_FEE_IQD);
+    expect(contract).toContain("deliveryFee: DEFAULT_CUSTOMER_SHIPPING_FEE_IQD");
     expect(contract).toContain("deliveryMaxDays: 1");
     expect(contract).toContain('supportAvailability: "24/7"');
     expect(sources).toContain("توصيل خلال 24 ساعة");

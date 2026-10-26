@@ -1,3 +1,4 @@
+import { getProductPriceDisplay } from "../shared/public-price.js";
 import "../server/suppress.js";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { Pool, neonConfig } from "@neondatabase/serverless";
@@ -98,6 +99,8 @@ type ResolvedPage = {
   page: SeoPreviewPage;
   meta: Meta;
   status: number;
+  /** Exactly the fee already used by the page's merchant structured data. */
+  shippingFee?: number;
 };
 
 function headingFromLocalizedTitle(title: string): string {
@@ -743,6 +746,7 @@ async function resolvePage(pathname: string, rawCategory?: string): Promise<Reso
         ogType: "product",
         jsonLd: buildProductStructuredData(product, { shippingFee }),
       },
+      shippingFee,
       status: 200,
     };
   }
@@ -1042,7 +1046,7 @@ function injectDocument(template: string, meta: Meta, shell: string, robots: str
  * so the two cannot state different prices or a different stock status. There
  * is nothing here that is not also on the page.
  */
-function markdown(page: SeoPreviewPage, meta: Meta): string {
+function markdown(page: SeoPreviewPage, meta: Meta, shippingFee = AQUAVO_ENTITY.deliveryFee): string {
   const heading = page.kind === "blog-post" ? page.post.title : meta.title;
   const lines = [`# ${heading}`, "", meta.description, ""];
   if (meta.canonicalPath) lines.push(`Canonical: ${AQUAVO_BASE_URL}${meta.canonicalPath}`, "");
@@ -1064,13 +1068,14 @@ function markdown(page: SeoPreviewPage, meta: Meta): string {
     lines.push(`- التوفر: ${productStockLabel(product)}`);
     if (product.brand) lines.push(`- العلامة: ${product.brand}`);
     if (category) lines.push(`- الفئة: ${category}`);
-    lines.push(`- التوصيل: ${formatMoney(AQUAVO_ENTITY.deliveryFee, AQUAVO_ENTITY.currency)} لكل العراق`);
+    lines.push(`- التوصيل: ${formatMoney(shippingFee, AQUAVO_ENTITY.currency)} لكل العراق`);
 
     const variants = getActiveVariants(product);
     if (variants.length > 0) {
       lines.push("", "## الخيارات المتاحة", "");
       for (const variant of variants) {
-        const price = formatMoney(numberValue(variant.price) ?? 0, product.currency || AQUAVO_ENTITY.currency);
+        const amount = getProductPriceDisplay(product, variant).price;
+        const price = amount === null ? "السعر غير منشور حالياً" : formatMoney(amount, product.currency || AQUAVO_ENTITY.currency);
         const stock = isProductComingSoon(product) ? "قريبًا" : (numberValue(variant.stock) ?? 0) > 0 ? "متوفر" : "غير متوفر حالياً";
         lines.push(`- ${variant.label}: ${price} — ${stock}`);
       }
@@ -1341,7 +1346,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
 
     if (acceptsMarkdown) {
       res.status(resolved.status).setHeader("Content-Type", "text/markdown; charset=utf-8");
-      res.send(markdown(resolved.page, resolved.meta));
+      res.send(markdown(resolved.page, resolved.meta, resolved.shippingFee));
       return;
     }
 

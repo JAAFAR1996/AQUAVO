@@ -19,8 +19,8 @@ export interface IStorage {
     getProductsByIds(ids: string[]): Promise<Product[]>;
     getArchivedOrderProductMetadataByIds(ids: string[]): Promise<ArchivedOrderProductMetadata[]>;
     getProductBySlug(slug: string): Promise<Product | undefined>;
-    createProduct(product: Partial<Product>): Promise<Product>;
-    updateProduct(id: string, updates: Partial<Product>): Promise<Product | undefined>;
+    createProduct(product: Partial<Product>, dbOverride?: any): Promise<Product>;
+    updateProduct(id: string, updates: Partial<Product>, dbOverride?: any): Promise<Product | undefined>;
     updateProductVariants(id: string, hasVariants: boolean, variants: any[] | null): Promise<boolean>;
     deleteProduct(id: string): Promise<boolean>;
     getOrders(userId?: string, options?: { limit?: number, offset?: number }): Promise<Order[]>;

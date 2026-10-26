@@ -36,6 +36,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/auth-context";
 import { ImageUpload } from "@/components/admin/image-upload";
 import { ImageReorderManager } from "@/components/admin/image-reorder-manager";
+import { canonicalProductGallery, primaryImageFirst } from "@shared/product-gallery";
 import { MultipleImageUpload } from "@/components/admin/multiple-image-upload";
 import { OrdersManagement } from "@/components/admin/orders-management";
 import { GalleryManagement } from "@/components/admin/gallery-management";
@@ -1277,26 +1278,28 @@ export default function AdminDashboard() {
               <ImageReorderManager
                 images={formData.images}
                 thumbnail={formData.thumbnail || formData.images[0]}
-                onImagesChange={(newImages) => setFormData({ ...formData, images: newImages })}
-                onThumbnailChange={(newThumbnail) => setFormData({ ...formData, thumbnail: newThumbnail })}
-                onDeleteImage={(imageToDelete) => {
-                  if (!formData.images) return;
-                  const newImages = formData.images.filter(img => img !== imageToDelete);
-                  setFormData({
-                    ...formData,
-                    images: newImages,
-                    thumbnail: formData.thumbnail === imageToDelete
-                      ? (newImages[0] || "")
-                      : formData.thumbnail
-                  });
-                }}
+                onImagesChange={(newImages) => setFormData((prev) => {
+                  const images = canonicalProductGallery(newImages);
+                  return { ...prev, images, thumbnail: images[0] || "" };
+                })}
+                onThumbnailChange={(newThumbnail) => setFormData((prev) => {
+                  const images = primaryImageFirst(prev.images, newThumbnail);
+                  return { ...prev, images, thumbnail: images[0] || "" };
+                })}
+                onDeleteImage={(imageToDelete) => setFormData((prev) => {
+                  const images = canonicalProductGallery(prev.images?.filter((img) => img !== imageToDelete));
+                  return { ...prev, images, thumbnail: images[0] || "" };
+                })}
               />
             )}
 
             {/* Multiple Image Upload */}
             <MultipleImageUpload
               images={formData.images || []}
-              onImagesChange={(newImages) => setFormData({ ...formData, images: newImages })}
+              onImagesChange={(newImages) => setFormData((prev) => {
+                const images = canonicalProductGallery(newImages);
+                return { ...prev, images, thumbnail: images[0] || "" };
+              })}
               maxImages={10}
             />
 
