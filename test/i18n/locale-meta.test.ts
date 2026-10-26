@@ -1,3 +1,6 @@
+import { buildProductStructuredData } from "../../api/_seo-structured-data";
+import { guidesForCategory, guideLinksHeading, CATEGORY_GUIDE_LINKS } from "../../shared/guide-links";
+import { LOCALES } from "../../shared/i18n/locales";
 import { describe, expect, it } from "vitest";
 import { applyLocaleToHtml, hreflangLinks, ogLocaleTags } from "../../api/_locale-meta";
 import { isLocaleReleased } from "../../shared/i18n/release";
@@ -79,5 +82,65 @@ describe("applyLocaleToHtml", () => {
       expect(out.includes('hreflang="en"')).toBe(isLocaleReleased("en"));
       expect(out).not.toContain('hreflang="ku-IQ"');
     }
+  });
+});
+
+describe("localized product discovery", () => {
+  const product = {
+    id: "test-heater", slug: "test-heater", name: "Aquarium heater",
+    description: "Adjustable aquarium heater.", category: "التحكم بالحرارة",
+    price: 15000, stock: 2, currency: "IQD", hasVariants: true,
+    variants: [
+      { id: "50w", label: "50 W", price: 15000, stock: 2 },
+      { id: "100w", label: "100 W", price: 20000, stock: 3 },
+    ],
+  };
+
+  it.each(["en", "ckb"] as const)("keeps %s product, offers, breadcrumbs and page URLs in the requested locale", (locale) => {
+    const graph = buildProductStructuredData(product, { locale }) as Record<string, any>[];
+    const url = `https://www.aquavoiq.com/${locale}/products/test-heater`;
+    const group = graph.find(n => n["@type"] === "ProductGroup")!;
+    const page = graph.find(n => n["@type"] === "WebPage")!;
+    const crumbs = graph.find(n => n["@type"] === "BreadcrumbList")!;
+    expect(group.url).toBe(url);
+    expect(page.url).toBe(url);
+    expect(page.inLanguage).toBe(LOCALES[locale].languageTag);
+    expect(page.mainEntity["@id"]).toBe(group["@id"]);
+    expect(group.category).not.toBe(product.category);
+    for (const variant of group.hasVariant) {
+      expect(variant.url).toBe(url);
+      expect(variant.offers.url).toBe(url);
+    }
+    for (const item of crumbs.itemListElement) {
+      expect(item.item).toContain(`https://www.aquavoiq.com/${locale}/`);
+    }
+  });
+
+  it("labels an Arabic fallback honestly without changing its requested URL", () => {
+    const graph = buildProductStructuredData(product, { locale: "en", contentLocale: "ar" }) as Record<string, any>[];
+    const page = graph.find(n => n["@type"] === "WebPage")!;
+    expect(page.inLanguage).toBe("ar-IQ");
+    expect(page.url).toBe("https://www.aquavoiq.com/en/products/test-heater");
+  });
+
+  it("preserves the original Arabic product URL and language by default", () => {
+    const graph = buildProductStructuredData(product) as Record<string, any>[];
+    const page = graph.find(n => n["@type"] === "WebPage")!;
+    expect(page.url).toBe("https://www.aquavoiq.com/products/test-heater");
+    expect(page.inLanguage).toBe("ar-IQ");
+  });
+
+  it.each(["en", "ckb"] as const)("translates all related-guide labels in %s without changing destinations", (locale) => {
+    expect(guideLinksHeading(locale)).not.toBe(guideLinksHeading("ar"));
+    for (const category of Object.keys(CATEGORY_GUIDE_LINKS)) {
+      const source = guidesForCategory(category);
+      const translated = guidesForCategory(category, locale);
+      expect(translated.map(l => l.href)).toEqual(source.map(l => l.href));
+      translated.forEach((link, index) => {
+        expect(link.label).not.toBe(source[index].label);
+        expect(link.label).not.toBe(link.href);
+      });
+    }
+    expect(guidesForCategory("unknown", locale)).toEqual([]);
   });
 });
