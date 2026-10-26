@@ -102,6 +102,7 @@ export default function SettingsManagement() {
         mutationFn: updateSettings,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["admin-settings"] });
+            queryClient.invalidateQueries({ queryKey: ["/api/settings/shipping"] });
             toast({ title: "تم حفظ الإعدادات بنجاح" });
         },
         onError: (error: Error) => {
