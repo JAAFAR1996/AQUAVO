@@ -2,7 +2,11 @@ import { Router, type NextFunction, type Request, type Response } from "express"
 import { z } from "zod";
 import { storage } from "../storage/index.js";
 import { orderTrackingLimiter } from "../middleware/rate-limit.js";
-import { ORDER_TRACKING_FAILURE_MESSAGE } from "./orders.js";
+import {
+  ORDER_TRACKING_FAILURE_MESSAGE,
+  orderTrackingSchema,
+  verifyOrderTrackingPhone,
+} from "./orders.js";
 import { resolveAlWaseetTrackingRuntime } from "../services/alwaseet-tracking-runtime.js";
 
 const router = Router();
@@ -16,29 +20,33 @@ router.get("/track/:orderNumber", orderTrackingLimiter, (_req: Request, res: Res
 router.post("/track/:orderNumber", orderTrackingLimiter, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const parsedOrderNumber = z.string().trim().min(3).max(100).safeParse(req.params.orderNumber);
-    if (!parsedOrderNumber.success) {
+    const parsedVerifier = orderTrackingSchema.safeParse(req.body ?? {});
+    if (!parsedOrderNumber.success || !parsedVerifier.success) {
       res.status(404).json({ message: ORDER_TRACKING_FAILURE_MESSAGE });
       return;
     }
 
     const order = await storage.getOrder(parsedOrderNumber.data);
-    if (!order) {
+    if (!order || !verifyOrderTrackingPhone(order.customerPhone, parsedVerifier.data.phoneLast4)) {
       res.status(404).json({ message: ORDER_TRACKING_FAILURE_MESSAGE });
       return;
     }
 
-    // Public order numbers carry a cryptographically random suffix and the route
-    // is rate-limited. The response exposes tracking state only; customer PII,
-    // addresses, items, and payment data are never returned.
-    const shipping = await resolveAlWaseetTrackingRuntime({
-      id: order.id,
-      orderNumber: order.orderNumber,
-      customerPhone: order.customerPhone,
-      customerName: order.customerName,
-      total: order.total,
-      roundedTotal: order.roundedTotal,
-      createdAt: order.createdAt,
-    });
+    // Only after the second factor matches may we call a carrier mirror, and
+    // only for an order that AQUAVO explicitly assigned to that carrier.
+    // Unknown/other carriers fall back to factual AQUAVO order state instead of
+    // attempting a phone+amount match against Al-Waseet and risking a false hit.
+    const shipping = String(order.carrier ?? "").trim() === "الوسيط"
+      ? await resolveAlWaseetTrackingRuntime({
+          id: order.id,
+          orderNumber: order.orderNumber,
+          customerPhone: order.customerPhone,
+          customerName: order.customerName,
+          total: order.total,
+          roundedTotal: order.roundedTotal,
+          createdAt: order.createdAt,
+        })
+      : null;
 
     res.json({
       orderNumber: order.orderNumber,
