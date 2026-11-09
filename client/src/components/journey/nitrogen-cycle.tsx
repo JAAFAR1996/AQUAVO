@@ -84,7 +84,7 @@ export function NitrogenCycle({ wizardData, updateData }: NitrogenCycleProps) {
                                         <div className="text-sm text-muted-foreground mb-3">{option.desc}</div>
                                         <div className="flex gap-4 text-xs">
                                             <Badge variant="outline">
-                                                <Clock className="h-3 w-3 ml-1" />
+                                                <Clock className="h-3 w-3 me-1" />
                                                 {option.duration}
                                             </Badge>
                                             <span className={cn(
@@ -103,7 +103,7 @@ export function NitrogenCycle({ wizardData, updateData }: NitrogenCycleProps) {
 
                 {/* The Nitrogen Cycle Explanation */}
                 <div className="bg-gradient-to-br from-blue-500/10 to-green-500/10 border border-primary/20 rounded-xl p-6">
-                    <h3 className="font-bold text-foreground mb-4 flex items-center justify-end gap-2 text-right">
+                    <h3 className="font-bold text-foreground mb-4 flex items-center gap-2 text-start">
                         {t("nitrogen-cycle.s21")}
                         <Info className="h-5 w-5 text-primary" />
                     </h3>
@@ -111,8 +111,8 @@ export function NitrogenCycle({ wizardData, updateData }: NitrogenCycleProps) {
                         <div className="flex items-start gap-3">
                             <div className="bg-red-500/20 text-red-500 font-bold rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 text-xs">1</div>
                             <div>
-                                <div className="font-bold text-foreground text-right">{t("nitrogen-cycle.s22")}</div>
-                                <div className="text-muted-foreground text-right">{t("nitrogen-cycle.s23")}</div>
+                                <div className="font-bold text-foreground text-start">{t("nitrogen-cycle.s22")}</div>
+                                <div className="text-muted-foreground text-start">{t("nitrogen-cycle.s23")}</div>
                             </div>
                         </div>
 
@@ -123,8 +123,8 @@ export function NitrogenCycle({ wizardData, updateData }: NitrogenCycleProps) {
                         <div className="flex items-start gap-3">
                             <div className="bg-amber-500/20 text-amber-500 font-bold rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 text-xs">2</div>
                             <div>
-                                <div className="font-bold text-foreground text-right">{t("nitrogen-cycle.s24")}</div>
-                                <div className="text-muted-foreground text-right">{t("nitrogen-cycle.s25")}</div>
+                                <div className="font-bold text-foreground text-start">{t("nitrogen-cycle.s24")}</div>
+                                <div className="text-muted-foreground text-start">{t("nitrogen-cycle.s25")}</div>
                             </div>
                         </div>
 
@@ -135,8 +135,8 @@ export function NitrogenCycle({ wizardData, updateData }: NitrogenCycleProps) {
                         <div className="flex items-start gap-3">
                             <div className="bg-green-500/20 text-green-500 font-bold rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 text-xs">3</div>
                             <div>
-                                <div className="font-bold text-foreground text-right">{t("nitrogen-cycle.s26")}</div>
-                                <div className="text-muted-foreground text-right">{t("nitrogen-cycle.s27")}</div>
+                                <div className="font-bold text-foreground text-start">{t("nitrogen-cycle.s26")}</div>
+                                <div className="text-muted-foreground text-start">{t("nitrogen-cycle.s27")}</div>
                             </div>
                         </div>
                     </div>
@@ -175,11 +175,11 @@ export function NitrogenCycle({ wizardData, updateData }: NitrogenCycleProps) {
                 <div className="bg-red-500/10 border-2 border-red-500/30 rounded-xl p-4 flex gap-3">
                     <AlertCircle className="h-6 w-6 text-red-500 flex-shrink-0 mt-1" />
                     <div>
-                        <div className="font-bold text-foreground mb-2 text-lg text-right">{t("nitrogen-cycle.s37")}</div>
-                        <p className="text-sm text-muted-foreground mb-3 text-right">
+                        <div className="font-bold text-foreground mb-2 text-lg text-start">{t("nitrogen-cycle.s37")}</div>
+                        <p className="text-sm text-muted-foreground mb-3 text-start">
                             <strong>{t("nitrogen-cycle.s38")}</strong>
                         </p>
-                        <p className="text-sm text-muted-foreground text-right">
+                        <p className="text-sm text-muted-foreground text-start">
                             {t("nitrogen-cycle.s39")}
                         </p>
                     </div>

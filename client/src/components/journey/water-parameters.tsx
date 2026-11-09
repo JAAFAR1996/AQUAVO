@@ -119,8 +119,8 @@ export function WaterParameters({ wizardData, updateData }: WaterParametersProps
                 <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 flex gap-3">
                     <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-1" />
                     <div>
-                        <div className="font-bold text-foreground mb-1 text-right">{t("water-parameters.s28")}</div>
-                        <p className="text-sm text-muted-foreground text-right">
+                        <div className="font-bold text-foreground mb-1 text-start">{t("water-parameters.s28")}</div>
+                        <p className="text-sm text-muted-foreground text-start">
                             <strong>{t("water-parameters.s29")}</strong> {t("water-parameters.s30")}
                         </p>
                     </div>

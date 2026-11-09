@@ -80,7 +80,7 @@ export function MaintenanceSchedule({ wizardData, updateData }: MaintenanceSched
                     </h3>
 
                     {/* Daily */}
-                    <div className="border-r-4 border-blue-500 bg-blue-500/5 rounded-lg p-4">
+                    <div className="border-s-4 border-blue-500 bg-blue-500/5 rounded-lg p-4">
                         <div className="font-bold text-foreground mb-2 flex items-center gap-2">
                             <Badge className="bg-blue-500">{t("maintenance-schedule.s15")}</Badge>
                         </div>
@@ -93,7 +93,7 @@ export function MaintenanceSchedule({ wizardData, updateData }: MaintenanceSched
                     </div>
 
                     {/* Weekly */}
-                    <div className="border-r-4 border-green-500 bg-green-500/5 rounded-lg p-4">
+                    <div className="border-s-4 border-green-500 bg-green-500/5 rounded-lg p-4">
                         <div className="font-bold text-foreground mb-2 flex items-center gap-2">
                             <Badge className="bg-green-500">{t("maintenance-schedule.s20")}</Badge>
                         </div>
@@ -107,7 +107,7 @@ export function MaintenanceSchedule({ wizardData, updateData }: MaintenanceSched
                     </div>
 
                     {/* Monthly */}
-                    <div className="border-r-4 border-amber-500 bg-amber-500/5 rounded-lg p-4">
+                    <div className="border-s-4 border-amber-500 bg-amber-500/5 rounded-lg p-4">
                         <div className="font-bold text-foreground mb-2 flex items-center gap-2">
                             <Badge className="bg-amber-500">{t("maintenance-schedule.s26")}</Badge>
                         </div>
@@ -120,7 +120,7 @@ export function MaintenanceSchedule({ wizardData, updateData }: MaintenanceSched
                     </div>
 
                     {/* Quarterly */}
-                    <div className="border-r-4 border-purple-500 bg-purple-500/5 rounded-lg p-4">
+                    <div className="border-s-4 border-purple-500 bg-purple-500/5 rounded-lg p-4">
                         <div className="font-bold text-foreground mb-2 flex items-center gap-2">
                             <Badge className="bg-purple-500">{t("maintenance-schedule.s31")}</Badge>
                         </div>
@@ -162,8 +162,8 @@ export function MaintenanceSchedule({ wizardData, updateData }: MaintenanceSched
                 <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 flex gap-3">
                     <Lightbulb className="h-5 w-5 text-primary flex-shrink-0 mt-1" />
                     <div>
-                        <div className="font-bold text-foreground mb-1 text-right">{t("maintenance-schedule.s45")}</div>
-                        <p className="text-sm text-muted-foreground text-right">
+                        <div className="font-bold text-foreground mb-1 text-start">{t("maintenance-schedule.s45")}</div>
+                        <p className="text-sm text-muted-foreground text-start">
                             {t("maintenance-schedule.s46")}
                         </p>
                     </div>

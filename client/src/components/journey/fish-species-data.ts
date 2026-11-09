@@ -28,6 +28,10 @@ export interface FishSpeciesInfo {
     compatibilityNotes: string;
 }
 
+export function speciesDisplayName(species: FishSpeciesInfo, language: string): string {
+    return language.startsWith("ar") ? species.nameAr : species.nameEn;
+}
+
 export interface FishCategory {
     id: string;
     nameAr: string;

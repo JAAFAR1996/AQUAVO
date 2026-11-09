@@ -97,8 +97,8 @@ export function LocationSetup({ wizardData, updateData }: LocationSetupProps) {
                 <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 flex gap-3">
                     <AlertCircle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-1" />
                     <div>
-                        <div className="font-bold text-foreground mb-1 text-right">{t("location-setup.s16")}</div>
-                        <p className="text-sm text-muted-foreground text-right">
+                        <div className="font-bold text-foreground mb-1 text-start">{t("location-setup.s16")}</div>
+                        <p className="text-sm text-muted-foreground text-start">
                             {t("location-setup.s17")}
                         </p>
                     </div>

@@ -769,8 +769,9 @@ function AboutPage({ prerendered }: { prerendered?: string }) {
   );
 }
 
-function StaticPage({ heading, summary, paragraphs = [], prerendered, locale = DEFAULT_LOCALE }: { heading: string; summary: string; path: string; paragraphs?: string[]; prerendered?: string; locale?: Locale }) {
+function StaticPage({ heading, summary, path, paragraphs = [], prerendered, locale = DEFAULT_LOCALE }: { heading: string; summary: string; path: string; paragraphs?: string[]; prerendered?: string; locale?: Locale }) {
   const copy = SSR_NAV_COPY[locale];
+  const localizedJourney = locale !== DEFAULT_LOCALE && path === localizePath("/journey", locale);
   return (
     <main id="main-content">
       <nav className="aq-ssr-breadcrumb" aria-label={locale === "en" ? "Breadcrumb" : locale === "ckb" ? "ڕێڕەوی لاپەڕە" : "مسار الصفحة"}><a href={localizePath("/", locale)}>{locale === DEFAULT_LOCALE ? "الرئيسية" : copy.home.replace(/^AQUAVO\s*/i, "")}</a><span>/</span><span>{heading}</span></nav>
@@ -783,7 +784,11 @@ function StaticPage({ heading, summary, paragraphs = [], prerendered, locale = D
           /fish-finder disclaimer that no live fish are sold, for one), so
           nothing here removes them. See script/prerender-static-pages.ts. */}
       {prerendered && <div className="aq-ssr-page" dangerouslySetInnerHTML={{ __html: prerendered }} />}
-      <p><a href="/products">تصفح المنتجات</a> · <a href="/faq">الأسئلة الشائعة</a></p>
+      <p>
+        <a href={localizedJourney ? localizePath("/products", locale) : "/products"}>{localizedJourney ? copy.products : "تصفح المنتجات"}</a>
+        {" · "}
+        <a href={localizedJourney ? localizePath("/faq", locale) : "/faq"}>{localizedJourney ? copy.faq : "الأسئلة الشائعة"}</a>
+      </p>
     </main>
   );
 }

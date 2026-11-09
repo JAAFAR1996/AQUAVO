@@ -3,7 +3,7 @@ import { z } from "zod";
 import { JOURNEY_STEPS } from "@shared/journey-steps";
 import type { CategoryFit, FitCandidate } from "@shared/tank-compatibility";
 import { wizardDataSchema, type SavedJourneyPlan, type WizardData } from "@/types/journey";
-import { getSpeciesById } from "./fish-species-data";
+import { getSpeciesById, speciesDisplayName } from "./fish-species-data";
 
 const labelValues = {
     tankSize: ["small", "medium", "large", "xlarge"],
@@ -56,7 +56,7 @@ export function normalizeSavedPlan(value: unknown): SavedJourneyPlan | null {
 }
 
 export function journeySpeciesNames(data: WizardData, language: string): string[] {
-    return getSpeciesById(data.selectedSpecies).map((species) => language.startsWith("en") ? species.nameEn : species.nameAr);
+    return getSpeciesById(data.selectedSpecies).map((species) => speciesDisplayName(species, language));
 }
 
 type MissingDecision = "volume" | "tankType" | "filter" | "heating" | "lighting" | "substrate" | "water" | "cycling" | "species";
@@ -96,7 +96,10 @@ export function filterJourneyFitGroups(groups: CategoryFit[], data?: WizardData)
 export function buildJourneySupportMessage(data: WizardData, t: TFunction<"tools">, language: string): string {
     const unknown = t("journey-labels.unknown");
     const species = journeySpeciesNames(data, language);
-    const fish = species.length ? species.join("، ") : data.fishTypes.map((value) => journeyLabel(t, "fishTypes", value)).join("، ") || unknown;
+    const separator = language.startsWith("en") ? ", " : "، ";
+    const fish = species.length
+        ? species.join(separator)
+        : data.fishTypes.map((value) => journeyLabel(t, "fishTypes", value)).join(separator) || unknown;
     const dimensions = [data.tankLengthCm, data.tankWidthCm, data.tankHeightCm];
     return [
         t("journey-review.supportMessage"),

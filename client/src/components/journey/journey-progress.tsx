@@ -1,76 +1,78 @@
-import { motion, useReducedMotion } from "framer-motion";
-import { CheckCircle2 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { JourneyStepDefinition } from "@/types/journey";
+import { useRef } from "react";
+import { ChevronDown } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import type { JourneyStepDefinition } from "@/types/journey";
+
+const PHASES = [
+  { key: "planning", from: 0, to: 2 },
+  { key: "setup", from: 2, to: 6 },
+  { key: "care", from: 6, to: 9 },
+] as const;
 
 interface JourneyProgressProps {
-    steps: JourneyStepDefinition[];
-    currentStep: number;
-    setCurrentStep: (step: number) => void;
+  steps: JourneyStepDefinition[];
+  currentStep: number;
+  setCurrentStep: (step: number) => void;
 }
 
 export function JourneyProgress({ steps, currentStep, setCurrentStep }: JourneyProgressProps) {
-  const { t } = useTranslation("tools");
-    const reduceMotion = useReducedMotion();
-    return (
-        <div className="max-w-5xl mx-auto mb-12">
-            <div className="relative">
-                {/* Background bar */}
-                <div className="absolute top-4 right-0 w-full h-1 bg-muted rounded-full md:top-5" />
+  const { t, i18n } = useTranslation("tools");
+  const mapRef = useRef<HTMLDetailsElement>(null);
+  const current = steps[currentStep] ?? steps[0];
+  const phase = PHASES.find(({ from, to }) => currentStep >= from && currentStep < to) ?? PHASES[0];
+  const title = (step: JourneyStepDefinition) => i18n.language.startsWith("ar")
+    ? step.title
+    : t(`journey-layout.steps.${step.id}`, { defaultValue: step.title });
 
-                {/* Progress bar - RTL: starts from right */}
-                <motion.div
-                    className="absolute top-4 right-0 h-1 bg-primary rounded-full origin-right md:top-5"
-                    initial={{ width: "0%" }}
-                    animate={{ width: `${(currentStep / (steps.length - 1)) * 100}%` }}
-                    transition={{ duration: reduceMotion ? 0 : 0.5, ease: "easeOut" }}
-                />
-
-                {/* Steps */}
-                <div className="relative flex justify-between">
-                    {steps.map((step, index) => {
-                        const isCompleted = index < currentStep;
-                        const isCurrent = index === currentStep;
-                        const StepIcon = step.icon;
-
-                        return (
-                            <div
-                                key={step.id}
-                                className="flex flex-col items-center"
-                            >
-                                <motion.button
-                                    className={cn(
-                                        "h-8 w-8 rounded-full border-[3px] flex items-center justify-center bg-background transition-all duration-300 md:h-12 md:w-12 md:border-4",
-                                        isCompleted ? "border-primary bg-primary text-primary-foreground shadow-lg shadow-primary/25" :
-                                            isCurrent ? "border-primary text-primary shadow-lg shadow-primary/25 scale-105 md:scale-110" :
-                                                "border-muted text-muted-foreground"
-                                    )}
-                                    onClick={() => setCurrentStep(index)}
-                                    whileHover={reduceMotion ? undefined : { scale: 1.1 }}
-                                    whileTap={reduceMotion ? undefined : { scale: 0.95 }}
-                                    aria-label={t("journey-progress.s1", { v0: index + 1, v1: step.title })}
-                                >
-                                    {isCompleted ? (
-                                        <CheckCircle2 className="w-5 h-5 md:w-6 md:h-6" />
-                                    ) : (
-                                        <StepIcon className="w-4 h-4 md:w-5 md:h-5" />
-                                    )}
-                                </motion.button>
-
-                                <div className="mt-2 text-center hidden lg:block min-w-[80px]">
-                                    <span className={cn(
-                                        "text-xs font-bold block transition-colors",
-                                        isCurrent ? "text-primary" : "text-muted-foreground"
-                                    )}>
-                                        {step.title}
-                                    </span>
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
+  return (
+    <div className="aqv-journey-progress" data-tour="journey-progress">
+      <div className="aqv-journey-progress-heading">
+        <span>{t(`journey-layout.phases.${phase.key}`)}</span>
+        <strong>{t("journey.s1", { v0: currentStep + 1, v1: steps.length, v2: title(current) })}</strong>
+      </div>
+      <div className="aqv-journey-stage-track" aria-hidden="true">
+        {PHASES.map(({ key, from, to }) => (
+          <div key={key} data-active={key === phase.key}>
+            {steps.slice(from, to).map((step, offset) => (
+              <i key={step.id} data-current={from + offset === currentStep} />
+            ))}
+          </div>
+        ))}
+      </div>
+      <details ref={mapRef} className="aqv-journey-map">
+        <summary>
+          {t("journey-layout.map")}
+          <ChevronDown className="aqv-journey-chevron" aria-hidden="true" size={16} />
+        </summary>
+        <nav aria-label={t("journey-layout.map")}>
+          {PHASES.map(({ key, from, to }) => (
+            <div key={key} className="aqv-journey-map-group">
+              <h3>{t(`journey-layout.phases.${key}`)}</h3>
+              <ol start={from + 1}>
+                {steps.slice(from, to).map((step, offset) => {
+                  const index = from + offset;
+                  return (
+                    <li key={step.id}>
+                      <button
+                        type="button"
+                        aria-current={index === currentStep ? "step" : undefined}
+                        aria-label={t("journey-progress.s1", { v0: index + 1, v1: title(step) })}
+                        onClick={() => {
+                          if (index === currentStep) return;
+                          if (mapRef.current) mapRef.current.open = false;
+                          setCurrentStep(index);
+                        }}
+                      >
+                        <span aria-hidden="true">{index + 1}</span>{title(step)}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ol>
             </div>
-        </div>
-    );
+          ))}
+        </nav>
+      </details>
+    </div>
+  );
 }

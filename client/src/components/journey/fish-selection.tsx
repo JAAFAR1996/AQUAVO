@@ -27,6 +27,7 @@ import {
     getSpeciesById,
     getDifficultyColor,
     getDifficultyLabel,
+    speciesDisplayName,
     type FishCategory,
     type FishSpeciesInfo,
 } from "./fish-species-data";
@@ -39,7 +40,7 @@ interface FishSelectionProps {
 }
 
 export function FishSelection({ wizardData, updateData }: FishSelectionProps) {
-  const { t } = useTranslation("tools");
+  const { t, i18n } = useTranslation("tools");
     const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
     const [showFeedingFor, setShowFeedingFor] = useState<string | null>(null);
 
@@ -114,7 +115,7 @@ export function FishSelection({ wizardData, updateData }: FishSelectionProps) {
                                 <div className="flex items-center gap-3 text-xs">
                                     <span className="flex items-center gap-1 text-muted-foreground">
                                         <Thermometer className="h-3 w-3" />
-                                        {compatibility.minTemp}-{compatibility.maxTemp}°C
+                                        <bdi dir="ltr">{compatibility.minTemp}–{compatibility.maxTemp}°C</bdi>
                                     </span>
                                     <span className="flex items-center gap-1 text-muted-foreground">
                                         <Droplets className="h-3 w-3" />
@@ -131,7 +132,7 @@ export function FishSelection({ wizardData, updateData }: FishSelectionProps) {
                                     className="gap-1 px-3 py-1 cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors"
                                     onClick={() => toggleSpecies(species.id)}
                                 >
-                                    <span>{species.nameAr}</span>
+                                    <bdi lang={i18n.language.startsWith("ar") ? "ar" : "en"}>{speciesDisplayName(species, i18n.language)}</bdi>
                                     <span className="text-[10px] opacity-60">×</span>
                                 </Badge>
                             ))}
@@ -295,10 +296,10 @@ export function FishSelection({ wizardData, updateData }: FishSelectionProps) {
                 <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-5 flex gap-3">
                     <AlertCircle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-1" />
                     <div>
-                        <div className="font-bold text-foreground mb-2 text-right">
+                        <div className="font-bold text-foreground mb-2 text-start">
                             {t("fish-selection.s40")}
                         </div>
-                        <ul className="text-sm text-muted-foreground space-y-1.5 list-disc list-inside text-right">
+                        <ul className="text-sm text-muted-foreground space-y-1.5 list-disc list-inside text-start">
                             <li>{t("fish-selection.s41")}</li>
                             <li>{t("fish-selection.s42")}</li>
                             <li>{t("fish-selection.s43")}</li>
@@ -311,10 +312,10 @@ export function FishSelection({ wizardData, updateData }: FishSelectionProps) {
                 <div className="bg-primary/5 border border-primary/20 rounded-2xl p-5 flex gap-3">
                     <Lightbulb className="h-5 w-5 text-primary flex-shrink-0 mt-1" />
                     <div>
-                        <div className="font-bold text-foreground mb-1 text-right">
+                        <div className="font-bold text-foreground mb-1 text-start">
                             {t("fish-selection.s45")}
                         </div>
-                        <p className="text-sm text-muted-foreground text-right">
+                        <p className="text-sm text-muted-foreground text-start">
                             {t("fish-selection.s46")}
                         </p>
                     </div>
@@ -348,7 +349,8 @@ function CategoryCard({
     onShowFeeding,
     tankLiters,
 }: CategoryCardProps) {
-  const { t } = useTranslation("tools");
+  const { t, i18n } = useTranslation("tools");
+    const categoryKey = `journey-fish-guide.categories.${category.id}`;
     const selectedInCategory = category.species.filter((s) =>
         selectedSpecies.includes(s.id)
     );
@@ -372,17 +374,18 @@ function CategoryCard({
         >
             {/* Category Header */}
             <button
-                className="w-full flex items-center justify-between p-5 text-right"
+                className="w-full flex items-center justify-between p-5 text-start"
                 onClick={onToggle}
+                aria-expanded={isExpanded}
             >
                 <div className="flex items-center gap-3">
                     <Fish className="h-6 w-6 text-primary flex-shrink-0" />
                     <div>
                         <div className="font-bold text-lg text-foreground">
-                            {category.nameAr}
+                            {t(`${categoryKey}.name`, { defaultValue: i18n.language.startsWith("ar") ? category.nameAr : category.nameEn })}
                         </div>
                         <div className="text-xs text-muted-foreground">
-                            {category.description}
+                            {t(`${categoryKey}.description`, { defaultValue: category.description })}
                         </div>
                     </div>
                 </div>
@@ -449,7 +452,9 @@ function SpeciesCard({
     onToggleFeeding,
     tankLiters,
 }: SpeciesCardProps) {
-  const { t } = useTranslation("tools");
+  const { t, i18n } = useTranslation("tools");
+    const arabic = i18n.language.startsWith("ar");
+    const speciesKey = `journey-fish-guide.species.${species.id}`;
     const tooSmallTank = tankLiters > 0 && tankLiters < species.tankMinLiters;
 
     return (
@@ -463,8 +468,9 @@ function SpeciesCard({
         >
             {/* Species Header - Clickable to select */}
             <button
-                className="w-full p-4 text-right"
+                className="w-full p-4 text-start"
                 onClick={onToggle}
+                aria-pressed={isSelected}
             >
                 <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-3">
@@ -480,25 +486,25 @@ function SpeciesCard({
                             {isSelected && <Check className="h-3.5 w-3.5 text-primary-foreground" />}
                         </div>
                         <div>
-                            <div className="font-bold text-foreground">{species.nameAr}</div>
-                            <div className="text-xs text-muted-foreground">
-                                {species.nameEn}
+                            <div className="font-bold text-foreground">
+                                <bdi lang={arabic ? "ar" : "en"}>{speciesDisplayName(species, i18n.language)}</bdi>
                             </div>
+                            {arabic && <div className="text-xs text-muted-foreground"><bdi lang="en">{species.nameEn}</bdi></div>}
                         </div>
                     </div>
                     <Badge
                         variant="outline"
                         className={cn("text-[10px] flex-shrink-0", getDifficultyColor(species.difficulty))}
                     >
-                        {getDifficultyLabel(species.difficulty)}
+                        {t(`journey-fish-guide.difficulty.${species.difficulty}`, { defaultValue: getDifficultyLabel(species.difficulty) })}
                     </Badge>
                 </div>
 
                 {/* Quick Stats */}
-                <div className="flex flex-wrap gap-2 mt-3 mr-9">
+                <div className="flex flex-wrap gap-2 mt-3 ms-9">
                     <span className="text-[11px] text-muted-foreground flex items-center gap-1 bg-muted/50 px-2 py-0.5 rounded-full">
                         <Thermometer className="h-2.5 w-2.5" />
-                        {species.temperatureRange}
+                        <bdi dir="ltr">{species.temperatureRange}</bdi>
                     </span>
                     <span className={cn("text-[11px] flex items-center gap-1 px-2 py-0.5 rounded-full",
                         tooSmallTank
@@ -514,7 +520,7 @@ function SpeciesCard({
                     </span>
                     <span className="text-[11px] text-muted-foreground flex items-center gap-1 bg-muted/50 px-2 py-0.5 rounded-full">
                         <Clock className="h-2.5 w-2.5" />
-                        {species.lifespan}
+                        {t(`${speciesKey}.lifespan`, { defaultValue: species.lifespan })}
                     </span>
                     {species.schooling && species.minGroupSize && (
                         <span className="text-[11px] text-muted-foreground flex items-center gap-1 bg-muted/50 px-2 py-0.5 rounded-full">
@@ -530,6 +536,7 @@ function SpeciesCard({
                 <div className="border-t">
                     <button
                         className="w-full flex items-center justify-between px-4 py-2.5 text-sm hover:bg-primary/5 transition-colors"
+                        aria-expanded={showFeeding}
                         onClick={(e) => {
                             e.stopPropagation();
                             onToggleFeeding();
@@ -584,7 +591,7 @@ function SpeciesCard({
                                     <div className="flex items-start gap-2">
                                         <Star className="h-3.5 w-3.5 text-amber-500 flex-shrink-0 mt-0.5" />
                                         <p className="text-xs text-muted-foreground leading-relaxed">
-                                            {species.feedingInfo.tips}
+                                            {t(`${speciesKey}.feedingTip`, { defaultValue: species.feedingInfo.tips })}
                                         </p>
                                     </div>
                                 </div>
@@ -592,7 +599,7 @@ function SpeciesCard({
                                 {/* Compatibility Note */}
                                 <div className="text-[11px] text-muted-foreground/70 flex items-start gap-1.5">
                                     <Info className="h-3 w-3 flex-shrink-0 mt-0.5" />
-                                    {species.compatibilityNotes}
+                                    {t(`${speciesKey}.compatibility`, { defaultValue: species.compatibilityNotes })}
                                 </div>
                             </div>
                         </div>

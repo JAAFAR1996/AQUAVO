@@ -227,7 +227,7 @@ try {
       for (const [path, title] of [
         ["/guides/filter-choice", guides["guides-filter-choice"].s9],
         ["/calculators", tools.calculators.s1],
-        ["/journey", tools.journey.s7],
+        ["/journey", tools["journey-layout"].title],
       ]) {
         await page.goto(`${base}${prefix}${path}`);
         await page.getByRole("heading", { level: 1, name: title, exact: true }).waitFor();
@@ -246,7 +246,7 @@ try {
       const journey = page.locator(`a[href="${prefix}/journey"]`).first();
       await journey.hover();
       await journey.click();
-      await page.getByRole("heading", { level: 1, name: tools.journey.s7, exact: true }).waitFor();
+      await page.getByRole("heading", { level: 1, name: tools["journey-layout"].title, exact: true }).waitFor();
       assert.doesNotMatch(await page.locator('[data-tour="journey-progress"]').innerText(), /\.s\d+/);
       assert.deepEqual(errors, [], `${locale}: deferred translation browser errors`);
       console.log(`PASS ${locale}: guides, functional calculator, journey and hover navigation keep translated copy`);

@@ -18,12 +18,12 @@ export interface JourneyStepOutline {
 
 export const JOURNEY_STEPS: readonly JourneyStepOutline[] = Object.freeze([
   { id: "tank", title: "اختيار الحوض" },
-  { id: "location", title: "الموقع" },
+  { id: "location", title: "مكان الحوض" },
   { id: "equipment", title: "المعدات" },
   { id: "decor", title: "الديكور" },
-  { id: "water", title: "المياه" },
-  { id: "cycling", title: "التدوير" },
-  { id: "fish", title: "الأسماك" },
+  { id: "water", title: "المي" },
+  { id: "cycling", title: "دورة النيتروجين" },
+  { id: "fish", title: "اختيار السمچ" },
   { id: "maintenance", title: "الصيانة" },
   { id: "summary", title: "الملخص" },
 ]);
