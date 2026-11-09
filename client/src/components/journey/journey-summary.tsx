@@ -95,7 +95,7 @@ export function JourneySummary({ wizardData, onReset, onSave, isSaving }: Journe
                         <h3 className="flex items-center gap-2 font-bold"><Fish className="h-5 w-5 text-primary" aria-hidden="true" />{t("journey-summary.s27")}</h3>
                         <dl className="space-y-2"><SummaryRow label={t("journey-summary.s28")}>{journeyLabel(t, "stockingLevel", data.stockingLevel)}</SummaryRow></dl>
                         <p className="text-sm text-muted-foreground">{t("journey-summary.s29")}</p>
-                        <div className="flex flex-wrap gap-2">{species.length ? species.map((name) => <Badge key={name} variant="outline">{name}</Badge>) : <span className="text-sm text-muted-foreground">{unknown}</span>}</div>
+                        <div className="flex flex-wrap gap-2">{species.length ? species.map((name) => <Badge key={name} variant="outline"><bdi lang={i18n.language.startsWith("ar") ? "ar" : "en"}>{name}</bdi></Badge>) : <span className="text-sm text-muted-foreground">{unknown}</span>}</div>
                         <p className="text-sm text-muted-foreground">{t("journey-review.fishGroups")}</p>
                         <div className="flex flex-wrap gap-2">{data.fishTypes.length ? data.fishTypes.map((value) => <Badge key={value} variant="outline">{journeyLabel(t, "fishTypes", value)}</Badge>) : <span className="text-sm text-muted-foreground">{unknown}</span>}</div>
                         <p className="text-xs text-muted-foreground">{t("journey-review.livestockScope")}</p>

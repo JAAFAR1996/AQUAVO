@@ -8,10 +8,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { getSpeciesById, type FishSpeciesInfo } from "@/components/journey/fish-species-data";
+import { getSpeciesById, speciesDisplayName, type FishSpeciesInfo } from "@/components/journey/fish-species-data";
 import type { WizardData } from "@/types/journey";
 import { useTranslation } from "react-i18next";
-import { i18next } from "@/i18n";
 
 const JOURNEY_INTRO_KEY = "aquavo_journey_intro_seen_v3";
 const LEGACY_JOURNEY_TOUR_KEY = "aquavo_tour_seen_journey";
@@ -74,33 +73,34 @@ interface JourneyTankVisualizerProps {
   data: WizardData;
   currentStep: number;
   total: number;
-  label: string;
 }
 
-const FILTER_LABELS: Record<string, string> = {
-  hob: i18next.t("tools:journey-experience.s4"),
-  canister: i18next.t("tools:journey-experience.s5"),
-  sponge: i18next.t("tools:journey-experience.s6"),
-  internal: i18next.t("tools:journey-experience.s7"),
+type PreviewLabelKey = `journey-experience.s${4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17}`;
+
+const FILTER_LABEL_KEYS: Partial<Record<string, PreviewLabelKey>> = {
+  hob: "journey-experience.s4",
+  canister: "journey-experience.s5",
+  sponge: "journey-experience.s6",
+  internal: "journey-experience.s7",
 };
 
-const SUBSTRATE_LABELS: Record<string, string> = {
-  gravel: i18next.t("tools:journey-experience.s8"),
-  sand: i18next.t("tools:journey-experience.s9"),
-  "planted-substrate": i18next.t("tools:journey-experience.s10"),
-  mixed: i18next.t("tools:journey-experience.s11"),
+const SUBSTRATE_LABEL_KEYS: Partial<Record<string, PreviewLabelKey>> = {
+  gravel: "journey-experience.s8",
+  sand: "journey-experience.s9",
+  "planted-substrate": "journey-experience.s10",
+  mixed: "journey-experience.s11",
 };
 
-const TANK_TYPE_LABELS: Record<string, string> = {
-  "freshwater-community": i18next.t("tools:journey-experience.s12"),
-  planted: i18next.t("tools:journey-experience.s13"),
-  "species-specific": i18next.t("tools:journey-experience.s14"),
+const TANK_TYPE_LABEL_KEYS: Partial<Record<string, PreviewLabelKey>> = {
+  "freshwater-community": "journey-experience.s12",
+  planted: "journey-experience.s13",
+  "species-specific": "journey-experience.s14",
 };
 
-const MAINTENANCE_LABELS: Record<string, string> = {
-  minimal: i18next.t("tools:journey-experience.s15"),
-  moderate: i18next.t("tools:journey-experience.s16"),
-  intensive: i18next.t("tools:journey-experience.s17"),
+const MAINTENANCE_LABEL_KEYS: Partial<Record<string, PreviewLabelKey>> = {
+  minimal: "journey-experience.s15",
+  moderate: "journey-experience.s16",
+  intensive: "journey-experience.s17",
 };
 
 const FISH_COLORS: Record<string, string> = {
@@ -152,13 +152,13 @@ function speciesY(species: FishSpeciesInfo, index: number) {
   return FISH_POSITIONS[index % FISH_POSITIONS.length].y;
 }
 
-type PreviewFish = Pick<FishSpeciesInfo, "id" | "category" | "nameAr">;
+type PreviewFish = Pick<FishSpeciesInfo, "id" | "category">;
 
 function buildFish(species: FishSpeciesInfo[], stockingLevel: string, cyclingMethod: string): PreviewFish[] {
   if (species.length === 0 && cyclingMethod === "with-hardy-fish") {
     return [
-      { id: "hardy-preview-1", category: "community", nameAr: i18next.t("tools:journey-experience.s18") },
-      { id: "hardy-preview-2", category: "community", nameAr: i18next.t("tools:journey-experience.s18") },
+      { id: "hardy-preview-1", category: "community" },
+      { id: "hardy-preview-2", category: "community" },
     ];
   }
   if (species.length === 0) return [];
@@ -279,7 +279,7 @@ function FishVisual({ fish, index }: { fish: PreviewFish; index: number }) {
 
   if (bottom) {
     return (
-      <g transform={transform} className="aqv-jtank__fish" aria-label={fish.nameAr}>
+      <g transform={transform} className="aqv-jtank__fish" aria-hidden="true">
         <ellipse cx="0" cy="0" rx="17" ry="6" fill={color} />
         <path d="M-14 1 l-11 7 l4 -12 Z" fill={color} />
         <circle cx="10" cy="-1" r="1.5" fill="#0B1E28" />
@@ -288,7 +288,7 @@ function FishVisual({ fish, index }: { fish: PreviewFish; index: number }) {
   }
 
   return (
-    <g transform={transform} className="aqv-jtank__fish" aria-label={fish.nameAr}>
+    <g transform={transform} className="aqv-jtank__fish" aria-hidden="true">
       <ellipse cx="0" cy="0" rx={round ? 13 : 17} ry={round ? 12 : 8} fill={color} />
       <path d={`M-${round ? 11 : 15} 0 l-12 -9 v18 Z`} fill={color} opacity=".85" />
       <path d="M-2 -7 C3 -12 9 -12 12 -6" fill="none" stroke="#FFFFFF" strokeWidth="2" opacity=".55" />
@@ -297,8 +297,8 @@ function FishVisual({ fish, index }: { fish: PreviewFish; index: number }) {
   );
 }
 
-export function JourneyTankVisualizer({ data, currentStep, total, label }: JourneyTankVisualizerProps) {
-  const { t } = useTranslation("tools");
+export function JourneyTankVisualizer({ data, currentStep, total }: JourneyTankVisualizerProps) {
+  const { t, i18n } = useTranslation("tools");
   const species = useMemo(() => getSpeciesById(data.selectedSpecies || []), [data.selectedSpecies]);
   const fish = useMemo(
     () => buildFish(species, data.stockingLevel, data.cyclingMethod),
@@ -307,8 +307,9 @@ export function JourneyTankVisualizer({ data, currentStep, total, label }: Journ
 
   const litres = Number(data.tankLiters || 0);
   const size = tankSizeKey(litres, data.tankSize);
-  const completion = clamp(Math.round(((currentStep + 1) / total) * 100), 8, 100);
-  const waterLevel = clamp(26 + completion * 0.7, 30, 96);
+  // Step position drives the illustration. The summary measures recorded decisions.
+  const stagePosition = clamp(Math.round(((currentStep + 1) / total) * 100), 8, 100);
+  const waterLevel = clamp(26 + stagePosition * 0.7, 30, 96);
   const waterY = 218 - (waterLevel / 100) * 180;
   const waterHeight = 218 - waterY;
   const palette = waterPalette(data.waterSource);
@@ -321,13 +322,21 @@ export function JourneyTankVisualizer({ data, currentStep, total, label }: Journ
     "--aqv-jtank-water-top": `${waterY}px`,
   } as CSSProperties;
 
+  const labelKeys = [
+    litres > 0 ? undefined : TANK_TYPE_LABEL_KEYS[data.tankType],
+    FILTER_LABEL_KEYS[data.filterType],
+    SUBSTRATE_LABEL_KEYS[data.substrateType],
+    MAINTENANCE_LABEL_KEYS[data.maintenancePreference],
+  ];
+  // The catalog provides Arabic and English species names. Use the English names in Sorani.
+  const speciesLanguage = i18n.language.startsWith("ar") ? "ar" : "en";
+  const speciesNames = species
+    .map((item) => speciesDisplayName(item, speciesLanguage))
+    .join(speciesLanguage === "ar" ? "، " : ", ");
   const selectedLabels = [
-    litres > 0 ? t("journey-experience.s19", { v0: litres }) : TANK_TYPE_LABELS[data.tankType],
-    FILTER_LABELS[data.filterType],
-    SUBSTRATE_LABELS[data.substrateType],
-    species.length > 0 ? species.map((item) => item.nameAr).join("، ") : undefined,
-    MAINTENANCE_LABELS[data.maintenancePreference],
-  ].filter(Boolean) as string[];
+    litres > 0 ? t("journey-experience.s19", { v0: litres }) : "",
+    ...labelKeys.flatMap((key) => key ? [t(key)] : []),
+  ].filter(Boolean);
 
   return (
     <section
@@ -335,7 +344,7 @@ export function JourneyTankVisualizer({ data, currentStep, total, label }: Journ
       data-aqv-motion="journey-preview"
       data-size={size}
       data-summary={currentStep === total - 1 ? "true" : "false"}
-      aria-label={label}
+      aria-label={t("journey-experience.s20")}
       style={style}
     >
       <div
@@ -369,7 +378,7 @@ export function JourneyTankVisualizer({ data, currentStep, total, label }: Journ
                 <stop offset="100%" stopColor="#D37A5D" />
               </linearGradient>
               <linearGradient id="aqv-glass-gradient" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stopColor="#FFFFFF" stopOpacity=".48" />
+                <stop offset="0%" stopColor="#C0F0F3" stopOpacity=".26" />
                 <stop offset="48%" stopColor="#FFFFFF" stopOpacity=".04" />
                 <stop offset="100%" stopColor="#8EDCE6" stopOpacity=".18" />
               </linearGradient>
@@ -379,7 +388,7 @@ export function JourneyTankVisualizer({ data, currentStep, total, label }: Journ
             </defs>
 
             <g clipPath="url(#aqv-tank-clip)">
-              <rect x="31" y="29" width="338" height="188" fill={decorations.includes("background") ? "#173844" : "#EDF9FA"} />
+              <rect x="31" y="29" width="338" height="188" fill={decorations.includes("background") ? "#173844" : "#21434F"} />
               {decorations.includes("background") && <path d="M31 155 C105 110 177 154 245 105 C294 70 337 90 369 65 V218 H31 Z" fill="#235665" opacity=".7" />}
               <rect x="31" y={waterY} width="338" height={waterHeight} fill="url(#aqv-water-gradient)" className="aqv-jtank__water" />
               <path d={`M31 ${waterY + 1} C105 ${waterY - 4} 184 ${waterY + 5} 260 ${waterY} C309 ${waterY - 3} 342 ${waterY + 2} 369 ${waterY}`} fill="none" stroke="#D9FBFF" strokeWidth="3" opacity=".85" className="aqv-jtank__waterline" />
@@ -416,7 +425,7 @@ export function JourneyTankVisualizer({ data, currentStep, total, label }: Journ
             <path d="M36 218 h328" stroke="#0B1E28" strokeWidth="5" strokeLinecap="round" opacity=".55" />
 
             {data.lightingType && data.lightingType !== "none" ? (
-              <g className="aqv-jtank__light" data-light={data.lightingType} aria-label={data.lightingType}>
+              <g className="aqv-jtank__light" data-light={data.lightingType} aria-hidden="true">
                 <rect x="82" y="15" width="236" height="10" rx="5" fill={data.lightingType === "rgb-smart" ? "url(#aqv-rgb-light)" : "#17333D"} />
                 <path d="M105 27 L80 188 M200 27 L200 188 M295 27 L320 188" stroke={data.lightingType === "planted-led" ? "#C7F7D8" : "#E7FBFF"} strokeWidth="18" opacity=".09" />
               </g>
@@ -442,18 +451,27 @@ export function JourneyTankVisualizer({ data, currentStep, total, label }: Journ
         </div>
       </div>
 
-      <div className="aqv-journey-preview__status">
-        <div>
-          <strong>{label}</strong>
-          <span>{completion}{t("journey-experience.s24")}</span>
+      {(selectedLabels.length > 0 || speciesNames || fish.length > 0) && (
+        <div className="aqv-journey-preview__status">
+          {(selectedLabels.length > 0 || speciesNames) && (
+            <ul className="aqv-journey-preview__chips m-0 list-none p-0" aria-label={t("journey-experience.s25")}>
+              {selectedLabels.map((item) => (
+                <li key={item} className="min-w-0">
+                  <span className="block break-words">{item}</span>
+                </li>
+              ))}
+              {speciesNames && (
+                <li className="min-w-0">
+                  <span className="block break-words" lang={speciesLanguage} dir={speciesLanguage === "ar" ? "rtl" : "ltr"}>
+                    {speciesNames}
+                  </span>
+                </li>
+              )}
+            </ul>
+          )}
+          {fish.length > 0 && <small>{t("journey-experience.s26")}</small>}
         </div>
-        <div className="aqv-journey-preview__chips" aria-label={t("journey-experience.s25")}>
-          {selectedLabels.slice(0, 5).map((item) => <span key={item}>{item}</span>)}
-        </div>
-        {fish.length > 0 && (
-          <small>{t("journey-experience.s26")}</small>
-        )}
-      </div>
+      )}
     </section>
   );
 }

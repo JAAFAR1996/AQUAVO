@@ -130,8 +130,8 @@ export function DecorationSetup({ wizardData, updateData }: DecorationSetupProps
                 <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 flex gap-3">
                     <Leaf className="h-5 w-5 text-primary flex-shrink-0 mt-1" />
                     <div>
-                        <div className="font-bold text-foreground mb-1 text-right">{t("decoration-setup.s26")}</div>
-                        <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside text-right">
+                        <div className="font-bold text-foreground mb-1 text-start">{t("decoration-setup.s26")}</div>
+                        <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside text-start">
                             <li>{t("decoration-setup.s27")}</li>
                             <li>{t("decoration-setup.s28")}</li>
                             <li>{t("decoration-setup.s29")}</li>

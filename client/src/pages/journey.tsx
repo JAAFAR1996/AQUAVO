@@ -1,19 +1,15 @@
 import { Link } from "wouter";
-import { useRef, useEffect } from "react";
-import { ArrowRight, ArrowLeft, Save } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ArrowLeft, ChevronDown, Eye, Save } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { PageLoader } from "@/components/ui/loaders";
 import { MetaTags } from "@/components/seo/meta-tags";
-
 import { useJourney } from "@/hooks/use-journey";
 import { JourneyProgress } from "@/components/journey/journey-progress";
 import { SavedPlanView } from "@/components/journey/saved-plan-view";
 import { STEPS } from "@/components/journey/constants";
-import {
-  JourneyFirstVisitIntro,
-  JourneyTankVisualizer,
-} from "@/components/journey/journey-experience";
-
+import { JourneyTankVisualizer } from "@/components/journey/journey-experience";
 import { TankSelection } from "@/components/journey/tank-selection";
 import { LocationSetup } from "@/components/journey/location-setup";
 import { EquipmentSelection } from "@/components/journey/equipment-selection";
@@ -23,56 +19,41 @@ import { NitrogenCycle } from "@/components/journey/nitrogen-cycle";
 import { FishSelection } from "@/components/journey/fish-selection";
 import { MaintenanceSchedule } from "@/components/journey/maintenance-schedule";
 import { JourneySummary } from "@/components/journey/journey-summary";
-import { useTranslation } from "react-i18next";
-
-function scrollBehavior(): ScrollBehavior {
-  if (typeof window === "undefined") return "auto";
-  return window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
-}
+import "./journey-layout.css";
 
 export default function JourneyPage() {
   const { t } = useTranslation("tools");
-  const topRef = useRef<HTMLDivElement>(null);
-
+  const panelRef = useRef<HTMLElement>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
   const {
-    currentStep,
-    setCurrentStep,
-    wizardData,
-    updateData,
-    continueJourney,
-    nextStep,
-    prevStep,
-    saveJourney,
-    resetJourney,
-    savedPlan,
-    hasActiveSession,
-    isLoadingSavedPlan,
-    isSaving
+    currentStep, setCurrentStep, wizardData, updateData, continueJourney,
+    nextStep, prevStep, saveJourney, resetJourney, savedPlan,
+    hasActiveSession, isLoadingSavedPlan, isSaving,
   } = useJourney();
+  const lastStep = useRef(currentStep);
+  const isSummary = currentStep === STEPS.length - 1;
 
   useEffect(() => {
-    topRef.current?.scrollIntoView({ behavior: scrollBehavior() });
+    if (lastStep.current === currentStep) return;
+    lastStep.current = currentStep;
+    const panel = panelRef.current;
+    const heading = panel?.querySelector("h2");
+    if (heading) {
+      heading.tabIndex = -1;
+      heading.focus({ preventScroll: true });
+    }
+    panel?.scrollIntoView({ block: "start", behavior: "instant" });
   }, [currentStep]);
 
   if (isLoadingSavedPlan && !hasActiveSession) return <PageLoader />;
 
-  const showSavedPlan = savedPlan && !hasActiveSession && currentStep === 0;
-
-  if (showSavedPlan) {
-    return (
-      <SavedPlanView
-        plan={savedPlan}
-        onContinue={continueJourney}
-        onDelete={resetJourney}
-      />
-    );
+  if (savedPlan && !hasActiveSession && currentStep === 0) {
+    return <SavedPlanView plan={savedPlan} onContinue={continueJourney} onDelete={resetJourney} />;
   }
 
   const renderStep = () => {
     const commonProps = { wizardData, updateData };
-
     switch (currentStep) {
-      case 0: return <TankSelection {...commonProps} />;
       case 1: return <LocationSetup {...commonProps} />;
       case 2: return <EquipmentSelection {...commonProps} />;
       case 3: return <DecorationSetup {...commonProps} />;
@@ -85,93 +66,72 @@ export default function JourneyPage() {
     }
   };
 
-  const currentLabel = t("journey.s1", { v0: currentStep + 1, v1: STEPS.length, v2: STEPS[currentStep]?.title ?? t("journey.fallbackTitle") });
-
   return (
-    <div className="flex-1 overflow-x-hidden bg-background" ref={topRef} data-aqv-motion="journey">
+    <div className="aqv-journey-layout" data-aqv-motion="journey">
       <MetaTags
         title={t("journey.s2")}
         description={t("journey.s3")}
         keywords={[t("journey.s4"), t("journey.s5"), t("journey.s6"), "AQUAVO"]}
       />
-      <JourneyFirstVisitIntro />
+      <div className="aqv-journey-wrap">
+        <header className="aqv-journey-header">
+          <h1>{t("journey-layout.title")}</h1>
+          <p>{t("journey-layout.description")}</p>
+        </header>
 
-      <div className="bg-primary/5 border-b border-primary/10 py-8 md:py-12 mb-8 pt-24">
-        <div className="container text-center">
-          <h1 className="text-3xl md:text-5xl font-black text-primary mb-4">
-            {t("journey.s7")}
-          </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            {t("journey.s8")}
-          </p>
-          <Link href="/products" className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-primary underline underline-offset-4">
-            {t("journey.existingTank")}
-          </Link>
-        </div>
-      </div>
+        <div className="aqv-journey-workspace">
+          <JourneyProgress steps={STEPS} currentStep={currentStep} setCurrentStep={setCurrentStep} />
 
-      <div className="container max-w-5xl mx-auto px-4">
-        <div className="aqv-journey-tank-shell">
-          <JourneyTankVisualizer
-            data={wizardData}
-            currentStep={currentStep}
-            total={STEPS.length}
-            label={currentLabel}
-          />
-        </div>
-
-        <div data-tour="journey-progress" data-aqv-membrane>
-          <JourneyProgress
-            steps={STEPS}
-            currentStep={currentStep}
-            setCurrentStep={setCurrentStep}
-          />
-        </div>
-
-        <div
-          key={currentStep}
-          className="aqv-journey-step-panel"
-          data-tour="journey-content"
-          data-aqv-membrane
-        >
-          {renderStep()}
-        </div>
-
-        {currentStep < 8 && (
-          <div className="flex justify-between items-center mt-8 gap-4" data-tour="journey-nav" data-aqv-motion="journey-controls">
-            <Button
-              variant="outline"
-              size="lg"
-              onClick={prevStep}
-              disabled={currentStep === 0}
-              className="min-w-[120px] aqv-press"
+          <aside className="aqv-journey-aside" aria-label={t("journey-layout.preview")}>
+            <button
+              type="button"
+              className="aqv-journey-preview-toggle"
+              aria-expanded={previewOpen}
+              aria-controls="journey-live-preview"
+              onClick={() => setPreviewOpen(!previewOpen)}
             >
-              <ArrowRight className="ml-2 h-4 w-4" />
-              {t("journey.s9")}
-            </Button>
-
-            <div className="flex gap-2">
-              <Button
-                variant="ghost"
-                onClick={saveJourney}
-                disabled={isSaving}
-                className="flex text-primary hover:text-primary hover:bg-primary/10 aqv-press"
-              >
-                <Save className="ml-2 h-4 w-4" />
-                {isSaving ? t("journey.s10") : t("journey.s11")}
-              </Button>
-
-              <Button
-                size="lg"
-                onClick={nextStep}
-                className="min-w-[140px] font-bold aqv-press"
-              >
-                {currentStep === 7 ? t("journey.s12") : t("journey.s13")}
-                <ArrowLeft className="mr-2 h-4 w-4" />
-              </Button>
+              <Eye aria-hidden="true" size={18} />
+              <span>{t("journey-layout.preview")}</span>
+              <ChevronDown aria-hidden="true" size={18} className="aqv-journey-chevron" />
+            </button>
+            <div id="journey-live-preview" className="aqv-journey-aside-body" data-expanded={previewOpen}>
+              <div className="aqv-journey-aside-title">
+                <Eye aria-hidden="true" size={18} />
+                <h2>{t("journey-layout.preview")}</h2>
+              </div>
+              <JourneyTankVisualizer data={wizardData} currentStep={currentStep} total={STEPS.length} />
+              <p className="aqv-journey-preview-caption">{t("journey-layout.previewNote")}</p>
             </div>
-          </div>
-        )}
+          </aside>
+
+          <section className="aqv-journey-main" ref={panelRef}>
+            <div key={currentStep} className="aqv-journey-step-panel" data-tour="journey-content">
+              {renderStep()}
+            </div>
+            <div className="aqv-journey-actions" data-tour="journey-nav">
+              {currentStep > 0 && (
+                <Button type="button" variant="outline" onClick={prevStep} className="aqv-journey-back">
+                  <ArrowLeft aria-hidden="true" />{t("journey.s9")}
+                </Button>
+              )}
+              {!isSummary && (
+                <>
+                  <Button type="button" variant="ghost" onClick={saveJourney} disabled={isSaving} className="aqv-journey-save">
+                    <Save aria-hidden="true" />{isSaving ? t("journey.s10") : t("journey.s11")}
+                  </Button>
+                  <Button type="button" onClick={nextStep} className="aqv-journey-next">
+                    {currentStep === STEPS.length - 2 ? t("journey.s12") : t("journey.s13")}
+                    <ArrowLeft aria-hidden="true" />
+                  </Button>
+                </>
+              )}
+            </div>
+          </section>
+        </div>
+
+        <footer className="aqv-journey-footer">
+          <Link href="/products">{t("journey.existingTank")}</Link>
+        </footer>
       </div>
     </div>
   );

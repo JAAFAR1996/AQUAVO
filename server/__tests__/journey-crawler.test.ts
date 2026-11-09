@@ -34,7 +34,7 @@ async function crawl(path: string): Promise<{ html: string; status: number }> {
   let html = "";
   let status = 200;
   const response = {
-    setHeader: vi.fn(),
+    setHeader: vi.fn(() => response),
     status: vi.fn((code: number) => {
       status = code;
       return response;
@@ -98,6 +98,17 @@ describe("/journey tells a crawler what the wizard covers", () => {
         `title: "${step.title}"`,
       );
     }
+  });
+
+  it.each([
+    { locale: "en", products: "Products", faq: "FAQ" },
+    { locale: "ckb", products: "بەرهەمەکان", faq: "پرسیارە باوەکان" },
+  ])("keeps the $locale fallback links in the chosen language", async ({ locale, products, faq }) => {
+    const { html, status } = await crawl(`/${locale}/journey`);
+    const main = html.match(/<main\b[^>]*>([\s\S]*?)<\/main>/)?.[1];
+    expect(status).toBe(200);
+    expect(main).toContain(`<a href="/${locale}/products">${products}</a>`);
+    expect(main).toContain(`<a href="/${locale}/faq">${faq}</a>`);
   });
 
   it("does not pretend the wizard has been filled in", async () => {

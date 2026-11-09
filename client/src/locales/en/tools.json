@@ -900,44 +900,44 @@
   },
   "nitrogen-cycle": {
     "s1": "Nitrogen cycle (cycling)",
-    "s2": "This is the most important step for fish safety. Patience here equals success.",
+    "s2": "Establish the biological filter before adding fish. Use water tests to follow the cycle.",
     "s3": "Cycling method",
-    "s4": "Cycling without fish (recommended)",
-    "s5": "Using pure ammonia or fish food",
-    "s6": "4-6 weeks",
-    "s7": "100% safe",
-    "s8": "Cycling with hardy fish",
-    "s9": "A few hardy fish",
-    "s10": "6-8 weeks",
-    "s11": "Stressful for fish",
-    "s12": "Cycling with seed",
-    "s13": "Using filter media from an old tank",
-    "s14": "2-3 weeks",
-    "s15": "Fast and safe",
-    "s16": "Packaged bacteria",
-    "s17": "Ready-made bacterial products",
-    "s18": "1-2 weeks",
-    "s19": "Results vary",
+    "s4": "Fishless cycling",
+    "s5": "Run the filter and follow the directions for an ammonia source made for fishless cycling.",
+    "s6": "Timing varies",
+    "s7": "Track test results",
+    "s8": "Cycling with fish",
+    "s9": "Rising ammonia and nitrite can harm fish during cycling, including hardier species.",
+    "s10": "During cycling",
+    "s11": "Not recommended",
+    "s12": "Seeding with mature filter media",
+    "s13": "Use filter media from an established, disease-free aquarium.",
+    "s14": "Timing varies",
+    "s15": "Test the water",
+    "s16": "Bottled bacteria",
+    "s17": "Follow the product instructions and monitor the water readings.",
+    "s18": "Timing varies",
+    "s19": "Results vary by tank",
     "s20": "Recommended",
     "s21": "What is the nitrogen cycle?",
     "s22": "Ammonia (NH₃)",
     "s23": "Highly toxic – from fish waste and decomposing food",
     "s24": "Nitrite (NO₂)",
-    "s25": "Also toxic – converted by Nitrosomonas bacteria",
+    "s25": "Toxic to fish. Filter bacteria convert it into nitrate.",
     "s26": "Nitrate (NO₃)",
-    "s27": "Less toxic – removed by plants and water changes",
-    "s28": "Expected timeline",
-    "s29": "Weeks 1-2",
-    "s30": "Ammonia spike",
-    "s31": "Weeks 2-3",
-    "s32": "Nitrite appears, ammonia drops",
-    "s33": "Weeks 3-4",
-    "s34": "Nitrate appears, nitrite drops",
-    "s35": "Weeks 4-6",
-    "s36": "Cycle complete – tank ready for fish",
-    "s37": "Golden rule",
-    "s38": "No ammonia + no nitrite = ready for fish",
-    "s39": "Test the water daily. When ammonia and nitrite readings hit zero for 3-5 consecutive days, your tank is ready for fish. Don’t rush this stage."
+    "s27": "Less toxic. Partial water changes help reduce it.",
+    "s28": "How to follow the cycle",
+    "s29": "Start",
+    "s30": "Ammonia rises.",
+    "s31": "Next stage",
+    "s32": "Ammonia drops as nitrite begins to rise.",
+    "s33": "Later stage",
+    "s34": "Nitrite begins to fall and nitrate appears.",
+    "s35": "Confirmation",
+    "s36": "Tests show ammonia and nitrite returning to zero after rising.",
+    "s37": "Before adding fish",
+    "s38": "Use water tests. Cycling time varies by tank.",
+    "s39": "Test regularly during cycling. Add fish once ammonia and nitrite have both risen and returned to zero, and nitrate and other water conditions suit the species."
   },
   "compatibility-calculator": {
     "s1": "Goldfish",
@@ -1433,6 +1433,29 @@
     "s16": "Save Image",
     "s17": "Share Image"
   },
+  "journey-layout": {
+    "title": "Plan your aquarium, step by step",
+    "description": "Start with your tank size. See your choices in the preview and get a setup and care checklist to come back to.",
+    "preview": "Your aquarium preview",
+    "previewNote": "An illustration that updates with your choices.",
+    "map": "All journey steps",
+    "phases": {
+      "planning": "Planning",
+      "setup": "Setup and cycling",
+      "care": "Care and review"
+    },
+    "steps": {
+      "tank": "Tank selection",
+      "location": "Tank location",
+      "equipment": "Equipment",
+      "decor": "Decor",
+      "water": "Water",
+      "cycling": "Nitrogen cycle",
+      "fish": "Fish selection",
+      "maintenance": "Maintenance",
+      "summary": "Summary"
+    }
+  },
   "journey": {
     "fallbackTitle": "Tank journey",
     "s1": "Step {{v0}} of {{v1}} — {{v2}}",
@@ -1699,5 +1722,159 @@
     "fishGroups": "Selected groups:",
     "locationAndCare": "Tank location and maintenance",
     "maintenancePreference": "Maintenance preference:"
+  },
+  "journey-fish-guide": {
+    "difficulty": {
+      "easy": "Easy",
+      "medium": "Intermediate",
+      "hard": "Advanced"
+    },
+    "categories": {
+      "community": {
+        "name": "Community Fish",
+        "description": "Peaceful and easy to keep, ideal for beginners."
+      },
+      "cichlids": {
+        "name": "Cichlids",
+        "description": "Colourful and intelligent fish for keepers with some experience."
+      },
+      "bottom-dwellers": {
+        "name": "Bottom Dwellers",
+        "description": "Help clean the bottom and bring activity to the tank."
+      },
+      "schooling": {
+        "name": "Schooling Fish",
+        "description": "Colourful fish that swim together in striking groups."
+      },
+      "centerpiece": {
+        "name": "Centerpiece Fish",
+        "description": "Standout fish that become the focal point of the tank."
+      },
+      "goldfish": {
+        "name": "Goldfish",
+        "description": "Classic favourites for cold water."
+      },
+      "shrimp-snails": {
+        "name": "Shrimp & Snails",
+        "description": "Natural cleaners that add something different to the tank."
+      }
+    },
+    "species": {
+      "guppy": {
+        "lifespan": "2-3 years",
+        "feedingTip": "Feed flakes daily and frozen protein twice a week. Offer only what the fish can eat in two minutes.",
+        "compatibility": "Compatible with most peaceful fish. Avoid aggressive tank mates."
+      },
+      "molly": {
+        "lifespan": "3-5 years",
+        "feedingTip": "Offer a varied diet of flakes and boiled vegetables such as courgette and spinach. Mollies also eat algae.",
+        "compatibility": "Prefers slightly alkaline water and gets along with community fish."
+      },
+      "platy": {
+        "lifespan": "3-4 years",
+        "feedingTip": "An eager eater. Use flakes as a staple and offer boiled vegetables once a week.",
+        "compatibility": "One of the easiest fish to keep and breeds readily."
+      },
+      "swordtail": {
+        "lifespan": "3-5 years",
+        "feedingTip": "Offer a balanced diet of flakes, pellets and vegetables, with frozen protein as a treat.",
+        "compatibility": "Males may be aggressive towards one another. Keep one male or at least three."
+      },
+      "angelfish": {
+        "lifespan": "10-12 years",
+        "feedingTip": "Offer high-protein pellets and frozen foods such as bloodworms and brine shrimp. Vary the diet each week.",
+        "compatibility": "May eat very small fish. Compatible with medium-sized fish."
+      },
+      "ram": {
+        "lifespan": "3-4 years",
+        "feedingTip": "Needs a high-protein diet. Offer small pellets and frozen food daily. This species is sensitive to water quality.",
+        "compatibility": "Needs warm, clean water and is relatively peaceful."
+      },
+      "discus": {
+        "lifespan": "10-15 years",
+        "feedingTip": "Offer high-quality food three times a day, including minced beef heart, bloodworms and discus pellets.",
+        "compatibility": "Needs a group of at least five and very clean, warm water. For experienced keepers."
+      },
+      "corydoras": {
+        "lifespan": "5-7 years",
+        "feedingTip": "Use sinking pellets as a staple. Corydoras feed at night. Offer frozen food once a week.",
+        "compatibility": "Very peaceful. Keep at least six together on fine sand and avoid sharp gravel."
+      },
+      "bristlenose-pleco": {
+        "lifespan": "5-8 years",
+        "feedingTip": "An effective algae eater. Offer spirulina wafers and boiled courgette, and provide wood for digestion.",
+        "compatibility": "Helps clean the tank and needs driftwood for digestion."
+      },
+      "kuhli-loach": {
+        "lifespan": "10+ years",
+        "feedingTip": "Feeds at night on sinking pellets and frozen bloodworms, and usually hides during the day.",
+        "compatibility": "Needs fine sand and plenty of hiding places. Active at night."
+      },
+      "neon-tetra": {
+        "lifespan": "5-8 years",
+        "feedingTip": "Feed finely crushed flakes twice a day. Offer frozen brine shrimp once a week as a treat.",
+        "compatibility": "Keep at least eight together so they feel secure. Avoid large tank mates."
+      },
+      "cardinal-tetra": {
+        "lifespan": "4-5 years",
+        "feedingTip": "Like neon tetras, cardinals take fine flakes and frozen protein. They prefer soft, acidic water.",
+        "compatibility": "Striking in colour and needs more acidic water than the neon tetra."
+      },
+      "harlequin-rasbora": {
+        "lifespan": "5-8 years",
+        "feedingTip": "Feed regular flakes twice a day and frozen bloodworms once a week.",
+        "compatibility": "A very peaceful schooling fish and a good choice for beginners."
+      },
+      "betta": {
+        "lifespan": "2-4 years",
+        "feedingTip": "Offer 2-3 betta pellets twice a day and frozen bloodworms once a week. Leave one day each week without feeding.",
+        "compatibility": "Keep one male per tank. Avoid other male bettas and long-finned tank mates."
+      },
+      "dwarf-gourami": {
+        "lifespan": "4-6 years",
+        "feedingTip": "Offer a varied diet of flakes, pellets and frozen food. Dwarf gouramis prefer to feed at the surface.",
+        "compatibility": "Peaceful, though males may fight. Keep one per tank and provide floating plants."
+      },
+      "pearl-gourami": {
+        "lifespan": "5-8 years",
+        "feedingTip": "Accepts most foods. Use flakes as a staple and add frozen protein and vegetables.",
+        "compatibility": "One of the more peaceful gouramis, with a striking sheen."
+      },
+      "common-goldfish": {
+        "lifespan": "10-15 years",
+        "feedingTip": "Feed goldfish pellets twice a day. Offer vegetables such as shelled peas and courgette. Avoid overfeeding.",
+        "compatibility": "Needs a large tank of 80 litres or more. Avoid tropical tank mates because they need different temperatures."
+      },
+      "oranda": {
+        "lifespan": "10-15 years",
+        "feedingTip": "Sinking pellets are preferable because they prevent the fish swallowing air. Shelled peas help digestion.",
+        "compatibility": "Keep with other fancy goldfish only. Common goldfish swim too fast to be suitable companions."
+      },
+      "ranchu": {
+        "lifespan": "10-15 years",
+        "feedingTip": "Offer sinking pellets formulated for ranchu, frozen bloodworms and peas. High-quality food supports healthy growth.",
+        "compatibility": "An attractive, often expensive goldfish that needs specialised care."
+      },
+      "cherry-shrimp": {
+        "lifespan": "1-2 years",
+        "feedingTip": "Grazes on algae. Offer spirulina wafers and boiled vegetables 2-3 times a week.",
+        "compatibility": "Large fish may eat them. They do well with neon tetras and snails."
+      },
+      "amano-shrimp": {
+        "lifespan": "2-3 years",
+        "feedingTip": "An avid algae grazer that needs little additional food. An algae wafer once a week is enough.",
+        "compatibility": "An effective natural algae cleaner that is safe with most peaceful fish."
+      },
+      "nerite-snail": {
+        "lifespan": "1-3 years",
+        "feedingTip": "Grazes on algae on glass and rocks and needs little additional food. Offer algae wafers when the tank has been grazed clean.",
+        "compatibility": "Does not reproduce in fresh water and is safe with almost all fish."
+      },
+      "mystery-snail": {
+        "lifespan": "1-2 years",
+        "feedingTip": "Offer vegetables such as courgette, lettuce and boiled spinach. Mystery snails need calcium for their shells.",
+        "compatibility": "A colourful snail that needs extra calcium for its shell."
+      }
+    }
   }
 }

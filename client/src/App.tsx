@@ -150,8 +150,7 @@ function DeferredOnboardingTour() {
     const isTargetPage = [
       '/fish-health-diagnosis',
       '/calculators',
-      '/community-gallery',
-      '/journey'
+      '/community-gallery'
     ].includes(path);
 
     if (!isTargetPage) {
