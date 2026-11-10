@@ -373,22 +373,22 @@
     "s6": "L",
     "s7": "Fish density level",
     "s8": "Light",
-    "s9": "~1 cm per 2 L",
+    "s9": "Prioritize swimming room and water monitoring",
     "s10": "Recommended",
     "s11": "Moderate",
-    "s12": "~1 cm per 1.5 L",
+    "s12": "Review adult sizes and compatibility before deciding the count",
     "s13": "Balanced",
     "s14": "Dense",
-    "s15": "~1 cm per 1 L",
+    "s15": "Needs closer assessment of space, filtration and water quality",
     "s16": "Experts only",
-    "s17": "Approximate density calculator",
+    "s17": "Review tank space",
     "s18": "Your tank",
     "s19": "{{v0}} L",
     "s20": "~40 L",
     "s21": "~100 L",
     "s22": "~200 L",
     "s23": "~400 L",
-    "s24": "You can add",
+    "s24": "Suitable fish count",
     "s25": "~10-15 small fish",
     "s26": "~15-20 small fish",
     "s27": "~20-25 small fish",
@@ -403,7 +403,7 @@
     "s36": "Some selected fish require a larger tank (",
     "s37": "L minimum)",
     "s38": "Some selected fish are incompatible in temperature",
-    "s39": "* These are approximate numbers for small fish (2-3 cm). Larger fish need more space.",
+    "s39": "Volume alone does not determine fish count. Review each species’ space and group needs, compatibility, filtration and water-test results.",
     "s40": "Compatibility is very important",
     "s41": "Do not mix aggressive fish with peaceful fish",
     "s42": "Check that the water parameters (pH, temperature) are compatible",
@@ -428,7 +428,8 @@
     "s61": "Vegetables",
     "s62": "Spirulina",
     "timesMany": "times",
-    "timesTwo": "twice"
+    "timesTwo": "twice",
+    "countNeedsReview": "Depends on the species and their adult sizes"
   },
   "journey-summary": {
     "s1": "Added to cart",
@@ -1061,7 +1062,7 @@
     "s23": "Packed bacteria",
     "s24": "% complete",
     "s25": "Selections applied to the preview",
-    "s26": "The fish in the preview are a visual representation of the selected species and density; they are not a final count."
+    "s26": "Each fish represents a selected species, not a stocking count or a water-safety result."
   },
   "salt-calculator": {
     "s1": "Missing data",
@@ -1434,10 +1435,10 @@
     "s17": "Share Image"
   },
   "journey-layout": {
-    "title": "Plan your aquarium, step by step",
-    "description": "Start with your tank size. See your choices in the preview and get a setup and care checklist to come back to.",
+    "title": "Your aquarium. Your way.",
+    "description": "Choose a size and a look, then watch your aquarium take shape. Build a clear equipment and care plan, one step at a time.",
     "preview": "Your aquarium preview",
-    "previewNote": "An illustration that updates with your choices.",
+    "previewNote": "An approximate layout preview. Stocking numbers and water safety need a separate assessment.",
     "map": "All journey steps",
     "phases": {
       "planning": "Planning",
@@ -1454,7 +1455,13 @@
       "fish": "Fish selection",
       "maintenance": "Maintenance",
       "summary": "Summary"
-    }
+    },
+    "eyebrow": "YOUR AQUARIUM JOURNEY",
+    "stepByStep": "From an idea to a clear plan",
+    "live": "Updates with your choices",
+    "volume": "Tank volume",
+    "notChosen": "Choose a size",
+    "addDimensions": "Add your tank dimensions"
   },
   "journey": {
     "fallbackTitle": "Tank journey",
@@ -1876,5 +1883,15 @@
         "compatibility": "A colourful snail that needs extra calcium for its shell."
       }
     }
+  },
+  "journey-styles": {
+    "title": "Choose a look you like",
+    "description": "Applies the substrate and decor. You can adjust both in the steps.",
+    "stone": "Quiet stone",
+    "wood": "Natural roots",
+    "planted": "Lush green",
+    "stoneTip": "Place the main rock to one side and leave open space around it.",
+    "woodTip": "Point the wood in one direction and leave sand open in front to create depth.",
+    "plantedTip": "Keep tall plants at the back and short plants in front for a clear view."
   }
 }

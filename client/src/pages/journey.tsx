@@ -10,6 +10,7 @@ import { JourneyProgress } from "@/components/journey/journey-progress";
 import { SavedPlanView } from "@/components/journey/saved-plan-view";
 import { STEPS } from "@/components/journey/constants";
 import { JourneyTankVisualizer } from "@/components/journey/journey-experience";
+import { AquascapeStyles } from "@/components/journey/aquascape-styles";
 import { TankSelection } from "@/components/journey/tank-selection";
 import { LocationSetup } from "@/components/journey/location-setup";
 import { EquipmentSelection } from "@/components/journey/equipment-selection";
@@ -19,12 +20,13 @@ import { NitrogenCycle } from "@/components/journey/nitrogen-cycle";
 import { FishSelection } from "@/components/journey/fish-selection";
 import { MaintenanceSchedule } from "@/components/journey/maintenance-schedule";
 import { JourneySummary } from "@/components/journey/journey-summary";
+import "@/styles/journey-fonts.css";
 import "./journey-layout.css";
 
 export default function JourneyPage() {
   const { t } = useTranslation("tools");
   const panelRef = useRef<HTMLElement>(null);
-  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(true);
   const {
     currentStep, setCurrentStep, wizardData, updateData, continueJourney,
     nextStep, prevStep, saveJourney, resetJourney, savedPlan,
@@ -75,8 +77,15 @@ export default function JourneyPage() {
       />
       <div className="aqv-journey-wrap">
         <header className="aqv-journey-header">
-          <h1>{t("journey-layout.title")}</h1>
-          <p>{t("journey-layout.description")}</p>
+          <div>
+            <span className="aqv-journey-eyebrow">{t("journey-layout.eyebrow")}</span>
+            <h1>{t("journey-layout.title")}</h1>
+            <p>{t("journey-layout.description")}</p>
+          </div>
+          <div className="aqv-journey-header-note">
+            <span aria-hidden="true">{String(currentStep + 1).padStart(2, "0")} / {String(STEPS.length).padStart(2, "0")}</span>
+            <span>{t("journey-layout.stepByStep")}</span>
+          </div>
         </header>
 
         <div className="aqv-journey-workspace">
@@ -96,10 +105,23 @@ export default function JourneyPage() {
             </button>
             <div id="journey-live-preview" className="aqv-journey-aside-body" data-expanded={previewOpen}>
               <div className="aqv-journey-aside-title">
-                <Eye aria-hidden="true" size={18} />
-                <h2>{t("journey-layout.preview")}</h2>
+                <div><Eye aria-hidden="true" size={18} /><h2>{t("journey-layout.preview")}</h2></div>
+                <span className="aqv-journey-live-label"><i aria-hidden="true" />{t("journey-layout.live")}</span>
               </div>
               <JourneyTankVisualizer data={wizardData} currentStep={currentStep} total={STEPS.length} />
+              <div className="aqv-journey-measurements">
+                <div>
+                  <span>{t("journey-layout.volume")}</span>
+                  <strong>{wizardData.tankLiters > 0 ? t("journey-experience.s19", { v0: wizardData.tankLiters }) : t("journey-layout.notChosen")}</strong>
+                </div>
+                <div>
+                  <span>{t("tank-dimensions.title")}</span>
+                  <strong>{wizardData.tankLengthCm && wizardData.tankWidthCm && wizardData.tankHeightCm
+                    ? <bdi dir="ltr">{wizardData.tankLengthCm} × {wizardData.tankWidthCm} × {wizardData.tankHeightCm}</bdi>
+                    : t("journey-layout.addDimensions")}</strong>
+                </div>
+              </div>
+              <AquascapeStyles data={wizardData} updateData={updateData} />
               <p className="aqv-journey-preview-caption">{t("journey-layout.previewNote")}</p>
             </div>
           </aside>
