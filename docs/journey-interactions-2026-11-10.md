@@ -10,11 +10,11 @@ Base: production commit `382379c68e05afd2ce08cd07f395f592ee402177` (PR #351). Th
 
 | Work | State | Evidence | Next step / decision owner |
 | --- | --- | --- | --- |
-| Aquarium exploration and composition guides | Implemented | Component explorer, six visual highlights, three composition walkthroughs | Integrated browser review / Codex |
-| Planning and equipment interactions | Implemented | All choices covered; 8 focused interaction tests | Browser review / Codex |
-| Decor, water and cycling interactions | Implemented | All choices covered; 5 focused safety and state tests | Browser review / Codex |
-| Species and care interactions | Implemented | All 7 groups and 23 species; 6 focused care tests | Browser review / Codex |
-| Preview and release | Not released | Separate feature branch | Review preview; decide production release / Jaafar |
+| Aquarium exploration and composition guides | Verified | Component explorer, six visual highlights, three composition walkthroughs; preview browser review | Release verification / Codex |
+| Planning and equipment interactions | Verified | All choices covered; 8 focused tests; volume, site, filter, heater and light interactions exercised | Release verification / Codex |
+| Decor, water and cycling interactions | Verified | 5 focused tests; sand care, decor views, RO steps and unknown/positive/zero reading examples exercised | Release verification / Codex |
+| Species and care interactions | Verified | All 7 groups and 23 species; 6 focused tests; profile, stocking preference, maintenance calculation and summary edit exercised | Release verification / Codex |
+| Preview and release | In progress | PR #352 and hosted preview | Required CI, merge and production verification / Codex under Jaafar's same-task merge instruction |
 
 ## Interaction design
 
@@ -27,7 +27,7 @@ Base: production commit `382379c68e05afd2ce08cd07f395f592ee402177` (PR #351). Th
 
 ## Content corrections
 
-Avoid universal pH/temperature targets, automatic suitability of RO water, readiness inferred from elapsed time or two isolated zero readings, fixed stocking formulas, and blanket filter-media replacement schedules. Detailed lessons explain the necessary checks instead.
+Avoid universal pH/temperature targets, automatic suitability of RO water, readiness inferred from elapsed time or two isolated zero readings, fixed stocking formulas, and blanket filter-media replacement schedules. Detailed lessons explain the necessary checks instead. Browser review also identified and removed legacy fixed fish-addition counts/timelines and group-wide claims about cleaning, beginner suitability and temperature.
 
 The existing species catalog is displayed as recorded planning guidance. This change does not independently certify every catalog species value or establish compatibility merely from an overlap in temperature.
 
@@ -49,10 +49,12 @@ Reviewed on 2026-11-10. Relevant references are also accessible inside the lesso
 
 Frontend components, lesson styles, translations and focused tests only. No database migration, production data, products, prices, inventory, credentials, account permissions or payment behavior is changed. Arabic, English and Sorani use the existing `tools` namespace.
 
-Release requires a reviewable preview and the owner's specific approval. If released, rollback is a normal revert of this feature commit followed by the existing deployment pipeline; the saved journey schema remains compatible with the previous version.
+Jaafar's instruction in this task, "ادمجها بل رئيسي", authorizes merging the journey improvements into main. The later request for appropriate detailed interactions continues that scope. Release remains contingent on the existing required checks and final preview verification. Rollback is a normal revert of the feature merge followed by the existing deployment pipeline; the saved journey schema remains compatible with the previous version.
 
 ## Validation
 
-Local verification completed: 45 tests passed across 8 journey suites, TypeScript `tsc --noEmit` passed, Vite client build passed, and strict UI translation validation reported 0 errors and 0 warnings (6,282 keys present in both English and Sorani). `git diff --check` passed. The production build adds no dependency. Browser review and hosted preview are the remaining review steps.
+Local verification completed: 45 tests passed across 8 journey suites, TypeScript `tsc --noEmit` passed, Vite client build passed, and strict UI translation validation reported 0 errors and 0 warnings (6,282 keys present in both English and Sorani). `git diff --check` passed. The production build adds no dependency.
+
+Hosted preview: https://deploy-preview-352--aquavo.netlify.app/journey . Browser review exercised the nine-step flow, contextual diagrams and disclosures, local-only demo controls, preserved plan values, summary edit navigation, and Arabic/English/Sorani direction. A narrow layout was checked at 340 CSS pixels using normal browser zoom (not device emulation); steps 3 through 9 had no horizontal overflow. A maintenance exercise with 80 litres and 25% correctly displayed 20 litres while the plan remained 100 litres. Blank cycling readings remained unknown; a positive ammonia example advised against adding fish; two zero examples did not certify readiness. The preview has no production product API, so its existing unavailable-stock fallback was visible.
 
 The full catalog translation gate has a pre-existing baseline of 53 catalog errors and 114 catalog warnings from PR #351. This change does not edit the catalog translations or gate configuration; the isolated UI check above validates all changed interface text.

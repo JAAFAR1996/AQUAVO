@@ -366,7 +366,7 @@
   },
   "fish-selection": {
     "s1": "Fish Selection",
-    "s2": "Select the specific species so we can give you perfectly tailored feeding and product recommendations",
+    "s2": "Choose the species you are considering to explore their needs. Figures for tank volume, adult size, groups and temperature are preliminary guides; verify them for each species and review any food or product suggestions.",
     "s3": "Selected",
     "s4": "Type",
     "s5": "Minimum",
@@ -408,9 +408,9 @@
     "s41": "Do not mix aggressive fish with peaceful fish",
     "s42": "Check that the water parameters (pH, temperature) are compatible",
     "s43": "Some fish eat small shrimp",
-    "s44": "Add fish gradually: 3-5 every two weeks",
-    "s45": "Expert tip",
-    "s46": "Do not add all fish at once, even if your tank is fully stocked. Start with the hardier species (e.g., Guppy and Platy), then add the more sensitive ones (e.g., Neon Tetra) after a month.",
+    "s44": "Introduce fish in stages, with each addition guided by species needs, water tests and tank conditions.",
+    "s45": "Before adding fish",
+    "s46": "Before each addition, verify filter maturity and stable water readings, then review compatibility, adult size and group needs. Elapsed time or choosing a species described as hardy does not establish aquarium readiness.",
     "s47": "Selected",
     "s48": "Types",
     "s49": "+ L",
@@ -1739,7 +1739,7 @@
     "categories": {
       "community": {
         "name": "Community Fish",
-        "description": "Peaceful and easy to keep, ideal for beginners."
+        "description": "Species with different water, space and behaviour needs; check compatibility for each proposed group."
       },
       "cichlids": {
         "name": "Cichlids",
@@ -1747,7 +1747,7 @@
       },
       "bottom-dwellers": {
         "name": "Bottom Dwellers",
-        "description": "Help clean the bottom and bring activity to the tank."
+        "description": "Species that use the aquarium floor and need suitable food, space and substrate."
       },
       "schooling": {
         "name": "Schooling Fish",
@@ -1759,7 +1759,7 @@
       },
       "goldfish": {
         "name": "Goldfish",
-        "description": "Classic favourites for cold water."
+        "description": "Varieties differ in size and body shape; check space and temperature needs for the variety."
       },
       "shrimp-snails": {
         "name": "Shrimp & Snails",
