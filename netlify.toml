@@ -1,0 +1,6 @@
+# The application uses Vercel's SSR/function routing in production. Netlify's
+# connected PR previews need a static entry and an SPA fallback for UI review.
+# Keep this override limited to Deploy Previews; never proxy to the live API.
+[context.deploy-preview]
+  command = "pnpm run build:client && node script/prepare-netlify-preview.mjs"
+  publish = "dist/public"
