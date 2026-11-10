@@ -96,6 +96,20 @@ jobs:
         run: node --import tsx scripts/verify-home-stream.mjs
       - name: Verify product discovery interactions
         run: node scripts/verify-product-discovery-ux.mjs
+      - name: Verify journey phone layout and keyboard controls
+        id: journey_phone
+        run: node scripts/verify-journey-phone.mjs
+        env:
+          AQUAVO_UX_ARTIFACTS: ${{ runner.temp }}/journey-phone-qa
+        timeout-minutes: 3
+      - name: Upload journey viewport screenshots
+        if: ${{ !cancelled() && (steps.journey_phone.outcome == 'success' || steps.journey_phone.outcome == 'failure') }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: journey-phone-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/journey-phone-qa/
+          retention-days: 3
+          if-no-files-found: ignore
       - name: 📦 Upload build artifacts
         uses: actions/upload-artifact@v4
         with:

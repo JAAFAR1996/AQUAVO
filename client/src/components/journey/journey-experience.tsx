@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { ChevronDown, MousePointer2 } from "lucide-react";
+import { useEffect, useId, useMemo, useState } from "react";
+import { ChevronDown, MousePointer2, Sun, Sunset } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -84,6 +84,8 @@ const EXPLORE_TOPICS = ["space", "filter", "light", "floor", "water", "fish"] as
 type ExploreTopic = (typeof EXPLORE_TOPICS)[number];
 const EXPLORE_STEPS: Record<ExploreTopic, number> = { space: 0, filter: 2, light: 2, floor: 3, water: 4, fish: 6 };
 const STEP_TOPICS: ExploreTopic[] = ["space", "space", "filter", "floor", "water", "water", "fish", "water", "space"];
+const ROOM_LIGHTS = [{ id: "day", Icon: Sun }, { id: "dusk", Icon: Sunset }] as const;
+type RoomLight = (typeof ROOM_LIGHTS)[number]["id"];
 
 type PreviewLabelKey = `journey-experience.s${4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14}`;
 
@@ -109,6 +111,11 @@ export function JourneyTankVisualizer({ data, currentStep, total, onExploreStep 
   const { t, i18n } = useTranslation("tools");
   const [explorerOpen, setExplorerOpen] = useState(false);
   const [topic, setTopic] = useState<ExploreTopic>(STEP_TOPICS[currentStep] || "space");
+  const [roomLight, setRoomLight] = useState<RoomLight>("day");
+  const lightGroup = useId();
+  const hasFixture = ["basic-led", "planted-led", "rgb-smart"].includes(data.lightingType);
+  const dusk = hasFixture && roomLight === "dusk";
+  useEffect(() => { if (!hasFixture) setRoomLight("day"); }, [hasFixture]);
   useEffect(() => setTopic((current) => EXPLORE_STEPS[current] === currentStep
     ? current : STEP_TOPICS[currentStep] || "space"), [currentStep]);
   const species = useMemo(
@@ -138,13 +145,36 @@ export function JourneyTankVisualizer({ data, currentStep, total, onExploreStep 
       data-summary={currentStep === total - 1 ? "true" : "false"}
       aria-label={t("journey-experience.s20")}
       data-explore={explorerOpen ? topic : undefined}
+      data-room-light={hasFixture ? roomLight : undefined}
     >
-      <AquariumScene
-        data={data}
-        species={species}
-        title={t("journey-experience.s20")}
-        description={t("journey-experience.s21")}
-      />
+      <div className="aqv-aquarium-viewport">
+        <AquariumScene
+          data={data}
+          species={species}
+          title={t("journey-experience.s20")}
+          description={dusk ? `${t("journey-experience.s21")} · ${t("journey-view-light.dusk")}` : t("journey-experience.s21")}
+        />
+        {dusk && <span className="aqv-room-light-badge" aria-hidden="true">
+          <Sunset size={15} />{t("journey-view-light.dusk")}
+        </span>}
+      </div>
+      {hasFixture && (
+        <fieldset className="aqv-room-light" aria-labelledby={`${lightGroup}-title`} aria-describedby={`${lightGroup}-note`}>
+          <div className="aqv-room-light__bar">
+            <span id={`${lightGroup}-title`} className="aqv-room-light__title">{t("journey-view-light.title")}</span>
+            <div className="aqv-room-light__options">
+              {ROOM_LIGHTS.map(({ id, Icon }) => (
+                <label key={id}>
+                  <input className="sr-only" type="radio" name={lightGroup} value={id}
+                    checked={roomLight === id} onChange={() => setRoomLight(id)} />
+                  <span><Icon size={17} aria-hidden="true" />{t(`journey-view-light.${id}`)}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+          <span id={`${lightGroup}-note`} hidden>{t("journey-view-light.note")}</span>
+        </fieldset>
+      )}
       {(selectedLabels.length > 0 || speciesNames) && (
         <div className="aqv-journey-preview__status">
           <ul className="aqv-journey-preview__chips m-0 list-none p-0" aria-label={t("journey-experience.s25")}>
@@ -180,6 +210,7 @@ export function JourneyTankVisualizer({ data, currentStep, total, onExploreStep 
             {topic === "filter" && <p className="aqv-lesson-caption">{data.filterType && data.filterType !== "unknown"
               ? t("journey-explore.selected", { value: t(FILTER_LABEL_KEYS[data.filterType] || "journey-layout.notChosen") })
               : t("journey-explore.filter.unselected")}</p>}
+            {topic === "light" && <p className="aqv-lesson-caption">{t(hasFixture ? "journey-view-light.note" : "journey-view-light.unselected")}</p>}
             {topic === "water" && <p className="aqv-lesson-caption">{t("journey-explore.water.preview")}</p>}
             {topic === "fish" && <p className="aqv-lesson-caption">{t("journey-experience.s26")}</p>}
           </div>
