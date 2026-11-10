@@ -10,7 +10,11 @@ import { extname, join, resolve, sep } from "node:path";
 import { chromium, expect } from "@playwright/test";
 
 const publicDir = resolve("dist/public");
-const html = await readFile(join(publicDir, "index.html"));
+const html = await readFile(join(publicDir, "index.html")).catch(error => {
+  if (error.code !== "ENOENT") throw error;
+  // The full Vercel build moves this same Vite shell out of the public directory.
+  return readFile("dist/ssr-template/index.html");
+});
 const copy = JSON.parse(await readFile("client/src/locales/ar/tools.json", "utf8"));
 const output = process.env.AQUAVO_UX_ARTIFACTS;
 if (output) await mkdir(output, { recursive: true });
