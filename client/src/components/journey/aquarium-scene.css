@@ -21,6 +21,38 @@
 .aqv-aquarium-preview[data-explore="fish"] [data-species-id] { filter: drop-shadow(0 0 5px #a2f6e6); }
 .aqv-aquarium-preview[data-explore="water"] [data-testid="journey-water"] { stroke: #7cdee0; stroke-width: 2; }
 
+.aqv-aquarium-viewport { position: relative; }
+.aqv-room-light-badge { position: absolute; inset-block-start: .65rem; inset-inline-end: .65rem; display: inline-flex; align-items: center; gap: .35rem; padding: .2rem .55rem; border: 1px solid #e1c0ad59; border-radius: 2rem; background: #222238; color: #ffddbe; font-size: .72rem; line-height: 1.6; pointer-events: none; }
+.aqv-room-light { min-inline-size: 0; margin: 0; padding: .35rem .75rem; border-block-end: 1px solid var(--journey-line); background: var(--journey-surface); }
+.aqv-room-light__bar { display: flex; flex-wrap: wrap; align-items: center; gap: .15rem .65rem; }
+.aqv-room-light__title { flex: 1 1 5rem; min-inline-size: 0; color: var(--journey-ink); font-size: .78rem; line-height: 1.45; font-weight: 600; }
+.aqv-room-light__options { flex: 1.6 1 10rem; min-inline-size: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .3rem; }
+.aqv-room-light__options label { position: relative; min-inline-size: 0; cursor: pointer; }
+.aqv-room-light__options span { display: flex; align-items: center; justify-content: center; gap: .3rem; block-size: 100%; min-block-size: 2.75rem; padding: .25rem .3rem; border: 1px solid var(--journey-line); border-radius: .65rem; background: var(--journey-surface); color: var(--journey-muted); font-size: .8rem; line-height: 1.35; text-align: center; overflow-wrap: anywhere; }
+.aqv-room-light__options svg { flex: none; }
+.aqv-room-light__options input:checked + span { border-color: var(--journey-aqua); box-shadow: inset 0 0 0 1px var(--journey-aqua); background: var(--journey-hover); color: var(--journey-ink); font-weight: 600; }
+.aqv-room-light__options input:focus-visible + span { outline: 2px solid var(--journey-aqua); outline-offset: 3px; }
+
+/* Re-light the room and its reflections in the panes, leaving the chosen lamp and contents intact. */
+@media screen {
+  .aqv-aquarium-preview[data-room-light="dusk"] :is([id$="-studio"], [id$="-halo"], [id$="-glass"], [id$="-side"], [id$="-edge"]) {
+    --room-twilight: #b5b4d7;
+    --room-amber: #f5bc93;
+  }
+  .aqv-aquarium-preview[data-room-light="dusk"] [id$="-studio"] stop:first-child { stop-color: #624a4b; }
+  .aqv-aquarium-preview[data-room-light="dusk"] [id$="-studio"] stop:nth-child(2) { stop-color: #343344; }
+  .aqv-aquarium-preview[data-room-light="dusk"] [id$="-studio"] stop:last-child { stop-color: #131d31; }
+  .aqv-aquarium-preview[data-room-light="dusk"] [id$="-halo"] stop { stop-color: var(--room-amber); }
+  .aqv-aquarium-preview[data-room-light="dusk"] [id$="-halo"] stop:first-child { stop-opacity: .33; }
+  .aqv-aquarium-preview[data-room-light="dusk"] [id$="-glass"] stop:first-child { stop-color: var(--room-amber); stop-opacity: .22; }
+  .aqv-aquarium-preview[data-room-light="dusk"] [id$="-glass"] stop:nth-child(3) { stop-color: var(--room-twilight); stop-opacity: .07; }
+  .aqv-aquarium-preview[data-room-light="dusk"] [id$="-glass"] stop:last-child { stop-color: var(--room-twilight); stop-opacity: .21; }
+  .aqv-aquarium-preview[data-room-light="dusk"] [id$="-side"] stop { stop-color: var(--room-twilight); }
+  .aqv-aquarium-preview[data-room-light="dusk"] [id$="-edge"] stop:first-child { stop-color: #ffe0bc; }
+  .aqv-aquarium-preview[data-room-light="dusk"] [id$="-edge"] stop:not(:first-child) { stop-color: var(--room-twilight); }
+}
+@media print { .aqv-room-light, .aqv-room-light-badge { display: none; } }
+
 .aqv-aquarium-studio {
   position: relative;
   overflow: hidden;

@@ -168,6 +168,47 @@ describe('JourneyPage', () => {
         expect(screen.getAllByText(/حجم الحوض/i).length).toBeGreaterThan(0);
     });
 
+    it('starts with a compact, empty preview and reflects only actual plan choices in its vignette', () => {
+        vi.mocked(useJourneyHook.useJourney).mockReturnValue({ ...defaultHookValues, wizardData: normalizeWizardData({}) });
+        const { rerender } = render(<JourneyPage />, { wrapper: createWrapper() });
+        const toggle = screen.getByRole('button', { name: new RegExp(i18next.t('tools:journey-layout.previewOpen')) });
+        const controlled = document.getElementById(toggle.getAttribute('aria-controls') || '');
+        expect(toggle).toHaveAttribute('aria-expanded', 'false');
+        expect(controlled).toHaveAttribute('data-expanded', 'false');
+        expect(toggle).toHaveTextContent(i18next.t('tools:journey-layout.previewSizePending'));
+        expect(toggle.querySelectorAll('[data-layer]')).toHaveLength(0);
+
+        vi.mocked(useJourneyHook.useJourney).mockReturnValue({ ...defaultHookValues, wizardData: normalizeWizardData({
+            tankLiters: 81, waterSource: 'ro', substrateType: 'sand', decorations: ['rocks', 'live-plants'], lightingType: 'basic-led',
+        }) });
+        rerender(<JourneyPage />);
+        expect(toggle).toHaveTextContent(i18next.t('tools:journey-experience.s19', { v0: 81 }));
+        expect(Array.from(toggle.querySelectorAll('[data-layer]'), el => el.getAttribute('data-layer')).sort())
+            .toEqual(['light', 'plants', 'rocks', 'substrate', 'water']);
+        expect(toggle).toHaveAttribute('aria-expanded', 'false');
+        expect(controlled?.querySelectorAll('.aqv-aquarium-preview')).toHaveLength(1);
+    });
+
+    it('opens the same preview from the step and restores focus to the control that opened it', () => {
+        render(<JourneyPage />, { wrapper: createWrapper() });
+        const toggle = screen.getByRole('button', { name: new RegExp(i18next.t('tools:journey-layout.previewOpen')) });
+        const jump = screen.getByRole('button', { name: i18next.t('tools:journey-layout.preview') });
+        const close = i18next.t('tools:journey-layout.previewClose');
+
+        fireEvent.click(jump);
+        expect(toggle).toHaveAttribute('aria-expanded', 'true');
+        expect(toggle).toHaveFocus();
+        fireEvent.click(screen.getByRole('button', { name: close }));
+        expect(toggle).toHaveAttribute('aria-expanded', 'false');
+        expect(jump).toHaveFocus();
+
+        fireEvent.click(toggle);
+        fireEvent.click(screen.getByRole('button', { name: close }));
+        expect(toggle).toHaveFocus();
+        expect(mockUpdateData).not.toHaveBeenCalled();
+        expect(mockSetCurrentStep).not.toHaveBeenCalled();
+    });
+
     it('calls updateData when selecting an option in Step 1', () => {
         render(<JourneyPage />, { wrapper: createWrapper() });
 

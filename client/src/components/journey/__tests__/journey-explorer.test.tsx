@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { i18next } from "@/i18n";
 import { JourneyTankVisualizer } from "../journey-experience";
 import { AquascapeStyles } from "../aquascape-styles";
 import { normalizeWizardData } from "../utils";
@@ -46,5 +47,36 @@ describe("journey interactive explanations", () => {
         rerender(<JourneyTankVisualizer data={data} currentStep={2} total={9} onExploreStep={onExploreStep} />);
         expect(within(disclosure).getByRole("button", { name: "الإنارة" })).toHaveAttribute("aria-pressed", "true");
         expect(within(disclosure).getByRole("button", { name: "الفلترة" })).toHaveAttribute("aria-pressed", "false");
+    });
+
+    it("compares room light directly beneath a fitted aquarium while its explorer is closed, and resets when the fixture is removed", () => {
+        const none = normalizeWizardData({ lightingType: "none" });
+        const withLight = normalizeWizardData({ lightingType: "basic-led" });
+        const originalPlan = JSON.stringify(withLight);
+        const { container, rerender } = render(<JourneyTankVisualizer data={none} currentStep={2} total={9} />);
+        const disclosure = screen.getByText("اكتشف شلون يشتغل حوضك").closest("details")!;
+        expect(disclosure).not.toHaveAttribute("open");
+        expect(screen.queryByRole("radio")).not.toBeInTheDocument();
+        expect(container.querySelector("[data-room-light], [data-equipment]")).toBeNull();
+
+        rerender(<JourneyTankVisualizer data={withLight} currentStep={2} total={9} />);
+        const lightControls = screen.getByRole("group", { name: "ضوء الغرفة بالمعاينة" });
+        expect(disclosure).not.toContainElement(lightControls);
+        expect(lightControls).toHaveAccessibleDescription(i18next.t("tools:journey-view-light.note"));
+        expect(screen.getAllByRole("radio")).toHaveLength(2);
+        expect(within(lightControls).getByRole("radio", { name: "ضوء النهار" })).toBeChecked();
+        fireEvent.click(within(lightControls).getByRole("radio", { name: "ضوء الغروب" }));
+        expect(within(lightControls).getByRole("radio", { name: "ضوء الغروب" })).toBeChecked();
+        expect(disclosure).not.toHaveAttribute("open");
+        expect(container.querySelector('[data-room-light="dusk"]')).toContainElement(screen.getByTestId("journey-aquarium"));
+        expect(screen.getByTestId("journey-aquarium")).toHaveAttribute("data-has-water", "false");
+        expect(container.querySelectorAll("[data-species-id], [data-decoration]")).toHaveLength(0);
+        expect(container.querySelectorAll("[data-equipment]")).toHaveLength(1);
+        expect(JSON.stringify(withLight)).toBe(originalPlan);
+
+        rerender(<JourneyTankVisualizer data={none} currentStep={2} total={9} />);
+        expect(container.querySelector("[data-room-light], [data-equipment]")).toBeNull();
+        rerender(<JourneyTankVisualizer data={withLight} currentStep={2} total={9} />);
+        expect(screen.getByRole("radio", { name: "ضوء النهار" })).toBeChecked();
     });
 });

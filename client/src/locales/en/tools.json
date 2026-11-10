@@ -1461,7 +1461,10 @@
     "live": "Updates with your choices",
     "volume": "Tank volume",
     "notChosen": "Choose a size",
-    "addDimensions": "Add your tank dimensions"
+    "addDimensions": "Add your tank dimensions",
+    "previewOpen": "View your aquarium",
+    "previewClose": "Close preview",
+    "previewSizePending": "No size selected yet"
   },
   "journey": {
     "fallbackTitle": "Tank journey",
@@ -2650,5 +2653,12 @@
       "noFixture": "No fixture is selected for intensity adjustment. The timeline is only an example for a future plan.",
       "note": "This preview explains the idea; it does not measure light or save a device program. Actual duration and intensity depend on species, model and care; more is not always better."
     }
+  },
+  "journey-view-light": {
+    "title": "Room light in the preview",
+    "day": "Daylight",
+    "dusk": "Dusk",
+    "note": "Try a warmer light to see your layout and the reflections on the glass. This changes the illustration only; your aquarium lighting settings stay the same.",
+    "unselected": "Choose a light in the equipment step to see the aquarium in daylight and at dusk."
   }
 }
