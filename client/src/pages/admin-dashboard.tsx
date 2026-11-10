@@ -296,17 +296,29 @@ export default function AdminDashboard() {
     specifications: {},
   });
 
-  const [activeOrdersCount, setActiveOrdersCount] = useState<number>(0);
+  const [activeOrdersCount, setActiveOrdersCount] = useState<number | null>(null);
 
   useEffect(() => {
     fetchMetadata();
-    fetch("/api/admin/orders", { credentials: "include" })
-      .then(r => r.ok ? r.json() : [])
-      .then((data: any[]) => {
-        const active = data.filter((o: any) => o.status !== "delivered" && o.status !== "cancelled");
-        setActiveOrdersCount(active.length);
+    // Single source of truth: the server excludes finalized, archived, and test orders.
+    fetch("/api/pricing/dashboard-insights", { credentials: "include", cache: "no-store" })
+      .then(async (response) => {
+        if (!response.ok) throw new Error(`Failed to verify active orders: HTTP ${response.status}`);
+        return response.json() as Promise<{
+          success: boolean;
+          data?: { orders?: { activeNow?: number } };
+        }>;
       })
-      .catch(() => {});
+      .then((payload) => {
+        const verifiedCount = payload.data?.orders?.activeNow;
+        if (!payload.success || typeof verifiedCount !== "number" || !Number.isSafeInteger(verifiedCount) || verifiedCount < 0) {
+          throw new Error("Invalid verified active-order count");
+        }
+        setActiveOrdersCount(verifiedCount);
+      })
+      .catch((error) => {
+        console.error("[Admin] Active order count verification failed:", error);
+      });
   }, []);
 
   const fetchMetadata = async () => {
@@ -779,7 +791,7 @@ export default function AdminDashboard() {
             <ShoppingCart className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold"><AnimatedCounter end={activeOrdersCount} duration={1000} /></div>
+            <div className="text-2xl font-bold">{activeOrdersCount === null ? "—" : <AnimatedCounter end={activeOrdersCount} duration={1000} />}</div>
             <p className="text-xs text-gray-500">طلبات نشطة</p>
           </CardContent>
         </Card>
