@@ -11,7 +11,7 @@ Make /journey easier to use and give the aquarium preview a coherent, detailed v
 | Page and style choices | Done | Preview opens initially; three editable decor styles; scoped IBM Plex font | Founder review | Founder |
 | Automated verification | Done | Client typecheck and Vite build passed; 29 journey/recommendation/session tests passed | Release decision | Founder |
 | Visual QA | Done | HTTPS preview at f908f59237bd53bcd5b38a3b05b0fc5e5e404d33; desktop and narrow viewport checks below | Release decision | Founder |
-| Production release | Pending | Main and production have not been changed | Founder approval of concrete preview | Founder |
+| Production release | Approved; merge pending | Founder explicitly requested merging the reviewed change into main on 10 November 2026 | Merge after required checks, then verify production | Assistant |
 
 ## Decisions
 - Preview stays part of the existing nine-step journey and its saved-plan data shape.
@@ -37,6 +37,7 @@ Make /journey easier to use and give the aquarium preview a coherent, detailed v
 - All three style changes were visibly checked. Entering 60 × 35 × 40 cm displayed 84 L and updated the tank proportions. Water selection changed the local preview; navigation from step 1 to 5 and back to 1 preserved the choices.
 - CSS viewport widths of 454 px and 340 px, reached using browser zoom, showed no horizontal overflow. These were narrow viewport checks, not physical-device emulation.
 - Netlify configuration is limited to Deploy Previews. The preview builds the static client, returns a local JSON 404 for `/api/*`, and sets `noindex, nofollow`; it has no live API connection. This QA does not establish backend, account, account-save, or cart integration behavior.
+- Pre-merge review corrected four Sorani glossary warnings. The unchanged UI translation validator then passed strict mode with 0 errors, 0 warnings and all 5,708 keys present in both English and Sorani. The optional full i18n gate has 53 catalog errors and 114 catalog warnings from data and validator trees identical to main; no gate was modified. Required pipeline, build, tests and security checks passed on the reviewed head and must pass again after the terminology correction.
 
 ## Release and rollback
-Draft PR 351 awaits the founder's release approval. Release only the reviewed branch after approval. No database migration, environment change, product update or price change is required. Roll back by reverting the journey studio commit and redeploying the prior main state. Saved plans retain their existing fields.
+The founder approved merging PR 351 into main on 10 November 2026. Merge only the reviewed branch after required checks, then record the merge and production verification in the PR. No database migration, environment change, product update or price change is required. Roll back by reverting the journey studio merge and redeploying the prior main state. Saved plans retain their existing fields.
