@@ -35,6 +35,19 @@ export default function JourneyPage() {
   const lastStep = useRef(currentStep);
   const isSummary = currentStep === STEPS.length - 1;
 
+  const exploreStep = (step: number) => {
+    if (step !== currentStep) {
+      setCurrentStep(step);
+      return;
+    }
+    const heading = panelRef.current?.querySelector("h2");
+    if (heading) {
+      heading.tabIndex = -1;
+      heading.focus({ preventScroll: true });
+    }
+    panelRef.current?.scrollIntoView({ block: "start", behavior: "instant" });
+  };
+
   useEffect(() => {
     if (lastStep.current === currentStep) return;
     lastStep.current = currentStep;
@@ -63,7 +76,7 @@ export default function JourneyPage() {
       case 5: return <NitrogenCycle {...commonProps} />;
       case 6: return <FishSelection {...commonProps} />;
       case 7: return <MaintenanceSchedule {...commonProps} />;
-      case 8: return <JourneySummary wizardData={wizardData} onReset={resetJourney} onSave={saveJourney} isSaving={isSaving} />;
+      case 8: return <JourneySummary wizardData={wizardData} onReset={resetJourney} onSave={saveJourney} isSaving={isSaving} onEditStep={exploreStep} />;
       default: return <TankSelection {...commonProps} />;
     }
   };
@@ -108,7 +121,7 @@ export default function JourneyPage() {
                 <div><Eye aria-hidden="true" size={18} /><h2>{t("journey-layout.preview")}</h2></div>
                 <span className="aqv-journey-live-label"><i aria-hidden="true" />{t("journey-layout.live")}</span>
               </div>
-              <JourneyTankVisualizer data={wizardData} currentStep={currentStep} total={STEPS.length} />
+              <JourneyTankVisualizer data={wizardData} currentStep={currentStep} total={STEPS.length} onExploreStep={exploreStep} />
               <div className="aqv-journey-measurements">
                 <div>
                   <span>{t("journey-layout.volume")}</span>

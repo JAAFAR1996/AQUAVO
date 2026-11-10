@@ -7,6 +7,7 @@ import { Filter, Thermometer, Lightbulb } from "lucide-react";
 import type { WizardData } from "@/types/journey";
 import { TankFit } from "./tank-fit";
 import { useTranslation } from "react-i18next";
+import { FilterLesson, HeaterLesson, LightingLesson } from "./planning-lessons";
 
 interface EquipmentSelectionProps {
     wizardData: WizardData;
@@ -54,6 +55,7 @@ export function EquipmentSelection({ wizardData, updateData }: EquipmentSelectio
                     {wizardData.filterType === "sponge" && (
                         <p className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-sm text-muted-foreground">{t("equipment-selection.spongeRequirements")}</p>
                     )}
+                    <FilterLesson filterType={wizardData.filterType} />
                 </fieldset>
 
                 <section className="space-y-3">
@@ -74,6 +76,7 @@ export function EquipmentSelection({ wizardData, updateData }: EquipmentSelectio
                         <span className="text-sm text-muted-foreground">{t("equipment-selection.s19")}</span>
                     </div>
                     <p className="text-xs text-muted-foreground">{t("equipment-selection.heaterUnconfirmed")}</p>
+                    <HeaterLesson wattage={wizardData.heaterWattage} />
                 </section>
 
                 <fieldset className="space-y-4">
@@ -100,6 +103,7 @@ export function EquipmentSelection({ wizardData, updateData }: EquipmentSelectio
                             ))}
                         </div>
                     </RadioGroup>
+                    <LightingLesson lightingType={wizardData.lightingType} />
                 </fieldset>
 
                 <div className="flex gap-3 rounded-xl border border-primary/20 bg-primary/5 p-4">

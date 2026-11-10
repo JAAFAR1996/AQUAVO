@@ -2,6 +2,7 @@ import { useId } from "react";
 import { Check } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { WizardData } from "@/types/journey";
+import { AquascapeGuide } from "./aquascape-guide";
 import "./aquascape-styles.css";
 
 interface AquascapeStylesProps {
@@ -132,6 +133,10 @@ export function AquascapeStyles({ data, updateData }: AquascapeStylesProps) {
       <div className="aqv-aquascape-styles__tip" aria-live="polite" aria-atomic="true">
         {selected && <p>{t(`journey-styles.${selected.id}Tip`, { defaultValue: selected.tip })}</p>}
       </div>
+      {selected && <details key={selected.id} className="aqv-aquascape-styles__guide">
+        <summary>{t("journey-style-guide.open")}</summary>
+        <AquascapeGuide style={selected.id} />
+      </details>}
     </section>
   );
 }

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -5,8 +6,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Mountain, Leaf } from "lucide-react";
-import { WizardData } from "@/types/journey";
+import type { WizardData } from "@/types/journey";
 import { useTranslation } from "react-i18next";
+import { DecorationExplorer, SubstrateLesson } from "./environment-lessons";
 
 interface DecorationSetupProps {
     wizardData: WizardData;
@@ -14,7 +16,8 @@ interface DecorationSetupProps {
 }
 
 export function DecorationSetup({ wizardData, updateData }: DecorationSetupProps) {
-  const { t } = useTranslation("tools");
+  const { t, i18n } = useTranslation("tools");
+  const [detailDecoration, setDetailDecoration] = useState("");
     return (
         <Card className="border-2">
             <CardContent className="p-6 md:p-8 space-y-8">
@@ -30,8 +33,8 @@ export function DecorationSetup({ wizardData, updateData }: DecorationSetupProps
 
                 {/* Substrate */}
                 <div className="space-y-4">
-                    <Label className="text-lg font-bold">{t("decoration-setup.s3")}</Label>
-                    <RadioGroup value={wizardData.substrateType} onValueChange={(val) => updateData("substrateType", val)}>
+                    <h3 id="journey-substrate-type" className="text-lg font-bold">{t("decoration-setup.s3")}</h3>
+                    <RadioGroup value={wizardData.substrateType} onValueChange={(val) => updateData("substrateType", val)} aria-labelledby="journey-substrate-type" dir={i18n.dir()}>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {[
                                 {
@@ -63,7 +66,8 @@ export function DecorationSetup({ wizardData, updateData }: DecorationSetupProps
                                         className={cn(
                                             "flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all",
                                             "hover:border-primary/50 hover:bg-primary/5",
-                                            "peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/10"
+                                            "peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/10",
+                                            "peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2"
                                         )}
                                     >
                                         {option.recommended && (
@@ -81,11 +85,12 @@ export function DecorationSetup({ wizardData, updateData }: DecorationSetupProps
                             ))}
                         </div>
                     </RadioGroup>
+                    <SubstrateLesson key={wizardData.substrateType} type={wizardData.substrateType} />
                 </div>
 
                 {/* Decorations */}
                 <div className="space-y-4">
-                    <Label className="text-lg font-bold">{t("decoration-setup.s13")}</Label>
+                    <h3 className="text-lg font-bold">{t("decoration-setup.s13")}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {[
                             { value: "live-plants", label: t("decoration-setup.s14"), benefit: t("decoration-setup.s15") },
@@ -95,12 +100,14 @@ export function DecorationSetup({ wizardData, updateData }: DecorationSetupProps
                             { value: "artificial-plants", label: t("decoration-setup.s22"), benefit: t("decoration-setup.s23") },
                             { value: "background", label: t("decoration-setup.s24"), benefit: t("decoration-setup.s25") }
                         ].map((option) => (
-                            <div key={option.value} className="flex items-start space-x-3 space-x-reverse">
+                            <div key={option.value} className="flex items-start gap-3">
                                 <Checkbox
+                                    className="peer"
                                     id={`decor-${option.value}`}
                                     checked={wizardData.decorations.includes(option.value)}
                                     onCheckedChange={(checked) => {
-                                        if (checked) {
+                                        if (checked === true) {
+                                            setDetailDecoration(option.value);
                                             updateData("decorations", [...wizardData.decorations, option.value]);
                                         } else {
                                             updateData("decorations", wizardData.decorations.filter(d => d !== option.value));
@@ -109,7 +116,7 @@ export function DecorationSetup({ wizardData, updateData }: DecorationSetupProps
                                 />
                                 <Label
                                     htmlFor={`decor-${option.value}`}
-                                    className="flex-1 p-4 rounded-xl border-2 cursor-pointer transition-all hover:border-primary/50 hover:bg-primary/5"
+                                    className="flex-1 p-4 rounded-xl border-2 cursor-pointer transition-all hover:border-primary/50 hover:bg-primary/5 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/10 peer-focus-visible:ring-2 peer-focus-visible:ring-ring"
                                 >
                                     <div className="flex items-center gap-3">
                                         <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
@@ -125,6 +132,8 @@ export function DecorationSetup({ wizardData, updateData }: DecorationSetupProps
                         ))}
                     </div>
                 </div>
+
+                <DecorationExplorer decorations={wizardData.decorations} activeId={detailDecoration} onActiveChange={setDetailDecoration} />
 
                 {/* Design Tips */}
                 <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 flex gap-3">

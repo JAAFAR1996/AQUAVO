@@ -2,13 +2,13 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { badgeVariants } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { ChevronDown, Lightbulb, Ruler } from "lucide-react";
 import { WizardData } from "@/types/journey";
 import { useTranslation } from "react-i18next";
 import { geometricTankLiters } from "@/lib/tank-capacity";
+import { TankSizeLesson, TankTypeLesson } from "./planning-lessons";
 
 interface TankSelectionProps {
     wizardData: WizardData;
@@ -61,17 +61,13 @@ export function TankSelection({ wizardData, updateData }: TankSelectionProps) {
     // Handle manual liter input
     const handleLitersChange = (value: string) => {
         clearDimensions();
-        const num = parseInt(value, 10);
-        if (isNaN(num) || num < 0) {
-            updateData("tankLiters", 0);
-        } else if (num > 2000) {
-            updateData("tankLiters", 2000);
-        } else {
-            updateData("tankLiters", num);
-        }
+        const parsed = Number(value);
+        const num = Number.isFinite(parsed) ? Math.min(2000, Math.max(0, parsed)) : 0;
+        updateData("tankLiters", num);
 
         // Auto-select preset based on liters
-        if (num <= 60) updateData("tankSize", "small");
+        if (num === 0) updateData("tankSize", "");
+        else if (num <= 60) updateData("tankSize", "small");
         else if (num <= 150) updateData("tankSize", "medium");
         else if (num <= 300) updateData("tankSize", "large");
         else updateData("tankSize", "xlarge");
@@ -167,7 +163,7 @@ export function TankSelection({ wizardData, updateData }: TankSelectionProps) {
                         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                             {[
                                 { value: "small", label: t("tank-selection.s11"), desc: t("tank-selection.s12") },
-                                { value: "medium", label: t("tank-selection.s13"), desc: t("tank-selection.s14"), recommended: true },
+                                { value: "medium", label: t("tank-selection.s13"), desc: t("tank-selection.s14") },
                                 { value: "large", label: t("tank-selection.s15"), desc: t("tank-selection.s16") },
                                 { value: "xlarge", label: t("tank-selection.s17"), desc: t("tank-selection.s18") }
                             ].map((option) => (
@@ -189,9 +185,6 @@ export function TankSelection({ wizardData, updateData }: TankSelectionProps) {
                                     >
                                         <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
                                             <span className="font-bold leading-normal text-foreground">{option.label}</span>
-                                            {option.recommended && (
-                                                <span className={badgeVariants({ variant: "secondary" })}>{t("tank-selection.s19")}</span>
-                                            )}
                                         </span>
                                         <span className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{option.desc}</span>
                                     </Label>
@@ -199,6 +192,7 @@ export function TankSelection({ wizardData, updateData }: TankSelectionProps) {
                             ))}
                         </div>
                     </RadioGroup>
+                    <TankSizeLesson data={wizardData} />
                 </div>
 
                 <div className="space-y-2">
@@ -238,6 +232,7 @@ export function TankSelection({ wizardData, updateData }: TankSelectionProps) {
                             ))}
                         </div>
                     </RadioGroup>
+                    <TankTypeLesson tankType={wizardData.tankType} />
                 </div>
 
                 <div className="space-y-2 border-t border-border pt-3 text-sm">

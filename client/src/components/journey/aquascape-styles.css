@@ -106,3 +106,6 @@
 @media (prefers-reduced-motion: reduce) {
   .aqv-aquascape-styles__option { transition: none; }
 }
+.aqv-aquascape-styles__guide > summary { min-block-size: 2.75rem; display: flex; align-items: center; cursor: pointer; color: var(--journey-aqua); font-size: .83rem; text-decoration: underline; text-underline-offset: .25em; }
+.aqv-aquascape-styles__guide > summary:focus-visible { outline: 2px solid var(--journey-aqua); outline-offset: 3px; }
+.aqv-style-guide-map { display: block; inline-size: 100%; block-size: auto; margin-block: .7rem; }
