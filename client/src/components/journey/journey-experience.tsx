@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { ChevronDown, MousePointer2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +13,7 @@ import { getSpeciesById, speciesDisplayName } from "@/components/journey/fish-sp
 import type { WizardData } from "@/types/journey";
 import { useTranslation } from "react-i18next";
 import { AquariumScene } from "./aquarium-scene";
+import { LessonChoices } from "./journey-lesson";
 import "./aquarium-scene.css";
 
 const JOURNEY_INTRO_KEY = "aquavo_journey_intro_seen_v3";
@@ -75,7 +77,13 @@ interface JourneyTankVisualizerProps {
   data: WizardData;
   currentStep: number;
   total: number;
+  onExploreStep?: (step: number) => void;
 }
+
+const EXPLORE_TOPICS = ["space", "filter", "light", "floor", "water", "fish"] as const;
+type ExploreTopic = (typeof EXPLORE_TOPICS)[number];
+const EXPLORE_STEPS: Record<ExploreTopic, number> = { space: 0, filter: 2, light: 2, floor: 3, water: 4, fish: 6 };
+const STEP_TOPICS: ExploreTopic[] = ["space", "space", "filter", "floor", "water", "water", "fish", "water", "space"];
 
 type PreviewLabelKey = `journey-experience.s${4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14}`;
 
@@ -97,8 +105,12 @@ const TANK_TYPE_LABEL_KEYS: Partial<Record<string, PreviewLabelKey>> = {
   "species-specific": "journey-experience.s14",
 };
 
-export function JourneyTankVisualizer({ data, currentStep, total }: JourneyTankVisualizerProps) {
+export function JourneyTankVisualizer({ data, currentStep, total, onExploreStep }: JourneyTankVisualizerProps) {
   const { t, i18n } = useTranslation("tools");
+  const [explorerOpen, setExplorerOpen] = useState(false);
+  const [topic, setTopic] = useState<ExploreTopic>(STEP_TOPICS[currentStep] || "space");
+  useEffect(() => setTopic((current) => EXPLORE_STEPS[current] === currentStep
+    ? current : STEP_TOPICS[currentStep] || "space"), [currentStep]);
   const species = useMemo(
     () => getSpeciesById([...new Set(data.selectedSpecies || [])]),
     [data.selectedSpecies],
@@ -125,6 +137,7 @@ export function JourneyTankVisualizer({ data, currentStep, total }: JourneyTankV
       data-aqv-motion="journey-preview"
       data-summary={currentStep === total - 1 ? "true" : "false"}
       aria-label={t("journey-experience.s20")}
+      data-explore={explorerOpen ? topic : undefined}
     >
       <AquariumScene
         data={data}
@@ -149,6 +162,32 @@ export function JourneyTankVisualizer({ data, currentStep, total }: JourneyTankV
           {species.length > 0 && <small>{t("journey-experience.s26")}</small>}
         </div>
       )}
+      <details className="aqv-aquarium-explorer" open={explorerOpen} onToggle={(event) => setExplorerOpen(event.currentTarget.open)}>
+        <summary>
+          <MousePointer2 size={17} aria-hidden="true" />
+          <span>{t("journey-explore.title")}</span>
+          <ChevronDown size={16} aria-hidden="true" />
+        </summary>
+        <div className="aqv-aquarium-explorer__content">
+          <p className="aqv-lesson-caption">{t("journey-explore.intro")}</p>
+          <LessonChoices label={t("journey-explore.title")}
+            options={EXPLORE_TOPICS.map((id) => ({ id, label: t(`journey-explore.${id}.label`) }))}
+            value={topic} onChange={(value) => setTopic(value as ExploreTopic)} />
+          <div className="aqv-aquarium-explorer__readout" aria-live="polite" aria-atomic="true">
+            <h3>{t(`journey-explore.${topic}.title`)}</h3>
+            <p>{t(`journey-explore.${topic}.body`)}</p>
+            {topic === "space" && <p className="aqv-lesson-caption">{t("journey-explore.space.volume", { liters: litres || "—" })}</p>}
+            {topic === "filter" && <p className="aqv-lesson-caption">{data.filterType && data.filterType !== "unknown"
+              ? t("journey-explore.selected", { value: t(FILTER_LABEL_KEYS[data.filterType] || "journey-layout.notChosen") })
+              : t("journey-explore.filter.unselected")}</p>}
+            {topic === "water" && <p className="aqv-lesson-caption">{t("journey-explore.water.preview")}</p>}
+            {topic === "fish" && <p className="aqv-lesson-caption">{t("journey-experience.s26")}</p>}
+          </div>
+          {onExploreStep && <button type="button" className="aqv-aquarium-explorer__link" onClick={() => onExploreStep(EXPLORE_STEPS[topic])}>
+            {t("journey-explore.open", { topic: t(`journey-explore.${topic}.label`) })}
+          </button>}
+        </div>
+      </details>
     </section>
   );
 }

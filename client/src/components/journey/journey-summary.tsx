@@ -11,6 +11,9 @@ import type { FoodFilter } from "@shared/food-choice";
 import { journeyLabel, journeySpeciesNames, missingJourneyDecisions, normalizeWizardData } from "./utils";
 import { JourneySupport } from "./journey-support";
 import { TankFit } from "./tank-fit";
+import { JourneyLesson } from "./journey-lesson";
+import { getSpeciesById } from "./fish-species-data";
+import "./care-lessons.css";
 
 interface JourneySummaryProps {
     wizardData: WizardData;
@@ -18,6 +21,7 @@ interface JourneySummaryProps {
     onReset?: () => void;
     onSave?: () => void;
     isSaving?: boolean;
+    onEditStep?: (step: number) => void;
 }
 
 function SummaryRow({ label, children }: { label: string; children: ReactNode }) {
@@ -38,13 +42,18 @@ const LOCATION_LABELS: Partial<Record<string, "location-setup.s4" | "location-se
     "easy-access": "location-setup.s12", "away-from-hvac": "location-setup.s14",
 };
 
-export function JourneySummary({ wizardData, onReset, onSave, isSaving }: JourneySummaryProps) {
+export function JourneySummary({ wizardData, onReset, onSave, isSaving, onEditStep }: JourneySummaryProps) {
     const { t, i18n } = useTranslation("tools");
     const data = normalizeWizardData(wizardData);
     const missing = missingJourneyDecisions(data);
     const species = journeySpeciesNames(data, i18n.language);
+    const selectedFishGroups = [...new Set([...data.fishTypes, ...getSpeciesById(data.selectedSpecies).map((item) => item.category)])];
     const foodFilters = [...new Set(data.selectedSpecies.map((id) => SPECIES_FOOD_FILTER[id]).filter((value): value is JourneyFoodFilter => !!value))];
     const unknown = t("journey-labels.unknown");
+    const decisionSteps = { volume: 0, tankType: 0, filter: 2, heating: 2, lighting: 2, substrate: 3, water: 4, cycling: 5, species: 6 } as const;
+    const editButtons = (steps: ReadonlyArray<{ step: number; label: string }>) => onEditStep && <div className="aqv-care-summary-edit">
+        {steps.map(({ step, label }) => <button type="button" key={step} onClick={() => onEditStep(step)}>{label}</button>)}
+    </div>;
     const dimensions = [data.tankLengthCm, data.tankWidthCm, data.tankHeightCm]
         .map((value) => typeof value === "number" && value > 0 ? String(value) : unknown).join(" × ");
 
@@ -60,7 +69,11 @@ export function JourneySummary({ wizardData, onReset, onSave, isSaving }: Journe
                 <section className="space-y-3 rounded-xl border border-border bg-muted/20 p-4">
                     <h3 className="font-bold">{t("journey-review.recorded", { count: 9 - missing.length, total: 9 })}</h3>
                     <p className="text-sm text-muted-foreground">{t(missing.length ? "journey-review.missingIntro" : "journey-review.allRecorded")}</p>
-                    {missing.length > 0 && <ul className="flex flex-wrap gap-2">{missing.map((key) => <li key={key}><Badge variant="outline">{t(`journey-review.missing.${key}`)}</Badge></li>)}</ul>}
+                    {missing.length > 0 && <div className="space-y-2">{missing.map((key) => <details key={key} className="rounded-lg border border-border p-3">
+                        <summary className="min-h-8 cursor-pointer text-sm font-medium">{t(`journey-review.missing.${key}`)}</summary>
+                        <p className="my-2 text-sm leading-relaxed text-muted-foreground">{t(`journey-care.review.reasons.${key}`)}</p>
+                        {editButtons([{ step: decisionSteps[key], label: t("journey-care.review.resolve") }])}
+                    </details>)}</div>}
                     <p className="text-xs text-muted-foreground">{t("journey-review.editHint")}</p>
                 </section>
 
@@ -75,6 +88,7 @@ export function JourneySummary({ wizardData, onReset, onSave, isSaving }: Journe
                             <SummaryRow label={t("journey-review.cyclingMethod")}>{journeyLabel(t, "cyclingMethod", data.cyclingMethod)}</SummaryRow>
                         </dl>
                         <p className="text-sm">{t("journey-review.dimensions", { value: dimensions })}</p>
+                        {editButtons([{ step: 0, label: t("journey-care.review.editTank") }, { step: 4, label: t("journey-care.review.editWater") }, { step: 5, label: t("journey-care.review.editCycle") }])}
                     </section>
                     <section className="space-y-3 rounded-xl border border-border bg-muted/10 p-4">
                         <h3 className="flex items-center gap-2 font-bold"><Filter className="h-5 w-5 text-primary" aria-hidden="true" />{t("journey-summary.s17")}</h3>
@@ -83,6 +97,7 @@ export function JourneySummary({ wizardData, onReset, onSave, isSaving }: Journe
                             <SummaryRow label={t("journey-summary.s19")}>{data.heaterWattage > 0 ? t("journey-review.selectedWattage", { value: data.heaterWattage }) : unknown}</SummaryRow>
                             <SummaryRow label={t("journey-summary.s22")}>{journeyLabel(t, "lightingType", data.lightingType)}</SummaryRow>
                         </dl>
+                        {editButtons([{ step: 2, label: t("journey-care.review.editEquipment") }])}
                     </section>
                     <section className="space-y-3 rounded-xl border border-border bg-muted/10 p-4">
                         <h3 className="flex items-center gap-2 font-bold"><Mountain className="h-5 w-5 text-primary" aria-hidden="true" />{t("journey-summary.s24")}</h3>
@@ -90,6 +105,7 @@ export function JourneySummary({ wizardData, onReset, onSave, isSaving }: Journe
                         <div className="flex flex-wrap gap-2">
                             {data.decorations.length ? data.decorations.map((value) => <Badge key={value} variant="outline">{journeyLabel(t, "decorations", value)}</Badge>) : <span className="text-sm text-muted-foreground">{unknown}</span>}
                         </div>
+                        {editButtons([{ step: 3, label: t("journey-care.review.editDecor") }])}
                     </section>
                     <section className="space-y-3 rounded-xl border border-border bg-muted/10 p-4">
                         <h3 className="flex items-center gap-2 font-bold"><Fish className="h-5 w-5 text-primary" aria-hidden="true" />{t("journey-summary.s27")}</h3>
@@ -97,8 +113,9 @@ export function JourneySummary({ wizardData, onReset, onSave, isSaving }: Journe
                         <p className="text-sm text-muted-foreground">{t("journey-summary.s29")}</p>
                         <div className="flex flex-wrap gap-2">{species.length ? species.map((name) => <Badge key={name} variant="outline"><bdi lang={i18n.language.startsWith("ar") ? "ar" : "en"}>{name}</bdi></Badge>) : <span className="text-sm text-muted-foreground">{unknown}</span>}</div>
                         <p className="text-sm text-muted-foreground">{t("journey-review.fishGroups")}</p>
-                        <div className="flex flex-wrap gap-2">{data.fishTypes.length ? data.fishTypes.map((value) => <Badge key={value} variant="outline">{journeyLabel(t, "fishTypes", value)}</Badge>) : <span className="text-sm text-muted-foreground">{unknown}</span>}</div>
+                        <div className="flex flex-wrap gap-2">{selectedFishGroups.length ? selectedFishGroups.map((value) => <Badge key={value} variant="outline">{journeyLabel(t, "fishTypes", value)}</Badge>) : <span className="text-sm text-muted-foreground">{unknown}</span>}</div>
                         <p className="text-xs text-muted-foreground">{t("journey-review.livestockScope")}</p>
+                        {editButtons([{ step: 6, label: t("journey-care.review.editSpecies") }])}
                     </section>
                     <section className="space-y-3 rounded-xl border border-border bg-muted/10 p-4 md:col-span-2">
                         <h3 className="flex items-center gap-2 font-bold"><MapPin className="h-5 w-5 text-primary" aria-hidden="true" />{t("journey-review.locationAndCare")}</h3>
@@ -107,8 +124,18 @@ export function JourneySummary({ wizardData, onReset, onSave, isSaving }: Journe
                             {data.location.length ? data.location.map((value) => <Badge key={value} variant="outline">{LOCATION_LABELS[value] ? t(LOCATION_LABELS[value]) : unknown}</Badge>) : <span className="text-sm text-muted-foreground">{unknown}</span>}
                         </div>
                         <dl><SummaryRow label={t("journey-review.maintenancePreference")}>{journeyLabel(t, "maintenancePreference", data.maintenancePreference)}</SummaryRow></dl>
+                        {editButtons([{ step: 1, label: t("journey-care.review.editLocation") }, { step: 7, label: t("journey-care.review.editCare") }])}
                     </section>
                 </div>
+
+                <JourneyLesson title={t("journey-care.review.checkTitle")} summary={t("journey-care.review.checkSummary")}
+                    sections={[
+                        { title: t("journey-care.review.beforeEquipmentTitle"), body: <p>{t("journey-care.review.beforeEquipment")}</p> },
+                        { title: t("journey-care.review.beforeFishTitle"), body: <p>{t("journey-care.review.beforeFish")}</p> },
+                    ]}>
+                    {(!data.location.length || !data.maintenancePreference || !data.stockingLevel) && <p className="aqv-lesson-readout">{t("journey-care.review.remainingCare")}</p>}
+                    {editButtons([{ step: missing.length ? decisionSteps[missing[0]] : 4, label: t(missing.length ? "journey-care.review.nextMissing" : "journey-care.review.reviewWater") }])}
+                </JourneyLesson>
 
                 <TankFit litres={data.tankLiters} wizardData={data} showSupport={false} />
 

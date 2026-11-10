@@ -1,11 +1,12 @@
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
-import { Calendar, Clock, Package, CheckCircle2, Lightbulb } from "lucide-react";
-import { WizardData } from "@/types/journey";
+import { Calendar, Package } from "lucide-react";
+import type { WizardData } from "@/types/journey";
 import { useTranslation } from "react-i18next";
+import { JourneyLesson, LessonChoices, LessonSource } from "./journey-lesson";
+import { MaintenancePreferenceLesson, MaintenanceWalkthrough, WaterChangeLesson } from "./care-lessons";
 
 interface MaintenanceScheduleProps {
     wizardData: WizardData;
@@ -13,162 +14,40 @@ interface MaintenanceScheduleProps {
 }
 
 export function MaintenanceSchedule({ wizardData, updateData }: MaintenanceScheduleProps) {
-  const { t } = useTranslation("tools");
-    return (
-        <Card className="border-2">
-            <CardContent className="p-6 md:p-8 space-y-8">
-                <div className="space-y-2">
-                    <h2 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-2">
-                        <Calendar className="h-7 w-7 text-primary" />
-                        {t("maintenance-schedule.s1")}
-                    </h2>
-                    <p className="text-muted-foreground text-lg">
-                        {t("maintenance-schedule.s2")}
-                    </p>
-                </div>
-
-                {/* Maintenance Preference */}
-                <div className="space-y-4">
-                    <Label className="text-lg font-bold">{t("maintenance-schedule.s3")}</Label>
-                    <RadioGroup value={wizardData.maintenancePreference} onValueChange={(val) => updateData("maintenancePreference", val)}>
-                        <div className="grid grid-cols-1 gap-4">
-                            {[
-                                {
-                                    value: "minimal",
-                                    label: t("maintenance-schedule.s4"),
-                                    desc: t("maintenance-schedule.s5"),
-                                    tasks: t("maintenance-schedule.s6")
-                                },
-                                {
-                                    value: "moderate",
-                                    label: t("maintenance-schedule.s7"),
-                                    desc: t("maintenance-schedule.s8"),
-                                    tasks: t("maintenance-schedule.s9")
-                                },
-                                {
-                                    value: "intensive",
-                                    label: t("maintenance-schedule.s10"),
-                                    desc: t("maintenance-schedule.s11"),
-                                    tasks: t("maintenance-schedule.s12")
-                                }
-                            ].map((option) => (
-                                <div key={option.value}>
-                                    <RadioGroupItem value={option.value} id={`maint-${option.value}`} className="peer sr-only" />
-                                    <Label
-                                        htmlFor={`maint-${option.value}`}
-                                        className={cn(
-                                            "flex flex-col p-4 rounded-xl border-2 cursor-pointer transition-all",
-                                            "hover:border-primary/50 hover:bg-primary/5",
-                                            "peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/10"
-                                        )}
-                                    >
-                                        <div className="font-bold text-foreground mb-1">{option.label}</div>
-                                        <div className="text-sm text-muted-foreground mb-2">{option.desc}</div>
-                                        <div className="text-xs text-primary">{t("maintenance-schedule.s13")} {option.tasks}</div>
-                                    </Label>
-                                </div>
-                            ))}
-                        </div>
-                    </RadioGroup>
-                </div>
-
-                {/* Maintenance Schedule */}
-                <div className="space-y-4">
-                    <h3 className="font-bold text-foreground flex items-center gap-2">
-                        <Clock className="h-5 w-5 text-primary" />
-                        {t("maintenance-schedule.s14")}
-                    </h3>
-
-                    {/* Daily */}
-                    <div className="border-s-4 border-blue-500 bg-blue-500/5 rounded-lg p-4">
-                        <div className="font-bold text-foreground mb-2 flex items-center gap-2">
-                            <Badge className="bg-blue-500">{t("maintenance-schedule.s15")}</Badge>
-                        </div>
-                        <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-                            <li>{t("maintenance-schedule.s16")}</li>
-                            <li>{t("maintenance-schedule.s17")}</li>
-                            <li>{t("maintenance-schedule.s18")}</li>
-                            <li>{t("maintenance-schedule.s19")}</li>
-                        </ul>
-                    </div>
-
-                    {/* Weekly */}
-                    <div className="border-s-4 border-green-500 bg-green-500/5 rounded-lg p-4">
-                        <div className="font-bold text-foreground mb-2 flex items-center gap-2">
-                            <Badge className="bg-green-500">{t("maintenance-schedule.s20")}</Badge>
-                        </div>
-                        <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-                            <li>{t("maintenance-schedule.s21")}</li>
-                            <li>{t("maintenance-schedule.s22")}</li>
-                            <li>{t("maintenance-schedule.s23")}</li>
-                            <li>{t("maintenance-schedule.s24")}</li>
-                            <li>{t("maintenance-schedule.s25")}</li>
-                        </ul>
-                    </div>
-
-                    {/* Monthly */}
-                    <div className="border-s-4 border-amber-500 bg-amber-500/5 rounded-lg p-4">
-                        <div className="font-bold text-foreground mb-2 flex items-center gap-2">
-                            <Badge className="bg-amber-500">{t("maintenance-schedule.s26")}</Badge>
-                        </div>
-                        <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-                            <li>{t("maintenance-schedule.s27")}</li>
-                            <li>{t("maintenance-schedule.s28")}</li>
-                            <li>{t("maintenance-schedule.s29")}</li>
-                            <li>{t("maintenance-schedule.s30")}</li>
-                        </ul>
-                    </div>
-
-                    {/* Quarterly */}
-                    <div className="border-s-4 border-purple-500 bg-purple-500/5 rounded-lg p-4">
-                        <div className="font-bold text-foreground mb-2 flex items-center gap-2">
-                            <Badge className="bg-purple-500">{t("maintenance-schedule.s31")}</Badge>
-                        </div>
-                        <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-                            <li>{t("maintenance-schedule.s32")}</li>
-                            <li>{t("maintenance-schedule.s33")}</li>
-                            <li>{t("maintenance-schedule.s34")}</li>
-                            <li>{t("maintenance-schedule.s35")}</li>
-                        </ul>
-                    </div>
-                </div>
-
-                {/* Essential Tools */}
-                <div className="bg-muted/30 rounded-xl p-6">
-                    <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
-                        <Package className="h-5 w-5 text-primary" />
-                        {t("maintenance-schedule.s36")}
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                        {[
-                            t("maintenance-schedule.s37"),
-                            t("maintenance-schedule.s38"),
-                            t("maintenance-schedule.s39"),
-                            t("maintenance-schedule.s40"),
-                            t("maintenance-schedule.s41"),
-                            t("maintenance-schedule.s42"),
-                            t("maintenance-schedule.s43"),
-                            t("maintenance-schedule.s44")
-                        ].map((tool) => (
-                            <div key={tool} className="flex items-center gap-2">
-                                <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
-                                <span className="text-muted-foreground">{tool}</span>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Pro Tip */}
-                <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 flex gap-3">
-                    <Lightbulb className="h-5 w-5 text-primary flex-shrink-0 mt-1" />
-                    <div>
-                        <div className="font-bold text-foreground mb-1 text-start">{t("maintenance-schedule.s45")}</div>
-                        <p className="text-sm text-muted-foreground text-start">
-                            {t("maintenance-schedule.s46")}
-                        </p>
-                    </div>
-                </div>
-            </CardContent>
-        </Card>
-    );
+    const { t } = useTranslation("tools");
+    type Routine = "daily" | "weekly" | "needed";
+    const [routine, setRoutine] = useState<Routine>("daily");
+    return <Card className="border-2">
+        <CardContent className="space-y-7 p-6 md:p-8">
+            <header className="space-y-2">
+                <h2 className="flex items-center gap-2 text-2xl font-bold text-foreground md:text-3xl"><Calendar className="h-7 w-7 text-primary" aria-hidden="true" />{t("maintenance-schedule.s1")}</h2>
+                <p className="text-muted-foreground">{t("journey-care.maintenance.intro")}</p>
+            </header>
+            <div className="space-y-3">
+                <Label className="text-lg font-bold">{t("maintenance-schedule.s3")}</Label>
+                <RadioGroup value={wizardData.maintenancePreference} onValueChange={(value) => updateData("maintenancePreference", value)}>
+                    {(["minimal", "moderate", "intensive"] as const).map((value) => <div key={value}>
+                        <RadioGroupItem value={value} id={`maint-${value}`} className="peer sr-only" />
+                        <Label htmlFor={`maint-${value}`} className="flex cursor-pointer flex-col gap-1 rounded-xl border-2 p-4 transition-colors hover:border-primary/50 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/10 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-primary">
+                            <span className="font-semibold">{t(`journey-care.maintenance.${value}.title`)}</span>
+                            <span className="text-sm leading-relaxed text-muted-foreground">{t(`journey-care.maintenance.${value}.card`)}</span>
+                        </Label>
+                    </div>)}
+                </RadioGroup>
+                <MaintenancePreferenceLesson value={wizardData.maintenancePreference} />
+            </div>
+            <WaterChangeLesson tankLiters={wizardData.tankLiters} />
+            <MaintenanceWalkthrough />
+            <JourneyLesson title={t("journey-care.routine.title")} summary={t("journey-care.routine.intro")}
+                footer={<LessonSource label={t("journey-care.sources")} sources={[{ label: "Aqueon — Aquarium water basics", href: "https://www.aqueon.com/articles/aquarium-water-basics" }]} />}>
+                <LessonChoices label={t("journey-care.routine.choose")} value={routine} onChange={(value) => setRoutine(value as Routine)}
+                    options={(["daily", "weekly", "needed"] as const).map((id) => ({ id, label: t(`journey-care.routine.${id}.title`) }))} />
+                <p className="aqv-lesson-readout" aria-live="polite">{t(`journey-care.routine.${routine}.body`)}</p>
+            </JourneyLesson>
+            <details className="rounded-xl border border-border p-4">
+                <summary className="flex min-h-11 cursor-pointer items-center gap-2 font-semibold"><Package size={18} aria-hidden="true" />{t("maintenance-schedule.s36")}</summary>
+                <p className="mt-3 text-sm leading-loose text-muted-foreground">{t("journey-care.maintenance.tools")}</p>
+            </details>
+        </CardContent>
+    </Card>;
 }

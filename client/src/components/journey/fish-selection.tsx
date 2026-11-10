@@ -11,13 +11,11 @@ import {
     Lightbulb,
     ChevronDown,
     ChevronUp,
-    Utensils,
     Thermometer,
     Droplets,
     Ruler,
     Clock,
     Users,
-    Star,
     Check,
     Info,
 } from "lucide-react";
@@ -32,7 +30,7 @@ import {
     type FishSpeciesInfo,
 } from "./fish-species-data";
 import { useTranslation } from "react-i18next";
-import { i18next } from "@/i18n";
+import { FishGroupLesson, SpeciesCareLesson, StockingCareLesson } from "./care-lessons";
 
 interface FishSelectionProps {
     wizardData: WizardData;
@@ -42,7 +40,7 @@ interface FishSelectionProps {
 export function FishSelection({ wizardData, updateData }: FishSelectionProps) {
   const { t, i18n } = useTranslation("tools");
     const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
-    const [showFeedingFor, setShowFeedingFor] = useState<string | null>(null);
+    const [showProfileFor, setShowProfileFor] = useState<string | null>(null);
 
     const toggleCategory = (categoryId: string) => {
         setExpandedCategories((prev) =>
@@ -56,11 +54,9 @@ export function FishSelection({ wizardData, updateData }: FishSelectionProps) {
         const current = wizardData.selectedSpecies || [];
         const isSelected = current.includes(speciesId);
 
-        if (isSelected) {
-            updateData("selectedSpecies", current.filter((id) => id !== speciesId));
-        } else {
-            updateData("selectedSpecies", [...current, speciesId]);
-        }
+        const next = isSelected ? current.filter((id) => id !== speciesId) : [...current, speciesId];
+        updateData("selectedSpecies", next);
+        if (!isSelected) setShowProfileFor(speciesId);
     };
 
     const selectedSpeciesData = getSpeciesById(wizardData.selectedSpecies || []);
@@ -104,7 +100,7 @@ export function FishSelection({ wizardData, updateData }: FishSelectionProps) {
                 {/* Selection Summary Bar */}
                 {selectedSpeciesData.length > 0 && (
                     <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-2xl p-4 border border-primary/20">
-                        <div className="flex items-center justify-between mb-3">
+                        <div className="mb-3 flex min-w-0 flex-wrap items-center justify-between gap-3">
                             <div className="flex items-center gap-2">
                                 <Check className="h-5 w-5 text-primary" />
                                 <span className="font-bold text-foreground">
@@ -112,29 +108,29 @@ export function FishSelection({ wizardData, updateData }: FishSelectionProps) {
                                 </span>
                             </div>
                             {compatibility && (
-                                <div className="flex items-center gap-3 text-xs">
-                                    <span className="flex items-center gap-1 text-muted-foreground">
+                                <div className="flex min-w-0 flex-wrap items-center gap-3 text-xs">
+                                    <span className="flex min-w-0 flex-wrap items-center gap-1 text-muted-foreground">
                                         <Thermometer className="h-3 w-3" />
-                                        <bdi dir="ltr">{compatibility.minTemp}–{compatibility.maxTemp}°C</bdi>
+                                        {compatibility.minTemp <= compatibility.maxTemp ? <bdi dir="ltr">{compatibility.minTemp}–{compatibility.maxTemp}°C</bdi> : t("journey-care.species.noSharedTemperature")}
                                     </span>
-                                    <span className="flex items-center gap-1 text-muted-foreground">
+                                    <span className="flex min-w-0 flex-wrap items-center gap-1 text-muted-foreground">
                                         <Droplets className="h-3 w-3" />
-                                        {t("fish-selection.s5")} {compatibility.minTankSize} {t("fish-selection.s6")}
+                                        {t("journey-care.species.largestGuide", { value: compatibility.minTankSize })}
                                     </span>
                                 </div>
                             )}
                         </div>
                         <div className="flex flex-wrap gap-2">
                             {selectedSpeciesData.map((species) => (
-                                <Badge
-                                    key={species.id}
-                                    variant="secondary"
-                                    className="gap-1 px-3 py-1 cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors"
+                                <button
+                                    type="button" key={species.id}
+                                    className="flex min-h-11 items-center gap-1 rounded-lg border px-3 py-1 text-sm hover:bg-destructive/10 hover:text-destructive"
+                                    aria-label={t("journey-care.species.remove", { name: speciesDisplayName(species, i18n.language) })}
                                     onClick={() => toggleSpecies(species.id)}
                                 >
                                     <bdi lang={i18n.language.startsWith("ar") ? "ar" : "en"}>{speciesDisplayName(species, i18n.language)}</bdi>
-                                    <span className="text-[10px] opacity-60">×</span>
-                                </Badge>
+                                    <span aria-hidden="true" className="text-[10px] opacity-60">×</span>
+                                </button>
                             ))}
                         </div>
                     </div>
@@ -150,9 +146,10 @@ export function FishSelection({ wizardData, updateData }: FishSelectionProps) {
                             onToggle={() => toggleCategory(category.id)}
                             selectedSpecies={wizardData.selectedSpecies || []}
                             onToggleSpecies={toggleSpecies}
-                            showFeedingFor={showFeedingFor}
-                            onShowFeeding={setShowFeedingFor}
+                            showProfileFor={showProfileFor}
+                            onShowProfile={setShowProfileFor}
                             tankLiters={wizardData.tankLiters}
+                            tankLengthCm={wizardData.tankLengthCm}
                         />
                     ))}
                 </div>
@@ -202,7 +199,7 @@ export function FishSelection({ wizardData, updateData }: FishSelectionProps) {
                                         className={cn(
                                             "flex flex-col items-center text-center p-5 rounded-2xl border-2 cursor-pointer transition-all",
                                             "hover:border-primary/50 hover:bg-primary/5 hover:scale-[1.02]",
-                                            "peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/10 peer-data-[state=checked]:shadow-md"
+                                            "peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/10 peer-data-[state=checked]:shadow-md peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-primary"
                                         )}
                                     >
                                         <div className="font-bold text-foreground mb-1">
@@ -223,6 +220,8 @@ export function FishSelection({ wizardData, updateData }: FishSelectionProps) {
                         </div>
                     </RadioGroup>
                 </div>
+
+                <StockingCareLesson value={wizardData.stockingLevel} />
 
                 {/* Review species needs without inventing a stocking count from a size band. */}
                 {wizardData.tankSize && wizardData.stockingLevel && (
@@ -325,9 +324,10 @@ interface CategoryCardProps {
     onToggle: () => void;
     selectedSpecies: string[];
     onToggleSpecies: (id: string) => void;
-    showFeedingFor: string | null;
-    onShowFeeding: (id: string | null) => void;
+    showProfileFor: string | null;
+    onShowProfile: (id: string | null) => void;
     tankLiters: number;
+    tankLengthCm?: number;
 }
 
 function CategoryCard({
@@ -336,9 +336,10 @@ function CategoryCard({
     onToggle,
     selectedSpecies,
     onToggleSpecies,
-    showFeedingFor,
-    onShowFeeding,
+    showProfileFor,
+    onShowProfile,
     tankLiters,
+    tankLengthCm,
 }: CategoryCardProps) {
   const { t, i18n } = useTranslation("tools");
     const categoryKey = `journey-fish-guide.categories.${category.id}`;
@@ -400,20 +401,22 @@ function CategoryCard({
             {/* Species Grid */}
             {isExpanded && (
                 <div className="p-4 pt-0 space-y-3">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <FishGroupLesson category={category} />
+                    <div className="grid grid-cols-1 gap-3">
                         {category.species.map((species) => (
                             <SpeciesCard
                                 key={species.id}
                                 species={species}
                                 isSelected={selectedSpecies.includes(species.id)}
                                 onToggle={() => onToggleSpecies(species.id)}
-                                showFeeding={showFeedingFor === species.id}
-                                onToggleFeeding={() =>
-                                    onShowFeeding(
-                                        showFeedingFor === species.id ? null : species.id
+                                showProfile={showProfileFor === species.id}
+                                onToggleProfile={() =>
+                                    onShowProfile(
+                                        showProfileFor === species.id ? null : species.id
                                     )
                                 }
                                 tankLiters={tankLiters}
+                                tankLengthCm={tankLengthCm}
                             />
                         ))}
                     </div>
@@ -430,18 +433,20 @@ interface SpeciesCardProps {
     species: FishSpeciesInfo;
     isSelected: boolean;
     onToggle: () => void;
-    showFeeding: boolean;
-    onToggleFeeding: () => void;
+    showProfile: boolean;
+    onToggleProfile: () => void;
     tankLiters: number;
+    tankLengthCm?: number;
 }
 
 function SpeciesCard({
     species,
     isSelected,
     onToggle,
-    showFeeding,
-    onToggleFeeding,
+    showProfile,
+    onToggleProfile,
     tankLiters,
+    tankLengthCm,
 }: SpeciesCardProps) {
   const { t, i18n } = useTranslation("tools");
     const arabic = i18n.language.startsWith("ar");
@@ -522,97 +527,14 @@ function SpeciesCard({
                 </div>
             </button>
 
-            {/* Feeding Info Toggle */}
-            {isSelected && (
-                <div className="border-t">
-                    <button
-                        className="w-full flex items-center justify-between px-4 py-2.5 text-sm hover:bg-primary/5 transition-colors"
-                        aria-expanded={showFeeding}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onToggleFeeding();
-                        }}
-                    >
-                        <span className="flex items-center gap-2 font-bold text-primary">
-                            <Utensils className="h-4 w-4" />
-                            {t("fish-selection.s52")}
-                        </span>
-                        {showFeeding ? (
-                            <ChevronUp className="h-4 w-4 text-primary" />
-                        ) : (
-                            <ChevronDown className="h-4 w-4 text-primary" />
-                        )}
-                    </button>
-
-                    {/* Expanded Feeding Info */}
-                    {showFeeding && (
-                        <div className="px-4 pb-4 space-y-3">
-                            <div className="bg-gradient-to-r from-primary/5 to-transparent rounded-xl p-4 space-y-3">
-                                {/* Food Types */}
-                                <div>
-                                    <div className="text-xs font-bold text-foreground mb-1.5">
-                                        {t("fish-selection.s53")}
-                                    </div>
-                                    <div className="flex flex-wrap gap-1.5">
-                                        {species.feedingInfo.foodTypes.map((type) => (
-                                            <Badge
-                                                key={type}
-                                                variant="outline"
-                                                className="text-[10px] bg-background"
-                                            >
-                                                {getFoodTypeLabel(type)}
-                                            </Badge>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                {/* Frequency */}
-                                <div className="flex items-center gap-2">
-                                    <Clock className="h-3.5 w-3.5 text-primary flex-shrink-0" />
-                                    <span className="text-xs text-muted-foreground">
-                                        {species.feedingInfo.frequencyPerDay === 0
-                                            ? t("fish-selection.s54")
-                                            : t("fish-selection.s55", { v0: species.feedingInfo.frequencyPerDay, v1: species.feedingInfo.frequencyPerDay > 2 ? t("fish-selection.timesMany") : t("fish-selection.timesTwo") })
-                                        }
-                                    </span>
-                                </div>
-
-                                {/* Tips */}
-                                <div className="bg-background rounded-lg p-3">
-                                    <div className="flex items-start gap-2">
-                                        <Star className="h-3.5 w-3.5 text-amber-500 flex-shrink-0 mt-0.5" />
-                                        <p className="text-xs text-muted-foreground leading-relaxed">
-                                            {t(`${speciesKey}.feedingTip`, { defaultValue: species.feedingInfo.tips })}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                {/* Compatibility Note */}
-                                <div className="text-[11px] text-muted-foreground/70 flex items-start gap-1.5">
-                                    <Info className="h-3 w-3 flex-shrink-0 mt-0.5" />
-                                    {t(`${speciesKey}.compatibility`, { defaultValue: species.compatibilityNotes })}
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            )}
+            <div className="border-t">
+                <button type="button" className="flex min-h-11 w-full items-center justify-between gap-2 px-4 py-3 text-start text-sm font-semibold text-primary hover:bg-primary/5"
+                    aria-expanded={showProfile} onClick={onToggleProfile}>
+                    <span>{t("journey-care.species.openProfile")}</span>
+                    {showProfile ? <ChevronUp size={16} aria-hidden="true" /> : <ChevronDown size={16} aria-hidden="true" />}
+                </button>
+                {showProfile && <div className="px-3 pb-3"><SpeciesCareLesson species={species} tankLiters={tankLiters} tankLengthCm={tankLengthCm} /></div>}
+            </div>
         </div>
     );
-}
-
-// ============================================================
-// Helper: Food type label in Arabic
-// ============================================================
-function getFoodTypeLabel(type: string): string {
-    const labels: Record<string, string> = {
-        flakes: i18next.t("tools:fish-selection.s56"),
-        pellets: i18next.t("tools:fish-selection.s57"),
-        frozen: i18next.t("tools:fish-selection.s58"),
-        live: i18next.t("tools:fish-selection.s59"),
-        algae: i18next.t("tools:fish-selection.s60"),
-        vegetables: i18next.t("tools:fish-selection.s61"),
-        spirulina: i18next.t("tools:fish-selection.s62"),
-    };
-    return labels[type] || type;
 }

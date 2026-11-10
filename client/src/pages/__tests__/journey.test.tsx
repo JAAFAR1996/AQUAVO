@@ -214,6 +214,17 @@ describe('JourneyPage', () => {
         expect(screen.queryByText(/التالي/i)).not.toBeInTheDocument();
     });
 
+    it('returns from a summary decision to the relevant step without rewriting the plan', () => {
+        vi.mocked(useJourneyHook.useJourney).mockReturnValue({
+            ...defaultHookValues,
+            currentStep: 8,
+        });
+        render(<JourneyPage />, { wrapper: createWrapper() });
+        fireEvent.click(screen.getByRole('button', { name: 'تعديل المعدات' }));
+        expect(mockSetCurrentStep).toHaveBeenCalledWith(2);
+        expect(mockUpdateData).not.toHaveBeenCalled();
+    });
+
     it.each([false, true])('uses the in-memory session to decide whether to offer an account plan (active: %s)', (hasActiveSession) => {
         vi.mocked(useJourneyHook.useJourney).mockReturnValue({
             ...defaultHookValues,
@@ -252,7 +263,7 @@ describe('JourneyPage', () => {
 
         const answers = screen.getByTestId('journey-recorded-answers');
         for (const value of [
-            /60 × 30 × 45/, 'دورة نيتروجين بدون أسماك', 'صيانة متوسطة',
+            /60 × 30 × 45/, 'دورة نيتروجين بدون أسماك', i18next.t('tools:journey-labels.maintenancePreference.moderate'),
             i18next.t('tools:location-setup.s6'), i18next.t('tools:location-setup.s8'),
             i18next.t('tools:journey-labels.fishTypes.centerpiece'),
         ]) {

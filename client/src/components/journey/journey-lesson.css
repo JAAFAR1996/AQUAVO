@@ -1,0 +1,44 @@
+.aqv-lesson {
+  min-inline-size: 0;
+  margin-block-start: .9rem;
+  padding: 1rem;
+  border: 1px solid var(--journey-selected-border, hsl(var(--primary) / .3));
+  border-radius: .9rem;
+  background: var(--journey-selected, hsl(var(--primary) / .06));
+  color: var(--journey-ink, hsl(var(--foreground)));
+  text-align: start;
+  overflow-wrap: anywhere;
+}
+.aqv-lesson-heading { display: flex; align-items: center; gap: .6rem; }
+.aqv-lesson-heading h4 { font-size: 1rem; font-weight: 600; line-height: 1.7; }
+.aqv-lesson-marker { inline-size: .5rem; block-size: .5rem; flex: none; border-radius: 50%; background: var(--journey-aqua, hsl(var(--primary))); }
+.aqv-lesson-summary { margin-block-start: .4rem; font-size: .9rem; line-height: 1.9; color: var(--journey-muted, hsl(var(--muted-foreground))); }
+.aqv-lesson-demo { margin-block: .9rem; min-inline-size: 0; }
+.aqv-lesson-demo svg { max-inline-size: 100%; }
+.aqv-lesson-sections { margin-block-start: .65rem; }
+.aqv-lesson-detail { border-block-start: 1px solid var(--journey-line, hsl(var(--border))); }
+.aqv-lesson-detail > summary { display: flex; align-items: center; justify-content: space-between; gap: .7rem; min-block-size: 2.75rem; padding-block: .5rem; cursor: pointer; font-size: .86rem; font-weight: 600; list-style: none; }
+.aqv-lesson-detail > summary::-webkit-details-marker { display: none; }
+.aqv-lesson-detail > summary svg { flex: none; transition: transform .15s ease; }
+.aqv-lesson-detail[open] > summary svg { transform: rotate(180deg); }
+.aqv-lesson-body { padding-block: 0 .85rem; font-size: .86rem; line-height: 1.9; color: var(--journey-muted, hsl(var(--muted-foreground))); }
+.aqv-lesson-body :is(ol, ul) { padding-inline-start: 1.25rem; list-style-position: outside; }
+.aqv-lesson-body ol { list-style-type: decimal; }
+.aqv-lesson-body ul { list-style-type: disc; }
+.aqv-lesson-body li + li { margin-block-start: .4rem; }
+.aqv-lesson-body p + p { margin-block-start: .65rem; }
+.aqv-lesson-choices { display: flex; flex-wrap: wrap; gap: .4rem; margin-block: .6rem; }
+.aqv-lesson-choices button { flex: 1 1 auto; min-block-size: 2.75rem; padding: .5rem .7rem; border: 1px solid var(--journey-line, hsl(var(--border))); border-radius: .55rem; color: var(--journey-muted, hsl(var(--muted-foreground))); background: var(--journey-surface, hsl(var(--background))); font-size: .83rem; font-weight: 500; cursor: pointer; }
+.aqv-lesson-choices button[aria-pressed="true"] { border-color: var(--journey-aqua, hsl(var(--primary))); color: var(--journey-aqua, hsl(var(--primary))); box-shadow: inset 0 -2px var(--journey-aqua, hsl(var(--primary))); }
+.aqv-lesson :is(button, summary, a, input):focus-visible { outline: 2px solid var(--journey-aqua, hsl(var(--ring))); outline-offset: 3px; }
+.aqv-lesson-footer { margin-block-start: .8rem; padding-block-start: .7rem; border-block-start: 1px solid var(--journey-line, hsl(var(--border))); font-size: .75rem; line-height: 1.8; color: var(--journey-muted, hsl(var(--muted-foreground))); }
+.aqv-lesson-source > summary { min-block-size: 2.75rem; display: flex; align-items: center; cursor: pointer; text-decoration: underline; text-underline-offset: .25em; }
+.aqv-lesson-source li { margin-block-start: .4rem; }
+.aqv-lesson-source a { color: var(--journey-aqua, hsl(var(--primary))); text-decoration: underline; text-underline-offset: .2em; }
+.aqv-lesson-caption { margin-block-start: .55rem; font-size: .78rem; line-height: 1.8; color: var(--journey-muted, hsl(var(--muted-foreground))); }
+.aqv-lesson-readout { border: 1px solid var(--journey-line, hsl(var(--border))); border-radius: .6rem; padding: .75rem; font-size: .88rem; line-height: 1.8; background: var(--journey-surface, hsl(var(--background))); }
+.aqv-lesson-readout strong { color: var(--journey-aqua, hsl(var(--primary))); }
+.aqv-lesson label { line-height: 1.8; }
+.aqv-lesson input[type="range"] { inline-size: 100%; min-block-size: 2.75rem; accent-color: var(--journey-aqua, hsl(var(--primary))); }
+@media (max-width: 420px) { .aqv-lesson { padding: .8rem; } }
+@media (prefers-reduced-motion: reduce) { .aqv-lesson *, .aqv-lesson *::before, .aqv-lesson *::after { animation: none !important; transition: none !important; } }

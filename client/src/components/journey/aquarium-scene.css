@@ -3,6 +3,24 @@
   max-inline-size: none;
 }
 
+.aqv-aquarium-explorer { border-block-start: 1px solid var(--journey-line); background: var(--journey-surface); }
+.aqv-aquarium-explorer > summary { min-block-size: 3rem; display: flex; align-items: center; gap: .5rem; padding: .65rem 1rem; cursor: pointer; list-style: none; font-size: .84rem; font-weight: 600; color: var(--journey-aqua); }
+.aqv-aquarium-explorer > summary::-webkit-details-marker { display: none; }
+.aqv-aquarium-explorer > summary > svg:last-child { margin-inline-start: auto; }
+.aqv-aquarium-explorer[open] > summary > svg:last-child { transform: rotate(180deg); }
+.aqv-aquarium-explorer__content { padding: 0 1rem 1rem; }
+.aqv-aquarium-explorer .aqv-lesson-choices { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.aqv-aquarium-explorer__readout { font-size: .85rem; line-height: 1.85; color: var(--journey-muted); }
+.aqv-aquarium-explorer__readout h3 { color: var(--journey-ink); font-weight: 600; margin-block-end: .25rem; }
+.aqv-aquarium-explorer__link { min-block-size: 2.75rem; padding-block: .5rem; margin-block-start: .4rem; color: var(--journey-aqua); font-size: .82rem; text-decoration: underline; text-underline-offset: .25em; }
+.aqv-aquarium-explorer :is(button, summary):focus-visible { outline: 2px solid var(--journey-aqua); outline-offset: 3px; }
+.aqv-aquarium-preview[data-explore="space"] [data-part="glass"] { stroke: #7cdee0; stroke-width: 3; }
+.aqv-aquarium-preview[data-explore="filter"] [data-equipment]:not([data-equipment="light"]):not([data-equipment="heater"]),
+.aqv-aquarium-preview[data-explore="light"] [data-equipment="light"],
+.aqv-aquarium-preview[data-explore="floor"] [data-decoration="substrate"],
+.aqv-aquarium-preview[data-explore="fish"] [data-species-id] { filter: drop-shadow(0 0 5px #a2f6e6); }
+.aqv-aquarium-preview[data-explore="water"] [data-testid="journey-water"] { stroke: #7cdee0; stroke-width: 2; }
+
 .aqv-aquarium-studio {
   position: relative;
   overflow: hidden;

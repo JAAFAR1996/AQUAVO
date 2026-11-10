@@ -366,7 +366,7 @@
   },
   "fish-selection": {
     "s1": "Fish Selection",
-    "s2": "Select the specific species so we can give you perfectly tailored feeding and product recommendations",
+    "s2": "Choose the species you are considering to explore their needs. Figures for tank volume, adult size, groups and temperature are preliminary guides; verify them for each species and review any food or product suggestions.",
     "s3": "Selected",
     "s4": "Type",
     "s5": "Minimum",
@@ -378,9 +378,9 @@
     "s11": "Moderate",
     "s12": "Review adult sizes and compatibility before deciding the count",
     "s13": "Balanced",
-    "s14": "Dense",
-    "s15": "Needs closer assessment of space, filtration and water quality",
-    "s16": "Experts only",
+    "s14": "High stocking — review needed",
+    "s15": "Needs assessment before adoption",
+    "s16": "Not a recommendation",
     "s17": "Review tank space",
     "s18": "Your tank",
     "s19": "{{v0}} L",
@@ -408,9 +408,9 @@
     "s41": "Do not mix aggressive fish with peaceful fish",
     "s42": "Check that the water parameters (pH, temperature) are compatible",
     "s43": "Some fish eat small shrimp",
-    "s44": "Add fish gradually: 3-5 every two weeks",
-    "s45": "Expert tip",
-    "s46": "Do not add all fish at once, even if your tank is fully stocked. Start with the hardier species (e.g., Guppy and Platy), then add the more sensitive ones (e.g., Neon Tetra) after a month.",
+    "s44": "Introduce fish in stages, with each addition guided by species needs, water tests and tank conditions.",
+    "s45": "Before adding fish",
+    "s46": "Before each addition, verify filter maturity and stable water readings, then review compatibility, adult size and group needs. Elapsed time or choosing a species described as hardy does not establish aquarium readiness.",
     "s47": "Selected",
     "s48": "Types",
     "s49": "+ L",
@@ -859,7 +859,7 @@
     "s5": "Hangs on the tank rim; check installation clearance and the model's stated flow.",
     "s6": "Capacity depends on the model",
     "s7": "Canister Filter",
-    "s8": "An external unit with hoses; allow space and access for maintenance.",
+    "s8": "An external unit with hoses; it needs suitable space and easy maintenance access.",
     "s9": "Check model capacity and accessories",
     "s10": "Spongy Filter",
     "s11": "Uses sponge media; the drive system depends on the model.",
@@ -893,7 +893,7 @@
     "s39": "Filter type alone does not establish capacity. Check the model, flow and accessories. For lighting, check tank dimensions and plant needs.",
     "chooseHelp": "Help me choose",
     "chooseHelpBody": "You do not need to know the filter names. Record your tank and species, and we can help with the next decision.",
-    "spongeRequirements": "An air-driven sponge model needs a suitable air pump and tubing. Check backflow protection for the pump's position and instructions, and what the package includes. Some sponge models have an integrated motor, so their accessories differ.",
+    "spongeRequirements": "An air-driven sponge model needs a suitable air pump and airline. Check the non-return valve, pump placement, instructions and package contents. Some sponge models have an integrated motor; accessories differ by model.",
     "heaterGuidance": "Heating need and wattage depend on room temperature, the required water temperature and the model specifications. Leave the power blank if you would like help.",
     "knownWattage": "If you already have a wattage in mind, enter it (optional)",
     "wattagePlaceholder": "Not decided yet",
@@ -1097,17 +1097,17 @@
   },
   "water-parameters": {
     "s1": "Water Setup",
-    "s2": "Water quality is the most important factor for fish health",
+    "s2": "Choose the source, then explore its preparation and testing needs.",
     "s3": "Water source",
     "s4": "Tap water",
-    "s5": "Most common – requires chlorine treatment",
-    "s6": "Easy and available",
+    "s5": "Check disinfectants and source parameters before use",
+    "s6": "Treat chlorine and chloramine as the product directs",
     "s7": "RO water (reverse osmosis)",
-    "s8": "Very pure – ideal for sensitive fish",
-    "s9": "Needs mineral reintroduction",
+    "s8": "Low in minerals; prepare for the planned species",
+    "s9": "Check GH and KH after preparation",
     "s10": "Well water",
-    "s11": "Requires heavy metal testing",
-    "s12": "Check quality first",
+    "s11": "Analysis determines suitability and preparation",
+    "s12": "Clarity alone is not enough",
     "s13": "Ideal pH",
     "s14": "For tropical fish",
     "s15": "Temperature",
@@ -1129,22 +1129,22 @@
   },
   "location-setup": {
     "s1": "Tank location and placement",
-    "s2": "The right location prevents many future problems",
-    "s3": "Choose location specifications (you can select multiple options)",
+    "s2": "Check the location before filling. Mark only the conditions you have verified.",
+    "s3": "What have you checked at the aquarium location?",
     "s4": "Away from direct sunlight",
-    "s5": "Prevent excess algae growth",
+    "s5": "Helps manage temperature and light",
     "s6": "Stable and sturdy surface",
-    "s7": "Supports the weight of the filled tank",
+    "s7": "Level, correctly supported and rated for the full load",
     "s8": "Close to a power source",
-    "s9": "For the filter, heater, and lighting",
+    "s9": "Dry sockets and safe cord routing for the equipment",
     "s10": "Quiet area",
-    "s11": "Away from noise",
+    "s11": "Away from vibration and sudden movement",
     "s12": "Easy to access",
-    "s13": "For regular maintenance",
+    "s13": "Clearance for the cover, filter and care tools",
     "s14": "Away from air conditioning and ventilation",
-    "s15": "For temperature stability",
-    "s16": "Important warning",
-    "s17": "Ensure the surface can bear the weight! A 100-liter tank weighs about 120 kg when filled with water, gravel, and décor. Use a dedicated tank stand or a very sturdy table.",
+    "s15": "Away from direct hot or cold airflow",
+    "s16": "Verify the load before filling",
+    "s17": "Water is only part of the load. Add the aquarium, decoration and equipment weights, then check the total against stand and floor specifications. The on-screen estimate does not certify their capacity.",
     "s18": "Weight calculator",
     "s19": "60-liter tank:",
     "s20": "~75 kg",
@@ -1155,67 +1155,67 @@
   },
   "decoration-setup": {
     "s1": "Decoration and substrate",
-    "s2": "Create a natural and beautiful environment for your fish",
+    "s2": "Choose substrate and decor, then explore how to place and care for them.",
     "s3": "Substrate type (bottom)",
     "s4": "Regular gravel",
-    "s5": "Easy to clean, multi-colored",
+    "s5": "Choose grain size and edges for your species",
     "s6": "Sand",
-    "s7": "Natural, great for bottom-dwelling fish",
+    "s7": "Suitability depends on material and grain size",
     "s8": "Plant soil",
-    "s9": "Rich in nutrients for live plants",
+    "s9": "Check the substrate type and instructions",
     "s10": "Mixed",
     "s11": "Sand + gravel or sand + soil",
     "s12": "Recommended",
     "s13": "Decor items (pick what you like)",
     "s14": "Live plants",
-    "s15": "Water purifying",
+    "s15": "Growth needs suitable light and care",
     "s16": "Natural wood",
     "s17": "Natural look",
     "s18": "Rocks and stones",
     "s19": "Hideouts",
     "s20": "Caves",
-    "s21": "Safe Havens",
+    "s21": "Match the entrance and size to the species",
     "s22": "Artificial Plants",
-    "s23": "Low Maintenance",
+    "s23": "No growing requirements; cleaning is still needed",
     "s24": "Background",
     "s25": "Visual Depth",
     "s26": "Design Tips",
     "s27": "Leave an open swimming space at the front",
     "s28": "Place tall plants and decorations at the back",
-    "s29": "Use the Rule of Thirds – don't fill more than two-thirds of the bottom",
-    "s30": "Live plants help naturally purify the water"
+    "s29": "Use a focal piece and leave space around it instead of filling the whole base",
+    "s30": "Design for fish behaviour, secure heavy pieces and leave maintenance access"
   },
   "tank-selection": {
     "s1": "Choosing the Right Tank",
-    "s2": "The tank is the foundation of everything. Its size affects water stability and fish capacity.",
+    "s2": "Volume and dimensions define the available space; connect them with species, equipment and care needs.",
     "s3": "Tank Size (Liters)",
     "s4": "Example: 100",
     "s5": "liter",
-    "s6": "Small tank — suitable for Betta fish",
-    "s7": "Medium tank — an excellent choice for beginners",
-    "s8": "Large tank — stable and easy to maintain",
-    "s9": "Huge tank — suitable for professionals",
+    "s6": "Limited space: check adult species requirements before choosing.",
+    "s7": "Check swimming length and group needs alongside litres.",
+    "s8": "Plan the space, stand and maintenance access.",
+    "s9": "Check the full load and care routine before preparing the location.",
     "s10": "Or choose a quick size:",
     "s11": "Small (20-60 liters)",
-    "s12": "Suitable for beginners",
+    "s12": "Records an initial 40 litres; check species needs.",
     "s13": "Medium (60-150 liters)",
-    "s14": "Most common, stable",
+    "s14": "Records an initial 100 litres; dimensions still matter.",
     "s15": "Large (150-300 liters)",
-    "s16": "Ideal, easiest to maintain",
+    "s16": "Records an initial 200 litres; plan load and care.",
     "s17": "Very large (+300 liters)",
-    "s18": "For professionals",
-    "s19": "Recommended",
+    "s18": "Records an initial 400 litres; confirm the location is prepared.",
+    "s19": "Check suitability for your plan",
     "s20": "Tank Type",
     "s21": "Freshwater Community",
-    "s22": "Varied Fish",
+    "s22": "Species with compatible needs and behaviour",
     "s23": "Plant Tank",
-    "s24": "Dense Plants",
+    "s24": "A layout based on plant and care needs",
     "s25": "Specific Type",
-    "s26": "One Type Only",
+    "s26": "A plan built around one species’ needs",
     "s27": "Don't know your tank size?",
     "s28": "Calculate it with the formula: Length × Width × Height (in cm) ÷ 1000 = Volume in liters",
-    "s29": "Expert Advice",
-    "s30": "Larger tanks (100+ liters) are easier to maintain. More water means fewer fluctuations in temperature and chemical parameters. Don't be afraid to start with a bigger tank—it’s a better long‑term investment."
+    "s29": "Before finalizing the choice",
+    "s30": "Compare aquarium dimensions, adult species needs, equipment space and care access. Litres alone do not establish suitability or easy maintenance."
   },
   "calculators": {
     "s1": "Fish Tank Calculators",
@@ -1436,7 +1436,7 @@
   },
   "journey-layout": {
     "title": "Your aquarium. Your way.",
-    "description": "Choose a size and a look, then watch your aquarium take shape. Build a clear equipment and care plan, one step at a time.",
+    "description": "Choose, experiment and see what changes in your aquarium. Each step explains your choice, with interactive examples and deeper guidance when you need it.",
     "preview": "Your aquarium preview",
     "previewNote": "An approximate layout preview. Stocking numbers and water safety need a separate assessment.",
     "map": "All journey steps",
@@ -1642,7 +1642,7 @@
     },
     "cyclingMethod": {
       "fishless": "Fishless cycling",
-      "with-hardy-fish": "Cycling with fish — needs review",
+      "with-hardy-fish": "Fish are already in the tank",
       "seeded": "Mature filter media",
       "bottled-bacteria": "Bottled bacteria"
     },
@@ -1652,9 +1652,9 @@
       "heavy": "Heavy stocking — needs review"
     },
     "maintenancePreference": {
-      "minimal": "Low maintenance",
-      "moderate": "Moderate maintenance",
-      "intensive": "Intensive maintenance"
+      "minimal": "My time is limited",
+      "moderate": "I can keep a regular routine",
+      "intensive": "I have time for more detail"
     },
     "fishTypes": {
       "community": "Community fish",
@@ -1739,7 +1739,7 @@
     "categories": {
       "community": {
         "name": "Community Fish",
-        "description": "Peaceful and easy to keep, ideal for beginners."
+        "description": "Species with different water, space and behaviour needs; check compatibility for each proposed group."
       },
       "cichlids": {
         "name": "Cichlids",
@@ -1747,7 +1747,7 @@
       },
       "bottom-dwellers": {
         "name": "Bottom Dwellers",
-        "description": "Help clean the bottom and bring activity to the tank."
+        "description": "Species that use the aquarium floor and need suitable food, space and substrate."
       },
       "schooling": {
         "name": "Schooling Fish",
@@ -1759,11 +1759,11 @@
       },
       "goldfish": {
         "name": "Goldfish",
-        "description": "Classic favourites for cold water."
+        "description": "Varieties differ in size and body shape; check space and temperature needs for the variety."
       },
       "shrimp-snails": {
         "name": "Shrimp & Snails",
-        "description": "Natural cleaners that add something different to the tank."
+        "description": "Shrimp and snails with their own water, food and protection needs"
       }
     },
     "species": {
@@ -1893,5 +1893,762 @@
     "stoneTip": "Place the main rock to one side and leave open space around it.",
     "woodTip": "Point the wood in one direction and leave sand open in front to create depth.",
     "plantedTip": "Keep tall plants at the back and short plants in front for a clear view."
+  },
+  "journey-explore": {
+    "title": "Explore how your aquarium works",
+    "intro": "Choose a part to highlight it, then open its guide. Parts appear in the scene after you select them in your plan.",
+    "open": "Open the {{topic}} guide and options",
+    "selected": "Your current choice: {{value}}.",
+    "space": {
+      "label": "Space",
+      "title": "Length and height serve different needs",
+      "body": "Litres describe capacity; length and shape determine usable movement space. Compare the footprint with adult species needs and leave room for decoration and maintenance.",
+      "volume": "Entered capacity: {{liters}} litres. Actual water volume is lower once substrate, decor and the fill level are considered."
+    },
+    "filter": {
+      "label": "Filtration",
+      "title": "Follow the water through the filter",
+      "body": "Filter media trap debris and provide surfaces for beneficial bacteria. Filter type alone does not establish suitability: check capacity, flow and media space.",
+      "unselected": "You have not chosen a filter yet. Open equipment to compare the types."
+    },
+    "light": {
+      "label": "Light",
+      "title": "Choose light for what lives inside",
+      "body": "Consider plants, tank depth and your routine. Preview colour and appearance are illustrative; open the lighting demo to explore intensity and duration."
+    },
+    "floor": {
+      "label": "Substrate",
+      "title": "The aquarium floor is part of the plan",
+      "body": "Grain size, material and cleaning methods vary. Match your choice to the plants and animals you plan to keep, and check product directions before rinsing or adding it."
+    },
+    "water": {
+      "label": "Water",
+      "title": "Clear water still needs testing",
+      "body": "Water source determines preparation. Learn how filter bacteria mature and monitor ammonia and nitrite before adding fish.",
+      "preview": "Preview colour is not a test result. Water appearing in the scene does not establish readiness."
+    },
+    "fish": {
+      "label": "Residents",
+      "title": "Choose compatible needs",
+      "body": "Open each species profile for adult size, group needs, temperature and behaviour. The scene illustrates an idea; suitability requires reviewing these needs."
+    }
+  },
+  "journey-style-guide": {
+    "open": "Explore this layout step by step",
+    "explore": "Explore the composition",
+    "focus": "Focal point",
+    "space": "Open space",
+    "depth": "Depth",
+    "setup": "How do I arrange it?",
+    "check": "What should I check first?",
+    "sources": "Sources for setup and plant guidance",
+    "illustration": "This diagram explains composition, not the space required by a species.",
+    "stone": {
+      "title": "Stone: one focal group with open space",
+      "summary": "Start with a group of rocks to one side. Open sand makes the group easier to see and keeps the composition clear.",
+      "focus": "Place the rock group to one side, using smaller pieces to support the direction of the main stone.",
+      "space": "The shaded area is an example of open space. It does not establish adequate swimming room without reviewing species and dimensions.",
+      "depth": "Compare heights from back to front, leaving access to the glass and filter intakes.",
+      "setup": "Test the arrangement in an empty aquarium. Choose aquarium-safe pieces and secure them against movement. Arrange substrate according to the aquarium and product instructions.",
+      "check": "Check stability, material effects on water and suitability for the species. An attractive arrangement still needs appropriate movement space and shelter."
+    },
+    "wood": {
+      "title": "Wood: give the eye a direction",
+      "summary": "Let the main wood lead in one direction and keep the foreground lighter so its details remain visible.",
+      "focus": "The highlighted path follows the main branch; arrange supporting pieces around that direction.",
+      "space": "Keep a front corridor for access and movement, and compare openings with the adult animal's size.",
+      "depth": "Bring small details forward and taller structures back without blocking filter intakes.",
+      "setup": "Use aquarium-safe wood and follow its preparation instructions. Check stability before filling; some pieces require securing or soaking before they settle.",
+      "check": "Review edges, openings and stability. Effects on water colour and chemistry vary with wood type; test water instead of judging by colour."
+    },
+    "planted": {
+      "title": "Plants: clear layers from back to front",
+      "summary": "Arrange plants for their expected height and planting method, supported by appropriate substrate and lighting.",
+      "focus": "Create a clear main group and choose plants suited to your conditions before adding more varieties.",
+      "space": "Leave room for growth and access during pruning and cleaning, not just for the first day's appearance.",
+      "depth": "Tall plants at the back, medium plants in the middle and short plants in front help keep the view open.",
+      "setup": "Distinguish rooted plants from plants attached to wood or rock. Follow species-specific planting instructions and check light and nutrient needs.",
+      "check": "Plant substrate alone does not meet every plant's needs. Review lighting, maintenance and each species. This preview is a layout idea, not livestock offered for sale."
+    }
+  },
+  "journey-care": {
+    "sources": "Explanation sources",
+    "topics": {
+      "space": "Size and space",
+      "social": "Living with others",
+      "food": "Feeding",
+      "water": "Water and temperature"
+    },
+    "zones": {
+      "top": "Near the surface",
+      "middle": "Midwater",
+      "bottom": "Bottom"
+    },
+    "group": {
+      "title": "Understand the group before choosing a species",
+      "topics": "What would you like to explore?",
+      "limitTitle": "Why the group name is not enough",
+      "limit": "Species within one group can differ in adult size, behaviour and water needs. Open each profile, then review the whole proposed community together.",
+      "zoneNote": "This is a broad illustration; actual swimming areas depend on species and layout."
+    },
+    "groups": {
+      "community": {
+        "summary": "A community is a considered mix of species, not simply fish whose colours look good together.",
+        "space": "Leave open swimming space and check adult size. Guppies, mollies and platies differ in size, and breeding can increase the load on the aquarium.",
+        "social": "Check temperature, temperament, mouth size and feeding speed. Even peaceful fish can suffer from persistent chasing or larger tankmates.",
+        "food": "Choose a complete diet suited to each species and mouth size. Watch that every fish gets food instead of solving competition by adding excess food."
+      },
+      "cichlids": {
+        "summary": "Cichlids are a broad family. Angelfish, rams and discus do not share identical requirements.",
+        "space": "Check the tank length, height and adult swimming space. Some species need territories and cover; litres alone cannot describe suitable space.",
+        "social": "Some cichlids defend territories, especially while breeding. Review each species instead of mixing fish merely because they are all cichlids.",
+        "food": "Diet varies by species. Cichlids do not all need the same protein balance or pellet size; check the selected species."
+      },
+      "bottom-dwellers": {
+        "summary": "Bottom dwellers are inhabitants with their own needs, not a substitute for maintenance.",
+        "space": "Floor area, suitable smooth substrate and hiding places matter. Tank length and width can be more useful than adding height alone.",
+        "social": "Corydoras and many loaches need company of their own kind, while pleco behaviour differs. Check the species profile rather than assuming all bottom fish live alone.",
+        "food": "Provide suitable food that reaches the bottom. Leftovers are not a reliable diet, and algae alone do not meet every species’ needs."
+      },
+      "schooling": {
+        "summary": "A shoal is part of a species’ social needs, not just a decorative choice.",
+        "space": "Provide open swimming space for the adult shoal, with suitable cover around the edges.",
+        "social": "Check the group guidance in the profile. Reducing a shoal to fit a small tank may compromise its social needs; reconsider the species or tank.",
+        "food": "Small species need an appropriate food size and delivery point. Offer a measured amount and watch that weaker individuals can feed."
+      },
+      "centerpiece": {
+        "summary": "A centrepiece draws attention, but behaviour and care needs should guide the choice before colour.",
+        "space": "Provide room to move, comfortable surface access and suitable cover. Check flow tolerance, especially for long-finned fish.",
+        "social": "Bettas and gouramis differ. Male bettas must not be housed with another male; other tankmate decisions need a species and setup review.",
+        "food": "Use a diet appropriate to the species and mouth size. Watch feeding so a quieter fish does not lose food to faster tankmates."
+      },
+      "goldfish": {
+        "summary": "Goldfish grow, and common and fancy varieties differ in swimming speed and food competition.",
+        "space": "Plan for adult size, swimming room and waste load. The profile’s recorded volume is an initial review point, not approval for a fully stocked tank.",
+        "social": "Do not casually mix fast common goldfish with slower fancy varieties; the latter may miss food. Do not assume compatibility with tropical fish.",
+        "food": "Use a complete goldfish diet in a suitable size. Monitor portions and leftovers; a single vegetable is neither a treatment nor a balanced diet."
+      },
+      "shrimp-snails": {
+        "summary": "Shrimp and snails need suitable water, food and protection; they are not an automatic solution to algae or cleaning.",
+        "space": "Provide cover and safe filter inlets for small inhabitants. Check substrate and lid needs; some snails climb out and shrimp can jump.",
+        "social": "Some fish may eat shrimp despite being described as peaceful. Check that any treatment is safe for invertebrates, especially copper-containing products.",
+        "food": "Make sure each species has suitable food rather than relying on scraps or algae alone. Remove excess food before it pollutes the water."
+      }
+    },
+    "species": {
+      "title": "{{name}} care profile",
+      "intro": "Compare this species’ needs with your aquarium before adding it to the plan. This is planning guidance; AQUAVO sells aquarium supplies.",
+      "topics": "Species care topics",
+      "adultSize": "Indicative adult size",
+      "cm": "{{value}} cm",
+      "liters": "{{value}} litres",
+      "recordedSpace": "Volume recorded in the species guide",
+      "group": "Social needs",
+      "groupSize": "The guide records a group of {{count}} or more; the final group needs a setup review.",
+      "socialReview": "This profile does not specify a shoal size. That does not confirm solitary living or compatibility with every species.",
+      "lengthComparison": "This compares fish length with the recorded {{value}} cm tank length only; it does not calculate stocking.",
+      "noVolume": "Record the tank volume to compare it with the guide value.",
+      "belowVolume": "Your {{value}} litre tank is below the recorded {{guide}} litre guide value. Reconsider the tank or species before proceeding.",
+      "volumeNeedsReview": "Your volume is {{value}} litres against a {{guide}} litre guide value. Exceeding it does not confirm suitability: dimensions, group size, behaviour and tankmates still matter.",
+      "temperature": "Recorded temperature range",
+      "ph": "Recorded pH range",
+      "waterNote": "These are guide ranges, not measurements from your tank. A temperature overlap alone does not establish compatibility; avoid rapid changes just to chase a number.",
+      "foodNote": "Food types come from the species guide. Portion size and frequency depend on age, condition and food; observe feeding and follow the package instructions.",
+      "compatibilityTitle": "What should be checked for compatibility?",
+      "compatibilityNote": "This is a general species note, not a complete compatibility or water-quality assessment. Review the proposed group before buying fish.",
+      "valuesTitle": "How should I interpret these values?",
+      "valuesNote": "Displayed values are the current AQUAVO species-guide data for preliminary planning. They are not guaranteed for every variety and do not replace a species-specific review of age and group size.",
+      "openProfile": "Explore size and care",
+      "remove": "Remove {{name}} from the plan",
+      "noSharedTemperature": "No shared temperature range",
+      "largestGuide": "Largest guide value: {{value}} L"
+    },
+    "stocking": {
+      "actionTitle": "What changes in the plan?",
+      "scope": "This records a preference, not approval for a particular fish count. Social needs, space and water tests still govern the decision.",
+      "loadLabel": "A qualitative view of increasing monitoring needs, without fish counts.",
+      "light": {
+        "title": "Lighter stocking",
+        "summary": "The aim is less load and more room, without reducing a species below its social needs.",
+        "action": "Consider fewer species before reducing necessary shoal sizes. Check adult space and water tests before adding a group."
+      },
+      "moderate": {
+        "title": "Moderate stocking needs monitoring",
+        "summary": "Moderate is not a fixed number. It depends on adult species size, filtration and actual usable space.",
+        "action": "Review the whole community before adding another species, and record water tests to detect changes in load."
+      },
+      "heavy": {
+        "title": "High stocking needs reassessment",
+        "summary": "This tool alone cannot recommend high stocking. More filtration does not replace swimming space or solve behavioural conflicts.",
+        "action": "Consider fewer species, appropriate smaller groups, or a larger tank. Get the proposed community reviewed before adopting it."
+      }
+    },
+    "maintenance": {
+      "intro": "Plan your time and explore a water change before doing it for real.",
+      "detailTitle": "How can the plan fit my time?",
+      "scope": "Maintenance time varies with aquarium size and condition. Choosing less time does not remove water-testing or daily-care needs.",
+      "minimal": {
+        "title": "My time is limited",
+        "card": "I want a simple setup with manageable tasks.",
+        "summary": "Favour a simple setup, a considered load and easy access for filtration and water changes.",
+        "body": "Reduce features requiring frequent trimming or cleaning and keep tools close. If basic care does not fit your schedule, revise the design and stocking before buying."
+      },
+      "moderate": {
+        "title": "I can keep a regular routine",
+        "card": "I can organise checks and cleaning as needed.",
+        "summary": "Set a regular review time and let test results guide water-change amount and frequency.",
+        "body": "Check behaviour, temperature and filter operation daily. At the review, record water readings and clean only what needs attention, without replacing all biological media at once."
+      },
+      "intensive": {
+        "title": "I have time for more detail",
+        "card": "I can follow trimming, feeding and measurements closely.",
+        "summary": "Extra time can support a more demanding setup, but does not justify overcrowding or incompatible inhabitants.",
+        "body": "Log changes one at a time. Plant trimming and fertilising depend on plant and lighting needs; filter cleaning depends on condition and manufacturer guidance."
+      },
+      "tools": "Use a clean aquarium-only bucket with no soap residue, a suitable siphon, source-appropriate conditioner, thermometer, water tests and a scraper suited to the tank material. Plant tools are needed only for planted setups."
+    },
+    "change": {
+      "title": "Try a water change for your tank volume",
+      "summary": "Move the percentage and see how much to remove and replace. This is a calculation exercise, not an automatic water-change recommendation.",
+      "actualVolume": "Actual water volume, if known (litres)",
+      "estimateNote": "If blank, the recorded tank volume of {{value}} litres is used. Substrate, décor and fill level reduce actual water volume, so this is not a precise measurement.",
+      "actualNote": "This exercise uses the volume you entered. Your saved tank volume is unchanged.",
+      "percentage": "Practice water-change percentage: {{value}}%",
+      "demoStage": "Water-change demonstration stage",
+      "before": "Before removal",
+      "remove": "After removal",
+      "refill": "Refill",
+      "amount": "Change amount: {{value}} litres",
+      "result": {
+        "before": "The calculation uses {{volume}} litres. {{percentage}}% is {{amount}} litres to prepare before starting.",
+        "remove": "Remove {{amount}} litres from {{volume}} litres: {{percentage}}% of the calculation volume.",
+        "refill": "Replace {{amount}} litres with suitable, conditioned, temperature-matched water to restore {{volume}} litres after a {{percentage}}% change."
+      },
+      "enterVolume": "Enter a water volume above zero and up to 2000 litres to calculate.",
+      "chooseTitle": "How do I choose the actual percentage?",
+      "chooseBody": "Use water tests, species needs, stocking load and the aquarium routine. Detectable ammonia or nitrite, or breathing distress, calls for assessment rather than this routine demonstration.",
+      "scope": "Formula: water volume × percentage ÷ 100. Topping up evaporation is not a water change because dissolved waste remains."
+    },
+    "walkthrough": {
+      "title": "Walk through maintenance",
+      "summary": "Open each step to learn its purpose and check. Ticking a step records understanding for this visit only.",
+      "steps": "Maintenance learning steps",
+      "understood": "I understand this step",
+      "previous": "Previous",
+      "next": "Next",
+      "progress": "Reviewed {{value}} of {{total}} steps",
+      "scope": "This temporary learning checklist is not a saved maintenance record or evidence that the tank is ready for fish."
+    },
+    "tasks": {
+      "prepare": {
+        "title": "Prepare water and tools",
+        "body": "Prepare an aquarium-only bucket and clean siphon. Condition replacement water for its source according to the product label, and compare its temperature with the tank.",
+        "check": "Check: replacement water and quantity are ready; tools have no soap or household-cleaner residue."
+      },
+      "power": {
+        "title": "Safely pause equipment",
+        "body": "Unplug the heater before lowering water and let it cool according to its manufacturer. Pause the filter if draining could run it dry; handle plugs with dry hands.",
+        "check": "Check: the heater cannot be exposed while powered, and you know how to restart the filter without running it dry."
+      },
+      "siphon": {
+        "title": "Siphon the chosen amount",
+        "body": "Siphon at a controllable rate and monitor the amount collected. Gently remove visible debris while protecting small inhabitants, substrate and plants.",
+        "check": "Check: stop at the intended amount; clear-looking water is not a measurement of water quality."
+      },
+      "filter": {
+        "title": "Check the filter while preserving its bacteria",
+        "body": "If needed, gently rinse sponge or biological media in removed tank water. Do not replace all biological media together or use soap. Clean the casing and impeller according to the filter instructions.",
+        "check": "Check: biological media remains wet; cleaning follows need rather than automatic monthly replacement."
+      },
+      "refill": {
+        "title": "Refill gently and verify operation",
+        "body": "Add prepared water gently without disturbing the substrate. Restore the filter correctly and restart the heater after its specified waiting time. Check flow, temperature and leaks.",
+        "check": "Check: the filter is actually running, the heater is submerged as instructed, and water is kept away from electrical connections."
+      }
+    },
+    "routine": {
+      "title": "Let the routine follow the aquarium",
+      "intro": "Choose a time frame to see what to review. Tests and observation matter more than applying one rigid cleaning schedule to every tank.",
+      "choose": "Review timing",
+      "daily": {
+        "title": "Daily",
+        "body": "Observe behaviour, breathing and appetite, check temperature, and verify filter flow. Feed appropriately for the species and remove excess food."
+      },
+      "weekly": {
+        "title": "Regular review",
+        "body": "Record water tests and plan water changes from results and load. Clean glass and visible debris as needed. New or troubled tanks need more frequent checks."
+      },
+      "needed": {
+        "title": "As needed",
+        "body": "If filter flow drops, check blockages and the impeller and clean according to instructions. Inspect hoses, heater and lighting. Biological media should not all be replaced on a fixed calendar."
+      }
+    },
+    "review": {
+      "resolve": "Go back and resolve this choice",
+      "editTank": "Edit tank",
+      "editWater": "Edit water",
+      "editCycle": "Edit cycling",
+      "editEquipment": "Edit equipment",
+      "editDecor": "Edit décor",
+      "editSpecies": "Edit species",
+      "editLocation": "Edit location",
+      "editCare": "Edit care plan",
+      "checkTitle": "What remains before putting the plan into practice?",
+      "nextMissing": "Review the first unanswered choice",
+      "reviewWater": "Review the water-testing plan",
+      "checkSummary": "The summary collects your choices. Dimensions, equipment, water and inhabitants still need review even when every field is filled in.",
+      "beforeEquipmentTitle": "Before buying equipment",
+      "beforeEquipment": "Confirm actual dimensions, support capacity, filter and heater placement, and the chosen model’s written specifications. A suggested product still needs its exact model and variant checked.",
+      "beforeFishTitle": "Before adding any inhabitants",
+      "beforeFish": "Selecting a cycling method is not a test result. Verify filter maturity, water readings and temperature, then review adult size, group needs and compatibility. AQUAVO supplies equipment and does not sell live animals.",
+      "remainingCare": "Also review location, care preference and stocking preference; some are still unanswered even if the core decisions are complete.",
+      "reasons": {
+        "volume": "Without a clear volume, equipment and water-change calculations lack a basis. Measure the tank or enter its volume; actual water volume is lower than geometric capacity.",
+        "tankType": "Tank type helps organise lighting, layout and equipment. Choose it around your goal and available care time.",
+        "filter": "Choose a filtration approach to review placement, flow and media. An unanswered filter choice does not mean filtration is unnecessary.",
+        "heating": "An unselected heater is not automatically wrong for every species, but heating needs remain unresolved. Review room conditions, species needs and the heater specification.",
+        "lighting": "Decide whether lighting is for viewing, plants or a timed routine. Window light is not a complete aquarium lighting plan.",
+        "substrate": "Substrate depends on inhabitants, plants and cleaning. If you want a bare-bottom tank, raise that during review; this tool has no separate bare-bottom choice yet.",
+        "water": "Record the water source to guide testing and treatment. The source alone does not prove that the water is suitable or safe.",
+        "cycling": "Choose a biological-filter preparation method and learn how to check it. Days elapsed or bottled bacteria alone do not prove that cycling is complete.",
+        "species": "Choose the species you are considering so their needs can be reviewed. If you are preparing an empty aquarium, keep this pending rather than treating it as permission to add anything."
+      }
+    }
+  },
+  "journey-environment": {
+    "beforeAdding": "Before adding it",
+    "choiceFit": "How do I check the fit?",
+    "sources": "Sources for this lesson",
+    "substrateExplore": "Explore substrate setup and cleaning",
+    "crossSection": "Side cross-section",
+    "cleaning": "Cleaning method",
+    "decorExplore": "Give every piece a place",
+    "decorExploreIntro": "Choose any selected decoration to explore its suggested placement and care.",
+    "selectedDecorations": "Selected decoration lessons",
+    "viewDirection": "Layout lesson view",
+    "frontView": "Front view",
+    "topView": "Top view",
+    "careAfter": "Care after installation",
+    "commonMistake": "A mistake to avoid",
+    "waterWalkthrough": "Preparation steps for this water source",
+    "waterStepCheck": "Check the source",
+    "waterStepPrepare": "Prepare the water",
+    "waterStepVerify": "Check before adding",
+    "methodHow": "How do I use this method?",
+    "methodCheck": "What should I monitor?",
+    "fishAlreadyPresent": "Fish are already in the tank",
+    "newTankPreference": "Preferred for a new tank",
+    "waterFinalNote": "Selecting a source does not establish water suitability. Prepare it using test results and species requirements, then review cycling in the next step.",
+    "substrate_gravel_title": "Gravel: spaces between grains",
+    "substrate_gravel_summary": "Gravel supports the layout and allows waste to be siphoned from between grains. Choose grain size and edges for the species you plan to keep.",
+    "substrate_gravel_place": "The section shows a gentle rise toward the back for visual depth. Actual depth depends on the gravel, layout and plant roots.",
+    "substrate_gravel_clean": "Use a gravel siphon through small areas to lift trapped debris while leaving the grains in place.",
+    "substrate_gravel_check": "Use aquarium-grade gravel. Check its rinsing instructions and effect on hardness, and support heavy pieces so shifting gravel cannot destabilise them.",
+    "substrate_gravel_fit": "Plain gravel does not automatically provide root nutrition. For digging or substrate-sifting species, check their need for sand and suitable grain size.",
+    "substrate_sand_title": "Sand: a fine, open surface",
+    "substrate_sand_summary": "Sand creates a continuous surface around rocks and wood. Suitability depends on its material and grain size, not its name alone.",
+    "substrate_sand_place": "Keep the foreground open and slope the rear gradually. Heavy decor needs a stable base that will not shift when sand moves.",
+    "substrate_sand_clean": "Hover the siphon just above the sand to lift light debris. Do not plunge it in as with gravel or the sand may be removed too.",
+    "substrate_sand_check": "Check the pack: aquarium sand differs from construction or marine sand. Rinse if instructed, and fill gently over a plate to limit disturbance.",
+    "substrate_sand_fit": "Bottom-dwelling species need suitable grains and edges. Inert sand alone does not provide every nutrient required by rooted plants.",
+    "substrate_planted-substrate_title": "Plant substrate: check the exact product",
+    "substrate_planted-substrate_summary": "Some products are complete soils; others are nutrient layers needing a cap. Setup depends on the exact product instructions.",
+    "substrate_planted-substrate_place": "This section explains the idea, not a fixed layering recipe. Set root depth and slope using plant needs and the product instructions.",
+    "substrate_planted-substrate_clean": "Lightly siphon above the surface to lift debris without crushing soil granules or disturbing roots.",
+    "substrate_planted-substrate_check": "Do not automatically rinse or cap soil. Some products have specific startup steps and can alter pH and KH; follow their instructions and test.",
+    "substrate_planted-substrate_fit": "Match the substrate to plants and fish conditions, rather than the greenery in the preview. Lighting and nutrition needs vary between plants.",
+    "substrate_mixed_title": "Mixed: define separate areas",
+    "substrate_mixed_summary": "Combine an open sand path with a gravel or soil area. Clear boundaries help with layout and cleaning.",
+    "substrate_mixed_place": "The section shows two areas separated by an aquarium-safe divider. Place soil around roots and leave the open path for swimming and viewing.",
+    "substrate_mixed_clean": "Clean each area according to its material: hover over sand or soil, and siphon between gravel grains. Avoid mixing boundaries with the siphon.",
+    "substrate_mixed_check": "Randomly mixing sand and soil is different from capping a nutrient layer. If a product requires a cap, use its specified material and depth.",
+    "substrate_mixed_fit": "Useful when each area has a purpose. Digging species may move grains and change the boundaries, so account for their behaviour.",
+    "decor_live-plants_title": "Live plants",
+    "decor_live-plants_summary": "Choose plants that fit your lighting and care routine. The illustration helps plan placement, not predict plant success.",
+    "decor_live-plants_place": "Place taller plants at the back and sides, shorter ones toward the front. Leave room for growth and access to the base.",
+    "decor_live-plants_check": "Check the planting method: some root in substrate while others attach to wood or stone. Remove packing material and inspect before adding.",
+    "decor_live-plants_care": "Remove damaged growth and monitor the plants. They use some nutrients but do not replace filtration, water testing or maintenance.",
+    "decor_driftwood_title": "Driftwood",
+    "decor_driftwood_summary": "Wood gives the layout direction and cover. Use aquarium-safe wood and secure it properly.",
+    "decor_driftwood_place": "Aim branches inward and leave an open route. Check front and top views for filter clearance and maintenance access.",
+    "decor_driftwood_check": "Test for floating in a clean bucket and secure if needed. Avoid painted, chemically treated or unidentified wood.",
+    "decor_driftwood_care": "Check stability after cleaning and remove trapped debris under branches. Water colour alone cannot establish water quality.",
+    "decor_rocks_title": "Rocks and stones",
+    "decor_rocks_summary": "Use a main stone with smaller supporting pieces for a coherent layout. Stability and material matter as much as appearance.",
+    "decor_rocks_place": "Place the main group to one side and leave swimming space. Support it so digging or shifting sand cannot cause collapse.",
+    "decor_rocks_check": "Check the stone type and its effect on water; rinse off dirt before placement. Avoid sharp edges, unknown materials and unsuitable adhesives.",
+    "decor_rocks_care": "Clean around stones without shifting heavy supports, and check gaps where waste collects.",
+    "decor_caves_title": "Caves and shelters",
+    "decor_caves_summary": "A shelter helps species that need cover or a territory. Choose it for adult size and behaviour.",
+    "decor_caves_place": "Keep the entrance and surrounding area accessible. Avoid trapping gaps between the shelter and the glass.",
+    "decor_caves_check": "Check the entrance, edges and stability. The material must tolerate aquarium use and allow fish to enter and leave without becoming wedged.",
+    "decor_caves_care": "Inspect inside during maintenance and remove waste. For territorial species, shelter number and spacing must fit the group.",
+    "decor_artificial-plants_title": "Artificial plants",
+    "decor_artificial-plants_summary": "They provide shape and cover without plant-growing requirements, but still need cleaning and inspection.",
+    "decor_artificial-plants_place": "Put tall pieces at the back and short ones at the edges, leaving an open foreground. Secure bases against filter flow.",
+    "decor_artificial-plants_check": "Choose aquarium-grade material with soft edges. Check for exposed wire, sharp parts or peeling coatings before use.",
+    "decor_artificial-plants_care": "Remove algae and dirt with aquarium-only tools and no soap. Replace pieces that become brittle or sharp.",
+    "decor_background_title": "Tank background",
+    "decor_background_summary": "A simple background reduces visual clutter and highlights the layout. This example uses an external background.",
+    "decor_background_place": "Attach it outside the rear glass. The top view shows that it stays out of the water and clear of equipment openings.",
+    "decor_background_check": "Clean and dry the outside glass and follow the mounting instructions. Internal backgrounds must be aquarium-safe and fitted as directed.",
+    "decor_background_care": "Clean the outside glass and check for moisture or bubbles behind the sheet. A background is visual; it does not treat water.",
+    "water_tap_title": "Tap water: address disinfectants first",
+    "water_tap_summary": "Treatment varies by supply. Do not assume chlorine alone or chloramine without information or testing.",
+    "water_tap_check": "Check the disinfectant used by the supplier and the source-water parameters. Clarity or smell alone does not establish aquarium suitability.",
+    "water_tap_prepare": "Prepare it in a clean aquarium-only container. Use a conditioner labelled for chlorine and chloramine, following the product amount and use instructions on the pack.",
+    "water_tap_verify": "Check disinfectant removal with a suitable test. Match temperature, pH, GH and KH to the species, add gently, and review ammonia, nitrite and cycling.",
+    "water_tap_caution": "Standing or aerating water is not a reliable way to remove chloramine. Treating chlorine or chloramine does not cycle the biofilter.",
+    "water_ro_title": "RO water: plan the minerals",
+    "water_ro_summary": "RO water is generally low in minerals. Its use depends on the species and prepared-water readings, not the word pure.",
+    "water_ro_check": "Measure source GH and KH and identify species needs. Some remineralisers raise GH only, so check the product rather than assuming it adjusts everything.",
+    "water_ro_prepare": "Use a suitable aquarium remineraliser or a planned blend with tested, known water. Follow the labelled amount and mixing instructions, and test the mix outside the tank.",
+    "water_ro_verify": "Check GH, KH, pH and temperature after preparation. Keep the preparation method consistent to avoid sudden shifts during water changes.",
+    "water_ro_caution": "Do not assume untreated RO suits every fish. There is no single mixing ratio for all water sources and species.",
+    "water_well_title": "Well water: analyse before choosing",
+    "water_well_summary": "It may or may not be suitable. A natural source does not guarantee freedom from unsuitable minerals or contaminants.",
+    "water_well_check": "Check GH, KH, pH, nitrate and nitrite. Unknown sources or contamination concerns require suitable testing for metals and contaminants beyond basic strips.",
+    "water_well_prepare": "Choose treatment from the analysis. If the problem or suitable treatment is unknown, use a known tested source instead of experimenting on fish.",
+    "water_well_verify": "Retest after treatment and compare with species needs. Recheck the source if its smell, colour or conditions change.",
+    "water_well_caution": "A dechlorinator does not solve every well-water problem. Do not assume well water is untreated or uncontaminated.",
+    "testsTitle": "Understand what you measure",
+    "testsIntro": "Choose a test to understand its purpose. Targets depend on the species and tank conditions.",
+    "testsExplore": "Water-test explanations",
+    "testsWaste": "Ammonia and nitrite",
+    "testsMinerals": "pH, GH and KH",
+    "testsTemperature": "Temperature",
+    "tests_waste": "With fish present, ammonia and nitrite should stay at measurable zero. Zero in newly filled water alone does not demonstrate a cycled filter.",
+    "tests_minerals": "pH describes acidity, GH general hardness, and KH buffering capacity. Compare all three with species requirements instead of chasing a universal pH.",
+    "tests_temperature": "Read temperature with a thermometer in the tank, not just the heater dial. Match the species and monitor room changes and replacement water.",
+    "testsKitTitle": "Choosing a test kit",
+    "testsKitBody": "Check that the kit measures ammonia, nitrite and nitrate, plus pH, GH and KH as needed. Not every strip includes ammonia. Follow timing, expiry and instructions.",
+    "cycle_fishless_title": "Cycle without exposing fish to spikes",
+    "cycle_fishless_summary": "Build biological filtration while the tank has no fish. Selecting the method starts a plan; it does not prove completion.",
+    "cycle_fishless_how": "Run the filter with appropriate aeration and conditioned water. Follow an aquarium ammonia-source protocol and record ammonia and nitrite readings. Never use household cleaners.",
+    "cycle_fishless_check": "Monitor the filter processing the source according to the protocol, then review nitrate and species conditions before gradual stocking. Never dose ammonia with fish present.",
+    "cycle_with-hardy-fish_title": "If fish are present: protect them first",
+    "cycle_with-hardy-fish_summary": "This covers an existing situation, not buying fish to cycle a tank. Even hardy fish can be harmed by ammonia and nitrite.",
+    "cycle_with-hardy-fish_how": "Test ammonia and nitrite daily, keep filtration and aeration running, and add no fish. If detected, perform an appropriate partial change with conditioned, temperature-matched water and retest.",
+    "cycle_with-hardy-fish_check": "A detected reading or changed breathing and behaviour needs prompt attention and expert help when needed. Do not add ammonia or wait for a fixed period to pass.",
+    "cycle_seeded_title": "Mature media helps; testing decides",
+    "cycle_seeded_summary": "Media from an established tank can transfer beneficial bacteria. It supports cycling but does not guarantee instant readiness.",
+    "cycle_seeded_how": "Use a trusted source without known disease problems. Transfer media wet and promptly to a running filter; avoid untreated tap water and drying.",
+    "cycle_seeded_check": "Media capacity depends on the old and new waste load. Monitor ammonia and nitrite and keep a new setup fishless during preparation.",
+    "cycle_bottled-bacteria_title": "Use bottled bacteria as labelled",
+    "cycle_bottled-bacteria_summary": "Formulations and instructions vary. Adding a bottle does not automatically establish a cycled tank.",
+    "cycle_bottled-bacteria_how": "Check expiry, storage and directions. Prepare the water, run filtration and aeration, and follow a fishless plan with the product’s feeding instructions.",
+    "cycle_bottled-bacteria_check": "Test ammonia and nitrite according to the plan. Do not base stocking on water clarity, product name or elapsed days.",
+    "nitrogenTitle": "Explore biological filtration",
+    "nitrogenIntro": "Select each substance to learn its source and management. These are process stages, not readings from your tank.",
+    "nitrogenExplore": "Waste-conversion stages",
+    "ammonia": "Ammonia",
+    "nitrite": "Nitrite",
+    "nitrate": "Nitrate",
+    "stage_ammonia": "Ammonia comes from fish waste and decomposing organics, or the cycling source in a fishless tank. Filter bacteria begin converting it to nitrite.",
+    "stage_nitrite": "Nitrite also harms fish. Falling ammonia alone is not enough; monitor nitrite as another bacterial group converts it to nitrate.",
+    "stage_nitrate": "Nitrate can accumulate, while plants may use some of it. Monitor species requirements and control buildup with appropriate water changes after cycling too.",
+    "cycleTimeTitle": "Why is there no readiness countdown?",
+    "cycleTimeBody": "Cycling rate varies with media, load, temperature and water conditions. Clicking stages or waiting does not prove filtration; a testing history under a suitable protocol provides evidence.",
+    "readinessTitle": "Practise interpreting test results",
+    "readinessIntro": "Try example readings to understand them. This is a local learning exercise, not a water test or a saved measurement log.",
+    "reading_ammonia": "Ammonia (mg/L)",
+    "reading_nitrite": "Nitrite (mg/L)",
+    "notMeasured": "No reading",
+    "readingsNote": "Use non-negative values in mg/L. Blank or invalid entries remain unknown; they are not treated as zero.",
+    "readings_missing": "Two valid readings are needed to interpret the example. Empty fields say nothing about tank conditions.",
+    "readings_detected": "This example contains detectable ammonia or nitrite. If these are your tank’s results, add no new fish; investigate and, if fish are present, use appropriate water changes and retesting.",
+    "readings_review": "Both example readings are zero. This alone does not prove cycling is complete; review test history, the cycling source, nitrate and other species requirements.",
+    "reviewLegend": "Items to review with actual tests",
+    "review_filter": "The filter is running, media has stayed wet, and aeration is appropriate.",
+    "review_cycleEvidence": "A series of tests shows the cycling source being processed under its protocol, not just zero in new water.",
+    "review_species": "Nitrate, pH, GH, KH and temperature have been reviewed for the planned species.",
+    "review_replacement": "Replacement water is prepared and matched, and stocking will be gradual with monitoring.",
+    "reviewCount": "Reviewed {{count}} of {{total}} items.",
+    "reviewScope": "Checks are reminders for this session only and do not certify tank readiness.",
+    "zeroNotProofTitle": "Why is zero alone not proof?",
+    "zeroNotProofBody": "Water without waste or a cycling source can read zero before sufficient bacteria develop. Evidence must show that the filter processes a load, with valid tests and suitable species conditions."
+  },
+  "journey-planning": {
+    "common": {
+      "fit": "When does this choice fit?",
+      "setup": "How do I set it up?",
+      "watch": "What should I watch for?",
+      "sources": "Sources and further checks"
+    },
+    "size": {
+      "title": "What does this size mean in practice?",
+      "unselected": {
+        "summary": "Choose a size or enter aquarium dimensions to explore space and setup.",
+        "fit": "Start with the adult needs of your intended species and the space available. A desired fish count cannot determine the right aquarium.",
+        "setup": "Measure the stand area and the route into the room. Enter known dimensions above to calculate geometric capacity.",
+        "watch": "Litres alone do not establish species suitability or a table’s load capacity."
+      },
+      "small": {
+        "summary": "A small aquarium needs careful species and swimming-space choices; a small fish may still have substantial adult needs.",
+        "fit": "It can suit a focused plan that meets the adult species’ dimensions and group needs. Litres alone cannot establish a safe fish count.",
+        "setup": "Compare the footprint with required swimming space. Allow room for the filter and heater without crowding movement.",
+        "watch": "Overfeeding or delayed care can affect water conditions quickly. Testing and care still matter in a small aquarium."
+      },
+      "medium": {
+        "summary": "A medium size offers more layout options; suitability still depends on aquarium length, species and care.",
+        "fit": "It may suit a compatible community or planted layout after adult size and group needs are checked.",
+        "setup": "Plan open swimming space, shelter and maintenance access. Choose equipment using its actual model specifications.",
+        "watch": "Medium size does not guarantee stable conditions or make incompatible species suitable companions."
+      },
+      "large": {
+        "summary": "A large aquarium offers more layout space and also needs planning for its load, water-change volume and access.",
+        "fit": "It can help when a species or group needs more room. Check swimming length as well as aquarium height.",
+        "setup": "Use a stand with a documented load rating, plan water handling, and keep the filter and aquarium corners accessible.",
+        "watch": "More water does not remove the need for testing or maintenance. Plan the time and space before buying."
+      },
+      "xlarge": {
+        "summary": "An extra-large aquarium is also a room-planning project. Begin with load, access and equipment.",
+        "fit": "Choose it when the plan needs its dimensions and you can maintain it. Size alone does not make every species suitable.",
+        "setup": "Confirm that the stand and floor can support the full load, using qualified advice when needed. Plan delivery access, draining and service access.",
+        "watch": "Do not judge a stand by appearance or a size label. Actual loaded weight and equipment specifications matter."
+      }
+    },
+    "volume": {
+      "yourDimensions": "Explore your dimensions: {{length}} × {{width}} × {{height}} cm",
+      "exampleDimensions": "Learning example: {{length}} × {{width}} × {{height}} cm",
+      "depth": "Explore water depth: {{depth}} cm",
+      "result": "Filled space before decoration: about {{litres}} litres",
+      "note": "This water-level demo does not change your saved dimensions. It assumes a rectangular aquarium with internal measurements. Decoration displaces water; external dimensions overestimate it.",
+      "referenceCapacity": "Explore the recorded capacity: {{litres}} litres",
+      "percent": "Explore fill proportion: {{percent}}%"
+    },
+    "type": {
+      "title": "Turn the aquarium type into a clear plan",
+      "unselected": {
+        "summary": "Choose the direction closest to your idea, then review swimming space, shelter and care.",
+        "fit": "Start with the goal: a compatible community, a planted layout or the needs of a particular species.",
+        "setup": "Use the space map to plan the arrangement before buying decoration and equipment.",
+        "watch": "These directions organize the plan; they do not establish fish compatibility or aquarium readiness."
+      },
+      "freshwater-community": {
+        "summary": "A freshwater community brings together species with compatible water, behaviour and space needs.",
+        "fit": "It suits a planned mix. Check temperature, water hardness, adult size and required group sizes.",
+        "setup": "Provide swimming space and shelter. Check which species use the bottom, middle and surface before combining them.",
+        "watch": "A peaceful label is not enough. Temperature needs may differ, and behaviour can change with size and breeding."
+      },
+      "planted": {
+        "summary": "A planted aquarium connects lighting, substrate and plant needs with the care you can provide.",
+        "fit": "It suits someone who wants a planted layout and can monitor plant growth. Choose species for the available lighting.",
+        "setup": "Start with plants whose needs you understand and leave swimming space. Added CO2 depends on the plants and plan; it is not required for every planted aquarium.",
+        "watch": "More plants do not remove the need for a filter, testing or water changes. Stronger lighting needs monitoring, beyond how it looks."
+      },
+      "species-specific": {
+        "summary": "A species-focused aquarium starts with that species’ needs, then builds the layout and equipment around them.",
+        "fit": "It helps with species that need particular conditions or care. One species does not always mean one fish.",
+        "setup": "Research adult size, group or solitary needs, current and shelter, then set up the aquarium accordingly.",
+        "watch": "Members of the same species may still fight. Check sex, group size and space needs before combining them."
+      }
+    },
+    "zones": {
+      "label": "Explore the space plan",
+      "swimming": {
+        "label": "Swimming space",
+        "image": "Diagram highlighting an open swimming lane through the aquarium",
+        "body": "Leave a lane suited to the adult species’ movement. Tall decoration throughout the aquarium reduces usable space."
+      },
+      "shelter": {
+        "label": "Shelter",
+        "image": "Diagram highlighting shelter beside the swimming space",
+        "body": "Provide shelter suited to the inhabitants’ size and species. Avoid trapping openings and unstable rocks."
+      },
+      "plants": {
+        "label": "Planting space",
+        "image": "Diagram highlighting plants at the aquarium sides",
+        "body": "Allow for mature plant size and access for trimming. Keep plants clear of the filter intake."
+      },
+      "note": "This map explains the idea; it does not add decoration or change the aquarium type in your plan."
+    },
+    "location": {
+      "inspect": "Explain: {{option}}",
+      "checked": "You recorded {{count}} of 6 location checks. This is not a structural or electrical inspection.",
+      "exampleLabel": "Compare the problem and improvement",
+      "problem": "Before improvement",
+      "improved": "After improvement",
+      "away-from-sunlight": {
+        "title": "Check the sunlight path, beyond window distance",
+        "summary": "Direct sun can warm the water and encourage algae. Check the position at different times of day.",
+        "fit": "Choose a position where direct sun does not reach the glass or water, including at midday.",
+        "setup": "Watch the light path before filling. If a blind is the solution, make sure it reliably blocks direct sun each day.",
+        "watch": "Avoiding sun helps, but it cannot prevent every algae problem. Feeding, lighting and care still matter.",
+        "problem": "Sun reaches the glass: check temperature and consider moving the aquarium before filling.",
+        "improved": "Direct sun is blocked. Use a timer for daily lighting and monitor water temperature."
+      },
+      "stable-surface": {
+        "title": "Level and load-bearing are separate checks",
+        "summary": "An aquarium needs a level stand that supports its model correctly and can carry the full load continuously.",
+        "fit": "Use an aquarium stand or one with verified load capacity and dimensions. Appearance alone is not evidence.",
+        "setup": "Check level before filling and follow the manufacturer’s base-support instructions. Do not improvise padding or glass support.",
+        "watch": "The estimate below explains the load; it does not certify the floor or stand. Get qualified advice if their capacity is uncertain.",
+        "problem": "A tilted or rocking stand needs correction while the aquarium is empty, before water is added.",
+        "improved": "The illustrated stand is level. Its load rating and support for this aquarium still need verification."
+      },
+      "near-power": {
+        "title": "Nearby power with a water-conscious cable route",
+        "summary": "Power access matters, but plugs and sockets must stay dry and clear of splashes.",
+        "fit": "Choose a position with safe access for the filter, heater and lighting, following each device’s instructions.",
+        "setup": "Route the cord below the socket before it rises to the plug, creating a drip loop so water can drip off first.",
+        "watch": "Disconnect equipment as instructed before putting hands in the water. Have uncertain electrical arrangements checked by a qualified electrician.",
+        "problem": "The cord runs straight to the socket; water on it may follow that route.",
+        "improved": "A loop drops below the socket while the socket stays dry. Follow the device instructions and appropriate electrical protection."
+      },
+      "quiet-area": {
+        "title": "A calm position without persistent vibration",
+        "summary": "Avoid persistent vibration and sudden movement around the aquarium; the room does not need to be silent.",
+        "fit": "Choose a visible position away from slamming doors and speakers touching the stand.",
+        "setup": "Watch household movement and play areas. Keep walking routes clear of the stand.",
+        "watch": "Do not tap the glass to bring fish out of shelter. Observe calmly instead.",
+        "problem": "Repeated vibration beside the aquarium: move the source or reposition the aquarium before filling.",
+        "improved": "The immediate vibration source is away, while the aquarium remains easy to access."
+      },
+      "easy-access": {
+        "title": "Rehearse maintenance before filling",
+        "summary": "You need room to lift the cover, reach the filter and use maintenance tools without moving the aquarium.",
+        "fit": "Choose a position with overhead and rear clearance suited to the actual equipment dimensions.",
+        "setup": "Before filling, rehearse removing the filter, placing a bucket and routing the hose. Check its length and route.",
+        "watch": "Do not move a filled aquarium to create clearance behind it. Plan those spaces before filling.",
+        "problem": "Limited overhead clearance makes equipment removal and aquarium cleaning difficult.",
+        "improved": "Overhead and rear access are planned for the model. Rehearse with the actual tools to confirm."
+      },
+      "away-from-hvac": {
+        "title": "Keep clear of direct heating or cooling airflow",
+        "summary": "An air-conditioner draft or nearby heat source can affect water temperature. Check room conditions by day and night.",
+        "fit": "Choose a position away from air-conditioning outlets, heaters and doors that admit strong hot or cold drafts.",
+        "setup": "Measure room temperature at different times, then check the running aquarium with an independent thermometer.",
+        "watch": "A heater adds heat; it cannot cool water. It will not solve a room that is too warm.",
+        "problem": "Airflow aimed directly at the aquarium makes temperature control harder.",
+        "improved": "Direct airflow is away; measured water temperature still needs monitoring."
+      }
+    },
+    "weight": {
+      "title": "Understand the load on the stand",
+      "water": "For {{litres}} litres of actual water, the water alone weighs about {{kg}} kg.",
+      "noVolume": "Set an aquarium volume first to see the water-weight estimate.",
+      "dryLabel": "Empty aquarium, decoration and equipment weight, if known (kg)",
+      "unknown": "Not known yet",
+      "total": "Approximate total of your inputs: {{kg}} kg",
+      "note": "This load example does not certify a stand. Recorded litres may be geometric capacity; use actual water and component weights plus stand and floor specifications. The demo does not change your plan."
+    },
+    "filter": {
+      "title": "Understand water flow through your choice",
+      "unknown": {
+        "summary": "You do not need to know the filter name yet. Explore its job, then compare actual models with your aquarium.",
+        "fit": "Start with aquarium volume and dimensions, intended species and available space inside and behind it.",
+        "setup": "Explore the water stages below, then check each model’s filter media, flow, operation and included parts.",
+        "watch": "Clear water is not proof of safe water. A new filter needs biological maturation and water testing.",
+        "image": "A generic learning diagram of water flow, without assuming a particular filter model"
+      },
+      "hob": {
+        "summary": "A hang-on-back filter draws water into a chamber on the aquarium rim and returns it from above. Media is usually accessed from the top.",
+        "fit": "It can suit easy maintenance access when the aquarium rim and rear clearance allow installation.",
+        "setup": "Measure rim thickness and cover clearance. Follow the model’s water-level and priming instructions.",
+        "watch": "A lower water level can increase return noise. Do not assume every model restarts on its own after a power cut.",
+        "image": "A hang-on-back filter on the aquarium rim draws and returns water from above"
+      },
+      "canister": {
+        "summary": "A canister is an external filter with a media chamber and intake and return hoses. Plan service access before choosing its size.",
+        "fit": "It can suit flexible media layouts and keeping the filter body outside the aquarium, with room for the unit and hoses.",
+        "setup": "Follow the manufacturer’s media order, flow direction and installation height. Secure connections and check for leaks after setup and maintenance.",
+        "watch": "The rated flow is not a promise of the same flow with media, hoses and lift. An external unit still needs time and access for maintenance.",
+        "image": "An external filter connected to the aquarium by intake and return paths"
+      },
+      "sponge": {
+        "summary": "A sponge filter traps particles and provides a surface for beneficial bacteria. The diagram shows an air-driven version.",
+        "fit": "It may suit a gentler-flow layout, depending on sponge size, drive method and inhabitants. Not every model suits every aquarium.",
+        "setup": "An air-driven version needs an air pump and airline. Check the non-return valve, pump position and model instructions; some versions have a built-in motor.",
+        "watch": "Bubbles show movement, not a completed biological cycle. Clean the sponge as needed without replacing all mature media at once.",
+        "image": "An air-driven sponge filter: rising air helps draw water through the sponge"
+      },
+      "internal": {
+        "summary": "An internal filter sits in the water, drawing water through media and returning it through an outlet inside the aquarium.",
+        "fit": "It can suit limited external space if its dimensions and flow suit the aquarium and inhabitants.",
+        "setup": "Mount it at the specified submersion level and aim the outlet to circulate water without overwhelming the species.",
+        "watch": "The unit occupies aquarium space. Do not bury it in decoration or block its intake; disconnect power before removal as instructed.",
+        "image": "A submerged internal filter with an outlet directing water flow"
+      }
+    },
+    "flow": {
+      "label": "Follow the water, step by step",
+      "intake": {
+        "label": "Intake",
+        "body": "Water enters through the intake. Keep it clear, with suitable protection when small inhabitants need it."
+      },
+      "mechanical": {
+        "label": "Particle capture",
+        "body": "Mechanical filtration: foam or floss traps suspended debris. The debris remains until you remove it through suitable cleaning."
+      },
+      "biological": {
+        "label": "Biological media",
+        "body": "Biological filtration: beneficial bacteria process ammonia to nitrite and then nitrate. New media needs maturation and testing; adding rings alone is not enough."
+      },
+      "return": {
+        "label": "Return",
+        "body": "Water returns and circulates through the aquarium. Check surface movement and current against species needs; a filter does not replace water changes."
+      },
+      "next": "Follow water to the next stage",
+      "note": "This is a learning sequence. One sponge can serve two roles; actual media order follows the model. Chemical media such as carbon is selected for a purpose and used as instructed, rather than being mandatory in every filter."
+    },
+    "heater": {
+      "title": "Understand the temperature gap before choosing wattage",
+      "selected": "You recorded {{watts}} watts. This provisional choice needs checking against room conditions and model specifications.",
+      "unknown": "Leave unknown wattage blank. Room temperature, required water temperature and heater specifications are needed first.",
+      "fit": "Identify the species’ temperature range and measure the room at its expected coldest time. Compare the manufacturer’s guidance for that gap and water volume.",
+      "setup": "Install the heater at the permitted submersion level and orientation, where water circulates. Use an independent thermometer and check the actual reading.",
+      "watch": "Unplug the heater before taking it out of water and follow its specified cooling period. The thermostat dial does not replace measuring the water.",
+      "demo": "Learning demo; these values are not a species recommendation",
+      "room": "Demo room temperature: {{temperature}} °C",
+      "target": "Demo target water temperature: {{temperature}} °C",
+      "warmer": "The gap is {{delta}} °C. Check the model’s capability for that gap and water volume; this does not calculate wattage.",
+      "cooling": "The room is warmer than the target: a heater cannot cool the water. Review placement and species-appropriate cooling.",
+      "equal": "The demo gap is zero. That does not establish that heating is unnecessary; night and seasonal changes still matter.",
+      "note": "The demo does not change recorded wattage or simulate heating time or product performance. Use your measurements and the model instructions."
+    },
+    "light": {
+      "title": "Separate lighting appearance from aquarium needs",
+      "unselected": {
+        "summary": "Choose lighting for the aquarium’s purpose, dimensions and any plants’ needs.",
+        "fit": "Everyday viewing and growing plants have different requirements. Define the purpose before comparing colours or apps.",
+        "setup": "Check fixture length, mounting and the model’s water-protection rating, then plan a daily timer.",
+        "watch": "Screen brightness is not a measurement of light underwater. Do not choose a model from this demo’s appearance alone."
+      },
+      "basic-led": {
+        "summary": "A basic LED focuses on viewing the aquarium. Plant suitability depends on its actual specifications.",
+        "fit": "It can suit everyday viewing when plant-growing performance is not the main goal. Check every chosen plant’s requirements.",
+        "setup": "Match fixture length to the aquarium and cover. Use a timer with a clear lights-off period at night.",
+        "watch": "An LED label alone does not establish enough light for deeper or demanding plants."
+      },
+      "planted-led": {
+        "summary": "Plant lighting is chosen for plant needs, aquarium depth and light spread, beyond the label.",
+        "fit": "It suits a planted plan when model data supports the aquarium’s depth, area and chosen plants.",
+        "setup": "Start conservatively and monitor growth and algae. Tropica suggests 6 hours initially for a new planted aquarium, with later gradual adjustment to the plan.",
+        "watch": "Increasing light duration or intensity cannot solve every growth problem. Consider nutrients, CO2 requirements and care alongside light."
+      },
+      "rgb-smart": {
+        "summary": "Smart RGB adds colour or schedule controls depending on the model. Smart does not certify plant-growing suitability.",
+        "fit": "It can suit a need for time and intensity control. Verify the model’s functions and phone compatibility before choosing.",
+        "setup": "Set a day period and a dark period. Check the manual for what happens to the schedule after a power cut.",
+        "watch": "Blue is still light; it is not automatically a substitute for night-time darkness. Do not keep colours on all night just for appearance."
+      },
+      "none": {
+        "summary": "You have not planned a fixture yet. This is a deferred decision, not confirmation that room light meets the plan’s needs.",
+        "fit": "You can defer the choice while planning until species, plant and viewing requirements are known.",
+        "setup": "Before putting the plan into practice, establish a consistent day/night cycle and suitable lighting.",
+        "watch": "Do not solve missing lighting by placing the aquarium in direct sun. For a planted aquarium, review lighting before choosing plants."
+      },
+      "previewLabel": "Preview the example’s day and night",
+      "day": "Example daytime",
+      "night": "Example night",
+      "onImage": "Learning preview of an aquarium illuminated during daytime",
+      "offImage": "Learning preview with the lighting fixture switched off",
+      "brightness": "Demo display intensity: {{percent}}%",
+      "hours": "Explore light duration: {{hours}} hours per day",
+      "cycle": "Example from 10:00 to {{end}}: {{hours}} hours of light and {{dark}} hours with the fixture off.",
+      "noFixture": "No fixture is selected for intensity adjustment. The timeline is only an example for a future plan.",
+      "note": "This preview explains the idea; it does not measure light or save a device program. Actual duration and intensity depend on species, model and care; more is not always better."
+    }
   }
 }

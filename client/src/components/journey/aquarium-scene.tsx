@@ -304,7 +304,7 @@ export function AquariumScene({ data, species, title, description }: AquariumSce
 
         {hasWater && <path d={`M${x + w} ${y + h * waterTop / 230} l${dx} ${-dy} v${h * (1 - waterTop / 230)} l${-dx} ${dy}Z`} fill="#7ea593" fillOpacity=".1" />}
         <path d={`M${x + w} ${y} l${dx} ${-dy} v${h} l${-dx} ${dy}Z`} fill={url("side")} stroke="#c0d7b7" strokeWidth=".7" strokeOpacity=".45" />
-        <path d={`M${x} ${y} h${w} v${h} h${-w}Z M${x} ${y} l${dx} ${-dy} h${w} v${h} l${-dx} ${dy}`} fill="none" stroke={url("edge")} strokeWidth="1.45" />
+        <path data-part="glass" d={`M${x} ${y} h${w} v${h} h${-w}Z M${x} ${y} l${dx} ${-dy} h${w} v${h} l${-dx} ${dy}`} fill="none" stroke={url("edge")} strokeWidth="1.45" />
         <path d={`M${x + 3} ${y + 3} v${h - 5} h${w - 4}`} fill="none" stroke="#b6d3a9" strokeOpacity=".32" strokeWidth="2" />
 
         {hasLight && <g data-equipment="light">
