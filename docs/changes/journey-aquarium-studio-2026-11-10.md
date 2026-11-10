@@ -7,9 +7,10 @@ Make /journey easier to use and give the aquarium preview a coherent, detailed v
 | Work | Status | Evidence | Next step | Decision owner |
 | --- | --- | --- | --- | --- |
 | Inspect current /journey | Done | Live desktop UI and repository main 910d817e858c84bb3ae45f337e14b350a1c8e127 | Compare preview | Assistant |
-| Aquarium rendering | Done | Responsive SVG, dimension-driven L:H and projected W, explicit selections, unique IDs | Visual review | Assistant |
-| Page and style choices | Done | Mobile preview opens initially; three editable decor styles; scoped IBM Plex font | Desktop/mobile visual check | Assistant |
-| Automated verification | Done | Client typecheck and Vite build passed; 29 journey/recommendation/session tests passed | Final review of preview | Assistant |
+| Aquarium rendering | Done | Responsive SVG, dimension-driven L:H and projected W, explicit selections, unique IDs | Founder review | Founder |
+| Page and style choices | Done | Preview opens initially; three editable decor styles; scoped IBM Plex font | Founder review | Founder |
+| Automated verification | Done | Client typecheck and Vite build passed; 29 journey/recommendation/session tests passed | Release decision | Founder |
+| Visual QA | Done | HTTPS preview at f908f59237bd53bcd5b38a3b05b0fc5e5e404d33; desktop and narrow viewport checks below | Release decision | Founder |
 | Production release | Pending | Main and production have not been changed | Founder approval of concrete preview | Founder |
 
 ## Decisions
@@ -27,5 +28,15 @@ Make /journey easier to use and give the aquarium preview a coherent, detailed v
 - OATA: adequate swimming room; stocking also depends on adult body size, species, water conditions and compatibility: https://ornamentalfish.org/what-we-do/advice-information/care-sheets/caresheets-tropical-freshwater-fish/how-to-set-up-and-look-after-a-freshwater-tank-aquarium/
 - Off-center hardscape and open foreground are visual composition choices, not biological capacity calculations.
 
+## Preview and visual QA
+
+- Draft PR: https://github.com/JAAFAR1996/AQUAVO/pull/351
+- Reviewed preview: https://deploy-preview-351--aquavo.netlify.app/journey
+- Reviewed source: `f908f59237bd53bcd5b38a3b05b0fc5e5e404d33`.
+- Desktop screenshot: `/workspace/shared/aquavo-journey-preview.png`.
+- All three style changes were visibly checked. Entering 60 × 35 × 40 cm displayed 84 L and updated the tank proportions. Water selection changed the local preview; navigation from step 1 to 5 and back to 1 preserved the choices.
+- CSS viewport widths of 454 px and 340 px, reached using browser zoom, showed no horizontal overflow. These were narrow viewport checks, not physical-device emulation.
+- Netlify configuration is limited to Deploy Previews. The preview builds the static client, returns a local JSON 404 for `/api/*`, and sets `noindex, nofollow`; it has no live API connection. This QA does not establish backend, account, account-save, or cart integration behavior.
+
 ## Release and rollback
-Release only the reviewed branch after approval. No database migration, environment change, product update or price change is required. Roll back by reverting the journey studio commit and redeploying the prior main state. Saved plans retain their existing fields.
+Draft PR 351 awaits the founder's release approval. Release only the reviewed branch after approval. No database migration, environment change, product update or price change is required. Roll back by reverting the journey studio commit and redeploying the prior main state. Saved plans retain their existing fields.
