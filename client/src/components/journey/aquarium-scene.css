@@ -1,0 +1,73 @@
+.aqv-aquarium-preview {
+  isolation: isolate;
+  max-inline-size: none;
+}
+
+.aqv-aquarium-studio {
+  position: relative;
+  overflow: hidden;
+  background: #0b1e28;
+  contain: layout paint;
+}
+
+.aqv-aquarium-studio > svg {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  aspect-ratio: 16 / 11;
+}
+
+.aqv-aquarium-preview .aqv-journey-preview__status {
+  padding: .85rem 1rem;
+  background: var(--journey-surface, hsl(var(--card)));
+  gap: .6rem;
+}
+
+.aqv-aquarium-preview .aqv-journey-preview__chips span {
+  padding: .25rem .6rem;
+  border-color: var(--journey-line, rgb(11 147 166 / 22%));
+  border-radius: .4rem;
+  background: var(--journey-hover, rgb(11 147 166 / 7%));
+  color: var(--journey-ink, hsl(var(--foreground)));
+  font-size: .74rem;
+  font-weight: 500;
+}
+
+.aqv-aquarium-preview .aqv-journey-preview__status small {
+  display: block;
+  color: var(--journey-muted, hsl(var(--muted-foreground)));
+  font-size: .72rem;
+  line-height: 1.7;
+}
+
+.aqv-aquarium-preview .aqv-aquarium-fish {
+  animation: aqv-aquarium-hover 8s ease-in-out infinite !important;
+  animation-delay: var(--fish-delay, 0s) !important;
+}
+
+.aqv-aquarium-preview .aqv-aquarium-bubble {
+  animation: aqv-aquarium-rise 4.2s ease-in infinite !important;
+  animation-delay: var(--bubble-delay, 0s) !important;
+}
+
+@keyframes aqv-aquarium-hover {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 6px -2px; }
+}
+
+@keyframes aqv-aquarium-rise {
+  0% { translate: 0 8px; opacity: 0; }
+  20% { opacity: .7; }
+  90% { opacity: .3; }
+  100% { translate: 2px -14px; opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aqv-aquarium-preview .aqv-aquarium-fish,
+  .aqv-aquarium-preview .aqv-aquarium-bubble { animation: none !important; }
+}
+
+@media print {
+  .aqv-aquarium-preview .aqv-aquarium-fish,
+  .aqv-aquarium-preview .aqv-aquarium-bubble { animation: none !important; }
+}

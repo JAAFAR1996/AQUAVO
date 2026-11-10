@@ -224,7 +224,7 @@ export function FishSelection({ wizardData, updateData }: FishSelectionProps) {
                     </RadioGroup>
                 </div>
 
-                {/* Stocking Calculator */}
+                {/* Review species needs without inventing a stocking count from a size band. */}
                 {wizardData.tankSize && wizardData.stockingLevel && (
                     <div className="bg-gradient-to-br from-muted/50 to-muted/20 rounded-2xl p-6 border">
                         <div className="flex items-center gap-2 mb-4">
@@ -252,18 +252,9 @@ export function FishSelection({ wizardData, updateData }: FishSelectionProps) {
                                 <div className="text-xs text-muted-foreground mb-2">
                                     {t("fish-selection.s24")}
                                 </div>
-                                <div className="text-xl font-black text-primary">
-                                    {wizardData.tankSize === "small" && wizardData.stockingLevel === "light" && t("fish-selection.s25")}
-                                    {wizardData.tankSize === "small" && wizardData.stockingLevel === "moderate" && t("fish-selection.s26")}
-                                    {wizardData.tankSize === "small" && wizardData.stockingLevel === "heavy" && t("fish-selection.s27")}
-                                    {wizardData.tankSize === "medium" && wizardData.stockingLevel === "light" && t("fish-selection.s28")}
-                                    {wizardData.tankSize === "medium" && wizardData.stockingLevel === "moderate" && t("fish-selection.s29")}
-                                    {wizardData.tankSize === "medium" && wizardData.stockingLevel === "heavy" && t("fish-selection.s30")}
-                                    {wizardData.tankSize === "large" && wizardData.stockingLevel === "light" && t("fish-selection.s31")}
-                                    {wizardData.tankSize === "large" && wizardData.stockingLevel === "moderate" && t("fish-selection.s32")}
-                                    {wizardData.tankSize === "large" && wizardData.stockingLevel === "heavy" && t("fish-selection.s33")}
-                                    {wizardData.tankSize === "xlarge" && t("fish-selection.s34")}
-                                </div>
+                                <p className="text-sm font-semibold leading-relaxed text-foreground">
+                                    {t("fish-selection.countNeedsReview")}
+                                </p>
                             </div>
                         </div>
                         {selectedSpeciesData.length > 0 && compatibility && (
