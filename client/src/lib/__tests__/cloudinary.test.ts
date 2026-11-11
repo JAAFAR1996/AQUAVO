@@ -2,10 +2,68 @@
  * Cloudinary responsive image helpers (Phase H).
  */
 import { describe, it, expect } from 'vitest';
-import { blogCardImage, blogHeroImage, blogThumbImage, cardImage, cardImageSrcSet, detailImage, detailImageSrcSet } from '../cloudinary';
+import { blogCardImage, blogHeroImage, blogThumbImage, cardImage, cardImageSrcSet, detailImage, detailImageSrcSet, thumbImage, lightboxImage } from '../cloudinary';
 
 const CLOUDINARY_URL = 'https://res.cloudinary.com/demo/image/upload/v1/product.jpg';
 const LOCAL_URL = '/images/products/filter.jpg';
+/**
+ * Real HOUYI production image (2026-10-23): it is cropped from an atlas
+ * before any requested resize. Prepending w_400/c_pad makes x/y invalid.
+ */
+const PRECROPPED_URL =
+  'https://res.cloudinary.com/dyczh8ogv/image/upload/c_crop,g_north_west,x_0,y_2508,w_1254,h_1254/v1792731002/aqv-batches-16-18-atlas-2-20261023.webp';
+const ORIGINAL_CROP = '/c_crop,g_north_west,x_0,y_2508,w_1254,h_1254/';
+
+
+describe('pre-cropped Cloudinary sources', () => {
+  it('runs the atlas crop before card sizing (never before it)', () => {
+    const url = cardImage(PRECROPPED_URL);
+    expect(url).toContain(
+      `${ORIGINAL_CROP}f_auto,q_auto,w_400,h_400,c_pad,b_auto/v1792731002/`,
+    );
+    expect(url).not.toContain('/upload/f_auto,q_auto,w_400,h_400,c_pad,b_auto/c_crop,');
+  });
+
+  it('preserves crop-before-resize order at every responsive card width', () => {
+    const srcSet = cardImageSrcSet(PRECROPPED_URL);
+    expect(srcSet).toBeDefined();
+    const entries = srcSet?.split(', ') ?? [];
+    expect(entries).toHaveLength(4);
+    for (const width of [300, 400, 600, 800]) {
+      expect(entries).toContain(
+        expect.stringContaining(
+          `${ORIGINAL_CROP}f_auto,q_auto,w_${width},h_${width},c_pad,b_auto/v1792731002/`,
+        ),
+      );
+    }
+  });
+
+  it('does the same for detail, thumbnail and lightbox image helpers', () => {
+    expect(detailImage(PRECROPPED_URL)).toContain(
+      `${ORIGINAL_CROP}f_auto,q_auto:best,w_800,h_800,c_limit/v1792731002/`,
+    );
+    expect(thumbImage(PRECROPPED_URL)).toContain(
+      `${ORIGINAL_CROP}f_auto,q_auto:eco,w_120,h_120,c_limit/v1792731002/`,
+    );
+    expect(lightboxImage(PRECROPPED_URL)).toContain(
+      `${ORIGINAL_CROP}f_auto,q_auto:best/v1792731002/`,
+    );
+    expect(detailImageSrcSet(PRECROPPED_URL)?.split(', ')).toHaveLength(4);
+  });
+
+  it('does not apply optimization again to a chained transformed URL', () => {
+    const optimized = cardImage(PRECROPPED_URL);
+    expect(cardImage(optimized)).toBe(optimized);
+    expect(cardImageSrcSet(optimized)).toBeUndefined();
+  });
+
+  it('preserves query parameters and the public ID after the source crop', () => {
+    const withQuery = `${PRECROPPED_URL}?v=2#product`;
+    const result = cardImage(withQuery);
+    expect(result).toContain(`${ORIGINAL_CROP}f_auto,q_auto,`);
+    expect(result).toMatch(/\/v1792731002\/aqv-batches-16-18-atlas-2-20261023\.webp\?v=2#product$/);
+  });
+});
 
 describe('cardImageSrcSet', () => {
   it('returns undefined for local/non-Cloudinary URLs', () => {
