@@ -214,7 +214,7 @@ export default function InvoiceView() {
                 )}
                 <div style={s.itemName}>
                   <div style={{ fontWeight: 600, fontSize: 14 }}>{item.name}</div>
-                  {item.variantLabel && <div style={{ color: "#94a3b8", fontSize: 12, marginTop: 2 }}>{item.variantLabel}</div>}
+                  {item.variantLabel && !item.name.endsWith(` — ${item.variantLabel}`) && <div style={{ color: "#94a3b8", fontSize: 12, marginTop: 2 }}>{item.variantLabel}</div>}
                   <div style={{ color: "#64748b", fontSize: 12 }}>{t("invoice-view.s16")} {item.quantity} × {item.unitPrice.toLocaleString("en-US")} {t("invoice-view.s17")}</div>
                 </div>
                 <div style={{ color: "#0B93A6", fontWeight: 700, whiteSpace: "nowrap" }}>
