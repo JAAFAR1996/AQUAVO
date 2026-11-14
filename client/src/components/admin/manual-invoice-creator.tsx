@@ -182,30 +182,22 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
     setSearching(true);
     setDropdownOpen(true);
     try {
-      // Try smart semantic search first
-      const r = await fetch(`/api/products/smart-search?q=${encodeURIComponent(trimmed)}`, {
-        credentials: "include",
-      });
-      const d = await r.json();
-      const products: Product[] = d.products || [];
-
-      // If < 3 results from smart search, supplement with regular search
-      if (products.length < 3) {
-        const r2 = await fetch(`/api/products?search=${encodeURIComponent(trimmed)}&limit=15`, {
-          credentials: "include",
-        });
-        const d2 = await r2.json();
-        const extra: Product[] = (d2.products || []).filter(
-          (p: Product) => !products.find((sp) => sp.id === p.id)
-        );
-        setSearchResults([...products, ...extra].slice(0, 15));
-      } else {
-        setSearchResults(products.slice(0, 15));
-      }
+      // Use Arabic canonical catalogue rows for both sources. Lexical matches
+      // (including Kurdish/English terms) precede fuzzy semantic suggestions.
+      const [r, r2] = await Promise.all([
+        fetch(`/api/products/smart-search?locale=ar&q=${encodeURIComponent(trimmed)}`, { credentials: "include" }),
+        fetch(`/api/admin/invoices/product-search?q=${encodeURIComponent(trimmed)}`, { credentials: "include" }),
+      ]);
+      if (!r2.ok) throw new Error("تعذر البحث في المنتجات");
+      const d2 = await r2.json();
+      const lexical: Product[] = d2.products || [];
+      const semantic: Product[] = r.ok ? (await r.json()).products || [] : [];
+      const extra = semantic.filter((p) => !lexical.some((match) => match.id === p.id));
+      setSearchResults([...lexical, ...extra].slice(0, 15));
     } catch {
       // Fallback to plain search
       try {
-        const r = await fetch(`/api/products?search=${encodeURIComponent(trimmed)}&limit=15`, {
+        const r = await fetch(`/api/admin/invoices/product-search?q=${encodeURIComponent(trimmed)}`, {
           credentials: "include",
         });
         const d = await r.json();

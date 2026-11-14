@@ -19,6 +19,8 @@ export interface ProductFilters {
     isNew?: boolean;
     isBestSeller?: boolean;
     search?: string;
+    /** Internal invoice search: match Arabic, English and Kurdish while returning canonical Arabic rows. */
+    searchAllLocales?: boolean;
     /** Request locale; when not Arabic, search also matches translated name/description. */
     locale?: string;
     limit?: number;
@@ -138,6 +140,16 @@ export class ProductStorage {
             const searchLocale = filters.locale && filters.locale !== "ar" ? filters.locale : null;
             const searchConditions = searchTerms.map(term => {
                 const likeTerm = `%${term}%`;
+                if (filters.searchAllLocales) {
+                    // Admin invoice picker searches every language, but the result rows
+                    // stay Arabic so invoiced product names never depend on a cookie.
+                    return sql`(${products.name} ILIKE ${likeTerm} OR ${products.description} ILIKE ${likeTerm} OR EXISTS (
+                        SELECT 1 FROM content_translations ct
+                        WHERE ct.entity_type = 'product' AND ct.entity_id = ${products.id}
+                          AND ct.locale IN ('en', 'ckb')
+                          AND (ct.data->>'name' ILIKE ${likeTerm} OR ct.data->>'description' ILIKE ${likeTerm})
+                    ))`;
+                }
                 if (!searchLocale) {
                     return sql`(${products.name} ILIKE ${likeTerm} OR ${products.description} ILIKE ${likeTerm})`;
                 }
