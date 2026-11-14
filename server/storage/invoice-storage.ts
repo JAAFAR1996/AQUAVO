@@ -1,13 +1,16 @@
 import { isVariantPurchasable } from "../../shared/variant-commerce.js";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, inArray } from "drizzle-orm";
 import { getDb } from "../db.js";
 import { randomUUID, randomBytes } from "crypto";
 import {
   manualInvoices,
+  products,
+  type ManualInvoiceItem,
   type ManualInvoice,
   type InsertManualInvoice,
   type InvoiceStatus,
 } from "../../shared/schema.js";
+import { canonicalizeManualInvoiceItems } from "../services/manual-invoice-names.js";
 
 // nanoid-compatible secure random token
 function generateToken(length = 16): string {
@@ -33,6 +36,19 @@ export class InvoiceStorage {
   private ensureDb() {
     if (!this.db) throw Object.assign(new Error("DB unavailable"), { status: 503 });
     return this.db;
+  }
+
+  /** Resolve Arabic source names for invoice drafts. Never change prices or quantities. */
+  private async canonicalizeDraftItems(items: readonly ManualInvoiceItem[]): Promise<ManualInvoiceItem[]> {
+    if (items.length === 0) return [];
+    const db = this.ensureDb();
+    const ids = [...new Set(items.map((item) => item.productId))];
+    const catalogue = await db.select({
+      id: products.id,
+      name: products.name,
+      variants: products.variants,
+    }).from(products).where(inArray(products.id, ids));
+    return canonicalizeManualInvoiceItems(items, catalogue);
   }
 
   /** جلب كل الفواتير (للـ admin) */
@@ -69,6 +85,7 @@ export class InvoiceStorage {
     const id = randomUUID();
     const token = generateToken(16);
     const invoiceNo = generateInvoiceNo();
+    const canonicalItems = await this.canonicalizeDraftItems(data.items);
 
     const [created] = await db.insert(manualInvoices).values({
       id,
@@ -79,7 +96,7 @@ export class InvoiceStorage {
       customerCity:    data.customerCity,
       customerAddress: data.customerAddress,
       customerNotes:   data.customerNotes,
-      items:           data.items as any,
+      items:           canonicalItems as any,
       subtotal:        String(data.subtotal),
       discount:        String(data.discount ?? 0),
       delivery:        String(data.delivery ?? 0),
@@ -107,7 +124,7 @@ export class InvoiceStorage {
     if (data.customerCity    !== undefined) updates.customerCity    = data.customerCity;
     if (data.customerAddress !== undefined) updates.customerAddress = data.customerAddress;
     if (data.customerNotes   !== undefined) updates.customerNotes   = data.customerNotes;
-    if (data.items           !== undefined) updates.items           = data.items;
+    if (data.items           !== undefined) updates.items           = await this.canonicalizeDraftItems(data.items);
     if (data.subtotal        !== undefined) updates.subtotal        = String(data.subtotal);
     if (data.discount        !== undefined) updates.discount        = String(data.discount);
     if (data.delivery        !== undefined) updates.delivery        = String(data.delivery);
@@ -137,6 +154,7 @@ export class InvoiceStorage {
         .where(eq(manualInvoices.id, id)).for("update");
       if (!locked || locked.status !== "draft") return undefined;
       const lines = Array.isArray(locked.items) ? locked.items : [];
+      const canonicalLines: ManualInvoiceItem[] = [];
       for (const line of lines) {
         const product = await lockProductRowForUpdate(tx, line.productId);
         if (!product || (product.hasVariants && !line.variantId) || (!product.hasVariants && line.variantId)) {
@@ -148,9 +166,10 @@ export class InvoiceStorage {
             throw Object.assign(new Error("خيار في الفاتورة غير متاح؛ راجعه قبل الإرسال"), { status: 409 });
           }
         }
+        canonicalLines.push(canonicalizeManualInvoiceItems([line], [product])[0]);
       }
       const [updated] = await tx.update(manualInvoices)
-        .set({ status: "sent", sentAt: new Date(), expiresAt, updatedAt: new Date() } as any)
+        .set({ items: canonicalLines, status: "sent", sentAt: new Date(), expiresAt, updatedAt: new Date() } as any)
         .where(and(eq(manualInvoices.id, id), eq(manualInvoices.status, "draft")))
         .returning();
       return updated;
