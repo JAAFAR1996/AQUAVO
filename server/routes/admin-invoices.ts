@@ -3,6 +3,8 @@ import { requireAdmin, getSession } from "../middleware/auth.js";
 import { invoiceStorage } from "../storage/invoice-storage.js";
 import { insertManualInvoiceSchema } from "../../shared/schema.js";
 import { z } from "zod";
+import { storage } from "../storage/index.js";
+import { toPublicProducts } from "../../shared/public-product.js";
 
 const router = express.Router();
 router.use(requireAdmin);
@@ -21,6 +23,22 @@ router.get("/stats", async (_req: Request, res: Response, next: NextFunction): P
   try {
     const stats = await invoiceStorage.getStats();
     res.json({ success: true, data: stats });
+  } catch (err) { next(err); }
+});
+
+/** GET /api/admin/invoices/product-search — أسماء المنتجات بالعربي دائماً.
+ * Search all supported catalogue languages; return public-safe canonical rows only.
+ */
+router.get("/product-search", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const query = typeof req.query.q === "string" ? req.query.q.trim() : "";
+    if (!query || query.length > 100) {
+      res.status(400).json({ products: [], message: "اكتب كلمة بحث صحيحة" });
+      return;
+    }
+    const products = await storage.getProducts({ search: query, searchAllLocales: true, limit: 15 });
+    res.set("Cache-Control", "no-store, private");
+    res.json({ products: toPublicProducts(products) });
   } catch (err) { next(err); }
 });
 
