@@ -13,7 +13,7 @@ describe("invoice draft variant validation before sharing", () => {
     const tx = { select: () => ({ from: () => ({ where: () => ({ for: async () => [draft] }) }) }), update };
     const db = { select: () => ({ from: () => ({ where: async () => [{ ...draft, items: [{ ...draft.items[0], variantId: initialVariantId }] }] }) }), transaction: async (fn: (value: typeof tx) => unknown) => fn(tx) };
     vi.mocked(getDb).mockReturnValue(db as unknown as ReturnType<typeof getDb>);
-    vi.mocked(lockProductRowForUpdate).mockResolvedValue({ id: "product", hasVariants: true, variants: [{ id: "v", price: 1000, stock: 5, ...variant }] } as unknown as Awaited<ReturnType<typeof lockProductRowForUpdate>>);
+    vi.mocked(lockProductRowForUpdate).mockResolvedValue({ id: "product", name: "منتج عربي", hasVariants: true, variants: [{ id: "v", label: "خيار عربي", price: 1000, stock: 5, ...variant }] } as unknown as Awaited<ReturnType<typeof lockProductRowForUpdate>>);
     return { storage: new InvoiceStorage(), update };
   }
   it.each([
