@@ -183,7 +183,7 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
     setDropdownOpen(true);
     try {
       // Try smart semantic search first
-      const r = await fetch(`/api/products/smart-search?q=${encodeURIComponent(trimmed)}`, {
+      const r = await fetch(`/api/products/smart-search?locale=ar&q=${encodeURIComponent(trimmed)}`, {
         credentials: "include",
       });
       const d = await r.json();
@@ -191,7 +191,7 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
 
       // If < 3 results from smart search, supplement with regular search
       if (products.length < 3) {
-        const r2 = await fetch(`/api/products?search=${encodeURIComponent(trimmed)}&limit=15`, {
+        const r2 = await fetch(`/api/admin/invoices/product-search?q=${encodeURIComponent(trimmed)}`, {
           credentials: "include",
         });
         const d2 = await r2.json();
@@ -205,7 +205,7 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
     } catch {
       // Fallback to plain search
       try {
-        const r = await fetch(`/api/products?search=${encodeURIComponent(trimmed)}&limit=15`, {
+        const r = await fetch(`/api/admin/invoices/product-search?q=${encodeURIComponent(trimmed)}`, {
           credentials: "include",
         });
         const d = await r.json();
