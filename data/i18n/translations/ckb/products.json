@@ -165,7 +165,7 @@
   "general-sponge-filter-xy180": {
     "entityId": "general-sponge-filter-xy180",
     "slug": "general-sponge-filter-xy180",
-    "sourceHash": "04b0855e25156d0c",
+    "sourceHash": "17c6ff02947136c8",
     "translatedBy": "gemini:gemini-2.5-flash",
     "translatedAt": "2026-09-19T12:22:25.260Z",
     "data": {
@@ -214,7 +214,7 @@
   "houyi-5-in-1-cleaning-tool": {
     "entityId": "houyi-5-in-1-cleaning-tool",
     "slug": "houyi-5-in-1-cleaning-tool",
-    "sourceHash": "00cb1f37dadeedf9",
+    "sourceHash": "ef2ddd73a9a448f1",
     "translatedBy": "openai:assistant-on-user-request",
     "translatedAt": "2026-10-21T15:21:51.076891+00:00",
     "data": {
@@ -394,7 +394,7 @@
   "houyi-activated-carbon": {
     "entityId": "houyi-activated-carbon",
     "slug": "houyi-activated-carbon",
-    "sourceHash": "84a6a91876413bb0",
+    "sourceHash": "7a82ef0cdb621aae",
     "translatedBy": "openai:assistant-on-user-request",
     "translatedAt": "2026-10-26T20:00:00Z",
     "data": {
@@ -538,7 +538,7 @@
   "houyi-breathing-ring-white": {
     "entityId": "houyi-breathing-ring-white",
     "slug": "houyi-breathing-ring-white",
-    "sourceHash": "22ca32b8a6363e12",
+    "sourceHash": "ad88f1a17cca819b",
     "translatedBy": "gemini:gemini-2.5-flash",
     "translatedAt": "2026-09-19T12:23:11.641Z",
     "data": {
@@ -585,15 +585,13 @@
           }
         }
       },
-      "variantLabels": {
-        "1kg": "1 کغم"
-      }
+      "variantLabels": {}
     }
   },
   "houyi-ceramic-ring": {
     "entityId": "houyi-ceramic-ring",
     "slug": "houyi-ceramic-ring",
-    "sourceHash": "968399e2ae047dc2",
+    "sourceHash": "677803bf7e8345ad",
     "translatedBy": "gemini:gemini-2.5-flash",
     "translatedAt": "2026-09-19T12:25:14.398Z",
     "data": {
@@ -640,9 +638,7 @@
           }
         }
       },
-      "variantLabels": {
-        "1kg": "1 کگم"
-      }
+      "variantLabels": {}
     }
   },
   "houyi-check-valve": {
@@ -923,7 +919,7 @@
   "houyi-dutch-sand": {
     "entityId": "houyi-dutch-sand",
     "slug": "houyi-dutch-sand",
-    "sourceHash": "5dd10e9472218f2a",
+    "sourceHash": "4160ada11f91ef33",
     "translatedBy": "openai:assistant-on-user-request",
     "translatedAt": "2026-10-26T20:00:00Z",
     "data": {
@@ -967,8 +963,7 @@
         }
       },
       "variantLabels": {
-        "current-5kg": "1 ملم — فرۆشتن بە 1 کگم",
-        "1mm": "دانەی 1 ملم — بەم زووانە"
+        "current-5kg": "1 ملم — فرۆشتن بە 1 کگم"
       }
     }
   },
@@ -1017,7 +1012,7 @@
   "houyi-feeding-cup": {
     "entityId": "houyi-feeding-cup",
     "slug": "houyi-feeding-cup",
-    "sourceHash": "609105f501909b7f",
+    "sourceHash": "1aa31d7a133d7b3c",
     "translatedBy": "gemini:gemini-2.5-flash",
     "translatedAt": "2026-09-19T12:27:29.781Z",
     "data": {
@@ -1053,9 +1048,7 @@
           }
         }
       },
-      "variantLabels": {
-        "white": "سپی"
-      }
+      "variantLabels": {}
     }
   },
   "houyi-foam-glue": {
@@ -1152,7 +1145,7 @@
   "houyi-hose-brush": {
     "entityId": "houyi-hose-brush",
     "slug": "houyi-hose-brush",
-    "sourceHash": "3c71638668a4c26a",
+    "sourceHash": "0232830a749ca0d4",
     "translatedBy": "gemini:gemini-2.5-flash",
     "translatedAt": "2026-09-19T12:26:07.741Z",
     "data": {
@@ -1348,7 +1341,7 @@
   "houyi-medium-cotton": {
     "entityId": "houyi-medium-cotton",
     "slug": "houyi-medium-cotton",
-    "sourceHash": "39e1416e11858fbc",
+    "sourceHash": "2ed5699c64aaf208",
     "translatedBy": "gemini:gemini-2.5-flash",
     "translatedAt": "2026-09-19T12:24:45.854Z",
     "data": {
@@ -1400,7 +1393,7 @@
   "houyi-mesh": {
     "entityId": "houyi-mesh",
     "slug": "houyi-mesh",
-    "sourceHash": "87b868b76d1871eb",
+    "sourceHash": "8bc14db4102bf240",
     "translatedBy": "gemini:gemini-2.5-flash",
     "translatedAt": "2026-09-19T12:28:41.682Z",
     "data": {
@@ -1449,7 +1442,7 @@
   "houyi-moss-glue-20g": {
     "entityId": "houyi-moss-glue-20g",
     "slug": "houyi-moss-glue-20g",
-    "sourceHash": "8610a1ffa2b12713",
+    "sourceHash": "4e10e03a9946d3ee",
     "translatedBy": "gemini:gemini-2.5-flash",
     "translatedAt": "2026-09-19T12:21:57.932Z",
     "data": {
@@ -1498,7 +1491,7 @@
   "houyi-moss-glue-50g": {
     "entityId": "houyi-moss-glue-50g",
     "slug": "ghraa-tthbyt-50-ghram",
-    "sourceHash": "0dc8a2bc9c668b58",
+    "sourceHash": "09c935cf9779c195",
     "translatedBy": "gemini:gemini-2.5-flash",
     "translatedAt": "2026-09-19T12:21:48.872Z",
     "data": {
@@ -1596,7 +1589,7 @@
   "houyi-moss-line": {
     "entityId": "houyi-moss-line",
     "slug": "houyi-moss-line",
-    "sourceHash": "d6b9d1575fea2347",
+    "sourceHash": "f95f1f8893214bf8",
     "translatedBy": "gemini:gemini-2.5-flash",
     "translatedAt": "2026-09-19T12:28:22.764Z",
     "data": {
@@ -1837,7 +1830,7 @@
   "houyi-planting-ring": {
     "entityId": "houyi-planting-ring",
     "slug": "houyi-planting-ring",
-    "sourceHash": "e9bed7d0197a44e8",
+    "sourceHash": "2896aff758f214e1",
     "translatedBy": "gemini:gemini-2.5-flash",
     "translatedAt": "2026-09-19T12:23:20.852Z",
     "data": {
@@ -1936,7 +1929,7 @@
   "houyi-river-sand": {
     "entityId": "houyi-river-sand",
     "slug": "houyi-river-sand",
-    "sourceHash": "210891a27de815e0",
+    "sourceHash": "ecc262a27a9fb078",
     "translatedBy": "openai:assistant-on-user-request",
     "translatedAt": "2026-10-26T20:00:00Z",
     "data": {
@@ -2075,7 +2068,7 @@
   "houyi-stream-sand": {
     "entityId": "houyi-stream-sand",
     "slug": "houyi-stream-sand",
-    "sourceHash": "470ffb23f874aaa3",
+    "sourceHash": "5d6a828a6adf3ce0",
     "translatedBy": "openai:assistant-on-user-request",
     "translatedAt": "2026-10-21T15:21:51.076891+00:00",
     "data": {
@@ -2215,7 +2208,7 @@
   "houyi-telescopic-fishnet": {
     "entityId": "houyi-telescopic-fishnet",
     "slug": "houyi-telescopic-fishnet",
-    "sourceHash": "ee8f4861d25cdb49",
+    "sourceHash": "9f3126ec0990a74e",
     "translatedBy": "gemini:gemini-2.5-flash",
     "translatedAt": "2026-09-19T12:26:35.836Z",
     "data": {
@@ -2261,12 +2254,12 @@
   "houyi-terminalia-leaves": {
     "entityId": "houyi-terminalia-leaves",
     "slug": "houyi-terminalia-leaves",
-    "sourceHash": "f97d96a6f6c60852",
+    "sourceHash": "a8d0c3fa49c14adc",
     "translatedBy": "gemini:gemini-2.5-flash",
     "translatedAt": "2026-09-19T12:28:50.957Z",
     "data": {
       "name": "Houyi گەڵای کاتاپا بۆ حەوز (گوێزی هیندی)",
-      "description": "گەڵای کاتاپا (باگەمی هیندی) چینێکی گەڵا لە بنی حەوز دروست دەکات و بە هێواشی تانین دەداتە ئاو. ئاوەکە لەوانەیە ڕەنگی کەهرەبایی وەربگرێت. چاودێری pH و KH بکە، بەتایبەتی لە حەوزێکدا کە ئەلکالینییەتی نزمە.\n\nبە بڕێکی کەم دەست پێبکە. لە حەوزی هەستیاردا دوای زیادکردنی گەڵاکان pH و KH بپشکنە، بەتایبەتی ئەگەر توانای ئاو بۆ جێگیر هێشتنەوەی pH کەم بێت.",
+      "description": "گەڵای کاتاپا (باوەمی هیندی) چینێکی گەڵا لە بنی حەوز دروست دەکات و بە هێواشی تانین دەداتە ئاو. ئاوەکە لەوانەیە ڕەنگی کەهرەبایی وەربگرێت. چاودێری pH و KH بکە، بەتایبەتی لە حەوزێکدا کە ئەلکالینییەتی نزمە.\n\nبە بڕێکی کەم دەست پێبکە. لە حەوزی هەستیاردا دوای زیادکردنی گەڵاکان pH و KH بپشکنە، بەتایبەتی ئەگەر توانای ئاو بۆ جێگیر هێشتنەوەی pH کەم بێت.",
       "subcategory": "ماددە سروشتییەکان",
       "seoTitle": "Houyi گەڵای کاتاپا بۆ حەوز (گوێزی هیندی) | AQUAVO",
       "seoDescription": "گەڵای کاتاپای سروشتی تانینی سروشتی دەداتە ئاو و ڕەنگێکی قاوەیی کاڵی پێدەبەخشێت. گونجاوە بۆ حەوزی ماسی بێتا و مەیگوو. | AQUAVO",
@@ -2307,7 +2300,7 @@
   "houyi-tool-kit": {
     "entityId": "houyi-tool-kit",
     "slug": "houyi-tool-kit",
-    "sourceHash": "2e02c9d19fd113f3",
+    "sourceHash": "fd49a8ff1fbae8f5",
     "translatedBy": "gemini:gemini-2.5-flash",
     "translatedAt": "2026-09-19T12:25:48.407Z",
     "data": {
@@ -2403,7 +2396,7 @@
   "houyi-volcanic-stone-black": {
     "entityId": "houyi-volcanic-stone-black",
     "slug": "houyi-volcanic-stone-black",
-    "sourceHash": "5d70bf494e79a941",
+    "sourceHash": "21015885cd0290e7",
     "translatedBy": "openai:assistant-on-user-request",
     "translatedAt": "2026-10-21T15:21:51.076891+00:00",
     "data": {
@@ -2462,7 +2455,7 @@
   "houyi-volcanic-stone-red": {
     "entityId": "houyi-volcanic-stone-red",
     "slug": "houyi-volcanic-stone-red",
-    "sourceHash": "f8a6a54ca6cdbeea",
+    "sourceHash": "e90d0eb1f20b985b",
     "translatedBy": "openai:assistant-on-user-request",
     "translatedAt": "2026-10-21T15:21:51.076891+00:00",
     "data": {
@@ -2566,7 +2559,7 @@
   "houyi-wave-pump": {
     "entityId": "houyi-wave-pump",
     "slug": "houyi-wave-pump",
-    "sourceHash": "ae27f4ffd1f79e7b",
+    "sourceHash": "b1f2502c224fef5c",
     "translatedBy": "gemini:gemini-2.5-flash",
     "translatedAt": "2026-09-19T12:27:01.745Z",
     "data": {
@@ -2710,7 +2703,7 @@
   "sunsun-air-pump": {
     "entityId": "sunsun-air-pump",
     "slug": "sunsun-air-pump",
-    "sourceHash": "174ba5551d527573",
+    "sourceHash": "bfad99117400ee15",
     "translatedBy": "gemini:gemini-2.5-flash",
     "translatedAt": "2026-09-19T12:22:43.966Z",
     "data": {
@@ -3493,7 +3486,7 @@
   "yee-07116": {
     "entityId": "yee-07116",
     "slug": "yff-042",
-    "sourceHash": "9ceb2d2911e4fe15",
+    "sourceHash": "033a5d4039716094",
     "translatedBy": "gemini:gemini-2.5-flash",
     "translatedAt": "2026-09-19T12:35:53.175Z",
     "data": {
@@ -3735,7 +3728,7 @@
   "yee-11578": {
     "entityId": "yee-11578",
     "slug": "nyh-006",
-    "sourceHash": "d9f8db7638ae3826",
+    "sourceHash": "c4d168ea3a5731d8",
     "translatedBy": "gemini:gemini-2.5-flash",
     "translatedAt": "2026-09-19T12:35:34.478Z",
     "data": {
@@ -3784,7 +3777,7 @@
   "yee-12420": {
     "entityId": "yee-12420",
     "slug": "yyh-125",
-    "sourceHash": "9a0fe43f63c7e15d",
+    "sourceHash": "2b280bb3eeb47e89",
     "translatedBy": "gemini:gemini-2.5-flash",
     "translatedAt": "2026-09-19T12:32:45.273Z",
     "data": {
@@ -3830,7 +3823,7 @@
   "yee-13343": {
     "entityId": "yee-13343",
     "slug": "pyd-200",
-    "sourceHash": "1afcdb2cceffd262",
+    "sourceHash": "32f73e224635cd40",
     "translatedBy": "gemini:gemini-2.5-flash",
     "translatedAt": "2026-09-19T12:30:21.245Z",
     "data": {
@@ -4483,7 +4476,7 @@
   "yee-c1-1066-2": {
     "entityId": "yee-c1-1066-2",
     "slug": "c1-1066",
-    "sourceHash": "3ad2294804bdf828",
+    "sourceHash": "174bbf505c043ebc",
     "translatedBy": "gemini:gemini-2.5-flash",
     "translatedAt": "2026-09-19T12:33:49.112Z",
     "data": {
@@ -4576,7 +4569,7 @@
   "yee-c1-1073-1a": {
     "entityId": "yee-c1-1073-1a",
     "slug": "alf-albyta-almqatl-230-jm",
-    "sourceHash": "65651e6297447b08",
+    "sourceHash": "6fcf0b959a6f973f",
     "translatedBy": "gemini:gemini-2.5-flash",
     "translatedAt": "2026-09-19T12:34:18.836Z",
     "data": {
@@ -4625,7 +4618,7 @@
   "yee-c1-1082-2a": {
     "entityId": "yee-c1-1082-2a",
     "slug": "yee-all-in-one-microparticles-02mm-210g",
-    "sourceHash": "ad454993e7924191",
+    "sourceHash": "063a24d0c97eb5ca",
     "translatedBy": "gemini:gemini-2.5-flash",
     "translatedAt": "2026-09-19T12:22:06.763Z",
     "data": {
@@ -4679,7 +4672,7 @@
   "yee-c1-1082-5": {
     "entityId": "yee-c1-1082-5",
     "slug": "c1-1082",
-    "sourceHash": "0949af2b6c4ece3b",
+    "sourceHash": "d11cad2cb2c9807e",
     "translatedBy": "gemini:gemini-2.5-flash",
     "translatedAt": "2026-09-19T12:34:09.890Z",
     "data": {
@@ -4881,7 +4874,7 @@
   "yee-c1-1124-1": {
     "entityId": "yee-c1-1124-1",
     "slug": "c1-1124",
-    "sourceHash": "f1dcbd7bc359d22f",
+    "sourceHash": "3ea7571faf0efe25",
     "translatedBy": "gemini:gemini-2.5-flash",
     "translatedAt": "2026-09-19T12:32:53.935Z",
     "data": {
@@ -4980,11 +4973,11 @@
   "yee-c1-1127-1": {
     "entityId": "yee-c1-1127-1",
     "slug": "c1-1127",
-    "sourceHash": "a0d1262cba3944fa",
+    "sourceHash": "7a8541d237793f3a",
     "translatedBy": "gemini:gemini-2.5-flash",
     "translatedAt": "2026-09-19T12:34:27.753Z",
     "data": {
-      "name": "YEE خۆراکی ماسی جۆڵدفیش و ڕانشۆ بە سپیرۆلینا — 290 گرام",
+      "name": "خۆراکی گۆڵدفیش و ڕانچو بە سپیرۆلینا | 290 گرام",
       "description": "خواردنی سپیرۆلینا بۆ گۆڵدفیش و ڕانچو، لە پاکەتێکی 290 گرامیدا بە دەنکەی 3 ملم. قەبارەی دەنکەکان دەبێت بۆ دەمی ماسییەکانی حەوزەکەت گونجاو بێت. بە پێی ژمارە و قەبارەی ماسییەکان ژەمی بچووک بدە و پێش کۆبوونەوەی پاشماوەی دیار بوەستە.",
       "subcategory": "خۆراکی ماسی زێڕین",
       "seoTitle": "YEE خۆراکی ماسی جۆڵدفیش و ڕانشۆ بە سپیرۆلینا — 290 گرام | AQUAVO",
@@ -5187,7 +5180,7 @@
   "yee-c2-1016-2": {
     "entityId": "yee-c2-1016-2",
     "slug": "c2-1016",
-    "sourceHash": "460510e63ce1c3c4",
+    "sourceHash": "aea1b04d2e029ba9",
     "translatedBy": "gemini:gemini-2.5-flash",
     "translatedAt": "2026-09-19T12:32:18.958Z",
     "data": {
@@ -5443,7 +5436,7 @@
   "yee-c4-1117-1": {
     "entityId": "yee-c4-1117-1",
     "slug": "mknsh-rml-khrbayyh-20-wat",
-    "sourceHash": "24201f7cbc311872",
+    "sourceHash": "ab0eac4c77ddcf8c",
     "translatedBy": "gemini:gemini-2.5-flash",
     "translatedAt": "2026-09-19T12:36:32.368Z",
     "data": {
@@ -5655,7 +5648,7 @@
   "yee-c5-1144-1a": {
     "entityId": "yee-c5-1144-1a",
     "slug": "yee-c5-1144-1a",
-    "sourceHash": "8ac14e69f5c42b31",
+    "sourceHash": "31aac527a3fbeccd",
     "translatedBy": "gemini:gemini-2.5-flash",
     "translatedAt": "2026-09-19T12:36:41.767Z",
     "data": {
@@ -5758,7 +5751,7 @@
   "luby-brush-set-202610": {
     "entityId": "luby-brush-set-202610",
     "slug": "aquarium-cleaning-brushes-5pcs",
-    "sourceHash": "3c86eeefaa18ef3d",
+    "sourceHash": "4400cc7bee079421",
     "translatedBy": "openai:chatgpt",
     "translatedAt": "2026-10-19T07:23:27.021Z",
     "data": {
@@ -5912,7 +5905,7 @@
   "luby-gyhs03-202610": {
     "entityId": "luby-gyhs03-202610",
     "slug": "aquarium-water-changer-3m",
-    "sourceHash": "063dd773a3a8a7b1",
+    "sourceHash": "85d32a257270aef7",
     "translatedBy": "openai:chatgpt",
     "translatedAt": "2026-10-19T07:23:27.021Z",
     "data": {
@@ -5972,7 +5965,7 @@
   "luby-zs177-202610": {
     "entityId": "luby-zs177-202610",
     "slug": "fish-spawning-cone-21cm",
-    "sourceHash": "92e543a8e7688664",
+    "sourceHash": "d53e84b1999f5fc3",
     "translatedBy": "openai:chatgpt",
     "translatedAt": "2026-10-19T07:23:27.021Z",
     "data": {
@@ -6023,7 +6016,7 @@
   "luby-dd60-202610": {
     "entityId": "luby-dd60-202610",
     "slug": "air-driven-egg-incubator",
-    "sourceHash": "86f6b85a5464c8dc",
+    "sourceHash": "ee760baffc6c18a9",
     "translatedBy": "openai:chatgpt",
     "translatedAt": "2026-10-19T07:23:27.021Z",
     "data": {

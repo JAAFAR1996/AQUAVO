@@ -538,7 +538,7 @@
   "houyi-breathing-ring-white": {
     "entityId": "houyi-breathing-ring-white",
     "slug": "houyi-breathing-ring-white",
-    "sourceHash": "22ca32b8a6363e12",
+    "sourceHash": "ad88f1a17cca819b",
     "translatedBy": "gemini:gemini-2.5-flash-lite",
     "translatedAt": "2026-09-19T12:22:41.297Z",
     "data": {
@@ -585,15 +585,13 @@
           }
         }
       },
-      "variantLabels": {
-        "1kg": "1 kg"
-      }
+      "variantLabels": {}
     }
   },
   "houyi-ceramic-ring": {
     "entityId": "houyi-ceramic-ring",
     "slug": "houyi-ceramic-ring",
-    "sourceHash": "968399e2ae047dc2",
+    "sourceHash": "677803bf7e8345ad",
     "translatedBy": "groq:openai/gpt-oss-120b",
     "translatedAt": "2026-09-18T22:50:19.739Z",
     "data": {
@@ -640,9 +638,7 @@
           }
         }
       },
-      "variantLabels": {
-        "1kg": "1 kg"
-      }
+      "variantLabels": {}
     }
   },
   "houyi-check-valve": {
@@ -1936,7 +1932,7 @@
   "houyi-river-sand": {
     "entityId": "houyi-river-sand",
     "slug": "houyi-river-sand",
-    "sourceHash": "210891a27de815e0",
+    "sourceHash": "ecc262a27a9fb078",
     "translatedBy": "openai:assistant-on-user-request",
     "translatedAt": "2026-10-26T20:00:00Z",
     "data": {
@@ -2261,7 +2257,7 @@
   "houyi-terminalia-leaves": {
     "entityId": "houyi-terminalia-leaves",
     "slug": "houyi-terminalia-leaves",
-    "sourceHash": "f97d96a6f6c60852",
+    "sourceHash": "a8d0c3fa49c14adc",
     "translatedBy": "groq:openai/gpt-oss-20b",
     "translatedAt": "2026-09-19T11:40:19.126Z",
     "data": {
@@ -3784,7 +3780,7 @@
   "yee-12420": {
     "entityId": "yee-12420",
     "slug": "yyh-125",
-    "sourceHash": "9a0fe43f63c7e15d",
+    "sourceHash": "2b280bb3eeb47e89",
     "translatedBy": "gemini:gemini-2.5-flash-lite",
     "translatedAt": "2026-09-19T12:14:12.743Z",
     "data": {
@@ -3830,7 +3826,7 @@
   "yee-13343": {
     "entityId": "yee-13343",
     "slug": "pyd-200",
-    "sourceHash": "1afcdb2cceffd262",
+    "sourceHash": "32f73e224635cd40",
     "translatedBy": "groq:openai/gpt-oss-20b",
     "translatedAt": "2026-09-19T11:42:27.525Z",
     "data": {
@@ -4483,7 +4479,7 @@
   "yee-c1-1066-2": {
     "entityId": "yee-c1-1066-2",
     "slug": "c1-1066",
-    "sourceHash": "3ad2294804bdf828",
+    "sourceHash": "174bbf505c043ebc",
     "translatedBy": "gemini:gemini-2.5-flash-lite",
     "translatedAt": "2026-09-19T12:18:27.469Z",
     "data": {
@@ -4576,7 +4572,7 @@
   "yee-c1-1073-1a": {
     "entityId": "yee-c1-1073-1a",
     "slug": "alf-albyta-almqatl-230-jm",
-    "sourceHash": "65651e6297447b08",
+    "sourceHash": "6fcf0b959a6f973f",
     "translatedBy": "gemini:gemini-2.5-flash-lite",
     "translatedAt": "2026-09-19T12:14:24.317Z",
     "data": {
@@ -4625,7 +4621,7 @@
   "yee-c1-1082-2a": {
     "entityId": "yee-c1-1082-2a",
     "slug": "yee-all-in-one-microparticles-02mm-210g",
-    "sourceHash": "ad454993e7924191",
+    "sourceHash": "063a24d0c97eb5ca",
     "translatedBy": "groq:openai/gpt-oss-120b",
     "translatedAt": "2026-09-18T22:40:53.520Z",
     "data": {
@@ -4679,7 +4675,7 @@
   "yee-c1-1082-5": {
     "entityId": "yee-c1-1082-5",
     "slug": "c1-1082",
-    "sourceHash": "0949af2b6c4ece3b",
+    "sourceHash": "d11cad2cb2c9807e",
     "translatedBy": "gemini:gemini-2.5-flash-lite",
     "translatedAt": "2026-09-19T12:11:10.044Z",
     "data": {
@@ -4980,11 +4976,11 @@
   "yee-c1-1127-1": {
     "entityId": "yee-c1-1127-1",
     "slug": "c1-1127",
-    "sourceHash": "a0d1262cba3944fa",
+    "sourceHash": "7a8541d237793f3a",
     "translatedBy": "gemini:gemini-2.5-flash-lite",
     "translatedAt": "2026-09-19T12:11:14.121Z",
     "data": {
-      "name": "YEE Goldfish & Rancho Spirulina Food - 290g",
+      "name": "Goldfish and Ranchu Food with Spirulina | 290 g",
       "description": "Spirulina food for goldfish and ranchu, in a 290 g pack with 3 mm pellets. Check that the pellets fit the fish’s mouth. Offer small portions suited to the number and size of your fish, and stop before visible leftovers accumulate.",
       "subcategory": "Goldfish Food",
       "seoTitle": "YEE Goldfish & Rancho Spirulina Food - 290g | AQUAVO",
@@ -5906,7 +5902,7 @@
   "luby-gyhs03-202610": {
     "entityId": "luby-gyhs03-202610",
     "slug": "aquarium-water-changer-3m",
-    "sourceHash": "063dd773a3a8a7b1",
+    "sourceHash": "85d32a257270aef7",
     "data": {
       "name": "Tap-Driven Aquarium Water Changer — 3 m Hose",
       "description": "This water-changing kit uses a 3 m hose and the flow from a compatible tap to help siphon water, reducing the need to carry buckets. Watch the discharge and prepare replacement water before it enters the tank.\n\nThe 3 m hose has a 12 mm inside diameter. The kit shown includes a control unit and 3 connectors. Select the connector that fits your tap and run the hose between the unit and the aquarium within reach.",
@@ -5964,7 +5960,7 @@
   "luby-zs177-202610": {
     "entityId": "luby-zs177-202610",
     "slug": "fish-spawning-cone-21cm",
-    "sourceHash": "92e543a8e7688664",
+    "sourceHash": "d53e84b1999f5fc3",
     "data": {
       "name": "Discus Spawning Cone — 21 cm High",
       "description": "This 21 cm discus spawning cone gives the pair a visible surface for laying eggs. Choose a stable spot with room around it to observe the eggs. Providing a cone alone does not ensure spawning.\n\nThe cone stands 21 cm high, with overall dimensions of 15 × 15 × 21 cm. Its circular base has a raised rim. Place it on a stable surface inside the aquarium and leave swimming room for the pair.",
@@ -6013,7 +6009,7 @@
   "luby-dd60-202610": {
     "entityId": "luby-dd60-202610",
     "slug": "air-driven-egg-incubator",
-    "sourceHash": "86f6b85a5464c8dc",
+    "sourceHash": "ee760baffc6c18a9",
     "data": {
       "name": "Air-Driven Fish Egg Incubator — Approx. 23 cm High",
       "description": "This transparent air-driven incubator is about 23 cm high. When adjusted for the species and egg stage, it moves non-adhesive eggs gently.\n\nThe incubator is about 23 cm high with a body diameter of 6 cm. It needs a suitable external air pump. It is intended for setups in which eggs are incubated outside the mouth of the brooding parent.",
