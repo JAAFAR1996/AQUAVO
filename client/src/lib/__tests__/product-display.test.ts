@@ -4,6 +4,7 @@ import {
   getProductDisplayBrand,
   getProductDisplayIdentity,
   getProductDisplayName,
+  isSoldByKilogram,
 } from "../product-display";
 
 describe("product display identity", () => {
@@ -37,5 +38,19 @@ describe("product display identity", () => {
     expect(
       getProductDisplayIdentity({ name: "حجر هواء أسطواني", brand: "Houyi" }),
     ).toEqual({ name: "حجر هواء أسطواني", brand: "Houyi" });
+  });
+});
+
+describe("kilogram sale units", () => {
+  it("keeps a package priced per package even when its title or weight is in kilograms", () => {
+    const pack = { slug: "ylc-410", name: "ميديا فلترة | 2.5 كغم", specifications: { الوزن: "2.5 كغم" } };
+    expect(isSoldByKilogram(pack)).toBe(false);
+    expect(isSoldByKilogram({ slug: "houyi-snowflake-white-sand-2-5kg", specifications: { "وزن العبوة": "2.5 كغم" } })).toBe(false);
+  });
+
+  it("uses explicit sale units and preserves older loose-stock items across locales", () => {
+    expect(isSoldByKilogram({ slug: "houyi-river-sand" })).toBe(true);
+    expect(isSoldByKilogram({ slug: "example", specifications: { "وحدة البيع": "بالكيلوغرام" } })).toBe(true);
+    expect(isSoldByKilogram({ slug: "houyi-river-sand", specifications: { "وحدة البيع": "قطعة" } })).toBe(false);
   });
 });

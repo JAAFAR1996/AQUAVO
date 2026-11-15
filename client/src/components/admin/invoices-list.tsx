@@ -4,7 +4,10 @@ import { useToast } from "@/hooks/use-toast";
 import { addCsrfHeader } from "@/lib/csrf";
 import ManualInvoiceCreator from "./manual-invoice-creator";
 
+import { manualInvoicePath, type ManualInvoiceLocale } from "@shared/manual-invoice-locale";
+
 interface Invoice {
+  invoiceLocale?: ManualInvoiceLocale;
   id: string;
   invoiceNo: string;
   token: string;
@@ -37,6 +40,7 @@ export default function InvoicesList() {
   const [filterStatus, setFilterStatus] = useState("all");
   const [showCreator, setShowCreator] = useState(false);
   const [stats, setStats] = useState<Record<string, number>>({});
+  const [share, setShare] = useState<{ invoiceNo: string; url: string } | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [deleteInvoiceId, setDeleteInvoiceId] = useState<string | null>(null);
 
@@ -60,6 +64,7 @@ export default function InvoicesList() {
   useEffect(() => { fetchAll(); }, [filterStatus]);
 
   const handleSend = async (id: string) => {
+    setShare(null);
     setActionLoading(id + "_send");
     try {
       const r = await fetch(`/api/admin/invoices/${id}/send`, {
@@ -67,9 +72,7 @@ export default function InvoicesList() {
       });
       const d = await r.json();
       if (!d.success) throw new Error(d.message);
-      // WhatsApp
-      window.open(d.whatsappUrl, "_blank");
-      toast({ title: "✅ تم الإرسال", description: `رابط الفاتورة جاهز ومفتوح في واتساب` });
+      setShare({ invoiceNo: d.data.invoiceNo, url: d.whatsappUrl });
       fetchAll();
     } catch (e: any) {
       toast({ title: "خطأ", description: e.message, variant: "destructive" });
@@ -110,8 +113,13 @@ export default function InvoicesList() {
     }
   };
 
-  const copyLink = (token: string) => {
-    navigator.clipboard.writeText(`${baseUrl}/invoice/${token}`);
+  const copyLink = async (invoice: Invoice) => {
+    try {
+      await navigator.clipboard.writeText(baseUrl + manualInvoicePath(invoice.token, invoice.invoiceLocale));
+    } catch {
+      toast({ title: "تعذر نسخ الرابط", variant: "destructive" });
+      return;
+    }
     toast({ title: "✅ تم نسخ الرابط" });
   };
 
@@ -164,6 +172,15 @@ export default function InvoicesList() {
         </div>
       </div>
 
+      {share && (
+        <p role="status" style={{ marginBottom: 16 }}>
+          رابط الفاتورة {share.invoiceNo} جاهز.{" "}
+          <a href={share.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "underline" }}>
+            افتح واتساب
+          </a>
+        </p>
+      )}
+
       {/* Filters */}
       <div style={{ ...s.filterRow, marginBottom: 16 }}>
         {["all", "draft", "sent", "confirmed", "rejected", "cancelled"].map(f => (
@@ -215,7 +232,7 @@ export default function InvoicesList() {
                   <td style={{ ...s.td }}>
                     <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                       {/* عرض الرابط */}
-                      <button style={s.btn("#94a3b8")} onClick={() => window.open(`/invoice/${inv.token}`, "_blank")} title="معاينة">
+                      <button style={s.btn("#94a3b8")} onClick={() => window.open(manualInvoicePath(inv.token, inv.invoiceLocale), "_blank", "noopener,noreferrer")} title="معاينة">
                         <Eye size={13} />
                       </button>
                       {/* إرسال (draft أو إعادة إرسال) */}
@@ -226,7 +243,7 @@ export default function InvoicesList() {
                       )}
                       {/* نسخ الرابط */}
                       {inv.status === "sent" && (
-                        <button style={s.btn("#a855f7")} onClick={() => copyLink(inv.token)} title="نسخ رابط العميل">
+                        <button style={s.btn("#a855f7")} onClick={() => copyLink(inv)} title="نسخ رابط العميل">
                           🔗
                         </button>
                       )}

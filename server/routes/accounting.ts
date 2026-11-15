@@ -7,7 +7,7 @@ import { getDb } from "../db.js";
 // accountant path reads carrier money exclusively from `cash_settlements` rows
 // with status='reconciled'. Re-adding that import re-introduces a phantom
 // carrier balance and is rejected by the accounting tests.
-import { orders, products, cashSettlements, productCostHistory, orderReturnEvents, expenses, manualInvoices, accountingManualAdjustments, accountingPeriodCloses } from "../../shared/schema.js";
+import { orders, products, cashSettlements, productCostHistory, productCostHistoryPreMigrationColumns, orderReturnEvents, expenses, manualInvoices, accountingManualAdjustments, accountingPeriodCloses } from "../../shared/schema.js";
 import { and, gte, lte, inArray, eq, desc, isNull } from "drizzle-orm";
 import {
   accountingCostHistoryInputSchema,

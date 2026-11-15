@@ -11,7 +11,7 @@ router.get("/:token", async (req: Request, res: Response, next: NextFunction): P
 
     // Check expiry for sent invoices
     if (inv.status === "sent" && inv.expiresAt && new Date() > new Date(inv.expiresAt)) {
-      res.status(410).json({ success: false, message: "انتهت صلاحية هذه الفاتورة", status: "expired" });
+      res.status(410).json({ success: false, message: "انتهت صلاحية هذه الفاتورة", status: "expired", invoiceLocale: inv.invoiceLocale });
       return;
     }
 
@@ -19,6 +19,7 @@ router.get("/:token", async (req: Request, res: Response, next: NextFunction): P
     res.json({
       success: true,
       data: {
+        invoiceLocale:   inv.invoiceLocale,
         invoiceNo:       inv.invoiceNo,
         customerName:    inv.customerName,
         customerCity:    inv.customerCity,

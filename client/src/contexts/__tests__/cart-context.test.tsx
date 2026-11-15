@@ -5,16 +5,14 @@
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { render, screen, waitFor, act } from '@testing-library/react';
+import { syncStorage } from "@/lib/secure-storage";
 import userEvent from '@testing-library/user-event';
 import { CartProvider, useCart, CartItem } from '../cart-context';
 import React from 'react';
 
 // Mock auth context
-vi.mock('../auth-context', () => ({
-    useAuth: () => ({
-        user: null,
-    }),
-}));
+const auth = vi.hoisted(() => ({ user: null as { id: string } | null }));
+vi.mock('../auth-context', () => ({ useAuth: () => auth }));
 
 // Mock toast hook
 vi.mock('@/hooks/use-toast', () => ({
@@ -56,6 +54,7 @@ describe('CartContext', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         localStorage.clear();
+        auth.user = null;
         global.fetch = vi.fn();
     });
 
@@ -74,6 +73,88 @@ describe('CartContext', () => {
             expect(screen.getByTestId('totalItems')).toHaveTextContent('0');
             expect(screen.getByTestId('totalPrice')).toHaveTextContent('0');
             expect(screen.getByTestId('itemCount')).toHaveTextContent('0');
+        });
+
+        it('preserves a guest quantity change when the catalogue refresh finishes later', async () => {
+            syncStorage.setItem("cart-v2", [{
+                id: "prod-123-default", productId: "prod-123", name: "Test Product",
+                price: 100, stock: 8, quantity: 1, image: "", slug: "test-product",
+            }]);
+            let finish!: (response: Response) => void;
+            vi.mocked(fetch).mockImplementation(input => input === "/api/cart/preflight"
+                ? new Promise<Response>(resolve => { finish = resolve; })
+                : Promise.resolve(new Response(null, { status: 204 })));
+            render(<CartProvider><TestCartConsumer /></CartProvider>);
+            await userEvent.click(screen.getByText("Update Quantity"));
+            await act(async () => finish(Response.json({ items: [{
+                productId: "prod-123", quantity: 1, stock: 9, price: 200, valid: true,
+            }] })));
+            expect(screen.getByTestId("totalItems")).toHaveTextContent("5");
+            expect(screen.getByTestId("totalPrice")).toHaveTextContent("1000");
+            expect(syncStorage.getItem<CartItem[]>("cart-v2")?.[0].quantity).toBe(5);
+        });
+
+        it('clears the signed-in basket on logout on the same device', async () => {
+            auth.user = { id: "test-account" };
+            vi.mocked(fetch).mockResolvedValue(Response.json([{
+                id: "account-line", productId: "prod-123", quantity: 3,
+                product: { id: "prod-123", name: "Account item", slug: "item", price: 200 },
+            }]));
+            const view = render(<CartProvider><TestCartConsumer /></CartProvider>);
+            await waitFor(() => expect(screen.getByTestId("totalItems")).toHaveTextContent("3"));
+            auth.user = null;
+            view.rerender(<CartProvider><TestCartConsumer /></CartProvider>);
+            expect(screen.getByTestId("totalItems")).toHaveTextContent("0");
+        });
+
+        it('retains only unconfirmed guest lines when account cart merging partially fails', async () => {
+            auth.user = { id: "test-account" };
+            const lines = ["accepted", "out-of-stock"].map(id => ({
+                id: id + "-default", productId: id, name: id, quantity: 1,
+                price: 100, image: "", slug: id,
+            }));
+            syncStorage.setItem("cart-v2", lines);
+            vi.mocked(fetch).mockImplementation(async (_input, init) => {
+                if (init?.method === "POST") {
+                    const { productId } = JSON.parse(String(init.body));
+                    return Response.json({}, { status: productId === "accepted" ? 201 : 409 });
+                }
+                return Response.json([]);
+            });
+            const view = render(<CartProvider><TestCartConsumer /></CartProvider>);
+            const pendingKey = "cart-v2-merge-test-account";
+            await waitFor(() => expect(syncStorage.getItem(pendingKey)).toEqual([{ ...lines[1], targetQuantity: 1 }]));
+            expect(syncStorage.getItem("cart-v2")).toBeNull();
+
+            auth.user = { id: "other-account" };
+            view.rerender(<CartProvider><TestCartConsumer /></CartProvider>);
+            await waitFor(() => expect(vi.mocked(fetch).mock.calls.filter(([, init]) => !init?.method)).toHaveLength(3));
+            expect(vi.mocked(fetch).mock.calls.filter(([, init]) => init?.method === "POST")).toHaveLength(2);
+            expect(syncStorage.getItem(pendingKey)).toEqual([{ ...lines[1], targetQuantity: 1 }]);
+        });
+
+        it('does not add quantities twice on retry after a lost cart response', async () => {
+            auth.user = { id: "test-account" };
+            const line = { id: "prod-default", productId: "prod", name: "Item", quantity: 2, price: 100, image: "", slug: "test" };
+            syncStorage.setItem("cart-v2", [line]);
+            let serverQty = 3;
+            vi.mocked(fetch).mockImplementation(async (_input, init) => {
+                if (init?.method === "PUT") {
+                    serverQty = JSON.parse(String(init.body)).quantity;
+                    throw new TypeError("Response lost");
+                }
+                return Response.json([{ id: "remote-line", productId: "prod", quantity: serverQty,
+                    product: { id: "prod", name: "Item", slug: "test", price: 100 } }]);
+            });
+            const view = render(<CartProvider><TestCartConsumer /></CartProvider>);
+            await waitFor(() => expect(screen.getByTestId("totalItems")).toHaveTextContent("5"));
+            auth.user = null;
+            view.rerender(<CartProvider><TestCartConsumer /></CartProvider>);
+            auth.user = { id: "test-account" };
+            view.rerender(<CartProvider><TestCartConsumer /></CartProvider>);
+            await waitFor(() => expect(syncStorage.getItem("cart-v2-merge-test-account")).toBeNull());
+            expect(vi.mocked(fetch).mock.calls.filter(([, init]) => init?.method === "PUT")).toHaveLength(1);
+            expect(serverQty).toBe(5);
         });
 
         it('should load cart from localStorage for guest users', async () => {

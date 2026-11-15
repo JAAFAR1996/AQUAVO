@@ -70,6 +70,7 @@ describe("accounting v2 production wiring", () => {
     expect(source).toContain('invoice.status === "confirmed" && invoice.order_id');
     expect(source).toContain("tx.insert(orders)");
     expect(source).toContain("tx.insert(orderItems)");
+    expect(source).toContain("buildProductCostSnapshot(product, snapshotAt, raw.variantId)");
     expect(source).toContain("tx.update(manualInvoices)");
   });
 

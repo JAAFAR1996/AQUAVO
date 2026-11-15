@@ -125,6 +125,7 @@
     "s46": "Usage per user must be positive"
   },
   "cart-context": {
+    "mergeIncomplete": "Could not confirm {{count}} cart line(s) were added. Saved on this device to retry when you sign in to this account again.",
     "s1": "Your cart has been merged",
     "s2": "Added {{v0}} product from your previous cart",
     "s3": "Currently unavailable",

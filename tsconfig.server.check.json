@@ -12,6 +12,7 @@
 {
   "extends": "./tsconfig.server.json",
   "compilerOptions": {
-    "noCheck": false
+    "noCheck": false,
+    "jsx": "react-jsx"
   }
 }

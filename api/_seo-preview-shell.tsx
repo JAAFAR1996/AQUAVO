@@ -1,6 +1,7 @@
 import { isVariantActive, isVariantComingSoon, isVariantPurchasable, positiveVariantPrice } from "../shared/variant-commerce.js";
 import { getPublicProductPriceRange } from "../shared/public-price.js";
 import React from "react";
+import type { FishSpecies } from "../shared/schema.js";
 import { renderToStaticMarkup } from "react-dom/server";
 import {
   AQUAVO_ENTITY,
@@ -26,6 +27,10 @@ import { articleAuthorEntity, authorBylineText, authorProfilePath } from "../sha
 import { DEFAULT_LOCALE, localizePath, type Locale } from "../shared/i18n/locales.js";
 import { preservePublicEmailHtml } from "../shared/public-email-html.js";
 import { isProductComingSoon } from "../shared/product-availability.js";
+
+export type SeoPreviewFish = Pick<FishSpecies,
+  "id" | "commonName" | "arabicName" | "scientificName" | "family" | "origin" | "minTankSize" | "description"
+>;
 
 export type SeoPreviewVariant = {
   images?: string[];

@@ -499,7 +499,7 @@ router.post("/suggestions", requireAdmin, async (req: Request, res: Response) =>
           name: product.name,
           price: numberValue(product.price),
           category: product.category,
-          image: product.image,
+          image: product.images?.[0] ?? product.thumbnail,
           thumbnail: product.thumbnail,
           stock: product.stock,
         },
