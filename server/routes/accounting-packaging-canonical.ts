@@ -12,6 +12,7 @@ import {
   IN_PROGRESS_STATUSES,
   REALIZED_STATUSES,
   toMoney as toNumber,
+  toMoneyOrNull,
 } from "../../shared/order-financials.js";
 import {
   buildCostResolver,
@@ -382,6 +383,10 @@ router.get("/orders", async (req: Request, res: Response, next: NextFunction): P
   }
 });
 
+function addProductCost(total: number | null, value: number | null): number | null {
+  return total == null || value == null ? null : total + value;
+}
+
 router.get("/products", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const db = accountingDb(res);
@@ -407,9 +412,10 @@ router.get("/products", async (req: Request, res: Response, next: NextFunction):
       name: string;
       unitsSold: number;
       revenue: number;
-      cogs: number;
-      packaging: number;
-      netProfit: number;
+      cogs: number | null;
+      packaging: number | null;
+      netProfit: number | null;
+      exactNetProfit: number | null;
       costsComplete: boolean;
       missingCostLines: number;
       missingProductLines: number;
@@ -420,6 +426,9 @@ router.get("/products", async (req: Request, res: Response, next: NextFunction):
       const snap = fulfillment.get(order.id);
       const base = calcOrderProfit(order, costs, snap, relational.get(order.id));
       const pack = canonicalPackaging(order, snap, cartonEvidence.get(order.id) === true);
+      const fulfillmentCost = pack.source === "legacy_box_cost"
+        ? toMoneyOrNull(order.boxCost)
+        : pack.complete ? pack.value : null;
       const grossTotal = base.items.reduce((sum, item) => sum + item.priceAtPurchase * item.qty, 0);
 
       for (const item of base.items) {
@@ -427,19 +436,14 @@ router.get("/products", async (req: Request, res: Response, next: NextFunction):
         const lineGross = item.priceAtPurchase * item.qty;
         const share = grossTotal > 0 ? lineGross / grossTotal : 0;
         const lineRevenue = base.revenue * share;
-        let lineCogs = 0;
-        let productLineComplete = item.unitCostPrice != null;
-        if (item.unitCostPrice != null) {
-          const components = [item.unitCostPrice, item.unitPackagingCost, item.unitInsertCost];
-          if (components.some((v) => v == null)) productLineComplete = false;
-          lineCogs = components
-            .filter((v): v is number => v != null)
-            .reduce((sum, value) => sum + value, 0) * item.qty;
-        }
-        const supplierPackaging =
-          ((item.unitPackagingCost ?? 0) + (item.unitInsertCost ?? 0)) * item.qty;
-        const fulfillmentShare = (pack.value ?? 0) * share;
-        const lineNet = lineRevenue - lineCogs - fulfillmentShare;
+        const unitPackaging = addProductCost(item.unitPackagingCost, item.unitInsertCost);
+        const supplierPackaging = unitPackaging == null ? null : unitPackaging * item.qty;
+        const unitCogs = addProductCost(item.unitCostPrice, unitPackaging);
+        const lineCogs = unitCogs == null || !base.sourceReconciled ? null : unitCogs * item.qty;
+        const lineNet = lineCogs == null || fulfillmentCost == null
+          ? null
+          : lineRevenue - lineCogs - fulfillmentCost * share;
+        const exact = item.costStatus === "exact" || item.costStatus === "verified_zero";
 
         const current = costs.getCurrent(item.productId);
         const existing = byProduct.get(item.productId) ?? {
@@ -450,16 +454,18 @@ router.get("/products", async (req: Request, res: Response, next: NextFunction):
           cogs: 0,
           packaging: 0,
           netProfit: 0,
+          exactNetProfit: 0,
           costsComplete: true,
           missingCostLines: 0,
           missingProductLines: 0,
         };
         existing.unitsSold += item.qty;
         existing.revenue += lineRevenue;
-        existing.cogs += lineCogs;
-        existing.packaging += supplierPackaging;
-        existing.netProfit += lineNet;
-        if (!productLineComplete || !pack.complete || pack.value == null) {
+        existing.cogs = addProductCost(existing.cogs, lineCogs);
+        existing.packaging = addProductCost(existing.packaging, base.sourceReconciled ? supplierPackaging : null);
+        existing.netProfit = addProductCost(existing.netProfit, lineNet);
+        existing.exactNetProfit = addProductCost(existing.exactNetProfit, exact ? lineNet : null);
+        if (lineNet == null) {
           existing.costsComplete = false;
           existing.missingCostLines++;
         }
@@ -477,19 +483,26 @@ router.get("/products", async (req: Request, res: Response, next: NextFunction):
         cogs: 0,
         packaging: 0,
         netProfit: 0,
+        exactNetProfit: 0,
         costsComplete: (current?.costsComplete ?? false),
         missingCostLines: 0,
         missingProductLines: 0,
       };
-      const margin = acc.revenue > 0 ? Math.round((acc.netProfit / acc.revenue) * 100) : 0;
+      const margin = acc.netProfit == null
+        ? null
+        : acc.revenue > 0 ? Math.round((acc.netProfit / acc.revenue) * 100) : 0;
       return {
         ...acc,
         margin,
-        costPrice: current?.costPrice ?? 0,
-        packagingCost: current?.packagingCost ?? 0,
-        insertCost: current?.insertCost ?? 0,
+        estimatedNetProfit: acc.netProfit,
+        costPrice: current?.costPrice ?? null,
+        packagingCost: current?.packagingCost ?? null,
+        insertCost: current?.insertCost ?? null,
       };
-    }).sort((a, b) => b.netProfit - a.netProfit);
+    }).sort((a, b) => {
+      if (a.netProfit == null) return b.netProfit == null ? 0 : 1;
+      return b.netProfit == null ? -1 : b.netProfit - a.netProfit;
+    });
 
     res.json({ success: true, data });
   } catch (error) {
