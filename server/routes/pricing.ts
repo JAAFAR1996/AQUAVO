@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express";
 import { requireAdmin } from "../middleware/auth.js";
-import { pricingEngine } from "../services/pricing-engine.js";
+import { pricingEngine, PRICE_HISTORY_MIN_POINTS } from "../services/pricing-engine.js";
 import { getDb } from "../db.js";
 import * as schema from "../../shared/schema.js";
 import { and, count, desc, eq, gte, inArray, isNull, sql } from "drizzle-orm";
@@ -8,7 +8,6 @@ import { and, count, desc, eq, gte, inArray, isNull, sql } from "drizzle-orm";
 const router = Router();
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-const PRICE_HISTORY_MIN_POINTS = 5;
 const TERMINAL_FAILURE_STATUSES = new Set([
   "cancelled",
   "rejected",

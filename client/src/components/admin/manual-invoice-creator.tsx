@@ -382,7 +382,6 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
     grid2:   { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 },
     section: { marginBottom: 20 },
     divider: { borderTop: "1px solid rgba(255,255,255,0.06)", margin: "20px 0" },
-    itemRow: { display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderBottom: "1px solid rgba(255,255,255,0.05)" },
     btnPrimary: { padding: "12px 24px", borderRadius: 12, background: "linear-gradient(135deg, #0B93A6, #075F6B)", color: "#fff", fontSize: 15, fontWeight: 700, border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 8 },
     btnSecondary: { padding: "12px 24px", borderRadius: 12, background: "rgba(255,255,255,0.05)", color: "#94a3b8", fontSize: 15, fontWeight: 600, border: "1px solid rgba(255,255,255,0.1)", cursor: "pointer", display: "flex", alignItems: "center", gap: 8 },
     btnGreen: { padding: "12px 24px", borderRadius: 12, background: "linear-gradient(135deg, #22c55e, #16a34a)", color: "#fff", fontSize: 15, fontWeight: 700, border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 8 },
@@ -717,16 +716,16 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
             ) : (
               <>
                 {items.map((item, idx) => (
-                  <div key={idx} style={s.itemRow}>
+                  <div key={idx} className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2.5 border-b border-white/5 py-2.5 sm:flex">
                     {item.imageUrl
                       ? <img src={item.imageUrl} alt="" style={{ width: 44, height: 44, borderRadius: 8, objectFit: "cover", flexShrink: 0 }} />
                       : <div style={{ width: 44, height: 44, borderRadius: 8, background: "#1e2a3a", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Package size={18} color="#0B93A6" /></div>
                     }
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.name}</div>
+                    <div className="col-span-2 min-w-0 flex-1">
+                      <div className="break-words text-[13px] font-semibold">{item.name}</div>
                       <div style={{ fontSize: 12, color: "#64748b" }}>{item.unitPrice.toLocaleString("en-US")} د.ع / قطعة</div>
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <div className="flex shrink-0 items-center gap-1.5">
                       <button onClick={() => updateQuantity(idx, item.quantity - 1)} style={{ width: 28, height: 28, borderRadius: 6, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#e2e8f0", cursor: "pointer" }}>-</button>
                       <span style={{ minWidth: 24, textAlign: "center", fontWeight: 700 }}>{item.quantity}</span>
                       <button onClick={() => updateQuantity(idx, item.quantity + 1)} style={{ width: 28, height: 28, borderRadius: 6, background: "rgba(11,147,166,0.15)", border: "1px solid rgba(11,147,166,0.3)", color: "#0B93A6", cursor: "pointer" }}>+</button>
@@ -734,7 +733,7 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
                     <div style={{ color: "var(--aqv-warning)", fontWeight: 700, minWidth: 90, textAlign: "left" as const, fontSize: 13 }}>
                       {item.total.toLocaleString("en-US")} د.ع
                     </div>
-                    <button onClick={() => removeItem(idx)} style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer", padding: 4 }}><Trash2 size={16} /></button>
+                    <button aria-label={`حذف ${item.name}`} onClick={() => removeItem(idx)} style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer", padding: 4 }}><Trash2 size={16} /></button>
                   </div>
                 ))}
               </>

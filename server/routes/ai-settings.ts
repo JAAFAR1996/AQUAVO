@@ -259,6 +259,7 @@ router.post("/settings/:agentName/run", requireAdmin as any, async (req: Request
     switch (agentName) {
       case "inventory":
         runResult = await inventoryOptimizer.analyzeAllProducts();
+        if (runResult.failed > 0) runStatus = "error";
         break;
       case "content":
         runResult = await triggerJob("autoblog");
@@ -299,11 +300,12 @@ router.post("/settings/:agentName/run", requireAdmin as any, async (req: Request
       .returning();
 
     console.log(`🤖 Agent "${agentName}" manually triggered - result:`, runResult);
-    res.json({
-      success: true,
+    res.status(runStatus === "error" ? 503 : 200).json({
+      success: runStatus === "success",
+      ...(runStatus === "error" ? { error: `تم تحليل ${runResult.analyzed} منتج وتعذّر حفظ التوصية لـ ${runResult.failed} منتج.` } : {}),
       data: updated,
       result: runResult,
-      message: `تم تشغيل ${agent.displayName} بنجاح`,
+      ...(runStatus === "success" ? { message: `تم تشغيل ${agent.displayName} بنجاح` } : {}),
     });
   } catch (error) {
     console.error("Error running agent:", error);
