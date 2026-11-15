@@ -64,3 +64,16 @@ export function getProductDisplayIdentity(product: {
     name: getProductDisplayName(product.name, brand),
   };
 }
+
+// Older loose-stock SKUs predate the catalogue sale-unit field.
+const KILOGRAM_SKUS = new Set([
+  "houyi-river-sand", "houyi-volcanic-stone-red", "houyi-volcanic-stone-black",
+  "houyi-activated-carbon", "houyi-ceramic-ring", "houyi-breathing-ring-white",
+]);
+
+export function isSoldByKilogram(product: { slug: string; specifications?: Record<string, unknown> | null }): boolean {
+  const specs = product.specifications ?? {};
+  const saleUnit = specs["وحدة البيع"] ?? specs["البيع"] ?? specs["Sale unit"] ?? specs["Sales unit"] ?? specs["یەکەی فرۆشتن"];
+  if (typeof saleUnit !== "string" || !saleUnit.trim()) return KILOGRAM_SKUS.has(product.slug);
+  return /^(?:(?:بال)?كيلو(?:غرام|جرام)?|كغ[م]?|(?:per |by the )?(?:kg|kilogram)|(?:بە)?کیلۆ(?:گرام)?)$/iu.test(saleUnit.trim());
+}

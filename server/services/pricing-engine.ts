@@ -1,6 +1,24 @@
 import { getDb } from "../db.js";
 import * as schema from "../../shared/schema.js";
-import { eq, desc, and, gte, sql } from "drizzle-orm";
+import { eq, desc, and, gte } from "drizzle-orm";
+
+export const PRICE_HISTORY_MIN_POINTS = 5;
+
+type Reading = string | number | null;
+function observedNumber(value: Reading): number | null {
+  if (value === null || (typeof value === "string" && !value.trim())) return null;
+  const number = Number(value);
+  return Number.isFinite(number) && number >= 0 ? number : null;
+}
+
+function mean(values: number[]): number {
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+function averageSignal(readings: Reading[]): number | null {
+  const values = readings.map(observedNumber).filter(value => value !== null);
+  return values.length >= PRICE_HISTORY_MIN_POINTS ? mean(values) : null;
+}
 
 /**
  * محرك التسعير الذكي - تحليل الأسعار الزمني (Time Series)
@@ -42,20 +60,26 @@ export class PricingEngine {
         )
         .orderBy(schema.priceHistory.createdAt);
 
-      if (priceHistory.length < 10) {
-        console.log(`[Pricing] ⚠️ Not enough data points (${priceHistory.length}) for elasticity`);
+      // Elasticity compares price and sales for the same observations. A missing
+      // sales measurement cannot be counted as a day with zero sales.
+      const observations = priceHistory.flatMap(row => {
+        const price = observedNumber(row.price);
+        const sales = observedNumber(row.salesVelocity);
+        return price !== null && sales !== null ? [{ price, sales }] : [];
+      });
+      if (observations.length < 10) {
+        console.log(`[Pricing] ⚠️ Not enough data points (${observations.length}) for elasticity`);
         return null;
       }
 
       // حساب متوسطات لنقاط البداية والنهاية
-      const firstHalf = priceHistory.slice(0, Math.floor(priceHistory.length / 2));
-      const secondHalf = priceHistory.slice(Math.floor(priceHistory.length / 2));
-
-      const avgPrice1 = firstHalf.reduce((sum, p) => sum + parseFloat(p.price), 0) / firstHalf.length;
-      const avgSales1 = firstHalf.reduce((sum, p) => sum + p.salesVelocity, 0) / firstHalf.length;
-
-      const avgPrice2 = secondHalf.reduce((sum, p) => sum + parseFloat(p.price), 0) / secondHalf.length;
-      const avgSales2 = secondHalf.reduce((sum, p) => sum + p.salesVelocity, 0) / secondHalf.length;
+      const middle = Math.floor(observations.length / 2);
+      const firstHalf = observations.slice(0, middle);
+      const secondHalf = observations.slice(middle);
+      const avgPrice1 = mean(firstHalf.map(row => row.price));
+      const avgSales1 = mean(firstHalf.map(row => row.sales));
+      const avgPrice2 = mean(secondHalf.map(row => row.price));
+      const avgSales2 = mean(secondHalf.map(row => row.sales));
 
       // تجنب القسمة على صفر
       if (avgPrice1 === 0 || avgSales1 === 0) return null;
@@ -186,10 +210,10 @@ export class PricingEngine {
       }
 
       // حساب متوسط سرعة المبيعات
-      const avgSalesVelocity = recentHistory.reduce((sum, h) => sum + h.salesVelocity, 0) / recentHistory.length;
+      const avgSalesVelocity = averageSignal(recentHistory.map(row => row.salesVelocity));
 
       // حساب متوسط الطلب
-      const avgDemandScore = recentHistory.reduce((sum, h) => sum + h.demandScore, 0) / recentHistory.length;
+      const avgDemandScore = averageSignal(recentHistory.map(row => row.demandScore));
 
       // العامل الموسمي
       const seasonalFactor = this.getSeasonalFactor(currentProduct.category);
@@ -201,7 +225,7 @@ export class PricingEngine {
       let confidence = 0.5;
 
       // 1. مخزون منخفض + طلب مرتفع → زيادة السعر
-      if (currentStock < 10 && avgDemandScore > 70) {
+      if (currentStock < 10 && avgDemandScore !== null && avgDemandScore > 70) {
         const increasePercent = 0.05 + (avgDemandScore / 100) * 0.1; // 5-15%
         suggestedPrice = currentPrice * (1 + increasePercent);
         reason = `مخزون منخفض (${currentStock}) وطلب مرتفع (${Math.round(avgDemandScore)}%) - زيادة السعر للاستفادة من الطلب`;
@@ -209,7 +233,7 @@ export class PricingEngine {
         confidence = 0.8;
       }
       // 2. مخزون زائد + مبيعات بطيئة → تخفيض السعر
-      else if (currentStock > 50 && avgSalesVelocity < 2) {
+      else if (currentStock > 50 && avgSalesVelocity !== null && avgSalesVelocity < 2) {
         const decreasePercent = 0.1 + (currentStock / 100) * 0.1; // 10-20%
         suggestedPrice = currentPrice * (1 - decreasePercent);
         reason = `مخزون زائد (${currentStock}) ومبيعات بطيئة (${avgSalesVelocity.toFixed(1)}/يوم) - تخفيض السعر لتصريف المخزون`;

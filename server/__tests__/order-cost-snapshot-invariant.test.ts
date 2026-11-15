@@ -216,6 +216,16 @@ describe("canonical builder — verified zero vs unknown", () => {
     });
   });
 
+  it("captures the exact option cost when it is verified and marks a parent fallback incomplete", () => {
+    const product = { ...KNOWN_COST_PRODUCT, hasVariants: true, variants: [
+      { id: "large", costPrice: 8500, costStatus: "verified_derived" },
+      { id: "small", costPrice: null },
+    ] };
+    const at = new Date("2026-11-15");
+    expect(buildProductCostSnapshot(product, at, "large")).toMatchObject({ costPrice: 8500, costStatus: "exact" });
+    expect(buildProductCostSnapshot(product, at, "small")).toMatchObject({ costPrice: 6000, costStatus: "incomplete" });
+  });
+
   it("verified zero stays 0 — NOT unknown", () => {
     const s = buildProductCostSnapshot(VERIFIED_ZERO_PRODUCT);
     expect(s.costPrice).toBe(0);

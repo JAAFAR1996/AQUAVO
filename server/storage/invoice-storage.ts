@@ -4,13 +4,31 @@ import { getDb } from "../db.js";
 import { randomUUID, randomBytes } from "crypto";
 import {
   manualInvoices,
+  contentTranslations,
   products,
   type ManualInvoiceItem,
   type ManualInvoice,
   type InsertManualInvoice,
   type InvoiceStatus,
 } from "../../shared/schema.js";
-import { canonicalizeManualInvoiceItems } from "../services/manual-invoice-names.js";
+import type { ManualInvoiceLocale } from "../../shared/manual-invoice-locale.js";
+import { canonicalizeManualInvoiceItems, type InvoiceCatalogueProduct } from "../services/manual-invoice-names.js";
+
+type InvoiceReader = Pick<NonNullable<ReturnType<typeof getDb>>, "select">;
+
+async function resolveInvoiceNames(
+  db: InvoiceReader,
+  items: readonly ManualInvoiceItem[],
+  catalogue: readonly InvoiceCatalogueProduct[],
+  locale: ManualInvoiceLocale,
+): Promise<ManualInvoiceItem[]> {
+  if (locale !== "ckb" || !catalogue.length) return canonicalizeManualInvoiceItems(items, catalogue);
+  const translations = await db.select({ id: contentTranslations.entityId, data: contentTranslations.data })
+    .from(contentTranslations)
+    .where(and(eq(contentTranslations.entityType, "product"), eq(contentTranslations.locale, locale),
+      inArray(contentTranslations.entityId, catalogue.map(product => product.id))));
+  return canonicalizeManualInvoiceItems(items, catalogue, new Map(translations.map(row => [row.id, row.data])));
+}
 
 // nanoid-compatible secure random token
 function generateToken(length = 16): string {
@@ -38,17 +56,15 @@ export class InvoiceStorage {
     return this.db;
   }
 
-  /** Resolve Arabic source names for invoice drafts. Never change prices or quantities. */
-  private async canonicalizeDraftItems(items: readonly ManualInvoiceItem[]): Promise<ManualInvoiceItem[]> {
+  private async canonicalizeDraftItems(db: InvoiceReader, items: readonly ManualInvoiceItem[], locale: ManualInvoiceLocale): Promise<ManualInvoiceItem[]> {
     if (items.length === 0) return [];
-    const db = this.ensureDb();
     const ids = [...new Set(items.map((item) => item.productId))];
     const catalogue = await db.select({
       id: products.id,
       name: products.name,
       variants: products.variants,
     }).from(products).where(inArray(products.id, ids));
-    return canonicalizeManualInvoiceItems(items, catalogue);
+    return resolveInvoiceNames(db, items, catalogue, locale);
   }
 
   /** جلب كل الفواتير (للـ admin) */
@@ -79,33 +95,38 @@ export class InvoiceStorage {
   /** إنشاء فاتورة جديدة */
   async create(
     data: InsertManualInvoice,
-    createdBy?: string
+    createdBy?: string,
+    requestId?: string,
   ): Promise<ManualInvoice> {
     const db = this.ensureDb();
-    const id = randomUUID();
+    const id = requestId ?? randomUUID();
     const token = generateToken(16);
     const invoiceNo = generateInvoiceNo();
-    const canonicalItems = await this.canonicalizeDraftItems(data.items);
+    const canonicalItems = await this.canonicalizeDraftItems(db, data.items, data.invoiceLocale);
 
     const [created] = await db.insert(manualInvoices).values({
       id,
       invoiceNo,
       token,
+      invoiceLocale:     data.invoiceLocale,
       customerName:    data.customerName,
       customerPhone:   data.customerPhone,
       customerCity:    data.customerCity,
       customerAddress: data.customerAddress,
       customerNotes:   data.customerNotes,
-      items:           canonicalItems as any,
+      items:           canonicalItems,
       subtotal:        String(data.subtotal),
       discount:        String(data.discount ?? 0),
       delivery:        String(data.delivery ?? 0),
       total:           String(data.total),
       status:          "draft",
       createdBy:       createdBy ?? null,
-    } as any).returning();
+    }).onConflictDoNothing({ target: manualInvoices.id }).returning();
 
-    return created;
+    if (created) return created;
+    const existing = await this.getById(id);
+    if (requestId && existing && existing.createdBy === (createdBy ?? null)) return existing;
+    throw Object.assign(new Error("تعذر مطابقة محاولة حفظ الفاتورة"), { status: 409 });
   }
 
   /** تحديث بيانات الفاتورة (draft فقط) */
@@ -115,36 +136,37 @@ export class InvoiceStorage {
   ): Promise<ManualInvoice | undefined> {
     const db = this.ensureDb();
 
-    const existing = await this.getById(id);
-    if (!existing || existing.status !== "draft") return undefined;
+    return db.transaction(async tx => {
+      const [existing] = await tx.select().from(manualInvoices)
+        .where(eq(manualInvoices.id, id)).for("update");
+      if (!existing || existing.status !== "draft") return undefined;
 
-    const updates: Record<string, unknown> = { updatedAt: new Date() };
-    if (data.customerName    !== undefined) updates.customerName    = data.customerName;
-    if (data.customerPhone   !== undefined) updates.customerPhone   = data.customerPhone;
-    if (data.customerCity    !== undefined) updates.customerCity    = data.customerCity;
-    if (data.customerAddress !== undefined) updates.customerAddress = data.customerAddress;
-    if (data.customerNotes   !== undefined) updates.customerNotes   = data.customerNotes;
-    if (data.items           !== undefined) updates.items           = await this.canonicalizeDraftItems(data.items);
-    if (data.subtotal        !== undefined) updates.subtotal        = String(data.subtotal);
-    if (data.discount        !== undefined) updates.discount        = String(data.discount);
-    if (data.delivery        !== undefined) updates.delivery        = String(data.delivery);
-    if (data.total           !== undefined) updates.total           = String(data.total);
+      const updates: Record<string, unknown> = { updatedAt: new Date() };
+      if (data.customerName    !== undefined) updates.customerName    = data.customerName;
+      if (data.customerPhone   !== undefined) updates.customerPhone   = data.customerPhone;
+      if (data.customerCity    !== undefined) updates.customerCity    = data.customerCity;
+      if (data.customerAddress !== undefined) updates.customerAddress = data.customerAddress;
+      if (data.customerNotes   !== undefined) updates.customerNotes   = data.customerNotes;
+      if (data.invoiceLocale !== undefined) updates.invoiceLocale = data.invoiceLocale;
+      if (data.items !== undefined || (data.invoiceLocale !== undefined && data.invoiceLocale !== existing.invoiceLocale)) {
+        updates.items = await this.canonicalizeDraftItems(tx, data.items ?? existing.items, data.invoiceLocale ?? existing.invoiceLocale);
+      }
+      if (data.subtotal        !== undefined) updates.subtotal        = String(data.subtotal);
+      if (data.discount        !== undefined) updates.discount        = String(data.discount);
+      if (data.delivery        !== undefined) updates.delivery        = String(data.delivery);
+      if (data.total           !== undefined) updates.total           = String(data.total);
 
-    const [updated] = await db.update(manualInvoices)
-      .set(updates as any)
-      .where(and(eq(manualInvoices.id, id), eq(manualInvoices.status, "draft")))
-      .returning();
-    return updated;
+      const [updated] = await tx.update(manualInvoices)
+        .set(updates as any)
+        .where(and(eq(manualInvoices.id, id), eq(manualInvoices.status, "draft")))
+        .returning();
+      return updated;
+    });
   }
 
   /** إرسال الفاتورة → تغيير الحالة لـ sent وتحديد وقت انتهاء الصلاحية */
   async send(id: string): Promise<ManualInvoice | undefined> {
     const db = this.ensureDb();
-    const existing = await this.getById(id);
-    if (!existing || !["draft"].includes(existing.status)) return undefined;
-
-    const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000); // 48 ساعة
-
     // A saved draft may predate a product's option setup. Validate its exact
     // current identity before exposing a confirmation link; never silently map
     // its old null variant to a different size or rewrite its agreed price.
@@ -152,9 +174,16 @@ export class InvoiceStorage {
     return await db.transaction(async (tx) => {
       const [locked] = await tx.select().from(manualInvoices)
         .where(eq(manualInvoices.id, id)).for("update");
-      if (!locked || locked.status !== "draft") return undefined;
+      if (!locked) return undefined;
+      if (locked.status === "sent") {
+        if (locked.expiresAt && locked.expiresAt.getTime() <= Date.now()) {
+          throw Object.assign(new Error("انتهت صلاحية رابط الفاتورة"), { status: 410 });
+        }
+        return locked;
+      }
+      if (locked.status !== "draft") return undefined;
       const lines = Array.isArray(locked.items) ? locked.items : [];
-      const canonicalLines: ManualInvoiceItem[] = [];
+      const catalogue: InvoiceCatalogueProduct[] = [];
       for (const line of lines) {
         const product = await lockProductRowForUpdate(tx, line.productId);
         if (!product || (product.hasVariants && !line.variantId) || (!product.hasVariants && line.variantId)) {
@@ -165,9 +194,13 @@ export class InvoiceStorage {
           if (!isVariantPurchasable(variant, Number(line.quantity))) {
             throw Object.assign(new Error("خيار في الفاتورة غير متاح؛ راجعه قبل الإرسال"), { status: 409 });
           }
+        } else if (Number(product.stock) < Number(line.quantity)) {
+          throw Object.assign(new Error("الكمية المطلوبة غير متوفرة؛ راجع الفاتورة قبل الإرسال"), { status: 409 });
         }
-        canonicalLines.push(canonicalizeManualInvoiceItems([line], [product])[0]);
+        catalogue.push(product);
       }
+      const canonicalLines = await resolveInvoiceNames(tx, lines, catalogue, locked.invoiceLocale);
+      const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
       const [updated] = await tx.update(manualInvoices)
         .set({ items: canonicalLines, status: "sent", sentAt: new Date(), expiresAt, updatedAt: new Date() } as any)
         .where(and(eq(manualInvoices.id, id), eq(manualInvoices.status, "draft")))
@@ -228,8 +261,9 @@ export class InvoiceStorage {
 
     const [updated] = await db.update(manualInvoices)
       .set({ status: "rejected", rejectedAt: new Date(), updatedAt: new Date() } as any)
-      .where(eq(manualInvoices.id, existing.id))
+      .where(and(eq(manualInvoices.id, existing.id), eq(manualInvoices.status, "sent")))
       .returning();
+    if (!updated) throw Object.assign(new Error("تغيرت حالة الفاتورة، حدّث الصفحة"), { status: 409 });
     return updated;
   }
 
@@ -241,7 +275,7 @@ export class InvoiceStorage {
 
     const [updated] = await db.update(manualInvoices)
       .set({ status: "cancelled", updatedAt: new Date() } as any)
-      .where(eq(manualInvoices.id, id))
+      .where(and(eq(manualInvoices.id, id), eq(manualInvoices.status, existing.status)))
       .returning();
     return updated;
   }

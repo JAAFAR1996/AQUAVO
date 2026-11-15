@@ -41,3 +41,11 @@ describe("Arabic payment glossary context", () => {
     expect(sourceForGlossaryConcept(text, "wire")).toBe(text);
   });
 });
+
+it("distinguishes sand grain size and physically pushing a brush from commerce terms", () => {
+  expect(sourceForGlossaryConcept("رمل أحمر. قارن حجم الحبيبات.", "pellet-food")).not.toContain("الحبيبات");
+  expect(sourceForGlossaryConcept("رمل وردي بوزن 2.5 كغم وحبيبات ناعمة 0.2–0.5 ملم.", "pellet-food")).not.toContain("حبيبات");
+  const fishFood = "طعام بيتا. اختر حجم الحبيبات حسب فم السمكة.";
+  expect(sourceForGlossaryConcept(fishFood, "pellet-food")).toBe(fishFood);
+  expect(sourceForGlossaryConcept("بدل دفع فرشاة أكبر. الدفع عند الاستلام.", "payment")).toBe("بدل  فرشاة أكبر. الدفع عند الاستلام.");
+});

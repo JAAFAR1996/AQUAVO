@@ -347,11 +347,6 @@ function numberValue(value: string | number | null | undefined): number | null {
   return Number.isFinite(numeric) ? numeric : null;
 }
 
-function cleanText(value: string | null | undefined, fallback = ""): string {
-  const text = (value || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
-  return text || fallback;
-}
-
 /**
  * A meta description cut to fit, at a word boundary.
  *
@@ -577,14 +572,14 @@ async function loadDealProducts(): Promise<SeoPreviewProduct[]> {
 }
 
 async function loadFishSpecies(): Promise<SeoPreviewFish[]> {
-  const { rows } = await getPool().query(
+  const { rows } = await getPool().query<SeoPreviewFish>(
     `SELECT id, common_name AS "commonName", arabic_name AS "arabicName",
             scientific_name AS "scientificName", family, origin,
             min_tank_size AS "minTankSize", description
        FROM fish_species
       ORDER BY arabic_name`,
   );
-  return rows as SeoPreviewFish[];
+  return rows;
 }
 
 async function loadBlogIndexPosts(): Promise<SeoPreviewBlogPost[]> {
@@ -1046,7 +1041,7 @@ function injectDocument(template: string, meta: Meta, shell: string, robots: str
  * so the two cannot state different prices or a different stock status. There
  * is nothing here that is not also on the page.
  */
-function markdown(page: SeoPreviewPage, meta: Meta, shippingFee = AQUAVO_ENTITY.deliveryFee): string {
+function markdown(page: SeoPreviewPage, meta: Meta, shippingFee: number = AQUAVO_ENTITY.deliveryFee): string {
   const heading = page.kind === "blog-post" ? page.post.title : meta.title;
   const lines = [`# ${heading}`, "", meta.description, ""];
   if (meta.canonicalPath) lines.push(`Canonical: ${AQUAVO_BASE_URL}${meta.canonicalPath}`, "");

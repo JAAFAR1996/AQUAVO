@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 import { NavbarPreferencesProvider } from '@/hooks/use-navbar-preferences';
 
+const cartLine = vi.hoisted(() => ({ quantity: 2, stock: undefined as number | undefined }));
 const mockSetLocation = vi.hoisted(() => vi.fn());
 const mockUpdateQuantity = vi.hoisted(() => vi.fn());
 const mockRemoveItem = vi.hoisted(() => vi.fn());
@@ -21,7 +22,7 @@ vi.mock('wouter', () => ({
 vi.mock('@/contexts/cart-context', () => ({
     useCart: () => ({
         items: [
-            { id: '1', productId: '1', name: 'فلتر اختبار', image: '/brand/aquavo-v2-icon.svg', price: 25000, quantity: 2 },
+            { id: '1', productId: '1', name: 'فلتر اختبار', image: '/brand/aquavo-v2-icon.svg', price: 25000, ...cartLine },
         ],
         totalItems: 2,
         totalPrice: 50000,
@@ -51,7 +52,11 @@ const createWrapper = () => {
 };
 
 describe('Cart drawer accessibility', () => {
-    beforeEach(() => vi.clearAllMocks());
+    beforeEach(() => {
+        vi.clearAllMocks();
+        cartLine.quantity = 2;
+        cartLine.stock = undefined;
+    });
     afterEach(() => vi.restoreAllMocks());
 
     it('exposes accessible names for quantity and remove controls', async () => {
@@ -63,6 +68,17 @@ describe('Cart drawer accessibility', () => {
         expect(screen.getByRole('button', { name: 'تقليل كمية فلتر اختبار' })).toBeInTheDocument();
         expect(screen.getByRole('button', { name: 'زيادة كمية فلتر اختبار' })).toBeInTheDocument();
         expect(screen.getByRole('button', { name: 'إزالة فلتر اختبار من السلة' })).toBeInTheDocument();
+    });
+
+    it('disables both quantity buttons when the only unit is already in the cart', async () => {
+        cartLine.quantity = 1;
+        cartLine.stock = 1;
+        const user = await import('@testing-library/user-event').then((module) => module.default.setup());
+        render(<Navbar />, { wrapper: createWrapper() });
+        await user.click(screen.getAllByRole('button', { name: /سلة المشتريات/ })[0]);
+        expect(screen.getByRole('button', { name: 'تقليل كمية فلتر اختبار' })).toBeDisabled();
+        expect(screen.getByRole('button', { name: 'زيادة كمية فلتر اختبار' })).toBeDisabled();
+        expect(screen.getByRole('button', { name: 'إزالة فلتر اختبار من السلة' })).toBeEnabled();
     });
 
     it('renders cart items as a list with a discernible accessible name per item', async () => {

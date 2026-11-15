@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
-import { useParams, useLocation } from "wouter";
+import { useParams } from "wouter";
 import { CheckCircle2, XCircle, Clock, Package, MapPin, AlertTriangle, Loader2, Sparkles } from "lucide-react";
 import { addCsrfHeader } from "@/lib/csrf";
 import { useTranslation } from "react-i18next";
-import { i18next } from "@/i18n";
+import { loadLocale } from "@/i18n";
+import { LOCALES, localizePath, splitLocaleFromPath } from "@shared/i18n/locales";
+import type { ManualInvoiceLocale } from "@shared/manual-invoice-locale";
+import "./invoice-print.css";
 
 interface InvoiceItem {
   productId: string;
@@ -16,6 +19,7 @@ interface InvoiceItem {
 }
 
 interface InvoiceData {
+  invoiceLocale?: ManualInvoiceLocale;
   invoiceNo: string;
   customerName: string;
   customerCity?: string;
@@ -32,38 +36,63 @@ interface InvoiceData {
   orderId?: string;
 }
 
-const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
-  sent:      { label: i18next.t("orders:invoice-view.s1"),  color: "#0B93A6", icon: <Clock className="w-6 h-6" /> },
-  confirmed: { label: i18next.t("orders:invoice-view.s2"),     color: "#22c55e", icon: <CheckCircle2 className="w-6 h-6" /> },
-  rejected:  { label: i18next.t("orders:invoice-view.s3"),       color: "#ef4444", icon: <XCircle className="w-6 h-6" /> },
-  cancelled: { label: i18next.t("orders:invoice-view.s4"),         color: "#6b7280", icon: <XCircle className="w-6 h-6" /> },
-  completed: { label: i18next.t("orders:invoice-view.s5"),     color: "#22c55e", icon: <CheckCircle2 className="w-6 h-6" /> },
+type StatusLabel = `invoice-view.${"draft" | "s1" | "s2" | "s3" | "s4" | "s5"}`;
+const STATUS_CONFIG: Record<string, { label: StatusLabel; color: string; icon: React.ReactNode }> = {
+  draft:     { label: "invoice-view.draft", color: "#94a3b8", icon: <Clock className="w-6 h-6" /> },
+  sent:      { label: "invoice-view.s1",  color: "#0B93A6", icon: <Clock className="w-6 h-6" /> },
+  confirmed: { label: "invoice-view.s2",     color: "#22c55e", icon: <CheckCircle2 className="w-6 h-6" /> },
+  rejected:  { label: "invoice-view.s3",       color: "#ef4444", icon: <XCircle className="w-6 h-6" /> },
+  cancelled: { label: "invoice-view.s4",         color: "#6b7280", icon: <XCircle className="w-6 h-6" /> },
+  completed: { label: "invoice-view.s5",     color: "#22c55e", icon: <CheckCircle2 className="w-6 h-6" /> },
 };
 
 export default function InvoiceView() {
-  const { t } = useTranslation("orders");
+  const pathLocale = splitLocaleFromPath(window.location.pathname).locale;
+  const [receiptLocale, setReceiptLocale] = useState<ManualInvoiceLocale | null>(null);
+  const locale = receiptLocale ?? pathLocale;
+  const { t } = useTranslation("orders", { lng: locale });
   const params = useParams<{ token: string }>();
   const token = params.token;
 
   const [invoice, setInvoice] = useState<InvoiceData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<"unavailable" | "expired" | "s6" | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [actionDone, setActionDone] = useState<"confirmed" | "rejected" | null>(null);
-  const [orderId, setOrderId] = useState<string | null>(null);
-  const [, setLocation] = useLocation();
-
   useEffect(() => {
-    if (!token) return;
-    fetch(`/api/invoice/${token}`)
-      .then(r => r.json())
-      .then(d => {
-        if (d.success) setInvoice(d.data);
-        else setError(d.message);
-      })
-      .catch(() => setError(t("invoice-view.s6")))
-      .finally(() => setLoading(false));
+    const controller = new AbortController();
+    setLoading(true);
+    setError(null);
+    setInvoice(null);
+    setActionDone(null);
+    setReceiptLocale(null);
+    async function load() {
+      try {
+        const r = await fetch(`/api/invoice/${encodeURIComponent(token)}`, { signal: controller.signal });
+        const d = await r.json();
+        const storedLocale = d.success ? d.data?.invoiceLocale : d.invoiceLocale;
+        const language = storedLocale === "ckb" ? "ckb" : "ar";
+        if (d.success || storedLocale) await loadLocale(language);
+        if (controller.signal.aborted) return;
+        if (d.success || storedLocale) setReceiptLocale(language);
+        if (r.ok && d.success) setInvoice(d.data);
+        else setError(r.status === 410 ? "expired" : r.status === 404 ? "unavailable" : "s6");
+      } catch {
+        if (!controller.signal.aborted) setError("s6");
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
+      }
+    }
+    void load();
+    return () => controller.abort();
   }, [token]);
+
+  const actionError = (status: number, message: unknown) => {
+    if (locale === "ar" && typeof message === "string") return message;
+    if (status === 410) return t("invoice-view.expired");
+    if (status === 404) return t("invoice-view.unavailable");
+    return status === 400 || status === 409 ? t("invoice-view.review") : t("invoice-view.s8");
+  };
 
   const handleConfirm = async () => {
     if (!confirm(t("invoice-view.s7"))) return;
@@ -77,16 +106,10 @@ export default function InvoiceView() {
       });
       const d = await r.json();
       if (d.success) {
-        const confirmedOrderId = d.orderId ?? null;
-        setOrderId(confirmedOrderId);
         setActionDone("confirmed");
         setInvoice(prev => prev ? { ...prev, status: "confirmed" } : prev);
-        // تحويل مباشر لصفحة الاحتفالية كالطلب العادي بعد ثانيتين
-        if (confirmedOrderId) {
-          setTimeout(() => setLocation(`/order-confirmation/${confirmedOrderId}`), 1500);
-        }
       } else {
-        alert(d.message);
+        alert(actionError(r.status, d.message));
       }
     } catch {
       alert(t("invoice-view.s8"));
@@ -109,7 +132,7 @@ export default function InvoiceView() {
         setActionDone("rejected");
         setInvoice(prev => prev ? { ...prev, status: "rejected" } : prev);
       } else {
-        alert(d.message);
+        alert(actionError(r.status, d.message));
       }
     } catch {
       alert(t("invoice-view.s8"));
@@ -120,7 +143,7 @@ export default function InvoiceView() {
 
   // ── Styles ─────────────────────────────────────────────────────────────────
   const s = {
-    page:    { minHeight: "100vh", background: "#0a0f1a", color: "#e2e8f0", fontFamily: "'Cairo', Tahoma, sans-serif", padding: "16px 12px", direction: "rtl" as const },
+    page:    { minHeight: "100vh", background: "#0a0f1a", color: "#e2e8f0", fontFamily: locale === "ckb" ? "'Noto Sans Arabic', Tahoma, sans-serif" : "'Cairo', Tahoma, sans-serif", padding: "16px 12px", direction: "rtl" as const },
     card:    { maxWidth: 460, margin: "0 auto", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, overflow: "hidden" },
     header:  { background: "linear-gradient(135deg, #0d1b2a 0%, #0B93A620 100%)", padding: "24px 20px", textAlign: "center" as const, borderBottom: "1px solid rgba(11,147,166,0.2)" },
     logo:    { fontSize: 24, fontWeight: 800, color: "#0B93A6", letterSpacing: 3, marginBottom: 2 },
@@ -149,11 +172,11 @@ export default function InvoiceView() {
   );
 
   if (error) return (
-    <div style={s.page}>
+    <div lang={locale} dir="rtl" style={s.page}>
       <div style={{ ...s.card, textAlign: "center", padding: 40 }}>
         <AlertTriangle size={48} color="#ef4444" style={{ marginBottom: 16 }} />
         <h2 style={{ color: "#ef4444", marginBottom: 8 }}>{t("invoice-view.s10")}</h2>
-        <p style={{ color: "#94a3b8" }}>{error}</p>
+        <p style={{ color: "#94a3b8" }}>{t(`invoice-view.${error}`)}</p>
       </div>
     </div>
   );
@@ -163,7 +186,7 @@ export default function InvoiceView() {
   const statusCfg = STATUS_CONFIG[invoice.status] ?? STATUS_CONFIG.sent;
 
   return (
-    <div style={s.page}>
+    <div className="manual-invoice-receipt" lang={locale} dir="rtl" style={s.page}>
       <div style={s.card}>
         {/* Header */}
         <div style={s.header}>
@@ -172,7 +195,7 @@ export default function InvoiceView() {
           <div style={s.invNo}>{t("invoice-view.s12")} {invoice.invoiceNo}</div>
           <div style={{ marginTop: 12 }}>
             <span style={s.badge(statusCfg.color)}>
-              {statusCfg.icon} {statusCfg.label}
+              {statusCfg.icon} {t(statusCfg.label)}
             </span>
           </div>
         </div>
@@ -215,10 +238,10 @@ export default function InvoiceView() {
                 <div style={s.itemName}>
                   <div style={{ fontWeight: 600, fontSize: 14 }}>{item.name}</div>
                   {item.variantLabel && !item.name.endsWith(` — ${item.variantLabel}`) && <div style={{ color: "#94a3b8", fontSize: 12, marginTop: 2 }}>{item.variantLabel}</div>}
-                  <div style={{ color: "#64748b", fontSize: 12 }}>{t("invoice-view.s16")} {item.quantity} × {item.unitPrice.toLocaleString("en-US")} {t("invoice-view.s17")}</div>
+                  <div style={{ color: "#64748b", fontSize: 12 }}>{t("invoice-view.s16")} {item.quantity} × {item.unitPrice.toLocaleString(LOCALES[locale].intl)} {t("invoice-view.s17")}</div>
                 </div>
                 <div style={{ color: "#0B93A6", fontWeight: 700, whiteSpace: "nowrap" }}>
-                  {item.total.toLocaleString("en-US")} {t("invoice-view.s17")}
+                  {item.total.toLocaleString(LOCALES[locale].intl)} {t("invoice-view.s17")}
                 </div>
               </div>
             ))}
@@ -239,27 +262,27 @@ export default function InvoiceView() {
               <div key={i} style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
                 <span style={{ color: "#94a3b8" }}>{row.label}</span>
                 <span style={{ color: row.value < 0 ? "#22c55e" : "#e2e8f0" }}>
-                  {row.value < 0 ? "-" : ""}{Math.abs(row.value).toLocaleString("en-US")} {t("invoice-view.s17")}
+                  {row.value < 0 ? "-" : ""}{Math.abs(row.value).toLocaleString(LOCALES[locale].intl)} {t("invoice-view.s17")}
                 </span>
               </div>
             ))}
             <div style={{ ...s.divider, margin: "10px 0" }} />
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 20, fontWeight: 800 }}>
               <span style={{ color: "#0B93A6" }}>{t("invoice-view.s22")}</span>
-              <span style={{ color: "var(--aqv-warning)" }}>{invoice.total.toLocaleString("en-US")} {t("invoice-view.s17")}</span>
+              <span style={{ color: "var(--aqv-warning)" }}>{invoice.total.toLocaleString(LOCALES[locale].intl)} {t("invoice-view.s17")}</span>
             </div>
           </div>
 
           {/* انتهاء الصلاحية */}
           {invoice.expiresAt && invoice.status === "sent" && (
             <div style={{ marginTop: 12, textAlign: "center", color: "#94a3b8", fontSize: 12 }}>
-              {t("invoice-view.s23")} {new Date(invoice.expiresAt).toLocaleString("ar-IQ")}
+              {t("invoice-view.s23")} {new Date(invoice.expiresAt).toLocaleString(LOCALES[locale].intl, { timeZone: "Asia/Baghdad" })}
             </div>
           )}
 
           {/* أزرار الإجراء */}
           {invoice.status === "sent" && !actionDone && (
-            <div style={{ marginTop: 24 }}>
+            <div className="manual-invoice-screen-only" style={{ marginTop: 24 }}>
               <div style={{ marginBottom: 12, padding: "10px 12px", borderRadius: 10, background: "rgba(11,147,166,0.06)", border: "1px solid rgba(11,147,166,0.18)", color: "#94a3b8", fontSize: 12, lineHeight: 1.8 }}>
                 {t("invoice-view.s42")}
               </div>
@@ -287,7 +310,10 @@ export default function InvoiceView() {
               <CheckCircle2 size={56} color="#22c55e" style={{ margin: "0 auto 16px" }} />
               <h2 style={{ color: "#22c55e", marginBottom: 8 }}>{t("invoice-view.s26")}</h2>
               <p style={{ color: "#94a3b8" }}>{t("invoice-view.s27")}</p>
-              {orderId && <p style={{ color: "#64748b", fontSize: 12, marginTop: 8 }}>{t("invoice-view.s28")} {orderId.slice(0, 8).toUpperCase()}</p>}
+              <p>{t("invoice-view.s28")} <bdi>{invoice.invoiceNo}</bdi></p>
+              <a className="manual-invoice-screen-only" href={localizePath("/order-tracking", locale)} style={{ textDecoration: "underline" }}>
+                {t("order-confirmation.s22")}
+              </a>
             </div>
           )}
 
@@ -309,7 +335,11 @@ export default function InvoiceView() {
           )}
 
           {/* Promo Box */}
-          <div style={s.promoBox}>
+          <button type="button" className="manual-invoice-screen-only" onClick={() => window.print()}
+            style={{ ...s.btnNo, color: "#0B93A6", borderColor: "#0B93A6", marginTop: 16 }}>
+            {t("order-confirmation.s74")}
+          </button>
+          <div className="manual-invoice-screen-only" style={s.promoBox}>
             <div style={{ flexShrink: 0, marginTop: 2 }}>
               <Sparkles color="#C97A2E" size={24} />
             </div>
@@ -319,7 +349,7 @@ export default function InvoiceView() {
                 {t("invoice-view.s33")} <span style={{color: "#0B93A6", fontWeight: 700}}>{t("invoice-view.s34")}</span> {t("invoice-view.s35")} <span style={{color: "#0B93A6", fontWeight: 700}}>{t("invoice-view.s36")}</span> {t("invoice-view.s37")}
                 <span style={{color: "#22c55e", fontWeight: 700}}> {t("invoice-view.s38")}</span> {t("invoice-view.s39")}
                 <br/>
-                <a href="/register" target="_blank" rel="noopener noreferrer" style={{ color: "#0B93A6", textDecoration: "underline", display: "inline-block", marginTop: 8, fontWeight: 700 }}>{t("invoice-view.s40")}</a>
+                <a href={localizePath("/register", locale)} target="_blank" rel="noopener noreferrer" style={{ color: "#0B93A6", textDecoration: "underline", display: "inline-block", marginTop: 8, fontWeight: 700 }}>{t("invoice-view.s40")}</a>
               </p>
             </div>
           </div>

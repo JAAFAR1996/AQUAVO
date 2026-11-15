@@ -1,18 +1,28 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import type { ManualInvoiceLocale } from "@shared/manual-invoice-locale";
+import { useState, useEffect, useRef } from "react";
 import { Search, Plus, Trash2, Send, Save, X, Package, Copy, ExternalLink, CheckCircle2, Loader2, ChevronDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { addCsrfHeader } from "@/lib/csrf";
+import type { ProductVariant } from "@shared/schema";
+import { isVariantActive, isVariantPurchasable, positiveVariantPrice } from "@shared/variant-commerce";
 
 interface Product {
   id: string;
   name: string;
   price: string;
+  stock: number;
   thumbnail?: string;
   images?: string[];
   category?: string;
   brand?: string;
   hasVariants?: boolean;
-  variants?: Array<{ id: string; label: string; price: number }>;
+  variants?: ProductVariant[] | null;
+}
+
+function invoicePriceLabel(price: number | null, available: boolean): string {
+  if (price === null) return "بانتظار التسعير";
+  const amount = `${price.toLocaleString("en-US")} د.ع`;
+  return available ? amount : `${amount} — غير متوفر`;
 }
 
 interface InvoiceItem {
@@ -77,8 +87,11 @@ function parseAddr(raw: unknown): { city: string; address: string } {
 export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoiceCreatorProps) {
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
+  const submitting = useRef(false);
+  const draftAttempt = useRef<{ key: string; body: string; id?: string; invoiceNo?: string } | null>(null);
 
   // بيانات العميل
+  const [invoiceLocale, setInvoiceLocale] = useState<ManualInvoiceLocale>("ar");
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerCity, setCustomerCity] = useState("");
@@ -97,6 +110,7 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Product[]>([]);
   const [searching, setSearching] = useState(false);
+  const [searchFailed, setSearchFailed] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [highlightedIdx, setHighlightedIdx] = useState(-1);
   const [expandedProduct, setExpandedProduct] = useState<string | null>(null);
@@ -171,49 +185,43 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
     setTimeout(() => nameInputRef.current?.blur(), 50);
   };
 
-  // ── Smart AI Search (uses embedding semantic search with text fallback) ──────
-  const searchProducts = useCallback(async (q: string) => {
-    const trimmed = q.trim();
-    if (trimmed.length === 0) {
-      setSearchResults([]);
-      setDropdownOpen(false);
-      return;
-    }
-    setSearching(true);
-    setDropdownOpen(true);
-    try {
-      // Use Arabic canonical catalogue rows for both sources. Lexical matches
-      // (including Kurdish/English terms) precede fuzzy semantic suggestions.
-      const [r, r2] = await Promise.all([
-        fetch(`/api/products/smart-search?locale=ar&q=${encodeURIComponent(trimmed)}`, { credentials: "include" }),
-        fetch(`/api/admin/invoices/product-search?q=${encodeURIComponent(trimmed)}`, { credentials: "include" }),
-      ]);
-      if (!r2.ok) throw new Error("تعذر البحث في المنتجات");
-      const d2 = await r2.json();
-      const lexical: Product[] = d2.products || [];
-      const semantic: Product[] = r.ok ? (await r.json()).products || [] : [];
-      const extra = semantic.filter((p) => !lexical.some((match) => match.id === p.id));
-      setSearchResults([...lexical, ...extra].slice(0, 15));
-    } catch {
-      // Fallback to plain search
-      try {
-        const r = await fetch(`/api/admin/invoices/product-search?q=${encodeURIComponent(trimmed)}`, {
-          credentials: "include",
-        });
-        const d = await r.json();
-        setSearchResults(d.products || []);
-      } catch { /* silent */ }
-    } finally {
-      setSearching(false);
-      setHighlightedIdx(-1);
-    }
-  }, []);
-
-  // Debounce — 200ms (faster feel than 300ms)
   useEffect(() => {
-    const t = setTimeout(() => searchProducts(searchQuery), 200);
-    return () => clearTimeout(t);
-  }, [searchQuery, searchProducts]);
+    const query = searchQuery.trim();
+    setSearchResults([]);
+    setHighlightedIdx(-1);
+    setExpandedProduct(null);
+    setSearchFailed(false);
+    setSearching(Boolean(query));
+    setDropdownOpen(Boolean(query));
+    if (!query) return;
+
+    const controller = new AbortController();
+    const getMatches = async (url: string): Promise<Product[]> => {
+      const response = await fetch(url, { credentials: "include", signal: controller.signal });
+      if (!response.ok) throw new Error("تعذر البحث");
+      const data = await response.json();
+      if (!Array.isArray(data.products)) throw new Error("تعذر البحث");
+      return data.products;
+    };
+    const timer = setTimeout(async () => {
+      const encoded = encodeURIComponent(query);
+      const [lexical, semantic] = await Promise.allSettled([
+        getMatches(`/api/admin/invoices/product-search?q=${encoded}`),
+        getMatches(`/api/products/smart-search?locale=ar&q=${encoded}`),
+      ]);
+      if (controller.signal.aborted) return;
+      const exact = lexical.status === "fulfilled" ? lexical.value : [];
+      const other = semantic.status === "fulfilled" ? semantic.value : [];
+      const ids = new Set(exact.map((product) => product.id));
+      setSearchResults([...exact, ...other.filter((product) => !ids.has(product.id))].slice(0, 15));
+      setSearchFailed(lexical.status === "rejected" && semantic.status === "rejected");
+      setSearching(false);
+    }, 200);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [searchQuery]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -232,33 +240,28 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
   }, []);
 
   // ── Flat list of all selectable items (for keyboard nav) ──────────────────
-  type FlatItem = { product: Product; variant: { id: string; label: string; price: number } | null };
+  type FlatItem = { product: Product; variant: ProductVariant | null };
   const flatItems: FlatItem[] = searchResults.flatMap((p): FlatItem[] => {
-    if (p.hasVariants && p.variants && p.variants.length > 0) {
-      return p.variants.map((v): FlatItem => ({ product: p, variant: v }));
+    if (p.hasVariants) {
+      return (p.variants ?? []).filter((v) => isVariantPurchasable(v)).map((variant) => ({ product: p, variant }));
     }
-    return [{ product: p, variant: null }];
+    return isVariantPurchasable(p) ? [{ product: p, variant: null }] : [];
   });
 
   // ── Keyboard navigation ───────────────────────────────────────────────────
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!dropdownOpen) return;
-    if (e.key === "ArrowDown") {
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
       e.preventDefault();
-      setHighlightedIdx((i) => Math.min(i + 1, flatItems.length - 1));
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      setHighlightedIdx((i) => Math.max(i - 1, 0));
+      const step = e.key === "ArrowDown" ? 1 : -1;
+      const next = Math.max(-1, Math.min(highlightedIdx + step, flatItems.length - 1));
+      const choice = flatItems[next];
+      if (choice?.variant) setExpandedProduct(choice.product.id);
+      setHighlightedIdx(next);
     } else if (e.key === "Enter" && highlightedIdx >= 0) {
       e.preventDefault();
-      const sel = flatItems[highlightedIdx];
-      if (sel) {
-        if (sel.variant) {
-          addItem(sel.product, sel.variant.id, sel.variant.label, sel.variant.price);
-        } else {
-          addItem(sel.product);
-        }
-      }
+      const choice = flatItems[highlightedIdx];
+      if (choice) addItem(choice.product, choice.variant);
     } else if (e.key === "Escape") {
       setDropdownOpen(false);
     }
@@ -272,8 +275,12 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
     }
   }, [highlightedIdx]);
 
-  const addItem = (product: Product, variantId?: string, variantLabel?: string, variantPrice?: number) => {
-    const unitPrice = variantPrice ?? Number(product.price);
+  const addItem = (product: Product, variant: ProductVariant | null = null) => {
+    const source = variant ?? product;
+    const unitPrice = positiveVariantPrice(source.price);
+    if (unitPrice === null || !isVariantPurchasable(source) || (product.hasVariants && !variant)) return;
+    const variantId = variant?.id;
+    const variantLabel = variant?.label;
     const name = variantLabel ? `${product.name} — ${variantLabel}` : product.name;
     const imageUrl = product.thumbnail || product.images?.[0];
     const existing = items.find((i) => i.productId === product.id && i.variantId === variantId);
@@ -307,51 +314,60 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
     return true;
   };
 
-  const handleSaveDraft = async () => {
-    if (!validate()) return;
+  const submitInvoice = async (share: boolean) => {
+    if (submitting.current || !validate()) return;
+    submitting.current = true;
     setSaving(true);
     try {
-      const r = await fetch("/api/admin/invoices", {
-        method: "POST",
-        headers: addCsrfHeader({ "Content-Type": "application/json" }),
-        credentials: "include",
-        body: JSON.stringify({ customerName, customerPhone, customerCity, customerAddress, customerNotes, items, subtotal, discount, delivery, total }),
-      });
-      const d = await r.json();
-      if (!d.success) throw new Error(d.message);
-      toast({ title: "✅ تم الحفظ كمسودة", description: `الفاتورة ${d.data.invoiceNo} محفوظة` });
+      const body = JSON.stringify({ customerName, customerPhone, customerCity, customerAddress,
+        customerNotes, invoiceLocale, items, subtotal, discount, delivery, total });
+      // Keep the original request even when its response was lost. Apply any
+      // subsequent edits to the same draft before sharing it.
+      const draft = draftAttempt.current ??= { key: crypto.randomUUID(), body };
+      if (!draft.id) {
+        const response = await fetch("/api/admin/invoices", {
+          method: "POST",
+          headers: addCsrfHeader({ "Content-Type": "application/json", "Idempotency-Key": draft.key }),
+          credentials: "include",
+          body: draft.body,
+        });
+        const result = await response.json();
+        if (!response.ok || !result.success) {
+          // A rejected input did not create a draft. Allow corrected input on retry.
+          if (response.status === 400) draftAttempt.current = null;
+          throw new Error(result.message || "تعذر حفظ الفاتورة");
+        }
+        draft.id = result.data.id;
+        draft.invoiceNo = result.data.invoiceNo;
+      }
+      if (body !== draft.body) {
+        const response = await fetch(`/api/admin/invoices/${draft.id}`, {
+          method: "PATCH", headers: addCsrfHeader({ "Content-Type": "application/json" }),
+          credentials: "include", body,
+        });
+        const result = await response.json();
+        if (!response.ok || !result.success) throw new Error(result.message || "تعذر تحديث المسودة");
+        draft.body = body;
+      }
+      if (share) {
+        const response = await fetch(`/api/admin/invoices/${draft.id}/send`, {
+          method: "POST", headers: addCsrfHeader(), credentials: "include",
+        });
+        const result = await response.json();
+        if (!response.ok || !result.success) throw new Error(result.message || "تعذر تجهيز رابط الفاتورة");
+        setCreatedInvoice({ invoiceNo: result.data.invoiceNo, customerLink: result.customerLink, whatsappUrl: result.whatsappUrl });
+      } else {
+        toast({ title: "تم الحفظ كمسودة", description: `الفاتورة ${draft.invoiceNo} محفوظة` });
+        onClose();
+      }
       onSaved?.();
-    } catch (e: any) {
-      toast({ title: "خطأ", description: e.message, variant: "destructive" });
-    } finally { setSaving(false); }
-  };
-
-  const handleSendToCustomer = async () => {
-    if (!validate()) return;
-    setSaving(true);
-    try {
-      const r1 = await fetch("/api/admin/invoices", {
-        method: "POST",
-        headers: addCsrfHeader({ "Content-Type": "application/json" }),
-        credentials: "include",
-        body: JSON.stringify({ customerName, customerPhone, customerCity, customerAddress, customerNotes, items, subtotal, discount, delivery, total }),
-      });
-      const d1 = await r1.json();
-      if (!d1.success) throw new Error(d1.message);
-
-      const r2 = await fetch(`/api/admin/invoices/${d1.data.id}/send`, {
-        method: "POST",
-        headers: addCsrfHeader(),
-        credentials: "include",
-      });
-      const d2 = await r2.json();
-      if (!d2.success) throw new Error(d2.message);
-
-      setCreatedInvoice({ invoiceNo: d2.data.invoiceNo, customerLink: d2.customerLink, whatsappUrl: d2.whatsappUrl });
-      onSaved?.();
-    } catch (e: any) {
-      toast({ title: "خطأ", description: e.message, variant: "destructive" });
-    } finally { setSaving(false); }
+    } catch (error) {
+      if (draftAttempt.current?.id) onSaved?.();
+      toast({ title: "تعذر إكمال العملية", description: error instanceof Error ? error.message : "حاول مرة ثانية", variant: "destructive" });
+    } finally {
+      submitting.current = false;
+      setSaving(false);
+    }
   };
 
   // ── Styles ──────────────────────────────────────────────────────────────────
@@ -366,7 +382,6 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
     grid2:   { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 },
     section: { marginBottom: 20 },
     divider: { borderTop: "1px solid rgba(255,255,255,0.06)", margin: "20px 0" },
-    itemRow: { display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderBottom: "1px solid rgba(255,255,255,0.05)" },
     btnPrimary: { padding: "12px 24px", borderRadius: 12, background: "linear-gradient(135deg, #0B93A6, #075F6B)", color: "#fff", fontSize: 15, fontWeight: 700, border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 8 },
     btnSecondary: { padding: "12px 24px", borderRadius: 12, background: "rgba(255,255,255,0.05)", color: "#94a3b8", fontSize: 15, fontWeight: 600, border: "1px solid rgba(255,255,255,0.1)", cursor: "pointer", display: "flex", alignItems: "center", gap: 8 },
     btnGreen: { padding: "12px 24px", borderRadius: 12, background: "linear-gradient(135deg, #22c55e, #16a34a)", color: "#fff", fontSize: 15, fontWeight: 700, border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 8 },
@@ -378,9 +393,9 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
   if (createdInvoice) {
     return (
       <div style={s.overlay}>
-        <div style={s.modal}>
+        <div role="dialog" aria-modal="true" aria-labelledby="manual-invoice-dialog-title" style={s.modal}>
           <div style={s.header}>
-            <span style={{ fontWeight: 800, fontSize: 18, color: "#22c55e" }}>✅ تم إنشاء الفاتورة وإرسالها</span>
+            <span id="manual-invoice-dialog-title" style={{ fontWeight: 800, fontSize: 18, color: "#22c55e" }}>رابط الفاتورة جاهز</span>
             <button onClick={onClose} style={{ background: "none", border: "none", color: "#94a3b8", cursor: "pointer" }}><X size={22} /></button>
           </div>
           <div style={{ ...s.body, textAlign: "center" as const }}>
@@ -412,17 +427,25 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
   // ── Main Form ────────────────────────────────────────────────────────────────
   return (
     <div style={s.overlay}>
-      <div style={s.modal}>
+      <div role="dialog" aria-modal="true" aria-labelledby="manual-invoice-dialog-title" style={s.modal}>
         {/* Header */}
         <div style={s.header}>
           <div>
-            <div style={{ fontWeight: 800, fontSize: 18 }}>📄 فاتورة واتساب جديدة</div>
+            <div id="manual-invoice-dialog-title" style={{ fontWeight: 800, fontSize: 18 }}>فاتورة واتساب جديدة</div>
             <div style={{ fontSize: 12, color: "#64748b" }}>أنشئ فاتورة للعميل وأرسلها كرابط</div>
           </div>
           <button onClick={onClose} style={{ background: "none", border: "none", color: "#94a3b8", cursor: "pointer" }}><X size={22} /></button>
         </div>
 
         <div style={s.body}>
+          <div style={s.section}>
+            <label htmlFor="manual-invoice-locale" style={s.label}>لغة فاتورة الزبون</label>
+            <select id="manual-invoice-locale" style={s.select} value={invoiceLocale}
+              onChange={event => setInvoiceLocale(event.target.value === "ckb" ? "ckb" : "ar")}>
+              <option value="ar">العربية</option>
+              <option value="ckb" lang="ckb">کوردی سۆرانی</option>
+            </select>
+          </div>
           {/* ── بيانات العميل ── */}
           <div style={s.section}>
             <div style={{ fontSize: 15, fontWeight: 700, color: "#0B93A6", marginBottom: 14, display: "flex", alignItems: "center", gap: 6 }}>
@@ -541,7 +564,7 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
               </div>
 
               {/* ── Dropdown ── */}
-              {dropdownOpen && (searching || searchResults.length > 0) && (
+              {dropdownOpen && searchQuery.trim() && (
                 <div style={s.searchDrop} ref={dropdownRef}>
                   {/* Loading */}
                   {searching && searchResults.length === 0 && (
@@ -556,7 +579,8 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
                     const catLabel = CATEGORY_LABELS[product.category || ""] || product.category || "";
                     const thumb = product.thumbnail || product.images?.[0];
 
-                    if (product.hasVariants && product.variants && product.variants.length > 0) {
+                    if (product.hasVariants) {
+                      const options = (product.variants ?? []).filter(isVariantActive);
                       // Product with variants: show header + collapsed variants
                       const isExpanded = expandedProduct === product.id;
                       return (
@@ -577,24 +601,30 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
                               <div style={{ fontSize: 13, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{product.name}</div>
                               <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 2 }}>
                                 {catLabel && <span style={{ fontSize: 10, padding: "1px 6px", borderRadius: 4, background: "rgba(11,147,166,0.15)", color: "#0B93A6" }}>{catLabel}</span>}
-                                <span style={{ fontSize: 11, color: "#64748b" }}>{product.variants.length} خيار</span>
+                                <span style={{ fontSize: 11, color: "#64748b" }}>{options.length ? `${options.length} خيار` : "لا تتوفر خيارات"}</span>
                               </div>
                             </div>
                             <ChevronDown size={14} color="#64748b" style={{ transform: isExpanded ? "rotate(180deg)" : "none", transition: "transform 0.2s", flexShrink: 0 }} />
                           </div>
 
                           {/* Variant rows */}
-                          {isExpanded && product.variants.map((v, vi) => {
+                          {isExpanded && options.map((v, vi) => {
+                            const available = isVariantPurchasable(v);
+                            const price = v.priceStatus === "pending" ? null : positiveVariantPrice(v.price);
                             const globalIdx = flatItems.findIndex((fi: FlatItem) => fi.product.id === product.id && fi.variant?.id === v.id);
-                            const isHighlighted = globalIdx === highlightedIdx;
+                            const isHighlighted = globalIdx >= 0 && globalIdx === highlightedIdx;
                             return (
-                              <div
+                              <button
+                                type="button"
+                                disabled={!available}
                                 key={v.id}
                                 data-idx={globalIdx}
                                 style={{
                                   padding: "9px 14px 9px 14px",
                                   paddingRight: 62,
-                                  cursor: "pointer",
+                                  cursor: available ? "pointer" : "default",
+                                  width: "100%",
+                                  opacity: available ? 1 : 0.7,
                                   display: "flex",
                                   justifyContent: "space-between",
                                   alignItems: "center",
@@ -604,11 +634,11 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
                                 }}
                                 onMouseEnter={e => { e.currentTarget.style.background = "rgba(11,147,166,0.12)"; setHighlightedIdx(globalIdx); }}
                                 onMouseLeave={e => { e.currentTarget.style.background = isHighlighted ? "rgba(11,147,166,0.15)" : vi % 2 === 0 ? "rgba(255,255,255,0.02)" : "transparent"; }}
-                                onClick={() => addItem(product, v.id, v.label, v.price)}
+                                onClick={() => addItem(product, v)}
                               >
                                 <span style={{ color: "#c8d8e8" }}>↳ {v.label}</span>
-                                <span style={{ color: "var(--aqv-warning)", fontWeight: 700, fontSize: 13 }}>{v.price.toLocaleString("en-US")} د.ع</span>
-                              </div>
+                                <span style={{ color: "var(--aqv-warning)", fontWeight: 700, fontSize: 13 }}>{invoicePriceLabel(price, available)}</span>
+                              </button>
                             );
                           })}
                         </div>
@@ -616,15 +646,22 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
                     }
 
                     // Simple product
+                    const available = isVariantPurchasable(product);
+                    const price = positiveVariantPrice(product.price);
                     const globalIdx = flatItems.findIndex((fi: FlatItem) => fi.product.id === product.id && fi.variant === null);
-                    const isHighlighted = globalIdx === highlightedIdx;
+                    const isHighlighted = globalIdx >= 0 && globalIdx === highlightedIdx;
                     return (
-                      <div
+                      <button
+                        type="button"
+                        disabled={!available}
                         key={product.id}
                         data-idx={globalIdx}
                         style={{
                           padding: "10px 14px",
-                          cursor: "pointer",
+                          cursor: available ? "pointer" : "default",
+                          opacity: available ? 1 : 0.7,
+                          width: "100%",
+                          textAlign: "start",
                           display: "flex",
                           alignItems: "center",
                           gap: 10,
@@ -647,15 +684,15 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
                             <span style={{ fontSize: 10, padding: "1px 6px", borderRadius: 4, background: "rgba(11,147,166,0.15)", color: "#0B93A6", marginTop: 2, display: "inline-block" }}>{catLabel}</span>
                           )}
                         </div>
-                        <span style={{ color: "var(--aqv-warning)", fontWeight: 700, fontSize: 13, flexShrink: 0 }}>{Number(product.price).toLocaleString("en-US")} د.ع</span>
-                      </div>
+                        <span style={{ color: "var(--aqv-warning)", fontWeight: 700, fontSize: 13, flexShrink: 0 }}>{invoicePriceLabel(price, available)}</span>
+                      </button>
                     );
                   })}
 
                   {/* No results */}
                   {!searching && searchResults.length === 0 && searchQuery.length >= 1 && (
                     <div style={{ padding: "18px", color: "#64748b", textAlign: "center", fontSize: 13 }}>
-                      لا توجد نتائج لـ "{searchQuery}"
+                      {searchFailed ? "تعذّر تحميل المنتجات. جرّب البحث مرة ثانية." : `لا توجد نتائج لـ "${searchQuery}"`}
                     </div>
                   )}
 
@@ -679,16 +716,16 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
             ) : (
               <>
                 {items.map((item, idx) => (
-                  <div key={idx} style={s.itemRow}>
+                  <div key={idx} className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2.5 border-b border-white/5 py-2.5 sm:flex">
                     {item.imageUrl
                       ? <img src={item.imageUrl} alt="" style={{ width: 44, height: 44, borderRadius: 8, objectFit: "cover", flexShrink: 0 }} />
                       : <div style={{ width: 44, height: 44, borderRadius: 8, background: "#1e2a3a", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Package size={18} color="#0B93A6" /></div>
                     }
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.name}</div>
+                    <div className="col-span-2 min-w-0 flex-1">
+                      <div className="break-words text-[13px] font-semibold">{item.name}</div>
                       <div style={{ fontSize: 12, color: "#64748b" }}>{item.unitPrice.toLocaleString("en-US")} د.ع / قطعة</div>
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <div className="flex shrink-0 items-center gap-1.5">
                       <button onClick={() => updateQuantity(idx, item.quantity - 1)} style={{ width: 28, height: 28, borderRadius: 6, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#e2e8f0", cursor: "pointer" }}>-</button>
                       <span style={{ minWidth: 24, textAlign: "center", fontWeight: 700 }}>{item.quantity}</span>
                       <button onClick={() => updateQuantity(idx, item.quantity + 1)} style={{ width: 28, height: 28, borderRadius: 6, background: "rgba(11,147,166,0.15)", border: "1px solid rgba(11,147,166,0.3)", color: "#0B93A6", cursor: "pointer" }}>+</button>
@@ -696,7 +733,7 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
                     <div style={{ color: "var(--aqv-warning)", fontWeight: 700, minWidth: 90, textAlign: "left" as const, fontSize: 13 }}>
                       {item.total.toLocaleString("en-US")} د.ع
                     </div>
-                    <button onClick={() => removeItem(idx)} style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer", padding: 4 }}><Trash2 size={16} /></button>
+                    <button aria-label={`حذف ${item.name}`} onClick={() => removeItem(idx)} style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer", padding: 4 }}><Trash2 size={16} /></button>
                   </div>
                 ))}
               </>
@@ -736,11 +773,11 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
 
           {/* ── الأزرار ── */}
           <div style={{ display: "flex", gap: 10, marginTop: 20, flexWrap: "wrap" as const }}>
-            <button onClick={handleSendToCustomer} disabled={saving} style={{ ...s.btnGreen, flex: 1, justifyContent: "center" }}>
+            <button onClick={() => submitInvoice(true)} disabled={saving} style={{ ...s.btnGreen, flex: 1, justifyContent: "center" }}>
               {saving ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
               إرسال للعميل عبر واتساب
             </button>
-            <button onClick={handleSaveDraft} disabled={saving} style={{ ...s.btnSecondary, justifyContent: "center" }}>
+            <button onClick={() => submitInvoice(false)} disabled={saving} style={{ ...s.btnSecondary, justifyContent: "center" }}>
               <Save size={16} /> مسودة
             </button>
             <button onClick={onClose} style={{ ...s.btnSecondary, justifyContent: "center" }}>

@@ -59,6 +59,15 @@ export function createInvoiceV2Router() {
           return { kind: "confirmed" as const, orderId: invoice.order_id, invoiceNo: invoice.invoice_no };
         }
 
+        if (invoice.status !== "sent") {
+          throw Object.assign(new Error(invoice.status === "rejected" ? "تم رفض هذه الفاتورة" : "لا يمكن قبول هذه الفاتورة في حالتها الحالية"), { status: 400 });
+        }
+        if (invoice.expires_at && new Date(invoice.expires_at).getTime() < Date.now()) {
+          await tx.update(manualInvoices).set({ status: "cancelled", updatedAt: new Date() } as any)
+            .where(eq(manualInvoices.id, invoice.id));
+          return { kind: "expired" as const, invoiceNo: invoice.invoice_no };
+        }
+
         // Re-approval path for an invoice that was previously confirmed, then
         // reopened after admin edits. Reuse the existing order instead of
         // creating a duplicate order or decrementing inventory twice.
@@ -88,15 +97,6 @@ export function createInvoiceV2Router() {
             orderId: invoice.order_id,
             invoiceNo: reconfirmed.invoiceNo,
           };
-        }
-
-        if (invoice.status !== "sent") {
-          throw Object.assign(new Error(invoice.status === "rejected" ? "تم رفض هذه الفاتورة" : "لا يمكن قبول هذه الفاتورة في حالتها الحالية"), { status: 400 });
-        }
-        if (invoice.expires_at && new Date(invoice.expires_at).getTime() < Date.now()) {
-          await tx.update(manualInvoices).set({ status: "cancelled", updatedAt: new Date() } as any)
-            .where(eq(manualInvoices.id, invoice.id));
-          return { kind: "expired" as const, invoiceNo: invoice.invoice_no };
         }
 
         assertOrderCreationReady(await getSchemaReadiness(tx as never));
@@ -130,7 +130,7 @@ export function createInvoiceV2Router() {
           }
 
           calculatedSubtotal += unitPrice * quantity;
-          lines.push({ raw: { ...raw, quantity, unitPrice }, snapshot: buildProductCostSnapshot(product, snapshotAt) });
+          lines.push({ raw: { ...raw, quantity, unitPrice }, snapshot: buildProductCostSnapshot(product, snapshotAt, raw.variantId) });
         }
 
         const invoiceSubtotal = money(invoice.subtotal, "المجموع الفرعي");

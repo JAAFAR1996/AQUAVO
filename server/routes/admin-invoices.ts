@@ -1,8 +1,9 @@
+import { z } from "zod";
 import express, { type Request, type Response, type NextFunction } from "express";
 import { requireAdmin, getSession } from "../middleware/auth.js";
 import { invoiceStorage } from "../storage/invoice-storage.js";
-import { insertManualInvoiceSchema } from "../../shared/schema.js";
-import { z } from "zod";
+import { insertManualInvoiceSchema, updateManualInvoiceSchema } from "../../shared/schema.js";
+import { manualInvoiceShare } from "../services/manual-invoice-share.js";
 import { storage } from "../storage/index.js";
 import { toPublicProducts } from "../../shared/public-product.js";
 
@@ -56,7 +57,8 @@ router.post("/", async (req: Request, res: Response, next: NextFunction): Promis
   try {
     const data = insertManualInvoiceSchema.parse(req.body);
     const userId = getSession(req)?.userId;
-    const inv = await invoiceStorage.create(data, userId);
+    const key = z.string().uuid().optional().parse(req.get("Idempotency-Key"));
+    const inv = await invoiceStorage.create(data, userId, key);
     res.status(201).json({ success: true, data: inv });
   } catch (err: any) {
     if (err?.name === "ZodError") {
@@ -70,7 +72,12 @@ router.post("/", async (req: Request, res: Response, next: NextFunction): Promis
 /** PATCH /api/admin/invoices/:id — تعديل فاتورة (draft فقط) */
 router.patch("/:id", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const inv = await invoiceStorage.update(req.params.id, req.body);
+    const parsed = updateManualInvoiceSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ success: false, message: "بيانات غير صحيحة", errors: parsed.error.issues });
+      return;
+    }
+    const inv = await invoiceStorage.update(req.params.id, parsed.data);
     if (!inv) { res.status(400).json({ success: false, message: "لا يمكن تعديل هذه الفاتورة" }); return; }
     res.json({ success: true, data: inv });
   } catch (err) { next(err); }
@@ -82,21 +89,7 @@ router.post("/:id/send", async (req: Request, res: Response, next: NextFunction)
     const inv = await invoiceStorage.send(req.params.id);
     if (!inv) { res.status(400).json({ success: false, message: "لا يمكن إرسال هذه الفاتورة" }); return; }
 
-    // رابط العميل
-    const baseUrl = process.env.APP_URL || "https://www.aquavoiq.com";
-    const customerLink = `${baseUrl}/invoice/${inv.token}`;
-
-    // رسالة واتساب جاهزة
-    const whatsappText = encodeURIComponent(
-      `مرحباً ${inv.customerName} 👋\n\n` +
-      `هذه فاتورتك من AQUAVO 🐟\n` +
-      `رقم الفاتورة: ${inv.invoiceNo}\n` +
-      `الإجمالي: ${Number(inv.total).toLocaleString("en-US")} د.ع\n\n` +
-      `لمراجعة الفاتورة وتأكيد طلبك:\n${customerLink}\n\n` +
-      `(الرابط صالح لمدة 48 ساعة)`
-    );
-    const whatsappUrl = `https://wa.me/${inv.customerPhone.replace(/[^0-9]/g, "")}?text=${whatsappText}`;
-
+    const { customerLink, whatsappUrl } = manualInvoiceShare(inv, process.env.APP_URL || "https://www.aquavoiq.com");
     res.json({ success: true, data: inv, customerLink, whatsappUrl });
   } catch (err) { next(err); }
 });
