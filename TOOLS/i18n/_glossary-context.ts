@@ -10,8 +10,13 @@ export function sourceForGlossaryConcept(source: string, concept: string, contex
   if (concept === "delivery" && source.trim() === "الشحن"
     && typeof context?.specificationValue === "string"
     && /^USB(?:-C)?$/i.test(context.specificationValue.trim())) return "";
+  // In a sand description the size of its grains is not the size of feed pellets.
+  // Keep a separate reference to food or feed in the same description.
+  if (concept === "pellet-food" && /^رمل\s/u.test(source.trim())) {
+    return source.replace(/حجم الحبيبات|(?<![\p{L}\p{M}])وب?حبيبات(?=\s+(?:ناعمة\s+)?[0-9٠-٩])/gu, "حبات الرمل");
+  }
   if (concept !== "payment") return source;
   // Remove only this physical occurrence. A later payment reference in the
   // same sentence must still be checked against the financial glossary.
-  return source.replace(/(?<![\p{L}\p{M}])دفع(?=\s+(?:السلك|العوالق)(?:[^\p{L}\p{M}]|$))/gu, "");
+  return source.replace(/(?<![\p{L}\p{M}])دفع(?=\s+(?:السلك|العوالق|فرشاة)(?:[^\p{L}\p{M}]|$))/gu, "");
 }
