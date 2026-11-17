@@ -15,7 +15,7 @@ concurrency:
 jobs:
   live-preview-audit:
     name: Playwright + Visual Parity + Lighthouse
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 25
     permissions:
       contents: read
