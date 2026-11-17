@@ -1,4 +1,3 @@
-import { isVariantPurchasable } from "../../shared/variant-commerce.js";
 import { randomUUID } from "node:crypto";
 import { Router, type NextFunction, type Request, type Response } from "express";
 import { eq, sql } from "drizzle-orm";
@@ -7,10 +6,11 @@ import { ROUNDING_STEP } from "../../shared/order-financials.js";
 import { getDb } from "../db.js";
 import {
   buildProductCostSnapshot,
-  lockProductRowForUpdate,
   toJsonbCostFields,
   toRelationalCostFields,
 } from "../services/product-cost-snapshot.js";
+import { validateManualInvoiceStock } from "../services/manual-invoice-stock.js";
+import { isCanonicalInventoryBalanceError } from "../storage/order-storage.js";
 import { getSchemaReadiness, assertOrderCreationReady } from "../services/schema-readiness.js";
 import { recordWhatsAppInvoiceMarketingOptIn } from "../services/whatsapp-lifecycle.js";
 
@@ -104,30 +104,16 @@ export function createInvoiceV2Router() {
         const rawLines = Array.isArray(invoice.items) ? invoice.items : [];
         if (rawLines.length === 0) throw Object.assign(new Error("الفاتورة لا تحتوي منتجات"), { status: 400 });
 
+        const catalogue = await validateManualInvoiceStock(tx, rawLines);
         const snapshotAt = new Date();
         const lines: Array<{ raw: any; snapshot: ReturnType<typeof buildProductCostSnapshot> }> = [];
         let calculatedSubtotal = 0;
 
         for (const raw of rawLines) {
-          const product = await lockProductRowForUpdate(tx as never, String(raw.productId ?? ""));
-          if (!product) throw Object.assign(new Error(`المنتج غير موجود ضمن الفاتورة (${raw.productId})`), { status: 400 });
-
+          const product = catalogue.get(raw.productId)!;
           const quantity = Number(raw.quantity);
-          if (!Number.isInteger(quantity) || quantity <= 0) throw Object.assign(new Error(`كمية غير صالحة للمنتج ${product.name}`), { status: 400 });
           const unitPrice = money(raw.unitPrice, `سعر ${product.name}`);
           if (unitPrice <= 0) throw Object.assign(new Error(`سعر ${product.name} يجب أن يكون أكبر من صفر`), { status: 400 });
-
-          if ((product.hasVariants && !raw.variantId) || (!product.hasVariants && raw.variantId)) {
-            throw Object.assign(new Error("اختيار المنتج غير صالح؛ أعد اختيار النوع المطلوب"), { status: 400 });
-          }
-          if (raw.variantId) {
-            const variant = (Array.isArray(product.variants) ? product.variants : []).find((v: any) => v.id === raw.variantId);
-            if (!isVariantPurchasable(variant, quantity)) {
-              throw Object.assign(new Error(`الكمية المطلوبة غير متوفرة (${product.name} — ${raw.variantLabel ?? raw.variantId})`), { status: 409 });
-            }
-          } else if (Number(product.stock ?? 0) < quantity) {
-            throw Object.assign(new Error(`الكمية المطلوبة غير متوفرة (${product.name})`), { status: 409 });
-          }
 
           calculatedSubtotal += unitPrice * quantity;
           lines.push({ raw: { ...raw, quantity, unitPrice }, snapshot: buildProductCostSnapshot(product, snapshotAt, raw.variantId) });
@@ -233,6 +219,10 @@ export function createInvoiceV2Router() {
       }
       res.json({ success: true, message: "تم تأكيد طلبك بنجاح! شكراً لك", orderId: outcome.orderId, invoiceNo: outcome.invoiceNo });
     } catch (error: any) {
+      if (isCanonicalInventoryBalanceError(error)) {
+        res.status(409).json({ success: false, message: "تغيّر المخزون وتعذر تأكيد الفاتورة. تواصل ويانا حتى نراجع الكمية." });
+        return;
+      }
       if (error?.status) {
         res.status(error.status).json({ success: false, message: error.message });
         return;

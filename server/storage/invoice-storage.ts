@@ -1,5 +1,5 @@
 import { isVariantPurchasable } from "../../shared/variant-commerce.js";
-import { eq, desc, and, inArray } from "drizzle-orm";
+import { eq, desc, and, inArray, sql } from "drizzle-orm";
 import { getDb } from "../db.js";
 import { randomUUID, randomBytes } from "crypto";
 import {
@@ -11,6 +11,7 @@ import {
   type InsertManualInvoice,
   type InvoiceStatus,
 } from "../../shared/schema.js";
+import { validateManualInvoiceStock } from "../services/manual-invoice-stock.js";
 import type { ManualInvoiceLocale } from "../../shared/manual-invoice-locale.js";
 import { canonicalizeManualInvoiceItems, type InvoiceCatalogueProduct } from "../services/manual-invoice-names.js";
 
@@ -100,33 +101,29 @@ export class InvoiceStorage {
   ): Promise<ManualInvoice> {
     const db = this.ensureDb();
     const id = requestId ?? randomUUID();
-    const token = generateToken(16);
-    const invoiceNo = generateInvoiceNo();
-    const canonicalItems = await this.canonicalizeDraftItems(db, data.items, data.invoiceLocale);
-
-    const [created] = await db.insert(manualInvoices).values({
-      id,
-      invoiceNo,
-      token,
-      invoiceLocale:     data.invoiceLocale,
-      customerName:    data.customerName,
-      customerPhone:   data.customerPhone,
-      customerCity:    data.customerCity,
-      customerAddress: data.customerAddress,
-      customerNotes:   data.customerNotes,
-      items:           canonicalItems,
-      subtotal:        String(data.subtotal),
-      discount:        String(data.discount ?? 0),
-      delivery:        String(data.delivery ?? 0),
-      total:           String(data.total),
-      status:          "draft",
-      createdBy:       createdBy ?? null,
-    }).onConflictDoNothing({ target: manualInvoices.id }).returning();
-
-    if (created) return created;
-    const existing = await this.getById(id);
-    if (requestId && existing && existing.createdBy === (createdBy ?? null)) return existing;
-    throw Object.assign(new Error("تعذر مطابقة محاولة حفظ الفاتورة"), { status: 409 });
+    return db.transaction(async tx => {
+      if (requestId) {
+        // Serialize retries before validating stock. A successful original request
+        // can legitimately be replayed after the product has sold out.
+        await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtextextended(${"manual-invoice:" + id}, 0))`);
+        const [existing] = await tx.select().from(manualInvoices).where(eq(manualInvoices.id, id));
+        if (existing) {
+          if (existing.createdBy === (createdBy ?? null)) return existing;
+          throw Object.assign(new Error("تعذر مطابقة محاولة حفظ الفاتورة"), { status: 409 });
+        }
+      }
+      const catalogue = await validateManualInvoiceStock(tx, data.items);
+      const items = await resolveInvoiceNames(tx, data.items, [...catalogue.values()], data.invoiceLocale);
+      const [created] = await tx.insert(manualInvoices).values({
+        id, invoiceNo: generateInvoiceNo(), token: generateToken(16),
+        invoiceLocale: data.invoiceLocale, customerName: data.customerName, customerPhone: data.customerPhone,
+        customerCity: data.customerCity, customerAddress: data.customerAddress, customerNotes: data.customerNotes,
+        items, subtotal: String(data.subtotal), discount: String(data.discount ?? 0),
+        delivery: String(data.delivery ?? 0), total: String(data.total), status: "draft",
+        createdBy: createdBy ?? null,
+      }).returning();
+      return created;
+    });
   }
 
   /** تحديث بيانات الفاتورة (draft فقط) */
@@ -148,8 +145,11 @@ export class InvoiceStorage {
       if (data.customerAddress !== undefined) updates.customerAddress = data.customerAddress;
       if (data.customerNotes   !== undefined) updates.customerNotes   = data.customerNotes;
       if (data.invoiceLocale !== undefined) updates.invoiceLocale = data.invoiceLocale;
-      if (data.items !== undefined || (data.invoiceLocale !== undefined && data.invoiceLocale !== existing.invoiceLocale)) {
-        updates.items = await this.canonicalizeDraftItems(tx, data.items ?? existing.items, data.invoiceLocale ?? existing.invoiceLocale);
+      if (data.items !== undefined) {
+        const catalogue = await validateManualInvoiceStock(tx, data.items);
+        updates.items = await resolveInvoiceNames(tx, data.items, [...catalogue.values()], data.invoiceLocale ?? existing.invoiceLocale);
+      } else if (data.invoiceLocale !== undefined && data.invoiceLocale !== existing.invoiceLocale) {
+        updates.items = await this.canonicalizeDraftItems(tx, existing.items, data.invoiceLocale);
       }
       if (data.subtotal        !== undefined) updates.subtotal        = String(data.subtotal);
       if (data.discount        !== undefined) updates.discount        = String(data.discount);
@@ -167,10 +167,6 @@ export class InvoiceStorage {
   /** إرسال الفاتورة → تغيير الحالة لـ sent وتحديد وقت انتهاء الصلاحية */
   async send(id: string): Promise<ManualInvoice | undefined> {
     const db = this.ensureDb();
-    // A saved draft may predate a product's option setup. Validate its exact
-    // current identity before exposing a confirmation link; never silently map
-    // its old null variant to a different size or rewrite its agreed price.
-    const { lockProductRowForUpdate } = await import("../services/product-cost-snapshot.js");
     return await db.transaction(async (tx) => {
       const [locked] = await tx.select().from(manualInvoices)
         .where(eq(manualInvoices.id, id)).for("update");
@@ -183,23 +179,8 @@ export class InvoiceStorage {
       }
       if (locked.status !== "draft") return undefined;
       const lines = Array.isArray(locked.items) ? locked.items : [];
-      const catalogue: InvoiceCatalogueProduct[] = [];
-      for (const line of lines) {
-        const product = await lockProductRowForUpdate(tx, line.productId);
-        if (!product || (product.hasVariants && !line.variantId) || (!product.hasVariants && line.variantId)) {
-          throw Object.assign(new Error("راجع خيارات منتجات الفاتورة قبل الإرسال"), { status: 409 });
-        }
-        if (line.variantId) {
-          const variant = (Array.isArray(product.variants) ? product.variants : []).find((candidate) => candidate.id === line.variantId);
-          if (!isVariantPurchasable(variant, Number(line.quantity))) {
-            throw Object.assign(new Error("خيار في الفاتورة غير متاح؛ راجعه قبل الإرسال"), { status: 409 });
-          }
-        } else if (Number(product.stock) < Number(line.quantity)) {
-          throw Object.assign(new Error("الكمية المطلوبة غير متوفرة؛ راجع الفاتورة قبل الإرسال"), { status: 409 });
-        }
-        catalogue.push(product);
-      }
-      const canonicalLines = await resolveInvoiceNames(tx, lines, catalogue, locked.invoiceLocale);
+      const catalogue = await validateManualInvoiceStock(tx, lines);
+      const canonicalLines = await resolveInvoiceNames(tx, lines, [...catalogue.values()], locked.invoiceLocale);
       const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
       const [updated] = await tx.update(manualInvoices)
         .set({ items: canonicalLines, status: "sent", sentAt: new Date(), expiresAt, updatedAt: new Date() } as any)

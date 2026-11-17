@@ -5,7 +5,7 @@ import { storage } from "../storage/index.js";
 import { requireAuth, requireAdmin, getSession } from "../middleware/auth.js";
 import { recommendationEngine } from "../services/recommendation-engine.js";
 import { predictiveAnalytics } from "../services/predictive-analytics.js";
-import { embeddingGenerator } from "../services/embedding-generator.js";
+import { findSemanticProducts } from "../services/semantic-product-search.js";
 import { analyticsTracker } from "../services/analytics-tracker.js";
 import * as Sentry from "@sentry/node";
 import { toPublicProduct, toPublicProducts } from "../../shared/public-product.js";
@@ -387,7 +387,7 @@ export function createProductRouter(): RouterType {
             }
 
             // Try semantic search via embeddings
-            const semanticResults = await embeddingGenerator.semanticSearch(query, 20);
+            const validProducts = await findSemanticProducts(query);
 
             // Track search query (fire-and-forget)
             const searchSession = getSession(req);
@@ -399,17 +399,10 @@ export function createProductRouter(): RouterType {
                     resultsCount,
                 }).catch(() => {});
 
-            if (semanticResults.length > 0) {
-                // Filter to decent similarity threshold
-                const relevant = semanticResults.filter(r => r.similarity > 0.5);
-                const relevantIds = relevant.slice(0, 12).map(r => r.productId);
-                const validProducts = await storage.getProductsByIds(relevantIds);
-
-                if (validProducts.length > 0) {
-                    trackSearchPromise(validProducts.length);
-                    res.json({ products: toPublicProducts(validProducts), semantic: true });
-                    return;
-                }
+            if (validProducts.length > 0) {
+                trackSearchPromise(validProducts.length);
+                res.json({ products: toPublicProducts(validProducts), semantic: true });
+                return;
             }
 
             // Fallback: regular text search
