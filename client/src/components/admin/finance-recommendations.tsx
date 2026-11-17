@@ -17,7 +17,8 @@ async function fetchAccounting<T>(url: string, schema: ZodType<T>): Promise<T> {
   return schema.parse(json.data);
 }
 
-function fmt(n: number) {
+function fmt(n: number | null) {
+  if (n == null) return "غير معروف";
   return new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(n) + " د.ع";
 }
 

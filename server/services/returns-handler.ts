@@ -70,8 +70,8 @@ export class ReturnsHandler {
                     userId: params.userId,
                     productId: params.productId,
                     reason: params.reason,
-                    description: params.description,
-                    photos: params.photos || [],
+                    detailedDescription: params.description,
+                    images: params.photos ?? [],
                     status: "pending",
                     createdAt: new Date(),
                 })
@@ -141,9 +141,9 @@ export class ReturnsHandler {
 - المنتج: ${p?.name || "غير معروف"}
 - السعر: ${p?.price || 0} دينار
 - سبب الإرجاع: ${r.reason}
-- الوصف: ${r.description}
+- الوصف: ${r.detailedDescription ?? ""}
 - أيام منذ الشراء: ${daysSinceOrder}
-- صور مرفقة: ${(r.photos as string[])?.length || 0}
+- صور مرفقة: ${r.images?.length ?? 0}
 
 سياسة الإرجاع:
 - الإرجاع مسموح خلال 14 يوم للمنتجات الجديدة

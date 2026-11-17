@@ -45,10 +45,10 @@ function pct(n: number) {
 function matchesFilter(p: AccountingProductProfitFull, filter: FilterKey): boolean {
   if (filter === "all") return true;
   if (filter === "coming_soon") return p.comingSoon;
-  if (filter === "missing_cost") return !p.comingSoon && p.costPrice <= 0;
+  if (filter === "missing_cost") return !p.comingSoon && p.costPrice == null;
   if (filter === "low_stock") return !p.comingSoon && p.stock <= 10 && p.stock > 0;
   if (filter === "no_sales") return !p.comingSoon && p.unitsSold === 0;
-  if (filter === "weak") return !p.comingSoon && p.costPrice > 0 && p.revenue > 0 && p.grossMargin < 20;
+  if (filter === "weak") return !p.comingSoon && p.costPrice != null && p.revenue > 0 && p.grossMargin < 20;
   if (filter === "profitable") return p.revenue > 0 && p.grossMargin >= 20;
   return true;
 }
@@ -122,7 +122,7 @@ export function FinanceProductProfitability({ period }: Props) {
     const totalInventoryAtCost = active.reduce((s, p) => s + p.inventoryValueAtCost, 0);
     const totalPotentialGross = active.reduce((s, p) => s + p.potentialGrossProfitFromStock, 0);
     const avgGrossMargin = totalRevenue > 0 ? (totalGrossProfit / totalRevenue) * 100 : 0;
-    const missingCost = active.filter((p) => p.costPrice <= 0).length;
+    const missingCost = active.filter((p) => p.costPrice == null).length;
     const lowStock = active.filter((p) => p.stock > 0 && p.stock <= 10).length;
     const outOfStock = active.filter((p) => p.stock === 0).length;
     return { totalRevenue, totalGrossProfit, avgGrossMargin, totalInventoryAtCost, totalPotentialGross, missingCost, lowStock, outOfStock, totalProducts: rows.length };
@@ -135,8 +135,10 @@ export function FinanceProductProfitability({ period }: Props) {
       result = result.filter((p) => p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q));
     }
     result = [...result].sort((a, b) => {
-      const av = a[sort.key] as number | string;
-      const bv = b[sort.key] as number | string;
+      const av = a[sort.key];
+      const bv = b[sort.key];
+      if (av == null) return bv == null ? 0 : 1;
+      if (bv == null) return -1;
       if (typeof av === "string" && typeof bv === "string") {
         return sort.dir === "asc" ? av.localeCompare(bv) : bv.localeCompare(av);
       }
@@ -306,11 +308,11 @@ export function FinanceProductProfitability({ period }: Props) {
                   <td style={{ ...td, color: p.grossMargin >= 20 ? "#22c55e" : p.grossMargin > 0 ? "#f59e0b" : "#64748b" }}>
                     {p.revenue > 0 ? pct(p.grossMargin) : "—"}
                   </td>
-                  <td style={{ ...td, color: p.netProfit > 0 ? "#22c55e" : p.netProfit < 0 ? "#ef4444" : "#64748b" }}>
-                    {p.revenue > 0 ? fmt(Math.round(p.netProfit)) : "—"}
+                  <td style={{ ...td, color: p.netProfit == null ? "#64748b" : p.netProfit > 0 ? "#22c55e" : p.netProfit < 0 ? "#ef4444" : "#64748b" }}>
+                    {p.revenue > 0 && p.netProfit != null ? fmt(Math.round(p.netProfit)) : "—"}
                   </td>
-                  <td style={{ ...td, color: p.margin >= 20 ? "#22c55e" : p.margin > 0 ? "#f59e0b" : "#64748b" }}>
-                    {p.revenue > 0 ? pct(p.margin) : "—"}
+                  <td style={{ ...td, color: p.margin == null ? "#64748b" : p.margin >= 20 ? "#22c55e" : p.margin > 0 ? "#f59e0b" : "#64748b" }}>
+                    {p.revenue > 0 && p.margin != null ? pct(p.margin) : "—"}
                   </td>
                   <td style={{ ...td, color: p.stock === 0 ? "#94a3b8" : p.stock <= 10 ? "#f59e0b" : "#e2e8f0" }}>
                     {p.stock.toLocaleString("ar-IQ")}
