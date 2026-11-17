@@ -23,6 +23,14 @@ describe("invoice draft variant validation before sharing", () => {
     await expect(storage.send("draft")).rejects.toMatchObject({ status: 409 });
     expect(update).not.toHaveBeenCalled();
   });
+  it("checks current stock for a simple product before sharing", async () => {
+    const { storage, update } = setup(null, {});
+    vi.mocked(lockProductRowForUpdate).mockResolvedValue({
+      id: "product", name: "منتج", hasVariants: false, price: 1000, stock: 0,
+    } as unknown as Awaited<ReturnType<typeof lockProductRowForUpdate>>);
+    await expect(storage.send("draft")).rejects.toMatchObject({ status: 409 });
+    expect(update).not.toHaveBeenCalled();
+  });
   it("validates the locked current draft rather than the stale initial read", async () => {
     const { storage, update } = setup(null, {}, "v");
     await expect(storage.send("draft")).rejects.toMatchObject({ status: 409 });

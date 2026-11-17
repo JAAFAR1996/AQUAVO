@@ -145,7 +145,7 @@ function normalizedShippingFee(value: unknown): number {
   return Number.isFinite(numeric) && numeric > 0 ? numeric : AQUAVO_ENTITY.deliveryFee;
 }
 
-function shippingDetails(shippingFee = AQUAVO_ENTITY.deliveryFee): object {
+function shippingDetails(shippingFee: number = AQUAVO_ENTITY.deliveryFee): object {
   const liveFee = normalizedShippingFee(shippingFee);
   return {
     "@type": "OfferShippingDetails",
@@ -191,7 +191,7 @@ function buildOffer(
   price: string | number | null | undefined,
   currency: string,
   stock: string | number | null | undefined,
-  shippingFee = AQUAVO_ENTITY.deliveryFee,
+  shippingFee: number = AQUAVO_ENTITY.deliveryFee,
 ): object | undefined {
   const numericPrice = numberValue(price);
   if (numericPrice === null || numericPrice <= 0) return undefined;

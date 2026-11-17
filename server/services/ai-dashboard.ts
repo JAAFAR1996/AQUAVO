@@ -8,7 +8,7 @@ import {
     churnPredictions,
     inventoryRecommendations,
 } from "../../shared/schema.js";
-import { eq, desc, gte, sql, count, sum, and } from "drizzle-orm";
+import { eq, desc, gte, sql, count, sum, and, isNull } from "drizzle-orm";
 import { aiMonitor } from "./ai-monitor.js";
 // Canonical financial engine — the ONE source of realized revenue/profit.
 // Legacy revenue here summed orders.total across ALL statuses (raw, no shipping) —
@@ -197,7 +197,8 @@ export class AIDashboard {
             const urgentStock = await db
                 .select({ count: count() })
                 .from(inventoryRecommendations)
-                .where(eq(inventoryRecommendations.urgency, "critical"));
+                .innerJoin(products, eq(products.id, inventoryRecommendations.productId))
+                .where(and(eq(inventoryRecommendations.urgency, "critical"), eq(inventoryRecommendations.status, "pending"), isNull(products.deletedAt)));
 
             if ((urgentStock[0]?.count || 0) > 0) {
                 recommendations.push(`📦 ${urgentStock[0].count} منتجات تحتاج إعادة تخزين عاجلة`);

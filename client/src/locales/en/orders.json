@@ -207,6 +207,10 @@
     "s57": "You see the latest recorded update on your shipment"
   },
   "invoice-view": {
+    "draft": "Draft",
+    "expired": "This invoice link has expired. Contact us to review your order.",
+    "unavailable": "We could not find an invoice at this link. Please check the link or contact us.",
+    "review": "We could not update this invoice. Please contact us to review the details.",
     "s1": "Awaiting your response",
     "s2": "Accepted ✅",
     "s3": "Rejected",

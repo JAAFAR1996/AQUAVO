@@ -1,0 +1,13 @@
+@media print {
+  .manual-invoice-receipt,
+  .manual-invoice-receipt * {
+    color: #17252b !important;
+    background: white !important;
+    border-color: #bbb !important;
+    box-shadow: none !important;
+  }
+
+  .manual-invoice-receipt { min-height: auto !important; }
+  .manual-invoice-receipt > div { overflow: visible !important; max-width: none !important; }
+  .manual-invoice-receipt .manual-invoice-screen-only { display: none !important; }
+}

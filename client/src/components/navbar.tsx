@@ -514,7 +514,8 @@ export default function Navbar() {
                                     variant="ghost"
                                     size="icon"
                                     className="h-11 w-11 md:h-11 md:w-11 rounded-xl"
-                                    onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                    disabled={item.quantity <= 1 || item.stock === 0}
+                                    onClick={() => updateQuantity(item.id, Math.min(item.quantity - 1, item.stock ?? item.quantity))}
                                     aria-label={t("cart.decrease", { name: item.name })}
                                   >
                                     <span aria-hidden="true">−</span>
@@ -527,6 +528,7 @@ export default function Navbar() {
                                     variant="ghost"
                                     size="icon"
                                     className="h-11 w-11 md:h-11 md:w-11 rounded-xl"
+                                    disabled={item.stock != null && item.quantity >= item.stock}
                                     onClick={() => updateQuantity(item.id, item.quantity + 1)}
                                     aria-label={t("cart.increase", { name: item.name })}
                                   >

@@ -122,7 +122,7 @@ async function fetchChurnRisk() {
 // Fetch Inventory Recommendations
 async function fetchInventoryRecommendations() {
     const response = await fetch("/api/ai-advanced/inventory/recommendations", { credentials: "include" });
-    if (!response.ok) return { success: false, data: [] };
+    if (!response.ok) throw new Error("تعذّر تحميل توصيات المخزون");
     return response.json();
 }
 
@@ -150,7 +150,7 @@ export default function AdminAI() {
         staleTime: 1000 * 60 * 10,
     });
 
-    const { data: inventoryData, isLoading: inventoryLoading, refetch: refetchInventory } = useQuery({
+    const { data: inventoryData, isLoading: inventoryLoading, isError: inventoryError, refetch: refetchInventory } = useQuery({
         queryKey: ["ai-inventory"],
         queryFn: fetchInventoryRecommendations,
         staleTime: 1000 * 60 * 10,
@@ -173,9 +173,15 @@ export default function AdminAI() {
 
     const runMutation = useMutation({
         mutationFn: runAgent,
+        onSettled: (_data, _error, agentName) => {
+            void queryClient.invalidateQueries({ queryKey: ["ai-agent-settings"] });
+            if (agentName === "inventory") {
+                void queryClient.invalidateQueries({ queryKey: ["ai-inventory"] });
+                void queryClient.invalidateQueries({ queryKey: ["ai-dashboard"] });
+            }
+        },
         onSuccess: (data) => {
-            queryClient.invalidateQueries({ queryKey: ["ai-agent-settings"] });
-            toast({ title: "✅ تم التشغيل", description: data.message });
+            toast({ title: "تم التشغيل", description: data.message });
         },
         onError: (error: Error) => {
             toast({ title: "❌ فشل التشغيل", description: error.message, variant: "destructive" });
@@ -223,7 +229,7 @@ export default function AdminAI() {
                 />
                 <StatCard
                     title="توصيات المخزون"
-                    value={inventoryData?.data?.length || 0}
+                    value={inventoryError ? "تعذّر التحميل" : inventoryData?.data?.length || 0}
                     icon={<BoxIcon className="h-5 w-5" />}
                     color="orange"
                     loading={inventoryLoading}
@@ -405,7 +411,7 @@ export default function AdminAI() {
                                 توصيات المخزون
                             </CardTitle>
                             <CardDescription>
-                                منتجات تحتاج إعادة طلب أو لديها مخزون زائد
+                                المنتجات اللي تشير مبيعاتها إلى قرب نفاد المخزون
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -414,6 +420,11 @@ export default function AdminAI() {
                                     {[1, 2, 3].map((i) => (
                                         <Skeleton key={i} className="h-16 w-full" />
                                     ))}
+                                </div>
+                            ) : inventoryError ? (
+                                <div role="alert" className="space-y-2 py-8 text-center">
+                                    <p>تعذّر تحميل توصيات المخزون</p>
+                                    <Button variant="outline" onClick={() => refetchInventory()}>إعادة المحاولة</Button>
                                 </div>
                             ) : inventoryData?.data?.length > 0 ? (
                                 <ScrollArea className="h-[400px]">
@@ -425,7 +436,7 @@ export default function AdminAI() {
                                             >
                                                 <div>
                                                     <p className="font-medium">
-                                                        المنتج #{item.productId.slice(0, 8)}
+                                                        {item.productName || item.productId}
                                                     </p>
                                                     <p className="text-sm text-muted-foreground">
                                                         {item.reason || item.suggestedAction}

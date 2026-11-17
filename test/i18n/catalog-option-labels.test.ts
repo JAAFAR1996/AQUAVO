@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { applyProductTranslation, productSourceFields } from "../../shared/i18n/content";
 
 // Public catalog IDs and literal measurement tokens only; no inventory or cost evidence.
 const requiredOptions: Record<string, Record<string, string[]>> = {
@@ -163,9 +164,6 @@ const requiredOptions: Record<string, Record<string, string[]>> = {
     "current-5kg": [
       "1",
       "1"
-    ],
-    "1mm": [
-      "1"
     ]
   },
   "houyi-white-cotton": {
@@ -185,8 +183,8 @@ const catalog = (locale: string): Record<string, Translation> => JSON.parse(read
 const numbers = (value: string) => value.match(/\d+(?:\.\d+)?/g) ?? [];
 
 describe("verified catalog option locale labels", () => {
-  it("covers the 40 variant options remaining after eight options became separate products", () => {
-    expect(Object.values(requiredOptions).reduce((sum, options) => sum + Object.keys(options).length, 0)).toBe(40);
+  it("covers the 39 active options after the Dutch sand preview option was archived", () => {
+    expect(Object.values(requiredOptions).reduce((sum, options) => sum + Object.keys(options).length, 0)).toBe(39);
   });
   it.each(["en", "ckb"])("preserves every required option and literal measurement in %s", (locale) => {
     const products = catalog(locale);
@@ -197,6 +195,30 @@ describe("verified catalog option locale labels", () => {
         expect(numbers(label!), `${locale}/${productId}/${optionId}`).toEqual(measurements);
       }
     }
+  });
+
+  it.each(["en", "ckb"] as const)("preserves the active Dutch sand selling unit in %s without localizing retired options", locale => {
+    // Public catalogue on 2026-11-15. The stable active ID predates the change
+    // to selling per kilogram. The old 1mm preview and weight IDs are archived.
+    const source = {
+      name: "رمل هولندي للأكواسكيب",
+      description: "رمل للأحواض",
+      variants: [
+        { id: "current-5kg", label: "1 ملم — يباع بالكيلو", isArchived: false },
+        { id: "1mm", label: "1 ملم — قريبا", isArchived: true },
+        ...[1, 2, 3, 5].map(kg => ({ id: `${kg}kg`, label: `${kg} كغ`, isArchived: true })),
+      ],
+    };
+    const data = catalog(locale)["houyi-dutch-sand"].data;
+    expect(productSourceFields(source).variantLabels).toEqual({ "current-5kg": source.variants[0].label });
+    const result = applyProductTranslation(source, {
+      name: data.name!, description: source.description, variantLabels: data.variantLabels,
+    }, locale).value;
+    expect(result.variants[0].label).toBe(data.variantLabels?.["current-5kg"]);
+    expect(result.variants.slice(1)).toEqual(source.variants.slice(1));
+    const labels = data.specifications!.labelled!;
+    expect(labels["حجم الحبيبات"].value).toBe(locale === "en" ? "1 mm" : "1 ملم");
+    expect(labels["وحدة البيع"].value).toBe(locale === "en" ? "1 kg" : "1 کگم");
   });
 
   it.each(["en", "ckb"])("preserves eight standalone products and their verified measurements in %s", (locale) => {

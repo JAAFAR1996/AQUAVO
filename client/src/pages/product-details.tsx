@@ -58,7 +58,7 @@ import { useTranslation } from "react-i18next";
 import { useLocale } from "@/i18n/locale-context";
 import { localizeCategoryName } from "@shared/i18n/categories";
 import { formatIQD } from "@/lib/utils";
-import { getProductDisplayIdentity } from "@/lib/product-display";
+import { getProductDisplayIdentity, isSoldByKilogram } from "@/lib/product-display";
 import { getProductPriceDisplay } from "@/lib/product-pricing";
 import { isProductComingSoon } from "@shared/product-availability";
 import { useShippingFee } from "@/contexts/shipping-fee-context";
@@ -382,13 +382,7 @@ export default function ProductDetails() {
   const productRating = Number(product.rating || 0);
   const reviewCount = product.reviewCount || 0;
   const inStock = displayStock > 0;
-  const isKilogramProduct =
-    product.name.includes("كغم") ||
-    product.name.includes("كيلو") ||
-    ["رمال", "أحجار", "حصى"].includes(product.subcategory ?? "") ||
-    ["houyi-activated-carbon", "houyi-ceramic-ring", "houyi-breathing-ring-white"].includes(product.slug);
-  const isVolcanicStone = product.id === "houyi-volcanic-stone-red" ||
-    product.id === "houyi-volcanic-stone-black";
+  const isKilogramProduct = isSoldByKilogram(product);
   const productDisplay = getProductDisplayIdentity(product);
   const productMeta = buildProductSeoMeta(product, { locale });
   const decisionSpecs = (product.specifications ?? {}) as Record<string, unknown>;
@@ -643,7 +637,7 @@ export default function ProductDetails() {
                     <>
                       <Check className="w-4 h-4 text-green-500" aria-hidden="true" />
                       <span className="text-sm font-medium text-green-600 dark:text-green-400">
-                        {isVolcanicStone
+                        {isKilogramProduct
                           ? t("volcanicSizes.inStockKg", { count: displayStock })
                           : t("stock.available", { count: displayStock })}
                       </span>

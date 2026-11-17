@@ -4,6 +4,8 @@ import { relations } from "drizzle-orm";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 
+import type { ManualInvoiceLocale } from "./manual-invoice-locale.js";
+
 // Product variant type for size/power options within a single product
 export interface ProductVariant {
   id: string;                         // Unique variant ID (e.g., "S", "M", "L", "18W")
@@ -2841,6 +2843,8 @@ export const manualInvoices = pgTable("manual_invoices", {
   invoiceNo:  text("invoice_no").unique().notNull(),
   token:      text("token").unique().notNull(),           // رابط العميل الآمن
 
+  invoiceLocale: text("invoice_locale").notNull().default("ar").$type<ManualInvoiceLocale>(),
+
   // بيانات العميل
   customerName:    text("customer_name").notNull(),
   customerPhone:   text("customer_phone").notNull(),
@@ -2871,12 +2875,14 @@ export const manualInvoices = pgTable("manual_invoices", {
   rejectedAt:  timestamp("rejected_at",  { withTimezone: true }),
   expiresAt:   timestamp("expires_at",   { withTimezone: true }),
 }, (table) => ({
+  localeCheck: check("manual_invoices_locale_check", sql`${table.invoiceLocale} IN ('ar', 'ckb')`),
   tokenIdx:     index("manual_invoices_token_idx").on(table.token),
   statusIdx:    index("manual_invoices_status_idx").on(table.status),
   createdByIdx: index("manual_invoices_created_by_idx").on(table.createdBy),
 }));
 
 export const insertManualInvoiceSchema = z.object({
+  invoiceLocale:   z.enum(["ar", "ckb"]).default("ar"),
   customerName:    z.string().min(1, "اسم العميل مطلوب"),
   customerPhone:   z.string().min(7, "رقم الهاتف غير صحيح"),
   customerCity:    z.string().optional(),
@@ -2897,6 +2903,13 @@ export const insertManualInvoiceSchema = z.object({
   delivery: z.number().min(0).default(0),
   total:    z.number().positive(),
 });
+
+// Partial updates must not apply create defaults to absent language or charges.
+export const updateManualInvoiceSchema = insertManualInvoiceSchema.extend({
+  invoiceLocale: insertManualInvoiceSchema.shape.invoiceLocale.removeDefault(),
+  discount: insertManualInvoiceSchema.shape.discount.removeDefault(),
+  delivery: insertManualInvoiceSchema.shape.delivery.removeDefault(),
+}).partial();
 
 export type ManualInvoice = typeof manualInvoices.$inferSelect;
 export type InsertManualInvoice = z.infer<typeof insertManualInvoiceSchema>;

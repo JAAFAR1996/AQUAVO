@@ -1,19 +1,29 @@
 import { groqClient } from "./groq-client.js";
-import { db } from "../db.js";
+import { getDb } from "../db.js";
+import { TEST_ORDER_SQL } from "./dashboard-truth.js";
+import { alias } from "drizzle-orm/pg-core";
 import {
     inventoryRecommendations,
     products,
     orderItems,
     orders,
-    type InsertInventoryRecommendation,
 } from "../../shared/schema.js";
-import { eq, desc, and, gte, sql, count, sum } from "drizzle-orm";
+import { eq, desc, and, gte, isNull, inArray, not, sum, lt } from "drizzle-orm";
 import { aiMonitor } from "./ai-monitor.js";
 
 /**
  * Inventory Optimizer Service
  * يحلل المخزون ويقدم توصيات ذكية
  */
+type RecommendationWrite = Pick<typeof inventoryRecommendations.$inferInsert,
+    "productId" | "currentStock" | "suggestedOrderQuantity" | "urgency" | "aiReason">;
+
+function requireDatabase() {
+    const db = getDb();
+    if (!db) throw new Error("Database not connected");
+    return db;
+}
+
 export class InventoryOptimizer {
 
     /**
@@ -30,11 +40,12 @@ export class InventoryOptimizer {
         reason: string;
     }> {
         try {
+            const db = requireDatabase();
             // Get product info
             const product = await db
-                .select()
+                .select({ stock: products.stock, name: products.name })
                 .from(products)
-                .where(eq(products.id, productId))
+                .where(and(eq(products.id, productId), isNull(products.deletedAt)))
                 .limit(1);
 
             if (product.length === 0) {
@@ -47,16 +58,19 @@ export class InventoryOptimizer {
             const thirtyDaysAgo = new Date();
             thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
+            // Match the delivered, non-test unit counts used by dashboard-truth.
+            const o = alias(orders, "o");
             const salesData = await db
                 .select({
                     totalSold: sum(orderItems.quantity),
                 })
                 .from(orderItems)
-                .innerJoin(orders, eq(orderItems.orderId, orders.id))
+                .innerJoin(o, eq(orderItems.orderId, o.id))
                 .where(
                     and(
                         eq(orderItems.productId, productId),
-                        gte(orders.createdAt, thirtyDaysAgo)
+                        eq(o.status, "delivered"), not(TEST_ORDER_SQL),
+                        gte(o.createdAt, thirtyDaysAgo), lt(o.createdAt, new Date())
                     )
                 );
 
@@ -113,6 +127,7 @@ export class InventoryOptimizer {
      */
     async analyzeAllProducts(): Promise<{
         analyzed: number;
+        failed: number;
         urgent: number;
         soon: number;
         excess: number;
@@ -120,7 +135,9 @@ export class InventoryOptimizer {
         console.log("[InventoryOptimizer] Starting inventory analysis...");
 
         try {
-            const allProducts = await db.select({ id: products.id }).from(products);
+            const db = requireDatabase();
+            const allProducts = await db.select({ id: products.id }).from(products).where(isNull(products.deletedAt));
+            let failed = 0;
 
             let urgent = 0;
             let soon = 0;
@@ -133,32 +150,24 @@ export class InventoryOptimizer {
                     // Save recommendation
                     await this.saveRecommendation({
                         productId: product.id,
-                        recommendationType: analysis.recommendation,
                         currentStock: analysis.currentStock,
-                        suggestedAction: analysis.suggestedReorderQty > 0
-                            ? `طلب ${analysis.suggestedReorderQty} وحدة`
-                            : "لا حاجة للإجراء",
-                        reason: analysis.reason,
-                        estimatedImpact: analysis.recommendation === "urgent"
-                            ? "خسارة مبيعات محتملة"
-                            : undefined,
-                        priority: analysis.recommendation === "urgent"
-                            ? "high"
-                            : analysis.recommendation === "soon"
-                                ? "medium"
-                                : "low",
+                        suggestedOrderQuantity: analysis.suggestedReorderQty,
+                        urgency: analysis.recommendation === "urgent" ? "critical" : analysis.recommendation === "soon" ? "high" : "low",
+                        aiReason: analysis.reason,
                     });
 
                     if (analysis.recommendation === "urgent") urgent++;
                     if (analysis.recommendation === "soon") soon++;
                     if (analysis.recommendation === "excess") excess++;
                 } catch (error) {
+                    failed++;
                     console.error(`Error analyzing product ${product.id}:`, error);
                 }
             }
 
+            const analyzed = allProducts.length - failed;
             console.log(
-                `[InventoryOptimizer] Analysis complete: ${allProducts.length} products, ${urgent} urgent, ${soon} soon, ${excess} excess`
+                `[InventoryOptimizer] Analysis complete: ${analyzed} saved, ${failed} failed, ${urgent} urgent, ${soon} soon, ${excess} excess`
             );
 
             // Generate AI summary if there are urgent items
@@ -166,17 +175,17 @@ export class InventoryOptimizer {
             if ((urgent > 0 || soon > 0) && groqClient.hasKeys()) {
                 try {
                     aiSummary = await groqClient.chatText(
-                        [{ role: "user", content: `أنت مدير مخزون لمتجر أحواض أسماك. لخّص الوضع في جملة: ${urgent} منتج عاجل، ${soon} قريب النفاد، ${excess} فائض، من أصل ${allProducts.length} منتج.` }],
+                        [{ role: "user", content: `أنت مدير مخزون لمتجر أحواض أسماك. لخّص الوضع في جملة: ${urgent} منتج عاجل، ${soon} قريب النفاد، ${excess} فائض، من أصل ${analyzed} منتج.` }],
                         { temperature: 0.3, maxTokens: 80, model: "llama-3.1-8b-instant" }
                     );
-                    aiMonitor.log({ event: "inventory_optimization", level: "info", success: true, model: "llama-3.1-8b-instant", details: { analyzed: allProducts.length, urgent, soon, excess } });
+                    aiMonitor.log({ event: "inventory_optimization", level: "info", success: true, model: "llama-3.1-8b-instant", details: { analyzed, failed, urgent, soon, excess } });
                 } catch {
                     // AI summary is optional
                 }
             }
 
             return {
-                analyzed: allProducts.length,
+                analyzed, failed,
                 urgent,
                 soon,
                 excess,
@@ -191,83 +200,57 @@ export class InventoryOptimizer {
     /**
      * حفظ التوصية
      */
-    async saveRecommendation(data: InsertInventoryRecommendation): Promise<void> {
-        try {
-            // Check if exists
-            const existing = await db
-                .select()
-                .from(inventoryRecommendations)
-                .where(eq(inventoryRecommendations.productId, data.productId))
-                .limit(1);
-
-            if (existing.length > 0) {
-                await db
-                    .update(inventoryRecommendations)
-                    .set({
-                        ...data,
-                        updatedAt: new Date(),
-                    })
-                    .where(eq(inventoryRecommendations.productId, data.productId));
+    async saveRecommendation(data: RecommendationWrite): Promise<void> {
+        await requireDatabase().transaction(async tx => {
+            // The existing schema has a non-unique product index. Serializing
+            // refreshes on the parent row prevents duplicate inserts on retries.
+            await tx.select({ id: products.id }).from(products).where(eq(products.id, data.productId)).for("update");
+            const [existing] = await tx.select({ id: inventoryRecommendations.id })
+                .from(inventoryRecommendations).where(eq(inventoryRecommendations.productId, data.productId))
+                .orderBy(desc(inventoryRecommendations.createdAt)).limit(1);
+            if (existing) {
+                // Preserve the operator's ordered, dismissed or completed status.
+                await tx.update(inventoryRecommendations).set({ ...data, updatedAt: new Date() })
+                    .where(eq(inventoryRecommendations.id, existing.id));
             } else {
-                await db.insert(inventoryRecommendations).values({
-                    ...data,
-                    createdAt: new Date(),
-                });
+                await tx.insert(inventoryRecommendations).values({ ...data, status: "pending" });
             }
-        } catch (error) {
-            console.error("Error saving recommendation:", error);
-            throw error;
-        }
+        });
     }
 
-    /**
-     * الحصول على التوصيات العاجلة
-     */
-    async getUrgentRecommendations(): Promise<
-        Array<{
-            id: string;
-            productId: string;
-            recommendationType: string;
-            currentStock: number | null;
-            suggestedAction: string | null;
-            reason: string | null;
-            priority: string | null;
-        }>
-    > {
-        try {
-            return await db
-                .select()
-                .from(inventoryRecommendations)
-                .where(
-                    and(
-                        sql`${inventoryRecommendations.recommendationType} IN ('urgent', 'soon')`,
-                        eq(inventoryRecommendations.dismissed, false)
-                    )
-                )
-                .orderBy(desc(inventoryRecommendations.createdAt));
-        } catch (error) {
-            console.error("Error getting urgent recommendations:", error);
-            throw error;
-        }
+    async getUrgentRecommendations() {
+        const rows = await requireDatabase().select({
+            id: inventoryRecommendations.id,
+            productId: products.id,
+            productName: products.name,
+            currentStock: inventoryRecommendations.currentStock,
+            suggestedOrderQuantity: inventoryRecommendations.suggestedOrderQuantity,
+            urgency: inventoryRecommendations.urgency,
+            reason: inventoryRecommendations.aiReason,
+        }).from(inventoryRecommendations)
+            .innerJoin(products, eq(products.id, inventoryRecommendations.productId))
+            .where(and(
+                isNull(products.deletedAt),
+                eq(inventoryRecommendations.status, "pending"),
+                inArray(inventoryRecommendations.urgency, ["critical", "high"]),
+            )).orderBy(desc(inventoryRecommendations.updatedAt));
+        // Keep legacy dashboard response fields for existing callers.
+        return rows.map(row => ({
+            ...row,
+            recommendationType: row.urgency === "critical" ? "urgent" : "soon",
+            priority: row.urgency === "critical" ? "urgent" : "high",
+            suggestedAction: `طلب ${row.suggestedOrderQuantity} وحدة`,
+        }));
     }
 
-    /**
-     * تجاهل توصية
-     */
-    async dismissRecommendation(id: string): Promise<void> {
-        try {
-            await db
-                .update(inventoryRecommendations)
-                .set({
-                    dismissed: true,
-                    dismissedAt: new Date(),
-                })
-                .where(eq(inventoryRecommendations.id, id));
-        } catch (error) {
-            console.error("Error dismissing recommendation:", error);
-            throw error;
-        }
+    async dismissRecommendation(id: string): Promise<boolean> {
+        const updated = await requireDatabase().update(inventoryRecommendations)
+            .set({ status: "dismissed", updatedAt: new Date() })
+            .where(and(eq(inventoryRecommendations.id, id), eq(inventoryRecommendations.status, "pending")))
+            .returning({ id: inventoryRecommendations.id });
+        return updated.length > 0;
     }
+
 }
 
 // Export singleton instance

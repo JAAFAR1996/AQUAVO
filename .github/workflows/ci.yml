@@ -88,14 +88,17 @@ jobs:
           fi
           echo "✅ Build output verified"
           ls -la dist/ || true
-      - name: Install browser for home rendering checks
-        run: pnpm exec playwright install --with-deps chromium
+      - name: Install browsers for storefront and invoice checks
+        run: pnpm exec playwright install --with-deps chromium webkit
       - name: Verify home hydration and interactions
         run: node scripts/verify-home-shell.mjs
       - name: Verify home paints before the shipping database responds
         run: node --import tsx scripts/verify-home-stream.mjs
       - name: Verify product discovery interactions
         run: node scripts/verify-product-discovery-ux.mjs
+      - name: Verify Arabic and Kurdish manual invoices on mobile
+        run: node scripts/verify-manual-invoice-phone.mjs
+        timeout-minutes: 5
       - name: Verify journey phone layout and keyboard controls
         id: journey_phone
         run: node scripts/verify-journey-phone.mjs

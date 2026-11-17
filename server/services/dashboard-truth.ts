@@ -107,7 +107,7 @@ function parseCity(value: unknown): string | null {
 // This heuristic already existed before the audit remediation. It is deliberately
 // preserved unchanged here until the separate synthetic-order architecture work
 // is handled in its own final phase.
-const TEST_ORDER_SQL = sql`(
+export const TEST_ORDER_SQL = sql`(
   COALESCE(o.is_test,false)=true OR LOWER(COALESCE(o.source, '')) IN ('test', 'accounting_test')
   OR COALESCE(o.order_number, '') ILIKE '%TEST%'
   OR COALESCE(o.customer_name, '') ILIKE '%اختبار%'

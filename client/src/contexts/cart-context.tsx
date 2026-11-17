@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from "react";
 import { Product } from "@/types";
+import { isVariantActive, isVariantComingSoon, isVariantPurchasable } from "@shared/variant-commerce";
 import { useAuth } from "./auth-context";
 import { toast } from "@/hooks/use-toast";
 import { addCsrfHeader } from "@/lib/csrf";
@@ -154,7 +155,7 @@ async function preflightGuestCartItems(items: CartItem[]): Promise<CartItem[]> {
         price: identityStillValid && current.price != null
           ? Number(current.price)
           : item.price,
-        stock: Number.isFinite(Number(current.stock))
+        stock: identityStillValid && Number.isFinite(Number(current.stock))
           ? Math.max(0, Number(current.stock))
           : 0,
       };
@@ -183,6 +184,8 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 const CART_STORAGE_KEY = "cart-v2"; // syncStorage automatically adds 'aquavo_' prefix
+
+type PendingCartLine = CartItem & { targetQuantity: number };
 
 type ProductWithCartVariant = Product & {
   _variantId?: string;
@@ -264,104 +267,136 @@ export function CartProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  // Load from LocalStorage on mount (for guest)
-  useEffect(() => {
-    if (!isAuthLoading && !user && !isInitialized) {
-      const stored = syncStorage.getItem<CartItem[]>(CART_STORAGE_KEY);
-      if (stored) {
-        try {
-          const normalized = stored.map((item) => ({
-            ...item,
-            name: normalizeCartItemName(item.name, item.variantLabel),
-          }));
-          setItems(normalized);
+  const userId = user?.id;
+  const guestRefreshVersion = useRef(0);
 
-          // localStorage is only a convenience snapshot. Reconcile it against
-          // current public catalogue truth immediately so guest users do not
-          // browse or enter checkout with obsolete price/stock information.
-          void preflightGuestCartItems(normalized).then((freshItems) => {
-            setItems(freshItems);
-            syncStorage.setItem(CART_STORAGE_KEY, freshItems);
-          });
-        } catch (e) {
-          console.error("Failed to parse cart", e);
+  const refreshGuestCart = useCallback(async (snapshot: CartItem[]): Promise<CartItem[]> => {
+    const version = ++guestRefreshVersion.current;
+    const freshItems = await preflightGuestCartItems(snapshot);
+    // Keep the current basket membership and quantities. A slow catalogue
+    // response may arrive after a quantity change, removal or new addition.
+    const current = syncStorage.getItem<CartItem[]>(CART_STORAGE_KEY);
+    const latest = Array.isArray(current) ? current : [];
+    if (version !== guestRefreshVersion.current || freshItems === snapshot) return latest;
+
+    const freshById = new Map(freshItems.map(item => [item.id, item]));
+    const updated = latest.map(item => {
+      const fresh = freshById.get(item.id);
+      return fresh ? { ...fresh, quantity: item.quantity } : item;
+    });
+    syncStorage.setItem(CART_STORAGE_KEY, updated);
+    setItems(updated);
+    return updated;
+  }, []);
+
+  // Restore the guest basket on initial load and whenever an account signs out.
+  useEffect(() => {
+    if (isAuthLoading || userId) return;
+    const stored = syncStorage.getItem<CartItem[]>(CART_STORAGE_KEY);
+    const normalized = Array.isArray(stored) ? stored
+      .filter(item => item && typeof item.name === "string" && typeof item.id === "string")
+      .map(item => ({ ...item, name: normalizeCartItemName(item.name, item.variantLabel) })) : [];
+    setItems(normalized);
+    setIsInitialized(true);
+    if (normalized.length) void refreshGuestCart(normalized);
+    return () => { ++guestRefreshVersion.current; };
+  }, [userId, isAuthLoading, refreshGuestCart]);
+
+  // Keep unconfirmed transfers tied to this account on shared devices.
+  const activeAccountId = useRef(userId);
+  activeAccountId.current = userId;
+  const mergesInFlight = useRef(new Map<string, Promise<{ total: number; remaining: number }>>());
+  useEffect(() => {
+    if (isAuthLoading || !userId) return;
+    let active = true;
+    setItems([]);
+    setIsInitialized(false);
+    const mergeKey = `${CART_STORAGE_KEY}-merge-${userId}`;
+    const mergeGuestLines = async () => {
+      const guest = syncStorage.getItem<CartItem[]>(CART_STORAGE_KEY) ?? [];
+      const pending = syncStorage.getItem<PendingCartLine[]>(mergeKey) ?? [];
+      if (!guest.length && !pending.length) return { total: 0, remaining: 0 };
+      // Claim guest lines for this account before awaiting network I/O.
+      const claimed = new Map(pending.map(line => [line.id, line]));
+      for (const line of guest) {
+        const previous = claimed.get(line.id);
+        claimed.set(line.id, {
+          ...line,
+          quantity: line.quantity + (previous?.quantity ?? 0),
+          targetQuantity: previous?.targetQuantity ? previous.targetQuantity + line.quantity : 0,
+        });
+      }
+      const lines = [...claimed.values()];
+      syncStorage.setItem(mergeKey, lines);
+      syncStorage.removeItem(CART_STORAGE_KEY);
+
+      const cartResponse = await fetch("/api/cart", { credentials: "include" });
+      if (!cartResponse.ok || activeAccountId.current !== userId) return { total: lines.length, remaining: lines.length };
+      const serverItems: ServerCartItem[] = await cartResponse.json();
+      if (!Array.isArray(serverItems) || activeAccountId.current !== userId) return { total: lines.length, remaining: lines.length };
+      const lineKey = (item: { productId: string; variantId?: string }) => JSON.stringify([item.productId, item.variantId ?? null]);
+      const existingByKey = new Map(serverItems.map(item => [lineKey(item), item]));
+      // Persist absolute targets first: if the server adds a line and its
+      // response is lost, a later attempt can recognize it without doubling it.
+      for (const item of lines) {
+        if (!item.targetQuantity) {
+          item.targetQuantity = (existingByKey.get(lineKey(item))?.quantity ?? 0) + item.quantity;
         }
       }
-      setIsInitialized(true);
-    }
-  }, [user, isAuthLoading, isInitialized]);
-
-  // Sync with Server on Login - MERGE local cart with server cart
-  useEffect(() => {
-    if (!isAuthLoading && user) {
-      setIsInitialized(false);
-      const mergeGuestCartWithServer = async () => {
+      syncStorage.setItem(mergeKey, lines);
+      const results = await Promise.all(lines.map(async item => {
+        const existing = existingByKey.get(lineKey(item));
+        if (existing && existing.quantity >= item.targetQuantity) return true;
         try {
-          // 1. Get local cart BEFORE we replace it
-          const localItems: CartItem[] = syncStorage.getItem<CartItem[]>(CART_STORAGE_KEY) || [];
-
-          // 2. If we have local items, push them to server first
-          if (localItems.length > 0) {
-            const pushPromises = localItems.map(item =>
-              fetch("/api/cart", {
-                method: "POST",
-                headers: addCsrfHeader({ "Content-Type": "application/json" }),
-                credentials: "include",
-                body: JSON.stringify({
-                  productId: item.productId,
-                  quantity: item.quantity,
-                  variantId: item.variantId,
-                  variantLabel: item.variantLabel,
-                  variantPrice: item.price,
-                  clientSessionId: getClientSessionId(),
-                }),
-              }).catch(err => {
-                console.error(`Failed to push item ${item.id} to server:`, err);
-                return null; // Don't fail the whole merge
-              })
-            );
-
-            await Promise.all(pushPromises);
-
-            // Clear local storage after successful push
-            syncStorage.removeItem(CART_STORAGE_KEY);
-
-            toast({
-              title: t("cart-context.s1"),
-              description: t("cart-context.s2", { v0: localItems.length }),
-            });
-          }
-
-          // 3. Fetch the merged cart from server
-          const cartRes = await fetch("/api/cart", { credentials: "include" });
-          if (cartRes.ok) {
-            const serverItems = await cartRes.json();
-            if (Array.isArray(serverItems)) {
-              const mappedItems = serverItems.map(mapServerCartItem);
-              setItems(mappedItems);
-            }
-          }
-        } catch (err) {
-          console.error("Failed to merge cart:", err);
-          // On error, try to at least fetch server cart
-          try {
-            const cartRes = await fetch("/api/cart", { credentials: "include" });
-            if (cartRes.ok) {
-              const serverItems = await cartRes.json();
-              if (Array.isArray(serverItems)) {
-                const mappedItems = serverItems.map(mapServerCartItem);
-                setItems(mappedItems);
-              }
-            }
-          } catch (e) {
-            console.error("Failed to fetch cart:", e);
-          }
+          const payload = existing ? { quantity: item.targetQuantity } : {
+            productId: item.productId, quantity: item.targetQuantity,
+            variantId: item.variantId, variantLabel: item.variantLabel,
+            variantPrice: item.price, clientSessionId: getClientSessionId(),
+          };
+          const response = await fetch(existing ? `/api/cart/${existing.id}` : "/api/cart", {
+            method: existing ? "PUT" : "POST", credentials: "include",
+            headers: addCsrfHeader({ "Content-Type": "application/json" }),
+            body: JSON.stringify(payload),
+          });
+          return response.ok;
+        } catch {
+          return false;
         }
-      };
+      }));
+      const remaining = lines.filter((_, index) => !results[index]);
+      if (remaining.length) syncStorage.setItem(mergeKey, remaining);
+      else syncStorage.removeItem(mergeKey);
+      return { total: lines.length, remaining: remaining.length };
+    };
 
-      void mergeGuestCartWithServer().finally(() => setIsInitialized(true));
-    }
-  }, [user, isAuthLoading]);
+    const syncAccountCart = async () => {
+      try {
+        let merge = mergesInFlight.current.get(userId);
+        if (!merge) {
+          merge = mergeGuestLines().finally(() => mergesInFlight.current.delete(userId));
+          mergesInFlight.current.set(userId, merge);
+        }
+        const { total, remaining } = await merge;
+        if (!active) return;
+        if (remaining) {
+          toast({ title: t("cart-context.s15"), description: t("cart-context.mergeIncomplete", { count: remaining }), variant: "destructive" });
+        } else if (total) {
+          toast({ title: t("cart-context.s1"), description: t("cart-context.s2", { v0: total }) });
+        }
+        const response = await fetch("/api/cart", { credentials: "include" });
+        if (response.ok) {
+          const serverItems = await response.json();
+          if (active && Array.isArray(serverItems)) setItems(serverItems.map(mapServerCartItem));
+        }
+      } catch (error) {
+        console.error("Failed to load account cart", error);
+      } finally {
+        if (active) setIsInitialized(true);
+      }
+    };
+    void syncAccountCart();
+    return () => { active = false; };
+  }, [userId, isAuthLoading]);
 
   // Persist changes
   const saveCart = async (newItems: CartItem[]) => {
@@ -393,19 +428,24 @@ export function CartProvider({ children }: { children: ReactNode }) {
     // Tracks the selected variant's stock when it is a known number (undefined
     // means "unknown" — we then defer stock validation to the server/checkout).
     let chosenVariantStock: number | undefined;
-    if (!variantId && product.hasVariants && product.variants?.length) {
-      const inStock = product.variants.filter((v) => (v.stock ?? 0) > 0 && Number(v.price) > 0);
-      const pool = inStock.length > 0 ? inStock : product.variants.filter((v) => Number(v.price) > 0);
-      const chosen = pool.slice().sort((a, b) => Number(a.price) - Number(b.price))[0];
-      if (chosen) {
-        product = { ...product, price: Number(chosen.price) } as Product;
-        variantId = chosen.id;
-        variantLabel = chosen.label;
-        if (chosen.stock != null) chosenVariantStock = Number(chosen.stock);
+    if (!variantId && product.hasVariants) {
+      const available = (product.variants ?? []).filter(variant => isVariantPurchasable(variant, quantity));
+      const chosen = available.sort((a, b) => Number(a.price) - Number(b.price))[0];
+      if (!chosen) {
+        toast({ title: t("cart-context.s8"), description: t("cart-context.s7"), variant: "destructive" });
+        return false;
       }
+      product = { ...product, price: Number(chosen.price) };
+      variantId = chosen.id;
+      variantLabel = chosen.label;
+      chosenVariantStock = Number(chosen.stock);
     } else if (variantId && product.variants?.length) {
-      const selected = product.variants.find((v) => v.id === variantId);
-      if (selected && selected.stock != null) chosenVariantStock = Number(selected.stock);
+      const selected = product.variants.find(variant => variant.id === variantId);
+      if (!selected || !isVariantActive(selected) || isVariantComingSoon(selected) || selected.priceStatus === "pending") {
+        toast({ title: t("cart-context.s8"), description: t("cart-context.s7"), variant: "destructive" });
+        return false;
+      }
+      if (selected.stock != null) chosenVariantStock = Number(selected.stock);
     }
 
     // Only block products with no price set (coming soon)
@@ -729,12 +769,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [user, removeItem, items]);
 
   const refetchCart = useCallback(async (): Promise<CartItem[]> => {
-    if (!user) {
-      const freshItems = await preflightGuestCartItems(items);
-      setItems(freshItems);
-      syncStorage.setItem(CART_STORAGE_KEY, freshItems);
-      return freshItems;
-    }
+    if (!user) return refreshGuestCart(items);
     try {
       const cartRes = await fetch("/api/cart", { credentials: "include" });
       if (cartRes.ok) {
@@ -749,7 +784,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       console.warn("Failed to refetch cart:", err);
     }
     return items;
-  }, [user, items]);
+  }, [user, items, refreshGuestCart]);
 
   const clearCart = async () => {
     if (user) {

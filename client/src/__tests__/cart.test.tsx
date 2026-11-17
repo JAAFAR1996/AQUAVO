@@ -230,6 +230,19 @@ describe('Shopping Cart Hook', () => {
     expect(result.current.items[0].quantity).toBe(5);
   });
 
+  it('selects a purchasable variant for quick add even if a cheaper preview still has stock', async () => {
+    const { result } = renderHook(() => useCart(), { wrapper });
+    const preview = { id: "future", label: "Preview", price: 1, stock: 20, availabilityStatus: "coming_soon" as const };
+    const ready = { id: "ready", label: "Ready", price: 2000, stock: 2 };
+    const product = { ...mockProduct, hasVariants: true, variants: [preview, ready] };
+    await act(async () => { expect(await result.current.addItem(product)).toBe(true); });
+    expect(result.current.items[0]).toMatchObject({ variantId: "ready", price: 2000 });
+    await act(async () => {
+      expect(await result.current.addItem({ ...product, variants: [preview] })).toBe(false);
+    });
+    expect(result.current.totalItems).toBe(1);
+  });
+
   it('should not exceed known variant stock when updating quantity', async () => {
     const { result } = renderHook(() => useCart(), { wrapper });
 

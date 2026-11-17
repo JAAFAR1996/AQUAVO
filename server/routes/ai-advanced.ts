@@ -854,7 +854,9 @@ router.get("/inventory/recommendations", requireAdmin as any, async (req, res) =
 router.post("/inventory/dismiss/:id", requireAdmin as any, async (req, res) => {
   try {
     const { id } = req.params;
-    await inventoryOptimizer.dismissRecommendation(id);
+    if (!await inventoryOptimizer.dismissRecommendation(id)) {
+      return res.status(404).json({ success: false, error: "ماكو توصية معلّقة بهالرقم" });
+    }
 
     res.json({
       success: true,
