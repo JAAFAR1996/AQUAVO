@@ -108,6 +108,8 @@ const ORDER_STATUSES = {
 
 const PAYMENT_LOCKED_STATUSES = new Set(["pending_payment", "payment_review"]);
 
+const PRODUCT_IMAGE_PLACEHOLDER = "/placeholder-product.svg";
+
 const CANCELLABLE_STATUSES = new Set(["pending_payment", "pending", "confirmed", "processing"]);
 
 const ARCHIVABLE_STATUSES = new Set([
@@ -912,10 +914,23 @@ export function OrdersManagement() {
                           <TableRow key={i}>
                             <TableCell className="font-medium">
                               <div className="flex items-center gap-2">
-                                {item.image && (
-                                  <img src={item.image} alt={item.productName} className="w-9 h-9 rounded object-cover border" loading="lazy" />
-                                )}
-                                <div>
+                                <img
+                                  src={item.image?.trim() || PRODUCT_IMAGE_PLACEHOLDER}
+                                  alt={item.image?.trim() ? item.productName : `صورة غير متوفرة: ${item.productName}`}
+                                  width={56}
+                                  height={56}
+                                  className="h-10 w-10 shrink-0 rounded-md border bg-white p-1 object-contain sm:h-14 sm:w-14"
+                                  loading="lazy"
+                                  decoding="async"
+                                  onError={(event) => {
+                                    const image = event.currentTarget;
+                                    if (image.getAttribute("src") !== PRODUCT_IMAGE_PLACEHOLDER) {
+                                      image.src = PRODUCT_IMAGE_PLACEHOLDER;
+                                      image.alt = `صورة غير متوفرة: ${item.productName}`;
+                                    }
+                                  }}
+                                />
+                                <div className="min-w-0 break-words">
                                   <span>{item.productName}</span>
                                   {item.variantLabel && (
                                     <span className="block text-xs text-muted-foreground">الخيار: {item.variantLabel}</span>
