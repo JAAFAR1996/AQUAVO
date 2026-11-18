@@ -1,6 +1,7 @@
 import { drizzle, type NeonDatabase } from "drizzle-orm/neon-serverless";
 import { Pool, neonConfig } from "@neondatabase/serverless";
 import ws from "ws";
+import { normalizeNeonConnectionString } from "./db-connection-url.js";
 
 // ── Neon cold-start retry ────────────────────────────────────────────────────
 // When Neon's serverless compute wakes from sleep it briefly returns:
@@ -53,7 +54,7 @@ type DbClient = NeonDatabase<typeof schema>;
 import { resolveDatabaseTarget, logResolvedDatabaseTarget, DatabaseTargetError } from "./db-target.js";
 
 const rawDbUrl = process.env.DATABASE_URL ?? "";
-const databaseUrl = rawDbUrl.replace(/[&?]channel_binding=require/g, "") || undefined;
+const databaseUrl = normalizeNeonConnectionString(rawDbUrl);
 if (rawDbUrl) {
   // Canonical resolver: identifies the target or fails closed. Logged redacted —
   // never the connection string.

@@ -197,7 +197,12 @@ async function deliverOutboxEvent(event: ClaimedOutbox): Promise<void> {
   }
   const data = await buildMerchantNotificationFromStoredOrder(order);
   // rethrow: a Telegram failure must leave the event pending so the cron retries it.
-  await sendOrderNotification(data, { rethrow: true });
+  const result = await sendOrderNotification(data, { rethrow: true });
+  if (result !== "sent") {
+    // Missing integration configuration is temporary, not a delivered alert.
+    // Keep the durable event pending so restoring Telegram credentials retries it.
+    throw new Error("Merchant notification deferred: Telegram is not configured");
+  }
 }
 
 async function isTestOrder(orderId: string): Promise<boolean> {

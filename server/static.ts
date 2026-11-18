@@ -23,6 +23,22 @@ const PRECOMPRESSED_EXTENSIONS = new Set([
 ]);
 
 const IMAGE_EXTENSIONS_WITH_WEBP_FALLBACK = new Set([".jpg", ".jpeg", ".png"]);
+
+// These two same-origin font URLs were rewritten by Vercel. Keep their exact,
+// version-pinned upstreams on standalone hosts without opening a generic proxy.
+const ACCOUNTANT_FONT_SOURCES: Readonly<Record<string, string>> = {
+  "/fonts/aquavo-noto-sans-arabic-400.woff": "https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-arabic@5.0.13/files/noto-sans-arabic-arabic-400-normal.woff",
+  "/fonts/aquavo-noto-sans-arabic-700.woff": "https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-arabic@5.0.13/files/noto-sans-arabic-arabic-700-normal.woff",
+};
+const accountantFontCache = new Map<string, Buffer>();
+const MAX_ACCOUNTANT_FONT_BYTES = 1024 * 1024;
+
+function renderRecoveryPreviewHtml(html: string): string {
+  if (process.env.RECOVERY_PREVIEW !== "true") return html;
+  const banner = '<aside id="aquavo-recovery-preview" role="status" dir="rtl" style="position:fixed;top:0;left:0;right:0;z-index:2147483647;padding:8px 12px;text-align:center;background:#fff3cd;color:#382800;font:700 14px/1.5 Tahoma,sans-serif;border-bottom:1px solid #d6b75a">نسخة فحص — الطلبات هنا تجريبية</aside>';
+  return html.replace(/<body\b[^>]*>/i, (body) => `${body}${banner}`);
+}
+
 function resolveStaticAssetPath(root: string, requestPath: string) {
   try {
     const decodedPath = decodeURIComponent(requestPath);
@@ -121,12 +137,12 @@ export function renderLocalFallbackHtml(template: string, requestPath: string) {
   const cleanPath = requestPath.replace(/\/+$/, "") || "/";
   const defaultImage = `${BASE_SITE}/brand/aquavo-v2-horizontal.png`;
   if (cleanPath === "/guides") {
-    return renderGuidesIndexHtml(BASE_SITE, defaultImage);
+    return renderRecoveryPreviewHtml(renderGuidesIndexHtml(BASE_SITE, defaultImage));
   }
 
   const guidePage = GUIDE_CONTENT_PAGES[cleanPath];
   if (guidePage) {
-    return renderGuideHtml(cleanPath, guidePage, BASE_SITE, defaultImage);
+    return renderRecoveryPreviewHtml(renderGuideHtml(cleanPath, guidePage, BASE_SITE, defaultImage));
   }
 
   const meta = getPageMeta(requestPath);
@@ -147,11 +163,66 @@ export function renderLocalFallbackHtml(template: string, requestPath: string) {
     `<link rel="canonical" href="${meta.url}" />`
   );
 
-  return html;
+  return renderRecoveryPreviewHtml(html);
 }
 
 
 export function serveStatic(app: Express) {
+  app.use((_req, res, next) => {
+    if (process.env.RECOVERY_PREVIEW === "true") {
+      res.setHeader("X-Robots-Tag", "noindex, nofollow");
+    }
+    next();
+  });
+
+  app.get(Object.keys(ACCOUNTANT_FONT_SOURCES), async (req, res) => {
+    const source = ACCOUNTANT_FONT_SOURCES[req.path];
+    if (!source) {
+      res.status(404).send("Not found");
+      return;
+    }
+    try {
+      let font = accountantFontCache.get(req.path);
+      if (!font) {
+        const response = await fetch(source, {
+          signal: AbortSignal.timeout(10_000),
+          redirect: "error",
+        });
+        if (!response.ok || !response.body) throw new Error("Font upstream unavailable");
+        const declaredSize = Number(response.headers.get("content-length"));
+        if (declaredSize > MAX_ACCOUNTANT_FONT_BYTES) {
+          await response.body.cancel();
+          throw new Error("Font upstream response is too large");
+        }
+        const reader = response.body.getReader();
+        const chunks: Uint8Array[] = [];
+        let size = 0;
+        for (;;) {
+          const chunk = await reader.read();
+          if (chunk.done) break;
+          size += chunk.value.byteLength;
+          if (size > MAX_ACCOUNTANT_FONT_BYTES) {
+            await reader.cancel();
+            throw new Error("Font upstream response is too large");
+          }
+          chunks.push(chunk.value);
+        }
+        font = Buffer.concat(chunks, size);
+        if (font.length < 4 || font.toString("ascii", 0, 4) !== "wOFF") {
+          throw new Error("Font upstream returned an invalid font");
+        }
+        accountantFontCache.set(req.path, font);
+      }
+      res.setHeader("Content-Type", "font/woff");
+      res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.send(font);
+    } catch {
+      res.setHeader("Cache-Control", "no-store");
+      res.status(502).send("Unable to load font.");
+    }
+  });
+
   // Get the directory of the current file (works in bundled ESM)
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = path.dirname(__filename);
@@ -177,8 +248,8 @@ export function serveStatic(app: Express) {
   });
 
   app.get(["/guides", "/guides/"], (_req, res) => {
-    res.setHeader("Cache-Control", "public, max-age=3600");
-    res.type("html").send(renderGuidesIndexHtml(BASE_SITE, `${BASE_SITE}/brand/aquavo-v2-horizontal.png`));
+    res.setHeader("Cache-Control", process.env.RECOVERY_PREVIEW === "true" ? "no-store" : "public, max-age=3600");
+    res.type("html").send(renderRecoveryPreviewHtml(renderGuidesIndexHtml(BASE_SITE, `${BASE_SITE}/brand/aquavo-v2-horizontal.png`)));
   });
 
   const guideRoutes = Object.keys(GUIDE_CONTENT_PAGES).flatMap((guidePath) => [
@@ -191,8 +262,8 @@ export function serveStatic(app: Express) {
     const guidePage = GUIDE_CONTENT_PAGES[cleanPath];
     if (!guidePage) return next();
 
-    res.setHeader("Cache-Control", "public, max-age=3600");
-    res.type("html").send(renderGuideHtml(cleanPath, guidePage, BASE_SITE, `${BASE_SITE}/brand/aquavo-v2-horizontal.png`));
+    res.setHeader("Cache-Control", process.env.RECOVERY_PREVIEW === "true" ? "no-store" : "public, max-age=3600");
+    res.type("html").send(renderRecoveryPreviewHtml(renderGuideHtml(cleanPath, guidePage, BASE_SITE, `${BASE_SITE}/brand/aquavo-v2-horizontal.png`)));
   });
 
   app.use((req, res, next) => {
@@ -266,7 +337,7 @@ export function serveStatic(app: Express) {
   });
 
   app.use("*", (req, res) => {
-    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Cache-Control", process.env.RECOVERY_PREVIEW === "true" ? "no-store" : "no-cache");
     fs.readFile(indexPath, "utf8", (error, template) => {
       if (error) {
         res.status(500).send("Unable to load application shell.");
