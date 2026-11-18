@@ -3,6 +3,7 @@ import { sql } from "drizzle-orm";
 import { requireAdmin } from "../middleware/auth.js";
 import { getDb } from "../db.js";
 import { storage } from "../storage/index.js";
+import { buildOrderItemImageResolver } from "../services/order-item-images.js";
 import {
   buildCostResolver,
   buildFulfillmentResolver,
@@ -102,11 +103,13 @@ export function createAdminOrderArchiveRouter() {
         ? allOrders
         : allOrders.filter((order) => !archivedAtById.get(order.id));
 
-      const costs = await buildCostResolver(db, collectProductIds(visibleOrders as any));
+      const productIds = collectProductIds(visibleOrders);
+      const costs = await buildCostResolver(db, productIds);
       const fulfil = await buildFulfillmentResolver(
         db,
         new Set(visibleOrders.map((order: any) => order.id)),
       );
+      const resolveImage = await buildOrderItemImageResolver(db, productIds);
 
       const enrichedOrders = visibleOrders.map((order: any) => {
         const archivedAt = archivedAtById.get(order.id) ?? null;
@@ -126,6 +129,7 @@ export function createAdminOrderArchiveRouter() {
           return {
             ...item,
             productName: item.productName || cost?.name || `منتج #${String(item.productId ?? "").slice(0, 8)}`,
+            image: resolveImage(item),
             price,
             costPrice,
           };

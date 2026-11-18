@@ -52,6 +52,11 @@ jobs:
     name: 🏗️ Build
     needs: validate
     runs-on: ubuntu-24.04
+    container:
+      image: mcr.microsoft.com/playwright:v1.57.0-noble@sha256:3bed4b1a12f2338642f3d8cba28e291deef3c66bd4a964bbeb3e57bbff511dbd
+    defaults:
+      run:
+        shell: bash
     timeout-minutes: 20
     steps:
       - name: 📥 Checkout code
@@ -88,8 +93,24 @@ jobs:
           fi
           echo "✅ Build output verified"
           ls -la dist/ || true
-      - name: Install browsers for storefront and invoice checks
-        run: pnpm exec playwright install --with-deps chromium webkit
+      - name: Verify pinned Playwright package and preinstalled browser binaries
+        run: |
+          node --input-type=module <<'NODE'
+          import { constants } from "node:fs";
+          import { access } from "node:fs/promises";
+          import { createRequire } from "node:module";
+          import { chromium, webkit } from "@playwright/test";
+          const require = createRequire(import.meta.url);
+          const version = require("@playwright/test/package.json").version;
+          if (version !== "1.57.0") {
+            throw new Error(`Playwright ${version} does not match image 1.57.0`);
+          }
+          for (const browser of [chromium, webkit]) {
+            const executable = browser.executablePath();
+            await access(executable, constants.X_OK);
+            console.log(`Playwright ${version}: ${browser.name()} ${executable}`);
+          }
+          NODE
       - name: Verify home hydration and interactions
         run: node scripts/verify-home-shell.mjs
       - name: Verify home paints before the shipping database responds
