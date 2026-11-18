@@ -1,0 +1,26 @@
+# Emergency recovery staging service for AQUAVO.
+# Import manually in Render only after connecting the correct account.
+# This is an isolated PREVIEW, not production. Do not point aquavoiq.com here
+# or enable customer checkout until the end-to-end recovery checklist is complete.
+services:
+  - type: web
+    name: aquavo-store-recovery
+    runtime: node
+    region: frankfurt
+    plan: free
+    branch: recovery/render-20261118
+    buildCommand: corepack enable && pnpm install --frozen-lockfile --prod=false && pnpm run build
+    startCommand: sh -c 'test -n "$DATABASE_URL" && test -n "$SESSION_SECRET" && exec node dist/index.js'
+    healthCheckPath: /health
+    autoDeployTrigger: off
+    envVars:
+      - key: NODE_VERSION
+        value: "22.16.0"
+      - key: NODE_ENV
+        value: production
+      - key: DISABLE_SCHEDULED_JOBS
+        value: "true"
+      - key: DATABASE_URL
+        sync: false
+      - key: SESSION_SECRET
+        sync: false
