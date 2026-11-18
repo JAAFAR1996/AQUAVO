@@ -21,6 +21,7 @@ const SpeedInsights = lazy(() => import("@vercel/speed-insights/react").then(m =
 
 import { initGA, trackPageView } from "@/lib/analytics";
 import { getClientSessionId } from "@/lib/client-session";
+import { startVisiblePresence } from "@/lib/visible-presence";
 import { captureAttributionFromUrl } from "@/lib/attribution";
 import { initPostHog, phTrackPageView } from "@/lib/posthog";
 import { useMetaPixelInit, useMetaPageView } from "@/hooks/use-meta-pixel";
@@ -1253,53 +1254,33 @@ function PageViewTracker() {
     const presencePayload = JSON.stringify({ sessionId: sid, pagePath: location });
     const leavePayload    = JSON.stringify({ sessionId: sid });
 
-    // Enter: debounced 300ms to absorb rapid SPA navigation
-    const presenceTimer = window.setTimeout(() => {
-      fetch("/api/analytics/presence", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: presencePayload,
-      }).catch(() => {});
-    }, 300);
-
-    // Heartbeat: refresh TTL every 20s (safety net for tabs closed without navigation)
-    const heartbeatTimer = window.setInterval(() => {
-      fetch("/api/analytics/heartbeat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: presencePayload,
-      }).catch(() => {});
-    }, 20_000);
-
-    // Leave on tab hide / page close (sendBeacon fires even during navigation)
-    const handleHide = () => {
-      if (document.visibilityState === "hidden") {
+    const stopPresence = startVisiblePresence({
+      enter: () => {
+        fetch("/api/analytics/presence", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: presencePayload,
+        }).catch(() => {});
+      },
+      heartbeat: () => {
+        fetch("/api/analytics/heartbeat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: presencePayload,
+        }).catch(() => {});
+      },
+      leave: () => {
         navigator.sendBeacon("/api/analytics/presence/leave",
           new Blob([leavePayload], { type: "application/json" }));
-      }
-    };
-    const handlePageHide = (e: PageTransitionEvent) => {
-      if (!e.persisted) { // true = bfcache, keep alive
-        navigator.sendBeacon("/api/analytics/presence/leave",
-          new Blob([leavePayload], { type: "application/json" }));
-      }
-    };
-    document.addEventListener("visibilitychange", handleHide);
-    window.addEventListener("pagehide", handlePageHide);
+      },
+    });
 
     return () => {
       window.clearTimeout(visitTimer);
-      window.clearTimeout(presenceTimer);
-      window.clearInterval(heartbeatTimer);
-      document.removeEventListener("visibilitychange", handleHide);
-      window.removeEventListener("pagehide", handlePageHide);
+      stopPresence();
       if (idleId) (window as any).cancelIdleCallback(idleId);
-
-      // Leave: immediately remove from presence when navigating to another page
-      navigator.sendBeacon("/api/analytics/presence/leave",
-        new Blob([leavePayload], { type: "application/json" }));
     };
   }, [location, sendDuration]);
 
