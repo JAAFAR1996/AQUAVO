@@ -1,26 +1,26 @@
-# Emergency recovery staging service for AQUAVO.
-# Import manually in Render only after connecting the correct account.
-# This is an isolated PREVIEW, not production. Do not point aquavoiq.com here
-# or enable customer checkout until the end-to-end recovery checklist is complete.
+# yaml-language-server: $schema=https://render.com/schema/render.yaml.json
+# Adopt existing service srv-dbup1i1srm7s73figmeg in workspace tea-d10bk5q4d50c73akpcmg.
+# Create the Blueprint with existingResources: adopt and autoSync: false.
+# Verify the planned service ID before applying; no replacement service is intended.
+# Existing environment variables are deliberately omitted and retained by Render.
+# The custom-domain declaration does not change authoritative Cloudflare DNS.
+previews:
+  generation: 'off'
+
 services:
   - type: web
-    name: aquavo-store-recovery
+    name: aquavo-store-recovery-preview
     runtime: node
+    repo: https://github.com/JAAFAR1996/AQUAVO
+    branch: recovery/render-20261118
+    rootDir: ""
     region: frankfurt
     plan: free
-    branch: recovery/render-20261118
-    buildCommand: corepack enable && pnpm install --frozen-lockfile --prod=false && pnpm run build
-    startCommand: sh -c 'test -n "$DATABASE_URL" && test -n "$SESSION_SECRET" && exec node dist/index.js'
+    numInstances: 1
+    buildCommand: corepack enable && corepack prepare pnpm@10.0.0 --activate && pnpm install --frozen-lockfile --prod=false && pnpm run build
+    startCommand: node dist/index.js
+    autoDeployTrigger: 'off'
+    renderSubdomainPolicy: enabled
     healthCheckPath: /health
-    autoDeployTrigger: off
-    envVars:
-      - key: NODE_VERSION
-        value: "22.16.0"
-      - key: NODE_ENV
-        value: production
-      - key: DISABLE_SCHEDULED_JOBS
-        value: "true"
-      - key: DATABASE_URL
-        sync: false
-      - key: SESSION_SECRET
-        sync: false
+    domains:
+      - www.aquavoiq.com
