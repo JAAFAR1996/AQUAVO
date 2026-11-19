@@ -93,10 +93,19 @@ try {
         await expect(page.getByRole("button", { name: /وسط.*غير متوفر/ })).toBeDisabled();
         await page.getByRole("button", { name: /كبير.*53,000/ }).tap();
         await expect(page.getByText("حوض اختبار — كبير")).toBeVisible();
+        const increase = page.getByRole("button", { name: "زيادة كمية حوض اختبار — كبير" });
+        const decrease = page.getByRole("button", { name: "تقليل كمية حوض اختبار — كبير" });
+        await increase.tap();
+        await expect(increase).toBeDisabled();
+        await decrease.tap();
+        await expect(increase).toBeEnabled();
+        await increase.tap();
         await page.getByRole("dialog").getByRole("button", { name: "مسودة", exact: true }).tap();
         await expect.poll(() => draft?.invoiceLocale).toBe(language);
         assert.equal(draft.items[0].variantId, "large");
         assert.equal(draft.items[0].unitPrice, 53000);
+        assert.equal(draft.items[0].quantity, 2);
+        assert.equal(draft.items[0].total, 106000);
 
         // Go through the opposite storefront locale to test the saved choice has priority.
         const prefix = opposite === "ar" ? "" : "/ckb";

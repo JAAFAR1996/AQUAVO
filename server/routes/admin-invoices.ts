@@ -7,6 +7,10 @@ import { manualInvoiceShare } from "../services/manual-invoice-share.js";
 import { storage } from "../storage/index.js";
 import { toPublicProducts } from "../../shared/public-product.js";
 
+import { getDb } from "../db.js";
+import { findSemanticProducts } from "../services/semantic-product-search.js";
+import { ManualInvoiceStockError, withManualInvoiceAvailability } from "../services/manual-invoice-stock.js";
+
 const router = express.Router();
 router.use(requireAdmin);
 
@@ -37,9 +41,20 @@ router.get("/product-search", async (req: Request, res: Response, next: NextFunc
       res.status(400).json({ products: [], message: "اكتب كلمة بحث صحيحة" });
       return;
     }
-    const products = await storage.getProducts({ search: query, searchAllLocales: true, limit: 15 });
+    const db = getDb();
+    if (!db) throw Object.assign(new Error("تعذر التحقق من مخزون الفاتورة"), { status: 503 });
+    const [lexical, semantic] = await Promise.allSettled([
+      storage.getProducts({ search: query, searchAllLocales: true, limit: 15 }),
+      findSemanticProducts(query),
+    ]);
+    if (lexical.status === "rejected" && semantic.status === "rejected") throw lexical.reason;
+    const exact = lexical.status === "fulfilled" ? lexical.value : [];
+    const other = semantic.status === "fulfilled" ? semantic.value : [];
+    const ids = new Set(exact.map(p => p.id));
+    const products = [...exact, ...other.filter(p => !ids.has(p.id))].slice(0, 15);
+    const available = await withManualInvoiceAvailability(db, products);
     res.set("Cache-Control", "no-store, private");
-    res.json({ products: toPublicProducts(products) });
+    res.json({ products: toPublicProducts(available) });
   } catch (err) { next(err); }
 });
 
@@ -113,6 +128,12 @@ router.delete("/:id", async (req: Request, res: Response, next: NextFunction): P
     }
     res.json({ success: true });
   } catch (err) { next(err); }
+});
+
+router.use((error: unknown, _req: Request, res: Response, next: NextFunction) => {
+  if (!(error instanceof ManualInvoiceStockError)) return next(error);
+  const { message, code, productId, variantId, available } = error;
+  res.status(error.status).json({ success: false, message, code, productId, variantId, available });
 });
 
 export function createAdminInvoicesRouter() {
