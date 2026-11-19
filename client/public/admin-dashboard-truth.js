@@ -13,7 +13,8 @@
   const normalizedText = (value) => String(value || "").replace(/\s+/g, " ").trim();
 
   function isAdminPage() {
-    return window.location.pathname === "/admin" || window.location.pathname.startsWith("/admin/");
+    const path = window.location.pathname.toLowerCase();
+    return path === "/admin" || path.startsWith("/admin/");
   }
 
   function findCardByTitle(possibleTitles) {

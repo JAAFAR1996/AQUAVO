@@ -85,6 +85,21 @@ describe("the admin truth script still works for admins", () => {
     expect(observe).toHaveBeenCalledTimes(1);
   });
 
+  it("supports uppercase /ADMIN links without skipping verified dashboard counts", () => {
+    const { observe, setInterval, fetchMock } = runScriptAt("/ADMIN");
+    expect(observe).toHaveBeenCalledTimes(1);
+    expect(setInterval).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/pricing/dashboard-insights",
+      expect.objectContaining({ credentials: "include", cache: "no-store" }),
+    );
+  });
+
+  it("supports mixed-case nested admin routes", () => {
+    const { observe } = runScriptAt("/Admin/orders");
+    expect(observe).toHaveBeenCalledTimes(1);
+  });
+
   it("arms when the client router pushes into /admin without a reload", () => {
     // The regression this guards: /admin is a wouter route, so a link into it
     // never reloads. Before, the always-on observer noticed incidentally.
