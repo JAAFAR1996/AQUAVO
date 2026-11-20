@@ -57,6 +57,7 @@ export type DeliveryCareButtonReplyResult = {
   choice?: DeliveryCareReplyChoice;
   providerMessageId?: string;
   errorCode?: string;
+  supportTicketId?: string;
 };
 
 export type DeliveryCareAutoReplyRecoveryResult = {
@@ -231,6 +232,59 @@ async function persistReplyMetadata(
   return false;
 }
 
+function deliveryIssueSupportTicketId(orderId: string): string {
+  return `whatsapp-delivery-issue:${orderId}`;
+}
+
+async function ensureDeliveryIssueSupportTicket(orderId: string, row: Row): Promise<string> {
+  const db = getDb();
+  if (!db) throw new Error("DB_UNAVAILABLE");
+
+  const ticketId = deliveryIssueSupportTicketId(orderId);
+  const conversationId = `whatsapp_delivery_issue:${orderId}`;
+  const userId = row.user_id == null ? null : String(row.user_id);
+  const customerName = row.customer_name == null ? null : String(row.customer_name);
+  const customerEmail = row.customer_email == null ? null : String(row.customer_email);
+
+  await db.execute(sql`
+    INSERT INTO public.support_tickets(
+      id,
+      conversation_id,
+      user_id,
+      customer_name,
+      customer_email,
+      status,
+      priority,
+      category,
+      escalation_reason,
+      sentiment,
+      created_at,
+      updated_at
+    )
+    VALUES (
+      ${ticketId},
+      ${conversationId},
+      ${userId},
+      ${customerName},
+      ${customerEmail},
+      'open',
+      'high',
+      'complaint',
+      'delivery_issue',
+      'negative',
+      clock_timestamp(),
+      clock_timestamp()
+    )
+    ON CONFLICT(id) DO UPDATE
+      SET user_id=COALESCE(public.support_tickets.user_id, EXCLUDED.user_id),
+          customer_name=COALESCE(public.support_tickets.customer_name, EXCLUDED.customer_name),
+          customer_email=COALESCE(public.support_tickets.customer_email, EXCLUDED.customer_email),
+          updated_at=clock_timestamp()
+  `);
+
+  return ticketId;
+}
+
 function retryAtIsDue(value: unknown): boolean {
   const raw = String(value ?? "").trim();
   if (!raw) return true;
@@ -301,7 +355,10 @@ export async function handleDeliveryCareButtonReply(
     SELECT job.id,
            job.order_id,
            job.metadata,
-           orders.customer_phone
+           orders.customer_phone,
+           orders.user_id,
+           orders.customer_name,
+           orders.customer_email
       FROM public.customer_message_jobs AS job
       JOIN public.orders AS orders ON orders.id=job.order_id
      WHERE job.provider_message_id=${event.contextProviderMessageId}
@@ -317,6 +374,22 @@ export async function handleDeliveryCareButtonReply(
   const orderPhone = normalizeIraqiWhatsAppPhone(row.customer_phone);
   if (!orderPhone || orderPhone !== senderPhone) {
     return { status: "sender_mismatch", jobId, orderId, choice };
+  }
+
+  let supportTicketId: string | undefined;
+  if (choice === "delivery_issue") {
+    try {
+      supportTicketId = await ensureDeliveryIssueSupportTicket(orderId, row);
+    } catch {
+      return {
+        status: "db_unavailable",
+        jobId,
+        orderId,
+        choice,
+        supportTicketId,
+        errorCode: "SUPPORT_TICKET_PERSISTENCE_FAILED",
+      };
+    }
   }
 
   const config = readReplyConfig();
@@ -383,6 +456,7 @@ export async function handleDeliveryCareButtonReply(
         jobId,
         orderId,
         choice,
+        supportTicketId,
         errorCode: "WHATSAPP_REPLY_NOT_CONFIGURED",
       };
     }
@@ -464,6 +538,7 @@ export async function handleDeliveryCareButtonReply(
       jobId,
       orderId,
       choice,
+      supportTicketId,
       errorCode: "WHATSAPP_REPLY_NOT_CONFIGURED",
     };
   }
@@ -503,6 +578,7 @@ export async function handleDeliveryCareButtonReply(
         jobId,
         orderId,
         choice,
+        supportTicketId,
         errorCode: "WHATSAPP_REPLY_RESULT_PERSISTENCE_FAILED",
       };
     }
@@ -516,6 +592,7 @@ export async function handleDeliveryCareButtonReply(
       jobId,
       orderId,
       choice,
+      supportTicketId,
       errorCode: sendError.code,
     };
   }
@@ -537,6 +614,7 @@ export async function handleDeliveryCareButtonReply(
       jobId,
       orderId,
       choice,
+      supportTicketId,
       providerMessageId,
       errorCode: "WHATSAPP_REPLY_ACCEPTED_PERSISTENCE_AMBIGUOUS",
     };
@@ -547,6 +625,7 @@ export async function handleDeliveryCareButtonReply(
     jobId,
     orderId,
     choice,
+    supportTicketId,
     providerMessageId,
   };
 }
