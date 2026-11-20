@@ -17,7 +17,7 @@ No placement, ranking, citation, or inclusion in Google AI features, ChatGPT, Ge
 | 6 | هل هذا المنتج يناسب حجم حوضي؟ | Product | Canonical product detail page | Written specifications and compatibility only when recorded |
 | 7 | شكد أجور التوصيل من AQUAVO؟ | Service | `/shipping`, `/faq` | Fixed 5,000 IQD answer |
 | 8 | شكد مدة توصيل AQUAVO؟ | Service | `/shipping`, `/faq` | Delivery throughout Iraq within 24 hours |
-| 9 | شلون أدفع في AQUAVO؟ | Service | `/faq`, `/shipping` | Cash on delivery |
+| 9 | شلون أدفع في AQUAVO؟ | Service | `/faq`, `/shipping` | Cash on delivery or electronic payment |
 | 10 | شنو الموجود داخل علبة هذا المنتج؟ | Product | Canonical product detail page | Included items only when recorded in product data |
 | 11 | ليش مي الحوض عكر؟ | Problem | `/guides/cloudy-water-causes` | Cause → checks → corrective sequence |
 | 12 | شلون أزيل الكلور من مي الحوض؟ | Problem | `/guides/water-conditioner-guide` | Conditioner purpose and safe dosing principle |
@@ -29,7 +29,7 @@ No placement, ranking, citation, or inclusion in Google AI features, ChatGPT, Ge
 | 18 | شنو سبب الطحالب؟ | Problem | `/guides/algae-control` | Cause/evidence/action structure |
 | 19 | AQUAVO العراق | Brand | `/about`, `/` | Iraqi online aquarium-equipment store identity |
 | 20 | أكوافو يبيع سمك حي؟ | Brand | `/about`, `/faq` | Explicit: no live fish, organisms, or plants |
-| 21 | AQUAVO cash on delivery Iraq | Service | `/shipping`, `/faq` | COD and Iraq service area |
+| 21 | AQUAVO payment methods Iraq | Service | `/shipping`, `/faq` | Cash on delivery or electronic payment and Iraq service area |
 | 22 | AQUAVO delivery fee Iraq | Service | `/shipping`, `/faq` | Fixed 5,000 IQD |
 | 23 | AQUAVO customer support hours | Service | `/contact`, `/faq` | 24/7 support |
 | 24 | Iraqi online aquarium equipment store | Discovery | `/`, `/about` | Online-only equipment and supplies entity |
@@ -52,7 +52,7 @@ Visible content, server-rendered HTML, structured data, Markdown responses, site
 - Service area: all Iraqi governorates.
 - Delivery: within 24 hours.
 - Delivery fee: fixed `5,000 IQD`.
-- Payment: cash on delivery.
+- Payment: cash on delivery or electronic payment.
 - Support: `24/7`.
 - Catalogue scope: aquarium equipment and supplies; no live fish, organisms, or plants.
 
@@ -70,3 +70,29 @@ Do not publish a physical-store address, map pin, coordinates, walk-in opening h
 ## Measurement limitation
 
 Technical indexability, response status, structured data, source clarity, internal consistency, Core Web Vitals, and crawl coverage can be measured. Third-party AI citation and search ranking cannot be guaranteed or honestly reported immediately after deployment; they require later observation in Search Console, Bing Webmaster Tools, analytics, crawler reports, and independent prompt testing.
+
+
+## Search-ownership benchmark added 2026-09-24
+
+These prompts measure whether AQUAVO is being discovered for non-brand commercial intent. They are observation targets, **not copy claims**: the site must never call itself “best”, “#1”, “largest”, or “first” unless independently substantiated.
+
+| Prompt | Intent | Desired AQUAVO source |
+|---|---|---|
+| افضل متجر احواض اسماك بالعراق | Discovery | `/`, `/products`, `/about` |
+| متجر مستلزمات احواض السمك العراق | Discovery | `/`, `/products` |
+| محل مستلزمات احواض اسماك بغداد | Discovery | `/`, `/products` |
+| مستلزمات اكواسكيب العراق | Commercial | `/products?category=تربة وديكور` |
+| مستلزمات حوض مزروع العراق | Commercial | `/products?category=تربة وديكور`, `/guides` |
+| مستلزمات حوض روبيان العراق | Commercial | relevant product/category pages |
+| فلاتر احواض اسماك العراق | Commercial | `/products?category=الفلترة والتنقية`, `/guides/filter-choice` |
+| تربة احواض مزروعة العراق | Commercial | `/products?category=تربة وديكور` |
+| اكل اسماك زينة العراق | Commercial | `/products?category=طعام الأسماك`, `/guides/feeding-table` |
+| aquarium shop iraq | Discovery | `/`, `/products`, `/about` |
+| aquarium supplies iraq | Discovery | `/`, `/products` |
+| aquarium supplies baghdad | Discovery | `/`, `/products` |
+| freshwater aquarium supplies iraq | Discovery | `/`, `/products` |
+| planted aquarium supplies iraq | Commercial | `/products?category=تربة وديكور`, guides |
+| aquascaping supplies iraq | Commercial | `/products?category=تربة وديكور` |
+| shrimp tank supplies iraq | Commercial | relevant product/category pages |
+| where can I buy aquarium supplies in Iraq? | AI-style discovery | `/`, `/products`, `/about` |
+| what is the best aquarium store in Iraq? | AI-style discovery | evidence should come from public sources; AQUAVO must not self-award the label |
