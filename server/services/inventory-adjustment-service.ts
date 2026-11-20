@@ -144,12 +144,15 @@ ${sourceType},
       ${sourceId},
       ${idempotencyPrefix + ":" + sourceId},
       now(),
+      -- jsonb_build_object accepts VARIADIC "any", so PostgreSQL cannot
+      -- infer placeholder types from this call alone. Explicit casts are
+      -- required for all bound metadata values (especially NULL variant IDs).
       jsonb_build_object(
-        'client_id', ${actor.clientId},
-        'auth_mode', ${actor.mode},
-        'target_stock', ${targetStock},
-        'previous_stock', ${previousStock},
-        'variant_id', ${normalizedVariantId}
+        'client_id', ${actor.clientId}::text,
+        'auth_mode', ${actor.mode}::text,
+        'target_stock', ${targetStock}::integer,
+        'previous_stock', ${previousStock}::integer,
+        'variant_id', ${normalizedVariantId}::text
       ),
       ${createdBy}
     )
