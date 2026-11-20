@@ -177,6 +177,42 @@ export class AnalyticsTracker {
     }
   }
 
+  /**
+   * Save a best-effort cart subtotal for funnel diagnostics only.
+   * This value originates in the browser and is NEVER used to charge customers,
+   * recognize revenue, grant discounts, or value inventory.
+   *
+   * Guest carts do not have relational cart_items; without this snapshot
+   * cart_sessions.total_value always remains its default of zero.
+   */
+  async recordCartValueSnapshot(data: {
+    sessionId: string;
+    userId?: string;
+    totalValue: number;
+  }): Promise<void> {
+    try {
+      const now = new Date();
+      await this.db.insert(schema.cartSessions)
+        .values({
+          sessionId: data.sessionId,
+          userId: data.userId || null,
+          totalValue: data.totalValue,
+          status: 'active',
+          updatedAt: now,
+        })
+        .onConflictDoUpdate({
+          target: schema.cartSessions.sessionId,
+          set: {
+            totalValue: data.totalValue,
+            updatedAt: now,
+          },
+        });
+    } catch (error) {
+      // Optional analytics must never interrupt checkout or cart operations.
+      console.error('[Analytics] Error saving cart subtotal snapshot:', error);
+    }
+  }
+
   async abandonStaleCartSessions(maxAgeHours = 24): Promise<number> {
     try {
       const hours = Number.isFinite(maxAgeHours)
