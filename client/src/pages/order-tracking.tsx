@@ -18,6 +18,7 @@ import {
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { i18next } from "@/i18n";
+import { addCsrfHeader } from "@/lib/csrf";
 
 interface CarrierTracking {
   carrier: string;
@@ -210,6 +211,7 @@ function currentDisplay(details: OrderDetails) {
 export default function OrderTracking() {
   const { t } = useTranslation("orders");
   const [orderNumber, setOrderNumber] = useState("");
+  const [phoneLast4, setPhoneLast4] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [orderDetails, setOrderDetails] = useState<OrderDetails | null>(null);
   const [error, setError] = useState("");
@@ -224,12 +226,18 @@ export default function OrderTracking() {
       setError(t("order-tracking.s31"));
       return;
     }
+    if (phoneLast4.trim().length !== 4) {
+      setError(t("order-tracking.s60"));
+      return;
+    }
 
     setIsSearching(true);
     try {
       const response = await fetch(`/api/orders/track/${encodeURIComponent(normalizedOrderNumber)}`, {
         method: "POST",
+        headers: addCsrfHeader({ "Content-Type": "application/json" }),
         credentials: "include",
+        body: JSON.stringify({ phoneLast4: phoneLast4.trim() }),
       });
       if (!response.ok) {
         throw new Error(t("order-tracking.s32"));
@@ -306,6 +314,24 @@ export default function OrderTracking() {
                         data-testid="input-order-number"
                       />
                     </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label htmlFor="phone-last4" className="text-sm font-semibold text-foreground/85">{t("order-tracking.s58")}</label>
+                    <Input
+                      id="phone-last4"
+                      type="tel"
+                      inputMode="numeric"
+                      autoComplete="tel"
+                      maxLength={4}
+                      placeholder={t("order-tracking.s59")}
+                      value={phoneLast4}
+                      onChange={(e) => setPhoneLast4(e.target.value.slice(0, 4))}
+                      className="h-12 border-border/80 text-base shadow-none focus-visible:border-primary"
+                      required
+                      data-testid="input-phone-last4"
+                    />
+                    <p className="text-xs leading-5 text-muted-foreground">{t("order-tracking.s61")}</p>
                   </div>
 
                   {error && (

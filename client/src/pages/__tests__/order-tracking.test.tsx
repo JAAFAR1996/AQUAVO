@@ -64,7 +64,7 @@ describe('Order Tracking Page', () => {
     it('should render order tracking page', () => {
         render(<OrderTracking />, { wrapper: createWrapper() });
         expect(document.body).toBeTruthy();
-        expect(screen.queryByTestId('input-phone-number')).not.toBeInTheDocument();
+        expect(screen.getByTestId('input-phone-last4')).toBeInTheDocument();
     });
 
     it('should display order status', async () => {
@@ -72,20 +72,35 @@ describe('Order Tracking Page', () => {
         await waitFor(() => expect(screen.getByRole('main')).toBeInTheDocument());
     });
 
-    it('tracks with the order number only and sends no phone verifier', async () => {
+    it('tracks only after sending the order number and phone verifier', async () => {
         const user = userEvent.setup();
         render(<OrderTracking />, { wrapper: createWrapper() });
 
         await user.type(screen.getByTestId('input-order-number'), 'FW-241224-0001');
+        await user.type(screen.getByTestId('input-phone-last4'), '0673');
         await user.click(screen.getByTestId('button-track-order'));
 
         await waitFor(() => expect(global.fetch).toHaveBeenCalledWith(
             '/api/orders/track/FW-241224-0001',
-            {
+            expect.objectContaining({
                 method: 'POST',
+                headers: expect.objectContaining({ 'Content-Type': 'application/json' }),
                 credentials: 'include',
-            },
+                body: JSON.stringify({ phoneLast4: '0673' }),
+            }),
         ));
+    });
+
+    it('does not query the server without exactly four verifier digits', async () => {
+        const user = userEvent.setup();
+        render(<OrderTracking />, { wrapper: createWrapper() });
+
+        await user.type(screen.getByTestId('input-order-number'), 'FW-241224-0001');
+        await user.type(screen.getByTestId('input-phone-last4'), '067');
+        await user.click(screen.getByTestId('button-track-order'));
+
+        expect(global.fetch).not.toHaveBeenCalled();
+        expect(await screen.findByText('أدخل آخر 4 أرقام من رقم الهاتف المستخدم بالطلب')).toBeInTheDocument();
     });
 
     it('shows a clear error when the order number cannot be found', async () => {
@@ -94,6 +109,7 @@ describe('Order Tracking Page', () => {
         render(<OrderTracking />, { wrapper: createWrapper() });
 
         await user.type(screen.getByTestId('input-order-number'), 'FW-UNKNOWN');
+        await user.type(screen.getByTestId('input-phone-last4'), '0673');
         await user.click(screen.getByTestId('button-track-order'));
 
         expect(await screen.findByText('تعذر العثور على الطلب. تأكد من رقم الطلب وحاول مرة ثانية.')).toBeInTheDocument();
