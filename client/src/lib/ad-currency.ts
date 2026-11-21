@@ -20,26 +20,9 @@
 // the market moves enough to matter (a change needs a redeploy; Vite inlines
 // env values at build time).
 
-/** The only currency AQUAVO reports to Meta. Must be a Meta-supported ISO 4217 code. */
-export const META_AD_CURRENCY = "USD";
-
-/** Parallel-market fallback (Baghdad, Sept 2026: ~1,580–1,600 IQD per USD). */
-const DEFAULT_IQD_PER_USD = 1600;
-
-function readRateOverride(): number | undefined {
-  const n = Number(import.meta.env.VITE_META_IQD_PER_USD);
-  // Anything outside a sane band is a typo, not a market move.
-  return Number.isFinite(n) && n >= 1000 && n <= 3000 ? n : undefined;
-}
-
-/** IQD per 1 USD used for ad values: the env override when set and sane, else the fallback. */
-export const IQD_PER_USD = readRateOverride() ?? DEFAULT_IQD_PER_USD;
-
-/**
- * Convert an IQD amount to the USD value sent to Meta, rounded to cents.
- * Non-finite or negative input becomes 0 rather than a NaN that Meta drops.
- */
+import { iqdToAdValueAtRate, resolveAdCurrencyRate } from "@shared/ad-currency";
+export { META_AD_CURRENCY } from "@shared/ad-currency";
+export const IQD_PER_USD = resolveAdCurrencyRate(import.meta.env.VITE_META_IQD_PER_USD);
 export function iqdToAdValue(iqd: number): number {
-  if (!Number.isFinite(iqd) || iqd <= 0) return 0;
-  return Math.round((iqd / IQD_PER_USD) * 100) / 100;
+  return iqdToAdValueAtRate(iqd, IQD_PER_USD);
 }

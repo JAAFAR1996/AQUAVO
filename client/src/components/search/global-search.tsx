@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useId, type KeyboardEvent } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { getClientSessionId } from "@/lib/client-session";
@@ -29,10 +29,11 @@ import { formatPrice } from "@/lib/format";
 import { phTrackSearch } from "@/lib/posthog";
 import {
   buildUnifiedSiteSearchResults,
-  POPULAR_SEARCH_LINKS,
+  getPopularSearchLinks,
   type SiteSearchResult,
 } from "@/lib/site-search";
 import { useTranslation } from "react-i18next";
+import { useLocale } from "@/i18n/locale-context";
 
 interface GlobalSearchProps {
   open: boolean;
@@ -68,6 +69,8 @@ function saveRecentSearches(values: string[]): void {
 
 export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
   const { t } = useTranslation("search");
+  const { locale, dir } = useLocale();
+  const listboxId = useId();
   const [, setLocation] = useLocation();
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
@@ -77,15 +80,15 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
   const firedSearchRef = useRef("");
 
   const { data: catalogData, isLoading: isCatalogLoading } = useQuery({
-    queryKey: ["products", "global-search-catalog"],
-    queryFn: () => fetchProducts({ limit: 120 }),
-    enabled: open,
+    queryKey: ["products", "global-search-catalog", debouncedQuery, locale],
+    queryFn: () => fetchProducts({ search: debouncedQuery, limit: 24 }),
+    enabled: open && debouncedQuery.length >= 2,
     staleTime: 5 * 60 * 1000,
     retry: false,
   });
 
   const { data: smartData, isFetching: isSmartSearching } = useQuery({
-    queryKey: ["smart-search", debouncedQuery],
+    queryKey: ["smart-search", debouncedQuery, locale],
     queryFn: () => fetchSmartSearch(debouncedQuery),
     enabled: open && debouncedQuery.length >= 2,
     staleTime: 60 * 1000,
@@ -129,8 +132,9 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
         semanticProducts: smartData?.products ?? [],
         catalogProducts: catalogData?.products ?? [],
         limit: 14,
+        locale,
       }),
-    [query, smartData?.products, catalogData?.products],
+    [query, smartData?.products, catalogData?.products, locale],
   );
 
   useEffect(() => {
@@ -192,34 +196,30 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
     setLocation(result.url);
   };
 
+  const handleInputKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.nativeEvent.isComposing) return;
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      setSelectedIndex(current => Math.min(current + 1, Math.max(0, results.length - 1)));
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
+      setSelectedIndex(current => Math.max(0, current - 1));
+    } else if (event.key === "Enter" && results[selectedIndex]) {
+      event.preventDefault();
+      navigateToResult(results[selectedIndex], selectedIndex);
+    } else if (event.key === "Escape") onOpenChange(false);
+  };
+
   useEffect(() => {
-    if (!open) return;
+    if (open) document.getElementById(`${listboxId}-${selectedIndex}`)?.scrollIntoView?.({ block: "nearest" });
+  }, [open, listboxId, selectedIndex]);
 
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "ArrowDown") {
-        event.preventDefault();
-        setSelectedIndex((current) => Math.min(current + 1, Math.max(0, results.length - 1)));
-      } else if (event.key === "ArrowUp") {
-        event.preventDefault();
-        setSelectedIndex((current) => Math.max(0, current - 1));
-      } else if (event.key === "Enter" && results[selectedIndex]) {
-        event.preventDefault();
-        navigateToResult(results[selectedIndex], selectedIndex);
-      } else if (event.key === "Escape") {
-        onOpenChange(false);
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [open, results, selectedIndex, query, recentSearches, onOpenChange]);
-
-  const showLoading = query.trim().length > 0 && isCatalogLoading;
+  const showLoading = debouncedQuery.length >= 2 && isCatalogLoading;
   const showSearching = query.trim().length >= 2 && isSmartSearching;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-[680px]" dir="rtl">
+      <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-[680px]" dir={dir}>
         <DialogTitle className="sr-only">{t("global-search.s1")}</DialogTitle>
         <DialogDescription className="sr-only">
           {t("global-search.s2")}
@@ -230,6 +230,12 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
           <Input
             ref={inputRef}
             type="search"
+            role="combobox"
+            aria-autocomplete="list"
+            aria-expanded={results.length > 0 && !showLoading}
+            aria-controls={results.length > 0 && !showLoading ? listboxId : undefined}
+            aria-activedescendant={results[selectedIndex] && !showLoading ? `${listboxId}-${selectedIndex}` : undefined}
+            onKeyDown={handleInputKeyDown}
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder={t("global-search.s3")}
@@ -264,7 +270,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
                   ))}
                 </div>
               ) : results.length > 0 ? (
-                <div className="space-y-1" role="listbox" aria-label={t("global-search.s7")}>
+                <div id={listboxId} className="space-y-1" role="listbox" aria-label={t("global-search.s7")}>
                   {results.map((result, index) => {
                     const isSelected = index === selectedIndex;
                     return (
@@ -272,10 +278,12 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
                         key={`${result.type}-${result.id}-${result.url}`}
                         type="button"
                         role="option"
+                        id={`${listboxId}-${index}`}
+                        tabIndex={-1}
                         aria-selected={isSelected}
                         onMouseEnter={() => setSelectedIndex(index)}
                         onClick={() => navigateToResult(result, index)}
-                        className={`flex min-h-16 w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-right transition-colors ${
+                        className={`flex min-h-16 w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-start transition-colors ${
                           isSelected
                             ? "border-primary/40 bg-primary/10"
                             : "border-transparent hover:border-border hover:bg-muted/60"
@@ -309,7 +317,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
                           )}
                         </div>
 
-                        <div className="shrink-0 text-left">
+                        <div className="shrink-0 text-end">
                           {result.type === "product" && Number(result.price ?? 0) > 0 && (
                             <p className="text-sm font-bold text-primary">{formatPrice(result.price ?? 0)}</p>
                           )}
@@ -393,7 +401,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
               <section aria-labelledby="popular-searches-title">
                 <h3 id="popular-searches-title" className="text-sm font-bold">{t("global-search.s18")}</h3>
                 <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                  {POPULAR_SEARCH_LINKS.map((link) => (
+                  {getPopularSearchLinks(locale).map((link) => (
                     <button
                       key={link.url}
                       type="button"
@@ -401,7 +409,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
                         onOpenChange(false);
                         setLocation(link.url);
                       }}
-                      className="flex min-h-12 items-center justify-between rounded-xl border border-border px-4 text-right text-sm font-medium hover:border-primary/45 hover:bg-primary/5"
+                      className="flex min-h-12 items-center justify-between rounded-xl border border-border px-4 text-start text-sm font-medium hover:border-primary/45 hover:bg-primary/5"
                     >
                       <span>{link.title}</span>
                       <ArrowLeft className="h-4 w-4 text-primary" aria-hidden="true" />

@@ -20,7 +20,8 @@ import { sentimentAnalyzer } from "./sentiment-analyzer.js";
 import { aiMonitor } from "./ai-monitor.js";
 import { getDb } from "../db.js";
 import * as schema from "../../shared/schema.js";
-import { eq } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
+import { renderReviewedLearnings } from "./learning-policy.js";
 import type { ChatMessage as GroqChatMessage } from "./groq-client.js";
 
 // Timeout Configuration
@@ -905,14 +906,13 @@ async function getAppliedLearnings(): Promise<string> {
         const learnings = await db
             .select()
             .from(schema.aiLearnings)
-            .where(eq(schema.aiLearnings.applied, true))
+            .where(and(eq(schema.aiLearnings.applied, true),
+                sql`${schema.aiLearnings.metadata}->>'reviewStatus' = 'approved'`,
+                sql`NULLIF(${schema.aiLearnings.metadata}->>'reviewedBy', '') IS NOT NULL`,
+                sql`NULLIF(${schema.aiLearnings.metadata}->>'reviewedAt', '') IS NOT NULL`))
             .orderBy(schema.aiLearnings.createdAt)
             .limit(20);
-        if (learnings.length === 0) return "";
-        const lines = learnings.map(l =>
-            `- ❌ لمن سالوني "${(l.userMessage || "").slice(0, 60)}" غلطت وقلت "${(l.aiResponse || "").slice(0, 60)}". ✅ الصح: "${l.rule || l.correctedBehavior || ""}"`
-        );
-        return `\n\n[دروس مستفادة — لا تكرر هذي الاخطاء]\n${lines.join("\n")}`;
+        return renderReviewedLearnings(learnings);
     } catch {
         return "";
     }

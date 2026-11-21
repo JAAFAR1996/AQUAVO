@@ -36,6 +36,7 @@ import { ttqSearch } from "@/lib/tiktok-pixel";
 import { metaTrackSearch } from "@/lib/meta-pixel";
 import type { FishSpecies } from "@/data/freshwater-fish";
 import { useTranslation } from "react-i18next";
+import { useLocale } from "@/i18n/locale-context";
 
 const searchNavigationSchema = z.object({
   q: z.string().trim().catch(""),
@@ -86,6 +87,7 @@ function fishSearchScore(fish: FishSpecies, query: string): number {
 
 export default function SearchResults() {
   const { t } = useTranslation("search");
+  const { locale, dir } = useLocale();
   const [, setLocation] = useLocation();
   const search = useSearch();
   const navigationState = useMemo(() => {
@@ -150,8 +152,9 @@ export default function SearchResults() {
         semanticProducts: smartData?.products ?? [],
         catalogProducts: productMatches,
         limit: 80,
+        locale,
       }),
-    [searchQuery, smartData?.products, productMatches],
+    [searchQuery, smartData?.products, productMatches, locale],
   );
 
   const allResults = useMemo<SearchPageItem[]>(() => {
@@ -264,7 +267,7 @@ export default function SearchResults() {
   };
 
   return (
-    <div ref={containerRef} className="flex flex-1 flex-col bg-background" dir="rtl">
+    <div ref={containerRef} className="flex flex-1 flex-col bg-background" dir={dir}>
       <MetaTags
         title={searchQuery ? t("search-results.s1", { v0: searchQuery }) : t("search-results.s2")}
         description={searchQuery ? t("search-results.s3", { v0: searchQuery }) : t("search-results.s4")}

@@ -66,6 +66,7 @@ interface Order {
   customerEmail?: string;
   customerName?: string;
   customerPhone?: string;
+  customerNotes?: string | null;
   items: OrderItem[];
   total: number;
   totalAmount?: number;
@@ -1023,6 +1024,13 @@ export function OrdersManagement() {
                   </div>
                 )}
               </div>
+
+              {selectedOrder.customerNotes && (
+                <div className="p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 rounded-lg">
+                  <p className="text-sm font-semibold">ملاحظات الزبون للتوصيل:</p>
+                  <p className="text-sm whitespace-pre-wrap">{selectedOrder.customerNotes}</p>
+                </div>
+              )}
 
               {selectedOrder.notes && (
                 <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">

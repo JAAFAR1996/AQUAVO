@@ -98,6 +98,8 @@ export const ProductCard = memo(function ProductCard({
   };
 
   const handleCardNavigate = (event: MouseEvent<HTMLAnchorElement>) => {
+    // Keep browser link behavior for a new tab/window or a modified click.
+    if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     trackSelectItem({
       id: product.id,
       name: product.name,
@@ -179,7 +181,6 @@ export const ProductCard = memo(function ProductCard({
         onPointerEnter={prefetchDestination}
         onPointerDown={prefetchDestination}
         onFocus={prefetchDestination}
-        aria-label={t("card.viewDetails", { name: product.name })}
         className="flex min-w-0 flex-1 flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
       >
         <div className="relative aspect-square w-full shrink-0 overflow-hidden bg-[#f7f4ef]" data-protected="true">

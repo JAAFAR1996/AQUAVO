@@ -5,6 +5,7 @@ describe("checkout idempotency key", () => {
   beforeEach(() => {
     sessionStorage.clear();
     vi.restoreAllMocks();
+    clearOrderIdempotencyKey();
   });
 
   it("reuses one UUID for retries of the same cart", () => {
@@ -21,4 +22,13 @@ describe("checkout idempotency key", () => {
     clearOrderIdempotencyKey();
     expect(getOrderIdempotencyKey("product-a:2")).not.toBe(second);
   });
+  it("reuses a retry key in memory when browser storage is unavailable", () => {
+    vi.spyOn(sessionStorage, "getItem").mockImplementation(() => { throw new Error("blocked"); });
+    vi.spyOn(sessionStorage, "setItem").mockImplementation(() => { throw new Error("blocked"); });
+    const first = getOrderIdempotencyKey("guest-order-with-notes");
+    expect(getOrderIdempotencyKey("guest-order-with-notes")).toBe(first);
+    clearOrderIdempotencyKey();
+    expect(getOrderIdempotencyKey("guest-order-with-notes")).not.toBe(first);
+  });
+
 });

@@ -5,7 +5,7 @@ import { invoiceStorage } from "../storage/invoice-storage.js";
 import { insertManualInvoiceSchema, updateManualInvoiceSchema } from "../../shared/schema.js";
 import { manualInvoiceShare } from "../services/manual-invoice-share.js";
 import { storage } from "../storage/index.js";
-import { toPublicProducts } from "../../shared/public-product.js";
+import { toInvoiceProductDisplay } from "../../shared/public-product.js";
 
 const router = express.Router();
 router.use(requireAdmin);
@@ -39,7 +39,9 @@ router.get("/product-search", async (req: Request, res: Response, next: NextFunc
     }
     const products = await storage.getProducts({ search: query, searchAllLocales: true, limit: 15 });
     res.set("Cache-Control", "no-store, private");
-    res.json({ products: toPublicProducts(products) });
+    // This router is admin-only: private invoice stock remains selectable,
+    // while cost fields still never enter the picker response.
+    res.json({ products: products.map(toInvoiceProductDisplay).filter(Boolean) });
   } catch (err) { next(err); }
 });
 

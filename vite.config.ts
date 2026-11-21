@@ -118,9 +118,10 @@ export default defineConfig({
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
     chunkSizeWarningLimit: 500,
-    // "hidden" generates .map files but does NOT serve them publicly.
-    // Sentry reads them during upload (if configured later); browsers never get them.
-    sourcemap: isProduction ? "hidden" : true,
+    // Public production output must not contain source maps. "hidden" only
+    // removes the sourceMappingURL comment; it does not protect the .map URL.
+    // A future private monitoring upload needs its own non-public build step.
+    sourcemap: !isProduction,
     // Vite preloads the entry's static dependencies, not every lazy route.
     // It also fetches a dynamic import's dependencies in parallel when that
     // import runs. Disabling this serializes the bootstrap -> App -> vendor

@@ -289,7 +289,27 @@
     "s128": "Not available",
     "s129": "Feeding:",
     "s130": "Tip:",
-    "s131": "- All rights reserved"
+    "s131": "- All rights reserved",
+    "verifiedEmailHelp": "Sign in and verify your account email. We only send the plan to this address. You can also download a PDF without sending email.",
+    "emailVerification": {
+      "checking": "Checking your account email...",
+      "verified": "Your email is verified. You can now select Send plan.",
+      "checkAgain": "Check status again",
+      "explanation": "We send a code to your account email to confirm it is yours. The plan is sent only when you choose to send it.",
+      "codeSent": "Enter the 8-digit code delivered to the email above. It expires 10 minutes after you request it. Check your spam folder if it has not arrived.",
+      "codeLabel": "Email verification code",
+      "confirm": "Confirm code",
+      "working": "Working...",
+      "resendIn": "Resend in {{seconds}} seconds",
+      "resend": "Send a new code",
+      "sendCode": "Send verification code",
+      "signIn": "Sign in to verify your email",
+      "signInAgain": "Your session has expired. Please sign in again.",
+      "tooManyAttempts": "You have reached the attempt limit. Please wait and try later; code requests are limited to three per hour.",
+      "previousRequest": "A previous verification request is still active. Try again after it expires.",
+      "invalidCode": "The code is incorrect or has expired. Check it or request a new code.",
+      "unavailable": "We could not complete email verification. Try again later or download the PDF plan."
+    }
   },
   "fish-detail-modal": {
     "s1": "Peaceful",

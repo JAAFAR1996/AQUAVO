@@ -16,6 +16,7 @@ vi.mock("@/lib/api", () => ({ fetchProductBySlug: vi.fn(() => Promise.resolve({}
 vi.mock("@/lib/cloudinary", () => ({ detailImage: (u: string) => u || "" }));
 
 import { navigateCardToProduct, productTransitionName, supportsViewTransitions } from "../card-transition";
+import { queryClient } from "@/lib/queryClient";
 
 type SVTResult = { ready?: Promise<void>; finished?: Promise<void> };
 
@@ -72,6 +73,18 @@ describe("navigateCardToProduct — fallbacks navigate immediately (no second cl
 });
 
 describe("navigateCardToProduct — supported path", () => {
+  it("starts navigation while the product request is still pending", async () => {
+    vi.mocked(queryClient.ensureQueryData).mockImplementationOnce(() => new Promise(() => {}));
+    const navigate = vi.fn();
+    const svt = vi.fn((callback: () => Promise<void> | void): SVTResult => {
+      void callback();
+      return { finished: Promise.resolve() };
+    });
+    (document as unknown as { startViewTransition: typeof svt }).startViewTransition = svt;
+    const pending = navigateCardToProduct({ slug: "slow-network", sourceImg: makeSourceImg(), navigate, motionActive: true });
+    expect(navigate).toHaveBeenCalledTimes(1);
+    await pending;
+  });
   it("runs the transition, navigates exactly once, and cleans up the name", async () => {
     const name = productTransitionName("s2");
     // Pre-mount a ready destination hero so the wait resolves immediately.

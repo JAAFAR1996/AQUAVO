@@ -48,6 +48,7 @@ export const products: Product[] = [
     isNew: true,
     isBestSeller: true,
     isProductOfWeek: false,
+    isStorefrontVisible: true,
     specifications: {
       difficulty: "easy",
       ecoFriendly: true,
@@ -101,6 +102,7 @@ export const products: Product[] = [
     isNew: true,
     isBestSeller: false,
     isProductOfWeek: false,
+    isStorefrontVisible: true,
     specifications: {
       difficulty: "easy",
       ecoFriendly: true,
@@ -154,6 +156,7 @@ export const products: Product[] = [
     isNew: true,
     isBestSeller: false,
     isProductOfWeek: false,
+    isStorefrontVisible: true,
     specifications: {
       difficulty: "easy",
       ecoFriendly: true,

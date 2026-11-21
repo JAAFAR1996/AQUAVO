@@ -23,6 +23,7 @@ vi.mock('@/components/footer', () => ({
 
 vi.mock('@/contexts/comparison-context', () => ({
     useComparison: () => ({
+        compareIds: [],
         compareItems: [],
         products: [],
         addToCompare: vi.fn(),

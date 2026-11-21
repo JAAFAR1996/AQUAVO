@@ -172,6 +172,8 @@ export class SmartNotifications {
         .where(and(
           eq(predictedNeeds.converted, false),
           eq(predictedNeeds.notified, false),
+          isNull(products.deletedAt),
+          eq(products.isStorefrontVisible, true),
         ))
         .orderBy(desc(predictedNeeds.probability))
         .limit(50);
@@ -407,7 +409,11 @@ export class SmartNotifications {
       const newProducts = await db
         .select({ id: products.id, name: products.name, slug: products.slug, category: products.category })
         .from(products)
-        .where(gte(products.createdAt, oneDayAgo))
+        .where(and(
+          gte(products.createdAt, oneDayAgo),
+          isNull(products.deletedAt),
+          eq(products.isStorefrontVisible, true),
+        ))
         .limit(10);
       if (newProducts.length === 0) return candidates;
 

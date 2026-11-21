@@ -7,6 +7,7 @@ import { expenseInputSchema, accountingPeriodSchema, type AccountingPeriod } fro
 import { and, gte, lte, eq, desc, isNull } from "drizzle-orm";
 import { recordFinancialChange, actorFromRequest } from "../services/accountingAuditTrail.js";
 import { captureBusinessExpense, ignoreBusinessExpense } from "../services/growth-operating-system.js";
+import { createExpenseOnce } from "../services/expense-creation.js";
 
 const router = Router();
 router.use(requireAdmin);
@@ -180,35 +181,20 @@ router.post("/", async (req: Request, res: Response, next: NextFunction): Promis
       return;
     }
 
-    const { category, amount, description, expenseDate, isRecurring, recurringPeriod } = parsed.data;
+    const requestKey = z.string().uuid().safeParse(req.get("Idempotency-Key"));
+    if (!requestKey.success) {
+      res.status(400).json({success:false,message:"حدّث الصفحة حتى نثبت معرف حفظ المصروف، وبعدها حاول مرة ثانية."});
+      return;
+    }
     const actor = actorFromRequest(req);
-
-    const [inserted] = await db
-      .insert(expenses)
-      .values({
-        category,
-        amount: String(amount),
-        description: description ?? null,
-        expenseDate: new Date(expenseDate),
-        isRecurring: isRecurring ?? false,
-        recurringPeriod: recurringPeriod ?? null,
-      })
-      .returning();
-
-    await recordFinancialChange(db, {
-      entityType: "expense",
-      entityId: inserted.id,
-      action: "create",
-      fieldName: null,
-      oldValue: null,
-      newValue: { category, amount, description: description ?? null, expenseDate },
-      reason: null,
-      performedBy: actor.id,
-      performedByName: actor.name,
-    });
-
+    if (!actor.id) {
+      res.status(401).json({success:false,message:"سجل دخولك مرة ثانية حتى تحفظ المصروف."});
+      return;
+    }
+    const {expense:inserted,replayed} = await createExpenseOnce(db, parsed.data, {...actor,id:actor.id}, requestKey.data);
+    // This mirror is best-effort and separately deduplicated by expense ID.
     await mirrorExpenseToGrowthInbox(inserted);
-    res.status(201).json({ success: true, data: serializeExpense(inserted) });
+    res.status(replayed ? 200 : 201).json({ success: true, data: serializeExpense(inserted) });
   } catch (err) {
     next(err);
   }

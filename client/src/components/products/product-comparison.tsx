@@ -39,6 +39,8 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { formatPrice } from "@/lib/format";
 import type { Product } from "@/types";
+import { useQuery } from "@tanstack/react-query";
+import { fetchProductsByIds } from "@/lib/api";
 
 // --- Comparison helpers (mirror product-details + specifications-table logic) ---
 
@@ -187,22 +189,24 @@ export function CompareButton({
 // thumbnails); tapping it springs open a bottom sheet with the full list and
 // the "عرض المقارنة" CTA. Honours safe-area insets and prefers-reduced-motion.
 interface ComparisonDrawerProps {
-    products: Product[];
+    products?: Product[];
 }
 
-export function ComparisonDrawer({ products }: ComparisonDrawerProps) {
+export function ComparisonDrawer(_props: ComparisonDrawerProps) {
   const { t: tr } = useTranslation("pages");
+  const { t: common } = useTranslation("common");
     const { compareIds, removeFromCompare, clearCompare } = useComparison();
     const [expanded, setExpanded] = useState(false);
     const reduceMotion = useReducedMotion();
 
-    const comparedProducts = useMemo(() => {
-        return compareIds
-            .map((id) => products.find((p) => p.id === id))
-            .filter(Boolean) as Product[];
-    }, [compareIds, products]);
+    const { data: comparedProducts = [], isPending, isError, refetch } = useQuery({
+        queryKey: ["comparison-products", compareIds],
+        queryFn: () => fetchProductsByIds(compareIds),
+        enabled: compareIds.length > 0,
+        staleTime: 30_000,
+    });
 
-    const count = comparedProducts.length;
+    const count = compareIds.length;
 
     // Bounce the dock whenever the count grows (a product was just added).
     const [bump, setBump] = useState(false);
@@ -269,6 +273,11 @@ export function ComparisonDrawer({ products }: ComparisonDrawerProps) {
                                     </div>
                                 </div>
 
+                                {isPending && <p role="status" className="px-4 pb-3 text-sm">{common("status.loading")}</p>}
+                                {isError && <div role="alert" className="px-4 pb-3 text-sm">
+                                    <p>{common("status.error")}</p>
+                                    <Button variant="outline" size="sm" onClick={() => void refetch()}>{common("actions.retry")}</Button>
+                                </div>}
                                 <div className="flex gap-2.5 px-4 pb-3 overflow-x-auto">
                                     <AnimatePresence mode="popLayout">
                                         {comparedProducts.map((product) => (

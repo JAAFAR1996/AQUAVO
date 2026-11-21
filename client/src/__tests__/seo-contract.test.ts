@@ -133,7 +133,7 @@ describe("AQUAVO discoverability contract", () => {
     const vercel = read("vercel.json");
     const server = read("server/index.ts");
     expect(system).toContain('router.get("/sitemap-products.xml"');
-    expect(system).toContain(".from(productTable).where(isNull(productTable.deletedAt))");
+    expect(system).toContain(".from(productTable).where(and(isNull(productTable.deletedAt), eq(productTable.isStorefrontVisible, true)))");
     expect(system).toContain("!product.deletedAt");
     expect(vercel).toContain('"source": "/sitemap-products.xml"');
     expect(system).toContain('res.status(410).json({ error: "Discovery document unavailable" })');

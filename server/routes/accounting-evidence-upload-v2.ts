@@ -1,18 +1,10 @@
+import { accountingDocumentLimiter, accountingDocumentUpload, accountingDocumentData } from "../middleware/accounting-document-upload.js";
 import { createHash } from "node:crypto";
 import { Router, type NextFunction, type Request, type Response } from "express";
-import multer from "multer";
 import { requireAccountingAdmin } from "../middleware/accounting-auth-v2.js";
 import { uploadAccountingDocument } from "../utils/cloudinary.js";
 
-const accountingEvidenceUpload = multer({
-  storage: multer.memoryStorage(),
-  limits: { fileSize: 15 * 1024 * 1024 },
-  fileFilter: (_req, file, callback) => {
-    const allowed = file.mimetype.startsWith("image/") || file.mimetype === "application/pdf";
-    if (allowed) callback(null, true);
-    else callback(new Error("يسمح فقط بصور المستندات أو PDF"));
-  },
-});
+
 
 /**
  * Money-critical evidence upload isolated from the legacy upload/auth router.
@@ -20,11 +12,12 @@ const accountingEvidenceUpload = multer({
  */
 export function createAccountingEvidenceUploadV2Router() {
   const router = Router();
-  router.use(requireAccountingAdmin);
 
   router.post(
     "/accounting-evidence",
-    accountingEvidenceUpload.single("document"),
+    requireAccountingAdmin,
+    accountingDocumentLimiter,
+    accountingDocumentUpload,
     async (req: Request, res: Response, next: NextFunction): Promise<void> => {
       try {
         if (!req.file) {
@@ -33,7 +26,7 @@ export function createAccountingEvidenceUploadV2Router() {
         }
 
         const sha256 = createHash("sha256").update(req.file.buffer).digest("hex");
-        const dataUri = `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`;
+        const { dataUri, mimeType } = accountingDocumentData(req.file);
         const uploaded = await uploadAccountingDocument(dataUri, req.file.originalname);
 
         res.status(201).json({
@@ -45,7 +38,7 @@ export function createAccountingEvidenceUploadV2Router() {
           format: uploaded.format,
           sha256,
           originalName: req.file.originalname,
-          mimeType: req.file.mimetype,
+          mimeType,
           size: uploaded.bytes,
         });
       } catch (error) {

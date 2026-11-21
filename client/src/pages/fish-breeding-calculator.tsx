@@ -49,10 +49,13 @@ import { breedingSpecies, type BreedingSpecies, type FryGrowthStage } from "@/da
 import { toast } from "sonner";
 import { addCsrfHeader } from "@/lib/csrf";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "@/contexts/auth-context";
+import { AccountEmailVerification } from "@/components/account-email-verification";
 // PDF generator lazy-loaded on demand (jspdf + html-to-image are ~200KB)
 
 export default function FishBreedingCalculator() {
   const { t } = useTranslation("tools");
+  const { user } = useAuth();
   const [, setLocation] = useLocation();
   const [selectedSpecies, setSelectedSpecies] = useState<string>("");
   const [numberOfPairs, setNumberOfPairs] = useState<number>(1);
@@ -62,7 +65,8 @@ export default function FishBreedingCalculator() {
 
   // Email state
   const [emailOpen, setEmailOpen] = useState(false);
-  const [emailAddress, setEmailAddress] = useState("");
+  const emailAddress = user?.email || "";
+  const [verifiedEmail, setVerifiedEmail] = useState<string | null>(null);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
 
   // PDF download state
@@ -183,7 +187,7 @@ export default function FishBreedingCalculator() {
   };
 
   const handleSendEmail = async () => {
-    if (!emailAddress || !species || !timeline) return;
+    if (!emailAddress || verifiedEmail !== emailAddress || !species || !timeline) return;
 
     setIsSendingEmail(true);
     try {
@@ -196,43 +200,26 @@ export default function FishBreedingCalculator() {
         body: JSON.stringify({
           email: emailAddress,
           speciesId: species.id,
-          speciesData: {
-            id: species.id,
-            name: species.name,
-            arabicName: species.arabicName,
-            type: species.type,
-            method: species.method,
-            difficulty: species.difficulty,
-            optimalTemp: species.optimalTemp,
-            optimalPH: species.optimalPH,
-            minTankSize: species.minTankSize,
-            avgFryCount: species.avgFryCount,
-            breedingInterval: species.breedingInterval,
-            sexualMaturityWeeks: species.sexualMaturityWeeks,
-          },
           inputData: {
             pairs: numberOfPairs,
             startDate: startDate,
             temp: currentTemp,
             ph: currentPH
           },
-          yearlyProduction: calculateYearlyProduction(),
-          timeline: timeline.map(e => ({
-            date: e.date.toISOString(),
-            eventAr: e.eventAr,
-            description: e.description
-          }))
+
         }),
       });
 
-      if (!response.ok) throw new Error('Failed to send email');
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        throw new Error(typeof error.message === "string" ? error.message : t("fish-breeding-calculator.s20"));
+      }
 
       toast.success(t("fish-breeding-calculator.s19"));
       setEmailOpen(false);
-      setEmailAddress("");
     } catch (error) {
       console.error(error);
-      toast.error(t("fish-breeding-calculator.s20"));
+      toast.error(error instanceof Error ? error.message : t("fish-breeding-calculator.s20"));
     } finally {
       setIsSendingEmail(false);
     }
@@ -648,7 +635,7 @@ export default function FishBreedingCalculator() {
                       <DialogHeader>
                         <DialogTitle>{t("fish-breeding-calculator.s89")}</DialogTitle>
                         <DialogDescription>
-                          {t("fish-breeding-calculator.s90")}
+                          {t("fish-breeding-calculator.verifiedEmailHelp")}
                         </DialogDescription>
                       </DialogHeader>
                       <div className="space-y-4 py-4">
@@ -658,14 +645,20 @@ export default function FishBreedingCalculator() {
                             placeholder={t("fish-breeding-calculator.s91")}
                             type="email"
                             value={emailAddress}
-                            onChange={(e) => setEmailAddress(e.target.value)}
+                            readOnly
+                            aria-label={t("fish-breeding-calculator.verifiedEmailHelp")}
                           />
                         </div>
+                        {user && emailAddress ? <AccountEmailVerification key={user.id}
+                          email={emailAddress} onVerified={setVerifiedEmail} /> : <Button type="button"
+                          onClick={() => setLocation("/login")}>
+                          {t("fish-breeding-calculator.emailVerification.signIn")}
+                        </Button>}
                       </div>
                       <DialogFooter>
                         <Button
                           onClick={handleSendEmail}
-                          disabled={isSendingEmail || !emailAddress}
+                          disabled={isSendingEmail || !emailAddress || !user || verifiedEmail !== emailAddress}
                         >
                           {isSendingEmail ? t("fish-breeding-calculator.s92") : t("fish-breeding-calculator.s93")}
                         </Button>

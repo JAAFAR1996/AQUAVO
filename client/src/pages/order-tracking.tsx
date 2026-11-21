@@ -18,6 +18,7 @@ import {
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { i18next } from "@/i18n";
+import { MetaTags } from "@/components/seo/meta-tags";
 
 interface CarrierTracking {
   carrier: string;
@@ -260,6 +261,7 @@ export default function OrderTracking() {
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-background font-sans" data-testid="order-tracking-page">
+      <MetaTags title={`${t("order-tracking.s35")} | AQUAVO`} description={t("order-tracking.s36")} />
       <section className="border-b bg-gradient-to-b from-primary/[0.06] to-background py-12 md:py-16">
         <div className="container mx-auto px-4 text-center">
           <motion.div

@@ -19,6 +19,9 @@ export function buildProductQuery(
   if (search) params.search = search;
   if (filters.tags.includes(PRODUCT_TAG_VALUES.new)) params.isNew = true;
   if (filters.tags.includes(PRODUCT_TAG_VALUES.bestSeller)) params.isBestSeller = true;
+  if (filters.difficulties.length) params.difficulty = filters.difficulties;
+  if (filters.tags.includes(PRODUCT_TAG_VALUES.eco)) params.eco = true;
+  if (filters.tags.includes("in-stock")) params.inStock = true;
   if (sortBy === "price-asc") { params.sortBy = "price"; params.sortOrder = "asc"; }
   else if (sortBy === "price-desc") { params.sortBy = "price"; params.sortOrder = "desc"; }
   else if (sortBy === "name-asc") { params.sortBy = "name"; params.sortOrder = "asc"; }

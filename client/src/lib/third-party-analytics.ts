@@ -1,3 +1,6 @@
+import { flushPendingTiktokEvents } from "./tiktok-pixel";
+import { isTrackingAllowed } from "./tracking-environment";
+
 declare global {
   interface Window {
     beTracker?: {
@@ -74,14 +77,13 @@ function loadTikTokPixel() {
   const tiktokPixelId =
     (import.meta.env.VITE_TIKTOK_PIXEL_ID as string | undefined) || "D7OD1FBC77U8CJLLA610";
   ttq.load(tiktokPixelId);
-  // Fire the initial PageView here: this loader is deferred, so the route hook's
-  // mount-time ttqPage() no-ops (the ttq stub doesn't exist yet). Subsequent SPA
-  // navigations are tracked by the useMetaPageView route hook.
-  ttq.page();
+  // Replay early commerce events into the vendor's standard command queue.
+  // The route hook may already have supplied the initial page view.
+  if (!flushPendingTiktokEvents()) ttq.page();
 }
 
 export function loadThirdPartyAnalytics() {
-  if (loaded || typeof document === "undefined") return;
+  if (loaded || typeof document === "undefined" || !isTrackingAllowed()) return;
   loaded = true;
   loadMetricool();
   loadTikTokPixel();

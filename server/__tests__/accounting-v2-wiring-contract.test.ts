@@ -101,7 +101,11 @@ describe("accounting v2 production wiring", () => {
       .toBeLessThan(routes.indexOf('app.use("/api/upload", createUploadRouter())'));
     expect(upload).toContain('createHash("sha256")');
     expect(upload).toContain('"/accounting-evidence"');
-    expect(upload).toContain('file.mimetype === "application/pdf"');
+    const policy = read("server/middleware/accounting-document-upload.ts");
+    expect(upload).toContain("accountingDocumentUpload");
+    expect(upload).toContain("accountingDocumentData(req.file)");
+    expect(policy).toContain('"application/pdf"');
+    expect(policy).toContain("mimeType !== file.mimetype");
     expect(upload).toContain("req.file.buffer");
   });
 

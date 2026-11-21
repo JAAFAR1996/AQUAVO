@@ -1,7 +1,7 @@
 // FILE: client/src/lib/__tests__/ad-currency.test.ts
 // Meta rejects IQD outright, so every fbq() event must carry a supported
 // currency and a USD value. These tests pin that contract.
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { IQD_PER_USD, META_AD_CURRENCY, iqdToAdValue } from "../ad-currency";
 
 vi.mock("../tracking-environment", () => ({ isTrackingAllowed: () => true }));
@@ -30,7 +30,11 @@ describe("iqdToAdValue", () => {
 describe("meta-pixel events", () => {
   const calls: unknown[][] = [];
 
+  afterEach(() => vi.restoreAllMocks());
   beforeEach(async () => {
+    const append = document.head.appendChild.bind(document.head);
+    vi.spyOn(document.head, "appendChild").mockImplementation(node => node instanceof HTMLScriptElement ? node : append(node));
+    localStorage.removeItem("meta_px_AQV-1");
     calls.length = 0;
     vi.resetModules();
     window.fbq = (...args: unknown[]) => { calls.push(args); };
@@ -54,5 +58,6 @@ describe("meta-pixel events", () => {
       expect(data.value).toBeLessThan(100); // a dinar figure leaking through would be in the thousands
     }
     expect((tracked[1][2] as { value: number }).value).toBe(iqdToAdValue(17999 * 2));
+    expect(tracked[3][3]).toEqual({ eventID: "aquavo-purchase-AQV-1" });
   });
 });

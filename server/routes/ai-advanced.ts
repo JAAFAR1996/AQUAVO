@@ -3,7 +3,7 @@ import { z } from "zod";
 import multer from "multer";
 import path from "path";
 import rateLimit from "express-rate-limit";
-import { requireAuth, requireAdmin } from "../middleware/auth.js";
+import { requireAuth, requireAdmin, getSession } from "../middleware/auth.js";
 import { visualAI } from "../services/visual-ai.js";
 import { sentimentAnalyzer } from "../services/sentiment-analyzer.js";
 import { predictiveAnalytics } from "../services/predictive-analytics.js";
@@ -19,18 +19,29 @@ import { triggerJob, getJobStatus } from "../cron/scheduled-jobs.js";
 import { fraudDetector } from "../services/fraud-detector.js";
 import { aiDashboard } from "../services/ai-dashboard.js";
 import { db } from "../db.js";
-import { generatedContent } from "../../shared/schema.js";
-import { eq, desc, and, sql } from "drizzle-orm";
+import { generatedContent, diagnosisCases, aiMonitoringLogs, products } from "../../shared/schema.js";
+import { eq, desc, and, sql, inArray, isNull } from "drizzle-orm";
+
+import { createSharedRateLimitStore } from "../middleware/shared-rate-limit-store.js";
+import { OperationalError } from "../middleware/error-handler.js";
 
 const router = Router();
 
 // Rate limiting for all AI advanced routes
 const aiAdvancedLimiter = rateLimit({
+    store: createSharedRateLimitStore("ai-advanced"),
     windowMs: 60 * 1000,
     max: 30,
     message: { success: false, error: "تم تجاوز الحد المسموح من الطلبات" },
 });
-router.use(aiAdvancedLimiter);
+const aiAdvancedAccountLimiter = rateLimit({
+  store: createSharedRateLimitStore("ai-advanced-account"), windowMs: 60_000, max: 30,
+  skip: req => !getSession(req)?.userId,
+  keyGenerator: req => getSession(req)?.userId || "anonymous",
+  standardHeaders: true, legacyHeaders: false,
+  message: { success: false, error: "تم تجاوز الحد المسموح لحسابك. حاول بعد دقيقة." },
+});
+router.use(aiAdvancedLimiter, aiAdvancedAccountLimiter);
 
 type AuthenticatedUser = {
   id?: string;
@@ -87,6 +98,7 @@ const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
     fileSize: 5 * 1024 * 1024, // 5MB max
+    files: 1, fields: 12, parts: 13, fieldSize: 2000,
   },
   fileFilter: (req, file, cb) => {
     const allowedTypes = /jpeg|jpg|png|gif|webp/;
@@ -105,13 +117,24 @@ const upload = multer({
 
 // Validation schemas
 const analyzeImageByUrlSchema = z.object({
-  imageUrl: z.string().url("رابط الصورة غير صالح"),
+  imageUrl: z.string().max(2048).url("رابط الصورة غير صالح"),
   analysisType: z.enum(["fish", "tank", "problem", "health"], {
     error: () => "نوع التحليل غير صالح",
   }),
-  userId: z.string().optional(),
-  sessionId: z.string().optional(),
+  userId: z.string().max(100).optional(),
+  sessionId: z.string().max(200).optional(),
 });
+
+const analyzeUploadSchema = z.object({
+  analysisType: z.enum(["fish", "tank", "problem", "health"]),
+  userId: z.string().max(100).optional(), sessionId: z.string().max(200).optional(),
+  userContextSpecies: z.string().trim().max(200).optional(),
+  userContextEating: z.string().trim().max(200).optional(),
+  userContextSymptoms: z.string().trim().max(2000).optional(),
+  waterTemperature: z.string().max(40).optional(), waterPh: z.string().max(40).optional(),
+  waterAmmonia: z.string().max(40).optional(), waterNitrite: z.string().max(40).optional(),
+  waterNitrate: z.string().max(40).optional(),
+}).strict();
 
 // ==================== Visual AI Endpoints ====================
 
@@ -119,7 +142,7 @@ const analyzeImageByUrlSchema = z.object({
  * POST /api/ai-advanced/visual/analyze-url
  * تحليل صورة من URL
  */
-router.post("/visual/analyze-url", requireAuth as any, async (req, res) => {
+router.post("/visual/analyze-url", requireAuth, async (req, res, next) => {
   try {
     const { imageUrl, analysisType, userId, sessionId } =
       analyzeImageByUrlSchema.parse(req.body);
@@ -139,20 +162,7 @@ router.post("/visual/analyze-url", requireAuth as any, async (req, res) => {
       message: "تم تحليل الصورة بنجاح",
     });
   } catch (error) {
-    console.error("Visual AI analyze-url error:", error);
-
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({
-        success: false,
-        error: "بيانات غير صالحة",
-        details: error.issues,
-      });
-    }
-
-    res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : "فشل تحليل الصورة",
-    });
+    next(error);
   }
 });
 
@@ -162,9 +172,9 @@ router.post("/visual/analyze-url", requireAuth as any, async (req, res) => {
  */
 router.post(
   "/visual/analyze-upload",
-  requireAuth as any,
+  requireAuth,
   upload.single("image"),
-  async (req, res) => {
+  async (req, res, next) => {
     try {
       if (!req.file) {
         return res.status(400).json({
@@ -173,31 +183,26 @@ router.post(
         });
       }
 
-      const analysisType = req.body.analysisType;
-      if (!["fish", "tank", "problem", "health"].includes(analysisType)) {
-        return res.status(400).json({
-          success: false,
-          error: "نوع التحليل غير صالح",
-        });
-      }
+      const input = analyzeUploadSchema.parse(req.body);
+      const { analysisType } = input;
 
       // Context Alignment (Pre-prompting) data from frontend
       const userContext = {
-        species: req.body.userContextSpecies || undefined,
-        eating: req.body.userContextEating || undefined,
-        symptoms: req.body.userContextSymptoms || undefined,
+        species: input.userContextSpecies || undefined,
+        eating: input.userContextEating || undefined,
+        symptoms: input.userContextSymptoms || undefined,
       };
 
       // Water Parameters from frontend (for Rule Engine + Diagnostician)
       const waterParams = {
-        temperature: req.body.waterTemperature || undefined,
-        ph: req.body.waterPh || undefined,
-        ammonia: req.body.waterAmmonia || undefined,
-        nitrite: req.body.waterNitrite || undefined,
-        nitrate: req.body.waterNitrate || undefined,
+        temperature: input.waterTemperature || undefined,
+        ph: input.waterPh || undefined,
+        ammonia: input.waterAmmonia || undefined,
+        nitrite: input.waterNitrite || undefined,
+        nitrate: input.waterNitrate || undefined,
       };
 
-      const scopedUserId = resolveWritableUserId(req, res, req.body.userId);
+      const scopedUserId = resolveWritableUserId(req, res, input.userId);
       if (!scopedUserId) return;
 
       // Use buffer directly (no disk storage needed for Vercel)
@@ -206,7 +211,7 @@ router.post(
         req.file.mimetype,
         analysisType,
         scopedUserId,
-        req.body.sessionId,
+        input.sessionId,
         userContext,
         waterParams
       );
@@ -223,11 +228,7 @@ router.post(
         message: "تم رفع وتحليل الصورة بنجاح",
       });
     } catch (error) {
-      console.error("Visual AI analyze-upload error:", error);
-      res.status(500).json({
-        success: false,
-        error: error instanceof Error ? error.message : "فشل تحليل الصورة",
-      });
+      next(error);
     }
   }
 );
@@ -236,14 +237,14 @@ router.post(
  * GET /api/ai-advanced/visual/history/:userId
  * الحصول على سجل التحليلات
  */
-router.get("/visual/history/:userId", requireAuth as any, async (req, res) => {
+router.get("/visual/history/:userId", requireAuth, async (req, res) => {
   try {
     const { userId } = req.params;
     const sessionUserId = (req as any).user?.id;
     if (sessionUserId !== userId && (req as any).user?.role !== "admin") {
       return res.status(403).json({ success: false, error: "غير مصرح" });
     }
-    const limit = parseInt(req.query.limit as string) || 10;
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 10));
 
     const history = await visualAI.getUserAnalysisHistory(userId, limit);
 
@@ -265,7 +266,7 @@ router.get("/visual/history/:userId", requireAuth as any, async (req, res) => {
  * GET /api/ai-advanced/visual/analysis/:id
  * الحصول على تحليل محدد
  */
-router.get("/visual/analysis/:id", requireAuth as any, async (req, res) => {
+router.get("/visual/analysis/:id", requireAuth, async (req, res, next) => {
   try {
     const { id } = req.params;
     const analysis = await visualAI.getAnalysisById(id);
@@ -283,11 +284,7 @@ router.get("/visual/analysis/:id", requireAuth as any, async (req, res) => {
       data: analysis,
     });
   } catch (error) {
-    console.error("Visual AI get analysis error:", error);
-    res.status(404).json({
-      success: false,
-      error: error instanceof Error ? error.message : "التحليل غير موجود",
-    });
+    next(error);
   }
 });
 
@@ -295,7 +292,7 @@ router.get("/visual/analysis/:id", requireAuth as any, async (req, res) => {
  * GET /api/ai-advanced/visual/stats
  * إحصائيات التحليلات
  */
-router.get("/visual/stats", requireAdmin as any, async (req, res) => {
+router.get("/visual/stats", requireAdmin, async (req, res) => {
   try {
     const userId = req.query.userId as string | undefined;
     const stats = await visualAI.getAnalysisStats(userId);
@@ -319,39 +316,54 @@ router.get("/visual/stats", requireAdmin as any, async (req, res) => {
  * POST /api/ai-advanced/diagnosis/feedback
  * تقديم ملاحظات على التشخيص (Feedback Loop)
  */
-router.post("/diagnosis/feedback", requireAuth as any, async (req, res) => {
+const diagnosisFeedbackSchema = z.object({
+  analysisId: z.string().min(1).max(100),
+  isCorrect: z.boolean(),
+  correctDisease: z.string().trim().max(200).optional(),
+  notes: z.string().trim().max(2000).optional(),
+  treatmentWorked: z.boolean().optional(),
+  rating: z.number().int().min(1).max(5).optional(),
+}).strict();
+
+router.post("/diagnosis/feedback", requireAuth, async (req, res, next) => {
   try {
-    const { analysisId, isCorrect, correctDisease, notes, treatmentWorked, rating } = req.body;
-
-    if (!analysisId || typeof isCorrect !== "boolean") {
-      return res.status(400).json({
-        success: false,
-        error: "يجب تحديد معرف التحليل وحالة الصحة",
-      });
-    }
-
-    const userId = (req as any).user?.id;
-    const feedback = await visualAI.submitFeedback({
-      analysisId,
-      userId,
-      isCorrect,
-      correctDisease,
-      notes,
-      treatmentWorked,
-      rating,
-    });
-
-    res.json({
-      success: true,
-      data: feedback,
-      message: isCorrect ? "شكراً لتأكيد التشخيص! ✅" : "شكراً لملاحظتك، سنتحسن 🔄",
-    });
+    const data = diagnosisFeedbackSchema.parse(req.body);
+    const feedback = await visualAI.submitFeedback({ ...data, userId: getAuthenticatedUser(req)?.id });
+    res.json({ success: true, data: feedback, message: "تم حفظ ملاحظتك للمراجعة" });
   } catch (error) {
-    console.error("Diagnosis feedback error:", error);
-    res.status(500).json({
-      success: false,
-      error: "فشل حفظ الملاحظات",
+    next(error);
+  }
+});
+
+const caseReviewSchema = z.object({
+  verified: z.boolean(),
+  disease: z.string().trim().min(1).max(200).optional(),
+  arabicName: z.string().trim().max(200).optional(),
+  category: z.string().trim().max(80).optional(),
+  symptoms: z.array(z.string().trim().max(200)).max(20).optional(),
+  outcome: z.enum(["recovered", "partially_recovered", "died", "unknown"]).optional(),
+}).strict();
+
+router.patch("/diagnosis/cases/:id/review", requireAdmin, async (req, res, next) => {
+  try {
+    if (!db) throw new OperationalError("الخدمة غير متاحة حاليا", 503);
+    const id = z.string().min(1).max(100).parse(req.params.id);
+    const data = caseReviewSchema.parse(req.body);
+    const userId = getAuthenticatedUser(req)?.id;
+    if (!userId) return res.status(401).json({ success: false, error: "يجب تسجيل الدخول" });
+    const result = await db.transaction(async tx => {
+      const [updated] = await tx.update(diagnosisCases).set(data).where(eq(diagnosisCases.id, id)).returning();
+      if (!updated) return undefined;
+      await tx.insert(aiMonitoringLogs).values({
+        event: data.verified ? "diagnosis_case_reviewed" : "diagnosis_case_review_revoked",
+        level: "info", userId, details: { caseId: id, reviewedFields: Object.keys(data) },
+      });
+      return updated;
     });
+    if (!result) return res.status(404).json({ success: false, error: "الحالة غير موجودة" });
+    res.json({ success: true, data: result });
+  } catch (error) {
+    next(error);
   }
 });
 
@@ -359,7 +371,7 @@ router.post("/diagnosis/feedback", requireAuth as any, async (req, res) => {
  * GET /api/ai-advanced/diagnosis/stats
  * إحصائيات منظومة التشخيص الذكية
  */
-router.get("/diagnosis/stats", requireAdmin as any, async (req, res) => {
+router.get("/diagnosis/stats", requireAdmin, async (req, res) => {
   try {
     const stats = await visualAI.getCaseStats();
     res.json({
@@ -379,9 +391,9 @@ router.get("/diagnosis/stats", requireAdmin as any, async (req, res) => {
  * GET /api/ai-advanced/diagnosis/cases
  * الحالات المشخصة الحديثة
  */
-router.get("/diagnosis/cases", requireAdmin as any, async (req, res) => {
+router.get("/diagnosis/cases", requireAdmin, async (req, res) => {
   try {
-    const limit = parseInt(req.query.limit as string) || 10;
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 10));
     const cases = await visualAI.findSimilarCases(limit);
     res.json({
       success: true,
@@ -403,7 +415,7 @@ router.get("/diagnosis/cases", requireAdmin as any, async (req, res) => {
  * GET /api/ai-advanced/sentiment/history/:userId
  * سجل تحليل المشاعر للمستخدم
  */
-router.get("/sentiment/history/:userId", requireAuth as any, async (req, res) => {
+router.get("/sentiment/history/:userId", requireAuth, async (req, res) => {
   try {
     const { userId } = req.params;
     const sessionUserId = (req as any).user?.id;
@@ -432,7 +444,7 @@ router.get("/sentiment/history/:userId", requireAuth as any, async (req, res) =>
  * GET /api/ai-advanced/sentiment/average/:userId
  * متوسط المشاعر والاتجاه
  */
-router.get("/sentiment/average/:userId", requireAuth as any, async (req, res) => {
+router.get("/sentiment/average/:userId", requireAuth, async (req, res) => {
   try {
     const { userId } = req.params;
     const sessionUserId = (req as any).user?.id;
@@ -460,7 +472,7 @@ router.get("/sentiment/average/:userId", requireAuth as any, async (req, res) =>
  * GET /api/ai-advanced/sentiment/frustrated-users
  * كشف المستخدمين المحبطين
  */
-router.get("/sentiment/frustrated-users", requireAdmin as any, async (req, res) => {
+router.get("/sentiment/frustrated-users", requireAdmin, async (req, res) => {
   try {
     const threshold = parseFloat(req.query.threshold as string) || -0.3;
     const days = parseInt(req.query.days as string) || 7;
@@ -490,19 +502,33 @@ router.get("/sentiment/frustrated-users", requireAdmin as any, async (req, res) 
  * GET /api/ai-advanced/predictions/:userId
  * الحصول على توقعات المستخدم
  */
-router.get("/predictions/:userId", requireAuth as any, async (req, res) => {
+router.get("/predictions/:userId", requireAuth, async (req, res) => {
   try {
+    res.setHeader("Cache-Control", "no-store");
     const { userId } = req.params;
-    const sessionUserId = (req as any).user?.id;
-    if (sessionUserId !== userId && (req as any).user?.role !== "admin") {
-      return res.status(403).json({ success: false, error: "غير مصرح" });
-    }
+    if (!requireUserAccess(req, res, userId)) return;
+    if (!db) throw new Error("Database not available");
     const predictions = await predictiveAnalytics.getPredictionsForUser(userId);
+    // Saved predictions are fresh shopping suggestions when read. A product may
+    // have been hidden since the prediction was generated; exclude its entire
+    // suggestion, including descriptive text, using the current catalogue.
+    const currentProducts = predictions.length === 0 ? [] : await db.select({ id: products.id })
+      .from(products).where(and(
+        inArray(products.id, predictions.map(prediction => prediction.productId)),
+        eq(products.isStorefrontVisible, true), isNull(products.deletedAt),
+      ));
+    const visibleProductIds = new Set(currentProducts.map(product => product.id));
+    const publicPredictions = predictions.filter(prediction => visibleProductIds.has(prediction.productId))
+      .map(prediction => ({
+        id: prediction.id, productId: prediction.productId, probability: prediction.probability,
+        predictedDate: prediction.predictedDate, reason: prediction.reason,
+        category: prediction.category, notified: prediction.notified,
+      }));
 
     res.json({
       success: true,
-      data: predictions,
-      count: predictions.length,
+      data: publicPredictions,
+      count: publicPredictions.length,
     });
   } catch (error) {
     console.error("Predictions error:", error);
@@ -517,7 +543,7 @@ router.get("/predictions/:userId", requireAuth as any, async (req, res) => {
  * POST /api/ai-advanced/predictions/run
  * تشغيل التوقعات يدوياً (للمشرف)
  */
-router.post("/predictions/run", requireAdmin as any, async (req, res) => {
+router.post("/predictions/run", requireAdmin, async (req, res) => {
   try {
     const result = await triggerJob("predictions");
     res.json(result);
@@ -536,7 +562,7 @@ router.post("/predictions/run", requireAdmin as any, async (req, res) => {
  * GET /api/ai-advanced/churn/:userId
  * تحليل الـ churn لمستخدم
  */
-router.get("/churn/:userId", requireAuth as any, async (req, res) => {
+router.get("/churn/:userId", requireAuth, async (req, res) => {
   try {
     const { userId } = req.params;
     const sessionUserId = (req as any).user?.id;
@@ -562,7 +588,7 @@ router.get("/churn/:userId", requireAuth as any, async (req, res) => {
  * GET /api/ai-advanced/churn/high-risk
  * الحصول على العملاء عالي الخطورة
  */
-router.get("/churn-high-risk", requireAdmin as any, async (req, res) => {
+router.get("/churn-high-risk", requireAdmin, async (req, res) => {
   try {
     const highRisk = await churnDetector.getHighRiskUsers();
 
@@ -586,7 +612,7 @@ router.get("/churn-high-risk", requireAdmin as any, async (req, res) => {
  * POST /api/ai-advanced/content/product-description
  * توليد وصف منتج
  */
-router.post("/content/product-description", requireAdmin as any, async (req, res) => {
+router.post("/content/product-description", requireAdmin, async (req, res) => {
   try {
     const { productId } = req.body;
     if (!productId) {
@@ -606,7 +632,7 @@ router.post("/content/product-description", requireAdmin as any, async (req, res
     console.error("Content generation error:", error);
     res.status(500).json({
       success: false,
-      error: error instanceof Error ? error.message : "فشل توليد المحتوى",
+      error: "فشل توليد المحتوى",
     });
   }
 });
@@ -615,7 +641,7 @@ router.post("/content/product-description", requireAdmin as any, async (req, res
  * POST /api/ai-advanced/content/social-post
  * توليد منشور سوشيال ميديا
  */
-router.post("/content/social-post", requireAdmin as any, async (req, res) => {
+router.post("/content/social-post", requireAdmin, async (req, res) => {
   try {
     const { productId, platform } = req.body;
     if (!productId || !platform) {
@@ -635,7 +661,7 @@ router.post("/content/social-post", requireAdmin as any, async (req, res) => {
     console.error("Social post generation error:", error);
     res.status(500).json({
       success: false,
-      error: error instanceof Error ? error.message : "فشل توليد المنشور",
+      error: "فشل توليد المنشور",
     });
   }
 });
@@ -644,7 +670,7 @@ router.post("/content/social-post", requireAdmin as any, async (req, res) => {
  * GET /api/ai-advanced/content
  * List all generated content (paginated, filterable)
  */
-router.get("/content", requireAdmin as any, async (req, res) => {
+router.get("/content", requireAdmin, async (req, res) => {
   try {
     if (!db) return res.status(500).json({ success: false, error: "Database not initialized" });
     const { contentType, status, page = "1", limit = "20" } = req.query;
@@ -686,7 +712,7 @@ router.get("/content", requireAdmin as any, async (req, res) => {
  * GET /api/ai-advanced/content/:id
  * Get single content item
  */
-router.get("/content/:id", requireAdmin as any, async (req, res) => {
+router.get("/content/:id", requireAdmin, async (req, res) => {
   try {
     if (!db) return res.status(500).json({ success: false, error: "Database not initialized" });
     const item = await db
@@ -710,7 +736,7 @@ router.get("/content/:id", requireAdmin as any, async (req, res) => {
  * PATCH /api/ai-advanced/content/:id/status
  * Update content status (draft → approved → published / rejected)
  */
-router.patch("/content/:id/status", requireAdmin as any, async (req, res) => {
+router.patch("/content/:id/status", requireAdmin, async (req, res) => {
   try {
     if (!db) return res.status(500).json({ success: false, error: "Database not initialized" });
     const { status } = req.body;
@@ -730,7 +756,7 @@ router.patch("/content/:id/status", requireAdmin as any, async (req, res) => {
  * DELETE /api/ai-advanced/content/:id
  * Delete content item
  */
-router.delete("/content/:id", requireAdmin as any, async (req, res) => {
+router.delete("/content/:id", requireAdmin, async (req, res) => {
   try {
     if (!db) return res.status(500).json({ success: false, error: "Database not initialized" });
     await db.delete(generatedContent).where(eq(generatedContent.id, req.params.id));
@@ -745,7 +771,7 @@ router.delete("/content/:id", requireAdmin as any, async (req, res) => {
  * POST /api/ai-advanced/content/email
  * Generate email content
  */
-router.post("/content/email", requireAdmin as any, async (req, res) => {
+router.post("/content/email", requireAdmin, async (req, res) => {
   try {
     const { type, context } = req.body;
     if (!type) {
@@ -758,7 +784,7 @@ router.post("/content/email", requireAdmin as any, async (req, res) => {
     console.error("Email generation error:", error);
     res.status(500).json({
       success: false,
-      error: error instanceof Error ? error.message : "فشل توليد الإيميل",
+      error: "فشل توليد الإيميل",
     });
   }
 });
@@ -767,7 +793,7 @@ router.post("/content/email", requireAdmin as any, async (req, res) => {
  * POST /api/ai-advanced/content/banner
  * Generate banner/offer content
  */
-router.post("/content/banner", requireAdmin as any, async (req, res) => {
+router.post("/content/banner", requireAdmin, async (req, res) => {
   try {
     const { occasion, productIds, offerType } = req.body;
 
@@ -782,7 +808,7 @@ router.post("/content/banner", requireAdmin as any, async (req, res) => {
     console.error("Banner generation error:", error);
     res.status(500).json({
       success: false,
-      error: error instanceof Error ? error.message : "فشل توليد البانر",
+      error: "فشل توليد البانر",
     });
   }
 });
@@ -791,7 +817,7 @@ router.post("/content/banner", requireAdmin as any, async (req, res) => {
  * POST /api/ai-advanced/content/bulk-descriptions
  * Generate descriptions for multiple products
  */
-router.post("/content/bulk-descriptions", requireAdmin as any, async (req, res) => {
+router.post("/content/bulk-descriptions", requireAdmin, async (req, res) => {
   try {
     const { productIds } = req.body;
     if (!productIds || !Array.isArray(productIds) || productIds.length === 0) {
@@ -811,7 +837,7 @@ router.post("/content/bulk-descriptions", requireAdmin as any, async (req, res) 
         results.push({
           productId,
           success: false,
-          error: error instanceof Error ? error.message : "فشل التوليد",
+          error: "فشل التوليد",
         });
       }
     }
@@ -829,7 +855,7 @@ router.post("/content/bulk-descriptions", requireAdmin as any, async (req, res) 
  * GET /api/ai-advanced/inventory/recommendations
  * الحصول على توصيات المخزون
  */
-router.get("/inventory/recommendations", requireAdmin as any, async (req, res) => {
+router.get("/inventory/recommendations", requireAdmin, async (req, res) => {
   try {
     const recommendations = await inventoryOptimizer.getUrgentRecommendations();
 
@@ -851,7 +877,7 @@ router.get("/inventory/recommendations", requireAdmin as any, async (req, res) =
  * POST /api/ai-advanced/inventory/dismiss/:id
  * تجاهل توصية
  */
-router.post("/inventory/dismiss/:id", requireAdmin as any, async (req, res) => {
+router.post("/inventory/dismiss/:id", requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     if (!await inventoryOptimizer.dismissRecommendation(id)) {
@@ -877,7 +903,7 @@ router.post("/inventory/dismiss/:id", requireAdmin as any, async (req, res) => {
  * GET /api/ai-advanced/auto-orders/:userId
  * الحصول على الطلبات التلقائية للمستخدم
  */
-router.get("/auto-orders/:userId", requireAuth as any, async (req, res) => {
+router.get("/auto-orders/:userId", requireAuth, async (req, res) => {
   try {
     const { userId } = req.params;
     if (!requireUserAccess(req, res, userId)) return;
@@ -901,7 +927,7 @@ router.get("/auto-orders/:userId", requireAuth as any, async (req, res) => {
  * POST /api/ai-advanced/auto-orders
  * إنشاء طلب تلقائي
  */
-router.post("/auto-orders", requireAuth as any, async (req, res) => {
+router.post("/auto-orders", requireAuth, async (req, res) => {
   try {
     const { userId, productId, frequency, quantity } = req.body;
     const scopedUserId = resolveWritableUserId(req, res, userId);
@@ -922,7 +948,7 @@ router.post("/auto-orders", requireAuth as any, async (req, res) => {
     console.error("Create auto order error:", error);
     res.status(500).json({
       success: false,
-      error: error instanceof Error ? error.message : "فشل إنشاء الطلب التلقائي",
+      error: "فشل إنشاء الطلب التلقائي",
     });
   }
 });
@@ -933,7 +959,7 @@ router.post("/auto-orders", requireAuth as any, async (req, res) => {
  * POST /api/ai-advanced/returns
  * إنشاء طلب إرجاع
  */
-router.post("/returns", requireAuth as any, async (req, res) => {
+router.post("/returns", requireAuth, async (req, res) => {
   try {
     const { orderId, userId, productId, reason, description, photos } = req.body;
     const scopedUserId = resolveWritableUserId(req, res, userId);
@@ -956,7 +982,7 @@ router.post("/returns", requireAuth as any, async (req, res) => {
     console.error("Create return request error:", error);
     res.status(500).json({
       success: false,
-      error: error instanceof Error ? error.message : "فشل إنشاء طلب الإرجاع",
+      error: "فشل إنشاء طلب الإرجاع",
     });
   }
 });
@@ -965,7 +991,7 @@ router.post("/returns", requireAuth as any, async (req, res) => {
  * GET /api/ai-advanced/returns/:userId
  * الحصول على طلبات الإرجاع للمستخدم
  */
-router.get("/returns/:userId", requireAuth as any, async (req, res) => {
+router.get("/returns/:userId", requireAuth, async (req, res) => {
   try {
     const { userId } = req.params;
     if (!requireUserAccess(req, res, userId)) return;
@@ -991,7 +1017,7 @@ router.get("/returns/:userId", requireAuth as any, async (req, res) => {
  * POST /api/ai-advanced/aquarium/design
  * إنشاء تصميم حوض
  */
-router.post("/aquarium/design", requireAuth as any, async (req, res) => {
+router.post("/aquarium/design", requireAuth, async (req, res) => {
   try {
     const { userId, name, tankSize, tankType, budget, experience, preferences } = req.body;
     const scopedUserId = resolveWritableUserId(req, res, userId);
@@ -1015,7 +1041,7 @@ router.post("/aquarium/design", requireAuth as any, async (req, res) => {
     console.error("Create design error:", error);
     res.status(500).json({
       success: false,
-      error: error instanceof Error ? error.message : "فشل إنشاء التصميم",
+      error: "فشل إنشاء التصميم",
     });
   }
 });
@@ -1024,7 +1050,7 @@ router.post("/aquarium/design", requireAuth as any, async (req, res) => {
  * POST /api/ai-advanced/aquarium/check-compatibility
  * فحص توافق الأسماك
  */
-router.post("/aquarium/check-compatibility", requireAuth as any, async (req, res) => {
+router.post("/aquarium/check-compatibility", requireAuth, async (req, res) => {
   try {
     const { fish1, fish2 } = req.body;
     if (!fish1 || !fish2) {
@@ -1044,7 +1070,7 @@ router.post("/aquarium/check-compatibility", requireAuth as any, async (req, res
     console.error("Compatibility check error:", error);
     res.status(500).json({
       success: false,
-      error: error instanceof Error ? error.message : "فشل فحص التوافق",
+      error: "فشل فحص التوافق",
     });
   }
 });
@@ -1053,7 +1079,7 @@ router.post("/aquarium/check-compatibility", requireAuth as any, async (req, res
  * GET /api/ai-advanced/aquarium/:designId/shopping-list
  * توليد قائمة تسوق من التصميم
  */
-router.get("/aquarium/:designId/shopping-list", requireAuth as any, async (req, res) => {
+router.get("/aquarium/:designId/shopping-list", requireAuth, async (req, res) => {
   try {
     const { designId } = req.params;
     const shoppingList = await aquariumAdvisor.generateShoppingList(designId);
@@ -1066,7 +1092,7 @@ router.get("/aquarium/:designId/shopping-list", requireAuth as any, async (req, 
     console.error("Shopping list error:", error);
     res.status(500).json({
       success: false,
-      error: error instanceof Error ? error.message : "فشل توليد قائمة التسوق",
+      error: "فشل توليد قائمة التسوق",
     });
   }
 });
@@ -1077,7 +1103,7 @@ router.get("/aquarium/:designId/shopping-list", requireAuth as any, async (req, 
  * GET /api/ai-advanced/jobs/status
  * حالة الـ cron jobs
  */
-router.get("/jobs/status", requireAdmin as any, (req, res) => {
+router.get("/jobs/status", requireAdmin, (req, res) => {
   try {
     const status = getJobStatus();
     res.json({
@@ -1099,7 +1125,7 @@ router.get("/jobs/status", requireAdmin as any, (req, res) => {
  * POST /api/ai-advanced/fraud/analyze/:orderId
  * تحليل طلب للكشف عن الاحتيال
  */
-router.post("/fraud/analyze/:orderId", requireAdmin as any, async (req, res) => {
+router.post("/fraud/analyze/:orderId", requireAdmin, async (req, res) => {
   try {
     const { orderId } = req.params;
     const result = await fraudDetector.analyzeOrder(orderId);
@@ -1112,7 +1138,7 @@ router.post("/fraud/analyze/:orderId", requireAdmin as any, async (req, res) => 
     console.error("Fraud analysis error:", error);
     res.status(500).json({
       success: false,
-      error: error instanceof Error ? error.message : "فشل تحليل الطلب",
+      error: "فشل تحليل الطلب",
     });
   }
 });
@@ -1121,7 +1147,7 @@ router.post("/fraud/analyze/:orderId", requireAdmin as any, async (req, res) => 
  * GET /api/ai-advanced/fraud/high-risk
  * الحصول على الطلبات عالية الخطورة
  */
-router.get("/fraud/high-risk", requireAdmin as any, async (req, res) => {
+router.get("/fraud/high-risk", requireAdmin, async (req, res) => {
   try {
     const highRiskOrders = await fraudDetector.getHighRiskOrders();
 
@@ -1143,7 +1169,7 @@ router.get("/fraud/high-risk", requireAdmin as any, async (req, res) => {
  * POST /api/ai-advanced/fraud/scan
  * فحص جميع الطلبات الحديثة
  */
-router.post("/fraud/scan", requireAdmin as any, async (req, res) => {
+router.post("/fraud/scan", requireAdmin, async (req, res) => {
   try {
     const result = await fraudDetector.analyzeRecentOrders();
 
@@ -1166,7 +1192,7 @@ router.post("/fraud/scan", requireAdmin as any, async (req, res) => {
  * GET /api/ai-advanced/dashboard/summary
  * ملخص اليوم الذكي
  */
-router.get("/dashboard/summary", requireAdmin as any, async (req, res) => {
+router.get("/dashboard/summary", requireAdmin, async (req, res) => {
   try {
     const summary = await aiDashboard.getDailySummary();
 
@@ -1187,7 +1213,7 @@ router.get("/dashboard/summary", requireAdmin as any, async (req, res) => {
  * GET /api/ai-advanced/dashboard/quick-stats
  * إحصائيات سريعة
  */
-router.get("/dashboard/quick-stats", requireAdmin as any, async (req, res) => {
+router.get("/dashboard/quick-stats", requireAdmin, async (req, res) => {
   try {
     const stats = await aiDashboard.getQuickStats();
 
@@ -1208,7 +1234,7 @@ router.get("/dashboard/quick-stats", requireAdmin as any, async (req, res) => {
  * GET /api/ai-advanced/dashboard/forecast
  * توقعات الأسبوع
  */
-router.get("/dashboard/forecast", requireAdmin as any, async (req, res) => {
+router.get("/dashboard/forecast", requireAdmin, async (req, res) => {
   try {
     const forecast = await aiDashboard.getWeeklyForecast();
 

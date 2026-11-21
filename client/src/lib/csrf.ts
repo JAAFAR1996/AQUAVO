@@ -6,6 +6,7 @@
 
 const CSRF_HEADER_NAME = 'X-CSRF-Token';
 const CSRF_STORAGE_KEY = 'aquavo_csrf_token';
+let memoryToken: string | null = null;
 
 /**
  * Generate a cryptographically secure random token
@@ -20,14 +21,14 @@ function generateToken(): string {
  * Get or create CSRF token for the current session
  */
 export function getCsrfToken(): string {
-  let token = sessionStorage.getItem(CSRF_STORAGE_KEY);
-
-  if (!token) {
-    token = generateToken();
-    sessionStorage.setItem(CSRF_STORAGE_KEY, token);
-  }
-
-  return token;
+  if (memoryToken) return memoryToken;
+  try {
+    const stored = sessionStorage.getItem(CSRF_STORAGE_KEY);
+    if (stored) { memoryToken = stored; return stored; }
+  } catch { /* Storage restrictions must not disable authenticated requests. */ }
+  memoryToken ??= generateToken();
+  try { sessionStorage.setItem(CSRF_STORAGE_KEY, memoryToken); } catch { /* per-page fallback */ }
+  return memoryToken;
 }
 
 /**
@@ -57,7 +58,8 @@ export function verifyCsrfToken(token: string): boolean {
  * Clear CSRF token (on logout)
  */
 export function clearCsrfToken(): void {
-  sessionStorage.removeItem(CSRF_STORAGE_KEY);
+  memoryToken = null;
+  try { sessionStorage.removeItem(CSRF_STORAGE_KEY); } catch { /* storage may be blocked */ }
 }
 
 /**
@@ -65,6 +67,7 @@ export function clearCsrfToken(): void {
  */
 export function refreshCsrfToken(): string {
   const newToken = generateToken();
-  sessionStorage.setItem(CSRF_STORAGE_KEY, newToken);
+  memoryToken = newToken;
+  try { sessionStorage.setItem(CSRF_STORAGE_KEY, newToken); } catch { /* per-page fallback */ }
   return newToken;
 }

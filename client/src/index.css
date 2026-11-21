@@ -1,6 +1,40 @@
-@import "tailwindcss";
+@import "tailwindcss" source(none);
 @import "tw-animate-css";
 @import "./styles/storefront-fonts.css";
+
+/* Scan application render sources, not audit documents, public HTML exports,
+   build output or test fixtures that happen to contain utility-like strings. */
+@source "./";
+@source "../../api";
+@source "../../shared";
+@source "../index.html";
+@source not "./**/__tests__";
+@source not "../../api/__tests__";
+@source not "../../shared/__tests__";
+
+/* Unused UI templates, verified against the complete client (including lazy
+   routes), API renderers, static prerender pages and Vite build imports during
+   the November 2026 audit. Keep the files for reuse, but do not ship their
+   unique utilities. public-css-sources.test.ts fails if an excluded template
+   becomes reachable: remove its exclusion when adopting that component. */
+@source not "./components/ui/sidebar.tsx";
+@source not "./components/ui/field.tsx";
+@source not "./components/ui/item.tsx";
+@source not "./components/ui/input-group.tsx";
+@source not "./components/ui/button-group.tsx";
+@source not "./components/ui/navigation-menu.tsx";
+@source not "./components/ui/menubar.tsx";
+@source not "./components/ui/context-menu.tsx";
+@source not "./components/ui/command.tsx";
+@source not "./components/ui/empty.tsx";
+@source not "./components/ui/carousel.tsx";
+@source not "./components/ui/calendar.tsx";
+@source not "./components/ui/drawer.tsx";
+@source not "./components/ui/form.tsx";
+@source not "./components/ui/kbd.tsx";
+@source not "./components/ui/toggle-group.tsx";
+@source not "./components/ui/input-otp.tsx";
+@source not "./components/ui/font-size-controller.tsx";
 
 @custom-variant dark (&:is(.dark *));
 

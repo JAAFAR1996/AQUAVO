@@ -1,6 +1,13 @@
 import express from "express";
 import request from "supertest";
 import { afterEach, describe, expect, it, vi } from "vitest";
+vi.mock("../db.js", () => ({ getDb: () => null, db: null }));
+// This suite verifies disclosure and phone verification through the real
+// limiter; persistence/fail-closed behavior has its own database tests.
+vi.mock("../middleware/shared-rate-limit-store.js", async () => {
+    const { MemoryStore } = await import("express-rate-limit");
+    return { createSharedRateLimitStore: () => new MemoryStore() };
+});
 import {
     buildPublicOrderTrackingResponse,
     createOrderRouter,

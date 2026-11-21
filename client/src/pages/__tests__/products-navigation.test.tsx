@@ -173,7 +173,8 @@ describe("Products history state", () => {
     expect(screen.getByLabelText("Food")).toHaveValue("betta");
     expect(vi.mocked(fetchProducts).mock.calls[0][0]).toEqual({
       category: ["طعام الأسماك"], brand: ["YEE"], minPrice: 1000, search: "food", isNew: true,
-      sortBy: "price", sortOrder: "asc",
+      sortBy: "price", sortOrder: "asc", difficulty: ["easy"], inStock: true,
+      food: "betta", paginated: true, limit: 24, offset: 0,
     });
     expect(controls.latest?.contentKey.split(",")).toHaveLength(48);
   });
@@ -252,17 +253,20 @@ describe("Products history state", () => {
     await waitFor(() => expect(controls.latest?.ready).toBe(true));
 
     fireEvent.change(screen.getByLabelText("Food"), { target: { value: "goldfish" } });
-    params.set("food", "goldfish");
     expect(controls.latest?.state).toEqual({ ...saved, foodFilter: "goldfish", displayCount: 24 });
-    expect(controls.navigate).toHaveBeenLastCalledWith(`/products?${params.toString()}`, { replace: true });
-    expect(window.location.search).toBe(`?${params.toString()}`);
+    expect(controls.navigate).toHaveBeenLastCalledWith(expect.any(String), { replace: true });
+    const updated = new URLSearchParams(window.location.search);
+    expect(updated.get("food")).toBe("goldfish");
+    expect(updated.get("sort")).toBe("price-asc");
+    expect(updated.get("brand")).toBe("YEE");
+    expect(updated.get("campaign")).toBe("guide");
+    expect(updated.get("search")).toBe("food");
     expect(getNavigationEntry().key).toBe(entryKey);
 
     fireEvent.change(screen.getByLabelText("Food"), { target: { value: "all" } });
-    params.delete("food");
     expect(controls.latest?.state).toEqual({ ...saved, foodFilter: "all", displayCount: 24 });
-    expect(controls.navigate).toHaveBeenLastCalledWith(`/products?${params.toString()}`, { replace: true });
-    expect(window.location.search).toBe(`?${params.toString()}`);
+    expect(controls.navigate).toHaveBeenLastCalledWith(expect.any(String), { replace: true });
+    expect(new URLSearchParams(window.location.search).has("food")).toBe(false);
     expect(getNavigationEntry().key).toBe(entryKey);
   });
 
@@ -300,11 +304,18 @@ describe("Products history state", () => {
     saveState({ sortBy: "smart" });
     const pendingProducts = deferred<{ products: Product[] }>();
     const pendingBoost = deferred<{ boostIds: string[] }>();
-    vi.mocked(fetchProducts).mockReturnValue(pendingProducts.promise);
+    vi.mocked(fetchProducts).mockImplementation(async params => {
+      const response = await pendingProducts.promise;
+      const preferred = params?.preferredIds ?? [];
+      return { products: [...response.products].sort((a, b) => {
+        const rank = (id: string) => preferred.includes(id) ? preferred.indexOf(id) : 999;
+        return rank(a.id) - rank(b.id);
+      }) };
+    });
     vi.mocked(fetchPersonalizedOrder).mockReturnValue(pendingBoost.promise);
     const client = newQueryClient();
     client.setQueryData(["product-attributes"], attributes);
-    client.setQueryData(["products", { sortBy: "createdAt", sortOrder: "desc" }], { products }, { updatedAt: 1 });
+    client.setQueryData(["products-page", { sortBy: "createdAt", sortOrder: "desc", preferredIds: ["2"], paginated: true, limit: 24 }], { pages: [{ products }], pageParams: [0] }, { updatedAt: 1 });
     client.setQueryData(["personalized-order"], { boostIds: ["2"] }, { updatedAt: 1 });
     renderProducts(client);
     await waitFor(() => expect(screen.getAllByTestId("product-card")).toHaveLength(48));
@@ -317,5 +328,21 @@ describe("Products history state", () => {
     await waitFor(() => expect(controls.latest?.ready).toBe(true));
     expect(screen.getAllByTestId("product-card")[0]).toHaveTextContent("3");
     expect(controls.latest?.state.displayCount).toBe(48);
+  });
+
+  it("requests the next server page instead of downloading the catalogue up front", async () => {
+    vi.mocked(fetchProducts).mockImplementation(async params => {
+      const offset = params?.offset ?? 0;
+      const limit = params?.limit ?? 24;
+      return { products: products.slice(offset, offset + limit), total: products.length, hasMore: offset + limit < products.length };
+    });
+    renderProducts();
+    await waitFor(() => expect(controls.latest?.ready).toBe(true));
+    expect(screen.getAllByTestId("product-card")).toHaveLength(24);
+    expect(fetchProducts).toHaveBeenCalledTimes(1);
+    expect(fetchProducts).toHaveBeenLastCalledWith(expect.objectContaining({ paginated: true, limit: 24, offset: 0 }));
+    fireEvent.click(screen.getByRole("button", { name: i18next.t("products:results.loadMore") }));
+    await waitFor(() => expect(screen.getAllByTestId("product-card")).toHaveLength(48));
+    expect(fetchProducts).toHaveBeenLastCalledWith(expect.objectContaining({ limit: 24, offset: 24 }));
   });
 });

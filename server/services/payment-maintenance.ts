@@ -4,7 +4,7 @@ import { getDb } from "../db.js";
 import { analyticsTracker } from "./analytics-tracker.js";
 import { loyaltyNotifications } from "./loyalty-notifications.js";
 import { ReferralStorage } from "../storage/referral-storage.js";
-import { loyaltyStorage, type TransactionalOrderLoyaltyResult } from "../storage/loyalty-storage.js";
+import type { TransactionalOrderLoyaltyResult } from "../storage/loyalty-storage.js";
 import { sendOrderNotification, type OrderNotificationData } from "./order-notifications.js";
 
 const referralStorage = new ReferralStorage();
@@ -174,10 +174,8 @@ async function deliverOutboxEvent(event: ClaimedOutbox): Promise<void> {
     const loyaltyResult = payload.loyaltyResult as TransactionalOrderLoyaltyResult | null | undefined;
     if (order.userId && loyaltyResult) {
       await loyaltyNotifications.sendPostPurchaseNotifications(order.userId, order.id, loyaltyResult);
-      const referralResult = await referralStorage.markFirstPurchase(order.userId, order.id);
-      if (referralResult.referral) {
-        await loyaltyStorage.awardReferralPurchaseBonus(referralResult.referral.referrerUserId, order.id);
-      }
+      // The referral claim, balance and ledger are one retry-safe transaction.
+      await referralStorage.markFirstPurchase(order.userId, order.id);
     }
     return;
   }

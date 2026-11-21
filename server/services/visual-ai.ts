@@ -1,12 +1,16 @@
 import { geminiClient } from "./gemini-client.js";
 import { db } from "../db.js";
 import { imageAnalyses, products, diagnosisCases, diagnosisFeedback, type InsertImageAnalysis } from "../../shared/schema.js";
-import { eq, desc, inArray, sql, and } from "drizzle-orm";
+import { eq, desc, inArray, sql, and, isNull } from "drizzle-orm";
 import { aiMonitor } from "./ai-monitor.js";
 import OpenAI from "openai";
 import { vetRAG } from "./vet-rag.js";
 import { embeddingGenerator } from "./embedding-generator.js";
 import { diagnosticPipeline } from "./diagnostic-pipeline.js";
+import { toPublicProducts } from "../../shared/public-product.js";
+import { fetchTrustedAnalysisImage, detectAnalysisImageType, MAX_ANALYSIS_IMAGE_BYTES } from "../utils/trusted-image-fetch.js";
+import { OperationalError } from "../middleware/error-handler.js";
+import { reviewedDiagnosisCondition } from "./diagnosis-review-policy.js";
 
 /**
  * Visual AI Service
@@ -68,7 +72,7 @@ export class VisualAI {
         imageUrl,
         analysisType,
         aiAnalysis: analysis,
-        recommendedProducts: recommendedProducts.map((p: any) => p.id),
+        recommendedProducts: recommendedProducts.map((p) => String(p.id)),
         processingTimeMs: processingTime,
       });
 
@@ -83,6 +87,7 @@ export class VisualAI {
     } catch (error) {
       aiMonitor.logError(error instanceof Error ? error.message : "Visual AI failed", { analysisType }, { event: "visual_analysis", userId, sessionId, responseTimeMs: Date.now() - startTime });
       console.error("Visual AI Error:", error);
+      if (error instanceof OperationalError) throw error;
       throw new Error(
         `فشل تحليل الصورة: ${error instanceof Error ? error.message : "خطأ غير معروف"}`
       );
@@ -105,6 +110,11 @@ export class VisualAI {
     const startTime = Date.now();
 
     try {
+      const detectedMimeType = detectAnalysisImageType(buffer);
+      if (!detectedMimeType || buffer.length > MAX_ANALYSIS_IMAGE_BYTES) {
+        throw new OperationalError("ارفع صورة JPEG أو PNG أو GIF أو WebP بحجم أقصى 5 ميغابايت", 400);
+      }
+      mimeType = detectedMimeType;
       const base64 = buffer.toString("base64");
 
       // ═══════════════════════════════════════════════════════
@@ -145,7 +155,7 @@ export class VisualAI {
           imageUrl: `buffer://${Date.now()}`,
           analysisType,
           aiAnalysis: analysis,
-          recommendedProducts: recommendedProducts.map((p) => p.id),
+          recommendedProducts: recommendedProducts.map((p) => String(p.id)),
           processingTimeMs: processingTime,
         });
 
@@ -235,7 +245,7 @@ export class VisualAI {
         imageUrl: `buffer://${Date.now()}`,
         analysisType,
         aiAnalysis: analysis,
-        recommendedProducts: recommendedProducts.map((p) => p.id),
+        recommendedProducts: recommendedProducts.map((p) => String(p.id)),
         processingTimeMs: processingTime,
       });
 
@@ -255,6 +265,7 @@ export class VisualAI {
     } catch (error) {
       aiMonitor.logError(error instanceof Error ? error.message : "Visual AI buffer failed", { analysisType }, { event: "visual_analysis", userId, sessionId, responseTimeMs: Date.now() - startTime });
       console.error("Visual AI Buffer Error:", error);
+      if (error instanceof OperationalError) throw error;
       throw new Error(
         `فشل تحليل الصورة: ${error instanceof Error ? error.message : "خطأ غير معروف"}`
       );
@@ -303,24 +314,7 @@ export class VisualAI {
    * Fetch image from URL and convert to base64
    */
   private async fetchImageAsBase64(imageUrl: string) {
-    try {
-      const response = await fetch(imageUrl);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch image: ${response.statusText}`);
-      }
-
-      const contentType = response.headers.get("content-type") || "image/jpeg";
-      const arrayBuffer = await response.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-      const base64 = buffer.toString("base64");
-
-      return {
-        base64,
-        mimeType: contentType,
-      };
-    } catch (error) {
-      throw new Error(`فشل تحميل الصورة: ${error instanceof Error ? error.message : "خطأ"}`);
-    }
+    return fetchTrustedAnalysisImage(imageUrl);
   }
 
   /**
@@ -917,13 +911,13 @@ export class VisualAI {
           const semanticProducts = db ? await db
             .select()
             .from(products)
-            .where(and(inArray(products.id, productIds), sql`${products.stock} > 0`))
+            .where(and(inArray(products.id, productIds), sql`${products.stock} > 0`, isNull(products.deletedAt), eq(products.isStorefrontVisible, true)))
             .limit(5)
             : [];
 
           if (semanticProducts.length > 0) {
             console.log(`[VisualAI] 🛒 Semantic product match: ${semanticProducts.length} products`);
-            return semanticProducts;
+            return toPublicProducts(semanticProducts);
           }
         }
       } catch {
@@ -939,7 +933,7 @@ export class VisualAI {
       };
       const categories = categoryMap[analysisType] || [];
       const allTerms = [...searchTerms, ...categories];
-      const searchPattern = allTerms.map(t => t.replace(/[%_]/g, '')).join('|');
+      const searchPattern = allTerms.slice(0, 20).map(t => t.slice(0, 80).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).filter(Boolean).join('|');
 
       if (!db) return [];
       const recommendedProducts = searchPattern
@@ -947,16 +941,16 @@ export class VisualAI {
             .select()
             .from(products)
             .where(
-              sql`${products.stock} > 0 AND (${products.name} ~* ${searchPattern} OR ${products.category} ~* ${searchPattern} OR ${products.description} ~* ${searchPattern})`
+              and(isNull(products.deletedAt), eq(products.isStorefrontVisible, true), sql`${products.stock} > 0 AND (${products.name} ~* ${searchPattern} OR ${products.category} ~* ${searchPattern} OR ${products.description} ~* ${searchPattern})`)
             )
             .limit(5)
         : await db
             .select()
             .from(products)
-            .where(sql`${products.stock} > 0`)
+            .where(and(isNull(products.deletedAt), eq(products.isStorefrontVisible, true), sql`${products.stock} > 0`))
             .limit(5);
 
-      return recommendedProducts;
+      return toPublicProducts(recommendedProducts);
     } catch (error) {
       console.error("Failed to get product recommendations:", error);
       return [];
@@ -1023,34 +1017,17 @@ export class VisualAI {
     rating?: number;
   }) {
     if (!db) throw new Error("Database not initialized");
-    const [feedback] = await db.insert(diagnosisFeedback).values(data).returning();
-
-    // If user confirmed the diagnosis, mark the case as verified
-    if (data.isCorrect) {
-      if (db) await db
-        .update(diagnosisCases)
-        .set({ verified: true })
-        .where(eq(diagnosisCases.analysisId, data.analysisId));
-    }
-
-    // If user provided correct disease, update the case
-    if (data.correctDisease) {
-      if (db) await db
-        .update(diagnosisCases)
-        .set({ disease: data.correctDisease, verified: true })
-        .where(eq(diagnosisCases.analysisId, data.analysisId));
-    }
-
-    // If treatment worked, update case outcome
-    if (data.treatmentWorked !== undefined) {
-      if (db) await db
-        .update(diagnosisCases)
-        .set({ outcome: data.treatmentWorked ? "recovered" : "unknown" })
-        .where(eq(diagnosisCases.analysisId, data.analysisId));
-    }
-
-    console.log(`[VisualAI] 📝 Feedback saved for analysis: ${data.analysisId} — correct: ${data.isCorrect}`);
-    return feedback;
+    if (!data.userId) throw new OperationalError("يجب تسجيل الدخول", 401);
+    return db.transaction(async (tx) => {
+      const [ownedAnalysis] = await tx.select({ id: imageAnalyses.id }).from(imageAnalyses)
+        .where(and(eq(imageAnalyses.id, data.analysisId), eq(imageAnalyses.userId, data.userId!)))
+        .limit(1).for("update");
+      if (!ownedAnalysis) throw new OperationalError("التحليل غير موجود", 404);
+      // A customer's report is evidence for review, never expert verification.
+      // Keep disease/outcome/verified on the case unchanged until explicitly reviewed.
+      const [feedback] = await tx.insert(diagnosisFeedback).values(data).returning();
+      return feedback;
+    });
   }
 
   /**
@@ -1063,7 +1040,8 @@ export class VisualAI {
       const allFeedback = await db.select().from(diagnosisFeedback);
 
       const totalCases = allCases.length;
-      const verifiedCases = allCases.filter(c => c.verified).length;
+      const reviewedCases = await db.select({ id: diagnosisCases.id }).from(diagnosisCases).where(reviewedDiagnosisCondition(db));
+      const verifiedCases = reviewedCases.length;
       const correctDiagnoses = allFeedback.filter(f => f.isCorrect).length;
       const totalFeedback = allFeedback.length;
       const accuracyRate = totalFeedback > 0 ? Math.round((correctDiagnoses / totalFeedback) * 100) : 0;
@@ -1085,6 +1063,7 @@ export class VisualAI {
         totalFeedback,
         correctDiagnoses,
         accuracyRate,
+        metricBasis: "user_reported_feedback",
         topDiseases,
       };
     } catch {
@@ -1096,6 +1075,7 @@ export class VisualAI {
    * Save analysis to database
    */
   private async saveAnalysis(data: InsertImageAnalysis) {
+    if (!db) throw new OperationalError("الخدمة غير متاحة حاليا", 503);
     const [saved] = await db.insert(imageAnalyses).values(data).returning();
     return saved;
   }
@@ -1104,6 +1084,7 @@ export class VisualAI {
    * Get analysis history for a user
    */
   async getUserAnalysisHistory(userId: string, limit: number = 10) {
+    if (!db) throw new OperationalError("الخدمة غير متاحة حاليا", 503);
     return db
       .select()
       .from(imageAnalyses)
@@ -1116,13 +1097,14 @@ export class VisualAI {
    * Get specific analysis by ID
    */
   async getAnalysisById(id: string) {
+    if (!db) throw new OperationalError("الخدمة غير متاحة حاليا", 503);
     const [analysis] = await db
       .select()
       .from(imageAnalyses)
       .where(eq(imageAnalyses.id, id));
 
     if (!analysis) {
-      throw new Error("التحليل غير موجود");
+      throw new OperationalError("التحليل غير موجود", 404);
     }
 
     // Get recommended products
@@ -1130,13 +1112,13 @@ export class VisualAI {
     const recommendedProducts =
       productIds.length > 0
         ? await db.select().from(products).where(
-          inArray(products.id, productIds)
+          and(inArray(products.id, productIds), isNull(products.deletedAt), eq(products.isStorefrontVisible, true))
         )
         : [];
 
     return {
       ...analysis,
-      recommendedProducts,
+      recommendedProducts: toPublicProducts(recommendedProducts),
     };
   }
 
@@ -1144,6 +1126,7 @@ export class VisualAI {
    * Get analysis statistics
    */
   async getAnalysisStats(userId?: string) {
+    if (!db) throw new OperationalError("الخدمة غير متاحة حاليا", 503);
     const query = userId
       ? db.select().from(imageAnalyses).where(eq(imageAnalyses.userId, userId))
       : db.select().from(imageAnalyses);

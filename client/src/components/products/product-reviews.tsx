@@ -34,7 +34,7 @@ import { cn } from "@/lib/utils";
 import PeekRating from "@/components/ui/peek-rating";
 import { addCsrfHeader } from "@/lib/csrf";
 import { useTranslation } from "react-i18next";
-import { i18next } from "@/i18n";
+import { useLocale } from "@/i18n/locale-context";
 
 interface Review {
   id: string;
@@ -57,16 +57,16 @@ interface ProductReviewsProps {
 
 type SortOption = "newest" | "oldest" | "highest" | "lowest" | "helpful";
 
-const sortLabels: Record<SortOption, string> = {
-  newest: i18next.t("pages:product-reviews.s1"),
-  oldest: i18next.t("pages:product-reviews.s2"),
-  highest: i18next.t("pages:product-reviews.s3"),
-  lowest: i18next.t("pages:product-reviews.s4"),
-  helpful: i18next.t("pages:product-reviews.s5"),
-};
-
 export function ProductReviews({ productId, productName }: ProductReviewsProps) {
   const { t } = useTranslation("pages");
+  const { dir, intl } = useLocale();
+  const sortLabels: Record<SortOption, string> = {
+    newest: t("product-reviews.s1"),
+    oldest: t("product-reviews.s2"),
+    highest: t("product-reviews.s3"),
+    lowest: t("product-reviews.s4"),
+    helpful: t("product-reviews.s5"),
+  };
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [rating, setRating] = useState(0);
@@ -290,7 +290,7 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("ar-IQ", {
+    return new Date(dateString).toLocaleDateString(intl, {
       year: "numeric",
       month: "long",
       day: "numeric",
@@ -329,7 +329,7 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
   }
 
   return (
-    <div className="space-y-6" dir="rtl">
+    <div className="space-y-6" dir={dir}>
       {/* Rating Breakdown Summary */}
       <Card className="overflow-hidden">
         <CardHeader className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30">
@@ -342,7 +342,7 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
           {reviews.length > 0 ? (
             <div className="flex flex-col md:flex-row gap-8">
               {/* Average Rating */}
-              <div className="text-center md:text-right space-y-2 md:min-w-[120px]">
+              <div className="text-center md:text-start space-y-2 md:min-w-[120px]">
                 <div className="text-5xl font-bold text-amber-600 dark:text-amber-400">
                   {averageRating.toFixed(1)}
                 </div>
@@ -384,7 +384,7 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
                           )}
                         />
                       </div>
-                      <div className="w-12 text-xs text-muted-foreground text-right">
+                      <div className="w-12 text-xs text-muted-foreground text-start">
                         ({count})
                       </div>
                     </button>
@@ -429,8 +429,8 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
                   value={guestName}
                   onChange={(e) => setGuestName(e.target.value)}
                   placeholder={t("product-reviews.s27")}
-                  className="text-right"
-                  dir="rtl"
+                  className="text-start"
+                  dir={dir}
                   maxLength={60}
                   required
                 />
@@ -470,8 +470,8 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder={t("product-reviews.s30")}
-                className="text-right"
-                dir="rtl"
+                className="text-start"
+                dir={dir}
                 maxLength={100}
               />
             </div>
@@ -485,8 +485,8 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
                 onChange={(e) => setComment(e.target.value)}
                 placeholder={t("product-reviews.s32")}
                 rows={4}
-                className="resize-none text-right"
-                dir="rtl"
+                className="resize-none text-start"
+                dir={dir}
                 maxLength={2000}
               />
             </div>

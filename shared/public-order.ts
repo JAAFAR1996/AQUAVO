@@ -1,7 +1,7 @@
 import { toPublicOrderItem } from "./public-product.js";
 // One customer response boundary for create, replay, list and detail.
-const FIELDS=["id","orderNumber","userId","status","paymentStatus","total","roundedTotal","shippingCost",
-  "discountTotal","shippingAddress","customerName","customerPhone","customerEmail","carrier","createdAt","updatedAt",
+const FIELDS=["id","orderNumber","userId","status","paymentStatus","isTest","total","roundedTotal","shippingCost",
+  "discountTotal","shippingAddress","customerName","customerPhone","customerEmail","customerNotes","carrier","createdAt","updatedAt",
   "pointsUsed","cashbackUsed","pointsDiscount","pointsEarned","roundingCashback","deliveredAt"] as const;
 export function toPublicOrder(input:unknown):Record<string,any> {
   if (!input || typeof input!=="object" || Array.isArray(input)) return {};

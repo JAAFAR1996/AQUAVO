@@ -11,6 +11,8 @@ export type ArchivedOrderProductMetadata = Pick<Product, "id" | "name" | "thumbn
 };
 
 export interface ProductFilters {
+    /** Only public callers set this; admin/invoice storage stays unchanged. */
+    storefrontOnly?: boolean;
     category?: string | string[];
     subcategory?: string;
     brand?: string | string[];
@@ -27,6 +29,7 @@ export interface ProductFilters {
     offset?: number;
     sortBy?: 'rating' | 'price' | 'createdAt' | 'reviewCount' | 'name' | 'views';
     sortOrder?: 'asc' | 'desc';
+    preferredIds?: string[];
 }
 
 // Arabic/Iraqi synonym groups for search expansion
@@ -57,6 +60,24 @@ function expandSearchTerms(search: string): string[] {
     return [...new Set(terms)];
 }
 
+// Use the card's existing purchasable-option minimum when an option is available.
+// Otherwise retain the parent filter/sort price exactly, including zero-price
+// coming-soon rows. This deliberately preserves the owner's incoming policy.
+function variantNumberSql(field: 'price' | 'stock') {
+    const value = field === 'price' ? sql`v->>'price'` : sql`v->>'stock'`;
+    return sql<number>`CASE WHEN btrim(${value}) ~ '^[+]?[0-9]+([.][0-9]+)?$' THEN (${value})::numeric ELSE NULL END`;
+}
+
+const storefrontVariantsSql = sql`CASE WHEN jsonb_typeof(${products.variants}) = 'array' THEN ${products.variants} ELSE '[]'::jsonb END`;
+
+export const storefrontDisplayPriceSql = sql<number>`CASE WHEN ${products.hasVariants} = true THEN COALESCE((
+    SELECT min(${variantNumberSql('price')})
+    FROM jsonb_array_elements(${storefrontVariantsSql}) v
+    WHERE COALESCE(v->>'isArchived', 'false') <> 'true'
+        AND COALESCE(v->>'priceStatus', '') <> 'pending' AND ${variantNumberSql('price')} > 0
+        AND COALESCE(v->>'availabilityStatus', '') <> 'coming_soon' AND ${variantNumberSql('stock')} > 0
+), ${products.price}) ELSE ${products.price} END`;
+
 export class ProductStorage {
     private db = getDb();
     private highSalesCache: { ids: string[]; expires: number } | null = null;
@@ -74,6 +95,23 @@ export class ProductStorage {
 
 
     async getProducts(filters?: ProductFilters): Promise<Product[]> {
+        return this.queryProducts(filters);
+    }
+
+    async getProductsPage(filters: ProductFilters): Promise<{ products: Product[]; total: number; hasMore: boolean }> {
+        const rows = await this.queryProducts(filters, true);
+        let total = Number(rows[0]?.totalCount ?? 0);
+        // A window count has no carrier row beyond the final page. Recover the
+        // matching total with one bounded row, retaining every applied filter.
+        if (rows.length === 0 && (filters.offset ?? 0) > 0) {
+            const [first] = await this.queryProducts({ ...filters, offset: 0, limit: 1 }, true);
+            total = Number(first?.totalCount ?? 0);
+        }
+        const page = rows.map(({ totalCount: _totalCount, ...product }) => product);
+        return { products: page, total, hasMore: (filters.offset ?? 0) + page.length < total };
+    }
+
+    private async queryProducts(filters?: ProductFilters, includeTotal = false): Promise<(Product & { totalCount?: number })[]> {
         const db = this.ensureDb();
         // One grouped pass over recent visits, instead of a separate DISTINCT
         // aggregate for every catalogue product. Keep Product[] unchanged.
@@ -91,7 +129,10 @@ export class ProductStorage {
                 .as('recent_product_views')
             : null;
 
-        let query = db.select(getTableColumns(products)).from(products);
+        let query = db.select({
+            ...getTableColumns(products),
+            ...(includeTotal ? { totalCount: sql<number>`count(*) over ()` } : {}),
+        }).from(products);
         if (popularityRank) {
             query = query.leftJoin(popularityRank, eq(popularityRank.productId, products.id)) as any;
         }
@@ -132,8 +173,9 @@ export class ProductStorage {
             conditions.push(eq(products.isBestSeller, false));
         }
 
-        if (filters?.minPrice) conditions.push(gte(products.price, filters.minPrice.toString()));
-        if (filters?.maxPrice) conditions.push(lte(products.price, filters.maxPrice.toString()));
+        const displayPrice = filters?.storefrontOnly ? storefrontDisplayPriceSql : sql<number>`${products.price}`;
+        if (filters?.minPrice !== undefined) conditions.push(gte(displayPrice, filters.minPrice));
+        if (filters?.maxPrice !== undefined) conditions.push(lte(displayPrice, filters.maxPrice));
 
         if (filters?.search) {
             const searchTerms = expandSearchTerms(filters.search);
@@ -143,7 +185,7 @@ export class ProductStorage {
                 if (filters.searchAllLocales) {
                     // Admin invoice picker searches every language, but the result rows
                     // stay Arabic so invoiced product names never depend on a cookie.
-                    return sql`(${products.name} ILIKE ${likeTerm} OR ${products.description} ILIKE ${likeTerm} OR EXISTS (
+                    return sql`(${products.name} ILIKE ${likeTerm} OR ${products.description} ILIKE ${likeTerm} OR ${products.brand} ILIKE ${likeTerm} OR ${products.category} ILIKE ${likeTerm} OR ${products.slug} ILIKE ${likeTerm} OR EXISTS (
                         SELECT 1 FROM content_translations ct
                         WHERE ct.entity_type = 'product' AND ct.entity_id = ${products.id}
                           AND ct.locale IN ('en', 'ckb')
@@ -151,11 +193,11 @@ export class ProductStorage {
                     ))`;
                 }
                 if (!searchLocale) {
-                    return sql`(${products.name} ILIKE ${likeTerm} OR ${products.description} ILIKE ${likeTerm})`;
+                    return sql`(${products.name} ILIKE ${likeTerm} OR ${products.description} ILIKE ${likeTerm} OR ${products.brand} ILIKE ${likeTerm} OR ${products.category} ILIKE ${likeTerm} OR ${products.slug} ILIKE ${likeTerm})`;
                 }
                 // English / Kurdish customers type the translated name; Arabic
                 // matching stays so model numbers and shared terms still hit.
-                return sql`(${products.name} ILIKE ${likeTerm} OR ${products.description} ILIKE ${likeTerm} OR EXISTS (
+                return sql`(${products.name} ILIKE ${likeTerm} OR ${products.description} ILIKE ${likeTerm} OR ${products.brand} ILIKE ${likeTerm} OR ${products.category} ILIKE ${likeTerm} OR ${products.slug} ILIKE ${likeTerm} OR EXISTS (
                     SELECT 1 FROM content_translations ct
                     WHERE ct.entity_type = 'product' AND ct.entity_id = ${products.id} AND ct.locale = ${searchLocale}
                       AND (ct.data->>'name' ILIKE ${likeTerm} OR ct.data->>'description' ILIKE ${likeTerm})
@@ -166,6 +208,7 @@ export class ProductStorage {
 
         // Ensure soft deleted products are hidden
         conditions.push(isNull(products.deletedAt));
+        if (filters?.storefrontOnly) conditions.push(eq(products.isStorefrontVisible, true));
 
         if (conditions.length > 0) {
             query = query.where(and(...conditions)) as any;
@@ -173,11 +216,20 @@ export class ProductStorage {
 
         // Keep sellable inventory ahead of sold-out items on every catalogue sort.
         // The user's selected sort still applies inside each availability group.
-        const availabilityRank = sql<number>`CASE WHEN ${products.stock} > 0 THEN 1 ELSE 0 END`;
+        const availabilityRank = filters?.storefrontOnly
+            ? sql<number>`CASE WHEN ${products.hasVariants} = true AND jsonb_array_length(${storefrontVariantsSql}) > 0
+                THEN CASE WHEN EXISTS (SELECT 1 FROM jsonb_array_elements(${storefrontVariantsSql}) v
+                    WHERE ${variantNumberSql('stock')} > 0 AND ${variantNumberSql('price')} > 0) THEN 1 ELSE 0 END
+                ELSE CASE WHEN ${products.stock} > 0 AND ${products.price} > 0 THEN 1 ELSE 0 END END`
+            : sql<number>`CASE WHEN ${products.stock} > 0 THEN 1 ELSE 0 END`;
+        if (filters?.preferredIds?.length) {
+            const preferred = sql`array_position(ARRAY[${sql.join(filters.preferredIds.map(id => sql`${id}`), sql`, `)}]::text[], ${products.id})`;
+            query = query.orderBy(desc(availabilityRank), sql`${preferred} NULLS LAST`, desc(products.createdAt), products.id) as any;
+        }
         // The default storefront ranking is actual viewed products from the last
         // 30 days: one vote per valid browser session per product. API-only
         // requests without a client session are not treated as a shopper view.
-        if (filters?.sortBy === 'views') {
+        else if (filters?.sortBy === 'views') {
             // Rows with no recent visits have the same zero count as before.
             const recentBrowserViews = sql<number>`COALESCE(${popularityRank!.views}, 0)`;
             query = filters.sortOrder === 'asc'
@@ -185,16 +237,16 @@ export class ProductStorage {
                 : query.orderBy(desc(availabilityRank), desc(recentBrowserViews), desc(products.createdAt), products.id) as any;
         } else if (filters?.sortBy) {
             const sortColumn = filters.sortBy === 'rating' ? products.rating :
-                filters.sortBy === 'price' ? products.price :
+                filters.sortBy === 'price' ? displayPrice :
                     filters.sortBy === 'reviewCount' ? products.reviewCount :
                         filters.sortBy === 'name' ? products.name :
                             products.createdAt;
 
             query = filters.sortOrder === 'asc'
-                ? query.orderBy(desc(availabilityRank), sortColumn) as any
-                : query.orderBy(desc(availabilityRank), desc(sortColumn)) as any;
+                ? query.orderBy(desc(availabilityRank), sortColumn, products.id) as any
+                : query.orderBy(desc(availabilityRank), desc(sortColumn), products.id) as any;
         } else {
-            query = query.orderBy(desc(availabilityRank), desc(products.createdAt)) as any;
+            query = query.orderBy(desc(availabilityRank), desc(products.createdAt), products.id) as any;
         }
 
         if (filters?.limit) {
@@ -207,35 +259,38 @@ export class ProductStorage {
         return await query;
     }
 
-    async getProductAttributes(): Promise<{ categories: string[], brands: string[], minPrice: number, maxPrice: number }> {
+    async getProductAttributes(): Promise<{ categories: string[], categoryCounts: Record<string, number>, brands: string[], minPrice: number, maxPrice: number }> {
         const db = this.ensureDb();
 
         // Derive storefront attributes from ACTIVE products only. The categories
         // table is an authoring dictionary and may legitimately contain future or
         // legacy categories; exposing it directly created empty storefront filters.
         const [categoryResults, brandResults, priceStats] = await Promise.all([
-            db.selectDistinct({ name: products.category })
+            db.select({ name: products.category, count: sql<number>`count(*)::integer` })
                 .from(products)
                 .where(and(
                     isNull(products.deletedAt),
+                    eq(products.isStorefrontVisible, true),
                     sql`${products.category} IS NOT NULL`,
                     sql`btrim(${products.category}) <> ''`
                 ))
+                .groupBy(products.category)
                 .orderBy(products.category),
             // Unique brands from active products
             db.selectDistinct({ brand: products.brand })
                 .from(products)
-                .where(isNull(products.deletedAt))
+                .where(and(isNull(products.deletedAt), eq(products.isStorefrontVisible, true)))
                 .orderBy(products.brand),
             // Price range from active products
             db.select({
-                min: sql<string>`min(${products.price})`,
-                max: sql<string>`max(${products.price})`
-            }).from(products).where(isNull(products.deletedAt)),
+                min: sql<string>`min(${storefrontDisplayPriceSql})`,
+                max: sql<string>`max(${storefrontDisplayPriceSql})`
+            }).from(products).where(and(isNull(products.deletedAt), eq(products.isStorefrontVisible, true))),
         ]);
 
         return {
             categories: categoryResults.map(c => c.name).filter(Boolean),
+            categoryCounts: Object.fromEntries(categoryResults.map(c => [c.name, Number(c.count)])),
             brands: brandResults.map(b => b.brand).filter(Boolean),
             minPrice: Number(priceStats[0]?.min || 0),
             maxPrice: Number(priceStats[0]?.max || 1000000)
@@ -644,11 +699,11 @@ export class ProductStorage {
             // 2. Run bestSellers + productOfWeek queries in PARALLEL
             const [bestSellersResult, explicitProductOfWeek] = await Promise.all([
                 db.select().from(products)
-                    .where(and(bestSellerCondition, isNull(products.deletedAt), gt(products.stock, 0)))
+                    .where(and(bestSellerCondition, isNull(products.deletedAt), eq(products.isStorefrontVisible, true), gt(products.stock, 0)))
                     .orderBy(desc(products.isBestSeller), desc(products.rating))
                     .limit(16),
                 db.select().from(products)
-                    .where(and(eq(products.isProductOfWeek, true), isNull(products.deletedAt), gt(products.stock, 0)))
+                    .where(and(eq(products.isProductOfWeek, true), isNull(products.deletedAt), eq(products.isStorefrontVisible, true), gt(products.stock, 0)))
                     .limit(1),
             ]);
 
@@ -669,7 +724,7 @@ export class ProductStorage {
             // This fallback is useful merchandising, but explicitly NOT sales-backed.
             if (bestSellers.length === 0) {
                 const fallback = await db.select().from(products)
-                    .where(and(isNull(products.deletedAt), gt(products.stock, 0)))
+                    .where(and(isNull(products.deletedAt), eq(products.isStorefrontVisible, true), gt(products.stock, 0)))
                     .orderBy(desc(products.createdAt))
                     .limit(14);
                 bestSellers = fallback.filter(p => parseFloat(String(p.price ?? "0")) > 0);

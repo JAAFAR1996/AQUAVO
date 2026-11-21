@@ -1,4 +1,4 @@
-import { isVariantPurchasable, type VariantCommerceSource } from "@shared/variant-commerce";
+import { HOME_PICK_COUNT, isHomePickProduct } from "@shared/home-product-selection";
 import { useQuery } from "@tanstack/react-query";
 import {
   AlertTriangle,
@@ -81,13 +81,6 @@ type HomeBundle = {
   items: Array<{ productId: string; quantity: number; required: boolean }>;
 };
 
-const isSellableProduct = (product: { price?: number | string; stock?: number; hasVariants?: boolean; variants?: VariantCommerceSource[] | null }) => {
-  if (product.hasVariants && product.variants?.length) {
-    return product.variants.some((variant) => isVariantPurchasable(variant));
-  }
-  return Number(product.price ?? 0) > 0 && Number(product.stock ?? 0) > 0;
-};
-
 export default function Home() {
   const { t } = useTranslation("home");
   const { locale, dir, href } = useLocale();
@@ -108,14 +101,12 @@ export default function Home() {
   // The first home product collection uses measured rolling 30-day views.
   const viewedProducts = useQuery({
     queryKey: ["products", "home-most-viewed", "30d"],
-    queryFn: async () => {
-      // The homepage displays only four sellable picks, not the full catalogue.
-      // Fall back to the complete list if 12 candidates cannot supply all four,
-      // preserving results when older or variant-only items are unavailable.
-      const firstPage = await fetchProducts({ sortBy: "views", sortOrder: "desc", limit: 12 });
-      if (firstPage.products.filter(isSellableProduct).length >= 4) return firstPage;
-      return fetchProducts({ sortBy: "views", sortOrder: "desc" });
-    },
+    // Apply the same homepage selection before the response limit, including
+    // variant-only products beyond the old first twelve candidates.
+    queryFn: () => fetchProducts({
+      sortBy: "views", sortOrder: "desc", limit: HOME_PICK_COUNT,
+      paginated: true, homePicks: true,
+    }),
     staleTime: 60_000,
     refetchOnMount: true,
     refetchOnWindowFocus: true,
@@ -132,7 +123,7 @@ export default function Home() {
     retry: 1,
   });
 
-  const storePicks = (viewedProducts.data?.products ?? []).filter(isSellableProduct).slice(0, 4);
+  const storePicks = (viewedProducts.data?.products ?? []).filter(isHomePickProduct).slice(0, HOME_PICK_COUNT);
   const hasStorePicks = storePicks.length > 0;
   const isStorePicksLoading = viewedProducts.isLoading;
   const isStorePicksError = viewedProducts.isError;

@@ -298,7 +298,7 @@ export function createAgentAuthRouter(): RouterType {
     const limit = Number.isFinite(requestedLimit) ? Math.max(1, Math.min(Math.floor(requestedLimit), 50)) : 20;
 
     try {
-      const products = await storage.getProducts({ search, category, brand, limit });
+      const products = await storage.getProducts({ storefrontOnly: true, search, category, brand, limit });
       res.json({
         resource: RESOURCE,
         scope: payload.scope,

@@ -45,7 +45,10 @@ const { OrderStorage } = await import("../storage/order-storage.js");
 const schema = await import("../../shared/schema.js");
 
 /**
- * PRODUCTION SHAPE, 2026-07-28. `order_items_relational` carries the eight
+ * PRE-SALE-SNAPSHOT SHAPE. Checkout delivery/visibility prerequisites (0106 and
+ * 0107) and the existing test-isolation flag (0083) are included independently
+ * of the sale-snapshot migration whose deployment hazard this suite exercises.
+ * `order_items_relational` carries the eight
  * cost-snapshot columns (already migrated) and NONE of the five sale-price
  * columns. `product_cost_history` keeps NOT NULL DEFAULT '0' and has no
  * resolution columns. This is the schema this branch must not break.
@@ -85,6 +88,7 @@ const PRE_MIGRATION_SCHEMA = `
     is_new boolean,
     is_best_seller boolean,
     is_product_of_week boolean,
+    is_storefront_visible boolean NOT NULL DEFAULT true,
     created_at timestamp DEFAULT now(),
     updated_at timestamp DEFAULT now()
   );
@@ -110,12 +114,14 @@ const PRE_MIGRATION_SCHEMA = `
     customer_name text,
     customer_email text,
     customer_phone text,
+    customer_notes text,
     bonus_prize text,
     bonus_claimed_at timestamp,
     carrier text,
     cod_received boolean DEFAULT false,
     box_cost numeric DEFAULT '0',
     source text DEFAULT 'website',
+    is_test boolean NOT NULL DEFAULT false,
     view_session_id text,
     aq_sid text,
     attribution_utm_source text,

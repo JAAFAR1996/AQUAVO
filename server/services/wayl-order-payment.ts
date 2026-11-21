@@ -1,4 +1,6 @@
 import { isVariantPurchasable } from "../../shared/variant-commerce.js";
+import { isPublicStorefrontProduct } from "../../shared/public-product.js";
+import { CheckoutQuoteChanged, checkoutQuotesMatch, type CheckoutQuote } from "../../shared/checkout-quote.js";
 import { randomBytes, randomUUID } from "node:crypto";
 import { assertCheckoutReplay, checkoutRequestHash, normalizeCheckoutLines, sessionHash } from "./checkout-security.js";
 import { eligibleCoupon, couponBenefit } from "./coupon-policy.js";
@@ -57,11 +59,13 @@ export interface OnlineCheckoutInput {
     phone: string;
     address: string;
     email?: string;
+    notes?: string;
   };
   items: OnlineCheckoutItemInput[];
   couponCode?: string;
   useCashback?: boolean;
   cashbackToUse?: number;
+  expectedQuote?: CheckoutQuote;
 }
 
 export interface PreparedOnlineOrder {
@@ -339,6 +343,19 @@ export async function findWebhookSecretForReference(referenceId: string): Promis
   return { orderId, secret };
 }
 
+function assertExpectedOrderQuote(expected: CheckoutQuote | undefined, order: Order): void {
+  if (!expected) return;
+  const quote: CheckoutQuote = {
+    items: order.items.map((line) => ({ productId: line.productId,
+      ...(line.variantId ? { variantId: line.variantId } : {}),
+      quantity: line.quantity, unitPrice: Number(line.priceAtPurchase) })),
+    subtotal: order.items.reduce((sum, line) => sum + Number(line.priceAtPurchase) * line.quantity, 0),
+    shippingCost: Number(order.shippingCost), discount: Number(order.discountTotal ?? 0),
+    amount: Number(order.roundedTotal ?? order.total),
+  };
+  if (!checkoutQuotesMatch(expected, quote)) throw new CheckoutQuoteChanged(quote);
+}
+
 export async function prepareOnlineOrder(input: OnlineCheckoutInput): Promise<PreparedOnlineOrder> {
   if (input.useCashback || Number(input.cashbackToUse ?? 0) > 0) {
     throw Object.assign(
@@ -353,6 +370,7 @@ export async function prepareOnlineOrder(input: OnlineCheckoutInput): Promise<Pr
   const existing = await db.select().from(orders).where(eq(orders.id, input.idempotencyKey)).limit(1);
   if (existing[0]) {
     assertCheckoutReplay(existing[0],replayActor);
+    assertExpectedOrderQuote(input.expectedQuote, existing[0]);
     const [existingPayment] = await db.select().from(payments).where(eq(payments.orderId, existing[0].id)).limit(1);
     if (existingPayment?.method !== PAYMENT_METHOD) {
       throw Object.assign(new Error("Idempotency key is already attached to another order"), { status: 409 });
@@ -366,6 +384,7 @@ export async function prepareOnlineOrder(input: OnlineCheckoutInput): Promise<Pr
         const concurrent = await tx.select().from(orders).where(eq(orders.id, input.idempotencyKey)).limit(1);
         if (concurrent[0]) {
           assertCheckoutReplay(concurrent[0],replayActor);
+          assertExpectedOrderQuote(input.expectedQuote, concurrent[0]);
           const [concurrentPayment] = await tx.select().from(payments).where(eq(payments.orderId, concurrent[0].id)).limit(1);
           if (concurrentPayment?.method !== PAYMENT_METHOD) {
             throw Object.assign(new Error("Idempotency key is already attached to another order"), { status: 409 });
@@ -380,7 +399,7 @@ export async function prepareOnlineOrder(input: OnlineCheckoutInput): Promise<Pr
         for (const item of normalizeCheckoutLines(input.items)) {
           const product = await lockProductRowForUpdate(tx, item.productId);
           if (!product) throw Object.assign(new Error(`Product ${item.productId} not found`), { status: 400 });
-          if (product.isStorefrontVisible === false || (product.hasVariants && !item.variantId) || (!product.hasVariants && item.variantId)) {
+          if (!isPublicStorefrontProduct(product) || (product.hasVariants && !item.variantId) || (!product.hasVariants && item.variantId)) {
             throw Object.assign(new Error("اختر منتجا وخيارا متاحا للشراء."),{status:400});
           }
           const quantity = Number(item.quantity);
@@ -437,6 +456,17 @@ export async function prepareOnlineOrder(input: OnlineCheckoutInput): Promise<Pr
         const total = Math.max(0, subtotal + shippingCost - discount);
         const roundedTotal = Math.ceil(total / IRAQI_DENOMINATION) * IRAQI_DENOMINATION;
         if (roundedTotal <= 0) throw Object.assign(new Error("Online payment amount must be greater than zero"), { status: 400 });
+        const quote: CheckoutQuote = {
+          items: lines.map((line) => ({ productId: line.productId,
+            ...(line.variantId ? { variantId: line.variantId } : {}),
+            quantity: line.quantity, unitPrice: Number(line.priceAtPurchase) })),
+          subtotal, shippingCost, discount, amount: roundedTotal,
+        };
+        if (input.expectedQuote && !checkoutQuotesMatch(input.expectedQuote, quote)) {
+          // Throw inside the transaction before order, payment or reservation writes.
+          // The caller must explicitly confirm the new commercial facts.
+          throw new CheckoutQuoteChanged(quote);
+        }
 
         const [order] = await tx.insert(orders).values({
           id: input.idempotencyKey,
@@ -457,6 +487,7 @@ export async function prepareOnlineOrder(input: OnlineCheckoutInput): Promise<Pr
           customerName: input.customerInfo.name,
           customerEmail: input.customerInfo.email || undefined,
           customerPhone: input.customerInfo.phone,
+          customerNotes: input.customerInfo.notes?.trim() || null,
           whatsappMarketingOptIn: input.whatsappMarketingOptIn === true,
           whatsappMarketingOptInAt: input.whatsappMarketingOptIn === true
             ? snapshotAt
@@ -515,6 +546,7 @@ export async function prepareOnlineOrder(input: OnlineCheckoutInput): Promise<Pr
         const existingAfterRace = await db.select().from(orders).where(eq(orders.id, input.idempotencyKey)).limit(1);
         if (existingAfterRace[0]) {
           assertCheckoutReplay(existingAfterRace[0],replayActor);
+          assertExpectedOrderQuote(input.expectedQuote, existingAfterRace[0]);
           const [existingPayment] = await db.select().from(payments).where(eq(payments.orderId, existingAfterRace[0].id)).limit(1);
           if (existingPayment?.method === PAYMENT_METHOD) {
             return { order: existingAfterRace[0], payment: existingPayment, reused: true };

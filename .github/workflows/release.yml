@@ -11,7 +11,7 @@ on:
         required: true
 
 env:
-  NODE_VERSION: 20.11.0
+  NODE_VERSION: 24.x
   PNPM_VERSION: 10.0.0
 
 jobs:

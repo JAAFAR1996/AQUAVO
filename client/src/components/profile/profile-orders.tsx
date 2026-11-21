@@ -53,7 +53,7 @@ export function ProfileOrders({ orders, isLoading }: ProfileOrdersProps) {
                 name: (order as any).customerName || "",
                 phone: (order as any).customerPhone || "",
                 address: (order as any).shippingAddress || "",
-                notes: (order as any).notes || "",
+                notes: order.customerNotes ?? "",
             },
             items: items.map((item: any) => ({
                 id: item.productId || item.id || "",

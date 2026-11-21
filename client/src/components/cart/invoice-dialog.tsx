@@ -11,6 +11,7 @@ import { DELIVERY_FEE, WHATSAPP_URL } from "@/lib/constants/shipping";
 import { WhatsAppLink } from "@/components/whatsapp-link";
 import { useTranslation } from "react-i18next";
 import { isolateNumericRanges as bidi, isolateNumericRangesInHtml } from "@shared/i18n/bidi";
+import { escapeHtmlText } from "@/lib/escape-html";
 // Local item type — simpler than CartItem, works for order history too
 interface InvoiceItem {
   id: string;
@@ -91,20 +92,21 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
       toast({ title: t("invoice-dialog.s3"), variant: "destructive" });
       return;
     }
+    printWindow.opener = null;
 
     // بناء HTML الفاتورة مباشرة — بدون أي خلفيات ملونة
     const itemsRows = orderData.items.map(item => {
       // The printed invoice is HTML, so the range is isolated as markup here rather
       // than with the control characters used for plain strings.
       const productName = isolateNumericRangesInHtml(
-        item.variantLabel
+        escapeHtmlText(item.variantLabel
           ? t("invoice-dialog.s4", { v0: item.name, v1: item.variantLabel })
-          : item.name,
+          : item.name),
       );
       return (
       `<tr>
         <td style="padding:8px 10px;border-bottom:1px solid #e5e7eb;text-align:right;font-size:13px;">${productName}</td>
-        <td style="padding:8px 10px;border-bottom:1px solid #e5e7eb;text-align:center;font-size:13px;">${item.quantity}</td>
+        <td style="padding:8px 10px;border-bottom:1px solid #e5e7eb;text-align:center;font-size:13px;">${escapeHtmlText(item.quantity)}</td>
         <td style="padding:8px 10px;border-bottom:1px solid #e5e7eb;text-align:center;font-size:13px;">${formatIQD(item.price)}</td>
         <td style="padding:8px 10px;border-bottom:1px solid #e5e7eb;text-align:left;font-size:13px;font-weight:600;">${formatIQD(item.price * item.quantity)}</td>
       </tr>`
@@ -146,14 +148,25 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
 
     const shortNum = orderData.orderNumber.length > 20 ? orderData.orderNumber.slice(0, 8).toUpperCase() : orderData.orderNumber;
 
-    printWindow.document.write(t("invoice-dialog.s13", { v0: orderData.orderNumber, v1: shortNum, v2: formatDate(orderData.orderDate), v3: orderData.customerInfo.name ? `<p style="font-weight:600;">${orderData.customerInfo.name}</p>` : '', v4: orderData.customerInfo.phone ? `<p style="color:#64748b;direction:ltr;text-align:right;">📞 ${orderData.customerInfo.phone}</p>` : '', v5: orderData.customerInfo.address ? `<p style="color:#64748b;">📍 ${orderData.customerInfo.address}</p>` : '', v6: orderData.items.length, v7: itemsRows, v8: totalsHTML, v9: isOnlinePayment ? t("invoice-dialog.s65") : t("invoice-dialog.s66"), v10: formatIQD(actualPayAmount), v11: paymentMethodLabel, v12: rewardsHTML }));
+    const customer = orderData.customerInfo;
+    const deliveryDetails = (customer.address ? `<p style="color:#64748b;">${escapeHtmlText(customer.address)}</p>` : '')
+      + (customer.notes ? `<p style="color:#64748b;white-space:pre-wrap;">${escapeHtmlText(t("invoice-dialog.deliveryNotes"))}: ${escapeHtmlText(customer.notes)}</p>` : '');
+    printWindow.document.write(t("invoice-dialog.s13", {
+      v0: escapeHtmlText(orderData.orderNumber), v1: escapeHtmlText(shortNum),
+      v2: escapeHtmlText(formatDate(orderData.orderDate)),
+      v3: customer.name ? `<p style="font-weight:600;">${escapeHtmlText(customer.name)}</p>` : '',
+      v4: customer.phone ? `<p style="color:#64748b;direction:ltr;text-align:right;">${escapeHtmlText(customer.phone)}</p>` : '',
+      v5: deliveryDetails, v6: orderData.items.length, v7: itemsRows, v8: totalsHTML,
+      v9: escapeHtmlText(isOnlinePayment ? t("invoice-dialog.s65") : t("invoice-dialog.s66")),
+      v10: escapeHtmlText(formatIQD(actualPayAmount)), v11: escapeHtmlText(paymentMethodLabel), v12: rewardsHTML,
+    }));
 
     printWindow.document.close();
     setTimeout(() => {
       printWindow.focus();
       printWindow.print();
     }, 250);
-  }, [orderData, toast, grandTotal, roundedTotal, roundingDiff, calculatedSubtotal, deliveryFee, discount, cashbackUsed, pointsEarned, cashbackEarned, actualPayAmount]);
+  }, [orderData, toast, grandTotal, roundedTotal, roundingDiff, calculatedSubtotal, deliveryFee, discount, cashbackUsed, pointsEarned, cashbackEarned, actualPayAmount, t, isOnlinePayment, paymentMethodLabel]);
 
   // Early return AFTER all hooks
   if (!orderData) return null;
@@ -246,6 +259,12 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
                       <MapPin className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
                       <span>{orderData.customerInfo.address}</span>
                     </div>
+                  )}
+                  {orderData.customerInfo.notes && (
+                    <p className="whitespace-pre-wrap text-muted-foreground">
+                      <span className="font-medium">{t("invoice-dialog.deliveryNotes")}: </span>
+                      {orderData.customerInfo.notes}
+                    </p>
                   )}
                 </div>
               </div>

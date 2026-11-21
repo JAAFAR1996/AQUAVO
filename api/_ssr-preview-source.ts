@@ -53,7 +53,7 @@ import {
   productListingSeo,
 } from "../shared/seo-contract.js";
 import { isKnownSitePath } from "../shared/site-routes.js";
-import { toPublicVariant } from "../shared/public-product.js";
+import { toPublicVariant, toPublicSpecifications } from "../shared/public-product.js";
 import { buildProductSeoMeta } from "../shared/product-seo.js";
 import { buildArticleSeoMeta } from "../shared/article-seo.js";
 import { blogPostSourceFields, productSourceFields } from "../shared/i18n/content.js";
@@ -436,6 +436,7 @@ async function loadProducts(category?: string): Promise<SeoPreviewProduct[]> {
     .from(products)
     .where(and(
       isNull(products.deletedAt),
+      eq(products.isStorefrontVisible, true),
       isNotNull(products.slug),
       ne(products.slug, ""),
       category ? eq(products.category, category) : undefined,
@@ -449,8 +450,12 @@ async function loadProducts(category?: string): Promise<SeoPreviewProduct[]> {
 
 /** Rebuild a row's `variants` from the public allowlist, dropping the internal cost keys. */
 function sanitizeSeoProductVariants<T extends { variants?: unknown }>(row: T): T {
-  if (!Array.isArray(row?.variants)) return row;
-  return { ...row, variants: row.variants.map(toPublicVariant) } as T;
+  const result = { ...row };
+  if ("specifications" in result) {
+    Object.assign(result, { specifications: toPublicSpecifications(result.specifications) });
+  }
+  if (Array.isArray(row?.variants)) result.variants = row.variants.map(toPublicVariant);
+  return result;
 }
 
 async function loadProduct(slug: string): Promise<SeoPreviewProduct | null> {
@@ -461,7 +466,7 @@ async function loadProduct(slug: string): Promise<SeoPreviewProduct | null> {
             review_count AS "reviewCount", specifications
        FROM products
       WHERE slug = $1
-        AND deleted_at IS NULL
+        AND deleted_at IS NULL AND is_storefront_visible = true
       LIMIT 1`,
     [slug],
   );
@@ -561,6 +566,7 @@ async function loadDealProducts(): Promise<SeoPreviewProduct[]> {
     .from(products)
     .where(and(
       isNull(products.deletedAt),
+      eq(products.isStorefrontVisible, true),
       isNotNull(products.slug),
       ne(products.slug, ""),
       isNotNull(products.originalPrice),

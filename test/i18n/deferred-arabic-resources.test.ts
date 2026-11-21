@@ -7,17 +7,32 @@ vi.mock("i18next", async (original) => {
   return { ...actual, default: actual.createInstance() };
 });
 
-const { i18next, loadArabicNamespaces } = await import("../../client/src/i18n");
+const { i18next, loadArabicNamespaces, bootstrapI18n, loadLocaleNamespaces } = await import("../../client/src/i18n");
 
 beforeEach(async () => {
   i18next.removeResourceBundle("ar", "guides");
   i18next.removeResourceBundle("ar", "tools");
   i18next.removeResourceBundle("en", "tools");
+  i18next.removeResourceBundle("en", "guides");
+  i18next.removeResourceBundle("ckb", "tools");
+  i18next.removeResourceBundle("ckb", "guides");
   await i18next.changeLanguage("ar");
   vi.restoreAllMocks();
 });
 
 describe("Arabic dictionaries at feature boundaries", () => {
+  it.each(["en", "ckb"] as const)("defers feature namespaces for %s and registers them before module evaluation", async (locale) => {
+    await bootstrapI18n(locale);
+    expect(i18next.language).toBe(locale);
+    expect(i18next.hasResourceBundle(locale, "home")).toBe(true);
+    expect(i18next.hasResourceBundle(locale, "tools")).toBe(false);
+    expect(i18next.hasResourceBundle(locale, "guides")).toBe(false);
+    await loadLocaleNamespaces(locale, ["tools"]);
+    expect(i18next.hasResourceBundle(locale, "tools")).toBe(true);
+    expect(i18next.hasResourceBundle("ar", "tools")).toBe(true);
+    expect(i18next.hasResourceBundle(locale, "guides")).toBe(false);
+    expect(i18next.t("tools:VisualAnalyzer.s1")).not.toBe("VisualAnalyzer.s1");
+  });
   it("keeps home copy ready without downloading guides or tools", () => {
     expect(i18next.hasResourceBundle("ar", "home")).toBe(true);
     expect(i18next.t("home:hero.title")).not.toBe("hero.title");

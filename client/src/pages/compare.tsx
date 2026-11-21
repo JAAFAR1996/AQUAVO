@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { MetaTags } from "@/components/seo/meta-tags";
 import { ProductComparisonTable, useComparison } from "@/components/products/product-comparison";
@@ -7,25 +6,19 @@ import { ArrowRight, Scale, Trash2 } from "lucide-react";
 import { Link } from "wouter";
 import type { Product } from "@/types";
 import { useTranslation } from "react-i18next";
+import { fetchProductsByIds } from "@/lib/api";
 
 export default function ComparePage() {
   const { t } = useTranslation("tools");
+  const { t: common } = useTranslation("common");
     const { compareIds, clearCompare, removeFromCompare } = useComparison();
 
-    // Fetch all products
-    const { data: allProducts = [] } = useQuery<Product[]>({
-        queryKey: ["/api/products"],
-        queryFn: async () => {
-            const res = await fetch("/api/products?limit=200");
-            if (!res.ok) throw new Error("Failed to fetch products");
-            const data = await res.json();
-            // API returns { products: [...] }, extract the array
-            return data.products || [];
-        },
+    const { data: comparedProducts = [], isPending, isError, refetch } = useQuery<Product[]>({
+        queryKey: ["comparison-products", compareIds],
+        queryFn: () => fetchProductsByIds(compareIds),
+        enabled: compareIds.length > 0,
+        staleTime: 30_000,
     });
-
-    // Filter products that are in comparison
-    const comparedProducts = allProducts.filter(p => compareIds.includes(p.id));
 
     return (
         <div className="flex-1 flex flex-col bg-background">
@@ -56,7 +49,7 @@ export default function ComparePage() {
                                 {t("compare.s6")}
                             </Button>
                         </Link>
-                        {comparedProducts.length > 0 && (
+                        {compareIds.length > 0 && (
                             <Button variant="destructive" onClick={clearCompare} className="gap-2">
                                 <Trash2 className="w-4 h-4" />
                                 {t("compare.s7")}
@@ -66,10 +59,13 @@ export default function ComparePage() {
                 </div>
 
                 {/* Comparison Table */}
-                <ProductComparisonTable
+                {compareIds.length > 0 && isPending ? <p role="status">{common("status.loading")}</p> : isError ? <div role="alert">
+                    <p>{common("status.error")}</p>
+                    <Button onClick={() => void refetch()}>{common("actions.retry")}</Button>
+                </div> : <ProductComparisonTable
                     products={comparedProducts}
                     onRemove={removeFromCompare}
-                />
+                />}
             </main>
         </div>
     );

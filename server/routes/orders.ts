@@ -9,7 +9,6 @@ import { z } from "zod";
 import { analyticsTracker } from "../services/analytics-tracker.js";
 import { db } from "../db.js";
 import { inArray, sql } from "drizzle-orm";
-import { loyaltyStorage } from "../storage/loyalty-storage.js";
 import { isStockError } from "../storage/order-storage.js";
 import { ReferralStorage } from "../storage/referral-storage.js";
 import { loyaltyNotifications } from "../services/loyalty-notifications.js";
@@ -43,7 +42,8 @@ const createOrderCustomerSchema = z.object({
     name: z.string().min(2, "Name must be at least 2 characters").max(100, "Name too long"),
     phone: z.string().min(10, "Invalid phone number").max(15, "Phone number too long"),
     address: z.string().min(10, "Address too short").max(500, "Address too long"),
-    email: z.string().email("Invalid email").optional().or(z.literal(""))
+    email: z.string().email("Invalid email").optional().or(z.literal("")),
+    notes: z.string().trim().max(1000, "Delivery notes are too long").optional(),
 });
 
 const attributionValue = z.string().min(1).max(200);
@@ -241,6 +241,10 @@ export function createOrderRouter(): RouterType {
                             // Daily repair uses the order-level evidence; never block commerce.
                         }
                     }
+                    if (existingOrder.userId) {
+                        try { await referralStorage.markFirstPurchase(existingOrder.userId, existingOrder.id); }
+                        catch { /* An authorized retry can repair the atomic referral reward later. */ }
+                    }
                     res.status(200).json(toPublicOrder(existingOrder));
                     return;
                 }
@@ -338,11 +342,7 @@ export function createOrderRouter(): RouterType {
                     try {
                         const referralResult = await referralStorage.markFirstPurchase(userId, order.id);
                         if (referralResult.referral) {
-                            await loyaltyStorage.awardReferralPurchaseBonus(
-                                referralResult.referral.referrerUserId,
-                                order.id,
-                            );
-                            console.log(`[AQUAVO Referral] First purchase by referred user ${userId}, referrer ${referralResult.referral.referrerUserId} awarded bonus points`);
+                            console.log(`[AQUAVO Referral] First purchase by referred user ${userId}, referrer ${referralResult.referral.referrerUserId} referral reward processed`);
                         }
                     } catch (refErr) {
                         console.error("[AQUAVO Referral] markFirstPurchase failed:", refErr);
@@ -392,6 +392,10 @@ export function createOrderRouter(): RouterType {
                         assertCheckoutReplay(existingOrder,{userId:req.session?.userId,sessionId:req.sessionID,
                           requestHash:checkoutRequestHash(payload.data)});
                     } catch { res.status(409).json({message:new CheckoutConflict().message}); return; }
+                    if (existingOrder.userId) {
+                        try { await referralStorage.markFirstPurchase(existingOrder.userId, existingOrder.id); }
+                        catch { /* An authorized retry can repair the atomic referral reward later. */ }
+                    }
                     res.status(200).json(toPublicOrder(existingOrder));
                     return;
                 }

@@ -2,6 +2,7 @@ import type { Router as RouterType, Request, Response, NextFunction } from "expr
 import { Router } from "express";
 import { storage } from "../storage/index.js";
 import { analyticsTracker } from "../services/analytics-tracker.js";
+import { isPublicStorefrontProduct } from "../../shared/public-product.js";
 
 export function createFavoritesRouter(): RouterType {
     const router = Router();
@@ -39,7 +40,7 @@ export function createFavoritesRouter(): RouterType {
 
             // Check if product exists
             const product = await storage.getProduct(productId);
-            if (!product) {
+            if (!product || !isPublicStorefrontProduct(product)) {
                 res.status(404).json({ message: "Product not found" });
                 return;
             }

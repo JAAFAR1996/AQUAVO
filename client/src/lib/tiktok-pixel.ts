@@ -7,6 +7,8 @@
  *         CompleteRegistration, Purchase
  */
 
+import { isTrackingAllowed } from "./tracking-environment";
+
 // TikTok Pixel global type declaration
 declare global {
   interface Window {
@@ -22,6 +24,40 @@ declare global {
 
 const CURRENCY = 'IQD';
 const BRAND = 'AQUAVO';
+type PendingEvent =
+  | { kind: "page" }
+  | { kind: "track"; name: string; params: Record<string, unknown> }
+  | { kind: "identify"; params: Record<string, string> };
+const pendingEvents: PendingEvent[] = [];
+const MAX_PENDING_EVENTS = 100;
+
+function dispatch(event: PendingEvent): boolean {
+  if (!isTrackingAllowed()) return false;
+  const pixel = typeof window !== "undefined" ? window.ttq : undefined;
+  if (!pixel) {
+    // A short, bounded memory queue covers the deferred SDK loader. Page views
+    // before initialization collapse to the current page, rather than falsely
+    // reporting old routes with the URL present at flush time.
+    if (event.kind === "page" && pendingEvents.some(entry => entry.kind === "page")) return true;
+    if (pendingEvents.length >= MAX_PENDING_EVENTS) return false;
+    pendingEvents.push(event);
+    return true;
+  }
+  if (event.kind === "page") pixel.page();
+  else if (event.kind === "identify") pixel.identify(event.params);
+  else pixel.track(event.name, event.params);
+  return true;
+}
+
+/** Called after the SDK's normal command stub exists. Returns whether its
+ * initial page view was already queued by the route hook. */
+export function flushPendingTiktokEvents(): boolean {
+  if (!isTrackingAllowed()) { pendingEvents.length = 0; return false; }
+  if (!isTtqAvailable()) return false;
+  const events = pendingEvents.splice(0);
+  for (const event of events) dispatch(event);
+  return events.some(event => event.kind === "page");
+}
 
 // ----- Helpers -----
 
@@ -43,10 +79,9 @@ function isTtqAvailable(): boolean {
   return typeof window !== 'undefined' && !!window.ttq;
 }
 
-/** Track a SPA route-change PageView (TikTok `page`). Safe no-op until SDK loads. */
+/** Track a SPA route-change PageView, including the deferred-loader window. */
 export function ttqPage() {
-  if (!isTtqAvailable() || typeof window.ttq!.page !== 'function') return;
-  window.ttq!.page();
+  dispatch({kind:"page"});
 }
 
 // ----- Identification -----
@@ -60,7 +95,7 @@ export async function ttqIdentify(params: {
   phone?: string;
   externalId?: string;
 }) {
-  if (!isTtqAvailable()) return;
+  if (!isTrackingAllowed()) return;
 
   const identifyData: Record<string, string> = {};
 
@@ -75,7 +110,7 @@ export async function ttqIdentify(params: {
   }
 
   if (Object.keys(identifyData).length > 0) {
-    window.ttq!.identify(identifyData);
+    dispatch({kind:"identify", params:identifyData});
   }
 }
 
@@ -103,12 +138,10 @@ interface TtqEventParams {
 // ----- Core Track Function -----
 
 function trackTtq(eventName: string, params: TtqEventParams) {
-  if (!isTtqAvailable()) return;
-
-  window.ttq!.track(eventName, {
+  return dispatch({kind:"track", name:eventName, params:{
     ...params,
     currency: params.currency || CURRENCY,
-  });
+  }});
 }
 
 // ----- E-Commerce Events -----
@@ -283,11 +316,10 @@ export function ttqPurchase(orderData: {
     const dedupKey = `ttq_px_${orderData.orderId}`;
     try {
       if (localStorage.getItem(dedupKey)) return;
-      localStorage.setItem(dedupKey, '1');
     } catch { /* private browsing — skip dedup, allow fire */ }
   }
 
-  trackTtq('Purchase', {
+  const accepted = trackTtq('Purchase', {
     contents: orderData.items.map(item => ({
       content_id: String(item.id),
       content_type: 'product' as const,
@@ -299,4 +331,7 @@ export function ttqPurchase(orderData: {
     status: 'completed',
     description: `Order ${orderData.orderId}`,
   });
+  if (accepted && orderData.orderId && orderData.orderId !== 'unknown') {
+    try { localStorage.setItem(`ttq_px_${orderData.orderId}`, '1'); } catch { /* storage may be unavailable */ }
+  }
 }

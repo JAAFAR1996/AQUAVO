@@ -26,6 +26,12 @@ app.use("/api/ai-advanced", router);
 
 beforeAll(async () => {
   fixture.db = drizzle(client);
+  // The real route now shares IP/account budgets across workers; this isolated
+  // database must include the counter table before exercising its middleware.
+  await client.exec(`CREATE TABLE rate_limit_buckets (
+    key text PRIMARY KEY, hits integer NOT NULL DEFAULT 0 CHECK (hits >= 0),
+    expires_at timestamptz NOT NULL
+  )`);
   for (const table of [orders, orderItems]) {
     const columns = Object.values(getTableColumns(table)).map(column => `"${column.name}" ${column.getSQLType()}`);
     await client.exec(`CREATE TABLE "${getTableName(table)}" (${columns.join(", ")})`);

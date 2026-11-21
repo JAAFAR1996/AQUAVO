@@ -20,7 +20,7 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
 import rateLimit from "express-rate-limit";
 import { z } from "zod";
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { requireAdmin } from "../middleware/auth.js";
 import { getDb } from "../db.js";
@@ -30,6 +30,7 @@ import {
   orderFulfillmentLines,
   packagingInventoryMovements,
   products,
+  mutationReceipts,
 } from "../../shared/schema.js";
 import {
   adminStockAlerts,
@@ -77,6 +78,7 @@ import {
   type RawSheetRow,
 } from "../services/packing-import-service.js";
 import { summarisePackingCompleteness } from "../services/packing-data-summary.js";
+import { OperationalError } from "../middleware/error-handler.js";
 
 const router = Router();
 
@@ -96,10 +98,46 @@ const readLimiter = rateLimit({
 
 router.use(requireAdmin);
 
-function db(): FulfillmentDb {
-  const d = getDb() as FulfillmentDb | null;
+function db(): NonNullable<ReturnType<typeof getDb>> {
+  const d = getDb();
   if (!d) throw new Error("Database not available");
   return d;
+}
+
+type PackagingTx = Parameters<Parameters<NonNullable<ReturnType<typeof getDb>>["transaction"]>[0]>[0];
+
+/** An ambiguous response may be retried with the same key. Claim, catalogue row
+ * and financial audit commit together, so a failed write never consumes a key.
+ */
+async function createPackagingMaterialOnce(input: {
+  namespace: "preparation-cost" | "carton";
+  actorId: string | null;
+  idempotencyKey: string;
+  payload: unknown;
+  create: (tx: PackagingTx, id: string) => Promise<void>;
+}): Promise<{ id: string; replayed: boolean }> {
+  if (!input.actorId) throw new OperationalError("يجب تسجيل الدخول أولاً", 401);
+  const key = createHash("sha256").update(JSON.stringify([
+    "packaging-material-create", input.namespace, input.actorId, input.idempotencyKey,
+  ])).digest("hex");
+  const requestHash = createHash("sha256").update(JSON.stringify(input.payload)).digest("hex");
+  return db().transaction(async (tx) => {
+    const id = randomUUID();
+    const claimed = await tx.insert(mutationReceipts).values({ key, requestHash, resourceId: id })
+      .onConflictDoNothing().returning({ key: mutationReceipts.key });
+    if (claimed.length === 0) {
+      const [receipt] = await tx.select().from(mutationReceipts).where(eq(mutationReceipts.key, key));
+      if (!receipt || receipt.requestHash !== requestHash) {
+        throw new OperationalError("معرف الحفظ مستخدم لبيانات مختلفة. راجع السجل قبل المحاولة.", 409);
+      }
+      const [material] = await tx.select({ id: fulfillmentMaterials.id }).from(fulfillmentMaterials)
+        .where(eq(fulfillmentMaterials.id, receipt.resourceId));
+      if (!material) throw new OperationalError("تعذر تأكيد سجل الحفظ السابق. راجع القائمة قبل المحاولة.", 409);
+      return { id: material.id, replayed: true };
+    }
+    await input.create(tx, id);
+    return { id, replayed: false };
+  });
 }
 
 function auditLog(event: string, fields: Record<string, string | number | null | undefined>): void {
@@ -221,32 +259,37 @@ router.post(
       res.status(400).json({ error: "VALIDATION_INVALID", details: parsed.error.flatten() });
       return;
     }
-    const id = randomUUID();
-    await db().insert(fulfillmentMaterials).values({
-      id,
-      name: parsed.data.name,
-      sku: parsed.data.sku ?? null,
-      materialKind: "consumable",
-      calculationBasis: parsed.data.calculationBasis,
-      // A preparation cost is an accounting figure, not inventory. Cost itself is
-      // set through material_cost_records so the approval trail exists.
-      stockTracked: false,
-      unit: "order",
-      currency: "IQD",
-      active: true,
-      notes: parsed.data.notes ?? null,
+    const actor = actorFromRequest(req);
+    const result = await createPackagingMaterialOnce({
+      namespace: "preparation-cost", actorId: actor.id,
+      idempotencyKey: parsed.data.idempotencyKey, payload: parsed.data,
+      create: async (tx, id) => {
+        await tx.insert(fulfillmentMaterials).values({
+          id,
+          name: parsed.data.name,
+          sku: parsed.data.sku ?? null,
+          materialKind: "consumable",
+          calculationBasis: parsed.data.calculationBasis,
+          // A preparation cost is an accounting figure, not inventory. Cost itself is
+          // set through material_cost_records so the approval trail exists.
+          stockTracked: false,
+          unit: "order",
+          currency: "IQD",
+          active: true,
+          notes: parsed.data.notes ?? null,
+        });
+        await recordFinancialChange(tx, {
+          entityType: "fulfillment_material", entityId: id, action: "create",
+          fieldName: "created", oldValue: null,
+          newValue: { name: parsed.data.name, sku: parsed.data.sku ?? null,
+            calculationBasis: parsed.data.calculationBasis, notes: parsed.data.notes ?? null },
+          reason: `إضافة كلفة تجهيز (${parsed.data.calculationBasis})`,
+          performedBy: actor.id, performedByName: actor.name,
+        });
+      },
     });
-    await recordFinancialChange({
-      entityType: "fulfillment_material",
-      entityId: id,
-      fieldName: "created",
-      oldValue: null,
-      newValue: parsed.data.name,
-      reason: `إضافة كلفة تجهيز (${parsed.data.calculationBasis})`,
-      actor: actorFromRequest(req),
-    });
-    auditLog("preparation-cost.create", { id, basis: parsed.data.calculationBasis });
-    res.status(201).json({ id });
+    auditLog("preparation-cost.create", { id: result.id, basis: parsed.data.calculationBasis });
+    res.status(result.replayed ? 200 : 201).json({ id: result.id });
   }),
 );
 
@@ -268,30 +311,28 @@ router.patch(
       return;
     }
     const id = idSchema.parse(req.params.id);
-    const [existing] = await db()
-      .select()
-      .from(fulfillmentMaterials)
-      .where(eq(fulfillmentMaterials.id, id))
-      .limit(1);
-    if (!existing) {
-      res.status(404).json({ error: "MATERIAL_NOT_FOUND" });
-      return;
-    }
+    const actor = actorFromRequest(req);
     const patch: Record<string, unknown> = { updatedAt: new Date() };
     if (parsed.data.name !== undefined) patch.name = parsed.data.name;
     if (parsed.data.calculationBasis !== undefined) patch.calculationBasis = parsed.data.calculationBasis;
     if (parsed.data.active !== undefined) patch.active = parsed.data.active;
     if (parsed.data.notes !== undefined) patch.notes = parsed.data.notes;
 
-    await db().update(fulfillmentMaterials).set(patch).where(eq(fulfillmentMaterials.id, id));
-    await recordFinancialChange({
-      entityType: "fulfillment_material",
-      entityId: id,
-      fieldName: "updated",
-      oldValue: existing.name,
-      newValue: parsed.data.name ?? existing.name,
-      reason: parsed.data.reason,
-      actor: actorFromRequest(req),
+    await db().transaction(async (tx) => {
+      const [existing] = await tx.select().from(fulfillmentMaterials)
+        .where(eq(fulfillmentMaterials.id, id)).for("update");
+      if (!existing) throw new Error("MATERIAL_NOT_FOUND");
+      await tx.update(fulfillmentMaterials).set(patch).where(eq(fulfillmentMaterials.id, id));
+      await recordFinancialChange(tx, {
+        entityType: "fulfillment_material", entityId: id, action: "update",
+        fieldName: "updated",
+        oldValue: { name: existing.name, calculationBasis: existing.calculationBasis, active: existing.active, notes: existing.notes },
+        newValue: { name: parsed.data.name ?? existing.name,
+          calculationBasis: parsed.data.calculationBasis ?? existing.calculationBasis,
+          active: parsed.data.active ?? existing.active, notes: parsed.data.notes ?? existing.notes },
+        reason: parsed.data.reason,
+        performedBy: actor.id, performedByName: actor.name,
+      });
     });
     auditLog("preparation-cost.update", { id });
     res.json({ ok: true });
@@ -304,20 +345,22 @@ router.post(
   wrap(async (req, res) => {
     const id = idSchema.parse(req.params.id);
     const reason = reasonSchema.parse((req.body ?? {}).reason);
+    const actor = actorFromRequest(req);
     // Soft archive only. A material referenced by any historical fulfillment line
     // must stay readable forever, so nothing is ever hard-deleted here.
-    await db()
-      .update(fulfillmentMaterials)
-      .set({ archivedAt: new Date(), active: false, updatedAt: new Date() })
-      .where(eq(fulfillmentMaterials.id, id));
-    await recordFinancialChange({
-      entityType: "fulfillment_material",
-      entityId: id,
-      fieldName: "archived",
-      oldValue: "active",
-      newValue: "archived",
-      reason,
-      actor: actorFromRequest(req),
+    await db().transaction(async (tx) => {
+      const [existing] = await tx.select().from(fulfillmentMaterials)
+        .where(eq(fulfillmentMaterials.id, id)).for("update");
+      if (!existing) throw new Error("MATERIAL_NOT_FOUND");
+      await tx.update(fulfillmentMaterials)
+        .set({ archivedAt: new Date(), active: false, updatedAt: new Date() })
+        .where(eq(fulfillmentMaterials.id, id));
+      await recordFinancialChange(tx, {
+        entityType: "fulfillment_material", entityId: id, action: "status_change",
+        fieldName: "archived", oldValue: { active: existing.active, archivedAt: existing.archivedAt },
+        newValue: "archived", reason,
+        performedBy: actor.id, performedByName: actor.name,
+      });
     });
     auditLog("preparation-cost.archive", { id });
     res.json({ ok: true });
@@ -392,33 +435,43 @@ router.post(
       return;
     }
     const d = parsed.data;
-    const id = randomUUID();
-    await db().insert(fulfillmentMaterials).values({
-      id,
-      name: d.name,
-      sku: d.sku,
-      category: "box",
-      materialKind: "carton",
-      calculationBasis: "per_carton",
-      stockTracked: true,
-      unit: "piece",
-      currency: "IQD",
-      active: true,
-      internalLengthCm: String(d.internalLengthCm),
-      internalWidthCm: String(d.internalWidthCm),
-      internalHeightCm: String(d.internalHeightCm),
-      externalLengthCm: d.externalLengthCm != null ? String(d.externalLengthCm) : null,
-      externalWidthCm: d.externalWidthCm != null ? String(d.externalWidthCm) : null,
-      externalHeightCm: d.externalHeightCm != null ? String(d.externalHeightCm) : null,
-      maxWeightKg: String(d.maxWeightKg),
-      safetyPaddingCm: d.safetyPaddingCm != null ? String(d.safetyPaddingCm) : null,
-      lowStockThreshold: d.lowStockThreshold != null ? String(d.lowStockThreshold) : null,
-      notes: d.notes ?? null,
-      // Cost is deliberately NOT set here. It goes through material_cost_records
-      // so an unpriced carton stays honestly unpriced rather than silently zero.
+    const actor = actorFromRequest(req);
+    const result = await createPackagingMaterialOnce({
+      namespace: "carton", actorId: actor.id, idempotencyKey: d.idempotencyKey, payload: d,
+      create: async (tx, id) => {
+        await tx.insert(fulfillmentMaterials).values({
+          id,
+          name: d.name,
+          sku: d.sku,
+          category: "box",
+          materialKind: "carton",
+          calculationBasis: "per_carton",
+          stockTracked: true,
+          unit: "piece",
+          currency: "IQD",
+          active: true,
+          internalLengthCm: String(d.internalLengthCm),
+          internalWidthCm: String(d.internalWidthCm),
+          internalHeightCm: String(d.internalHeightCm),
+          externalLengthCm: d.externalLengthCm != null ? String(d.externalLengthCm) : null,
+          externalWidthCm: d.externalWidthCm != null ? String(d.externalWidthCm) : null,
+          externalHeightCm: d.externalHeightCm != null ? String(d.externalHeightCm) : null,
+          maxWeightKg: String(d.maxWeightKg),
+          safetyPaddingCm: d.safetyPaddingCm != null ? String(d.safetyPaddingCm) : null,
+          lowStockThreshold: d.lowStockThreshold != null ? String(d.lowStockThreshold) : null,
+          notes: d.notes ?? null,
+          // Cost is deliberately NOT set here. It goes through material_cost_records
+          // so an unpriced carton stays honestly unpriced rather than silently zero.
+        });
+        await recordFinancialChange(tx, {
+          entityType: "fulfillment_material", entityId: id, action: "create",
+          fieldName: "carton_created", oldValue: null, newValue: { name: d.name, sku: d.sku },
+          performedBy: actor.id, performedByName: actor.name,
+        });
+      },
     });
-    auditLog("carton.create", { id, sku: d.sku });
-    res.status(201).json({ id });
+    auditLog("carton.create", { id: result.id, sku: d.sku });
+    res.status(result.replayed ? 200 : 201).json({ id: result.id });
   }),
 );
 
@@ -441,6 +494,7 @@ router.patch(
     }
     const id = idSchema.parse(req.params.id);
     const d = parsed.data;
+    const actor = actorFromRequest(req);
     const patch: Record<string, unknown> = { updatedAt: new Date() };
     for (const k of [
       "internalLengthCm", "internalWidthCm", "internalHeightCm",
@@ -453,15 +507,16 @@ router.patch(
     if (d.notes !== undefined) patch.notes = d.notes;
     if (d.active !== undefined) patch.active = d.active;
 
-    await db().update(fulfillmentMaterials).set(patch).where(eq(fulfillmentMaterials.id, id));
-    await recordFinancialChange({
-      entityType: "fulfillment_material",
-      entityId: id,
-      fieldName: "carton_updated",
-      oldValue: null,
-      newValue: JSON.stringify(patch),
-      reason: d.reason,
-      actor: actorFromRequest(req),
+    await db().transaction(async (tx) => {
+      const [existing] = await tx.select().from(fulfillmentMaterials)
+        .where(eq(fulfillmentMaterials.id, id)).for("update");
+      if (!existing) throw new Error("MATERIAL_NOT_FOUND");
+      await tx.update(fulfillmentMaterials).set(patch).where(eq(fulfillmentMaterials.id, id));
+      await recordFinancialChange(tx, {
+        entityType: "fulfillment_material", entityId: id, action: "update",
+        fieldName: "carton_updated", oldValue: existing, newValue: patch, reason: d.reason,
+        performedBy: actor.id, performedByName: actor.name,
+      });
     });
     auditLog("carton.update", { id });
     res.json({ ok: true });
@@ -485,16 +540,18 @@ router.post(
     }
     const id = idSchema.parse(req.params.id);
     // A receipt IS a real physical quantity change, so it belongs in the ledger.
-    await db().insert(packagingInventoryMovements).values({
-      id: randomUUID(),
-      materialId: id,
-      movementType: "purchase_receipt",
-      quantity: String(parsed.data.quantity),
-      idempotencyKey: `receipt:${id}:${parsed.data.idempotencyKey}`,
-      sourceDocument: parsed.data.reason,
-      recordedBy: actorFromRequest(req),
+    await db().transaction(async (tx) => {
+      await tx.insert(packagingInventoryMovements).values({
+        id: randomUUID(),
+        materialId: id,
+        movementType: "purchase_receipt",
+        quantity: String(parsed.data.quantity),
+        idempotencyKey: `receipt:${id}:${parsed.data.idempotencyKey}`,
+        sourceDocument: parsed.data.reason,
+        recordedBy: actorFromRequest(req).id,
+      });
+      await afterStockChange(id, tx);
     });
-    await afterStockChange(id);
     auditLog("carton.receive", { id, qty: parsed.data.quantity });
     res.status(201).json({ ok: true });
   }),
@@ -516,27 +573,26 @@ router.post(
       return;
     }
     const id = idSchema.parse(req.params.id);
+    const actor = actorFromRequest(req);
     // `correction` is the only movement type that may go either way, and it
     // always carries a stated reason.
-    await db().insert(packagingInventoryMovements).values({
-      id: randomUUID(),
-      materialId: id,
-      movementType: "correction",
-      quantity: String(parsed.data.quantity),
-      idempotencyKey: `correct:${id}:${parsed.data.idempotencyKey}`,
-      sourceDocument: parsed.data.reason,
-      recordedBy: actorFromRequest(req),
+    await db().transaction(async (tx) => {
+      await tx.insert(packagingInventoryMovements).values({
+        id: randomUUID(),
+        materialId: id,
+        movementType: "correction",
+        quantity: String(parsed.data.quantity),
+        idempotencyKey: `correct:${id}:${parsed.data.idempotencyKey}`,
+        sourceDocument: parsed.data.reason,
+        recordedBy: actor.id,
+      });
+      await recordFinancialChange(tx, {
+        entityType: "fulfillment_material", entityId: id, action: "update",
+        fieldName: "manual_correction", oldValue: null, newValue: { quantity: String(parsed.data.quantity) },
+        reason: parsed.data.reason, performedBy: actor.id, performedByName: actor.name,
+      });
+      await afterStockChange(id, tx);
     });
-    await recordFinancialChange({
-      entityType: "packaging_inventory",
-      entityId: id,
-      fieldName: "manual_correction",
-      oldValue: null,
-      newValue: String(parsed.data.quantity),
-      reason: parsed.data.reason,
-      actor: actorFromRequest(req),
-    });
-    await afterStockChange(id);
     auditLog("carton.correct", { id, qty: parsed.data.quantity });
     res.status(201).json({ ok: true });
   }),
@@ -565,14 +621,14 @@ router.get(
 );
 
 /** Re-evaluate the alert whenever stock could have moved. Idempotent. */
-async function afterStockChange(materialId: string): Promise<void> {
-  const [m] = await db()
+async function afterStockChange(materialId: string, executor: FulfillmentDb = db()): Promise<void> {
+  const [m] = await executor
     .select()
     .from(fulfillmentMaterials)
     .where(eq(fulfillmentMaterials.id, materialId))
     .limit(1);
   if (!m) return;
-  await evaluateStockAlert(db(), {
+  await evaluateStockAlert(executor, {
     materialId: m.id,
     name: m.name,
     lowStockThreshold: toMoneyOrNull(m.lowStockThreshold),
@@ -758,7 +814,7 @@ router.post(
       sheetName: parsed.data.sheetName ?? null,
       rowCount: rows.length,
       state: "reviewing",
-      importedBy: actorFromRequest(req),
+      importedBy: actorFromRequest(req).id,
     });
     for (const r of rows) {
       await db().insert(packingImportDraftLines).values({
@@ -1050,7 +1106,7 @@ router.post(
       costStatus: result.costStatus,
       validationReport: safety as unknown as Record<string, unknown>,
       explanationAr: result.explanationAr,
-      createdBy: actorFromRequest(req),
+      createdBy: actorFromRequest(req).id,
     });
     for (const c of result.cartons) {
       for (const p of c.items) {
@@ -1166,7 +1222,7 @@ router.post(
       planId: plan.id,
       quantities,
       requestId: parsed.data.idempotencyKey,
-      reservedBy: actorFromRequest(req),
+      reservedBy: actorFromRequest(req).id ?? undefined,
     });
     await db()
       .update(orderPackingPlans)
@@ -1213,25 +1269,22 @@ router.post(
     }
     const orderId = idSchema.parse(req.params.orderId);
     const quantities = new Map(Object.entries(parsed.data.quantities));
+    const actor = actorFromRequest(req);
     // Release-and-reserve happen in ONE transaction, so stock is never briefly
     // double-held nor briefly unheld.
-    const result = await changeReservedCarton(db(), {
-      orderId,
-      newQuantities: quantities,
-      requestId: parsed.data.idempotencyKey,
-      reason: parsed.data.reason,
-      changedBy: actorFromRequest(req),
+    const result = await db().transaction(async (tx) => {
+      const changed = await changeReservedCarton(tx, {
+        orderId, newQuantities: quantities, requestId: parsed.data.idempotencyKey,
+        reason: parsed.data.reason, changedBy: actor.id ?? undefined,
+      });
+      await recordFinancialChange(tx, {
+        entityType: "order", entityId: orderId, action: "update",
+        fieldName: "carton_changed", oldValue: null, newValue: parsed.data.quantities,
+        reason: parsed.data.reason, performedBy: actor.id, performedByName: actor.name,
+      });
+      for (const materialId of quantities.keys()) await afterStockChange(materialId, tx);
+      return changed;
     });
-    await recordFinancialChange({
-      entityType: "order_packing_plan",
-      entityId: orderId,
-      fieldName: "carton_changed",
-      oldValue: null,
-      newValue: JSON.stringify(parsed.data.quantities),
-      reason: parsed.data.reason,
-      actor: actorFromRequest(req),
-    });
-    for (const materialId of quantities.keys()) await afterStockChange(materialId);
     auditLog("plan.change-carton", { orderId });
     res.json(result);
   }),
@@ -1249,46 +1302,46 @@ router.post(
       return;
     }
     const orderId = idSchema.parse(req.params.orderId);
+    const actor = actorFromRequest(req);
 
     // Leaving the automated model releases every hold: an order packed outside
     // the model must not sit on reserved stock it may never use.
-    const affected = await db()
-      .select({ materialId: cartonReservations.materialId })
-      .from(cartonReservations)
-      .where(and(eq(cartonReservations.orderId, orderId), eq(cartonReservations.state, "active")));
-    if (affected.length > 0) {
-      await releaseOrderReservations(db(), orderId, parsed.data.reason);
-    }
+    const result = await db().transaction(async (tx) => {
+      const affected = await tx
+        .select({ materialId: cartonReservations.materialId })
+        .from(cartonReservations)
+        .where(and(eq(cartonReservations.orderId, orderId), eq(cartonReservations.state, "active")));
+      if (affected.length > 0) {
+        await releaseOrderReservations(tx, orderId, parsed.data.reason);
+      }
 
-    await db()
-      .update(orderPackingPlans)
-      .set({ state: "superseded", updatedAt: new Date() })
-      .where(
-        and(
-          eq(orderPackingPlans.orderId, orderId),
-          inArray(orderPackingPlans.state, ["proposed", "validated", "reserved"]),
-        ),
-      );
-    const planId = randomUUID();
-    await db().insert(orderPackingPlans).values({
-      id: planId,
-      orderId,
-      state: "manual_pack_required",
-      manualReason: parsed.data.reason,
-      createdBy: actorFromRequest(req),
+      await tx
+        .update(orderPackingPlans)
+        .set({ state: "superseded", updatedAt: new Date() })
+        .where(
+          and(
+            eq(orderPackingPlans.orderId, orderId),
+            inArray(orderPackingPlans.state, ["proposed", "validated", "reserved"]),
+          ),
+        );
+      const planId = randomUUID();
+      await tx.insert(orderPackingPlans).values({
+        id: planId,
+        orderId,
+        state: "manual_pack_required",
+        manualReason: parsed.data.reason,
+        createdBy: actor.id,
+      });
+      await recordFinancialChange(tx, {
+        entityType: "order", entityId: orderId, action: "status_change",
+        fieldName: "manual_pack_required", oldValue: null, newValue: "manual_pack_required",
+        reason: parsed.data.reason, performedBy: actor.id, performedByName: actor.name,
+      });
+      for (const a of affected) await afterStockChange(a.materialId, tx);
+      return { planId, releasedReservations: affected.length };
     });
-    await recordFinancialChange({
-      entityType: "order_packing_plan",
-      entityId: orderId,
-      fieldName: "manual_pack_required",
-      oldValue: null,
-      newValue: "manual_pack_required",
-      reason: parsed.data.reason,
-      actor: actorFromRequest(req),
-    });
-    for (const a of affected) await afterStockChange(a.materialId);
-    auditLog("plan.manual-pack-required", { orderId, planId, released: affected.length });
-    res.status(201).json({ planId, releasedReservations: affected.length });
+    auditLog("plan.manual-pack-required", { orderId, planId: result.planId, released: result.releasedReservations });
+    res.status(201).json(result);
   }),
 );
 
@@ -1318,7 +1371,7 @@ router.post(
     // an alert, which is what makes re-arming meaningful.
     await db()
       .update(adminStockAlerts)
-      .set({ acknowledgedBy: actorFromRequest(req), acknowledgedAt: new Date() })
+      .set({ acknowledgedBy: actorFromRequest(req).id, acknowledgedAt: new Date() })
       .where(eq(adminStockAlerts.id, id));
     auditLog("alert.acknowledge", { id });
     res.json({ ok: true });
@@ -1411,7 +1464,7 @@ router.post(
           classificationMode: c.classificationMode,
           isReclassificationOnly: true,
           reason: c.reason,
-          recordedBy: actorFromRequest(req),
+          recordedBy: actorFromRequest(req).id,
         })
         .onConflictDoNothing();
     }
@@ -1479,7 +1532,7 @@ router.post(
       classificationMode: c.classificationMode,
       isReclassificationOnly: true,
       reason: c.reason,
-      recordedBy: actorFromRequest(req),
+      recordedBy: actorFromRequest(req).id,
     });
     auditLog("return-loss.record", { orderId, line: c.fulfillmentLineId, qty: c.quantity });
     res.status(201).json({ classification: c });
@@ -1492,7 +1545,7 @@ router.get(
   wrap(async (req, res) => {
     const orderId = idSchema.parse(req.params.orderId);
     const rows = await existingClassifications(orderId);
-    const byEvent = new Map<string, number>();
+    const byEvent = new Map<string | null, number>();
     let total = 0;
     let incomplete = false;
     for (const r of rows) {

@@ -28,6 +28,7 @@ const statusTransitionSchema = z.object({
   source: z.string().trim().min(1).max(64).optional(),
   financiallyCounted: z.boolean().nullable().optional(),
   financialReason: z.string().trim().min(3).max(500).optional(),
+  adminNotes: z.string().trim().max(2000).optional(),
 }).strict();
 
 const PAYMENT_MANAGED_STATUSES = new Set(["pending_payment", "payment_review"]);
@@ -66,39 +67,30 @@ type ReturnOrderLineRow = {
   variant_label: string | null;
 };
 
-type LoyaltyStorageRuntime = {
-  approveOrderPoints(userId: string, orderId: string, amount: number): Promise<unknown>;
-  generateOrderBonus(userId: string, orderId: string): Promise<unknown>;
-  checkMilestones(userId: string): Promise<unknown>;
-  cancelOrderPoints(userId: string, orderId: string): Promise<unknown>;
-};
-type BadgeEngineRuntime = { checkAndAwardBadges(userId: string): Promise<unknown> };
-type ChallengeStorageRuntime = { updateProgress(userId: string, challenge: string, amount: number): Promise<unknown> };
-
 function rowsOf<T>(result: unknown): T[] {
   if (Array.isArray(result)) return result as T[];
   const rows = (result as { rows?: T[] } | null)?.rows;
   return Array.isArray(rows) ? rows : [];
 }
 
-async function importLegacyModule<T>(segments: string[]): Promise<T> {
-  const modulePath = segments.join("/");
-  return await import(modulePath) as T;
-}
-
-async function runPostCommitCustomerEffects(order: any, oldStatus: string, newStatus: string): Promise<void> {
+async function runPostCommitCustomerEffects(order: typeof orders.$inferSelect, oldStatus: string, newStatus: string): Promise<void> {
   if (!order?.userId) return;
   try {
-    const loyaltyModule = await importLegacyModule<{ loyaltyStorage: LoyaltyStorageRuntime }>(["..", "storage", "loyalty-storage.js"]);
-    const loyaltyStorage = loyaltyModule.loyaltyStorage;
-    if (newStatus === "delivered" && oldStatus !== "delivered") {
+    // Literal imports let the server bundler include these local modules. A
+    // computed relative path would resolve outside the single dist/index.js.
+    const { loyaltyStorage } = await import("../storage/loyalty-storage.js");
+    if (newStatus === "delivered") {
       await loyaltyStorage.approveOrderPoints(order.userId, order.id, orderCollectedAmount(order));
+      // The status transaction may have committed before a failed settlement.
+      // Retrying that status recovers only the atomic, idempotent ledger move;
+      // other delivery effects must not repeat on an unchanged status.
+      if (oldStatus === newStatus) return;
       await loyaltyStorage.generateOrderBonus(order.userId, order.id).catch(() => null);
       await loyaltyStorage.checkMilestones(order.userId).catch(() => null);
-      const badgeModule = await importLegacyModule<{ badgeEngine: BadgeEngineRuntime }>(["..", "storage", "badge-engine.js"]);
-      await badgeModule.badgeEngine.checkAndAwardBadges(order.userId).catch(() => []);
-      const challengeModule = await importLegacyModule<{ challengeStorage: ChallengeStorageRuntime }>(["..", "storage", "challenge-storage.js"]);
-      await challengeModule.challengeStorage.updateProgress(order.userId, "cross_category", 1).catch(() => undefined);
+      const { badgeEngine } = await import("../storage/badge-engine.js");
+      await badgeEngine.checkAndAwardBadges(order.userId).catch(() => []);
+      const { challengeStorage } = await import("../storage/challenge-storage.js");
+      await challengeStorage.updateProgress(order.userId, "cross_category", 1).catch(() => undefined);
       return;
     }
     if (["cancelled", "rejected", "rejected_returned", "rejected_carrier", "returned"].includes(newStatus)) {
@@ -127,102 +119,24 @@ async function recordRejectedIp(clientIp: string | null): Promise<void> {
   }
 }
 
-export function createAdminOrdersV2Router() {
-  const router = Router();
-  router.use(requireAccountingAdmin);
-
-  router.get("/orders/delivery-companies", async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const db = getDb();
-    if (!db) { res.status(503).json({ message: "قاعدة البيانات غير مهيأة" }); return; }
-
-    try {
-      const result = await db.execute(sql`
-        SELECT id,name,default_fee,active
-        FROM public.delivery_companies
-        WHERE active=true
-        ORDER BY name
-      `);
-      res.json({
-        items: rowsOf<ActiveDeliveryCompany>(result).map((company) => ({
-          ...company,
-          default_fee: Number(company.default_fee),
-        })),
-      });
-    } catch (error) {
-      next(error);
-    }
-  });
-
-  router.get("/orders/:id/return-lines", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const db = getDb();
-    if (!db) { res.status(503).json({ message: "قاعدة البيانات غير مهيأة" }); return; }
-
-    try {
-      const result = await db.execute(sql`
-        SELECT
-          oi.id AS order_item_id,
-          oi.product_id,
-          COALESCE(p.name,oi.product_id) AS product_name,
-          oi.quantity,
-          COALESCE(oi.final_unit_sale_price_snapshot,oi.price_at_purchase) AS price,
-          NULLIF(COALESCE(oi.metadata->>'variantId',oi.metadata->>'variant_id'),'') AS variant_id,
-          NULLIF(COALESCE(oi.metadata->>'variantLabel',oi.metadata->>'variant_label'),'') AS variant_label
-        FROM public.order_items_relational oi
-        LEFT JOIN public.products p ON p.id=oi.product_id
-        WHERE oi.order_id=${req.params.id}
-        ORDER BY oi.id
-      `);
-
-      const lines = rowsOf<ReturnOrderLineRow>(result).map((row) => ({
-        id: row.order_item_id,
-        orderItemId: row.order_item_id,
-        productId: row.product_id,
-        productName: row.product_name ?? row.product_id,
-        quantity: Number(row.quantity),
-        price: Number(row.price),
-        variantId: row.variant_id ?? undefined,
-        variantLabel: row.variant_label ?? undefined,
-      }));
-
-      if (lines.length === 0) {
-        res.status(409).json({
-          message: "لا توجد سطور بيع مالية مرتبطة بهذا الطلب؛ لا يمكن إنشاء راجع محاسبي آمن",
-        });
-        return;
-      }
-
-      if (lines.some((line) => !Number.isInteger(line.quantity) || line.quantity <= 0 || !Number.isFinite(line.price) || line.price < 0)) {
-        throw new Error("RETURN_ORDER_LINES_INVALID: بيانات سطور البيع غير صالحة");
-      }
-
-      res.json({ data: lines });
-    } catch (error) {
-      next(error);
-    }
-  });
-
-  router.put("/orders/:id", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    if (req.body?.status == null) { next(); return; }
-    const parsed = statusTransitionSchema.safeParse(req.body);
-    if (!parsed.success) {
-      res.status(400).json({ message: "بيانات تغيير حالة الطلب غير صالحة", errors: parsed.error.flatten() });
-      return;
-    }
-    const db = getDb();
-    if (!db) { res.status(503).json({ message: "قاعدة البيانات غير مهيأة" }); return; }
-
-    const actor = actorFromRequest(req);
-    try {
-      const result = await db.transaction(async (tx) => {
+/** Shared operator transition, used by HTTP administration and authorized MCP.
+ * Packaging, payment reservations, returns and financial audit use one path. */
+export async function transitionAdminOrderStatus(
+  db: NonNullable<ReturnType<typeof getDb>>,
+  orderId: string,
+  rawInput: z.input<typeof statusTransitionSchema>,
+  actor: { id: string | null; name: string | null },
+) {
+  const input = statusTransitionSchema.parse(rawInput);
+  const result = await db.transaction(async (tx) => {
         const lockedResult = await tx.execute(sql`
           SELECT id,order_number,status,payment_status,user_id,client_ip,carrier,carrier_fee
-          FROM orders WHERE id=${req.params.id} FOR UPDATE
+          FROM orders WHERE id=${orderId} FOR UPDATE
         `);
         const locked = rowsOf<LockedOrder>(lockedResult)[0];
         if (!locked) throw Object.assign(new Error("الطلب غير موجود"), { statusCode: 404 });
 
         const oldStatus = locked.status;
-        const input = parsed.data;
 
         // Payment lifecycle states are owned by the Wayl verification flow.
         // The single admin exception is cancelling an UNPAID `pending_payment`
@@ -333,6 +247,7 @@ export function createAdminOrdersV2Router() {
 
         const [updated] = await tx.update(orders).set({
           status: input.status,
+          ...(input.adminNotes !== undefined ? {adminNotes: input.adminNotes} : {}),
           ...(cancellingPendingPayment ? { paymentStatus: "cancelled" } : {}),
           ...(input.shippingCost !== undefined ? { shippingCost: String(input.shippingCost) } : {}),
           ...(input.roundedTotal !== undefined ? { roundedTotal: String(input.roundedTotal) } : {}),
@@ -340,7 +255,7 @@ export function createAdminOrdersV2Router() {
           ...(input.source !== undefined ? { source: input.source } : {}),
           ...(input.financiallyCounted !== undefined ? { financiallyCounted: input.financiallyCounted } : {}),
           updatedAt: new Date(),
-        } as any).where(sql`${orders.id}=${locked.id}`).returning();
+        }).where(sql`${orders.id}=${locked.id}`).returning();
         if (!updated) throw new Error("فشل تحديث الطلب بعد قفله");
 
         const automaticReturn = input.status !== oldStatus
@@ -371,8 +286,98 @@ export function createAdminOrdersV2Router() {
         return { order: updated, oldStatus, lifecycle, automaticReturn, clientIp: locked.client_ip };
       });
 
-      await runPostCommitCustomerEffects(result.order, result.oldStatus, parsed.data.status);
-      if (parsed.data.status === "rejected" && result.oldStatus !== "rejected") await recordRejectedIp(result.clientIp);
+      await runPostCommitCustomerEffects(result.order, result.oldStatus, input.status);
+      if (input.status === "rejected" && result.oldStatus !== "rejected") await recordRejectedIp(result.clientIp);
+  return result;
+}
+
+export function createAdminOrdersV2Router() {
+  const router = Router();
+  router.use(requireAccountingAdmin);
+
+  router.get("/orders/delivery-companies", async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const db = getDb();
+    if (!db) { res.status(503).json({ message: "قاعدة البيانات غير مهيأة" }); return; }
+
+    try {
+      const result = await db.execute(sql`
+        SELECT id,name,default_fee,active
+        FROM public.delivery_companies
+        WHERE active=true
+        ORDER BY name
+      `);
+      res.json({
+        items: rowsOf<ActiveDeliveryCompany>(result).map((company) => ({
+          ...company,
+          default_fee: Number(company.default_fee),
+        })),
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.get("/orders/:id/return-lines", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const db = getDb();
+    if (!db) { res.status(503).json({ message: "قاعدة البيانات غير مهيأة" }); return; }
+
+    try {
+      const result = await db.execute(sql`
+        SELECT
+          oi.id AS order_item_id,
+          oi.product_id,
+          COALESCE(p.name,oi.product_id) AS product_name,
+          oi.quantity,
+          COALESCE(oi.final_unit_sale_price_snapshot,oi.price_at_purchase) AS price,
+          NULLIF(COALESCE(oi.metadata->>'variantId',oi.metadata->>'variant_id'),'') AS variant_id,
+          NULLIF(COALESCE(oi.metadata->>'variantLabel',oi.metadata->>'variant_label'),'') AS variant_label
+        FROM public.order_items_relational oi
+        LEFT JOIN public.products p ON p.id=oi.product_id
+        WHERE oi.order_id=${req.params.id}
+        ORDER BY oi.id
+      `);
+
+      const lines = rowsOf<ReturnOrderLineRow>(result).map((row) => ({
+        id: row.order_item_id,
+        orderItemId: row.order_item_id,
+        productId: row.product_id,
+        productName: row.product_name ?? row.product_id,
+        quantity: Number(row.quantity),
+        price: Number(row.price),
+        variantId: row.variant_id ?? undefined,
+        variantLabel: row.variant_label ?? undefined,
+      }));
+
+      if (lines.length === 0) {
+        res.status(409).json({
+          message: "لا توجد سطور بيع مالية مرتبطة بهذا الطلب؛ لا يمكن إنشاء راجع محاسبي آمن",
+        });
+        return;
+      }
+
+      if (lines.some((line) => !Number.isInteger(line.quantity) || line.quantity <= 0 || !Number.isFinite(line.price) || line.price < 0)) {
+        throw new Error("RETURN_ORDER_LINES_INVALID: بيانات سطور البيع غير صالحة");
+      }
+
+      res.json({ data: lines });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.put("/orders/:id", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    if (req.body?.status == null) { next(); return; }
+    const parsed = statusTransitionSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ message: "بيانات تغيير حالة الطلب غير صالحة", errors: parsed.error.flatten() });
+      return;
+    }
+    const db = getDb();
+    if (!db) { res.status(503).json({ message: "قاعدة البيانات غير مهيأة" }); return; }
+
+    const actor = actorFromRequest(req);
+    try {
+      const result = await transitionAdminOrderStatus(db, String(req.params.id), parsed.data, actor);
       res.json({ ...result.order, packagingLifecycle: result.lifecycle, automaticReturn: result.automaticReturn });
     } catch (error: any) {
       if (Number.isInteger(error?.statusCode) && error.statusCode >= 400 && error.statusCode < 600) {

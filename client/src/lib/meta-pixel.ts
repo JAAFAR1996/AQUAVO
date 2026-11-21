@@ -5,6 +5,7 @@ import { isTrackingAllowed } from "./tracking-environment";
 import { META_AD_CURRENCY, iqdToAdValue } from "./ad-currency";
 import { addCsrfHeader } from "./csrf";
 import { getSessionId } from "./attribution";
+import { metaPurchaseEventId } from "@shared/ad-currency";
 
 declare global {
   interface Window {
@@ -362,7 +363,7 @@ export function metaTrackPurchase(params: {
     } catch { /* private browsing — skip dedup, allow fire */ }
   }
 
-  const eventId = generateEventId();
+  const eventId = metaPurchaseEventId(params.orderId);
   const { fbc, fbp } = getFbCookies();
 
   if (isPixelReady()) {

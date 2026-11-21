@@ -1,6 +1,7 @@
 import { Router, type Request, type Response } from "express";
 import { sql } from "drizzle-orm";
 import { z } from "zod";
+import { CheckoutQuoteChanged } from "../../shared/checkout-quote.js";
 import { getSession } from "../middleware/auth.js";
 import { persistCheckoutSession } from "../services/authenticated-session.js";
 import { orderLimiter } from "../middleware/rate-limit.js";
@@ -62,6 +63,7 @@ const onlineCheckoutSchema = z.object({
     phone: z.string().trim().min(10).max(15),
     address: z.string().trim().min(10).max(500),
     email: z.string().email().optional().or(z.literal("")),
+    notes: z.string().trim().max(1000).optional(),
   }).strict(),
   items: z.array(z.object({
     productId: z.string().min(1),
@@ -74,6 +76,14 @@ const onlineCheckoutSchema = z.object({
   clientSessionId: z.string().max(80).optional(),
   attribution: onlineAttributionSchema.optional(),
   whatsappMarketingOptIn: z.boolean().optional().default(false),
+  expectedQuote: z.object({
+    items: z.array(z.object({
+      productId: z.string().min(1), variantId: z.string().min(1).max(100).optional(),
+      quantity: z.number().int().positive().max(100), unitPrice: z.number().finite().nonnegative(),
+    }).strict()).min(1).max(50),
+    subtotal: z.number().finite().nonnegative(), shippingCost: z.number().finite().nonnegative(),
+    discount: z.number().finite().nonnegative(), amount: z.number().finite().positive(),
+  }).strict(),
 }).strict();
 
 const retrySchema = z.object({ paymentId: z.string().trim().min(1).max(300) }).strict();
@@ -182,7 +192,9 @@ export function createWaylRouter() {
       }
       const parsed = onlineCheckoutSchema.safeParse(req.body);
       if (!parsed.success) {
-        res.status(400).json({ message: "بيانات الطلب غير صالحة" });
+        res.status(400).json({ message: parsed.error.issues.some(issue => issue.path[0] === "expectedQuote")
+          ? "حدّث صفحة إتمام الطلب حتى نعرض لك المبلغ النهائي وتوافق عليه قبل الدفع."
+          : "بيانات الطلب غير صالحة" });
         return;
       }
       const parsedKey = idempotencyKeySchema.safeParse(req.get("Idempotency-Key"));
@@ -207,6 +219,7 @@ export function createWaylRouter() {
         couponCode: parsed.data.couponCode,
         useCashback: parsed.data.useCashback,
         cashbackToUse: parsed.data.cashbackToUse,
+        expectedQuote: parsed.data.expectedQuote,
       });
       if ((prepared.order as any).whatsappMarketingOptIn) {
         try {
@@ -224,6 +237,10 @@ export function createWaylRouter() {
       const started = await startWaylPaymentForOrder(prepared.order.id, paymentUrls(req));
       res.status(prepared.reused ? 200 : 201).json(started);
     } catch (error) {
+      if (error instanceof CheckoutQuoteChanged) {
+        res.status(409).json({ code: error.code, message: error.message, quote: error.quote });
+        return;
+      }
       const errorMessage = error instanceof Error ? error.message : String(error);
       if (/PRODUCTION_TEST_ORDER_BLOCKED/.test(errorMessage)) {
         res.status(400).json({ message: "اكتب اسم المستلم الحقيقي بدل اسم حساب الإدارة (System Admin)، وبعدها أعد المحاولة." });

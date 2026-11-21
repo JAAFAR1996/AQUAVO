@@ -45,10 +45,10 @@ export function foodComparisonCopy(locale: Locale) {
   return { title: copy[locale].alternatives, note: copy[locale].alternativesNote };
 }
 
-export function FoodCategoryGuide({ products, value, onChange }: { products: Product[]; value: FoodFilter; onChange: (filter: FoodFilter) => void }) {
+export function FoodCategoryGuide({ products, counts, value, onChange }: { products: Product[]; counts?: Partial<Record<FoodFilter, number>>; value: FoodFilter; onChange: (filter: FoodFilter) => void }) {
   const { locale } = useLocale();
   const text = copy[locale];
-  const options = useMemo(() => FOOD_FILTERS.map(filter => ({ filter, count: products.filter(product => matchesFoodFilter(product, filter)).length })), [products]);
+  const options = useMemo(() => FOOD_FILTERS.map(filter => ({ filter, count: counts?.[filter] ?? products.filter(product => matchesFoodFilter(product, filter)).length })), [products, counts]);
   return (
     <section className="mb-5 rounded-xl border border-primary/25 bg-primary/5 p-4 sm:flex sm:items-center sm:gap-6" aria-labelledby="food-choice-title">
       <div className="min-w-0 flex-1">

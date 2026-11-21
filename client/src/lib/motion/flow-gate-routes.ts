@@ -68,8 +68,9 @@ const SECTION_CHUNK: Record<string, () => Promise<unknown>> = {
   "/products": () => import("@/pages/products"),
   "/about": () => import("@/pages/about"),
   "/journey": async () => {
-    const { loadArabicNamespaces } = await import("@/i18n");
-    await loadArabicNamespaces(["tools"]);
+    const { loadLocaleNamespaces, i18next } = await import("@/i18n");
+    const { parseLocale, DEFAULT_LOCALE } = await import("@shared/i18n/locales");
+    await loadLocaleNamespaces(parseLocale(i18next.language) ?? DEFAULT_LOCALE, ["tools"]);
     return import("@/pages/journey");
   },
   "/tank-builder": () => import("@/pages/aquarium-wizard"),

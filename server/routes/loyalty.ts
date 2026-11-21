@@ -6,7 +6,7 @@
 
 import type { Router as RouterType, Request, Response, NextFunction } from "express";
 import { Router } from "express";
-import { requireAuth, getSession } from "../middleware/auth.js";
+import { requireAuth, requireAdmin, getSession } from "../middleware/auth.js";
 import { loyaltyStorage, MEMBERSHIP_TIERS } from "../storage/loyalty-storage.js";
 import { z } from "zod";
 
@@ -424,7 +424,7 @@ export function createLoyaltyRouter(): RouterType {
     // ========================================
     // POST /api/loyalty/ai-bonus - مكافأة ذكية (يُستخدم من الـ backend notifications)
     // ========================================
-    router.post("/ai-bonus", requireAuth, async (req: Request, res: Response, next: NextFunction) => {
+    router.post("/ai-bonus", requireAdmin, async (req: Request, res: Response, next: NextFunction) => {
         try {
             const sess = getSession(req);
             const userId = sess?.userId;
@@ -433,13 +433,16 @@ export function createLoyaltyRouter(): RouterType {
                 return res.status(401).json({ error: "غير مسجل الدخول" });
             }
 
-            const { reason } = req.body;
-            if (!reason || typeof reason !== "string") {
-                return res.status(400).json({ error: "reason is required" });
-            }
+            // This is an operator action. Customers cannot create the event
+            // that grants their own points; every grant records its actor.
+            const parsed = z.object({
+                userId: z.string().min(1).max(128),
+                reason: z.string().trim().min(3).max(500),
+            }).strict().safeParse(req.body);
+            if (!parsed.success) return res.status(400).json({ error: "حدد الحساب وسبب منح المكافأة." });
 
             const { winbackEngine } = await import("../storage/winback-engine.js");
-            const result = await winbackEngine.awardAIBonus(userId, reason);
+            const result = await winbackEngine.awardAIBonus(parsed.data.userId, parsed.data.reason, userId);
 
             res.json({
                 success: true,

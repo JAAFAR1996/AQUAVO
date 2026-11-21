@@ -84,6 +84,8 @@ jobs:
         env:
           NODE_ENV: production
         timeout-minutes: 10
+      - name: Verify storefront performance budgets
+        run: node --import tsx scripts/check-performance-budgets.ts
       - name: 📊 Check build output
         run: |
           if [ ! -d "dist/client" ] && [ ! -d "dist" ] && [ ! -d "build" ]; then
@@ -146,7 +148,7 @@ jobs:
     name: 🧪 Tests
     needs: validate
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 35
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
@@ -169,14 +171,16 @@ jobs:
         run: pnpm run test --run
         env:
           NODE_ENV: test
-        timeout-minutes: 10
+        # The bounded two-worker suite includes isolated Postgres migrations;
+        # its measured local runtime is already about ten minutes.
+        timeout-minutes: 15
       - name: 📊 Generate coverage report
         run: pnpm run test:coverage
         continue-on-error: true
         timeout-minutes: 10
       - name: 📤 Upload coverage to Codecov
         uses: codecov/codecov-action@v3
-        if: always()
+        if: ${{ !cancelled() && github.event_name != 'pull_request' && hashFiles('./coverage/coverage-final.json') != '' }}
         with:
           files: ./coverage/coverage-final.json
           flags: unittests

@@ -85,7 +85,7 @@ export default async function handler(_req: VercelRequest, res: VercelResponse):
       `SELECT id, slug, name, description, subcategory, specifications, variants,
               images, thumbnail, updated_at AS "updatedAt"
          FROM products
-        WHERE deleted_at IS NULL
+        WHERE deleted_at IS NULL AND is_storefront_visible = true
           AND slug IS NOT NULL
           AND slug <> ''
         ORDER BY updated_at DESC NULLS LAST, name ASC

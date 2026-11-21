@@ -2,7 +2,8 @@ import type { Router as RouterType, Request, Response, NextFunction } from "expr
 import { Router } from "express";
 import { storage } from "../storage/index.js";
 import { localRequireAuth, getSession } from "../utils/auth-helpers.js";
-import { toPublicReview } from "../../shared/public-product.js";
+import { isPublicStorefrontProduct, toPublicReview } from "../../shared/public-product.js";
+import { createReviewInput, updateReviewInput } from "../utils/review-input.js";
 import { reviewLimiter } from "../middleware/rate-limit.js";
 
 export function createReviewsRouter(): RouterType {
@@ -12,6 +13,12 @@ export function createReviewsRouter(): RouterType {
     router.get("/reviews/:productId", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { productId } = req.params as { productId: string };
+            res.setHeader("Cache-Control", "no-store");
+            const product = await storage.getProduct(productId);
+            if (!product || !isPublicStorefrontProduct(product)) {
+                res.status(404).json({ message: "المنتج غير موجود" });
+                return;
+            }
             const reviews = await storage.getReviews(productId);
 
             // Only show approved reviews to the public
@@ -53,15 +60,10 @@ export function createReviewsRouter(): RouterType {
             const sess = getSession(req);
             const userId = sess?.userId || null;          // null for guests
 
-            const { productId, rating, title, comment, images, guestName } = req.body;
-
-            if (!productId) {
-                res.status(400).json({ message: "معرف المنتج مطلوب" });
-                return;
-            }
-
-            if (!rating || rating < 1 || rating > 5) {
-                res.status(400).json({ message: "التقييم يجب أن يكون بين 1 و 5" });
+            const { productId, rating, title, comment, images, guestName } = createReviewInput.parse(req.body);
+            const product = await storage.getProduct(productId);
+            if (!product || !isPublicStorefrontProduct(product)) {
+                res.status(404).json({ message: "المنتج غير موجود" });
                 return;
             }
 
@@ -74,7 +76,7 @@ export function createReviewsRouter(): RouterType {
                 }
             }
 
-            const ipAddress = String(req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '');
+            const ipAddress = req.ip || req.socket?.remoteAddress || '';
 
             const existingReviews = await storage.getReviews(productId);
 
@@ -108,53 +110,15 @@ export function createReviewsRouter(): RouterType {
                 );
             }
 
-            // Defence-in-depth for auto-published content (no manual moderation):
-            // strip angle brackets + control chars and cap length. React already
-            // escapes on render, so this guards any future/non-React consumer too.
-            const cleanText = (value: unknown, max: number): string =>
-                String(value ?? "")
-                    .replace(/[<>]/g, "")
-                    .trim()
-                    .slice(0, max);
-
-            // Only accept image URLs we host — blocks arbitrary/external URLs
-            // injected via crafted requests. Relative paths must be a strict
-            // image path (not protocol-relative "//evil.com"); absolute URLs must
-            // match our CDN origin exactly (not a substring like "cdn.x.com.evil").
-            const cdnOrigin = (() => {
-                try {
-                    return process.env.CLOUDFLARE_CDN_URL
-                        ? new URL(process.env.CLOUDFLARE_CDN_URL).origin
-                        : "";
-                } catch {
-                    return "";
-                }
-            })();
-            // Leading "/" but NOT "//" (blocks protocol-relative "//evil.com/x.png").
-            const RELATIVE_IMAGE = /^\/(?!\/)[A-Za-z0-9._\-\/]+\.(png|jpe?g|webp|gif)$/i;
-            const isSafeImageUrl = (u: unknown): u is string => {
-                if (typeof u !== "string" || u === "") return false;
-                if (RELATIVE_IMAGE.test(u)) return true; // local relative image path
-                if (cdnOrigin === "") return false;
-                try {
-                    return new URL(u).origin === cdnOrigin; // exact CDN origin match
-                } catch {
-                    return false;
-                }
-            };
-            const safeImages = Array.isArray(images)
-                ? images.filter(isSafeImageUrl).slice(0, 6)
-                : [];
-
-            const safeGuestName = cleanText(guestName, 60);
+            const safeGuestName = guestName || "";
 
             const review = await storage.createReview({
                 productId,
                 userId,                              // null for guests
                 rating,
-                title: cleanText(title, 120),
-                comment: cleanText(comment, 2000),
-                images: safeImages,
+                title: title || "",
+                comment: comment || "",
+                images: images || [],
                 ipAddress,
                 verifiedPurchase,
                 status: "approved",                 // auto-publish (no manual moderation)
@@ -172,7 +136,7 @@ export function createReviewsRouter(): RouterType {
     });
 
     // Update a review
-    router.put("/reviews/:reviewId", localRequireAuth, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    router.put("/reviews/:reviewId", localRequireAuth, reviewLimiter, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const sess = getSession(req);
             const userId = sess?.userId;
@@ -190,14 +154,8 @@ export function createReviewsRouter(): RouterType {
                 return;
             }
 
-            const { rating, title, comment, images } = req.body;
-
-            const updatedReview = await storage.updateReview(reviewId, {
-                rating,
-                title,
-                comment,
-                images,
-            });
+            const data = updateReviewInput.parse(req.body);
+            const updatedReview = await storage.updateReview(reviewId, data);
 
             if (review.productId) {
                 await storage.updateProductRating(review.productId);

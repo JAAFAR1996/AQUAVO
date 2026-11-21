@@ -16,7 +16,6 @@ const router = Router();
 
 // Maximum spots available
 const MAX_SPOTS = 50;
-const INITIAL_DISPLAY_OFFSET = 5; // Start showing 45/50 (50 - 5 = 45)
 const DISCOUNT_PERCENTAGE = 5; // 5% discount
 const MAX_REGISTRATIONS_PER_IP = 100; // Increased for launch/testing
 const RATE_LIMIT_HOURS = 24;
@@ -72,8 +71,7 @@ router.get("/spots", async (req: Request, res: Response) => {
         const db = getDb();
 
         if (!db) {
-            // Return default if DB not available
-            return res.json({ spotsRemaining: MAX_SPOTS - INITIAL_DISPLAY_OFFSET });
+            return res.status(503).json({ message: "تعذر التحقق من الأماكن المتاحة حاليا", spotsRemaining: null });
         }
 
         // Count existing leads
@@ -82,16 +80,16 @@ router.get("/spots", async (req: Request, res: Response) => {
             .from(earlyAccessLeads);
 
         const leadCount = result[0]?.count || 0;
-        const spotsRemaining = Math.max(0, MAX_SPOTS - leadCount - INITIAL_DISPLAY_OFFSET);
+        const spotsRemaining = Math.max(0, MAX_SPOTS - leadCount);
 
         res.json({
             spotsRemaining,
             totalSpots: MAX_SPOTS,
-            registered: leadCount + INITIAL_DISPLAY_OFFSET,
+            registered: leadCount,
         });
     } catch (error) {
         console.error("[EarlyAccess] Error getting spots:", error);
-        res.json({ spotsRemaining: MAX_SPOTS - INITIAL_DISPLAY_OFFSET });
+        res.status(503).json({ message: "تعذر التحقق من الأماكن المتاحة حاليا", spotsRemaining: null });
     }
 });
 
@@ -113,7 +111,7 @@ router.post("/register", async (req: Request, res: Response) => {
         }
 
         // Get client IP
-        const clientIp = (req.headers["x-forwarded-for"]?.toString().split(",")[0] || req.ip || "unknown").trim();
+        const clientIp = (req.ip || "unknown").trim();
 
         // Validate input
         const validation = insertEarlyAccessLeadSchema.safeParse({
@@ -159,7 +157,7 @@ router.post("/register", async (req: Request, res: Response) => {
         const ipCount = ipRegistrations[0]?.count || 0;
 
         if (ipCount >= MAX_REGISTRATIONS_PER_IP) {
-            console.log(`[EarlyAccess] ⚠️ Rate limit exceeded for IP: ${clientIp} (${ipCount} registrations)`);
+            console.warn("[EarlyAccess] Registration rate limit reached");
             return res.status(429).json({
                 success: false,
                 message: "تم تجاوز الحد المسموح للتسجيلات. يرجى المحاولة لاحقاً.",
@@ -174,7 +172,7 @@ router.post("/register", async (req: Request, res: Response) => {
 
         const currentCount = countResult[0]?.count || 0;
 
-        if (currentCount + INITIAL_DISPLAY_OFFSET >= MAX_SPOTS) {
+        if (currentCount >= MAX_SPOTS) {
             return res.status(400).json({
                 success: false,
                 message: "عذراً، نفذت جميع الأماكن المتاحة",
@@ -188,7 +186,7 @@ router.post("/register", async (req: Request, res: Response) => {
         });
 
         if (existingLead) {
-            const spotsRemaining = Math.max(0, MAX_SPOTS - currentCount - INITIAL_DISPLAY_OFFSET);
+            const spotsRemaining = Math.max(0, MAX_SPOTS - currentCount);
             return res.status(400).json({
                 success: false,
                 message: "هذا الرقم مسجل مسبقاً! سنتواصل معك قريباً",
@@ -238,9 +236,9 @@ router.post("/register", async (req: Request, res: Response) => {
         });
 
         const newCount = currentCount + 1;
-        const spotsRemaining = Math.max(0, MAX_SPOTS - newCount - INITIAL_DISPLAY_OFFSET);
+        const spotsRemaining = Math.max(0, MAX_SPOTS - newCount);
 
-        console.log(`[EarlyAccess] ✅ New lead registered: ${cleanPhone} with coupon ${couponCode} from IP ${clientIp} (${newCount + INITIAL_DISPLAY_OFFSET}/${MAX_SPOTS})`);
+        console.info("[EarlyAccess] Registration saved", { registered: newCount });
 
         res.json({
             success: true,

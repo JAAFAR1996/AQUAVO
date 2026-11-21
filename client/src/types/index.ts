@@ -46,6 +46,13 @@ export interface ProductQueryParams {
   offset?: number;
   isNew?: boolean;
   isBestSeller?: boolean;
+  paginated?: boolean;
+  food?: string;
+  difficulty?: string[];
+  eco?: boolean;
+  inStock?: boolean;
+  homePicks?: boolean;
+  preferredIds?: string[];
 }
 
 // Gallery submission type

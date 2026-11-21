@@ -26,6 +26,7 @@ import { readStashedOrder } from "@/lib/order-stash";
 import { ttqPurchase } from "@/lib/tiktok-pixel";
 import { phTrackPurchase } from "@/lib/posthog";
 import { metaTrackPurchase } from "@/lib/meta-pixel";
+import { isPurchaseLifecycleEligible } from "@shared/purchase-event-policy";
 import { trackPurchase } from "@/lib/analytics";
 import { DELIVERY_DAYS } from "@/lib/constants/shipping";
 import { WhatsAppLink } from "@/components/whatsapp-link";
@@ -47,14 +48,17 @@ interface OrderData {
     id: string;
     orderNumber?: string;
     total: number;
+    roundedTotal?: number | string | null;
     status?: string;
     paymentStatus?: string;
+    isTest?: boolean;
     paymentMethod?: string;
     paymentRecordStatus?: string | null;
     items?: OrderItem[];
     shippingAddress?: string;
     customerName?: string;
     customerPhone?: string;
+    customerNotes?: string | null;
     shippingCost?: string;
     discountTotal?: string;
     createdAt?: string;
@@ -141,7 +145,7 @@ export default function OrderConfirmation() {
 
     useEffect(() => {
         const full = order as OrderData | undefined;
-        if (full && full.items && full.items.length > 0) {
+        if (full && full.items && full.items.length > 0 && isPurchaseLifecycleEligible(full)) {
             phTrackPurchase({
                 orderId: full.orderNumber || full.id,
                 totalValue: Number(full.total ?? 0),
@@ -161,7 +165,7 @@ export default function OrderConfirmation() {
             });
             metaTrackPurchase({
                 orderId: full.orderNumber || full.id,
-                totalIQD: full.total,
+                totalIQD: Number(full.roundedTotal ?? full.total),
                 productIds: full.items.map(item => item.productId),
                 numItems: full.items.reduce((sum, item) => sum + item.quantity, 0),
                 phone: full.customerPhone,
@@ -177,7 +181,7 @@ export default function OrderConfirmation() {
                 })),
             });
         }
-    }, [(order as OrderData | undefined)?.id]);
+    }, [(order as OrderData | undefined)?.id, (order as OrderData | undefined)?.status, (order as OrderData | undefined)?.paymentStatus, (order as OrderData | undefined)?.paymentRecordStatus]);
 
     if (loading) {
         return (
@@ -298,7 +302,7 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
             name: customerName,
             phone: customerPhone,
             address: address,
-            notes: ""
+            notes: orderData?.customerNotes ?? ""
         },
         items: items.map(item => ({
             id: item.variantId ? `${item.productId}-${item.variantId}` : item.productId,

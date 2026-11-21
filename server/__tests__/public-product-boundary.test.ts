@@ -13,6 +13,7 @@
 import { describe, it, expect } from "vitest";
 import {
   toPublicProduct,
+  toInvoiceProductDisplay,
   toPublicProducts,
   toPublicVariant,
   toPublicOrderItem,
@@ -84,6 +85,55 @@ const SENSITIVE_KEYS = [
 ];
 
 describe("public product DTO — the leaked fields are gone", () => {
+  it("excludes hidden/deleted rows while preserving explicitly authorized invoice display", () => {
+    const hidden = { ...leakedProductRow(), isStorefrontVisible: false };
+    expect(toPublicProduct(hidden)).toBeNull();
+    expect(toPublicProducts([hidden, { ...hidden, isStorefrontVisible: true, deletedAt: new Date() }])).toEqual([]);
+    expect(toInvoiceProductDisplay(hidden)).toMatchObject({ id: hidden.id, name: hidden.name });
+    expect(findForbiddenFieldPaths(toInvoiceProductDisplay(hidden))).toEqual([]);
+  });
+
+  it("strips internal references recursively without losing nested technical or coming-soon data", () => {
+    const row = { ...leakedProductRow(), specifications: {
+      __availabilityStatus: "coming_soon", private_invoice: { id: "private-reference" },
+      catalogue_listing: false, الحجم: "صغير", technical: { dimensions: { width: "25 cm" }, supplier_cost: 777 },
+      rows: [{ label: "Flow", value: "400 L/h", invoiceReference: "private-reference" }],
+    } };
+    expect(toPublicProduct(row)?.specifications).toEqual({
+      __availabilityStatus: "coming_soon", الحجم: "صغير", technical: { dimensions: { width: "25 cm" } },
+      rows: [{ label: "Flow", value: "400 L/h" }],
+    });
+  });
+
+  it("removes Arabic and camel-case business metadata while retaining technical and preview specifications", () => {
+    const specs = {
+      "رقم الفاتورة": "private-invoice", "سعر الشراء": 777, "هاتف الزبون": "private-phone",
+      "بيانات المورد": { name: "private-name" }, "البريد الإلكتروني": "private-email",
+      purchasePrice: 777, negotiatedPurchasePriceIQD: 777, catalogueListing: false,
+      contactPhone: "private-phone", nested: { "تكلفة التغليف": 99, supplierName: "private-name", "معدل التدفق": "400 لتر/ساعة" },
+      __availabilityStatus: "coming_soon", __model3d: { url: "/models/filter.glb", scale: 1 },
+      __foodChoice: { species: ["goldfish"], form: "pellet" },
+      "الأبعاد": { "الطول": "25 سم", width: "5 cm" }, "هامش الأمان": "5 سم",
+    };
+    const row = { ...leakedProductRow(), specifications: specs, variants: [{
+      id: "incoming", label: "قريبا", price: null, stock: 0, priceStatus: "pending", availabilityStatus: "coming_soon",
+      specifications: { "سعر الجملة": 99, invoiceNumber: "private-invoice", "الحجم": "صغير" },
+    }] };
+    const publicProduct = toPublicProduct(row)!;
+    expect(publicProduct.specifications).toEqual({
+      nested: { "معدل التدفق": "400 لتر/ساعة" },
+      __availabilityStatus: "coming_soon", __model3d: { url: "/models/filter.glb", scale: 1 },
+      __foodChoice: { species: ["goldfish"], form: "pellet" },
+      "الأبعاد": { "الطول": "25 سم", width: "5 cm" }, "هامش الأمان": "5 سم",
+    });
+    expect(publicProduct.variants).toEqual([{
+      id: "incoming", label: "قريبا", price: null, stock: 0, priceStatus: "pending", availabilityStatus: "coming_soon",
+      specifications: { "الحجم": "صغير" },
+    }]);
+    expect(publicProduct.price).toBe(row.price);
+    expect(JSON.stringify(publicProduct)).not.toContain("private-");
+  });
+
   it("drops every internal cost field that production exposed", () => {
     const pub = toPublicProduct(leakedProductRow())!;
     for (const key of SENSITIVE_KEYS) {

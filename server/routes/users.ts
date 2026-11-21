@@ -1,7 +1,8 @@
 import type { Router as RouterType, Request, Response, NextFunction } from "express";
 import { Router } from "express";
 import { storage } from "../storage/index.js";
-import { insertUserAddressSchema, earlyAccessLeads } from "../../shared/schema.js";
+import { earlyAccessLeads } from "../../shared/schema.js";
+import { createUserAddressInput, updateUserAddressInput } from "../../shared/user-address-input.js";
 import { passwordPolicyMessage, validatePasswordPolicy } from "../../shared/password-policy.js";
 import { requireAuth, getSession } from "../middleware/auth.js";
 import { sendPasswordResetEmail } from "../utils/email.js";
@@ -401,16 +402,11 @@ export function createUserRouter(): RouterType {
         try {
             const sess = getSession(req);
             if (!sess?.userId) { res.sendStatus(401); return; }
-            const { label, address: addressText, addressLine1, city, country, isDefault } = req.body;
-            const parsed = insertUserAddressSchema.parse({
-                label: label || null,
-                addressLine1: addressLine1 || addressText || "",
-                city: city || "العراق",
-                country: country || "Iraq",
-                isDefault: isDefault ?? false,
+            const parsed = createUserAddressInput.parse(req.body);
+            const savedAddress = await storage.createUserAddress({
+                ...parsed,
                 userId: sess.userId,
             });
-            const savedAddress = await storage.createUserAddress(parsed);
             res.status(201).json(savedAddress);
         } catch (err) {
             next(err);
@@ -423,13 +419,7 @@ export function createUserRouter(): RouterType {
             if (!sess?.userId) { res.sendStatus(401); return; }
 
             const { id } = req.params as { id: string };
-            const { label, address, addressLine1, phone, isDefault } = req.body;
-            const updates: Record<string, any> = {};
-            if (label !== undefined) updates.label = String(label).slice(0, 50);
-            const nextAddress = addressLine1 ?? address;
-            if (nextAddress !== undefined) updates.address = String(nextAddress).slice(0, 500);
-            if (phone !== undefined) updates.phone = String(phone).slice(0, 20);
-            if (isDefault !== undefined) updates.isDefault = Boolean(isDefault);
+            const updates = updateUserAddressInput.parse(req.body);
 
             const updated = await storage.updateUserAddress(id, sess.userId, updates);
             if (!updated) { res.status(404).json({ message: "Address not found" }); return; }

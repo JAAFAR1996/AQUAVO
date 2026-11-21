@@ -23,7 +23,6 @@ import { prefersReducedMotion } from "./reduced-motion";
  *   or a skipped/rejected transition) — never a second click, never frozen.
  */
 
-const DATA_WARM_TIMEOUT = 400;
 const HERO_READY_TIMEOUT = 320;
 
 function cssSafe(slug: string): string {
@@ -117,13 +116,10 @@ export async function navigateCardToProduct(opts: NavOptions): Promise<void> {
   ).startViewTransition;
 
   try {
-    // Warm the destination data (cold-cache safe) with an aggressive timeout.
-    await Promise.race([
-      queryClient
-        .ensureQueryData({ queryKey: ["product", slug], queryFn: () => fetchProductBySlug(slug) })
-        .catch(() => {}),
-      wait(DATA_WARM_TIMEOUT),
-    ]);
+    // Start data work without making a slow connection hold the current page.
+    void queryClient
+      .ensureQueryData({ queryKey: ["product", slug], queryFn: () => fetchProductBySlug(slug) })
+      .catch(() => {});
 
     if (sourceImg) sourceImg.style.viewTransitionName = name;
 

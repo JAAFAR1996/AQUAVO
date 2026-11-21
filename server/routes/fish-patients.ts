@@ -9,13 +9,16 @@ import { Router } from "express";
 import type { Request, Response, NextFunction } from "express";
 import { db } from "../db.js";
 import { fishPatients, fishMedicalRecords } from "../../shared/schema.js";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { z } from "zod";
+import { getSession } from "../middleware/auth.js";
+import { OperationalError } from "../middleware/error-handler.js";
+import { eq, and, desc, sql, inArray } from "drizzle-orm";
 
 const router = Router();
 
 // ── Helper: Get authenticated userId ──
 function getUserId(req: Request): string | null {
-  return (req as any).user?.id || (req as any).session?.userId || null;
+  return getSession(req)?.userId || null;
 }
 
 /**
@@ -24,6 +27,7 @@ function getUserId(req: Request): string | null {
  */
 router.get("/", async (req: Request, res: Response, next: NextFunction) => {
   try {
+    if (!db) throw new OperationalError("الخدمة غير متاحة حاليا", 503);
     const userId = getUserId(req);
     if (!userId) {
       return res.status(401).json({ success: false, error: "يجب تسجيل الدخول" });
@@ -48,6 +52,7 @@ router.get("/", async (req: Request, res: Response, next: NextFunction) => {
  */
 router.post("/", async (req: Request, res: Response, next: NextFunction) => {
   try {
+    if (!db) throw new OperationalError("الخدمة غير متاحة حاليا", 503);
     const userId = getUserId(req);
     if (!userId) {
       return res.status(401).json({ success: false, error: "يجب تسجيل الدخول" });
@@ -88,6 +93,7 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
  */
 router.get("/:id", async (req: Request, res: Response, next: NextFunction) => {
   try {
+    if (!db) throw new OperationalError("الخدمة غير متاحة حاليا", 503);
     const userId = getUserId(req);
     if (!userId) {
       return res.status(401).json({ success: false, error: "يجب تسجيل الدخول" });
@@ -123,6 +129,7 @@ router.get("/:id", async (req: Request, res: Response, next: NextFunction) => {
  */
 router.patch("/:id", async (req: Request, res: Response, next: NextFunction) => {
   try {
+    if (!db) throw new OperationalError("الخدمة غير متاحة حاليا", 503);
     const userId = getUserId(req);
     if (!userId) {
       return res.status(401).json({ success: false, error: "يجب تسجيل الدخول" });
@@ -164,6 +171,7 @@ router.patch("/:id", async (req: Request, res: Response, next: NextFunction) => 
  */
 router.delete("/:id", async (req: Request, res: Response, next: NextFunction) => {
   try {
+    if (!db) throw new OperationalError("الخدمة غير متاحة حاليا", 503);
     const userId = getUserId(req);
     if (!userId) {
       return res.status(401).json({ success: false, error: "يجب تسجيل الدخول" });
@@ -194,6 +202,7 @@ router.delete("/:id", async (req: Request, res: Response, next: NextFunction) =>
  */
 router.post("/:id/records", async (req: Request, res: Response, next: NextFunction) => {
   try {
+    if (!db) throw new OperationalError("الخدمة غير متاحة حاليا", 503);
     const userId = getUserId(req);
     if (!userId) {
       return res.status(401).json({ success: false, error: "يجب تسجيل الدخول" });
@@ -245,22 +254,23 @@ router.post("/:id/records", async (req: Request, res: Response, next: NextFuncti
  */
 router.patch("/:fishId/records/:recordId", async (req: Request, res: Response, next: NextFunction) => {
   try {
+    if (!db) throw new OperationalError("الخدمة غير متاحة حاليا", 503);
     const userId = getUserId(req);
     if (!userId) {
       return res.status(401).json({ success: false, error: "يجب تسجيل الدخول" });
     }
 
-    const { recordId } = req.params;
-    const { outcome, userNotes, followUpCompleted } = req.body;
-
-    const [updated] = await db
-      .update(fishMedicalRecords)
-      .set({
-        ...(outcome !== undefined && { outcome }),
-        ...(userNotes !== undefined && { userNotes }),
-        ...(followUpCompleted !== undefined && { followUpCompleted }),
-      })
-      .where(eq(fishMedicalRecords.id, recordId))
+    const { fishId, recordId } = req.params;
+    const data = z.object({
+      outcome: z.string().trim().max(80).optional(),
+      userNotes: z.string().trim().max(2000).optional(),
+      followUpCompleted: z.boolean().optional(),
+    }).strict().refine(value => Object.keys(value).length > 0, "حدد التعديل المطلوب").parse(req.body);
+    // Bind all three identities in the write itself: record, parent fish, owner.
+    const [updated] = await db.update(fishMedicalRecords).set(data)
+      .where(and(eq(fishMedicalRecords.id, recordId), eq(fishMedicalRecords.fishPatientId, fishId),
+        inArray(fishMedicalRecords.fishPatientId, db.select({ id: fishPatients.id }).from(fishPatients)
+          .where(and(eq(fishPatients.id, fishId), eq(fishPatients.userId, userId))))))
       .returning();
 
     if (!updated) {
@@ -280,6 +290,7 @@ router.patch("/:fishId/records/:recordId", async (req: Request, res: Response, n
  */
 router.get("/follow-ups/pending", async (req: Request, res: Response, next: NextFunction) => {
   try {
+    if (!db) throw new OperationalError("الخدمة غير متاحة حاليا", 503);
     const userId = getUserId(req);
     if (!userId) {
       return res.status(401).json({ success: false, error: "يجب تسجيل الدخول" });

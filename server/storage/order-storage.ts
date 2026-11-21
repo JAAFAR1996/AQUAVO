@@ -6,7 +6,7 @@ import { eligibleCoupon, couponBenefit } from "../services/coupon-policy.js";
 import { type Order, type Coupon, type AuditLog, type CartItem, type Favorite, type GallerySubmission, type GalleryPrize, type Payment, type ProductVariant, type OrderLineItem, orders, coupons, auditLogs, cartItems, favorites, gallerySubmissions, galleryVotes, galleryPrizes, payments, products, settings, orderItems, returnRequests, referrals, loyaltyTransactions, loyaltyCoupons, autoOrders } from "../../shared/schema.js";
 import { eq, desc, and, sql, or, isNull, inArray } from "drizzle-orm";
 import { getDb } from "../db.js";
-import { toPublicProduct } from "../../shared/public-product.js";
+import { toPublicProduct, isPublicStorefrontProduct } from "../../shared/public-product.js";
 import { loyaltyStorage, type TransactionalOrderLoyaltyResult } from "./loyalty-storage.js";
 import {
     buildProductCostSnapshot,
@@ -272,7 +272,7 @@ export class OrderStorage {
             for (const item of normalizeCheckoutLines(items)) {
                 const product = await this.lockProductForUpdate(tx, item.productId);
                 if (!product) throw new Error(`Product ${item.productId} not found`);
-                if (product.isStorefrontVisible === false) throw Object.assign(new Error(CART_ERROR_NOT_PURCHASABLE), {status:400});
+                if (!isPublicStorefrontProduct(product)) throw Object.assign(new Error(CART_ERROR_NOT_PURCHASABLE), {status:400});
                 if (product.hasVariants && !item.variantId) throw Object.assign(new Error(CART_ERROR_VARIANT_REQUIRED), {status:400});
                 if (!product.hasVariants && item.variantId) throw Object.assign(new Error(CART_ERROR_VARIANT_INVALID), {status:400});
 
@@ -382,6 +382,7 @@ export class OrderStorage {
                 customerName: customerInfo.name,
                 customerEmail: customerInfo.email,
                 customerPhone: customerInfo.phone,
+                customerNotes: customerInfo.notes?.trim() || null,
                 // Consent evidence must be committed atomically with the order.
                 // CRM/event fan-out is post-commit and repairable from these fields.
                 whatsappMarketingOptIn: commerceContext.whatsappMarketingOptIn === true,
@@ -611,6 +612,9 @@ export class OrderStorage {
         const validItems: Array<CartItem & { product: any }> = [];
 
         for (const { cartItem, product } of items) {
+            // A private invoice identity must not be returned to the customer.
+            // Keep its historical cart row intact; visibility is an admin choice.
+            if (!isPublicStorefrontProduct(product)) continue;
             const variants = Array.isArray((product as any).variants)
                 ? ((product as any).variants as ProductVariant[])
                 : [];
@@ -678,6 +682,7 @@ export class OrderStorage {
                 isNull(products.deletedAt)
             ));
         if (!product) throw new Error("Product not found");
+        if (!isPublicStorefrontProduct(product)) throw new Error(CART_ERROR_NOT_PURCHASABLE);
 
         // Source of truth for SKU identity, price and stock is the CURRENT
         // product row. Client-supplied variantPrice/variantLabel are never trusted.
@@ -768,7 +773,7 @@ export class OrderStorage {
                     isNull(products.deletedAt)
                 ));
 
-            if (!product) {
+            if (!product || !isPublicStorefrontProduct(product)) {
                 throw new Error(CART_ERROR_NOT_PURCHASABLE);
             }
 
@@ -823,13 +828,15 @@ export class OrderStorage {
             .innerJoin(products, eq(favorites.productId, products.id))
             .where(and(
                 eq(favorites.userId, userId),
+                eq(products.isStorefrontVisible, true),
                 isNull(products.deletedAt)
             ));
 
         // `product: products` selects the whole row, cost columns included, and this list is served
         // straight to a logged-in customer by GET /api/favorites. Authenticated, but every customer with
         // a favourite could read AQUAVO's cost basis. Same defect class as the public product list.
-        return items.map(({ favorite, product }) => ({ ...favorite, product: toPublicProduct(product) })) as any;
+        return items.filter(({ product }) => isPublicStorefrontProduct(product))
+            .map(({ favorite, product }) => ({ ...favorite, product: toPublicProduct(product) })) as any;
     }
 
     async addFavorite(userId: string, productId: string): Promise<Favorite> {
@@ -885,37 +892,24 @@ export class OrderStorage {
 
     async voteGallerySubmission(id: string, ipAddress: string, userId?: string): Promise<boolean> {
         const db = this.ensureDb();
-
-        // Check if already voted using combined logic
-        const conditions = [
-            eq(galleryVotes.galleryId, id)
-        ];
-
-        if (userId) {
-            conditions.push(sql`(${galleryVotes.ipAddress} = ${ipAddress} OR ${galleryVotes.userId} = ${userId})`);
-        } else {
-            conditions.push(eq(galleryVotes.ipAddress, ipAddress));
-        }
-
-        const existingVote = await db.select().from(galleryVotes)
-            .where(and(...conditions))
-            .limit(1);
-
-        if (existingVote.length > 0) return false;
-
-        // Note: neon-http driver doesn't support transactions
-        // Execute operations sequentially
-        await db.insert(galleryVotes).values({
-            galleryId: id,
-            userId: userId || null,
-            ipAddress
-        } as any);
-
-        await db.update(gallerySubmissions)
-            .set({ likes: sql`${gallerySubmissions.likes} + 1` } as any)
-            .where(eq(gallerySubmissions.id, id));
-
-        return true;
+        return db.transaction(async (tx) => {
+            // Serialize votes for this entry before checking uniqueness. This
+            // also makes the public count and vote record commit together.
+            const [submission] = await tx.select({ id: gallerySubmissions.id, approved: gallerySubmissions.isApproved })
+                .from(gallerySubmissions).where(eq(gallerySubmissions.id, id)).for("update");
+            if (!submission?.approved) return false;
+            const identity = userId
+                ? sql`(${galleryVotes.ipAddress} = ${ipAddress} OR ${galleryVotes.userId} = ${userId})`
+                : eq(galleryVotes.ipAddress, ipAddress);
+            const [existing] = await tx.select({ id: galleryVotes.id }).from(galleryVotes)
+                .where(and(eq(galleryVotes.galleryId, id), identity)).limit(1);
+            if (existing) return false;
+            await tx.insert(galleryVotes).values({ galleryId: id, userId: userId || null, ipAddress });
+            await tx.update(gallerySubmissions)
+                .set({ likes: sql`coalesce(${gallerySubmissions.likes}, 0) + 1` })
+                .where(eq(gallerySubmissions.id, id));
+            return true;
+        });
     }
 
     async deleteGallerySubmission(id: string): Promise<boolean> {

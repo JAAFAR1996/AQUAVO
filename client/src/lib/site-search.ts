@@ -1,5 +1,10 @@
 import type { Product } from "@/types";
 import { SHOP_CATEGORY_LINKS } from "@/lib/product-category-links";
+import { getLocalizedStaticMeta } from "@/i18n/static-meta";
+import { localizeCategoryName } from "@shared/i18n/categories";
+import type { Locale } from "@shared/i18n/locales";
+import { getProductPriceDisplay } from "@shared/public-price";
+import { isVariantPurchasable } from "@shared/variant-commerce";
 
 export type SiteSearchResultType = "product" | "page";
 
@@ -52,7 +57,7 @@ export const SITE_SEARCH_PAGES: SiteSearchPage[] = [
   {
     id: "tracking",
     title: "تتبع طلبك",
-    description: "راجع حالة الطلب باستخدام رقم الطلب ورقم الهاتف.",
+    description: "راجع حالة الطلب وتحديثات التوصيل.",
     url: "/order-tracking",
     keywords: ["طلب", "تتبع", "شحنة", "tracking", "order"],
   },
@@ -116,6 +121,35 @@ export const POPULAR_SEARCH_LINKS = [
   { title: "أغذية الأسماك", url: SHOP_CATEGORY_LINKS.food, category: "أغذية", keywords: ["طعام", "غذاء", "اكل", "food"] },
   { title: "معالجات المياه", url: SHOP_CATEGORY_LINKS.waterTreatment, category: "معالجات", keywords: ["معالج", "ماء", "كلور", "treatment", "conditioner"] },
 ] as const;
+
+const LOCAL_SEARCH_PAGES = {
+  en: {
+    tracking: { title: "Track your order", description: "Check your order status and delivery updates." },
+    wishlist: { title: "Wishlist", description: "Return to the products you saved for later." },
+  },
+  ckb: {
+    tracking: { title: "بەدواداچوونی داواکاری", description: "دۆخی داواکاری و نوێکارییەکانی گەیاندن ببینە." },
+    wishlist: { title: "دڵخوازەکان", description: "بگەڕێوە بۆ ئەو بەرهەمانەی بۆ دواتر پاشەکەوتت کردوون." },
+  },
+};
+
+export function getSiteSearchPages(locale: Locale = "ar"): SiteSearchPage[] {
+  if (locale === "ar") return SITE_SEARCH_PAGES;
+  return SITE_SEARCH_PAGES.map(page => {
+    const fallback = page.id === "tracking" || page.id === "wishlist" ? LOCAL_SEARCH_PAGES[locale][page.id] : undefined;
+    const localized = getLocalizedStaticMeta(locale, page.url) ?? fallback;
+    return localized ? { ...page, title: localized.title.replace(/\s*\|\s*AQUAVO$/, ""), description: localized.description } : page;
+  });
+}
+
+export function getPopularSearchLinks(locale: Locale = "ar") {
+  return POPULAR_SEARCH_LINKS.map(link => {
+    if (locale === "ar") return link;
+    const canonical = new URLSearchParams(link.url.split("?")[1]).get("category") ?? link.category;
+    const title = localizeCategoryName(canonical, locale);
+    return { ...link, title, category: title };
+  });
+}
 
 const ARABIC_MARKS = /[\u064B-\u065F\u0670\u06D6-\u06ED]/g;
 const SEARCH_SEPARATORS = /[^0-9a-z\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]+/gi;
@@ -187,6 +221,14 @@ function searchableProductText(product: Product): string {
   ].join(" ");
 }
 
+function availableVariantStock(product: Product): number {
+  if (!product.hasVariants) return Number(product.stock ?? 0);
+  const available = product.variants?.filter(variant => isVariantPurchasable(variant)) ?? [];
+  // Correct the parent snapshot when a selectable option is actually available.
+  // An entirely pending/coming-soon product retains its existing presentation.
+  return available.length ? available.reduce((sum, variant) => sum + Number(variant.stock), 0) : Number(product.stock ?? 0);
+}
+
 function productScore(product: Product, query: string, semanticRank?: number): number {
   const normalizedQuery = normalizeSearchText(query);
   const name = normalizeSearchText(product.name);
@@ -198,7 +240,7 @@ function productScore(product: Product, query: string, semanticRank?: number): n
   // Synonyms for a product kind have equal relevance: "هيتر" must not bury a
   // stocked "سخان" beneath an unavailable item merely named with the other word.
   if (kind && kind.some(phrase => name.includes(normalizeSearchText(phrase)))) {
-    return 100 + ((product.stock ?? 0) > 0 ? 30 : 0);
+    return 100 + (availableVariantStock(product) > 0 ? 30 : 0);
   }
   let score = semanticRank == null ? 0 : Math.max(0, 3 - semanticRank);
   if (!normalizedQuery) return score;
@@ -210,13 +252,14 @@ function productScore(product: Product, query: string, semanticRank?: number): n
   if (description.includes(normalizedQuery)) score += 6;
   if (fuzzySearchMatch(aliasesForProductName(product.name), normalizedQuery)) score += 14;
   if (fuzzySearchMatch(searchableProductText(product), normalizedQuery)) score += 4;
-  if ((product.stock ?? 0) > 0) score += 20;
+  if (availableVariantStock(product) > 0) score += 20;
   if (normalizeSearchText(product.slug) === normalizedQuery) score += 200;
   return score;
 }
 
 function productResult(product: Product, query: string, semanticRank?: number): SiteSearchResult {
   const slug = product.slug || product.id;
+  const hasAvailableOption = product.hasVariants && product.variants?.some(variant => isVariantPurchasable(variant));
   return {
     id: product.id,
     type: "product",
@@ -224,9 +267,9 @@ function productResult(product: Product, query: string, semanticRank?: number): 
     subtitle: [product.brand, product.category].filter(Boolean).join(" · "),
     description: product.description,
     image: product.image || product.thumbnail || product.images?.[0],
-    price: Number(product.price ?? 0),
+    price: hasAvailableOption ? getProductPriceDisplay(product).price ?? Number(product.price ?? 0) : Number(product.price ?? 0),
     rating: Number(product.rating ?? 0),
-    stock: Number(product.stock ?? 0),
+    stock: availableVariantStock(product),
     url: `/products/${slug}`,
     category: product.category,
     score: productScore(product, query, semanticRank),
@@ -251,11 +294,13 @@ export function buildUnifiedSiteSearchResults({
   semanticProducts = [],
   catalogProducts = [],
   limit = 24,
+  locale = "ar",
 }: {
   query: string;
   semanticProducts?: Product[];
   catalogProducts?: Product[];
   limit?: number;
+  locale?: Locale;
 }): SiteSearchResult[] {
   const normalizedQuery = normalizeSearchText(query);
   if (!normalizedQuery) return [];
@@ -275,7 +320,7 @@ export function buildUnifiedSiteSearchResults({
     if (!existing || candidate.score > existing.score) productMap.set(product.id, candidate);
   });
 
-  const pageResults: SiteSearchResult[] = SITE_SEARCH_PAGES
+  const pageResults: SiteSearchResult[] = getSiteSearchPages(locale)
     .map((page) => ({
       id: page.id,
       type: "page" as const,
@@ -286,7 +331,7 @@ export function buildUnifiedSiteSearchResults({
     }))
     .filter((result) => result.score > 0);
 
-  POPULAR_SEARCH_LINKS.forEach((link, index) => {
+  getPopularSearchLinks(locale).forEach((link, index) => {
     const haystack = `${link.title} ${link.category} ${link.keywords.join(" ")}`;
     if (!fuzzySearchMatch(haystack, normalizedQuery)) return;
     if (pageResults.some((result) => result.url === link.url)) return;
@@ -295,7 +340,7 @@ export function buildUnifiedSiteSearchResults({
       type: "page",
       title: link.title,
       subtitle: link.category,
-      description: `افتح قسم ${link.title} وشوف الخيارات المتوفرة.`,
+      description: locale === "en" ? `Browse ${link.title}.` : locale === "ckb" ? `بەشی ${link.title} ببینە.` : `افتح قسم ${link.title} وشوف الخيارات المتوفرة.`,
       url: link.url,
       category: link.category,
       score: 24,
@@ -314,7 +359,7 @@ export function buildUnifiedSiteSearchResults({
         const stockDifference = Number((b.stock ?? 0) > 0) - Number((a.stock ?? 0) > 0);
         if (stockDifference !== 0) return stockDifference;
       }
-      return a.title.localeCompare(b.title, "ar");
+      return a.title.localeCompare(b.title, locale);
     })
     .slice(0, limit);
 }

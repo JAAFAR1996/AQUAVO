@@ -55,7 +55,9 @@ async function getJson<T>(path: string, options?: RequestInit, timeoutMs?: numbe
 }
 
 // Core functions that throw errors (used by tests and internal logic)
-export async function fetchProductsCore(params?: ProductQueryParams): Promise<{ products: Product[] }> {
+export interface ProductsResponse { products: Product[]; total?: number; hasMore?: boolean; foodCounts?: Partial<Record<import("@shared/food-choice").FoodFilter, number>> }
+
+export async function fetchProductsCore(params?: ProductQueryParams): Promise<ProductsResponse> {
   const query = new URLSearchParams();
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
@@ -69,7 +71,7 @@ export async function fetchProductsCore(params?: ProductQueryParams): Promise<{ 
     });
   }
   const queryString = query.toString() ? `?${query.toString()}` : "";
-  return await getJson<{ products: Product[] }>(`/api/products${queryString}`);
+  return await getJson<ProductsResponse>(`/api/products${queryString}`);
 }
 
 export async function fetchProductCore(id: string): Promise<Product> {
@@ -92,18 +94,20 @@ export async function recordProductView(productId: string, clientSessionId: stri
 
 // Production functions - NO fallback to mock data (real database only)
 // Production functions - NO fallback to mock data (real database only)
-export async function fetchProducts(params?: ProductQueryParams): Promise<{ products: Product[] }> {
+export async function fetchProducts(params?: ProductQueryParams): Promise<ProductsResponse> {
   // Let errors propagate to useQuery
   return await fetchProductsCore(params);
 }
 
-export async function fetchProductAttributes(): Promise<{ categories: string[], brands: string[], minPrice: number, maxPrice: number }> {
-  try {
-    return await getJson<{ categories: string[]; brands: string[]; minPrice: number; maxPrice: number }>("/api/products/attributes");
-  } catch (err) {
-    console.warn("Failed to fetch product attributes", err);
-    return { categories: [], brands: [], minPrice: 0, maxPrice: 0 }; // Fallback
-  }
+export async function fetchProductsByIds(ids: readonly string[]): Promise<Product[]> {
+  if (ids.length === 0) return [];
+  const params = new URLSearchParams({ ids: [...new Set(ids)].join(",") });
+  const result = await getJson<{ products: Product[] }>(`/api/products/by-ids?${params}`);
+  return result.products;
+}
+
+export async function fetchProductAttributes(): Promise<{ categories: string[], categoryCounts?: Record<string, number>, brands: string[], minPrice: number, maxPrice: number }> {
+  return await getJson<{ categories: string[]; categoryCounts?: Record<string, number>; brands: string[]; minPrice: number; maxPrice: number }>("/api/products/attributes");
 }
 
 export async function fetchProduct(id: string): Promise<Product> {

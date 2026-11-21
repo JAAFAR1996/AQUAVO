@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { addCsrfHeader } from "@/lib/csrf";
@@ -173,6 +173,7 @@ export function FinanceExpenses({ period }: { period: Period }) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm());
   const [errors, setErrors] = useState<FormErrors>({});
+  const createAttempt = useRef<{ signature: string; key: string } | null>(null);
 
   // ── Query ──────────────────────────────────────────────────────────────────
 
@@ -187,11 +188,16 @@ export function FinanceExpenses({ period }: { period: Period }) {
     queryClient.invalidateQueries({ queryKey: ["expenses"] });
 
   const addMutation = useMutation({
+    retry: false,
     mutationFn: async (body: ExpenseInput) => {
+      const signature = JSON.stringify(body);
+      if (!createAttempt.current || createAttempt.current.signature !== signature) {
+        createAttempt.current = {signature,key:crypto.randomUUID()};
+      }
       const res = await fetch("/api/admin/expenses", {
         method: "POST",
         credentials: "include",
-        headers: addCsrfHeader({ "Content-Type": "application/json" }),
+        headers: addCsrfHeader({ "Content-Type": "application/json", "Idempotency-Key":createAttempt.current.key }),
         body: JSON.stringify(body),
       });
       const json = await res.json().catch(() => null);
@@ -247,6 +253,7 @@ export function FinanceExpenses({ period }: { period: Period }) {
   // ── Form helpers ───────────────────────────────────────────────────────────
 
   function closeForm() {
+    createAttempt.current = null;
     setShowForm(false);
     setEditingId(null);
     setForm(emptyForm());

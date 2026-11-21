@@ -209,6 +209,55 @@ export const FORBIDDEN_PUBLIC_FIELD_PATTERN =
 
 type AnyRecord = Record<string, unknown>;
 
+/** Visibility is independent of price/stock and of the existing coming-soon policy. */
+export function isPublicStorefrontProduct(product: unknown): boolean {
+  if (!product || typeof product !== "object" || Array.isArray(product)) return false;
+  const row = product as AnyRecord;
+  return row.isStorefrontVisible !== false && row.is_storefront_visible !== false
+    && row.deletedAt == null && row.deleted_at == null;
+}
+
+// Technical labels are merchant-defined and translated, so keep their shape.
+// Reserved business metadata is never a technical specification. Filter it at
+// every nesting level, including option specifications and media metadata.
+const PRIVATE_SPEC_KEY = /(^|[_\s-])(private|invoice|catalogue_listing|customer|phone|email|cost|margin|contribution|supplier|wholesale|purchase_?price|profit|accounting|valuation|internal|landed)([_\s-]|$)|^(cost|packagingCost|insertCost|supplier|internal|private|invoice|customer)/i;
+const NORMALIZED_PRIVATE_SPEC_KEY = /\b(private|invoice|catalog(?:ue)?\s*listing|customer|phone|mobile|email|cost|margin|contribution|supplier|wholesale|purchase\s*price|profit|accounting|valuation|internal|landed)\b/i;
+const ARABIC_PRIVATE_SPEC_KEY = /(?:^|\s)(?:(?:ال)?(?:فاتورة|فواتير|مورد|موردين|تكلفة|تكاليف|كلفة|كلف|ربح|ارباح|عميل|عملاء|زبون|زبائن|هاتف|هواتف|جوال|موبايل|ايميل)|(?:سعر|اسعار)\s+(?:ال)?(?:شراء|جملة)|راس\s+(?:ال)?مال|(?:ال)?بريد\s+(?:ال)?الكتروني)(?=\s|$)/u;
+const PUBLIC_PRESENTATION_KEYS = new Set([
+  "__availabilityStatus", "__model3d", "__gallery", "__video", "__cardBenefit", "__foodChoice",
+]);
+
+function isPrivateSpecificationKey(key: string): boolean {
+  const normalized = key
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/[\u064B-\u065F\u0670\u0640]/g, "")
+    .replace(/[أإآٱ]/g, "ا")
+    .replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+  return PRIVATE_SPEC_KEY.test(key) || NORMALIZED_PRIVATE_SPEC_KEY.test(normalized)
+    || ARABIC_PRIVATE_SPEC_KEY.test(normalized);
+}
+
+/**
+ * Copy technical data without passing private JSONB fields by reference.
+ * Unlike the product/variant column allowlists, merchant-defined technical
+ * labels remain extensible. These rules remove known private metadata; they
+ * cannot classify a sensitive value stored under an arbitrary innocent label.
+ * A future strict specification schema needs an inventory of real labels and
+ * a separate, explicitly private field for merchant-only data.
+ */
+export function toPublicSpecifications(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(toPublicSpecifications);
+  if (!value || typeof value !== "object") return value;
+  const result: AnyRecord = {};
+  for (const [key, child] of Object.entries(value as AnyRecord)) {
+    if (key === "__proto__" || key === "constructor" || key === "prototype") continue;
+    if (isPrivateSpecificationKey(key)) continue;
+    if (key.startsWith("__") && !PUBLIC_PRESENTATION_KEYS.has(key)) continue;
+    result[key] = toPublicSpecifications(child);
+  }
+  return result;
+}
+
 /** Pick an explicit set of keys. Absent keys stay absent — no `undefined` padding, no spread. */
 function pick<T extends AnyRecord>(source: T | null | undefined, keys: readonly string[]): AnyRecord {
   const out: AnyRecord = {};
@@ -221,7 +270,9 @@ function pick<T extends AnyRecord>(source: T | null | undefined, keys: readonly 
 
 /** Strip a single variant down to its public keys. */
 export function toPublicVariant(variant: unknown): AnyRecord {
-  return pick(variant as AnyRecord, PUBLIC_VARIANT_FIELDS);
+  const result = pick(variant as AnyRecord, PUBLIC_VARIANT_FIELDS);
+  if ("specifications" in result) result.specifications = toPublicSpecifications(result.specifications);
+  return result;
 }
 
 /**
@@ -231,10 +282,19 @@ export function toPublicVariant(variant: unknown): AnyRecord {
  * without losing the "not found" signal.
  */
 export function toPublicProduct(product: unknown): AnyRecord | null {
+  if (!isPublicStorefrontProduct(product)) return null;
+  return toInvoiceProductDisplay(product);
+}
+
+/** Public-safe fields for an explicitly authorized internal invoice picker. */
+export function toInvoiceProductDisplay(product: unknown): AnyRecord | null {
   if (product === null || product === undefined) return null;
   if (typeof product !== "object") return null;
 
   const publicProduct = pick(product as AnyRecord, PUBLIC_PRODUCT_FIELDS);
+  if ("specifications" in publicProduct) {
+    publicProduct.specifications = toPublicSpecifications(publicProduct.specifications);
+  }
 
   // `variants` is deliberately NOT in PUBLIC_PRODUCT_FIELDS: it must be rebuilt element by element,
   // never copied. The raw blob carries costPrice/costStatus/costBasis/costEvidence written by

@@ -4,7 +4,7 @@ import { storage } from "../storage/index.js";
 import { requireAdmin } from "../middleware/auth.js";
 import { db } from "../db.js";
 import { blogPosts, products as productTable } from "../../shared/schema.js";
-import { eq, desc, isNull } from "drizzle-orm";
+import { eq, desc, isNull, and } from "drizzle-orm";
 
 export function createSystemRouter(): RouterType {
     const router = Router();
@@ -13,7 +13,7 @@ export function createSystemRouter(): RouterType {
     // Includes: priority, changefreq, image:image sitemap extension for AI crawlers
     router.get("/sitemap-legacy.xml", async (req: Request, res: Response): Promise<void> => {
         try {
-            const products = await storage.getProducts();
+            const products = await storage.getProducts({ storefrontOnly: true });
             const baseUrl = "https://www.aquavoiq.com";
             // Static content last changed with the verified AQUAVO V2 release.
             // Do not manufacture a fresh lastmod date on every sitemap request.
@@ -106,7 +106,7 @@ export function createSystemRouter(): RouterType {
                 try {
                     const posts = await db.select({ slug: blogPosts.slug, publishedAt: blogPosts.publishedAt })
                         .from(blogPosts)
-                        .where(eq(blogPosts.status, "published"))
+                        .where(eq(blogPosts.isPublished, true))
                         .orderBy(desc(blogPosts.publishedAt));
                     posts.forEach(p => {
                         const date = p.publishedAt ? new Date(p.publishedAt).toISOString().split('T')[0] : staticContentLastmod;
@@ -172,7 +172,7 @@ export function createSystemRouter(): RouterType {
                 images: productTable.images,
                 updatedAt: productTable.updatedAt,
                 deletedAt: productTable.deletedAt,
-            }).from(productTable).where(isNull(productTable.deletedAt));
+            }).from(productTable).where(and(isNull(productTable.deletedAt), eq(productTable.isStorefrontVisible, true)));
             const entries = sitemapProducts
                 .filter((product) => !product.deletedAt && /^[a-z0-9]+(?:-[a-z0-9]+)*$/i.test(product.slug))
                 .map((product) => {

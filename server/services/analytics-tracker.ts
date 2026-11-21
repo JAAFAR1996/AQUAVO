@@ -2,12 +2,27 @@ import { getDb } from "../db.js";
 import * as schema from "../../shared/schema.js";
 import { count, avg, eq, desc, and, gte, sql } from "drizzle-orm";
 
+// These keys already live in the JSONB event contract (purchase.orderId is used
+// by co-purchase aggregation). Keep a named, explicit payload rather than
+// spreading caller data or dropping established keys to fit the narrower
+// authoring annotation on productInteractions.metadata.
+type RecordedInteractionMetadata = NonNullable<typeof schema.productInteractions.$inferInsert.metadata> & {
+  orderId?: string;
+  quantity?: number;
+  price?: number;
+  reason?: string;
+};
+
 /**
  * متتبع التحليلات - تتبع تفاعلات المستخدمين في الوقت الفعلي
  * Analytics Tracker - Real-time user interaction tracking for ML
  */
 export class AnalyticsTracker {
-  private db = getDb();
+  private get db() {
+    const database = getDb();
+    if (!database) throw new Error("Analytics database unavailable");
+    return database;
+  }
 
   /**
    * تتبع مشاهدة منتج
@@ -64,15 +79,16 @@ export class AnalyticsTracker {
     from?: string; // product_page, recommendations, search, etc.
   }) {
     try {
+      const metadata: RecordedInteractionMetadata = {
+        quantity: data.quantity || 1,
+        from: data.from || 'unknown',
+      };
       await this.db.insert(schema.productInteractions).values({
         userId: data.userId || null,
         sessionId: data.sessionId,
         productId: data.productId,
         interactionType: 'cart_add',
-        metadata: {
-          quantity: data.quantity || 1,
-          from: data.from || 'unknown'
-        },
+        metadata,
         createdAt: new Date(),
       });
 
@@ -111,14 +127,13 @@ export class AnalyticsTracker {
     reason?: string; // out_of_stock, price, changed_mind, etc.
   }) {
     try {
+      const metadata: RecordedInteractionMetadata = { reason: data.reason || 'unknown' };
       await this.db.insert(schema.productInteractions).values({
         userId: data.userId || null,
         sessionId: data.sessionId,
         productId: data.productId,
         interactionType: 'cart_remove',
-        metadata: {
-          reason: data.reason || 'unknown'
-        },
+        metadata,
         createdAt: new Date(),
       });
 
@@ -250,16 +265,17 @@ export class AnalyticsTracker {
     price: number;
   }) {
     try {
+      const metadata: RecordedInteractionMetadata = {
+        orderId: data.orderId,
+        quantity: data.quantity,
+        price: data.price,
+      };
       await this.db.insert(schema.productInteractions).values({
         userId: data.userId || null,
         sessionId: data.sessionId,
         productId: data.productId,
         interactionType: 'purchase',
-        metadata: {
-          orderId: data.orderId,
-          quantity: data.quantity,
-          price: data.price
-        },
+        metadata,
         createdAt: new Date(),
       });
 
@@ -365,7 +381,7 @@ export class AnalyticsTracker {
     try {
       // تحديث آخر تفاعل مشاهدة للمنتج
       const recentView = await this.db
-        .select()
+        .select({ id: schema.productInteractions.id })
         .from(schema.productInteractions)
         .where(
           and(
@@ -384,7 +400,7 @@ export class AnalyticsTracker {
             duration: data.duration,
             scrollDepth: data.scrollDepth,
           })
-          .where(schema.productInteractions.id.eq(recentView[0].id));
+          .where(eq(schema.productInteractions.id, recentView[0].id));
 
         console.log(`[Analytics] ⏱️ Page exit tracked: ${data.productId} (${data.duration}s, ${data.scrollDepth}% scroll)`);
       }
@@ -423,7 +439,7 @@ export class AnalyticsTracker {
       }
 
       // متوسط وقت المشاهدة
-      const viewsWithDuration = interactions.filter(i => i.interactionType === 'view' && i.duration > 0);
+      const viewsWithDuration = interactions.filter(i => i.interactionType === 'view' && (i.duration ?? 0) > 0);
       if (viewsWithDuration.length > 0) {
         summary.avgViewDuration = viewsWithDuration.reduce((sum, i) => sum + (i.duration || 0), 0) / viewsWithDuration.length;
       }

@@ -33,6 +33,13 @@ import { ProfileCoupons } from "@/components/profile/profile-coupons";
 import { ProfileReferral } from "@/components/profile/profile-referral";
 import { ProfileNotifications } from "@/components/profile/profile-notifications";
 import { Address, UserProfileExtra } from "@/lib/types";
+import type { UserAddress } from "@shared/schema";
+import { addCsrfHeader } from "@/lib/csrf";
+
+const toProfileAddress = (row: UserAddress): Address => ({
+    id: row.id, label: row.label ?? "", address: row.addressLine1,
+    phone: row.phone ?? undefined, isDefault: row.isDefault ?? false,
+});
 import { useTranslation } from "react-i18next";
 
 export default function Profile() {
@@ -58,19 +65,13 @@ export default function Profile() {
     });
 
     // Fetch addresses from API — map DB fields (addressLine1/city) to frontend Address shape
-    const { data: apiAddresses = [], refetch: refetchAddresses } = useQuery<Address[]>({
+    const { data: apiAddresses = [] } = useQuery<Address[]>({
         queryKey: ["/api/user/addresses"],
         queryFn: async () => {
             const res = await fetch("/api/user/addresses", { credentials: "include" });
-            if (!res.ok) return [];
-            const rows = await res.json();
-            return rows.map((r: any) => ({
-                id: r.id,
-                label: r.label || "",
-                address: r.addressLine1 || r.address || "",
-                phone: r.phone,
-                isDefault: r.isDefault,
-            }));
+            if (!res.ok) throw new Error("Failed to fetch addresses");
+            const rows = await res.json() as UserAddress[];
+            return rows.map(toProfileAddress);
         },
         enabled: !!user,
     });
@@ -105,7 +106,7 @@ export default function Profile() {
         try {
             const res = await fetch("/api/user", {
                 method: "PATCH",
-                headers: { "Content-Type": "application/json" },
+                headers: addCsrfHeader({ "Content-Type": "application/json" }),
                 credentials: "include",
                 body: JSON.stringify({
                     phone: extraData.phone,
@@ -121,57 +122,39 @@ export default function Profile() {
         }
     };
 
-    const handleAddAddress = async (address: Address) => {
-        try {
-            const res = await fetch("/api/user/addresses", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                credentials: "include",
-                body: JSON.stringify({
-                    label: address.label,
-                    addressLine1: address.address,
-                    city: t("profile.s6"),
-                    isDefault: address.isDefault ?? false,
-                }),
-            });
-            if (!res.ok) throw new Error("Failed to add address");
-            await refetchAddresses();
-            toast({ title: t("profile.s7"), description: t("profile.s8") });
-        } catch {
-            toast({ title: t("profile.s4"), description: t("profile.s9"), variant: "destructive" });
-        }
+    const saveAddress = async (address: Address, editing: boolean) => {
+        const res = await fetch(editing ? `/api/user/addresses/${address.id}` : "/api/user/addresses", {
+            method: editing ? "PATCH" : "POST",
+            headers: addCsrfHeader({ "Content-Type": "application/json" }),
+            credentials: "include",
+            body: JSON.stringify({
+                label: address.label, addressLine1: address.address,
+                city: t("profile.s6"), phone: address.phone ?? "",
+                isDefault: address.isDefault ?? false,
+            }),
+        });
+        if (!res.ok) throw new Error("Failed to save address");
+        const saved = toProfileAddress(await res.json() as UserAddress);
+        queryClient.setQueryData<Address[]>(["/api/user/addresses"], previous =>
+            editing ? (previous ?? []).map(item => item.id === saved.id ? saved : item)
+                : [...(previous ?? []), saved]);
+        // Saving succeeded independently of an optional background refresh.
+        void queryClient.invalidateQueries({ queryKey: ["/api/user/addresses"] });
     };
 
-    const handleUpdateAddress = async (updatedAddress: Address) => {
-        try {
-            const res = await fetch(`/api/user/addresses/${updatedAddress.id}`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                credentials: "include",
-                body: JSON.stringify({
-                    label: updatedAddress.label,
-                    addressLine1: updatedAddress.address,
-                    city: t("profile.s6"),
-                    phone: updatedAddress.phone,
-                    isDefault: updatedAddress.isDefault,
-                }),
-            });
-            if (!res.ok) throw new Error("Failed to update address");
-            await refetchAddresses();
-            toast({ title: t("profile.s10"), description: t("profile.s11") });
-        } catch {
-            toast({ title: t("profile.s4"), description: t("profile.s12"), variant: "destructive" });
-        }
-    };
+    const handleAddAddress = (address: Address) => saveAddress(address, false);
+    const handleUpdateAddress = (address: Address) => saveAddress(address, true);
 
     const handleDeleteAddress = async (id: string) => {
         try {
             const res = await fetch(`/api/user/addresses/${id}`, {
                 method: "DELETE",
+                headers: addCsrfHeader(),
                 credentials: "include",
             });
             if (!res.ok) throw new Error("Failed to delete address");
-            await refetchAddresses();
+            queryClient.setQueryData<Address[]>(["/api/user/addresses"], previous => (previous ?? []).filter(item => item.id !== id));
+            void queryClient.invalidateQueries({ queryKey: ["/api/user/addresses"] });
             toast({ title: t("profile.s13"), description: t("profile.s14") });
         } catch {
             toast({ title: t("profile.s4"), description: t("profile.s15"), variant: "destructive" });

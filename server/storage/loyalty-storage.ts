@@ -12,11 +12,14 @@
 
 import { eq, sql, desc } from "drizzle-orm";
 import { getDb } from "../db.js";
+import { isRealizedStatus } from "../../shared/order-financials.js";
+import { awardFirstReferralPurchase } from "../services/referral-purchase-reward.js";
 import {
   users,
   orders,
   loyaltyTransactions,
   loyaltyCoupons,
+  reviews,
   type User,
   type LoyaltyTransaction,
   type LoyaltyCoupon,
@@ -40,9 +43,6 @@ const LOYALTY_POINT_VALUE_IQD = 0; // لا قيمة مالية - للعضوية 
 
 /** قيمة نقطة الباقي عند الاستبدال (بالدينار) - 1:1 لأنها باقي فعلي */
 const CASHBACK_POINT_VALUE_IQD = 1;
-
-/** نقاط إحالة صديق عند أول شراء */
-const REFERRAL_FIRST_PURCHASE_BONUS = 25;
 
 /** نقاط كتابة تقييم نصي */
 const REVIEW_POINTS = 15;
@@ -577,49 +577,39 @@ export class LoyaltyStorage {
    * تأكيد النقاط المجمدة وترقية المستوى (يستدعى عند تأكيد استلام الطلب)
    */
   async approveOrderPoints(userId: string, orderId: string, orderTotal: number): Promise<void> {
-    const db = this.ensureDb();
+    await this.ensureDb().transaction(async (tx) => {
+      // Status effects run after the operator transaction commits. Recheck the
+      // current order under the canonical order -> user lock order so a delayed
+      // delivery effect cannot approve points after a cancellation/return.
+      const [order] = await tx.select({ userId: orders.userId, status: orders.status })
+        .from(orders).where(eq(orders.id, orderId)).for("update");
+      if (!order || order.userId !== userId || order.status !== "delivered") return;
 
-    // 1. جلب المستخدم
-    const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
-    if (!user) throw new Error("User not found");
-
-    // 2. جلب الحركات المجمدة لهذا الطلب
-    const pendingTx = await db.select()
-      .from(loyaltyTransactions)
-      .where(
+      const [user] = await tx.select().from(users).where(eq(users.id, userId)).for("update");
+      if (!user) throw new Error("User not found");
+      const pendingTx = await tx.select().from(loyaltyTransactions).where(
         sql`${loyaltyTransactions.userId} = ${userId} AND ${loyaltyTransactions.orderId} = ${orderId} AND ${loyaltyTransactions.status} = 'pending'`
-      );
+      ).for("update");
+      if (pendingTx.length === 0) return;
 
-    if (pendingTx.length === 0) return; // لا يوجد شيء لتوثيقه
+      let totalLoyaltyEarned = 0;
+      let totalCashbackEarned = 0;
+      for (const entry of pendingTx) {
+        if (entry.pointsType === "loyalty") totalLoyaltyEarned += entry.amount;
+        if (entry.pointsType === "cashback") totalCashbackEarned += entry.amount;
+        await tx.update(loyaltyTransactions).set({ status: "approved" })
+          .where(eq(loyaltyTransactions.id, entry.id));
+      }
 
-    let totalLoyaltyEarned = 0;
-    let totalCashbackEarned = 0;
+      const newLoyaltyPoints = (user.loyaltyPoints ?? 0) + totalLoyaltyEarned;
+      const newPendingLoyalty = Math.max(0, (user.pendingLoyaltyPoints ?? 0) - totalLoyaltyEarned);
+      const newCashbackBalance = (user.cashbackBalance ?? 0) + totalCashbackEarned;
+      const newPendingCashback = Math.max(0, (user.pendingCashbackBalance ?? 0) - totalCashbackEarned);
+      const newTotalSpent = (user.totalSpent ?? 0) + Math.round(orderTotal);
+      const currentTier = (user.loyaltyTier as TierName) || "bronze";
+      const newTier = this.calculateTier(newTotalSpent);
 
-    for (const tx of pendingTx) {
-      if (tx.pointsType === "loyalty") totalLoyaltyEarned += tx.amount;
-      if (tx.pointsType === "cashback") totalCashbackEarned += tx.amount;
-      
-      // تحديث حالة الحركة لتصبح معتمدة
-      await db.update(loyaltyTransactions)
-        .set({ status: "approved" })
-        .where(eq(loyaltyTransactions.id, tx.id));
-    }
-
-    // 3. تحديث الأرصدة الفعلية والمجمدة
-    const newLoyaltyPoints = (user.loyaltyPoints ?? 0) + totalLoyaltyEarned;
-    const newPendingLoyalty = Math.max(0, (user.pendingLoyaltyPoints ?? 0) - totalLoyaltyEarned);
-    
-    const newCashbackBalance = (user.cashbackBalance ?? 0) + totalCashbackEarned;
-    const newPendingCashback = Math.max(0, (user.pendingCashbackBalance ?? 0) - totalCashbackEarned);
-
-    const newTotalSpent = (user.totalSpent ?? 0) + Math.round(orderTotal);
-    const currentTier = (user.loyaltyTier as TierName) || "bronze";
-    const newTier = this.calculateTier(newTotalSpent);
-    const tierChanged = newTier !== currentTier;
-
-    // 4. الحفظ في القاعدة
-    await db.update(users)
-      .set({
+      await tx.update(users).set({
         loyaltyPoints: newLoyaltyPoints,
         pendingLoyaltyPoints: newPendingLoyalty,
         cashbackBalance: newCashbackBalance,
@@ -627,78 +617,62 @@ export class LoyaltyStorage {
         totalSpent: newTotalSpent,
         loyaltyTier: newTier,
         updatedAt: new Date(),
-      })
-      .where(eq(users.id, userId));
+      }).where(eq(users.id, userId));
 
-    // 5. تسجيل حركة الترقية إن حدثت
-    if (tierChanged) {
-      const tierInfo = MEMBERSHIP_TIERS[newTier];
-      await this.logTransaction(userId, {
-        type: "tier_bonus",
-        pointsType: "loyalty",
-        status: "approved",
-        amount: 0,
-        balanceAfter: newLoyaltyPoints,
-        orderId,
-        description: `🎉 تمت ترقيتك إلى عضو ${tierInfo.name}! مبارك!`,
-        metadata: { oldTier: currentTier, newTier, benefits: tierInfo.benefits },
-      });
-    }
+      if (newTier !== currentTier) {
+        const tierInfo = MEMBERSHIP_TIERS[newTier];
+        await this.insertTransactionInTransaction(tx, userId, {
+          type: "tier_bonus", pointsType: "loyalty", status: "approved", amount: 0,
+          balanceAfter: newLoyaltyPoints, orderId,
+          description: `تمت ترقيتك إلى عضو ${tierInfo.name}! مبارك!`,
+          metadata: { oldTier: currentTier, newTier, benefits: tierInfo.benefits },
+        });
+      }
+    });
   }
 
   /**
    * إلغاء النقاط المجمدة عند إلغاء الطلب (يستدعى عند رفض أو إلغاء الطلب)
    */
   async cancelOrderPoints(userId: string, orderId: string): Promise<void> {
-    const db = this.ensureDb();
+    await this.ensureDb().transaction(async (tx) => {
+      const [order] = await tx.select({ userId: orders.userId, status: orders.status })
+        .from(orders).where(eq(orders.id, orderId)).for("update");
+      // Match the existing cancellation call sites; an old cancellation effect
+      // must not remove pending points after an order resumes fulfillment.
+      if (!order || order.userId !== userId ||
+          !["cancelled", "rejected", "rejected_returned", "rejected_carrier", "returned"].includes(order.status)) return;
 
-    // 1. جلب المستخدم
-    const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
-    if (!user) return;
-
-    // 2. جلب الحركات المجمدة لهذا الطلب
-    const pendingTx = await db.select()
-      .from(loyaltyTransactions)
-      .where(
+      const [user] = await tx.select().from(users).where(eq(users.id, userId)).for("update");
+      if (!user) return;
+      const pendingTx = await tx.select().from(loyaltyTransactions).where(
         sql`${loyaltyTransactions.userId} = ${userId} AND ${loyaltyTransactions.orderId} = ${orderId} AND ${loyaltyTransactions.status} = 'pending'`
-      );
+      ).for("update");
+      if (pendingTx.length === 0) return;
 
-    if (pendingTx.length === 0) return;
+      let totalLoyaltyCancelled = 0;
+      let totalCashbackCancelled = 0;
+      for (const entry of pendingTx) {
+        if (entry.pointsType === "loyalty") totalLoyaltyCancelled += entry.amount;
+        if (entry.pointsType === "cashback") totalCashbackCancelled += entry.amount;
+        await tx.update(loyaltyTransactions).set({ status: "cancelled" })
+          .where(eq(loyaltyTransactions.id, entry.id));
+      }
 
-    let totalLoyaltyCancelled = 0;
-    let totalCashbackCancelled = 0;
-
-    for (const tx of pendingTx) {
-      if (tx.pointsType === "loyalty") totalLoyaltyCancelled += tx.amount;
-      if (tx.pointsType === "cashback") totalCashbackCancelled += tx.amount;
-      
-      // تحديث حالة الحركة لتصبح ملغاة
-      await db.update(loyaltyTransactions)
-        .set({ status: "cancelled" })
-        .where(eq(loyaltyTransactions.id, tx.id));
-    }
-
-    // 3. إزالة النقاط المجمدة فقط (لا تمس الأرصدة الفعلية)
-    const newPendingLoyalty = Math.max(0, (user.pendingLoyaltyPoints ?? 0) - totalLoyaltyCancelled);
-    const newPendingCashback = Math.max(0, (user.pendingCashbackBalance ?? 0) - totalCashbackCancelled);
-
-    await db.update(users)
-      .set({
-        pendingLoyaltyPoints: newPendingLoyalty,
-        pendingCashbackBalance: newPendingCashback,
+      // Preserve the existing policy: only pending balances are removed. This
+      // method does not reverse approved points, cashback or completed spending.
+      await tx.update(users).set({
+        pendingLoyaltyPoints: Math.max(0, (user.pendingLoyaltyPoints ?? 0) - totalLoyaltyCancelled),
+        pendingCashbackBalance: Math.max(0, (user.pendingCashbackBalance ?? 0) - totalCashbackCancelled),
         updatedAt: new Date(),
-      })
-      .where(eq(users.id, userId));
+      }).where(eq(users.id, userId));
 
-    // 4. تسجيل حركة الإلغاء
-    await this.logTransaction(userId, {
-      type: "order_cancelled",
-      pointsType: "loyalty",
-      status: "cancelled",
-      amount: -(totalLoyaltyCancelled + totalCashbackCancelled),
-      balanceAfter: user.loyaltyPoints ?? 0,
-      orderId,
-      description: `❌ تم إلغاء الطلب - إزالة ${totalLoyaltyCancelled} نقطة ولاء + ${totalCashbackCancelled} رصيد باقي مجمد`,
+      await this.insertTransactionInTransaction(tx, userId, {
+        type: "order_cancelled", pointsType: "loyalty", status: "cancelled",
+        amount: -(totalLoyaltyCancelled + totalCashbackCancelled),
+        balanceAfter: user.loyaltyPoints ?? 0, orderId,
+        description: `تم إلغاء الطلب - إزالة ${totalLoyaltyCancelled} نقطة ولاء + ${totalCashbackCancelled} رصيد باقي مجمد`,
+      });
     });
   }
 
@@ -845,38 +819,48 @@ export class LoyaltyStorage {
    */
   async awardReviewPoints(userId: string, reviewId: string, hasPhoto: boolean = false): Promise<number> {
     const db = this.ensureDb();
+    return db.transaction<Awaited<ReturnType<LoyaltyStorage["awardReviewPoints"]>>>(async (tx) => {
 
-    const [user] = await db
-      .select()
-      .from(users)
-      .where(eq(users.id, userId))
-      .limit(1);
+      const [user] = await tx
+        .select()
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1).for("update");
 
-    if (!user) return 0;
+      if (!user) return 0;
 
-    const totalPoints = REVIEW_POINTS + (hasPhoto ? REVIEW_PHOTO_BONUS : 0);
-    const newBalance = (user.loyaltyPoints ?? 0) + totalPoints;
+      const [review] = await tx.select({ userId: reviews.userId, images: reviews.images }).from(reviews)
+        .where(eq(reviews.id, reviewId)).limit(1);
+      if (!review || review.userId !== userId) return 0;
+      const [previous] = await tx.select({ id: loyaltyTransactions.id }).from(loyaltyTransactions)
+        .where(sql`${loyaltyTransactions.userId} = ${userId} AND ${loyaltyTransactions.type} = 'review_earn' AND ${loyaltyTransactions.metadata}->>'reviewId' = ${reviewId}`).limit(1);
+      if (previous) return 0;
+      hasPhoto = Boolean(review.images?.length);
 
-    await db
-      .update(users)
-      .set({
-        loyaltyPoints: newBalance,
-        updatedAt: new Date(),
-      })
-      .where(eq(users.id, userId));
+      const totalPoints = REVIEW_POINTS + (hasPhoto ? REVIEW_PHOTO_BONUS : 0);
+      const newBalance = (user.loyaltyPoints ?? 0) + totalPoints;
 
-    const photoText = hasPhoto ? " (مع صورة)" : "";
-    await this.logTransaction(userId, {
-      type: "review_earn",
-      pointsType: "loyalty",
-      status: "approved",
-      amount: totalPoints,
-      balanceAfter: newBalance,
-      description: `كسبت ${totalPoints} نقاط لكتابة تقييم${photoText}`,
-      metadata: { reviewId, hasPhoto },
+      await tx
+        .update(users)
+        .set({
+          loyaltyPoints: newBalance,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, userId));
+
+      const photoText = hasPhoto ? " (مع صورة)" : "";
+      await this.insertTransactionInTransaction(tx, userId, {
+        type: "review_earn",
+        pointsType: "loyalty",
+        status: "approved",
+        amount: totalPoints,
+        balanceAfter: newBalance,
+        description: `كسبت ${totalPoints} نقاط لكتابة تقييم${photoText}`,
+        metadata: { reviewId, hasPhoto },
+      });
+
+      return totalPoints;
     });
-
-    return totalPoints;
   }
 
   // ----------------------------------------
@@ -890,38 +874,8 @@ export class LoyaltyStorage {
     referrerUserId: string,
     orderId: string,
   ): Promise<number> {
-    const db = this.ensureDb();
-
-    const [user] = await db
-      .select()
-      .from(users)
-      .where(eq(users.id, referrerUserId))
-      .limit(1);
-
-    if (!user) return 0;
-
-    const newBalance = (user.loyaltyPoints ?? 0) + REFERRAL_FIRST_PURCHASE_BONUS;
-
-    await db
-      .update(users)
-      .set({
-        loyaltyPoints: newBalance,
-        updatedAt: new Date(),
-      })
-      .where(eq(users.id, referrerUserId));
-
-    await this.logTransaction(referrerUserId, {
-      type: "referral_earn",
-      pointsType: "loyalty",
-      status: "approved",
-      amount: REFERRAL_FIRST_PURCHASE_BONUS,
-      balanceAfter: newBalance,
-      orderId,
-      description: `كسبت ${REFERRAL_FIRST_PURCHASE_BONUS} نقطة لأن صديقك المُحال اشترى أول طلب!`,
-      metadata: { triggeredBy: "first_purchase" },
-    });
-
-    return REFERRAL_FIRST_PURCHASE_BONUS;
+    const result = await awardFirstReferralPurchase({ orderId, expectedReferrerUserId: referrerUserId });
+    return result.pointsAwarded;
   }
 
   // ----------------------------------------
@@ -933,37 +887,39 @@ export class LoyaltyStorage {
    */
   async awardWelcomeBonus(userId: string): Promise<number> {
     const db = this.ensureDb();
+    return db.transaction<Awaited<ReturnType<LoyaltyStorage["awardWelcomeBonus"]>>>(async (tx) => {
 
-    const [user] = await db
-      .select()
-      .from(users)
-      .where(eq(users.id, userId))
-      .limit(1);
+      const [user] = await tx
+        .select()
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1).for("update");
 
-    if (!user) return 0;
-    if (user.welcomeBonusClaimed) return 0;
+      if (!user) return 0;
+      if (user.welcomeBonusClaimed) return 0;
 
-    const newBalance = (user.loyaltyPoints ?? 0) + WELCOME_BONUS_POINTS;
+      const newBalance = (user.loyaltyPoints ?? 0) + WELCOME_BONUS_POINTS;
 
-    await db
-      .update(users)
-      .set({
-        loyaltyPoints: newBalance,
-        welcomeBonusClaimed: true,
-        updatedAt: new Date(),
-      })
-      .where(eq(users.id, userId));
+      await tx
+        .update(users)
+        .set({
+          loyaltyPoints: newBalance,
+          welcomeBonusClaimed: true,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, userId));
 
-    await this.logTransaction(userId, {
-      type: "welcome_bonus" as any,
-      pointsType: "loyalty",
-      status: "approved",
-      amount: WELCOME_BONUS_POINTS,
-      balanceAfter: newBalance,
-      description: `حسابك جاهز. بديت بـ ${WELCOME_BONUS_POINTS} نقطة، وباقيلك خطوات بسيطة للمستوى الفضي.`,
+      await this.insertTransactionInTransaction(tx, userId, {
+        type: "welcome_bonus",
+        pointsType: "loyalty",
+        status: "approved",
+        amount: WELCOME_BONUS_POINTS,
+        balanceAfter: newBalance,
+        description: `حسابك جاهز. بديت بـ ${WELCOME_BONUS_POINTS} نقطة، وباقيلك خطوات بسيطة للمستوى الفضي.`,
+      });
+
+      return WELCOME_BONUS_POINTS;
     });
-
-    return WELCOME_BONUS_POINTS;
   }
 
   // ----------------------------------------
@@ -978,50 +934,52 @@ export class LoyaltyStorage {
     profile: { tankSize: string; fishType: string; mainProblem: string; tankAge: string },
   ): Promise<{ points: number; alreadyCompleted: boolean }> {
     const db = this.ensureDb();
+    return db.transaction<Awaited<ReturnType<LoyaltyStorage["saveAquariumProfile"]>>>(async (tx) => {
 
-    const [user] = await db
-      .select()
-      .from(users)
-      .where(eq(users.id, userId))
-      .limit(1);
+      const [user] = await tx
+        .select()
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1).for("update");
 
-    if (!user) throw new Error("User not found");
+      if (!user) throw new Error("User not found");
 
-    const alreadyCompleted = !!user.aquariumProfile;
+      const alreadyCompleted = !!user.aquariumProfile;
 
-    await db
-      .update(users)
-      .set({
-        aquariumProfile: profile,
-        updatedAt: new Date(),
-      })
-      .where(eq(users.id, userId));
+      await tx
+        .update(users)
+        .set({
+          aquariumProfile: profile,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, userId));
 
-    if (alreadyCompleted) {
-      return { points: 0, alreadyCompleted: true };
-    }
+      if (alreadyCompleted) {
+        return { points: 0, alreadyCompleted: true };
+      }
 
-    const newBalance = (user.loyaltyPoints ?? 0) + QUIZ_BONUS_POINTS;
+      const newBalance = (user.loyaltyPoints ?? 0) + QUIZ_BONUS_POINTS;
 
-    await db
-      .update(users)
-      .set({
-        loyaltyPoints: newBalance,
-        updatedAt: new Date(),
-      })
-      .where(eq(users.id, userId));
+      await tx
+        .update(users)
+        .set({
+          loyaltyPoints: newBalance,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, userId));
 
-    await this.logTransaction(userId, {
-      type: "quiz_earn" as any,
-      pointsType: "loyalty",
-      status: "approved",
-      amount: QUIZ_BONUS_POINTS,
-      balanceAfter: newBalance,
-      description: `ملف حوضك جاهز! كسبت ${QUIZ_BONUS_POINTS} نقطة.`,
-      metadata: { quizProfile: profile },
+      await this.insertTransactionInTransaction(tx, userId, {
+        type: "quiz_earn",
+        pointsType: "loyalty",
+        status: "approved",
+        amount: QUIZ_BONUS_POINTS,
+        balanceAfter: newBalance,
+        description: `ملف حوضك جاهز! كسبت ${QUIZ_BONUS_POINTS} نقطة.`,
+        metadata: { quizProfile: profile },
+      });
+
+      return { points: QUIZ_BONUS_POINTS, alreadyCompleted: false };
     });
-
-    return { points: QUIZ_BONUS_POINTS, alreadyCompleted: false };
   }
 
   // ----------------------------------------
@@ -1037,82 +995,88 @@ export class LoyaltyStorage {
     orderId: string,
   ): Promise<{ type: string; value: number; label: string } | null> {
     const db = this.ensureDb();
+    return db.transaction<Awaited<ReturnType<LoyaltyStorage["generateOrderBonus"]>>>(async (tx) => {
 
-    // فحص: هل الطلب لديه مكافأة مسبقاً؟
-    const [order] = await db
-      .select()
-      .from(orders)
-      .where(eq(orders.id, orderId))
-      .limit(1);
+      // فحص: هل الطلب لديه مكافأة مسبقاً؟
+      const [order] = await tx
+        .select()
+        .from(orders)
+        .where(eq(orders.id, orderId))
+        .limit(1).for("update");
 
-    if (!order) return null;
-    if ((order as any).bonusPrize) return null; // مكافأة موجودة مسبقاً
+      if (!order || order.userId !== userId || !isRealizedStatus(order.status)) return null;
+      if (order.bonusPrize) return null; // مكافأة موجودة مسبقاً
 
-    // فحص: حد 4 مكافآت شهرياً
-    const monthStart = new Date();
-    monthStart.setDate(1);
-    monthStart.setHours(0, 0, 0, 0);
+      // Use the same order -> user lock order as the order settlement paths.
+      const [lockedUser] = await tx.select().from(users).where(eq(users.id, userId)).limit(1).for("update");
+      if (!lockedUser) return null;
 
-    const monthlyBonuses = await db
-      .select()
-      .from(orders)
-      .where(
-        sql`${orders.userId} = ${userId} AND ${orders.bonusClaimedAt} IS NOT NULL AND ${orders.bonusClaimedAt} >= ${monthStart}`
-      );
+      // فحص: حد 4 مكافآت شهرياً
+      const monthStart = new Date();
+      monthStart.setDate(1);
+      monthStart.setHours(0, 0, 0, 0);
 
-    if (monthlyBonuses.length >= 4) return null;
+      const monthlyBonuses = await tx
+        .select()
+        .from(orders)
+        .where(
+          sql`${orders.userId} = ${userId} AND ${orders.bonusClaimedAt} IS NOT NULL AND ${orders.bonusClaimedAt} >= ${monthStart}`
+        );
 
-    // توليد الجائزة (weighted random)
-    const rand = Math.random() * 100;
-    let prize: { type: string; value: number; label: string };
+      if (monthlyBonuses.length >= 4) return null;
 
-    if (rand < 40) {
-      prize = { type: "bonus_points", value: 5, label: "+5 نقاط بونص" };
-    } else if (rand < 65) {
-      prize = { type: "bonus_points", value: 10, label: "+10 نقاط بونص" };
-    } else if (rand < 80) {
-      prize = { type: "free_shipping", value: 0, label: "شحن مجاني للطلب الجاي" };
-    } else if (rand < 90) {
-      prize = { type: "discount_5pct", value: 5, label: "خصم 5% على الطلب الجاي" };
-    } else if (rand < 98) {
-      prize = { type: "bonus_points", value: 25, label: "+25 نقاط بونص" };
-    } else {
-      prize = { type: "product_sample", value: 0, label: "عينة منتج صغيرة" };
-    }
+      // توليد الجائزة (weighted random)
+      const rand = Math.random() * 100;
+      let prize: { type: string; value: number; label: string };
 
-    // حفظ الجائزة على الطلب
-    await db
-      .update(orders)
-      .set({
-        bonusPrize: prize,
-        bonusClaimedAt: new Date(),
-      })
-      .where(eq(orders.id, orderId));
-
-    // إذا كانت نقاط بونص، أضفها مباشرة
-    if (prize.type === "bonus_points" && prize.value > 0) {
-      const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
-      if (user) {
-        const newBalance = (user.loyaltyPoints ?? 0) + prize.value;
-        await db
-          .update(users)
-          .set({ loyaltyPoints: newBalance, updatedAt: new Date() })
-          .where(eq(users.id, userId));
-
-        await this.logTransaction(userId, {
-          type: "bonus_reveal" as any,
-          pointsType: "loyalty",
-          status: "approved",
-          amount: prize.value,
-          balanceAfter: newBalance,
-          orderId,
-          description: `طلبك فعّل مكافأة إضافية: ${prize.label}`,
-          metadata: { prizeType: prize.type },
-        });
+      if (rand < 40) {
+        prize = { type: "bonus_points", value: 5, label: "+5 نقاط بونص" };
+      } else if (rand < 65) {
+        prize = { type: "bonus_points", value: 10, label: "+10 نقاط بونص" };
+      } else if (rand < 80) {
+        prize = { type: "free_shipping", value: 0, label: "شحن مجاني للطلب الجاي" };
+      } else if (rand < 90) {
+        prize = { type: "discount_5pct", value: 5, label: "خصم 5% على الطلب الجاي" };
+      } else if (rand < 98) {
+        prize = { type: "bonus_points", value: 25, label: "+25 نقاط بونص" };
+      } else {
+        prize = { type: "product_sample", value: 0, label: "عينة منتج صغيرة" };
       }
-    }
 
-    return prize;
+      // حفظ الجائزة على الطلب
+      await tx
+        .update(orders)
+        .set({
+          bonusPrize: prize,
+          bonusClaimedAt: new Date(),
+        })
+        .where(eq(orders.id, orderId));
+
+      // إذا كانت نقاط بونص، أضفها مباشرة
+      if (prize.type === "bonus_points" && prize.value > 0) {
+        const user = lockedUser;
+        if (user) {
+          const newBalance = (user.loyaltyPoints ?? 0) + prize.value;
+          await tx
+            .update(users)
+            .set({ loyaltyPoints: newBalance, updatedAt: new Date() })
+            .where(eq(users.id, userId));
+
+          await this.insertTransactionInTransaction(tx, userId, {
+            type: "bonus_reveal",
+            pointsType: "loyalty",
+            status: "approved",
+            amount: prize.value,
+            balanceAfter: newBalance,
+            orderId,
+            description: `طلبك فعّل مكافأة إضافية: ${prize.label}`,
+            metadata: { prizeType: prize.type },
+          });
+        }
+      }
+
+      return prize;
+    });
   }
 
   /**
@@ -1326,7 +1290,7 @@ export class LoyaltyStorage {
     }
   }
   private async insertTransactionInTransaction(
-    tx: any,
+    tx: Parameters<Parameters<NonNullable<ReturnType<typeof getDb>>["transaction"]>[0]>[0],
     userId: string,
     data: Omit<typeof loyaltyTransactions.$inferInsert, "id" | "userId" | "createdAt">,
   ): Promise<void> {

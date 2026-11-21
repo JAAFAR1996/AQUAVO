@@ -5,6 +5,7 @@
 
 import rateLimit from 'express-rate-limit';
 import * as Sentry from '@sentry/node';
+import { createSharedRateLimitStore } from './shared-rate-limit-store.js';
 
 /**
  * Authentication rate limiter
@@ -12,6 +13,7 @@ import * as Sentry from '@sentry/node';
  * 5 requests per 15 minutes per IP
  */
 export const authLimiter = rateLimit({
+    store: createSharedRateLimitStore('auth'),
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 5,
     message: {
@@ -29,6 +31,7 @@ export const authLimiter = rateLimit({
  * 3 requests per hour per IP
  */
 export const passwordResetLimiter = rateLimit({
+    store: createSharedRateLimitStore('password-reset'),
     windowMs: 60 * 60 * 1000, // 1 hour
     max: 3,
     message: {
@@ -45,6 +48,7 @@ export const passwordResetLimiter = rateLimit({
  * 100 requests per minute per IP
  */
 export const apiLimiter = rateLimit({
+    store: createSharedRateLimitStore('api'),
     windowMs: 60 * 1000, // 1 minute
     max: 100,
     message: {
@@ -61,6 +65,7 @@ export const apiLimiter = rateLimit({
  * 10 orders per hour per IP
  */
 export const orderLimiter = rateLimit({
+    store: createSharedRateLimitStore('orders'),
     windowMs: 60 * 60 * 1000, // 1 hour
     max: 10,
     message: {
@@ -73,6 +78,7 @@ export const orderLimiter = rateLimit({
 
 /** Public order tracking brute-force protection with a PII-free alert. */
 export const orderTrackingLimiter = rateLimit({
+    store: createSharedRateLimitStore('order-tracking'),
     windowMs: 15 * 60 * 1000,
     max: 10,
     standardHeaders: true,
@@ -95,6 +101,7 @@ export const orderTrackingLimiter = rateLimit({
  * 5 reviews per hour per IP
  */
 export const reviewLimiter = rateLimit({
+    store: createSharedRateLimitStore('reviews'),
     windowMs: 60 * 60 * 1000, // 1 hour
     max: 5,
     message: {

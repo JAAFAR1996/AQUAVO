@@ -183,14 +183,27 @@ export const secureStorage = {
  * Synchronous fallback for cases where async encryption isn't feasible
  * WARNING: This is less secure but maintains compatibility
  */
+// Keep the current session usable when storage is blocked or its quota is full.
+// Only failed writes override persistent reads; successful reads still observe
+// changes made by another tab. A null entry is an intentional removal.
+const storageFallback = new Map<string, string | null>();
+
 export const syncStorage = {
   setItem<T = unknown>(key: string, value: T): void {
-    localStorage.setItem(STORAGE_KEY_PREFIX + key, JSON.stringify(value));
+    const serialized = JSON.stringify(value);
+    try {
+      localStorage.setItem(STORAGE_KEY_PREFIX + key, serialized);
+      storageFallback.delete(key);
+    } catch {
+      storageFallback.set(key, serialized);
+    }
   },
 
   getItem<T>(key: string): T | null {
     try {
-      const item = localStorage.getItem(STORAGE_KEY_PREFIX + key);
+      const item = storageFallback.has(key)
+        ? storageFallback.get(key)
+        : localStorage.getItem(STORAGE_KEY_PREFIX + key);
       return item ? JSON.parse(item) as T : null;
     } catch {
       return null;
@@ -198,6 +211,11 @@ export const syncStorage = {
   },
 
   removeItem(key: string): void {
-    localStorage.removeItem(STORAGE_KEY_PREFIX + key);
+    try {
+      localStorage.removeItem(STORAGE_KEY_PREFIX + key);
+      storageFallback.delete(key);
+    } catch {
+      storageFallback.set(key, null);
+    }
   },
 };

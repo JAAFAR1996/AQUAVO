@@ -5,7 +5,7 @@ import {
     products,
     type InsertAquariumDesign,
 } from "../../shared/schema.js";
-import { eq, desc, sql } from "drizzle-orm";
+import { eq, desc, sql, and, isNull } from "drizzle-orm";
 import { aiMonitor } from "./ai-monitor.js";
 
 /**
@@ -41,6 +41,7 @@ export class AquariumAdvisor {
         estimatedCost: number;
     }> {
         try {
+            if (!db) throw new Error("Database not initialized");
             if (!groqClient.hasKeys()) {
                 throw new Error("No Groq API keys configured");
             }
@@ -338,7 +339,11 @@ export class AquariumAdvisor {
                 })
                 .from(products)
                 .where(
-                    sql`LOWER(${products.name}) LIKE LOWER(${"%" + itemName + "%"})`
+                    and(
+                        isNull(products.deletedAt),
+                        eq(products.isStorefrontVisible, true),
+                        sql`LOWER(${products.name}) LIKE LOWER(${"%" + itemName + "%"})`,
+                    )
                 )
                 .limit(1);
 

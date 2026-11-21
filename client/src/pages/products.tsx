@@ -18,8 +18,9 @@ import { categorySearch } from "@shared/category-search";
 import { FilterBar } from "@/components/products/filter-bar";
 import type { FilterState } from "@/components/products/filter-modal";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { buildProductQuery, filterListingProducts, isListingProductSellable } from "@/lib/product-listing-filters";
+import { useQuery, useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
+import { buildProductQuery } from "@/lib/product-listing-filters";
+import { readListingUrlFilters, productListingUrl } from "@/lib/product-listing-url";
 import { fetchProducts, fetchProductAttributes, fetchPersonalizedOrder } from "@/lib/api";
 import { ProductCardSkeleton } from "@/components/ui/loading-skeleton";
 import { BackToTop } from "@/components/back-to-top";
@@ -85,7 +86,7 @@ export default function Products() {
   const initialSort = searchParams.get("sort");
   const isRecommendedView = searchParams.get("recommended") === "1";
 
-  const { data: attributes, isLoading: isAttributesLoading, isFetching: isAttributesFetching } = useQuery({
+  const { data: attributes, isLoading: isAttributesLoading, isFetching: isAttributesFetching, isError: isAttributesError, refetch: refetchAttributes } = useQuery({
     queryKey: ["product-attributes"],
     queryFn: fetchProductAttributes,
     staleTime: 60_000,
@@ -106,21 +107,27 @@ export default function Products() {
     if (restored) return { ...restored, priceRangeInitialized: true };
 
     const food = foodFilterSchema.safeParse(searchParams.get("food"));
+    const urlFilters = readListingUrlFilters(search);
+    const parsedSort = sortOptionSchema.safeParse(initialSort);
     return {
       filters: {
-        priceRange: [0, 1000000],
-        categories: initialCategory ? [initialCategory] : [],
-        brands: [],
-        difficulties: [],
-        tags: initialSort === "best-selling" ? [PRODUCT_TAG_VALUES.bestSeller] : [],
+        ...urlFilters,
+        tags: initialSort === "best-selling" ? [...new Set([...urlFilters.tags, PRODUCT_TAG_VALUES.bestSeller])] : urlFilters.tags,
       },
-      sortBy: initialSort === "best-selling" ? "rating-desc" : (isRecommendedView && user ? "smart" : "default"),
+      sortBy: initialSort === "best-selling" ? "rating-desc" : parsedSort.success ? parsedSort.data : (isRecommendedView && user ? "smart" : "default"),
       foodFilter: isFoodCategory(initialCategory) && food.success ? food.data : "all",
       displayCount: 24,
       priceRangeInitialized: false,
     };
   });
   const { filters, sortBy, foodFilter, displayCount } = listing;
+  const syncUrlRequested = useRef(false);
+  useEffect(() => {
+    if (!syncUrlRequested.current) return;
+    syncUrlRequested.current = false;
+    const next = productListingUrl(search, { filters, sortBy, foodFilter }, minPrice, maxPrice);
+    if (next !== `/products${search ? `?${search}` : ""}`) setLocation(next, { replace: true });
+  }, [filters, sortBy, foodFilter, minPrice, maxPrice, search, setLocation]);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const isFoodListing = filters.categories.length === 1 && isFoodCategory(filters.categories[0]);
@@ -152,61 +159,60 @@ export default function Products() {
 
   const boostIds = boostData?.boostIds ?? [];
 
-  const queryParams = useMemo(
-    () => buildProductQuery(filters, minPrice, maxPrice, sortBy, initialSearch),
-    [filters, sortBy, initialSearch, minPrice, maxPrice],
-  );
+  const queryParams = useMemo(() => ({
+    ...buildProductQuery(filters, minPrice, maxPrice, sortBy, initialSearch),
+    paginated: true,
+    limit: 24,
+    ...(filters.categories.length === 1 && isFoodCategory(filters.categories[0]) ? { food: foodFilter } : {}),
+    ...(sortBy === "smart" && boostIds.length ? { preferredIds: boostIds } : {}),
+  }), [filters, sortBy, initialSearch, minPrice, maxPrice, foodFilter, boostIds]);
 
   const getDraftResultCount = useCallback(async (draft: FilterState) => {
-    const params = buildProductQuery(draft, minPrice, maxPrice, sortBy, initialSearch);
+    const params = {
+      ...buildProductQuery(draft, minPrice, maxPrice, sortBy, initialSearch),
+      paginated: true, limit: 1,
+      ...(draft.categories.length === 1 && isFoodCategory(draft.categories[0]) ? { food: foodFilter } : {}),
+    };
     const result = await queryClient.fetchQuery({
-      queryKey: ["products", params],
+      queryKey: ["products-count", params],
       queryFn: () => fetchProducts(params),
       staleTime: 15_000,
     });
-    return filterListingProducts(result.products, draft, foodFilter).length;
+    return result.total ?? result.products.length;
   }, [queryClient, minPrice, maxPrice, sortBy, initialSearch, foodFilter]);
 
-  const { data, isLoading: isProductsLoading, isFetching: isProductsFetching, isError, refetch: refetchProducts } = useQuery({
-    queryKey: ["products", queryParams],
-    queryFn: () => fetchProducts(queryParams),
+  const {
+    data, isLoading: isProductsLoading, isFetching: isProductsFetching,
+    isError: isProductsError, refetch: refetchProducts, hasNextPage, fetchNextPage,
+  } = useInfiniteQuery({
+    queryKey: ["products-page", queryParams],
+    queryFn: ({ pageParam }) => fetchProducts({ ...queryParams, offset: pageParam }),
+    initialPageParam: 0,
+    getNextPageParam: (last, _pages, offset) => last.hasMore && last.products.length ? offset + last.products.length : undefined,
     staleTime: 15_000,
     refetchOnMount: true,
     refetchOnWindowFocus: true,
-    retry: 2,
-    retryDelay: (attempt) => Math.min(500 * 2 ** attempt, 2000),
+    retry: false,
   });
-
-  const products = data?.products ?? [];
-
+  const isError = isProductsError || isAttributesError;
   const finalProducts = useMemo(() => {
-    let filtered = filterListingProducts(products, filters, foodFilter);
+    const unique = new Map<string, Product>();
+    for (const page of data?.pages ?? []) for (const product of page.products) unique.set(product.id, product);
+    return [...unique.values()];
+  }, [data]);
+  const totalProducts = data?.pages[0]?.total ?? finalProducts.length;
+  const displayedProducts = finalProducts.slice(0, displayCount);
 
-    if (sortBy === "smart" && boostIds.length > 0) {
-      const boostSet = new Set(boostIds);
-      const boosted = filtered.filter(p => boostSet.has(p.id));
-      const rest = filtered.filter(p => !boostSet.has(p.id));
-      const orderMap = new Map(boostIds.map((id, i) => [id, i]));
-      boosted.sort((a, b) => (orderMap.get(a.id) ?? 999) - (orderMap.get(b.id) ?? 999));
-      filtered = [...boosted, ...rest];
-    }
-
-    // Keep the selected order within each group, preserving existing listing behavior.
-    const sellable = filtered.filter(isListingProductSellable);
-    const unavailable = filtered.filter(p => !isListingProductSellable(p));
-    filtered = [...sellable, ...unavailable];
-
-    return filtered;
-  }, [products, filters, sortBy, boostIds, foodFilter]);
-
-  const displayedProducts = useMemo(() => {
-    return finalProducts.slice(0, displayCount);
-  }, [finalProducts, displayCount]);
+  // A restored long listing may need additional network pages if its cache was
+  // evicted. Fetch them before restoring the product anchor/scroll position.
+  useEffect(() => {
+    if (finalProducts.length < displayCount && hasNextPage && !isProductsFetching && !isError) void fetchNextPage();
+  }, [finalProducts.length, displayCount, hasNextPage, isProductsFetching, isError, fetchNextPage]);
 
   const { containerRef, isRestoring } = useListingRestoration({
     kind: "products",
     state: { filters, sortBy, foodFilter, displayCount },
-    ready: !isProductsLoading && !isProductsFetching && !isError
+    ready: finalProducts.length >= Math.min(displayCount, totalProducts) && !isProductsLoading && !isProductsFetching && !isError
       && !isAttributesLoading && !isAttributesFetching
       && (!(user && sortBy === "smart") || (!isBoostLoading && !isBoostFetching)),
     contentKey: displayedProducts.map(product => product.id).join(","),
@@ -226,16 +232,21 @@ export default function Products() {
     })), initialCategory ? `products:${initialCategory}` : "products");
   }, [displayedProducts, initialCategory]);
 
-  const hasMore = displayCount < finalProducts.length;
+  const hasMore = displayCount < finalProducts.length || Boolean(hasNextPage);
 
   const loadMore = useCallback(() => {
     if (isRestoring || isProductsLoading || isProductsFetching) return;
     const now = Date.now();
     if (now - lastLoadAtRef.current < 400) return;
     lastLoadAtRef.current = now;
-    setListing(prev => prev.displayCount >= finalProducts.length ? prev
-      : { ...prev, displayCount: Math.min(prev.displayCount + 24, finalProducts.length) });
-  }, [finalProducts.length, isRestoring, isProductsLoading, isProductsFetching]);
+    if (displayCount < finalProducts.length) {
+      setListing(prev => ({ ...prev, displayCount: prev.displayCount + 24 }));
+    } else if (hasNextPage) {
+      void fetchNextPage().then(result => {
+        if (!result.isError) setListing(prev => ({ ...prev, displayCount: prev.displayCount + 24 }));
+      });
+    }
+  }, [displayCount, finalProducts.length, hasNextPage, fetchNextPage, isRestoring, isProductsLoading, isProductsFetching]);
 
   const { ref: sentinelRef, inView: sentinelInView } = useInView({ threshold: 0.5, once: false });
 
@@ -245,15 +256,9 @@ export default function Products() {
 
   const isLoading = isProductsLoading;
 
-  const categoryCounts = useMemo(() => {
-    const counts = new Map<string, number>();
-    products.forEach(product => {
-      if (product.category) {
-        counts.set(product.category, (counts.get(product.category) || 0) + 1);
-      }
-    });
-    return counts;
-  }, [products]);
+  const categoryCounts = useMemo(() => attributes?.categoryCounts
+    ? new Map(Object.entries(attributes.categoryCounts))
+    : undefined, [attributes?.categoryCounts]);
 
   const activeFiltersCount = useMemo(() => {
     let count = 0;
@@ -265,6 +270,7 @@ export default function Products() {
   }, [filters, minPrice, maxPrice]);
 
   const applyFilters = useCallback((next: SetStateAction<FilterState>) => {
+    syncUrlRequested.current = true;
     setListing(prev => {
       const updated = typeof next === "function" ? next(prev.filters) : next;
       if (sameFilters(prev.filters, updated)) return prev;
@@ -280,15 +286,13 @@ export default function Products() {
   const changeSort = (value: string) => {
     const parsed = sortOptionSchema.safeParse(value);
     if (!parsed.success) return;
+    syncUrlRequested.current = true;
     setListing(prev => prev.sortBy === parsed.data ? prev : { ...prev, sortBy: parsed.data, displayCount: 24 });
   };
 
   const changeFoodFilter = (value: FoodFilter) => {
+    syncUrlRequested.current = true;
     setListing(prev => prev.foodFilter === value ? prev : { ...prev, foodFilter: value, displayCount: 24 });
-    const params = new URLSearchParams(search);
-    params.set("category", filters.categories[0]);
-    if (value === "all") params.delete("food"); else params.set("food", value);
-    setLocation(`/products?${params.toString()}`, { replace: true });
   };
 
   const handleCategoryToggle = (category: string) => {
@@ -302,6 +306,7 @@ export default function Products() {
   };
 
   const clearAllFilters = () => {
+    syncUrlRequested.current = false;
     const clearedFilters: FilterState = {
       priceRange: [minPrice, maxPrice],
       categories: [],
@@ -487,8 +492,8 @@ export default function Products() {
           />
         </div>
 
-        {isFoodListing && !isLoading && !isError && (
-          <FoodCategoryGuide products={products} value={foodFilter} onChange={changeFoodFilter} />
+        {isFoodListing && !isError && (
+          <FoodCategoryGuide products={finalProducts} counts={data?.pages[0]?.foodCounts} value={foodFilter} onChange={changeFoodFilter} />
         )}
 
         <div className="aq-filter-chamber mb-4 flex flex-col gap-2 ps-3 sm:mb-6 sm:flex-row sm:items-center sm:justify-between sm:gap-4" data-tour="products-filter">
@@ -551,7 +556,7 @@ export default function Products() {
             <div className="flex items-center justify-between gap-2 text-sm text-muted-foreground">
               {finalProducts.length > 0 ? (
                 <span aria-live="polite">
-                  <Trans t={t} i18nKey="results.showing" values={{ shown: displayedProducts.length, total: finalProducts.length }} components={{ strong: <strong /> }} />
+                  <Trans t={t} i18nKey="results.showing" values={{ shown: displayedProducts.length, total: totalProducts }} components={{ strong: <strong /> }} />
                 </span>
               ) : <span aria-live="polite">{t("results.none")}</span>}
               {sortBy === "smart" && boostIds.length > 0 && (
@@ -581,7 +586,7 @@ export default function Products() {
             <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-muted-foreground">
               {t("error.description")}
             </p>
-            <Button type="button" variant="outline" className="mt-6 min-h-11" onClick={() => void refetchProducts()}>
+            <Button type="button" variant="outline" className="mt-6 min-h-11" onClick={() => { void refetchProducts(); void refetchAttributes(); }}>
               <RefreshCw className="h-4 w-4" aria-hidden="true" />
               {t("error.retry")}
             </Button>
@@ -627,7 +632,7 @@ export default function Products() {
                       {t("results.endTitle")}
                     </p>
                     <p className="mt-2 text-sm text-muted-foreground">
-                      {t("results.endCount", { count: finalProducts.length })}
+                      {t("results.endCount", { count: totalProducts })}
                     </p>
                   </div>
                 )}
@@ -686,7 +691,7 @@ export default function Products() {
       </Suspense>
 
       <Suspense fallback={null}>
-        <ComparisonDrawer products={finalProducts} />
+        <ComparisonDrawer />
       </Suspense>
     </div>
   );

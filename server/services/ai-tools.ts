@@ -5,7 +5,7 @@
 
 import { getDb } from "../db.js";
 import * as schema from "../../shared/schema.js";
-import { eq, ilike, and, or, desc, sql } from "drizzle-orm";
+import { eq, ilike, and, or, desc, sql, isNull } from "drizzle-orm";
 // Canonical money primitives — the AI must never quote a figure derived by a
 // local formula. `toMoney` replaces scattered parseFloat() on price columns
 // (NaN-safe); `orderCollectedAmount` is the ONE "what the customer paid" rule.
@@ -220,6 +220,8 @@ export class AIToolsExecutor {
                 .from(schema.products)
                 .where(
                     and(
+                        isNull(schema.products.deletedAt),
+                        eq(schema.products.isStorefrontVisible, true),
                         or(...searchConditions),
                         params.category ? ilike(schema.products.category, `%${params.category}%`) : undefined,
                         params.brand ? ilike(schema.products.brand, `%${params.brand}%`) : undefined
@@ -250,7 +252,8 @@ export class AIToolsExecutor {
                                     thumbnail: schema.products.thumbnail,
                                     rating: schema.products.rating,
                                     description: schema.products.description,
-                                }).from(schema.products).where(eq(schema.products.id, r.productId));
+                                }).from(schema.products).where(and(eq(schema.products.id, r.productId),
+                                    isNull(schema.products.deletedAt), eq(schema.products.isStorefrontVisible, true)));
                                 return p;
                             })
                         );
@@ -321,7 +324,8 @@ export class AIToolsExecutor {
                     lowStockThreshold: schema.products.lowStockThreshold,
                 })
                 .from(schema.products)
-                .where(eq(schema.products.id, params.productId));
+                .where(and(eq(schema.products.id, params.productId),
+                    isNull(schema.products.deletedAt), eq(schema.products.isStorefrontVisible, true)));
 
             if (!product) {
                 return { success: false, error: "Product not found" };
@@ -462,6 +466,8 @@ export class AIToolsExecutor {
                 .from(schema.products)
                 .where(
                     and(
+                        isNull(schema.products.deletedAt),
+                        eq(schema.products.isStorefrontVisible, true),
                         params.category ? eq(schema.products.category, params.category) : undefined,
                         params.priceMax ? sql`${schema.products.price}::numeric <= ${params.priceMax}` : undefined
                     )
@@ -511,7 +517,8 @@ export class AIToolsExecutor {
             const [product] = await db
                 .select()
                 .from(schema.products)
-                .where(eq(schema.products.id, params.productId));
+                .where(and(eq(schema.products.id, params.productId),
+                    isNull(schema.products.deletedAt), eq(schema.products.isStorefrontVisible, true)));
 
             if (!product) {
                 return { success: false, error: "المنتج غير موجود" };
@@ -622,7 +629,8 @@ export class AIToolsExecutor {
             const [product] = await db
                 .select()
                 .from(schema.products)
-                .where(eq(schema.products.id, params.productId));
+                .where(and(eq(schema.products.id, params.productId),
+                    isNull(schema.products.deletedAt), eq(schema.products.isStorefrontVisible, true)));
 
             if (!product) {
                 return { success: false, error: "المنتج غير موجود" };
@@ -680,6 +688,8 @@ export class AIToolsExecutor {
                 .from(schema.products)
                 .where(
                     and(
+                        isNull(schema.products.deletedAt),
+                        eq(schema.products.isStorefrontVisible, true),
                         sql`${schema.products.originalPrice}::numeric > ${schema.products.price}::numeric`,
                         sql`${schema.products.stock} > 0`
                     )

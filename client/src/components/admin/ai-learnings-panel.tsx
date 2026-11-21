@@ -1,3 +1,4 @@
+import { addCsrfHeader } from "@/lib/csrf";
 import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -87,10 +88,11 @@ export function AiLearningsPanel() {
     try {
       const res = await fetch(`/api/admin/ai-learnings/${id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: addCsrfHeader({ "Content-Type": "application/json" }),
         credentials: "include",
         body: JSON.stringify({ applied: !currentValue }),
       });
+      if (!res.ok) throw new Error("review update rejected");
       if (res.ok) {
         setLearnings(prev => prev.map(l =>
           l.id === id ? { ...l, applied: !currentValue } : l
@@ -107,10 +109,11 @@ export function AiLearningsPanel() {
     try {
       const res = await fetch(`/api/admin/ai-learnings/${id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: addCsrfHeader({ "Content-Type": "application/json" }),
         credentials: "include",
         body: JSON.stringify({ rule: editRule }),
       });
+      if (!res.ok) throw new Error("review update rejected");
       if (res.ok) {
         setLearnings(prev => prev.map(l =>
           l.id === id ? { ...l, rule: editRule } : l
@@ -127,8 +130,10 @@ export function AiLearningsPanel() {
     try {
       const res = await fetch(`/api/admin/ai-learnings/${id}`, {
         method: "DELETE",
+        headers: addCsrfHeader(),
         credentials: "include",
       });
+      if (!res.ok) throw new Error("review update rejected");
       if (res.ok) {
         setLearnings(prev => prev.filter(l => l.id !== id));
         fetchStats();

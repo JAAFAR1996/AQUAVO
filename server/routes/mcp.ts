@@ -34,6 +34,9 @@ import * as schema from "../../shared/schema.js";
 import { handleOAuthRegister, handleOAuthRegisterOptions, verifyMcpToken } from "./oauth.js";
 import { isOAuthGrantActive } from "../services/oauth-grant-store.js";
 import { clearProductsCache } from "./products.js";
+import { transitionAdminOrderStatus } from "./admin-orders-v2.js";
+import { createExpenseOnce } from "../services/expense-creation.js";
+import { expenseInputSchema } from "../../shared/accounting.js";
 import {
   setCanonicalProductStock,
   type InventoryAdjustmentResult,
@@ -294,7 +297,7 @@ function redactValue(value: unknown): unknown {
 }
 
 function getSchemaTables(): SchemaTable[] {
-  return Object.entries(schema)
+  return Object.entries(schema as Record<string, unknown>)
     .filter((entry): entry is [string, Table] => isTable(entry[1]))
     .map(([exportName, table]) => {
       const tableName = getTableName(table);
@@ -686,6 +689,7 @@ function buildMcpServer(auth: McpAuthInfo): Server {
             id: { type: "string", description: "UUID الطلب" },
             status: { type: "string", enum: ["pending", "confirmed", "processing", "shipped", "delivered", "cancelled", "refunded"] },
             note: { type: "string", description: "ملاحظة اختيارية تُضاف لسجل الطلب" },
+            delivery_company_id: { type: "string", description: "شركة التوصيل الفعالة، مطلوبة عند تحويل الطلب إلى shipped" },
           },
         },
       },
@@ -765,15 +769,16 @@ function buildMcpServer(auth: McpAuthInfo): Server {
       },
       {
         name: "add_expense",
-        description: "تسجيل مصروف جديد في سجل المصاريف.",
+        description: "تسجيل مصروف مع سجل تدقيق. أعد استخدام idempotency_key والتاريخ نفسيهما عند إعادة المحاولة.",
         inputSchema: {
           type: "object",
-          required: ["amount", "category"],
+          required: ["amount", "category", "expense_date", "idempotency_key"],
           properties: {
             amount: { type: "string", description: "المبلغ بالدينار العراقي" },
             category: { type: "string", description: "القيم: rent, salary, marketing, shipping_cost, utilities, other" },
             description: { type: "string", description: "وصف المصروف" },
-            expense_date: { type: "string", description: "ISO date — اختياري، الافتراضي اليوم" },
+            expense_date: { type: "string", description: "تاريخ المصروف YYYY-MM-DD، ثابت عند إعادة المحاولة" },
+            idempotency_key: { type: "string", description: "UUID جديد لكل مصروف، يعاد استخدامه للمحاولة نفسها" },
           },
         },
       },
@@ -974,14 +979,35 @@ function buildMcpServer(auth: McpAuthInfo): Server {
   // ── Tool Handlers ──────────────────────────────────────────────────────────
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { name, arguments: args = {} } = request.params;
+    const db = getDb();
     const a = args as Record<string, any>;
     const requiredScope = writeTools.has(name) ? "mcp:write" : "mcp:read";
     requireMcpScope(auth, requiredScope);
     console.log(`[MCP AUDIT] client=${auth.clientId} scope=${requiredScope} tool=${name} ts=${new Date().toISOString()}`);
 
-    if (!db && !dbOptionalTools.has(name)) return err("قاعدة البيانات غير متصلة");
 
     try {
+      if (name === "list_site_data_sources") {
+          return text({ dataSources: siteDataSources() });
+        }
+      if (name === "get_table_schema") {
+          const parsed = z.object({ table: z.string().min(1) }).parse(a);
+          const entry = findSchemaTable(parsed.table);
+          if (!entry) throw new Error(`Unknown or blocked table: ${parsed.table}`);
+          return text({
+            name: entry.tableName,
+            exportName: entry.exportName,
+            uri: `aquavo://table/${entry.tableName}`,
+            columns: entry.columns.map((column) => ({
+              name: column,
+              redacted: isSensitiveField(column),
+            })),
+          });
+        }
+      if (name === "get_site_overview") {
+          return text(await buildSiteOverview(db));
+        }
+      if (!db) return err("قاعدة البيانات غير متصلة");
       switch (name) {
 
         // ── READ TOOLS ───────────────────────────────────────────────────────
@@ -993,7 +1019,7 @@ function buildMcpServer(auth: McpAuthInfo): Server {
           if (brand) conditions.push(ilike(schema.products.brand, `%${brand}%`));
           if (in_stock_only) conditions.push(gt(schema.products.stock, 0));
           if (low_stock_only) conditions.push(sql`${schema.products.stock} <= ${schema.products.lowStockThreshold} AND ${schema.products.stock} > 0`);
-          if (search) conditions.push(or(ilike(schema.products.name, `%${search}%`), ilike(schema.products.brand, `%${search}%`)));
+          if (search) conditions.push(or(ilike(schema.products.name, `%${search}%`), ilike(schema.products.brand, `%${search}%`))!);
           const orderBy =
             sort_by === "price_asc" ? asc(schema.products.price) :
             sort_by === "price_desc" ? desc(schema.products.price) :
@@ -1126,7 +1152,7 @@ function buildMcpServer(auth: McpAuthInfo): Server {
             ilike(schema.users.fullName, `%${search}%`),
             ilike(schema.users.email, `%${search}%`),
             ilike(schema.users.phone, `%${search}%`),
-          ));
+          )!);
           const rows = await db.select({
             id: schema.users.id, email: schema.users.email, fullName: schema.users.fullName,
             phone: schema.users.phone, loyaltyPoints: schema.users.loyaltyPoints,
@@ -1292,24 +1318,9 @@ function buildMcpServer(auth: McpAuthInfo): Server {
           return text({ total: totals.total, expenses: rows });
         }
 
-        case "list_site_data_sources": {
-          return text({ dataSources: siteDataSources() });
-        }
 
-        case "get_table_schema": {
-          const parsed = z.object({ table: z.string().min(1) }).parse(a);
-          const entry = findSchemaTable(parsed.table);
-          if (!entry) throw new Error(`Unknown or blocked table: ${parsed.table}`);
-          return text({
-            name: entry.tableName,
-            exportName: entry.exportName,
-            uri: `aquavo://table/${entry.tableName}`,
-            columns: entry.columns.map((column) => ({
-              name: column,
-              redacted: isSensitiveField(column),
-            })),
-          });
-        }
+
+
 
         case "read_site_table": {
           const parsed = z.object({
@@ -1320,9 +1331,7 @@ function buildMcpServer(auth: McpAuthInfo): Server {
           return text(await readTableRows(db, parsed.table, parsed.limit, parsed.offset));
         }
 
-        case "get_site_overview": {
-          return text(await buildSiteOverview(db));
-        }
+
 
         case "get_growth_overview": {
           return text(await getGrowthOverview());
@@ -1400,22 +1409,18 @@ function buildMcpServer(auth: McpAuthInfo): Server {
         // ── WRITE TOOLS ──────────────────────────────────────────────────────
 
         case "update_order_status": {
-          const { id, status, note } = a;
-          if (!id || !status) throw new Error("id و status مطلوبان");
-          const [existing] = await db.select({ id: schema.orders.id, orderNumber: schema.orders.orderNumber, status: schema.orders.status })
-            .from(schema.orders).where(eq(schema.orders.id, id)).limit(1);
-          if (!existing) throw new Error("الطلب غير موجود");
-          await db.update(schema.orders).set({
-            status,
-            updatedAt: new Date(),
-            ...(note ? { adminNotes: note } : {}),
-          } as any).where(eq(schema.orders.id, id));
-          await recordMcpAudit(db, auth, "update_order_status", "order", id, {
-            previousStatus: existing.status,
-            newStatus: status,
-            note: note ?? null,
-          });
-          return text({ success: true, orderNumber: existing.orderNumber, previous_status: existing.status, new_status: status });
+          const { id, status, note, delivery_company_id } = z.object({
+            id: z.string().min(1).max(128),
+            status: z.enum(["pending","confirmed","processing","shipped","delivered","cancelled","refunded"]),
+            note: z.string().trim().min(3).max(500).optional(),
+            delivery_company_id: z.string().min(1).max(128).optional(),
+          }).parse(a);
+          const result = await transitionAdminOrderStatus(db, id, {
+            status, adminNotes:note, financialReason:note, deliveryCompanyId:delivery_company_id,
+          }, {id:`mcp:${auth.clientId}`,name:`MCP ${auth.clientId}`});
+          return text({ success:true, orderNumber:result.order.orderNumber,
+            previous_status:result.oldStatus, new_status:result.order.status,
+            packagingLifecycle:result.lifecycle, automaticReturn:result.automaticReturn });
         }
 
         case "update_product": {
@@ -1517,23 +1522,14 @@ function buildMcpServer(auth: McpAuthInfo): Server {
         }
 
         case "add_expense": {
-          const { amount, category, description, expense_date } = a;
-          if (!amount || !category) throw new Error("amount و category مطلوبان");
-          await db.insert(schema.expenses).values({
-            amount: String(amount),
-            category,
-            description: description ?? null,
-            expenseDate: expense_date ? new Date(expense_date) : new Date(),
-            isRecurring: false,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          } as any);
-          await recordMcpAudit(db, auth, "add_expense", "expense", "new", {
-            amount,
-            category,
-            description: description ?? null,
+          const key = z.string().uuid().parse(a.idempotency_key);
+          const input = expenseInputSchema.parse({
+            amount:a.amount, category:a.category, description:a.description,
+            expenseDate:a.expense_date, isRecurring:false,
           });
-          return text({ success: true, amount, category, description });
+          const result = await createExpenseOnce(db,input,{id:`mcp:${auth.clientId}`,name:`MCP ${auth.clientId}`},key);
+          return text({success:true, id:result.expense.id, replayed:result.replayed,
+            amount:result.expense.amount, category:result.expense.category});
         }
 
         case "soft_delete_product": {

@@ -13,7 +13,7 @@ import { HOME_SHELL_HTML } from "./_home-shell-html.js";
 import { injectHomeStyles } from "./_home-styles.js";
 import { getSeoMetaOverride } from "./_seo-content.js";
 import { AQUAVO_FAQ_ITEMS } from "../shared/faq-content.js";
-import { toPublicProduct, toPublicVariant } from "../shared/public-product.js";
+import { toPublicProduct, toPublicVariant, toPublicSpecifications } from "../shared/public-product.js";
 import { buildProductSeoMeta } from "../shared/product-seo.js";
 import { buildArticleSeoMeta } from "../shared/article-seo.js";
 export { buildProductMetaTitle, buildProductMetaDescription } from "../shared/product-seo.js";
@@ -486,11 +486,12 @@ async function getProductMeta(slug: string, locale: Locale = DEFAULT_LOCALE): Pr
               variants, has_variants AS "hasVariants",
               created_at AS "createdAt", updated_at AS "updatedAt"
        FROM products
-       WHERE slug = $1 AND deleted_at IS NULL
+       WHERE slug = $1 AND deleted_at IS NULL AND is_storefront_visible = true
        LIMIT 1`,
       [slug]
     );
     if (rows.length === 0) return null;
+    rows[0].specifications = toPublicSpecifications(rows[0].specifications);
     const translations = await loadEntityTranslationRecords(db, "product", [String(rows[0].id)]);
     const translation = translations.find((record) => record.locale === locale);
     const productSource = productSourceFields(rows[0] as { name: string; description: string; subcategory?: string | null; specifications?: Record<string, unknown> | null; variants?: Array<{ id: string; label: string }> | null });
@@ -586,7 +587,7 @@ async function loadGuideProducts(category: string | undefined, guidePath: string
   try {
     const { rows } = await db.query(
       `SELECT slug, name, price, stock FROM products
-        WHERE deleted_at IS NULL AND category = $1 AND slug IS NOT NULL AND slug <> ''
+        WHERE deleted_at IS NULL AND is_storefront_visible = true AND category = $1 AND slug IS NOT NULL AND slug <> ''
           AND stock > 0 AND price::numeric > 0
           AND ($2::text[] IS NULL OR slug = ANY($2::text[]))
         ORDER BY updated_at DESC NULLS LAST, name ASC

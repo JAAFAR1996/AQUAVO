@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { Product } from "@/types";
 
 const addItem = vi.hoisted(() => vi.fn());
@@ -27,7 +28,7 @@ const product: Product = {
 };
 
 describe("incoming products on secondary shopping surfaces", () => {
-  it("uses the brand icon for missing photos across quick view and all comparison views, preserving real photos", () => {
+  it("uses the brand icon for missing photos across quick view and all comparison views, preserving real photos", async () => {
     const before = JSON.stringify(product);
     const logo = "/brand/aquavo-v2-icon.svg";
     const photo = "https://cdn.example.test/products/exact-product.jpg";
@@ -50,14 +51,20 @@ describe("incoming products on secondary shopping surfaces", () => {
     expectPhoto(table.container, photo);
     table.unmount();
 
-    const drawer = render(<ComparisonDrawer products={[product]} />);
+    // Comparison is sourced by saved IDs, independently of the listing page.
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const queryKey = ["comparison-products", [product.id]];
+    queryClient.setQueryData(queryKey, [product]);
+    const drawer = render(<QueryClientProvider client={queryClient}><ComparisonDrawer /></QueryClientProvider>);
     expectPhoto(drawer.container, logo);
     fireEvent.click(drawer.getByRole("button"));
     expectPhoto(drawer.container, logo);
-    drawer.rerender(<ComparisonDrawer products={[photographed]} />);
-    expectPhoto(drawer.container, photo);
+    act(() => { queryClient.setQueryData(queryKey, [photographed]); });
+    await waitFor(() => expectPhoto(drawer.container, photo));
     expect(JSON.stringify(product)).toBe(before);
     expect(addItem).not.toHaveBeenCalled();
+    drawer.unmount();
+    queryClient.clear();
   });
 
   it("keeps the quick view price and disables its incoming action until real stock arrives", () => {

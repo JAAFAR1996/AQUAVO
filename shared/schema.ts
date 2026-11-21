@@ -6,6 +6,24 @@ import { z } from "zod";
 
 import type { ManualInvoiceLocale } from "./manual-invoice-locale.js";
 
+// Shared runtime state: counters must survive worker churn, and write receipts
+// must commit atomically with the business mutation they protect.
+export const rateLimitBuckets = pgTable("rate_limit_buckets", {
+  key: text("key").primaryKey(),
+  hits: integer("hits").notNull().default(0),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+}, (table) => ({
+  expiresIdx: index("rate_limit_buckets_expires_idx").on(table.expiresAt),
+  nonnegativeHits: check("rate_limit_buckets_hits_check", sql`${table.hits} >= 0`),
+}));
+
+export const mutationReceipts = pgTable("mutation_receipts", {
+  key: text("key").primaryKey(),
+  requestHash: text("request_hash").notNull(),
+  resourceId: text("resource_id").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 // Product variant type for size/power options within a single product
 export interface ProductVariant {
   id: string;                         // Unique variant ID (e.g., "S", "M", "L", "18W")
@@ -113,6 +131,9 @@ export const products = pgTable("products", {
   isNew: boolean("is_new").notNull().default(false),
   isBestSeller: boolean("is_best_seller").notNull().default(false),
   isProductOfWeek: boolean("is_product_of_week").notNull().default(false),
+  // Existing production visibility flag; private invoice identities remain
+  // available to trusted inventory code but never enter the public catalogue.
+  isStorefrontVisible: boolean("is_storefront_visible").notNull().default(true),
   specifications: jsonb("specifications").notNull().$type<Record<string, any>>(),
   // Product variants (for products with multiple sizes/options like HYGGER)
   variants: jsonb("variants").$type<ProductVariant[] | null>(),
@@ -187,6 +208,7 @@ export const orders = pgTable("orders", {
   customerName: text("customer_name"),
   customerEmail: text("customer_email"),
   customerPhone: text("customer_phone"),
+  customerNotes: text("customer_notes"), // Customer delivery instructions, separate from internal/admin notes.
   bonusPrize: jsonb("bonus_prize").$type<{
     type: string;
     value: number;
@@ -199,6 +221,9 @@ export const orders = pgTable("orders", {
   boxCost: numeric("box_cost").default("0"),
   // Order origin: 'website' (default) | 'whatsapp' (created from a manual WhatsApp invoice)
   source: text("source").default("website"),
+  // Existing production-isolation flag from migration 0083; customer analytics
+  // need the persisted flag to exclude revisits to test-order confirmations.
+  isTest: boolean("is_test").notNull().default(false),
 
   // Durable commerce identity. viewSessionId joins the exact browser-tab funnel
   // (page → product → cart → checkout → order); aqSid joins acquisition history
@@ -445,6 +470,9 @@ export const reviews = pgTable("reviews", {
   userIdIdx: index("reviews_user_id_idx").on(table.userId),
   statusIdx: index("reviews_status_idx").on(table.status),
   createdAtIndex: index("reviews_created_at_idx").on(table.createdAt),
+  // Migration 0108 first guards writes with NOT VALID; historic rows require
+  // an explicit data review before validating the constraint across the table.
+  ratingRange: check("reviews_rating_range", sql`${table.rating} >= 1 AND ${table.rating} <= 5`),
 }));
 
 // Review ratings for tracking helpful votes
@@ -734,6 +762,7 @@ export const userAddresses = pgTable("user_addresses", {
   userId: text("user_id").references(() => users.id).notNull(),
   label: text("label"),
   addressLine1: text("address_line1").notNull(),
+  phone: text("phone"),
   city: text("city").notNull(),
   country: text("country").default("Iraq"),
   isDefault: boolean("is_default").default(false),
@@ -2475,6 +2504,19 @@ export const notificationLog = pgTable("notification_log", {
     probability?: number;
     aiGenerated?: boolean;
     variant?: string;
+    // In-app purchase, tier and milestone notifications share this JSONB log.
+    orderId?: string;
+    purchasePoints?: number;
+    roundingPoints?: number;
+    totalBalance?: number;
+    cashbackBalance?: number;
+    oldTier?: string;
+    newTier?: string;
+    discountPercent?: number;
+    pointMultiplier?: number;
+    milestone?: number;
+    couponCode?: string;
+    expiresInDays?: number;
   }>(),
   sentAt: timestamp("sent_at").defaultNow().notNull(),
   deliveredAt: timestamp("delivered_at"),

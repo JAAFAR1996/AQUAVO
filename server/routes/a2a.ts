@@ -161,7 +161,7 @@ export function createA2ARouter(): RouterType {
     }
 
     try {
-      const rawProducts = await storage.getProducts({ search: query, limit: 5 });
+      const rawProducts = await storage.getProducts({ storefrontOnly: true, search: query, limit: 5 });
       const products = toPublicProducts(rawProducts);
       const incomingMessage =
         req.body && typeof req.body === "object"
@@ -203,8 +203,8 @@ export function createA2ARouter(): RouterType {
     problem(res, 404, "A2A task not found", `No task exists with id "${req.params.id}".`);
   });
 
-  router.post("/api/a2a/tasks/:id:cancel", (req, res) => {
-    problem(res, 404, "A2A task not found", `No task exists with id "${req.params.id}".`);
+  router.post("/api/a2a/tasks/:id:cancel", (_req, res) => {
+    problem(res, 404, "A2A task not found", "This read-only agent does not create tasks.");
   });
 
   return router;

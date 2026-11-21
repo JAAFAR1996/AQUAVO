@@ -9,6 +9,7 @@
 // client never pulls server modules into its bundle.
 // ─────────────────────────────────────────────────────────────────────────────
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRef } from "react";
 import { z } from "zod";
 import { apiRequest } from "@/lib/queryClient";
 import { i18next } from "@/i18n";
@@ -230,6 +231,31 @@ function newIdempotencyKey(prefix: string): string {
   return `${prefix}-${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
 }
 
+const createdMaterialResponseSchema = z.object({ id: z.string().min(1) }).passthrough();
+
+/** Retain an uncertain create attempt only in this mounted form's memory. */
+function useCreateAttempt(prefix: string) {
+  const attempt = useRef<{ signature: string; key: string } | null>(null);
+  return {
+    keyFor(input: object) {
+      // Both create contracts are flat and trim their strings on the server.
+      // Property order/undefined must not turn a retry into another creation.
+      const signature = JSON.stringify(Object.fromEntries(Object.entries(input)
+        .filter(([, value]) => value !== undefined)
+        .sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)
+        .map(([key, value]) => [key, typeof value === "string" ? value.trim() : value])));
+      if (attempt.current?.signature !== signature) {
+        attempt.current = { signature, key: newIdempotencyKey(prefix) };
+      }
+      return attempt.current.key;
+    },
+    confirm(key: string) {
+      // An older request completing must not erase a changed pending payload.
+      if (attempt.current?.key === key) attempt.current = null;
+    },
+  };
+}
+
 export interface CartonInput {
   name: string;
   sku: string;
@@ -244,13 +270,17 @@ export interface CartonInput {
 
 export function useCreateCarton() {
   const qc = useQueryClient();
+  const attempt = useCreateAttempt("carton");
   return useMutation({
     mutationFn: async (input: CartonInput) => {
+      const idempotencyKey = attempt.keyFor(input);
       const res = await apiRequest("POST", `${BASE}/cartons`, {
         ...input,
-        idempotencyKey: newIdempotencyKey("carton"),
+        idempotencyKey,
       });
-      return res.json();
+      const result = createdMaterialResponseSchema.parse(await res.json());
+      attempt.confirm(idempotencyKey);
+      return result;
     },
     onSuccess: () => void qc.invalidateQueries({ queryKey: [`${BASE}/cartons`] }),
   });
@@ -309,6 +339,7 @@ export function useUpdateCarton(cartonId: string) {
 
 export function useCreatePreparationCost() {
   const qc = useQueryClient();
+  const attempt = useCreateAttempt("prep");
   return useMutation({
     mutationFn: async (input: {
       name: string;
@@ -316,11 +347,14 @@ export function useCreatePreparationCost() {
       calculationBasis: CalculationBasis;
       notes?: string;
     }) => {
+      const idempotencyKey = attempt.keyFor(input);
       const res = await apiRequest("POST", `${BASE}/preparation-costs`, {
         ...input,
-        idempotencyKey: newIdempotencyKey("prep"),
+        idempotencyKey,
       });
-      return res.json();
+      const result = createdMaterialResponseSchema.parse(await res.json());
+      attempt.confirm(idempotencyKey);
+      return result;
     },
     onSuccess: () => void qc.invalidateQueries({ queryKey: [`${BASE}/preparation-costs`] }),
   });

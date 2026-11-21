@@ -9,7 +9,8 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { createRequire } from "node:module";
 import { execFileSync } from "node:child_process";
 
 import {
@@ -300,18 +301,13 @@ describe("child process (tsx re-exec) inherits the explicit target", () => {
       "utf8",
     );
 
-    const tsxBin = path.join(
-      REPO_ROOT,
-      "node_modules",
-      ".bin",
-      process.platform === "win32" ? "tsx.CMD" : "tsx",
-    );
-
-    const stdout = execFileSync(tsxBin, [harness], {
+    // Load TypeScript in the real child process without the tsx CLI's optional
+    // IPC server, which is unavailable in restricted CI/test environments.
+    const tsxLoader = pathToFileURL(createRequire(import.meta.url).resolve("tsx")).href;
+    const stdout = execFileSync(process.execPath, ["--import", tsxLoader, harness], {
       cwd: tmpDir,
       env: { ...process.env, DATABASE_URL: VERIFY_URL, NODE_ENV: "test" },
       encoding: "utf8",
-      shell: process.platform === "win32",
       timeout: 60_000,
     });
 

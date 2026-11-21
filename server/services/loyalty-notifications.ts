@@ -8,8 +8,8 @@
  */
 
 import { getDb } from "../db.js";
-import { notificationLog, users, coupons } from "../../shared/schema.js";
-import { eq, and, sql } from "drizzle-orm";
+import { notificationLog, users } from "../../shared/schema.js";
+import { eq, and } from "drizzle-orm";
 import { MEMBERSHIP_TIERS } from "../storage/loyalty-storage.js";
 import { storage } from "../storage/index.js";
 
@@ -17,13 +17,13 @@ import { storage } from "../storage/index.js";
 interface LoyaltyOrderResult {
   purchasePoints: number;
   roundingPoints: number;
-  pointsRedeemed: number;
-  cashbackRedeemed: number;
   roundedTotal: number;
   newTier: string;
-  oldTier: string;
+  oldTier?: string;
   tierChanged: boolean;
-  newLoyaltyBalance: number;
+  // The transactional purchase result returns pending points, not a newly
+  // approved balance. Never substitute that pending balance for eligibility.
+  newLoyaltyBalance?: number;
   newCashbackBalance: number;
 }
 
@@ -68,12 +68,14 @@ export class LoyaltyNotificationService {
       await this.notifyPointsEarned(userId, orderId, loyaltyResult);
 
       // 2. إشعار ترقية المستوى
-      if (loyaltyResult.tierChanged) {
+      if (loyaltyResult.tierChanged && loyaltyResult.oldTier) {
         await this.notifyTierUpgrade(userId, loyaltyResult.oldTier, loyaltyResult.newTier);
       }
 
       // 3. فحص عتبات النقاط وإنشاء كوبونات
-      await this.checkMilestonesAndReward(userId, loyaltyResult.newLoyaltyBalance);
+      if (loyaltyResult.newLoyaltyBalance != null && Number.isFinite(loyaltyResult.newLoyaltyBalance)) {
+        await this.checkMilestonesAndReward(userId, loyaltyResult.newLoyaltyBalance);
+      }
 
     } catch (error) {
       console.error("[AQUAVO Loyalty Notifications] Error:", error);
@@ -97,8 +99,8 @@ export class LoyaltyNotificationService {
 
     // جلب الرصيد الحالي من DB مباشرة (processOrderPoints لا يرجع newLoyaltyBalance)
     let currentBalance: number | null = result.newLoyaltyBalance ?? null;
-    if (currentBalance == null || isNaN(currentBalance)) {
-      const [u] = await db.select({ lb: users.loyaltyBalance }).from(users).where(eq(users.id, userId)).limit(1);
+    if (currentBalance == null || !Number.isFinite(currentBalance)) {
+      const [u] = await db.select({ lb: users.loyaltyPoints }).from(users).where(eq(users.id, userId)).limit(1);
       currentBalance = Number(u?.lb ?? 0);
     }
 
@@ -119,7 +121,7 @@ export class LoyaltyNotificationService {
         orderId,
         purchasePoints: result.purchasePoints,
         roundingPoints: result.roundingPoints,
-        totalBalance: result.newLoyaltyBalance,
+        totalBalance: currentBalance,
         cashbackBalance: result.newCashbackBalance,
       },
       sentAt: new Date(),
@@ -204,7 +206,7 @@ export class LoyaltyNotificationService {
             isActive: true,
             description: `${milestone.label} - خصم ${milestone.discountPercent}% مكافأة الولاء`,
             startDate: new Date(),
-            expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 يوم
+            endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 يوم
             userId,
           });
 

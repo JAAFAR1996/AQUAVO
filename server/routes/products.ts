@@ -8,12 +8,38 @@ import { predictiveAnalytics } from "../services/predictive-analytics.js";
 import { embeddingGenerator } from "../services/embedding-generator.js";
 import { analyticsTracker } from "../services/analytics-tracker.js";
 import * as Sentry from "@sentry/node";
-import { toPublicProduct, toPublicProducts } from "../../shared/public-product.js";
+import { toPublicProduct, toPublicProducts, isPublicStorefrontProduct } from "../../shared/public-product.js";
 import { localizeJsonResponses } from "../middleware/localize-response.js";
 import { DEFAULT_LOCALE } from "../../shared/i18n/locales.js";
 import { fitCatalogue } from "../../shared/tank-compatibility.js";
 import { getDb } from "../db.js";
 import { setCanonicalVariantConfiguration } from "../services/inventory-adjustment-service.js";
+import { FOOD_FILTERS, foodFilterSchema, matchesFoodFilter } from "../../shared/food-choice.js";
+import type { ProductFilters } from "../storage/product-storage.js";
+import { HOME_PICK_CANDIDATE_LIMIT, HOME_PICK_INITIAL_CANDIDATE_LIMIT, HOME_PICK_COUNT, isHomePickProduct } from "../../shared/home-product-selection.js";
+
+const queryStrings = z.preprocess(value => value === undefined ? undefined : Array.isArray(value) ? value : [value], z.array(z.string().min(1).max(200)).max(50).optional());
+const productListQuerySchema = z.object({
+    category: queryStrings,
+    brand: queryStrings,
+    subcategory: z.string().max(200).optional(),
+    minPrice: z.coerce.number().finite().nonnegative().optional(),
+    maxPrice: z.coerce.number().finite().nonnegative().optional(),
+    isNew: z.enum(['true', 'false']).optional(),
+    isBestSeller: z.enum(['true', 'false']).optional(),
+    search: z.string().trim().max(200).optional(),
+    limit: z.coerce.number().int().min(1).max(500).default(500),
+    offset: z.coerce.number().int().min(0).max(100000).default(0),
+    sortBy: z.enum(['rating', 'price', 'createdAt', 'reviewCount', 'name', 'views']).optional(),
+    sortOrder: z.enum(['asc', 'desc']).optional(),
+    paginated: z.enum(['true', 'false']).optional(),
+    food: foodFilterSchema.optional(),
+    difficulty: queryStrings,
+    eco: z.enum(['true', 'false']).optional(),
+    inStock: z.enum(['true', 'false']).optional(),
+    homePicks: z.enum(['true', 'false']).optional(),
+    preferredIds: queryStrings,
+});
 
 // Product availability is commerce-critical and must not depend on process-local
 // serverless memory. Keep the invalidation export for existing callers, but the
@@ -69,7 +95,7 @@ export function createProductRouter(): RouterType {
     const router = Router();
 
     const isPurchasableProduct = (product: any): boolean => {
-        if (!product) return false;
+        if (!isPublicStorefrontProduct(product)) return false;
         if (product.hasVariants && Array.isArray(product.variants) && product.variants.length > 0) {
             return product.variants.some((variant: any) =>
                 Number(variant?.stock ?? 0) > 0 && Number(variant?.price ?? 0) > 0
@@ -85,27 +111,67 @@ export function createProductRouter(): RouterType {
 
     router.get("/", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const query = req.query as Record<string, string | string[] | undefined>;
-            const filters = {
-                category: query.category as string | string[],
-                subcategory: query.subcategory as string,
-                brand: query.brand as string | string[],
-                minPrice: query.minPrice ? Number(query.minPrice) : undefined,
-                maxPrice: query.maxPrice ? Number(query.maxPrice) : undefined,
-                isNew: query.isNew !== undefined ? query.isNew === 'true' : undefined,
-                isBestSeller: query.isBestSeller !== undefined ? query.isBestSeller === 'true' : undefined,
-                search: query.search as string,
-                // Default: fetch all products — client does filtering/sorting
-                limit: query.limit ? Number(query.limit) : 500,
-                offset: query.offset ? Number(query.offset) : undefined,
-                sortBy: query.sortBy as any,
-                sortOrder: query.sortOrder as 'asc' | 'desc',
-                // Search must also match translated names for the request locale.
+            const parsed = productListQuerySchema.safeParse(req.query);
+            if (!parsed.success) {
+                res.status(400).json({ message: "Invalid product filters" });
+                return;
+            }
+            const query = parsed.data;
+            const filters: ProductFilters = {
+                storefrontOnly: true,
+                category: query.category,
+                subcategory: query.subcategory,
+                brand: query.brand,
+                minPrice: query.minPrice,
+                maxPrice: query.maxPrice,
+                isNew: query.isNew === undefined ? undefined : query.isNew === 'true',
+                isBestSeller: query.isBestSeller === undefined ? undefined : query.isBestSeller === 'true',
+                search: query.search,
+                limit: query.paginated === 'true' ? Math.min(query.limit, 100) : query.limit,
+                offset: query.offset,
+                sortBy: query.sortBy,
+                sortOrder: query.sortOrder,
+                preferredIds: query.preferredIds,
                 locale: req.locale ?? DEFAULT_LOCALE,
             };
-
-            const products = await storage.getProducts(filters);
-            const responseData = { products: toPublicProducts(products) };
+            let responseData;
+            const needsDerivedFilter = query.food !== undefined || query.difficulty?.length || query.eco === 'true' || query.inStock === 'true';
+            if (query.homePicks === 'true') {
+                // Preserve the homepage's first-12/legacy-500 candidate selection,
+                // including stable view ranking and ties. Only its four cards
+                // cross the network; the common case still reads just 12 rows.
+                const isHomePick = (product: Parameters<typeof isHomePickProduct>[0]) =>
+                    isPublicStorefrontProduct(product) && isHomePickProduct(product);
+                const first = await storage.getProducts({ ...filters, limit: HOME_PICK_INITIAL_CANDIDATE_LIMIT, offset: undefined });
+                let picks = first.filter(isHomePick);
+                if (picks.length < HOME_PICK_COUNT) {
+                    const fallback = await storage.getProducts({ ...filters, limit: HOME_PICK_CANDIDATE_LIMIT, offset: undefined });
+                    picks = fallback.filter(isHomePick);
+                }
+                const selected = picks.slice(0, HOME_PICK_COUNT);
+                const page = selected.slice(query.offset, query.offset + Math.min(query.limit, HOME_PICK_COUNT));
+                responseData = { products: toPublicProducts(page), total: selected.length, hasMore: query.offset + page.length < selected.length };
+            } else if (needsDerivedFilter) {
+                // Derive food suitability before pagination; filtering one limited
+                // page would hide valid matches and report a false total.
+                const all = await storage.getProducts({ ...filters, limit: undefined, offset: undefined });
+                const candidates = all.filter(product => {
+                    const specs = product.specifications as Record<string, unknown> | null;
+                    if (query.difficulty?.length && !query.difficulty.includes(String(specs?.difficulty ?? ''))) return false;
+                    if (query.eco === 'true' && specs?.ecoFriendly !== true) return false;
+                    return query.inStock !== 'true' || isPurchasableProduct(product);
+                });
+                const foodCounts = query.food === undefined ? undefined : Object.fromEntries(FOOD_FILTERS.map(filter => [filter, candidates.filter(product => matchesFoodFilter(product, filter)).length]));
+                const matching = query.food ? candidates.filter(product => matchesFoodFilter(product, query.food!)) : candidates;
+                const page = matching.slice(query.offset, query.offset + (filters.limit ?? 48));
+                responseData = { products: toPublicProducts(page), total: matching.length, hasMore: query.offset + page.length < matching.length, ...(foodCounts ? { foodCounts } : {}) };
+            } else if (query.paginated === 'true') {
+                const page = await storage.getProductsPage(filters);
+                responseData = { ...page, products: toPublicProducts(page.products) };
+            } else {
+                const rows = await storage.getProducts(filters);
+                responseData = { products: toPublicProducts(rows) };
+            }
 
             // Price and stock can change from admin, orders, returns and inventory
             // movements. Never let a CDN/serverless instance serve an older
@@ -115,6 +181,21 @@ export function createProductRouter(): RouterType {
         } catch (err) {
             next(err);
         }
+    });
+
+    // Comparison is independent of the active catalogue filters and page.
+    router.get("/by-ids", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const parsed = z.string().max(4000).safeParse(req.query.ids);
+            const ids = parsed.success ? [...new Set(parsed.data.split(",").filter(Boolean))] : [];
+            if (!parsed.success || ids.length === 0 || ids.length > 20 || ids.some(id => id.length > 200 || !/^[a-zA-Z0-9_-]+$/.test(id))) {
+                res.status(400).json({ message: "Invalid product IDs" });
+                return;
+            }
+            const rows = await storage.getProductsByIds(ids);
+            res.set("Cache-Control", "no-store");
+            res.json({ products: toPublicProducts(rows) });
+        } catch (err) { next(err); }
     });
 
     // Categories list (distinct values from products table)
@@ -151,7 +232,7 @@ export function createProductRouter(): RouterType {
                 return;
             }
 
-            const all = await storage.getProducts({ limit: 500 });
+            const all = await storage.getProducts({ storefrontOnly: true, limit: 500 });
             const relevant = (Array.isArray(all) ? all : []).filter(
                 (p: any) => SIZE_RELEVANT_CATEGORIES.includes(String(p.category ?? "")),
             );
@@ -211,7 +292,7 @@ export function createProductRouter(): RouterType {
                 const trending = await storage.getTrendingProducts();
                 if (trending.length > 0) return trending.filter(isPurchasableProduct).slice(0, 8);
                 // Ultimate fallback: newest products that can actually be purchased.
-                const newest = await storage.getProducts({ limit: 50, sortBy: "createdAt", sortOrder: "desc" });
+                const newest = await storage.getProducts({ storefrontOnly: true, limit: 50, sortBy: "createdAt", sortOrder: "desc" });
                 return newest.filter(isPurchasableProduct).slice(0, 8);
             };
 
@@ -317,44 +398,28 @@ export function createProductRouter(): RouterType {
     // Cart-based suggestions (works for guests too)
     router.get("/cart-suggestions", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const productIdsParam = req.query.productIds as string;
-            if (!productIdsParam) {
-                res.json({ suggestions: [], reason: "" });
+            const parsed = z.string().max(8000).default("").safeParse(req.query.productIds);
+            if (!parsed.success) {
+                res.status(400).json({ message: "Invalid cart product IDs" });
                 return;
             }
-
-            const cartProductIds = productIdsParam.split(",").filter(Boolean);
+            const cartProductIds = [...new Set(parsed.data.split(",").map(id => id.trim()).filter(Boolean))];
+            if (cartProductIds.length > 20 || cartProductIds.some(id => id.length > 200 || !/^[a-zA-Z0-9_-]+$/.test(id))) {
+                res.status(400).json({ message: "At most 20 distinct cart product IDs are supported" });
+                return;
+            }
             if (cartProductIds.length === 0) {
                 res.json({ suggestions: [], reason: "" });
                 return;
             }
-
-            // Fetch frequently bought together — all in parallel (was N sequential queries)
-            const allSuggestions = new Map<string, number>();
             const cartIdSet = new Set(cartProductIds);
-
-            const relatedArrays = await Promise.all(
-                cartProductIds.map(pid => storage.getFrequentlyBoughtTogether(pid))
-            );
-
-            for (const related of relatedArrays) {
-                for (const product of related) {
-                    if (cartIdSet.has(product.id)) continue; // skip items already in cart
-                    allSuggestions.set(product.id, (allSuggestions.get(product.id) || 0) + 1);
-                }
-            }
-
-            // Sort by frequency (how many cart items suggest this product)
-            const sorted = Array.from(allSuggestions.entries())
-                .sort((a, b) => b[1] - a[1])
-                .slice(0, 4);
-
-            if (sorted.length > 0) {
-                const suggestionIds = sorted.map(([id]) => id);
+            // A single aggregated query replaces one recommendation query per cart item.
+            const suggestionIds = await recommendationEngine.getFrequentlyBoughtTogetherForProducts(cartProductIds, 20);
+            if (suggestionIds.length > 0) {
                 const suggestions = await storage.getProductsByIds(suggestionIds);
                 const validSuggestions = suggestions.filter(p =>
-                    parseFloat(String(p.price ?? "0")) > 0 && (p.stock ?? 0) > 0
-                );
+                    isPublicStorefrontProduct(p) && parseFloat(String(p.price ?? "0")) > 0 && (p.stock ?? 0) > 0
+                ).slice(0, 4);
                 if (validSuggestions.length > 0) {
                     res.json({ suggestions: toPublicProducts(validSuggestions), reason: "أكمل حوضك - منتجات تُشترى عادةً معاً" });
                     return;
@@ -364,7 +429,7 @@ export function createProductRouter(): RouterType {
             // Fallback: trending in-stock products not already in cart
             const trending = await storage.getTrendingProducts();
             const fallback = trending
-                .filter(p => !cartIdSet.has(p.id) && parseFloat(String(p.price ?? "0")) > 0 && (p.stock ?? 0) > 0)
+                .filter(p => isPublicStorefrontProduct(p) && !cartIdSet.has(p.id) && parseFloat(String(p.price ?? "0")) > 0 && (p.stock ?? 0) > 0)
                 .slice(0, 4);
 
             res.json({
@@ -413,14 +478,14 @@ export function createProductRouter(): RouterType {
             }
 
             // Fallback: regular text search
-            const textResults = await storage.getProducts({ search: query, limit: 20 });
+            const textResults = await storage.getProducts({ storefrontOnly: true, search: query, limit: 20 });
             trackSearchPromise(Array.isArray(textResults) ? textResults.length : 0);
             res.json({ products: toPublicProducts(textResults), semantic: false });
         } catch (err) {
             // On any embedding error, fallback to text search
             try {
                 const query = req.query.q as string;
-                const textResults = await storage.getProducts({ search: query, limit: 20 });
+                const textResults = await storage.getProducts({ storefrontOnly: true, search: query, limit: 20 });
                 res.json({ products: toPublicProducts(textResults), semantic: false });
             } catch {
                 next(err);
@@ -531,7 +596,7 @@ export function createProductRouter(): RouterType {
 
         try {
             const product = await storage.getProduct(parsed.data.productId);
-            if (!product) {
+            if (!product || !isPublicStorefrontProduct(product)) {
                 res.status(404).json({ accepted: false });
                 return;
             }
@@ -566,7 +631,7 @@ export function createProductRouter(): RouterType {
                 product = await storage.getProductBySlug(idOrSlug);
             }
 
-            if (!product) {
+            if (!product || !isPublicStorefrontProduct(product)) {
                 res.status(404).json({ message: "Product not found" });
                 return;
             }
@@ -596,7 +661,7 @@ export function createProductRouter(): RouterType {
                 product = await storage.getProductBySlug(idOrSlug);
             }
 
-            if (!product) {
+            if (!product || !isPublicStorefrontProduct(product)) {
                 res.status(404).json({ message: "Product not found" });
                 return;
             }
@@ -619,7 +684,7 @@ export function createProductRouter(): RouterType {
             const nameWithoutSize = removeVariantSuffix(product.name);
 
             // Get products in same category+brand only (avoids loading full catalog)
-            const allProducts = await storage.getProducts({
+            const allProducts = await storage.getProducts({ storefrontOnly: true,
                 category: product.category,
                 brand: product.brand,
             });
@@ -642,6 +707,12 @@ export function createProductRouter(): RouterType {
     router.get("/:productId/discounts", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { productId } = req.params as { productId: string };
+            res.set("Cache-Control", "no-store");
+            const product = await storage.getProduct(productId);
+            if (!product || !isPublicStorefrontProduct(product)) {
+                res.status(404).json({ message: "Product not found" });
+                return;
+            }
             const discounts = await storage.getDiscounts(productId);
             res.json(discounts);
         } catch (err) {

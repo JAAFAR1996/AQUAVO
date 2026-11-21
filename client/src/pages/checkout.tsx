@@ -388,6 +388,7 @@ export default function CheckoutPage() {
         couponCode: testMode ? null : appliedCoupon?.code ?? null,
         cashbackToUse: testMode ? 0 : loyaltyData.cashbackToUse,
         whatsappMarketingOptIn: testMode ? false : whatsappMarketingOptIn,
+        customerInfo,
         testMode,
       });
       const idempotencyKey = getOrderIdempotencyKey(cartSignature);
@@ -767,6 +768,7 @@ export default function CheckoutPage() {
               handleBack={handleBack}
               handleConfirmOrder={handleConfirmOrder}
               couponDiscount={couponDiscount}
+              appliedCouponCode={appliedCoupon?.code}
               loyaltyData={loyaltyData}
               isLoggedIn={!!user}
               whatsappMarketingOptIn={whatsappMarketingOptIn}

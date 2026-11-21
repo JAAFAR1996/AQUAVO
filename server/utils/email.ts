@@ -44,6 +44,8 @@ export interface EmailOptions {
   subject: string;
   text?: string;
   html?: string;
+  /** Suppress provider response details for messages containing authentication secrets. */
+  sensitive?: boolean;
 }
 
 // Email log types
@@ -124,15 +126,15 @@ async function sendEmailDetailed(options: EmailOptions): Promise<EmailSendResult
     });
 
     if (error) {
-      const errorMessage = safeEmailError("RESEND_API_ERROR", error);
+      const errorMessage = options.sensitive ? "RESEND_API_ERROR" : safeEmailError("RESEND_API_ERROR", error);
       console.error("[Email] Resend API error:", errorMessage);
       return { success: false, errorMessage };
     }
 
-    console.log(`[Email] Successfully sent to: ${options.to}`);
+    console.log(options.sensitive ? "[Email] Sensitive transactional message sent" : `[Email] Successfully sent to: ${options.to}`);
     return { success: true };
   } catch (error) {
-    const errorMessage = safeEmailError("RESEND_SEND_EXCEPTION", error);
+    const errorMessage = options.sensitive ? "RESEND_SEND_EXCEPTION" : safeEmailError("RESEND_SEND_EXCEPTION", error);
     console.error("[Email] Failed to send:", errorMessage);
     return { success: false, errorMessage };
   }

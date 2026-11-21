@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { primeReceiptPrinterAudio } from "@/lib/receipt-printer-audio";
 import { DynamicButton } from "@/components/ui/dynamic-button";
@@ -19,8 +19,7 @@ import { getClientSessionId } from "@/lib/client-session";
 import { orderAttributionPayload } from "@/lib/attribution";
 import { phTrackCheckoutStep } from "@/lib/posthog";
 import { trackAddPaymentInfo } from "@/lib/analytics";
-
-const APPLIED_COUPON_STORAGE_KEY = "aquavo_applied_coupon_v1";
+import type { CheckoutQuote } from "@shared/checkout-quote";
 
 interface LoyaltyBreakdown {
     usePoints: boolean;
@@ -46,6 +45,7 @@ interface ConfirmationViewProps {
     handleBack: () => void;
     handleConfirmOrder: () => void;
     couponDiscount?: number;
+    appliedCouponCode?: string;
     loyaltyData?: LoyaltyBreakdown;
     isLoggedIn?: boolean;
     whatsappMarketingOptIn: boolean;
@@ -77,6 +77,7 @@ export function ConfirmationView({
     handleBack,
     handleConfirmOrder,
     couponDiscount = 0,
+    appliedCouponCode = "",
     loyaltyData,
     isLoggedIn = false,
     whatsappMarketingOptIn,
@@ -90,6 +91,8 @@ export function ConfirmationView({
     const [onlineAvailable, setOnlineAvailable] = useState<boolean | null>(null);
     const [preparedOrder, setPreparedOrder] = useState<Pick<OnlineStartResponse, "orderNumber" | "amount"> | null>(null);
     const [agreementError, setAgreementError] = useState(false);
+    const [pendingQuote, setPendingQuote] = useState<CheckoutQuote | null>(null);
+    const onlineInFlight = useRef(false);
 
     useEffect(() => {
         let active = true;
@@ -117,9 +120,18 @@ export function ConfirmationView({
         || (loyaltyData?.usePoints && (loyaltyData.pointsToUse > 0 || pointsDiscount > 0)),
     );
     const busy = isSubmitting || onlinePreparing;
+    const displayedQuote: CheckoutQuote = {
+        items: cartItems.map((item) => ({ productId: item.productId,
+            ...(item.variantId ? { variantId: item.variantId } : {}),
+            quantity: item.quantity, unitPrice: item.price })),
+        subtotal: cartTotal, shippingCost: deliveryFee, discount: couponDiscount, amount: finalAmount,
+    };
+    const quoteSource = JSON.stringify({ quote: displayedQuote, couponCode: appliedCouponCode, customerInfo });
+    useEffect(() => { setPendingQuote(null); }, [quoteSource]);
 
-    const beginOnlinePayment = async () => {
-        if (!agreed || busy || onlineBlockedByLoyalty || onlineAvailable === false) return;
+    const beginOnlinePayment = async (expectedQuote: CheckoutQuote = displayedQuote) => {
+        if (!agreed || busy || onlineInFlight.current || onlineBlockedByLoyalty || onlineAvailable === false) return;
+        onlineInFlight.current = true;
         setOnlinePreparing(true);
         setOnlineError("");
         setPreparedOrder(null);
@@ -132,8 +144,9 @@ export function ConfirmationView({
         });
 
         try {
-            let couponCode = "";
-            try { couponCode = sessionStorage.getItem(APPLIED_COUPON_STORAGE_KEY) || ""; } catch { /* optional storage */ }
+            // Checkout state is authoritative; blocked storage or remounting a coupon
+            // input must never change the discount sent to the payment service.
+            const couponCode = appliedCouponCode.trim().toUpperCase();
 
             const cartSignature = JSON.stringify({
                 paymentMethod: "online",
@@ -145,6 +158,8 @@ export function ConfirmationView({
                 couponCode,
                 cashback: 0,
                 whatsappMarketingOptIn,
+                customerInfo,
+                expectedQuote,
             });
             const idempotencyKey = getOrderIdempotencyKey(cartSignature);
             const governorate = GOVERNORATES.find((entry) => entry.value === customerInfo.governorate)?.label;
@@ -164,6 +179,7 @@ export function ConfirmationView({
                         name: customerInfo.name,
                         phone: customerInfo.phone,
                         address,
+                        notes: customerInfo.notes,
                     },
                     items: cartItems.map((item) => ({
                         productId: item.productId,
@@ -174,10 +190,19 @@ export function ConfirmationView({
                     useCashback: false,
                     cashbackToUse: 0,
                     whatsappMarketingOptIn,
+                    expectedQuote,
                 }),
             });
 
-            const data = await response.json().catch(() => ({})) as Partial<OnlineStartResponse> & { message?: string };
+            const data = await response.json().catch(() => ({})) as Partial<OnlineStartResponse> & {
+                message?: string; code?: string; quote?: CheckoutQuote;
+            };
+            if (response.status === 409 && data.code === "CHECKOUT_QUOTE_CHANGED" && data.quote
+                && Number.isFinite(data.quote.amount) && data.quote.amount > 0 && Array.isArray(data.quote.items)) {
+                setPendingQuote(data.quote);
+                setOnlinePreparing(false);
+                return;
+            }
             if (!response.ok || !data.redirectUrl || !data.orderId || !data.paymentId) {
                 failureTracked = true;
                 phTrackCheckoutStep({
@@ -186,12 +211,16 @@ export function ConfirmationView({
                     totalValue: finalAmount,
                     paymentMethod: "online",
                     statusCode: response.status,
-                    errorCode: typeof (data as any)?.code === "string" ? String((data as any).code) : `HTTP_${response.status}`,
+                    errorCode: typeof data.code === "string" ? data.code : `HTTP_${response.status}`,
                 });
                 throw new Error(data.message || t("errors.onlineSetup"));
             }
 
             const started = data as OnlineStartResponse;
+            if (!Number.isFinite(started.amount) || String(started.currency).toUpperCase() !== "IQD"
+                || Math.round(started.amount * 100) !== Math.round(expectedQuote.amount * 100)) {
+                throw new Error(t("errors.onlineAmountMismatch"));
+            }
             phTrackCheckoutStep({
                 step: "order_created",
                 numItems: cartItems.reduce((sum, item) => sum + item.quantity, 0),
@@ -222,6 +251,8 @@ export function ConfirmationView({
             setOnlineError(error instanceof Error ? error.message : t("errors.onlineSetup"));
             setOnlinePreparing(false);
             setPreparedOrder(null);
+        } finally {
+            onlineInFlight.current = false;
         }
     };
 
@@ -391,6 +422,30 @@ export function ConfirmationView({
                         </div>
                     </div>
                 )}
+                {paymentMethod === "online" && pendingQuote && (
+                    <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm dark:border-amber-800 dark:bg-amber-950/20" role="alert">
+                        <h4 className="font-semibold">{t("confirm.quoteChanged")}</h4>
+                        <p className="mt-1 leading-6">{t("confirm.quoteChangedHint")}</p>
+                        <ul className="my-3 space-y-1">
+                            {pendingQuote.items.map((line) => {
+                                const item = cartItems.find((candidate) => candidate.productId === line.productId && (candidate.variantId || "") === (line.variantId || ""));
+                                return <li key={`${line.productId}:${line.variantId || ""}`} className="flex justify-between gap-3">
+                                    <span>{item?.name ?? line.productId}{item?.variantLabel ? ` (${item.variantLabel})` : ""} × {line.quantity}</span>
+                                    <span>{formatIQD(line.unitPrice * line.quantity)}</span>
+                                </li>;
+                            })}
+                            <li className="flex justify-between"><span>{t("summary.delivery")}</span><span>{formatIQD(pendingQuote.shippingCost)}</span></li>
+                            <li className="flex justify-between"><span>{t("summary.couponDiscount")}</span><span>{formatIQD(pendingQuote.discount)}</span></li>
+                            {pendingQuote.amount > Math.max(0, pendingQuote.subtotal + pendingQuote.shippingCost - pendingQuote.discount) && (
+                                <li className="flex justify-between"><span>{t("summary.rounding")}</span><span>{formatIQD(pendingQuote.amount - Math.max(0, pendingQuote.subtotal + pendingQuote.shippingCost - pendingQuote.discount))}</span></li>
+                            )}
+                            <li className="flex justify-between border-t pt-2 font-semibold"><span>{t("confirm.amount")}</span><span>{formatIQD(pendingQuote.amount)}</span></li>
+                        </ul>
+                        <Button type="button" onClick={() => void beginOnlinePayment(pendingQuote)} disabled={!agreed || busy}>
+                            {t("confirm.acceptQuote", { amount: formatIQD(pendingQuote.amount) })}
+                        </Button>
+                    </div>
+                )}
             </section>
 
             <div className="flex items-start gap-3 py-2">
@@ -422,8 +477,8 @@ export function ConfirmationView({
                     width="full"
                     onClick={submit}
                     className="order-1 h-12 w-full text-base font-semibold sm:order-2 sm:flex-1"
-                    disabled={busy || (paymentMethod === "online" && onlineBlockedByLoyalty)}
-                    aria-disabled={busy || (paymentMethod === "online" && onlineBlockedByLoyalty)}
+                    disabled={busy || (paymentMethod === "online" && (onlineBlockedByLoyalty || Boolean(pendingQuote)))}
+                    aria-disabled={busy || (paymentMethod === "online" && (onlineBlockedByLoyalty || Boolean(pendingQuote)))}
                     aria-busy={busy}
                     stateKey={`${paymentMethod}-${busy ? "busy" : "ready"}`}
                     icon={busy ? <Loader2 className="animate-spin motion-reduce:animate-none" /> : paymentMethod === "online" ? <LockKeyhole /> : undefined}

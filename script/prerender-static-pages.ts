@@ -4,7 +4,8 @@ import { pathToFileURL } from "node:url";
 import { resolve } from "node:path";
 
 /**
- * Prerender the hook-free static pages to static HTML at build time.
+ * Prerender static page content with an anonymous auth context at build time.
+ * React effects do not execute during this render, so no auth/API requests run.
  *
  * These routes render real content for a person and almost nothing for a
  * crawler. api/_seo-preview-shell.tsx serves them as `StaticPage`: a breadcrumb,
@@ -147,6 +148,7 @@ export async function prerenderStaticPages(): Promise<Record<string, string>> {
     [
       'import { renderToStaticMarkup } from "react-dom/server";',
       'import { createElement } from "react";',
+      'import { AuthProvider } from "../client/src/contexts/auth-context";',
       'import "../script/i18n-static-resources";',
       imports,
       "const PAGES = {",
@@ -155,7 +157,7 @@ export async function prerenderStaticPages(): Promise<Record<string, string>> {
       "export function renderAll() {",
       "  const out = {};",
       "  for (const [route, Component] of Object.entries(PAGES)) {",
-      "    out[route] = renderToStaticMarkup(createElement(Component));",
+      "    out[route] = renderToStaticMarkup(createElement(AuthProvider, null, createElement(Component)));",
       "  }",
       "  return out;",
       "}",

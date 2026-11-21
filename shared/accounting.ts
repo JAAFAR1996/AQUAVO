@@ -437,11 +437,14 @@ export const EXPENSE_CATEGORY_LABELS: Record<ExpenseCategory, string> = {
 
 export const expenseInputSchema = z.object({
   category: z.enum(EXPENSE_CATEGORIES),
-  amount: z.coerce.number().positive(),
-  description: z.string().trim().optional(),
+  amount: z.coerce.number().finite().positive().max(Number.MAX_SAFE_INTEGER),
+  description: z.string().trim().max(2000).optional(),
   expenseDate: z.string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, "تاريخ غير صالح — استخدم صيغة YYYY-MM-DD")
-    .refine(v => !isNaN(new Date(v).getTime()), "تاريخ غير صالح"),
+    .refine(v => {
+      const parsed = new Date(v);
+      return !isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === v;
+    }, "تاريخ غير صالح"),
   isRecurring: z.boolean().default(false),
   recurringPeriod: z.enum(["monthly", "weekly", "yearly"]).optional(),
 });

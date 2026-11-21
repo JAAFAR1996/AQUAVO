@@ -36,7 +36,8 @@
     "cartChangedTitle": "Cart changed",
     "cartEmptyAfterRefresh": "The saved cart items are no longer valid for ordering. Return to products and add currently available items.",
     "cartUpdatedReview": "We refreshed the cart using current price and stock and cleared temporary coupon/loyalty adjustments so no stale amount is used. Review the cart, reapply any discounts you need, then select Review order again.",
-    "cartUpdatedConfirm": "The cart changed since your last review, so temporary coupon/loyalty adjustments were cleared. Review the current price and quantity, reapply any discounts you need, then agree and confirm again."
+    "cartUpdatedConfirm": "The cart changed since your last review, so temporary coupon/loyalty adjustments were cleared. Review the current price and quantity, reapply any discounts you need, then agree and confirm again.",
+    "onlineAmountMismatch": "The returned amount does not match the amount you confirmed. We did not redirect you to payment. Review the order or contact us."
   },
   "coupon": {
     "prompt": "Have a discount code?",
@@ -64,7 +65,7 @@
     "delivery": "Delivery across Iraq — the current fee is shown before confirmation",
     "whatsapp": "WhatsApp",
     "whatsappHelp": "Need help completing the order? WhatsApp",
-    "whatsappPrefill": "Hi AQUAVO, I need help completing my order. Cart contents:\\n{{items}}\\nSubtotal before delivery: {{total}}"
+    "whatsappPrefill": "Hi AQUAVO, I need help completing my order. Cart contents:\n{{items}}\nSubtotal before delivery: {{total}}"
   },
   "form": {
     "login": "Log in",
@@ -136,7 +137,10 @@
     "processingStatus": "Processing your order, please wait...",
     "whatsappOptIn": "I want AQUAVO to remind me on WhatsApp when products I use may be running low, and send offers related to my purchases only. I can stop them at any time.",
     "whatsappOptInHint": "Optional and does not affect your order. We do not send random offers; order and service messages stay separate.",
-    "agreementRequired": "Please accept the terms and conditions to complete your order."
+    "agreementRequired": "Please accept the terms and conditions to complete your order.",
+    "quoteChanged": "The order price changed",
+    "quoteChangedHint": "No payment order was created. Review the updated details and confirm the amount to continue.",
+    "acceptQuote": "Confirm and pay {{amount}}"
   },
   "paymentCard": {
     "onlineTitle": "Pay online with Wayl",

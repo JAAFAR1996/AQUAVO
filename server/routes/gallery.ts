@@ -4,6 +4,8 @@ import { storage } from "../storage/index.js";
 import { requireAdmin } from "../middleware/auth.js";
 import rateLimit from "express-rate-limit";
 import multer from "multer";
+import { toPublicGallerySubmission } from "../../shared/public-gallery.js";
+import { createSharedRateLimitStore } from "../middleware/shared-rate-limit-store.js";
 import { randomUUID } from "crypto";
 import { v2 as cloudinary } from "cloudinary";
 
@@ -45,6 +47,7 @@ function uploadBufferToCloudinary(buffer: Buffer, mimetype: string): Promise<str
 }
 
 const gallerySubmitLimiter = rateLimit({
+    store: createSharedRateLimitStore("gallery-submit"),
     windowMs: 60 * 60 * 1000, // 1 hour
     max: 3,
     message: { error: "تم تجاوز عدد الصور المسموحة. يرجى المحاولة بعد ساعة." },
@@ -60,7 +63,7 @@ export function createGalleryRouter(): RouterType {
     const getSubmissions = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const submissions = await storage.getGallerySubmissions(true);
-            res.json(submissions);
+            res.json(submissions.map(toPublicGallerySubmission));
         } catch (err) {
             next(err);
         }

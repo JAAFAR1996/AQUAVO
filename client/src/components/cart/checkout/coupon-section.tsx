@@ -1,11 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Tag, AlertCircle, CheckCircle2, ChevronDown } from "lucide-react";
 import { useTranslation } from "react-i18next";
-
-const APPLIED_COUPON_STORAGE_KEY = "aquavo_applied_coupon_v1";
 
 interface CouponSectionProps {
     couponCode: string;
@@ -19,27 +17,7 @@ interface CouponSectionProps {
 export function CouponSection({ couponCode, setCouponCode, applyCoupon, couponError, couponSuccess, isApplying = false }: CouponSectionProps) {
     const { t } = useTranslation("checkout");
     const [isExpanded, setIsExpanded] = useState(false);
-    const pendingAppliedCode = useRef("");
     const messageId = couponError ? "coupon-error" : couponSuccess ? "coupon-success" : undefined;
-
-    useEffect(() => {
-        try { sessionStorage.removeItem(APPLIED_COUPON_STORAGE_KEY); } catch { /* storage is optional */ }
-    }, []);
-
-    useEffect(() => {
-        if (!couponSuccess || !pendingAppliedCode.current) return;
-        try { sessionStorage.setItem(APPLIED_COUPON_STORAGE_KEY, pendingAppliedCode.current); } catch { /* storage is optional */ }
-    }, [couponSuccess]);
-
-    useEffect(() => {
-        if (!couponError) return;
-        try { sessionStorage.removeItem(APPLIED_COUPON_STORAGE_KEY); } catch { /* storage is optional */ }
-    }, [couponError]);
-
-    const requestApplyCoupon = () => {
-        pendingAppliedCode.current = couponCode.trim().toUpperCase();
-        applyCoupon();
-    };
 
     return (
         <div className="border border-border/60 rounded-lg overflow-hidden">
@@ -74,7 +52,7 @@ export function CouponSection({ couponCode, setCouponCode, applyCoupon, couponEr
                         />
                         <Button
                             type="button"
-                            onClick={requestApplyCoupon}
+                            onClick={applyCoupon}
                             variant="default"
                             size="sm"
                             className="h-9 px-4"

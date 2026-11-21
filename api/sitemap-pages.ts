@@ -41,7 +41,7 @@ async function liveCategoryPaths(): Promise<string[]> {
     const { rows } = await db.query(
       `SELECT category
          FROM products
-        WHERE deleted_at IS NULL
+        WHERE deleted_at IS NULL AND is_storefront_visible = true
           AND category IS NOT NULL
           AND BTRIM(category) <> ''
         GROUP BY category

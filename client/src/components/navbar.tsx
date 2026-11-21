@@ -67,7 +67,7 @@ const mobileLinks: NavLink[] = [
 ];
 
 const tabletOverflowLinks: NavLink[] = [
-  { href: "/about", key: "about", icon: User },
+  ...primaryLinks.slice(3),
   { href: "/wishlist", key: "wishlist", icon: Heart },
   { href: "/contact", key: "contact", icon: User },
 ];

@@ -101,12 +101,10 @@ describe("Home — Phase C store-picks states", () => {
     expect(screen.getByRole("status", { name: "جاري تحميل الاختيارات" })).toBeInTheDocument();
   });
 
-  it("uses a positive store-navigation empty state only when both bestseller and latest-product feeds are empty", async () => {
+  it("uses a positive store-navigation empty state when the bounded homepage feed is empty", async () => {
     fetchTopSellingProducts.mockResolvedValueOnce({ productOfWeek: null, bestSellers: [], hasRealSales: false });
-    // The optimized homepage first reads 12 candidate products and falls back
-    // to the full list when those contain fewer than four sellable items.
-    // Both responses must be empty for the empty-state contract to apply.
-    fetchProducts.mockResolvedValueOnce({ products: [] });
+    // Candidate selection now happens before the response limit on the server.
+    // An empty result must never trigger another, unrestricted catalogue read.
     fetchProducts.mockResolvedValueOnce({ products: [] });
     render(<Home />, { wrapper: createWrapper() });
     await waitFor(() => {
@@ -115,6 +113,9 @@ describe("Home — Phase C store-picks states", () => {
     expect(screen.queryByText(/مو متوفرة هسه/)).not.toBeInTheDocument();
     const allProductsLinks = screen.getAllByRole("link", { name: /شوف كل المنتجات/ });
     expect(allProductsLinks.some((link) => link.getAttribute("href") === "/products")).toBe(true);
+    expect(fetchProducts).toHaveBeenCalledExactlyOnceWith({
+      sortBy: "views", sortOrder: "desc", limit: 4, paginated: true, homePicks: true,
+    });
   });
 
   it("shows an error state only when both merchandising feeds fail", async () => {
@@ -153,7 +154,21 @@ describe("Home — Phase C store-picks states", () => {
     });
     expect(screen.getByText("خلال آخر 30 يوم")).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "منتجات عليها طلب فعلي" })).not.toBeInTheDocument();
-    expect(fetchProducts).toHaveBeenCalledWith({sortBy:"views",sortOrder:"desc"});
+    expect(fetchProducts).toHaveBeenCalledExactlyOnceWith({
+      sortBy: "views", sortOrder: "desc", limit: 4, paginated: true, homePicks: true,
+    });
+  });
+
+  it("keeps a variant-only home pick without making a second unbounded request", async () => {
+    fetchProducts.mockResolvedValueOnce({ products: [{
+      ...sampleProducts[0], price: 0, stock: 0, hasVariants: true,
+      variants: [{ id: "sellable", label: "Small", price: 100, stock: 2 }],
+    }], total: 1, hasMore: false });
+    render(<Home />, { wrapper: createWrapper() });
+    expect(await screen.findByRole("link", { name: /فلتر تجريبي/ })).toHaveAttribute("href", "/products/test-filter");
+    expect(fetchProducts).toHaveBeenCalledExactlyOnceWith({
+      sortBy: "views", sortOrder: "desc", limit: 4, paginated: true, homePicks: true,
+    });
   });
 });
 

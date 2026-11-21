@@ -252,6 +252,7 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
         couponCode: appliedCoupon?.code ?? null,
         cashbackToUse: loyaltyData.cashbackToUse,
         whatsappMarketingOptIn,
+        customerInfo: submittedCustomerInfo,
       });
       const idempotencyKey = getOrderIdempotencyKey(cartSignature);
       const response = await fetch("/api/orders", {
@@ -352,9 +353,9 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
       try {
         metaTrackPurchase({
           orderId: orderData.orderNumber || orderData.id || 'unknown',
-          totalIQD: serverTotal,
-          productIds: cartItems.map(i => i.productId),
-          numItems: cartItems.reduce((sum, i) => sum + i.quantity, 0),
+          totalIQD: serverRoundedTotal,
+          productIds: invoiceItems.map(i => i.productId),
+          numItems: invoiceItems.reduce((sum, i) => sum + i.quantity, 0),
           phone: customerInfo.phone,
         });
       } catch (_) { /* pixel error — ignore */ }
@@ -513,6 +514,7 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
             handleBack={handleBack}
             handleConfirmOrder={handleConfirmOrder}
             couponDiscount={couponDiscount}
+            appliedCouponCode={appliedCoupon?.code}
             loyaltyData={loyaltyData}
             isLoggedIn={!!user}
             whatsappMarketingOptIn={whatsappMarketingOptIn}

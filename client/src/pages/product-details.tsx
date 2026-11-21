@@ -1,6 +1,6 @@
 import { isVariantActive, isVariantPurchasable, isVariantComingSoon } from "@shared/variant-commerce";
 import { getVariantGallery } from "@/lib/variant-gallery";
-import { useState, useEffect, useRef } from "react";
+import { lazy, Suspense, useState, useEffect, useRef } from "react";
 import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { type Product, type ProductVariant } from "@/types";
@@ -21,7 +21,6 @@ import { WishlistButton } from "@/components/wishlist/wishlist-button";
 import { CompareButton } from "@/components/products/product-comparison";
 import { useToast } from "@/hooks/use-toast";
 import { useProductView } from "@/hooks/use-product-view";
-import { ProductReviews } from "@/components/products/product-reviews";
 import { ProductImageGallery } from "@/components/products/product-image-gallery";
 import { productTransitionName } from "@/lib/motion/card-transition";
 import { Product3DViewer } from "@/components/products/product-3d-viewer";
@@ -63,6 +62,11 @@ import { getProductPriceDisplay } from "@/lib/product-pricing";
 import { isProductComingSoon } from "@shared/product-availability";
 import { useShippingFee } from "@/contexts/shipping-fee-context";
 import { productIntro, visibleProductSpecs } from "@/lib/product-decision";
+
+// The mobile reviews accordion does not mount its content until opened. Keep
+// review forms and their dependencies out of the initial product route chunk.
+const ProductReviews = lazy(() => import("@/components/products/product-reviews")
+  .then(module => ({default:module.ProductReviews})));
 
 interface Product3DMeta {
   src: string;
@@ -200,11 +204,11 @@ export default function ProductDetails() {
   // caused by displayPrice changing when selectedVariant initializes after product loads.
   const viewContentFiredForId = useRef<string | null>(null);
 
-  // ViewContent: fires once per product, after variant price is resolved
+  // A visit is counted when a product is viewed, before choosing a SKU. The
+  // displayed minimum price is already derived by the canonical price helper.
+  // This does not choose a variant or alter the add-to-cart rules.
   useEffect(() => {
-    // For products with embedded variants, wait until selectedVariant is set
-    const variantReady = !hasEmbeddedVariants || selectedVariant !== null;
-    if (!product || displayPrice <= 0 || !variantReady) return;
+    if (!product || displayPrice <= 0) return;
     if (viewContentFiredForId.current === product.id) return;
     viewContentFiredForId.current = product.id;
 
@@ -984,10 +988,12 @@ export default function ProductDetails() {
 
                     {/* Customer reviews from the existing API */}
                     <div className="space-y-4">
-                      <ProductReviews
-                        productId={product.id}
-                        productName={product.name}
-                      />
+                      <Suspense fallback={<Skeleton className="h-32 w-full" aria-label={t("reviews.title")} aria-busy="true" />}>
+                        <ProductReviews
+                          productId={product.id}
+                          productName={product.name}
+                        />
+                      </Suspense>
                     </div>
 
                     <Alert className="bg-blue-50 border-blue-200">

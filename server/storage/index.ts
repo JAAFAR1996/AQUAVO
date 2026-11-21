@@ -3,6 +3,7 @@ import { UserStorage } from "./user-storage.js";
 import { ProductStorage, ProductFilters, type ArchivedOrderProductMetadata } from "./product-storage.js";
 import { OrderStorage } from "./order-storage.js";
 import { SettingsStorage } from "./settings-storage.js";
+import { isPublicStorefrontProduct } from "../../shared/public-product.js";
 import { driftwoodProducts } from "../data/driftwood-products.js";
 
 export interface IStorage {
@@ -14,6 +15,7 @@ export interface IStorage {
     createUser(user: InsertUser): Promise<User>;
     updateUser(id: string, updates: Partial<User>): Promise<User | undefined>;
     getProducts(filters?: ProductFilters): Promise<Product[]>;
+    getProductsPage(filters: ProductFilters): Promise<{ products: Product[]; total: number; hasMore: boolean }>;
     getProductAttributes(): Promise<{ categories: string[], brands: string[], minPrice: number, maxPrice: number }>;
     getProduct(id: string): Promise<Product | undefined>;
     getProductsByIds(ids: string[]): Promise<Product[]>;
@@ -114,7 +116,7 @@ export interface IStorage {
     createUserAddress(address: InsertUserAddress): Promise<UserAddress>;
     getUserAddresses(userId: string): Promise<UserAddress[]>;
     deleteUserAddress(id: string, userId: string): Promise<boolean>;
-    updateUserAddress(id: string, userId: string, updates: Partial<Pick<UserAddress, "label" | "address" | "phone" | "isDefault">>): Promise<UserAddress | undefined>;
+    updateUserAddress(id: string, userId: string, updates: Partial<Pick<UserAddress, "label" | "addressLine1" | "city" | "country" | "phone" | "isDefault">>): Promise<UserAddress | undefined>;
 
     // Recommendations
     getFrequentlyBoughtTogether(productId: string): Promise<Product[]>;
@@ -179,6 +181,7 @@ class CombinedStorage implements IStorage {
 
     // Product Delegation
     getProducts = this.productStorage.getProducts.bind(this.productStorage);
+    getProductsPage = this.productStorage.getProductsPage.bind(this.productStorage);
     getProductAttributes = this.productStorage.getProductAttributes.bind(this.productStorage);
     getProduct = this.productStorage.getProduct.bind(this.productStorage);
     getProductsByIds = this.productStorage.getProductsByIds.bind(this.productStorage);
@@ -286,11 +289,12 @@ class CombinedStorage implements IStorage {
                 // Get product details in batch (single query)
                 const productIds = trending.map((t: any) => t.productId);
                 const products = await this.productStorage.getProductsByIds(productIds);
-                return products.filter(p => (p.stock ?? 0) > 0 && parseFloat(String(p.price ?? 0)) > 0);
+                return products.filter(p => isPublicStorefrontProduct(p) && (p.stock ?? 0) > 0 && parseFloat(String(p.price ?? 0)) > 0);
             }
 
             // Fallback: Get highly-rated products with stock
             const products = await this.productStorage.getProducts({
+                storefrontOnly: true,
                 limit: 10,
                 sortBy: 'rating',
                 sortOrder: 'desc'
@@ -314,7 +318,7 @@ class CombinedStorage implements IStorage {
             if (coProductIds.length > 0) {
                 // Get product details in batch (single query)
                 const products = await this.productStorage.getProductsByIds(coProductIds);
-                return products.filter(p => (p.stock ?? 0) > 0 && parseFloat(String(p.price ?? 0)) > 0);
+                return products.filter(p => isPublicStorefrontProduct(p) && (p.stock ?? 0) > 0 && parseFloat(String(p.price ?? 0)) > 0);
             }
 
             // No co-purchase evidence: do not present category alternatives as social proof.
@@ -328,7 +332,7 @@ class CombinedStorage implements IStorage {
     getSimilarProducts = async (productId: string): Promise<Product[]> => {
         try {
             const product = await this.productStorage.getProduct(productId);
-            if (!product) return [];
+            if (!product || !isPublicStorefrontProduct(product)) return [];
 
             // Try AI embedding similarity first
             try {
@@ -339,7 +343,7 @@ class CombinedStorage implements IStorage {
                     // Get product details in batch (single query)
                     const productIds = similarByEmbedding.map((s: any) => s.productId);
                     const products = await this.productStorage.getProductsByIds(productIds);
-                    const relevant = products.filter(p => p.id !== productId && p.category === product.category && (!product.subcategory || p.subcategory === product.subcategory) && (p.stock ?? 0) > 0 && parseFloat(String(p.price ?? 0)) > 0);
+                    const relevant = products.filter(p => isPublicStorefrontProduct(p) && p.id !== productId && p.category === product.category && (!product.subcategory || p.subcategory === product.subcategory) && (p.stock ?? 0) > 0 && parseFloat(String(p.price ?? 0)) > 0);
                     if (relevant.length > 0) return relevant;
                 }
             } catch (embeddingError) {
@@ -348,6 +352,7 @@ class CombinedStorage implements IStorage {
 
             // Fallback: Get products from same category and subcategory
             const categoryProducts = await this.productStorage.getProducts({
+                storefrontOnly: true,
                 category: product.category,
                 limit: 8
             });

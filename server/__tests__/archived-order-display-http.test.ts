@@ -8,6 +8,12 @@ import { findForbiddenFieldPaths } from "../../shared/public-product.js";
 
 // Keep requests isolated from Neon while exercising the real router and requireAuth.
 vi.mock("../db.js", () => ({ getDb: () => null, db: null }));
+// Exercise the real tracking limiter without a live shared database. Its
+// cross-instance persistence is covered by audit-runtime-integrity.test.ts.
+vi.mock("../middleware/shared-rate-limit-store.js", async () => {
+    const { MemoryStore } = await import("express-rate-limit");
+    return { createSharedRateLimitStore: () => new MemoryStore() };
+});
 
 import { createOrderRouter } from "../routes/orders.js";
 import { createCartRouter } from "../routes/cart.js";

@@ -5,10 +5,12 @@ import {
     type InsertReferral,
     referralCodes,
     referrals,
-    users
+    users,
+    loyaltyTransactions
 } from "../../shared/schema.js";
-import { eq, and, sql } from "drizzle-orm";
+import { asc, eq, inArray, sql } from "drizzle-orm";
 import { getDb } from "../db.js";
+import { awardFirstReferralPurchase } from "../services/referral-purchase-reward.js";
 
 // Constants
 const REFERRAL_POINTS_REWARD = 50; // نقاط المُحيل عند تسجيل صديق
@@ -113,46 +115,53 @@ export class ReferralStorage {
         referredUserId: string
     ): Promise<Referral> {
         const db = this.ensureDb();
-
-        // Create referral record
-        const [referral] = await db.insert(referrals)
-            .values({
-                referrerUserId,
-                referredUserId,
-                referralCodeId,
-                status: 'registered',
-                signupDate: new Date(),
-            })
-            .returning();
-
-        // Award points to referrer immediately (50 points on signup)
-        await this.awardReferrerPoints(referrerUserId, REFERRAL_POINTS_REWARD);
-
-        // Update referral code stats
-        await db.update(referralCodes)
-            .set({
-                totalReferrals: sql`${referralCodes.totalReferrals} + 1`,
-                totalPointsEarned: sql`${referralCodes.totalPointsEarned} + ${REFERRAL_POINTS_REWARD}`,
-            })
-            .where(eq(referralCodes.id, referralCodeId));
-
-        // Update referral with points awarded
-        await db.update(referrals)
-            .set({ referrerPointsAwarded: REFERRAL_POINTS_REWARD })
-            .where(eq(referrals.id, referral.id));
-
-        return referral;
-    }
-
-    // Award points to referrer
-    private async awardReferrerPoints(userId: string, points: number): Promise<void> {
-        const db = this.ensureDb();
-        await db.update(users)
-            .set({
-                loyaltyPoints: sql`COALESCE(${users.loyaltyPoints}, 0) + ${points}`,
-                updatedAt: new Date(),
-            })
-            .where(eq(users.id, userId));
+        if (referrerUserId === referredUserId) throw Object.assign(new Error("لا يمكن إحالة نفس الحساب."), { status: 400 });
+        return db.transaction(async tx => {
+            // Stable account lock order prevents two simultaneous signup claims
+            // from crediting the same referred account twice or overwriting points.
+            const accounts = await tx.select().from(users)
+                .where(inArray(users.id, [referrerUserId, referredUserId]))
+                .orderBy(asc(users.id)).for("update");
+            const referrer = accounts.find(account => account.id === referrerUserId);
+            if (!referrer || !accounts.some(account => account.id === referredUserId)) {
+                throw Object.assign(new Error("حساب الإحالة غير موجود."), { status: 400 });
+            }
+            const [existing] = await tx.select().from(referrals)
+                .where(eq(referrals.referredUserId, referredUserId))
+                .orderBy(asc(referrals.createdAt), asc(referrals.id)).limit(1);
+            if (existing) {
+                if (existing.referrerUserId !== referrerUserId || existing.referralCodeId !== referralCodeId) {
+                    throw Object.assign(new Error("هذا الحساب مرتبط بإحالة سابقة."), { status: 409 });
+                }
+                // Historical signup credits did not have a ledger. Do not infer
+                // that their missing ledger means the 50 points were never paid.
+                return existing;
+            }
+            const [code] = await tx.select().from(referralCodes).where(eq(referralCodes.id, referralCodeId)).limit(1);
+            if (!code?.isActive || code.userId !== referrerUserId) {
+                throw Object.assign(new Error("كود الإحالة غير متاح."), { status: 400 });
+            }
+            const [referral] = await tx.insert(referrals).values({
+                referrerUserId, referredUserId, referralCodeId,
+                status: "registered", signupDate: new Date(),
+                referrerPointsAwarded: REFERRAL_POINTS_REWARD,
+            }).returning();
+            if (!referral) throw new Error("Referral insert returned no record");
+            const balance = (referrer.loyaltyPoints ?? 0) + REFERRAL_POINTS_REWARD;
+            await tx.update(users).set({ loyaltyPoints: balance, updatedAt: new Date() })
+                .where(eq(users.id, referrerUserId));
+            await tx.insert(loyaltyTransactions).values({
+                userId: referrerUserId, type: "referral_earn", pointsType: "loyalty", status: "approved",
+                amount: REFERRAL_POINTS_REWARD, balanceAfter: balance,
+                description: `كسبت ${REFERRAL_POINTS_REWARD} نقطة لتسجيل صديقك بالإحالة.`,
+                metadata: { triggeredBy: "signup", referralId: referral.id },
+            });
+            await tx.update(referralCodes).set({
+                totalReferrals: sql`COALESCE(${referralCodes.totalReferrals}, 0) + 1`,
+                totalPointsEarned: sql`COALESCE(${referralCodes.totalPointsEarned}, 0) + ${REFERRAL_POINTS_REWARD}`,
+            }).where(eq(referralCodes.id, referralCodeId));
+            return referral;
+        });
     }
 
     // Mark referral as completed (first purchase made)
@@ -160,40 +169,7 @@ export class ReferralStorage {
         referredUserId: string,
         orderId: string
     ): Promise<{ referral: Referral | null; discountCode: string | null }> {
-        const db = this.ensureDb();
-
-        // Find the referral for this user
-        const [referral] = await db.select()
-            .from(referrals)
-            .where(
-                and(
-                    eq(referrals.referredUserId, referredUserId),
-                    eq(referrals.status, 'registered')
-                )
-            )
-            .limit(1);
-
-        if (!referral) {
-            return { referral: null, discountCode: null };
-        }
-
-        // Generate discount code for referred user
-        const discountCode = `REF5-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
-
-        // Update referral status
-        const [updatedReferral] = await db.update(referrals)
-            .set({
-                status: 'first_purchase',
-                firstOrderId: orderId,
-                firstOrderDate: new Date(),
-                referredDiscountAwarded: true,
-                referredCouponCode: discountCode,
-                updatedAt: new Date(),
-            })
-            .where(eq(referrals.id, referral.id))
-            .returning();
-
-        return { referral: updatedReferral, discountCode };
+        return awardFirstReferralPurchase({ referredUserId, orderId });
     }
 
     // Get referral stats for a user

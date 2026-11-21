@@ -90,14 +90,19 @@ export class UserStorage {
 
     async updateUser(id: string, updates: Partial<User>): Promise<User | undefined> {
         const db = this.ensureDb();
-        const result = await db.update(users).set({ ...updates, updatedAt: new Date() } as any).where(eq(users.id, id)).returning();
+        // An explicit email write invalidates proof of the old mailbox, including
+        // caller-supplied verification flags. Future email-change flows must reverify.
+        const emailProofReset = updates.email !== undefined
+            ? { emailVerified: false, verificationToken: null, verificationTokenExpiresAt: null }
+            : {};
+        const result = await db.update(users).set({ ...updates, ...emailProofReset, updatedAt: new Date() }).where(eq(users.id, id)).returning();
         return result[0];
     }
 
     // Address Methods
     async createUserAddress(address: InsertUserAddress): Promise<UserAddress> {
         const db = this.ensureDb();
-        const result = await db.insert(userAddresses).values(address as any).returning();
+        const result = await db.insert(userAddresses).values(address).returning();
         return result[0];
     }
 
@@ -114,10 +119,10 @@ export class UserStorage {
         return result.length > 0;
     }
 
-    async updateUserAddress(id: string, userId: string, updates: Partial<Pick<UserAddress, "label" | "address" | "phone" | "isDefault">>): Promise<UserAddress | undefined> {
+    async updateUserAddress(id: string, userId: string, updates: Partial<Pick<UserAddress, "label" | "addressLine1" | "city" | "country" | "phone" | "isDefault">>): Promise<UserAddress | undefined> {
         const db = this.ensureDb();
         const result = await db.update(userAddresses)
-            .set(updates as any)
+            .set(updates)
             .where(and(eq(userAddresses.id, id), eq(userAddresses.userId, userId)))
             .returning();
         return result[0];

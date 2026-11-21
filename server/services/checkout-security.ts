@@ -23,12 +23,12 @@ export function normalizeCheckoutLines(items:CheckoutLine[]):CheckoutLine[] {
     (a.variantId ?? "").localeCompare(b.variantId ?? ""));
 }
 export function checkoutRequestHash(input: {
-  items:CheckoutLine[]; customerInfo:{name:string;phone:string;address:string;email?:string};
+  items:CheckoutLine[]; customerInfo:{name:string;phone:string;address:string;email?:string;notes?:string};
   couponCode?:string; useCashback?:boolean; cashbackToUse?:number;
 }):string {
   const c=input.customerInfo;
   const canonical={v:1,items:normalizeCheckoutLines(input.items),customer:{name:c.name.trim(),phone:c.phone.trim(),
-    address:c.address.trim(),email:(c.email ?? "").trim().toLowerCase()},coupon:(input.couponCode ?? "").trim().toUpperCase(),
+    address:c.address.trim(),email:(c.email ?? "").trim().toLowerCase(),...(c.notes?.trim()?{notes:c.notes.trim()}:{})},coupon:(input.couponCode ?? "").trim().toUpperCase(),
     useCashback:input.useCashback===true,cashbackToUse:input.useCashback?Number(input.cashbackToUse ?? 0):0};
   return createHash("sha256").update(JSON.stringify(canonical)).digest("hex");
 }

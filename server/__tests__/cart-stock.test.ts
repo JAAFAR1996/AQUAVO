@@ -48,6 +48,17 @@ describe("OrderStorage.updateCartItem stock enforcement", () => {
         vi.clearAllMocks();
     });
 
+    it("rejects direct add and quantity writes for an explicitly hidden product", async () => {
+        const line = { id: "item-1", userId: "user-1", productId: "prod-1", quantity: 1, variantId: null };
+        const product = { id: "prod-1", name: "Private invoice item", stock: 20, price: "5000", isStorefrontVisible: false };
+        const fake = makeFakeDb(line, product);
+        vi.mocked(getDb).mockReturnValue(fake as unknown as NonNullable<ReturnType<typeof getDb>>);
+        const orders = new OrderStorage();
+        await expect(orders.addToCart("user-1", "prod-1", 1)).rejects.toThrow("هذا المنتج غير متاح حالياً للشراء");
+        await expect(orders.updateCartItem("user-1", "item-1", 2)).rejects.toThrow("هذا المنتج غير متاح حالياً للشراء");
+        expect(fake.update).not.toHaveBeenCalled();
+    });
+
     it("rejects a quantity exceeding known base-product stock", async () => {
         const cartItemRow = { id: "item-1", userId: "user-1", productId: "prod-1", quantity: 1, variantId: null };
         const productRow = { id: "prod-1", name: "Filter", stock: 3, variants: null };
@@ -122,6 +133,23 @@ describe("POST /api/cart/preflight", () => {
         app.use("/api/cart", createCartRouter());
         return app;
     }
+
+    it.each([{ isStorefrontVisible: false }, { deletedAt: new Date("2026-11-01T00:00:00Z") }])(
+        "does not reveal hidden or deleted products during anonymous preflight: %o", async visibility => {
+            vi.spyOn(storage, "getProductsByIds").mockResolvedValue([{
+                id: "private-product", slug: "private-customer", name: "Private invoice item",
+                price: "99999", stock: 20, hasVariants: false, ...visibility,
+            } as unknown as Awaited<ReturnType<typeof storage.getProductsByIds>>[number]]);
+            const response = await request(buildPublicApp()).post("/api/cart/preflight")
+                .send({ items: [{ productId: "private-product", quantity: 1 }] });
+            expect(response.status).toBe(200);
+            expect(response.body.items).toEqual([{
+                productId: "private-product", variantId: null, quantity: 1,
+                price: null, stock: 0, valid: false, reason: "PRODUCT_NOT_FOUND",
+            }]);
+            expect(JSON.stringify(response.body)).not.toMatch(/Private invoice|private-customer|99999/);
+        },
+    );
 
     it("is public and returns current variant price/stock instead of a guest snapshot", async () => {
         vi.spyOn(storage, "getProductsByIds").mockResolvedValue([{

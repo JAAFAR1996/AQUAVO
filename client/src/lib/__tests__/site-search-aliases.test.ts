@@ -41,6 +41,22 @@ describe("store search aliases", () => {
 });
 
 describe("search relevance regression", () => {
+  it("shows the same available option price as the product card and keeps upcoming snapshots unchanged", () => {
+    const available = { ...product("connectors", "Air hose connectors"), price: 150, stock: 0, hasVariants: true,
+      variants: [{ id: "cheap", label: "Small", price: 100, stock: 3 }, { id: "sold", label: "Large", price: 50, stock: 0 }] };
+    const incoming = { ...product("incoming", "Air hose incoming"), price: 0, stock: 0, hasVariants: true,
+      variants: [{ id: "pending", label: "Soon", price: null, stock: 0, priceStatus: "pending" as const, availabilityStatus: "coming_soon" as const }] };
+    const results = buildUnifiedSiteSearchResults({ query: "Air hose", catalogProducts: [available, incoming] });
+    expect(results.find(result => result.id === "connectors")).toMatchObject({ price: 100, stock: 3 });
+    expect(results.find(result => result.id === "incoming")).toMatchObject({ price: 0, stock: 0 });
+  });
+
+  it("uses localized page/category labels for English search", () => {
+    const results = buildUnifiedSiteSearchResults({ query: "tracking", locale: "en" });
+    expect(results.find(result => result.id === "tracking")).toMatchObject({ title: "Track your order" });
+    const categories = buildUnifiedSiteSearchResults({ query: "filter", locale: "en" });
+    expect(categories.find(result => result.id === "category-0")?.title).not.toMatch(/[\u0600-\u06ff]/);
+  });
   it("rejects incidental description mentions and irrelevant semantic results", () => {
     const heater = product("yee-3006", "سخان YEE");
     const food = {...product("food", "أكل أسماك"), description: "لا تضع الطعام قرب الهيتر"};

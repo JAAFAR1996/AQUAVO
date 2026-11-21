@@ -145,7 +145,8 @@
     "s64": "💰 Credit added:",
     "s65": "✅ Paid online:",
     "s66": "💵 Pay in cash:",
-    "s67": "Link:"
+    "s67": "Link:",
+    "deliveryNotes": "Delivery notes"
   },
   "order-tracking": {
     "s1": "Pending",

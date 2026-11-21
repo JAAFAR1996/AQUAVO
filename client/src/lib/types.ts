@@ -16,6 +16,7 @@ export interface OrderItem {
 
 export interface Order {
     id: string;
+    customerNotes?: string | null;
     createdAt: string; // or Date
     total: string | number;
     status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';

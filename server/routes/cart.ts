@@ -1,4 +1,5 @@
 import { isVariantActive, isVariantComingSoon } from "../../shared/variant-commerce.js";
+import { isPublicStorefrontProduct } from "../../shared/public-product.js";
 import type { Router as RouterType, Request, Response, NextFunction } from "express";
 import { Router } from "express";
 import { storage } from "../storage/index.js";
@@ -59,7 +60,7 @@ export function createCartRouter(): RouterType {
 
             const result = items.map((line) => {
                 const product = byId.get(line.productId);
-                if (!product) {
+                if (!product || !isPublicStorefrontProduct(product)) {
                     return {
                         productId: line.productId,
                         variantId: line.variantId ?? null,

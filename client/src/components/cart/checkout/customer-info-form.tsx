@@ -6,6 +6,7 @@ import { Link } from "wouter";
 import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
+import { useLocale } from "@/i18n/locale-context";
 import { animate, motion, useMotionValue, useReducedMotion, useTransform } from "framer-motion";
 import "./phone-code-slots.css";
 
@@ -205,6 +206,7 @@ interface CustomerInfoFormProps {
 
 export function CustomerInfoForm({ customerInfo, setCustomerInfo, errors, isGuest }: CustomerInfoFormProps) {
     const { t } = useTranslation("checkout");
+    const { dir } = useLocale();
     const govLabel = (value: string, fallback: string) => t(`governorates.${value}` as "governorates.baghdad", { defaultValue: fallback });
     const [govOpen, setGovOpen] = useState(false);
     const [govSearch, setGovSearch] = useState("");
@@ -388,7 +390,7 @@ export function CustomerInfoForm({ customerInfo, setCustomerInfo, errors, isGues
             </div>
 
             {/* Governorate — Custom inline searchable dropdown (works inside Radix Dialog) */}
-            <div className="space-y-2">
+            <div className="space-y-2" dir={dir}>
                 <Label htmlFor="governorate" className="flex items-center gap-2">
                     <MapPin className="h-4 w-4" />
                     {t("form.governorate")}
@@ -415,7 +417,7 @@ export function CustomerInfoForm({ customerInfo, setCustomerInfo, errors, isGues
                             }
                         }}
                         className={cn(
-                            "w-full flex items-center justify-between px-3 py-2 rounded-md border text-sm text-right",
+                            "w-full flex items-center justify-between px-3 py-2 rounded-md border text-sm text-start",
                             "bg-background hover:bg-accent/30 transition-colors cursor-pointer",
                             errors.governorate ? "border-red-500" : "border-input",
                             !customerInfo.governorate && "text-muted-foreground"
@@ -444,8 +446,8 @@ export function CustomerInfoForm({ customerInfo, setCustomerInfo, errors, isGues
                                     value={govSearch}
                                     onChange={(e) => setGovSearch(e.target.value)}
                                     onKeyDown={handleSearchKeyDown}
-                                    className="flex-1 px-2 py-2 text-sm bg-transparent outline-none text-right"
-                                    dir="rtl"
+                                    className="flex-1 px-2 py-2 text-sm bg-transparent outline-none text-start"
+                                    dir={dir}
                                 />
                             </div>
                             {/* Options list */}
@@ -464,12 +466,12 @@ export function CustomerInfoForm({ customerInfo, setCustomerInfo, errors, isGues
                                         }}
                                         onMouseEnter={() => setActiveIndex(idx)}
                                         className={cn(
-                                            "px-3 py-2 text-sm cursor-pointer text-right hover:bg-accent hover:text-accent-foreground transition-colors",
+                                            "px-3 py-2 text-sm cursor-pointer text-start hover:bg-accent hover:text-accent-foreground transition-colors",
                                             idx === activeIndex && "bg-accent text-accent-foreground",
                                             customerInfo.governorate === gov.value && "bg-primary/10 text-primary font-medium"
                                         )}
                                     >
-                                        {gov.label}
+                                        {govLabel(gov.value, gov.label)}
                                     </li>
                                 ))}
                             </ul>
@@ -517,6 +519,7 @@ export function CustomerInfoForm({ customerInfo, setCustomerInfo, errors, isGues
                     placeholder={t("form.notesPlaceholder")}
                     autoComplete="off"
                     value={customerInfo.notes}
+                    maxLength={1000}
                     onChange={(e) => setCustomerInfo({ ...customerInfo, notes: e.target.value })}
                 />
             </div>

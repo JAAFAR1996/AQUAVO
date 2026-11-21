@@ -13,7 +13,7 @@
  * 'incomplete' — because that is the real production shape.
  */
 
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { PGlite } from "@electric-sql/pglite";
@@ -26,6 +26,16 @@ const rollbackSql = readFileSync(
   join(process.cwd(), "migrations/add_order_item_snapshot_immutability_rollback.sql"), "utf8");
 const salePriceSql = readFileSync(
   join(process.cwd(), "migrations/add_order_item_sale_price_snapshot.sql"), "utf8");
+
+const activeDatabases = new Set<PGlite>();
+afterEach(async () => {
+  // Each case owns a fresh WASM database; keeping them alive across the suite
+  // exhausts the worker before the financial assertions can finish.
+  for (const database of activeDatabases) {
+    await database.close();
+    activeDatabases.delete(database);
+  }
+});
 
 const BASE = `
   CREATE TABLE products (
@@ -85,6 +95,7 @@ const SEED = `
 
 async function db(): Promise<PGlite> {
   const pg = new PGlite();
+  activeDatabases.add(pg);
   await pg.exec(BASE);
   await pg.exec(salePriceSql);
   await pg.exec(migrationSql);

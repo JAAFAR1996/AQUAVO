@@ -9,25 +9,43 @@ on:
       - package.json
       - pnpm-lock.yaml
       - pnpm-workspace.yaml
+  workflow_dispatch:
+    inputs:
+      apply_remediation:
+        description: Update reviewed dependencies and commit to this review branch (never main or develop)
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: write
 
 env:
-  NODE_VERSION: 20.19.0
+  NODE_VERSION: 24.x
   PNPM_VERSION: 10.0.0
   CI: true
 
 jobs:
   remediate:
-    if: github.event.pull_request.head.repo.full_name == github.repository
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:
+      - name: Require a review branch for explicitly requested edits
+        if: github.event_name == 'workflow_dispatch' && inputs.apply_remediation
+        env:
+          TARGET_BRANCH: ${{ github.ref_name }}
+          TARGET_REF_TYPE: ${{ github.ref_type }}
+        run: |
+          if [ "$TARGET_REF_TYPE" != "branch" ] || [ "$TARGET_BRANCH" = "main" ] || [ "$TARGET_BRANCH" = "develop" ]; then
+            echo "Dependency edits require an explicitly selected review branch."
+            exit 1
+          fi
+
       - name: Checkout repair branch
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
+          ref: ${{ github.event.pull_request.head.ref || github.ref_name }}
           fetch-depth: 1
 
       - name: Setup pnpm
@@ -49,6 +67,7 @@ jobs:
       # security upgrade on a reviewed floor and let the full suite prove the
       # resulting lockfile before it can be committed.
       - name: Update vulnerable production dependencies on reviewed floors
+        if: github.event_name == 'workflow_dispatch' && inputs.apply_remediation
         run: >-
           pnpm update
           @aws-sdk/client-s3@3.1136.0
@@ -74,20 +93,23 @@ jobs:
           ws@8.21.0
 
       - name: Update vulnerable development dependencies on compatible floors
+        if: github.event_name == 'workflow_dispatch' && inputs.apply_remediation
         run: >-
           pnpm add -D
           @vercel/node@13.0.1
-          @vitest/ui@4.1.11
+          @vitest/ui@4.1.12
           dompurify@3.4.17
           drizzle-kit@0.31.10
-          happy-dom@20.8.9
-          sharp@0.35.4
+          happy-dom@21.0.4
+          puppeteer@25.18.1
+          sharp@0.35.5
           vite@8.1.6
-          vitest@4.1.11
+          vitest@4.1.12
 
       # Nodemailer 10 ships its own TypeScript declarations. Keeping the old
       # @types package also pulls an obsolete SES/AWS dependency tree.
       - name: Remove obsolete Nodemailer community types
+        if: github.event_name == 'workflow_dispatch' && inputs.apply_remediation
         shell: bash
         run: |
           if node -e "const p=require('./package.json'); process.exit(p.devDependencies?.['@types/nodemailer'] || p.dependencies?.['@types/nodemailer'] ? 0 : 1)"; then
@@ -101,6 +123,7 @@ jobs:
       # exact parent. This prevents a repeat of the 91 broad overrides that
       # replaced Express 4's path-to-regexp API.
       - name: Apply reviewed transitive patches
+        if: github.event_name == 'workflow_dispatch' && inputs.apply_remediation
         run: |
           node --input-type=module <<'NODE'
           import { readFileSync, writeFileSync } from "node:fs";
@@ -117,7 +140,7 @@ jobs:
             "express@5.3.0>body-parser": "2.4.0",
             "recharts@2.15.4>lodash": "4.18.0",
             "asn1.js@5.4.1>bn.js": "4.12.3",
-            "@vercel/node@13.0.1>undici": "6.28.1",
+            "@vercel/node@13.0.1>undici": "6.29.1",
             "@mapbox/node-pre-gyp@2.0.3>tar": "7.5.21",
             "@rollup/pluginutils@5.3.0>rollup": "4.59.0",
             "rollup-plugin-visualizer@6.0.5>rollup": "4.59.0",
@@ -128,15 +151,15 @@ jobs:
             "anymatch@3.1.3>picomatch": "2.3.2",
             "readdirp@3.6.0>picomatch": "2.3.2",
             "@vercel/static-config@3.4.3>ajv": "8.18.0",
-            "get-uri@6.0.5>basic-ftp": "6.2.1",
+            "get-uri@6.0.5>basic-ftp": "6.2.4",
             "minimatch@3.1.4>brace-expansion": "1.1.21",
-            "glob@13.0.0>minimatch": "10.2.5",
-            "minimatch@10.2.5>@isaacs/brace-expansion": "5.0.1",
             "rollup-plugin-visualizer@6.0.5>picomatch": "4.0.4",
             "superagent@10.2.3>form-data": "4.0.6",
             "@types/superagent@8.1.9>form-data": "4.0.6",
             "superagent@10.2.3>qs": "6.16.1",
-            "@esbuild-kit/core-utils@3.3.2>esbuild": "0.25.12"
+            "@esbuild-kit/core-utils@3.3.2>esbuild": "0.25.12",
+            "@vercel/node@13.0.1>@vercel/nft": "1.11.11",
+            "ajv@8.18.0>fast-uri": "3.1.9"
           };
           writeFileSync("package.json", JSON.stringify(pkg, null, 2) + "\n");
           NODE
@@ -156,7 +179,7 @@ jobs:
             "express@5.3.0>body-parser": "2.4.0",
             "recharts@2.15.4>lodash": "4.18.0",
             "asn1.js@5.4.1>bn.js": "4.12.3",
-            "@vercel/node@13.0.1>undici": "6.28.1",
+            "@vercel/node@13.0.1>undici": "6.29.1",
             "@mapbox/node-pre-gyp@2.0.3>tar": "7.5.21",
             "@rollup/pluginutils@5.3.0>rollup": "4.59.0",
             "rollup-plugin-visualizer@6.0.5>rollup": "4.59.0",
@@ -167,15 +190,15 @@ jobs:
             "anymatch@3.1.3>picomatch": "2.3.2",
             "readdirp@3.6.0>picomatch": "2.3.2",
             "@vercel/static-config@3.4.3>ajv": "8.18.0",
-            "get-uri@6.0.5>basic-ftp": "6.2.1",
+            "get-uri@6.0.5>basic-ftp": "6.2.4",
             "minimatch@3.1.4>brace-expansion": "1.1.21",
-            "glob@13.0.0>minimatch": "10.2.5",
-            "minimatch@10.2.5>@isaacs/brace-expansion": "5.0.1",
             "rollup-plugin-visualizer@6.0.5>picomatch": "4.0.4",
             "superagent@10.2.3>form-data": "4.0.6",
             "@types/superagent@8.1.9>form-data": "4.0.6",
             "superagent@10.2.3>qs": "6.16.1",
-            "@esbuild-kit/core-utils@3.3.2>esbuild": "0.25.12"
+            "@esbuild-kit/core-utils@3.3.2>esbuild": "0.25.12",
+            "@vercel/node@13.0.1>@vercel/nft": "1.11.11",
+            "ajv@8.18.0>fast-uri": "3.1.9"
           };
           const pkg = JSON.parse(readFileSync("package.json", "utf8"));
           if (JSON.stringify(pkg.pnpm?.overrides || {}) !== JSON.stringify(expected)) {
@@ -185,6 +208,7 @@ jobs:
           NODE
 
       - name: Refresh lockfile
+        if: github.event_name == 'workflow_dispatch' && inputs.apply_remediation
         run: pnpm install --no-frozen-lockfile
 
       - name: Type check
@@ -241,10 +265,20 @@ jobs:
           set -e
           echo "exit_code=$code" >> "$GITHUB_OUTPUT"
 
-      - name: Full dependency audit (informational)
+      - name: Full dependency audit
+        id: audit_all
         if: always()
         shell: bash
-        run: pnpm audit --audit-level=moderate || true
+        run: |
+          set +e
+          pnpm audit --audit-level=moderate 2>&1 | tee remediation-audit-all.log
+          code=${PIPESTATUS[0]}
+          set -e
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+
+      - name: Keep reviewed dependency files unchanged
+        if: github.event_name != 'workflow_dispatch' || !inputs.apply_remediation
+        run: git diff --exit-code -- package.json pnpm-lock.yaml pnpm-workspace.yaml
 
       - name: Upload remediation evidence
         if: always()
@@ -256,12 +290,16 @@ jobs:
             remediation-tests.log
             remediation-build.log
             remediation-audit.log
+            remediation-audit-all.log
           if-no-files-found: warn
           retention-days: 3
 
-      # Once the lockfile is already verified, keep this step a no-op so the caller-authored PR SHA remains the downstream CI target.
+      # PRs verify the exact reviewed SHA. Only an explicit manual dispatch on a
+      # review branch can update it, after every gate has passed.
       - name: Commit verified dependency repair
-        if: steps.types.outputs.exit_code == '0' && steps.tests.outputs.exit_code == '0' && steps.build.outputs.exit_code == '0' && steps.audit.outputs.exit_code == '0'
+        if: github.event_name == 'workflow_dispatch' && inputs.apply_remediation && steps.types.outputs.exit_code == '0' && steps.tests.outputs.exit_code == '0' && steps.build.outputs.exit_code == '0' && steps.audit.outputs.exit_code == '0' && steps.audit_all.outputs.exit_code == '0'
+        env:
+          TARGET_BRANCH: ${{ github.ref_name }}
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
@@ -272,7 +310,7 @@ jobs:
             echo "No dependency changes to commit"
           else
             git commit -m "fix(security): update vulnerable dependencies"
-            git push origin HEAD:${{ github.event.pull_request.head.ref }}
+            git push origin "HEAD:refs/heads/$TARGET_BRANCH"
           fi
 
       - name: Require verified remediation
@@ -283,7 +321,8 @@ jobs:
           tests="${{ steps.tests.outputs.exit_code }}"
           build="${{ steps.build.outputs.exit_code }}"
           audit="${{ steps.audit.outputs.exit_code }}"
-          echo "types=$types tests=$tests build=$build audit=$audit"
-          if [ "$types" != "0" ] || [ "$tests" != "0" ] || [ "$build" != "0" ] || [ "$audit" != "0" ]; then
+          audit_all="${{ steps.audit_all.outputs.exit_code }}"
+          echo "types=$types tests=$tests build=$build audit=$audit audit_all=$audit_all"
+          if [ "$types" != "0" ] || [ "$tests" != "0" ] || [ "$build" != "0" ] || [ "$audit" != "0" ] || [ "$audit_all" != "0" ]; then
             exit 1
           fi

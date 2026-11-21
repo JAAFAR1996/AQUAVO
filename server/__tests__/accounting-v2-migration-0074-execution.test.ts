@@ -1,10 +1,18 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { PGlite } from "@electric-sql/pglite";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, afterEach } from "vitest";
 
 const migration73 = readFileSync(join(process.cwd(), "migrations/0073_accounting_final_hardening.sql"), "utf8");
 const migration74 = readFileSync(join(process.cwd(), "migrations/0074_purchase_received_quantity_immutability.sql"), "utf8");
+
+const activeDatabases = new Set<PGlite>();
+afterEach(async () => {
+  for (const database of activeDatabases) {
+    await database.close();
+    activeDatabases.delete(database);
+  }
+});
 
 function functionSql(body: string, name: string): string {
   const marker = `CREATE OR REPLACE FUNCTION public.${name}`;
@@ -26,6 +34,7 @@ function viewSql(name: string): string {
 
 async function procurementDb(): Promise<PGlite> {
   const db = new PGlite();
+  activeDatabases.add(db);
   await db.exec(String.raw`
     CREATE ROLE aquavo_runtime;
     CREATE TABLE suppliers(id text PRIMARY KEY, display_name text NOT NULL);

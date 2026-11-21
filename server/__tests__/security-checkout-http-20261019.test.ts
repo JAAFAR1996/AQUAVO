@@ -32,7 +32,7 @@ beforeEach(()=>{
  state.audit.mockResolvedValue(undefined);
  state.create.mockImplementation(async(userId:string|null,items:any[],customer:any,_coupon:any,_loyalty:any,id:string,context:any)=>{
   const order={id,userId,orderNumber:"SYNTHETIC",status:"pending",paymentStatus:"pending",total:"10000",roundedTotal:"10000",customerName:customer.name,
-    customerPhone:customer.phone,shippingAddress:customer.address,clientIp:"PRIVATE-IP",checkoutSessionHash:sessionHash(context.ownerSessionId),checkoutRequestHash:context.requestHash,
+    customerPhone:customer.phone,customerNotes:customer.notes ?? null,shippingAddress:customer.address,clientIp:"PRIVATE-IP",checkoutSessionHash:sessionHash(context.ownerSessionId),checkoutRequestHash:context.requestHash,
     items:items.map(item=>({...item,productName:"Synthetic",priceAtPurchase:5000,costPrice:123,costStatus:"exact",costSource:"private"}))};
   state.orders.set(id,order);return order;
  });
@@ -68,4 +68,16 @@ describe("Real order HTTP response and replay authorization",()=>{
   const result=await agent.post("/api/orders").set("Idempotency-Key",key).send(input);
   expect(result.status).toBe(200);expect(result.body.id).toBe(key);expect(JSON.stringify(result.body)).not.toMatch(/PRIVATE|costPrice|checkoutRequestHash/);
  });
+ it("preserves delivery notes in the COD request and treats changed notes as a new payload",async()=>{
+  const agent=request.agent(app),key=randomUUID();
+  const customerInfo={...input.customerInfo,notes:"  Call before delivery  "};
+  const created=await agent.post("/api/orders").set("Idempotency-Key",key).send({...input,customerInfo});
+  expect(created.status).toBe(201);
+  expect(state.create.mock.calls[0][2].notes).toBe("Call before delivery");
+  expect(created.body.customerNotes).toBe("Call before delivery");
+  const replay=await agent.post("/api/orders").set("Idempotency-Key",key).send({...input,customerInfo:{...customerInfo,notes:"Different delivery instruction"}});
+  expect(replay.status).toBe(409);
+  expect(state.create).toHaveBeenCalledTimes(1);
+ });
+
 });

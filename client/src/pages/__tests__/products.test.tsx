@@ -214,22 +214,19 @@ describe('Products page — backend outcome states', () => {
 
     it('retry re-issues the request and leaves the error state once the backend recovers', async () => {
         const user = userEvent.setup();
-        // The page retries twice on transient failure: the three initial
-        // attempts must fail before showing the recoverable error state.
-        vi.mocked(fetchProducts)
-            .mockRejectedValueOnce(new Error('HTTP 500: Server initialization error'))
-            .mockRejectedValueOnce(new Error('HTTP 500: Server initialization error'))
-            .mockRejectedValueOnce(new Error('HTTP 500: Server initialization error'))
-            .mockResolvedValue({
-                products: [
-                    { id: '9', name: 'سخان زجاجي', price: 25000, category: 'سخانات', slug: 'glass-heater', brand: 'YEE', rating: 0, reviewCount: 0, thumbnail: '', images: [], stock: 5 },
-                ],
-            });
+        // The API layer owns the bounded retry budget. Keep the backend down
+        // until the error is visible, then recover before the explicit retry.
+        vi.mocked(fetchProducts).mockRejectedValue(new Error('HTTP 500: Server initialization error'));
 
         render(<Products />, { wrapper: createWrapper() });
 
         expect(await screen.findByRole('heading', { name: ERROR_HEADING }, { timeout: 4000 })).toBeInTheDocument();
         const callsBeforeRetry = vi.mocked(fetchProducts).mock.calls.length;
+        vi.mocked(fetchProducts).mockResolvedValue({
+            products: [
+                { id: '9', name: 'سخان زجاجي', price: 25000, category: 'سخانات', slug: 'glass-heater', brand: 'YEE', rating: 0, reviewCount: 0, thumbnail: '', images: [], stock: 5 },
+            ],
+        });
 
         await user.click(screen.getByRole('button', { name: 'حاول مرة ثانية' }));
 

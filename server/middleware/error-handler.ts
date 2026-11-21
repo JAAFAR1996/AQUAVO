@@ -5,9 +5,12 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
+import { randomUUID } from 'node:crypto';
 
 interface AppError extends Error {
   statusCode?: number;
+  status?: number;
+  code?: string;
   isOperational?: boolean;
 }
 
@@ -27,87 +30,40 @@ export function errorHandler(
   res: Response,
   next: NextFunction
 ) {
-  // Log error for debugging (in production, use proper logging service)
+  if (res.headersSent) { next(err); return; }
+  const requestId = randomUUID();
   const isDevelopment = process.env.NODE_ENV === 'development';
-
-  if (isDevelopment) {
-    console.error('[ERROR]', {
-      message: err.message,
-      stack: err.stack,
-      path: req.path,
-      method: req.method
-    });
-  } else {
-    // In production, only log minimal info
-    console.error('[ERROR]', {
-      message: err.message,
-      path: req.path,
-      method: req.method,
-      timestamp: new Date().toISOString()
-    });
-  }
-
-  // Handle Neon cold-start errors (DB waking up)
+  console.error('[API ERROR]', {
+    requestId, name: err?.name, code: err?.code,
+    method: req.method, path: req.path,
+    ...(isDevelopment ? { message: err?.message, stack: err?.stack } : {}),
+  });
+  res.setHeader('X-Request-Id', requestId);
   if (isNeonColdStart(err)) {
     res.setHeader('Retry-After', '5');
-    return res.status(503).json({
-      error: 'الخادم يستيقظ، يرجى إعادة المحاولة خلال ثوانٍ.',
-      retryAfter: 5,
-    });
+    return res.status(503).json({ message: 'الخادم يستيقظ، يرجى إعادة المحاولة خلال ثوانٍ.', retryAfter: 5, requestId });
   }
-
-  // Handle Zod validation errors
   if (err instanceof ZodError) {
-    return res.status(400).json({
-      error: 'خطأ في البيانات المدخلة',
-      details: isDevelopment ? err.issues : undefined
+    return res.status(400).json({ message: 'خطأ في البيانات المدخلة', requestId,
+      errors: err.issues.map(issue => ({ path: issue.path, code: issue.code, message: issue.message })) });
+  }
+  if (err?.name === 'MulterError' && typeof err.code === 'string' && err.code.startsWith('LIMIT_')) {
+    const tooLarge = ['LIMIT_FILE_SIZE', 'LIMIT_FIELD_VALUE'].includes(err.code);
+    return res.status(tooLarge ? 413 : 400).json({
+      message: tooLarge ? 'حجم الملف أو الحقل أكبر من المسموح' : 'عدد الملفات أو حقول الرفع غير صالح', requestId,
     });
   }
-
-  // Determine status code
-  const statusCode = err.statusCode || 500;
-
-  // Prepare error response
-  const errorResponse: any = {
-    error: getClientErrorMessage(err, statusCode),
-    timestamp: new Date().toISOString()
+  const suppliedStatus = err?.statusCode ?? err?.status;
+  const status = typeof suppliedStatus === 'number' && Number.isInteger(suppliedStatus)
+    && suppliedStatus >= 400 && suppliedStatus <= 599 ? suppliedStatus : 500;
+  const messages: Record<number, string> = {
+    400: 'طلب غير صالح', 401: 'يجب تسجيل الدخول', 403: 'غير مصرح', 404: 'غير موجود',
+    408: 'انتهى وقت الطلب، حاول مرة ثانية', 409: 'تغيرت البيانات، راجعها وحاول مرة ثانية',
+    413: 'حجم الطلب أكبر من المسموح', 429: 'تم تجاوز الحد المسموح من الطلبات',
   };
-
-  // Add stack trace only in development
-  if (isDevelopment) {
-    errorResponse.stack = err.stack;
-    errorResponse.details = err.message;
-  }
-
-  res.status(statusCode).json(errorResponse);
-}
-
-/**
- * Get client-safe error message
- */
-function getClientErrorMessage(err: AppError, statusCode: number): string {
-  // Return generic messages in production
-  const isDevelopment = process.env.NODE_ENV === 'development';
-
-  if (isDevelopment && err.isOperational) {
-    return err.message;
-  }
-
-  switch (statusCode) {
-    case 400:
-      return 'طلب غير صالح';
-    case 401:
-      return 'غير مصرح';
-    case 403:
-      return 'ممنوع';
-    case 404:
-      return 'غير موجود';
-    case 429:
-      return 'تم تجاوز الحد المسموح من الطلبات';
-    case 500:
-    default:
-      return 'حدث خطأ في الخادم. يرجى المحاولة لاحقاً.';
-  }
+  const message = err instanceof OperationalError && status < 500
+    ? err.message : messages[status] ?? 'صار خطأ بالخادم. حاول مرة ثانية.';
+  return res.status(status).json({ message, requestId });
 }
 
 /**
@@ -123,7 +79,7 @@ export function notFoundHandler(req: Request, res: Response) {
 /**
  * Async error wrapper
  */
-export function asyncHandler(fn: Function) {
+export function asyncHandler(fn: (req: Request, res: Response, next: NextFunction) => unknown) {
   return (req: Request, res: Response, next: NextFunction) => {
     Promise.resolve(fn(req, res, next)).catch(next);
   };
@@ -147,15 +103,16 @@ export class OperationalError extends Error {
 /**
  * Database error handler
  */
-export function handleDatabaseError(err: any): OperationalError {
+export function handleDatabaseError(err: unknown): OperationalError {
+  const code = err && typeof err === "object" && "code" in err ? err.code : undefined;
   // Don't expose internal database errors
-  console.error('[DB ERROR]', err);
+  console.error('[DB ERROR]', { code });
 
-  if (err.code === 'P2002') {
+  if (code === 'P2002') {
     return new OperationalError('البيانات موجودة مسبقاً', 409);
   }
 
-  if (err.code === 'P2025') {
+  if (code === 'P2025') {
     return new OperationalError('السجل غير موجود', 404);
   }
 

@@ -3,6 +3,7 @@ import '@testing-library/jest-dom/vitest';
 import { expect, beforeEach, afterEach, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
 import * as matchers from '@testing-library/jest-dom/matchers';
+import { installHappyDomAnimationCancellation } from './test/helpers/happy-dom-animation';
 
 // Extend Vitest expect with jest-dom matchers
 expect.extend(matchers);
@@ -36,66 +37,73 @@ const defaultFetchHandler = async (input: RequestInfo | URL) => {
 
 beforeEach(() => {
   vi.stubGlobal('fetch', vi.fn(defaultFetchHandler));
-  Object.defineProperty(navigator, 'sendBeacon', {
-    configurable: true,
-    value: vi.fn(() => true),
-  });
-  Object.defineProperty(window, 'scrollTo', {
+  if (typeof window !== 'undefined') {
+    Object.defineProperty(window.navigator, 'sendBeacon', {
+      configurable: true,
+      value: vi.fn(() => true),
+    });
+    Object.defineProperty(window, 'scrollTo', {
+      configurable: true,
+      writable: true,
+      value: vi.fn(),
+    });
+  }
+});
+
+// Source-graph and server-only suites run in Node and have no browser globals.
+// Keep their fetch/matcher setup while installing DOM shims only for DOM suites.
+if (typeof window !== 'undefined') {
+  installHappyDomAnimationCancellation(window);
+  Object.defineProperty(window, 'requestIdleCallback', {
     configurable: true,
     writable: true,
-    value: vi.fn(),
+    value: (callback: IdleRequestCallback) =>
+      window.setTimeout(() => callback({ didTimeout: false, timeRemaining: () => 50 }), 0),
   });
-});
 
-Object.defineProperty(window, 'requestIdleCallback', {
-  configurable: true,
-  writable: true,
-  value: (callback: IdleRequestCallback) =>
-    window.setTimeout(() => callback({ didTimeout: false, timeRemaining: () => 50 }), 0),
-});
+  Object.defineProperty(window, 'cancelIdleCallback', {
+    configurable: true,
+    writable: true,
+    value: (id: number) => window.clearTimeout(id),
+  });
 
-Object.defineProperty(window, 'cancelIdleCallback', {
-  configurable: true,
-  writable: true,
-  value: (id: number) => window.clearTimeout(id),
-});
+  class ImmediateIntersectionObserver implements IntersectionObserver {
+    readonly root: Element | Document | null = null;
+    readonly rootMargin = '0px';
+    readonly thresholds: ReadonlyArray<number> = [0];
 
-class ImmediateIntersectionObserver implements IntersectionObserver {
-  readonly root: Element | Document | null = null;
-  readonly rootMargin = '0px';
-  readonly thresholds: ReadonlyArray<number> = [0];
+    constructor(private readonly callback: IntersectionObserverCallback) {}
 
-  constructor(private readonly callback: IntersectionObserverCallback) {}
+    observe(target: Element) {
+      this.callback(
+        [{
+          isIntersecting: true,
+          target,
+          intersectionRatio: 1,
+          time: Date.now(),
+          boundingClientRect: target.getBoundingClientRect(),
+          intersectionRect: target.getBoundingClientRect(),
+          rootBounds: null,
+        }],
+        this,
+      );
+    }
 
-  observe(target: Element) {
-    this.callback(
-      [{
-        isIntersecting: true,
-        target,
-        intersectionRatio: 1,
-        time: Date.now(),
-        boundingClientRect: target.getBoundingClientRect(),
-        intersectionRect: target.getBoundingClientRect(),
-        rootBounds: null,
-      }],
-      this,
-    );
+    unobserve() {}
+    disconnect() {}
+    takeRecords(): IntersectionObserverEntry[] {
+      return [];
+    }
   }
 
-  unobserve() {}
-  disconnect() {}
-  takeRecords(): IntersectionObserverEntry[] {
-    return [];
-  }
+  Object.defineProperty(window, 'IntersectionObserver', {
+    configurable: true,
+    value: ImmediateIntersectionObserver,
+  });
 }
-
-Object.defineProperty(window, 'IntersectionObserver', {
-  configurable: true,
-  value: ImmediateIntersectionObserver,
-});
 
 // Cleanup after each test
 afterEach(() => {
-  cleanup();
+  if (typeof window !== 'undefined') cleanup();
   vi.useRealTimers();
 });

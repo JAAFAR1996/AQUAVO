@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,8 +13,8 @@ import { useTranslation } from "react-i18next";
 
 interface ProfileAddressesProps {
     addresses: Address[];
-    onAddAddress: (address: Address) => void;
-    onUpdateAddress: (address: Address) => void;
+    onAddAddress: (address: Address) => Promise<void>;
+    onUpdateAddress: (address: Address) => Promise<void>;
     onDeleteAddress: (id: string) => void;
 }
 
@@ -26,11 +26,14 @@ export function ProfileAddresses({
 }: ProfileAddressesProps) {
   const { t } = useTranslation("account");
     const { toast } = useToast();
+    const savingRef = useRef(false);
+    const [isSaving, setIsSaving] = useState(false);
     const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
     const [editingAddress, setEditingAddress] = useState<Address | null>(null);
     const [newAddress, setNewAddress] = useState<Partial<Address>>({ label: "", address: "", phone: "" });
 
     const handleDialogClose = () => {
+        if (savingRef.current) return;
         setIsAddressDialogOpen(false);
         setEditingAddress(null);
         setNewAddress({ label: "", address: "", phone: "" });
@@ -42,35 +45,35 @@ export function ProfileAddresses({
         setIsAddressDialogOpen(true);
     };
 
-    const handleSave = () => {
-        if (!newAddress.label || !newAddress.address) {
-            toast({
-                title: t("profile-addresses.s1"),
-                description: t("profile-addresses.s2"),
-                variant: "destructive",
-            });
+    const handleSave = async () => {
+        if (savingRef.current) return;
+        if (!newAddress.label?.trim() || !newAddress.address?.trim()) {
+            toast({ title: t("profile-addresses.s1"), description: t("profile-addresses.s2"), variant: "destructive" });
             return;
         }
-
-        if (editingAddress) {
-            onUpdateAddress({
-                ...editingAddress,
-                label: newAddress.label!,
-                address: newAddress.address!,
-                phone: newAddress.phone,
-            });
-            toast({ title: t("profile-addresses.s3"), description: t("profile-addresses.s4") });
-        } else {
-            onAddAddress({
-                id: Date.now().toString(),
-                label: newAddress.label!,
-                address: newAddress.address!,
-                phone: newAddress.phone,
-                isDefault: addresses.length === 0,
-            });
-            toast({ title: t("profile-addresses.s5"), description: t("profile-addresses.s6") });
+        savingRef.current = true;
+        setIsSaving(true);
+        try {
+            const fields = {
+                label: newAddress.label.trim(),
+                address: newAddress.address.trim(),
+                phone: newAddress.phone?.trim(),
+            };
+            if (editingAddress) {
+                await onUpdateAddress({ ...editingAddress, ...fields });
+                toast({ title: t("profile-addresses.s3"), description: t("profile-addresses.s4") });
+            } else {
+                await onAddAddress({ id: crypto.randomUUID(), ...fields, isDefault: addresses.length === 0 });
+                toast({ title: t("profile-addresses.s5"), description: t("profile-addresses.s6") });
+            }
+            savingRef.current = false;
+            handleDialogClose();
+        } catch {
+            toast({ title: t("profile.s4"), description: t(editingAddress ? "profile.s12" : "profile.s9"), variant: "destructive" });
+        } finally {
+            savingRef.current = false;
+            setIsSaving(false);
         }
-        handleDialogClose();
     };
 
     return (
@@ -83,7 +86,7 @@ export function ProfileAddresses({
                     </CardTitle>
                     <CardDescription>{t("profile-addresses.s8")}</CardDescription>
                 </div>
-                <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
+                <Dialog open={isAddressDialogOpen} onOpenChange={(open) => { if (!savingRef.current) setIsAddressDialogOpen(open); }}>
                     <DialogTrigger asChild>
                         <Button size="sm" className="gap-2" onClick={handleDialogClose}>
                             <MapPin className="w-4 h-4" />
@@ -102,6 +105,8 @@ export function ProfileAddresses({
                                 <Label htmlFor="label">{t("profile-addresses.s13")}</Label>
                                 <Input
                                     id="label"
+                                    maxLength={50}
+                                    disabled={isSaving}
                                     placeholder={t("profile-addresses.s14")}
                                     value={newAddress.label}
                                     onChange={(e) => setNewAddress({ ...newAddress, label: e.target.value })}
@@ -111,6 +116,8 @@ export function ProfileAddresses({
                                 <Label htmlFor="address">{t("profile-addresses.s15")}</Label>
                                 <Textarea
                                     id="address"
+                                    maxLength={500}
+                                    disabled={isSaving}
                                     placeholder={t("profile-addresses.s16")}
                                     value={newAddress.address}
                                     onChange={(e) => setNewAddress({ ...newAddress, address: e.target.value })}
@@ -121,6 +128,8 @@ export function ProfileAddresses({
                                 <Label htmlFor="phone">{t("profile-addresses.s17")}</Label>
                                 <Input
                                     id="phone"
+                                    maxLength={20}
+                                    disabled={isSaving}
                                     type="tel"
                                     placeholder="07XXXXXXXX"
                                     value={newAddress.phone}
@@ -130,10 +139,10 @@ export function ProfileAddresses({
                             </div>
                         </div>
                         <DialogFooter>
-                            <Button variant="outline" onClick={handleDialogClose}>
+                            <Button variant="outline" onClick={handleDialogClose} disabled={isSaving}>
                                 {t("profile-addresses.s18")}
                             </Button>
-                            <Button onClick={handleSave}>
+                            <Button onClick={handleSave} disabled={isSaving} aria-busy={isSaving}>
                                 {editingAddress ? t("profile-addresses.s19") : t("profile-addresses.s20")}
                             </Button>
                         </DialogFooter>

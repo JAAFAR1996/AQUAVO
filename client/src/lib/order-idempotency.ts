@@ -5,6 +5,8 @@ type StoredAttempt = {
   idempotencyKey: string;
 };
 
+let memoryAttempt: StoredAttempt | null = null;
+
 function isStoredAttempt(value: unknown): value is StoredAttempt {
   if (!value || typeof value !== "object") return false;
   const attempt = value as Partial<StoredAttempt>;
@@ -14,9 +16,11 @@ function isStoredAttempt(value: unknown): value is StoredAttempt {
 }
 
 export function getOrderIdempotencyKey(cartSignature: string): string {
+  if (memoryAttempt?.cartSignature === cartSignature) return memoryAttempt.idempotencyKey;
   try {
     const existing = JSON.parse(sessionStorage.getItem(STORAGE_KEY) ?? "null") as unknown;
     if (isStoredAttempt(existing) && existing.cartSignature === cartSignature) {
+      memoryAttempt = existing;
       return existing.idempotencyKey;
     }
   } catch {
@@ -24,6 +28,7 @@ export function getOrderIdempotencyKey(cartSignature: string): string {
   }
 
   const idempotencyKey = crypto.randomUUID();
+  memoryAttempt = { cartSignature, idempotencyKey };
   try {
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ cartSignature, idempotencyKey }));
   } catch {
@@ -33,6 +38,7 @@ export function getOrderIdempotencyKey(cartSignature: string): string {
 }
 
 export function clearOrderIdempotencyKey(): void {
+  memoryAttempt = null;
   try {
     sessionStorage.removeItem(STORAGE_KEY);
   } catch {

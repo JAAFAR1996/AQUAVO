@@ -977,8 +977,13 @@ describe('OrderStorage.createOrderSecure', () => {
         const source = readFileSync(resolve(process.cwd(), 'server/routes/orders.ts'), 'utf8');
         const createOrderIndex = source.indexOf('await storage.createOrderSecure');
         const notificationIndex = source.indexOf('sendPostPurchaseNotifications');
-        const referralIndex = source.indexOf('markFirstPurchase');
+        const referralIndex = source.indexOf('markFirstPurchase', createOrderIndex);
+        const replayReferralIndex = source.indexOf('markFirstPurchase');
 
+        // A replay may repair a previously committed referral before the fresh
+        // create branch, but only after loading and authorizing that order.
+        expect(source.indexOf('await storage.getOrder(idempotencyKey)')).toBeLessThan(replayReferralIndex);
+        expect(source.indexOf('assertCheckoutReplay(existingOrder')).toBeLessThan(replayReferralIndex);
         expect(createOrderIndex).toBeGreaterThan(-1);
         expect(notificationIndex).toBeGreaterThan(createOrderIndex);
         expect(referralIndex).toBeGreaterThan(createOrderIndex);

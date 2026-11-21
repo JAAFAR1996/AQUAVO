@@ -256,6 +256,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const { user, isLoading: isAuthLoading } = useAuth();
   const [items, setItems] = useState<CartItem[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
+  const itemsRef = useRef<CartItem[]>([]);
+  const setCartItems = useCallback((next: CartItem[]) => {
+    itemsRef.current = next;
+    setItems(next);
+  }, []);
+  const confirmedItems = useRef<CartItem[]>([]);
+  const pendingEdits = useRef(new Map<symbol, (cart: CartItem[]) => CartItem[]>());
+  const mutationQueue = useRef<Promise<void>>(Promise.resolve());
+  const accountLoad = useRef<Promise<void>>(Promise.resolve());
+  const renderAccountCart = useCallback(() => {
+    let next = confirmedItems.current;
+    for (const apply of pendingEdits.current.values()) next = apply(next);
+    setCartItems(next);
+  }, [setCartItems]);
 
   // Single notification source: no optimistic "added" before the cart accepts the item.
   const notifyCartAdded = (name: string, quantity: number) => {
@@ -276,7 +290,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     // Keep the current basket membership and quantities. A slow catalogue
     // response may arrive after a quantity change, removal or new addition.
     const current = syncStorage.getItem<CartItem[]>(CART_STORAGE_KEY);
-    const latest = Array.isArray(current) ? current : [];
+    const latest = Array.isArray(current) ? current : itemsRef.current;
     if (version !== guestRefreshVersion.current || freshItems === snapshot) return latest;
 
     const freshById = new Map(freshItems.map(item => [item.id, item]));
@@ -285,9 +299,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return fresh ? { ...fresh, quantity: item.quantity } : item;
     });
     syncStorage.setItem(CART_STORAGE_KEY, updated);
-    setItems(updated);
+    setCartItems(updated);
     return updated;
-  }, []);
+  }, [setCartItems]);
 
   // Restore the guest basket on initial load and whenever an account signs out.
   useEffect(() => {
@@ -296,20 +310,54 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const normalized = Array.isArray(stored) ? stored
       .filter(item => item && typeof item.name === "string" && typeof item.id === "string")
       .map(item => ({ ...item, name: normalizeCartItemName(item.name, item.variantLabel) })) : [];
-    setItems(normalized);
+    setCartItems(normalized);
     setIsInitialized(true);
     if (normalized.length) void refreshGuestCart(normalized);
     return () => { ++guestRefreshVersion.current; };
-  }, [userId, isAuthLoading, refreshGuestCart]);
+  }, [userId, isAuthLoading, refreshGuestCart, setCartItems]);
 
   // Keep unconfirmed transfers tied to this account on shared devices.
   const activeAccountId = useRef(userId);
   activeAccountId.current = userId;
   const mergesInFlight = useRef(new Map<string, Promise<{ total: number; remaining: number }>>());
+
+  // Apply user intents immediately, but send account writes in their original
+  // order. Failed writes remove only their own intent, revealing the last
+  // confirmed server state without undoing a later click.
+  const mutateAccountCart = useCallback(async (
+    apply: (cart: CartItem[]) => CartItem[],
+    request: (cart: CartItem[]) => Promise<CartItem[]>,
+  ): Promise<boolean> => {
+    const accountId = activeAccountId.current;
+    const editId = Symbol();
+    pendingEdits.current.set(editId, apply);
+    renderAccountCart();
+    const operation = mutationQueue.current.then(async () => {
+      await accountLoad.current;
+      if (!accountId || activeAccountId.current !== accountId) {
+        pendingEdits.current.delete(editId);
+        return false;
+      }
+      try {
+        const next = await request(confirmedItems.current);
+        if (activeAccountId.current !== accountId) return false;
+        confirmedItems.current = next;
+        return true;
+      } finally {
+        pendingEdits.current.delete(editId);
+        if (activeAccountId.current === accountId) renderAccountCart();
+      }
+    });
+    mutationQueue.current = operation.then(() => undefined, () => undefined);
+    return operation;
+  }, [renderAccountCart]);
+
   useEffect(() => {
     if (isAuthLoading || !userId) return;
     let active = true;
-    setItems([]);
+    confirmedItems.current = [];
+    pendingEdits.current.clear();
+    setCartItems([]);
     setIsInitialized(false);
     const mergeKey = `${CART_STORAGE_KEY}-merge-${userId}`;
     const mergeGuestLines = async () => {
@@ -386,7 +434,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
         const response = await fetch("/api/cart", { credentials: "include" });
         if (response.ok) {
           const serverItems = await response.json();
-          if (active && Array.isArray(serverItems)) setItems(serverItems.map(mapServerCartItem));
+          if (active && Array.isArray(serverItems)) {
+            confirmedItems.current = serverItems.map(mapServerCartItem);
+            renderAccountCart();
+          }
         }
       } catch (error) {
         console.error("Failed to load account cart", error);
@@ -394,30 +445,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
         if (active) setIsInitialized(true);
       }
     };
-    void syncAccountCart();
+    accountLoad.current = syncAccountCart();
     return () => { active = false; };
-  }, [userId, isAuthLoading]);
+  }, [userId, isAuthLoading, setCartItems, renderAccountCart]);
 
   // Persist changes
-  const saveCart = async (newItems: CartItem[]) => {
-    setItems(newItems);
-
-    if (user) {
-      // If logged in, we should ideally sync each change. 
-      // But passing the whole cart on every change is heavy.
-      // The API is granular (add/remove). 
-      // So this state-based save is tricky without a diff.
-      // We will rely on the add/remove functions to call API directly.
-    } else {
-      syncStorage.setItem(CART_STORAGE_KEY, newItems);
-      window.dispatchEvent(new StorageEvent('storage', {
-        key: CART_STORAGE_KEY,
-        newValue: JSON.stringify(newItems),
-      }));
-    }
-  };
+  const saveGuestCart = useCallback((newItems: CartItem[]) => {
+    setCartItems(newItems);
+    syncStorage.setItem(CART_STORAGE_KEY, newItems);
+    window.dispatchEvent(new StorageEvent('storage', {
+      key: CART_STORAGE_KEY,
+      newValue: JSON.stringify(newItems),
+    }));
+  }, [setCartItems]);
 
   const addItem = async (product: Product, quantity: number = 1, notifySuccess = true): Promise<boolean> => {
+    if (!Number.isInteger(quantity) || quantity <= 0) return false;
     let { variantId, variantLabel } = getCartVariantMeta(product);
 
     // Safety net for "quick add" surfaces (suggestions, frequently-bought,
@@ -463,58 +506,57 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const displayName = variantLabel ? `${product.name} (${variantLabel})` : product.name;
 
     if (user) {
-      // Server Side — the server is the source of truth for stock.
       try {
-        const res = await fetch("/api/cart", {
-          method: "POST",
-          headers: addCsrfHeader({ "Content-Type": "application/json" }),
-          credentials: "include",
-          body: JSON.stringify({
-            productId: product.id,
-            quantity,
-            variantPrice: variantId ? Number(product.price) : undefined,
-            variantLabel,
-            variantId,
-            clientSessionId: getClientSessionId(),
-          }),
-        });
-        if (res.ok) {
-          await res.json();
-          // Refresh full cart to ensure sync with server state
-          const cartRes = await fetch("/api/cart", { credentials: "include" });
-          if (cartRes.ok) {
-            const serverItems = await cartRes.json();
-            const mappedItems = serverItems.map(mapServerCartItem);
-            setItems(mappedItems);
-          }
-          // If cartRes is not ok, item was still added — optimistic local state is already correct
-          fireAddToCartAnalytics({ id: product.id, name: displayName, price: productPrice, quantity, category: product.category });
-          if (notifySuccess) notifyCartAdded(displayName, quantity);
-          return true;
-        }
-
-        if (res.status === 401) {
-          toast({
-            title: t("cart-context.s5"),
-            description: t("cart-context.s6"),
-            variant: "destructive",
+        const added = await mutateAccountCart(cart => cart, async cart => {
+          const res = await fetch("/api/cart", {
+            method: "POST",
+            headers: addCsrfHeader({ "Content-Type": "application/json" }),
+            credentials: "include",
+            body: JSON.stringify({
+              productId: product.id, quantity,
+              variantPrice: variantId ? Number(product.price) : undefined,
+              variantLabel, variantId, clientSessionId: getClientSessionId(),
+            }),
           });
-          return false;
-        }
-
-        // Out-of-stock / validation → surface the server's clean Arabic message.
-        let description = t("cart-context.s7");
-        try {
-          const data = await res.json();
-          if (data?.message && typeof data.message === "string") description = data.message;
-        } catch { /* keep default Arabic message */ }
-        toast({ title: t("cart-context.s8"), description, variant: "destructive" });
-        return false;
-      } catch (err) {
-        console.warn("Failed to add to server cart", err);
+          if (!res.ok) {
+            let description = res.status === 401 ? t("cart-context.s6") : t("cart-context.s7");
+            const data = await res.json().catch(() => null) as { message?: string } | null;
+            if (typeof data?.message === "string") description = data.message;
+            throw new Error(description);
+          }
+          const saved = await res.json() as { id: string; quantity: number; variantPrice?: string | number | null };
+          const existing = cart.find(item => item.productId === product.id && item.variantId === variantId);
+          const line: CartItem = {
+            id: saved.id, productId: product.id,
+            name: normalizeCartItemName(product.name, variantLabel),
+            price: Number(saved.variantPrice ?? product.price),
+            quantity: saved.quantity,
+            image: product.thumbnail || product.image || product.images?.[0] || '',
+            slug: product.slug, variantId, variantLabel,
+            stock: chosenVariantStock ?? existing?.stock ?? (product.stock == null ? undefined : Number(product.stock)),
+          };
+          const acknowledged = existing
+            ? cart.map(item => item.id === existing.id ? line : item)
+            : [...cart, line];
+          // The POST acknowledgement is enough to show the added line. A failed
+          // optional refresh must never turn an accepted add into a retry prompt.
+          try {
+            const refresh = await fetch("/api/cart", { credentials: "include" });
+            if (refresh.ok) {
+              const rows = await refresh.json() as ServerCartItem[];
+              if (Array.isArray(rows)) return rows.map(mapServerCartItem);
+            }
+          } catch { /* keep the acknowledged mutation */ }
+          return acknowledged;
+        });
+        if (!added) return false;
+        fireAddToCartAnalytics({ id: product.id, name: displayName, price: productPrice, quantity, category: product.category });
+        if (notifySuccess) notifyCartAdded(displayName, quantity);
+        return true;
+      } catch (error) {
         toast({
           title: t("cart-context.s9"),
-          description: t("cart-context.s10"),
+          description: error instanceof Error ? error.message : t("cart-context.s10"),
           variant: "destructive",
         });
         return false;
@@ -535,7 +577,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     // Cap stored on the cart line itself so later quantity increments (e.g. the
     // "+" button in the cart drawer) can enforce it without re-deriving stock.
     const itemStock = stockKnown ? Number(rawStock) : undefined;
-    const currentQty = items.find((item) => item.id === cartItemId)?.quantity ?? 0;
+    const currentQty = itemsRef.current.find((item) => item.id === cartItemId)?.quantity ?? 0;
 
     if (stockKnown && available <= 0) {
       toast({ title: t("cart-context.s8"), description: t("cart-context.s11"), variant: "destructive" });
@@ -550,42 +592,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return false;
     }
 
-    // Use a functional update so rapid successive clicks never read a stale
-    // `items` snapshot (the old "had to click add twice" bug).
-    setItems((prev) => {
-      const existingItem = prev.find((item) => item.id === cartItemId);
-      let newItems: CartItem[];
-      if (existingItem) {
-        newItems = prev.map((item) =>
-          item.id === cartItemId
-            ? { ...item, quantity: item.quantity + quantity, stock: itemStock }
-            : item
-        );
-      } else {
-        const newItem: CartItem = {
-          id: cartItemId,
-          productId: product.id,
-          name: product.name,
-          price: Number(product.price),
-          quantity: quantity,
-          image: product.thumbnail || product.image || product.images?.[0] || '',
-          slug: product.slug,
-          variantId: variantId ?? undefined,
-          variantLabel,
-          stock: itemStock,
-        };
-        newItems = [...prev, newItem];
-      }
-
-      // Persist to localStorage + notify other tabs/components.
-      syncStorage.setItem(CART_STORAGE_KEY, newItems);
-      window.dispatchEvent(new StorageEvent('storage', {
-        key: CART_STORAGE_KEY,
-        newValue: JSON.stringify(newItems),
-      }));
-
-      return newItems;
-    });
+    const previous = itemsRef.current;
+    const existingItem = previous.find(item => item.id === cartItemId);
+    const next = existingItem
+      ? previous.map(item => item.id === cartItemId
+        ? { ...item, quantity: item.quantity + quantity, stock: itemStock } : item)
+      : [...previous, {
+        id: cartItemId, productId: product.id, name: product.name,
+        price: productPrice, quantity,
+        image: product.thumbnail || product.image || product.images?.[0] || '',
+        slug: product.slug, variantId, variantLabel, stock: itemStock,
+      }];
+    // Persistence and notifications run once per accepted action, outside React
+    // state updaters, which may be evaluated more than once in concurrent mode.
+    saveGuestCart(next);
 
     fireAddToCartAnalytics({ id: product.id, name: displayName, price: productPrice, quantity, category: product.category });
     fireCartLifecycleAnalytics("add", product.id, quantity);
@@ -628,73 +648,35 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const removeItem = useCallback(async (id: string) => {
-    const removedItem = items.find((item) => item.id === id);
+    const removedItem = itemsRef.current.find(item => item.id === id);
+    if (!removedItem) return;
+    const remove = (cart: CartItem[]) => cart.filter(item => item.id !== id);
     if (user) {
-      // Optimistic update first
-      setItems(prev => prev.filter((item) => item.id !== id));
-
       try {
-        const res = await fetch(`/api/cart/${id}`, {
-          method: "DELETE",
-          headers: addCsrfHeader(),
-          credentials: "include"
-        });
-        if (res.ok && removedItem) {
-          fireCartLifecycleAnalytics("remove", removedItem.productId, removedItem.quantity);
-        }
-        if (!res.ok) {
-          // Rollback on failure - refetch from server
-          const cartRes = await fetch("/api/cart", { credentials: "include" });
-          if (cartRes.ok) {
-            const serverItems = await cartRes.json();
-            if (Array.isArray(serverItems)) {
-              const mappedItems = serverItems.map(mapServerCartItem);
-              setItems(mappedItems);
-            }
-          }
-          toast({
-            title: t("cart-context.s19"),
-            description: t("cart-context.s20"),
-            variant: "destructive",
+        const removed = await mutateAccountCart(remove, async cart => {
+          const response = await fetch(`/api/cart/${id}`, {
+            method: "DELETE", headers: addCsrfHeader(), credentials: "include",
           });
-        }
-      } catch (err) {
-        console.warn("Failed to remove from server cart", err);
-        toast({
-          title: t("cart-context.s19"),
-          variant: "destructive",
+          if (!response.ok) throw new Error("Cart removal failed");
+          return remove(cart);
         });
+        if (!removed) return;
+      } catch {
+        toast({ title: t("cart-context.s19"), description: t("cart-context.s20"), variant: "destructive" });
+        return;
       }
     } else {
-      if (removedItem) {
-        fireCartLifecycleAnalytics("remove", removedItem.productId, removedItem.quantity);
-      }
-      // Use functional update to avoid stale closure
-      setItems(prev => {
-        const newItems = prev.filter((item) => item.id !== id);
-        syncStorage.setItem(CART_STORAGE_KEY, newItems);
-        window.dispatchEvent(new StorageEvent('storage', {
-          key: CART_STORAGE_KEY,
-          newValue: JSON.stringify(newItems),
-        }));
-        return newItems;
-      });
+      saveGuestCart(remove(itemsRef.current));
     }
-  }, [user, items]);
+    fireCartLifecycleAnalytics("remove", removedItem.productId, removedItem.quantity);
+  }, [user, mutateAccountCart, saveGuestCart, t]);
 
-  const updateQuantity = useCallback(async (id: string, quantity: number) => {
-    // Never auto-remove — user must use the trash button explicitly
-    if (quantity <= 0) {
-      quantity = 1;
-    }
-
-    // Enforce the KNOWN stock cap client-side (variant stock for variant
-    // lines, base-product stock otherwise) so the "+" control can't push the
-    // quantity past what we know is available. Unknown stock (undefined)
-    // means we never saw a stock number for this line — defer entirely to
-    // the server, which remains the final authority either way.
-    const currentItem = items.find((item) => item.id === id);
-    const knownStock = currentItem?.stock;
+  const updateQuantity = useCallback(async (id: string, requested: number) => {
+    if (!Number.isFinite(requested)) return;
+    const quantity = Math.max(1, Math.floor(requested));
+    const currentItem = itemsRef.current.find(item => item.id === id);
+    if (!currentItem) return;
+    const knownStock = currentItem.stock;
     if (knownStock != null && Number.isFinite(knownStock) && quantity > knownStock) {
       toast({
         title: t("cart-context.s8"),
@@ -703,103 +685,70 @@ export function CartProvider({ children }: { children: ReactNode }) {
       });
       return;
     }
-
-    // Store old quantity for potential rollback
-    let oldQuantity = 0;
-
-    // Optimistic update using functional form
-    setItems(prev => {
-      const item = prev.find(i => i.id === id);
-      if (item) oldQuantity = item.quantity;
-      return prev.map((item) =>
-        item.id === id ? { ...item, quantity } : item
-      );
-    });
-
+    const update = (cart: CartItem[]) => cart.map(item => item.id === id ? { ...item, quantity } : item);
     if (user) {
       try {
-        const res = await fetch(`/api/cart/${id}`, {
-          method: "PUT",
-          headers: addCsrfHeader({ "Content-Type": "application/json" }),
-          credentials: "include",
-          body: JSON.stringify({ quantity }),
-        });
-
-        if (res.ok && currentItem) {
-          fireCartLifecycleAnalytics("touch", currentItem.productId, quantity);
-        }
-        if (!res.ok) {
-          // Rollback on failure
-          setItems(prev => prev.map((item) =>
-            item.id === id ? { ...item, quantity: oldQuantity } : item
-          ));
-          toast({
-            title: t("cart-context.s21"),
-            variant: "destructive",
+        const updated = await mutateAccountCart(update, async cart => {
+          const response = await fetch(`/api/cart/${id}`, {
+            method: "PUT", credentials: "include",
+            headers: addCsrfHeader({ "Content-Type": "application/json" }),
+            body: JSON.stringify({ quantity }),
           });
-        }
-      } catch (err) {
-        console.warn("Failed to update server cart", err);
-        // Rollback on error
-        setItems(prev => prev.map((item) =>
-          item.id === id ? { ...item, quantity: oldQuantity } : item
-        ));
-        toast({
-          title: t("cart-context.s21"),
-          variant: "destructive",
+          if (!response.ok) throw new Error("Cart quantity update failed");
+          return update(cart);
         });
+        if (!updated) return;
+      } catch {
+        toast({ title: t("cart-context.s21"), variant: "destructive" });
+        return;
       }
     } else {
-      // For guest users, persist to localStorage
-      setItems(prev => {
-        const newItems = prev.map((item) =>
-          item.id === id ? { ...item, quantity } : item
-        );
-        syncStorage.setItem(CART_STORAGE_KEY, newItems);
-        window.dispatchEvent(new StorageEvent('storage', {
-          key: CART_STORAGE_KEY,
-          newValue: JSON.stringify(newItems),
-        }));
-        return newItems;
-      });
-      if (currentItem) {
-        fireCartLifecycleAnalytics("touch", currentItem.productId, quantity);
-      }
+      saveGuestCart(update(itemsRef.current));
     }
-  }, [user, removeItem, items]);
+    fireCartLifecycleAnalytics("touch", currentItem.productId, quantity);
+  }, [user, mutateAccountCart, saveGuestCart, t]);
 
   const refetchCart = useCallback(async (): Promise<CartItem[]> => {
-    if (!user) return refreshGuestCart(items);
+    if (!user) return refreshGuestCart(itemsRef.current);
+    const accountId = activeAccountId.current;
+    await accountLoad.current;
+    // Wait for all writes already accepted by the UI before checkout snapshots
+    // the basket. New clicks remain overlaid if they arrive during this read.
+    const queued = mutationQueue.current;
+    await queued;
     try {
-      const cartRes = await fetch("/api/cart", { credentials: "include" });
-      if (cartRes.ok) {
-        const serverItems = await cartRes.json();
-        if (Array.isArray(serverItems)) {
-          const mappedItems = serverItems.map(mapServerCartItem);
-          setItems(mappedItems);
-          return mappedItems;
-        }
+      const response = await fetch("/api/cart", { credentials: "include" });
+      if (!response.ok) throw new Error("Cart refresh failed");
+      const rows = await response.json() as ServerCartItem[];
+      if (!Array.isArray(rows)) throw new Error("Invalid cart response");
+      if (activeAccountId.current !== accountId) return itemsRef.current;
+      if (queued !== mutationQueue.current) {
+        await mutationQueue.current;
+        return itemsRef.current;
       }
-    } catch (err) {
-      console.warn("Failed to refetch cart:", err);
+      confirmedItems.current = rows.map(mapServerCartItem);
+      renderAccountCart();
+      return itemsRef.current;
+    } catch {
+      return itemsRef.current;
     }
-    return items;
-  }, [user, items, refreshGuestCart]);
+  }, [user, refreshGuestCart, renderAccountCart]);
 
   const clearCart = async () => {
-    if (user) {
-      try {
-        await fetch("/api/cart", {
-          method: "DELETE",
-          headers: addCsrfHeader(),
-          credentials: "include"
+    if (!user) {
+      saveGuestCart([]);
+      return;
+    }
+    try {
+      await mutateAccountCart(() => [], async () => {
+        const response = await fetch("/api/cart", {
+          method: "DELETE", headers: addCsrfHeader(), credentials: "include",
         });
-        setItems([]);
-      } catch (err) {
-        console.warn("Failed to clear server cart", err);
-      }
-    } else {
-      saveCart([]);
+        if (!response.ok) throw new Error("Cart clear failed");
+        return [];
+      });
+    } catch {
+      toast({ title: t("cart-context.s19"), description: t("cart-context.s20"), variant: "destructive" });
     }
   };
 

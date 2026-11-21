@@ -21,6 +21,8 @@ const product = {
   ],
 };
 const catalogue = brands.map((brand, index) => ({ ...product, id: `fixture-${index}`, slug: `fixture-${index}`, name: `منتج ${index + 1}`, brand, hasVariants: false, variants: [], stock: index === 11 ? 0 : 8 }));
+const pagedCatalogue = Array.from({ length: 61 }, (_, index) => ({ ...product, id: `fixture-paged-${index}`, slug: `fixture-paged-${index}`, name: `paged-fixture ${index + 1}`, hasVariants: false, variants: [], stock: 8 }));
+const requestedPages = [];
 const originalFixture = JSON.stringify(product);
 const types = { ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".woff2": "font/woff2", ".webp": "image/webp", ".png": "image/png" };
 const server = createServer(async (req, res) => {
@@ -29,12 +31,31 @@ const server = createServer(async (req, res) => {
     if (url.pathname.startsWith("/api/")) {
       let data = {};
       if (url.pathname === "/api/user") { res.statusCode = 401; data = null; }
-      else if (url.pathname === "/api/products/attributes") data = { brands, categories: ["فلاتر"], minPrice: 0, maxPrice: 100000 };
+      else if (url.pathname === "/api/products/attributes") data = { brands, categories: ["فلاتر"], categoryCounts: { "فلاتر": catalogue.length }, minPrice: 0, maxPrice: 100000 };
       else if (url.pathname === "/api/products") {
-        const selected = url.searchParams.getAll("brand");
-        data = { products: catalogue.filter(p => !selected.length || selected.includes(p.brand)) };
-      } else if (url.pathname === "/api/products/fixture-gallery") data = product;
+        const params = url.searchParams;
+        const selected = params.getAll("brand");
+        const categories = params.getAll("category");
+        const query = params.get("search")?.toLowerCase() ?? "";
+        let matching = (query.includes("paged-fixture") ? pagedCatalogue : catalogue).filter(p =>
+          (!selected.length || selected.includes(p.brand)) && (!categories.length || categories.includes(p.category))
+          && (!query || `${p.name} ${p.brand} ${p.category}`.toLowerCase().includes(query))
+          && (!params.has("minPrice") || p.price >= Number(params.get("minPrice")))
+          && (!params.has("maxPrice") || p.price <= Number(params.get("maxPrice")))
+          && (params.get("inStock") !== "true" || p.stock > 0));
+        if (params.get("sortBy") === "price") matching.sort((a, b) => (a.price - b.price) * (params.get("sortOrder") === "desc" ? -1 : 1));
+        const offset = Number(params.get("offset") ?? 0);
+        const limit = Math.min(Number(params.get("limit") ?? 500), params.get("paginated") === "true" ? 100 : 500);
+        const page = matching.slice(offset, offset + limit);
+        if (query.includes("paged-fixture") && params.get("paginated") === "true") requestedPages.push({ offset, limit });
+        data = { products: page, total: matching.length, hasMore: offset + page.length < matching.length };
+      } else if (url.pathname === "/api/products/by-ids") {
+        const ids = new Set((url.searchParams.get("ids") ?? "").split(","));
+        data = { products: [...catalogue, ...pagedCatalogue].filter(p => ids.has(p.id)) };
+      } else if (url.pathname === "/api/products/smart-search") data = { products: [], semantic: false };
+      else if (url.pathname === "/api/products/fixture-gallery") data = product;
       else if (url.pathname === "/api/products/fixture-single") data = { ...product, slug: "fixture-single", images: [product.image], hasVariants: false, variants: [] };
+      else if (url.pathname.startsWith("/api/products/fixture-paged-")) data = pagedCatalogue.find(p => url.pathname.endsWith(`/${p.slug}`)) ?? {};
       else if (url.pathname.includes("reviews") || url.pathname.includes("/variants") || url.pathname.includes("similar") || url.pathname.includes("frequently-bought-together") || url.pathname.includes("/blog/") || url.pathname.includes("/gallery") || url.pathname.includes("/bundles")) data = [];
       else if (url.pathname.includes("shipping")) data = { fee: 5000 };
       res.setHeader("Content-Type", "application/json");
@@ -70,11 +91,14 @@ try {
     const { locale, width, mobile, motion, theme } = scenario;
     const productCopy = JSON.parse(await readFile(`client/src/locales/${locale}/product.json`, "utf8"));
     const listingCopy = JSON.parse(await readFile(`client/src/locales/${locale}/products.json`, "utf8"));
+    const reviewsCopy = JSON.parse(await readFile(`client/src/locales/${locale}/pages.json`, "utf8"))["product-reviews"];
     const prefix = locale === "ar" ? "" : `/${locale}`;
     const context = await browser.newContext({ viewport: { width, height: 900 }, isMobile: mobile, hasTouch: mobile, reducedMotion: motion, colorScheme: theme });
     const page = await context.newPage();
     const errors = [];
+    const reviewChunks = [];
     page.on("pageerror", error => errors.push(error.message));
+    page.on("request", request => { if (/\/product-reviews-[^/]+\.js(?:\?|$)/.test(request.url())) reviewChunks.push(request.url()); });
     await context.route("**/*", route => new URL(route.request().url()).origin === base ? route.continue() : route.abort());
     await page.addInitScript(theme => { localStorage.setItem("theme", theme); localStorage.setItem("aquavo_first_dive_seen_v2", "1"); }, theme);
     await page.goto(`${base}${prefix}/`);
@@ -158,6 +182,17 @@ try {
     await shipping.scrollIntoViewIfNeeded();
     await expect(trigger).toHaveAttribute("aria-expanded", mobile ? "false" : "true");
     if (mobile) { await trigger.click(); await expect(trigger).toHaveAttribute("aria-expanded", "true"); }
+    if (mobile) {
+      assert.deepEqual(reviewChunks, [], "closed mobile reviews downloaded review UI code");
+      const reviews = page.locator("#product-info-reviews");
+      const reviewsTrigger = reviews.getByRole("button", { name: productCopy.reviews.title, exact: true });
+      await expect(reviewsTrigger).toHaveAttribute("aria-expanded", "false");
+      await reviewsTrigger.click();
+      await expect(reviewsTrigger).toHaveAttribute("aria-expanded", "true");
+      await expect.poll(() => reviewChunks.length, { message: "opening reviews must load the deferred review UI" }).toBeGreaterThan(0);
+      await expect(reviews.locator('[aria-busy="true"]')).toHaveCount(0);
+      await expect(reviews.getByText(reviewsCopy.s22, { exact: true })).toBeVisible();
+    }
     await page.locator("#product-info-specs").scrollIntoViewIfNeeded();
     await page.screenshot({ path: `${output}/${locale}-${width}-details.png` });
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), "page has horizontal overflow");
@@ -181,6 +216,52 @@ try {
     assert.deepEqual(errors, [], `${locale}/${width}: browser errors`);
     assert.equal(JSON.stringify(product), originalFixture, "fixture product price/stock mutated");
     console.log(`PASS ${locale} ${width}px ${theme}/${motion}: gallery, variant images, disclosures, brand expansion, draft counts and applied zero results`);
+    await context.close();
+  }
+  // The search/compare sources are bounded independently of catalogue filters.
+  {
+    const context = await browser.newContext({ viewport: { width: 390, height: 900 }, reducedMotion: "reduce" });
+    await context.route("**/*", route => new URL(route.request().url()).origin === base ? route.continue() : route.abort());
+    await context.addInitScript(() => {
+      localStorage.setItem("aquavo_first_dive_seen_v2", "1");
+      localStorage.setItem("aquavo_comparison", JSON.stringify(["fixture-paged-60"]));
+    });
+    const page = await context.newPage();
+    const errors = [];
+    page.on("pageerror", error => errors.push(error.message));
+    const listingCopy = JSON.parse(await readFile("client/src/locales/en/products.json", "utf8"));
+    const searchCopy = JSON.parse(await readFile("client/src/locales/en/search.json", "utf8"))["global-search"];
+    const comparisonCopy = JSON.parse(await readFile("client/src/locales/en/pages.json", "utf8"))["product-comparison"];
+    await page.goto(`${base}/en/products?search=paged-fixture`);
+    const cards = page.locator('[data-listing-item^="product:fixture-paged-"]');
+    await expect(cards).toHaveCount(24);
+    assert.deepEqual(requestedPages.at(-1), { limit: 24, offset: 0 });
+    await expect(cards.first().getByRole("link")).toHaveAccessibleName(/10,000/);
+    await page.getByRole("button", { name: listingCopy.results.loadMore, exact: true }).click();
+    await expect.poll(() => cards.count()).toBeGreaterThanOrEqual(48);
+    assert(requestedPages.some(page => page.offset === 24 && page.limit === 24), "second catalogue page was not requested");
+    await page.getByRole("button", { name: comparisonCopy.s14.replace("{{v0}}", "1"), exact: true }).click();
+    await expect(page.getByAltText("paged-fixture 61", { exact: true })).toBeVisible();
+    await page.getByRole("button", { name: comparisonCopy.s11, exact: true }).click();
+    await page.keyboard.press("Control+k");
+    const searchDialog = page.getByRole("dialog");
+    const searchInput = searchDialog.getByRole("combobox");
+    await searchInput.fill("paged-fixture");
+    await expect(searchDialog.getByRole("option").first()).toBeVisible();
+    await expect(searchDialog).toHaveAttribute("dir", "ltr");
+    const before = page.url();
+    await searchDialog.getByRole("button", { name: searchCopy.s5, exact: true }).focus();
+    await page.keyboard.press("Enter");
+    await expect(searchInput).toHaveValue("");
+    assert.equal(page.url(), before, "Enter on the clear button opened a result");
+    await searchInput.fill("paged-fixture");
+    await expect(searchDialog.getByRole("option").first()).toBeVisible();
+    await searchInput.press("ArrowDown");
+    await expect(searchInput).toHaveAttribute("aria-activedescendant", /.+/);
+    await searchInput.press("Enter");
+    await expect(page).toHaveURL(/\/en\/products\/fixture-paged-/);
+    assert.deepEqual(errors, [], "paged catalogue, comparison and keyboard search");
+    console.log("PASS bounded catalogue pages, independent comparison, accessible card price and keyboard search");
     await context.close();
   }
   for (const mode of ["single-photo", "enhancement-unavailable"]) {

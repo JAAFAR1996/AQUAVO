@@ -1,6 +1,6 @@
 import { getDb } from "../db.js";
 import * as schema from "../../shared/schema.js";
-import { eq, desc, and, gte, sql, inArray, notInArray, isNotNull, ne } from "drizzle-orm";
+import { eq, desc, and, gte, sql, inArray, notInArray, isNotNull, isNull, ne } from "drizzle-orm";
 
 /**
  * متجه المستخدم - تمثيل تفاعلات المستخدم مع المنتجات
@@ -15,7 +15,11 @@ interface UserVector {
  * Recommendation Engine - Hybrid system
  */
 export class RecommendationEngine {
-  private db = getDb();
+  private get db() {
+    const database = getDb();
+    if (!database) throw new Error("Database service unavailable");
+    return database;
+  }
 
   // أوزان التفاعلات
   private readonly INTERACTION_WEIGHTS = {
@@ -255,7 +259,8 @@ export class RecommendationEngine {
       const product = await this.db
         .select()
         .from(schema.products)
-        .where(eq(schema.products.id, productId))
+        .where(and(eq(schema.products.id, productId),
+          isNull(schema.products.deletedAt), eq(schema.products.isStorefrontVisible, true)))
         .limit(1);
 
       if (product.length === 0) {
@@ -278,6 +283,8 @@ export class RecommendationEngine {
         .from(schema.products)
         .where(
           and(
+            isNull(schema.products.deletedAt),
+            eq(schema.products.isStorefrontVisible, true),
             eq(schema.products.category, targetProduct.category),
             ne(schema.products.id, productId), // استبعاد المنتج نفسه
             gte(sql`CAST(${schema.products.price} AS DECIMAL)`, minPrice),
@@ -302,58 +309,46 @@ export class RecommendationEngine {
     productId: string,
     limit: number = 5
   ): Promise<string[]> {
+    return this.getFrequentlyBoughtTogetherForProducts([productId], limit);
+  }
+
+  /** One grouped query for a bounded cart, with a distinct order as one vote. */
+  async getFrequentlyBoughtTogetherForProducts(
+    productIds: readonly string[],
+    limit: number = 20,
+  ): Promise<string[]> {
+    const ids = [...new Set(productIds)].slice(0, 20);
+    if (ids.length === 0) return [];
     try {
-      console.log(`[Recommendations] 🛒 Getting frequently bought together for: ${productId}`);
-
-      // العثور على الطلبات التي تحتوي على هذا المنتج
-      const ordersWithProduct = await this.db
-        .select({
-          orderId: schema.productInteractions.metadata,
-        })
+      const orderId = sql<string>`${schema.productInteractions.metadata}->>'orderId'`;
+      const matchingOrders = this.db
+        .select({ orderId })
         .from(schema.productInteractions)
-        .where(
-          and(
-            eq(schema.productInteractions.productId, productId),
-            eq(schema.productInteractions.interactionType, 'purchase')
-          )
-        );
-
-      if (ordersWithProduct.length === 0) {
-        return [];
-      }
-
-      // استخراج order IDs
-      const orderIds = ordersWithProduct
-        .map(o => o.metadata && typeof o.metadata === 'object' && 'orderId' in o.metadata ? (o.metadata as any).orderId : null)
-        .filter(id => id !== null);
-
-      if (orderIds.length === 0) {
-        return [];
-      }
-
-      // العثور على المنتجات الأخرى في نفس الطلبات.
-      // Scoped to those order IDs: without this filter the query counted every
-      // purchase in the store and "bought together" was just the global
-      // bestseller list, which is why a heater page suggested driftwood.
+        .where(and(
+          inArray(schema.productInteractions.productId, ids),
+          eq(schema.productInteractions.interactionType, 'purchase'),
+          isNotNull(orderId),
+        ));
+      // Keep order IDs inside the database. Previously the projection was named
+      // orderId but the JS reader looked for metadata, so every result was lost.
+      const orderCount = sql<number>`COUNT(DISTINCT ${orderId})`;
       const coPurchasedProducts = await this.db
         .select({
           productId: schema.productInteractions.productId,
-          count: sql<number>`COUNT(*)`,
+          count: orderCount,
         })
         .from(schema.productInteractions)
         .where(
           and(
             eq(schema.productInteractions.interactionType, 'purchase'),
-            ne(schema.productInteractions.productId, productId),
-            inArray(sql`${schema.productInteractions.metadata}->>'orderId'`, orderIds)
+            notInArray(schema.productInteractions.productId, ids),
+            inArray(orderId, matchingOrders)
           )
         )
         .groupBy(schema.productInteractions.productId)
-        .having(sql`COUNT(*) >= 2`) // على الأقل مرتين
-        .orderBy(desc(sql`COUNT(*)`))
-        .limit(limit);
-
-      console.log(`[Recommendations] ✅ Found ${coPurchasedProducts.length} co-purchased products`);
+        .having(sql`${orderCount} >= 2`)
+        .orderBy(desc(orderCount), schema.productInteractions.productId)
+        .limit(Math.min(50, Math.max(1, limit)));
       return coPurchasedProducts.map(p => p.productId);
     } catch (error) {
       console.error('[Recommendations] Error finding co-purchased products:', error);
@@ -429,8 +424,12 @@ export class RecommendationEngine {
       const method = collaborativeRecs.length > 0 ? 'hybrid' : 'cold_start';
       console.log(`[Recommendations] ✅ Generated ${recommendations.length} personalized recommendations (${method})`);
 
+      const publicRows = recommendations.length ? await this.db.select({ id: schema.products.id })
+        .from(schema.products).where(and(inArray(schema.products.id, recommendations),
+          isNull(schema.products.deletedAt), eq(schema.products.isStorefrontVisible, true))) : [];
+      const publicIds = new Set(publicRows.map(product => product.id));
       return {
-        productIds: recommendations,
+        productIds: recommendations.filter(id => publicIds.has(id)),
         method
       };
     } catch (error) {

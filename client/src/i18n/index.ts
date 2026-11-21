@@ -160,20 +160,36 @@ if (!i18next.isInitialized) {
   } as InitOptions);
 }
 
-const loaded = new Set<string>([DEFAULT_LOCALE]);
+// Feature dictionaries are large in every language. Only the shell namespaces
+// are needed before App evaluates; lazyWithTranslations loads feature copy
+// before the corresponding module can evaluate its translated constants.
+export const SHELL_NAMESPACES = NAMESPACES.filter((namespace) => namespace !== "tools" && namespace !== "guides");
+const pendingBundles = new Map<string, Promise<void>>();
 
-/** Load every namespace of a locale (no-op for Arabic and for locales already loaded). */
-export async function loadLocale(locale: Locale): Promise<void> {
-  if (loaded.has(locale)) return;
-  await Promise.all(
-    NAMESPACES.map(async (ns) => {
-      const loader = bundles[`../locales/${locale}/${ns}.json`];
+export async function loadLocaleNamespaces(locale: Locale, namespaces: readonly Namespace[]): Promise<void> {
+  const deferred = namespaces.filter((namespace): namespace is DeferredArabicNamespace =>
+    namespace === "tools" || namespace === "guides");
+  await Promise.all([
+    loadArabicNamespaces(deferred),
+    ...namespaces.map((namespace) => {
+      if (locale === DEFAULT_LOCALE || i18next.hasResourceBundle(locale, namespace)) return;
+      const key = `${locale}/${namespace}`;
+      const pending = pendingBundles.get(key);
+      if (pending) return pending;
+      const loader = bundles[`../locales/${locale}/${namespace}.json`];
       if (!loader) return;
-      const mod = await loader();
-      i18next.addResourceBundle(locale, ns, mod.default, true, true);
+      const request = loader()
+        .then(({ default: resources }) => { i18next.addResourceBundle(locale, namespace, resources, true, true); })
+        .finally(() => { pendingBundles.delete(key); });
+      pendingBundles.set(key, request);
+      return request;
     }),
-  );
-  loaded.add(locale);
+  ]);
+}
+
+/** Load shell copy only; deferred features load their own locale and fallback. */
+export async function loadLocale(locale: Locale): Promise<void> {
+  await loadLocaleNamespaces(locale, SHELL_NAMESPACES);
 }
 
 /** Load the locale's bundles and make it active. Called before the app modules are imported. */

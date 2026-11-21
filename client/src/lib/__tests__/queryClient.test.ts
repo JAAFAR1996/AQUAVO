@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { queryClient, apiRequest, getQueryFn } from '../queryClient';
+import { queryClient, apiRequest, getQueryFn, fetchWithRetryOn503 } from '../queryClient';
 
 describe('QueryClient', () => {
     beforeEach(() => {
@@ -13,6 +13,7 @@ describe('QueryClient', () => {
     });
 
     afterEach(() => {
+        vi.useRealTimers();
         vi.restoreAllMocks();
     });
 
@@ -34,13 +35,46 @@ describe('QueryClient', () => {
             expect(defaultOptions.queries?.staleTime).toBe(5 * 60 * 1000);
         });
 
-        it('should retry queries twice', () => {
+        it('does not multiply the bounded fetch retry budget or replay mutations', () => {
             const defaultOptions = queryClient.getDefaultOptions();
-            expect(defaultOptions.queries?.retry).toBe(2);
+            expect(defaultOptions.queries?.retry).toBe(false);
+            expect(defaultOptions.mutations?.retry).toBe(false);
         });
     });
 
     describe('apiRequest', () => {
+        it('never retries an unkeyed POST after a 503', async () => {
+            vi.mocked(fetch).mockResolvedValue(new Response('unavailable', { status: 503 }));
+            await expect(apiRequest('POST', '/api/expenses', { amount: 100 })).rejects.toThrow('503');
+            expect(fetch).toHaveBeenCalledTimes(1);
+        });
+
+        it('honors the caller timeout instead of always waiting 30 seconds', async () => {
+            vi.useFakeTimers();
+            vi.mocked(fetch).mockImplementation((_url, init) => new Promise((_resolve, reject) => {
+                init?.signal?.addEventListener('abort', () => reject(new DOMException('timeout', 'AbortError')));
+            }));
+            const result = apiRequest('GET', '/api/test', undefined, 125).catch(error => error);
+            await vi.advanceTimersByTimeAsync(125);
+            expect(await result).toBeInstanceOf(Error);
+            expect(fetch).toHaveBeenCalledTimes(1);
+        });
+
+        it('keeps 503 retries inside one total wait budget', async () => {
+            vi.useFakeTimers();
+            vi.mocked(fetch).mockImplementation(async () => new Response('busy', {status:503, headers:{'Retry-After':'3'}}));
+            const pending = fetchWithRetryOn503('/api/test', {}, 4000);
+            await vi.advanceTimersByTimeAsync(3000);
+            expect((await pending).status).toBe(503);
+            expect(fetch).toHaveBeenCalledTimes(2);
+        });
+
+        it('does not start a fetch for an already cancelled query', async () => {
+            const controller = new AbortController();
+            controller.abort();
+            await expect(fetchWithRetryOn503('/api/test', {signal:controller.signal})).rejects.toMatchObject({name:'AbortError'});
+            expect(fetch).not.toHaveBeenCalled();
+        });
         it('should make GET request', async () => {
             (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
                 ok: true,
