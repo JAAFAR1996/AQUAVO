@@ -50,6 +50,8 @@ try {
         const page = await context.newPage();
         const errors = [];
         let draft;
+        let invoiceStatus = "sent";
+        let confirmations = 0;
         page.on("pageerror", error => errors.push(error.message));
         await page.addInitScript(() => localStorage.setItem("aquavo_first_dive_seen_v2", "1"));
         await context.route("**/*", route => {
@@ -71,8 +73,14 @@ try {
               } else data = { success: true, data: [] };
               break;
             case "/api/invoice/test":
-              data = { success: true, data: { ...draft, invoiceNo: "TEST", status: "sent",
+              data = { success: true, data: { ...draft, invoiceNo: "TEST", status: invoiceStatus,
                 items: draft.items.map(line => ({ ...line, name: language === "ckb" ? "ئەکواریۆمی تاقیکردنەوە" : line.name })) } };
+              break;
+            case "/api/invoice/test/confirm":
+              assert.equal(route.request().method(), "POST");
+              confirmations += 1;
+              invoiceStatus = "confirmed";
+              data = { success: true, orderId: "fixture-order", invoiceNo: "TEST" };
               break;
             default: return route.fulfill({ status: 404, json: {} });
           }
@@ -113,8 +121,32 @@ try {
         await expect(print).toBeHidden();
         await expect(receiptTotal).toBeVisible();
         await expect(receipt.getByText(language === "ckb" ? "ئەکواریۆمی تاقیکردنەوە" : "حوض اختبار — كبير")).toBeVisible();
+        // The visual printer must not exist until a customer actually confirms.
+        await page.emulateMedia({ media: "screen", reducedMotion: "no-preference" });
+        const machine = receipt.locator("[data-aqv-receipt]");
+        await expect(machine).toHaveCount(0);
+        page.once("dialog", dialog => dialog.accept());
+        await receipt.getByRole("button", { name: copy["invoice-view"].s24, exact: true }).tap();
+        await expect(machine).toBeVisible({ timeout: 15000 });
+        await expect(machine).toHaveAttribute("lang", language);
+        await expect(machine).toHaveAttribute("dir", "rtl");
+        await expect(machine).toHaveAttribute("data-stage", "complete", { timeout: 15000 });
+        await expect(machine.getByText(language === "ckb" ? "ئەکواریۆمی تاقیکردنەوە" : "حوض اختبار — كبير", { exact: true })).toBeVisible();
+        assert.equal(confirmations, 1);
+        await page.emulateMedia({ media: "print" });
+        await expect(machine).toBeHidden();
+        await expect(receiptTotal).toBeVisible();
+        await page.emulateMedia({ media: "screen", reducedMotion: "reduce" });
+        await page.reload();
+        await expect(machine).toBeVisible({ timeout: 20000 });
+        await expect(machine).toHaveAttribute("data-stage", "complete");
+        assert.equal(confirmations, 1);
+        invoiceStatus = "rejected";
+        await page.reload();
+        await expect(receipt).toBeVisible({ timeout: 20000 });
+        await expect(machine).toHaveCount(0);
         assert.deepEqual(errors, []);
-        console.log(`${engine.name()} 390px ${language}: pending and sold-out options, draft, receipt, print passed`);
+        console.log(`${engine.name()} 390px ${language}: pending and sold-out options, draft, receipt, confirmation animation, reload, rejection, print passed`);
       } finally { await context.close(); }
     }
     await browser.close();

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "wouter";
 import { CheckCircle2, XCircle, Clock, Package, MapPin, AlertTriangle, Loader2, Sparkles } from "lucide-react";
 import { addCsrfHeader } from "@/lib/csrf";
@@ -6,6 +6,8 @@ import { useTranslation } from "react-i18next";
 import { loadLocale } from "@/i18n";
 import { LOCALES, localizePath, splitLocaleFromPath } from "@shared/i18n/locales";
 import type { ManualInvoiceLocale } from "@shared/manual-invoice-locale";
+import { OrderReceiptPrinter } from "@/components/cart/order-receipt-printer";
+import { primeReceiptPrinterAudio } from "@/lib/receipt-printer-audio";
 import "./invoice-print.css";
 
 interface InvoiceItem {
@@ -59,6 +61,12 @@ export default function InvoiceView() {
   const [error, setError] = useState<"unavailable" | "expired" | "s6" | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [actionDone, setActionDone] = useState<"confirmed" | "rejected" | null>(null);
+  const printerRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (actionDone === "confirmed" && invoice?.status === "confirmed") {
+      printerRef.current?.scrollIntoView({ block: "start", behavior: "auto" });
+    }
+  }, [actionDone, invoice?.status]);
   useEffect(() => {
     const controller = new AbortController();
     setLoading(true);
@@ -95,6 +103,9 @@ export default function InvoiceView() {
   };
 
   const handleConfirm = async () => {
+    // Unlock and prefetch the existing printer sound within the original click.
+    // This is silent, even if the customer cancels or confirmation fails.
+    primeReceiptPrinterAudio();
     if (!confirm(t("invoice-view.s7"))) return;
     setActionLoading(true);
     try {
@@ -107,7 +118,7 @@ export default function InvoiceView() {
       const d = await r.json();
       if (d.success) {
         setActionDone("confirmed");
-        setInvoice(prev => prev ? { ...prev, status: "confirmed" } : prev);
+        setInvoice(prev => prev ? { ...prev, status: "confirmed", orderId: d.orderId ?? prev.orderId } : prev);
       } else {
         alert(actionError(r.status, d.message));
       }
@@ -184,6 +195,8 @@ export default function InvoiceView() {
   if (!invoice) return null;
 
   const statusCfg = STATUS_CONFIG[invoice.status] ?? STATUS_CONFIG.sent;
+  const receiptDate = new Date(invoice.confirmedAt ?? invoice.createdAt);
+  const receiptDateLabel = Number.isNaN(receiptDate.getTime()) ? undefined : receiptDate.toLocaleString(LOCALES[locale].intl, { timeZone: "Asia/Baghdad", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
 
   return (
     <div className="manual-invoice-receipt" lang={locale} dir="rtl" style={s.page}>
@@ -314,6 +327,31 @@ export default function InvoiceView() {
               <a className="manual-invoice-screen-only" href={localizePath("/order-tracking", locale)} style={{ textDecoration: "underline" }}>
                 {t("order-confirmation.s22")}
               </a>
+            </div>
+          )}
+
+          {/* Same visual receipt as checkout, only after a successful order. */}
+          {(invoice.status === "confirmed" || invoice.status === "completed") && invoice.items.length > 0 && (
+            <div ref={printerRef} className="manual-invoice-screen-only" style={{ marginTop: 12, scrollMarginTop: 16 }}>
+              <OrderReceiptPrinter
+                key={token}
+                orderNumber={invoice.invoiceNo}
+                receiptLocale={locale === "ckb" ? "ckb" : "ar"}
+                items={invoice.items.map(item => ({
+                  productId: item.productId,
+                  productName: item.name,
+                  variantLabel: item.variantLabel && !item.name.endsWith(` — ${item.variantLabel}`) ? item.variantLabel : undefined,
+                  quantity: item.quantity,
+                  priceAtPurchase: String(item.unitPrice),
+                }))}
+                subtotal={invoice.subtotal}
+                deliveryFee={invoice.delivery}
+                discount={invoice.discount}
+                total={invoice.total}
+                roundingAdjustment={invoice.total - (invoice.subtotal - invoice.discount + invoice.delivery)}
+                paymentLabel={t("order-confirmation.s13")}
+                dateLabel={receiptDateLabel}
+              />
             </div>
           )}
 

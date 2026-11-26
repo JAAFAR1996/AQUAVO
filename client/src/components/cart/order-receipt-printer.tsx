@@ -22,6 +22,8 @@ interface OrderReceiptPrinterProps {
   total: number;
   paymentLabel: string;
   dateLabel?: string;
+  receiptLocale?: "ar" | "en" | "ckb";
+  roundingAdjustment?: number;
 }
 
 type PrinterStage = "idle" | "processing" | "printing" | "complete";
@@ -30,21 +32,21 @@ const strings = {
   ar: {
     receipt: "إيصال الطلب", confirmed: "تم تسجيل الطلب", number: "رقم الطلب",
     items: "المنتجات", subtotal: "المجموع الفرعي", delivery: "التوصيل",
-    discount: "الخصم", total: "الإجمالي", payment: "طريقة الدفع / الحالة",
+    discount: "الخصم", rounding: "تقريب المبلغ", total: "الإجمالي", payment: "طريقة الدفع / الحالة",
     thanks: "شكرا لتسوقك من AQUAVO", processing: "جاري تجهيز الإيصال",
     printing: "جاري طباعة الإيصال", complete: "الإيصال جاهز", store: "المتجر", replay: "إعادة عرض الحركة", soundUnavailable: "تعذر تشغيل صوت الطابعة. تأكد من اتصال الإنترنت والصوت بالجهاز وجرب إعادة الحركة.",
   },
   en: {
     receipt: "Order receipt", confirmed: "Order received", number: "Order number",
     items: "Items", subtotal: "Subtotal", delivery: "Delivery",
-    discount: "Discount", total: "Total", payment: "Payment method / status",
+    discount: "Discount", rounding: "Rounding adjustment", total: "Total", payment: "Payment method / status",
     thanks: "Thank you for shopping with AQUAVO", processing: "Preparing receipt",
     printing: "Printing your receipt", complete: "Receipt ready", store: "Shop", replay: "Replay", soundUnavailable: "Printer audio could not start. Check your connection and device volume, then replay.",
   },
   ckb: {
     receipt: "پسووڵەی داواکاری", confirmed: "داواکارییەکەت تۆمار کرا", number: "ژمارەی داواکاری",
     items: "بەرهەمەکان", subtotal: "کۆی سەرەتایی", delivery: "گەیاندن",
-    discount: "داشکاندن", total: "کۆی گشتی", payment: "شێواز / دۆخی پارەدان",
+    discount: "داشکاندن", rounding: "نزیککردنەوەی بڕ", total: "کۆی گشتی", payment: "شێواز / دۆخی پارەدان",
     thanks: "سوپاس بۆ کڕین لە AQUAVO", processing: "ئامادەکردنی پسووڵە",
     printing: "چاپکردنی پسووڵە", complete: "پسووڵە ئامادەیە", store: "فرۆشگا", replay: "دووبارە پیشاندان", soundUnavailable: "دەنگی چاپکەرەکە کار نەکرد. پەیوەندی ئینتەرنێت و دەنگی ئامێرەکەت بپشکنە و دووبارە هەوڵ بدە.",
   },
@@ -68,10 +70,10 @@ const paperCut = "polygon(0 0,100% 0,100% calc(100% - 4px)," + toothPoints + ")"
  * creates an invoice, or represents cash-on-delivery as paid.
  */
 export function OrderReceiptPrinter({
-  orderNumber, items, subtotal, deliveryFee, discount, total, paymentLabel, dateLabel,
+  orderNumber, items, subtotal, deliveryFee, discount, total, paymentLabel, dateLabel, receiptLocale, roundingAdjustment = 0,
 }: OrderReceiptPrinterProps) {
   const { i18n } = useTranslation();
-  const language = (i18n.resolvedLanguage ?? i18n.language ?? "ar").split("-")[0];
+  const language = receiptLocale ?? (i18n.resolvedLanguage ?? i18n.language ?? "ar").split("-")[0];
   const s = strings[language as keyof typeof strings] ?? strings.ar;
   const reduced = useReducedMotion();
   const machineRef = useRef<HTMLDivElement>(null);
@@ -157,6 +159,8 @@ export function OrderReceiptPrinter({
     <section
       className="relative mx-auto flex w-full max-w-[396px] flex-col items-center py-1"
       aria-label={s.receipt}
+      lang={language}
+      dir={i18n.dir(language)}
       data-aqv-receipt
       data-stage={reduced ? "complete" : stage}
       data-animation-run={runId}
@@ -179,7 +183,7 @@ export function OrderReceiptPrinter({
       <div ref={machineRef} className="relative z-20 w-full overflow-hidden rounded-[25px] border border-[#181c1e] bg-[#2b3032] px-3 pb-8 pt-3 text-[#F6F4EF] shadow-[0_20px_36px_-20px_rgba(11,30,40,.56),0_6px_14px_-8px_rgba(11,30,40,.3),inset_0_1px_0_rgba(255,255,255,.16)]">
         <div className="relative z-10 flex h-11 items-start justify-between gap-3 px-1">
           <img src="/brand/aquavo-v2-icon.svg" alt="" width={29} height={29} className="h-7 w-7 object-contain" />
-          <a href="/" className="rounded-xl border border-white/10 bg-[#43494b] px-3 py-1.5 text-xs font-semibold text-white shadow-[0_3px_0_rgba(0,0,0,.45)] transition-colors hover:bg-[#545b5d] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B93A6]">
+          <a href={receiptLocale && receiptLocale !== "ar" ? `/${receiptLocale}` : "/"} className="rounded-xl border border-white/10 bg-[#43494b] px-3 py-1.5 text-xs font-semibold text-white shadow-[0_3px_0_rgba(0,0,0,.45)] transition-colors hover:bg-[#545b5d] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B93A6]">
             {s.store}
           </a>
         </div>
@@ -253,7 +257,7 @@ export function OrderReceiptPrinter({
           className="relative drop-shadow-[0_12px_14px_rgba(11,30,40,.16)]"
         >
           <article
-            dir={i18n.dir()}
+            dir={i18n.dir(language)}
             className="relative min-h-[380px] bg-[#FFFEFB] px-6 pb-9 pt-7 text-[#0B1E28] shadow-[0_8px_25px_rgba(11,30,40,.18)]"
             style={{ clipPath: paperCut }}
             aria-label={s.receipt}
@@ -285,6 +289,7 @@ export function OrderReceiptPrinter({
               <div className="flex justify-between gap-2"><span>{s.subtotal}</span><bdi dir="ltr">{formatIQD(subtotal)}</bdi></div>
               <div className="flex justify-between gap-2"><span>{s.delivery}</span><bdi dir="ltr">{formatIQD(deliveryFee)}</bdi></div>
               {discount > 0 && <div className="flex justify-between gap-2"><span>{s.discount}</span><bdi dir="ltr">-{formatIQD(discount)}</bdi></div>}
+              {roundingAdjustment !== 0 && <div className="flex justify-between gap-2"><span>{s.rounding}</span><bdi dir="ltr">{roundingAdjustment > 0 ? "+" : "-"}{formatIQD(Math.abs(roundingAdjustment))}</bdi></div>}
             </div>
 
             <div className="flex items-center justify-between gap-2 py-4 text-sm font-extrabold">
