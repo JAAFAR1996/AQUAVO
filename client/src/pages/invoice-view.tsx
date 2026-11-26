@@ -195,7 +195,8 @@ export default function InvoiceView() {
   if (!invoice) return null;
 
   const statusCfg = STATUS_CONFIG[invoice.status] ?? STATUS_CONFIG.sent;
-  const receiptDate = new Date(invoice.confirmedAt ?? invoice.createdAt);
+  // Use the stored invoice date consistently on first confirmation and reopen.
+  const receiptDate = new Date(invoice.createdAt);
   const receiptDateLabel = Number.isNaN(receiptDate.getTime()) ? undefined : receiptDate.toLocaleString(LOCALES[locale].intl, { timeZone: "Asia/Baghdad", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
 
   return (
